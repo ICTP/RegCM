@@ -24,9 +24,12 @@
 !-----------------------------------------------------------------------
 !
       use ESMF
+!
       use mod_regcm_interface
       use mod_atm_interface
       use mod_couplerr
+      use mod_runparams
+      use mod_dynparam
 !
       implicit none
       private
@@ -97,7 +100,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_constants, only : d_zero
-      use mod_runparams, only : dtsec
 !
       implicit none
 !
@@ -192,14 +194,6 @@
       end subroutine RCM_SetInitialize
 !
       subroutine RCM_SetRun(comp, importState, exportState, clock, rc)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_dynparam,  only : debug_level
-      use mod_runparams, only : dtsec
-!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -417,8 +411,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_date 
-      use mod_runparams
-      use mod_dynparam, only : debug_level
 !
       implicit none
 !
@@ -611,14 +603,6 @@
       end subroutine RCM_SetClock
 !
       subroutine RCM_SetGridArrays ()
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_runparams,     only : vtk_on, dtcpl
-      use mod_dynparam,      only : iy, jx, nproc, debug_level
-!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -797,8 +781,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common
-      use mod_runparams, only : vtk_on, dtcpl
-      use mod_dynparam,  only : debug_level
 !
       implicit none
 !
@@ -813,6 +795,7 @@
 !-----------------------------------------------------------------------
 !
       integer :: i, j, id, n, rc, localDECount
+!      integer :: ii, jj, imin, imax, jmin, jmax
       logical :: flag
       character (len=40) :: name
       type(ESMF_StaggerLoc) :: staggerLoc
@@ -889,51 +872,75 @@
 !     Put data     
 !-----------------------------------------------------------------------
 !      
-      if (trim(adjustl(name)) == "Pair") then
+!      if (trim(adjustl(name)) == "Pair") then
 !       unit: millibar       
-        models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
-      elseif (trim(adjustl(name)) == "Tair") then 
-!       unit: celsius
-!        ptr = sts2%tg(:,1:jxp)-tzero
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(t2m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
-      else if (trim(adjustl(name)) == "Qair") then
+!        models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
+!      elseif (trim(adjustl(name)) == "Tair") then 
+!       unit: kelvin 
+!        models(Iatmos)%dataExport(i,n)%ptr = tground1(:,1:jxp) 
+!      else if (trim(adjustl(name)) == "Qair") then
 !       unit: kg/kg
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
-      else if (trim(adjustl(name)) == "swrad") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = fsw2d(iym2,:) 
-      else if (trim(adjustl(name)) == "lwrad_down") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = flw2d(iym2,:)
-      else if (trim(adjustl(name)) == "rain") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) =                    &
-                       pptnc(iym2,:)+pptc(iym2,:)
-      else if (trim(adjustl(name)) == "Uwind") then
+!        print*, "** turuncu ** ptr ", localPet, &
+!        lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1), &
+!        ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1), &
+!        lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2), &
+!        ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+!        print*, "** turuncu ** q2m_o ", localPet, &
+!        lbound(q2m_o, dim=1), &
+!        ubound(q2m_o, dim=1), &
+!        lbound(q2m_o, dim=2), &
+!        ubound(q2m_o, dim=2)
+!
+!        imin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
+!        imax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
+!        jmin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+!        jmax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+!        !print*, "** turuncu ** indx 1 ", localPet, imin+1, imax-1, jmin, jmax
+!        do ii = imin+1, imax-1
+!        do jj = jmin, jmax
+!           !print*, "** turuncu ** indx ", localPet, ii, jj, jj-jmin+1, ii-1
+!           models(Iatmos)%dataExport(i,n)%ptr(ii,jj) = q2m_o(jj-jmin+1,ii-1)
+!        end do
+!        end do
+!        
+!        !models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
+!        print*, "** turuncu ** q2m_o 1 ", localPet, models(Iatmos)%dataExport(i,n)%ptr 
+!        !print*, "** turuncu ** q2m_o 2 ", localPet, q2m_o 
+!   
+!
+!
+!        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
+!      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+!                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+!        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+!                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+!      else if (trim(adjustl(name)) == "swrad") then
+!        ! one less
+!        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
+!        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
+!        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = fsw2d(iym2,:) 
+!      else if (trim(adjustl(name)) == "lwrad_down") then
+!        ! one less
+!        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
+!        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
+!        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = flw2d(iym2,:)
+!      else if (trim(adjustl(name)) == "rain") then
+!        ! one less
+!        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
+!        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
+!        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) =                    &
+!                       pptnc(iym2,:)+pptc(iym2,:)
+!      else if (trim(adjustl(name)) == "Uwind") then
 !       unit: meter/second
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(u10m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
-      else if (trim(adjustl(name)) == "Vwind") then
+!        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(u10m_o)
+!        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+!                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+!        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+!                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+!      else if (trim(adjustl(name)) == "Vwind") then
 !       unit: meter/second
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(v10m_o)
-      end if
+!        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(v10m_o)
+!      end if
       end do
 !
 !-----------------------------------------------------------------------
@@ -1006,9 +1013,9 @@
 !     Put data     
 !-----------------------------------------------------------------------
 !      
-      if (trim(adjustl(name)) == "SST") then
+!      if (trim(adjustl(name)) == "SST") then
         models(Iatmos)%dataImport(i,n)%ptr = MISSING_R8 
-      end if
+!      end if
       end do
 !
 !-----------------------------------------------------------------------
@@ -1034,6 +1041,7 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = 'debug level'
+      print*, "** turuncu ** attach debug_level = ", debug_level
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
                              value=debug_level,                         &
@@ -1062,7 +1070,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common
-      use mod_dynparam, only : debug_level
 !
       implicit none
 !
@@ -1077,6 +1084,7 @@
 !-----------------------------------------------------------------------
 !
       integer :: i, j, id, n, rc, localDECount
+      integer :: ii, jj, imin, imax, jmin, jmax
       logical :: flag
       character (len=40) :: name
       character (len=100) :: outfile
@@ -1095,53 +1103,78 @@
 !
       do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
       name = models(Iatmos)%dataExport(i,n)%name
+!
+!-----------------------------------------------------------------------
+!     Index 
+!-----------------------------------------------------------------------
+!
+      imin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
+      imax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
+      jmin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+      jmax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+!
+        models(Iatmos)%dataExport(i,n)%ptr = -999.9d0
+!
       if (trim(adjustl(name)) == "Pair") then
-!       unit: millibar       
+!       unit: hPa (mb)      
         models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
       else if (trim(adjustl(name)) == "Tair") then 
-!       unit: celsius
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(t2m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+!       unit: Kelvin
+        models(Iatmos)%dataExport(i,n)%ptr = tground1(:,1:jxp)
       else if (trim(adjustl(name)) == "Qair") then
 !       unit: kg/kg
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        do ii = imin+1, imax-1
+          do jj = jmin, jmax
+            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
+                                                   q2m_o(jj-jmin+1,ii-1)
+          end do
+        end do
+        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
       else if (trim(adjustl(name)) == "swrad") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
         models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = fsw2d(iym2,:) 
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "lwrad_down") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
         models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = flw2d(iym2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "rain") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
         models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
-        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) =                    &
-                       pptnc(iym2,:)+pptc(iym2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "Uwind") then
 !       unit: meter/second
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(u10m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        do ii = imin+1, imax-1
+          do jj = jmin, jmax
+            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
+                                                  u10m_o(jj-jmin+1,ii-1)
+          end do
+        end do
+        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
       else if (trim(adjustl(name)) == "Vwind") then
 !       unit: meter/second
-        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(v10m_o)
-        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
-                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        do ii = imin+1, imax-1
+          do jj = jmin, jmax
+            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
+                                                  v10m_o(jj-jmin+1,ii-1)
+          end do
+        end do
+        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
       end if
 !
 !-----------------------------------------------------------------------
@@ -1171,7 +1204,6 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_dynparam, only : jxp, debug_level
       use mod_bats_romsocn, only : sst2d
 !
       implicit none
@@ -1252,7 +1284,7 @@
 !
       select case (trim(adjustl(name)))
       case('SST')      
-        sst2d = (ptr*scale_factor)+add_offset
+          sst2d = (ptr*scale_factor)+add_offset
       end select
       end do
 !

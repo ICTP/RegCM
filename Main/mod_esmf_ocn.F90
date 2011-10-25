@@ -312,7 +312,7 @@
 !     Get import data 
 !-----------------------------------------------------------------------
 !
-      call ROMS_GetImportData () !, kstp, nstp, rc2)
+      call ROMS_GetImportData ()
 !
 !-----------------------------------------------------------------------
 !     Run ROMS
@@ -1073,7 +1073,7 @@
 !     Initialize pointer 
 !-----------------------------------------------------------------------
 !
-      models(Iocean)%dataExport(i,ng)%ptr = 0.0d0
+      models(Iocean)%dataExport(i,ng)%ptr = MISSING_R8 
 !
 !-----------------------------------------------------------------------
 !     Put data in it 
@@ -1085,7 +1085,7 @@
         do jj = JstrR, JendR
           do ii = IstrR, IendR
             models(Iocean)%dataExport(i,ng)%ptr(ii,jj) =                &
-                           OCEAN(ng)%t(ii,jj,N(ng),nstp(ng),itemp)
+                                 OCEAN(ng)%t(ii,jj,N(ng),nstp(ng),itemp)
           end do
         end do 
       end if        
@@ -1249,7 +1249,7 @@
         do j = JstrR, JendR
           do i = IstrR, IendR
             models(Iocean)%dataExport(k,ng)%ptr(i,j) =                  &
-                      OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)+273.15
+                                   OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)
           end do
         end do
       end select
@@ -1293,8 +1293,9 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use ocean_coupler_mod, only : rdata 
+      use ocean_coupler_mod, only : rdata, CoupleSteps 
       use mod_param, only : NtileI, NtileJ, BOUNDS, N, Lm, Mm
+      use mod_scalars, only : dt
 !
       implicit none
 !
@@ -1361,6 +1362,13 @@
       UBi = BOUNDS(ng)%UBi(localPet)
       LBj = BOUNDS(ng)%LBj(localPet)
       UBj = BOUNDS(ng)%UBj(localPet)
+!
+!-----------------------------------------------------------------------
+!     Set number of time-steps for how often to couple ROMS with RegCM 
+!-----------------------------------------------------------------------
+!
+      CoupleSteps(ng) = max(1, int(cpl_dtsec/dt(ng)))
+      print*, "** turuncu ** CoupleSteps =", ng, CoupleSteps(ng)
 !
 !-----------------------------------------------------------------------
 !     Get import fields

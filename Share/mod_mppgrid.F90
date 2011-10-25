@@ -1224,8 +1224,8 @@ module mod_mppgrid
       if ( pspace%btm /= mpi_proc_null ) then
         sndbuf1ds(1:njj) = l(1:njj,1)
       end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1,&
-                        rcvbuf1ds,csize,mpi_short,pspace%top,1,&
+      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1,&
+                        rcvbuf1ds,csize,mpi_integer2,pspace%top,1,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
@@ -1234,8 +1234,8 @@ module mod_mppgrid
       if ( pspace%rhs /= mpi_proc_null ) then
         sndbuf1ds(1:nii) = l(njj,1:nii)
       end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2,&
-                        rcvbuf1ds,csize,mpi_short,pspace%lhs,2,&
+      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2,&
+                        rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
@@ -1244,8 +1244,8 @@ module mod_mppgrid
       if ( pspace%lhs /= mpi_proc_null ) then
         sndbuf1ds(1:nii) = l(1,1:nii)
       end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3,&
-                        rcvbuf1ds,csize,mpi_short,pspace%rhs,3,&
+      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3,&
+                        rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
@@ -1254,8 +1254,8 @@ module mod_mppgrid
       if ( pspace%top /= mpi_proc_null ) then
         sndbuf1ds(1:njj) = l(1:njj,nii)
       end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4,&
-                        rcvbuf1ds,csize,mpi_short,pspace%btm,4,&
+      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4,&
+                        rcvbuf1ds,csize,mpi_integer2,pspace%btm,4,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
@@ -1264,8 +1264,8 @@ module mod_mppgrid
       if ( pspace%rht /= mpi_proc_null ) then
         sndcrnps(1) = l(njj,nii)
       end if
-      call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
-                        rcvcrnps,1,mpi_short,pspace%lhb,1, &
+      call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rht,1, &
+                        rcvcrnps,1,mpi_integer2,pspace%lhb,1, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
@@ -1274,8 +1274,8 @@ module mod_mppgrid
       if ( pspace%lhb /= mpi_proc_null ) then
         sndcrnps(1) = l(1,1)
       end if
-      call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lhb,2, &
-                        rcvcrnps,1,mpi_short,pspace%rht,2, &
+      call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lhb,2, &
+                        rcvcrnps,1,mpi_integer2,pspace%rht,2, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
@@ -1284,8 +1284,8 @@ module mod_mppgrid
       if ( pspace%rhb /= mpi_proc_null ) then
         sndcrnps(1) = l(njj,1)
       end if
-      call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
-                        rcvcrnps,1,mpi_short,pspace%lht,3, &
+      call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rhb,3, &
+                        rcvcrnps,1,mpi_integer2,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
@@ -1294,8 +1294,8 @@ module mod_mppgrid
       if ( pspace%lht /= mpi_proc_null ) then
         sndcrnps(1) = l(1,nii)
       end if
-      call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
-                        rcvcrnps,1,mpi_short,pspace%rhb,4, &
+      call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lht,4, &
+                        rcvcrnps,1,mpi_integer2,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
@@ -1715,8 +1715,8 @@ module mod_mppgrid
         if ( pspace%btm /= mpi_proc_null ) then
           sndbuf1ds(1:njj) = l(1:njj,1,k)
         end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1, &
-                          rcvbuf1ds,csize,mpi_short,pspace%top,1, &
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
@@ -1725,8 +1725,8 @@ module mod_mppgrid
         if ( pspace%rhs /= mpi_proc_null ) then
           sndbuf1ds(1:nii) = l(njj,1:nii,k)
         end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2, &
-                          rcvbuf1ds,csize,mpi_short,pspace%lhs,2, &
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
@@ -1735,8 +1735,8 @@ module mod_mppgrid
         if ( pspace%lhs /= mpi_proc_null ) then
           sndbuf1ds(1:nii) = l(1,1:nii,k)
         end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3, &
-                          rcvbuf1ds,csize,mpi_short,pspace%rhs,3, &
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
@@ -1745,8 +1745,8 @@ module mod_mppgrid
         if ( pspace%top /= mpi_proc_null ) then
           sndbuf1ds(1:njj) = l(1:njj,nii,k)
         end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4, &
-                          rcvbuf1ds,csize,mpi_short,pspace%btm,4, &
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
@@ -1755,8 +1755,8 @@ module mod_mppgrid
         if ( pspace%rht /= mpi_proc_null ) then
           sndcrnps(1) = l(njj,nii,k)
         end if
-        call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
-                          rcvcrnps,1,mpi_short,pspace%lhb,1, &
+        call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rht,1, &
+                          rcvcrnps,1,mpi_integer2,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
@@ -1765,8 +1765,8 @@ module mod_mppgrid
         if ( pspace%lhb /= mpi_proc_null ) then
           sndcrnps(1) = l(1,1,k)
         end if
-        call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lhb,2, &
-                          rcvcrnps,1,mpi_short,pspace%rht,2, &
+        call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lhb,2, &
+                          rcvcrnps,1,mpi_integer2,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
@@ -1775,8 +1775,8 @@ module mod_mppgrid
         if ( pspace%rhb /= mpi_proc_null ) then
           sndcrnps(1) = l(njj,1,k)
         end if
-        call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
-                          rcvcrnps,1,mpi_short,pspace%lht,3, &
+        call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rhb,3, &
+                          rcvcrnps,1,mpi_integer2,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
@@ -1785,8 +1785,8 @@ module mod_mppgrid
         if ( pspace%lht /= mpi_proc_null ) then
           sndcrnps(1) = l(1,nii,k)
         end if
-        call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
-                          rcvcrnps,1,mpi_short,pspace%rhb,4, &
+        call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lht,4, &
+                          rcvcrnps,1,mpi_integer2,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
@@ -2225,8 +2225,8 @@ module mod_mppgrid
           if ( pspace%btm /= mpi_proc_null ) then
             sndbuf1ds(1:njj) = l(1:njj,1,k,t)
           end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1, &
-                          rcvbuf1ds,csize,mpi_short,pspace%top,1, &
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
@@ -2235,8 +2235,8 @@ module mod_mppgrid
           if ( pspace%rhs /= mpi_proc_null ) then
             sndbuf1ds(1:nii) = l(njj,1:nii,k,t)
           end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2, &
-                          rcvbuf1ds,csize,mpi_short,pspace%lhs,2, &
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
@@ -2245,8 +2245,8 @@ module mod_mppgrid
           if ( pspace%lhs /= mpi_proc_null ) then
             sndbuf1ds(1:nii) = l(1,1:nii,k,t)
           end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3, &
-                          rcvbuf1ds,csize,mpi_short,pspace%rhs,3, &
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
@@ -2255,8 +2255,8 @@ module mod_mppgrid
           if ( pspace%top /= mpi_proc_null ) then
             sndbuf1ds(1:njj) = l(1:njj,nii,k,t)
           end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4, &
-                          rcvbuf1ds,csize,mpi_short,pspace%btm,4, &
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
@@ -2265,8 +2265,8 @@ module mod_mppgrid
           if ( pspace%rht /= mpi_proc_null ) then
             sndcrnps(1) = l(njj,nii,k,t)
           end if
-          call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
-                          rcvcrnps,1,mpi_short,pspace%lhb,1, &
+          call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rht,1, &
+                          rcvcrnps,1,mpi_integer2,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
@@ -2275,8 +2275,8 @@ module mod_mppgrid
           if ( pspace%lhb /= mpi_proc_null ) then
             sndcrnps(1) = l(1,1,k,t)
           end if
-          call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lhb,2, &
-                          rcvcrnps,1,mpi_short,pspace%rht,2, &
+          call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lhb,2, &
+                          rcvcrnps,1,mpi_integer2,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
@@ -2285,8 +2285,8 @@ module mod_mppgrid
           if ( pspace%rhb /= mpi_proc_null ) then
             sndcrnps(1) = l(njj,1,k,t)
           end if
-          call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
-                          rcvcrnps,1,mpi_short,pspace%lht,3, &
+          call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%rhb,3, &
+                          rcvcrnps,1,mpi_integer2,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
@@ -2295,8 +2295,8 @@ module mod_mppgrid
           if ( pspace%lht /= mpi_proc_null ) then
             sndcrnps(1) = l(1,nii,k,t)
           end if
-          call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
-                          rcvcrnps,1,mpi_short,pspace%rhb,4, &
+          call mpi_sendrecv(sndcrnps,1,mpi_integer2,pspace%lht,4, &
+                          rcvcrnps,1,mpi_integer2,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
@@ -3276,7 +3276,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      call mpi_bcast(v,1,mpi_short,masterproc, &
+      call mpi_bcast(v,1,mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
     end subroutine master_to_nodes_s
@@ -3341,7 +3341,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      call mpi_bcast(v,size(v),mpi_short,masterproc, &
+      call mpi_bcast(v,size(v),mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
     end subroutine master_to_nodes1d_s
@@ -3546,7 +3546,7 @@ module mod_mppgrid
                 icount = icount + 1
               end do
             end do
-            call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+            call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                           inode,0,pspace%cartesian_communicator,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           else
@@ -3558,7 +3558,7 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Master node using master_to_nodes as non master')
         end if
-        call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_short,masterproc,0, &
+        call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
@@ -3856,7 +3856,7 @@ module mod_mppgrid
                   icount = icount + 1
                 end do
               end do
-              call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+              call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                             inode,0,pspace%cartesian_communicator,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             end do
@@ -3870,7 +3870,7 @@ module mod_mppgrid
           'Master node using master_to_nodes as non master')
         end if
         do k = k1 , k2
-          call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_short,masterproc,0, &
+          call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
@@ -4221,7 +4221,7 @@ module mod_mppgrid
                     icount = icount + 1
                   end do
                 end do
-                call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+                call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                               inode,0,pspace%cartesian_communicator,ierr)
                 if ( ierr /= mpi_success ) then
                   call mpi_fatal(__FILE__,__LINE__,ierr)
@@ -4239,7 +4239,7 @@ module mod_mppgrid
         end if
         do t = t1 , t2
           do k = k1 , k2
-            call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_short, &
+            call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_integer2, &
                           masterproc,0,pspace%cartesian_communicator, &
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
@@ -4515,7 +4515,7 @@ module mod_mppgrid
         end if
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
-            call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+            call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                           inode,0,pspace%cartesian_communicator, &
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
@@ -4542,7 +4542,7 @@ module mod_mppgrid
             icount = icount + 1
           end do
         end do
-        call mpi_send(excbuf2ds,pspace%totalpoints,mpi_short,masterproc,0, &
+        call mpi_send(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       end if
@@ -4830,7 +4830,7 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
-              call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+              call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                             inode,0,pspace%cartesian_communicator, &
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
@@ -4859,7 +4859,7 @@ module mod_mppgrid
               icount = icount + 1
             end do
           end do
-          call mpi_send(excbuf2ds,pspace%totalpoints,mpi_short,masterproc,0, &
+          call mpi_send(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
                         pspace%cartesian_communicator,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         end do
@@ -5199,7 +5199,7 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do t = gt1 , gt2
               do k = gk1 , gk2
-                call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_short, &
+                call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
                               inode,0,pspace%cartesian_communicator, &
                               mpi_status_ignore,ierr)
                 if ( ierr /= mpi_success ) then
@@ -5232,7 +5232,7 @@ module mod_mppgrid
                 icount = icount + 1
               end do
             end do
-            call mpi_send(excbuf2ds,pspace%totalpoints,mpi_short, &
+            call mpi_send(excbuf2ds,pspace%totalpoints,mpi_integer2, &
                           masterproc,0,pspace%cartesian_communicator,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           end do

@@ -144,9 +144,7 @@
 !     Coupled model parameters
 !-----------------------------------------------------------------------
 !
-      real, parameter :: MISSING_R4 = 1.0e20
       real*8, parameter :: MISSING_R8 = 1.0d20
-      integer, parameter :: MISSING_I4 = -99999
 !
       integer :: cpl_dtsec, cpl_debug_level
       logical :: cpl_vtk_on
@@ -393,7 +391,7 @@
             models(i)%dataImport(1,j)%long_name = &
             'Sea Surface Temperature'
             models(i)%dataImport(1,j)%units = 'Kelvin'
-            models(i)%dataImport(1,j)%scale_factor = 0.0d0
+            models(i)%dataImport(1,j)%scale_factor = 1.0d0
             models(i)%dataImport(1,j)%add_offset = 273.15d0
 !
             models(i)%dataExport(1,j)%fid = 1
@@ -489,8 +487,8 @@
             models(i)%dataImport(3,j)%name = 'Qair'
             models(i)%dataImport(3,j)%long_name = &
             'Surface Air Specific Humidity'
-            models(i)%dataImport(3,j)%units = 'g/kg'
-            models(i)%dataImport(3,j)%scale_factor = 1.0d3 
+            models(i)%dataImport(3,j)%units = 'kg/kg'
+            models(i)%dataImport(3,j)%scale_factor = 1.0d0 
             models(i)%dataImport(3,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(4,j)%fid = 4
@@ -796,24 +794,5 @@
         end if
       end do
       end function getMeshId
-!
-      real*8 function viscair(tair)
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      real*8, intent(in) :: tair
-!
-!-----------------------------------------------------------------------
-!     Computes viscosity of air (Andreas (1989), CRREL Report 89-11).
-!     Input air temperature (tair) is in degree Celsius
-!-----------------------------------------------------------------------
-!
-      viscair = 1.326d-5*                                               &
-                (1+6.542d-3*tair+8.301d-6*tair**2-4.84e-9*tair**3)
-!   
-      end function viscair
 !
       end module mod_couplerr

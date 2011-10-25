@@ -365,6 +365,7 @@
                                 dstField=dstField,                      &
                                 routeHandle=routeHandleF,               &
                                 regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
+!                                regridmethod=ESMF_REGRIDMETHOD_PATCH,   &
                                 rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -418,6 +419,7 @@
                               unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
                               routeHandle=routeHandleB,                 &
                               regridmethod=ESMF_REGRIDMETHOD_BILINEAR,  &
+!                              regridmethod=ESMF_REGRIDMETHOD_PATCH,     &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !

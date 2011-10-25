@@ -30,8 +30,6 @@
       use mod_esmf_ocn
       use mod_esmf_cpl
 !
-      use mod_dynparam, only : debug_level
-!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -159,14 +157,10 @@
 !     need to use coupled model parameters in ocean component
 !-----------------------------------------------------------------------
 !
-      print*, "** turuncu ** debug_level1 = ", localPet, debug_level
-!
       first = .false.
       if (i == Iatmos) first = .true.
       call time_reconcile(first) 
       end do
-!
-      print*, "** turuncu ** debug_level2 = ", localPet, debug_level
 !
 !-----------------------------------------------------------------------
 !     Initialize coupler component
