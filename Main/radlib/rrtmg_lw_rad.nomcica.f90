@@ -4,7 +4,7 @@
 !     created:   $Date: 2009/11/12 20:52:25 $
 !
 
-       module rrtmg_lw_rad
+       module rrtmg_lw_rad_nomcica
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -309,7 +309,7 @@
       integer(kind=im) :: iout                ! output option flag (inactive)
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: iplon               ! column loop index
-      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
+!     integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
       integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ig                  ! g-point loop index
 
@@ -713,16 +713,16 @@
 
 ! Set molecular weight ratios (for converting mmr to vmr)
 !  e.g. h2ovmr = h2ommr * amdw)
-      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
-      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
-      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
-      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
-      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
-      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
-      real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
-      real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
+!      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
+!      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
+!      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
+!      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
+!      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
+!      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
+!      real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
+!      real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
 
-      integer(kind=im) :: isp, l, ix, n, imol, ib       ! Loop indices
+      integer(kind=im) :: l, ix, n, imol, ib       ! Loop indices
       real(kind=rb) :: amm, amttl, wvttl, wvsh, summol  
 
 ! Add one to nlayers here to include extra model layer at top of atmosphere
@@ -899,5 +899,5 @@
       
       end subroutine inatm
 
-      end module rrtmg_lw_rad
+      end module rrtmg_lw_rad_nomcica
 

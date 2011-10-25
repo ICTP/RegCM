@@ -205,8 +205,8 @@
       logical :: lrtchkclr(nlayers),lrtchkcld(nlayers)
 
       integer(kind=im)  :: klev
-      integer(kind=im) :: ib1, ib2, ibm, igt, ikl, ikp, ikx
-      integer(kind=im) :: iw, jb, jg, jl, jk
+      integer(kind=im) :: ib1, ib2, ibm, igt, ikl
+      integer(kind=im) :: iw, jb, jg, jk
 !      integer(kind=im), parameter :: nuv = ?? 
 !      integer(kind=im), parameter :: nvs = ?? 
       integer(kind=im) :: itind
@@ -214,24 +214,22 @@
       real(kind=rb) :: tblind, ze1
       real(kind=rb) :: zclear, zcloud
       real(kind=rb) :: zdbt(nlayers+1), zdbt_nodel(nlayers+1)
-      real(kind=rb) :: zgc(nlayers), zgcc(nlayers), zgco(nlayers)
-      real(kind=rb) :: zomc(nlayers), zomcc(nlayers), zomco(nlayers)
+      real(kind=rb) :: zgcc(nlayers), zgco(nlayers)
+      real(kind=rb) :: zomcc(nlayers), zomco(nlayers)
       real(kind=rb) :: zrdnd(nlayers+1), zrdndc(nlayers+1)
       real(kind=rb) :: zref(nlayers+1), zrefc(nlayers+1), zrefo(nlayers+1)
       real(kind=rb) :: zrefd(nlayers+1), zrefdc(nlayers+1), zrefdo(nlayers+1)
       real(kind=rb) :: zrup(nlayers+1), zrupd(nlayers+1)
       real(kind=rb) :: zrupc(nlayers+1), zrupdc(nlayers+1)
-      real(kind=rb) :: zs1(nlayers+1)
       real(kind=rb) :: ztauc(nlayers), ztauo(nlayers)
-      real(kind=rb) :: ztdn(nlayers+1), ztdnd(nlayers+1), ztdbt(nlayers+1)
-      real(kind=rb) :: ztoc(nlayers), ztor(nlayers)
+      real(kind=rb) :: ztdbt(nlayers+1)
       real(kind=rb) :: ztra(nlayers+1), ztrac(nlayers+1), ztrao(nlayers+1)
       real(kind=rb) :: ztrad(nlayers+1), ztradc(nlayers+1), ztrado(nlayers+1)
       real(kind=rb) :: zdbtc(nlayers+1), ztdbtc(nlayers+1)
       real(kind=rb) :: zincflx(ngptsw), zdbtc_nodel(nlayers+1) 
       real(kind=rb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
-      real(kind=rb) :: zdbtmc, zdbtmo, zf, zgw, zreflect
+      real(kind=rb) :: zdbtmc, zdbtmo, zf
       real(kind=rb) :: zwf, tauorig, repclc
 !     real(kind=rb) :: zincflux                                   ! inactive
 
@@ -421,7 +419,7 @@
                      zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else 
                      tblind = ze1 / (bpade + ze1)
-                     itind = tblint * tblind + 0.5_rb
+                     itind = idint(tblint * tblind + 0.5_rb)
                      zdbtmc = exp_tbl(itind)
                   endif
 
@@ -438,7 +436,7 @@
                      zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = tblint * tblind + 0.5_rb
+                     itind = idint(tblint * tblind + 0.5_rb)
                      zdbtmo = exp_tbl(itind)
                   endif
 
@@ -523,7 +521,7 @@
                   zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
+                  itind = idint(tblint * tblind + 0.5_rb)
                   zdbtmc = exp_tbl(itind)
                endif
 
@@ -540,7 +538,7 @@
                   zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
+                  itind = idint(tblint * tblind + 0.5_rb)
                   zdbtmo = exp_tbl(itind)
                endif
 

@@ -60,7 +60,7 @@ real(dp), dimension (iym1)  :: solin,frsa,sabtp,clrst,clrss, firtp, frla, clrlt,
 real(dp), dimension (iym1,kz)  :: qrs  ,qrl, clwp_int, cld_int,empty2
 
 
-integer:: dyofyr , inflgsw, iceflgsw, liqflgsw, icld, idrv, permuteseed,irng,iplon,ns,k,kj, &
+integer:: dyofyr , inflgsw, iceflgsw, liqflgsw, icld, idrv, permuteseed,irng,iplon,k,kj, &
           inflglw ,iceflglw,liqflglw
  
  real(dp) :: adjes
@@ -331,10 +331,10 @@ real(dp)  :: cldf(iym1,kz)
 !
     
       
-    real(dp) , dimension(iym1,kz) ::  h2ommr , o3mmr, n2ommr,co2mmr,ch4mmr, cfc11mmr,cfc12mmr
+    real(dp) , dimension(iym1,kz) ::  h2ommr , n2ommr,ch4mmr, cfc11mmr,cfc12mmr
     real(dp) , dimension(iym1,kz) :: deltaz
-    real(dp) :: c287,ccvtem,clwtem,w1,w2,wmin,wmax
-    integer :: i , k , kj , ncldm1, indxsl,ns,n,nrr,ii0,ii1,ii2
+    real(dp) :: c287,ccvtem,clwtem,w1,w2
+    integer :: i , k , kj , ncldm1, ns,n,ii0,ii1,ii2
     integer , dimension(iym1) :: ioro
     real(dp) , parameter :: lowcld = 1.0D-30
     real(8) , parameter :: verynearone = 0.999999D0

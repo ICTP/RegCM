@@ -87,7 +87,7 @@
       real(kind=rb) :: factor                         ! 
       real(kind=rb) :: fint                           ! 
       real(kind=rb) :: tauctot(nlayers)               ! band integrated cloud optical depth
-      real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
+!      real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
 
 ! ------- Definitions -------

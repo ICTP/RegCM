@@ -42,13 +42,13 @@
 ! hvrkg  :character: 
 !------------------------------------------------------------------
 
-      character*18 hvrrtm,hvrini,hvrcld,hvrclc,hvrrtr,hvrrtx, &
+      character(len=18) hvrrtm,hvrini,hvrcld,hvrclc,hvrrtr,hvrrtx, &
                    hvrrtc,hvrset,hvrtau,hvratm,hvrutl,hvrext
-      character*20 hnamrtm,hnamini,hnamcld,hnamclc,hnamrtr,hnamrtx, &
+      character(len=20) hnamrtm,hnamini,hnamcld,hnamclc,hnamrtr,hnamrtx, &
                    hnamrtc,hnamset,hnamtau,hnamatm,hnamutl,hnamext
 
-      character*18 hvrkg
-      character*20 hnamkg
+      character(len=18) hvrkg
+      character(len=20) hnamkg
 
       end module rrlw_vsn
 

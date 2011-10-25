@@ -4,7 +4,7 @@
 !     created:   $Date: 2009/05/22 22:22:22 $
 !
 
-       module rrtmg_sw_rad
+       module rrtmg_sw_rad_nomcica
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -301,14 +301,14 @@
                                               ! [0 = direct and diffuse fluxes are unscaled]
                                               ! [1 = direct and diffuse fluxes are scaled]
                                               ! (total downward fluxes are always delta scaled)
-      integer(kind=im) :: isccos              ! instrumental cosine response flag (inactive)
+!      integer(kind=im) :: isccos              ! instrumental cosine response flag (inactive)
       integer(kind=im) :: iplon               ! column loop index
       integer(kind=im) :: i                   ! layer loop index                       ! jk
       integer(kind=im) :: ib                  ! band loop index                        ! jsw
-      integer(kind=im) :: ia, ig              ! indices
-      integer(kind=im) :: k                   ! layer loop index
-      integer(kind=im) :: ims                 ! value for changing mcica permute seed
-      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
+      integer(kind=im) :: ia                  ! indices
+!      integer(kind=im) :: k                   ! layer loop index
+!      integer(kind=im) :: ims                 ! value for changing mcica permute seed
+!      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
 
       real(kind=rb) :: zepsec, zepzen         ! epsilon
       real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
@@ -364,7 +364,7 @@
                          fac10(nlay+1), fac11(nlay+1) 
 
 ! Atmosphere/clouds - cldprop
-      integer(kind=im) :: ncbands             ! number of cloud spectral bands
+!      integer(kind=im) :: ncbands             ! number of cloud spectral bands
       integer(kind=im) :: inflag              ! flag for cloud property method
       integer(kind=im) :: iceflag             ! flag for ice cloud properties
       integer(kind=im) :: liqflag             ! flag for liquid cloud properties
@@ -894,17 +894,17 @@
 
 ! Set molecular weight ratios (for converting mmr to vmr)
 !  e.g. h2ovmr = h2ommr * amdw)
-      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
-      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
-      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
-      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
-      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
-      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
+!      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
+!      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
+!      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
+!      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
+!      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
+!      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
 
-      real(kind=rb), parameter :: sbc = 5.67e-08_rb   ! Stefan-Boltzmann constant (W/m2K4)
+!      real(kind=rb), parameter :: sbc = 5.67e-08_rb   ! Stefan-Boltzmann constant (W/m2K4)
 
-      integer(kind=im) :: isp, l, ix, n, imol, ib       ! Loop indices
-      real(kind=rb) :: amm, summol                      ! 
+      integer(kind=im) :: l, n, imol, ib       ! Loop indices
+      real(kind=rb) :: amm
       real(kind=rb) :: adjflx                           ! flux adjustment for Earth/Sun distance
 !      real(kind=rb) :: earth_sun                        ! function for Earth/Sun distance adjustment
 
@@ -1078,6 +1078,4 @@
 
       end subroutine inatm_sw
 
-      end module rrtmg_sw_rad
-
-
+      end module rrtmg_sw_rad_nomcica

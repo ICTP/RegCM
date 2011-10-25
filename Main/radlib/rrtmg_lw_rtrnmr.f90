@@ -121,14 +121,14 @@
 
 ! ----- Local -----
 ! Declarations for radiative transfer
-      real(kind=rb) :: abscld(nlayers,nbndlw)
+!      real(kind=rb) :: abscld(nlayers,nbndlw)
       real(kind=rb) :: atot(nlayers)
       real(kind=rb) :: atrans(nlayers)
       real(kind=rb) :: bbugas(nlayers)
       real(kind=rb) :: bbutot(nlayers)
       real(kind=rb) :: clrurad(0:nlayers)
       real(kind=rb) :: clrdrad(0:nlayers)
-      real(kind=rb) :: efclfrac(nlayers,nbndlw)
+!      real(kind=rb) :: efclfrac(nlayers,nbndlw)
       real(kind=rb) :: uflux(0:nlayers)
       real(kind=rb) :: dflux(0:nlayers)
       real(kind=rb) :: urad(0:nlayers)
@@ -140,7 +140,8 @@
       real(kind=rb) :: secdiff(nbndlw)                 ! secant of diffusivity angle
       real(kind=rb) :: a0(nbndlw),a1(nbndlw),a2(nbndlw)! diffusivity angle adjustment coefficients
       real(kind=rb) :: wtdiff, rec_6
-      real(kind=rb) :: transcld, radld, radclrd, plfrac, blay, dplankup, dplankdn
+!      real(kind=rb) :: transcld
+      real(kind=rb) :: radld, radclrd, plfrac, blay, dplankup, dplankdn
       real(kind=rb) :: odepth, odtot, odepth_rec, odtot_rec, gassrc, ttot
       real(kind=rb) :: tblind, tfactot, bbd, bbdtot, tfacgas, transc, tausfac
       real(kind=rb) :: rad0, reflect, radlu, radclru
@@ -533,7 +534,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = tblint*tblind + 0.5_rb
+                     ittot = idint(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -543,7 +544,7 @@
                      bbutot(lev) = plfrac * (blay + tfactot * dplankup)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itgas = tblint*tblind+0.5_rb
+                     itgas = idint(tblint*tblind+0.5_rb)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -551,7 +552,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = tblint*tblind + 0.5_rb
+                     ittot = idint(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
@@ -595,7 +596,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = tblint*tblind+0.5_rb
+                     itr = idint(tblint*tblind+0.5_rb)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

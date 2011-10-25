@@ -395,7 +395,6 @@ print*, 'FAB LW init' , tblint
       integer(kind=im) :: jt, jp, igc, ipr, iprsm 
       real(kind=rb) :: sumk, sumk1, sumk2, sumf1, sumf2
 
-
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
@@ -493,7 +492,6 @@ print*, 'FAB LW init' , tblint
       integer(kind=im) :: jt, jp, igc, ipr, iprsm 
       real(kind=rb) :: sumk, sumf1, sumf2
 
-
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
@@ -577,7 +575,6 @@ print*, 'FAB LW init' , tblint
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm 
       real(kind=rb) :: sumk, sumf
-
 
       do jn = 1,9
          do jt = 1,5
@@ -704,7 +701,6 @@ print*, 'FAB LW init' , tblint
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm 
       real(kind=rb) :: sumk, sumf
-
 
       do jn = 1,9
          do jt = 1,5
@@ -1763,7 +1759,6 @@ print*, 'FAB LW init' , tblint
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm 
       real(kind=rb) :: sumk, sumf1, sumf2
-
 
       do jt = 1,5
          do jp = 1,13
