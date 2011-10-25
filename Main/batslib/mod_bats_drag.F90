@@ -26,7 +26,7 @@ module mod_bats_drag
 !
   private
 !
-  public :: drag , depth
+  public :: dragc , depth
 !
   contains
 ! 
@@ -45,7 +45,7 @@ module mod_bats_drag
 !
 !=======================================================================
 !
-  subroutine drag(jstart,jend,istart,iend)
+  subroutine dragc(jstart,jend,istart,iend)
 ! 
   implicit none
 !
@@ -66,49 +66,49 @@ module mod_bats_drag
         ! 2.  compute stability as bulk rich. no. = rin/rid =
         !     ri(numerator)/ri(denominator)
         !=======================================================================
-        if ( ldoc1d(n,i) /= 0 ) then
-          zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i) + &
-                    z1d(n,i)*(d_one-sigf(n,i))
+        if ( ldimsk(n,j,i) /= 0 ) then
+          zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
+                    zh(n,j,i)*(d_one-sigf(n,j,i))
         else
-          zatild = z1d(n,i)
+          zatild = zh(n,j,i)
         end if
-        ribn(n,i) = zatild*egrav*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)- &
-                    (d_one-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
+        ribn(n,j,i) = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
+                    (d_one-sigf(n,j,i))*tgrd(n,j,i))/sts(n,j,i)
         !=======================================================================
         !         2.1  compute the bulk richardson number;
         !         first get avg winds to use for ri number by summing the
         !         squares of horiz., vertical, and convective velocities
         !=======================================================================
-        if ( ribn(n,i) <= d_zero ) then
-          dthdz = (d_one-sigf(n,i))*tg1d(n,i) + &
-                   sigf(n,i)*taf1d(n,i) - ts1d(n,i)
+        if ( ribn(n,j,i) <= d_zero ) then
+          dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
+                   sigf(n,j,i)*taf(n,j,i) - sts(n,j,i)
           u1 = wtur + d_two*dsqrt(dthdz)
-          ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
+          ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u1**d_two
         else
           u2 = wtur
-          ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u2**d_two
+          ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u2**d_two
         end if
-        vspda(n,i) = dsqrt(ribd(n,i))
-        if ( vspda(n,i) < d_one ) then
-          vspda(n,i) = d_one
-          ribd(n,i) = d_one
+        vspda(n,j,i) = dsqrt(ribd(n,j,i))
+        if ( vspda(n,j,i) < d_one ) then
+          vspda(n,j,i) = d_one
+          ribd(n,j,i) = d_one
         end if
-        rib(n,i) = ribn(n,i)/ribd(n,i)
+        rib(n,j,i) = ribn(n,j,i)/ribd(n,j,i)
         !=======================================================================
         !         3.   obtain drag coefficient as product of neutral value
         !         and stability correction
         !=======================================================================
         ! -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
-        if ( rib(n,i) < d_zero ) then
-          cdr(n,i) = cdrn(n,i)* &
-                   (d_one+24.5D0*dsqrt(-cdrn(n,i)*rib(n,i)))
+        if ( rib(n,j,i) < d_zero ) then
+          cdr(n,j,i) = cdrn(n,j,i)* &
+                   (d_one+24.5D0*dsqrt(-cdrn(n,j,i)*rib(n,j,i)))
         else
-          cdr(n,i) = cdrn(n,i)/(d_one+11.5D0*rib(n,i))
+          cdr(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*rib(n,j,i))
         end if
         ! 3.1  apply lower limit to drag coefficient value
-        cdrmin(n,i) = dmax1(0.25D0*cdrn(n,i),6.0D-4)
-        if ( cdr(n,i) < cdrmin(n,i) ) cdr(n,i) = cdrmin(n,i)
-        cdrx(n,i) = cdr(n,i)
+        cdrmin(n,j,i) = dmax1(0.25D0*cdrn(n,j,i),6.0D-4)
+        if ( cdr(n,j,i) < cdrmin(n,j,i) ) cdr(n,j,i) = cdrmin(n,j,i)
+        cdrx(n,j,i) = cdr(n,j,i)
       end do
     end do
   end do
@@ -123,25 +123,25 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldoc1d(n,i) == 2 ) then       !  check each point
-          cdrn(n,i) = (vonkar/zlgsno(n,i))**d_two
+        if ( ldimsk(n,j,i) == 2 ) then       !  check each point
+          cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**d_two
           ! 4.1  drag coefficient over leads
-          ribl(n,i) = (d_one-271.5D0/ts1d(n,i))* &
-                       z1d(n,i)*egrav/ribd(n,i)
-          if ( ribl(n,i) >= d_zero ) then
-            clead(n,i) = cdrn(n,i)/(d_one+11.5D0*ribl(n,i))
+          ribl(n,j,i) = (d_one-271.5D0/sts(n,j,i))* &
+                       zh(n,j,i)*egrav/ribd(n,j,i)
+          if ( ribl(n,j,i) >= d_zero ) then
+            clead(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*ribl(n,j,i))
           else
-            clead(n,i) = cdrn(n,i)*(d_one+24.5D0* &
-                         dsqrt(-cdrn(n,i)*ribl(n,i)))
+            clead(n,j,i) = cdrn(n,j,i)*(d_one+24.5D0* &
+                         dsqrt(-cdrn(n,j,i)*ribl(n,j,i)))
           end if
           ! 4.2  calculate weighted avg of ice and lead drag
           !      coefficients
-          cdrx(n,i) = (d_one-aarea)*cdr(n,i) + aarea*clead(n,i)
+          cdrx(n,j,i) = (d_one-aarea)*cdr(n,j,i) + aarea*clead(n,j,i)
         end if
       end do
     end do
   end do
-  end subroutine drag
+  end subroutine dragc
 !
 !=======================================================================
 !
@@ -177,24 +177,24 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldoc1d(n,i) == 2 ) then
+        if ( ldimsk(n,j,i) == 2 ) then
           ! drag coeff over seaice
-          sigf(n,i) = d_zero
-          cdrn(n,i) = ( vonkar / zlglnd(n,i) )**d_two
-        else if ( ldoc1d(n,i) == 1 ) then
+          sigf(n,j,i) = d_zero
+          cdrn(n,j,i) = ( vonkar / zlglnd(n,j,i) )**d_two
+        else if ( ldimsk(n,j,i) == 1 ) then
           ! drag coeff over land
-          frav = sigf(n,i)
-          asigf = veg1d(n,i)
-          fras = asigf*wt(n,i) + (d_one-asigf)*scvk(n,i)
-          frab = (d_one-asigf)*(d_one-scvk(n,i))
-          cdb = (vonkar/zlglnd(n,i))**d_two
-          cds = (vonkar/zlgsno(n,i))**d_two
-          cdv = (vonkar/zlgdis(n,i))**d_two
-          cdrn(n,i) = frav*cdv + frab*cdb + fras*cds
+          frav = sigf(n,j,i)
+          asigf = lncl(n,j,i)
+          fras = asigf*wt(n,j,i) + (d_one-asigf)*scvk(n,j,i)
+          frab = (d_one-asigf)*(d_one-scvk(n,j,i))
+          cdb = (vonkar/zlglnd(n,j,i))**d_two
+          cds = (vonkar/zlgsno(n,j,i))**d_two
+          cdv = (vonkar/zlgdis(n,j,i))**d_two
+          cdrn(n,j,i) = frav*cdv + frab*cdb + fras*cds
         else
           ! drag coeff over ocean
-          sigf(n,i) = d_zero
-          cdrn(n,i) = (vonkar/zlgocn(n,i))**d_two
+          sigf(n,j,i) = d_zero
+          cdrn(n,j,i) = (vonkar/zlgocn(n,j,i))**d_two
         end if
       end do
     end do
@@ -231,18 +231,18 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldoc1d(n,i) /= 0 ) then
-          age = (d_one-d_one/(d_one+sag1d(n,i)))
-          rhosw(n,i) = 0.10D0*(d_one+d_three*age)
-          densi(n,i) = 0.01D0/(d_one+d_three*age)
-          scrat(n,i) = scv1d(n,i)*densi(n,i)
-          wt(n,i) = d_one
-          if ( ldoc1d(n,i) /= 2 ) then
-            wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))
-            wt(n,i) = wt(n,i)/(d_one+wt(n,i))
+        if ( ldimsk(n,j,i) /= 0 ) then
+          age = (d_one-d_one/(d_one+snag(n,j,i)))
+          rhosw(n,j,i) = 0.10D0*(d_one+d_three*age)
+          densi(n,j,i) = 0.01D0/(d_one+d_three*age)
+          scrat(n,j,i) = sncv(n,j,i)*densi(n,j,i)
+          wt(n,j,i) = d_one
+          if ( ldimsk(n,j,i) /= 2 ) then
+            wt(n,j,i) = 0.1D0*scrat(n,j,i)/rough(lveg(n,j,i))
+            wt(n,j,i) = wt(n,j,i)/(d_one+wt(n,j,i))
           end if
-          sigf(n,i) = (d_one-wt(n,i))*veg1d(n,i)
-          scvk(n,i) = scrat(n,i)/(0.1D0+scrat(n,i))
+          sigf(n,j,i) = (d_one-wt(n,j,i))*lncl(n,j,i)
+          scvk(n,j,i) = scrat(n,j,i)/(0.1D0+scrat(n,j,i))
         end if
       end do
     end do

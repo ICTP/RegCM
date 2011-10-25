@@ -88,6 +88,11 @@ integer:: dyofyr , inflgsw, iceflgsw, liqflgsw, icld, idrv, permuteseed,irng,ipl
 
 
 real(dp), dimension(iym1,nbndlw) :: emis_surf 
+real(dp), dimension(iym1) :: asdir 
+real(dp), dimension(iym1) :: asdif 
+real(dp), dimension(iym1) :: aldir 
+real(dp), dimension(iym1) :: aldif 
+real(dp), dimension(iy) :: czen 
 real(dp), dimension(nbndlw,iym1,kz) :: tauc_lw 
 real(dp),dimension( iym1,kz,nbndlw) :: tauaer_lw 
 
@@ -151,13 +156,18 @@ ssaaer = d_one
 asmaer = 0.85D0
 ecaer =0.78D0
 
+asdir = swdiralb(j,:)
+asdif = swdifalb(j,:)
+aldir = lwdiralb(j,:)
+aldif = lwdifalb(j,:)
+czen = coszen(j,:)
 
      call rrtmg_sw &
             (iym1    , kz   ,icld    , &
              play    ,plev   ,tlay    ,tlev    ,tsfc   , &
              h2ovmr , o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , &
-             swdiralb  ,swdifalb   , lwdiralb  ,lwdifalb   , &
-             coszen  ,adjes   ,dyofyr  ,solcon    , &
+             asdir  , asdif   , aldir  ,aldif   , &
+             czen  ,adjes   ,dyofyr  ,solcon    , &
              inflgsw ,iceflgsw,liqflgsw,cldfmcl , &
              taucmcl ,ssacmcl ,asmcmcl ,fsfcmcl , &
              ciwpmcl ,clwpmcl ,reicmcl ,relqmcl , &
@@ -243,9 +253,9 @@ clrls(:) =   -d_one*(lwdflxc(:,1) -  lwuflxc(:,1))
 
 ! coupling with  BATS
 !  abveg set to frsa (as in standard version : potential inconsieny if soil fraction is large)
-abveg(:) = frsa(:) 
+abveg(j,:) = frsa(:) 
 ! solar is normally the visible band only total incident surface flux
-solar(:) = swdvisflx(:,1)
+solar(j,:) = swdvisflx(:,1)
 ! surface SW incident
 sols(:) =  swddiruviflx(:,1)
 solsd(:) =  swddifuviflx(:,1)

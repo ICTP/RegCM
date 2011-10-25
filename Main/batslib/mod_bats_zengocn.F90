@@ -195,17 +195,17 @@ module mod_bats_zengocn
               tground2(i,j) = tskin
             end if ! dcsst
 
-            tg1d(n,i) = tground2(i,j)
-            tgb1d(n,i) = tground2(i,j)
-            sent1d(n,i) = sh
-            evpr1d(n,i) = lh/wlhv
+            tgrd(n,j,i) = tground2(i,j)
+            tgbrd(n,j,i) = tground2(i,j)
+            sent(n,j,i) = sh
+            evpr(n,j,i) = lh/wlhv
             ! Back out Drag Coefficient
-            drag1d(n,i) = ustar**d_two*rho(i,j)/uv995
+            drag(n,j,i) = ustar**d_two*rho(i,j)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            u10m1d(n,i) = uatm(i,kz,j)*uv10/uv995
-            v10m1d(n,i) = vatm(i,kz,j)*uv10/uv995
-            t2m1d(n,i) = t995 + tzero - dth*facttq
-            q2m1d(n,i) = q995 - dqh*facttq
+            u10m(n,j,i) = uatm(i,kz,j)*uv10/uv995
+            v10m(n,j,i) = vatm(i,kz,j)*uv10/uv995
+            t2m(n,j,i) = t995 + tzero - dth*facttq
+            q2m(n,j,i) = q995 - dqh*facttq
             !
             if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)

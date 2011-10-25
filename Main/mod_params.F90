@@ -876,11 +876,11 @@ module mod_params
     call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,atms,sps1, &
                    sps2,a,ptop,coszrs,icumtop,icumbot)
   end if
-  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
-                mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,   &
-                aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl, &
-                emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,      &
-                fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
+  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
+                mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
+                aldifl,albdir,albdif,albvs,albvl,aemiss,sabv2d,  &
+                sol2d,sinc2d,solvs2d,solvd2d,fsw2d,flw2d,flwd2d, &
+                ocld2d,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

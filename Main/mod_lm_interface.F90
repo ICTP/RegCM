@@ -28,7 +28,7 @@ module mod_lm_interface
   use mod_mtrxclm
   use mod_clm
   use mod_bats_mppio
-  use mod_bats_vecbats
+  use mod_bats_mtrxbats
 #else
   use mod_bats_param
   use mod_bats_mppio
@@ -37,7 +37,7 @@ module mod_lm_interface
   use mod_bats_drag
   use mod_bats_lake
   use mod_bats_leaftemp
-  use mod_bats_vecbats
+  use mod_bats_mtrxbats
   use mod_bats_zengocn
   use mod_bats_romsocn
 #endif

@@ -47,7 +47,7 @@ module mod_che_interface
     type(surfpstate) , intent(in) :: sps1 , sps2
     type(slice) , intent(in) :: atms
     real(dp) , pointer , dimension(:) :: a
-    real(dp) , pointer , dimension(:) :: coszrs
+    real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
     integer :: ibin , jbin , kbin , itr
 

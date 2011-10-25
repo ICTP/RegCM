@@ -41,8 +41,8 @@ module mod_bats_co2
 !
 !            dtbat = surface output interval
 !            cari = rate of carbon uptake by plants
-!       pbp1d(n,i) = accumulated primary biomass
-!      resp1d(n,i) = carbon in soil and in veg (kg c / m**2 / sec)
+!       apbm(n,j,i) = accumulated primary biomass
+!      resp(n,j,i) = carbon in soil and in veg (kg c / m**2 / sec)
 !              ra = leaf aerodynamic resistance factor
 !             rap = leaf boundary layer resistance to co2
 !           resps = soil respiration
@@ -71,15 +71,15 @@ module mod_bats_co2
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              rsp = lftrs(n,i)*1.7D0
-              rap = lftra(n,i)*1.5D0
+          if ( ldimsk(n,j,i) /= 0 ) then
+            if ( sigf(n,j,i) > 0.001D0 ) then
+              rsp = lftrs(n,j,i)*1.7D0
+              rap = lftra(n,j,i)*1.5D0
               rt = rsp + rap + rmp
-              rcar = carbon(solis(i)*rlai(n,i),tlef1d(n,i),rt, &
-                            tg1d(n,i),xlai(n,i),xlsai(n,i))
-              cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)*rcar
-              pbp1d(n,i) = pbp1d(n,i) + cari(n,i)*dtbat
+              rcar = carbon(solis(j,i)*rlai(n,j,i),tlef(n,j,i),rt, &
+                            tgrd(n,j,i),xlai(n,j,i),xlsai(n,j,i))
+              cari(n,j,i) = sigf(n,j,i)*xlsai(n,j,i)*fdry(n,j,i)*rcar
+              apbm(n,j,i) = apbm(n,j,i) + cari(n,j,i)*dtbat
             end if
           end if
         end do
@@ -89,13 +89,13 @@ module mod_bats_co2
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              if ( pbp1d(n,i) < 0 ) pbp1d(n,i) = d_zero
-              resps = 0.7D-7*resp1d(n,i)*dexp(0.1D0*(tg1d(n,i)-300.0D0)) * &
-                      dmin1(d_one,ssw1d(n,i)/(0.6D0*gwmx0(n,i)))
-              resp1d(n,i) = resp1d(n,i) + (cari(n,i)-resps)*dtbat
-              if ( resp1d(n,i) < d_zero ) resp1d(n,i) = d_zero
+          if ( ldimsk(n,j,i) /= 0 ) then
+            if ( sigf(n,j,i) > 0.001D0 ) then
+              if ( apbm(n,j,i) < 0 ) apbm(n,j,i) = d_zero
+              resps = 0.7D-7*resp(n,j,i)*dexp(0.1D0*(tgrd(n,j,i)-300.0D0)) * &
+                      dmin1(d_one,ssw(n,j,i)/(0.6D0*gwmx0(n,j,i)))
+              resp(n,j,i) = resp(n,j,i) + (cari(n,j,i)-resps)*dtbat
+              if ( resp(n,j,i) < d_zero ) resp(n,j,i) = d_zero
             end if
           end if
         end do

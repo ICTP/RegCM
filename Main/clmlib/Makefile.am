@@ -171,7 +171,7 @@ mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_constants.mod
 mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_message.mod mod_clm.o \
-           $(BATS)/mod_bats_common.mod $(BATS)/mod_bats_vecbats.o \
+           $(BATS)/mod_bats_common.mod $(BATS)/mod_bats_mtrxbats.o \
            $(BATS)/mod_bats_drag.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 

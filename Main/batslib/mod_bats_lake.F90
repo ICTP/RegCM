@@ -144,7 +144,7 @@ module mod_bats_lake
   implicit none
   integer , intent(in) :: jstart , jend , istart , iend
 !
-  real(dp) :: flw , fsw , hsen , prec , &
+  real(dp) :: flwx , fswx , hsen , prec , &
              ql , tgl , tl , vl , zl , xl , evp , toth
   integer :: i , j , n
 !
@@ -152,48 +152,48 @@ module mod_bats_lake
     do j = jstart , jend
       do n = 1 , nnsg
         if ( idep2d(n,i,j) > 1 ) then
-          tl = ts1d(n,i)
-          vl = dsqrt(us1d(i)**d_two+vs1d(i)**d_two)
-          zl = z1d(n,i)
-          ql = qs1d(n,i)
-          fsw = fsw1d(i)
-          flw = -d_one*flw1d(i)
-          prec = prcp1d(n,i)*dtbat
-          hsen = -d_one*sent1d(n,i)
-          evp = evpr1d(n,i)
+          tl = sts(n,j,i)
+          vl = dsqrt(usw(j,i)**d_two+vsw(j,i)**d_two)
+          zl = zh(n,j,i)
+          ql = qs(n,j,i)
+          fswx = fsw(j,i)
+          flwx = -d_one*flw(j,i)
+          prec = prcp(n,j,i)*dtbat
+          hsen = -d_one*sent(n,j,i)
+          evp = evpr(n,j,i)
           if (nnsg == 1) then
             xl = xlat(i,j)
           else
             xl = xlat1(n,i,j)
           end if
 
-          call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,    &
+          call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl,    &
                      tgl,prec,idep2d(n,i,j),eta2d(n,i,j),  &
                      hi2d(n,i,j),aveice2d(n,i,j),          &
                      hsnow2d(n,i,j),evp,tlak3d(:,n,i,j) )
 
           ! Feed back ground temperature
-          tg1d(n,i) = tgl
-          tgb1d(n,i) = tgl
+          tgrd(n,j,i) = tgl
+          tgbrd(n,j,i) = tgl
 
           if ( aveice2d(n,i,j) <= iceminh ) then
             ocld2d(n,i,j) = 0 
-            ldoc1d(n,i) = 0
-            lveg(n,i) = 14
-            sice1d(n,i) = d_zero
-            scv1d(n,i) = d_zero
-            sag1d(n,i) = d_zero
+            ldimsk(n,j,i) = 0
+            lveg(n,j,i) = 14
+            sfice(n,j,i) = d_zero
+            sncv(n,j,i) = d_zero
+            snag(n,j,i) = d_zero
           else
             ocld2d(n,i,j) = 2 
-            ldoc1d(n,i) = 2
-            lveg(n,i) = 12
-            sice1d(n,i) = aveice2d(n,i,j)  !  units of ice = mm
-            scv1d(n,i)  = hsnow2d(n,i,j)   !  units of snw = mm
-            evpr1d(n,i) = evp                 !  units of evp = mm/sec
+            ldimsk(n,j,i) = 2
+            lveg(n,j,i) = 12
+            sfice(n,j,i) = aveice2d(n,i,j)  !  units of ice = mm
+            sncv(n,j,i)  = hsnow2d(n,i,j)   !  units of snw = mm
+            evpr(n,j,i) = evp                 !  units of evp = mm/sec
             ! Reduce sensible heat flux for ice presence
-            toth = sice1d(n,i) + scv1d(n,i)
+            toth = sfice(n,j,i) + sncv(n,j,i)
             if ( toth > href ) then
-              sent1d(n,i) = sent1d(n,i) * (href/toth)**steepf
+              sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
             end if
           end if
         end if

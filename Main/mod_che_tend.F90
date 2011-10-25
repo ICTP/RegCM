@@ -227,7 +227,7 @@ module mod_che_tend
           do i = 2 , iym2
             cldno = d_one    ! no cloud fraction
    
-!           if (coszrs(i,j) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
+!           if (coszrs(j,i) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
 !           oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
 !           molecules/cm3 test j eprends directement une valeur de oh1
 #ifdef CHEMTEST 
@@ -235,7 +235,7 @@ module mod_che_tend
 #else
             oh1 = 15.0D5
 #endif
-            if ( coszrs(i) < 0.001D0 ) oh1 = oh1*0.01D0 ! diurnal evolution
+            if ( coszrs(j,i) < 0.001D0 ) oh1 = oh1*0.01D0 ! diurnal evolution
    
             ak0tm = 3.0D-31*(atm1%t(i,k,j)/sps1%ps(i,j) / &
                     300.0D0)**(-3.3D0)*rho(i,k)*2.084D19 ! k0(T)*[M]

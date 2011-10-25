@@ -118,14 +118,14 @@ module mod_sun
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine zenitm(coszrs,ivmx,j)
+  subroutine zenitm(coszrs,jstart,jend,istart,iend)
 !
     implicit none
 !
-    integer, intent (in) :: ivmx , j
-    real(8) , intent (inout), dimension(iy) :: coszrs
+    integer, intent (in) :: jstart , jend , istart , iend
+    real(8) , pointer , intent (out), dimension(:,:) :: coszrs
 !
-    integer :: i
+    integer :: i , j
 #ifdef CLM
     real(8) :: cldy , declinp1 , xxlon
 #else
@@ -143,25 +143,29 @@ module mod_sun
     cldy = get_curr_calday()
     call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
          &            r2cobliqr,declinp1,r2ceccf)
-    do i = 1 , ivmx
-      xxlat = mddom%xlat(i,j)*degrad
-      xxlon = mddom%xlon(i,j)*degrad
-      coszrs(i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-      coszrs(i) = dmax1(0.0D0,coszrs(i))
-      coszrs(i) = dmin1(1.0D0,coszrs(i))
+    do i = istart , iend
+      do j = jstart , jend
+        xxlat = mddom%xlat(i,j)*degrad
+        xxlon = mddom%xlon(i,j)*degrad
+        coszrs(j,i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
+        coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
+        coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
+      end do
     end do
 #else
     xt24 = dble(idatex%second_of_day)/secph
-    do i = 1 , ivmx
-      tlocap = xt24 + mddom%xlon(i,j)/15.0D0
-      tlocap = dmod(tlocap+houpd,houpd)
-      omga = 15.0D0*(tlocap-12.0D0)*degrad
-      xxlat = mddom%xlat(i,j)*degrad
-!     coszrs = cosine of solar zenith angle
-      coszrs(i) = dsin(declin)*dsin(xxlat) +           &
-                    dcos(declin)*dcos(xxlat)*dcos(omga)
-      coszrs(i) = dmax1(0.0D0,coszrs(i))
-      coszrs(i) = dmin1(1.0D0,coszrs(i))
+    do i = istart , iend
+      do j = jstart , jend
+        tlocap = xt24 + mddom%xlon(i,j)/15.0D0
+        tlocap = dmod(tlocap+houpd,houpd)
+        omga = 15.0D0*(tlocap-12.0D0)*degrad
+        xxlat = mddom%xlat(i,j)*degrad
+!       coszrs = cosine of solar zenith angle
+        coszrs(j,i) = dsin(declin)*dsin(xxlat) +           &
+                      dcos(declin)*dcos(xxlat)*dcos(omga)
+        coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
+        coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
+      end do
     end do
 #endif
 !

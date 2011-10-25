@@ -67,7 +67,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: tatm , qvatm
   real(dp) , pointer , dimension(:,:) :: sfcp , psfcp
   real(dp) , pointer , dimension(:) :: hlev
-  real(dp) , pointer , dimension(:) :: czen
+  real(dp) , pointer , dimension(:,:) :: czen
   real(dp) :: chptop
 
   contains

@@ -475,7 +475,7 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jslc,ktau,alat,coslat,ts,pmid,pint,pmln,piln,t,  &
+  subroutine radctl(j,ktau,alat,coslat,ts,pmid,pint,pmln,piln,t,  &
                     h2ommr,cld,effcld,clwp, &
                     fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd, &
                     solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns,flntc,    &
@@ -518,7 +518,7 @@ module mod_rad_radiation
 !
     integer(8) , intent(in) :: ktau
     real(8) , intent(in) :: eccf
-    integer :: jslc
+    integer :: j
     real(8) , dimension(iym1) :: alb , albc , alat , coslat , emsvt , &
                                  flns , flnsc , flnt , flntc ,        &
                                  flwds , fsds , fsnirt , fsnirtsq ,   &
@@ -590,15 +590,15 @@ module mod_rad_radiation
 !
 !     Specify aerosol mass mixing ratio
 !
-      call aermix(pnm,rh,jslc,1,iym1,iym1,kz,ntr)
+      call aermix(pnm,rh,j,1,iym1,iym1,kz,ntr)
  
       call aeroppt(rh,pint)
 !
-      call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,    &
+      call radcsw(j,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
                   solsd,solld,fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
 !
-!     call aerout(jslc,aeradfo,aeradfos)
+!     call aerout(j,aeradfo,aeradfos)
 !
 !     Convert units of shortwave fields needed by rest of model from CGS to MKS
 !
@@ -666,7 +666,7 @@ module mod_rad_radiation
 !
       call trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
 !
-      call radclw(jslc,ktau,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
+      call radclw(j,ktau,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,   &
                   plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
                   flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,       &
                   aerlwfos)
@@ -699,7 +699,7 @@ module mod_rad_radiation
     end if
 
     if ( lchem ) then
-      call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
+      call aerout(j,aeradfo,aeradfos,aerlwfo,aerlwfos)
     end if   
 
     call time_end(subroutine_name,indx)
@@ -757,7 +757,7 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
+  subroutine radcsw(j,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf, &
                     solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
                     solsd,solld,fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
 ! 
@@ -794,6 +794,7 @@ module mod_rad_radiation
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 !
 !
+    integer , intent(in) :: j
     real(8) :: eccf
     real(8) , dimension(iym1) :: aeradfo , aeradfos , fsds , fsnirt , &
                                   fsnirtsq , fsnrtc , fsns , fsnsc ,  &
@@ -955,7 +956,8 @@ module mod_rad_radiation
     integer , dimension(2) :: ie , is
     real(8) , dimension(iym1) :: sfltot , solflx , utco2 , uth2o ,   &
                                   uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
-                                  x0fsntc , zenfac
+                                  x0fsntc , zenfac , soldir , soldif
+    real(8) , dimension(iy) :: czen
 !
     character (len=64) :: subroutine_name='radcsw'
     logical :: lzero
@@ -977,8 +979,8 @@ module mod_rad_radiation
     soll(:) = d_zero
     solsd(:) = d_zero
     solld(:) = d_zero
-    abveg(:) = d_zero
-    solar(:) = d_zero
+    abveg(j,:) = d_zero
+    solar(j,:) = d_zero
     soldir(:) = d_zero
     soldif(:) = d_zero
 !
@@ -990,6 +992,7 @@ module mod_rad_radiation
 !
     qrs(:,:) = d_zero
 !
+    czen = coszen(j,:)
     do k = 1 , kz
       do i = 1 , iym1
         pdel = pint(i,k+1) - pint(i,k)
@@ -1002,7 +1005,7 @@ module mod_rad_radiation
 !
 !   Compute starting daytime loop index
 !
-    is(1) = isrchfgt(iym1,coszen,1,d_zero)
+    is(1) = isrchfgt(iym1,czen,1,d_zero)
 !
 !   If night everywhere, return
 !
@@ -1010,15 +1013,15 @@ module mod_rad_radiation
 !
 !   Compute ending daytime loop index
 !
-    ie(1) = isrchfle(iym1-is(1),coszen(is(1)+1:iy),1,d_zero) + is(1)-1
+    ie(1) = isrchfle(iym1-is(1),czen(is(1)+1:iy),1,d_zero) + is(1)-1
     nloop = 1
 !
 !   Possibly 2 daytime loops needed
 !
     if ( ie(1) /= iym1 ) then
-      is(2) = isrchfgt(iym1-ie(1),coszen(ie(1)+1:iy),1,d_zero) + ie(1)
+      is(2) = isrchfgt(iym1-ie(1),czen(ie(1)+1:iy),1,d_zero) + ie(1)
       if ( is(2) < iym1 ) then
-        ie(2) = isrchfle(iym1-is(2),coszen(is(2)+1:iy),1,d_zero) + is(2)-1
+        ie(2) = isrchfle(iym1-is(2),czen(is(2)+1:iy),1,d_zero) + is(2)-1
         if ( ie(2) > is(2) ) then
           nloop = 2
         end if
@@ -1029,7 +1032,7 @@ module mod_rad_radiation
 !
     do n = 1 , nloop
       do i = is(n) , ie(n)
-        solin(i) = scon*eccf*coszen(i)
+        solin(i) = scon*eccf*czen(i)
         pflx(i,0) = d_zero
       end do
     end do
@@ -1055,7 +1058,7 @@ module mod_rad_radiation
         ptho3 = o3mmr(i,1)*xptop*regravgts
         pthco2 = sqrco2*(xptop*regravgts)
         h2ostr = dsqrt(d_one/h2ommr(i,1))
-        zenfac(i) = dsqrt(coszen(i))
+        zenfac(i) = dsqrt(czen(i))
         pthh2o = xptop**d_two*tmp1+(xptop*regravgts)*(h2ostr*zenfac(i)*delta)
         uh2o(i,0) = h2ommr(i,1)*pthh2o
         uco2(i,0) = zenfac(i)*pthco2
@@ -1247,8 +1250,8 @@ module mod_rad_radiation
       if ( wavmid < 0.7D0 ) then
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            diralb(i) = swdiralb(i)
-            difalb(i) = swdifalb(i)
+            diralb(j,i) = swdiralb(j,i)
+            difalb(j,i) = swdifalb(j,i)
           end do
         end do
 !
@@ -1257,8 +1260,8 @@ module mod_rad_radiation
       else
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            diralb(i) = lwdiralb(i)
-            difalb(i) = lwdifalb(i)
+            diralb(j,i) = lwdiralb(j,i)
+            difalb(j,i) = lwdifalb(j,i)
           end do
         end do
       end if
@@ -1278,7 +1281,7 @@ module mod_rad_radiation
         end if
       end if
    
-      call radded(coszen,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
+      call radded(czen,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
                   wcl,gcl,fcl,tauxci,wci,gci,fci,lzero,nloop,       &
                   is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,tottrn)
 !
@@ -1288,8 +1291,8 @@ module mod_rad_radiation
 !
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          rupdir(i,kzp1) = diralb(i)
-          rupdif(i,kzp1) = difalb(i)
+          rupdir(i,kzp1) = diralb(j,i)
+          rupdif(i,kzp1) = difalb(j,i)
         end do
       end do
       do k = kz , 0 , -1
@@ -1357,9 +1360,9 @@ module mod_rad_radiation
             solsd(i) = solsd(i) + &
                    (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
 !KN         added below
-            abveg(i) = abveg(i) + (solflx(i) *            &
+            abveg(j,i) = abveg(j,i) + (solflx(i) *            &
                        (fluxdn(i,kzp1)-fluxup(i,kz + 1)))*  &
-                       (d_one-swalb(i))/(d_one-diralb(i))*d_r1000
+                       (d_one-swalb(j,i))/(d_one-diralb(j,i))*d_r1000
 !KN         added above
           else
             soll(i) = soll(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
@@ -1367,8 +1370,9 @@ module mod_rad_radiation
                    (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
             fsnirtsq(i) = fsnirtsq(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
 !KN         added below
-            abveg(i) = abveg(i)+(solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))* &
-                        (d_one-lwalb(i))/(d_one-diralb(i))*d_r1000
+            abveg(j,i) = abveg(j,i) + &
+                       (solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))* &
+                        (d_one-lwalb(j,i))/(d_one-diralb(j,i))*d_r1000
 !KN         added above
           end if
           fsnirt(i) = fsnirt(i) + wgtint*solflx(i) * (fluxdn(i,0)-fluxup(i,0))
@@ -1389,14 +1393,14 @@ module mod_rad_radiation
       if ( ns == 8 ) then
 !       -trapuv
 !       do i=1,iym1
-!         solar(i) = solflx(i)*0.001D0*fluxdn(i,kzp1)
+!         solar(j,i) = solflx(i)*0.001D0*fluxdn(i,kzp1)
 !       end do
 !       -trapuv_
         do n = 1 , nloop
           do i = is(n) , ie(n)
             soldir(i) = exptdn(i,kzp1)*solflx(i)*d_r1000
             soldif(i) = (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
-            solar(i) = solflx(i)*d_r1000*fluxdn(i,kzp1)
+            solar(j,i) = solflx(i)*d_r1000*fluxdn(i,kzp1)
           end do
         end do
       end if
@@ -1420,7 +1424,7 @@ module mod_rad_radiation
 !       0 for interface quantities refers to top of atmos- phere,
 !       while 1 refers to the surface:
 !
-        call radclr(coszen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
+        call radclr(czen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
                     .true.,nloop,is,ie,rdir,rdif,tdir,tdif,explay,  &
                     exptdn,rdndif,tottrn)
 !
@@ -1431,8 +1435,8 @@ module mod_rad_radiation
 !       the surface:
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            rupdir(i,2) = diralb(i)
-            rupdif(i,2) = difalb(i)
+            rupdir(i,2) = diralb(j,i)
+            rupdif(i,2) = difalb(j,i)
           end do
         end do
 !
@@ -1489,7 +1493,7 @@ module mod_rad_radiation
 !     quantities refers to top of atmos- phere, while 1 refers to the
 !     surface:
 !
-      call radclr(coszen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2,.false., &
+      call radclr(czen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2,.false., &
                   nloop,is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,  &
                   tottrn)
 !
@@ -1500,8 +1504,8 @@ module mod_rad_radiation
 !
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          rupdir(i,2) = diralb(i)
-          rupdif(i,2) = difalb(i)
+          rupdir(i,2) = diralb(j,i)
+          rupdif(i,2) = difalb(j,i)
         end do
       end do
 !
@@ -1598,7 +1602,7 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radclw(jslc,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2, &
+  subroutine radclw(j,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2, &
                     plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,   &
                     flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos)
 !
@@ -1639,7 +1643,7 @@ module mod_rad_radiation
 ! flntc   - Net clear sky outgoing flux
 ! flwds   - Down longwave flux at surface
 !
-    integer :: jslc
+    integer :: j
     integer(8) , intent(in) :: ktau
     real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            o3vmr , pmid , pmln , qnm , qrl , tnm
@@ -1783,7 +1787,7 @@ module mod_rad_radiation
                   tlayr4,plol,plos,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
                   uco211,uco212,uco213,uco221,uco222,uco223,uptype,   &
                   bn2o0,bn2o1,bch4,co2em,co2eml,co2t,h2otr,abplnk1,   &
-                  abplnk2,jslc)
+                  abplnk2,j)
 !
 !     Compute total absorptivity:
 !
@@ -1791,12 +1795,12 @@ module mod_rad_radiation
                   plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,ucfc11,   &
                   ucfc12,un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,&
                   uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
-                  abplnk2,jslc)
+                  abplnk2,j)
 
        if ( .not. lchem .and. idirect > 0) then
-         abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
-         emstot0(:,:,jslc) = emstot(:,:,jslc)
-         absnxt0(:,:,:,jslc) = absnxt(:,:,:,jslc)   
+         abstot0(:,:,:,j) = abstot(:,:,:,j)
+         emstot0(:,:,j) = emstot(:,:,j)
+         absnxt0(:,:,:,j) = absnxt(:,:,:,j)   
       end if
     end if
 !
@@ -1851,9 +1855,9 @@ module mod_rad_radiation
       nradaer = 2
       fsul0(:,:) = d_zero
       fsdl0(:,:) = d_zero
-      abstot(:,:,:,jslc) = abstot0(:,:,:,jslc)
-      emstot(:,:,jslc) = emstot0(:,:,jslc)
-      absnxt(:,:,:,jslc) = absnxt0(:,:,:,jslc)
+      abstot(:,:,:,j) = abstot0(:,:,:,j)
+      emstot(:,:,j) = emstot0(:,:,j)
+      absnxt(:,:,:,j) = absnxt0(:,:,:,j)
     else
       nradaer = 1
     end if
@@ -1861,12 +1865,12 @@ module mod_rad_radiation
     do irad = 1 , nradaer
 
       if ( lchem .and. idirect > 0 .and. irad==2 ) then
-        abstot(:,:,:,jslc) = d_one-(d_one-abstot0(:,:,:,jslc))*aertrlw(:,:,:)
-        emstot(:,:,jslc) = d_one-(d_one-emstot0(:,:,jslc))*aertrlw(:,:,1)
+        abstot(:,:,:,j) = d_one-(d_one-abstot0(:,:,:,j))*aertrlw(:,:,:)
+        emstot(:,:,j) = d_one-(d_one-emstot0(:,:,j))*aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
           do n = 1 , 4
-            absnxt(:,k,n,jslc) = d_one-(d_one-absnxt0(:,k,n,jslc)) *   &
-                                (aertrlw(:,k,k+1)**xuinpl(:,k,n,jslc))
+            absnxt(:,k,n,j) = d_one-(d_one-absnxt0(:,k,n,j)) *   &
+                                (aertrlw(:,k,k+1)**xuinpl(:,k,n,j))
           end do
         end do
       end if
@@ -1883,14 +1887,14 @@ module mod_rad_radiation
       do i = 1 , iym1
         delt(i) = tint4(i,kz) - tlayr4(i,kzp1)
         delt1(i) = tlayr4(i,kzp1) - tint4(i,kzp1)
-        s(i,kzp1,kzp1) = stebol*(delt1(i)*absnxt(i,kz,1,jslc) + &
-                         delt(i)*absnxt(i,kz,4,jslc))
-        s(i,kz,kzp1) = stebol*(delt(i)*absnxt(i,kz,2,jslc) + &
-                               delt1(i)*absnxt(i,kz,3,jslc))
+        s(i,kzp1,kzp1) = stebol*(delt1(i)*absnxt(i,kz,1,j) + &
+                         delt(i)*absnxt(i,kz,4,j))
+        s(i,kz,kzp1) = stebol*(delt(i)*absnxt(i,kz,2,j) + &
+                               delt1(i)*absnxt(i,kz,3,j))
       end do
       do k = 1 , kz - 1
         do i = 1 , iym1
-          bk2(i) = (abstot(i,k,kz,jslc)+abstot(i,k,kzp1,jslc))*d_half
+          bk2(i) = (abstot(i,k,kz,j)+abstot(i,k,kzp1,j))*d_half
           bk1(i) = bk2(i)
           s(i,k,kzp1) = stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
         end do
@@ -1906,18 +1910,18 @@ module mod_rad_radiation
         do k = kzp1 , 1 , -1
           if ( k == km ) then
             do i = 1 , iym1
-              bk2(i) = absnxt(i,km-1,4,jslc)
-              bk1(i) = absnxt(i,km-1,1,jslc)
+              bk2(i) = absnxt(i,km-1,4,j)
+              bk1(i) = absnxt(i,km-1,1,j)
             end do
           else if ( k == km-1 ) then
             do i = 1 , iym1
-              bk2(i) = absnxt(i,km-1,2,jslc)
-              bk1(i) = absnxt(i,km-1,3,jslc)
+              bk2(i) = absnxt(i,km-1,2,j)
+              bk1(i) = absnxt(i,km-1,3,j)
             end do
           else
             do i = 1 , iym1
-              bk2(i) = (abstot(i,k,km-1,jslc)+ &
-                        abstot(i,k,km,jslc))*d_half
+              bk2(i) = (abstot(i,k,km-1,j)+ &
+                        abstot(i,k,km,j))*d_half
               bk1(i) = bk2(i)
             end do
           end if
@@ -1942,8 +1946,8 @@ module mod_rad_radiation
 !
       do i = 1 , iym1
         tmp(i) = fsul(i,kzp1) - stebol*tint4(i,kzp1)
-        fsul(i,1) = fsul(i,kzp1) - abstot(i,1,kzp1,jslc)*tmp(i)+s(i,1,2)
-        fsdl(i,1) = stebol*(tplnke(i)**d_four)*emstot(i,1,jslc)
+        fsul(i,1) = fsul(i,kzp1) - abstot(i,1,kzp1,j)*tmp(i)+s(i,1,2)
+        fsdl(i,1) = stebol*(tplnke(i)**d_four)*emstot(i,1,j)
         ful(i,1) = fsul(i,1)
         fdl(i,1) = fsdl(i,1)
       end do
@@ -1952,9 +1956,9 @@ module mod_rad_radiation
 !
       do k = 2 , kz
         do i = 1 , iym1
-          fsul(i,k) = fsul(i,kzp1) - abstot(i,k,kzp1,jslc)*tmp(i)+s(i,k,k+1)
+          fsul(i,k) = fsul(i,kzp1) - abstot(i,k,kzp1,j)*tmp(i)+s(i,k,k+1)
           ful(i,k) = fsul(i,k)
-          fsdl(i,k) = stebol*(tplnke(i)**d_four)*emstot(i,k,jslc) - &
+          fsdl(i,k) = stebol*(tplnke(i)**d_four)*emstot(i,k,j) - &
                               (s(i,k,2)-s(i,k,k+1))
           fdl(i,k) = fsdl(i,k)
         end do
@@ -1965,7 +1969,7 @@ module mod_rad_radiation
 !
       do i = 1 , iym1
         ful(i,kzp1) = fsul(i,kzp1)
-        absbt(i) = stebol*(tplnke(i)**d_four)*emstot(i,kzp1,jslc)
+        absbt(i) = stebol*(tplnke(i)**d_four)*emstot(i,kzp1,j)
         fsdl(i,kzp1) = absbt(i) - s(i,kzp1,2)
         fdl(i,kzp1) = fsdl(i,kzp1)
       end do
@@ -2880,7 +2884,7 @@ module mod_rad_radiation
                     plco2,plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,&
                     ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,   &
                     uco213,uco221,uco222,uco223,uptype,bn2o0,bn2o1, &
-                    bch4,abplnk1,abplnk2,jslc)
+                    bch4,abplnk1,abplnk2,j)
 !
     implicit none
 !
@@ -2935,7 +2939,7 @@ module mod_rad_radiation
 ! Non-adjacent layer absorptivites
 ! Total emissivity
 !
-    integer :: jslc
+    integer :: j
     real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
     real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
            co2t , h2otr , piln , plco2 , plh2o , plol , plos , pnm ,  &
@@ -2943,7 +2947,7 @@ module mod_rad_radiation
            uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
            uco223 , un2o0 , un2o1 , uptype , w
     real(8) , dimension(iym1,kz) :: co2eml , pbr , pmln
-    intent (in) abplnk2 , co2em , co2eml , co2t , h2otr , jslc , pbr ,&
+    intent (in) abplnk2 , co2em , co2eml , co2t , h2otr , j , pbr ,&
                 piln , plco2 , plh2o , plol , plos , pmln , s2t ,     &
                 tint , tlayr , tplnka , w
 !
@@ -3364,7 +3368,7 @@ module mod_rad_radiation
 !         Sum total absorptivity
 !
           do i = 1 , iym1
-            abstot(i,k1,k2,jslc) = abso(i,1) + abso(i,2) + abso(i,3) + &
+            abstot(i,k1,k2,j) = abso(i,1) + abso(i,2) + abso(i,3) + &
                                    abso(i,4) + abso(i,5) + abso(i,6) + abstrc(i)
           end do
         end if
@@ -3441,7 +3445,7 @@ module mod_rad_radiation
       end do
 
 !     FAB AER SAVE uinpl  for aerosl LW forcing calculation
-      xuinpl (:,k2,:,jslc) =  uinpl(:,:)
+      xuinpl (:,k2,:,j) =  uinpl(:,:)
 !     FAB AER SAVE uinpl  for aerosl LW forcing calculation
 
       do kn = 1 , 4
@@ -3638,7 +3642,7 @@ module mod_rad_radiation
 !       Total next layer absorptivity:
 !
         do i = 1 , iym1
-          absnxt(i,k2,kn,jslc) = abso(i,1) + abso(i,2) + abso(i,3)    &
+          absnxt(i,k2,kn,j) = abso(i,1) + abso(i,2) + abso(i,3)    &
                                  + abso(i,4) + abso(i,5) + abso(i,6)  &
                                  + abstrc(i)
         end do
@@ -3687,7 +3691,7 @@ module mod_rad_radiation
                     tlayr,tlayr4,plol,plos,ucfc11,ucfc12,un2o0,     &
                     un2o1,uch4,uco211,uco212,uco213,uco221,uco222,  &
                     uco223,uptype,bn2o0,bn2o1,bch4,co2em,co2eml,    &
-                    co2t,h2otr,abplnk1,abplnk2,jslc)
+                    co2t,h2otr,abplnk1,abplnk2,j)
 !
     implicit none
 !
@@ -3738,7 +3742,7 @@ module mod_rad_radiation
 ! abplnk2 - nearest layer factor
 ! emstrc  - total trace gas emissivity
 !
-    integer :: jslc
+    integer :: j
     real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
     real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em , &
            co2t , h2otr , plco2 , plh2o , plol , plos , pnm , s2c ,  &
@@ -3747,7 +3751,7 @@ module mod_rad_radiation
            uco223 , un2o0 , un2o1 , uptype , w
     real(8) , dimension(iym1,kz) :: co2eml
     real(8) , dimension(iym1) :: tplnke
-    intent (in) jslc , plco2 , plh2o , plol , plos , s2t , tint4 , tlayr4
+    intent (in) j , plco2 , plh2o , plol , plos , s2t , tint4 , tlayr4
     intent (out) co2em , co2eml
     intent (inout) co2t , h2otr
 !
@@ -4148,7 +4152,7 @@ module mod_rad_radiation
 !     Total emissivity:
 !
       do i = 1 , iym1
-        emstot(i,k1,jslc) = h2oems(i,k1)+co2ems(i,k1)+o3ems(i,k1)+emstrc(i,k1)
+        emstot(i,k1,j) = h2oems(i,k1)+co2ems(i,k1)+o3ems(i,k1)+emstrc(i,k1)
       end do
     end do  ! End of interface loop
 !

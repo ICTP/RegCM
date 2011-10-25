@@ -36,11 +36,11 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta, &
-                      mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
-                      aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &
-                      emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,     &
-                      fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
+  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
+                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
+                      aldifl,albdir,albdif,albvs,albvl,emiss,sabv2d,   &
+                      sol2d,sinc2d,solvs2d,solvd2d,fsw2d,flw2d,flwd2d, &
+                      ocld2d,chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
     real(8) , intent(in) :: ptop
@@ -49,20 +49,18 @@ module mod_rad_interface
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfsta
     type(domain) , intent(in) :: mddom
-    real(8) , pointer , intent(in) , dimension(:) :: sabveg
-    real(8) , pointer , intent(in) , dimension(:) :: solis
-    real(8) , pointer , intent(in) , dimension(:) :: solvs
-    real(8) , pointer , intent(in) , dimension(:) :: solvd
-    real(8) , pointer , intent(in) , dimension(:) :: coszrs
-    real(8) , pointer , intent(in) , dimension(:) :: aldirs
-    real(8) , pointer , intent(in) , dimension(:) :: aldifs
-    real(8) , pointer , intent(in) , dimension(:) :: aldirl
-    real(8) , pointer , intent(in) , dimension(:) :: aldifl
-    real(8) , pointer , intent(in) , dimension(:) :: albdir
-    real(8) , pointer , intent(in) , dimension(:) :: albdif
-    real(8) , pointer , intent(in) , dimension(:) :: albvs
-    real(8) , pointer , intent(in) , dimension(:) :: albvl
-    real(8) , pointer , intent(in) , dimension(:) :: emiss
+    real(8) , pointer , intent(in) , dimension(:,:) :: sabveg
+    real(8) , pointer , intent(in) , dimension(:,:) :: solis
+    real(8) , pointer , intent(in) , dimension(:,:) :: coszrs
+    real(8) , pointer , intent(in) , dimension(:,:) :: aldirs
+    real(8) , pointer , intent(in) , dimension(:,:) :: aldifs
+    real(8) , pointer , intent(in) , dimension(:,:) :: aldirl
+    real(8) , pointer , intent(in) , dimension(:,:) :: aldifl
+    real(8) , pointer , intent(in) , dimension(:,:) :: albdir
+    real(8) , pointer , intent(in) , dimension(:,:) :: albdif
+    real(8) , pointer , intent(in) , dimension(:,:) :: albvs
+    real(8) , pointer , intent(in) , dimension(:,:) :: albvl
+    real(8) , pointer , intent(in) , dimension(:,:) :: emiss
     real(8) , pointer , intent(in) , dimension(:,:) :: twt
     real(8) , pointer , intent(in) , dimension(:,:) :: sabv2d
     real(8) , pointer , intent(in) , dimension(:,:) :: sol2d
@@ -90,8 +88,6 @@ module mod_rad_interface
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(sabveg,abveg)
     call assignpnt(solis,solar)
-    call assignpnt(solvs,soldir)
-    call assignpnt(solvd,soldif)
     call assignpnt(coszrs,coszen)
     call assignpnt(aldirs,swdiralb)
     call assignpnt(aldifs,swdifalb)

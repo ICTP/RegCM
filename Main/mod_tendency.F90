@@ -1263,6 +1263,12 @@ module mod_tendency
     call mpi_bcast(ptntot,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(pt2tot,1,mpi_real8,0,mycomm,ierr)
 !
+!   calculate solar zenith angle
+    if ( ktau == 0 .or. ichem == 1 .or. &
+         mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+      call zenitm(coszrs,jbegin,jendx,1,iy)
+    end if
+ 
     do j = jbegin , jendx
       jp1 = j+1
 !
@@ -1434,7 +1440,6 @@ module mod_tendency
 !
 !       compute the tracers tendencies
         if ( ichem == 1 ) then
-          call zenitm(coszrs,iy,j)
           call tractend2(j,xkc)
         end if
 !
@@ -1452,23 +1457,18 @@ module mod_tendency
           aten%v(i,k,j) = d_zero
         end do
       end do
- 
-!     calculate solar zenith angle
-      if ( ktau == 0 .or. &
-           mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        call zenitm(coszrs,iy,j)
-        call slice1D(j,j,2,iym1)
-      end if
+    end do
  
 !     calculate albedo
-      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
-        call albedoclm(xmonth,j,j,2,iym1)
+      call albedoclm(xmonth,jbegin,jendx,2,iym1)
 #else
-        call albedov(xmonth,j,j,2,iym1)
+      call albedov(xmonth,jbegin,jendx,2,iym1)
 #endif
-      end if
+    end if
  
+    do j = jbegin , jendx
 !     call ccm3 radiative transfer package
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
@@ -1477,19 +1477,19 @@ module mod_tendency
         if (irrtm ==0 ) call colmod3(ktau,xyear,eccf,loutrad,j)
 
       end if
+    end do
  
 #ifndef CLM
-!     call vector bats for surface physics calculations
-      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-        dtbat = dt*d_half*dble(ntsrf)
-        if ( ktau == 0 ) dtbat = dt
-        call vecbats(j,j,2,iym1,ktau)
-      end if
+!   call mtrxbats for surface physics calculations
+    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+      dtbat = dt*d_half*dble(ntsrf)
+      if ( ktau == 0 ) dtbat = dt
+      call mtrxbats(jbegin,jendx,2,iym1,ktau)
+    end if
 #endif
  
-    end do
-
 #ifdef CLM
+!   call mtrxclm for surface physics calculations
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
     else

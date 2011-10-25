@@ -136,11 +136,11 @@ module mod_rad_outrad
 !     over sparsely vegetated areas in which vegetation and ground
 !     albedo are significantly different
     do i = 1 , iym1
-      abveg2d(i,j) = abveg(i)
-      solar2d(i,j) = solar(i)
+      abveg2d(i,j) = abveg(j,i)
+      solar2d(i,j) = solar(j,i)
       totsol2d(i,j) = soll(i) + sols(i) + solsd(i) + solld(i)
-      soldir2d(i,j) = soldir(i)
-      soldif2d(i,j) = soldif(i)
+      soldir2d(i,j) = sols(i)
+      soldif2d(i,j) = solsd(i)
 #ifdef CLM
       solswdir(i,j) = sols(i)
       sollwdir(i,j) = soll(i)
@@ -201,8 +201,8 @@ module mod_rad_outrad
           else
             frad2d(j,i-1,19) = real(solld(i))  ! skip
           end if
-          frad2d(j,i-1,20) = real(solar(i))    ! skip
-          frad2d(j,i-1,21) = real(abveg(i))   ! skip
+          frad2d(j,i-1,20) = real(solar(j,i))    ! skip
+          frad2d(j,i-1,21) = real(abveg(j,i))   ! skip
         end do
       end if
     end if

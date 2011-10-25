@@ -265,7 +265,7 @@ module mod_che_chemistry
         do i = 2 , iym2
           cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
           cfactor = cfactor/psfcp(i,j)
-          zena(i) = dacos(czen(i)*degrad)
+          zena(i) = dacos(czen(j,i)*degrad)
           chemin(i,k,j,ind_H2O)  = qvatm(i,k,j)*cfactor
           chemin(i,k,j,ind_O3)   = chib(i,k,j,io3)*cfactor*amd/W_O3
           chemin(i,k,j,ind_NO2)  = chib(i,k,j,ino2)*cfactor*amd/W_NO2

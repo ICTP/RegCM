@@ -58,8 +58,8 @@ module mod_bats_romsocn
         do n = 1 , nnsg
           ! Feed back ground temperature (in Kelvin) 
           if (sst2d(i,j) .lt. MISSING_R8) then  
-            tg1d(n,i) = sst2d(i,j)
-            tgb1d(n,i) = sst2d(i,j)
+            tgrd(n,j,i) = sst2d(i,j)
+            tgbrd(n,j,i) = sst2d(i,j)
           end if
         end do
       end do
