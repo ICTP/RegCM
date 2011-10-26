@@ -41,6 +41,7 @@
         real*8 :: add_offset
         type(ESMF_Array) :: array
         type(ESMF_Field) :: field
+        type(ESMF_RouteHandle) :: rhandle
         real*8, dimension(:,:), pointer :: ptr
       end type ESM_Field
 !
@@ -794,5 +795,45 @@
         end if
       end do
       end function getMeshId
+!
+      subroutine print_matrix_r8(inp, iskip, jskip, pet, header)
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real*8, intent(in) :: inp(:,:)
+      integer, intent(in) ::  iskip, jskip, pet
+      character(len=*), intent(in) :: header
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j, imin, imax, jmin, jmax
+      character(100) :: fmt_123
+!
+!-----------------------------------------------------------------------
+!     Write data 
+!-----------------------------------------------------------------------
+!
+      imin = lbound(inp, dim=1)
+      imax = ubound(inp, dim=1)
+      jmin = lbound(inp, dim=2)
+      jmax = ubound(inp, dim=2)
+!
+      write(6, fmt="('PET(',I2,') - ',A)") pet, trim(header)
+!
+      write(fmt_123, fmt="('(/, 5X, ', I3, 'I10)')") (jmax-jmin)+1
+      write(6, fmt=trim(fmt_123))  (j, j=jmin, jmax, jskip)
+!   
+      write(fmt_123, fmt="('(I5, ', I3, 'F10.2)')") jmax
+      do i=imin, imax, iskip
+        write(6, fmt=trim(fmt_123)) i, (inp(i,j),j=jmin, jmax, jskip)
+      end do
+!
+      return
+      end subroutine print_matrix_r8      
 !
       end module mod_couplerr

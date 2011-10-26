@@ -1171,10 +1171,39 @@
                                                   v10m_o(jj-jmin+1,ii-1)
           end do
         end do
+
         models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
                             models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
         models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
                             models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
+
+        if (localPet == 0) then
+          models(Iatmos)%dataExport(i,n)%ptr(:,1) =                     &
+                                 models(Iatmos)%dataExport(i,n)%ptr(:,2)
+        end if
+        if (localPet == nproc-1) then
+          models(Iatmos)%dataExport(i,n)%ptr(:,jmax) =                  &
+                            models(Iatmos)%dataExport(i,n)%ptr(:,jmax-1)
+        end if
+
+        !call print_matrix_r8(models(Iatmos)%dataExport(i,n)%ptr, 2, 2)
+
+
+!      write(outfile,                                                    &
+!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,"_",I2.2,".txt")') &
+!            'atm_export',                                               &
+!            trim(adjustl(name)),                                        &
+!            models(Iatmos)%time%year,                                   &
+!            models(Iatmos)%time%month,                                  &
+!            models(Iatmos)%time%day,                                    &
+!            models(Iatmos)%time%hour,&
+!            localPet
+!       open (unit = 24, file = trim(outfile)) 
+!       write(24,*) "Vwind PTR - ", localPet, &
+!       models(Iatmos)%dataExport(i,n)%ptr(imin:imax,jmin:jmax)
+!       write(24,*) "Vwind v10m_o - ", localPet, &
+!       v10m_o
+!       close(24)
       end if
 !
 !-----------------------------------------------------------------------

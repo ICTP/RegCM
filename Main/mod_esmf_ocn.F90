@@ -858,10 +858,13 @@
           end do       
 !
           if (cpl_debug_level > 2) then
-            write(*,40) localPet, j, 'R-M', IstrR, IendR,  JstrR, JendR
-            write(*,40) localPet, j, 'R-E', lbound(ptrY, dim=1),        &
+            write(*,40) localPet, j, 'R-1', IstrR, IendR,  JstrR, JendR
+            write(*,40) localPet, j, 'R-2', lbound(ptrY, dim=1),        &
                         ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
                         ubound(ptrY, dim=2) 
+            write(*,40) localPet, j, 'R-3', lbound(GRID(n)%lonr, dim=1),        &
+                        ubound(GRID(n)%lonr, dim=1), lbound(GRID(n)%lonr, dim=2),       &
+                        ubound(GRID(n)%lonr, dim=2)
           end if
 !
           if (cpl_vtk_on) then
@@ -962,13 +965,15 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, id, ng, rc
+      integer :: i, j, ii, jj, id, ng, tile, rc
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
       integer :: IstrV, IendV, JstrV, JendV
       integer :: staggerEdgeLWidth(2)
       integer :: staggerEdgeUWidth(2)
+      integer :: TLW(2), TUW(2)
+      integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
       character (len=40) :: name
 !
       type(ESMF_StaggerLoc) :: staggerLoc
@@ -992,6 +997,15 @@
       do ng = 1, nNest(Iocean)
 !
 !-----------------------------------------------------------------------
+!     Allocate arrays 
+!-----------------------------------------------------------------------
+!
+      if (.not.allocated(TLWidth)) then
+        allocate(TLWidth(2,0:NtileI(ng)*NtileJ(ng)-1))
+        allocate(TUWidth(2,0:NtileI(ng)*NtileJ(ng)-1))
+      end if
+!
+!-----------------------------------------------------------------------
 !     Get limits of the arrays (based on PET and grid id)
 !-----------------------------------------------------------------------
 !
@@ -1009,6 +1023,19 @@
       IendV = BOUNDS(ng)%IendR(localPet)
       JstrV = BOUNDS(ng)%Jstr(localPet)
       JendV = BOUNDS(ng)%JendR(localPet)
+!
+!      do tile=0,NtileI(ng)*NtileJ(ng)-1
+!        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
+!        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
+!        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
+!        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
+!      end do
+!      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
+!      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
+       TLW(1) = BOUNDS(ng)%IstrR(localPet)-BOUNDS(ng)%LBi (localPet)
+       TLW(2) = BOUNDS(ng)%JstrR(localPet)-BOUNDS(ng)%LBj (localPet)
+       TUW(1) = BOUNDS(ng)%UBi (localPet)-BOUNDS(ng)%IendR(localPet)
+       TUW(2) = BOUNDS(ng)%UBj (localPet)-BOUNDS(ng)%JendR(localPet)
 !
 !-----------------------------------------------------------------------
 !     Create export state arrays.
@@ -1045,6 +1072,8 @@
                         models(Iocean)%mesh(id,ng)%grid,                &
                         models(Iocean)%arrSpec(ng),                     &
                         staggerLoc=staggerLoc,                          &
+!                        totalLWidth=TLW,                                &
+!                        totalUWidth=TUW,                                &
                         name=trim(models(Iocean)%dataExport(i,ng)%name),&
                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1135,9 +1164,20 @@
       models(Iocean)%dataImport(i,ng)%field = ESMF_FieldCreate (        &
                         models(Iocean)%mesh(id,ng)%grid,                &
                         models(Iocean)%arrSpec(ng),                     &
+                        totalLWidth=TLW,                                &
+                        totalUWidth=TUW,                                &
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataImport(i,ng)%name),&
                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Store routehandle to exchage halo region data 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldHaloStore(models(Iocean)%dataImport(i,ng)%field,   &
+                   routehandle=models(Iocean)%dataImport(i,ng)%rhandle, &
+                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -1161,6 +1201,12 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       models(Iocean)%dataImport(i,ng)%ptr = 0.0d0
+!      write(*,60) localPet, j, 'R-3', &
+!      lbound(models(Iocean)%dataImport(i,ng)%ptr, dim=1), &
+!      ubound(models(Iocean)%dataImport(i,ng)%ptr, dim=1), &
+!      lbound(models(Iocean)%dataImport(i,ng)%ptr, dim=2), &
+!      ubound(models(Iocean)%dataImport(i,ng)%ptr, dim=2)
+!      call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
 !
 !-----------------------------------------------------------------------
@@ -1173,6 +1219,12 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Format definition 
+!-----------------------------------------------------------------------
+!
+ 60   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1368,7 +1420,6 @@
 !-----------------------------------------------------------------------
 !
       CoupleSteps(ng) = max(1, int(cpl_dtsec/dt(ng)))
-      print*, "** turuncu ** CoupleSteps =", ng, CoupleSteps(ng)
 !
 !-----------------------------------------------------------------------
 !     Get import fields
@@ -1394,6 +1445,15 @@
       call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Call halo region update 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldHalo(models(Iocean)%dataImport(i,ng)%field,        &
+             routehandle=models(Iocean)%dataImport(i,ng)%rhandle,       &
+             rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -1458,11 +1518,29 @@
           end do
         end do
       case ('Vwind')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
-            rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
-          end do
-        end do
+        !do jj = JstrR, JendR
+        !  do ii = IstrR, IendR
+        !    rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        !  end do
+        !end do
+        rdata(ng)%Vwind = (ptr*scale_factor)+add_offset
+        !write(*,80) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
+        !write(*,80) localPet, j, 'R-2', &
+        !            lbound(ptr, dim=1), &
+        !            ubound(ptr, dim=1), &
+        !            lbound(ptr, dim=2), &
+        !            ubound(ptr, dim=2)
+        !write(*,80) localPet, j, 'R-3', &
+        !            lbound(rdata(ng)%Vwind, dim=1), &
+        !            ubound(rdata(ng)%Vwind, dim=1), &
+        !            lbound(rdata(ng)%Vwind, dim=2), &
+        !            ubound(rdata(ng)%Vwind, dim=2)
+        !if (localPet == 0) then
+        !call print_matrix_r8(ptr, 1, 1, localPet, "PTR")
+        !call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        !end if
+        !call print_matrix_r8(rdata(ng)%Vwind, 5, 5, localPet, "RDATA")
+        !, rdata(ng)%Vwind(IstrR:IendR,JstrR:JendR) 
       end select
       end do
 !
@@ -1482,6 +1560,7 @@
       call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,       &
                            trim(adjustl(outfile)),                      &
                            rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 
@@ -1493,6 +1572,12 @@
       end if
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Format definition 
+!-----------------------------------------------------------------------
+!
+ 80   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

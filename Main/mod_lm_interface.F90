@@ -22,6 +22,7 @@ module mod_lm_interface
 ! Link surface and atmospheric models
 !
   use mod_bats_common
+  use mod_runparams, only : dtcpl, dtsrf, dtsec
   use mod_atm_interface , only : slice , surfstate , surfpstate , &
                                  surftstate , domain
 #ifdef CLM
@@ -63,6 +64,8 @@ module mod_lm_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d , zpbl
     xdtsec = dt
     kbats = ksrf
+    ntcpl  = idnint(dtcpl/dtsec)
+    ntsrf2 = idnint(dtsrf/dtsec)
     if ( ichem    == 1 ) lchem     = .true.
     if ( iemiss   == 1 ) lemiss    = .true.
     if ( idcsst   == 1 ) ldcsst    = .true.

@@ -186,7 +186,19 @@ module mod_bats_mtrxbats
     if ( iocnflx == 2 ) call zengocndrv(jstart,jend,istart,iend,ktau)
 
 !   ROMS ocean model
-    if ( iocnflx == 3 ) call romsocndrv(jstart,jend,istart,iend,ktau)
+    if ( iocnflx == 3 ) then
+!     Call Zeng ocean flux model until ROMS runs once
+      if (ktau <= ntcpl) then
+        print*, ktau, ntcpl, "ocean - zeng"
+        call zengocndrv(jstart,jend,istart,iend,ktau)
+      else
+!       Then update ground temperature in each coupling time step
+        if (mod(ktau+1,ntcpl) == ntsrf2) then 
+          print*, ktau, ntcpl, "ocean - roms"
+          call romsocndrv(jstart,jend,istart,iend,ktau)
+        end if
+      end if
+    end if
 
 !   Hostetler lake model for every BATS timestep at lake points
     if ( llake ) then
