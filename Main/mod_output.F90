@@ -847,7 +847,7 @@ module mod_output
         end if
         do j = 1 , jendx
           do i = 1 , iym1
-            var2d0(i,j) = kpbl(i,j)
+            var2d0(i,j) = kpbl(j,i)
           end do
         end do
         call mpi_gather(var2d0, iy*jxp,mpi_integer, &
@@ -908,10 +908,12 @@ module mod_output
           end do
         end do
       end if
-      if ( iocnflx == 2 )                                      &
-         & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
-         &                 zpbl_io,iy*jxp,mpi_real8,           &
-         &                 0,mycomm,ierr)
+      if ( iocnflx == 2 ) then
+        swapv = transpose(zpbl)
+        call mpi_gather(swapv,  iy*jxp,mpi_real8, &
+                        zpbl_io,iy*jxp,mpi_real8, &
+                        0,mycomm,ierr)
+      end if
       if ( icup == 1 ) then
         do j = 1 , jendl
           do k = 1 , kz

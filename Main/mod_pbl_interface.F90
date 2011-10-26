@@ -113,7 +113,6 @@ module mod_pbl_interface
     call assignpnt(sts2%tg,tg)
     call assignpnt(sfsta%qfx,qfx)
     call assignpnt(sfsta%hfx,hfx)
-    call assignpnt(sfsta%zpbl,zpbl)
     call assignpnt(sfsta%uvdrag,uvdrag)
     call assignpnt(mddom%coriol,coriolis)
     call assignpnt(mddom%msfx,mapfcx)
@@ -167,7 +166,7 @@ module mod_pbl_interface
                  tcmtend%v(itcmstart:itcmend,:,jtcmstart:jtcmend)
       end if
 
-      zpbl(itcmstart:itcmend,jtcmstart:jtcmend) = &
+      zpbl(jtcmstart:jtcmend,itcmstart:itcmend) = &
                 tcmstate%zpbl(itcmstart:itcmend,jtcmstart:jtcmend)
     end if
 

@@ -65,7 +65,6 @@ module mod_atm_interface
     real(8) , pointer , dimension(:,:) :: hfx
     real(8) , pointer , dimension(:,:) :: qfx
     real(8) , pointer , dimension(:,:) :: tgbb
-    real(8) , pointer , dimension(:,:) :: zpbl
     real(8) , pointer , dimension(:,:) :: uvdrag
   end type surfstate
 
@@ -250,7 +249,6 @@ module mod_atm_interface
       call getmem2d(sfs%rainc,1,iy,1,jxp,'surfstate:rainc')
       call getmem2d(sfs%rainnc,1,iy,1,jxp,'surfstate:rainnc')
       call getmem2d(sfs%tgbb,1,iy,1,jxp,'surfstate:tgbb')
-      call getmem2d(sfs%zpbl,1,iy,1,jxp,'surfstate:zpbl')
       call getmem2d(sfs%uvdrag,1,iy,0,jxp,'surfstate:uvdrag')
     end subroutine allocate_surfstate
 !

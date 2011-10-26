@@ -1524,8 +1524,12 @@ module mod_tendency
       call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
+      ! exchange internal ghost points
+      call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
+                        sfsta%uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
+                        mycomm,mpi_status_ignore,ierr)
       ! Call the Holtslag PBL
-      call holtbl
+      call holtbl(jbegin,jendx,2,iym1)
     end if
 
     if ( ibltyp == 99 ) then

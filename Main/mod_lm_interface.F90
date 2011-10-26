@@ -49,7 +49,7 @@ module mod_lm_interface
   contains
 
   subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs, &
-                       sps,st1,st2,za,ts1,rhox2d)
+                       sps,st1,st2,za,ts1,rhox2d,zpbl)
     implicit none
     real(8) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -60,7 +60,7 @@ module mod_lm_interface
     type(surfpstate) , intent(in) :: sps
     type(surftstate) , intent(in) :: st1 , st2
     real(8) , pointer , intent(in) , dimension(:,:,:) :: za
-    real(8) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d
+    real(8) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d , zpbl
     xdtsec = dt
     kbats = ksrf
     if ( ichem    == 1 ) lchem     = .true.
@@ -77,7 +77,6 @@ module mod_lm_interface
     call assignpnt(atm%tb3d,tatm)
     call assignpnt(atm%qvb3d,qvatm)
     call assignpnt(atm%thx3d,thatm)
-    call assignpnt(sfs%zpbl,zpbl)
     call assignpnt(sfs%hfx,hfx)
     call assignpnt(sfs%qfx,qfx)
     call assignpnt(sfs%uvdrag,uvdrag)
@@ -88,6 +87,7 @@ module mod_lm_interface
     call assignpnt(za,hgt)
     call assignpnt(ts1,ts)
     call assignpnt(rhox2d,rho)
+    call assignpnt(zpbl,hpbl)
   end subroutine init_bats
 !
 #ifdef CLM

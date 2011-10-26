@@ -867,7 +867,7 @@ module mod_params
                 sts1,sts2,za,ts1,ts0_io,rhox2d,landmask)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfsta,sps2,sts1,sts2, &
-                 za,ts1,rhox2d)
+                 za,ts1,rhox2d,zpbl)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &

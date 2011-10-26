@@ -457,12 +457,12 @@ module mod_advection
           end do
 
           do i = istart , istopd
-            if ( kpbl(i,j).gt.kstop ) then
+            if ( kpbl(j,i).gt.kstop ) then
               call fatal(__FILE__,__LINE__,'kpbl is greater than kstop')
             end if
-            if ( kpbl(i,j).ge.4 ) then
+            if ( kpbl(j,i).ge.4 ) then
               ! Calculate slope of scalar in layer above ambiguous layer
-              k = kpbl(i,j)-2
+              k = kpbl(j,i)-2
               if ( (f(i,k+1,j)-f(i,k,j)) > d_zero .and. &
                    (f(i,k,j)-f(i,k-1,j)) > d_zero ) then
                 slope = min((f(i,k+1,j)-f(i,k,j))/(a(k+1)-a(k)), &
@@ -476,7 +476,7 @@ module mod_advection
               end if
               ! Now replace the values of scalar at top and bottom of ambiguous
               ! layer as long as inversion is actually in the ambiguous layer
-              k = kpbl(i,j)
+              k = kpbl(j,i)
               fg(i,k-1) = f(i,k-2,j) + slope*(sigma(k-1)-a(k-2))
               if (abs(f(i,k-2,j) + slope*(a(k-1)-a(k-2))-f(i,k,j)) > &
                   abs(f(i,k-1,j)-f(i,k,j)) ) then

@@ -106,7 +106,7 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
   real(dp) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
-  real(dp) , pointer , dimension(:,:) :: zpbl          ! sfsta%zpbl
+  real(dp) , pointer , dimension(:,:) :: hpbl          ! zpbl
   real(dp) , pointer , dimension(:,:) :: hfx           ! sfsta%hfx
   real(dp) , pointer , dimension(:,:) :: qfx           ! sfsta%qfx
   real(dp) , pointer , dimension(:,:) :: uvdrag        ! sfsta%uvdrag

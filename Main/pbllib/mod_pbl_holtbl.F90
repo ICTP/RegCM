@@ -30,25 +30,25 @@ module mod_pbl_holtbl
 !
   public :: allocate_mod_pbl_holtbl , holtbl
 !
-  real(8) , pointer , dimension(:,:,:) :: cgh , kvc , kvh ,   &
+  real(8) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
                                           kvm , kvq ! , cgq
   real(8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
-                                       ustr , xhfx , xqfx
+                                       ustr , xhfx , xqfx , pfcor
 !
-  real(8) , pointer , dimension(:,:) :: alphak , betak , &
+  real(8) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
-  real(8) , pointer , dimension(:,:) :: kzm , rc , ttnp
-  real(8) , pointer , dimension(:,:) :: vdep
-  real(8) , pointer , dimension(:) :: govrth , hydf
+  real(8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
+  real(8) , pointer , dimension(:,:) :: govrth
+  real(8) , pointer , dimension(:) :: hydf
 !
   real(8) , pointer , dimension(:,:,:) :: dza
   real(8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
   real(8) , pointer , dimension(:) :: wkrecv , wksend
   real(8) , pointer , dimension(:,:,:) :: rhohf
 !
-  real(8) , pointer , dimension(:,:) :: ri
-  real(8) , pointer , dimension(:) :: therm
+  real(8) , pointer , dimension(:,:,:) :: ri
+  real(8) , pointer , dimension(:,:) :: therm
 !
 ! minimum eddy diffusivity
   real(8) , parameter :: kzo = d_one
@@ -76,57 +76,59 @@ module mod_pbl_holtbl
     implicit none
     integer , intent(in) :: ichem , ichdrdepo
 
-    call getmem2d(alphak,1,iy,1,kz,'mod_holtbl:alphak')
-    call getmem2d(betak,1,iy,1,kz,'mod_holtbl:betak')
-    call getmem2d(coef1,1,iy,1,kz,'mod_holtbl:coef1')
-    call getmem2d(coef2,1,iy,1,kz,'mod_holtbl:coef2')
-    call getmem2d(coef3,1,iy,1,kz,'mod_holtbl:coef3')
-    call getmem2d(coefe,1,iy,1,kz,'mod_holtbl:coefe')
-    call getmem2d(coeff1,1,iy,1,kz,'mod_holtbl:coeff1')
-    call getmem2d(coeff2,1,iy,1,kz,'mod_holtbl:coeff2')
-    call getmem2d(tpred1,1,iy,1,kz,'mod_holtbl:tpred1')
-    call getmem2d(tpred2,1,iy,1,kz,'mod_holtbl:tpred2')
-    call getmem2d(ri,1,iy,1,kz,'mod_holtbl:ri')
-    call getmem2d(kzm,1,iym1,1,kz,'mod_holtbl:kzm')
-    call getmem2d(rc,1,iym1,1,kz,'mod_holtbl:rc')
-    call getmem2d(ttnp,1,iym1,1,kz,'mod_holtbl:ttnp')
-    call getmem1d(govrth,1,iym1,'mod_holtbl:govrth')
+    call getmem3d(alphak,1,jxp,1,iy,1,kz,'mod_holtbl:alphak')
+    call getmem3d(betak,1,jxp,1,iy,1,kz,'mod_holtbl:betak')
+    call getmem3d(coef1,1,jxp,1,iy,1,kz,'mod_holtbl:coef1')
+    call getmem3d(coef2,1,jxp,1,iy,1,kz,'mod_holtbl:coef2')
+    call getmem3d(coef3,1,jxp,1,iy,1,kz,'mod_holtbl:coef3')
+    call getmem3d(coefe,1,jxp,1,iy,1,kz,'mod_holtbl:coefe')
+    call getmem3d(coeff1,1,jxp,1,iy,1,kz,'mod_holtbl:coeff1')
+    call getmem3d(coeff2,1,jxp,1,iy,1,kz,'mod_holtbl:coeff2')
+    call getmem3d(tpred1,1,jxp,1,iy,1,kz,'mod_holtbl:tpred1')
+    call getmem3d(tpred2,1,jxp,1,iy,1,kz,'mod_holtbl:tpred2')
+    call getmem3d(ri,1,jxp,1,iy,1,kz,'mod_holtbl:ri')
+    call getmem3d(kzm,1,jxp,1,iym1,1,kz,'mod_holtbl:kzm')
+    call getmem3d(rc,1,jxp,1,iym1,1,kz,'mod_holtbl:rc')
+    call getmem3d(ttnp,1,jxp,1,iym1,1,kz,'mod_holtbl:ttnp')
+    call getmem2d(govrth,1,jxp,1,iym1,'mod_holtbl:govrth')
     call getmem1d(hydf,1,kz,'mod_holtbl:hydf')
-    call getmem1d(therm,1,iy,'mod_holtbl:therm')
-    call getmem3d(cgh,1,iy,1,kz,1,jxp,'mod_holtbl:cgh')
-!   call getmem3d(cgq,1,iy,1,kz,1,jxp,'mod_holtbl:cgq')
-    call getmem3d(kvh,1,iy,1,kz,1,jxp,'mod_holtbl:kvh')
-    call getmem3d(kvm,1,iy,1,kz,1,jxp,'mod_holtbl:kvm')
-    call getmem3d(kvq,1,iy,1,kz,1,jxp,'mod_holtbl:kvq')
-    call getmem2d(hfxv,1,iy,1,jxp,'mod_holtbl:hfxv')
-    call getmem2d(obklen,1,iy,1,jxp,'mod_holtbl:obklen')
-    call getmem2d(th10,1,iy,1,jxp,'mod_holtbl:th10')
-    call getmem2d(ustr,1,iy,1,jxp,'mod_holtbl:ustr')
-    call getmem2d(xhfx,1,iy,1,jxp,'mod_holtbl:xhfx')
-    call getmem2d(xqfx,1,iy,1,jxp,'mod_holtbl:xqfx')
-    call getmem3d(dza,1,iym1,1,kz,1,jxp,'mod_holtbl:dza')
-    call getmem3d(akzz1,1,iym1,1,kz,0,jxp+1,'mod_holtbl:akzz1')
-    call getmem3d(akzz2,1,iym1,1,kz,0,jxp+1,'mod_holtbl:akzz2')
+    call getmem2d(therm,1,jxp,1,iy,'mod_holtbl:therm')
+    call getmem3d(vv,1,jxp,1,iy,1,kz,'mod_holtbl:vv')
+    call getmem3d(cgh,1,jxp,1,iy,1,kz,'mod_holtbl:cgh')
+    call getmem3d(kvh,1,jxp,1,iy,1,kz,'mod_holtbl:kvh')
+    call getmem3d(kvm,1,jxp,1,iy,1,kz,'mod_holtbl:kvm')
+    call getmem3d(kvq,1,jxp,1,iy,1,kz,'mod_holtbl:kvq')
+    call getmem2d(hfxv,1,jxp,1,iy,'mod_holtbl:hfxv')
+    call getmem2d(pfcor,1,jxp,1,iy,'mod_holtbl:pfcor')
+    call getmem2d(obklen,1,jxp,1,iy,'mod_holtbl:obklen')
+    call getmem2d(th10,1,jxp,1,iy,'mod_holtbl:th10')
+    call getmem2d(ustr,1,jxp,1,iy,'mod_holtbl:ustr')
+    call getmem2d(xhfx,1,jxp,1,iy,'mod_holtbl:xhfx')
+    call getmem2d(xqfx,1,jxp,1,iy,'mod_holtbl:xqfx')
+    call getmem3d(dza,1,jxp,1,iym1,1,kz,'mod_holtbl:dza')
+    call getmem3d(rhohf,1,jxp,1,iy,1,kz,'mod_holtbl:rhohf')
+    call getmem3d(akzz1,0,jxp+1,1,iym1,1,kz,'mod_holtbl:akzz1')
+    call getmem3d(akzz2,0,jxp+1,1,iym1,1,kz,'mod_holtbl:akzz2')
     call getmem1d(wkrecv,1,2*iym2*kz,'mod_holtbl:wkrecv')
     call getmem1d(wksend,1,2*iym2*kz,'mod_holtbl:wksend')
-    call getmem3d(rhohf,1,iy,1,kz,1,jxp,'mod_holtbl:rhohf')
     if ( ichem == 1 ) then
       if ( ichdrdepo == 1 ) then
-        call getmem2d(vdep,1,iym1,1,ntr,'mod_holtbl:vdep')
+        call getmem3d(vdep,1,jxp,1,iym1,1,ntr,'mod_holtbl:vdep')
       end if
-      call getmem3d(kvc,1,iy,1,kz,1,jxp,'mod_holtbl:kvc')
+      call getmem3d(kvc,1,jxp,1,iy,1,kz,'mod_holtbl:kvc')
     end if
   end  subroutine allocate_mod_pbl_holtbl
 !
-  subroutine holtbl
+  subroutine holtbl(jstart,jend,istart,iend)
 !
 #ifndef IBM
   use mpi
-#else 
+#endif
+  implicit none
+#ifdef IBM
   include 'mpif.h'
 #endif 
-!
-  implicit none
+  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(8) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
@@ -135,737 +137,828 @@ module mod_pbl_holtbl
 #ifndef BAND
   integer :: jdxm1
 #endif
-  integer :: i , idx , idxm1 , itr , j , k
+  integer :: i , j , k , idx , idxm1 , itr
   integer :: ierr , ii
 !
 !----------------------------------------------------------------------
-! some of the storage spaces for high-resolution pbl
-! are used store the variables in this subroutine.
-! difft(i,k,j)   : temperature tendency (tten)
-! diffq(i,k,j)   : water vapor tendency (qvten)
 !
-! decouple flux-form variables to give u,v,t,theta,theta-vir.,
-! t-vir., qv, and qc at cross points and at ktau-1.
-!
-! *** note ***
-! the boundary winds may not be adequately affected by friction,
-! so use only interior values of ubx3d and vbx3d to calculate
-! tendencies.
-!
-  call mpi_sendrecv(uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
-                    uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
-                    mycomm,mpi_status_ignore,ierr)
-!
+  ! decouple flux-form variables to give u,v,t,theta,theta-vir.,
+  ! t-vir., qv, and qc at cross points and at ktau-1.
+  !
+  ! *** note ***
+  ! the boundary winds may not be adequately affected by friction,
+  ! so use only interior values of ubx3d and vbx3d to calculate
+  ! tendencies.
+  !
   do k = 1 , kz
     hydf(k) = gpcf/dlev(k)
   end do
-!
-  do j = jbegin , jendx
-    do k = 1 , kz
-      do i = 2 , iym1
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
         thvx(i,k,j) = thxatm(i,k,j)*(d_one+ep1*qvatm(i,k,j))
       end do
     end do
-!
-!   density at surface is stored in rhox2d(i,j), at half levels in rhohf(i,k,j).
-!
-    do k = 1 , kzm1
-      do i = 2 , iym1
-        dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
+  end do
+  !
+  ! density at surface is stored in rhox2d(i,j), at half levels in rhohf(j,i,k).
+  !
+  do k = 1 , kzm1
+    do i = istart , iend
+      do j = jstart , jend
+        dza(j,i,k) = za(i,k,j) - za(i,k+1,j)
         xps = (hlev(k)*sfcps(i,j)+ptp)*d_1000
         ps2 = (hlev(k+1)*sfcps(i,j)+ptp)*d_1000
-        rhohf(i,k,j) = (ps2-xps)/(egrav*dza(i,k,j))
+        rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
       end do
     end do
-!
-    do i = 2 , iym1
-      govrth(i) = egrav/thxatm(i,kz,j)
+  end do
+  do i = istart , iend
+    do j = jstart , jend
+      govrth(j,i) = egrav/thxatm(i,kz,j)
     end do
+  end do
 !
 ! *********************************************************************
 !
-!   compute the vertical diffusion term:
-!
-    do k = 2 , kz
-      do i = 2 , iym1
-        rc(i,k) = 0.257D0*dzq(i,k,j)**0.175D0
+  !
+  !   compute the vertical diffusion term:
+  !
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        rc(j,i,k) = 0.257D0*dzq(i,k,j)**0.175D0
       end do
     end do
-!
-!   compute the diffusion coefficient:
-!   blackadar scheme above boundary layer top
-!
-    do k = 2 , kz
-      do i = 2 , iym1
-        kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)*rdtpbl
+  end do
+  !
+  !   compute the diffusion coefficient:
+  !   blackadar scheme above boundary layer top
+  !
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        kzmax = 0.8D0*dza(j,i,k-1)*dzq(i,k,j)*rdtpbl
+        vv(j,i,k) = uatm(i,k,j)*uatm(i,k,j) + vatm(i,k,j)*vatm(i,k,j)
         ss = ((uatm(i,k-1,j)-uatm(i,k,j))*   &
               (uatm(i,k-1,j)-uatm(i,k,j))+   &
               (vatm(i,k-1,j)-vatm(i,k,j))*   &
               (vatm(i,k-1,j)-vatm(i,k,j)))/  &
-              (dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
-        ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
-        if ( (ri-rc(i,k)) >= d_zero ) then
-          kzm(i,k) = kzo
+              (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0D-9
+        ri = govrth(j,i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(j,i,k-1))
+        if ( (ri-rc(j,i,k)) >= d_zero ) then
+          kzm(j,i,k) = kzo
         else
-          kzm(i,k) = kzo + dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
+          kzm(j,i,k) = kzo + dsqrt(ss)*(rc(j,i,k)-ri)*szkm/rc(j,i,k)
         end if
-        kzm(i,k) = dmin1(kzm(i,k),kzmax)
+        kzm(j,i,k) = dmin1(kzm(j,i,k),kzmax)
       end do
     end do
+  end do
 !
 ! *********************************************************************
 !
-!   holtslag pbl
-!
-!   initialize bl diffusion coefficients and counter-gradient terms
-!   with free atmosphere values and make specific humidity
-!
-    do k = 2 , kz
-      do i = 2 , iym1
-!       eddy diffusivities for momentum, heat and moisture
-        kvm(i,k,j) = kzm(i,k)
-        kvh(i,k,j) = kzm(i,k)
-        kvq(i,k,j) = kzm(i,k)
-!chem
+  !   holtslag pbl
+  !
+  !   initialize bl diffusion coefficients and counter-gradient terms
+  !   with free atmosphere values and make specific humidity
+  !
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        ! eddy diffusivities for momentum, heat and moisture
+        kvm(j,i,k) = kzm(j,i,k)
+        kvh(j,i,k) = kzm(j,i,k)
+        kvq(j,i,k) = kzm(j,i,k)
         if ( lchem ) then
-          kvc(i,k,j) = kzm(i,k)
+          kvc(j,i,k) = kzm(j,i,k)
         end if
-!chem_
-!       counter gradient terms for heat and moisture
-        cgh(i,k,j) = d_zero
+        ! counter gradient terms for heat and moisture
+        cgh(j,i,k) = d_zero
       end do
     end do
+  end do
  
-    do i = 2 , iym1
-!     compute friction velocity
+  do i = istart , iend
+    do j = jstart , jend
+      ! compute friction velocity
       idx = i
       jdx = j
 #ifndef BAND
-      idx = min0(idx,iym1)
+      idx = min0(idx,iend)
       idxm1 = i - 1
       idxm1 = max0(idxm1,2)
       jdxm1 = j - 1
-      if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
+      if ( myid == nproc-1 ) jdx = min0(jdx,jend)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #endif
       uflxsfx = uvdrag(idx,jdx)*uatm(i,kz,j)
       vflxsfx = uvdrag(idx,jdx)*vatm(i,kz,j)
-
-      ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx) / &
-                         rhox2d(i,j))
- 
-!     convert surface fluxes to kinematic units
-      xhfx(i,j) = hfx(i,j)/(cpd*rhox2d(i,j))
-      xqfx(i,j) = qfx(i,j)/rhox2d(i,j)
-!     compute virtual heat flux at surface
-      hfxv(i,j) = xhfx(i,j) + mult*thxatm(i,kz,j)*xqfx(i,j)
+      ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(i,j))
+      ! convert surface fluxes to kinematic units
+      xhfx(j,i) = hfx(i,j)/(cpd*rhox2d(i,j))
+      xqfx(j,i) = qfx(i,j)/rhox2d(i,j)
+      ! compute virtual heat flux at surface
+      hfxv(j,i) = xhfx(j,i) + mult*thxatm(i,kz,j)*xqfx(j,i)
+      ! limit coriolis parameter to value at 10 deg. latitude
+      pfcor(j,i) = dmax1(dabs(coriolis(i,j)),2.546D-5)
     end do
-!
-!   estimate potential temperature at 10m via log temperature
-!   profile in the surface layer (brutsaert, p. 63).
-!   calculate mixing ratio at 10m by assuming a constant
-!   value from the surface to the lowest model level.
-!
-    do i = 2 , iym1
-      sh10 = qvatm(i,kz,j)/(qvatm(i,kz,j)+d_one)
-!     th10(i,j) = ((thxatm(i,kz,j)+tg(i,j))*d_half)*(d_one+mult*sh10)
-!     th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)* &
+  end do
+  !
+  !   estimate potential temperature at 10m via log temperature
+  !   profile in the surface layer (brutsaert, p. 63).
+  !   calculate mixing ratio at 10m by assuming a constant
+  !   value from the surface to the lowest model level.
+  !
+  do i = istart , iend
+    do j = jstart , jend
+!     th10(j,i) = ((thxatm(i,kz,j)+tg(i,j))*d_half)*(d_one+mult*sh10)
+!     th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i)* &
 !                 dlog(za(i,kz,j)*d_r10)
- 
-!     "virtual" potential temperature
-      if ( hfxv(i,j) >= d_zero ) then
-        th10(i,j) = thvx(i,kz,j)
+      sh10 = qvatm(i,kz,j)/(qvatm(i,kz,j)+d_one)
+      ! "virtual" potential temperature
+      if ( hfxv(j,i) >= d_zero ) then
+        th10(j,i) = thvx(i,kz,j)
       else
-!       first approximation for obhukov length
-!       th10(i,j) = (0.25*thxatm(i,kz,j)+0.75*tg(i,j))*(d_one+mult*sh10)
+        ! first approximation for obhukov length
+        ! th10(j,i) = (0.25*thxatm(i,kz,j)+0.75*tg(i,j))*(d_one+mult*sh10)
         oblen = -d_half*(thxatm(i,kz,j)+tg(i,j)) *  &
-                (d_one+mult*sh10)*ustr(i,j)**d_three /  &
-                (gvk*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
+                (d_one+mult*sh10)*ustr(j,i)**d_three /  &
+                (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
         if ( oblen >= za(i,kz,j) ) then
-          th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
+          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
              (dlog(za(i,kz,j)*d_r10)+d_five/oblen*(za(i,kz,j)-d_10))
         else if ( oblen < za(i,kz,j) .and. oblen > d_10 ) then
-          th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
+          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
               (dlog(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
               6.0D0*dlog(za(i,kz,j)/oblen))
         else if ( oblen <= d_10 ) then
-          th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)) * &
+          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
                       6.0D0*dlog(za(i,kz,j)*d_r10)
         end if
-        th10(i,j) = dmax1(th10(i,j),tg(i,j))
-!gtb    th10(i,j) = dmin1(th10(i,j),tg(i,j))  ! gtb add to minimize
+        th10(j,i) = dmax1(th10(j,i),tg(i,j))
+!gtb    th10(j,i) = dmin1(th10(j,i),tg(i,j))  ! gtb add to minimize
       end if
- 
-!     obklen compute obukhov length
-      obklen(i,j) = -th10(i,j)*ustr(i,j)**d_three / &
-              (gvk*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
+      ! obklen compute obukhov length
+      obklen(j,i) = -th10(j,i)*ustr(j,i)**d_three / &
+              (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
     end do
   end do
-!
-! compute diffusivities and counter gradient terms
-!
-  call blhnew
+  !
+  ! compute diffusivities and counter gradient terms
+  !
+  call blhnew(jstart,jend,istart,iend)
 
-  do j = jbegin , jendx
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
 #ifndef BAND
-    if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jendx)) then
+        if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jend)) then
 #endif
-      do k = 2 , kz
-        do i = 2 , iym1
-          akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)/dza(i,k-1,j)
-        end do
-      end do
-      do k = 1 , kz
-        do i = 2 , iym1
-          akzz2(i,k,j) = hydf(k)/sfcps(i,j)
-        end do
-      end do
+          akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
 #ifndef BAND
-    end if
+        end if
 #endif
+      end do
+    end do
   end do
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
+#ifndef BAND
+        if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jend)) then
+#endif
+           akzz2(j,i,k) = hydf(k)/sfcps(i,j)
+#ifndef BAND
+        end if
+#endif
+      end do
+    end do
+  end do
+
   ii = 0
   do k = 1 , kz
-    do i = 2 , iym1
+    do i = istart , iend
       ii = ii + 1
-      wksend(ii) = akzz1(i,k,jxp)
+      wksend(ii) = akzz1(jxp,i,k)
     end do
   end do
   do k = 1 , kz
-    do i = 2 , iym1
+    do i = istart , iend
       ii = ii + 1
-      wksend(ii) = akzz2(i,k,jxp)
+      wksend(ii) = akzz2(jxp,i,k)
     end do
   end do
-  call mpi_sendrecv(wksend,iym2*kz*2,mpi_real8,ieast,1, &
-                    wkrecv,iym2*kz*2,mpi_real8,iwest,1, &
+  call mpi_sendrecv(wksend,(iend-1)*kz*2,mpi_real8,ieast,1, &
+                    wkrecv,(iend-1)*kz*2,mpi_real8,iwest,1, &
                     mycomm,mpi_status_ignore,ierr)
   ii = 0
   do k = 1 , kz
-    do i = 2 , iym1
+    do i = istart , iend
       ii = ii + 1
-      akzz1(i,k,0) = wkrecv(ii)
+      akzz1(0,i,k) = wkrecv(ii)
     end do
   end do
   do k = 1 , kz
-    do i = 2 , iym1
+    do i = istart , iend
       ii = ii + 1
-      akzz2(i,k,0) = wkrecv(ii)
+      akzz2(0,i,k) = wkrecv(ii)
     end do
   end do
-!
-  do j = jbegin , jendx
-    jm1 = j-1
- 
-!   calculate coefficients at dot points for u and v wind
- 
+  !
+  !   calculate coefficients at dot points for u and v wind
+  !
 #ifndef BAND
-    if ( myid == 0 .and. j == 2 ) then
-      do k = 2 , kz
-        do i = 2 , iym1
-          idx = i
-          idx = min0(idx,iym2)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          betak(i,k) = d_half*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
+  if ( myid == 0 .and. j == 2 ) then
+    do k = 2 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          betak(j,i,k) = d_half*(akzz1(j,idx,k)+akzz1(j,idxm1,k))
         end do
       end do
-      do k = 1 , kz
-        do i = 2 , iym1
-          idx = i
-          idx = min0(idx,iym2)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          alphak(i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
+    end do
+    do k = 1 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          alphak(j,i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
         end do
       end do
-    else if ( myid == nproc-1 .and. j == jendx ) then
-      do k = 2 , kz
-        do i = 2 , iym1
-          idx = i
-          idx = min0(idx,iym2)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          betak(i,k) = d_half*(akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))
+    end do
+  else if ( myid == nproc-1 .and. j == jend ) then
+    do k = 2 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          jm1 = j-1
+          betak(j,i,k) = d_half*(akzz1(jm1,idx,k)+akzz1(jm1,idxm1,k))
         end do
       end do
-      do k = 1 , kz
-        do i = 2 , iym1
-          idx = i
-          idx = min0(idx,iym2)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          alphak(i,k) = d_half*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
+    end do
+    do k = 1 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          jm1 = j-1
+          alphak(j,i,k) = d_half*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
         end do
       end do
-    else
+    end do
+  else
 #endif
-     do k = 2 , kz
-       do i = 2 , iym1
-         idx = i
-         idx = min0(idx,iym2)
-         idxm1 = i - 1
-         idxm1 = max0(idxm1,2)
-         betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1)+ &
-                       akzz1(idx,k,j)+akzz1(idxm1,k,j))*d_rfour
-       end do
-     end do
-     do k = 1 , kz
-       do i = 2 , iym1
-         idx = i
-         idx = min0(idx,iym2)
-         idxm1 = i - 1
-         idxm1 = max0(idxm1,2)
-         alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1)+ &
-                        akzz2(idx,k,j)+akzz2(idxm1,k,j))*d_rfour
-       end do
-     end do
+    do k = 2 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          jm1 = j-1
+          betak(j,i,k) = (akzz1(jm1,idx,k)+akzz1(jm1,idxm1,k)+ &
+                          akzz1(j,idx,k)  +akzz1(j,idxm1,k))*d_rfour
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = istart , iend
+        idx = i
+        idx = min0(idx,iend-1)
+        idxm1 = i - 1
+        idxm1 = max0(idxm1,2)
+        do j = jstart , jend
+          jm1 = j-1
+          alphak(j,i,k) = (akzz2(jm1,idx,k)+akzz2(jm1,idxm1,k)+ &
+                           akzz2(j,idx,k)  +akzz2(j,idxm1,k))*d_rfour
+        end do
+      end do
+    end do
 #ifndef BAND
-    end if
+  end if
 #endif
 !
 ! **********************************************************************
 !
-!  start now procedure for implicit diffusion calculations
-!  performed separately for wind (dot points)
-!  and temperature and water vapor (cross points)
-!  countergradient term is not included in the implicit diffusion
-!  scheme its effect is included as in the old explicit scheme
-!  calculations assume fluxes positive upward, so the sign in front
-!  of uflxsf and vflxsf has been changed in the various terms
-!
-!  wind components
-!
-!  first compute coefficients of the tridiagonal matrix
-!
-! **********************************************************************
-!
-    ! Atmosphere top
-    do i = 2 , iym1
-      coef1(i,1) = dtpbl*alphak(i,1)*betak(i,2)
-      coef2(i,1) = d_one + dtpbl*alphak(i,1)*betak(i,2)
-      coef3(i,1) = d_zero
-      coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = udatm(i,1,j)/coef2(i,1)
-      coeff2(i,1) = vdatm(i,1,j)/coef2(i,1)
+  ! start now procedure for implicit diffusion calculations
+  ! performed separately for wind (dot points)
+  ! and temperature and water vapor (cross points)
+  ! countergradient term is not included in the implicit diffusion
+  ! scheme its effect is included as in the old explicit scheme
+  ! calculations assume fluxes positive upward, so the sign in front
+  ! of uflxsf and vflxsf has been changed in the various terms
+  !
+  ! wind components
+  !
+  ! first compute coefficients of the tridiagonal matrix
+  !
+  ! Atmosphere top
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = udatm(i,1,j)/coef2(j,i,1)
+      coeff2(j,i,1) = vdatm(i,1,j)/coef2(j,i,1)
     end do
+  end do
 
-    ! top to bottom
-    do k = 2 , kz - 1
-      do i = 2 , iym1
-        coef1(i,k) = dtpbl*alphak(i,k)*betak(i,k+1)
-        coef2(i,k) = d_one+dtpbl*alphak(i,k)*(betak(i,k+1)+betak(i,k))
-        coef3(i,k) = dtpbl*alphak(i,k)*betak(i,k)
-        coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (udatm(i,k,j)+coef3(i,k)*coeff1(i,k-1))/       &
-                      (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff2(i,k) = (vdatm(i,k,j)+coef3(i,k)*coeff2(i,k-1))/       &
-                      (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+  ! top to bottom
+  do k = 2 , kz - 1
+    do i = istart , iend
+      do j = jstart , jend
+        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (udatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1))/       &
+                      (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff2(j,i,k) = (vdatm(i,k,j)+coef3(j,i,k)*coeff2(j,i,k-1))/       &
+                      (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
+  end do
 
-    ! Nearest to surface
-    do i = 2 , iym1
-      coef1(i,kz) = d_zero
-      coef2(i,kz) = d_one + dtpbl*alphak(i,kz)*betak(i,kz)
-      coef3(i,kz) = dtpbl*alphak(i,kz)*betak(i,kz)
-
+  ! Nearest to surface
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       idx = i
-      idx = min0(idx,iym1)
+      idx = min0(idx,iend)
       idxm1 = i - 1
       idxm1 = max0(idxm1,2)
-
 #ifdef BAND
       drgdot = (uvdrag(idxm1,jm1)+uvdrag(idxm1,j) + &
                 uvdrag(idx,jm1)  +uvdrag(idx,j))*d_rfour
 #else
       jdx = j
       jdxm1 = j - 1
-      if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
+      if ( myid == nproc-1 ) jdx = min0(jdx,jend)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
       drgdot = (uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)+  &
                 uvdrag(idx,jdxm1)+uvdrag(idx,jdx))*d_rfour
 #endif
       uflxsf = drgdot*udatm(i,kz,j)
       vflxsf = drgdot*vdatm(i,kz,j)
-      coefe(i,kz) = d_zero
-      coeff1(i,kz) = (udatm(i,kz,j)-dtpbl*alphak(i,kz)*uflxsf+      &
-                      coef3(i,kz)*coeff1(i,kz-1))/                  &
-                     (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
-      coeff2(i,kz) = (vdatm(i,kz,j)-dtpbl*alphak(i,kz)*vflxsf+      &
-                      coef3(i,kz)*coeff2(i,kz-1))/                  &
-                     (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (udatm(i,kz,j)-dtpbl*alphak(j,i,kz)*uflxsf+      &
+                      coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
+                     (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+      coeff2(j,i,kz) = (vdatm(i,kz,j)-dtpbl*alphak(j,i,kz)*vflxsf+      &
+                      coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
+                     (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
-!
-!   all coefficients have been computed, predict field and put it in
-!   temporary work space tpred
-!
-    do i = 2 , iym1
-      tpred1(i,kz) = coeff1(i,kz)
-      tpred2(i,kz) = coeff2(i,kz)
+  end do
+  !
+  !   all coefficients have been computed, predict field and put it in
+  !   temporary work space tpred
+  !
+  do i = istart , iend
+    do j = jstart , jend
+      tpred1(j,i,kz) = coeff1(j,i,kz)
+      tpred2(j,i,kz) = coeff2(j,i,kz)
     end do
+  end do
  
-    do k = kz - 1 , 1 , -1
-      do i = 2 , iym1
-        tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
-        tpred2(i,k) = coefe(i,k)*tpred2(i,k+1) + coeff2(i,k)
+  do k = kz - 1 , 1 , -1
+    do i = istart , iend
+      do j = jstart , jend
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+        tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
       end do
     end do
-!
-!   calculate tendency due to vertical diffusion using temporary
-!   predicted field
-!
-    do k = 1 , kz
-      do i = 2 , iym1
+  end do
+  !
+  !   calculate tendency due to vertical diffusion using temporary
+  !   predicted field
+  !
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
         uten(i,k,j) = uten(i,k,j) + &
-                      (tpred1(i,k)-udatm(i,k,j))*rdtpbl*sfcpd(i,j)
+                      (tpred1(j,i,k)-udatm(i,k,j))*rdtpbl*sfcpd(i,j)
         vten(i,k,j) = vten(i,k,j) + &
-                      (tpred2(i,k)-vdatm(i,k,j))*rdtpbl*sfcpd(i,j)
+                      (tpred2(j,i,k)-vdatm(i,k,j))*rdtpbl*sfcpd(i,j)
       end do
     end do
-!
-!   Common coefficients.
-!
-    do k = 1 , kz
-      do i = 2 , iym1
-        alphak(i,k) = hydf(k)/sfcps(i,j)
+  end do
+  !
+  !   Common coefficients.
+  !
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        alphak(j,i,k) = hydf(k)/sfcps(i,j)
       end do
     end do
-! 
-!   temperature
-!   calculate coefficients at cross points for temperature
-! 
-    do k = 2 , kz
-      do i = 2 , iym1
-        betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)/dza(i,k-1,j)
+  end do
+  ! 
+  !   temperature
+  !   calculate coefficients at cross points for temperature
+  ! 
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        betak(j,i,k) = rhohf(j,i,k-1)*kvh(j,i,k)/dza(j,i,k-1)
       end do
     end do
+  end do
  
-    do i = 2 , iym1
-      coef1(i,1) = dtpbl*alphak(i,1)*betak(i,2)
-      coef2(i,1) = d_one + dtpbl*alphak(i,1)*betak(i,2)
-      coef3(i,1) = d_zero
-      coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = thxatm(i,1,j)/coef2(i,1)
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = thxatm(i,1,j)/coef2(j,i,1)
     end do
+  end do
 
-    do k = 2 , kz - 1
-      do i = 2 , iym1
-        coef1(i,k) = dtpbl*alphak(i,k)*betak(i,k+1)
-        coef2(i,k) = d_one+dtpbl*alphak(i,k)*(betak(i,k+1)+betak(i,k))
-        coef3(i,k) = dtpbl*alphak(i,k)*betak(i,k)
-        coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (thxatm(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
-                      (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+  do k = 2 , kz - 1
+    do i = istart , iend
+      do j = jstart , jend
+        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (thxatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                      (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
+  end do
  
-    do i = 2 , iym1
-      coef1(i,kz) = d_zero
-      coef2(i,kz) = d_one + dtpbl*alphak(i,kz)*betak(i,kz)
-      coef3(i,kz) = dtpbl*alphak(i,kz)*betak(i,kz)
-      coefe(i,kz) = d_zero
-      coeff1(i,kz) = (thxatm(i,kz,j) + dtpbl*alphak(i,kz)*hfx(i,j)*rcpd + &
-           coef3(i,kz)*coeff1(i,kz-1)) / (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (thxatm(i,kz,j) + dtpbl*alphak(j,i,kz)*hfx(i,j)*rcpd + &
+                       coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
-!
-!   all coefficients have been computed, predict field and put it in
-!   temporary work space tpred
-!
-    do i = 2 , iym1
-      tpred1(i,kz) = coeff1(i,kz)
+  end do
+  !
+  !   all coefficients have been computed, predict field and put it in
+  !   temporary work space tpred
+  !
+  do i = istart , iend
+    do j = jstart , jend
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
+  end do
  
-    do k = kz - 1 , 1 , -1
-      do i = 2 , iym1
-        tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+  do k = kz - 1 , 1 , -1
+    do i = istart , iend
+      do j = jstart , jend
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
-!
-!   calculate tendency due to vertical diffusion using temporary
-!   predicted field
-!
-    do k = 1 , kz
-      do i = 2 , iym1
+  end do
+  !
+  !   calculate tendency due to vertical diffusion using temporary
+  !   predicted field
+  !
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
         sf = (tatm(i,k,j)*sfcps(i,j))/thxatm(i,k,j)
         difft(i,k,j) = difft(i,k,j) + &
-                       (tpred1(i,k)-thxatm(i,k,j))*rdtpbl*sf
+                       (tpred1(j,i,k)-thxatm(i,k,j))*rdtpbl*sf
       end do
     end do
-!
-!   water vapor calculate coefficients at cross points for water vapor
-! 
-    do k = 2 , kz
-      do i = 2 , iym1
-        betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)/dza(i,k-1,j)
+  end do
+  !
+  !   water vapor calculate coefficients at cross points for water vapor
+  ! 
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
       end do
     end do
+  end do
  
-    do i = 2 , iym1
-      coef1(i,1) = dtpbl*alphak(i,1)*betak(i,2)
-      coef2(i,1) = d_one + dtpbl*alphak(i,1)*betak(i,2)
-      coef3(i,1) = d_zero
-      coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = qvatm(i,1,j)/coef2(i,1)
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = qvatm(i,1,j)/coef2(j,i,1)
     end do
+  end do
  
-    do k = 2 , kz - 1
-      do i = 2 , iym1
-        coef1(i,k) = dtpbl*alphak(i,k)*betak(i,k+1)
-        coef2(i,k) = d_one+dtpbl*alphak(i,k)*(betak(i,k+1)+betak(i,k))
-        coef3(i,k) = dtpbl*alphak(i,k)*betak(i,k)
-        coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (qvatm(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
-                       (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+  do k = 2 , kz - 1
+    do i = istart , iend
+      do j = jstart , jend
+        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (qvatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
+  end do
  
-    do i = 2 , iym1
-      coef1(i,kz) = d_zero
-      coef2(i,kz) = d_one + dtpbl*alphak(i,kz)*betak(i,kz)
-      coef3(i,kz) = dtpbl*alphak(i,kz)*betak(i,kz)
-      coefe(i,kz) = d_zero
-      coeff1(i,kz) = (qvatm(i,kz,j) + &
-               dtpbl*alphak(i,kz)*qfx(i,j) + &
-               coef3(i,kz)*coeff1(i,kz-1)) /    &
-               (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (qvatm(i,kz,j) + &
+               dtpbl*alphak(j,i,kz)*qfx(i,j) + &
+               coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
+               (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
-!
-!   all coefficients have been computed, predict field and put it in
-!   temporary work space tpred
-! 
-    do i = 2 , iym1
-      tpred1(i,kz) = coeff1(i,kz)
+  end do
+  !
+  !   all coefficients have been computed, predict field and put it in
+  !   temporary work space tpred
+  ! 
+  do i = istart , iend
+    do j = jstart , jend
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
+  end do
  
-    do k = kz - 1 , 1 , -1
-      do i = 2 , iym1
-        tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+  do k = kz - 1 , 1 , -1
+    do i = istart , iend
+      do j = jstart , jend
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
-!
-!   calculate tendency due to vertical diffusion using temporary
-!   predicted field
-!
-    if ( ibltyp == 99 ) then
-      do k = 1 , kz
-        do i = 2 , iym1
-          diagqv(i,k,j) = (tpred1(i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
+  end do
+  !
+  !   calculate tendency due to vertical diffusion using temporary
+  !   predicted field
+  !
+  if ( ibltyp == 99 ) then
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
+          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
         end do
       end do
-    else
-      do k = 1 , kz
-        do i = 2 , iym1
+    end do
+  else
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
           diffq(i,k,j) = diffq(i,k,j) + &
-                         (tpred1(i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
+                         (tpred1(j,i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
         end do
       end do
-    end if
-! 
-!   calculate coefficients at cross points for cloud vater
-!
-    do k = 2 , kz
-      do i = 2 , iym1
-        betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)/dza(i,k-1,j)
+    end do
+  end if
+  ! 
+  !   calculate coefficients at cross points for cloud vater
+  !
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
       end do
     end do
-! 
-    do i = 2 , iym1
-      coef1(i,1) = dtpbl*alphak(i,1)*betak(i,2)
-      coef2(i,1) = d_one + dtpbl*alphak(i,1)*betak(i,2)
-      coef3(i,1) = d_zero
-      coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = qcatm(i,1,j)/coef2(i,1)
+  end do
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = qcatm(i,1,j)/coef2(j,i,1)
     end do
-! 
-    do k = 2 , kz - 1
-      do i = 2 , iym1
-        coef1(i,k) = dtpbl*alphak(i,k)*betak(i,k+1)
-        coef2(i,k) = d_one+dtpbl*alphak(i,k)*(betak(i,k+1)+betak(i,k))
-        coef3(i,k) = dtpbl*alphak(i,k)*betak(i,k)
-        coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (qcatm(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
-                      (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+  end do
+  do k = 2 , kz - 1
+    do i = istart , iend
+      do j = jstart , jend
+        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (qcatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                      (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
-! 
-    do i = 2 , iym1
-      coef1(i,kz) = d_zero
-      coef2(i,kz) = d_one + dtpbl*alphak(i,kz)*betak(i,kz)
-      coef3(i,kz) = dtpbl*alphak(i,kz)*betak(i,kz)
-      coefe(i,kz) = d_zero
-      coeff1(i,kz) = (qcatm(i,kz,j)+coef3(i,kz)*coeff1(i,kz-1)) / &
-                     (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+  end do
+  do i = istart , iend
+    do j = jstart , jend
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (qcatm(i,kz,j)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+                     (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
-!
-!   all coefficients have been computed, predict field and put it in
-!   temporary work space tpred
-!
-    do i = 2 , iym1
-      tpred1(i,kz) = coeff1(i,kz)
+  end do
+  !
+  !   all coefficients have been computed, predict field and put it in
+  !   temporary work space tpred
+  !
+  do i = istart , iend
+    do j = jstart , jend
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
-! 
-    do k = kz - 1 , 1 , -1
-      do i = 2 , iym1
-        tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+  end do
+  do k = kz - 1 , 1 , -1
+    do i = istart , iend
+      do j = jstart , jend
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
-!
-!   calculate tendency due to vertical diffusion using temporary
-!   predicted field
-!
-    if ( ibltyp == 99 ) then
-      do k = 1 , kz
-        do i = 2 , iym1
-          diagqc(i,k,j) = (tpred1(i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
+  end do
+  !
+  !   calculate tendency due to vertical diffusion using temporary
+  !   predicted field
+  !
+  if ( ibltyp == 99 ) then
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
+          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
         end do
       end do
-    else
-      do k = 1 , kz
-        do i = 2 , iym1
+    end do
+  else
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
           qcten(i,k,j) = qcten(i,k,j) + &
-                      (tpred1(i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
+                      (tpred1(j,i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
         end do
       end do
-    end if
+    end do
+  end if
 !
 ! **********************************************************************
 !
-!  now add countergradient term to temperature and water vapor equation
-!
-!trapuv
-    do i = 2 , iym1
-      ttnp(i,1) = d_zero
+  !  now add countergradient term to temperature and water vapor equation
+  !
+  do i = istart , iend
+    do j = jstart , jend
+      ttnp(j,i,1) = d_zero
     end do
-!trapuv_
-    do k = 2 , kz
-      do i = 2 , iym1
+  end do
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
         sf = tatm(i,k,j)/thxatm(i,k,j)
-        ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
+        ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
       end do
     end do
-!
-!   compute the tendencies:
-!
-    do i = 2 , iym1
-      difft(i,kz,j) = difft(i,kz,j) - hydf(kz)*ttnp(i,kz)/cpd
+  end do
+  !
+  !   compute the tendencies:
+  !
+  do i = istart , iend
+    do j = jstart , jend
+      difft(i,kz,j) = difft(i,kz,j) - hydf(kz)*ttnp(j,i,kz)/cpd
     end do
-!
-    do k = 1 , kzm1
-      do i = 2 , iym1
-        difft(i,k,j) = difft(i,k,j) + hydf(k)*(ttnp(i,k+1)-ttnp(i,k))/cpd
+  end do
+  do k = 1 , kzm1
+    do i = istart , iend
+      do j = jstart , jend
+        difft(i,k,j) = difft(i,k,j) + hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))/cpd
       end do
     end do
-!
-!chem2
-    if ( lchem .and. lchdrydepo ) then
-!
-!     coef1, coef2, coef3 and coefe are the same as for water vapor
-!     and cloud water so they do not need to be recalculated
-!     recalculation of coef1,2,3  with tracer diffusivity kvc
-! 
-      do k = 2 , kz
-        do i = 2 , iym1
-          betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)/dza(i,k-1,j)
+  end do
+  if ( lchem .and. lchdrydepo ) then
+    !
+    !     coef1, coef2, coef3 and coefe are the same as for water vapor
+    !     and cloud water so they do not need to be recalculated
+    !     recalculation of coef1,2,3  with tracer diffusivity kvc
+    ! 
+    do k = 2 , kz
+      do i = istart , iend
+        do j = jstart , jend
+          betak(j,i,k) = rhohf(j,i,k-1)*kvc(j,i,k)/dza(j,i,k-1)
         end do
       end do
-! 
-      do k = 2 , kz - 1
-        do i = 2 , iym1
-          coef1(i,k) = dtpbl*alphak(i,k)*betak(i,k+1)
-          coef2(i,k) = d_one+dtpbl*alphak(i,k)*(betak(i,k+1)+betak(i,k))
-          coef3(i,k) = dtpbl*alphak(i,k)*betak(i,k)
+    end do
+    do k = 2 , kz - 1
+      do i = istart , iend
+        do j = jstart , jend
+          coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         end do
       end do
-! 
-      do i = 2 , iym1
-        coef1(i,1) = dtpbl*alphak(i,1)*betak(i,2)
-        coef2(i,1) = d_one + dtpbl*alphak(i,1)*betak(i,2)
-        coef3(i,1) = d_zero
-        coef1(i,kz) = d_zero
-        coef2(i,kz) = d_one + dtpbl*alphak(i,kz)*betak(i,kz)
-        coef3(i,kz) = dtpbl*alphak(i,kz)*betak(i,kz)
+    end do
+    do i = istart , iend
+      do j = jstart , jend
+        coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coef1(j,i,kz) = d_zero
+        coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+        coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       end do
-!
-!     set the Vd for in case of prescribed deposition velocities
-!
-      do itr = 1 , ntr
-        do i = 2 , iym1
+    end do
+    !
+    !     set the Vd for in case of prescribed deposition velocities
+    !
+    do itr = 1 , ntr
+      do i = istart , iend
+        do j = jstart , jend
           if ( landmsk(i,j) == 0 ) then
-            vdep(i,itr) = depvel(itr,2)
+            vdep(j,i,itr) = depvel(itr,2)
           else
-            vdep(i,itr) = depvel(itr,1)
+            vdep(j,i,itr) = depvel(itr,1)
           end if
-!
-!         provisoire test de la routine chdrydep pour les dust
-! 
-          if ( chname(itr) == 'DUST' ) vdep(i,itr) = d_zero
+          !
+          !         provisoire test de la routine chdrydep pour les dust
+          ! 
+          if ( chname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
         end do
       end do
-!
-      do itr = 1 , ntr
-!
-        do i = 2 , iym1
-          coefe(i,1) = coef1(i,1)/coef2(i,1)
-          coeff1(i,1) = chmx(i,1,j,itr)/coef2(i,1)
+    end do
+    do itr = 1 , ntr
+      do i = istart , iend
+        do j = jstart , jend
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff1(j,i,1) = chmx(i,1,j,itr)/coef2(j,i,1)
         end do
-!
-        do k = 2 , kz - 1
-          do i = 2 , iym1
-            coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (chmx(i,k,j,itr)+coef3(i,k)*coeff1(i,k-1)) / &
-                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+      end do
+      do k = 2 , kz - 1
+        do i = istart , iend
+          do j = jstart , jend
+            coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
+                           coef3(j,i,k)*coefe(j,i,k-1))
+            coeff1(j,i,k) = (chmx(i,k,j,itr)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                          (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
           end do
         end do
+      end do
  
-        do i = 2 , iym1
-          coefe(i,kz) = d_zero
- 
-!         add dry deposition option1
-          coeff1(i,kz) = (chmx(i,kz,j,itr)-dtpbl*alphak(i,kz)*chmx(i,kz,j,itr) &
-                         *vdep(i,itr)*rhox2d(i,j)+coef3(i,kz)       &
-                         *coeff1(i,kz-1))                           &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+      do i = istart , iend
+        do j = jstart , jend
+          coefe(j,i,kz) = d_zero
+          ! add dry deposition option1
+          coeff1(j,i,kz) = (chmx(i,kz,j,itr)-dtpbl*alphak(j,i,kz) * &
+                            chmx(i,kz,j,itr)*vdep(j,i,itr)*rhox2d(i,j) + &
+                            coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+                           (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
-!
-!       all coefficients have been computed, predict field and put
-!       it in temporary work space tpred1
-!
-        do i = 2 , iym1
-          tpred1(i,kz) = coeff1(i,kz)
+      end do
+      !
+      !       all coefficients have been computed, predict field and put
+      !       it in temporary work space tpred1
+      !
+      do i = istart , iend
+        do j = jstart , jend
+          tpred1(j,i,kz) = coeff1(j,i,kz)
         end do
-!
-        do k = kz - 1 , 1 , -1
-          do i = 2 , iym1
-            tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+      end do
+      do k = kz - 1 , 1 , -1
+        do i = istart , iend
+          do j = jstart , jend
+            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           end do
         end do
-!
-!       calculate tendency due to vertical diffusion using temporary
-!       predicted field
-!       Dry deposition option 1 is included
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-!qian       chten(i,k,j,itr)=chten(i,k,j,itr)
+      end do
+      !
+      !       calculate tendency due to vertical diffusion using temporary
+      !       predicted field
+      !       Dry deposition option 1 is included
+      !
+      do k = 1 , kz
+        do i = istart , iend
+          do j = jstart , jend
 !CGAFFE     TEST diffusion/10
             chten(i,k,j,itr) = chten(i,k,j,itr) +  &
-                        (tpred1(i,k)-chmx(i,k,j,itr))*rdtpbl*sfcps(i,j)
+                        (tpred1(j,i,k)-chmx(i,k,j,itr))*rdtpbl*sfcps(i,j)
           end do
         end do
-        do i = 2 , iym1
- 
+      end do
+      do i = istart , iend
+        do j = jstart , jend
           if ( chname(itr) /= 'DUST' ) &
             drmr(i,j,itr) = drmr(i,j,itr) + chmx(i,kz,j,itr)* &
-                vdep(i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
+                vdep(j,i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
                 hydf(kz)/sfcps(i,j)
  
         end do
       end do
-    end if
-!chem2_
+    end do
+  end if
  
-  end do
   end subroutine holtbl
 !
 ! ------------------------------------------------------------
@@ -901,248 +994,218 @@ module mod_pbl_holtbl
 !                   zpbl     boundary layer height
 ! ------------------------------------------------------------
 !
-  subroutine blhnew
-!
+  subroutine blhnew(jstart,jend,istart,iend)
   implicit none
+  integer , intent(in) :: jstart , jend , istart , iend
 !
-  real(8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 ,  &
-             pfcor , phpblm , pr , therm2 , tkv , tlv , vv ,    &
-             vvl , wsc , z , zh , zl , zm , zp , zzh , zzhnew , &
-             zzhnew2
+  real(8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
+             phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
+             zl , zm , zp , zzh , zzhnew , zzhnew2
   integer :: i , j , k , k2
 !
-  pblk2 = d_zero
-  zzhnew2 = d_zero
-!
-  do j = jbegin , jendx
-!   note: kmxpbl, max no. of pbl levels, calculated in param
-!   compute richardson number
-    therm(:) = d_zero
- 
-    do k = kz , kmxpbl , -1
-      do i = 2 , iym1
-        vv = uatm(i,k,j)*uatm(i,k,j) + vatm(i,k,j)*vatm(i,k,j)
-        ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/(th10(i,j)*vv)
+  ! note: kmxpbl, max no. of pbl levels, calculated in param
+  ! compute richardson number
+  do k = kz , kmxpbl , -1
+    do i = istart , iend
+      do j = jstart , jend
+        ri(j,i,k) = egrav*(thvx(i,k,j)-th10(j,i))*za(i,k,j) / &
+                          (th10(j,i)*vv(j,i,k))
       end do
     end do
-!   first, set bl height to height of lowest model level
-    do i = 2 , iym1
-      zpbl(i,j) = za(i,kz,j)
-      kpbl(i,j) = kz
+  end do
+  ! first, set bl height to height of lowest model level
+  do i = istart , iend
+    do j = jstart , jend
+      zpbl(j,i) = za(i,kz,j)
+      kpbl(j,i) = kz
     end do
-!   looking for bl top
-    do k = kz , kmxpbl + 1 , -1
-      k2 = k - 1
-      do i = 2 , iym1
-!       bl height lies between this level and the last
-!       use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) ) then
-          zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
-              *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
-          kpbl(i,j) = k
+  end do
+  ! looking for bl top
+  do k = kz , kmxpbl + 1 , -1
+    k2 = k - 1
+    do i = istart , iend
+      do j = jstart , jend
+        ! bl height lies between this level and the last
+        ! use linear interp. of rich. no. to height of ri=ricr
+        if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
+          zpbl(j,i) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
+              *((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+          kpbl(j,i) = k
         end if
       end do
     end do
- 
-    do i = 2 , iym1
-!     set bl top to highest allowable model layer
-      if ( ri(i,kmxpbl) < ricr ) then
-        zpbl(i,j) = za(i,kmxpbl,j)
-        kpbl(i,j) = kmxpbl
+  end do
+  do i = istart , iend
+    do j = jstart , jend
+      ! set bl top to highest allowable model layer
+      if ( ri(j,i,kmxpbl) < ricr ) then
+        zpbl(j,i) = za(i,kmxpbl,j)
+        kpbl(j,i) = kmxpbl
       end if
     end do
- 
-!   recompute richardson no. at lowest model level
-    do i = 2 , iym1
-      if ( hfxv(i,j) > d_zero ) then
-!       estimate of convective velocity scale
-        xfmt = (d_one-(binm*zpbl(i,j)/obklen(i,j)))**onet
-        wsc = ustr(i,j)*xfmt
-!       thermal temperature excess
-        therm(i) = (xhfx(i,j)+mult*thxatm(i,kz,j)*xqfx(i,j))*fak/wsc
-        vvl = uatm(i,kz,j)*uatm(i,kz,j) + vatm(i,kz,j)*vatm(i,kz,j)
-        ri(i,kz) = -egrav*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
+  end do
+  ! recompute richardson no. at lowest model level
+  do i = istart , iend
+    do j = jstart , jend
+      if ( hfxv(j,i) > d_zero ) then
+        ! estimate of convective velocity scale
+        xfmt = (d_one-(binm*zpbl(j,i)/obklen(j,i)))**onet
+        wsc = ustr(j,i)*xfmt
+        ! thermal temperature excess
+        therm(j,i) = (xhfx(j,i)+mult*thxatm(i,kz,j)*xqfx(j,i))*fak/wsc
+        ri(j,i,kz) = -egrav*therm(j,i)*za(i,kz,j)/(th10(j,i)*vv(j,i,kz))
+      else
+        therm(j,i) = d_zero
       end if
     end do
- 
-!   recompute richardson no. at other model levels
-    do k = kz - 1 , kmxpbl , -1
-      do i = 2 , iym1
-        if ( hfxv(i,j) > d_zero ) then
-          tlv = th10(i,j) + therm(i)
+  end do
+  ! recompute richardson no. at other model levels
+  do k = kz - 1 , kmxpbl , -1
+    do i = istart , iend
+      do j = jstart , jend
+        if ( hfxv(j,i) > d_zero ) then
+          tlv = th10(j,i) + therm(j,i)
           tkv = thxatm(i,k,j)*(d_one+mult*(qvatm(i,k,j)/(qvatm(i,k,j)+d_one)))
-          vv = uatm(i,k,j)*uatm(i,k,j)+vatm(i,k,j)*vatm(i,k,j)
-          ri(i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(i,j)*vv)
+          ri(j,i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(j,i)*vv(j,i,k))
         end if
       end do
     end do
- 
-!   improve estimate of bl height under convective conditions
-!   using convective temperature excess (therm)
-    do k = kz , kmxpbl + 1 , -1
-      k2 = k - 1
-      do i = 2 , iym1
-        if ( hfxv(i,j) > d_zero ) then
-!         bl height lies between this level and the last
-!         use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) ) then
-            zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) * &
-                        ((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
-            kpbl(i,j) = k
+  end do
+  ! improve estimate of bl height under convective conditions
+  ! using convective temperature excess (therm)
+  do k = kz , kmxpbl + 1 , -1
+    k2 = k - 1
+    do i = istart , iend
+      do j = jstart , jend
+        if ( hfxv(j,i) > d_zero ) then
+          ! bl height lies between this level and the last
+          ! use linear interp. of rich. no. to height of ri=ricr
+          if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
+            zpbl(j,i) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) * &
+                        ((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+            kpbl(j,i) = k
           end if
         end if
       end do
     end do
- 
-    do i = 2 , iym1
-      if ( hfxv(i,j) > d_zero ) then
-!       set bl top to highest allowable model layer
-        if ( ri(i,kmxpbl) < ricr ) then
-          zpbl(i,j) = za(i,kmxpbl,j)
+  end do
+  do i = istart , iend
+    do j = jstart , jend
+      if ( hfxv(j,i) > d_zero ) then
+        ! set bl top to highest allowable model layer
+        if ( ri(j,i,kmxpbl) < ricr ) then
+          zpbl(j,i) = za(i,kmxpbl,j)
         end if
       end if
     end do
- 
-!   limit bl height to be at least mech. mixing depth
-    do i = 2 , iym1
-!     limit coriolis parameter to value at 10 deg. latitude
-      pfcor = dmax1(dabs(coriolis(i,j)),2.546D-5)
-!     compute mechanical mixing depth, set to lowest model level if lower
-      phpblm = 0.07D0*ustr(i,j)/pfcor
+  end do
+  ! limit bl height to be at least mech. mixing depth
+  do i = istart , iend
+    do j = jstart , jend
+      ! compute mechanical mixing depth, set to lowest model level if lower
+      phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
       phpblm = dmax1(phpblm,za(i,kz,j))
-      zpbl(i,j) = dmax1(zpbl(i,j),phpblm)
-      kpbl(i,j) = kz
+      zpbl(j,i) = dmax1(zpbl(j,i),phpblm)
+      kpbl(j,i) = kz
     end do
+  end do
  
-    do k = kz , kmxpbl + 1 , -1
-      k2 = k - 1
-      do i = 2 , iym1
+  do k = kz , kmxpbl + 1 , -1
+    k2 = k - 1
+    do i = istart , iend
+      do j = jstart , jend
         pblk = d_zero
         zm = za(i,k,j)
         zp = za(i,k2,j)
-        if ( zm < zpbl(i,j) ) then
-          zp = dmin1(zp,zpbl(i,j))
+        if ( zm < zpbl(j,i) ) then
+          zp = dmin1(zp,zpbl(j,i))
           z = (zm+zp)*d_half
-          zh = z/zpbl(i,j)
-          zl = z/obklen(i,j)
+          zh = z/zpbl(j,i)
+          zl = z/obklen(j,i)
           if ( zh <= d_one ) then
             zzh = d_one - zh
             zzh = zzh**pink
-!xexp4          zzhnew = zpbl(i,j)*(d_one-zh)*zh**1.5
-!xexp5          zzhnew = 0.5*zpbl(i,j)*(d_one-zh)*zh**1.5
-!xexp6          zzhnew = d_one - zh
-!xexp7          zzhnew =0.5* (d_one - zh)
+!xexp4      zzhnew = zpbl(j,i)*(d_one-zh)*zh**1.5
+!xexp5      zzhnew = 0.5*zpbl(j,i)*(d_one-zh)*zh**1.5
+!xexp6      zzhnew = d_one - zh
+!xexp7      zzhnew =0.5* (d_one - zh)
 !Sara
-!             zzhnew =0.25* (d_one - zh)
-!             zzhnew =0.75* (d_one - zh)
+!           zzhnew =0.25* (d_one - zh)
+!           zzhnew =0.75* (d_one - zh)
 !Sara_
+!xexp10     zzhnew =zh * (d_one - zh)**2
             zzhnew = (d_one-zh)*d_rfour
-!xexp10         zzhnew =zh * (d_one - zh)**2
-!chem
-            if ( lchem ) then
-              zzhnew2 = (d_one-zh)**d_two
-            end if
-!chem_
+            zzhnew2 = (d_one-zh)**d_two
           else
             zzh = d_zero
             zzhnew = d_zero
-!chem
             zzhnew2 = d_zero
-!chem_
           end if
-          fak1 = ustr(i,j)*zpbl(i,j)*vonkar
-          if ( hfxv(i,j) <= d_zero ) then
-!           stable and neutral conditions
-!           igroup = 1
- 
-!           prevent pblk from becoming too small in very stable
-!           conditions
+          fak1 = ustr(j,i)*zpbl(j,i)*vonkar
+          if ( hfxv(j,i) <= d_zero ) then
+            ! stable and neutral conditions
+            ! igroup = 1
+            ! prevent pblk from becoming too small in very stable
+            ! conditions
             if ( zl <= d_one ) then
               pblk = fak1*zh*zzh/(d_one+betas*zl)
-!xexp5            pblk1 = vonkar * ustr(i,j) / (d_one+betas*zl) * zzhnew
+!xexp5        pblk1 = vonkar * ustr(j,i) / (d_one+betas*zl) * zzhnew
               pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
-!chem
-              if ( lchem ) then
-                pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
-              end if
-!chem_
+              pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
             else
               pblk = fak1*zh*zzh/(betas+zl)
-!xexp5            pblk1 = vonkar * ustr(i,j) / (betas+zl) * zzhnew
+!xexp5        pblk1 = vonkar * ustr(j,i) / (betas+zl) * zzhnew
               pblk1 = fak1*zh*zzhnew/(betas+zl)
-!chem
-              if ( lchem ) then
-                pblk2 = fak1*zh*zzhnew2/(betas+zl)
-              end if
-!chem_
+              pblk2 = fak1*zh*zzhnew2/(betas+zl)
             end if
-!           compute eddy diffusivities
-            kvm(i,k,j) = dmax1(pblk,kzo)
-            kvh(i,k,j) = kvm(i,k,j)
-            kvq(i,k,j) = dmax1(pblk1,kzo)
-! Erika put k=0 in very stable conditions
+            ! compute eddy diffusivities
+            kvm(j,i,k) = dmax1(pblk,kzo)
+            kvh(j,i,k) = kvm(j,i,k)
+            kvq(j,i,k) = dmax1(pblk1,kzo)
+            ! Erika put k=0 in very stable conditions
             if ( zl <= 0.1D0 ) then
-              kvm(i,k,j) = d_zero
-              kvh(i,k,j) = kvm(i,k,j)*d_zero
-              kvq(i,k,j) = d_zero
+              kvm(j,i,k) = d_zero
+              kvh(j,i,k) = kvm(j,i,k)*d_zero
+              kvq(j,i,k) = d_zero
             end if
-! Erika put k=0 in very stable conditions
-
-!chem
+            ! Erika put k=0 in very stable conditions
             if ( lchem ) then
-              kvc(i,k,j) = dmax1(pblk2,kzo)
+              kvc(j,i,k) = dmax1(pblk2,kzo)
             end if
-!chem_
-!           compute counter-gradient term
-            cgh(i,k,j) = d_zero
-!           cgq(i,k) = d_zero
+            ! compute counter-gradient term
+            cgh(j,i,k) = d_zero
           else
-!           unstable conditions
-!           compute counter gradient term
+            ! unstable conditions
+            ! compute counter gradient term
             if ( zh >= sffrac ) then
-!             igroup = 2
-              xfmt = (d_one-binm*zpbl(i,j)/obklen(i,j))**onet
-              fht = dsqrt(d_one-binh*zpbl(i,j)/obklen(i,j))
-              wsc = ustr(i,j)*xfmt
+              ! igroup = 2
+              xfmt = (d_one-binm*zpbl(j,i)/obklen(j,i))**onet
+              fht = dsqrt(d_one-binh*zpbl(j,i)/obklen(j,i))
+              wsc = ustr(j,i)*xfmt
               pr = (xfmt/fht) + ccon
-              fak2 = wsc*zpbl(i,j)*vonkar
+              fak2 = wsc*zpbl(j,i)*vonkar
               pblk = fak2*zh*zzh
-!xexp5            pblk1 = vonkar * wsc * zzhnew
+!xexp5        pblk1 = vonkar * wsc * zzhnew
               pblk1 = fak2*zh*zzhnew
-!chem
-              if ( lchem ) then
-                pblk2 = fak2*zh*zzhnew2
-              end if
-!chem_
-              therm2 = fak/(zpbl(i,j)*wsc)
-              cgh(i,k,j) = hfxv(i,j)*therm2
-!               cgq(i,k) = xqfx(i,j)*therm2
+              pblk2 = fak2*zh*zzhnew2
+              therm2 = fak/(zpbl(j,i)*wsc)
+              cgh(j,i,k) = hfxv(j,i)*therm2
             else
-!             igroup = 3
+              ! igroup = 3
               pblk = fak1*zh*zzh*(d_one-betam*zl)**onet
-!xexp5            pblk1 = vonkar * ustr(i,j) * zzhnew *
-!               (d_one-betam*zl)**onet
+!xexp5        pblk1 = vonkar * ustr(j,i) * zzhnew * (d_one-betam*zl)**onet
               pblk1 = fak1*zh*zzhnew*(d_one-betam*zl)**onet
-!chem
-              if ( lchem ) then
-                pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
-              end if
-!chem_
+              pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
               pr = ((d_one-betam*zl)**onet)/dsqrt(d_one-betah*zl)
-              cgh(i,k,j) = d_zero
-!               cgq(i,k) = d_zero
+              cgh(j,i,k) = d_zero
             end if
- 
-!           compute eddy diffusivities
-            kvm(i,k,j) = dmax1(pblk,kzo)
-            kvh(i,k,j) = dmax1((pblk/pr),kzo)
-!           kvq(i,k,j) = kvh(i,k,j)
-            kvq(i,k,j) = dmax1(pblk1,kzo)
-!chem
+            ! compute eddy diffusivities
+            kvm(j,i,k) = dmax1(pblk,kzo)
+            kvh(j,i,k) = dmax1((pblk/pr),kzo)
+            kvq(j,i,k) = dmax1(pblk1,kzo)
             if ( lchem ) then
-              kvc(i,k,j) = dmax1(pblk2,kzo)
+              kvc(j,i,k) = dmax1(pblk2,kzo)
             end if
-!chem_
           end if
         end if
       end do
@@ -1150,13 +1213,13 @@ module mod_pbl_holtbl
   end do
  
   if ( ibltyp == 99 ) then
-    do j = jbegin , jendx
-      do i = 2 , iym1
+    do i = istart , iend
+      do j = jstart , jend
         do k = 1 , kz
-          kvm(i,k,j) = uwstateb%kzm(i,k,j)
-          kvh(i,k,j) = uwstateb%kth(i,k,j)
-          kvq(i,k,j) = uwstateb%kth(i,k,j)
-          cgh(i,k,j) = d_zero
+          kvm(j,i,k) = uwstateb%kzm(i,k,j)
+          kvh(j,i,k) = uwstateb%kth(i,k,j)
+          kvq(j,i,k) = uwstateb%kth(i,k,j)
+          cgh(j,i,k) = d_zero
         end do
       end do
     end do

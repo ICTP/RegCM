@@ -639,7 +639,7 @@ module mod_bats_mtrxbats
             sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
             prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
             ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
-            zpbl_o(j,i-1) = real(zpbl(i,j))
+            zpbl_o(j,i-1) = real(hpbl(j,i))
  
             tlef_o(j,i-1) = 0.0
             ssw_o(j,i-1) = 0.0

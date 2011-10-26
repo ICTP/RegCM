@@ -105,6 +105,7 @@ module mod_mppio
   integer , pointer , dimension(:,:) :: var2d_0
   integer , pointer , dimension(:,:,:) :: var2d1
   integer , pointer , dimension(:,:,:) :: var2d_1
+  real(8) , pointer , dimension(:,:) :: swapv
  
   real(8) , pointer , dimension(:,:,:) :: atm0
   real(8) , pointer , dimension(:,:,:) :: atm_0
@@ -174,6 +175,7 @@ module mod_mppio
     call getmem2d(var1snd,1,kz,1,8,'mod_mppio:var1snd')
     call getmem2d(var1rcv,1,kz,1,8,'mod_mppio:var1rcv')
     call getmem2d(var2d0,1,iy,1,jxp,'mod_mppio:var2d0')
+    call getmem2d(swapv,1,iy,1,jxp,'mod_mppio:swap')
     call getmem3d(var2d1,1,iy,1,nnsg,1,jxp,'mod_mppio:var2d1')
     call getmem3d(inisrf0,1,iy,1,nnsg*4+7,1,jxp,'mod_mppio:inisrf0')
     call getmem3d(atm0,1,iy,1,kz*6+3+nnsg*3,1,jxp,'mod_mppio:atm0')

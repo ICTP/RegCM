@@ -34,7 +34,10 @@ module mod_pbl_common
   real(dp) , pointer ,  dimension(:,:) :: rhox2d
   real(dp) , pointer , dimension(:,:,:) :: dzq , thvx
   real(dp) , pointer , dimension(:,:,:) :: za
+!
+  public :: kpbl , zpbl
   integer , pointer , dimension(:,:) :: kpbl
+  real(dp) , pointer , dimension(:,:) :: zpbl
 !
   type tcm_state
     !
@@ -116,7 +119,6 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:) :: tg          ! sts2%tg
   real(dp) , pointer , dimension(:,:) :: qfx         ! sfsta%qfx
   real(dp) , pointer , dimension(:,:) :: hfx         ! sfsta%hfx
-  real(dp) , pointer , dimension(:,:) :: zpbl        ! sfsta%zpbl
   real(dp) , pointer , dimension(:,:) :: uvdrag      ! sfsta%uvdrag
   real(dp) , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
   real(dp) , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
@@ -164,7 +166,8 @@ module mod_pbl_common
     call getmem3d(thvx,1,iy,1,kz,1,jxp,'pbl_common:thvx')
     call getmem3d(za,1,iy,1,kz,1,jxp,'pbl_common:za')
     call getmem2d(rhox2d,1,iy,1,jxp,'pbl_common:rhox2d')
-    call getmem2d(kpbl,1,iy,1,jxp,'pbl_common:kpbl')
+    call getmem2d(kpbl,1,jxp,1,iy,'pbl_common:kpbl')
+    call getmem2d(zpbl,1,jxp,1,iy,'pbl_common:kpbl')
     !
     ! Allocate the tcm state variables
     !

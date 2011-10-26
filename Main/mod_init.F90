@@ -28,6 +28,7 @@ module mod_init
   use mod_che_interface
   use mod_cu_interface
   use mod_rad_interface
+  use mod_pbl_interface
   use rrtmg_sw_init
   use rrtmg_lw_init
   use mod_pbl_interface
@@ -344,12 +345,13 @@ module mod_init
       end do
     end if
 !
+    zpbl(:,:) = 500.0D0  ! For Zeng Ocean Flux Scheme
+!
     do j = 1 , jendx
       do i = 1 , iym1
         sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
         sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
         sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
-        sfsta%zpbl(i,j) = 500.0D0  ! For Zeng Ocean Flux Scheme
       end do
     end do
     if ( ichem == 1 ) then
@@ -644,7 +646,7 @@ module mod_init
       if (myid == 0) then
         do j = 1 , jendx
           do i = 1 , iy
-            kpbl(i,j) = var2d_0(i,j)
+            kpbl(j,i) = var2d_0(i,j)
           end do
         end do
       end if
@@ -692,9 +694,10 @@ module mod_init
       end do
     end do
     if ( iocnflx == 2 ) then
-      call mpi_scatter(zpbl_io,    iy*jxp,mpi_real8,         &
-                       sfsta%zpbl, iy*jxp,mpi_real8,   &
+      call mpi_scatter(zpbl_io, iy*jxp,mpi_real8, &
+                       swapv,   iy*jxp,mpi_real8, &
                        0,mycomm,ierr)
+      zpbl = transpose(swapv)
     end if
     if ( icup == 1 ) then
       if ( myid == 0 ) then

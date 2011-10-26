@@ -102,7 +102,7 @@ module mod_bats_zengocn
             t995 = tatm(i,kz,j) - tzero
             q995 = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
             z995 = hgt(i,kz,j)
-            zi = zpbl(i,j)
+            zi = hpbl(j,i)
             psurf = (sfps(i,j)+ptop)*d_10
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
                          uv10,tau,lh,sh,dth,dqh,ustar,zo)
