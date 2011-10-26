@@ -31,10 +31,34 @@ module mod_che_param
 
   real(dp) , pointer , dimension(:) :: chlevs
 !
-  real(8) , dimension(22) :: aest , arye
-!
+real(8) , dimension(22) :: aest , arye !FAB : temporaire car defini dans les modules de deposts
 ! Stokes parameters
+
+real(dp), dimension(12) :: cxmopor
+real(dp) , dimension(22) :: cdepuv,crough
+integer, dimension(22) :: ciexsol
+
+!FAB : redefine soil prop. similar to bats for  chemistry externalisation.. think about an interface! 
 !
+!     ******      xmopor is fraction of soil that is voids
+  data cxmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
+         &    0.51D0 , 0.54D0 , 0.57D0 , 0.6D0 , 0.63D0 , 0.66D0/
+
+!     ORIGINAL
+!     data iexsol/6,6,6,6,7,8,6,3,6,6,5,12,6,6,6,6,5,6,6,6/
+!     Laura  04/04/08 changed soil texture for desert: 3->1
+  data ciexsol/6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
+          &   6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8/
+
+  data cdepuv/22*100.0D0/
+!
+!   rough is an aerodynamic roughness length (m) =approx 0.1*veg
+!*    height also used snow masking depth in subrout albedo
+  data crough /0.08D0 , 0.05D0 , 2*1.0D0 , 0.8D0 , 2.0D0  , 0.1D0  , &
+          &   0.05D0 , 0.04D0 , 0.06D0 ,  0.1D0 , 0.01D0 , 0.03D0 , &
+          &   2*0.0004D0 , 2*0.1D0 , 0.8D0 , 2*0.3D0, 1.5D0, 0.40D0 /
+
+
   data aest     /0.80D0 , 0.80D0 , 0.8D0 , 0.8D0 , 1.2D0 , 1.20D0 , &
        2.0D0 , 1.5D0 ,  1.5D0 , 2.0D0 , 15.0D0 , 15.0D0 , 1.5D0 ,   &
        1.5D0 , 1.5D0 , 15.0D0 , 1.2D0 , 1.2D0 , 1.2D0 , 1.2D0 ,     &

@@ -713,7 +713,7 @@ module mod_params
   call allocate_mod_che_dust
 
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
-  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,remrat,rembc,cldfra,cldlwc)
+  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -873,9 +873,11 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,atms,sps1, &
-                   sps2,a,ptop,coszrs,icumtop,icumbot)
-  end if
+    call init_chem(idirect,dtsec,chemfrq,dtrad,calday,dsigma,atms,sps1, &
+                   sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,ptop, &
+                   coszrs,veg2d,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,&
+                   ssw2da,icumtop,icumbot)
+ end if
   call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
                 mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
                 aldifl,albdir,albdif,albvs,albvl,aemiss,sabv2d,  &

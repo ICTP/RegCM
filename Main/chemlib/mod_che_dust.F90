@@ -29,6 +29,7 @@ module mod_che_dust
   use mod_che_common
   use mod_che_ncio
   use mod_che_mppio
+ 
 
   implicit none
 !
@@ -57,7 +58,7 @@ module mod_che_dust
 !        
 !     Basic dust aerosol density (ACE-2 ) in kg/m3
 !        
-  real(dp) , parameter :: rhop = 2650.0D0
+  real(dp) , parameter :: rhodust = 2650.0D0
 
   real(dp), dimension (2,isize)  ::  aerosize       
   real(dp) , pointer, dimension(:) ::  frac1 , frac2 , frac3
@@ -129,7 +130,7 @@ module mod_che_dust
 !
   integer :: ierr
   real(dp) , dimension(nats) :: bcly , bslt , bsnd
-  real(dp) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
+  real(dp) :: deldp , eps , stotal , xk , xl , xm , xn
   integer :: i , j , n , nm , ns , nt , itr
   real(dp) , dimension(3,12) :: mmd , pcent , sigma
   real(dp) , dimension(iy,nsoil,nats) :: srel
@@ -150,7 +151,7 @@ module mod_che_dust
   data bslt/0.10D0 , 0.30D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0 , &
             0.50D0 , 0.50D0 , 0.50D0 , 0.00D0 , 0.00D0 , 0.00D0/
 ! 
-  data rhop/2650.0D0/
+ 
   data eps/1.0D-7/
 !
   data mmd/690.0D0 , 210.0D0 ,  10.0D0 , 690.0D0 , 210.0D0 , &
@@ -266,7 +267,7 @@ module mod_che_dust
               else
                 xm = d_zero
               end if
-              xn = rhop*twot*(dp_array(ns)*d_half)
+              xn = rhodust*twot*(dp_array(ns)*d_half)
               deldp = 0.0460517018598807D0
               ! dp_array(2)-dp_array(1) ss(nsoil)
               ss(ns) = ss(ns) + (xm*deldp/xn)
@@ -356,7 +357,7 @@ module mod_che_dust
 !     * ustar0 : threshold frication velocity [m/s]                ****
 !     *****************************************************************
 !
-  function ustart01(rhop,dum,rhair)
+  function ustart01(rhodust,dum,rhair)
   implicit none
 !
   real(dp) , parameter :: a2 = 0.129D0 , c1 = 0.006D0 , c2 = 1.928D0 , &
@@ -364,16 +365,16 @@ module mod_che_dust
                          y1 = 1331.647D0 , y2 = 1.561228D0 ,          &
                          y3 = 0.38194D0
 !
-  real(dp) :: dum , rhair , rhop
+  real(dp) :: dum , rhair , rhodust
   real(dp) :: ustart01
-  intent (in) dum , rhair , rhop
+  intent (in) dum , rhair , rhodust
 !
   real(dp) :: dm , rep , term , term1 , term2
 ! 
   dm = dum  !* 1.0e-4      ! cm
   rep = y1*(dm**y2) + y3
-  term1 = dsqrt(d_one+(c1/(rhop*egrav*0.1D0*(dm**c5))))
-  term2 = dsqrt(rhop*egrav*d_100*dm/rhair)
+  term1 = dsqrt(d_one+(c1/(rhodust*egrav*0.1D0*(dm**c5))))
+  term2 = dsqrt(rhodust*egrav*d_100*dm/rhair)
   term = term1*term2
   ustart01 = cvmgt(a2*term*(d_one-c3*dexp(c4*(rep-d_10))),  &
              a2*term/dsqrt(c2*(rep**0.092D0)-d_one),rep > d_10)
@@ -390,18 +391,18 @@ module mod_che_dust
 !     * ustar0: threshold friction velocity       [cm/s]           ****
 !     *****************************************************************
 ! 
-  function ustart0(rhop,dum,rhoa)
+  function ustart0(rhodust,dum,rhoa)
   implicit none
 !
   real(dp) , parameter :: agamma = 3.0D-4 , f = 0.0123D0
 !
-  real(dp) :: dum , rhoa , rhop
+  real(dp) :: dum , rhoa , rhodust
   real(dp) :: ustart0
-  intent (in) dum , rhoa , rhop
+  intent (in) dum , rhoa , rhodust
 !
   real(dp) :: dm , sigma
 ! 
-  sigma = rhop/rhoa
+  sigma = rhodust/rhoa
   dm = dum*1.0D-2
   ustart0 = f*(sigma*egrav*dm+agamma/(rhoa*dm))
   ustart0 = dsqrt(ustart0)
@@ -493,6 +494,11 @@ module mod_che_dust
       ieff = ieff + 1
       do n = 1 , nbin
         rsfrow(i,n) = xrsfrow(ieff,n)
+        chiten(i,kz,jloop,idust(n)) = chiten(i,kz,jloop,idust(n)) + rsfrow(i,n)    &
+                               & *egrav/(cdsigma(kz)*1.E3)
+!           diagnostic source (accumulated)
+            cemtr(i,jloop,idust(n)) = cemtr(i,jloop,idust(n)) + rsfrow(i,n)   &
+                           & *dtche/2.
       end do
     end if
   end do
@@ -606,18 +612,18 @@ module mod_che_dust
  
   end do       ! end i loop
  
-  call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop)
+  call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhodust)
  
-  call emission(ilg,il1,il2,rhop,ftex,uth,roarow,rc,utheff,     &
+  call emission(ilg,il1,il2,rhodust,ftex,uth,roarow,rc,utheff,     &
                 ustar,srel,rsfrow,trsize,vegfrac)
  
   end subroutine dust_module
 ! 
-  subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop)
+  subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhodust)
   implicit none
 !
   integer :: il1 , il2 , ilg , nsoil , ust
-  real(dp) :: rhop
+  real(dp) :: rhodust
   real(dp) , dimension(ilg) :: roarow
   real(dp) , dimension(ilg,nsoil) :: utheff
   intent (in) il1 , il2 , ilg , nsoil , ust
@@ -627,27 +633,27 @@ module mod_che_dust
 !
   do i = 1 , nsoil
     do j = il1 , il2
-      if ( ust == 0 ) utheff(j,i) = ustart0(rhop,dp_array(i),roarow(j))
-      if ( ust == 1 ) utheff(j,i) = ustart01(rhop,dp_array(i),roarow(j))
+      if ( ust == 0 ) utheff(j,i) = ustart0(rhodust,dp_array(i),roarow(j))
+      if ( ust == 1 ) utheff(j,i) = ustart01(rhodust,dp_array(i),roarow(j))
     end do
   end do
  
   end subroutine uthefft
 !
-  subroutine emission(ilg,il1,il2,rhop,ftex,uth,roarow,rc,      &
+  subroutine emission(ilg,il1,il2,rhodust,ftex,uth,roarow,rc,      &
                       utheff,ustar,srel,rsfrow,trsize,vegfrac)
  
   implicit none
 !
   integer :: il1 , il2 , ilg
-  real(dp) :: rhop , uth
+  real(dp) :: rhodust , uth
   real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac
   real(dp) , dimension(ilg,nbin) :: rsfrow
   real(dp) , dimension(ilg,nats) :: ftex
   real(dp) , dimension(ilg,nsoil,nats) :: srel
   real(dp) , dimension(nbin,2) :: trsize
   real(dp) , dimension(ilg,nsoil) :: utheff
-  intent (in)  il1 , il2 , ilg , rc , rhop , roarow , srel ,  &
+  intent (in)  il1 , il2 , ilg , rc , rhodust , roarow , srel ,  &
               trsize , ustar , utheff , vegfrac, ftex
   intent (inout) rsfrow , uth
 !
@@ -694,7 +700,7 @@ module mod_che_dust
             dec = fsoil(i,nt)*beta
 !               individual kinetic energy for an aggregate of size dp (
 !               g cm2 s-2) cf alfaro (dp) is in cm
-            ec = (mathpi/12.0D0)*rhop*1.0D-3*(dp_array(ns)**d_three)*  &
+            ec = (mathpi/12.0D0)*rhodust*1.0D-3*(dp_array(ns)**d_three)*  &
                   (20.0D0*ustar(i))**d_two
  
             if ( ec > e1 ) then
@@ -716,11 +722,11 @@ module mod_che_dust
             end if
  
             fsoil1(i,nt) = fsoil1(i,nt) + 1.0D-2*p1*(dec/e1)* &
-                      (mathpi/6.0D0)*rhop*((d1*1.0D-04)**d_three)
+                      (mathpi/6.0D0)*rhodust*((d1*1.0D-04)**d_three)
             fsoil2(i,nt) = fsoil2(i,nt) + 1.0D-2*p2*(dec/e2)* &
-                      (mathpi/6.0D0)*rhop*((d2*1.0D-04)**d_three)
+                      (mathpi/6.0D0)*rhodust*((d2*1.0D-04)**d_three)
             fsoil3(i,nt) = fsoil3(i,nt) + 1.0D-2*p3*(dec/e3)* &
-                      (mathpi/6.0D0)*rhop*((d3*1.0D-04)**d_three)
+                      (mathpi/6.0D0)*rhodust*((d3*1.0D-04)**d_three)
           end if
         end if
       end do

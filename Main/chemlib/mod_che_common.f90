@@ -39,10 +39,10 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
   real(dp) , pointer , dimension(:,:,:) :: srclp2
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
-                                           wdlsc , wxaq , wxsg
+                                           wdlsc , wxaq , wxsg,drydepv
   real(dp) , pointer , dimension(:,:,:) :: taucld
   real(dp) , pointer , dimension(:,:,:,:) :: chemall
-  integer , pointer , dimension(:,:) :: kcumtop , kcumbot
+  integer , pointer , dimension(:,:) :: kcumtop , kcumbot, cveg2d
 !
   character(len=5) , pointer , dimension(:) :: chtrname
 !
@@ -61,16 +61,29 @@ module mod_che_common
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
   real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
-  real(dp) , pointer , dimension(:,:) :: rembc , remrat
+ 
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(dp) , pointer , dimension(:,:,:) :: tatm , qvatm
-  real(dp) , pointer , dimension(:,:) :: sfcp , psfcp
-  real(dp) , pointer , dimension(:) :: hlev
-  real(dp) , pointer , dimension(:,:) :: czen
-  real(dp) :: chptop
 
-  contains
+!atmospheric variable interface for chemistry 
+  real(dp) :: ccalday
+  real(dp) , pointer , dimension(:,:,:,:) ::chib3d
+  real(dp) , pointer , dimension(:,:,:) :: ctb3d,cqvb3d,cubx3d,cvbx3d,crhob3d,cqcb3d,cfcc,cza,cdzq
+  real(dp) , pointer , dimension(:,:) ::  cpsb,ctg,clndcat,cht,cssw2da,crembc,cremrat, &
+                                          ccldfra,cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt
+
+ 
+  real(dp) , pointer , dimension(:) :: hlev, cdsigma
+  real(dp) , pointer , dimension(:,:) :: czen
+
+ real(dp) :: chptop
+
+
+
+
+
+
+ contains
 
   subroutine allocate_mod_che_common(ichem)
     implicit none
@@ -90,8 +103,6 @@ module mod_che_common
       nbin = maxnbin
     end if
 
-    call getmem2d(rembc,1,iy,1,kz,'mod_che_common:rembc')
-    call getmem2d(remrat,1,iy,1,kz,'mod_che_common:remrat')
 
     if ( lch ) then
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
@@ -126,6 +137,7 @@ module mod_che_common
       call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
       call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_common:ddsfc')
       call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_che_common:dtrace')
+      call getmem3d(drydepv,1,iy,1,jxp,1,ntr,'mod_che_common:drydepv')
       call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_che_common:wdcvc')
       call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_common:wdlsc')
       call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_common:wxaq')

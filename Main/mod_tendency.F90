@@ -1440,7 +1440,7 @@ module mod_tendency
 !
 !       compute the tracers tendencies
         if ( ichem == 1 ) then
-          call tractend2(j,xkc)
+          call tractend2(j,ktau,xmonth,xkc)
         end if
 !
 #ifndef BAND

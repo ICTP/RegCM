@@ -30,17 +30,17 @@ module mod_che_carbonaer
 
   ! Parameter usefull for wet and dry deposition of carbon aerosol 
   ! densities in kg/m3
-  real(dp) , public , parameter :: chrhobc   = 2000.0D0
-  real(dp) , public , parameter :: chrhobchl = 1600.0D0
-  real(dp) , public , parameter :: chrhooc   = 1200.0D0
-  real(dp) , public , parameter :: chrhoochl = 1200.0D0
+  real(dp) , public , parameter :: rhobc   = 2000.0D0
+  real(dp) , public , parameter :: rhobchl = 1600.0D0
+  real(dp) , public , parameter :: rhooc   = 1200.0D0
+  real(dp) , public , parameter :: rhoochl = 1200.0D0
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? ) 
-  real(dp) , public , parameter :: chreffbc   = 0.05D0
-  real(dp) , public , parameter :: chreffbchl = 0.3D0
-  real(dp) , public , parameter :: chreffoc   = 0.2D0
-  real(dp) , public , parameter :: chreffochl = 0.3D0
+  real(dp) , public , parameter :: reffbc   = 0.05D0
+  real(dp) , public , parameter :: reffbchl = 0.3D0
+  real(dp) , public , parameter :: reffoc   = 0.2D0
+  real(dp) , public , parameter :: reffochl = 0.3D0
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.

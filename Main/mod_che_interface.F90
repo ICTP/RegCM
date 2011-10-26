@@ -20,7 +20,7 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , surfpstate
+  use mod_atm_interface , only : slice , surfpstate, domain, surftstate
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -37,15 +37,21 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,atms,sps1, &
-                       sps2,a,ptop,coszrs,icutop,icubot)
+  subroutine init_chem(idirect,dt,chemfrq,dtrad,calday,dsigma,atms,sps1, &
+                       sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,&
+                       ptop,coszrs,veg2d,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
     implicit none
     integer , intent(in) :: idirect
-    real(dp) , intent(in) :: dt , chemfrq , dtrad
+    real(dp) , intent(in) :: dt , chemfrq , dtrad, calday
+
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
-    integer , pointer , dimension(:,:) :: icutop , icubot
+    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
+    real(dp), pointer, dimension(:,:) :: rembc,cldfra,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
+    integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
     type(surfpstate) , intent(in) :: sps1 , sps2
     type(slice) , intent(in) :: atms
+    type(domain), intent(in):: mddom
+    type(surftstate), intent(in) :: sts2
     real(dp) , pointer , dimension(:) :: a
     real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
@@ -56,18 +62,52 @@ module mod_che_interface
     chfrq = chemfrq
     rafrq = dtrad
     dtche = dt
+    
+    ccalday=calday
     chptop = ptop
 
-    call assignpnt(dsigma,chlevs)
+
+
+    call assignpnt(dsigma,cdsigma)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
-    call assignpnt(sps1%ps,psfcp)
-    call assignpnt(sps2%ps,sfcp)
-    call assignpnt(atms%tb3d,tatm)
-    call assignpnt(atms%qvb3d,qvatm)
+!    call assignpnt(sps1%ps,psfcp)
+    call assignpnt(sps2%ps,cpsb)
+    call assignpnt(atms%tb3d,ctb3d)
+    call assignpnt(atms%qvb3d,cqvb3d)
+    call assignpnt(atms%qcb3d,cqcb3d)
+    call assignpnt(atms%rhob3d,crhob3d)
+!wind at cell center
+    call assignpnt(atms%ubx3d,cubx3d)
+    call assignpnt(atms%vbx3d,cvbx3d)
+    call assignpnt(atms%chib3d,chib3d)
+!   
+    call assignpnt(mddom%lndcat,clndcat)
+    call assignpnt(mddom%ht,cht)
+    call assignpnt(sts2%tg,ctg)
+
+    call assignpnt(fcc,cfcc)
+    call assignpnt(cldfra,ccldfra)
+    call assignpnt(rembc,crembc)
+    call assignpnt(remrat,cremrat)
+    call assignpnt(sol2d,csol2d)
+    call assignpnt(svegfrac2d,cvegfrac)
+    call assignpnt(sdeltk2d,csdeltk2d) 
+    call  assignpnt(sdelqk2d,csdeltk2d)
+call assignpnt(veg2d,cveg2d) 
+!call assignpnt(rough,crough) 
+!call  assignpnt(iexsol,ciexsol) 
+!call assignpnt(xmopor,cxmopor) 
+!call assignpnt(depuv,cdepuv) 
+    call assignpnt(za,cza)
     call assignpnt(a,hlev)
+    call assignpnt(dzq,cdzq)
+    call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
-        
+     call assignpnt(ssw2da,cssw2da)   
+
+!FAB : I dont think this part of the code below should be here
+
     iso2  = 0
     iso4  = 0
     idms  = 0
@@ -156,36 +196,36 @@ module mod_che_interface
         kbin = kbin + 1
         iso4 = itr
         icarb(kbin) = itr
-        carbsiz(kbin,1) = chreffochl - 0.1D0
-        carbsiz(kbin,2) = chreffochl + 0.1D0
+        carbsiz(kbin,1) = reffochl - 0.1D0
+        carbsiz(kbin,2) = reffochl + 0.1D0
       end if
       if ( chtrname(itr) == 'BC_HL' ) then 
         kbin = kbin + 1
         ibchl = itr
         icarb(kbin) = itr
-        carbsiz(kbin,1) = chreffbchl - 0.06D0
-        carbsiz(kbin,2) = chreffbchl + 0.06D0
+        carbsiz(kbin,1) = reffbchl - 0.06D0
+        carbsiz(kbin,2) = reffbchl + 0.06D0
       end if
       if ( chtrname(itr) == 'BC_HB' ) then 
         kbin = kbin + 1
         ibchb = itr
         icarb(kbin) = itr
-        carbsiz(kbin,1) = chreffbc - 0.01D0
-        carbsiz(kbin,2) = chreffbc + 0.01D0
+        carbsiz(kbin,1) = reffbc - 0.01D0
+        carbsiz(kbin,2) = reffbc + 0.01D0
       end if
       if ( chtrname(itr) == 'OC_HL' ) then
         kbin = kbin + 1
         iochl = itr
         icarb(kbin) = itr
-        carbsiz(kbin,1) = chreffochl - 0.1D0
-        carbsiz(kbin,2) = chreffochl + 0.1D0
+        carbsiz(kbin,1) = reffochl - 0.1D0
+        carbsiz(kbin,2) = reffochl + 0.1D0
       end if
       if ( chtrname(itr) == 'OC_HB' ) then
         kbin = kbin + 1
         iochb = itr
         icarb(kbin) = itr 
-        carbsiz(kbin,1) = chreffoc - 0.07D0
-        carbsiz(kbin,2) = chreffoc + 0.07D0
+        carbsiz(kbin,1) = reffoc - 0.07D0
+        carbsiz(kbin,2) = reffoc + 0.07D0
       end if
       if ( chtrname(itr)(1:4) == 'DUST') then
         ibin = ibin + 1

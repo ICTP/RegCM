@@ -577,10 +577,10 @@ module mod_che_wetdep
         do i = 2 , iym2
           if ( wl(i,k) > clmin ) then
             wetrem(indp(n)) = d_zero
-            if ( remrat(i,k) > d_zero ) then
+            if ( cremrat(i,k) > d_zero ) then
               wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
                  chib(i,k,j,indp(n))* &
-                 (dexp(-remrat(i,k)/fracloud(i,k)*dtche)-d_one)
+                 (dexp(-cremrat(i,k)/fracloud(i,k)*dtche)-d_one)
               chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &
                  wetrem(indp(n))/dtche
               remlsc(i,k,j,indp(n)) = remlsc(i,k,j,indp(n)) - &

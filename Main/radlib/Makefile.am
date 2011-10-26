@@ -54,8 +54,8 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-rrtmg_sw_k_g.o: rrtmg_sw_k_g.f90
-		$(FC) $(CPPFLAGS) -O0 -convert big_endian -assume byterecl -heap-arrays -c $<
+mcica_random_numbers.o:mcica_random_numbers.f90 
+		$(FC) $(CPPFLAGS) -fno-range-check -c $<
 
 distclean-local:
 	rm -f *.mod

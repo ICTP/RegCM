@@ -212,23 +212,24 @@ module mod_che_emission
   subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
 #endif  
 #else
-  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+!FAB: no dirunal evol for now:  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+subroutine emis_tend(ktau,j,lmonth)
 #endif
 
     implicit none
 
     integer , intent(in) :: j , lmonth
     integer(8) , intent(in) :: ktau
-    real(dp) , intent(in) , dimension(iy) :: coszrs
-    real(dp) , intent(in) , dimension(kz) :: dsigma
-    real(dp) , intent(in) , dimension(iy,jxp) :: xlat
+!    real(dp) , intent(in) , dimension(iy) :: coszrs
+
+!    real(dp) , intent(in) , dimension(iy,jxp) :: xlat
 #ifdef CLM
 #if (defined VOC)
     real(dp) , intent(in) , dimension(:,:,:) :: c2r_voc
     integer , intent(in) , dimension(:) :: bvoc_trmask
 #endif
 #endif
-    real(dp) , intent(in) :: declin
+!    real(dp) , intent(in) :: declin
     integer :: jj ! Full grid j-component
 
     integer :: ib , itr , i , k
@@ -247,12 +248,12 @@ module mod_che_emission
       do i = 2 , iym2
         if ( chtrname(itr).ne.'DUST' .or. &
              chtrname(itr).ne.'SSALT' ) then 
-          daylen = d_two*acos(-tan(declin)*tan(xlat(i,j)*degrad))*raddeg
-          daylen = daylen*24.0D0/360.0D0
-          ! Maximum sun elevation
-          maxelev = halfpi - ((xlat(i,j)*degrad)-declin)
-          fact = (halfpi-acos(coszrs(i)))/(d_two*maxelev)
-          amp = 12.0D0*mathpi/daylen
+!!$          daylen = d_two*acos(-tan(declin)*tan(xlat(i,j)*degrad))*raddeg
+!!$          daylen = daylen*24.0D0/360.0D0
+!!$          ! Maximum sun elevation
+!!$          maxelev = halfpi - ((xlat(i,j)*degrad)-declin)
+!!$          fact = (halfpi-acos(coszrs(i)))/(d_two*maxelev)
+!!$          amp = 12.0D0*mathpi/daylen
 #ifdef CLM
 #if (defined VOC)
           ! test if CLM BVOC is activated and overwrite chemsrc.
@@ -270,20 +271,20 @@ module mod_che_emission
 #endif
 #endif
            ! update emission tendency according to chemsrc value
-           if ( chtrname(itr) == 'ISOP' ) then
+!!$           if ( chtrname(itr) == 'ISOP' ) then
+!!$             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
+!!$                           (amp)*chemsrc(i,j,lmonth,itr) * &
+!!$                          sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
+!!$             ! diagnostic for source, cumul
+!!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(i,j,lmonth,itr) * &
+!!$                           sin(mathpi*fact)*dtche/d_two
+!!$           else
              chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
-                           (amp)*chemsrc(i,j,lmonth,itr) * &
-                          sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
-             ! diagnostic for source, cumul
-             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(i,j,lmonth,itr) * &
-                           sin(mathpi*fact)*dtche/d_two
-           else
-             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
-                           chemsrc(i,j,lmonth,itr)*egrav/(dsigma(kz)*1.0D3)
+                           chemsrc(i,j,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
              ! diagnostic for source, cumul
              cemtr(i,j,itr) = cemtr(i,j,itr) + &
                            chemsrc(i,j,lmonth,itr)*dtche/d_two
-           end if
+!!$           end if
          end if
        end do
      end do
