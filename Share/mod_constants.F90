@@ -250,10 +250,7 @@
       real(8) , parameter :: tauht = 7200.0D+00
 
       ! Aerosol densities
-      real(8) , parameter :: rhoso4 = 1.76D+00
-      real(8) , parameter :: rhobc = d_one
-      real(8) , parameter :: rhooc = d_one
-      real(8) , parameter :: rhodust = 2.5D+00
+      ! now defined in chemistry modules since they are not constant
 
       ! Constants used in Betts Miller
       real(8) , parameter :: aliq = 613.3D+00
