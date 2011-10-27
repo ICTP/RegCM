@@ -1426,8 +1426,8 @@ module mod_tendency
           call vadv(aten%qc,atm1%qc,jbegin,jendx,5)
         end if
       end if
-      call pcp(jbegin,jendx)
-      call cldfrac(jbegin,jendx)
+      call pcp(jbegin,jendx,2,iym1)
+      call cldfrac(jbegin,jendx,2,iym1)
 !
 !     need also to set diffq to 0 here before calling diffut
 !
@@ -1575,22 +1575,21 @@ module mod_tendency
     end if
 !
     do j = jbegin , jendx
-!     add ccm radiative transfer package-calculated heating rates to
-!     temperature tendency
-      do k = 1 , kz
-        do i = 2 , iym2
-          ! heating rate in deg/sec
-          aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(i,j)*heatrt(i,k,j)
-        end do
-      end do
-!
 #ifndef BAND
       if ( myid /= nproc-1 .or. j /= jendx ) then
 #endif
+!       add ccm radiative transfer package-calculated heating rates to
+!       temperature tendency
+        do k = 1 , kz
+          do i = 2 , iym2
+            ! heating rate in deg/sec
+            aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(i,j)*heatrt(i,k,j)
+          end do
+        end do
 !
-!     add horizontal diffusion and pbl tendencies for t and qv to aten%t
-!     and aten%qv for calculating condensational term in subroutine
-!     "condtq".
+!       add horizontal diffusion and pbl tendencies for t and qv to aten%t
+!       and aten%qv for calculating condensational term in subroutine
+!       "condtq".
 !
         do k = 1 , kz
           do i = 2 , iym2
@@ -1603,15 +1602,21 @@ module mod_tendency
             aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
           end do
         end do
+      end if
+    end do
 !
-!       compute the condensation and precipitation terms for explicit
-!       moisture scheme:
+!   compute the condensation and precipitation terms for explicit
+!   moisture scheme:
 !
-        call condtq(j,j,psc,qvcs)
+    call condtq(jbegin,jendm,2,iym2,psc,qvcs)
 !
-!       subtract horizontal diffusion and pbl tendencies from aten%t and
-!       aten%qv for appling the sponge boundary conditions on t and qv:
+!   subtract horizontal diffusion and pbl tendencies from aten%t and
+!   aten%qv for appling the sponge boundary conditions on t and qv:
 !
+    do j = jbegin , jendx
+#ifndef BAND
+      if ( myid /= nproc-1 .or. j /= jendx ) then
+#endif
         if ( iboudy == 4 ) then
           do k = 1 , kz
             do i = 2 , iym2

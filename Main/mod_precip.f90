@@ -32,7 +32,7 @@ module mod_precip
   private
 !
 ! Precip sum beginning from top
-  real(8) , pointer , dimension(:) :: pptsum
+  real(8) , pointer , dimension(:,:) :: pptsum
   real(8) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
   real(8) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
   real(8) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
@@ -40,8 +40,6 @@ module mod_precip
   real(8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
  
   real(8) :: qcth
-  integer :: istart , istopx
-  real(8) , pointer , dimension(:,:) :: qccs , tmp1 , tmp2 , tmp3
 !
   real(8) , parameter :: uch = d_1000*regrav*secph
   real(8) , parameter :: lowq = 1.0D-30
@@ -101,14 +99,7 @@ module mod_precip
       call assignpnt(radcldf,cldfra)
       call assignpnt(radlqwc,cldlwc)
 
-      istart = lbound(rainnc,1) + 1
-      istopx = ubound(rainnc,1) - 2
-
-      call getmem1d(pptsum,istart,istopx,'pcp:pptsum')
-      call getmem2d(qccs,istart,istopx,1,kz,'pcp:qccs')
-      call getmem2d(tmp1,istart,istopx,1,kz,'pcp:tmp1')
-      call getmem2d(tmp2,istart,istopx,1,kz,'pcp:tmp2')
-      call getmem2d(tmp3,istart,istopx,1,kz,'pcp:tmp3')
+      call getmem2d(pptsum,1,jxp,2,iym1,'pcp:pptsum')
     end subroutine init_precip
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -126,11 +117,11 @@ module mod_precip
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine pcp(jstart,jstop)
+    subroutine pcp(jstart,jend,istart,iend)
 
     implicit none
 !
-    integer , intent(in) :: jstart , jstop
+    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(8) :: aprdiv , dpovg , es , afc , p , pptacc ,               &
                pptkm1 , pptmax , pptnew , q , qcincld , qcleft , qcw ,&
@@ -152,12 +143,12 @@ module mod_precip
 
     thog = d_1000*regrav
 !   precipation accumulated from above
-    pptsum(:) = d_zero
-    remrat(istart:istopx,1:kz) = d_zero
+    pptsum(:,:) = d_zero
+    remrat(istart:iend,1:kz) = d_zero
 
-    do j = jstart , jstop
+    do j = jstart , jend
 !
-      do i = istart , istopx
+      do i = istart , iend
      
         afc = fcc(i,1,j)                                     ![frac][avg]
      
@@ -206,14 +197,14 @@ module mod_precip
             pptnew = dmin1(pptmax,pptacc+pptnew)             ![kg/kg/s][avg]
 !           1ah. Accumulate precipitation and convert to kg/m2/s
             dpovg = dsigma(1)*psf(i,j)*thog                  ![kg/m2]
-            pptsum(i) = pptnew*dpovg                         ![kg/m2/s][avg]
+            pptsum(j,i) = pptnew*dpovg                         ![kg/m2/s][avg]
 !           1ai. Compute the cloud water tendency [kg/kg/s*cb]
             qcten(i,1,j) = qcten(i,1,j) - pptnew*psf(i,j)    ![kg/kg/s*cb][avg]
           else  !   Cloud but no new precipitation
-            pptsum(i) = d_zero                               ![kg/m2/s][avg]
+            pptsum(j,i) = d_zero                               ![kg/m2/s][avg]
           end if
         else  !   No cloud
-          pptsum(i) = d_zero                                 ![kg/m2/s][avg]
+          pptsum(j,i) = d_zero                                 ![kg/m2/s][avg]
         end if
      
       end do
@@ -221,7 +212,7 @@ module mod_precip
 !     LAYER TWO TO KZ
 !     1b. Perform computations for the 2nd layer to the surface
       do k = 2 , kz
-        do i = istart , istopx
+        do i = istart , iend
      
 !         1ba. Compute temperature and humidities with the adjustments
 !              due to convection.
@@ -243,25 +234,25 @@ module mod_precip
 !         1bb. Convert accumlated precipitation to kg/kg/s.
 !              Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psf(i,j)*thog                    ![kg/m2][avg]
-          pptkm1 = pptsum(i)/dpovg                           ![kg/kg/s][avg]
+          pptkm1 = pptsum(j,i)/dpovg                           ![kg/kg/s][avg]
      
 !         1bc. Compute the raindrop evaporation in the clear portion of
 !              the gridcell.
 !              - It is assumed that raindrops do not evaporate in clouds
 !                and the rainfall from above is evenly distributed in
 !                gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(i) > d_zero .and. afc < 0.99D0 ) then
+          if ( pptsum(j,i) > d_zero .and. afc < 0.99D0 ) then
 !           2bca. Compute the clear sky relative humidity
             rhcs = (rh-afc*rhmax)/(d_one-afc)                ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),d_zero)           ![frac][clr]
 !           2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(i))*(d_one-afc)
+            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
                                                              ![kg/kg/s][avg]
             rdevap = dmin1((qs-q)/dt,rdevap)                 ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
 !           2bcc. Update the precipitation accounting for the raindrop
 !                 evaporation [kg/m2/s]
-            pptsum(i) = pptsum(i) - rdevap*dpovg             ![kg/m2/s][avg]
+            pptsum(j,i) = pptsum(j,i) - rdevap*dpovg             ![kg/m2/s][avg]
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
             qvten(i,k,j) = qvten(i,k,j) + rdevap*psf(i,j)    ![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
@@ -305,7 +296,7 @@ module mod_precip
               pptnew = dmin1(pptmax,pptacc+pptnew)           ![kg/kg/s][avg]
             end if
 !           1bg. Accumulate precipitation and convert to kg/m2/s
-            pptsum(i) = pptsum(i) + pptnew*dpovg             ![kg/m2/s][avg]
+            pptsum(j,i) = pptsum(j,i) + pptnew*dpovg             ![kg/m2/s][avg]
 !           1bh. Compute the cloud water tendency [kg/kg/s*cb]
             qcten(i,k,j) = qcten(i,k,j) - pptnew*psf(i,j)    ![kg/kg/s*cb][avg]
           else
@@ -322,7 +313,7 @@ module mod_precip
 !--------------------------------------------------------------------
 !
       if ( ichem == 1 ) then
-        do i = istart , istopx
+        do i = istart , iend
           rembc(i,1) = d_zero
           do k = 2 , kz
             rembc(i,k) = d_zero
@@ -347,11 +338,11 @@ module mod_precip
       uconv = dtsec
       aprdiv = d_one/dble(ntsrf)
       if ( ktau == 0 ) aprdiv = uconv
-      do i = istart , istopx
-        prainx = pptsum(i)*uconv
+      do i = istart , iend
+        prainx = pptsum(j,i)*uconv
         if ( prainx > dlowval ) then
           rainnc(i,j) = rainnc(i,j) + prainx
-          lsmrnc(i,j) = lsmrnc(i,j) + pptsum(i)*aprdiv
+          lsmrnc(i,j) = lsmrnc(i,j) + pptsum(j,i)*aprdiv
         end if
       end do
 
@@ -388,22 +379,22 @@ module mod_precip
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine cldfrac(jstart,jstop)
+    subroutine cldfrac(jstart,jend,istart,iend)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jstop
+    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(8) :: exlwc , rh0adj
     integer :: i , j , k
 !
-    do j = jstart , jstop
 !--------------------------------------------------------------------
 !     1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
-      do k = 1 , kz
-        ! Adjusted relative humidity threshold
-        do i = 2 , iym2
+    do k = 1 , kz
+      ! Adjusted relative humidity threshold
+      do i = istart , iend
+        do j = jstart , jend
           if ( t3(i,k,j) > tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
@@ -437,13 +428,15 @@ module mod_precip
 !---------------------------------------------------------------------
         end do
       end do
+    end do
 
 !--------------------------------------------------------------------
 !     2.  Combine large-scale and convective fraction and liquid water
 !         to be passed into radiation.
 !--------------------------------------------------------------------
-      do k = 1 , kz
-        do i = 2 , iym2
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           exlwc = qc3(i,k,j)*rho3(i,k,j)*d_1000
@@ -491,91 +484,79 @@ module mod_precip
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! 
-    subroutine condtq(jstart,jstop,psc,qvcs)
-! 
+    subroutine condtq(jstart,jend,istart,iend,psc,qvcs)
+!
     implicit none
 !
-    integer , intent(in) :: jstart , jstop
-    real(8) , dimension(iy,jxp) , intent(in) :: psc
-    real(8) , dimension(iy,kz) , intent(inout) :: qvcs
+    integer , intent(in) :: jstart , jend , istart , iend
+    real(8) , pointer , dimension(:,:) , intent(in) :: psc
+    real(8) , pointer , dimension(:,:) , intent(inout) :: qvcs
 !
 !   rhc    - Relative humidity at ktau+1
 !   rh0adj - Adjusted relative humidity threshold at ktau+1
 !   fccc   - Cloud fraction at ktau+1
 !
+    real(8) :: qccs , tmp1 , tmp2 , tmp3
     real(8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
                r1 , rh0adj , rhc , satvp
     integer :: i , j , k
 
-    do j = jstart , jstop
-
-!---------------------------------------------------------------------
-!     1.  Compute t, qv, and qc at tau+1 without condensational term
-!---------------------------------------------------------------------
-      do k = 1 , kz
-        do i = 2 , iym2
-          tmp3(i,k) = (t2(i,k,j)+dt*tten(i,k,j))/psc(i,j)
-          qvcs(i,k) = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(i,j),lowq)
-          qccs(i,k) = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(i,j),lowq)
-        end do
-      end do
-     
-!---------------------------------------------------------------------
-!     2.  Compute the cloud condensation/evaporation term.
-!---------------------------------------------------------------------
-      do k = 1 , kz
-        do i = 2 , iym2
-     
-!         2a. Calculate the saturation mixing ratio and relative humidity
+    !---------------------------------------------------------------------
+    !     1.  Compute t, qv, and qc at tau+1 without condensational term
+    !---------------------------------------------------------------------
+    do k = 1 , kz
+      do i = istart , iend
+        do j = jstart , jend
+          tmp3 = (t2(i,k,j)+dt*tten(i,k,j))/psc(i,j)
+          qvcs = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(i,j),lowq)
+          qccs = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(i,j),lowq)
+          !-----------------------------------------------------------
+          !     2.  Compute the cloud condensation/evaporation term.
+          !-----------------------------------------------------------
+          ! 2a. Calculate the saturation mixing ratio and relative humidity
           pres = (a(k)*psc(i,j)+ptop)*d_1000
-          if ( tmp3(i,k) > tzero ) then
-            satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero)/(tmp3(i,k)-svp3))
+          if ( tmp3 > tzero ) then
+            satvp = svp1*d_1000*dexp(svp2*(tmp3-tzero)/(tmp3-svp3))
           else
-            satvp = svp4*d_1000*dexp(svp5-svp6/tmp3(i,k))
+            satvp = svp4*d_1000*dexp(svp5-svp6/tmp3)
           end if
           qvs = dmax1(ep2*satvp/(pres-satvp),lowq)
           rhc = dmax1(qvcs(i,k)/qvs,lowq)
 
-          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3(i,k)*tmp3(i,k)))
+          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
      
-!         2b. Compute the relative humidity threshold at ktau+1
-          if ( tmp3(i,k) > tc0 ) then
+          ! 2b. Compute the relative humidity threshold at ktau+1
+          if ( tmp3 > tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax - (rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-tmp3(i,k)))
+            rh0adj = rhmax - (rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-tmp3))
           end if
      
-!         2c. Compute the water vapor in excess of saturation
+          ! 2c. Compute the water vapor in excess of saturation
           if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
-            tmp1(i,k) = r1*dqv
+            tmp1 = r1*dqv
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             qvc_cld = dmax1((qs3(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
-            tmp1(i,k) = r1*dqv*fccc        ! grid cell average
+            tmp1 = r1*dqv*fccc        ! grid cell average
           end if
      
-!         2d. Compute the new cloud water + old cloud water
-          exces = qccs(i,k) + tmp1(i,k)
+          ! 2d. Compute the new cloud water + old cloud water
+          exces = qccs + tmp1
           if ( exces >= d_zero ) then ! Some cloud is left
-            tmp2(i,k) = tmp1(i,k)/dt
+            tmp2 = tmp1/dt
           else                        ! The cloud evaporates
-            tmp2(i,k) = -qccs(i,k)/dt
+            tmp2 = -qccs/dt
           end if
-     
-        end do
-      end do
-     
-!---------------------------------------------------------------------
-!     3.  Compute the tendencies.
-!---------------------------------------------------------------------
-      do k = 1 , kz
-        do i = 2 , iym2
-          qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
-          qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
-          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
+          !-----------------------------------------------------------
+          !     3.  Compute the tendencies.
+          !-----------------------------------------------------------
+          qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2
+          qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2
+          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2*wlhvocp
         end do
       end do
     end do
