@@ -613,9 +613,9 @@ module mod_rad_colmod3
       do i = 1 , iym1
    
         ccvtem = d_zero   !cqc mod
-!KN     cldfrc(i,k)=dmax1(cldfra(i,k)*0.9999999,ccvtem)
-        cld(i,k) = dmax1(cldfra(i,k)*0.9999999D0,ccvtem)
-!KN     cldfrc(i,k)=dmin1(cldfrc(i,k),0.9999999)
+!KN     cldfrc(i,k)=dmax1(cldfra(j,i,k)*0.9999999,ccvtem)
+        cld(i,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
+!KN     cldfrc(i,k)=dmin1(cldfrc(j,i,k),0.9999999)
         cld(i,k) = dmin1(cld(i,k),0.9999999D0)
 !
 !       implement here the new formula then multiply by 10e6
@@ -631,7 +631,7 @@ module mod_rad_colmod3
 !
 !       convert liquid water content into liquid water path, i.e.
 !       multiply b deltaz
-        clwtem = cldlwc(i,k) !cqc mod
+        clwtem = cldlwc(j,i,k) !cqc mod
         deltaz(i,k) = rgas*tm1(i,k)*(pintm1(i,k+1) - &
                         pintm1(i,k))/(egrav*pmidm1(i,k))
         clwp(i,k) = clwtem*deltaz(i,k)

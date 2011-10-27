@@ -46,7 +46,8 @@ module mod_che_interface
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
-    real(dp), pointer, dimension(:,:) :: rembc,cldfra,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
+    real(dp), pointer, dimension(:,:) :: rembc,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
+    real(dp), pointer, dimension(:,:,:) :: cldfra
     integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
     type(surfpstate) , intent(in) :: sps1 , sps2
     type(slice) , intent(in) :: atms
@@ -93,7 +94,7 @@ module mod_che_interface
     call assignpnt(sol2d,csol2d)
     call assignpnt(svegfrac2d,cvegfrac)
     call assignpnt(sdeltk2d,csdeltk2d) 
-    call  assignpnt(sdelqk2d,csdeltk2d)
+    call  assignpnt(sdelqk2d,csdelqk2d)
 call assignpnt(veg2d,cveg2d) 
 !call assignpnt(rough,crough) 
 !call  assignpnt(iexsol,ciexsol) 

@@ -384,7 +384,7 @@ module mod_che_drydep
        real(8), dimension(iy,kz) :: wk, settend
       real(8) , parameter :: z10 = 10.0
       real(8) , dimension(isize) :: avesize
-      character (len=50) :: subroutine_name='chdrydep'
+      character (len=64) :: subroutine_name='chdrydep'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)

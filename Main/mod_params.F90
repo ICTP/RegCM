@@ -1455,30 +1455,30 @@ module mod_params
       do i = 1 , iym1
         if ( mddom%lndcat(i,j) > 14.5D0 .and. &
              mddom%lndcat(i,j) < 15.5D0) then
-          shrmax2d(i,j) = shrmax_ocn
-          shrmin2d(i,j) = shrmin_ocn
-          edtmax2d(i,j) = edtmax_ocn
-          edtmin2d(i,j) = edtmin_ocn
-          edtmaxo2d(i,j) = edtmaxo_ocn
-          edtmino2d(i,j) = edtmino_ocn
-          edtmaxx2d(i,j) = edtmaxx_ocn
-          edtminx2d(i,j) = edtminx_ocn
+          shrmax2d(j,i) = shrmax_ocn
+          shrmin2d(j,i) = shrmin_ocn
+          edtmax2d(j,i) = edtmax_ocn
+          edtmin2d(j,i) = edtmin_ocn
+          edtmaxo2d(j,i) = edtmaxo_ocn
+          edtmino2d(j,i) = edtmino_ocn
+          edtmaxx2d(j,i) = edtmaxx_ocn
+          edtminx2d(j,i) = edtminx_ocn
         else
-          shrmax2d(i,j) = shrmax
-          shrmin2d(i,j) = shrmin
-          edtmax2d(i,j) = edtmax
-          edtmin2d(i,j) = edtmin
-          edtmaxo2d(i,j) = edtmaxo
-          edtmino2d(i,j) = edtmino
-          edtmaxx2d(i,j) = edtmaxx
-          edtminx2d(i,j) = edtminx
+          shrmax2d(j,i) = shrmax
+          shrmin2d(j,i) = shrmin
+          edtmax2d(j,i) = edtmax
+          edtmin2d(j,i) = edtmin
+          edtmaxo2d(j,i) = edtmaxo
+          edtmino2d(j,i) = edtmino
+          edtmaxx2d(j,i) = edtmaxx
+          edtminx2d(j,i) = edtminx
         end if
-        pbcmax2d(i,j) = pbcmax
-        mincld2d(i,j) = mincld
-        kbmax2d(i,j) = kbmax
-        htmax2d(i,j) = htmax
-        htmin2d(i,j) = htmin
-        dtauc2d(i,j) = dtauc*secpm
+        pbcmax2d(j,i) = pbcmax
+        mincld2d(j,i) = mincld
+        kbmax2d(j,i) = kbmax
+        htmax2d(j,i) = htmax
+        htmin2d(j,i) = htmin
+        dtauc2d(j,i) = dtauc*secpm
       end do
     end do
   end if

@@ -37,9 +37,8 @@ module mod_precip
   real(8) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
   real(8) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
   real(8) , pointer , dimension(:,:,:) :: tten , qvten , qcten
-  real(8) , pointer , dimension(:,:) :: cldfra , cldlwc
+  real(8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
  
-
   real(8) :: qcth
   integer :: istart , istopx
   real(8) , pointer , dimension(:,:) :: qccs , tmp1 , tmp2 , tmp3
@@ -79,7 +78,7 @@ module mod_precip
       type(surfstate) , intent(in) :: surface
       real(8) , pointer , dimension(:,:) :: lsmrainnc
       real(8) , pointer , dimension(:,:) :: remrat , rembc
-      real(8) , pointer , dimension(:,:) :: radcldf , radlqwc
+      real(8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
       call assignpnt(atmslice%tb3d,t3)
       call assignpnt(atmslice%pb3d,p3)
@@ -451,22 +450,22 @@ module mod_precip
 
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
-          cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(t3(i,k,j)-tzero) + &
+          cldlwc(j,i,k)  = 0.127D+00 + 6.78D-03*(t3(i,k,j)-tzero) + &
                          1.29D-04* (t3(i,k,j)-tzero)**d_two  +    &
                          8.36D-07*(t3(i,k,j)-tzero)**d_three
 
-          if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
-          if ( (t3(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00
+          if ( cldlwc(j,i,k) > 0.3D+00 ) cldlwc(j,i,k) = 0.3D+00
+          if ( (t3(i,k,j)-tzero) < -50D+00 ) cldlwc(j,i,k) = 0.001D+00
           ! Apply the parameterisation based on temperature to the
           ! convective fraction AND the large scale clouds :
           ! the large scale cloud water content is not really used by
           ! current radiation code, needs further evaluation.
           !TAO: but only apply this parameterization to large scale LWC 
           !if the user specifies it
-          if (iconvlwp == 1) exlwc = cldlwc(i,k)
-          cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) / &
-                        dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
-          cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)
+          if (iconvlwp == 1) exlwc = cldlwc(j,i,k)
+          cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(i,k,j)*exlwc) / &
+                        dmax1(cldfra(j,i,k)+fcc(i,k,j),0.01D0)
+          cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(i,k,j)),fcmax)
         end do
       end do
     end do

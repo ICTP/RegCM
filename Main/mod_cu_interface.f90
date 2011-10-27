@@ -50,7 +50,7 @@ module mod_cu_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: pptc
     integer , pointer , intent(in) , dimension(:,:) :: ldmsk
     real(8) , pointer , intent(in) , dimension(:) :: sigma , a , dsigma , qcon
-    real(8) , pointer , dimension(:,:) :: cldlwc , cldfra
+    real(8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
     if ( ichem    == 1 ) lchem = .true.
     dtcum  = dtsec

@@ -59,25 +59,25 @@ module mod_cu_kuo
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
   end subroutine allocate_mod_cu_kuo
 !
-  subroutine cupara(j,ktau)
+  subroutine cupara(jstart,jend,istart,iend,ktau)
 !
 !   All the other arguments are passed from subroutine "tend" and
 !   explained in "tend".
 !
     implicit none
 !
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
-    real(8) :: akclth , apcnt , aprdiv , arh , c301 , dalr ,    &
+    real(8) :: akclth , apcnt , arh , c301 , dalr ,    &
                deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
                eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
                psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
                sca , siglcl , suma , sumb , t1 , tdmax , tlcl , &
                tmax , tmean , ttconv , ttp , ttsum , xsav , zlcl
-    integer :: i , k , kbase , kbaseb , kclth , kk , ktop
+    integer :: i , j , k , kbase , kbaseb , kclth , kk , ktop
     real(8) , dimension(kz) :: seqt
-    real(8) , dimension(iy,kz) :: tmp3
+    real(8) , dimension(kz) :: tmp3
 !
 !----------------------------------------------------------------------
 !
@@ -86,9 +86,11 @@ module mod_cu_kuo
     qmax = d_zero
     tmax = d_zero
     do k = 1 , kz
-      do i = 1 , iym1
-        rcldlwc(i,k) = d_zero
-        rcldfra(i,k) = d_zero
+      do i = istart , iend
+        do j = jstart , jend
+          rcldlwc(j,i,k) = d_zero
+          rcldfra(j,i,k) = d_zero
+        end do
       end do
     end do
 !
@@ -97,9 +99,11 @@ module mod_cu_kuo
 !     icumtop = top level of cumulus clouds
 !     icumbot = bottom level of cumulus clouds
 !     (calculated in cupara and stored for tractend)
-      do i = 2 , iym2
-        icumtop(i,j) = 0
-        icumbot(i,j) = 0
+      do i = istart , iend
+        do j = jstart , jend
+          icumtop(j,i) = 0
+          icumbot(j,i) = 0
+        end do
       end do
     end if
 !
@@ -107,220 +111,225 @@ module mod_cu_kuo
 !   at this stage, qvten(i,k,j) only includes horizontal advection.
 !   sca: is the amount of total moisture convergence
 !
-    do i = 2 , iym2
+    total_precip_points = 0
+    do i = istart , iend
+      do j = jstart , jend
 !
-      sca = d_zero
-      do k = 1 , kz
-        sca = sca + qvten(i,k,j)*dflev(k)
-      end do
-!
-!     determine if moist convection exists:
-!
-      if ( sca >= qdcrit ) then
-!
-!       check for stability
-!
-!       1) compute eqt (equivalent potential temperature)
-!       between surface and 700 mb, with perturbation temperature
-!       and moisture added. the maximum eqt will be regarded
-!       as the origin of air parcel that produce cloud.
-!
-        eqtm = d_zero
-        do k = k700 , kz
-          ttp = ptatm(i,k,j)/psfcps(i,j) + pert
-          q = pvqvtm(i,k,j)/psfcps(i,j) + perq
-          psg = psfcps(i,j)*hlev(k) + ptop
-          t1 = ttp*(d_100/psg)**rovcp
-          eqt = t1*dexp(wlhvocp*q/ttp)
-          if ( eqt > eqtm ) then
-            eqtm = eqt
-            tmax = ttp
-            qmax = q
-            pmax = psg
-          end if
-        end do
-!
-!       2) compute lcl, get the sigma and p of lcl
-!
-        emax = qmax*pmax/(ep2+qmax)
-        tdmax = 5418.12D0/(19.84659D0-dlog(emax/0.611D0))
-        dalr = egrav*rcpd
-        dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
-        zlcl = (tmax-tdmax)/(dalr-dplr)
-        tlcl = tmax - dalr*zlcl
-        tmean = (tmax+tlcl)*d_half
-        dlnp = (egrav*zlcl)/(rgas*tmean)
-        plcl = pmax*dexp(-dlnp)
-        siglcl = (plcl-ptop)/psfcps(i,j)
-!
-!       3) compute seqt (saturation equivalent potential temperature)
-!       of all the levels that are above the lcl
-!
+        sca = d_zero
         do k = 1 , kz
-          if ( hlev(k) >= siglcl ) exit
-        end do
-        kbase = k
-        if ( kbase > kz ) kbase = kz
-!
-!       kbase is the layer where lcl is located.
-!
-        do k = 1 , kbase
-          ttp = ptatm(i,k,j)/psfcps(i,j)
-          psg = psfcps(i,j)*hlev(k) + ptop
-          es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
-          qs = ep2*es/(psg-es)
-          t1 = ttp*(d_100/psg)**rovcp
-          seqt(k) = t1*dexp(wlhvocp*qs/ttp)
+          sca = sca + qvten(i,k,j)*dflev(k)
         end do
 !
-!       4) when seqt = eqt + dt, cloud top is reached.
-!       eqt is the eqt of cloud (same as lcl eqt).
+!       determine if moist convection exists:
 !
-        do kk = 1 , kbase
-          k = kbase + 1 - kk
-          deqt = seqt(k) - eqtm
-          if ( deqt > dlt ) exit
-        end do
+        if ( sca >= qdcrit ) then
 !
-!       cloud top has been reached
+!         check for stability
 !
-        ktop = k
+!         1) compute eqt (equivalent potential temperature)
+!         between surface and 700 mb, with perturbation temperature
+!         and moisture added. the maximum eqt will be regarded
+!         as the origin of air parcel that produce cloud.
 !
-!       5) check cloud depth
-!       if cloud depth is less than critical depth (cdscld = 0.3),
-!       the convection is killed
-!
-        dsc = (siglcl-hlev(ktop))
-        if ( dsc >= cdscld ) then
-!
-!         6) check negative area
-!         if negative area is larger than the positive area
-!         convection is killed.
-!
-          ttsum = d_zero
-          do k = ktop , kbase
-            ttsum = (eqtm-seqt(k))*dflev(k) + ttsum
+          eqtm = d_zero
+          do k = k700 , kz
+            ttp = ptatm(i,k,j)/psfcps(i,j) + pert
+            q = pvqvtm(i,k,j)/psfcps(i,j) + perq
+            psg = psfcps(i,j)*hlev(k) + ptop
+            t1 = ttp*(d_100/psg)**rovcp
+            eqt = t1*dexp(wlhvocp*q/ttp)
+            if ( eqt > eqtm ) then
+              eqtm = eqt
+              tmax = ttp
+              qmax = q
+              pmax = psg
+            end if
           end do
-          if ( ttsum >= d_zero ) then
 !
-!           you are here if stability was found.
+!         2) compute lcl, get the sigma and p of lcl
 !
-!           if values dont already exist in array twght,vqflx for this
-!           kbase/ktop, then flag it, and set kbase/ktop to standard
+          emax = qmax*pmax/(ep2+qmax)
+          tdmax = 5418.12D0/(19.84659D0-dlog(emax/0.611D0))
+          dalr = egrav*rcpd
+          dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
+          zlcl = (tmax-tdmax)/(dalr-dplr)
+          tlcl = tmax - dalr*zlcl
+          tmean = (tmax+tlcl)*d_half
+          dlnp = (egrav*zlcl)/(rgas*tmean)
+          plcl = pmax*dexp(-dlnp)
+          siglcl = (plcl-ptop)/psfcps(i,j)
 !
-            if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-              print 99001 , ktau , i , j , kbase , ktop
-              if ( kbase < 5 ) kbase = 5
-              if ( ktop > kbase-3 ) ktop = kbase - 3
-            end if
+!         3) compute seqt (saturation equivalent potential temperature)
+!         of all the levels that are above the lcl
 !
-!           convection exist, compute convective flux of water vapor and
-!           latent heating
-!           icon   : is a counter which keep track the total points
-!           where deep convection occurs.
-!           c301   : is the 'b' factor in kuo's scheme.
+          do k = 1 , kz
+            if ( hlev(k) >= siglcl ) exit
+          end do
+          kbase = k
+          if ( kbase > kz ) kbase = kz
 !
-            icon(j) = icon(j) + 1
-            suma = d_zero
-            sumb = d_zero
-            arh = d_zero
-            psx = psfcps(i,j)
-            do k = 1 , kz
-              qwght(k) = d_zero
+!         kbase is the layer where lcl is located.
+!
+          do k = 1 , kbase
+            ttp = ptatm(i,k,j)/psfcps(i,j)
+            psg = psfcps(i,j)*hlev(k) + ptop
+            es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
+            qs = ep2*es/(psg-es)
+            t1 = ttp*(d_100/psg)**rovcp
+            seqt(k) = t1*dexp(wlhvocp*qs/ttp)
+          end do
+!
+!         4) when seqt = eqt + dt, cloud top is reached.
+!         eqt is the eqt of cloud (same as lcl eqt).
+!
+          do kk = 1 , kbase
+            k = kbase + 1 - kk
+            deqt = seqt(k) - eqtm
+            if ( deqt > dlt ) exit
+          end do
+!
+!         cloud top has been reached
+!
+          ktop = k
+!
+!         5) check cloud depth
+!         if cloud depth is less than critical depth (cdscld = 0.3),
+!         the convection is killed
+!
+          dsc = (siglcl-hlev(ktop))
+          if ( dsc >= cdscld ) then
+!
+!           6) check negative area
+!           if negative area is larger than the positive area
+!           convection is killed.
+!
+            ttsum = d_zero
+            do k = ktop , kbase
+              ttsum = (eqtm-seqt(k))*dflev(k) + ttsum
             end do
-            do k = ktop , kz
-              pux = psx*hlev(k) + ptop
-              e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(i,k,j)/psx))
-              qs = ep2*e1/(pux-e1)
-              rh = pvqvtm(i,k,j)/(qs*psx)
-              rh = dmin1(rh,d_one)
-              xsav = (d_one-rh)*qs
-              qwght(k) = xsav
-              sumb = sumb + qs*dflev(k)
-              arh = arh + rh*qs*dflev(k)
-              suma = suma + xsav*dflev(k)
-            end do
-            arh = arh/sumb
-            c301 = d_two*(d_one-arh)
-            if ( c301 < d_zero ) c301 = d_zero
-            if ( c301 > d_one ) c301 = d_one
-            if ( suma <= d_zero ) then
-              c301 = d_zero
-              suma = d_one
-            end if
-            do k = ktop , kz
-              qwght(k) = qwght(k)/suma
-            end do
-            do k = 1 , kz
-              ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-              rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dtcum*d_half
-              apcnt = (d_one-c301)*sca/4.3D-3
-              eddyf = apcnt*vqflx(k,kbase,ktop)
-              qvten(i,k,j) = eddyf
-              rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dtcum*d_half
-            end do
+            if ( ttsum >= d_zero ) then
 !
-!           find cloud fractional cover and liquid water content
+!             you are here if stability was found.
 !
-            kbaseb = min0(kbase,kzm2)
-            if ( ktop <= kbaseb ) then
-              kclth = kbaseb - ktop + 1
-              akclth = d_one/dble(kclth)
-              do k = ktop , kbaseb
-                rcldlwc(i,k) = cllwcv
-                rcldfra(i,k) = d_one - (d_one-clfrcv)**akclth
-              end do
-            end if
-!           the unit for rainfall is mm.
-            prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
-            if ( prainx > dlowval ) then
-              rainc(i,j) = rainc(i,j) + prainx
-!             instantaneous precipitation rate for use in bats (mm/s)
-              if ( ktau == 0 ) then
-                lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl
-              else
-                lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl*aprdiv
+!             if values dont already exist in array twght,vqflx for this
+!             kbase/ktop, then flag it, and set kbase/ktop to standard
+!
+              if ( (kbase < 5) .or. (ktop > kbase-3) ) then
+                print 99001 , ktau , i , j , kbase , ktop
+                if ( kbase < 5 ) kbase = 5
+                if ( ktop > kbase-3 ) ktop = kbase - 3
               end if
-            end if
 !
-            if ( lchem ) then
-              icumtop(i,j) = ktop
-              icumbot(i,j) = kbaseb
+!             convection exist, compute convective flux of water vapor and
+!             latent heating
+!             icon   : is a counter which keep track the total points
+!             where deep convection occurs.
+!             c301   : is the 'b' factor in kuo's scheme.
+!
+              total_precip_points = total_precip_points + 1
+              suma = d_zero
+              sumb = d_zero
+              arh = d_zero
+              psx = psfcps(i,j)
+              do k = 1 , kz
+                qwght(k) = d_zero
+              end do
+              do k = ktop , kz
+                pux = psx*hlev(k) + ptop
+                e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(i,k,j)/psx))
+                qs = ep2*e1/(pux-e1)
+                rh = pvqvtm(i,k,j)/(qs*psx)
+                rh = dmin1(rh,d_one)
+                xsav = (d_one-rh)*qs
+                qwght(k) = xsav
+                sumb = sumb + qs*dflev(k)
+                arh = arh + rh*qs*dflev(k)
+                suma = suma + xsav*dflev(k)
+              end do
+              arh = arh/sumb
+              c301 = d_two*(d_one-arh)
+              if ( c301 < d_zero ) c301 = d_zero
+              if ( c301 > d_one ) c301 = d_one
+              if ( suma <= d_zero ) then
+                c301 = d_zero
+                suma = d_one
+              end if
+              do k = ktop , kz
+                qwght(k) = qwght(k)/suma
+              end do
+              do k = 1 , kz
+                ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
+                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dtcum*d_half
+                apcnt = (d_one-c301)*sca/4.3D-3
+                eddyf = apcnt*vqflx(k,kbase,ktop)
+                qvten(i,k,j) = eddyf
+                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dtcum*d_half
+              end do
+!
+!             find cloud fractional cover and liquid water content
+!
+              kbaseb = min0(kbase,kzm2)
+              if ( ktop <= kbaseb ) then
+                kclth = kbaseb - ktop + 1
+                akclth = d_one/dble(kclth)
+                do k = ktop , kbaseb
+                  rcldlwc(j,i,k) = cllwcv
+                  rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
+                end do
+              end if
+!             the unit for rainfall is mm.
+              prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
+              if ( prainx > dlowval ) then
+                rainc(i,j) = rainc(i,j) + prainx
+!               instantaneous precipitation rate for use in bats (mm/s)
+                if ( ktau == 0 ) then
+                  lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl
+                else
+                  lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl*aprdiv
+                end if
+              end if
+!
+              if ( lchem ) then
+                icumtop(j,i) = ktop
+                icumbot(j,i) = kbaseb
+              end if
+              cycle
             end if
-            cycle
           end if
         end if
-      end if
 !
-!     convection not exist, compute the vertical advection term:
+!       convection not exist, compute the vertical advection term:
 !
-      tmp3(i,1) = d_zero
-      do k = 2 , kz
-        if ( pvqvtm(i,k,j) < 1.0D-15 ) then
-          tmp3(i,k) = d_zero
-        else
-          tmp3(i,k) = pvqvtm(i,k,j)*(pvqvtm(i,k-1,j)/pvqvtm(i,k,j))**wlev(k)
-        end if
+        tmp3(1) = d_zero
+        do k = 2 , kz
+          if ( pvqvtm(i,k,j) < 1.0D-15 ) then
+            tmp3(k) = d_zero
+          else
+            tmp3(k) = pvqvtm(i,k,j)*(pvqvtm(i,k-1,j)/pvqvtm(i,k,j))**wlev(k)
+          end if
+        end do
+        qvten(i,1,j) = qvten(i,1,j)-svv(i,2,j)*tmp3(2)/dflev(1)
+        do k = 2 , kzm1
+          qvten(i,k,j) = qvten(i,k,j)-(svv(i,k+1,j)*tmp3(k+1) - &
+                                       svv(i,k,j)*tmp3(k))/dflev(k)
+        end do
+        qvten(i,kz,j) = qvten(i,kz,j) + svv(i,kz,j)*tmp3(kz)/dflev(kz)
+!
       end do
-      qvten(i,1,j) = qvten(i,1,j)-svv(i,2,j)*tmp3(i,2)/dflev(1)
-      do k = 2 , kzm1
-        qvten(i,k,j) = qvten(i,k,j)-(svv(i,k+1,j)*tmp3(i,k+1) - &
-                                     svv(i,k,j)*tmp3(i,k))/dflev(k)
-      end do
-      qvten(i,kz,j) = qvten(i,kz,j) + svv(i,kz,j)*tmp3(i,kz)/dflev(kz)
-!
     end do
 !
     do k = 1 , kz
-      do i = 2 , iym2
-        rsheat(i,k,j) = dmax1(rsheat(i,k,j),d_zero)
-        rswat(i,k,j) = dmax1(rswat(i,k,j),d_zero)
-        rsht = rsheat(i,k,j)/tauht
-        rswt = rswat(i,k,j)/tauht
-        tten(i,k,j) = tten(i,k,j) + rsht
-        qvten(i,k,j) = qvten(i,k,j) + rswt
-        rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dtcum/(d_two*tauht))
-        rswat(i,k,j) = rswat(i,k,j)*(d_one-dtcum/(d_two*tauht))
+      do i = istart , iend
+        do j = jstart , jend
+          rsheat(i,k,j) = dmax1(rsheat(i,k,j),d_zero)
+          rswat(i,k,j) = dmax1(rswat(i,k,j),d_zero)
+          rsht = rsheat(i,k,j)/tauht
+          rswt = rswat(i,k,j)/tauht
+          tten(i,k,j) = tten(i,k,j) + rsht
+          qvten(i,k,j) = qvten(i,k,j) + rswt
+          rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dtcum/(d_two*tauht))
+          rswat(i,k,j) = rswat(i,k,j)*(d_one-dtcum/(d_two*tauht))
+        end do
       end do
     end do
 
@@ -330,92 +339,66 @@ module mod_cu_kuo
 !
   end subroutine cupara
 !
-  subroutine htdiff(dxsq,akht1)
-
-#ifndef IBM
-    use mpi
-#else 
-    include 'mpif.h'
-#endif 
+  subroutine htdiff(wr1,wr2,dxsq,akht1,jstart,jend,istart,iend)
     implicit none
 !
-    real(8) :: akht1 , dxsq
-    intent (in) akht1 , dxsq
+    integer , intent(in) :: jstart , jend , istart , iend
+    real(8) , intent(in) :: akht1 , dxsq
+    real(8) , pointer , intent(in) , dimension(:,:,:) :: wr1
+    real(8) , pointer , intent(in) , dimension(:,:,:) :: wr2
 !
-    integer :: i , im1 , ip1 , j , jm1 , jp1 , k
-    integer :: ierr
-    real(8) , dimension(iy,0:jxp+1) :: wr
+    integer :: i , j , k , im1 , ip1 , jm1 , jp1
 !
     do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iy
-          wr(i,j) = rsheat(i,k,j)
-        end do
-      end do
-      call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,               &
-                        wr(1,0),iy,mpi_real8,iwest,1,                 &
-                        mycomm,mpi_status_ignore,ierr)
-      call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,                 &
-                        wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
-                        mycomm,mpi_status_ignore,ierr)
-      do j = jbegin , jendm
+      do j = jstart , jend
 #ifdef BAND
         jm1 = j - 1
         jp1 = j + 1
 #else
         if ( myid == 0 ) then
-          jm1 = max0(j-1,2)
+          jm1 = max0(j-1,jstart)
         else
           jm1 = j - 1
         end if
         if ( myid == nproc-1 ) then
-          jp1 = min0(j+1,jxp-2)
+          jp1 = min0(j+1,jend)
         else
           jp1 = j + 1
         end if
 #endif
-        do i = 2 , iym2
-          im1 = max0(i-1,2)
-          ip1 = min0(i+1,iym2)
+        do i = istart , iend
+          im1 = max0(i-1,istart)
+          ip1 = min0(i+1,iend)
           rsheat(i,k,j) = rsheat(i,k,j)+akht1*dtmdl/dxsq * &
-                   (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
+                   (wr1(im1,j,k)+wr1(ip1,j,k)+wr1(i,jm1,k) + &
+                    wr1(i,jp1,k)-d_four*wr1(i,j,k))
         end do
       end do
     end do
 !
     do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iy
-          wr(i,j) = rswat(i,k,j)
-        end do
-      end do
-      call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,         &
-                        wr(1,0),iy,mpi_real8,iwest,1,           &
-                        mycomm,mpi_status_ignore,ierr)
-      call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,           &
-                        wr(1,jxp+1),iy,mpi_real8,ieast,2,       &
-                        mycomm,mpi_status_ignore,ierr)
-      do j = jbegin , jendm
+      do j = jstart , jend
 #ifdef BAND
         jm1 = j - 1
         jp1 = j + 1
 #else
         if ( myid == 0 ) then
-          jm1 = max0(j-1,2)
+          jm1 = max0(j-1,jstart)
         else
           jm1 = j - 1
         end if
         if ( myid == nproc-1 ) then
-          jp1 = min0(j+1,jxp-2)
+          jp1 = min0(j+1,jend)
         else
           jp1 = j + 1
         end if
 #endif
-        do i = 2 , iym2
-          im1 = max0(i-1,2)
-          ip1 = min0(i+1,iym2)
+        do i = istart , iend
+          im1 = max0(i-1,istart)
+          ip1 = min0(i+1,iend)
           rswat(i,k,j) = rswat(i,k,j)+akht1*dtmdl/dxsq * &
-                (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
+                (wr2(im1,j,k)+wr2(ip1,j,k)+wr2(i,jm1,k) + &
+                 wr2(i,jp1,k)-d_four*wr2(i,j,k))
         end do
       end do
     end do

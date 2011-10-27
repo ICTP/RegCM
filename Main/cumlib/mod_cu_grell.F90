@@ -26,30 +26,28 @@ module mod_cu_grell
  
   private
 
-  integer , parameter :: icut = 0
   real(8) , parameter :: xacact = -0.99999D0
   real(8) , parameter :: tcrit = 50.0D0
   real(8) , parameter :: c0 = 0.002D0
   real(8) :: alsixt
   real(8) , dimension(2) :: ae , be
-  real(8) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
+  real(8) , pointer , dimension(:,:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
-  real(8) , pointer , dimension(:,:) :: dby , dbyo , dellah ,       &
+  real(8) , pointer , dimension(:,:,:) :: dby , dbyo , dellah ,       &
               dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
-  real(8) , pointer , dimension(:) :: pret , psur , qcrit , ter11
-  integer , pointer , dimension(:) :: kdet
-  integer , pointer , dimension(:) :: kmin , k22 , kb , kbcon , kds , ktop
-  real(8) , pointer , dimension(:) :: xac , xao , bu , buo , edt ,  &
+  real(8) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
+  integer , pointer , dimension(:,:) :: kdet
+  integer , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , kds , ktop
+  real(8) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
               edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 !
-  real(8) , public , pointer , dimension(:,:) :: mflx
-  integer , public , pointer, dimension(:,:) :: icumdwd
+  real(8) , public , pointer , dimension(:,:,:) :: mflx
 !
   real(8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
@@ -64,115 +62,114 @@ module mod_cu_grell
   subroutine allocate_mod_cu_grell
     implicit none
 
-    call getmem2d(mflx,1,iy,1,2,'cu_grell:mflx')
-    call getmem2d(icumdwd,1,iy,1,jxp,'cu_grell:icumdwd')
+    call getmem3d(mflx,1,jxp,1,iy,1,2,'cu_grell:mflx')
 
-    call getmem2d(dtauc2d,1,iy,1,jxp,'cu_grell:dtauc2d')
-    call getmem2d(pbcmax2d,1,iy,1,jxp,'cu_grell:pbcmax2d')
-    call getmem2d(mincld2d,1,iy,1,jxp,'cu_grell:mincld2d')
-    call getmem2d(shrmax2d,1,iy,1,jxp,'cu_grell:shrmax2d')
-    call getmem2d(shrmin2d,1,iy,1,jxp,'cu_grell:shrmin2d')
-    call getmem2d(edtmax2d,1,iy,1,jxp,'cu_grell:edtmax2d')
-    call getmem2d(edtmin2d,1,iy,1,jxp,'cu_grell:edtmin2d')
-    call getmem2d(edtmaxo2d,1,iy,1,jxp,'cu_grell:edtmaxo2d')
-    call getmem2d(edtmino2d,1,iy,1,jxp,'cu_grell:edtmino2d')
-    call getmem2d(edtmaxx2d,1,iy,1,jxp,'cu_grell:edtmaxx2d')
-    call getmem2d(edtminx2d,1,iy,1,jxp,'cu_grell:edtminx2d')
-    call getmem2d(htmax2d,1,iy,1,jxp,'cu_grell:htmax2d')
-    call getmem2d(htmin2d,1,iy,1,jxp,'cu_grell:htmin2d')
-    call getmem2d(kbmax2d,1,iy,1,jxp,'cu_grell:kbmax2d')
+    call getmem2d(dtauc2d,1,jxp,1,iy,'cu_grell:dtauc2d')
+    call getmem2d(pbcmax2d,1,jxp,1,iy,'cu_grell:pbcmax2d')
+    call getmem2d(mincld2d,1,jxp,1,iy,'cu_grell:mincld2d')
+    call getmem2d(shrmax2d,1,jxp,1,iy,'cu_grell:shrmax2d')
+    call getmem2d(shrmin2d,1,jxp,1,iy,'cu_grell:shrmin2d')
+    call getmem2d(edtmax2d,1,jxp,1,iy,'cu_grell:edtmax2d')
+    call getmem2d(edtmin2d,1,jxp,1,iy,'cu_grell:edtmin2d')
+    call getmem2d(edtmaxo2d,1,jxp,1,iy,'cu_grell:edtmaxo2d')
+    call getmem2d(edtmino2d,1,jxp,1,iy,'cu_grell:edtmino2d')
+    call getmem2d(edtmaxx2d,1,jxp,1,iy,'cu_grell:edtmaxx2d')
+    call getmem2d(edtminx2d,1,jxp,1,iy,'cu_grell:edtminx2d')
+    call getmem2d(htmax2d,1,jxp,1,iy,'cu_grell:htmax2d')
+    call getmem2d(htmin2d,1,jxp,1,iy,'cu_grell:htmin2d')
+    call getmem2d(kbmax2d,1,jxp,1,iy,'cu_grell:kbmax2d')
 
-    call getmem2d(outq,1,iy,1,kz,'cu_grell:outq')
-    call getmem2d(outt,1,iy,1,kz,'cu_grell:outt')
-    call getmem2d(p,1,iy,1,kz,'cu_grell:p')
-    call getmem2d(po,1,iy,1,kz,'cu_grell:po')
-    call getmem2d(q,1,iy,1,kz,'cu_grell:q')
-    call getmem2d(qo,1,iy,1,kz,'cu_grell:qo')
-    call getmem2d(t,1,iy,1,kz,'cu_grell:t')
-    call getmem2d(tn,1,iy,1,kz,'cu_grell:tn')
-    call getmem2d(vsp,1,iy,1,kz,'cu_grell:vsp')
+    call getmem3d(outq,1,jxp,1,iy,1,kz,'cu_grell:outq')
+    call getmem3d(outt,1,jxp,1,iy,1,kz,'cu_grell:outt')
+    call getmem3d(p,1,jxp,1,iy,1,kz,'cu_grell:p')
+    call getmem3d(po,1,jxp,1,iy,1,kz,'cu_grell:po')
+    call getmem3d(q,1,jxp,1,iy,1,kz,'cu_grell:q')
+    call getmem3d(qo,1,jxp,1,iy,1,kz,'cu_grell:qo')
+    call getmem3d(t,1,jxp,1,iy,1,kz,'cu_grell:t')
+    call getmem3d(tn,1,jxp,1,iy,1,kz,'cu_grell:tn')
+    call getmem3d(vsp,1,jxp,1,iy,1,kz,'cu_grell:vsp')
 !
-    call getmem1d(pret,1,iy,'cu_grell:pret')
-    call getmem1d(psur,1,iy,'cu_grell:psur')
-    call getmem1d(qcrit,1,iy,'cu_grell:qcrit')
-    call getmem1d(ter11,1,iy,'cu_grell:ter11')
+    call getmem2d(pret,1,jxp,1,iy,'cu_grell:pret')
+    call getmem2d(psur,1,jxp,1,iy,'cu_grell:psur')
+    call getmem2d(qcrit,1,jxp,1,iy,'cu_grell:qcrit')
+    call getmem2d(ter11,1,jxp,1,iy,'cu_grell:ter11')
 !
-    call getmem1d(kdet,1,iy,'cu_grell:kdet')
-    call getmem1d(kmin,1,iy,'cu_grell:kmin')
-    call getmem1d(k22,1,iy,'cu_grell:k22')
-    call getmem1d(kb,1,iy,'cu_grell:kb')
-    call getmem1d(kbcon,1,iy,'cu_grell:kbcon')
-    call getmem1d(kds,1,iy,'cu_grell:kds')
-    call getmem1d(ktop,1,iy,'cu_grell:ktop')
+    call getmem2d(kdet,1,jxp,1,iy,'cu_grell:kdet')
+    call getmem2d(kmin,1,jxp,1,iy,'cu_grell:kmin')
+    call getmem2d(k22,1,jxp,1,iy,'cu_grell:k22')
+    call getmem2d(kb,1,jxp,1,iy,'cu_grell:kb')
+    call getmem2d(kbcon,1,jxp,1,iy,'cu_grell:kbcon')
+    call getmem2d(kds,1,jxp,1,iy,'cu_grell:kds')
+    call getmem2d(ktop,1,jxp,1,iy,'cu_grell:ktop')
 !
-    call getmem2d(dby,1,iy,1,kz,'cu_grell:dby')
-    call getmem2d(dbyo,1,iy,1,kz,'cu_grell:dbyo')
-    call getmem2d(dellah,1,iy,1,kz,'cu_grell:dellah')
-    call getmem2d(dellaq,1,iy,1,kz,'cu_grell:dellaq')
-    call getmem2d(dellat,1,iy,1,kz,'cu_grell:dellat')
-    call getmem2d(dkk,1,iy,1,kz,'cu_grell:dkk')
-    call getmem2d(he,1,iy,1,kz,'cu_grell:he')
-    call getmem2d(heo,1,iy,1,kz,'cu_grell:heo')
-    call getmem2d(hes,1,iy,1,kz,'cu_grell:hes')
-    call getmem2d(heso,1,iy,1,kz,'cu_grell:heso')
-    call getmem2d(pwc,1,iy,1,kz,'cu_grell:pwc')
-    call getmem2d(pwco,1,iy,1,kz,'cu_grell:pwco')
-    call getmem2d(pwcd,1,iy,1,kz,'cu_grell:pwcd')
-    call getmem2d(pwcdo,1,iy,1,kz,'cu_grell:pwcdo')
-    call getmem2d(qc,1,iy,1,kz,'cu_grell:qc')
-    call getmem2d(qco,1,iy,1,kz,'cu_grell:qco')
-    call getmem2d(qes,1,iy,1,kz,'cu_grell:qes')
-    call getmem2d(qeso,1,iy,1,kz,'cu_grell:qeso')
-    call getmem2d(qrcd,1,iy,1,kz,'cu_grell:qrcd')
-    call getmem2d(qrcdo,1,iy,1,kz,'cu_grell:qrcdo')
-    call getmem2d(tv,1,iy,1,kz,'cu_grell:tv')
-    call getmem2d(tvo,1,iy,1,kz,'cu_grell:tvo')
-    call getmem2d(xdby,1,iy,1,kz,'cu_grell:xdby')
-    call getmem2d(xhe,1,iy,1,kz,'cu_grell:xhe')
-    call getmem2d(xhes,1,iy,1,kz,'cu_grell:xhes')
-    call getmem2d(xpwc,1,iy,1,kz,'cu_grell:xpwc')
-    call getmem2d(xpwcd,1,iy,1,kz,'cu_grell:xpwcd')
-    call getmem2d(xq,1,iy,1,kz,'cu_grell:xq')
-    call getmem2d(xqc,1,iy,1,kz,'cu_grell:xqc')
-    call getmem2d(xqes,1,iy,1,kz,'cu_grell:xqes')
-    call getmem2d(xqrcd,1,iy,1,kz,'cu_grell:xqrcd')
-    call getmem2d(xt,1,iy,1,kz,'cu_grell:xt')
-    call getmem2d(xtv,1,iy,1,kz,'cu_grell:xtv')
-    call getmem2d(xz,1,iy,1,kz,'cu_grell:xz')
-    call getmem2d(z,1,iy,1,kz,'cu_grell:z')
-    call getmem2d(zo,1,iy,1,kz,'cu_grell:zo')
+    call getmem3d(dby,1,jxp,1,iy,1,kz,'cu_grell:dby')
+    call getmem3d(dbyo,1,jxp,1,iy,1,kz,'cu_grell:dbyo')
+    call getmem3d(dellah,1,jxp,1,iy,1,kz,'cu_grell:dellah')
+    call getmem3d(dellaq,1,jxp,1,iy,1,kz,'cu_grell:dellaq')
+    call getmem3d(dellat,1,jxp,1,iy,1,kz,'cu_grell:dellat')
+    call getmem3d(dkk,1,jxp,1,iy,1,kz,'cu_grell:dkk')
+    call getmem3d(he,1,jxp,1,iy,1,kz,'cu_grell:he')
+    call getmem3d(heo,1,jxp,1,iy,1,kz,'cu_grell:heo')
+    call getmem3d(hes,1,jxp,1,iy,1,kz,'cu_grell:hes')
+    call getmem3d(heso,1,jxp,1,iy,1,kz,'cu_grell:heso')
+    call getmem3d(pwc,1,jxp,1,iy,1,kz,'cu_grell:pwc')
+    call getmem3d(pwco,1,jxp,1,iy,1,kz,'cu_grell:pwco')
+    call getmem3d(pwcd,1,jxp,1,iy,1,kz,'cu_grell:pwcd')
+    call getmem3d(pwcdo,1,jxp,1,iy,1,kz,'cu_grell:pwcdo')
+    call getmem3d(qc,1,jxp,1,iy,1,kz,'cu_grell:qc')
+    call getmem3d(qco,1,jxp,1,iy,1,kz,'cu_grell:qco')
+    call getmem3d(qes,1,jxp,1,iy,1,kz,'cu_grell:qes')
+    call getmem3d(qeso,1,jxp,1,iy,1,kz,'cu_grell:qeso')
+    call getmem3d(qrcd,1,jxp,1,iy,1,kz,'cu_grell:qrcd')
+    call getmem3d(qrcdo,1,jxp,1,iy,1,kz,'cu_grell:qrcdo')
+    call getmem3d(tv,1,jxp,1,iy,1,kz,'cu_grell:tv')
+    call getmem3d(tvo,1,jxp,1,iy,1,kz,'cu_grell:tvo')
+    call getmem3d(xdby,1,jxp,1,iy,1,kz,'cu_grell:xdby')
+    call getmem3d(xhe,1,jxp,1,iy,1,kz,'cu_grell:xhe')
+    call getmem3d(xhes,1,jxp,1,iy,1,kz,'cu_grell:xhes')
+    call getmem3d(xpwc,1,jxp,1,iy,1,kz,'cu_grell:xpwc')
+    call getmem3d(xpwcd,1,jxp,1,iy,1,kz,'cu_grell:xpwcd')
+    call getmem3d(xq,1,jxp,1,iy,1,kz,'cu_grell:xq')
+    call getmem3d(xqc,1,jxp,1,iy,1,kz,'cu_grell:xqc')
+    call getmem3d(xqes,1,jxp,1,iy,1,kz,'cu_grell:xqes')
+    call getmem3d(xqrcd,1,jxp,1,iy,1,kz,'cu_grell:xqrcd')
+    call getmem3d(xt,1,jxp,1,iy,1,kz,'cu_grell:xt')
+    call getmem3d(xtv,1,jxp,1,iy,1,kz,'cu_grell:xtv')
+    call getmem3d(xz,1,jxp,1,iy,1,kz,'cu_grell:xz')
+    call getmem3d(z,1,jxp,1,iy,1,kz,'cu_grell:z')
+    call getmem3d(zo,1,jxp,1,iy,1,kz,'cu_grell:zo')
 !
-    call getmem1d(xac,1,iy,'cu_grell:xac')
-    call getmem1d(xao,1,iy,'cu_grell:xao')
-    call getmem1d(bu,1,iy,'cu_grell:bu')
-    call getmem1d(buo,1,iy,'cu_grell:buo')
-    call getmem1d(edt,1,iy,'cu_grell:edt')
-    call getmem1d(edto,1,iy,'cu_grell:edto')
-    call getmem1d(edtx,1,iy,'cu_grell:edtx')
-    call getmem1d(hcd,1,iy,'cu_grell:hcd')
-    call getmem1d(hcdo,1,iy,'cu_grell:hcdo')
-    call getmem1d(hkb,1,iy,'cu_grell:hkb')
-    call getmem1d(hkbo,1,iy,'cu_grell:hkbo')
-    call getmem1d(pwcav,1,iy,'cu_grell:pwcav')
-    call getmem1d(pwcavo,1,iy,'cu_grell:pwcavo')
-    call getmem1d(pwcev,1,iy,'cu_grell:pwcev')
-    call getmem1d(pwcevo,1,iy,'cu_grell:pwcevo')
-    call getmem1d(qcd,1,iy,'cu_grell:qcd')
-    call getmem1d(qcdo,1,iy,'cu_grell:qcdo')
-    call getmem1d(qck,1,iy,'cu_grell:qck')
-    call getmem1d(qcko,1,iy,'cu_grell:qcko')
-    call getmem1d(qkb,1,iy,'cu_grell:qkb')
-    call getmem1d(qkbo,1,iy,'cu_grell:qkbo')
-    call getmem1d(vshear,1,iy,'cu_grell:vshear')
-    call getmem1d(xxac,1,iy,'cu_grell:xxac')
-    call getmem1d(xhcd,1,iy,'cu_grell:xhcd')
-    call getmem1d(xhkb,1,iy,'cu_grell:xhkb')
-    call getmem1d(xmb,1,iy,'cu_grell:xmb')
-    call getmem1d(xpwcav,1,iy,'cu_grell:xpwcav')
-    call getmem1d(xpwcev,1,iy,'cu_grell:xpwcev')
-    call getmem1d(xqcd,1,iy,'cu_grell:xqcd')
-    call getmem1d(xqck,1,iy,'cu_grell:xqck')
-    call getmem1d(xqkb,1,iy,'cu_grell:xqkb')
+    call getmem2d(xac,1,jxp,1,iy,'cu_grell:xac')
+    call getmem2d(xao,1,jxp,1,iy,'cu_grell:xao')
+    call getmem2d(bu,1,jxp,1,iy,'cu_grell:bu')
+    call getmem2d(buo,1,jxp,1,iy,'cu_grell:buo')
+    call getmem2d(edt,1,jxp,1,iy,'cu_grell:edt')
+    call getmem2d(edto,1,jxp,1,iy,'cu_grell:edto')
+    call getmem2d(edtx,1,jxp,1,iy,'cu_grell:edtx')
+    call getmem2d(hcd,1,jxp,1,iy,'cu_grell:hcd')
+    call getmem2d(hcdo,1,jxp,1,iy,'cu_grell:hcdo')
+    call getmem2d(hkb,1,jxp,1,iy,'cu_grell:hkb')
+    call getmem2d(hkbo,1,jxp,1,iy,'cu_grell:hkbo')
+    call getmem2d(pwcav,1,jxp,1,iy,'cu_grell:pwcav')
+    call getmem2d(pwcavo,1,jxp,1,iy,'cu_grell:pwcavo')
+    call getmem2d(pwcev,1,jxp,1,iy,'cu_grell:pwcev')
+    call getmem2d(pwcevo,1,jxp,1,iy,'cu_grell:pwcevo')
+    call getmem2d(qcd,1,jxp,1,iy,'cu_grell:qcd')
+    call getmem2d(qcdo,1,jxp,1,iy,'cu_grell:qcdo')
+    call getmem2d(qck,1,jxp,1,iy,'cu_grell:qck')
+    call getmem2d(qcko,1,jxp,1,iy,'cu_grell:qcko')
+    call getmem2d(qkb,1,jxp,1,iy,'cu_grell:qkb')
+    call getmem2d(qkbo,1,jxp,1,iy,'cu_grell:qkbo')
+    call getmem2d(vshear,1,jxp,1,iy,'cu_grell:vshear')
+    call getmem2d(xxac,1,jxp,1,iy,'cu_grell:xxac')
+    call getmem2d(xhcd,1,jxp,1,iy,'cu_grell:xhcd')
+    call getmem2d(xhkb,1,jxp,1,iy,'cu_grell:xhkb')
+    call getmem2d(xmb,1,jxp,1,iy,'cu_grell:xmb')
+    call getmem2d(xpwcav,1,jxp,1,iy,'cu_grell:xpwcav')
+    call getmem2d(xpwcev,1,jxp,1,iy,'cu_grell:xpwcev')
+    call getmem2d(xqcd,1,jxp,1,iy,'cu_grell:xqcd')
+    call getmem2d(xqck,1,jxp,1,iy,'cu_grell:xqck')
+    call getmem2d(xqkb,1,jxp,1,iy,'cu_grell:xqkb')
 !
     alsixt = dlog(610.71D0)
     be(1) = ep2*wlhvocp*3.50D0
@@ -181,17 +178,17 @@ module mod_cu_grell
     ae(2) = be(2)*rtzero + alsixt
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan(j,ktau)
+  subroutine cuparan(jstart,jend,istart,iend,ktau)
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     implicit none
 !
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(8) :: pkdcut , pkk , prainx , us , vs
-    integer :: i , jp1 , iconj , iend , istart , k , kk
+    integer :: i , j , k , jp1 , kk
 !
     character (len=64) :: subroutine_name='cuparan'
     integer :: idindx=0
@@ -204,184 +201,184 @@ module mod_cu_grell
     rcldfra = d_zero
 
     pkdcut = 75.0D0
-    istart = 2 + icut
-    iend = iym2 - icut
 !
 !   prepare input, erase output
 !
-    outq(:,:) = d_zero
-    outt(:,:) = d_zero
-    p(:,:)    = d_zero
-    po(:,:)   = d_zero
-    q(:,:)    = d_zero
-    qo(:,:)   = d_zero
-    t(:,:)    = d_zero
-    tn(:,:)   = d_zero
-    vsp(:,:)  = d_zero
+    outq(:,:,:) = d_zero
+    outt(:,:,:) = d_zero
+    p(:,:,:)    = d_zero
+    po(:,:,:)   = d_zero
+    q(:,:,:)    = d_zero
+    qo(:,:,:)   = d_zero
+    t(:,:,:)    = d_zero
+    tn(:,:,:)   = d_zero
+    vsp(:,:,:)  = d_zero
 !
-    pret(:)  = d_zero
-    psur(:)  = d_zero
-    qcrit(:) = d_zero
-    ter11(:) = d_zero
+    pret(:,:)  = d_zero
+    psur(:,:)  = d_zero
+    qcrit(:,:) = d_zero
+    ter11(:,:) = d_zero
 !
-    kdet(:)  = 2
-    k22(:)   = 1
-    ktop(:)  = 1
-    kbcon(:) = 1
-    kb(:)    = 1
-    kds(:)   = 1
-    kmin(:)  = 1
+    kdet(:,:)  = 2
+    k22(:,:)   = 1
+    ktop(:,:)  = 1
+    kbcon(:,:) = 1
+    kb(:,:)    = 1
+    kds(:,:)   = 1
+    kmin(:,:)  = 1
 !
-    dby(:,:) = d_zero
-    dbyo(:,:) = d_zero
-    dellah(:,:) = d_zero
-    dellaq(:,:) = d_zero
-    dellat(:,:) = d_zero
-    dkk(:,:) = d_one
-    he(:,:) = d_zero
-    heo(:,:) = d_zero
-    hes(:,:) = d_zero
-    heso(:,:) = d_zero
-    pwc(:,:) = d_zero
-    pwco(:,:) = d_zero
-    pwcd(:,:) = d_zero
-    pwcdo(:,:) = d_zero
-    qc(:,:) = d_zero
-    qco(:,:) = d_zero
-    qes(:,:) = d_zero
-    qeso(:,:) = d_zero
-    qrcd(:,:) = d_zero
-    qrcdo(:,:) = d_zero
-    tv(:,:) = d_zero
-    tvo(:,:) = d_zero
-    xdby(:,:) = d_zero
-    xhe(:,:) = d_zero
-    xhes(:,:) = d_zero
-    xpwc(:,:) = d_zero
-    xpwcd(:,:) = d_zero
-    xq(:,:) = d_zero
-    xqc(:,:) = d_zero
-    xqes(:,:) = d_zero
-    xqrcd(:,:) = d_zero
-    xt(:,:) = d_zero
-    xtv(:,:) = d_zero
-    xz(:,:) = d_zero
-    z(:,:) = d_zero
-    zo(:,:) = d_zero
+    dby(:,:,:) = d_zero
+    dbyo(:,:,:) = d_zero
+    dellah(:,:,:) = d_zero
+    dellaq(:,:,:) = d_zero
+    dellat(:,:,:) = d_zero
+    dkk(:,:,:) = d_one
+    he(:,:,:) = d_zero
+    heo(:,:,:) = d_zero
+    hes(:,:,:) = d_zero
+    heso(:,:,:) = d_zero
+    pwc(:,:,:) = d_zero
+    pwco(:,:,:) = d_zero
+    pwcd(:,:,:) = d_zero
+    pwcdo(:,:,:) = d_zero
+    qc(:,:,:) = d_zero
+    qco(:,:,:) = d_zero
+    qes(:,:,:) = d_zero
+    qeso(:,:,:) = d_zero
+    qrcd(:,:,:) = d_zero
+    qrcdo(:,:,:) = d_zero
+    tv(:,:,:) = d_zero
+    tvo(:,:,:) = d_zero
+    xdby(:,:,:) = d_zero
+    xhe(:,:,:) = d_zero
+    xhes(:,:,:) = d_zero
+    xpwc(:,:,:) = d_zero
+    xpwcd(:,:,:) = d_zero
+    xq(:,:,:) = d_zero
+    xqc(:,:,:) = d_zero
+    xqes(:,:,:) = d_zero
+    xqrcd(:,:,:) = d_zero
+    xt(:,:,:) = d_zero
+    xtv(:,:,:) = d_zero
+    xz(:,:,:) = d_zero
+    z(:,:,:) = d_zero
+    zo(:,:,:) = d_zero
 !
-    xac(:) = d_zero
-    xao(:) = d_zero
-    bu(:) = d_zero
-    buo(:) = d_zero
-    edt(:) = d_zero
-    edto(:) = d_zero
-    edtx(:) = d_zero
-    hcd(:) = d_zero
-    hcdo(:) = d_zero
-    hkb(:) = d_zero
-    hkbo(:) = d_zero
-    pwcav(:) = d_zero
-    pwcavo(:) = d_zero
-    pwcev(:) = d_zero
-    pwcevo(:) = d_zero
-    qcd(:) = d_zero
-    qcdo(:) = d_zero
-    qck(:) = d_zero
-    qcko(:) = d_zero
-    qkb(:) = d_zero
-    qkbo(:) = d_zero
-    vshear(:) = d_zero
-    xxac(:) = d_zero
-    xhcd(:) = d_zero
-    xhkb(:) = d_zero
-    xmb(:) = d_zero
-    xpwcav(:) = d_zero
-    xpwcev(:) = d_zero
-    xqcd(:) = d_zero
-    xqck(:) = d_zero
-    xqkb(:) = d_zero
+    xac(:,:) = d_zero
+    xao(:,:) = d_zero
+    bu(:,:) = d_zero
+    buo(:,:) = d_zero
+    edt(:,:) = d_zero
+    edto(:,:) = d_zero
+    edtx(:,:) = d_zero
+    hcd(:,:) = d_zero
+    hcdo(:,:) = d_zero
+    hkb(:,:) = d_zero
+    hkbo(:,:) = d_zero
+    pwcav(:,:) = d_zero
+    pwcavo(:,:) = d_zero
+    pwcev(:,:) = d_zero
+    pwcevo(:,:) = d_zero
+    qcd(:,:) = d_zero
+    qcdo(:,:) = d_zero
+    qck(:,:) = d_zero
+    qcko(:,:) = d_zero
+    qkb(:,:) = d_zero
+    qkbo(:,:) = d_zero
+    vshear(:,:) = d_zero
+    xxac(:,:) = d_zero
+    xhcd(:,:) = d_zero
+    xhkb(:,:) = d_zero
+    xmb(:,:) = d_zero
+    xpwcav(:,:) = d_zero
+    xpwcev(:,:) = d_zero
+    xqcd(:,:) = d_zero
+    xqck(:,:) = d_zero
+    xqkb(:,:) = d_zero
 !
     do k = 1 , kz
       do i = istart , iend
-        kk = kz - k + 1
-        jp1 = j + 1
-        us = (puatm(i,kk,j)/sfcps(i,j)+       &
-              puatm(i+1,kk,j)/sfcps(i+1,j)+   &
-              puatm(i,kk,jp1)/sfcps(i,jp1)+   &
-              puatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
-        vs = (pvatm(i,kk,j)/sfcps(i,j)+       &
-              pvatm(i+1,kk,j)/sfcps(i+1,j)+   &
-              pvatm(i,kk,jp1)/sfcps(i,jp1)+   &
-              pvatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
-        t(i,k) = tas(i,kk,j)
-        q(i,k) = qvas(i,kk,j)
-        if ( q(i,k) < 1.0D-08 ) q(i,k) = 1.0D-08
-        tn(i,k) = t(i,k) + (tten(i,kk,j))/sfcps(i,j)*dtcum
-        qo(i,k) = q(i,k) + (qvten(i,kk,j))/sfcps(i,j)*dtcum
-        p(i,k) = d_10*sfcps(i,j)*hlev(kk) + d_10*ptop
-        vsp(i,k) = dsqrt(us**d_two+vs**d_two)
-        if ( qo(i,k) < 1.0D-08 ) qo(i,k) = 1.0D-08
+        do j = jstart , jend
+          kk = kz - k + 1
+          jp1 = j + 1
+          us = (puatm(i,kk,j)/sfcps(i,j)+       &
+                puatm(i+1,kk,j)/sfcps(i+1,j)+   &
+                puatm(i,kk,jp1)/sfcps(i,jp1)+   &
+                puatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
+          vs = (pvatm(i,kk,j)/sfcps(i,j)+       &
+                pvatm(i+1,kk,j)/sfcps(i+1,j)+   &
+                pvatm(i,kk,jp1)/sfcps(i,jp1)+   &
+                pvatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
+          t(j,i,k) = tas(i,kk,j)
+          q(j,i,k) = qvas(i,kk,j)
+          if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
+          tn(j,i,k) = t(j,i,k) + (tten(i,kk,j))/sfcps(i,j)*dtcum
+          qo(j,i,k) = q(j,i,k) + (qvten(i,kk,j))/sfcps(i,j)*dtcum
+          p(j,i,k) = d_10*sfcps(i,j)*hlev(kk) + d_10*ptop
+          vsp(j,i,k) = dsqrt(us**d_two+vs**d_two)
+          if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !
-        po(i,k) = p(i,k)
-        psur(i) = d_10*sfcps(i,j) + d_10*ptop
-        outt(i,k) = d_zero
-        pkk = psur(i) - po(i,k)
-        if ( pkk <= pkdcut ) kdet(i) = kdet(i) + 1
-        outq(i,k) = d_zero
-        ter11(i) = sfhgt(i,j)*regrav
-        if ( ter11(i) <= d_zero ) ter11(i) = 1.0D-05
-        qcrit(i) = qcrit(i) + qvten(i,kk,j)
+           po(j,i,k) = p(j,i,k)
+          psur(j,i) = d_10*sfcps(i,j) + d_10*ptop
+          outt(j,i,k) = d_zero
+          pkk = psur(j,i) - po(j,i,k)
+          if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
+          outq(j,i,k) = d_zero
+          ter11(j,i) = sfhgt(i,j)*regrav
+          if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
+          qcrit(j,i) = qcrit(j,i) + qvten(i,kk,j)
+        end do
       end do
     end do
 !
 !   call cumulus parameterization
 !
-    call cup(istart,iend,j)
+    call cup(jstart,jend,istart,iend)
 !
 !   return cumulus parameterization
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( pret(i) > d_zero ) then
-          kk = kz - k + 1
-          tten(i,kk,j) = sfcps(i,j)*outt(i,k) + tten(i,kk,j)
-          qvten(i,kk,j) = sfcps(i,j)*outq(i,k) + qvten(i,kk,j)
-        end if
+        do j = jstart , jend
+          if ( pret(j,i) > d_zero ) then
+            kk = kz - k + 1
+            tten(i,kk,j) = sfcps(i,j)*outt(j,i,k) + tten(i,kk,j)
+            qvten(i,kk,j) = sfcps(i,j)*outq(j,i,k) + qvten(i,kk,j)
+          end if
+        end do
       end do
     end do
 !
 !   rain in cm.
 !
-    iconj = 0
+    total_precip_points = 0
     do i = istart , iend
-      prainx = pret(i)*dtmdl
-      if ( prainx > dlowval ) then
-        rainc(i,j) = rainc(i,j) + prainx
-!       precipitation rate for bats (mm/s)
-        if ( ktau == 0 ) then
-          lmpcpc(i,j) = lmpcpc(i,j) + pret(i)
-        else
-          lmpcpc(i,j) = lmpcpc(i,j) + pret(i)*aprdiv
+      do j = jstart , jend
+        prainx = pret(j,i)*dtmdl
+        if ( prainx > dlowval ) then
+          rainc(i,j) = rainc(i,j) + prainx
+!         precipitation rate for bats (mm/s)
+          if ( ktau == 0 ) then
+            lmpcpc(i,j) = lmpcpc(i,j) + pret(j,i)
+          else
+            lmpcpc(i,j) = lmpcpc(i,j) + pret(j,i)*aprdiv
+          end if
+          total_precip_points = total_precip_points + 1
         end if
-        iconj = iconj + 1
-      end if
+      end do
     end do
-    icon(j) = iconj
-! GRAZIANO
-!
     call time_end(subroutine_name,idindx)
   end subroutine cuparan
 !
 !   GRELL CUMULUS SCHEME
 !
-  subroutine cup(istart,iend,j)
+  subroutine cup(jstart,jend,istart,iend)
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     implicit none
 !
-    integer :: iend , istart , j
-    intent (in) j , istart , iend
+    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(8) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
@@ -389,7 +386,7 @@ module mod_cu_grell
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
                tvbar , tvbaro , xk
-    integer :: i , iph , ipho , k , kbcono , kclth , kk , lpt
+    integer :: i , j , k , iph , ipho , kbcono , kclth , kk , lpt
 !
     character (len=64) :: subroutine_name='cup'
     integer :: idindx=0
@@ -404,42 +401,52 @@ module mod_cu_grell
 !
     do k = 1 , kz
       do i = istart , iend
-        iph = 1
-        ipho = 1
-        if ( t(i,k) <= tcrit ) iph = 2
-        if ( tn(i,k) <= tcrit ) ipho = 2
-        e = dexp(ae(iph)-be(iph)/t(i,k))
-        eo = dexp(ae(ipho)-be(ipho)/tn(i,k))
-        qes(i,k) = ep2*e/(d_100*p(i,k)-(d_one-ep2)*e)
-        qeso(i,k) = ep2*eo/(d_100*po(i,k)-(d_one-ep2)*eo)
-        if ( qes(i,k) <= 1.0D-08 ) qes(i,k) = 1.0D-08
-        if ( q(i,k) > qes(i,k) ) q(i,k) = qes(i,k)
-        if ( qeso(i,k) <= 1.0D-08 ) qeso(i,k) = 1.0D-08
-        if ( qo(i,k) > qeso(i,k) ) qo(i,k) = qeso(i,k)
-        tv(i,k) = t(i,k) + 0.608D0*q(i,k)*t(i,k)
-        tvo(i,k) = tn(i,k) + 0.608D0*qo(i,k)*tn(i,k)
+        do j = jstart , jend
+          iph = 1
+          ipho = 1
+          if ( t(j,i,k) <= tcrit ) iph = 2
+          if ( tn(j,i,k) <= tcrit ) ipho = 2
+          e = dexp(ae(iph)-be(iph)/t(j,i,k))
+          eo = dexp(ae(ipho)-be(ipho)/tn(j,i,k))
+          qes(j,i,k) = ep2*e/(d_100*p(j,i,k)-(d_one-ep2)*e)
+          qeso(j,i,k) = ep2*eo/(d_100*po(j,i,k)-(d_one-ep2)*eo)
+          if ( qes(j,i,k) <= 1.0D-08 ) qes(j,i,k) = 1.0D-08
+          if ( q(j,i,k) > qes(j,i,k) ) q(j,i,k) = qes(j,i,k)
+          if ( qeso(j,i,k) <= 1.0D-08 ) qeso(j,i,k) = 1.0D-08
+          if ( qo(j,i,k) > qeso(j,i,k) ) qo(j,i,k) = qeso(j,i,k)
+          tv(j,i,k) = t(j,i,k) + 0.608D0*q(j,i,k)*t(j,i,k)
+          tvo(j,i,k) = tn(j,i,k) + 0.608D0*qo(j,i,k)*tn(j,i,k)
+        end do
       end do
     end do
 
     do i = istart , iend
-      if ( qcrit(i) <= d_zero ) then
-        xac(i) = -d_one
-      end if
-      if ( icup /= 2 ) then
-        if (cucontrol(i,j) /= 2 ) then
-          xac(i) = -d_one
+      do j = jstart , jend
+        if ( qcrit(j,i) <= d_zero ) then
+          xac(j,i) = -d_one
         end if
-      end if
-      z(i,1)  = ter11(i) - (dlog(p(i,1))-dlog(psur(i)))*rgas*tv(i,1)*regrav
-      zo(i,1) = ter11(i) - (dlog(po(i,1))-dlog(psur(i)))*rgas*tvo(i,1)*regrav
+        if ( icup /= 2 ) then
+          if (cucontrol(i,j) /= 2 ) then
+            xac(j,i) = -d_one
+          end if
+        end if
+        z(j,i,1)  = ter11(j,i) - &
+              (dlog(p(j,i,1))-dlog(psur(j,i)))*rgas*tv(j,i,1)*regrav
+        zo(j,i,1) = ter11(j,i) - &
+              (dlog(po(j,i,1))-dlog(psur(j,i)))*rgas*tvo(j,i,1)*regrav
+      end do
     end do
 
     do k = 2 , kz
       do i = istart , iend
-        tvbar = d_half*(tv(i,k)+tv(i,k-1))
-        z(i,k) = z(i,k-1)-(dlog(p(i,k))-dlog(p(i,k-1)))*rgas*tvbar*regrav
-        tvbaro = d_half*(tvo(i,k)+tvo(i,k-1))
-        zo(i,k) = zo(i,k-1)-(dlog(po(i,k))-dlog(po(i,k-1)))*rgas*tvbaro*regrav
+        do j = jstart , jend
+          tvbar = d_half*(tv(j,i,k)+tv(j,i,k-1))
+          z(j,i,k) = z(j,i,k-1) - &
+               (dlog(p(j,i,k))-dlog(p(j,i,k-1)))*rgas*tvbar*regrav
+          tvbaro = d_half*(tvo(j,i,k)+tvo(j,i,k-1))
+          zo(j,i,k) = zo(j,i,k-1) - &
+               (dlog(po(j,i,k))-dlog(po(j,i,k-1)))*rgas*tvbaro*regrav
+        end do
       end do
     end do
 !
@@ -447,204 +454,227 @@ module mod_cu_grell
 !
     do k = 1 , kz
       do i = istart , iend
-        he(i,k) = egrav*z(i,k) + cpd*t(i,k) + wlhv*q(i,k)
-        hes(i,k) = egrav*z(i,k) + cpd*t(i,k) + wlhv*qes(i,k)
-        if ( he(i,k) >= hes(i,k) ) he(i,k) = hes(i,k)
-        heo(i,k) = egrav*zo(i,k) + cpd*tn(i,k) + wlhv*qo(i,k)
-        heso(i,k) = egrav*zo(i,k) + cpd*tn(i,k) + wlhv*qeso(i,k)
-        if ( heo(i,k) >= heso(i,k) ) heo(i,k) = heso(i,k)
-        xt(i,k) = t(i,k)
-        xq(i,k) = q(i,k)
-        xhe(i,k) = he(i,k)
-        if ( k /= kz ) qrcd(i,k) = d_half*(qes(i,k)+qes(i,k+1))
-        if ( k /= kz ) qrcdo(i,k) = d_half*(qeso(i,k)+qeso(i,k+1))
+        do j = jstart , jend
+          he(j,i,k) = egrav*z(j,i,k) + cpd*t(j,i,k) + wlhv*q(j,i,k)
+          hes(j,i,k) = egrav*z(j,i,k) + cpd*t(j,i,k) + wlhv*qes(j,i,k)
+          if ( he(j,i,k) >= hes(j,i,k) ) he(j,i,k) = hes(j,i,k)
+          heo(j,i,k) = egrav*zo(j,i,k) + cpd*tn(j,i,k) + wlhv*qo(j,i,k)
+          heso(j,i,k) = egrav*zo(j,i,k) + cpd*tn(j,i,k) + wlhv*qeso(j,i,k)
+          if ( heo(j,i,k) >= heso(j,i,k) ) heo(j,i,k) = heso(j,i,k)
+          xt(j,i,k) = t(j,i,k)
+          xq(j,i,k) = q(j,i,k)
+          xhe(j,i,k) = he(j,i,k)
+          if ( k /= kz ) qrcd(j,i,k) = d_half*(qes(j,i,k)+qes(j,i,k+1))
+          if ( k /= kz ) qrcdo(j,i,k) = d_half*(qeso(j,i,k)+qeso(j,i,k+1))
+        end do
       end do
     end do
 !
 !   determine level with highest moist static energy content.
 !
-    call maximi(he,iy,kz,1,kbmax2d(i,j),k22,istart,iend)
     do i = istart , iend
-      if ( xac(i) >= d_zero ) then
-        if ( k22(i) >= kbmax2d(i,j) ) then
-          xac(i) = -d_one
-          cycle
+      do j = jstart , jend
+        call maximi(he,1,kbmax2d(j,i),k22,jstart,jend,istart,iend)
+        if ( xac(j,i) >= d_zero ) then
+          if ( k22(j,i) >= kbmax2d(j,i) ) then
+            xac(j,i) = -d_one
+            cycle
+          end if
+          hkb(j,i) = he(j,i,k22(j,i))
+          qkb(j,i) = q(j,i,k22(j,i))
+          hkbo(j,i) = heo(j,i,k22(j,i))
+          qkbo(j,i) = qo(j,i,k22(j,i))
+          qck(j,i) = qkb(j,i)
+          qcko(j,i) = qkbo(j,i)
         end if
-        hkb(i) = he(i,k22(i))
-        qkb(i) = q(i,k22(i))
-        hkbo(i) = heo(i,k22(i))
-        qkbo(i) = qo(i,k22(i))
-        qck(i) = qkb(i)
-        qcko(i) = qkbo(i)
-      end if
+      end do
     end do
 !
 !   decide for convective cloud base
 !
     do i = istart , iend
-      if ( xac(i) >= d_zero ) then
-        do k = 1 , kdet(i)
-          kk = kdet(i) - k + 1
-!         dkk(i,kk) = 0.75D0*dkk(i,kk+1)
-          dkk(i,k) = d_one - dble(kk)/dble(kdet(i))
-        end do
+      do j = jstart , jend
+        if ( xac(j,i) >= d_zero ) then
+          do k = 1 , kdet(j,i)
+            kk = kdet(j,i) - k + 1
+!           dkk(j,i,kk) = 0.75D0*dkk(j,i,kk+1)
+            dkk(j,i,k) = d_one - dble(kk)/dble(kdet(j,i))
+          end do
 
-120     continue
+120       continue
 
-        kb(i) = k22(i)
-        kbcon(i) = kb(i)
+          kb(j,i) = k22(j,i)
+          kbcon(j,i) = kb(j,i)
 
-140     continue
+140       continue
 
-        dh = d_half*(hes(i,kbcon(i))+hes(i,kbcon(i)+1))
-        if ( hkb(i) < dh ) then
-          kbcon(i) = kbcon(i) + 1
-          if ( kbcon(i) > kbmax2d(i,j) ) then
-            xac(i) = -d_one
-            cycle
-          end if
-          go to 140
-        else
-!
-!         after large-scale forcing is applied, possible lid should be removed!!!
-!
-          kbcono = kb(i)
-!ictp
-150       continue
-          if ( kbcono > kbmax2d(i,j) ) then
-            xac(i) = -d_one
-            cycle
-          end if
-!ictp_
-          dh = d_half*(heso(i,kbcono)+heso(i,kbcono+1))
-          if ( hkbo(i) < dh ) then
-            kbcono = kbcono + 1
-            go to 150
+          dh = d_half*(hes(j,i,kbcon(j,i))+hes(j,i,kbcon(j,i)+1))
+          if ( hkb(j,i) < dh ) then
+            kbcon(j,i) = kbcon(j,i) + 1
+            if ( kbcon(j,i) > kbmax2d(j,i) ) then
+              xac(j,i) = -d_one
+              cycle
+            end if
+            go to 140
           else
-            pbcdif = -p(i,kbcono) + p(i,kb(i))
-!           below was commented out
-!           as uncommenting the following lines for experiment 2/5/95
-            if ( pbcdif > pbcmax2d(i,j) ) then
-!             this is where typo was (pbdcdif)
-              k22(i) = k22(i) + 1
-              if ( k22(i) >= kbmax2d(i,j) ) then
-                xac(i) = -d_one
-                cycle
+!
+!    after large-scale forcing is applied, possible lid should be removed!!!
+!
+            kbcono = kb(j,i)
+!ictp
+150         continue
+            if ( kbcono > kbmax2d(j,i) ) then
+              xac(j,i) = -d_one
+              cycle
+            end if
+!ictp_
+            dh = d_half*(heso(j,i,kbcono)+heso(j,i,kbcono+1))
+            if ( hkbo(j,i) < dh ) then
+              kbcono = kbcono + 1
+              go to 150
+            else
+              pbcdif = -p(j,i,kbcono) + p(j,i,kb(j,i))
+!             below was commented out
+!             as uncommenting the following lines for experiment 2/5/95
+              if ( pbcdif > pbcmax2d(j,i) ) then
+!               this is where typo was (pbdcdif)
+                k22(j,i) = k22(j,i) + 1
+                if ( k22(j,i) >= kbmax2d(j,i) ) then
+                  xac(j,i) = -d_one
+                  cycle
+                end if
+                hkb(j,i) = he(j,i,k22(j,i))
+                qkb(j,i) = q(j,i,k22(j,i))
+                hkbo(j,i) = heo(j,i,k22(j,i))
+                qkbo(j,i) = qo(j,i,k22(j,i))
+                qck(j,i) = qkb(j,i)
+                qcko(j,i) = qkbo(j,i)
+                go to 120
               end if
-              hkb(i) = he(i,k22(i))
-              qkb(i) = q(i,k22(i))
-              hkbo(i) = heo(i,k22(i))
-              qkbo(i) = qo(i,k22(i))
-              qck(i) = qkb(i)
-              qcko(i) = qkbo(i)
-              go to 120
             end if
           end if
         end if
-      end if
+      end do
     end do
 !
 !   downdraft originating level
 !
-    call minimi(he,iy,kz,kb,kz,kmin,istart,iend)
-    call maximi(vsp,iy,kz,1,kz,kds,istart,iend)
+    call minimi(he,kb,kz,kmin,jstart,jend,istart,iend)
+    call maximi(vsp,1,kz,kds,jstart,jend,istart,iend)
 !
 !   static control
 !
 !   determine cloud top
 !
     do i = istart , iend
-      if ( xac(i) >= 0 ) then
-        if ( kmin(i) <= 3 ) then
-          xac(i) = -d_one
-          cycle
-        end if
-        if ( kds(i) >= kz ) kds(i) = kz - 1
-        if ( kds(i) <= kbcon(i) ) kds(i) = kbcon(i)
-        dby(i,kz) = hkb(i) - hes(i,kz)
-        dbyo(i,kz) = hkbo(i) - heso(i,kz)
-      end if
-    end do
-    do k = 1 , kz - 1
-      do i = istart , iend
-        if ( xac(i) > xacact ) then
-          dby(i,k) = hkb(i) - d_half*(hes(i,k)+hes(i,k+1))
-          dbyo(i,k) = hkbo(i) - d_half*(heso(i,k)+heso(i,k+1))
+      do j = jstart , jend
+        if ( xac(j,i) >= 0 ) then
+          if ( kmin(j,i) <= 3 ) then
+            xac(j,i) = -d_one
+            cycle
+          end if
+          if ( kds(j,i) >= kz ) kds(j,i) = kz - 1
+          if ( kds(j,i) <= kbcon(j,i) ) kds(j,i) = kbcon(j,i)
+          dby(j,i,kz) = hkb(j,i) - hes(j,i,kz)
+          dbyo(j,i,kz) = hkbo(j,i) - heso(j,i,kz)
         end if
       end do
     end do
-    do i = istart , iend
-      if ( xac(i) > xacact ) then
-        do k = 2 , kz - kbcon(i) - 1
-          kk = kz - k + 1
-          if ( dby(i,kk) >= d_zero ) then
-            ktop(i) = kk + 1
-            go to 320
+    do k = 1 , kz - 1
+      do i = istart , iend
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            dby(j,i,k) = hkb(j,i) - d_half*(hes(j,i,k)+hes(j,i,k+1))
+            dbyo(j,i,k) = hkbo(j,i) - d_half*(heso(j,i,k)+heso(j,i,k+1))
           end if
         end do
-        xac(i) = -d_one
-        go to 400
-320     continue
-        if ( ktop(i) > kz ) ktop(i) = kz
-        if ( p(i,kbcon(i))-p(i,ktop(i)) < mincld2d(i,j) ) xac(i) = -d_one
-      end if
-400   continue
+      end do
+    end do
+    do i = istart , iend
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          do k = 2 , kz - kbcon(j,i) - 1
+            kk = kz - k + 1
+            if ( dby(j,i,kk) >= d_zero ) then
+              ktop(j,i) = kk + 1
+              go to 320
+            end if
+          end do
+          xac(j,i) = -d_one
+          go to 400
+320       continue
+          if ( ktop(j,i) > kz ) ktop(j,i) = kz
+          if ( p(j,i,kbcon(j,i))-p(j,i,ktop(j,i)) < mincld2d(j,i) ) then
+            xac(j,i) = -d_one
+          end if
+        end if
+400     continue
+      end do
     end do
 !
 !   moisture and cloud work functions
 !
     do k = 2 , kz - 1
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          if ( k > kbcon(i) ) then
-            if ( k < ktop(i) ) then
-              dz = d_half*(z(i,k+1)-z(i,k-1))
-              dz1 = z(i,k) - z(i,k-1)
-              agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**d_two)))*qes(i,k)
-              agamma0 = (wlhvocp)*(wlhv/(rwat*(t(i,k-1)**d_two)))*qes(i,k-1)
-              qrch = qes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dby(i,k)
-              qc(i,k) = (qck(i)-qrch)/(d_one+c0*dz) + qrch
-              pwc(i,k) = c0*dz*(qc(i,k)-qrch)
-              qck(i) = qc(i,k)
-              pwcav(i) = pwcav(i) + pwc(i,k)
-              dz1 = z(i,k) - z(i,k-1)
-              xac(i) = xac(i)+dz1*(egrav/(cpd*(d_half*(t(i,k)+t(i,k-1))))) * &
-                       dby(i,k-1)/(d_one+d_half*(agamma+agamma0))
-              dzo = d_half*(zo(i,k+1)-zo(i,k-1))
-              dz2 = zo(i,k) - zo(i,k-1)
-              agammo = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**d_two)))*qeso(i,k)
-              agammo0 = (wlhvocp)*(wlhv/(rwat*(tn(i,k-1)**d_two)))*qeso(i,k-1)
-              qrcho = qeso(i,k)+(d_one/wlhv)*(agammo/(d_one+agammo))*dbyo(i,k)
-              qco(i,k) = (qcko(i)-qrcho)/(d_one+c0*dzo) + qrcho
-              pwco(i,k) = c0*dzo*(qco(i,k)-qrcho)
-              qcko(i) = qco(i,k)
-              pwcavo(i) = pwcavo(i) + pwco(i,k)
-              xao(i) = xao(i) + &
-                  dz2*(egrav/(cpd*((tn(i,k)+tn(i,k-1))*d_half))) * &
-                  dbyo(i,k-1)/(d_one+d_half*(agammo+agammo0))
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            if ( k > kbcon(j,i) ) then
+              if ( k < ktop(j,i) ) then
+                dz = d_half*(z(j,i,k+1)-z(j,i,k-1))
+                dz1 = z(j,i,k) - z(j,i,k-1)
+                agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**d_two)))*qes(j,i,k)
+                agamma0 = (wlhvocp) * &
+                  (wlhv/(rwat*(t(j,i,k-1)**d_two)))*qes(j,i,k-1)
+                qrch = qes(j,i,k) + &
+                      (d_one/wlhv)*(agamma/(d_one+agamma))*dby(j,i,k)
+                qc(j,i,k) = (qck(j,i)-qrch)/(d_one+c0*dz) + qrch
+                pwc(j,i,k) = c0*dz*(qc(j,i,k)-qrch)
+                qck(j,i) = qc(j,i,k)
+                pwcav(j,i) = pwcav(j,i) + pwc(j,i,k)
+                dz1 = z(j,i,k) - z(j,i,k-1)
+                xac(j,i) = xac(j,i) + &
+                       dz1*(egrav/(cpd*(d_half*(t(j,i,k)+t(j,i,k-1))))) * &
+                       dby(j,i,k-1)/(d_one+d_half*(agamma+agamma0))
+                dzo = d_half*(zo(j,i,k+1)-zo(j,i,k-1))
+                dz2 = zo(j,i,k) - zo(j,i,k-1)
+                agammo = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**d_two)))*qeso(j,i,k)
+                agammo0 = (wlhvocp) * &
+                  (wlhv/(rwat*(tn(j,i,k-1)**d_two)))*qeso(j,i,k-1)
+                qrcho = qeso(j,i,k) + &
+                     (d_one/wlhv)*(agammo/(d_one+agammo))*dbyo(j,i,k)
+                qco(j,i,k) = (qcko(j,i)-qrcho)/(d_one+c0*dzo) + qrcho
+                pwco(j,i,k) = c0*dzo*(qco(j,i,k)-qrcho)
+                qcko(j,i) = qco(j,i,k)
+                pwcavo(j,i) = pwcavo(j,i) + pwco(j,i,k)
+                xao(j,i) = xao(j,i) + &
+                    dz2*(egrav/(cpd*((tn(j,i,k)+tn(j,i,k-1))*d_half))) * &
+                    dbyo(j,i,k-1)/(d_one+d_half*(agammo+agammo0))
+              end if
             end if
           end if
-        end if
+        end do
       end do
     end do
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        k = ktop(i)
-        dz = d_half*(z(i,k)-z(i,k-1))
-        agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**d_two)))*qes(i,k)
-        qrch = qes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dby(i,k)
-        qc(i,k) = qes(i,k)
-        pwc(i,k) = (qrch-qes(i,k))
-        pwcav(i) = pwcav(i) + pwc(i,k)
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          k = ktop(j,i)
+          dz = d_half*(z(j,i,k)-z(j,i,k-1))
+          agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**d_two)))*qes(j,i,k)
+          qrch = qes(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dby(j,i,k)
+          qc(j,i,k) = qes(j,i,k)
+          pwc(j,i,k) = (qrch-qes(j,i,k))
+          pwcav(j,i) = pwcav(j,i) + pwc(j,i,k)
 !
-        dz = d_half*(zo(i,k)-zo(i,k-1))
-        agamma = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**d_two)))*qeso(i,k)
-        qrcho = qeso(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dbyo(i,k)
-        qco(i,k) = qeso(i,k)
-        pwco(i,k) = (qrcho-qeso(i,k))
-        pwcavo(i) = pwcavo(i) + pwco(i,k)
-      end if
+          dz = d_half*(zo(j,i,k)-zo(j,i,k-1))
+          agamma = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**d_two)))*qeso(j,i,k)
+          qrcho = qeso(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dbyo(j,i,k)
+          qco(j,i,k) = qeso(j,i,k)
+          pwco(j,i,k) = (qrcho-qeso(j,i,k))
+          pwcavo(j,i) = pwcavo(j,i) + pwco(j,i,k)
+        end if
+      end do
     end do
 !
 !   downdraft calculations
@@ -653,192 +683,224 @@ module mod_cu_grell
 !
     do kk = 1 , kz/2
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          vshear(i) = vshear(i) + dabs((vsp(i,kk+1)-vsp(i,kk))/(z(i,kk+1)-z(i,kk)))
-        end if
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            vshear(j,i) = vshear(j,i) + &
+                 dabs((vsp(j,i,kk+1)-vsp(j,i,kk))/(z(j,i,kk+1)-z(j,i,kk)))
+          end if
+        end do
       end do
     end do
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        vshear(i) = d_1000*vshear(i)/dble(kz/2)
-        edt(i) = d_one - (1.591D0-0.639D0*vshear(i)+0.0953D0*(vshear(i)**d_two) - &
-                          0.00496D0*(vshear(i)**d_three))
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          vshear(j,i) = d_1000*vshear(j,i)/dble(kz/2)
+          edt(j,i) = d_one - &
+             (1.591D0-0.639D0*vshear(j,i)+0.0953D0*(vshear(j,i)**d_two) - &
+              0.00496D0*(vshear(j,i)**d_three))
+          if ( edt(j,i) > shrmax2d(j,i) ) edt(j,i) = shrmax2d(j,i)
+          if ( edt(j,i) < shrmin2d(j,i) ) edt(j,i) = shrmin2d(j,i)
 
-        if ( edt(i) > shrmax2d(i,j) ) edt(i) = shrmax2d(i,j)
-        if ( edt(i) < shrmin2d(i,j) ) edt(i) = shrmin2d(i,j)
-
-        edto(i) = edt(i)
-        edtx(i) = edt(i)
-        qrcd(i,kz) = qes(i,kz)
-        hcd(i) = d_half*(he(i,kmin(i))+he(i,kmin(i)+1))
-        qcd(i) = d_half*(q(i,kmin(i))+q(i,kmin(i)+1))
-        qrcdo(i,kz) = qeso(i,kz)
-        hcdo(i) = heso(i,kz)
-        hcdo(i) = d_half*(heo(i,kmin(i))+heo(i,kmin(i)+1))
-        qcdo(i) = d_half*(qo(i,kmin(i))+qo(i,kmin(i)+1))
-        bu(i) = d_zero
-        buo(i) = d_zero
-      end if
+          edto(j,i) = edt(j,i)
+          edtx(j,i) = edt(j,i)
+          qrcd(j,i,kz) = qes(j,i,kz)
+          hcd(j,i) = d_half*(he(j,i,kmin(j,i))+he(j,i,kmin(j,i)+1))
+          qcd(j,i) = d_half*(q(j,i,kmin(j,i))+q(j,i,kmin(j,i)+1))
+          qrcdo(j,i,kz) = qeso(j,i,kz)
+          hcdo(j,i) = heso(j,i,kz)
+          hcdo(j,i) = d_half*(heo(j,i,kmin(j,i))+heo(j,i,kmin(j,i)+1))
+          qcdo(j,i) = d_half*(qo(j,i,kmin(j,i))+qo(j,i,kmin(j,i)+1))
+          bu(j,i) = d_zero
+          buo(j,i) = d_zero
+        end if
+      end do
     end do
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          if ( k < kmin(i) ) then
-            kk = kmin(i) - k
-            dz = -(z(i,kk)-z(i,kk+2))*d_half
-            bu(i) = bu(i) + dz*(hcd(i)-d_half*(hes(i,kk)+hes(i,kk+1)))
-            dq = (qes(i,kk)+qes(i,kk+1))*d_half
-            xdt = (t(i,kk)+t(i,kk+1))*d_half
-            agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = hcd(i) - d_half*(hes(i,kk)+hes(i,kk+1))
-            qrcd(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
-            pwcd(i,kk) = dkk(i,kk)*(qcd(i)-qrcd(i,kk))
-            qcd(i) = qrcd(i,kk)
-            pwcev(i) = pwcev(i) + pwcd(i,kk)
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            if ( k < kmin(j,i) ) then
+              kk = kmin(j,i) - k
+              dz = -(z(j,i,kk)-z(j,i,kk+2))*d_half
+              bu(j,i) = bu(j,i) + &
+                dz*(hcd(j,i)-d_half*(hes(j,i,kk)+hes(j,i,kk+1)))
+              dq = (qes(j,i,kk)+qes(j,i,kk+1))*d_half
+              xdt = (t(j,i,kk)+t(j,i,kk+1))*d_half
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              dh = hcd(j,i) - d_half*(hes(j,i,kk)+hes(j,i,kk+1))
+              qrcd(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
+              pwcd(j,i,kk) = dkk(j,i,kk)*(qcd(j,i)-qrcd(j,i,kk))
+              qcd(j,i) = qrcd(j,i,kk)
+              pwcev(j,i) = pwcev(j,i) + pwcd(j,i,kk)
 !
-            dz = d_half*(zo(i,kk+2)-zo(i,kk))
-            buo(i) = buo(i) + dz*(hcdo(i)-(heso(i,kk)+heso(i,kk+1))*d_half)
-            dq = (qeso(i,kk)+qeso(i,kk+1))*d_half
-            xdt = (tn(i,kk)+tn(i,kk+1))*d_half
-            agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = hcdo(i) - d_half*(heso(i,kk)+heso(i,kk+1))
-            qrcdo(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
-            pwcdo(i,kk) = dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
-            qcdo(i) = qrcdo(i,kk)
-            pwcevo(i) = pwcevo(i) + pwcdo(i,kk)
+              dz = d_half*(zo(j,i,kk+2)-zo(j,i,kk))
+              buo(j,i) = buo(j,i) + &
+                dz*(hcdo(j,i)-(heso(j,i,kk)+heso(j,i,kk+1))*d_half)
+              dq = (qeso(j,i,kk)+qeso(j,i,kk+1))*d_half
+              xdt = (tn(j,i,kk)+tn(j,i,kk+1))*d_half
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              dh = hcdo(j,i) - d_half*(heso(j,i,kk)+heso(j,i,kk+1))
+              qrcdo(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
+              pwcdo(j,i,kk) = dkk(j,i,kk)*(qcdo(j,i)-qrcdo(j,i,kk))
+              qcdo(j,i) = qrcdo(j,i,kk)
+              pwcevo(j,i) = pwcevo(j,i) + pwcdo(j,i,kk)
+            end if
           end if
-        end if
+        end do
       end do
     end do
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        if ( bu(i) >= d_zero .or. buo(i) >= d_zero .or. &
-          pwcev(i) >= d_zero .or. pwcevo(i) >= d_zero ) then
-          xac(i) = -d_one
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          if ( bu(j,i) >= d_zero .or. buo(j,i) >= d_zero .or. &
+            pwcev(j,i) >= d_zero .or. pwcevo(j,i) >= d_zero ) then
+            xac(j,i) = -d_one
+          end if
+          edt(j,i) = -edt(j,i)*pwcav(j,i)/pwcev(j,i)
+          if ( edt(j,i) > edtmax2d(j,i) ) edt(j,i) = edtmax2d(j,i)
+          if ( edt(j,i) < edtmin2d(j,i) ) edt(j,i) = edtmin2d(j,i)
+          edto(j,i) = -edto(j,i)*pwcavo(j,i)/pwcevo(j,i)
+          if ( edto(j,i) > edtmaxo2d(j,i) ) edto(j,i) = edtmaxo2d(j,i)
+          if ( edto(j,i) < edtmino2d(j,i) ) edto(j,i) = edtmino2d(j,i)
         end if
-        edt(i) = -edt(i)*pwcav(i)/pwcev(i)
-        if ( edt(i) > edtmax2d(i,j) ) edt(i) = edtmax2d(i,j)
-        if ( edt(i) < edtmin2d(i,j) ) edt(i) = edtmin2d(i,j)
-        edto(i) = -edto(i)*pwcavo(i)/pwcevo(i)
-        if ( edto(i) > edtmaxo2d(i,j) ) edto(i) = edtmaxo2d(i,j)
-        if ( edto(i) < edtmino2d(i,j) ) edto(i) = edtmino2d(i,j)
-      end if
+      end do
     end do
 !
 !   what would the change be?
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        k = 1
-        dz = d_half*(z(i,2)-z(i,1))
-        dp_s = 50.0D0*(psur(i)-p(i,2))
-        dellah(i,1) = edt(i)*(dkk(i,1)*hcd(i)-dkk(i,1) * &
-                      d_half*(he(i,1)+he(i,2)))*egrav/dp_s
-        dellaq(i,1) = edt(i)*(dkk(i,1)*qrcd(i,1)-dkk(i,1) * &
-                      d_half*(q(i,1)+q(i,2)))*egrav/dp_s
-        xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
-        xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-        dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
-        xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))+t(i,k)
-        if ( xq(i,k) <= d_zero ) xq(i,k) = 1.0D-08
-      end if
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          k = 1
+          dz = d_half*(z(j,i,2)-z(j,i,1))
+          dp_s = 50.0D0*(psur(j,i)-p(j,i,2))
+          dellah(j,i,1) = edt(j,i)*(dkk(j,i,1)*hcd(j,i)-dkk(j,i,1) * &
+                        d_half*(he(j,i,1)+he(j,i,2)))*egrav/dp_s
+          dellaq(j,i,1) = edt(j,i)*(dkk(j,i,1)*qrcd(j,i,1)-dkk(j,i,1) * &
+                        d_half*(q(j,i,1)+q(j,i,2)))*egrav/dp_s
+          xhe(j,i,k) = dellah(j,i,k)*mbdt + he(j,i,k)
+          xq(j,i,k) = dellaq(j,i,k)*mbdt + q(j,i,k)
+          dellat(j,i,k) = rcpd*(dellah(j,i,k)-wlhv*dellaq(j,i,k))
+          xt(j,i,k) = (mbdt*rcpd)*(dellah(j,i,k)-wlhv*dellaq(j,i,k))+t(j,i,k)
+          if ( xq(j,i,k) <= d_zero ) xq(j,i,k) = 1.0D-08
+        end if
+      end do
     end do
 !
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          if ( k /= 1 .and. k < ktop(i) ) then
-            dv1 = d_half*(he(i,k)+he(i,k+1))
-            dv2 = he(i,k)
-            dv3 = d_half*(he(i,k)+he(i,k-1))
-            dv1q = d_half*(q(i,k)+q(i,k+1))
-            dv2q = q(i,k)
-            dv3q = d_half*(q(i,k)+q(i,k-1))
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            if ( k /= 1 .and. k < ktop(j,i) ) then
+              dv1 = d_half*(he(j,i,k)+he(j,i,k+1))
+              dv2 = he(j,i,k)
+              dv3 = d_half*(he(j,i,k)+he(j,i,k-1))
+              dv1q = d_half*(q(j,i,k)+q(j,i,k+1))
+              dv2q = q(j,i,k)
+              dv3q = d_half*(q(j,i,k)+q(j,i,k-1))
 !
-!           specifiy detrainment of downdraft, has to be consistent
-!           with zd calculations in soundd.
+!             specifiy detrainment of downdraft, has to be consistent
+!             with zd calculations in soundd.
 !
-            detdo = (d_one-dkk(i,k))*(hcd(i)-dv2)
-            detdoq = (d_one-dkk(i,k))*(qrcd(i,k)-dv2q)
-            dz = d_half*(z(i,k+1)-z(i,k-1))
+              detdo = (d_one-dkk(j,i,k))*(hcd(j,i)-dv2)
+              detdoq = (d_one-dkk(j,i,k))*(qrcd(j,i,k)-dv2q)
+              dz = d_half*(z(j,i,k+1)-z(j,i,k-1))
 !
-!            changed due to subsidence and entrainment
+!              changed due to subsidence and entrainment
 !
-            aup = d_one
-            if ( k <= k22(i) ) aup = d_zero
-            adw = d_one
-            if ( k > kmin(i) ) adw = d_zero
-            dp_s = +50.0D0*(p(i,k-1)-p(i,k+1))
-            dellah(i,k) = ((aup-adw*edt(i))*(dv1-dv2)+(aup-adw*edt(i)) * &
-                  (dv2-dv3))*egrav/dp_s + adw*edt(i)*detdo*egrav/dp_s
-            dellaq(i,k) = ((aup-adw*edt(i))*(dv1q-dv2q)+(aup-adw*edt(i)) * &
-               (dv2q-dv3q))*egrav/dp_s + adw*edt(i)*detdoq*egrav/dp_s
-            xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
-            xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-            dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
-            xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k)) + t(i,k)
-            if ( xq(i,k) <= d_zero ) xq(i,k) = 1.0D-08
+              aup = d_one
+              if ( k <= k22(j,i) ) aup = d_zero
+              adw = d_one
+              if ( k > kmin(j,i) ) adw = d_zero
+              dp_s = +50.0D0*(p(j,i,k-1)-p(j,i,k+1))
+              dellah(j,i,k) = ((aup-adw*edt(j,i)) * &
+                    (dv1-dv2)+(aup-adw*edt(j,i)) * &
+                    (dv2-dv3))*egrav/dp_s + adw*edt(j,i)*detdo*egrav/dp_s
+              dellaq(j,i,k) = ((aup-adw*edt(j,i)) * &
+                 (dv1q-dv2q)+(aup-adw*edt(j,i)) * &
+                 (dv2q-dv3q))*egrav/dp_s + adw*edt(j,i)*detdoq*egrav/dp_s
+              xhe(j,i,k) = dellah(j,i,k)*mbdt + he(j,i,k)
+              xq(j,i,k) = dellaq(j,i,k)*mbdt + q(j,i,k)
+              dellat(j,i,k) = rcpd*(dellah(j,i,k)-wlhv*dellaq(j,i,k))
+              xt(j,i,k) = (mbdt*rcpd)*(dellah(j,i,k) - &
+                           wlhv*dellaq(j,i,k)) + t(j,i,k)
+              if ( xq(j,i,k) <= d_zero ) xq(j,i,k) = 1.0D-08
+            end if
           end if
-        end if
+        end do
       end do
     end do
 !
 !   cloud top
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        lpt = ktop(i)
-        dp_s = d_100*(p(i,lpt-1)-p(i,lpt))
-        dv1 = d_half*(he(i,lpt)+he(i,lpt-1))
-        dellah(i,lpt) = (hkb(i)-dv1)*egrav/dp_s
-        dv1 = d_half*(q(i,lpt)+q(i,lpt-1))
-        dellaq(i,lpt) = (qes(i,lpt)-dv1)*egrav/dp_s
-        k = lpt
-        xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
-        xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-        dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
-        xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k)) + t(i,k)
-        if ( xq(i,k) <= d_zero ) xq(i,k) = 1.0D-08
-        xhkb(i) = dellah(i,kbcon(i))*mbdt + hkb(i)
-        xqkb(i) = dellaq(i,kbcon(i))*mbdt + qkb(i)
-        if ( xqkb(i) <= d_zero ) xqkb(i) = 1.0D-08
-      end if
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          lpt = ktop(j,i)
+          dp_s = d_100*(p(j,i,lpt-1)-p(j,i,lpt))
+          dv1 = d_half*(he(j,i,lpt)+he(j,i,lpt-1))
+          dellah(j,i,lpt) = (hkb(j,i)-dv1)*egrav/dp_s
+          dv1 = d_half*(q(j,i,lpt)+q(j,i,lpt-1))
+          dellaq(j,i,lpt) = (qes(j,i,lpt)-dv1)*egrav/dp_s
+          k = lpt
+          xhe(j,i,k) = dellah(j,i,k)*mbdt + he(j,i,k)
+          xq(j,i,k) = dellaq(j,i,k)*mbdt + q(j,i,k)
+          dellat(j,i,k) = rcpd*(dellah(j,i,k)-wlhv*dellaq(j,i,k))
+          xt(j,i,k) = (mbdt*rcpd)*(dellah(j,i,k)-wlhv*dellaq(j,i,k)) + t(j,i,k)
+          if ( xq(j,i,k) <= d_zero ) xq(j,i,k) = 1.0D-08
+          xhkb(j,i) = dellah(j,i,kbcon(j,i))*mbdt + hkb(j,i)
+          xqkb(j,i) = dellaq(j,i,kbcon(j,i))*mbdt + qkb(j,i)
+          if ( xqkb(j,i) <= d_zero ) xqkb(j,i) = 1.0D-08
+        end if
+      end do
     end do
 !
 !   environmental conditions, first heights
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          iph = 1
-          if ( xt(i,k) <= tcrit ) iph = 2
-          e = dexp(ae(iph)-be(iph)/xt(i,k))
-          xqes(i,k) = ep2*e/(d_100*p(i,k)-(d_one-ep2)*e)
-          if ( xqes(i,k) <= 1.0D-08 ) xqes(i,k) = 1.0D-08
-          if ( xq(i,k) > xqes(i,k) ) xq(i,k) = xqes(i,k)
-          xtv(i,k) = xt(i,k) + 0.608D0*xq(i,k)*xt(i,k)
-        end if
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            iph = 1
+            if ( xt(j,i,k) <= tcrit ) iph = 2
+            e = dexp(ae(iph)-be(iph)/xt(j,i,k))
+            xqes(j,i,k) = ep2*e/(d_100*p(j,i,k)-(d_one-ep2)*e)
+            if ( xqes(j,i,k) <= 1.0D-08 ) xqes(j,i,k) = 1.0D-08
+            if ( xq(j,i,k) > xqes(j,i,k) ) xq(j,i,k) = xqes(j,i,k)
+            xtv(j,i,k) = xt(j,i,k) + 0.608D0*xq(j,i,k)*xt(j,i,k)
+          end if
+        end do
       end do
     end do
 !   bug fix
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) > xacact ) xqrcd(i,k) = d_half*(xqes(i,k)+xqes(i,k+1))
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            xqrcd(j,i,k) = d_half*(xqes(j,i,k)+xqes(j,i,k+1))
+          end if
+        end do
       end do
     end do
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        xz(i,1) = ter11(i) - (dlog(p(i,1))-dlog(psur(i)))*rgas*xtv(i,1)*regrav
-       end if
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          xz(j,i,1) = ter11(j,i) - &
+              (dlog(p(j,i,1))-dlog(psur(j,i)))*rgas*xtv(j,i,1)*regrav
+         end if
+       end do
     end do
     do k = 2 , kz
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          tvbar = d_half*(xtv(i,k)+xtv(i,k-1))
-          xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))*rgas*tvbar*regrav
-        end if
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            tvbar = d_half*(xtv(j,i,k)+xtv(j,i,k-1))
+            xz(j,i,k) = xz(j,i,k-1) - &
+                (dlog(p(j,i,k))-dlog(p(j,i,k-1)))*rgas*tvbar*regrav
+          end if
+        end do
       end do
     end do
 !
@@ -846,59 +908,70 @@ module mod_cu_grell
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( xac(i) > xacact ) then
-          xhes(i,k) = egrav*xz(i,k) + cpd*xt(i,k) + wlhv*xqes(i,k)
-          if ( xhe(i,k) >= xhes(i,k) ) xhe(i,k) = xhes(i,k)
-        end if
+        do j = jstart , jend
+          if ( xac(j,i) > xacact ) then
+            xhes(j,i,k) = egrav*xz(j,i,k) + cpd*xt(j,i,k) + wlhv*xqes(j,i,k)
+            if ( xhe(j,i,k) >= xhes(j,i,k) ) xhe(j,i,k) = xhes(j,i,k)
+          end if
+        end do
       end do
     end do
 !
 !   static control
 !
     do i = istart , iend
-      if ( xac(i) > xacact ) then
-        xqck(i) = xqkb(i)
-        xdby(i,kz) = xhkb(i) - xhes(i,kz)
-      end if
+      do j = jstart , jend
+        if ( xac(j,i) > xacact ) then
+          xqck(j,i) = xqkb(j,i)
+          xdby(j,i,kz) = xhkb(j,i) - xhes(j,i,kz)
+        end if
+      end do
     end do
 !
 !   moisture and cloud work functions
 !
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) >= d_zero ) then
-          xdby(i,k) = xhkb(i) - d_half*(xhes(i,k)+xhes(i,k+1))
-          if ( k > kbcon(i) .and. k < ktop(i) ) then
-            dz = d_half*(xz(i,k+1)-xz(i,k-1))
-            dz1 = xz(i,k) - xz(i,k-1)
-            agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**d_two)))*xqes(i,k)
-            agamma0 = (wlhvocp)*(wlhv/(rwat*(xt(i,k-1)**d_two)))*xqes(i,k-1)
-            qrch = xqes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(i,k)
-            xqc(i,k) = (xqck(i)-qrch)/(d_one+c0*dz) + qrch
-            xpwc(i,k) = c0*dz*(xqc(i,k)-qrch)
-            xqck(i) = xqc(i,k)
-            xpwcav(i) = xpwcav(i) + xpwc(i,k)
-            xxac(i) = xxac(i) + dz1*(egrav/(cpd*(d_half*(xt(i,k)+xt(i,k-1))))) * &
-                      xdby(i,k-1)/(d_one+d_half*(agamma+agamma0))
+        do j = jstart , jend
+          if ( xac(j,i) >= d_zero ) then
+            xdby(j,i,k) = xhkb(j,i) - d_half*(xhes(j,i,k)+xhes(j,i,k+1))
+            if ( k > kbcon(j,i) .and. k < ktop(j,i) ) then
+              dz = d_half*(xz(j,i,k+1)-xz(j,i,k-1))
+              dz1 = xz(j,i,k) - xz(j,i,k-1)
+              agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**d_two)))*xqes(j,i,k)
+              agamma0 = (wlhvocp) * &
+                (wlhv/(rwat*(xt(j,i,k-1)**d_two)))*xqes(j,i,k-1)
+              qrch = xqes(j,i,k) + &
+                 (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(j,i,k)
+              xqc(j,i,k) = (xqck(j,i)-qrch)/(d_one+c0*dz) + qrch
+              xpwc(j,i,k) = c0*dz*(xqc(j,i,k)-qrch)
+              xqck(j,i) = xqc(j,i,k)
+              xpwcav(j,i) = xpwcav(j,i) + xpwc(j,i,k)
+              xxac(j,i) = xxac(j,i) + &
+                dz1*(egrav/(cpd*(d_half*(xt(j,i,k)+xt(j,i,k-1))))) * &
+                xdby(j,i,k-1)/(d_one+d_half*(agamma+agamma0))
+            end if
           end if
-        end if
+        end do
       end do
     end do
     do i = istart , iend
-      if ( xac(i) >= d_zero ) then
-        k = ktop(i)
-        dz = d_half*(xz(i,k)-xz(i,k-1))
-        agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**d_two)))*xqes(i,k)
-        qrch = xqes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(i,k)
-        xqc(i,k) = xqes(i,k)
-        xpwc(i,k) = (qrch-xqes(i,k))
-        xpwcav(i) = xpwcav(i) + xpwc(i,k)
-        xqrcd(i,kz) = xqes(i,kz)
-        xhcd(i) = d_half*(xhe(i,kmin(i))+xhe(i,kmin(i)+1))
-        xqcd(i) = d_half*(xq(i,kmin(i))+xq(i,kmin(i)+1))
-        xpwcev(i) = d_zero
-        bu(i) = d_zero
-      end if
+      do j = jstart , jend
+        if ( xac(j,i) >= d_zero ) then
+          k = ktop(j,i)
+          dz = d_half*(xz(j,i,k)-xz(j,i,k-1))
+          agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**d_two)))*xqes(j,i,k)
+          qrch = xqes(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(j,i,k)
+          xqc(j,i,k) = xqes(j,i,k)
+          xpwc(j,i,k) = (qrch-xqes(j,i,k))
+          xpwcav(j,i) = xpwcav(j,i) + xpwc(j,i,k)
+          xqrcd(j,i,kz) = xqes(j,i,kz)
+          xhcd(j,i) = d_half*(xhe(j,i,kmin(j,i))+xhe(j,i,kmin(j,i)+1))
+          xqcd(j,i) = d_half*(xq(j,i,kmin(j,i))+xq(j,i,kmin(j,i)+1))
+          xpwcev(j,i) = d_zero
+          bu(j,i) = d_zero
+        end if
+      end do
     end do
 !
 !   downdraft calculations
@@ -907,172 +980,188 @@ module mod_cu_grell
 !
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) >= d_zero ) then
-          if ( k < kmin(i) ) then
-            kk = kmin(i) - k
-            dz = -(xz(i,kk)-xz(i,kk+2))*d_half
-            bu(i) = bu(i)+dz*(xhcd(i)-d_half*(xhes(i,kk)+xhes(i,kk+1)))
-            dq = d_half*(xqes(i,kk)+xqes(i,kk+1))
-            xdt = d_half*(xt(i,kk)+xt(i,kk+1))
-            agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = xhcd(i) - d_half*(xhes(i,kk)+xhes(i,kk+1))
-            xqrcd(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
-            xpwcd(i,kk) = dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
-            xqcd(i) = xqrcd(i,kk)
-            xpwcev(i) = xpwcev(i) + xpwcd(i,kk)
+        do j = jstart , jend
+          if ( xac(j,i) >= d_zero ) then
+            if ( k < kmin(j,i) ) then
+              kk = kmin(j,i) - k
+              dz = -(xz(j,i,kk)-xz(j,i,kk+2))*d_half
+              bu(j,i) = bu(j,i) + &
+                dz*(xhcd(j,i)-d_half*(xhes(j,i,kk)+xhes(j,i,kk+1)))
+              dq = d_half*(xqes(j,i,kk)+xqes(j,i,kk+1))
+              xdt = d_half*(xt(j,i,kk)+xt(j,i,kk+1))
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              dh = xhcd(j,i) - d_half*(xhes(j,i,kk)+xhes(j,i,kk+1))
+              xqrcd(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
+              xpwcd(j,i,kk) = dkk(j,i,kk)*(xqcd(j,i)-xqrcd(j,i,kk))
+              xqcd(j,i) = xqrcd(j,i,kk)
+              xpwcev(j,i) = xpwcev(j,i) + xpwcd(j,i,kk)
+            end if
           end if
-        end if
+        end do
       end do
     end do
     do i = istart , iend
-      if ( xac(i) >= d_zero ) then
-        if ( bu(i) >= d_zero ) then
-          xac(i) = -d_one
-          cycle
+      do j = jstart , jend
+        if ( xac(j,i) >= d_zero ) then
+          if ( bu(j,i) >= d_zero ) then
+            xac(j,i) = -d_one
+            cycle
+          end if
+          if ( dabs(xpwcev(j,i)) > dlowval ) then
+            edtx(j,i) = -edtx(j,i)*xpwcav(j,i)/xpwcev(j,i)
+          end if
+          if ( edtx(j,i) > edtmaxx2d(j,i) ) then
+            edtx(j,i) = edtmaxx2d(j,i)
+          end if
+          if ( edtx(j,i) < edtminx2d(j,i) ) then
+            edtx(j,i) = edtminx2d(j,i)
+          end if
         end if
-        if ( dabs(xpwcev(i)) > dlowval ) then
-          edtx(i) = -edtx(i)*xpwcav(i)/xpwcev(i)
-        end if
-        if ( edtx(i) > edtmaxx2d(i,j) ) then
-          edtx(i) = edtmaxx2d(i,j)
-        end if
-        if ( edtx(i) < edtminx2d(i,j) ) then
-          edtx(i) = edtminx2d(i,j)
-        end if
-      end if
+      end do
     end do
 !
 !   downdraft cloudwork functions
 !
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( xac(i) >= d_zero ) then
-          if ( k < kmin(i) ) then
-            kk = kmin(i) - k
+        do j = jstart , jend
+          if ( xac(j,i) >= d_zero ) then
+            if ( k < kmin(j,i) ) then
+              kk = kmin(j,i) - k
 !
-!           original
+!             original
 !
-            agamma1 = (wlhvocp)*(wlhv/(rwat*(t(i,kk)**d_two)))*qes(i,kk)
-            agamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**d_two)))*qes(i,kk+1)
-            dhh = hcd(i)
-            xdt = d_half*(t(i,kk)+t(i,kk+1))
-            dg = d_half*(agamma1+agamma2)
-            dh = d_half*(hes(i,kk)+hes(i,kk+1))
-            dz = (z(i,kk)-z(i,kk+1))*dkk(i,kk)
-            xac(i) = xac(i) + edt(i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(t(j,i,kk)**d_two)))*qes(j,i,kk)
+              agamma2 = (wlhvocp) * &
+                (wlhv/(rwat*(t(j,i,kk+1)**d_two)))*qes(j,i,kk+1)
+              dhh = hcd(j,i)
+              xdt = d_half*(t(j,i,kk)+t(j,i,kk+1))
+              dg = d_half*(agamma1+agamma2)
+              dh = d_half*(hes(j,i,kk)+hes(j,i,kk+1))
+              dz = (z(j,i,kk)-z(j,i,kk+1))*dkk(j,i,kk)
+              xac(j,i) = xac(j,i) + &
+                 edt(j,i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
 !
-!           modified by larger scale
+!             modified by larger scale
 !
-            agamma1 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk)**d_two)))*qeso(i,kk)
-            agamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**d_two)))*qeso(i,kk+1)
-            dhh = hcdo(i)
-            xdt = d_half*(tn(i,kk)+tn(i,kk+1))
-            dg = d_half*(agamma1+agamma2)
-            dh = d_half*(heso(i,kk)+heso(i,kk+1))
-            dz = (zo(i,kk)-zo(i,kk+1))*dkk(i,kk)
-            xao(i) = xao(i) + edto(i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(tn(j,i,kk)**d_two)))*qeso(j,i,kk)
+              agamma2 = (wlhvocp) * &
+                (wlhv/(rwat*(tn(j,i,kk+1)**d_two)))*qeso(j,i,kk+1)
+              dhh = hcdo(j,i)
+              xdt = d_half*(tn(j,i,kk)+tn(j,i,kk+1))
+              dg = d_half*(agamma1+agamma2)
+              dh = d_half*(heso(j,i,kk)+heso(j,i,kk+1))
+              dz = (zo(j,i,kk)-zo(j,i,kk+1))*dkk(j,i,kk)
+              xao(j,i) = xao(j,i) + &
+                edto(j,i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
 !
-!           modified by cloud
+!             modified by cloud
 !
-            agamma1 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk)**d_two)))*xqes(i,kk)
-            agamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**d_two)))*xqes(i,kk+1)
-            dhh = xhcd(i)
-            xdt = d_half*(xt(i,kk)+xt(i,kk+1))
-            dg = d_half*(agamma1+agamma2)
-            dh = d_half*(xhes(i,kk)+xhes(i,kk+1))
-            dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
-            xxac(i) = xxac(i) + edtx(i)*dz * &
-                      (egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(xt(j,i,kk)**d_two)))*xqes(j,i,kk)
+              agamma2 = (wlhvocp) * &
+                (wlhv/(rwat*(xt(j,i,kk+1)**d_two)))*xqes(j,i,kk+1)
+              dhh = xhcd(j,i)
+              xdt = d_half*(xt(j,i,kk)+xt(j,i,kk+1))
+              dg = d_half*(agamma1+agamma2)
+              dh = d_half*(xhes(j,i,kk)+xhes(j,i,kk+1))
+              dz = (xz(j,i,kk)-xz(j,i,kk+1))*dkk(j,i,kk)
+              xxac(j,i) = xxac(j,i) + edtx(j,i)*dz * &
+                        (egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+            end if
           end if
-        end if
+        end do
       end do
     end do
 !
 !   large scale forcing
 !
     do i = istart , iend
-      if ( xac(i) >= d_zero ) then
-        if ( igcc == 1 ) then
-          f = (xao(i)-xac(i))/dtcum ! Arakawa-Schubert closure
-        else if ( igcc == 2 ) then
-          f = xac(i)/dtauc2d(i,j)    ! Fritsch-Chappell closure
+      do j = jstart , jend
+        if ( xac(j,i) >= d_zero ) then
+          if ( igcc == 1 ) then
+            f = (xao(j,i)-xac(j,i))/dtcum ! Arakawa-Schubert closure
+          else if ( igcc == 2 ) then
+            f = xac(j,i)/dtauc2d(j,i)    ! Fritsch-Chappell closure
+          end if
+          xk = (xxac(j,i)-xac(j,i))/mbdt
+          xmb(j,i) = -f/xk
+          if ( f <= d_zero .or. xk >= d_zero ) xmb(j,i) = d_zero
         end if
-        xk = (xxac(i)-xac(i))/mbdt
-        xmb(i) = -f/xk
-        if ( f <= d_zero .or. xk >= d_zero ) xmb(i) = d_zero
-      end if
+        mflx(j,i,1) = xmb(j,i)
+        mflx(j,i,2) = xmb(j,i)*edt(j,i)
+      end do
     end do
-!
-    mflx(i,1) = xmb(i)
-    mflx(i,2) = xmb(i)*edt(i)
 !
 !   feedback
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( xac(i) >= d_zero ) then
-          if ( k <= ktop(i) ) then
-            outtes = dellat(i,k)*xmb(i)*secpd
-            if ( (outtes > htmax2d(i,j)) .or. (outtes < htmin2d(i,j)) ) then
-              xmb(i) = d_zero
-              xac(i) = -d_one
-            else
-              outt(i,k) = outt(i,k) + dellat(i,k)*xmb(i)
-              outq(i,k) = outq(i,k) + dellaq(i,k)*xmb(i)
-              pret(i) = pret(i) + (pwc(i,k)+edt(i)*pwcd(i,k))*xmb(i)
+        do j = jstart , jend
+          if ( xac(j,i) >= d_zero ) then
+            if ( k <= ktop(j,i) ) then
+              outtes = dellat(j,i,k)*xmb(j,i)*secpd
+              if ( (outtes > htmax2d(j,i)) .or. (outtes < htmin2d(j,i)) ) then
+                xmb(j,i) = d_zero
+                xac(j,i) = -d_one
+              else
+                outt(j,i,k) = outt(j,i,k) + dellat(j,i,k)*xmb(j,i)
+                outq(j,i,k) = outq(j,i,k) + dellaq(j,i,k)*xmb(j,i)
+                pret(j,i) = pret(j,i) + &
+                  (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
+              end if
             end if
           end if
-        end if
+        end do
       end do
     end do
 !
 !   calculate cloud fraction and water content
 !
     do i = istart , iend
+      do j = jstart , jend
+        icumtop(j,i) = 0
+        icumbot(j,i) = 0
+        icumdwd(j,i) = 0
 !
-      icumtop(i,j) = 0
-      icumbot(i,j) = 0
-      icumdwd(i,j) = 0
-!
-      if ( xac(i) >= d_zero ) then
+        if ( xac(j,i) >= d_zero ) then
 
-        if ( ktop(i) > 1 .and. kbcon(i) > 1 ) then
-          kclth = ktop(i) - kbcon(i) + 1
-          akclth = d_one/dble(kclth)
-          do k = kbcon(i) , ktop(i)
-            kk = kz - k + 1
-            rcldlwc(i,kk) = cllwcv
-            rcldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
-          end do
+          if ( ktop(j,i) > 1 .and. kbcon(j,i) > 1 ) then
+            kclth = ktop(j,i) - kbcon(j,i) + 1
+            akclth = d_one/dble(kclth)
+            do k = kbcon(j,i) , ktop(j,i)
+              kk = kz - k + 1
+              rcldlwc(j,i,kk) = cllwcv
+              rcldfra(j,i,kk) = d_one - (d_one-clfrcv)**akclth
+            end do
 !
-!         define convection  base and top for tracers
+!           define convection  base and top for tracers
 !
-          if ( lchem ) then
-            if ( ktop(i) > 1 .and. k22(i) >= 1 ) then
-              icumtop(i,j) = kzp1 - ktop(i)
-              icumbot(i,j) = kzp1 - k22(i)
-              icumdwd(i,j) = kzp1 - kmin(i)
+            if ( lchem ) then
+              if ( ktop(j,i) > 1 .and. k22(j,i) >= 1 ) then
+                icumtop(j,i) = kzp1 - ktop(j,i)
+                icumbot(j,i) = kzp1 - k22(j,i)
+                icumdwd(j,i) = kzp1 - kmin(j,i)
+              end if
             end if
           end if
         end if
-      end if
-
+      end do
     end do
+
     call time_end(subroutine_name,idindx)
 
     contains
 !
-     subroutine minimi(array,iy,kz,ks,kend,kt,istart,iend)
+     subroutine minimi(array,ks,ke,kt,jstart,jend,istart,iend)
 !
        implicit none
 !
-       integer :: iend , istart , iy , kend , kz
-       real(8) , dimension(iy,kz) :: array
-       integer , dimension(iy) :: ks , kt
-       intent (in) array , iend , istart , iy , kend , ks , kz
-       intent (out) kt
+      integer , intent (in) :: jstart , jend , istart , iend , ke
+       real(8) , intent(in) , dimension(:,:,:) :: array
+       integer , intent(in) , dimension(:,:) :: ks
+       integer , intent(out) , dimension(:,:) :: kt
 !
-       integer :: i , k
+       integer :: i , j , k
        real(8) :: x
        character (len=64) :: subroutine_name='minimi'
        integer :: idindx=0
@@ -1080,30 +1169,29 @@ module mod_cu_grell
        call time_begin(subroutine_name,idindx)
 !
        do i = istart , iend
-         kt(i) = ks(i)
-         x = array(i,ks(i))
-         do k = ks(i) + 1 , kend
-           if ( array(i,k) < x ) then
-             x = array(i,k)
-             kt(i) = k
-           end if
+         do j = jstart , jend
+           kt(j,i) = ks(j,i)
+           x = array(j,i,ks(j,i))
+           do k = ks(j,i) + 1 , ke
+             if ( array(j,i,k) < x ) then
+               x = array(j,i,k)
+               kt(j,i) = k
+             end if
+           end do
          end do
        end do
-!
        call time_end(subroutine_name,idindx) 
      end subroutine minimi
 !
-     subroutine maximi(array,iy,kz,ks,ke,imax,istart,iend)
+     subroutine maximi(array,ks,ke,imax,jstart,jend,istart,iend)
 !
       implicit none
 !
-      integer :: iend , istart , iy , ke , ks , kz
-      real(8) , dimension(iy,kz) :: array
-      integer , dimension(iy) :: imax
-      intent (in) array , iend , istart , iy , ke , ks , kz
-      intent (out) imax
+      integer , intent (in) :: jstart , jend , istart , iend , ks , ke
+      real(8) , intent(in) , dimension(:,:,:) :: array
+      integer , intent(out) , dimension(:,:) :: imax
 !
-      integer :: i , k
+      integer :: i , j , k
       real(8) :: x , xar
 !
       character (len=64) :: subroutine_name='maximi'
@@ -1111,14 +1199,16 @@ module mod_cu_grell
 !
       call time_begin(subroutine_name,idindx)
       do i = istart , iend
-        imax(i) = ks
-        x = array(i,ks)
-        do k = ks , ke
-          xar = array(i,k)
-          if ( xar >= x ) then
-            x = xar
-            imax(i) = k
-          end if
+        do j = jstart , jend
+          imax(j,i) = ks
+          x = array(j,i,ks)
+          do k = ks , ke
+            xar = array(j,i,k)
+            if ( xar >= x ) then
+              x = xar
+              imax(j,i) = k
+            end if
+          end do
         end do
       end do
 !

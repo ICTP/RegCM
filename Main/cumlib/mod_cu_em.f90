@@ -55,11 +55,11 @@ module mod_cu_em
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
 !
-  subroutine cupemandrv(j,ktau)
+  subroutine cupemandrv(jstart,jend,istart,iend,ktau)
 ! 
     implicit none
 !
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     integer , parameter :: ntra = 0
@@ -68,88 +68,86 @@ module mod_cu_em
     real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                qscup , tcup , ucup , vcup
     real(8) , dimension(kz,1) :: ftra , tra
-    integer :: i , iconj , iflag , k , kbase , kclth , kk , ktop
+    integer :: i , j , k , iflag , kbase , kclth , kk , ktop
     real(8) , dimension(kzp1) :: phcup
 !
-    iconj = 0
-    do i = 2 , iym2
-      if ( icup /= 4 ) then
-        if ( cucontrol(i,j) /= 4 ) cycle
-      end if
-      do k = 1 , kz
-        kk = kzp1 - k
-        rcldlwc(i,k) = d_zero       ! Zero out cloud water content
-        rcldfra(i,k) = d_zero       ! Zero out cloud fraction coverage
-        tcup(k) = tas(i,kk,j)                          ! [k]
-        qcup(k) = qvas(i,kk,j)/(d_one+qvas(i,kk,j))   ! [kg/kg]
-        qscup(k) = qsas(i,kk,j)/(d_one+qsas(i,kk,j))  ! [kg/kg]
-        ucup(k) = uas(i,kk,j)                         ! [m/s]
-        vcup(k) = vas(i,kk,j)                         ! [m/s]
-        pcup(k) = pas(i,kk,j)*d_10                     ! [hPa]
-      end do
-      do k = 1 , kzp1
-        kk = kzp1 - k + 1
-        phcup(k) = (flev(kk)*sfcps(i,j)+ptop)*d_10 ! [hPa]
-      end do
-      cbmf = cbmf2d(i,j)                              ! [(kg/m**2)/s]
-   
-      call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
-                   kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,    &
-                   tprime,qprime,cbmf,kbase,ktop)
-   
-      cbmf2d(i,j) = cbmf
-   
-!     iflag=0: No moist convection; atmosphere stable or surface
-!              temperature < 250K or surface humidity is negative.
-!     iflag=1: Moist convection occurs.
-!     iflag=2: No moist convection: lifted condensation level above 200 mb.
-!     iflag=3: No moist convection: cloud base higher than level kzm2.
-!     iflag=4: Moist convection occurs, but CFL condition on the
-!              subsidence warming is violated. (Does not terminate
-!              scheme.)
-      if ( iflag == 1 .or. iflag == 4 ) then ! If moist convection
-!       if ( iflag == 4 ) then               ! If CFL violation
-!         print*,'EMAN CFL VIOLATION: ',i,j,cbmf
-!       end if
-   
-!       Tendencies
+    total_precip_points = 0
+    do i = istart , iend
+      do j = jstart , jend
+        if ( icup /= 4 ) then
+          if ( cucontrol(j,i) /= 4 ) cycle
+        end if
         do k = 1 , kz
           kk = kzp1 - k
-          tten(i,kk,j) = ft(k)*sfcps(i,j) + tten(i,kk,j)
-          qvten(i,kk,j) = fq(k)/(d_one-fq(k))* &
-                            sfcps(i,j)+qvten(i,kk,j)
-!         There is a bit of an inconsistency here...  The wind
-!         tendencies from convection are on cross points, but the
-!         model wants them on dot points.
-          uten(i,kk,j) = fu(k)*sfcps(i,j) + uten(i,kk,j)
-          vten(i,kk,j) = fv(k)*sfcps(i,j) + vten(i,kk,j)
+          rcldlwc(j,i,k) = d_zero       ! Zero out cloud water content
+          rcldfra(j,i,k) = d_zero       ! Zero out cloud fraction coverage
+          tcup(k) = tas(i,kk,j)                          ! [k]
+          qcup(k) = qvas(i,kk,j)/(d_one+qvas(i,kk,j))   ! [kg/kg]
+          qscup(k) = qsas(i,kk,j)/(d_one+qsas(i,kk,j))  ! [kg/kg]
+          ucup(k) = uas(i,kk,j)                         ! [m/s]
+          vcup(k) = vas(i,kk,j)                         ! [m/s]
+          pcup(k) = pas(i,kk,j)*d_10                     ! [hPa]
         end do
-   
-!       Cloud fraction and cloud water
-        kclth = ktop - kbase + 1
-        akclth = d_one/dble(kclth)
-        do k = kbase , ktop
-          kk = kzp1 - k
-          rcldlwc(i,kk) = cllwcv
-          rcldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
+        do k = 1 , kzp1
+          kk = kzp1 - k + 1
+          phcup(k) = (flev(kk)*sfcps(i,j)+ptop)*d_10 ! [hPa]
         end do
+        cbmf = cbmf2d(i,j)                              ! [(kg/m**2)/s]
    
-!       Precipitation
-        prainx = pret*dtmdl
-        if ( prainx > dlowval ) then
-          rainc(i,j)  = rainc(i,j)  + prainx  ! mm
-          if ( ktau == 0 ) then
-            lmpcpc(i,j) = lmpcpc(i,j) + pret
-          else
-            lmpcpc(i,j) = lmpcpc(i,j) + pret*aprdiv
+        call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
+                     kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,    &
+                     tprime,qprime,cbmf,kbase,ktop)
+   
+        cbmf2d(i,j) = cbmf
+   
+        ! iflag=0: No moist convection; atmosphere stable or surface
+        !          temperature < 250K or surface humidity is negative.
+        ! iflag=1: Moist convection occurs.
+        ! iflag=2: No moist convection: lifted condensation level above 200 mb.
+        ! iflag=3: No moist convection: cloud base higher than level kzm2.
+        ! iflag=4: Moist convection occurs, but CFL condition on the
+        !          subsidence warming is violated. (Does not terminate scheme.)
+        if ( iflag == 1 .or. iflag == 4 ) then ! If moist convection
+!         if ( iflag == 4 ) then               ! If CFL violation
+!           print*,'EMAN CFL VIOLATION: ',i,j,cbmf
+!         end if
+   
+          ! Tendencies
+          do k = 1 , kz
+            kk = kzp1 - k
+            tten(i,kk,j) = ft(k)*sfcps(i,j) + tten(i,kk,j)
+            qvten(i,kk,j) = fq(k)/(d_one-fq(k))* &
+                              sfcps(i,j)+qvten(i,kk,j)
+            ! There is a bit of an inconsistency here...  The wind
+            ! tendencies from convection are on cross points, but the
+            ! model wants them on dot points.
+            uten(i,kk,j) = fu(k)*sfcps(i,j) + uten(i,kk,j)
+            vten(i,kk,j) = fv(k)*sfcps(i,j) + vten(i,kk,j)
+          end do
+   
+          ! Cloud fraction and cloud water
+          kclth = ktop - kbase + 1
+          akclth = d_one/dble(kclth)
+          do k = kbase , ktop
+            kk = kzp1 - k
+            rcldlwc(j,i,kk) = cllwcv
+            rcldfra(j,i,kk) = d_one - (d_one-clfrcv)**akclth
+          end do
+   
+          ! Precipitation
+          prainx = pret*dtmdl
+          if ( prainx > dlowval ) then
+            rainc(i,j)  = rainc(i,j)  + prainx  ! mm
+            if ( ktau == 0 ) then
+              lmpcpc(i,j) = lmpcpc(i,j) + pret
+            else
+              lmpcpc(i,j) = lmpcpc(i,j) + pret*aprdiv
+            end if
+            total_precip_points = total_precip_points + 1
           end if
-          iconj = iconj + 1
         end if
-      end if
-   
+      end do
     end do
-   
-    icon(j) = iconj
 ! 
   end subroutine cupemandrv
 !

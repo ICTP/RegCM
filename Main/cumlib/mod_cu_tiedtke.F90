@@ -123,124 +123,127 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv(j,ktau)
+  subroutine tiedtkedrv(jstart,jend,istart,iend,ktau)
     implicit none
 !
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 
 !   local variables
-    integer :: i , k , ii , kclth
+    integer :: i , j , k , ii , kclth
     real(dp) :: akclth
 
 !   need to translate REGCM to TIEDTKE vars...
 
     ztmx = dtmdl
-    ilab(:,:) = 2
+
+    total_precip_points = 0
+    do j = jstart , jend
+      ilab(:,:) = 2
 
 !   evaporation coefficient for kuo0 
-    cevapcu(:) = cevapu
+      cevapcu(:) = cevapu
 
 !   tracers to be added here:
-    pxtm1(:,:,:) = d_zero ! tracers input profiles
-    pxtte(:,:,:) = d_zero ! tracer tendencies
+      pxtm1(:,:,:) = d_zero ! tracers input profiles
+      pxtte(:,:,:) = d_zero ! tracer tendencies
 
-    do i = 2 , iym2
-      ii = i - 1
+      do i = istart , iend
+        ii = i - 1
 !     AMT NOTE: This is used in the switch between deep and shallow convectio
 !     The simpler switch on pressure difference still used in ECMWF 
 !     is commented out - possibly tests should be made to reinstate 
 !     the ECMWF version of this - this array will then be obsolete 
-      xphfx(ii) = qfx(i,j)
-      ! Land/water flag - is correctly set?
-      ldland(ii) = (lmask(i,j) == 0)
-    end do
+        xphfx(ii) = qfx(i,j)
+        ! Land/water flag - is correctly set?
+        ldland(ii) = (lmask(i,j) == 0)
+      end do
 
-    do k = 1 , kz
+      do k = 1 , kz
+        do i = istart , iend
+          ii = i - 1
+          ! Pascal
+          papp1(ii,k) = (hlev(k)*sfcps(i,j)+ptop)*d_1000
+
+          ptm1(ii,k)  = tas(i,k,j)  ! temperature
+          pum1(ii,k)  = uas(i,k,j)  ! u (guessing!)
+          pvm1(ii,k)  = vas(i,k,j)  ! v     "
+          pqm1(ii,k)  = qvas(i,k,j) ! humidity
+          pxlm1(ii,k) = qcas(i,k,j) ! cloud liquid water
+
+          ptte(ii,k)  = tten(i,k,j)/sfcps(i,j)
+          pvom(ii,k)  = uten(i,k,j)/sfcps(i,j)
+          pvol(ii,k)  = vten(i,k,j)/sfcps(i,j)
+          pqte(ii,k)  = qvten(i,k,j)/sfcps(i,j)
+          pxlte(ii,k) = qcten(i,k,j)/sfcps(i,j)
+
+          ! IS vertical velocity in Pa/s or in m/s?
+          pverv(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
+
+          pxim1(ii,k) = d_zero ! cloud ice water
+          pxite(ii,k) = d_zero ! ice tend
+
+          ! scheme diagnostic output - tendencies due to convection
+          pxtec(ii,k) = d_zero ! detrained cloud water tendancy
+          pqtec(ii,k) = d_zero ! detrained humidity tendancy
+
+          xpg(ii,k) = hgt(i,k,j)*egrav  !   geopotential
+        end do
+      end do
+      do k = 1 , kzp1
+        do i = istart , iend
+          ii = i - 1
+          ! 1st guess pressure at full levels
+          paphp1(ii,k) = (flev(k)*sfcps(i,j)+ptop)*d_1000
+        end do
+      end do
+
+      ! Output variables (1d)
+      prsfc(:) = d_zero ! CHECK - surface rain flux
+      pssfc(:) = d_zero ! CHECK - surface snow flux      
+      paprc(:) = d_zero ! total precip cumulative 
+      paprs(:) = d_zero ! total snow cumulative 
+
+      ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
+      kctop(:) = 0
+      kcbot(:) = 0
+
+      call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
+                  pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
+                  pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
+                  pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
+      !
+      ! postprocess some fields including precipitation fluxes
+      !
+      rcldlwc(j,:,:) = d_zero
+      rcldfra(j,:,:) = d_zero
       do i = 2 , iym2
         ii = i - 1
-        ! Pascal
-        papp1(ii,k) = (hlev(k)*sfcps(i,j)+ptop)*d_1000
-
-        ptm1(ii,k)  = tas(i,k,j)  ! temperature
-        pum1(ii,k)  = uas(i,k,j)  ! u (guessing!)
-        pvm1(ii,k)  = vas(i,k,j)  ! v     "
-        pqm1(ii,k)  = qvas(i,k,j) ! humidity
-        pxlm1(ii,k) = qcas(i,k,j) ! cloud liquid water
-
-        ptte(ii,k)  = tten(i,k,j)/sfcps(i,j)
-        pvom(ii,k)  = uten(i,k,j)/sfcps(i,j)
-        pvol(ii,k)  = vten(i,k,j)/sfcps(i,j)
-        pqte(ii,k)  = qvten(i,k,j)/sfcps(i,j)
-        pxlte(ii,k) = qcten(i,k,j)/sfcps(i,j)
-
-        ! IS vertical velocity in Pa/s or in m/s?
-        pverv(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
-
-        pxim1(ii,k) = d_zero ! cloud ice water
-        pxite(ii,k) = d_zero ! ice tend
-
-        ! scheme diagnostic output - tendencies due to convection
-        pxtec(ii,k) = d_zero ! detrained cloud water tendancy
-        pqtec(ii,k) = d_zero ! detrained humidity tendancy
-
-        xpg(ii,k) = hgt(i,k,j)*egrav  !   geopotential
-      end do
-    end do
-    do k = 1 , kzp1
-      do i = 2 , iym2
-        ii = i - 1
-        ! 1st guess pressure at full levels
-        paphp1(ii,k) = (flev(k)*sfcps(i,j)+ptop)*d_1000
-      end do
-    end do
-
-    ! Output variables (1d)
-    prsfc(:) = d_zero ! CHECK - surface rain flux
-    pssfc(:) = d_zero ! CHECK - surface snow flux      
-    paprc(:) = d_zero ! total precip cumulative 
-    paprs(:) = d_zero ! total snow cumulative 
-
-    ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
-    kctop(:) = 0
-    kcbot(:) = 0
-
-    call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
-                pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
-                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
-                pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
-    !
-    ! postprocess some fields including precipitation fluxes
-    !
-    icon(j) = 0
-    rcldlwc(:,:) = d_zero
-    rcldfra(:,:) = d_zero
-    do i = 2 , iym2
-      ii = i - 1
-      if (ktype(ii) > 0) then
-        if ( paprc(ii)+paprs(ii) > dlowval ) then
-          icon(j) = icon(j) + 1
-          ! total precip cumulative 
-          rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
-          if ( ktau == 0 ) then
-            lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
-          else
-            lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+        if (ktype(ii) > 0) then
+          if ( paprc(ii)+paprs(ii) > dlowval ) then
+            total_precip_points = total_precip_points + 1
+            ! total precip cumulative 
+            rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
+            if ( ktau == 0 ) then
+              lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
+            else
+              lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+            end if
+            do k = 1 , kz
+              ! NOTE: there is an iconsistency here for the latent heating,
+              ! as heat of fusion used inside the conv. scheme - please correct!
+              qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
+              qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
+            end do
+            kclth = kcbot(ii) - kctop(ii) + 1
+            akclth = d_one/dble(kclth)
+            do k = kctop(ii) , kcbot(ii)
+              rcldlwc(j,i,k) = cllwcv
+              rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
+            end do
           end if
-          do k = 1 , kz
-            ! NOTE: there is an iconsistency here for the latent heating,
-            ! as heat of fusion used inside the conv. scheme - please correct!
-            qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
-            qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
-          end do
-          kclth = kcbot(ii) - kctop(ii) + 1
-          akclth = d_one/dble(kclth)
-          do k = kctop(ii) , kcbot(ii)
-            rcldlwc(i,k) = cllwcv
-            rcldfra(i,k) = d_one - (d_one-clfrcv)**akclth
-          end do
         end if
-      end if
+      end do
     end do
 
   end subroutine tiedtkedrv

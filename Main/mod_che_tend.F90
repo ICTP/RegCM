@@ -138,27 +138,27 @@ igaschem = 1
           fracloud(i,k) = cfcc(i,k,j)
           fracum(i,k) = d_zero
         end do
-        if ( kcumtop(i,j).ne.0 ) then
-          do k = kcumtop(i,j) , kz
-            fracum(i,k) = ccldfra(i,k) - fracloud(i,k)
+        if ( kcumtop(j,i) > 0 ) then
+          do k = kcumtop(j,i) , kz
+            fracum(i,k) = ccldfra(j,i,k) - fracloud(i,k)
           end do
         end if
       end do
 
 ! variables used for natural fluxes and deposition velocities 
 ! 
-      ivegcov=0.   
+      ivegcov=0   
           do i = 2 , iym2
             ivegcov(i) = cveg2d(i,j)
-            psurf(i) = cpsb(i,j) * 1.D3 + ptop
+            psurf(i) = cpsb(i,j) * 1.0D3 + ptop
  
 !           method based on bats diagnostic in routine interf.
  
-            if ( (ivegcov(i).ne.0) ) then
-              facv = dlog(cza(i,kz,j)/10.)                               &
+            if ( (ivegcov(i) /= 0) ) then
+              facv = dlog(cza(i,kz,j)/d_10)                               &
                    & /dlog(cza(i,kz,j)/crough(ivegcov(i)))
-              facb = dlog(cza(i,kz,j)/10.)/dlog(cza(i,kz,j)/zlnd)
-              facs = dlog(cza(i,kz,j)/10.)/dlog(cza(i,kz,j)/zsno)
+              facb = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zlnd)
+              facs = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zsno)
  
 !              fact = csfracv2d(i,j)*facv 
                fact = cvegfrac(i,j) * facv + (1-cvegfrac(i,j)) * facb
@@ -176,7 +176,7 @@ igaschem = 1
 
             else
 !             water surface
-              fact = dlog(cza(i,kz,j)/10.)/dlog(cza(i,kz,j)/zoce)
+              fact = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zoce)
  
               zeff(i) = zoce
             end if
@@ -192,25 +192,25 @@ igaschem = 1
  
 !           specific  humidity at 10m
             shu10 = cqvb3d(i,kz,j)/ &
-                    (1.+cqvb3d(i,kz,j))-csdelqk2d(i,j)*fact
+                    (d_one+cqvb3d(i,kz,j))-csdelqk2d(i,j)*fact
  
 !           back to mixing ratio
  
             shu10 = shu10/(1-shu10)
  
 !           saturation mixing ratio at 10m
-            if ( temp10(i).gt.tzero ) then
-              satvp = svp1*1.E3*dexp(svp2*(temp10(i)-tzero)             &
+            if ( temp10(i) > tzero ) then
+              satvp = svp1*1.0D3*dexp(svp2*(temp10(i)-tzero)             &
                     & /(temp10(i)-svp3))
             else
-              satvp = svp4*1.E3*dexp(svp5-svp6/temp10(i))
+              satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i))
             end if
             pres10 = psurf(i) - 98.
             qsat10 = ep2*satvp/(pres10-satvp)
  
 !           relative humidity at 10m
             rh10(i) = 0.
-            if ( qsat10.gt.0. ) rh10(i) = shu10/qsat10
+            if ( qsat10 > 0. ) rh10(i) = shu10/qsat10
 !
 !           friction velocity ( from uvdrag so updtaed at  bats or clm frequency )
 !
@@ -233,7 +233,7 @@ igaschem = 1
 !           temperature account for a composite temperature between
 !           bare ground and vegetation
 
-            if ( ivegcov(i).ne.0 ) then
+            if ( ivegcov(i) /= 0 ) then
               tsurf(i) = ttb(i,kz) - csdeltk2d(i,j)
             else
 !             ocean temperature in this case
@@ -310,7 +310,7 @@ igaschem = 1
       if (idust(1) > 0 )    call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar,       &
                     & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)     
         
-      if (isslt(1) > 0)    call sea_salt(j,wid10,ivegcov,seasalt_flx)
+!      if (isslt(1) > 0)    call sea_salt(j,wid10,ivegcov,seasalt_flx)
 
 !
 !update emission tendencies from inventories
@@ -329,11 +329,11 @@ ddepa=0.
                & pdepv,ddepa)
            end if
 
-           if (isslt(1) >0 ) then
-            call drydep_aero (j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf,    &
-               & temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,     &
-               & pdepv,ddepa)
-           end if 
+!           if (isslt(1) >0 ) then
+!            call drydep_aero (j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf,    &
+!               & temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,     &
+!               & pdepv,ddepa)
+!           end if 
 
             if (icarb(1) >0 ) then
            ibin = count ( icarb > 0) 
@@ -361,14 +361,14 @@ ddepa=0.
               call wetdepa(j,nbin,idust,dustbsiz,rhodust,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
       end if
 
-       if (isslt(1) > 0 )  then   
-              call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
-       end if
+!       if (isslt(1) > 0 )  then   
+!              call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
+!       end if
 
-       if (icarb(1) > 0 )  then   
-          ibin = count ( icarb > 0) 
-              call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
-      end if
+!       if (icarb(1) > 0 )  then   
+!          ibin = count ( icarb > 0) 
+!              call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
+!      end if
 
 !!$            
 !!$
@@ -395,7 +395,7 @@ ddepa=0.
 !!$      if ( ichcumtra.eq.2 ) then
 !!$        do k = 2 , kz
 !!$          do i = 2 , iym2
-!!$            wk(i,k) = (1./sps1%ps(i,j))                                 &
+!!$            wk(i,k) = (d_one/sps1%ps(i,j))                                 &
 !!$                    & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1,j, &
 !!$                    & itr))
 !!$ 
@@ -406,34 +406,34 @@ ddepa=0.
 !!$ 
 !!$        do i = 2 , iym2
 !!$ 
-!!$          if ( icumtop(i,j).ne.0 ) then
+!!$          if ( icumtop(i,j) /= 0 ) then
 !!$ 
 !!$            kt = max0(icumtop(i,j),3)
 !!$            kb = icumbot(i,j)
 !!$            kdwd = icumdwd(i,j)
 !!$ 
-!!$!           cutend(i,kt) =  mflx(i) * g * 1.e-3*
+!!$!           cutend(i,kt) =  mflx(i) * g * 1.0d-3*
 !!$!           &               (wk(i,kb)-wk(i,kt))/(sigma(kb)-sigma(kt))
 !!$ 
 !!$!           transport linked to updraft
 !!$!           betwwen kt et kdwd , the tendancy is averaged (mixing)
 !!$ 
-!!$            if ( kdwd.lt.kt ) then
+!!$            if ( kdwd < kt ) then
 !!$              write (aline, *) 'Problem in tractend2 !'
 !!$              call say
 !!$            end if
 !!$            do k = kt , kdwd
-!!$              cutend_up(i,k) = mflx(i,1)*egrav*1.E-3*wk(i,kb)             &
+!!$              cutend_up(i,k) = mflx(i,1)*egrav*1.0D-3*wk(i,kb)             &
 !!$                             & /(sigma(kdwd)-sigma(kt))
 !!$            end do
 !!$ 
-!!$            cutend_up(i,kb) = -mflx(i,1)*egrav*1.E-3*wk(i,kb)/(dsigma(kb))
+!!$            cutend_up(i,kb) = -mflx(i,1)*egrav*1.0D-3*wk(i,kb)/(dsigma(kb))
 !!$!           transport linked to downdraft
 !!$ 
-!!$            cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*1.E-3*wk(i,kdwd)        &
+!!$            cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*1.0D-3*wk(i,kdwd)        &
 !!$                               & /(dsigma(kdwd))
 !!$ 
-!!$            cutend_dwd(i,kz) = +mflx(i,2)*egrav*1.E-3*wk(i,kdwd)          &
+!!$            cutend_dwd(i,kz) = +mflx(i,2)*egrav*1.0D-3*wk(i,kdwd)          &
 !!$                             & /(dsigma(kz))
 !!$ 
 !!$            do k = kt , kz
@@ -534,16 +534,16 @@ ddepa=0.
 #endif
 #endif
           do i = 1 , iym1
-            dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000.*regrav
+            dtrace(i,j,itr) = 1.D6*dtrace(i,j,itr)*d_1000*regrav
                                                         ! unit: mg/m2
-            wdlsc(i,j,itr) = 1.E6*wdlsc(i,j,itr)*1000.*regrav
-            wdcvc(i,j,itr) = 1.E6*wdcvc(i,j,itr)*1000.*regrav
-            ddsfc(i,j,itr) = 1.E6*ddsfc(i,j,itr)*1000.*regrav
-            wxsg(i,j,itr) = 1.E6*wxsg(i,j,itr)*1000.*regrav
-            wxaq(i,j,itr) = 1.E6*wxaq(i,j,itr)*1000.*regrav
+            wdlsc(i,j,itr) = 1.D6*wdlsc(i,j,itr)*d_1000*regrav
+            wdcvc(i,j,itr) = 1.D6*wdcvc(i,j,itr)*d_1000*regrav
+            ddsfc(i,j,itr) = 1.D6*ddsfc(i,j,itr)*d_1000*regrav
+            wxsg(i,j,itr) = 1.D6*wxsg(i,j,itr)*d_1000*regrav
+            wxaq(i,j,itr) = 1.D6*wxaq(i,j,itr)*d_1000*regrav
 !           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
 !           factor to to pass im mg/m2
-            cemtrac(i,j,itr) = 1.E6*cemtrac(i,j,itr)
+            cemtrac(i,j,itr) = 1.D6*cemtrac(i,j,itr)
           end do
         end do
       end do

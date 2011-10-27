@@ -534,13 +534,13 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
       do i = 1 , iym1   
         ccvtem = d_zero   !cqc mod
 
-        cldf(i,kj) = dmax1(cldfra(i,k)*0.9999999D0,ccvtem)
+        cldf(i,kj) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
 
         cldf(i,kj) = dmin1(cldf(i,kj),0.9999999D0)
 !
 !       convert liquid water content into liquid water path, i.e.
 !       multiply b deltaz
-        clwtem = cldlwc(i,kj) ! put on the right grid !
+        clwtem = cldlwc(j,i,kj) ! put on the right grid !
 
 !deltaz,clwp are on the right grid since plev and tlay are
 !care pressure is on botom/toa grid

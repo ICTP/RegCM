@@ -56,10 +56,6 @@ module mod_che_dust
   real(dp),parameter  :: e2 = 3.52D0
   real(dp),parameter  :: e3 = 3.46D0
 !        
-!     Basic dust aerosol density (ACE-2 ) in kg/m3
-!        
-  real(dp) , parameter :: rhodust = 2650.0D0
-
   real(dp), dimension (2,isize)  ::  aerosize       
   real(dp) , pointer, dimension(:) ::  frac1 , frac2 , frac3
 

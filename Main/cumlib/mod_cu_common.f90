@@ -31,9 +31,10 @@ module mod_cu_common
   real(8) :: cllwcv ! Cloud liquid water content for convective precip.
   real(8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
-  integer , pointer , dimension(:) :: icon ! Precip points counter
   integer , pointer , dimension(:,:) :: cucontrol ! which scheme to use
-  integer , pointer , dimension(:,:) :: icumtop , icumbot
+
+  ! Grell shared parameters for tracers removal
+  integer , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
 !
   real(8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
   real(8) , pointer , dimension(:,:) :: psfcps   ! sps1%ps
@@ -60,8 +61,8 @@ module mod_cu_common
   real(8) , pointer , dimension(:,:,:) :: svv    ! qdot
   real(8) , pointer , dimension(:,:) :: lmpcpc   ! pptc
   integer , pointer , dimension(:,:) :: lmask    ! ldmsk
-  real(8) , pointer , dimension(:,:) :: rcldlwc  ! rcldlwc 
-  real(8) , pointer , dimension(:,:) :: rcldfra  ! rcldfra
+  real(8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
+  real(8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
 
   real(8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon
@@ -73,6 +74,7 @@ module mod_cu_common
   logical :: lchem
   integer :: icup
   integer :: igcc
+  integer :: total_precip_points
 
   data lchem /.false./
 
@@ -80,12 +82,12 @@ module mod_cu_common
 !
   subroutine allocate_mod_cu_common
     implicit none
-    call getmem1d(icon,1,jxp,'mod_cu_common:icon')
     if ( icup == 99 .or. icup == 98) then
-      call getmem2d(cucontrol,1,iy,1,jxp,'mod_cu_common:cucontrol')
+      call getmem2d(cucontrol,1,jxp,1,iy,'mod_cu_common:cucontrol')
     end if
-    call getmem2d(icumbot,1,iy,1,jxp,'mod_cu_common:icumbot')
-    call getmem2d(icumtop,1,iy,1,jxp,'mod_cu_common:icumtop')
+    call getmem2d(icumbot,1,jxp,1,iy,'mod_cu_common:icumbot')
+    call getmem2d(icumtop,1,jxp,1,iy,'mod_cu_common:icumtop')
+    call getmem2d(icumdwd,1,jxp,1,iy,'mod_cu_common:icumtop')
   end subroutine allocate_mod_cu_common
 !
 end module mod_cu_common

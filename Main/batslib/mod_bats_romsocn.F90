@@ -72,7 +72,7 @@ module mod_bats_romsocn
   subroutine print_matrix_r8(inp, iskip, jskip, pet, header)
     implicit none
 !
-    real*8, intent(in) :: inp(:,:)
+    real(dp), intent(in) :: inp(:,:)
     integer, intent(in) ::  iskip, jskip, pet
     character(len=*), intent(in) :: header
 !

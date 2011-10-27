@@ -87,7 +87,7 @@ module mod_rad_common
 
   integer :: ncld ! # of bottom model levels with no clouds
 
-  real(8) , pointer , dimension(:,:) :: cldfra , cldlwc
+  real(8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
   real(8) , pointer , dimension(:,:,:) :: heatrt
   real(8) , pointer , dimension(:,:,:) :: o3prof
 
@@ -105,8 +105,8 @@ module mod_rad_common
 
   subroutine allocate_mod_rad_common
     implicit none
-    call getmem2d(cldfra,1,iym1,1,kz,'mod_rad:cldfra')
-    call getmem2d(cldlwc,1,iym1,1,kz,'mod_rad:cldlwc')
+    call getmem3d(cldfra,1,jxp,1,iym1,1,kz,'mod_rad:cldfra')
+    call getmem3d(cldlwc,1,jxp,1,iym1,1,kz,'mod_rad:cldlwc')
     call getmem3d(heatrt,1,iym1,1,kz,1,jxp,'mod_rad:heatrt')
     call getmem3d(o3prof,1,iym1,1,kzp1,1,jxp,'mod_rad:o3prof')
   end subroutine  allocate_mod_rad_common

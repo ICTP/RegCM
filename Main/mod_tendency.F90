@@ -56,6 +56,8 @@ module mod_tendency
   real(8) , pointer , dimension(:,:) :: var2rcv , var2snd
   real(8) , pointer , dimension(:,:) :: tvar1rcv , tvar1snd
   real(8) , pointer , dimension(:,:) :: qvcs
+  real(8) , pointer , dimension(:,:,:) :: wrkkuo1
+  real(8) , pointer , dimension(:,:,:) :: wrkkuo2
 
   integer(8) , parameter :: irep = 50
 
@@ -94,6 +96,10 @@ module mod_tendency
     call getmem2d(var2rcv,1,iy,1,n2,'tendency:var2rcv')
     call getmem2d(var2snd,1,iy,1,n2,'tendency:var2snd')
     call getmem2d(qvcs,1,iy,1,kz,'tendency:qvcs')
+    if ( icup == 1 ) then
+      call getmem3d(wrkkuo1,1,iy,0,jxp+1,1,kz,'tendency:wrkkuo1')
+      call getmem3d(wrkkuo2,1,iy,0,jxp+1,1,kz,'tendency:wrkkuo2')
+    end if
   end subroutine allocate_mod_tend
 
   subroutine tend(iexec)
@@ -137,7 +143,7 @@ module mod_tendency
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
-    integer :: i , icons , iptn , itr , j , k , lev , n
+    integer :: i , iptn , itr , j , k , lev , n
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
     logical :: loutrad
@@ -795,7 +801,6 @@ module mod_tendency
     do j = 1 , jendx
       if ( (myid == 0 .and. j == 1) .or.  &
            (myid == nproc-1 .and. j == jendx) ) then
-        icon(j) = 0
         do k = 1 , kzp1
           do i = 1 , iym1
             qdot(i,k,j) = d_zero
@@ -817,7 +822,6 @@ module mod_tendency
       if ((.not.(myid == 0 .and. j == 1)) .and. &
          (.not.(myid == nproc-1 .and. j == jendx)) ) then
 #endif
-      icon(j) = 0
 !
 !----------------------------------------------------------------------
 !
@@ -1311,133 +1315,145 @@ module mod_tendency
     end do
 !
 
+!
+!---------------------------------------------------------------------
+!
+!   compute the temperature tendency:
+!
+    do k = 1 , kz
+      do i = 2 , iym2
+        do j = jbegin , jendx
+          aten%t(i,k,j) = d_zero
+          aten%qv(i,k,j) = d_zero
+          aten%qc(i,k,j) = d_zero
+        end do
+      end do
+    end do
+ 
+!
+!   compute the horizontal advection term:
+!
+    call hadv(.false.,aten%t,atmx%t,jbegin,jendx,1)
+!
+!   compute the vertical advection term:
+!
+    if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+      call vadv(aten%t,atm1%t,jbegin,jendx,1)
+    else
+      if ( iuwvadv == 1 ) then
+        call vadv(aten%t,atm1%t,jbegin,jendx,6)
+      else
+        call vadv(aten%t,atm1%t,jbegin,jendx,1)
+      end if
+    end if
+!
+!   compute the adiabatic term:
+!
+    do k = 1 , kz
+      do i = 2 , iym2
+        do j = jbegin , jendx
+          rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qv(i,k,j))))
+          tv = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
+          aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv) / &
+                          (ptop/sps1%ps(i,j)+a(k))
+        end do
+      end do
+    end do
+!
+!       compute the diffusion term for t and store in difft:
+!
+    do k = 1 , kz
+      do i = 1 , iym1
+        do j = jbegin , jendx
+          adf%difft(i,k,j) = d_zero
+          adf%diffq(i,k,j) = d_zero
+        end do
+      end do
+    end do
+!
+    do j = jbegin , jendx
+      call diffu_x(adf%difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
+    end do
+!
+!   compute the moisture tendencies:
+!
+!   icup = 1 : kuo-anthes cumulus parameterizaion scheme
+!   icup = 2 : grell cumulus paramterization scheme
+!   icup = 3 : betts-miller (1986)
+!   icup = 4 : emanuel (1991)
+!   icup = 5 : tiedtke (1986)
+!   icup = 99: grell over land, emanuel over ocean
+!   icup = 98: emanuel over land, grell over ocean
+!
+    call hadv(.false.,aten%qv,atmx%qv,jbegin,jendx,1)
+!
+    if ( icup /= 1 ) then
+      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+        call vadv(aten%qv,atm1%qv,jbegin,jendx,2)
+      else
+        if ( iuwvadv == 1 ) then
+          call vadv(aten%qv,atm1%qv,jbegin,jendx,6)
+        else
+          call vadv(aten%qv,atm1%qv,jbegin,jendx,2)
+        end if
+      end if
+    end if
+ 
+    if ( icup == 1 ) then
+      call cupara(jbegin,jendx,2,iym2,ktau)
+    end if
+    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+      call cuparan(jbegin,jendx,2,iym2,ktau)
+    end if
+    if ( icup == 3 ) then
+      call bmpara(jbegin,jendx,2,iym2,ktau)
+    end if
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+      call cupemandrv(jbegin,jendx,2,iym2,ktau)
+    end if
+    if ( icup == 5 ) then
+      call tiedtkedrv(jbegin,jendx,2,iym2,ktau)
+    end if
+
+    if ( ipptls == 1 ) then
+      call hadv(.false.,aten%qc,atmx%qc,jbegin,jendx,1)
+      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+        call vadv(aten%qc,atm1%qc,jbegin,jendx,5)
+      else
+        if ( iuwvadv == 1 ) then
+          call vadv(aten%qc,atm1%qc,jbegin,jendx,6)
+        else
+          call vadv(aten%qc,atm1%qc,jbegin,jendx,5)
+        end if
+      end if
+      call pcp(jbegin,jendx)
+      call cldfrac(jbegin,jendx)
+!
+!     need also to set diffq to 0 here before calling diffut
+!
+      do k = 1 , kz
+        do i = 1 , iym1
+          do j = jbegin , jendx
+            adf%diffq(i,k,j) = d_zero
+          end do
+        end do
+      end do
+ 
+!     compute the diffusion terms:
+!     the diffusion term for qv is stored in diffq. before
+!     completing aten%qv computation, do not use diffq for other
+!     purpose.
+!
+      do j = jbegin , jendx
+        call diffu_x(adf%diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
+        call diffu_x(aten%qc(:,:,j),atms%qcb3d,sps2%ps,xkc(:,:,j),j,kz)
+      end do
+    end if
+!
     do j = jbegin , jendx
 #ifndef BAND
       if ( myid /= nproc-1 .or. j /= jendx ) then
 #endif
-!
-!---------------------------------------------------------------------
-!
-!       compute the temperature tendency:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            aten%t(i,k,j) = d_zero
-            aten%qv(i,k,j) = d_zero
-            aten%qc(i,k,j) = d_zero
-          end do
-        end do
- 
-!
-!       compute the horizontal advection term:
-!
-        call hadv(.false.,aten%t,atmx%t,j,j,1)
-!
-!       compute the vertical advection term:
-!
-        if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(aten%t,atm1%t,j,j,1)
-        else
-          if ( iuwvadv == 1 ) then
-            call vadv(aten%t,atm1%t,j,j,6)
-          else
-            call vadv(aten%t,atm1%t,j,j,1)
-          end if
-        end if
-!
-!       compute the adiabatic term:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qv(i,k,j))))
-            tv = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
-            aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv) &
-                          /(ptop/sps1%ps(i,j)+a(k))
-          end do
-        end do
-!
-!       compute the diffusion term for t and store in difft:
-!
-        do k = 1 , kz
-          do i = 1 , iym1
-            adf%difft(i,k,j) = d_zero
-            adf%diffq(i,k,j) = d_zero
-          end do
-        end do
-!
-        call diffu_x(adf%difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
-!
-!       compute the moisture tendencies:
-!
-!       icup = 1 : kuo-anthes cumulus parameterizaion scheme
-!       icup = 2 : grell cumulus paramterization scheme
-!       icup = 3 : betts-miller (1986)
-!       icup = 4 : emanuel (1991)
-!       icup = 5 : tiedtke (1986)
-!       icup = 99: grell over land, emanuel over ocean
-!       icup = 98: emanuel over land, grell over ocean
-!
-        call hadv(.false.,aten%qv,atmx%qv,j,j,1)
-!
-        if ( icup /= 1 ) then
-          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qv,atm1%qv,j,j,2)
-          else
-            if ( iuwvadv == 1 ) then
-              call vadv(aten%qv,atm1%qv,j,j,6)
-            else
-              call vadv(aten%qv,atm1%qv,j,j,2)
-            end if
-          end if
-        end if
- 
-        if ( icup == 1 ) then
-          call cupara(j,ktau)
-        end if
-        if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-          call cuparan(j,ktau)
-        end if
-        if ( icup == 3 ) then
-          call bmpara(j,ktau)
-        end if
-        if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-          call cupemandrv(j,ktau)
-        end if
-        if ( icup == 5 ) then
-          call tiedtkedrv(j,ktau)
-        end if
-
-        if ( ipptls == 1 ) then
-          call hadv(.false.,aten%qc,atmx%qc,j,j,1)
-          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qc,atm1%qc,j,j,5)
-          else
-            if ( iuwvadv == 1 ) then
-              call vadv(aten%qc,atm1%qc,j,j,6)
-            else
-              call vadv(aten%qc,atm1%qc,j,j,5)
-            end if
-          end if
-          call pcp(j,j)
-          call cldfrac(j,j)
-!
-!         need also to set diffq to 0 here before calling diffut
-!
-          do k = 1 , kz
-            do i = 1 , iym1
-              adf%diffq(i,k,j) = d_zero
-            end do
-          end do
- 
-!         compute the diffusion terms:
-!         the diffusion term for qv is stored in diffq. before
-!         completing aten%qv computation, do not use diffq for other
-!         purpose.
-!
-          call diffu_x(adf%diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
-          call diffu_x(aten%qc(:,:,j),atms%qcb3d,sps2%ps,xkc(:,:,j),j,kz)
-        end if
-!
 !       compute the tracers tendencies
         if ( ichem == 1 ) then
           call tractend2(j,ktau,xmonth,xkc)
@@ -1509,7 +1525,27 @@ module mod_tendency
 #endif
 
     if ( icup == 1 ) then
-      call htdiff(dxsq,akht1)
+      do k = 1 , kz
+        do j = 1 , jendl
+          do i = 1 , iy
+            wrkkuo1(i,j,k) = rsheat(i,k,j)
+            wrkkuo2(i,j,k) = rswat(i,k,j)
+          end do
+        end do
+        call mpi_sendrecv(wrkkuo1(:,jxp,k),iy,mpi_real8,ieast,1, &
+                          wrkkuo1(:,0,k),iy,mpi_real8,iwest,1,   &
+                          mycomm,mpi_status_ignore,ierr)
+        call mpi_sendrecv(wrkkuo1(:,1,k),iy,mpi_real8,iwest,2,     &
+                          wrkkuo1(:,jxp+1,k),iy,mpi_real8,ieast,2, &
+                          mycomm,mpi_status_ignore,ierr)
+        call mpi_sendrecv(wrkkuo2(:,jxp,k),iy,mpi_real8,ieast,1, &
+                          wrkkuo2(:,0,k),iy,mpi_real8,iwest,1,   &
+                          mycomm,mpi_status_ignore,ierr)
+        call mpi_sendrecv(wrkkuo2(:,1,k),iy,mpi_real8,iwest,2,     &
+                          wrkkuo2(:,jxp+1,k),iy,mpi_real8,ieast,2, &
+                          mycomm,mpi_status_ignore,ierr)
+      end do
+      call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1,jbegin,jendx,2,iym2)
     end if
 #ifndef BAND
       ! diagnostic on total evaporation
@@ -2133,13 +2169,9 @@ module mod_tendency
     if ( ktau > 1 ) then
       ptnbar = ptntot/dble(iptn)
       pt2bar = pt2tot/dble(iptn)
-      icons = 0
       icons_mpi = 0
-      do j = jbegin , jendm
-        icons = icons + icon(j)
-      end do
-      icons_mpi = 0
-      call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,mycomm,ierr)
+      call mpi_allreduce(total_precip_points,icons_mpi,1,mpi_integer, &
+                         mpi_sum,mycomm,ierr)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
