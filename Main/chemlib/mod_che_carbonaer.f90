@@ -30,6 +30,10 @@ module mod_che_carbonaer
 
   ! Parameter usefull for wet and dry deposition of carbon aerosol 
   ! densities in kg/m3
+
+real(dp) , public , parameter :: rhobc   = 2000.0D0
+real(dp) , public , parameter :: rhooc   = 1200.0D0
+
   real(dp) , public , parameter :: rhobchl = 1600.0D0
   real(dp) , public , parameter :: rhoochl = 1200.0D0
 
