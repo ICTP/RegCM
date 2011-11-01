@@ -72,9 +72,9 @@ module mod_rad_o3blk
 !
 !----------------------------------------------------------------------
 !
-  subroutine o3data
-!
+  subroutine o3data(jstart,jend,istart,iend)
   implicit none
+  integer , intent(in) :: istart , iend , jstart , jend
 !
   integer :: i , j , jj , k , kj
   real(8) :: pb1 , pb2 , pt1 , pt2
@@ -98,8 +98,8 @@ module mod_rad_o3blk
 !
 !     calculate half pressure levels for model and data levels
 !
-  do j = 1 , jendx
-    do i = 1 , iym1
+  do i = istart , iend
+    do j = jstart , jend
       do k = kzp1 , 1 , -1
         kj = kzp1 - k + 1
         prlevh(kj) = (flev(k)*sfps(i,j)+ptp)*d_10
@@ -110,7 +110,7 @@ module mod_rad_o3blk
       end do
       ppwrkh(32) = d_zero
       do k = 1 , kz
-        o3prof(i,k,j) = d_zero
+        o3prof(j,i,k) = d_zero
         do jj = 1 , 31
           if ( (-(prlevh(k)-ppwrkh(jj))) >= d_zero ) then
             pb1 = d_zero
@@ -132,9 +132,9 @@ module mod_rad_o3blk
           else
             pt2 = prlevh(k+1) - ppwrkh(jj+1)
           end if
-          o3prof(i,k,j) = o3prof(i,k,j) + (pb2-pb1-pt2+pt1)*o3wrk(jj)
+          o3prof(j,i,k) = o3prof(j,i,k) + (pb2-pb1-pt2+pt1)*o3wrk(jj)
         end do
-        o3prof(i,k,j) = o3prof(i,k,j)/(prlevh(k)-prlevh(k+1))
+        o3prof(j,i,k) = o3prof(j,i,k)/(prlevh(k)-prlevh(k+1))
       end do
     end do
   end do

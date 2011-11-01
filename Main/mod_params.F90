@@ -116,7 +116,7 @@ module mod_params
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
-    scenario , idcsst , iseaice , idesseas , iconvlwp, irrtm
+    scenario , idcsst , iseaice , idesseas , iconvlwp , irrtm
 
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
     gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -699,10 +699,15 @@ module mod_params
 #endif
 
   call allocate_mod_rad_common
-  call allocate_mod_rad_radiation 
-  call allocate_mod_rad_o3blk
   call allocate_mod_rad_aerosol(ichem)
+  call allocate_mod_rad_o3blk
   call allocate_mod_rad_outrad
+  if ( irrtm == 1 ) then
+    call allocate_mod_rad_rrtmg
+  else
+    call allocate_mod_rad_radiation 
+    call allocate_mod_rad_colmod3 
+  end if
 
 #ifndef BAND
   call allocate_mod_diagnosis

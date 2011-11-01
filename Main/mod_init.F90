@@ -588,7 +588,7 @@ module mod_init
     do j = 1 , jendx
       do k = 1 , kz
         do i = 1 , iym1
-          heatrt(i,k,j) = sav0(i,kz*3+k,j)
+          heatrt(j,i,k) = sav0(i,kz*3+k,j)
         end do
       end do
     end do
@@ -689,7 +689,7 @@ module mod_init
     do j = 1 , jendx
       do k = 1 , kzp1
         do i = 1 , iym1
-          o3prof(i,k,j) = sav0a(i,4+k,j)
+          o3prof(j,i,k) = sav0a(i,4+k,j)
         end do
       end do
     end do
@@ -804,7 +804,7 @@ module mod_init
       do l = 1 , 4
         do k = 1 , kz
           do i = 1 , iym1
-            absnxt(i,k,l,j) = sav1(i,(l-1)*kz+k,j)
+            absnxt(j,i,k,l) = sav1(i,(l-1)*kz+k,j)
           end do
         end do
       end do
@@ -814,7 +814,7 @@ module mod_init
       do l = 1 , kzp1
         do k = 1 , kzp1
           do i = 1 , iym1
-            abstot(i,k,l,j) = sav1(i,allrec+(l-1)*(kzp1)+k,j)
+            abstot(j,i,k,l) = sav1(i,allrec+(l-1)*(kzp1)+k,j)
           end do
         end do
       end do
@@ -823,7 +823,7 @@ module mod_init
     do j = 1 , jendx
       do k = 1 , kzp1
         do i = 1 , iym1
-          emstot(i,k,j) = sav1(i,allrec+k,j)
+          emstot(j,i,k) = sav1(i,allrec+k,j)
         end do
       end do
     end do
@@ -1271,21 +1271,21 @@ module mod_init
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iym1
-          heatrt(i,k,j) = d_zero
-          o3prof(i,k,j) = d_zero
+          heatrt(j,i,k) = d_zero
+          o3prof(j,i,k) = d_zero
         end do
       end do
     end do
     do j = 1 , jendl
       do i = 1 , iym1
-        o3prof(i,kzp1,j) = d_zero
+        o3prof(j,i,kzp1) = d_zero
       end do
     end do
-    call o3data
+    call o3data(1,jendx,1,iym1)
     if ( myid == 0 ) then
       write (6,*) 'ozone profiles'
       do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof(3,k,2)
+        write (6,'(1x,7E12.4)') o3prof(2,3,k)
       end do
     end if
     ! RRTM_SW gas / abs constant initialisation

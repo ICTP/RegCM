@@ -28,7 +28,78 @@ module mod_rad_colmod3
 !
   private
 !
-  public :: colmod3
+  public :: allocate_mod_rad_colmod3 , colmod3
+!
+  real(dp) , parameter :: lowcld = 1.0D-30
+!
+!   longwave absorption coeff (m**2/g)
+!
+  real(dp) , parameter :: kabsl = 0.090361D0
+!
+  real(dp) , pointer , dimension(:) :: alb , albc , alat , ptrop ,    &
+    flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
+    fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
+    sols , solsd , srfrad , ps , ts , emsvt1
+  real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
+  real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
+    o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
+    deltaz , tm1
+  integer , pointer , dimension(:) :: ioro
+!
+  contains
+!
+    subroutine allocate_mod_rad_colmod3
+      implicit none
+      call getmem1d(alb,1,jxp,'colmod3:alb')
+      call getmem1d(albc,1,jxp,'colmod3:albc')
+      call getmem1d(alat,1,jxp,'colmod3:alat')
+      call getmem1d(ptrop,1,jxp,'colmod3:ptrop')
+      call getmem1d(flns,1,jxp,'colmod3:flns')
+      call getmem1d(flnsc,1,jxp,'colmod3:flnsc')
+      call getmem1d(flnt,1,jxp,'colmod3:flnt')
+      call getmem1d(flntc,1,jxp,'colmod3:flntc')
+      call getmem1d(flwds,1,jxp,'colmod3:flwds')
+      call getmem1d(fsds,1,jxp,'colmod3:fsds')
+      call getmem1d(fsnirt,1,jxp,'colmod3:fsnirt')
+      call getmem1d(fsnirtsq,1,jxp,'colmod3:fsnirtsq')
+      call getmem1d(fsnrtc,1,jxp,'colmod3:fsnrtc')
+      call getmem1d(fsns,1,jxp,'colmod3:fsns')
+      call getmem1d(fsnsc,1,jxp,'colmod3:fsnsc')
+      call getmem1d(fsnt,1,jxp,'colmod3:fsnt')
+      call getmem1d(fsntc,1,jxp,'colmod3:fsntc')
+      call getmem1d(solin,1,jxp,'colmod3:solin')
+      call getmem1d(soll,1,jxp,'colmod3:soll')
+      call getmem1d(solld,1,jxp,'colmod3:solld')
+      call getmem1d(sols,1,jxp,'colmod3:sols')
+      call getmem1d(solsd,1,jxp,'colmod3:solsd')
+      call getmem1d(srfrad,1,jxp,'colmod3:srfrad')
+      call getmem1d(ps,1,jxp,'colmod3:ps')
+      call getmem1d(ts,1,jxp,'colmod3:ts')
+      call getmem1d(emsvt1,1,jxp,'colmod3:emsvt1')
+
+      call getmem2d(cld,1,jxp,1,kzp1,'colmod3:cld')
+      call getmem2d(effcld,1,jxp,1,kzp1,'colmod3:effcld')
+      call getmem2d(pilnm1,1,jxp,1,kzp1,'colmod3:pilnm1')
+      call getmem2d(pintm1,1,jxp,1,kzp1,'colmod3:pintm1')
+
+      call getmem2d(clwp,1,jxp,1,kz,'colmod3:clwp')
+      call getmem2d(emis,1,jxp,1,kz,'colmod3:emis')
+      call getmem2d(fice,1,jxp,1,kz,'colmod3:fice')
+      call getmem2d(h2ommr,1,jxp,1,kz,'colmod3:h2ommr')
+      call getmem2d(o3mmr,1,jxp,1,kz,'colmod3:o3mmr')
+      call getmem2d(o3vmr,1,jxp,1,kz,'colmod3:o3vmr')
+      call getmem2d(pmidm1,1,jxp,1,kz,'colmod3:pmidm1')
+      call getmem2d(pmlnm1,1,jxp,1,kz,'colmod3:pmlnm1')
+      call getmem2d(qm1,1,jxp,1,kz,'colmod3:qm1')
+      call getmem2d(qrl,1,jxp,1,kz,'colmod3:qrl')
+      call getmem2d(qrs,1,jxp,1,kz,'colmod3:qrs')
+      call getmem2d(rei,1,jxp,1,kz,'colmod3:rei')
+      call getmem2d(rel,1,jxp,1,kz,'colmod3:rel')
+      call getmem2d(tm1,1,jxp,1,kz,'colmod3:tm1')
+      call getmem2d(deltaz,1,jxp,1,kz,'colmod3:deltaz')
+
+      call getmem1d(ioro,1,jxp,'colmod3:ioro')
+    end subroutine allocate_mod_rad_colmod3
 !
 !-----------------------------NOTICE------------------------------------
 !
@@ -97,32 +168,17 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  real(dp) , parameter :: lowcld = 1.0D-30
-!
-  contains
-!
-  subroutine colmod3(ktau,iyear,eccf,lout,j)
+  subroutine colmod3(jstart,jend,istart,iend,ktau,iyear,eccf,lout)
 !
     implicit none
 !
     integer(8) , intent(in) :: ktau
     integer , intent(in) :: iyear
     logical , intent(in) :: lout
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , intent(in) :: eccf
 !
-    real(dp) , dimension(iym1) :: alb , albc , alat , coslat , flns ,   &
-                                 flnsc , flnt , flntc , flwds , fsds ,  &
-                                 fsnirt , fsnirtsq , fsnrtc , fsns ,    &
-                                 fsnsc , fsnt , fsntc , solin , soll ,  &
-                                 solld , sols , solsd , srfrad , ps , ts
-    real(dp) , dimension(iym1,kzp1) :: cld , effcld , pilnm1 , pintm1
-    real(dp) , dimension(iym1,kz) :: clwp , emis , fice , h2ommr ,    &
-           o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
-           rel , tm1
-    integer , dimension(iym1) :: ioro
-!
-    integer :: i , ii0 , ii1 , ii2 , k , n
+    integer :: i , j , k , n , jj0 , jj1 , jj2
 !
 !   Fields specified by the user in getdat()
 !
@@ -186,160 +242,149 @@ module mod_rad_colmod3
 ! clr sky surface abs solar flux
 ! total column absorbed solar flux
 ! clr sky total column abs solar flux
-!
-!EES  next 3 added, they are calculated in radcsw
 ! solar incident flux
 ! Near-IR flux absorbed at toa
 ! Clear sky near-IR flux absorbed at toa
 ! Near-IR flux absorbed at toa >= 0.7 microns
 ! Flux Shortwave Downwelling Surface
 !
-!   Fundamental constants needed by radini()
+  do i = istart , iend
 !
-! heat capacity dry air at constant prs (J/kg/K)
-! ratio mean mol weight h2o to dry air
-! gravitational acceleration (m/s**2)
-! Sefan-Boltzmann constant (W/m**2/K**4)
+!     Reset all arrays
 !
-!   Reset all arrays
+      alb(:) = d_zero
+      albc(:) = d_zero
+      alat(:) = d_zero
+      ptrop(:) = d_zero
+      flns(:) = d_zero
+      flnsc(:) = d_zero
+      flnt(:) = d_zero
+      flntc(:) = d_zero
+      flwds(:) = d_zero
+      fsds(:) = d_zero
+      fsnirt(:) = d_zero
+      fsnirtsq(:) = d_zero
+      fsnrtc(:) = d_zero
+      fsns(:) = d_zero
+      fsnsc(:) = d_zero
+      fsnt(:) = d_zero
+      fsntc(:) = d_zero
+      solin(:) = d_zero
+      soll(:) = d_zero
+      solld(:) = d_zero
+      sols(:) = d_zero
+      solsd(:) = d_zero
+      srfrad(:) = d_zero
+      ts(:) = d_zero
+      cld(:,:) = d_zero
+      effcld(:,:) = d_zero
+      pilnm1(:,:) = d_zero
+      pintm1(:,:) = d_zero
+      clwp(:,:) = d_zero
+      emis(:,:) = d_zero
+      fice(:,:) = d_zero
+      h2ommr(:,:) = d_zero
+      o3mmr(:,:) = d_zero
+      o3vmr(:,:) = d_zero
+      pmidm1(:,:) = d_zero
+      pmlnm1(:,:) = d_zero
+      qm1(:,:) = d_zero
+      qrl(:,:) = d_zero
+      qrs(:,:) = d_zero
+      rei(:,:) = d_zero
+      rel(:,:) = d_zero
+      tm1(:,:) = d_zero
+      ioro(:) = 0
 !
-    alb(:) = d_zero
-    albc(:) = d_zero
-    alat(:) = d_zero
-    coslat(:) = d_zero
-    flns(:) = d_zero
-    flnsc(:) = d_zero
-    flnt(:) = d_zero
-    flntc(:) = d_zero
-    flwds(:) = d_zero
-    fsds(:) = d_zero
-    fsnirt(:) = d_zero
-    fsnirtsq(:) = d_zero
-    fsnrtc(:) = d_zero
-    fsns(:) = d_zero
-    fsnsc(:) = d_zero
-    fsnt(:) = d_zero
-    fsntc(:) = d_zero
-    solin(:) = d_zero
-    soll(:) = d_zero
-    solld(:) = d_zero
-    sols(:) = d_zero
-    solsd(:) = d_zero
-    srfrad(:) = d_zero
-    ts(:) = d_zero
-    cld(:,:) = d_zero
-    effcld(:,:) = d_zero
-    pilnm1(:,:) = d_zero
-    pintm1(:,:) = d_zero
-    clwp(:,:) = d_zero
-    emis(:,:) = d_zero
-    fice(:,:) = d_zero
-    h2ommr(:,:) = d_zero
-    o3mmr(:,:) = d_zero
-    o3vmr(:,:) = d_zero
-    pmidm1(:,:) = d_zero
-    pmlnm1(:,:) = d_zero
-    qm1(:,:) = d_zero
-    qrl(:,:) = d_zero
-    qrs(:,:) = d_zero
-    rei(:,:) = d_zero
-    rel(:,:) = d_zero
-    tm1(:,:) = d_zero
-    ioro(:) = 0
+!     Set parameters dosw , dolw , doabsems
 !
-!   Set parameters dosw , dolw , doabsems
+      dosw = .true.
+      dolw = .true.
+      doabsems = .true.
 !
-    dosw = .true.
-    dolw = .true.
-    doabsems = .true.
+!     radini sets many radiation parameters
+!     radini() must be called before getdat(), because
+!     the co2 mixing ratio set (by the user) in getdat() should
+!     overwrite the default CCM3 co2 mixing ratio set by radini().
 !
-!   radini sets many radiation parameters
-!   radini() must be called before getdat(), because
-!   the co2 mixing ratio set (by the user) in getdat() should
-!   overwrite the default CCM3 co2 mixing ratio set by radini().
+      call radini(iyear)
 !
-    call radini(iyear)
+!     NB: orography types are specified in the following
 !
-!   NB: orography types are specified in the following
-!
-    do i = 1 , iym1
-      ii0 = 0
-      ii1 = 0
-      ii2 = 0
-      do n = 1 , nnsg
-        if ( lndocnicemsk(n,i,j) == 2 ) then
-          ii2 = ii2 + 1
-        else if ( lndocnicemsk(n,i,j) == 1 ) then
-          ii1 = ii1 + 1
-        else
-          ii0 = ii0 + 1
-        end if
+      do j = jstart , jend
+        jj0 = 0
+        jj1 = 0
+        jj2 = 0
+        do n = 1 , nnsg
+          if ( lndocnicemsk(n,i,j) == 2 ) then
+            jj2 = jj2 + 1
+          else if ( lndocnicemsk(n,i,j) == 1 ) then
+            jj1 = jj1 + 1
+          else
+            jj0 = jj0 + 1
+          end if
+        end do
+        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(j) = 0
+        if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(j) = 1
+        if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(j) = 2
       end do
-      if ( ii0 >= ii1 .and. ii0 >= ii2 ) ioro(i) = 0
-      if ( ii1 > ii0 .and. ii1 >= ii2 ) ioro(i) = 1
-      if ( ii2 > ii0 .and. ii2 > ii1 ) ioro(i) = 2
-    end do
 !
-    call getdat(j,h2ommr,alat,cld,clwp,coslat,o3mmr,o3vmr,  &
-                pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
+      call getdat(jstart,jend,i)
 !
-!   NB:
-!   variable coszrs is not calculated here in zenith()
-!   but passed from vecbats() to colmod3() as an argument
-!   therefore, subroutine zenith() is not necessary in regcm3
+!     NB:
+!     land and ocean albedos are calculated
+!     not in albland() and albocean() located below
+!     but in albedov() called from subroutine vecbats()
+!     therefore, the following subroutines are not called here
 !
-!   NB:
-!   land and ocean albedos are calculated
-!   not in albland() and albocean() located below
-!   but in albedov() called from subroutine vecbats()
-!   therefore, the following subroutines are not called here
+!     Cloud particle size and fraction of ice
 !
-!   Cloud particle size and fraction of ice
+      call cldefr(jstart,jend)
 !
-    call cldefr(ioro,tm1,rel,rei,fice,ps,pmidm1)
+!     Cloud emissivity
 !
-!   Cloud emissivity
+      call cldems(jstart,jend)
 !
-    call cldems(clwp,fice,rei,emis)
+!     Effective cloud cover
 !
-!   Effective cloud cover
-!
-    do k = 1 , kz
-      do i = 1 , iym1
-        effcld(i,k) = cld(i,k)*emis(i,k)
+      do k = 1 , kz
+        do j = jstart , jend
+          effcld(j,k) = cld(j,k)*emis(j,k)
+        end do
       end do
-    end do
 !
-!   Cloud cover at surface interface always zero (for safety's sake)
+!     Cloud cover at surface interface always zero (for safety's sake)
 !
-    do i = 1 , iym1
-      effcld(i,kzp1) = d_zero
-      cld(i,kzp1) = d_zero
-    end do
+      do j = jstart , jend
+        effcld(j,kzp1) = d_zero
+        cld(j,kzp1) = d_zero
+      end do
 !
-!   Main radiation driving routine.
-!   NB: All fluxes returned from radctl() have already been converted
-!   to MKS.
+!     Main radiation driving routine.
+!     NB: All fluxes returned from radctl() have already been converted
+!     to MKS.
 !
-    call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
-                qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,   &
-                fice,sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt, &
-                flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,     &
-                fsnirtsq,eccf,o3vmr)
+      call radctl(jstart,jend,i,ktau,alat,ptrop,ts,pmidm1,pintm1,pmlnm1, &
+                  pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel, &
+                  rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
+                  flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,      &
+                  fsnrtc,fsnirtsq,eccf,o3vmr)
 !
 
-!   subroutine radout() is not included in the ccm3 crm itself
-!   but introduced from the former regcm2 radiation package
-!   for the output of results from radiation calculations
-!   this subroutine is used also for the coupling with bats
+!     subroutine radout() is not included in the ccm3 crm itself
+!     but introduced from the former regcm2 radiation package
+!     for the output of results from radiation calculations
+!     this subroutine is used also for the coupling with bats
 !
-!   NB:
-!   Names of some output variables (in MKS) have been changed
-!   from those in the CCM2 radiation package.
+!     NB:
+!     Names of some output variables (in MKS) have been changed
+!     from those in the CCM2 radiation package.
 !
-    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,  &
-                qrl,flwds,srfrad,sols,soll,solsd,solld,alb,albc,fsds,fsnirt, &
-                fsnrtc,fsnirtsq,j,h2ommr,cld,clwp)
+      call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs, &
+                  flnt,flns,flntc,flnsc,qrl,flwds,srfrad,sols,soll,   &
+                  solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,   &
+                  h2ommr,cld,clwp)
+    end do
 !
   end subroutine colmod3
 !
@@ -355,7 +400,7 @@ module mod_rad_colmod3
 !
 !     Input arguments
 !
-! ioro   - idnint(oro(i))
+! ioro   - idnint(oro(j))
 ! t      - Temperature
 ! ps     - surface pressure
 ! pmid   - midpoint pressures
@@ -370,17 +415,11 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine cldefr(ioro,t,rel,rei,fice,ps,pmid)
-!
+  subroutine cldefr(jstart,jend)
     implicit none
+    integer , intent(in) :: jstart , jend
 !
-    real(dp) , dimension(iym1,kz) :: fice , pmid , rei , rel , t
-    integer , dimension(iym1) :: ioro
-    real(dp) , dimension(iym1) :: ps
-    intent (in) ioro , pmid , ps , t
-    intent (out) fice , rei , rel
-!
-    integer :: i , k
+    integer :: j , k
     real(dp) :: pnrml , rliq , weight
 !
 !   reimax - maximum ice effective radius
@@ -396,11 +435,11 @@ module mod_rad_colmod3
     real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
 !
     do k = 1 , kz
-      do i = 1 , iym1
+      do j = jstart , jend
 !
 !       Define liquid drop size
 !
-        if ( ioro(i) /= 1 ) then
+        if ( ioro(j) /= 1 ) then
 !
 !         Effective liquid radius over ocean and sea ice
 !
@@ -410,41 +449,41 @@ module mod_rad_colmod3
 !         Effective liquid radius over land
 !
           rliq = d_five+d_five* & 
-                  dmin1(d_one,dmax1(d_zero,(minus10-t(i,k))*0.05D0))
+                  dmin1(d_one,dmax1(d_zero,(minus10-tm1(j,k))*0.05D0))
         end if
 !
-        rel(i,k) = rliq
+        rel(j,k) = rliq
 !fil
 !       test radius = d_10
-!       rel(i,k) = d_10
+!       rel(j,k) = d_10
 !fil
-!+      rei(i,k) = 30.0
+!+      rei(j,k) = 30.0
 !
 !       Determine rei as function of normalized pressure
 !
-        pnrml = pmid(i,k)/ps(i)
+        pnrml = pmidm1(j,k)/ps(j)
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
-        rei(i,k) = reimax - rirnge*weight
+        rei(j,k) = reimax - rirnge*weight
 !
 !       Define fractional amount of cloud that is ice
 !
 !       if warmer than -10 degrees C then water phase
 !
-        if ( t(i,k) > minus10 ) fice(i,k) = d_zero
+        if ( tm1(j,k) > minus10 ) fice(j,k) = d_zero
 !
 !       if colder than -10 degrees C but warmer than -30 C mixed phase
 !
-        if ( t(i,k) <= minus10 .and. t(i,k) >= minus30 ) &
-          fice(i,k) = (minus10-t(i,k))/20.0D0
+        if ( tm1(j,k) <= minus10 .and. tm1(j,k) >= minus30 ) &
+          fice(j,k) = (minus10-tm1(j,k))/20.0D0
 !
 !       if colder than -30 degrees C then ice phase
 !
-        if ( t(i,k) < minus30 ) fice(i,k) = d_one
+        if ( tm1(j,k) < minus30 ) fice(j,k) = d_one
 !
 !       Turn off ice radiative properties by setting fice = 0.0
 !
 !fil    no-ice test
-!       fice(i,k) = d_zero
+!       fice(j,k) = d_zero
 !
       end do
     end do
@@ -475,29 +514,21 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine cldems(clwp,fice,rei,emis)
-!
+  subroutine cldems(jstart,jend)
     implicit none
-!
-    real(dp) , dimension(iym1,kz) :: clwp , emis , fice , rei
-    intent (in) clwp , fice , rei
-    intent (out) emis
-!
-!   longwave absorption coeff (m**2/g)
-!
-    real(dp) , parameter :: kabsl = 0.090361D0
+    integer , intent(in) :: jstart , jend
 !
 !   kabs    - longwave absorption coeff (m**2/g)
 !   kabsi   - ice absorption coefficient
 !
-    integer :: i , k
+    integer :: j , k
     real(dp) :: kabs , kabsi
 !
     do k = 1 , kz
-      do i = 1 , iym1
-        kabsi = 0.005D0 + d_one/rei(i,k)
-        kabs = kabsl*(d_one-fice(i,k)) + kabsi*fice(i,k)
-        emis(i,k) = d_one - dexp(-1.66D0*kabs*clwp(i,k))
+      do j = jstart , jend
+        kabsi = 0.005D0 + d_one/rei(j,k)
+        kabs = kabsl*(d_one-fice(j,k)) + kabsi*fice(j,k)
+        emis(j,k) = d_one - dexp(-1.66D0*kabs*clwp(j,k))
       end do
     end do
 !
@@ -534,75 +565,66 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine getdat(j,h2ommr,alat,cld,clwp,coslat,o3mmr,  &
-                    o3vmr,pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
+  subroutine getdat(jstart,jend,i)
 !
     implicit none
 !
-    integer :: j
-    real(dp) , dimension(iym1) :: alat , coslat ,  ps , ts
-    real(dp) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
-    real(dp) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr , &
-                                    pmidm1 , pmlnm1 , qm1 , tm1
-    intent (in) j
-    intent (out) clwp , coslat , o3vmr , pilnm1 , pmlnm1 , qm1 , ts
-    intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 , ps , tm1
+    integer , intent(in) :: jstart , jend , i
 !
+    integer :: j , k , kj , ncldm1
     real(dp) :: ccvtem , clwtem , vmmr
-    real(dp) , dimension(iym1,kz) :: deltaz
-    integer :: i , k , kj , ncldm1
-    real(dp) , dimension(iym1) :: rlat
 !
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
 !
 !   surface pressure and scaled pressure, from which level are computed
-    do i = 1 , iym1
-      ps(i) = (sfps(i,j)+ptp)*d_10
+    do j = jstart , jend
+      emsvt1(j) = emsvt(j,i)
+      ps(j) = (sfps(i,j)+ptp)*d_10
       do k = 1 , kz
-        pmidm1(i,k) = (sfps(i,j)*hlev(k)+ptp)*d_10
+        pmidm1(j,k) = (sfps(i,j)*hlev(k)+ptp)*d_10
       end do
     end do
 !
 !   convert pressures from mb to pascals and define interface pressures:
 !
-    do i = 1 , iym1
-      ps(i) = ps(i)*d_100
+    do j = jstart , jend
+      ps(j) = ps(j)*d_100
       do k = 1 , kz
-        pmidm1(i,k) = pmidm1(i,k)*d_100
-        pmlnm1(i,k) = dlog(pmidm1(i,k))
+        pmidm1(j,k) = pmidm1(j,k)*d_100
+        pmlnm1(j,k) = dlog(pmidm1(j,k))
       end do
     end do
     do k = 1 , kzp1
-      do i = 1 , iym1
-        pintm1(i,k) = (sfps(i,j)*flev(k)+ptp)*d_1000
-        pilnm1(i,k) = dlog(pintm1(i,k))
+      do j = jstart , jend
+        pintm1(j,k) = (sfps(i,j)*flev(k)+ptp)*d_1000
+        pilnm1(j,k) = dlog(pintm1(j,k))
       end do
     end do
 !
 !   air temperatures
 !
     do k = 1 , kz
-      do i = 1 , iym1
-        tm1(i,k) = tatms(i,k,j)
+      do j = jstart , jend
+        tm1(j,k) = tatms(i,k,j)
       end do
     end do
 !
 !   h2o mass mixing ratio
 !
     do k = 1 , kz
-      do i = 1 , iym1
-        h2ommr(i,k) = dmax1(1.0D-7,qvatms(i,k,j))
-        qm1(i,k) = h2ommr(i,k)
+      do j = jstart , jend
+        h2ommr(j,k) = dmax1(1.0D-7,qvatms(i,k,j))
+        qm1(j,k) = h2ommr(j,k)
       end do
     end do
 !
 !   o3 mass mixing ratio
 !
     do k = 1 , kz
-      do i = 1 , iym1
+      do j = jstart , jend
         kj = kzp1 - k
-        o3mmr(i,k) = o3prof(i,kj,j)
+        o3mmr(j,k) = o3prof(j,i,kj)
       end do
     end do
 !
@@ -610,101 +632,100 @@ module mod_rad_colmod3
 !
 !   qc   = gary's mods for clouds/radiation tie-in to exmois
     do k = 1 , kz
-      do i = 1 , iym1
+      do j = jstart , jend
    
         ccvtem = d_zero   !cqc mod
-!KN     cldfrc(i,k)=dmax1(cldfra(j,i,k)*0.9999999,ccvtem)
-        cld(i,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-!KN     cldfrc(i,k)=dmin1(cldfrc(j,i,k),0.9999999)
-        cld(i,k) = dmin1(cld(i,k),0.9999999D0)
+!KN     cldfrc(j,k)=dmax1(cldfra(j,i,k)*0.9999999,ccvtem)
+        cld(j,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
+!KN     cldfrc(j,k)=dmin1(cldfrc(j,i,k),0.9999999)
+        cld(j,k) = dmin1(cld(j,k),0.9999999D0)
 !
 !       implement here the new formula then multiply by 10e6
-!qc     if (tm1(i,k) > t0max) clwtem=clwmax
-!qc     if (tm1(i,k) >= t0st .and. tm1(i,k) <= t0max) then
-!qc       clwtem=clw0st+((tm1(i,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
+!qc     if (tm1(j,k) > t0max) clwtem=clwmax
+!qc     if (tm1(j,k) >= t0st .and. tm1(j,k) <= t0max) then
+!qc       clwtem=clw0st+((tm1(j,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
 !qc     end if
-!qc     if (tm1(i,k) >= t0min .and. tm1(i,k) < t0st)
-!qc       clwtem=clw0st+(tm1(i,k)-t0st)/(t0min-t0st)*(clwmin-clw0st)
+!qc     if (tm1(j,k) >= t0min .and. tm1(j,k) < t0st)
+!qc       clwtem=clw0st+(tm1(j,k)-t0st)/(t0min-t0st)*(clwmin-clw0st)
 !qc     end if
-!qc     if (tm1(i,k) < t0min) clwtem=clwmin
+!qc     if (tm1(j,k) < t0min) clwtem=clwmin
 !qc     clwtem=clwtem*1.e6
 !
 !       convert liquid water content into liquid water path, i.e.
 !       multiply b deltaz
         clwtem = cldlwc(j,i,k) !cqc mod
-        deltaz(i,k) = rgas*tm1(i,k)*(pintm1(i,k+1) - &
-                        pintm1(i,k))/(egrav*pmidm1(i,k))
-        clwp(i,k) = clwtem*deltaz(i,k)
-!KN     if (cldfrc(i,k) == 0.) clwp(i,k)=d_zero
-        if ( dabs(cld(i,k)) < lowcld ) then
-          cld(i,k) = d_zero
-          clwp(i,k) = d_zero
+        deltaz(j,k) = rgas*tm1(j,k)*(pintm1(j,k+1) - &
+                        pintm1(j,k))/(egrav*pmidm1(j,k))
+        clwp(j,k) = clwtem*deltaz(j,k)
+!KN     if (cldfrc(j,k) == 0.) clwp(j,k)=d_zero
+        if ( dabs(cld(j,k)) < lowcld ) then
+          cld(j,k) = d_zero
+          clwp(j,k) = d_zero
         end if
       end do
     end do
    
 !   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !   do k = 1 , kz
-!     do i = 1 , iym1
-!       if ( pintm1(i,k+1) < 40000.0D0 ) then
-!         cld(i,k) = dmin1(cld(i,k),0.25d0)
+!     do j = jstart , jend
+!       if ( pintm1(j,k+1) < 40000.0D0 ) then
+!         cld(j,k) = dmin1(cld(j,k),0.25d0)
 !       else
-!         cld(i,k)=dmin1(cld(i,k),0.7d0)
+!         cld(j,k)=dmin1(cld(j,k),0.7d0)
 !       end if
 !     end do
 !   end do
 !
 !   set cloud fractional cover at top model level = 0
-    do i = 1 , iym1
-      cld(i,1) = d_zero
-      clwp(i,1) = d_zero
-      cld(i,2) = d_zero       !yhuang, 8/97 two-level
-      clwp(i,2) = d_zero
+    do j = jstart , jend
+      cld(j,1) = d_zero
+      clwp(j,1) = d_zero
+      cld(j,2) = d_zero       !yhuang, 8/97 two-level
+      clwp(j,2) = d_zero
     end do
 !
 !   set cloud fractional cover at bottom (ncld) model levels = 0
 !
     ncldm1 = ncld - 1
     do k = kz - ncldm1 , kz
-      do i = 1 , iym1
-!KN     cldfrc(i,k)=d_zero
-        cld(i,k) = d_zero
-        clwp(i,k) = d_zero
+      do j = jstart , jend
+!KN     cldfrc(j,k)=d_zero
+        cld(j,k) = d_zero
+        clwp(j,k) = d_zero
       end do
     end do
 !
 !   ground temperature
 !
-    do i = 1 , iym1
-!     tg(i)=tgb(i,jlsc)
+    do j = jstart , jend
+!     tg(j)=tgb(i,j)
 !     when using bats calculate an equivalent ground (skin)
 !     temperature by averaging over vegetated and non-vegetated areas
-!jsp  tg(i)=((d_one-vgfrac(i))*tgb(i,j)**4.+vgfrac(i)*tlef2d(i,j)**4.)**0.25
-      ts(i) = tground(i,j)
+!jsp  tg(j)=((d_one-vgfrac(j))*tgb(i,j)**4.+vgfrac(j)*tlef2d(i,j)**4.)**0.25
+      ts(j) = tground(i,j)
     end do
 !
 !   cloud cover at surface interface always zero
 !
-    do i = 1 , iym1
-!KN   effcld(i,kzp1) = d_zero
-!KN   cldfrc(i,kzp1) = d_zero
-      cld(i,kzp1) = d_zero
+    do j = jstart , jend
+!KN   effcld(j,kzp1) = d_zero
+!KN   cldfrc(j,kzp1) = d_zero
+      cld(j,kzp1) = d_zero
     end do
 !
 !KN adopted from regcm2 above
 !
 !----------------------------------------------------------------------
 !
-    do i = 1 , iym1
+    do j = jstart , jend
 !
       do k = 1 , kz
-        if ( cld(i,k) > 0.999D0 ) cld(i,k) = 0.999D0
+        if ( cld(j,k) > 0.999D0 ) cld(j,k) = 0.999D0
       end do
 !
-      rlat(i) = xlat(i,j)
-!
-      alat(i) = rlat(i)*degrad
-      coslat(i) = dcos(alat(i))
+      alat(j) = xlat(i,j)*degrad
+      ! pressure of tropopause
+      ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
 !
     end do
 !
@@ -712,9 +733,9 @@ module mod_rad_colmod3
 !
     vmmr = amo/amd
     do k = 1 , kz
-      do i = 1 , iym1
-!       o3mmr(i,k) = vmmr*o3vmr(i,k)
-        o3vmr(i,k) = o3mmr(i,k)/vmmr
+      do j = jstart , jend
+!       o3mmr(j,k) = vmmr*o3vmr(j,k)
+        o3vmr(j,k) = o3mmr(j,k)/vmmr
       end do
     end do
 !

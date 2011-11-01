@@ -1484,16 +1484,15 @@ module mod_tendency
 #endif
     end if
  
-    do j = jbegin , jendx
-!     call ccm3 radiative transfer package
-      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-        if (irrtm ==1 ) call rrtmg_driver(ktau,xyear,eccf,j,loutrad)
-
-        if (irrtm ==0 ) call colmod3(ktau,xyear,eccf,loutrad,j)
-
+!   call ccm3 radiative transfer package
+    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      if (irrtm ==1 ) then
+        call rrtmg_driver(jbegin,jendx,2,iym1,ktau,xyear,eccf,loutrad)
+      else
+        call colmod3(jbegin,jendx,2,iym1,ktau,xyear,eccf,loutrad)
       end if
-    end do
+    end if
  
 #ifndef CLM
 !   call mtrxbats for surface physics calculations
@@ -1583,7 +1582,7 @@ module mod_tendency
         do k = 1 , kz
           do i = 2 , iym2
             ! heating rate in deg/sec
-            aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(i,j)*heatrt(i,k,j)
+            aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(i,j)*heatrt(j,i,k)
           end do
         end do
 !
@@ -1608,7 +1607,7 @@ module mod_tendency
 !   compute the condensation and precipitation terms for explicit
 !   moisture scheme:
 !
-    call condtq(jbegin,jendm,2,iym2,psc,qvcs)
+    call condtq(jbegin,jendm,2,iym1,psc,qvcs)
 !
 !   subtract horizontal diffusion and pbl tendencies from aten%t and
 !   aten%qv for appling the sponge boundary conditions on t and qv:
@@ -2101,15 +2100,6 @@ module mod_tendency
         sps1%ps(i,j) = psc(i,j)
       end do
     end do
-    if ( ehso4 ) then
-      do k = 1 , kz
-        do j = 1 , jendx
-          do i = 1 , iym1
-            aermm(i,k,j) = sulfate(i,k,j)
-          end do
-        end do
-      end do
-    end if
 !
 !----------------------------------------------------------------------
 !

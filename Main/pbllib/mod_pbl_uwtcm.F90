@@ -248,7 +248,7 @@ module mod_pbl_uwtcm
 
         kinitloop: &
         do k = kz , 1 , -1
-          rttenx(k) = radheatrt(i,k,j)
+          rttenx(k) = radheatrt(j,i,k)
           cell = ptop/psbx
           zqx(k) = zqx(k+1) + rgas/egrav*tatm(i,k,j)*   &
                    log((flev(k+1)+cell)/(flev(k)+cell))

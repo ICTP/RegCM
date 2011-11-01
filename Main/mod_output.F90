@@ -759,7 +759,7 @@ module mod_output
       do j = 1 , jendx
         do k = 1 , kz
           do i = 1 , iym1
-            sav0(i,kz*3+k,j) = heatrt(i,k,j)
+            sav0(i,kz*3+k,j) = heatrt(j,i,k)
           end do
         end do
       end do
@@ -879,7 +879,7 @@ module mod_output
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iym1
-            sav0a(i,4+k,j) = o3prof(i,k,j)
+            sav0a(i,4+k,j) = o3prof(j,i,k)
           end do
         end do
       end do
@@ -918,7 +918,7 @@ module mod_output
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
-              sav0c(i,k,j) = rsheat(i,k,j)
+              sav0c(i,k,j) = rsheat(j,i,k)
               sav0c(i,kz+k,j) = rswat(i,k,j)
             end do
           end do
@@ -975,7 +975,7 @@ module mod_output
         do l = 1 , 4
           do k = 1 , kz
             do i = 1 , iym1
-              sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
+              sav1(i,(l-1)*kz+k,j) = absnxt(j,i,k,l)
             end do
           end do
         end do
@@ -985,7 +985,7 @@ module mod_output
         do l = 1 , kzp1
           do k = 1 , kzp1
             do i = 1 , iym1
-              sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
+              sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(j,i,k,l)
             end do
           end do
         end do
@@ -994,7 +994,7 @@ module mod_output
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iym1
-            sav1(i,allrec+k,j) = emstot(i,k,j)
+            sav1(i,allrec+k,j) = emstot(j,i,k)
           end do
         end do
       end do
@@ -1025,8 +1025,7 @@ module mod_output
           do l = 1 , kzp1
             do k = 1 , kzp1
               do i = 1 , iym1
-                abstot_io(i,k,l,j)                                  &
-                & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
+                abstot_io(i,k,l,j) = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
               end do
             end do
           end do
