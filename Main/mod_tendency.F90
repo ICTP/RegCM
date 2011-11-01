@@ -34,9 +34,9 @@ module mod_tendency
   use mod_precip
   use mod_sun
   use mod_slice
-  use mod_diffusion
-  use mod_advection , only : hadv , vadv
   use mod_diagnosis
+  use mod_advection
+  use mod_diffusion
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -143,6 +143,8 @@ module mod_tendency
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
+    real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
+                                            spchib3d
     integer :: i , iptn , itr , j , k , lev , n
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
@@ -1371,9 +1373,7 @@ module mod_tendency
       end do
     end do
 !
-    do j = jbegin , jendx
-      call diffu_x(adf%difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
-    end do
+    call diffu_x(jbegin,jendx,2,iym1,adf%difft,atms%tb3d,sps2%ps,xkc,kz)
 !
 !   compute the moisture tendencies:
 !
@@ -1444,29 +1444,52 @@ module mod_tendency
 !     completing aten%qv computation, do not use diffq for other
 !     purpose.
 !
-      do j = jbegin , jendx
-        call diffu_x(adf%diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
-        call diffu_x(aten%qc(:,:,j),atms%qcb3d,sps2%ps,xkc(:,:,j),j,kz)
-      end do
+      call diffu_x(jbegin,jendx,2,iym1,adf%diffq,atms%qvb3d,sps2%ps,xkc,kz)
+      call diffu_x(jbegin,jendx,2,iym1,aten%qc,atms%qcb3d,sps2%ps,xkc,kz)
     end if
 !
-    do j = jbegin , jendx
-#ifndef BAND
-      if ( myid /= nproc-1 .or. j /= jendx ) then
-#endif
-!       compute the tracers tendencies
-        if ( ichem == 1 ) then
-          call tractend2(j,ktau,xmonth,xkc)
-        end if
+    if ( ichem == 1 ) then
+      !
+      ! TRANSPORT OF TRACERS : initialize tracer tendencies
+      !
+      do j = jbegin , jendx
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = 2 , iym1
+              chiten(i,k,j,itr) = d_zero
+            end do
+          end do
+        end do
+      end do
+      !
+      ! horizontal and vertical advection
+      !
+      do itr = 1 , ntr
+        ! Here assignpnt does not work with gfortran with a sliced array.
+        ! Doing explicit work on bounds.
+        spchiten                      => chiten(:,:,:,itr)
+        spchi(1:,1:,lbound(chi,3):)   => chi(:,:,:,itr)
+        spchia(1:,1:,lbound(chia,3):) => chia(:,:,:,itr)
+        spchib3d(1:,1:,lbound(chia,3):) => chib3d(:,:,:,itr)
+        call hadv(.false.,spchiten,spchi,jbegin,jendx,2)
+        call vadv(spchiten,spchia,jbegin,jendx,5)
+        ! horizontal diffusion: initialize scratch vars to 0.
+        ! need to compute tracer tendencies due to diffusion
+        call diffu_x(jbegin,jendx,2,iym1,spchiten,spchib3d,cpsb,xkc,kz)
+      end do ! end tracer loop
+      !
+      ! Compute tendencies
+      !
+      call tractend2(jbegin,jendm,2,iym1,ktau,xmonth,xkc)
+      !
+    end if ! ichem
 !
-#ifndef BAND
-      end if           !end if (j /= jxm1) test
-#endif
 !----------------------------------------------------------------------
 !     compute the pbl fluxes:
 !     the diffusion and pbl tendencies of t and qv are stored in
 !     difft and diffq.
 !
+   do j = jbegin , jendx
       do k = 1 , kz
         do i = 2 , iym1
           aten%u(i,k,j) = d_zero
@@ -1800,14 +1823,16 @@ module mod_tendency
           adf%difuv(i,k,j) = aten%v(i,k,j)
         end do
       end do
+    end do
 !
-      call diffu_d(adf%difuu(:,:,j),atms%ubd3d,sps2%pdot,mddom%msfd, &
-                   xkc(:,:,j),j,1)
-      call diffu_d(adf%difuv(:,:,j),atms%vbd3d,sps2%pdot,mddom%msfd, &
-                   xkc(:,:,j),j,1)
+    call diffu_d(jbegin,jendx,2,iym1,adf%difuu,atms%ubd3d, &
+                 sps2%pdot,mddom%msfd,xkc,1)
+    call diffu_d(jbegin,jendx,2,iym1,adf%difuv,atms%vbd3d, &
+                 sps2%pdot,mddom%msfd,xkc,1)
 !
-!     compute the horizontal advection terms for u and v:
+!   compute the horizontal advection terms for u and v:
 !
+    do j = jbegin , jendx
       do k = 1 , kz
         do i = 2 , iym1
           aten%u(i,k,j) = d_zero
@@ -1937,6 +1962,7 @@ module mod_tendency
     call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1, &
                       phi(1,1,0),  iy*kz,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
+!
     do j = jbegin , jendx
       jm1 = j-1
 !
@@ -2006,7 +2032,11 @@ module mod_tendency
           end do
           uwstatea%tkeps(i,kz+1,j) = atm1%tke(i,kz+1,j)*sps1%ps(i,j)
         end do
+      end if
+    end do ! end of j loop.
 
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      do j = jbegin , jendx
         ! Don't work with TKE on boundary grid-cells
         if ( (.not.(myid == 0 .and. j == 1)) .and. &
              (.not.(myid == (nproc-1) .and. j == jx)) ) then
@@ -2015,11 +2045,11 @@ module mod_tendency
           ! Calculate the vertical advective tendency for TKE
           call vadvtke(uwstatea,qdot,j,2)
           ! Calculate the horizontal, diffusive tendency for TKE
-          call diffu_x(uwstatea%advtke(:,:,j), &
-                       atm2%tke,sps2%ps,xkcf(:,:,j),j,kzp1)
         end if
-      end if
-    end do ! end of j loop.
+      end do
+      call diffu_x(jbegin,jendx,2,iym1,uwstatea%advtke, &
+                   atm2%tke,sps2%ps,xkcf,kzp1)
+    end if
 !
 !**********************************************************************
 !

@@ -17,42 +17,35 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      module mod_che_tend
+  module mod_che_tend
 !
 ! Tendency and budget for tracer transport and chemicals
 !
-      use mod_constants
-      use mod_dynparam
-      use mod_diagnosis 
-
-!      use mod_runparams
-
-      use mod_che_common
-      use mod_che_indices
-      use mod_che_param
-      use mod_che_sox
-
-      use mod_che_drydep
-      use mod_che_wetdep
-      use mod_che_emission
-!      use mod_chem_sox
-!      use mod_sea_salt
-!      use mod_chem_emis
-      use mod_che_dust
-      use mod_che_seasalt
-      use mod_che_carbonaer
-! chemistry externalisation : need to call adv-dif_diag in mod_tendency rather than here
-      use mod_diffusion
-      use mod_advection
-      use mod_diagnosis
+  use mod_constants
+  use mod_dynparam
+  use mod_diagnosis 
+! use mod_runparams
+  use mod_che_common
+  use mod_che_indices
+  use mod_che_param
+  use mod_che_sox
+  use mod_che_drydep
+  use mod_che_wetdep
+  use mod_che_emission
+! use mod_chem_sox
+! use mod_sea_salt
+! use mod_chem_emis
+  use mod_che_dust
+  use mod_che_seasalt
+  use mod_che_carbonaer
 #ifdef MPP1
-      use mod_mppio
+  use mod_mppio
 #endif
-      private
+  private
 
-      public :: tractend2 , tracbud
+  public :: tractend2 , tracbud
 
-      contains
+  contains
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -63,156 +56,135 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine tractend2(j,ktau,lmonth,xkc)
+    subroutine tractend2(jstart,jend,istart,iend,ktau,lmonth,xkc)
       implicit none
 !
-      integer , intent(in) :: j, lmonth
+      integer , intent(in) :: jstart , jend , istart , iend , lmonth
       integer(8) , intent(in) :: ktau
-      real(8) , dimension(iy,kz,jx) , intent(in):: xkc
+      real(8) , pointer , dimension(:,:,:) , intent(in):: xkc
 !
-      real(8) :: agct , ak00t , ak0tm , akval  , clmin ,&
-               & facb , facs , fact , facv  , pres10 , qsat10 ,    &
-               & remcum , satvp , shu10 , &
-               & u10 , v10,chias,chibs
+      real(8) :: agct , ak00t , ak0tm , akval , clmin , facb , facs , &
+                 fact , facv , pres10 , qsat10 , remcum , satvp ,     &
+                 shu10 , u10 , v10 , chias , chibs
 
       real(8) , dimension(ntr) :: agingtend
       real(8) , dimension(iy,kz) :: wk, rho , settend , &
-                                  & ttb, wl, fracloud, fracum , prec
+                                    ttb, wl, fracloud, fracum , prec
 
-      integer :: i , ibin , itr , k , kb , kdwd
+      integer :: i , j , ibin , itr , k , kk , kb , kdwd
       integer , dimension(iy) :: ivegcov
-
 
       real(8) , dimension(iy,kz,ntr) :: pdepv
       real(8) , dimension(iy,ntr) :: ddepa
 
 
       real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
-                               & temp10 , tsurf , vegfrac , wid10 ,    &
-                               & zeff , ustar
+          temp10 , tsurf , vegfrac , wid10 , zeff , ustar
 
       real(8) , dimension(iy,nbin) :: rsfrow
       real(8), dimension(iy,sbin) :: seasalt_flx
       real(8), dimension(iy,ntr) :: drydepvg
       real(8) , dimension(ntr) :: wetrem , wetrem_cvc
 !
-      real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia
-
-      integer::igaschem !!!PROVISOIRE
-!**************************************************************************
-!    A : PRELIMINARY CALCULATIONS
-!*************************************************************************
- 
-rho =0.
-wl=0.
-ttb=0.
-prec=0.
-fracloud=0.
-fracum=0.
-psurf=0.
-igaschem = 1
-!     the unit: rho - kg/m3, wl - g/m3
-      do k = 1 , kz
-        do i = 2 , iym2
-!          rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
-!what the hell   1000./287./atm2%t(i,k,j)*sps2%ps(i,j)
-
-          rho(i,k) = crhob3d(i,k,j)
-
-          wl(i,k) = cqcb3d(i,k,j)*rho(i,k)
-
-          ttb(i,k) = ctb3d(i,k,j)
-
-! precipiation rate is a rquired variable for deposition routines. It is directly taken as rembc (saved in precip routine) 
-! in mm/hr !!
-          prec(i,k) = crembc(i,k) / 3600.D0 !passed in mm/s  
-
-        end do
-      end do
-!     cloud fractionnal cover for wet deposition
-!     large scale : fracloud, calculated from fcc coming from pcp.f
-!     cumulus scale : fracum, calculated from the total cloud fraction
-!     (as defined for the radiation scheme in cldfrac.f routine)
-      do i = 2 , iym2
-        do k = 1 , kz
-          fracloud(i,k) = cfcc(i,k,j)
-          fracum(i,k) = d_zero
-        end do
-        if ( kcumtop(j,i) > 0 ) then
-          do k = kcumtop(j,i) , kz
-            fracum(i,k) = ccldfra(j,i,k) - fracloud(i,k)
-          end do
-        end if
-      end do
-
-! variables used for natural fluxes and deposition velocities 
-! 
-      ivegcov=0   
-          do i = 2 , iym2
-            ivegcov(i) = cveg2d(i,j)
-            psurf(i) = cpsb(i,j) * 1.0D3 + ptop
- 
-!           method based on bats diagnostic in routine interf.
- 
-            if ( (ivegcov(i) /= 0) ) then
-              facv = dlog(cza(i,kz,j)/d_10)                               &
-                   & /dlog(cza(i,kz,j)/crough(ivegcov(i)))
-              facb = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zlnd)
-              facs = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zsno)
- 
-!              fact = csfracv2d(i,j)*facv 
-               fact = cvegfrac(i,j) * facv + (1-cvegfrac(i,j)) * facb
-! FAB REVOIR CETTE partie et definir interface pour sfracs,sfracv
-!+ sfracb2d(i,j)                 &
-!                   & *facb + sfracs2d(i,j)*facs
- 
-!             grid level effective roughness lenght
-!                (linear averaging for now)
-!              zeff(i) = rough(ivegcov(i))*sfracv2d(i,j)                 &
-!                      & + zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
-
-               zeff(i) =crough(ivegcov(i))*cvegfrac(i,j)                 &
-                        + zlnd * (1-cvegfrac(i,j))
-
-            else
-!             water surface
-              fact = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zoce)
- 
-              zeff(i) = zoce
-            end if
- 
-!           10 m wind
-            u10 = (cubx3d(i,kz,j))*(1-fact)
-            v10 = (cvbx3d(i,kz,j))*(1-fact)
-            wid10(i) = sqrt(u10**2+v10**2)
-!       
-!           10 m air temperature
- 
-            temp10(i) = ttb(i,kz) - csdeltk2d(i,j)*fact
- 
-!           specific  humidity at 10m
-            shu10 = cqvb3d(i,kz,j)/ &
-                    (d_one+cqvb3d(i,kz,j))-csdelqk2d(i,j)*fact
- 
-!           back to mixing ratio
- 
-            shu10 = shu10/(1-shu10)
- 
-!           saturation mixing ratio at 10m
-            if ( temp10(i) > tzero ) then
-              satvp = svp1*1.0D3*dexp(svp2*(temp10(i)-tzero)             &
-                    & /(temp10(i)-svp3))
-            else
-              satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i))
-            end if
-            pres10 = psurf(i) - 98.
-            qsat10 = ep2*satvp/(pres10-satvp)
- 
-!           relative humidity at 10m
-            rh10(i) = 0.
-            if ( qsat10 > 0. ) rh10(i) = shu10/qsat10
+      integer :: igaschem !!!PROVISOIRE
 !
-!           friction velocity ( from uvdrag so updtaed at  bats or clm frequency )
+!**************************************************************************
+!     A : PRELIMINARY CALCULATIONS
+!*************************************************************************
+! 
+      do j = jstart , jend
+        rho = d_zero
+        wl = d_zero
+        ttb = d_zero
+        prec = d_zero
+        fracloud = d_zero
+        fracum = d_zero
+        psurf = d_zero
+        igaschem = 1
+
+!       the unit: rho - kg/m3, wl - g/m3
+        do k = 1 , kz
+          do i = istart , iend
+!           rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
+!      what the hell   1000./287./atm2%t(i,k,j)*sps2%ps(i,j)
+            rho(i,k) = crhob3d(i,k,j)
+            wl(i,k) = cqcb3d(i,k,j)*rho(i,k)
+            ttb(i,k) = ctb3d(i,k,j)
+!           precipiation rate is a rquired variable for deposition routines.
+!           It is directly taken as rembc (saved in precip routine) in mm/hr !!
+            prec(i,k) = crembc(i,k) / 3600.D0 !passed in mm/s  
+          end do
+        end do
+!       cloud fractionnal cover for wet deposition
+!       large scale : fracloud, calculated from fcc coming from pcp.f
+!       cumulus scale : fracum, calculated from the total cloud fraction
+!       (as defined for the radiation scheme in cldfrac.f routine)
+        do i = istart , iend
+          do k = 1 , kz
+            fracloud(i,k) = cfcc(i,k,j)
+            fracum(i,k) = d_zero
+          end do
+          if ( kcumtop(j,i) > 0 ) then
+            do kk = kcumtop(j,i) , kz
+              fracum(i,kk) = ccldfra(j,i,kk) - fracloud(i,kk)
+            end do
+          end if
+        end do
+!
+!       variables used for natural fluxes and deposition velocities 
+! 
+        ivegcov=0   
+        do i = istart , iend
+          ivegcov(i) = cveg2d(i,j)
+          psurf(i) = cpsb(i,j) * 1.0D3 + ptop
+ 
+!         method based on bats diagnostic in routine interf.
+ 
+          if ( (ivegcov(i) /= 0) ) then
+            facv = dlog(cza(i,kz,j)/d_10) / &
+                   dlog(cza(i,kz,j)/crough(ivegcov(i)))
+            facb = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zlnd)
+            facs = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zsno)
+ 
+!           fact = csfracv2d(i,j)*facv 
+            fact = cvegfrac(i,j) * facv + (d_one-cvegfrac(i,j)) * facb
+!           FAB REVOIR CETTE partie et definir interface pour sfracs,sfracv
+!                   + sfracb2d(i,j)*facb + sfracs2d(i,j)*facs
+! 
+!           grid level effective roughness lenght (linear averaging for now)
+!           zeff(i) = rough(ivegcov(i))*sfracv2d(i,j) + &
+!                     zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
+            zeff(i) = crough(ivegcov(i))*cvegfrac(i,j) + &
+                      zlnd*(d_one-cvegfrac(i,j))
+          else
+!           water surface
+            fact = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zoce)
+            zeff(i) = zoce
+          end if
+!         10 m wind
+          u10 = (cubx3d(i,kz,j))*(1-fact)
+          v10 = (cvbx3d(i,kz,j))*(1-fact)
+          wid10(i) = sqrt(u10**2+v10**2)
+!         10 m air temperature
+          temp10(i) = ttb(i,kz) - csdeltk2d(i,j)*fact
+!         specific  humidity at 10m
+          shu10 = cqvb3d(i,kz,j)/ &
+                  (d_one+cqvb3d(i,kz,j))-csdelqk2d(i,j)*fact
+!         back to mixing ratio
+          shu10 = shu10/(1-shu10)
+!         saturation mixing ratio at 10m
+          if ( temp10(i) > tzero ) then
+            satvp = svp1*1.0D3*dexp(svp2*(temp10(i)-tzero)/(temp10(i)-svp3))
+          else
+            satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i))
+          end if
+          pres10 = psurf(i) - 98.0D0
+          qsat10 = ep2*satvp/(pres10-satvp)
+!         relative humidity at 10m
+          rh10(i) = d_zero
+          if ( qsat10 > d_zero ) rh10(i) = shu10/qsat10
+!
+!         friction velocity ( from uvdrag so updtaed at  bats or clm frequency )
 !
 !!$   FAB AFIXER         ustar(i) = sqrt ( sfsta%uvdrag(i,j)             *           &
 !!$           &           sqrt ( (atm2%u(i,kz,j)/sps2%ps(i,j) )**2   +     &
@@ -221,167 +193,121 @@ igaschem = 1
  
 !           soil wetness
  
-           soilw(i) = cssw2da(i,j)/cdepuv(idnint(clndcat(i,j)))/(2650.0D0 * &
+          soilw(i) = cssw2da(i,j)/cdepuv(idnint(clndcat(i,j)))/(2650.0D0 * &
                 (d_one-cxmopor(ciexsol(idnint(clndcat(i,j))))))
-
+!         fraction of vegetation
+          vegfrac(i) = cvegfrac(i,j)
+!         surface temperature
+!         over land recalculated from the BATS  deltk air/ surface
+!         temperature account for a composite temperature between
+!         bare ground and vegetation
+          if ( ivegcov(i) /= 0 ) then
+            tsurf(i) = ttb(i,kz) - csdeltk2d(i,j)
+          else
+!           ocean temperature in this case
+            tsurf(i) = ctg(i,j)
+          end if
  
-!           fraction of vegetation
-            vegfrac(i) = cvegfrac(i,j)
+!        aborbed solar radiation (for stb criteria used to calculate
+!        aerodynamic resistance)
  
-!           surface temperature
-!           over land recalculated from the BATS  deltk air/ surface
-!           temperature account for a composite temperature between
-!           bare ground and vegetation
-
-            if ( ivegcov(i) /= 0 ) then
-              tsurf(i) = ttb(i,kz) - csdeltk2d(i,j)
-            else
-!             ocean temperature in this case
-              tsurf(i) = ctg(i,j)
-            end if
+         srad(i) = csol2d(i,j)
  
-!           aborbed solar radiation (for stb criteria used to calculate aerodynamic resistance)
- 
-            srad(i) = csol2d(i,j)
- 
-          end do
-
-            
-!******************************************************************
-!END of preliminary calculations)
-!******************************************************************
-
+        end do
+!
+!       END of preliminary calculations)
+!
 !*****************************************************************
 ! B :CALCULATION OF TRACER TENDENCY (except full gas phase chemistry solver)
 !*****************************************************************
-
-
-!     TRANSPORT OF TRACERS
-!----initialize tracer tendencies, and scratch arrays
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = 1 , iym1
-            chiten(i,k,j,itr) = 0.
-          end do
-        end do
-      end do
-
-   
-!-----horizontal and vertical advection
- 
-      do itr = 1 , ntr
 !
-
-      ! Here assignpnt does not work with gfortran with a sliced array.
-      ! Doing explicit work on bounds.
-      spchiten                      => chiten(:,:,:,itr)
-      spchi(1:,1:,lbound(chi,3):)   => chi(:,:,:,itr)
-      spchia(1:,1:,lbound(chia,3):) => chia(:,:,:,itr)
+!       SOX CHEMSITRY ( from offline oxidant) 
 !
-      call hadv(.false.,spchiten,spchi,j,j,2)
-      call vadv(spchiten,spchia,j,j,5)
-!     horizontal diffusion: initialize scratch vars to 0.
-!     need to compute tracer tendencies due to diffusion
-      call diffu_x(chiten(:,:,j,itr),chib3d(:,:,:,itr), &
-                   cpsb,xkc(:,:,j),j,kz)
-
- 
-      end do ! end tracer loop
-
-    !  
-!
-!----- SOX CHEMSITRY ( from offline oxidant) 
-      if(igaschem .eq. 0 ) then
-!FAB : regler le probleme de gas vs aerosol only
-         if (iso2 > 0 .and. iso4 >0.) then
+        if ( igaschem == 0 ) then
+!FAB :    regler le probleme de gas vs aerosol only
+          if (iso2 > 0 .and. iso4 >0.) then
             call chemsox(j,wl,fracloud,fracum,rho,ttb)
-         end if
-      end if
-
-! aging of carboneaceous aerosols
-      
- if ( (ibchb >0 .and. ibchl > 0)  .or. (iochb >0 .and. iochl > 0) )     &
-      call  aging_carb(j)
-
-
-
-!NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
-
-      if (idust(1) > 0 )    call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar,       &
-                    & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)     
-        
-!      if (isslt(1) > 0)    call sea_salt(j,wid10,ivegcov,seasalt_flx)
-
+          end if
+        end if
 !
-!update emission tendencies from inventories
+!       aging of carboneaceous aerosols
+!
+        if ( (ibchb > 0 .and. ibchl > 0 ) .or. &
+             (iochb > 0 .and. iochl > 0) ) then
+          call aging_carb(j)
+        end if
 
-      call emis_tend (ktau,j,lmonth)
+        ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
 
+        if ( idust(1) > 0 ) then
+          call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar, &
+                      zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)     
+        end if
+!       if ( isslt(1) > 0 ) call sea_salt(j,wid10,ivegcov,seasalt_flx)
+!
+!       update emission tendencies from inventories
 
-!aerosol settling and drydep 
-!include calculation of dry dep/settling  velocities and updating tendencies
-                   
-pdepv=0.
-ddepa=0.
-           if (idust(1) > 0 )  then   
-           call drydep_aero (j,nbin,idust,rhodust,ivegcov,ttb,rho,hlev,psurf,    &
-               & temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &
-               & pdepv,ddepa)
-           end if
+        call emis_tend(ktau,j,lmonth)
+!
+!       aerosol settling and drydep 
+!       include calculation of dry dep/settling velocities and 
+!       updating tendencies
+!
+        pdepv = d_zero
+        ddepa = d_zero
+        if ( idust(1) > 0 ) then
+          call drydep_aero(j,nbin,idust,rhodust,ivegcov,ttb,rho,hlev,psurf, &
+                           temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,      &
+                           pdepv,ddepa)
+        end if
 
-!           if (isslt(1) >0 ) then
-!            call drydep_aero (j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf,    &
-!               & temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,     &
-!               & pdepv,ddepa)
-!           end if 
+!       if (isslt(1) >0 ) then
+!         call drydep_aero(j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf, &
+!                          temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,      &
+!                          pdepv,ddepa)
+!       end if 
 
-            if (icarb(1) >0 ) then
-           ibin = count ( icarb > 0) 
-           call drydep_aero (j,ibin,icarb(1:ibin),rhooc,ivegcov,ttb,rho,hlev,psurf,    &
-               & temp10,tsurf,srad,rh10,wid10,zeff,carbsiz(1:ibin,:),     &
-               & pdepv,ddepa)
-
-           end if 
-
-
+        if ( icarb(1) > 0 ) then
+          ibin = count( icarb > 0 ) 
+          call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov,ttb,rho,hlev, &
+                           psurf,temp10,tsurf,srad,rh10,wid10,zeff,         &
+                           carbsiz(1:ibin,:),pdepv,ddepa)
+        end if 
 !!$
+!       GAS phase dry deposition velocity + tendencies
+!       option compatible with BATS and CLM
+!!$
+        if ( igaschem == 1 ) then
+          call drydep_gas(j,ivegcov,rh10,srad,tsurf,prec(:,kz),temp10,  &
+                          wid10,zeff,drydepvg)
+        end if
+!!$
+!       WET deposition (rainout and washout) for aerosol
+!!$
+        if ( idust(1) > 0 ) then
+          call wetdepa(j,nbin,idust,dustbsiz,rhodust,ttb,wl,fracloud, &
+                       fracum,psurf,hlev,rho,prec,pdepv)  
+        end if
 
-
-
-! GAS phase dry deposition velocity + tendencies
-!!$!option compatible with BATS and CLM
-      if (igaschem==1)  call drydep_gas (j, ivegcov ,       &
-                                            rh10, srad , tsurf , prec(:,kz), temp10 ,  &
-                                            wid10 , zeff,drydepvg)
-!!$!----- WET deposition 
-!!$! (rainout and washout)   
-      ! for aerosol
-
-      if (idust(1) > 0 )  then   
-              call wetdepa(j,nbin,idust,dustbsiz,rhodust,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
-      end if
-
-!       if (isslt(1) > 0 )  then   
-!              call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
+!       if ( isslt(1) > 0 )  then   
+!         call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb,wl,fracloud, &
+!                      fracum,psurf,hlev,rho, prec, pdepv )  
 !       end if
-
-!       if (icarb(1) > 0 )  then   
-!          ibin = count ( icarb > 0) 
-!              call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl,ttb, wl,fracloud,fracum,psurf,hlev,rho, prec, pdepv )  
-!      end if
-
-!!$            
+!       if ( icarb(1) > 0 )  then   
+!         ibin = count( icarb > 0 ) 
+!         call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
+!                      ttb,wl,fracloud,fracum,psurf,hlev,rho,prec,pdepv)  
+!       end if
+!
 !!$
-      !Wet Deposition for gasphase species 
-      if(igaschem==1) then
-        call sethet(   j  , cza(:,:,j),  cht(:,j), &
-                       ttb,    checum,         cremrat, &
-                    chevap,        dtche,            rho, &
-             chib(:,:,j,:),      iym3,  cpsb(2:iym2,j))
-      end if
- 
-
-      end subroutine tractend2
+!       Wet Deposition for gasphase species 
+!!$
+        if ( igaschem == 1 ) then
+          call sethet(j,cza(:,:,j),cht(:,j),ttb,checum,cremrat, &
+                      chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(2:iym2,j))
+        end if
+      end do
+    end subroutine tractend2
 !
 
 
