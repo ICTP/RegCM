@@ -38,9 +38,7 @@
   use mod_che_dust
   use mod_che_seasalt
   use mod_che_carbonaer
-#ifdef MPP1
-  use mod_mppio
-#endif
+  use mod_che_mppio
   private
 
   public :: tractend2 , tracbud
@@ -309,15 +307,9 @@
       end do
     end subroutine tractend2
 !
-
-
-
-
-
-       subroutine conv_trans
+    subroutine conv_trans
+      implicit none
 !
-!
-       
 !!$      if ( ichcumtra.eq.2 ) then
 !!$        do k = 2 , kz
 !!$          do i = 2 , iym2
@@ -370,22 +362,9 @@
 !!$        end do
 !!$      end if
 !!$ 
-
-
       end subroutine conv_trans
 
-
-
-
       subroutine tracbud
-!
-#ifdef MPP1
-#ifndef IBM
-      use mpi
-#else 
-      include 'mpif.h'
-#endif 
-#endif
       implicit none
 !
 ! Local variables
@@ -393,15 +372,7 @@
       integer :: i , itr , j , k
 !
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             dtrace(i,j,itr) = 0.0
             wdlsc(i,j,itr) = 0.0
@@ -415,15 +386,7 @@
  
 !-----tracers (unit = kg):
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             do k = 1 , kz
               dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
@@ -450,15 +413,7 @@
 #endif
 
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             dtrace(i,j,itr) = 1.D6*dtrace(i,j,itr)*d_1000*regrav
                                                         ! unit: mg/m2
