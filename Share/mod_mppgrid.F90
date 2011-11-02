@@ -65,8 +65,8 @@ module mod_mppgrid
     integer , dimension(:) , pointer :: pgie
     integer , dimension(:) , pointer :: pgje
     integer , dimension(:) , pointer :: pgsize
-    real(sp) , pointer , dimension(:) :: excbuf2dr
     real(dp) , pointer , dimension(:) :: excbuf2dd
+    real(sp) , pointer , dimension(:) :: excbuf2dr
     integer , pointer , dimension(:) :: excbuf2di
     integer(2) , pointer , dimension(:) :: excbuf2ds
     logical , pointer , dimension(:) :: excbuf2dl
@@ -76,8 +76,10 @@ module mod_mppgrid
   type processor_domain
     integer :: p_i = mindimsize ! Local to processor i points
     integer :: p_j = mindimsize ! Local to processor j points
-    integer :: g_i1 = 1
-    integer :: g_j1 = 1
+    integer :: g_is = 1
+    integer :: g_js = 1
+    integer :: g_ie = 1
+    integer :: g_je = 1
     integer :: totalpoints ! Product of the above, calculate once
     integer :: cartesian_communicator = mpi_comm_world
     integer :: cartesian_rank = -1
@@ -100,6 +102,111 @@ module mod_mppgrid
     integer :: jcompend
     integer :: jcompnp
   end type procbounds
+
+  type global_boundary4d_d
+    real(dp) , pointer , dimension(:,:,:) :: north
+    real(dp) , pointer , dimension(:,:,:) :: south
+    real(dp) , pointer , dimension(:,:,:) :: east
+    real(dp) , pointer , dimension(:,:,:) :: west
+  end type global_boundary4d_d
+
+  type global_boundary3d_d
+    real(dp) , pointer , dimension(:,:) :: north
+    real(dp) , pointer , dimension(:,:) :: south
+    real(dp) , pointer , dimension(:,:) :: east
+    real(dp) , pointer , dimension(:,:) :: west
+  end type global_boundary3d_d
+
+  type global_boundary2d_d
+    real(dp) , pointer , dimension(:) :: north
+    real(dp) , pointer , dimension(:) :: south
+    real(dp) , pointer , dimension(:) :: east
+    real(dp) , pointer , dimension(:) :: west
+  end type global_boundary2d_d
+
+  type global_boundary4d_r
+    real(sp) , pointer , dimension(:,:,:) :: north
+    real(sp) , pointer , dimension(:,:,:) :: south
+    real(sp) , pointer , dimension(:,:,:) :: east
+    real(sp) , pointer , dimension(:,:,:) :: west
+  end type global_boundary4d_r
+
+  type global_boundary3d_r
+    real(sp) , pointer , dimension(:,:) :: north
+    real(sp) , pointer , dimension(:,:) :: south
+    real(sp) , pointer , dimension(:,:) :: east
+    real(sp) , pointer , dimension(:,:) :: west
+  end type global_boundary3d_r
+
+  type global_boundary2d_r
+    real(sp) , pointer , dimension(:) :: north
+    real(sp) , pointer , dimension(:) :: south
+    real(sp) , pointer , dimension(:) :: east
+    real(sp) , pointer , dimension(:) :: west
+  end type global_boundary2d_r
+
+  type global_boundary4d_i
+    integer , pointer , dimension(:,:,:) :: north
+    integer , pointer , dimension(:,:,:) :: south
+    integer , pointer , dimension(:,:,:) :: east
+    integer , pointer , dimension(:,:,:) :: west
+  end type global_boundary4d_i
+
+  type global_boundary3d_i
+    integer , pointer , dimension(:,:) :: north
+    integer , pointer , dimension(:,:) :: south
+    integer , pointer , dimension(:,:) :: east
+    integer , pointer , dimension(:,:) :: west
+  end type global_boundary3d_i
+
+  type global_boundary2d_i
+    integer , pointer , dimension(:) :: north
+    integer , pointer , dimension(:) :: south
+    integer , pointer , dimension(:) :: east
+    integer , pointer , dimension(:) :: west
+  end type global_boundary2d_i
+
+  type global_boundary4d_s
+    integer(2) , pointer , dimension(:,:,:) :: north
+    integer(2) , pointer , dimension(:,:,:) :: south
+    integer(2) , pointer , dimension(:,:,:) :: east
+    integer(2) , pointer , dimension(:,:,:) :: west
+  end type global_boundary4d_s
+
+  type global_boundary3d_s
+    integer(2) , pointer , dimension(:,:) :: north
+    integer(2) , pointer , dimension(:,:) :: south
+    integer(2) , pointer , dimension(:,:) :: east
+    integer(2) , pointer , dimension(:,:) :: west
+  end type global_boundary3d_s
+
+  type global_boundary2d_s
+    integer(2) , pointer , dimension(:) :: north
+    integer(2) , pointer , dimension(:) :: south
+    integer(2) , pointer , dimension(:) :: east
+    integer(2) , pointer , dimension(:) :: west
+  end type global_boundary2d_s
+
+  type global_boundary4d_l
+    logical , pointer , dimension(:,:,:) :: north
+    logical , pointer , dimension(:,:,:) :: south
+    logical , pointer , dimension(:,:,:) :: east
+    logical , pointer , dimension(:,:,:) :: west
+  end type global_boundary4d_l
+
+  type global_boundary3d_l
+    logical , pointer , dimension(:,:) :: north
+    logical , pointer , dimension(:,:) :: south
+    logical , pointer , dimension(:,:) :: east
+    logical , pointer , dimension(:,:) :: west
+  end type global_boundary3d_l
+
+  type global_boundary2d_l
+    logical , pointer , dimension(:) :: north
+    logical , pointer , dimension(:) :: south
+    logical , pointer , dimension(:) :: east
+    logical , pointer , dimension(:) :: west
+  end type global_boundary2d_l
 
   integer :: csize                                                          
   integer :: gsize                                                          
@@ -133,7 +240,6 @@ module mod_mppgrid
   type (model_domain) :: gspace
   type (processor_domain) :: pspace
   type (masternode) :: mnode
-  type (procbounds) , protected :: pbnds
 
   interface getgrid
     module procedure getgrid2d_d
@@ -259,13 +365,75 @@ module mod_mppgrid
     module procedure global_sum_i
   end interface global_sum
 
+  interface getbdy
+    module procedure getbdy2d_d
+    module procedure getbdy2d_r
+    module procedure getbdy2d_i
+    module procedure getbdy2d_s
+    module procedure getbdy2d_l
+    module procedure getbdy3d_d
+    module procedure getbdy3d_r
+    module procedure getbdy3d_i
+    module procedure getbdy3d_s
+    module procedure getbdy3d_l
+    module procedure getbdy4d_d
+    module procedure getbdy4d_r
+    module procedure getbdy4d_i
+    module procedure getbdy4d_s
+    module procedure getbdy4d_l
+  end interface getbdy
+
+  interface global_to_globbdy
+    module procedure global_to_globbdy2d_d
+    module procedure global_to_globbdy2d_r
+    module procedure global_to_globbdy2d_i
+    module procedure global_to_globbdy2d_s
+    module procedure global_to_globbdy2d_l
+    module procedure global_to_globbdy3d_d
+    module procedure global_to_globbdy3d_r
+    module procedure global_to_globbdy3d_i
+    module procedure global_to_globbdy3d_s
+    module procedure global_to_globbdy3d_l
+    module procedure global_to_globbdy4d_d
+    module procedure global_to_globbdy4d_r
+    module procedure global_to_globbdy4d_i
+    module procedure global_to_globbdy4d_s
+    module procedure global_to_globbdy4d_l
+  end interface global_to_globbdy
+
+  interface set_external
+    module procedure set_external2d_d
+    module procedure set_external2d_r
+    module procedure set_external2d_i
+    module procedure set_external2d_s
+    module procedure set_external2d_l
+    module procedure set_external3d_d
+    module procedure set_external3d_r
+    module procedure set_external3d_i
+    module procedure set_external3d_s
+    module procedure set_external3d_l
+    module procedure set_external4d_d
+    module procedure set_external4d_r
+    module procedure set_external4d_i
+    module procedure set_external4d_s
+    module procedure set_external4d_l
+  end interface set_external
+
+  type (procbounds) , protected :: pbnds
+
   public :: am_i_master , cantalk , toggle_mpi_debug
   public :: setup_domain , delete_domain
-  public :: getgrid
+  public :: getgrid , getbdy
   public :: exchange_internal
-  public :: global_to_proc , proc_to_global
+  public :: global_to_proc , proc_to_global , global_to_globbdy
   public :: master_to_nodes , nodes_to_master
+  public :: set_external
   public :: global_sum
+  public :: global_boundary4d_d , global_boundary3d_d , global_boundary2d_d
+  public :: global_boundary4d_r , global_boundary3d_r , global_boundary2d_r
+  public :: global_boundary4d_i , global_boundary3d_i , global_boundary2d_i
+  public :: global_boundary4d_s , global_boundary3d_s , global_boundary2d_s
+  public :: global_boundary4d_l , global_boundary3d_l , global_boundary2d_l
 
   contains
 
@@ -286,10 +454,11 @@ module mod_mppgrid
         if ( ierr /= 0 ) mpilogunit = stderr
         write(mpilogunit,'(a,i0)') 'Total CPUS      ', xproc%total_cpus
         write(mpilogunit,'(a,i0)') 'Global Rank     ', gspace%global_rank
-        write(mpilogunit,'(a,i0)') 'Global Start I  ', pspace%g_i1
-        write(mpilogunit,'(a,i0)') 'Global Start J  ', pspace%g_j1
+        write(mpilogunit,'(a,i0)') 'Global Start I  ', pspace%g_is
+        write(mpilogunit,'(a,i0)') 'Global Start J  ', pspace%g_js
         write(mpilogunit,'(a,i0)') 'Mine number I   ', pspace%p_i
         write(mpilogunit,'(a,i0)') 'Mine number J   ', pspace%p_j
+        write(mpilogunit,'(a,i0)') 'Totalpoints     ', pspace%totalpoints
         write(mpilogunit,'(a,i0)') 'BottomLeft CPU  ', pspace%lhb
         write(mpilogunit,'(a,i0)') 'Left CPU        ', pspace%lhs
         write(mpilogunit,'(a,i0)') 'TopLeft CPU     ', pspace%lht
@@ -320,7 +489,7 @@ module mod_mppgrid
       integer , intent(in) :: ni , nj , iband
       integer , intent(in) , optional :: comm
       integer :: ierr , jbi , jbj , imaxcpus , max_pi , max_pj , max_p
-      integer :: inode , maxec , maxcpu
+      integer :: inode , maxec , maxgbl , maxcpu
       integer , dimension(2) :: search_coord
       real :: dimfac
       if ( present(comm) ) then
@@ -395,8 +564,10 @@ module mod_mppgrid
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       jbj = gspace%g_j / xproc%cpus_per_dim(1)
       jbi = gspace%g_i / xproc%cpus_per_dim(2)
-      pspace%g_j1 = pspace%location(1) * jbj + 1
-      pspace%g_i1 = pspace%location(2) * jbi + 1
+      pspace%g_js = pspace%location(1) * jbj + 1
+      pspace%g_is = pspace%location(2) * jbi + 1
+      pspace%g_je = pspace%g_js + jbj - 1
+      pspace%g_ie = pspace%g_is + jbi - 1
       max_pj = xproc%cpus_per_dim(1) - 1
       max_pi = xproc%cpus_per_dim(2) - 1
       if ( pspace%location(1) == max_pj ) then
@@ -534,13 +705,11 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
             call mpi_recv(mnode%pgsize(inode),1,mpi_integer,inode,0, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-            mnode%pgie(inode) = mnode%pgie(inode)+mnode%pgis(inode)-1
-            mnode%pgje(inode) = mnode%pgje(inode)+mnode%pgjs(inode)-1
           else
-            mnode%pgis(inode) = pspace%g_i1
-            mnode%pgjs(inode) = pspace%g_j1
-            mnode%pgie(inode) = pspace%g_i1+pspace%p_i-1
-            mnode%pgje(inode) = pspace%g_j1+pspace%p_j-1
+            mnode%pgis(inode) = pspace%g_is
+            mnode%pgjs(inode) = pspace%g_js
+            mnode%pgie(inode) = pspace%g_ie
+            mnode%pgje(inode) = pspace%g_je
             mnode%pgsize(inode) = pspace%totalpoints
           end if
           if ( cantalk( ) .and. .false. ) then
@@ -554,29 +723,30 @@ module mod_mppgrid
           end if
         end do
         maxec = maxval(mnode%pgsize)
-        call getmem1d(mnode%excbuf2dr,1,maxec,__FILE__)
+        maxgbl = max(ni,nj)
         call getmem1d(mnode%excbuf2dd,1,maxec,__FILE__)
+        call getmem1d(mnode%excbuf2dr,1,maxec,__FILE__)
         call getmem1d(mnode%excbuf2di,1,maxec,__FILE__)
         call getmem1d(mnode%excbuf2ds,1,maxec,__FILE__)
         call getmem1d(mnode%excbuf2dl,1,maxec,__FILE__)
       else
-        call mpi_send(pspace%g_i1,1,mpi_integer,masterproc,0, &
+        call mpi_send(pspace%g_is,1,mpi_integer,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
-        call mpi_send(pspace%g_j1,1,mpi_integer,masterproc,0, &
+        call mpi_send(pspace%g_js,1,mpi_integer,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
-        call mpi_send(pspace%p_i,1,mpi_integer,masterproc,0, &
+        call mpi_send(pspace%g_ie,1,mpi_integer,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
-        call mpi_send(pspace%p_j,1,mpi_integer,masterproc,0, &
+        call mpi_send(pspace%g_je,1,mpi_integer,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
         call mpi_send(pspace%totalpoints,1,mpi_integer,masterproc,0, &
                       pspace%cartesian_communicator,ierr)
         if ( cantalk( ) .and. .false. ) then
           write(stdout, *) '###################################'
           write(stdout,'(a,i0)') 'CPU number: ', gspace%global_rank
-          write(stdout,'(a,i0)') 'Start   i : ', pspace%g_i1
-          write(stdout,'(a,i0)') 'End     i : ', pspace%g_i1+pspace%p_i-1
-          write(stdout,'(a,i0)') 'Start   j : ', pspace%g_j1
-          write(stdout,'(a,i0)') 'End     j : ', pspace%g_j1+pspace%p_j-1
+          write(stdout,'(a,i0)') 'Start   i : ', pspace%g_is
+          write(stdout,'(a,i0)') 'End     i : ', pspace%g_ie
+          write(stdout,'(a,i0)') 'Start   j : ', pspace%g_js
+          write(stdout,'(a,i0)') 'End     j : ', pspace%g_je
           write(stdout, *) '###################################'
         end if
       end if
@@ -2425,8 +2595,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
@@ -2448,8 +2618,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
@@ -2471,8 +2641,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
@@ -2494,8 +2664,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
@@ -2517,8 +2687,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
@@ -2540,8 +2710,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
@@ -2563,8 +2733,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
@@ -2586,8 +2756,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
@@ -2609,8 +2779,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
@@ -2632,8 +2802,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
@@ -2657,8 +2827,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2684,8 +2854,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2711,8 +2881,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2738,8 +2908,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2765,8 +2935,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2792,8 +2962,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2819,8 +2989,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2846,8 +3016,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2873,8 +3043,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2900,8 +3070,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
@@ -2930,8 +3100,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -2962,8 +3132,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -2994,8 +3164,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3026,8 +3196,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3058,8 +3228,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3090,8 +3260,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3122,8 +3292,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3154,8 +3324,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3186,8 +3356,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -3218,8 +3388,8 @@ module mod_mppgrid
         nii = ubound(l,2)
         njj = ubound(l,1)
       end if
-      lbgii = pspace%g_i1
-      lbgjj = pspace%g_j1
+      lbgii = pspace%g_is
+      lbgjj = pspace%g_js
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
@@ -5317,6 +5487,226 @@ module mod_mppgrid
       end if
     end subroutine nodes_to_master4d_l
 
+    subroutine getbdy2d_d(g,lstagger)
+      implicit none
+      type(global_boundary2d_d) , intent(inout) :: g
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem1d(g%north,j1,j2,__FILE__)
+      call getmem1d(g%south,j1,j2,__FILE__)
+      call getmem1d(g%east,i1,i2,__FILE__)
+      call getmem1d(g%west,i1,i2,__FILE__)
+    end subroutine getbdy2d_d
+
+    subroutine getbdy3d_d(g,k1,k2,lstagger)
+      implicit none
+      type(global_boundary3d_d) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
+      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+    end subroutine getbdy3d_d
+
+    subroutine getbdy4d_d(g,k1,k2,t1,t2,lstagger)
+      implicit none
+      type(global_boundary4d_d) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2 , t1 , t2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+    end subroutine getbdy4d_d
+
+    subroutine getbdy2d_r(g,lstagger)
+      implicit none
+      type(global_boundary2d_r) , intent(inout) :: g
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem1d(g%north,j1,j2,__FILE__)
+      call getmem1d(g%south,j1,j2,__FILE__)
+      call getmem1d(g%east,i1,i2,__FILE__)
+      call getmem1d(g%west,i1,i2,__FILE__)
+    end subroutine getbdy2d_r
+
+    subroutine getbdy3d_r(g,k1,k2,lstagger)
+      implicit none
+      type(global_boundary3d_r) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
+      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+    end subroutine getbdy3d_r
+
+    subroutine getbdy4d_r(g,k1,k2,t1,t2,lstagger)
+      implicit none
+      type(global_boundary4d_r) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2 , t1 , t2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+    end subroutine getbdy4d_r
+
+    subroutine getbdy2d_i(g,lstagger)
+      implicit none
+      type(global_boundary2d_i) , intent(inout) :: g
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem1d(g%north,j1,j2,__FILE__)
+      call getmem1d(g%south,j1,j2,__FILE__)
+      call getmem1d(g%east,i1,i2,__FILE__)
+      call getmem1d(g%west,i1,i2,__FILE__)
+    end subroutine getbdy2d_i
+
+    subroutine getbdy3d_i(g,k1,k2,lstagger)
+      implicit none
+      type(global_boundary3d_i) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
+      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+    end subroutine getbdy3d_i
+
+    subroutine getbdy4d_i(g,k1,k2,t1,t2,lstagger)
+      implicit none
+      type(global_boundary4d_i) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2 , t1 , t2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+    end subroutine getbdy4d_i
+
+    subroutine getbdy2d_s(g,lstagger)
+      implicit none
+      type(global_boundary2d_s) , intent(inout) :: g
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem1d(g%north,j1,j2,__FILE__)
+      call getmem1d(g%south,j1,j2,__FILE__)
+      call getmem1d(g%east,i1,i2,__FILE__)
+      call getmem1d(g%west,i1,i2,__FILE__)
+    end subroutine getbdy2d_s
+
+    subroutine getbdy3d_s(g,k1,k2,lstagger)
+      implicit none
+      type(global_boundary3d_s) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
+      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+    end subroutine getbdy3d_s
+
+    subroutine getbdy4d_s(g,k1,k2,t1,t2,lstagger)
+      implicit none
+      type(global_boundary4d_s) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2 , t1 , t2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+    end subroutine getbdy4d_s
+
+    subroutine getbdy2d_l(g,lstagger)
+      implicit none
+      type(global_boundary2d_l) , intent(inout) :: g
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem1d(g%north,j1,j2,__FILE__)
+      call getmem1d(g%south,j1,j2,__FILE__)
+      call getmem1d(g%east,i1,i2,__FILE__)
+      call getmem1d(g%west,i1,i2,__FILE__)
+    end subroutine getbdy2d_l
+
+    subroutine getbdy3d_l(g,k1,k2,lstagger)
+      implicit none
+      type(global_boundary3d_l) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
+      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
+      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+    end subroutine getbdy3d_l
+
+    subroutine getbdy4d_l(g,k1,k2,t1,t2,lstagger)
+      implicit none
+      type(global_boundary4d_l) , intent(inout) :: g
+      integer , intent(in) :: k1 , k2 , t1 , t2
+      logical , intent(in) , optional :: lstagger
+      logical :: isstagger = .false.
+      integer :: i1 , i2 , j1 , j2
+      if ( present(lstagger) )  isstagger  = lstagger
+      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+    end subroutine getbdy4d_l
+
     subroutine global_sum_d(s)
       implicit none
       real(dp) , intent(inout) :: s
@@ -5349,6 +5739,1771 @@ module mod_mppgrid
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       s = retval
     end subroutine global_sum_i
+
+    subroutine set_external2d_d(l,bdy)
+      implicit none
+      real(dp) , dimension(:,:) , pointer , intent(inout) :: l
+      type(global_boundary2d_d) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1) = bdy%south(pspace%g_js-1)
+            else
+              l(0,1) = bdy%south(gspace%g_j)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,1) = bdy%south(1)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+            else
+              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+      end if
+    end subroutine set_external2d_d
+
+    subroutine set_external2d_r(l,bdy)
+      implicit none
+      real(sp) , dimension(:,:) , pointer , intent(inout) :: l
+      type(global_boundary2d_r) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1) = bdy%south(pspace%g_js-1)
+            else
+              l(0,1) = bdy%south(gspace%g_j)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,1) = bdy%south(1)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+            else
+              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+      end if
+    end subroutine set_external2d_r
+
+    subroutine set_external2d_i(l,bdy)
+      implicit none
+      integer , dimension(:,:) , pointer , intent(inout) :: l
+      type(global_boundary2d_i) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1) = bdy%south(pspace%g_js-1)
+            else
+              l(0,1) = bdy%south(gspace%g_j)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,1) = bdy%south(1)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+            else
+              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+      end if
+    end subroutine set_external2d_i
+
+    subroutine set_external2d_s(l,bdy)
+      implicit none
+      integer(2) , dimension(:,:) , pointer , intent(inout) :: l
+      type(global_boundary2d_s) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1) = bdy%south(pspace%g_js-1)
+            else
+              l(0,1) = bdy%south(gspace%g_j)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,1) = bdy%south(1)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+            else
+              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+      end if
+    end subroutine set_external2d_s
+
+    subroutine set_external2d_l(l,bdy)
+      implicit none
+      logical , dimension(:,:) , pointer , intent(inout) :: l
+      type(global_boundary2d_l) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1) = bdy%south(pspace%g_js-1)
+            else
+              l(0,1) = bdy%south(gspace%g_j)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,1) = bdy%south(1)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+            else
+              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+            else
+              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          end if
+        end if
+      end if
+    end subroutine set_external2d_l
+
+    subroutine set_external3d_d(l,bdy)
+      implicit none
+      real(dp) , dimension(:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary3d_d) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+            else
+              l(0,1,:) = bdy%south(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+            else
+              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+      end if
+    end subroutine set_external3d_d
+
+    subroutine set_external3d_r(l,bdy)
+      implicit none
+      real(sp) , dimension(:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary3d_r) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+            else
+              l(0,1,:) = bdy%south(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+            else
+              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+      end if
+    end subroutine set_external3d_r
+
+    subroutine set_external3d_i(l,bdy)
+      implicit none
+      integer , dimension(:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary3d_i) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+            else
+              l(0,1,:) = bdy%south(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+            else
+              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+      end if
+    end subroutine set_external3d_i
+
+    subroutine set_external3d_s(l,bdy)
+      implicit none
+      integer(2) , dimension(:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary3d_s) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+            else
+              l(0,1,:) = bdy%south(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+            else
+              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+      end if
+    end subroutine set_external3d_s
+
+    subroutine set_external3d_l(l,bdy)
+      implicit none
+      logical , dimension(:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary3d_l) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+            else
+              l(0,1,:) = bdy%south(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+            else
+              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          end if
+        end if
+      end if
+    end subroutine set_external3d_l
+
+    subroutine set_external4d_d(l,bdy)
+      implicit none
+      real(dp) , dimension(:,:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary4d_d) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+            else
+              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+            else
+              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+      end if
+    end subroutine set_external4d_d
+
+    subroutine set_external4d_r(l,bdy)
+      implicit none
+      real(sp) , dimension(:,:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary4d_r) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+            else
+              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+            else
+              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+      end if
+    end subroutine set_external4d_r
+
+    subroutine set_external4d_i(l,bdy)
+      implicit none
+      integer , dimension(:,:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary4d_i) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+            else
+              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+            else
+              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+      end if
+    end subroutine set_external4d_i
+
+    subroutine set_external4d_s(l,bdy)
+      implicit none
+      integer(2) , dimension(:,:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary4d_s) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+            else
+              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+            else
+              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+      end if
+    end subroutine set_external4d_s
+
+    subroutine set_external4d_l(l,bdy)
+      implicit none
+      logical , dimension(:,:,:,:) , pointer , intent(inout) :: l
+      type(global_boundary4d_l) , intent(in) :: bdy
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__,'Calling set_externa before domain_setup')
+      end if
+      ! internal points
+      if ( pspace%btm == mpi_proc_null ) then
+        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+      end if
+      if ( pspace%lhs == mpi_proc_null ) then
+        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      if ( pspace%rhs == mpi_proc_null ) then
+        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      end if
+      ! exchange grid
+      if ( lbound(l,1) == 0 ) then
+        if ( pspace%btm == mpi_proc_null ) then
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+            else
+              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%top == mpi_proc_null ) then
+          if ( pspace%lhs /= mpi_proc_null ) then
+            if ( pspace%g_js-1 > 1 ) then
+              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+            else
+              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+            end if
+          end if
+          if ( pspace%rhs /= mpi_proc_null ) then
+            if ( pspace%g_je+1 <= gspace%g_j ) then
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+            else
+              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+            end if
+          end if
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          end if
+        end if
+      end if
+    end subroutine set_external4d_l
+
+    subroutine global_to_globbdy2d_d(bdy,g)
+      implicit none
+      type(global_boundary2d_d) , intent(out) :: bdy
+      real(dp) , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g)) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:) = g(:,1)
+        bdy%south(:) = g(:,gspace%g_i)
+        bdy%west(:) = g(1,:)
+        bdy%east(:) = g(gspace%g_j,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy2d_d
+
+    subroutine global_to_globbdy2d_r(bdy,g)
+      implicit none
+      type(global_boundary2d_r) , intent(out) :: bdy
+      real(sp) , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g)) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:) = g(:,1)
+        bdy%south(:) = g(:,gspace%g_i)
+        bdy%west(:) = g(1,:)
+        bdy%east(:) = g(gspace%g_j,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy2d_r
+
+    subroutine global_to_globbdy2d_i(bdy,g)
+      implicit none
+      type(global_boundary2d_i) , intent(out) :: bdy
+      integer , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g)) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:) = g(:,1)
+        bdy%south(:) = g(:,gspace%g_i)
+        bdy%west(:) = g(1,:)
+        bdy%east(:) = g(gspace%g_j,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy2d_i
+
+    subroutine global_to_globbdy2d_s(bdy,g)
+      implicit none
+      type(global_boundary2d_s) , intent(out) :: bdy
+      integer(2) , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g)) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:) = g(:,1)
+        bdy%south(:) = g(:,gspace%g_i)
+        bdy%west(:) = g(1,:)
+        bdy%east(:) = g(gspace%g_j,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy2d_s
+
+    subroutine global_to_globbdy2d_l(bdy,g)
+      implicit none
+      type(global_boundary2d_l) , intent(out) :: bdy
+      logical , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g)) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:) = g(:,1)
+        bdy%south(:) = g(:,gspace%g_i)
+        bdy%west(:) = g(1,:)
+        bdy%east(:) = g(gspace%g_j,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy2d_l
+
+    subroutine global_to_globbdy3d_d(bdy,g)
+      implicit none
+      type(global_boundary3d_d) , intent(out) :: bdy
+      real(dp) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      nk = size(g,3)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:) = g(:,1,:)
+        bdy%south(:,:) = g(:,gspace%g_i,:)
+        bdy%west(:,:) = g(1,:,:)
+        bdy%east(:,:) = g(gspace%g_j,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy3d_d
+
+    subroutine global_to_globbdy3d_r(bdy,g)
+      implicit none
+      type(global_boundary3d_r) , intent(out) :: bdy
+      real(sp) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      nk = size(g,3)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:) = g(:,1,:)
+        bdy%south(:,:) = g(:,gspace%g_i,:)
+        bdy%west(:,:) = g(1,:,:)
+        bdy%east(:,:) = g(gspace%g_j,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy3d_r
+
+    subroutine global_to_globbdy3d_i(bdy,g)
+      implicit none
+      type(global_boundary3d_i) , intent(out) :: bdy
+      integer , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      nk = size(g,3)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:) = g(:,1,:)
+        bdy%south(:,:) = g(:,gspace%g_i,:)
+        bdy%west(:,:) = g(1,:,:)
+        bdy%east(:,:) = g(gspace%g_j,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy3d_i
+
+    subroutine global_to_globbdy3d_s(bdy,g)
+      implicit none
+      type(global_boundary3d_s) , intent(out) :: bdy
+      integer(2) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      nk = size(g,3)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:) = g(:,1,:)
+        bdy%south(:,:) = g(:,gspace%g_i,:)
+        bdy%west(:,:) = g(1,:,:)
+        bdy%east(:,:) = g(gspace%g_j,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy3d_s
+
+    subroutine global_to_globbdy3d_l(bdy,g)
+      implicit none
+      type(global_boundary3d_l) , intent(out) :: bdy
+      logical , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      nk = size(g,3)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:) = g(:,1,:)
+        bdy%south(:,:) = g(:,gspace%g_i,:)
+        bdy%west(:,:) = g(1,:,:)
+        bdy%east(:,:) = g(gspace%g_j,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy3d_l
+
+    subroutine global_to_globbdy4d_d(bdy,g)
+      implicit none
+      type(global_boundary4d_d) , intent(out) :: bdy
+      real(dp) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk , t1 , t2 , nt
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      t1 = lbound(g,4)
+      t2 = ubound(g,4)
+      nk = size(g,3)
+      nt = size(g,4)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Fourth dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:,:) = g(:,1,:,:)
+        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
+        bdy%west(:,:,:) = g(1,:,:,:)
+        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_real8,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy4d_d
+
+    subroutine global_to_globbdy4d_r(bdy,g)
+      implicit none
+      type(global_boundary4d_r) , intent(out) :: bdy
+      real(sp) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk , t1 , t2 , nt
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      t1 = lbound(g,4)
+      t2 = ubound(g,4)
+      nk = size(g,3)
+      nt = size(g,4)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Fourth dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:,:) = g(:,1,:,:)
+        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
+        bdy%west(:,:,:) = g(1,:,:,:)
+        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_real4,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy4d_r
+
+    subroutine global_to_globbdy4d_i(bdy,g)
+      implicit none
+      type(global_boundary4d_i) , intent(out) :: bdy
+      integer , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk , t1 , t2 , nt
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      t1 = lbound(g,4)
+      t2 = ubound(g,4)
+      nk = size(g,3)
+      nt = size(g,4)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Fourth dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:,:) = g(:,1,:,:)
+        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
+        bdy%west(:,:,:) = g(1,:,:,:)
+        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_integer,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy4d_i
+
+    subroutine global_to_globbdy4d_s(bdy,g)
+      implicit none
+      type(global_boundary4d_s) , intent(out) :: bdy
+      integer(2) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk , t1 , t2 , nt
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      t1 = lbound(g,4)
+      t2 = ubound(g,4)
+      nk = size(g,3)
+      nt = size(g,4)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Fourth dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:,:) = g(:,1,:,:)
+        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
+        bdy%west(:,:,:) = g(1,:,:,:)
+        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_integer2,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy4d_s
+
+    subroutine global_to_globbdy4d_l(bdy,g)
+      implicit none
+      type(global_boundary4d_l) , intent(out) :: bdy
+      logical , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer :: k1 , k2 , nk , t1 , t2 , nt
+      integer :: ierr
+      if ( .not. is_setup ) then
+        call fatal(__FILE__,__LINE__, &
+          'Calling global_to_globbdy before domain_setup')
+      end if
+      k1 = lbound(g,3)
+      k2 = ubound(g,3)
+      t1 = lbound(g,4)
+      t2 = ubound(g,4)
+      nk = size(g,3)
+      nt = size(g,4)
+      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Vertical dimension mismatch in global_to_globbdy')
+      end if
+      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+        call fatal(__FILE__,__LINE__, &
+          'Fourth dimension mismatch in global_to_globbdy')
+      end if
+      if ( present(g) ) then
+        if ( .not. am_i_master( ) ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non master node using global_to_globbdy as master')
+        end if
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
+          call fatal(__FILE__,__LINE__, &
+          'Non global data in global_to_globbdy from master')
+        end if
+        bdy%north(:,:,:) = g(:,1,:,:)
+        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
+        bdy%west(:,:,:) = g(1,:,:,:)
+        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+      end if
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_logical,masterproc, &
+                     pspace%cartesian_communicator,ierr)
+      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+    end subroutine global_to_globbdy4d_l
 
     subroutine mpi_fatal(f,l,iecode)
       implicit none
