@@ -65,8 +65,8 @@ LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LCUMLIB) \
 bin_PROGRAMS = regcm
 
 regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
-                mod_advection.F90 mod_bdycod.F90 mod_che_tend.F90 \
-                mod_diffusion.F90 mod_che_interface.F90 mod_rad_interface.f90 \
+                mod_advection.F90 mod_bdycod.F90 mod_diffusion.F90 \
+                mod_che_interface.F90 mod_rad_interface.f90 \
                 mod_pbl_interface.F90 mod_init.F90 mod_atm_interface.f90 \
                 mod_precip.f90 mod_mppio.F90 mod_ncio.F90 mod_output.F90 \
                 mod_params.F90 mod_runparams.F90 mod_savefile.F90 \
@@ -110,11 +110,6 @@ mod_bdycod.o: mod_bdycod.F90 mod_runparams.o mod_atm_interface.o \
   mod_lm_interface.o mod_che_interface.o mod_ncio.o mod_mppio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_che_interface.o: mod_che_interface.F90 $(CHELIB)
-mod_che_tend.o: mod_che_tend.F90 mod_atm_interface.o mod_che_interface.o \
-  mod_lm_interface.o mod_runparams.o mod_pbl_interface.o mod_rad_interface.o \
-  mod_diffusion.o mod_precip.o mod_advection.o mod_diagnosis.o \
-  mod_mppio.o mod_slice.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_rad_interface.o: mod_rad_interface.f90 mod_lm_interface.o \
   mod_atm_interface.o mod_che_interface.o $(RADLIB)
 mod_cu_interface.o: mod_cu_interface.f90 mod_atm_interface.o $(CUMLIB)
@@ -162,7 +157,7 @@ mod_tendency.o: mod_tendency.F90 mod_bdycod.o mod_cu_interface.o \
   mod_atm_interface.o mod_precip.o mod_runparams.o mod_rad_interface.o \
   mod_slice.o mod_sun.o mod_precip.o mod_pbl_interface.o \
   mod_diagnosis.o mod_diffusion.o mod_advection.o mod_che_interface.o \
-  mod_che_tend.o mod_lm_interface.o
+  mod_lm_interface.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_tstep.o: mod_tstep.f90 mod_runparams.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o

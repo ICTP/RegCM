@@ -2178,16 +2178,21 @@ module mod_tendency
 !
 !   do cumulus transport of tracers
     if ( ichem == 1 .and. ichcumtra == 1 ) call cumtran
-#ifndef BAND
 ! 
 !   trace the mass conservation of dry air and water substance:
 !
+#ifndef BAND
     if (debug_level > 2) call conmas
 #endif
 !
 !   budgets for tracers
 !
-    if ( ichem == 1 ) call tracbud
+    if ( ichem == 1 ) then
+      call tracbud
+#ifndef BAND
+      if (debug_level > 2) call contrac
+#endif
+    end if
 !
 !   print out noise parameter:
 !

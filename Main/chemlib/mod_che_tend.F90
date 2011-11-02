@@ -23,8 +23,6 @@
 !
   use mod_constants
   use mod_dynparam
-  use mod_diagnosis 
-! use mod_runparams
   use mod_che_common
   use mod_che_indices
   use mod_che_param
@@ -407,10 +405,6 @@
           end do
         end do
       end do
-
-#ifndef BAND
-      if (debug_level > 2) call contrac
-#endif
 
       do itr = 1 , ntr
         do j = 1 , jendx
