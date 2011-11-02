@@ -488,8 +488,8 @@
             models(i)%dataImport(3,j)%name = 'Qair'
             models(i)%dataImport(3,j)%long_name = &
             'Surface Air Specific Humidity'
-            models(i)%dataImport(3,j)%units = 'kg/kg'
-            models(i)%dataImport(3,j)%scale_factor = 1.0d0 
+            models(i)%dataImport(3,j)%units = 'g/kg'
+            models(i)%dataImport(3,j)%scale_factor = 1.0d3
             models(i)%dataImport(3,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(4,j)%fid = 4
@@ -796,7 +796,7 @@
       end do
       end function getMeshId
 !
-      subroutine print_matrix_r8(inp, iskip, jskip, pet, header)
+      subroutine print_matrix_r8(inp, iskip, jskip, pet, id, header)
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -804,7 +804,7 @@
 !-----------------------------------------------------------------------
 !
       real*8, intent(in) :: inp(:,:)
-      integer, intent(in) ::  iskip, jskip, pet
+      integer, intent(in) ::  iskip, jskip, pet, id
       character(len=*), intent(in) :: header
 !
 !-----------------------------------------------------------------------
@@ -825,12 +825,12 @@
 !
       write(6, fmt="('PET(',I2,') - ',A)") pet, trim(header)
 !
-      write(fmt_123, fmt="('(/, 5X, ', I3, 'I10)')") (jmax-jmin)+1
-      write(6, fmt=trim(fmt_123))  (j, j=jmin, jmax, jskip)
+      write(fmt_123, fmt="('(/, 5X, ', I3, 'I10)')") (imax-imin)+1
+      write(id, fmt=trim(fmt_123))  (i, i=imin, imax, iskip)
 !   
-      write(fmt_123, fmt="('(I5, ', I3, 'F10.2)')") jmax
-      do i=imin, imax, iskip
-        write(6, fmt=trim(fmt_123)) i, (inp(i,j),j=jmin, jmax, jskip)
+      write(fmt_123, fmt="('(I5, ', I3, 'F10.2)')") imax
+      do j=jmin, jmax, jskip
+        write(id, fmt=trim(fmt_123)) j, (inp(i,j),i=imin, imax, iskip)
       end do
 !
       return

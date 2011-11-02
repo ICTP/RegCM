@@ -1570,6 +1570,7 @@ module mod_rad_radiation
       if ( dabs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
       if ( dabs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
       if ( dabs(po2(ns)) > dlowval ) psf = psf*po2(ns)
+      sfltot = d_zero
       do n = 1 , nloop
         do j = js(n) , je(n)
           solflx(j) = solin(j)*frcsol(ns)*psf

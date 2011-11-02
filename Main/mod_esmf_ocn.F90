@@ -103,7 +103,7 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_param, only : BOUNDS, Ngrids
+      use mod_param, only : BOUNDS, Ngrids, NtileI, NtileJ
       use ocean_coupler_mod, only : allocate_atm2ocn, initialize_atm2ocn
 !
       implicit none
@@ -123,7 +123,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, comm, ierr, n 
+      integer :: localPet, petCount, comm, ierr, tile, n 
       integer :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
@@ -156,13 +156,14 @@
 !     Allocate exchange arrays 
 !-----------------------------------------------------------------------
 !
+      tile = localPet ! 0
       do n = 1, Ngrids
-        LBi = BOUNDS(n)%LBi(localPet)
-        UBi = BOUNDS(n)%UBi(localPet)
-        LBj = BOUNDS(n)%LBj(localPet)
-        UBj = BOUNDS(n)%UBj(localPet)
+        LBi = BOUNDS(n)%LBi(tile)
+        UBi = BOUNDS(n)%UBi(tile)
+        LBj = BOUNDS(n)%LBj(tile)
+        UBj = BOUNDS(n)%UBj(tile)
         call allocate_atm2ocn (n, LBi, UBi, LBj, UBj)      
-        call initialize_atm2ocn (n, LBi, UBi, LBj, UBj)
+        call initialize_atm2ocn (n, tile)
       end do
 !
 !-----------------------------------------------------------------------
@@ -674,6 +675,7 @@
       integer :: IstrV, IendV, JstrV, JendV     
       integer :: staggerEdgeLWidth(2)
       integer :: staggerEdgeUWidth(2)
+      integer, allocatable :: deLabelList(:)
 !
       type(ESMF_Decomp_Flag) :: deCompFlag(2)
       type(ESMF_StaggerLoc) :: staggerLoc
@@ -723,12 +725,23 @@
 !
       deCompFlag = (/ ESMF_DECOMP_RESTFIRST, ESMF_DECOMP_RESTFIRST /)
 !
+!      if (.not. allocated(deLabelList)) then
+!        allocate(deLabelList(NtileI(n)*NtileJ(n)))
+!      end if
+!      do j = 1, NtileJ(n)
+!        do i = 1, NtileI(n)
+!          deLabelList((j-1)*NtileI(n)+i) = ((i-1)*NtileJ(n))+j-1 
+!        end do
+!      end do
+!
       models(Iocean)%distGrid(n) = ESMF_DistGridCreate (                &
                                    minIndex=(/ 1, 1 /),                 &
                                    maxIndex=(/ Lm(n), Mm(n) /),         &
                                    regDecomp=(/ NtileI(n), NtileJ(n) /),&
                                    decompflag=deCompFlag,               &
+!                                   deLabelList=deLabelList,             &
                                    rc=rc)
+      call ESMF_DistGridPrint(models(Iocean)%distGrid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -740,7 +753,6 @@
         if (rc /= ESMF_SUCCESS) then
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if
-        call ESMF_DistGridPrint(models(Iocean)%distGrid(n), rc=rc)
         if (rc /= ESMF_SUCCESS) then
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if
@@ -1024,18 +1036,14 @@
       JstrV = BOUNDS(ng)%Jstr(localPet)
       JendV = BOUNDS(ng)%JendR(localPet)
 !
-!      do tile=0,NtileI(ng)*NtileJ(ng)-1
-!        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
-!        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
-!        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
-!        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
-!      end do
-!      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
-!      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
-       TLW(1) = BOUNDS(ng)%IstrR(localPet)-BOUNDS(ng)%LBi (localPet)
-       TLW(2) = BOUNDS(ng)%JstrR(localPet)-BOUNDS(ng)%LBj (localPet)
-       TUW(1) = BOUNDS(ng)%UBi (localPet)-BOUNDS(ng)%IendR(localPet)
-       TUW(2) = BOUNDS(ng)%UBj (localPet)-BOUNDS(ng)%JendR(localPet)
+      do tile=0,NtileI(ng)*NtileJ(ng)-1
+        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
+        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
+        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
+        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
+      end do
+      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
+      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
 !
 !-----------------------------------------------------------------------
 !     Create export state arrays.
@@ -1307,7 +1315,42 @@
       end select
 !
 !-----------------------------------------------------------------------
-!     Debug: write field to file    
+!     Debug: write field to ASCII file    
+!-----------------------------------------------------------------------
+!
+!        write(*,80) localPet, j, 'R-0', LBi, UBi, LBj, UBj 
+        write(*,70) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
+        write(*,70) localPet, j, 'R-2', &
+                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
+                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
+                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=2), &
+                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=2)
+        write(*,70) localPet, j, 'R-3', &
+                    lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
+                    ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
+                    lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2), &
+                    ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2)
+!
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
+            'ocn_export',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour,                                   &
+            localPet
+!
+      open(unit=99, file = trim(outfile)) 
+      call print_matrix_r8(models(Iocean)%dataExport(k,ng)%ptr,         &
+                           1, 1, localPet, 99, "ESMF_PTR")
+      call print_matrix_r8(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp),       &
+                           1, 1, localPet, 99, "RDATA")
+      close(unit=99)
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to NetCDF file    
 !-----------------------------------------------------------------------
 !
       write(outfile,                                                    &
@@ -1330,6 +1373,7 @@
 !-----------------------------------------------------------------------
 !     
  60   format(' PET (', I2, ') - ', 2I4, ' - ', 2F15.4)
+ 70   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success
@@ -1476,76 +1520,92 @@
 !
       select case (trim(adjustl(name)))
       case ('Tair')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%Tair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('Qair')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%Qair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('Pair')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%Pair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do 
         end do
       case ('swrad')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%swrad(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('lwrad_down')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%lwrad_down(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('rain')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
+        do jj = LBj, UBj
+          do ii = LBi, UBi
             rdata(ng)%rain(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('Uwind')
-        do jj = JstrR, JendR
-          do ii = IstrR, IendR
-            rdata(ng)%Uwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        do jj = LBj, UBj
+          do ii = LBi, UBi
+          rdata(ng)%Uwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
       case ('Vwind')
-        !do jj = JstrR, JendR
-        !  do ii = IstrR, IendR
-        !    rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
-        !  end do
-        !end do
-        rdata(ng)%Vwind = (ptr*scale_factor)+add_offset
-        !write(*,80) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
-        !write(*,80) localPet, j, 'R-2', &
-        !            lbound(ptr, dim=1), &
-        !            ubound(ptr, dim=1), &
-        !            lbound(ptr, dim=2), &
-        !            ubound(ptr, dim=2)
-        !write(*,80) localPet, j, 'R-3', &
-        !            lbound(rdata(ng)%Vwind, dim=1), &
-        !            ubound(rdata(ng)%Vwind, dim=1), &
-        !            lbound(rdata(ng)%Vwind, dim=2), &
-        !            ubound(rdata(ng)%Vwind, dim=2)
-        !if (localPet == 0) then
-        !call print_matrix_r8(ptr, 1, 1, localPet, "PTR")
-        !call ESMF_Finalize(endflag=ESMF_END_ABORT)
-        !end if
-        !call print_matrix_r8(rdata(ng)%Vwind, 5, 5, localPet, "RDATA")
-        !, rdata(ng)%Vwind(IstrR:IendR,JstrR:JendR) 
+        do jj = LBj, UBj
+          do ii = LBi, UBi 
+          rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+!        rdata(ng)%Vwind = (ptr*scale_factor)+add_offset
+
+!        write(*,80) localPet, j, 'R-0', LBi, UBi, LBj, UBj 
+!        write(*,80) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
+!        write(*,80) localPet, j, 'R-2', &
+!                    lbound(ptr, dim=1), &
+!                    ubound(ptr, dim=1), &
+!                    lbound(ptr, dim=2), &
+!                    ubound(ptr, dim=2)
+!        write(*,80) localPet, j, 'R-3', &
+!                    lbound(rdata(ng)%Vwind, dim=1), &
+!                    ubound(rdata(ng)%Vwind, dim=1), &
+!                    lbound(rdata(ng)%Vwind, dim=2), &
+!                    ubound(rdata(ng)%Vwind, dim=2)
       end select
       end do
 !
 !-----------------------------------------------------------------------
-!     Debug: write field to file    
+!     Debug: write field to ASCII file    
+!-----------------------------------------------------------------------
+!
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
+            'ocn_import',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour,                                   &
+            localPet
+!
+!      open(unit=99, file = trim(outfile)) 
+!      call print_matrix_r8(ptr, 1, 1, localPet, 99, "ESMF_PTR")
+!      call print_matrix_r8(rdata(ng)%Vwind, 1, 1, localPet, 99, "RDATA")
+!      close(unit=99)
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to NetCDF file    
 !-----------------------------------------------------------------------
 !
       write(outfile,                                                    &
