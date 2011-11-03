@@ -104,112 +104,130 @@ module mod_mppgrid
   end type procbounds
 
   type global_boundary4d_d
+    real(dp) , pointer , dimension(:,:,:,:) :: north
+    real(dp) , pointer , dimension(:,:,:,:) :: south
+    real(dp) , pointer , dimension(:,:,:,:) :: east
+    real(dp) , pointer , dimension(:,:,:,:) :: west
+  end type global_boundary4d_d
+
+  type global_boundary3d_d
     real(dp) , pointer , dimension(:,:,:) :: north
     real(dp) , pointer , dimension(:,:,:) :: south
     real(dp) , pointer , dimension(:,:,:) :: east
     real(dp) , pointer , dimension(:,:,:) :: west
-  end type global_boundary4d_d
+  end type global_boundary3d_d
 
-  type global_boundary3d_d
+  type global_boundary2d_d
     real(dp) , pointer , dimension(:,:) :: north
     real(dp) , pointer , dimension(:,:) :: south
     real(dp) , pointer , dimension(:,:) :: east
     real(dp) , pointer , dimension(:,:) :: west
-  end type global_boundary3d_d
-
-  type global_boundary2d_d
-    real(dp) , pointer , dimension(:) :: north
-    real(dp) , pointer , dimension(:) :: south
-    real(dp) , pointer , dimension(:) :: east
-    real(dp) , pointer , dimension(:) :: west
   end type global_boundary2d_d
 
   type global_boundary4d_r
+    real(sp) , pointer , dimension(:,:,:,:) :: north
+    real(sp) , pointer , dimension(:,:,:,:) :: south
+    real(sp) , pointer , dimension(:,:,:,:) :: east
+    real(sp) , pointer , dimension(:,:,:,:) :: west
+  end type global_boundary4d_r
+
+  type global_boundary3d_r
     real(sp) , pointer , dimension(:,:,:) :: north
     real(sp) , pointer , dimension(:,:,:) :: south
     real(sp) , pointer , dimension(:,:,:) :: east
     real(sp) , pointer , dimension(:,:,:) :: west
-  end type global_boundary4d_r
+  end type global_boundary3d_r
 
-  type global_boundary3d_r
+  type global_boundary2d_r
     real(sp) , pointer , dimension(:,:) :: north
     real(sp) , pointer , dimension(:,:) :: south
     real(sp) , pointer , dimension(:,:) :: east
     real(sp) , pointer , dimension(:,:) :: west
-  end type global_boundary3d_r
-
-  type global_boundary2d_r
-    real(sp) , pointer , dimension(:) :: north
-    real(sp) , pointer , dimension(:) :: south
-    real(sp) , pointer , dimension(:) :: east
-    real(sp) , pointer , dimension(:) :: west
   end type global_boundary2d_r
 
   type global_boundary4d_i
+    integer , pointer , dimension(:,:,:,:) :: north
+    integer , pointer , dimension(:,:,:,:) :: south
+    integer , pointer , dimension(:,:,:,:) :: east
+    integer , pointer , dimension(:,:,:,:) :: west
+  end type global_boundary4d_i
+
+  type global_boundary3d_i
     integer , pointer , dimension(:,:,:) :: north
     integer , pointer , dimension(:,:,:) :: south
     integer , pointer , dimension(:,:,:) :: east
     integer , pointer , dimension(:,:,:) :: west
-  end type global_boundary4d_i
+  end type global_boundary3d_i
 
-  type global_boundary3d_i
+  type global_boundary2d_i
     integer , pointer , dimension(:,:) :: north
     integer , pointer , dimension(:,:) :: south
     integer , pointer , dimension(:,:) :: east
     integer , pointer , dimension(:,:) :: west
-  end type global_boundary3d_i
-
-  type global_boundary2d_i
-    integer , pointer , dimension(:) :: north
-    integer , pointer , dimension(:) :: south
-    integer , pointer , dimension(:) :: east
-    integer , pointer , dimension(:) :: west
   end type global_boundary2d_i
 
   type global_boundary4d_s
+    integer(2) , pointer , dimension(:,:,:,:) :: north
+    integer(2) , pointer , dimension(:,:,:,:) :: south
+    integer(2) , pointer , dimension(:,:,:,:) :: east
+    integer(2) , pointer , dimension(:,:,:,:) :: west
+  end type global_boundary4d_s
+
+  type global_boundary3d_s
     integer(2) , pointer , dimension(:,:,:) :: north
     integer(2) , pointer , dimension(:,:,:) :: south
     integer(2) , pointer , dimension(:,:,:) :: east
     integer(2) , pointer , dimension(:,:,:) :: west
-  end type global_boundary4d_s
+  end type global_boundary3d_s
 
-  type global_boundary3d_s
+  type global_boundary2d_s
     integer(2) , pointer , dimension(:,:) :: north
     integer(2) , pointer , dimension(:,:) :: south
     integer(2) , pointer , dimension(:,:) :: east
     integer(2) , pointer , dimension(:,:) :: west
-  end type global_boundary3d_s
-
-  type global_boundary2d_s
-    integer(2) , pointer , dimension(:) :: north
-    integer(2) , pointer , dimension(:) :: south
-    integer(2) , pointer , dimension(:) :: east
-    integer(2) , pointer , dimension(:) :: west
   end type global_boundary2d_s
 
   type global_boundary4d_l
+    logical , pointer , dimension(:,:,:,:) :: north
+    logical , pointer , dimension(:,:,:,:) :: south
+    logical , pointer , dimension(:,:,:,:) :: east
+    logical , pointer , dimension(:,:,:,:) :: west
+  end type global_boundary4d_l
+
+  type global_boundary3d_l
     logical , pointer , dimension(:,:,:) :: north
     logical , pointer , dimension(:,:,:) :: south
     logical , pointer , dimension(:,:,:) :: east
     logical , pointer , dimension(:,:,:) :: west
-  end type global_boundary4d_l
+  end type global_boundary3d_l
 
-  type global_boundary3d_l
+  type global_boundary2d_l
     logical , pointer , dimension(:,:) :: north
     logical , pointer , dimension(:,:) :: south
     logical , pointer , dimension(:,:) :: east
     logical , pointer , dimension(:,:) :: west
-  end type global_boundary3d_l
-
-  type global_boundary2d_l
-    logical , pointer , dimension(:) :: north
-    logical , pointer , dimension(:) :: south
-    logical , pointer , dimension(:) :: east
-    logical , pointer , dimension(:) :: west
   end type global_boundary2d_l
 
-  integer :: csize                                                          
-  integer :: gsize                                                          
+  integer :: csize = 0
+  integer :: gsize = 0
+  integer :: bdysize = 0
+  integer :: btmbdy1 = 0
+  integer :: btmbdy2 = 0
+  integer :: topbdy1 = 0
+  integer :: topbdy2 = 0
+  integer :: lhsbdy1 = 0
+  integer :: lhsbdy2 = 0
+  integer :: rhsbdy1 = 0
+  integer :: rhsbdy2 = 0
+  integer :: gbtmbdy1 = 0
+  integer :: gbtmbdy2 = 0
+  integer :: gtopbdy1 = 0
+  integer :: gtopbdy2 = 0
+  integer :: glhsbdy1 = 0
+  integer :: glhsbdy2 = 0
+  integer :: grhsbdy1 = 0
+  integer :: grhsbdy2 = 0
+  logical :: jperiodic = .false.
   real(sp) , dimension(1) :: sndcrnpr
   real(sp) , dimension(1) :: rcvcrnpr
   real(sp) , pointer , dimension(:) :: sndbuf1dr
@@ -484,9 +502,9 @@ module mod_mppgrid
       am_i_master = (gspace%global_rank == masterproc)
     end function am_i_master
 
-    subroutine setup_domain(ni,nj,iband,comm)
+    subroutine setup_domain(ni,nj,nbdy,iband,comm)
       implicit none
-      integer , intent(in) :: ni , nj , iband
+      integer , intent(in) :: ni , nj , nbdy , iband
       integer , intent(in) , optional :: comm
       integer :: ierr , jbi , jbj , imaxcpus , max_pi , max_pj , max_p
       integer :: inode , maxec , maxgbl , maxcpu
@@ -551,6 +569,7 @@ module mod_mppgrid
       end if
       if ( iband == 1 ) then
         xproc%dim_period(1) = .true.
+        jperiodic = .true.
       end if
       call mpi_cart_create(gspace%global_communicator,2,               &
                            xproc%cpus_per_dim,xproc%dim_period,.true., &
@@ -757,6 +776,35 @@ module mod_mppgrid
       call getmem1d(excbuf2dl,1,pspace%totalpoints,__FILE__)
       if ( cantalk( ) .and. .false. ) then
         write(stdout, *) '----------------------------------------------'
+      end if
+      bdysize = nbdy
+      if ( pspace%btm == mpi_proc_null ) then
+        btmbdy1 = 1
+        btmbdy2 = bdysize
+      end if
+      if ( pspace%top == mpi_proc_null ) then
+        topbdy1 = pspace%p_i-bdysize+1
+        topbdy2 = pspace%p_i
+      end if
+      if ( .not. jperiodic ) then
+        if ( pspace%rhs == mpi_proc_null ) then
+          rhsbdy1 = pspace%p_j-bdysize+1
+          rhsbdy2 = pspace%p_j
+        end if
+        if ( pspace%lhs == mpi_proc_null ) then
+          lhsbdy1 = 1
+          lhsbdy2 = bdysize
+        end if
+      end if
+      gbtmbdy1 = 1
+      gbtmbdy2 = bdysize
+      gtopbdy1 = gspace%g_i-bdysize+1
+      gtopbdy2 = gspace%g_i
+      if ( .not. jperiodic ) then
+        grhsbdy1 = gspace%g_j-bdysize+1
+        grhsbdy2 = gspace%g_j
+        glhsbdy1 = 1
+        glhsbdy2 = bdysize
       end if
       is_setup = .true.
     end subroutine setup_domain
@@ -4040,8 +4088,8 @@ module mod_mppgrid
           'Master node using master_to_nodes as non master')
         end if
         do k = k1 , k2
-          call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          call mpi_recv(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc, &
+                        0,pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
           do i = 1 , pspace%p_i
@@ -4391,8 +4439,9 @@ module mod_mppgrid
                     icount = icount + 1
                   end do
                 end do
-                call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
-                              inode,0,pspace%cartesian_communicator,ierr)
+                call mpi_send(mnode%excbuf2ds,mnode%pgsize(inode), &
+                              mpi_integer2,inode,0, &
+                              pspace%cartesian_communicator,ierr)
                 if ( ierr /= mpi_success ) then
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
@@ -5029,8 +5078,8 @@ module mod_mppgrid
               icount = icount + 1
             end do
           end do
-          call mpi_send(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc,0, &
-                        pspace%cartesian_communicator,ierr)
+          call mpi_send(excbuf2ds,pspace%totalpoints,mpi_integer2,masterproc, &
+                        0,pspace%cartesian_communicator,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         end do
       end if
@@ -5369,8 +5418,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do t = gt1 , gt2
               do k = gk1 , gk2
-                call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode),mpi_integer2, &
-                              inode,0,pspace%cartesian_communicator, &
+                call mpi_recv(mnode%excbuf2ds,mnode%pgsize(inode), &
+                              mpi_integer2,inode,0, &
+                              pspace%cartesian_communicator, &
                               mpi_status_ignore,ierr)
                 if ( ierr /= mpi_success ) then
                   call mpi_fatal(__FILE__,__LINE__,ierr)
@@ -5495,10 +5545,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem1d(g%north,j1,j2,__FILE__)
-      call getmem1d(g%south,j1,j2,__FILE__)
-      call getmem1d(g%east,i1,i2,__FILE__)
-      call getmem1d(g%west,i1,i2,__FILE__)
+      call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
+      call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem2d(g%east,1,bdysize,i1,i2,__FILE__)
+        call getmem2d(g%west,1,bdysize,i1,i2,__FILE__)
+      end if
     end subroutine getbdy2d_d
 
     subroutine getbdy3d_d(g,k1,k2,lstagger)
@@ -5510,10 +5562,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
-      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+      call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
+      call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem3d(g%east,1,bdysize,i1,i2,k1,k2,__FILE__)
+        call getmem3d(g%west,1,bdysize,i1,i2,k1,k2,__FILE__)
+      end if
     end subroutine getbdy3d_d
 
     subroutine getbdy4d_d(g,k1,k2,t1,t2,lstagger)
@@ -5525,10 +5579,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem4d(g%east,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+        call getmem4d(g%west,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+      end if
     end subroutine getbdy4d_d
 
     subroutine getbdy2d_r(g,lstagger)
@@ -5539,10 +5595,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem1d(g%north,j1,j2,__FILE__)
-      call getmem1d(g%south,j1,j2,__FILE__)
-      call getmem1d(g%east,i1,i2,__FILE__)
-      call getmem1d(g%west,i1,i2,__FILE__)
+      call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
+      call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem2d(g%east,1,bdysize,i1,i2,__FILE__)
+        call getmem2d(g%west,1,bdysize,i1,i2,__FILE__)
+      end if
     end subroutine getbdy2d_r
 
     subroutine getbdy3d_r(g,k1,k2,lstagger)
@@ -5554,10 +5612,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
-      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+      call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
+      call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem3d(g%east,1,bdysize,i1,i2,k1,k2,__FILE__)
+        call getmem3d(g%west,1,bdysize,i1,i2,k1,k2,__FILE__)
+      end if
     end subroutine getbdy3d_r
 
     subroutine getbdy4d_r(g,k1,k2,t1,t2,lstagger)
@@ -5569,10 +5629,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem4d(g%east,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+        call getmem4d(g%west,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+      end if
     end subroutine getbdy4d_r
 
     subroutine getbdy2d_i(g,lstagger)
@@ -5583,10 +5645,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem1d(g%north,j1,j2,__FILE__)
-      call getmem1d(g%south,j1,j2,__FILE__)
-      call getmem1d(g%east,i1,i2,__FILE__)
-      call getmem1d(g%west,i1,i2,__FILE__)
+      call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
+      call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem2d(g%east,1,bdysize,i1,i2,__FILE__)
+        call getmem2d(g%west,1,bdysize,i1,i2,__FILE__)
+      end if
     end subroutine getbdy2d_i
 
     subroutine getbdy3d_i(g,k1,k2,lstagger)
@@ -5598,10 +5662,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
-      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+      call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
+      call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem3d(g%east,1,bdysize,i1,i2,k1,k2,__FILE__)
+        call getmem3d(g%west,1,bdysize,i1,i2,k1,k2,__FILE__)
+      end if
     end subroutine getbdy3d_i
 
     subroutine getbdy4d_i(g,k1,k2,t1,t2,lstagger)
@@ -5613,10 +5679,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem4d(g%east,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+        call getmem4d(g%west,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+      end if
     end subroutine getbdy4d_i
 
     subroutine getbdy2d_s(g,lstagger)
@@ -5627,10 +5695,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem1d(g%north,j1,j2,__FILE__)
-      call getmem1d(g%south,j1,j2,__FILE__)
-      call getmem1d(g%east,i1,i2,__FILE__)
-      call getmem1d(g%west,i1,i2,__FILE__)
+      call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
+      call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem2d(g%east,1,bdysize,i1,i2,__FILE__)
+        call getmem2d(g%west,1,bdysize,i1,i2,__FILE__)
+      end if
     end subroutine getbdy2d_s
 
     subroutine getbdy3d_s(g,k1,k2,lstagger)
@@ -5642,10 +5712,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
-      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+      call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
+      call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem3d(g%east,1,bdysize,i1,i2,k1,k2,__FILE__)
+        call getmem3d(g%west,1,bdysize,i1,i2,k1,k2,__FILE__)
+      end if
     end subroutine getbdy3d_s
 
     subroutine getbdy4d_s(g,k1,k2,t1,t2,lstagger)
@@ -5657,10 +5729,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem4d(g%east,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+        call getmem4d(g%west,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+      end if
     end subroutine getbdy4d_s
 
     subroutine getbdy2d_l(g,lstagger)
@@ -5671,10 +5745,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem1d(g%north,j1,j2,__FILE__)
-      call getmem1d(g%south,j1,j2,__FILE__)
-      call getmem1d(g%east,i1,i2,__FILE__)
-      call getmem1d(g%west,i1,i2,__FILE__)
+      call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
+      call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem2d(g%east,1,bdysize,i1,i2,__FILE__)
+        call getmem2d(g%west,1,bdysize,i1,i2,__FILE__)
+      end if
     end subroutine getbdy2d_l
 
     subroutine getbdy3d_l(g,k1,k2,lstagger)
@@ -5686,10 +5762,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem2d(g%north,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%south,j1,j2,k1,k2,__FILE__)
-      call getmem2d(g%east,i1,i2,k1,k2,__FILE__)
-      call getmem2d(g%west,i1,i2,k1,k2,__FILE__)
+      call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
+      call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem3d(g%east,1,bdysize,i1,i2,k1,k2,__FILE__)
+        call getmem3d(g%west,1,bdysize,i1,i2,k1,k2,__FILE__)
+      end if
     end subroutine getbdy3d_l
 
     subroutine getbdy4d_l(g,k1,k2,t1,t2,lstagger)
@@ -5701,10 +5779,12 @@ module mod_mppgrid
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
-      call getmem3d(g%north,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%south,j1,j2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%east,i1,i2,k1,k2,t1,t2,__FILE__)
-      call getmem3d(g%west,i1,i2,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
+      if ( .not. jperiodic ) then
+        call getmem4d(g%east,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+        call getmem4d(g%west,1,bdysize,i1,i2,k1,k2,t1,t2,__FILE__)
+      end if
     end subroutine getbdy4d_l
 
     subroutine global_sum_d(s)
@@ -5749,65 +5829,69 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,btmbdy1:btmbdy2) = bdy%south(pspace%g_js:pspace%g_je,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,topbdy1:topbdy2) = bdy%north(pspace%g_js:pspace%g_je,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i) = bdy%west(:,pspace%g_is:pspace%g_ie)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i) = bdy%east(:,pspace%g_is:pspace%g_ie)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1) = bdy%south(pspace%g_js-1)
+              l(0,btmbdy1:btmbdy2) = bdy%south(pspace%g_js-1,:)
             else
-              l(0,1) = bdy%south(gspace%g_j)
+              l(0,btmbdy1:btmbdy2) = bdy%south(gspace%g_j,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,1) = bdy%south(1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(1,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+              l(0,topbdy1:topbdy2) = bdy%north(pspace%g_js-1,:)
             else
-              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+              l(0,topbdy1:topbdy2) = bdy%north(gspace%g_j,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(1,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0) = bdy%west(pspace%g_is-1)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
         end if
       end if
@@ -5822,65 +5906,69 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,btmbdy1:btmbdy2) = bdy%south(pspace%g_js:pspace%g_je,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,topbdy1:topbdy2) = bdy%north(pspace%g_js:pspace%g_je,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i) = bdy%west(:,pspace%g_is:pspace%g_ie)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i) = bdy%east(:,pspace%g_is:pspace%g_ie)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1) = bdy%south(pspace%g_js-1)
+              l(0,btmbdy1:btmbdy2) = bdy%south(pspace%g_js-1,:)
             else
-              l(0,1) = bdy%south(gspace%g_j)
+              l(0,btmbdy1:btmbdy2) = bdy%south(gspace%g_j,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,1) = bdy%south(1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(1,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+              l(0,topbdy1:topbdy2) = bdy%north(pspace%g_js-1,:)
             else
-              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+              l(0,topbdy1:topbdy2) = bdy%north(gspace%g_j,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(1,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0) = bdy%west(pspace%g_is-1)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
         end if
       end if
@@ -5895,65 +5983,69 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,btmbdy1:btmbdy2) = bdy%south(pspace%g_js:pspace%g_je,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,topbdy1:topbdy2) = bdy%north(pspace%g_js:pspace%g_je,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i) = bdy%west(:,pspace%g_is:pspace%g_ie)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i) = bdy%east(:,pspace%g_is:pspace%g_ie)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1) = bdy%south(pspace%g_js-1)
+              l(0,btmbdy1:btmbdy2) = bdy%south(pspace%g_js-1,:)
             else
-              l(0,1) = bdy%south(gspace%g_j)
+              l(0,btmbdy1:btmbdy2) = bdy%south(gspace%g_j,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,1) = bdy%south(1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(1,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+              l(0,topbdy1:topbdy2) = bdy%north(pspace%g_js-1,:)
             else
-              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+              l(0,topbdy1:topbdy2) = bdy%north(gspace%g_j,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(1,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0) = bdy%west(pspace%g_is-1)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
         end if
       end if
@@ -5968,65 +6060,69 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,btmbdy1:btmbdy2) = bdy%south(pspace%g_js:pspace%g_je,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,topbdy1:topbdy2) = bdy%north(pspace%g_js:pspace%g_je,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i) = bdy%west(:,pspace%g_is:pspace%g_ie)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i) = bdy%east(:,pspace%g_is:pspace%g_ie)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1) = bdy%south(pspace%g_js-1)
+              l(0,btmbdy1:btmbdy2) = bdy%south(pspace%g_js-1,:)
             else
-              l(0,1) = bdy%south(gspace%g_j)
+              l(0,btmbdy1:btmbdy2) = bdy%south(gspace%g_j,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,1) = bdy%south(1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(1,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+              l(0,topbdy1:topbdy2) = bdy%north(pspace%g_js-1,:)
             else
-              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+              l(0,topbdy1:topbdy2) = bdy%north(gspace%g_j,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(1,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0) = bdy%west(pspace%g_is-1)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
         end if
       end if
@@ -6041,65 +6137,69 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1) = bdy%south(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,btmbdy1:btmbdy2) = bdy%south(pspace%g_js:pspace%g_je,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i) = bdy%north(pspace%g_js:pspace%g_je)
+        l(1:pspace%p_j,topbdy1:topbdy2) = bdy%north(pspace%g_js:pspace%g_je,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i) = bdy%west(pspace%g_is:pspace%g_ie)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i) = bdy%east(pspace%g_is:pspace%g_ie)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i) = bdy%west(:,pspace%g_is:pspace%g_ie)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i) = bdy%east(:,pspace%g_is:pspace%g_ie)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1) = bdy%south(pspace%g_js-1)
+              l(0,btmbdy1:btmbdy2) = bdy%south(pspace%g_js-1,:)
             else
-              l(0,1) = bdy%south(gspace%g_j)
+              l(0,btmbdy1:btmbdy2) = bdy%south(gspace%g_j,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1) = bdy%south(pspace%g_je+1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,1) = bdy%south(1)
+              l(pspace%p_j+1,btmbdy1:btmbdy2) = bdy%south(1,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i) = bdy%north(pspace%g_js-1)
+              l(0,topbdy1:topbdy2) = bdy%north(pspace%g_js-1,:)
             else
-              l(0,pspace%p_i) = bdy%north(gspace%g_j)
+              l(0,topbdy1:topbdy2) = bdy%north(gspace%g_j,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(pspace%g_je+1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(pspace%g_je+1,:)
             else
-              l(pspace%p_j+1,pspace%p_i) = bdy%north(1)
+              l(pspace%p_j+1,topbdy1:topbdy2) = bdy%north(1,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0) = bdy%west(pspace%g_is-1)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0) = bdy%west(pspace%g_is-1)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1) = bdy%east(pspace%g_ie+1)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0) = bdy%west(:,pspace%g_is-1)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1) = bdy%east(:,pspace%g_ie+1)
+            end if
           end if
         end if
       end if
@@ -6114,65 +6214,73 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_js-1,:,:)
             else
-              l(0,1,:) = bdy%south(gspace%g_j,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(1,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(pspace%g_js-1,:,:)
             else
-              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(1,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
         end if
       end if
@@ -6187,65 +6295,73 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_js-1,:,:)
             else
-              l(0,1,:) = bdy%south(gspace%g_j,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(1,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(pspace%g_js-1,:,:)
             else
-              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(1,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
         end if
       end if
@@ -6260,65 +6376,73 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_js-1,:,:)
             else
-              l(0,1,:) = bdy%south(gspace%g_j,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(1,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(pspace%g_js-1,:,:)
             else
-              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(1,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
         end if
       end if
@@ -6333,65 +6457,73 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_js-1,:,:)
             else
-              l(0,1,:) = bdy%south(gspace%g_j,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(1,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(pspace%g_js-1,:,:)
             else
-              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(1,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
         end if
       end if
@@ -6406,65 +6538,73 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:) = bdy%south(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:) = bdy%north(pspace%g_js:pspace%g_je,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:) = bdy%west(pspace%g_is:pspace%g_ie,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:) = bdy%east(pspace%g_is:pspace%g_ie,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:) = bdy%south(pspace%g_js-1,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_js-1,:,:)
             else
-              l(0,1,:) = bdy%south(gspace%g_j,:)
+              l(0,btmbdy1:btmbdy2,:) = bdy%south(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:) = bdy%south(pspace%g_je+1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,1,:) = bdy%south(1,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:) = bdy%south(1,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:) = bdy%north(pspace%g_js-1,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(pspace%g_js-1,:,:)
             else
-              l(0,pspace%p_i,:) = bdy%north(gspace%g_j,:)
+              l(0,topbdy1:topbdy2,:) = bdy%north(gspace%g_j,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(pspace%g_je+1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(pspace%g_je+1,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:) = bdy%north(1,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:) = bdy%north(1,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:) = bdy%west(pspace%g_is-1,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:) = bdy%west(pspace%g_is-1,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:) = bdy%east(pspace%g_ie+1,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:) = bdy%west(:,pspace%g_is-1,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:) = bdy%east(:,pspace%g_ie+1,:)
+            end if
           end if
         end if
       end if
@@ -6479,65 +6619,77 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(pspace%g_js-1,:,:,:)
             else
-              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = &
+                          bdy%south(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = bdy%south(1,:,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(pspace%g_js-1,:,:,:)
             else
-              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = &
+                          bdy%north(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = bdy%north(1,:,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
         end if
       end if
@@ -6552,65 +6704,77 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(pspace%g_js-1,:,:,:)
             else
-              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = &
+                          bdy%south(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = bdy%south(1,:,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(pspace%g_js-1,:,:,:)
             else
-              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = &
+                          bdy%north(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = bdy%north(1,:,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
         end if
       end if
@@ -6625,65 +6789,77 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(pspace%g_js-1,:,:,:)
             else
-              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = &
+                          bdy%south(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = bdy%south(1,:,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(pspace%g_js-1,:,:,:)
             else
-              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = &
+                          bdy%north(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = bdy%north(1,:,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
         end if
       end if
@@ -6698,65 +6874,77 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(pspace%g_js-1,:,:,:)
             else
-              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = &
+                          bdy%south(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = bdy%south(1,:,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(pspace%g_js-1,:,:,:)
             else
-              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = &
+                          bdy%north(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = bdy%north(1,:,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
         end if
       end if
@@ -6771,65 +6959,77 @@ module mod_mppgrid
       end if
       ! internal points
       if ( pspace%btm == mpi_proc_null ) then
-        l(1:pspace%p_j,1,:,:) = bdy%south(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,btmbdy1:btmbdy2,:,:) = &
+                      bdy%south(pspace%g_js:pspace%g_je,:,:,:)
       end if
       if ( pspace%top == mpi_proc_null ) then
-        l(1:pspace%p_j,pspace%p_i,:,:) = bdy%north(pspace%g_js:pspace%g_je,:,:)
+        l(1:pspace%p_j,topbdy1:topbdy2,:,:) = &
+                      bdy%north(pspace%g_js:pspace%g_je,:,:,:)
       end if
-      if ( pspace%lhs == mpi_proc_null ) then
-        l(1,1:pspace%p_i,:,:) = bdy%west(pspace%g_is:pspace%g_ie,:,:)
-      end if
-      if ( pspace%rhs == mpi_proc_null ) then
-        l(pspace%p_j,1:pspace%p_i,:,:) = bdy%east(pspace%g_is:pspace%g_ie,:,:)
+      if ( .not. jperiodic ) then
+        if ( pspace%lhs == mpi_proc_null ) then
+          l(lhsbdy1:lhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%west(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
+        if ( pspace%rhs == mpi_proc_null ) then
+          l(rhsbdy1:rhsbdy2,1:pspace%p_i,:,:) = &
+                      bdy%east(:,pspace%g_is:pspace%g_ie,:,:)
+        end if
       end if
       ! exchange grid
       if ( lbound(l,1) == 0 ) then
         if ( pspace%btm == mpi_proc_null ) then
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,1,:,:) = bdy%south(pspace%g_js-1,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(pspace%g_js-1,:,:,:)
             else
-              l(0,1,:,:) = bdy%south(gspace%g_j,:,:)
+              l(0,btmbdy1:btmbdy2,:,:) = bdy%south(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,1,:,:) = bdy%south(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = &
+                          bdy%south(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,1,:,:) = bdy%south(1,:,:)
+              l(pspace%p_j+1,btmbdy1:btmbdy2,:,:) = bdy%south(1,:,:,:)
             end if
           end if
         end if
         if ( pspace%top == mpi_proc_null ) then
           if ( pspace%lhs /= mpi_proc_null ) then
             if ( pspace%g_js-1 > 1 ) then
-              l(0,pspace%p_i,:,:) = bdy%north(pspace%g_js-1,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(pspace%g_js-1,:,:,:)
             else
-              l(0,pspace%p_i,:,:) = bdy%north(gspace%g_j,:,:)
+              l(0,topbdy1:topbdy2,:,:) = bdy%north(gspace%g_j,:,:,:)
             end if
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
             if ( pspace%g_je+1 <= gspace%g_j ) then
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(pspace%g_je+1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = &
+                          bdy%north(pspace%g_je+1,:,:,:)
             else
-              l(pspace%p_j+1,pspace%p_i,:,:) = bdy%north(1,:,:)
+              l(pspace%p_j+1,topbdy1:topbdy2,:,:) = bdy%north(1,:,:,:)
             end if
           end if
         end if
-        if ( pspace%lhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1,0,:,:) = bdy%west(pspace%g_is-1,:,:)
+        if ( .not. jperiodic ) then
+          if ( pspace%lhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(lhsbdy1:lhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
-          end if
-        end if
-        if ( pspace%rhs == mpi_proc_null ) then
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(pspace%p_j,0,:,:) = bdy%west(pspace%g_is-1,:,:)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            l(pspace%p_j,pspace%p_i+1,:,:) = bdy%east(pspace%g_ie+1,:,:)
+          if ( pspace%rhs == mpi_proc_null ) then
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,0,:,:) = bdy%west(:,pspace%g_is-1,:,:)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              l(rhsbdy1:rhsbdy2,pspace%p_i+1,:,:) = &
+                          bdy%east(:,pspace%g_ie+1,:,:)
+            end if
           end if
         end if
       end if
@@ -6853,23 +7053,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:) = g(:,1)
-        bdy%south(:) = g(:,gspace%g_i)
-        bdy%west(:) = g(1,:)
-        bdy%east(:) = g(gspace%g_j,:)
+        bdy%north(:,:) = g(:,gtopbdy1:gtopbdy2)
+        bdy%south(:,:) = g(:,gbtmbdy1:gbtmbdy2)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:) = g(glhsbdy1:glhsbdy2,:)
+          bdy%east(:,:) = g(grhsbdy1:grhsbdy2,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i,mpi_real8,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*bdysize,mpi_real8,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i,mpi_real8,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*bdysize,mpi_real8,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*bdysize,mpi_real8,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*bdysize,mpi_real8,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy2d_d
 
     subroutine global_to_globbdy2d_r(bdy,g)
@@ -6890,23 +7094,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:) = g(:,1)
-        bdy%south(:) = g(:,gspace%g_i)
-        bdy%west(:) = g(1,:)
-        bdy%east(:) = g(gspace%g_j,:)
+        bdy%north(:,:) = g(:,gtopbdy1:gtopbdy2)
+        bdy%south(:,:) = g(:,gbtmbdy1:gbtmbdy2)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:) = g(glhsbdy1:glhsbdy2,:)
+          bdy%east(:,:) = g(grhsbdy1:grhsbdy2,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i,mpi_real4,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*bdysize,mpi_real4,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i,mpi_real4,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*bdysize,mpi_real4,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*bdysize,mpi_real4,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*bdysize,mpi_real4,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy2d_r
 
     subroutine global_to_globbdy2d_i(bdy,g)
@@ -6927,23 +7135,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:) = g(:,1)
-        bdy%south(:) = g(:,gspace%g_i)
-        bdy%west(:) = g(1,:)
-        bdy%east(:) = g(gspace%g_j,:)
+        bdy%north(:,:) = g(:,gtopbdy1:gtopbdy2)
+        bdy%south(:,:) = g(:,gbtmbdy1:gbtmbdy2)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:) = g(glhsbdy1:glhsbdy2,:)
+          bdy%east(:,:) = g(grhsbdy1:grhsbdy2,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i,mpi_integer,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*bdysize,mpi_integer,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i,mpi_integer,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*bdysize,mpi_integer,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic) then
+        call mpi_bcast(bdy%east,gspace%g_j*bdysize,mpi_integer,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*bdysize,mpi_integer,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy2d_i
 
     subroutine global_to_globbdy2d_s(bdy,g)
@@ -6964,23 +7176,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:) = g(:,1)
-        bdy%south(:) = g(:,gspace%g_i)
-        bdy%west(:) = g(1,:)
-        bdy%east(:) = g(gspace%g_j,:)
+        bdy%north(:,:) = g(:,gtopbdy1:gtopbdy2)
+        bdy%south(:,:) = g(:,gbtmbdy1:gbtmbdy2)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:) = g(glhsbdy1:glhsbdy2,:)
+          bdy%east(:,:) = g(grhsbdy1:grhsbdy2,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i,mpi_integer2,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*bdysize,mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i,mpi_integer2,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*bdysize,mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*bdysize,mpi_integer2,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*bdysize,mpi_integer2,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy2d_s
 
     subroutine global_to_globbdy2d_l(bdy,g)
@@ -7001,23 +7217,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:) = g(:,1)
-        bdy%south(:) = g(:,gspace%g_i)
-        bdy%west(:) = g(1,:)
-        bdy%east(:) = g(gspace%g_j,:)
+        bdy%north(:,:) = g(:,gtopbdy1:gtopbdy2)
+        bdy%south(:,:) = g(:,gbtmbdy1:gbtmbdy2)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:) = g(glhsbdy1:glhsbdy2,:)
+          bdy%east(:,:) = g(grhsbdy1:grhsbdy2,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i,mpi_logical,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*bdysize,mpi_logical,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i,mpi_logical,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*bdysize,mpi_logical,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*bdysize,mpi_logical,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*bdysize,mpi_logical,masterproc,  &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy2d_l
 
     subroutine global_to_globbdy3d_d(bdy,g)
@@ -7033,7 +7253,7 @@ module mod_mppgrid
       k1 = lbound(g,3)
       k2 = ubound(g,3)
       nk = size(g,3)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
@@ -7046,23 +7266,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:) = g(:,1,:)
-        bdy%south(:,:) = g(:,gspace%g_i,:)
-        bdy%west(:,:) = g(1,:,:)
-        bdy%east(:,:) = g(gspace%g_j,:,:)
+        bdy%north(:,:,:) = g(:,gtopbdy1:gtopbdy2,:)
+        bdy%south(:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:) = g(glhsbdy1:glhsbdy2,:,:)
+          bdy%east(:,:,:) = g(grhsbdy1:grhsbdy2,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_real8,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*nk*bdysize,mpi_real8,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_real8,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*nk*bdysize,mpi_real8,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*bdysize,mpi_real8,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*bdysize,mpi_real8,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy3d_d
 
     subroutine global_to_globbdy3d_r(bdy,g)
@@ -7078,7 +7302,7 @@ module mod_mppgrid
       k1 = lbound(g,3)
       k2 = ubound(g,3)
       nk = size(g,3)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
@@ -7091,23 +7315,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:) = g(:,1,:)
-        bdy%south(:,:) = g(:,gspace%g_i,:)
-        bdy%west(:,:) = g(1,:,:)
-        bdy%east(:,:) = g(gspace%g_j,:,:)
+        bdy%north(:,:,:) = g(:,gtopbdy1:gtopbdy2,:)
+        bdy%south(:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:) = g(glhsbdy1:glhsbdy2,:,:)
+          bdy%east(:,:,:) = g(grhsbdy1:grhsbdy2,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_real4,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*nk*bdysize,mpi_real4,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_real4,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*nk*bdysize,mpi_real4,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*bdysize,mpi_real4,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*bdysize,mpi_real4,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy3d_r
 
     subroutine global_to_globbdy3d_i(bdy,g)
@@ -7123,7 +7351,7 @@ module mod_mppgrid
       k1 = lbound(g,3)
       k2 = ubound(g,3)
       nk = size(g,3)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
@@ -7136,23 +7364,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:) = g(:,1,:)
-        bdy%south(:,:) = g(:,gspace%g_i,:)
-        bdy%west(:,:) = g(1,:,:)
-        bdy%east(:,:) = g(gspace%g_j,:,:)
+        bdy%north(:,:,:) = g(:,gtopbdy1:gtopbdy2,:)
+        bdy%south(:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:) = g(glhsbdy1:glhsbdy2,:,:)
+          bdy%east(:,:,:) = g(grhsbdy1:grhsbdy2,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_integer,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*nk*bdysize,mpi_integer,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_integer,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*nk*bdysize,mpi_integer,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*bdysize,mpi_integer,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*bdysize,mpi_integer,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy3d_i
 
     subroutine global_to_globbdy3d_s(bdy,g)
@@ -7168,7 +7400,7 @@ module mod_mppgrid
       k1 = lbound(g,3)
       k2 = ubound(g,3)
       nk = size(g,3)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
@@ -7181,23 +7413,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:) = g(:,1,:)
-        bdy%south(:,:) = g(:,gspace%g_i,:)
-        bdy%west(:,:) = g(1,:,:)
-        bdy%east(:,:) = g(gspace%g_j,:,:)
+        bdy%north(:,:,:) = g(:,gtopbdy1:gtopbdy2,:)
+        bdy%south(:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:) = g(glhsbdy1:glhsbdy2,:,:)
+          bdy%east(:,:,:) = g(grhsbdy1:grhsbdy2,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_integer2,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*nk*bdysize,mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_integer2,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*nk*bdysize,mpi_integer2,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*bdysize,mpi_integer2,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*bdysize,mpi_integer2,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy3d_s
 
     subroutine global_to_globbdy3d_l(bdy,g)
@@ -7213,7 +7449,7 @@ module mod_mppgrid
       k1 = lbound(g,3)
       k2 = ubound(g,3)
       nk = size(g,3)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
@@ -7226,23 +7462,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:) = g(:,1,:)
-        bdy%south(:,:) = g(:,gspace%g_i,:)
-        bdy%west(:,:) = g(1,:,:)
-        bdy%east(:,:) = g(gspace%g_j,:,:)
+        bdy%north(:,:,:) = g(:,gtopbdy1:gtopbdy2,:)
+        bdy%south(:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:) = g(glhsbdy1:glhsbdy2,:,:)
+          bdy%east(:,:,:) = g(grhsbdy1:grhsbdy2,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk,mpi_logical,masterproc, &
+      call mpi_bcast(bdy%north,gspace%g_i*nk*bdysize,mpi_logical,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk,mpi_logical,masterproc, &
+      call mpi_bcast(bdy%south,gspace%g_i*nk*bdysize,mpi_logical,masterproc, &
                      pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*bdysize,mpi_logical,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*bdysize,mpi_logical,masterproc, &
+                       pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy3d_l
 
     subroutine global_to_globbdy4d_d(bdy,g)
@@ -7261,11 +7501,11 @@ module mod_mppgrid
       t2 = ubound(g,4)
       nk = size(g,3)
       nt = size(g,4)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+      if ( t1 /= lbound(bdy%north,4) .or. t2 /= ubound(bdy%north,4) ) then
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
@@ -7278,23 +7518,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:,:) = g(:,1,:,:)
-        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
-        bdy%west(:,:,:) = g(1,:,:,:)
-        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+        bdy%north(:,:,:,:) = g(:,gtopbdy1:gtopbdy2,:,:)
+        bdy%south(:,:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:,:) = g(glhsbdy1:glhsbdy2,:,:,:)
+          bdy%east(:,:,:,:) = g(grhsbdy1:grhsbdy2,:,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt*bdysize,mpi_real8, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt*bdysize,mpi_real8, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_real8,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*nt*bdysize,mpi_real8, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*nt*bdysize,mpi_real8, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy4d_d
 
     subroutine global_to_globbdy4d_r(bdy,g)
@@ -7313,11 +7557,11 @@ module mod_mppgrid
       t2 = ubound(g,4)
       nk = size(g,3)
       nt = size(g,4)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+      if ( t1 /= lbound(bdy%north,4) .or. t2 /= ubound(bdy%north,4) ) then
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
@@ -7330,23 +7574,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:,:) = g(:,1,:,:)
-        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
-        bdy%west(:,:,:) = g(1,:,:,:)
-        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+        bdy%north(:,:,:,:) = g(:,gtopbdy1:gtopbdy2,:,:)
+        bdy%south(:,:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:,:) = g(glhsbdy1:glhsbdy2,:,:,:)
+          bdy%east(:,:,:,:) = g(grhsbdy1:grhsbdy2,:,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt*bdysize,mpi_real4, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt*bdysize,mpi_real4, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_real4,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*nt*bdysize,mpi_real4, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*nt*bdysize,mpi_real4, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy4d_r
 
     subroutine global_to_globbdy4d_i(bdy,g)
@@ -7365,11 +7613,11 @@ module mod_mppgrid
       t2 = ubound(g,4)
       nk = size(g,3)
       nt = size(g,4)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+      if ( t1 /= lbound(bdy%north,4) .or. t2 /= ubound(bdy%north,4) ) then
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
@@ -7382,23 +7630,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:,:) = g(:,1,:,:)
-        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
-        bdy%west(:,:,:) = g(1,:,:,:)
-        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+        bdy%north(:,:,:,:) = g(:,gtopbdy1:gtopbdy2,:,:)
+        bdy%south(:,:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:,:) = g(glhsbdy1:glhsbdy2,:,:,:)
+          bdy%east(:,:,:,:) = g(grhsbdy1:grhsbdy2,:,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt*bdysize,mpi_integer, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt*bdysize,mpi_integer, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_integer,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*nt*bdysize,mpi_integer, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*nt*bdysize,mpi_integer, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy4d_i
 
     subroutine global_to_globbdy4d_s(bdy,g)
@@ -7417,11 +7669,11 @@ module mod_mppgrid
       t2 = ubound(g,4)
       nk = size(g,3)
       nt = size(g,4)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+      if ( t1 /= lbound(bdy%north,4) .or. t2 /= ubound(bdy%north,4) ) then
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
@@ -7434,23 +7686,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:,:) = g(:,1,:,:)
-        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
-        bdy%west(:,:,:) = g(1,:,:,:)
-        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+        bdy%north(:,:,:,:) = g(:,gtopbdy1:gtopbdy2,:,:)
+        bdy%south(:,:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:,:) = g(glhsbdy1:glhsbdy2,:,:,:)
+          bdy%east(:,:,:,:) = g(grhsbdy1:grhsbdy2,:,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt*bdysize,mpi_integer2, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt*bdysize,mpi_integer2, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_integer2,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*nt*bdysize,mpi_integer2, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*nt*bdysize,mpi_integer2, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy4d_s
 
     subroutine global_to_globbdy4d_l(bdy,g)
@@ -7469,11 +7725,11 @@ module mod_mppgrid
       t2 = ubound(g,4)
       nk = size(g,3)
       nt = size(g,4)
-      if ( k1 /= lbound(bdy%north,2) .or. k2 /= ubound(bdy%north,2) ) then
+      if ( k1 /= lbound(bdy%north,3) .or. k2 /= ubound(bdy%north,3) ) then
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( t1 /= lbound(bdy%north,3) .or. t2 /= ubound(bdy%north,3) ) then
+      if ( t1 /= lbound(bdy%north,4) .or. t2 /= ubound(bdy%north,4) ) then
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
@@ -7486,23 +7742,27 @@ module mod_mppgrid
           call fatal(__FILE__,__LINE__, &
           'Non global data in global_to_globbdy from master')
         end if
-        bdy%north(:,:,:) = g(:,1,:,:)
-        bdy%south(:,:,:) = g(:,gspace%g_i,:,:)
-        bdy%west(:,:,:) = g(1,:,:,:)
-        bdy%east(:,:,:) = g(gspace%g_j,:,:,:)
+        bdy%north(:,:,:,:) = g(:,gtopbdy1:gtopbdy2,:,:)
+        bdy%south(:,:,:,:) = g(:,gbtmbdy1:gbtmbdy2,:,:)
+        if ( .not. jperiodic ) then
+          bdy%west(:,:,:,:) = g(glhsbdy1:glhsbdy2,:,:,:)
+          bdy%east(:,:,:,:) = g(grhsbdy1:grhsbdy2,:,:,:)
+        end if
       end if
-      call mpi_bcast(bdy%north,gspace%g_i*nk*nt,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%north,gspace%g_i*nk*nt*bdysize,mpi_logical, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%south,gspace%g_i*nk*nt,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
+      call mpi_bcast(bdy%south,gspace%g_i*nk*nt*bdysize,mpi_logical, &
+                     masterproc,pspace%cartesian_communicator,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%east,gspace%g_j*nk*nt,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      call mpi_bcast(bdy%west,gspace%g_j*nk*nt,mpi_logical,masterproc, &
-                     pspace%cartesian_communicator,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      if ( .not. jperiodic ) then
+        call mpi_bcast(bdy%east,gspace%g_j*nk*nt*bdysize,mpi_logical, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        call mpi_bcast(bdy%west,gspace%g_j*nk*nt*bdysize,mpi_logical, &
+                       masterproc,pspace%cartesian_communicator,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+      end if
     end subroutine global_to_globbdy4d_l
 
     subroutine mpi_fatal(f,l,iecode)
