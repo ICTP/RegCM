@@ -24,7 +24,7 @@ module mod_bdycod
 ! large domain.
 ! Relaxation and Sponge Boundary Conditions routines
 !
-  use mod_runparams
+  use mod_dynparam
   use mod_mppparam
   use mod_memutil
   use mod_atm_interface

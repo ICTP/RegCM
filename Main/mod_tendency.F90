@@ -1362,7 +1362,7 @@ module mod_tendency
       end do
     end do
 !
-!       compute the diffusion term for t and store in difft:
+!   compute the diffusion term for t and store in difft:
 !
     do k = 1 , kz
       do i = 1 , iym1
@@ -1373,7 +1373,7 @@ module mod_tendency
       end do
     end do
 !
-    call diffu_x(jbegin,jendx,2,iym1,adf%difft,atms%tb3d,sps2%ps,xkc,kz)
+    call diffu_x(jbegin,jendx,2,iym2,adf%difft,atms%tb3d,sps2%ps,xkc,kz)
 !
 !   compute the moisture tendencies:
 !
@@ -1444,8 +1444,8 @@ module mod_tendency
 !     completing aten%qv computation, do not use diffq for other
 !     purpose.
 !
-      call diffu_x(jbegin,jendx,2,iym1,adf%diffq,atms%qvb3d,sps2%ps,xkc,kz)
-      call diffu_x(jbegin,jendx,2,iym1,aten%qc,atms%qcb3d,sps2%ps,xkc,kz)
+      call diffu_x(jbegin,jendx,2,iym2,adf%diffq,atms%qvb3d,sps2%ps,xkc,kz)
+      call diffu_x(jbegin,jendx,2,iym2,aten%qc,atms%qcb3d,sps2%ps,xkc,kz)
     end if
 !
     if ( ichem == 1 ) then
@@ -1475,7 +1475,7 @@ module mod_tendency
         call vadv(spchiten,spchia,jbegin,jendx,5)
         ! horizontal diffusion: initialize scratch vars to 0.
         ! need to compute tracer tendencies due to diffusion
-        call diffu_x(jbegin,jendx,2,iym1,spchiten,spchib3d,cpsb,xkc,kz)
+        call diffu_x(jbegin,jendx,2,iym2,spchiten,spchib3d,cpsb,xkc,kz)
       end do ! end tracer loop
       !
       ! Compute tendencies
@@ -1485,9 +1485,9 @@ module mod_tendency
     end if ! ichem
 !
 !----------------------------------------------------------------------
-!     compute the pbl fluxes:
-!     the diffusion and pbl tendencies of t and qv are stored in
-!     difft and diffq.
+!  compute the pbl fluxes:
+!  the diffusion and pbl tendencies of t and qv are stored in
+!  difft and diffq.
 !
    do j = jbegin , jendx
       do k = 1 , kz
@@ -2047,7 +2047,7 @@ module mod_tendency
           ! Calculate the horizontal, diffusive tendency for TKE
         end if
       end do
-      call diffu_x(jbegin,jendx,2,iym1,uwstatea%advtke, &
+      call diffu_x(jbegin,jendx,2,iym2,uwstatea%advtke, &
                    atm2%tke,sps2%ps,xkcf,kzp1)
     end if
 !
