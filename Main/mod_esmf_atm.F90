@@ -258,12 +258,12 @@
 !     Debug: write current time
 !-----------------------------------------------------------------------
 !
-      if (debug_level > 2) then
-        if (localPet .eq. models(Iatmos)%petList(1)) then
-          write(*, 20) localPet, 'Current Time',                        &
-                       trim(models(Iatmos)%time%stamp)
-        end if
-      end if
+!      if (debug_level > 2) then
+!        if (localPet .eq. models(Iatmos)%petList(1)) then
+!          write(*, 20) localPet, 'Current Time',                        &
+!                       trim(models(Iatmos)%time%stamp)
+!        end if
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Get coupler current time
@@ -315,11 +315,11 @@
 !     Get import data
 !-----------------------------------------------------------------------
 !
-      if (localPet == models(Iatmos)%petList(1)) then
-        if (debug_level > 2) then        
-          print*, "[debug] -- Getting import data from OCN component." 
-        end if
-      end if
+!      if (localPet == models(Iatmos)%petList(1)) then
+!        if (debug_level > 2) then        
+!          print*, "[debug] -- Getting import data from OCN component." 
+!        end if
+!      end if
 !
       if (dt3 .gt. cplTimeStep) then 
         call RCM_GetImportData()
@@ -650,12 +650,12 @@
 !     Debug: validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-      if (debug_level > 2) then
-      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      end if
+!      if (debug_level > 2) then
+!      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Set array descriptor
@@ -1010,12 +1010,10 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Put data     
+!     Initialize pointer
 !-----------------------------------------------------------------------
 !      
-!      if (trim(adjustl(name)) == "SST") then
-        models(Iatmos)%dataImport(i,n)%ptr = MISSING_R8 
-!      end if
+      models(Iatmos)%dataImport(i,n)%ptr = MISSING_R8 
       end do
 !
 !-----------------------------------------------------------------------
@@ -1041,7 +1039,6 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = 'debug level'
-      print*, "** turuncu ** attach debug_level = ", debug_level
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
                              value=debug_level,                         &
@@ -1070,6 +1067,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common
+!      use mod_rad_common, only : srfabswflx, srflwflxup, srflwflxdw
 !
       implicit none
 !
@@ -1210,18 +1208,18 @@
 !     Debug: write field to file
 !-----------------------------------------------------------------------
 !
-      write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
-            'atm_export',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
+!      write(outfile,                                                    &
+!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+!            'atm_export',                                               &
+!            trim(adjustl(name)),                                        &
+!            models(Iatmos)%time%year,                                   &
+!            models(Iatmos)%time%month,                                  &
+!            models(Iatmos)%time%day,                                    &
+!            models(Iatmos)%time%hour
 !
-      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
+!      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
+!                           trim(adjustl(outfile)),                      &
+!                           rc=rc)
       end do
       end do
 !
@@ -1321,18 +1319,18 @@
 !     Debug: write field to file    
 !-----------------------------------------------------------------------
 !
-      write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
-            'atm_import',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
+!      write(outfile,                                                    &
+!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+!            'atm_import',                                               &
+!            trim(adjustl(name)),                                        &
+!            models(Iatmos)%time%year,                                   &
+!            models(Iatmos)%time%month,                                  &
+!            models(Iatmos)%time%day,                                    &
+!            models(Iatmos)%time%hour
 !
-      call ESMF_FieldWrite(models(Iatmos)%dataImport(i,n)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
+!      call ESMF_FieldWrite(models(Iatmos)%dataImport(i,n)%field,        &
+!                           trim(adjustl(outfile)),                      &
+!                           rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 

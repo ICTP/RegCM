@@ -169,11 +169,11 @@
 !     Print coupling direction info (debug)
 !-----------------------------------------------------------------------
 !  
-      if (dir == FORWARD_ON) then
-        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
-      else
-        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
-      end if
+!      if (dir == FORWARD_ON) then
+!        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+!      else
+!        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Get and save import state field names 
@@ -209,7 +209,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
+!          write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
         end if
       end do
  30   format(' PET (', I2, ') - Import Item (',I2,') = ',A)
@@ -283,7 +283,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
+!          write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
         end if
       end do
  40   format(' PET (', I2, ') - Export Item (',I2,') = ',A)
@@ -505,13 +505,13 @@
 !     Print coupling direction info (debug)
 !-----------------------------------------------------------------------
 !  
-      if (localPet == 0) then
-      if (dir == FORWARD_ON) then
-        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
-      else
-        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
-      end if
-      end if
+!      if (localPet == 0) then
+!      if (dir == FORWARD_ON) then
+!        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+!      else
+!        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+!      end if
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Forward coupling run 

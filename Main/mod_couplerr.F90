@@ -169,6 +169,16 @@
       integer(ESMF_KIND_I4), pointer :: indices(:,:)
       real(ESMF_KIND_R8), pointer :: weights(:)
 !
+!-----------------------------------------------------------------------
+!     Constants
+!     Cp  : Specific heat for seawater (Joules/Kg/degC)
+!     rho0: Mean density (Kg/m3) - Boussinesq approximation
+!-----------------------------------------------------------------------
+!
+      real*8, parameter :: Cp = 3985.0d0
+      real*8, parameter :: rho0 = 1025.0d0
+      real*8, parameter :: Hscale=1.0d0/(rho0*Cp)
+!
       contains
 !
       subroutine allocate_cpl(petCount, rc)
@@ -497,8 +507,8 @@
             models(i)%dataImport(4,j)%name = 'swrad'
             models(i)%dataImport(4,j)%long_name = &
             'solar shortwave radiation flux'
-            models(i)%dataImport(4,j)%units = 'watt meter-2'
-            models(i)%dataImport(4,j)%scale_factor = 1.0d0
+            models(i)%dataImport(4,j)%units = 'Celsius m/s'
+            models(i)%dataImport(4,j)%scale_factor = Hscale 
             models(i)%dataImport(4,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(5,j)%fid = 5
@@ -506,8 +516,8 @@
             models(i)%dataImport(5,j)%name = 'lwrad_down'
             models(i)%dataImport(5,j)%long_name = &
             'downwelling longwave radiation flux'
-            models(i)%dataImport(5,j)%units = 'watt meter-2'
-            models(i)%dataImport(5,j)%scale_factor = 1.0d0
+            models(i)%dataImport(5,j)%units = 'Celsius m/s'
+            models(i)%dataImport(5,j)%scale_factor = Hscale
             models(i)%dataImport(5,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(6,j)%fid = 6
@@ -695,14 +705,14 @@
 !
       cplStartTime = models(Iatmos)%strTime
       cplStopTime = models(Iatmos)%endTime
-      do i = 1, nModels
-        if (models(i)%strTime > cplStartTime) then
-          cplStartTime = models(i)%strTime
-        end if      
-        if (models(i)%endTime < cplStopTime) then
-          cplStopTime = models(i)%endTime
-        end if 
-      end do     
+!      do i = 1, nModels
+!        if (models(i)%strTime > cplStartTime) then
+!          cplStartTime = models(i)%strTime
+!        end if      
+!        if (models(i)%endTime < cplStopTime) then
+!          cplStopTime = models(i)%endTime
+!        end if 
+!      end do     
 !
       name = 'Coupler component clock'
       cplClock = ESMF_ClockCreate (name=trim(name),                     &
