@@ -17,6 +17,7 @@ static int ntot = nlon*nlat;
 static int nsize = ntot*sizeof(short);
 static int ntimes = 29824;
 static short missval = -32767;
+static int spole = 109;
 void fillholes(short *a, short *b, int ni, int nj);
 
 int main(int argc, char *argv[])
@@ -64,7 +65,7 @@ void fillholes(short *a, short*b, int ni, int nj)
   int lj1 = -nj;
   int lj2 = 2*nj-1;
 
-  for (int i = 0; i < ni; i ++)
+  for (int i = 0; i < spole; i ++)
   {
     // Copy the line
     memcpy(b+i*nj,a+i*3*nj+nj,nj*sizeof(short));
@@ -82,12 +83,12 @@ void fillholes(short *a, short*b, int ni, int nj)
           int ipp = 0;       // Number of perimetral points found
           val  = 0.0;
           twgt = 0.0;
-	  int hid = id/2;
+          int hid = id/2;
           int il1 = i-hid;
           int il2 = i+hid;
           int jl1 = j-hid;
           int jl2 = j+hid;
-	  int minpp = (nd/2);  // At least more than half of perim points
+          int minpp = (nd/5);  // At least more than one fourth of perim points
           for (int ii = il1; ii <= il2; ii ++)
           {
             if ( ii < li1 || ii > li2 ) // If outside of data
@@ -108,7 +109,8 @@ void fillholes(short *a, short*b, int ni, int nj)
               int iib = ii*3*nj+nj+jj;
               if (a[iib] != missval)
               {
-                double wgt = 1.0/sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
+                double wgt = 1.0 /
+                     sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
                 val = val + (double(a[iib])*wgt);
                 twgt = twgt + wgt;
                 // If this is a perim point count it
@@ -121,6 +123,13 @@ void fillholes(short *a, short*b, int ni, int nj)
         }
         if (twgt > 0.0) b[i*nj+j] = short(val/twgt);
       }
+    }
+  }
+  for (int i = spole; i < ni; i ++)
+  {
+    for (int j = 0; j < nj; j ++)
+    {
+      b[i*nj+j] = -27444;
     }
   }
   return;
