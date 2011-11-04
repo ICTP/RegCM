@@ -21,7 +21,7 @@ module mod_mppgrid
 
   use mpi
   use mod_realkinds
-  use mod_message
+  use mod_mpmessage
   use mod_stdio
   use mod_memutil
 
@@ -563,7 +563,7 @@ module mod_mppgrid
       if ( mod(xproc%total_cpus,imaxcpus) > 0 ) then
         if ( cantalk() ) then
           write(stderr,*) 'Work does not evenly divide.'
-          write(stderr,*) 'Suggested number of CPUS : ', imaxcpus
+          write(stderr,*) 'Suggested minimum number of CPUS : ', imaxcpus
         end if
         call fatal(__FILE__,__LINE__,'Scheme not working')
       end if
@@ -3580,14 +3580,14 @@ module mod_mppgrid
     subroutine master_to_nodes2d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:) , intent(inout) :: l
-      real(dp) , pointer , dimension(:,:) , intent(in) , optional :: g
+      real(dp) , pointer , dimension(:,:) , intent(in) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3633,14 +3633,14 @@ module mod_mppgrid
     subroutine master_to_nodes2d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:) , intent(inout) :: l
-      real(sp) , pointer , dimension(:,:) , intent(in) , optional :: g
+      real(sp) , pointer , dimension(:,:) , intent(in) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3686,14 +3686,14 @@ module mod_mppgrid
     subroutine master_to_nodes2d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:) , intent(inout) :: l
-      integer , pointer , dimension(:,:) , intent(in) , optional :: g
+      integer , pointer , dimension(:,:) , intent(in) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3739,14 +3739,14 @@ module mod_mppgrid
     subroutine master_to_nodes2d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:) , intent(inout) :: l
-      integer(2) , pointer , dimension(:,:) , intent(in) , optional :: g
+      integer(2) , pointer , dimension(:,:) , intent(in) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3792,14 +3792,14 @@ module mod_mppgrid
     subroutine master_to_nodes2d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:) , intent(inout) :: l
-      logical , pointer , dimension(:,:) , intent(in) , optional :: g
+      logical , pointer , dimension(:,:) , intent(in) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3845,7 +3845,7 @@ module mod_mppgrid
     subroutine master_to_nodes3d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:,:) , intent(inout) :: l
-      real(dp) , pointer , dimension(:,:,:) , intent(in) , optional :: g
+      real(dp) , pointer , dimension(:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -3854,7 +3854,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3910,7 +3910,7 @@ module mod_mppgrid
     subroutine master_to_nodes3d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:,:) , intent(inout) :: l
-      real(sp) , pointer , dimension(:,:,:) , intent(in) , optional :: g
+      real(sp) , pointer , dimension(:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -3919,7 +3919,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -3975,7 +3975,7 @@ module mod_mppgrid
     subroutine master_to_nodes3d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:,:) , intent(inout) :: l
-      integer , pointer , dimension(:,:,:) , intent(in) , optional :: g
+      integer , pointer , dimension(:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -3984,7 +3984,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4040,7 +4040,7 @@ module mod_mppgrid
     subroutine master_to_nodes3d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:,:) , intent(inout) :: l
-      integer(2) , pointer , dimension(:,:,:) , intent(in) , optional :: g
+      integer(2) , pointer , dimension(:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -4049,7 +4049,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4105,7 +4105,7 @@ module mod_mppgrid
     subroutine master_to_nodes3d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:,:) , intent(inout) :: l
-      logical , pointer , dimension(:,:,:) , intent(in) , optional :: g
+      logical , pointer , dimension(:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -4114,7 +4114,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4170,7 +4170,7 @@ module mod_mppgrid
     subroutine master_to_nodes4d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: l
-      real(dp) , pointer , dimension(:,:,:,:) , intent(in) , optional :: g
+      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -4182,7 +4182,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4246,7 +4246,7 @@ module mod_mppgrid
     subroutine master_to_nodes4d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:,:,:) , intent(inout) :: l
-      real(sp) , pointer , dimension(:,:,:,:) , intent(in) , optional :: g
+      real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -4258,7 +4258,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4322,7 +4322,7 @@ module mod_mppgrid
     subroutine master_to_nodes4d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:,:,:) , intent(inout) :: l
-      integer , pointer , dimension(:,:,:,:) , intent(in) , optional :: g
+      integer , pointer , dimension(:,:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -4334,7 +4334,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4399,7 +4399,7 @@ module mod_mppgrid
     subroutine master_to_nodes4d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: l
-      integer(2) , pointer , dimension(:,:,:,:) , intent(in) , optional :: g
+      integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -4411,7 +4411,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4477,7 +4477,7 @@ module mod_mppgrid
     subroutine master_to_nodes4d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:,:,:) , intent(inout) :: l
-      logical , pointer , dimension(:,:,:,:) , intent(in) , optional :: g
+      logical , pointer , dimension(:,:,:,:) , intent(in) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -4489,7 +4489,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4554,14 +4554,14 @@ module mod_mppgrid
     subroutine nodes_to_master2d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:) , intent(in) :: l
-      real(dp) , pointer , dimension(:,:) , intent(inout) , optional :: g
+      real(dp) , pointer , dimension(:,:) , intent(inout) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling nodes_to_master before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using nodes_to_master as master')
@@ -4608,14 +4608,14 @@ module mod_mppgrid
     subroutine nodes_to_master2d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:) , intent(in) :: l
-      real(sp) , pointer , dimension(:,:) , intent(inout) , optional :: g
+      real(sp) , pointer , dimension(:,:) , intent(inout) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling nodes_to_master before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using nodes_to_master as master')
@@ -4662,14 +4662,14 @@ module mod_mppgrid
     subroutine nodes_to_master2d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:) , intent(in) :: l
-      integer , pointer , dimension(:,:) , intent(inout) , optional :: g
+      integer , pointer , dimension(:,:) , intent(inout) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling nodes_to_master before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using nodes_to_master as master')
@@ -4716,14 +4716,14 @@ module mod_mppgrid
     subroutine nodes_to_master2d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:) , intent(in) :: l
-      integer(2) , pointer , dimension(:,:) , intent(inout) , optional :: g
+      integer(2) , pointer , dimension(:,:) , intent(inout) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling nodes_to_master before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using nodes_to_master as master')
@@ -4770,14 +4770,14 @@ module mod_mppgrid
     subroutine nodes_to_master2d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:) , intent(in) :: l
-      logical , pointer , dimension(:,:) , intent(inout) , optional :: g
+      logical , pointer , dimension(:,:) , intent(inout) :: g
       integer :: inode , icount , i , j
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling nodes_to_master before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using nodes_to_master as master')
@@ -4824,7 +4824,7 @@ module mod_mppgrid
     subroutine nodes_to_master3d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: l
-      real(dp) , pointer , dimension(:,:,:) , intent(inout) , optional :: g
+      real(dp) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -4833,7 +4833,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4890,7 +4890,7 @@ module mod_mppgrid
     subroutine nodes_to_master3d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:,:) , intent(in) :: l
-      real(sp) , pointer , dimension(:,:,:) , intent(inout) , optional :: g
+      real(sp) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -4899,7 +4899,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -4956,7 +4956,7 @@ module mod_mppgrid
     subroutine nodes_to_master3d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:,:) , intent(in) :: l
-      integer , pointer , dimension(:,:,:) , intent(inout) , optional :: g
+      integer , pointer , dimension(:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -4965,7 +4965,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5022,7 +5022,7 @@ module mod_mppgrid
     subroutine nodes_to_master3d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:,:) , intent(in) :: l
-      integer(2) , pointer , dimension(:,:,:) , intent(inout) , optional :: g
+      integer(2) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -5031,7 +5031,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5088,7 +5088,7 @@ module mod_mppgrid
     subroutine nodes_to_master3d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:,:) , intent(in) :: l
-      logical , pointer , dimension(:,:,:) , intent(inout) , optional :: g
+      logical , pointer , dimension(:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: ierr
       if ( .not. is_setup ) then
@@ -5097,7 +5097,7 @@ module mod_mppgrid
       end if
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5154,7 +5154,7 @@ module mod_mppgrid
     subroutine nodes_to_master4d_d(l,g)
       implicit none
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: l
-      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) , optional :: g
+      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -5166,7 +5166,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5231,7 +5231,7 @@ module mod_mppgrid
     subroutine nodes_to_master4d_r(l,g)
       implicit none
       real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: l
-      real(sp) , pointer , dimension(:,:,:,:) , intent(inout) , optional :: g
+      real(sp) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -5243,7 +5243,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5308,7 +5308,7 @@ module mod_mppgrid
     subroutine nodes_to_master4d_i(l,g)
       implicit none
       integer , pointer , dimension(:,:,:,:) , intent(in) :: l
-      integer , pointer , dimension(:,:,:,:) , intent(inout) , optional :: g
+      integer , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -5320,7 +5320,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5385,7 +5385,7 @@ module mod_mppgrid
     subroutine nodes_to_master4d_s(l,g)
       implicit none
       integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: l
-      integer(2) , pointer , dimension(:,:,:,:) , intent(inout) , optional :: g
+      integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -5397,7 +5397,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -5463,7 +5463,7 @@ module mod_mppgrid
     subroutine nodes_to_master4d_l(l,g)
       implicit none
       logical , pointer , dimension(:,:,:,:) , intent(in) :: l
-      logical , pointer , dimension(:,:,:,:) , intent(inout) , optional :: g
+      logical , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer :: inode , icount , i , j , k , k1 , k2 , gk1 , gk2
       integer :: t , t1 , t2 , gt1 , gt2
       integer :: ierr
@@ -5475,7 +5475,7 @@ module mod_mppgrid
       t2 = ubound(l,4)
       k1 = lbound(l,3)
       k2 = ubound(l,3)
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
@@ -7038,13 +7038,13 @@ module mod_mppgrid
     subroutine global_to_globbdy2d_d(bdy,g)
       implicit none
       type(global_boundary2d_d) , intent(out) :: bdy
-      real(dp) , dimension(:,:) , pointer , intent(in) , optional :: g
+      real(dp) , dimension(:,:) , pointer , intent(in) :: g
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_globbdy before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7079,13 +7079,13 @@ module mod_mppgrid
     subroutine global_to_globbdy2d_r(bdy,g)
       implicit none
       type(global_boundary2d_r) , intent(out) :: bdy
-      real(sp) , dimension(:,:) , pointer , intent(in) , optional :: g
+      real(sp) , dimension(:,:) , pointer , intent(in) :: g
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_globbdy before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7120,13 +7120,13 @@ module mod_mppgrid
     subroutine global_to_globbdy2d_i(bdy,g)
       implicit none
       type(global_boundary2d_i) , intent(out) :: bdy
-      integer , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer , dimension(:,:) , pointer , intent(in) :: g
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_globbdy before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7161,13 +7161,13 @@ module mod_mppgrid
     subroutine global_to_globbdy2d_s(bdy,g)
       implicit none
       type(global_boundary2d_s) , intent(out) :: bdy
-      integer(2) , dimension(:,:) , pointer , intent(in) , optional :: g
+      integer(2) , dimension(:,:) , pointer , intent(in) :: g
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_globbdy before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7202,13 +7202,13 @@ module mod_mppgrid
     subroutine global_to_globbdy2d_l(bdy,g)
       implicit none
       type(global_boundary2d_l) , intent(out) :: bdy
-      logical , dimension(:,:) , pointer , intent(in) , optional :: g
+      logical , dimension(:,:) , pointer , intent(in) :: g
       integer :: ierr
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_globbdy before domain_setup')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7243,7 +7243,7 @@ module mod_mppgrid
     subroutine global_to_globbdy3d_d(bdy,g)
       implicit none
       type(global_boundary3d_d) , intent(out) :: bdy
-      real(dp) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      real(dp) , dimension(:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7257,7 +7257,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7292,7 +7292,7 @@ module mod_mppgrid
     subroutine global_to_globbdy3d_r(bdy,g)
       implicit none
       type(global_boundary3d_r) , intent(out) :: bdy
-      real(sp) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      real(sp) , dimension(:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7306,7 +7306,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7341,7 +7341,7 @@ module mod_mppgrid
     subroutine global_to_globbdy3d_i(bdy,g)
       implicit none
       type(global_boundary3d_i) , intent(out) :: bdy
-      integer , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer , dimension(:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7355,7 +7355,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7390,7 +7390,7 @@ module mod_mppgrid
     subroutine global_to_globbdy3d_s(bdy,g)
       implicit none
       type(global_boundary3d_s) , intent(out) :: bdy
-      integer(2) , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      integer(2) , dimension(:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7404,7 +7404,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7439,7 +7439,7 @@ module mod_mppgrid
     subroutine global_to_globbdy3d_l(bdy,g)
       implicit none
       type(global_boundary3d_l) , intent(out) :: bdy
-      logical , dimension(:,:,:) , pointer , intent(in) , optional :: g
+      logical , dimension(:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7453,7 +7453,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Vertical dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7488,7 +7488,7 @@ module mod_mppgrid
     subroutine global_to_globbdy4d_d(bdy,g)
       implicit none
       type(global_boundary4d_d) , intent(out) :: bdy
-      real(dp) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      real(dp) , dimension(:,:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk , t1 , t2 , nt
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7509,7 +7509,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7544,7 +7544,7 @@ module mod_mppgrid
     subroutine global_to_globbdy4d_r(bdy,g)
       implicit none
       type(global_boundary4d_r) , intent(out) :: bdy
-      real(sp) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      real(sp) , dimension(:,:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk , t1 , t2 , nt
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7565,7 +7565,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7600,7 +7600,7 @@ module mod_mppgrid
     subroutine global_to_globbdy4d_i(bdy,g)
       implicit none
       type(global_boundary4d_i) , intent(out) :: bdy
-      integer , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer , dimension(:,:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk , t1 , t2 , nt
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7621,7 +7621,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7656,7 +7656,7 @@ module mod_mppgrid
     subroutine global_to_globbdy4d_s(bdy,g)
       implicit none
       type(global_boundary4d_s) , intent(out) :: bdy
-      integer(2) , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      integer(2) , dimension(:,:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk , t1 , t2 , nt
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7677,7 +7677,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')
@@ -7712,7 +7712,7 @@ module mod_mppgrid
     subroutine global_to_globbdy4d_l(bdy,g)
       implicit none
       type(global_boundary4d_l) , intent(out) :: bdy
-      logical , dimension(:,:,:,:) , pointer , intent(in) , optional :: g
+      logical , dimension(:,:,:,:) , pointer , intent(in) :: g
       integer :: k1 , k2 , nk , t1 , t2 , nt
       integer :: ierr
       if ( .not. is_setup ) then
@@ -7733,7 +7733,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Fourth dimension mismatch in global_to_globbdy')
       end if
-      if ( present(g) ) then
+      if ( associated(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using global_to_globbdy as master')

@@ -54,9 +54,11 @@ module mod_mpmessage
  
   subroutine cry
     implicit none
-    write (aline,*) '------------- IMPORTANT NOTICE ------------'
-    if ( myid == 0 ) write (stderr,*) trim(aline)
-    write (aline,*) '-------------------------------------------'
+    if ( myid == 0 ) then
+      write (aline,*) '------------- IMPORTANT NOTICE ------------'
+      write (stderr,*) trim(aline)
+      write (aline,*) '-------------------------------------------'
+    end if
   end subroutine cry
  
   subroutine fatal(filename,line,str)
@@ -66,18 +68,17 @@ module mod_mpmessage
     character(*) , intent(in) :: filename , str
     integer , intent(in) :: line
 !
-!
     write (cline,'(i8)') line
     write (aline,*) '-------------- FATAL CALLED ---------------'
-    call cry
+    call say
     if ( line > 0 ) then
       write (aline,*) 'Fatal in file: '//filename//' at line: '//trim(cline)
-      call cry
+      call say
     end if
     write (aline,*) str
-    call cry
+    call say
     write (aline,*) '-------------------------------------------'
-    call cry
+    call say
     call die(filename,trim(cline),1)
   end subroutine fatal
 
@@ -107,7 +108,7 @@ module mod_mpmessage
     implicit none
     character (len=*) , intent(in) :: msg
     integer :: ierr
-    write (stderr,*) msg
+    if ( myid == 0 ) write (stderr,*) msg
     call mpi_abort(mycomm,1,ierr)
   end subroutine die0
 
@@ -115,7 +116,7 @@ module mod_mpmessage
     implicit none
     character (len=*) , intent(in) :: msg , msg1
     integer :: ierr
-    write (stderr,*) msg , ' : ', msg1
+    if ( myid == 0 ) write (stderr,*) msg , ' : ', msg1
     call mpi_abort(mycomm,1,ierr)
   end subroutine die1
 
@@ -124,7 +125,7 @@ module mod_mpmessage
     character (len=*) , intent(in) :: msg , msg1
     integer , intent(in) :: ier1
     integer :: ierr
-    write (stderr,*) msg , ' : ', msg1 , ': ', ier1
+    if ( myid == 0 ) write (stderr,*) msg , ' : ', msg1 , ': ', ier1
     call mpi_abort(mycomm,1,ierr)
   end subroutine die2
 
@@ -133,7 +134,8 @@ module mod_mpmessage
     character (len=*) , intent(in) :: msg , msg1 , msg2
     integer , intent(in) :: ier1 , ier2
     integer :: ierr
-    write (stderr,*) msg , ' : ', msg1 , ': ', ier1 , ' : ', msg2 , ': ', ier2
+    if ( myid == 0 ) write (stderr,*) msg , ' : ', msg1 , &
+                           ': ', ier1 , ' : ', msg2 , ': ', ier2
     call mpi_abort(mycomm,1,ierr)
   end subroutine die4
 
