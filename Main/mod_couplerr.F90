@@ -147,8 +147,8 @@
 !
       real*8, parameter :: MISSING_R8 = 1.0d20
 !
-      integer :: cpl_dtsec, cpl_debug_level
-      logical :: cpl_vtk_on
+      integer :: cpl_dtsec, cpl_exvars, cpl_interp, cpl_dbglevel
+      logical :: cpl_bdysmooth
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -602,30 +602,10 @@
       if (i == Iatmos) then
 !
 !-----------------------------------------------------------------------
-!     Get parameter for writing grid definitions in VTK format
-!-----------------------------------------------------------------------
-!
-      call ESMF_AttributeGet (models(i)%stateExport,                    &
-                              name='VTK on/off',                        &
-                              value=cpl_vtk_on,                         &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get parameter for debug level 
-!-----------------------------------------------------------------------
-!
-      call ESMF_AttributeGet (models(i)%stateExport,                    &
-                              name='debug level',                       &
-                              value=cpl_debug_level,                    &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
 !     Get parameter for coupler component time step and set time 
 !     interval to exchange data between gridded components
 !-----------------------------------------------------------------------
-!  
+!
       call ESMF_AttributeGet (models(i)%stateExport,                    &
                               name='coupler time step',                 &
                               value=cpl_dtsec,                          &
@@ -636,6 +616,46 @@
                                  s=cpl_dtsec,                           &
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for list of exchange variables
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='exchange variable mode',            &
+                              value=cpl_exvars,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for interpolation type 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='interpolation type',                &
+                              value=cpl_interp,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for boundary smoothing 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='boundary smoothing',                &
+                              value=cpl_bdysmooth,                      &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for debugging 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='debug level',                       &
+                              value=cpl_dbglevel,                       &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
       end do
 !
@@ -643,12 +663,13 @@
 !     Write coupled model parameters
 !-----------------------------------------------------------------------
 !
-      write(*, 20) localPet, 'VTK ON/OFF  ', cpl_vtk_on       
-      write(*, 30) localPet, 'DEBUG LEVEL ', cpl_debug_level       
-      write(*, 30) localPet, 'TIME STEP   ', cpl_dtsec       
-!
- 20   format(' PET (', I2, ') - Parameter ', A, ' = ', L)      
- 30   format(' PET (', I2, ') - Parameter ', A, ' = ', I8)      
+      if (cpl_dbglevel > 0) then
+        write(*, 30) localPet, 'COUPLED MODEL TIME STEP', cpl_dtsec
+        write(*, 30) localPet, 'EXCHANGE VARIABLE MODE ', cpl_exvars
+        write(*, 30) localPet, 'INTERPOLATION MODE     ', cpl_interp
+        write(*, 20) localPet, 'BOUNDARY SMOOTHING     ', cpl_bdysmooth
+        write(*, 30) localPet, 'DEBUG LEVEL            ', cpl_dbglevel
+      end if
 !
       if (.not. first) then
       do i = 1, nModels
@@ -705,14 +726,14 @@
 !
       cplStartTime = models(Iatmos)%strTime
       cplStopTime = models(Iatmos)%endTime
-!      do i = 1, nModels
-!        if (models(i)%strTime > cplStartTime) then
-!          cplStartTime = models(i)%strTime
-!        end if      
-!        if (models(i)%endTime < cplStopTime) then
-!          cplStopTime = models(i)%endTime
-!        end if 
-!      end do     
+      do i = 1, nModels
+        if (models(i)%strTime > cplStartTime) then
+          cplStartTime = models(i)%strTime
+        end if      
+        if (models(i)%endTime < cplStopTime) then
+          cplStopTime = models(i)%endTime
+        end if 
+      end do     
 !
       name = 'Coupler component clock'
       cplClock = ESMF_ClockCreate (name=trim(name),                     &
@@ -733,6 +754,7 @@
 !     Print
 !-----------------------------------------------------------------------
 !
+      if (cpl_dbglevel > 1) then
       call ESMF_TimeGet(cplStartTime, timeString=timeString, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       write(*,40) localPet, 'Start Time   ', trim(timeString)
@@ -746,8 +768,16 @@
       write(*,50) localPet, 'Time Interval', mysec
       end if
 !
- 40   format (' PET (', I2, ') - ', A, ' = ', A)
- 50   format (' PET (', I2, ') - ', A, ' = ', I10)
+      end if
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 20   format(' PET (', I2, ') - Parameter ', A, ' = ', L)      
+ 30   format(' PET (', I2, ') - Parameter ', A, ' = ', I8)      
+ 40   format(' PET (', I2, ') - ', A, ' = ', A)
+ 50   format(' PET (', I2, ') - ', A, ' = ', I10)
 !
       end subroutine time_reconcile
 !

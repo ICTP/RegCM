@@ -61,15 +61,15 @@ module mod_runparams
 !
   real(8) :: dt , dt2 , dtbdys
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(8) :: c200 , rdxsq , dtsrf , dtabem , dtrad, dtcpl
+  real(8) :: c200 , rdxsq , dtsrf , dtabem , dtrad, cpldt
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
-  integer :: iboudy , ichem , ipgf , ipptls
+  integer :: iboudy , ichem , ipgf , ipptls, cplexvars, cplinterp
 
-  logical :: ifrest , rfstrt , doing_restart, vtk_on
+  logical :: ifrest , rfstrt , doing_restart, cplbdysmooth 
 
-  integer :: ispgd , ispgx , kchi , kclo , kcmd
+  integer :: ispgd , ispgx , kchi , kclo , kcmd, cpldbglevel
 !
   real(8) :: akht1 , akht2
 

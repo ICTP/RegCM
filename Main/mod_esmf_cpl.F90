@@ -116,6 +116,7 @@
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
+      type(ESMF_RegridMethod_Flag) :: regridMethod
 !
 !-----------------------------------------------------------------------
 !     Call ROMS initialization routines
@@ -166,14 +167,16 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Print coupling direction info (debug)
+!     Debug: print coupling direction
 !-----------------------------------------------------------------------
 !  
-!      if (dir == FORWARD_ON) then
-!        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
-!      else
-!        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
-!      end if
+      if (cpl_dbglevel > 0) then
+      if (dir == FORWARD_ON) then
+        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+      else
+        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+      end if
+      end if
 !
 !-----------------------------------------------------------------------
 !     Get and save import state field names 
@@ -209,10 +212,11 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-!          write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
+          if (cpl_dbglevel > 0) then
+            write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
+          end if
         end if
       end do
- 30   format(' PET (', I2, ') - Import Item (',I2,') = ',A)
 !
 !-----------------------------------------------------------------------
 !     Save import state field names
@@ -283,10 +287,11 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-!          write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
+          if (cpl_dbglevel > 0) then
+            write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
+          end if
         end if
       end do
- 40   format(' PET (', I2, ') - Export Item (',I2,') = ',A)
 !
 !-----------------------------------------------------------------------
 !     Save export state field names
@@ -361,12 +366,13 @@
 !     Create ESMF routhandle (atm --> ocn) 
 !-----------------------------------------------------------------------
 !
+      regridMethod = ESMF_REGRIDMETHOD_BILINEAR
+!
       call ESMF_FieldRegridStore (srcField=srcField,                    &
-                                dstField=dstField,                      &
-                                routeHandle=routeHandleF,               &
-                                regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
-!                                regridmethod=ESMF_REGRIDMETHOD_PATCH,   &
-                                rc=rc)
+                                  dstField=dstField,                    &
+                                  routeHandle=routeHandleF,             &
+                                  regridmethod=regridMethod,            &
+                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do
@@ -419,12 +425,18 @@
                               unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
                               routeHandle=routeHandleB,                 &
                               regridmethod=ESMF_REGRIDMETHOD_BILINEAR,  &
-!                              regridmethod=ESMF_REGRIDMETHOD_PATCH,     &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do
       end if
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 30   format(' PET (', I2, ') - Import Item (',I2,') = ',A)
+ 40   format(' PET (', I2, ') - Export Item (',I2,') = ',A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -502,16 +514,16 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Print coupling direction info (debug)
+!     Debug: print coupling direction
 !-----------------------------------------------------------------------
 !  
-!      if (localPet == 0) then
-!      if (dir == FORWARD_ON) then
-!        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
-!      else
-!        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
-!      end if
-!      end if
+      if (cpl_dbglevel > 0) then
+      if (dir == FORWARD_ON) then
+        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+      else
+        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+      end if
+      end if
 !
 !-----------------------------------------------------------------------
 !     Forward coupling run 

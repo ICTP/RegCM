@@ -266,9 +266,8 @@
 !     Write current time (debug)
 !-----------------------------------------------------------------------
 !
-      if (localPet .eq. models(Iocean)%petList(1)) then
-        write(*, 30) localPet, 'Current Time',                          &
-                     trim(models(Iocean)%time%stamp)
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+      write(*,30)localPet,'Current Time',trim(models(Iocean)%time%stamp)
       end if
 !
 !-----------------------------------------------------------------------
@@ -319,8 +318,9 @@
 !     Run ROMS
 !-----------------------------------------------------------------------
 !
-      if (localPet .eq. models(Iocean)%petList(1)) then
-        write(*, fmt="(A2,3I10)") 'TR', tstr, tend, nsteps
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        write(*, fmt="(A28,3I10)") '[debug] -- Run OCN component',      &
+              tstr, tend, nsteps
       end if
 !
       call ROMS_run (tstr, tend)
@@ -731,19 +731,17 @@
                                    decompflag=deCompFlag,               &
                                    rc=rc)
 !
+      call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
 !-----------------------------------------------------------------------
-!     Debug: validate and print DistGrid
+!     Debug: print DistGrid
 !-----------------------------------------------------------------------
 !
-!      if ((localPet == 0) .and. (cpl_debug_level > 2)) then
-!        call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
-!        if (rc /= ESMF_SUCCESS) then
-!          call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!        end if
-!        if (rc /= ESMF_SUCCESS) then
-!          call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!        end if
-!      end if
+      if (cpl_dbglevel > 1) then
+      call ESMF_DistGridPrint(models(Iocean)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Set array descriptor
@@ -823,97 +821,81 @@
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
-        call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,          &
-                                localDE=j,                              &
-                                staggerLoc=staggerLoc,                  &
-                                coordDim=1,                             &
-                                farrayPtr=ptrX,                         &
-                                rc=rc)
+      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+                              localDE=j,                                &
+                              staggerLoc=staggerLoc,                    &
+                              coordDim=1,                               &
+                              farrayPtr=ptrX,                           &
+                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-        call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,          &
-                                localDE=j,                              &
-                                staggerLoc=staggerLoc,                  &
-                                coordDim=2,                             &
-                                farrayPtr=ptrY,                         &
-                                rc=rc)
+      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+                              localDE=j,                                &
+                              staggerLoc=staggerLoc,                    &
+                              coordDim=2,                               &
+                              farrayPtr=ptrY,                           &
+                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-        call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,           &
-                               localDE=j,                               &
-                               staggerLoc=staggerLoc,                   &
-                               itemflag=ESMF_GRIDITEM_MASK,             &
-                               farrayPtr=ptrM,                          &
-                               rc=rc)
+      call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,             &
+                             localDE=j,                                 &
+                             staggerLoc=staggerLoc,                     &
+                             itemflag=ESMF_GRIDITEM_MASK,               &
+                             farrayPtr=ptrM,                            &
+                             rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-        if (models(Iocean)%mesh(i,n)%gtype == Icross) then
-          do jj = JstrR, JendR
-            do ii = IstrR, IendR
-              ptrX(ii,jj) = GRID(n)%lonr(ii,jj)
-              ptrY(ii,jj) = GRID(n)%latr(ii,jj)
-              ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
-            end do
-          end do       
-!
-          if (cpl_debug_level > 2) then
-            write(*,40) localPet, j, 'R-1', IstrR, IendR,  JstrR, JendR
-            write(*,40) localPet, j, 'R-2', lbound(ptrY, dim=1),        &
-                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
-                        ubound(ptrY, dim=2) 
-            write(*,40) localPet, j, 'R-3', lbound(GRID(n)%lonr, dim=1),        &
-                        ubound(GRID(n)%lonr, dim=1), lbound(GRID(n)%lonr, dim=2),       &
-                        ubound(GRID(n)%lonr, dim=2)
-          end if
-!
-          if (cpl_vtk_on) then
-            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
-                                   filename="ocean_RHOpoint")
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-          end if
-        else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
-          do jj = JstrU, JendU
-            do ii = IstrU, IendU
-              ptrX(ii,jj) = GRID(n)%lonu(ii,jj)
-              ptrY(ii,jj) = GRID(n)%latu(ii,jj)
-              ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
-            end do
+      if (models(Iocean)%mesh(i,n)%gtype == Icross) then
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            ptrX(ii,jj) = GRID(n)%lonr(ii,jj)
+            ptrY(ii,jj) = GRID(n)%latr(ii,jj)
+            ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
           end do
+        end do       
 !
-          if (cpl_debug_level > 2) then
-            write(*,40) localPet, j, 'U-M', IstrU, IendU,  JstrU, JendU
-            write(*,40) localPet, j, 'U-E', lbound(ptrY, dim=1),        &
-                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
-                        ubound(ptrY, dim=2)
-          end if
-!
-          if (cpl_vtk_on) then
-            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
-                                   filename="ocean_Upoint")
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-          end if
-        else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
-          do jj = JstrV, JendV
-            do ii = IstrV, IendV
-              ptrX(ii,jj) = GRID(n)%lonv(ii,jj)
-              ptrY(ii,jj) = GRID(n)%latv(ii,jj)
-              ptrM(ii,jj) = int(GRID(n)%vmask(ii,jj))
-            end do
-          end do
-!
-          if (cpl_debug_level > 2) then
-            write(*,40) localPet, j, 'V-M', IstrU, IendU,  JstrU, JendU
-            write(*,40) localPet, j, 'V-E', lbound(ptrY, dim=1),        &
-                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
-                        ubound(ptrY, dim=2)
-          end if
-!        
-          if (cpl_vtk_on) then       
-            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
-                                   filename="ocean_Vpoint")
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        if (cpl_dbglevel > 1) then
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_RHOpoint")
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
         end if
+!
+      else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
+        do jj = JstrU, JendU
+          do ii = IstrU, IendU
+            ptrX(ii,jj) = GRID(n)%lonu(ii,jj)
+            ptrY(ii,jj) = GRID(n)%latu(ii,jj)
+            ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
+          end do
+        end do
+!
+        if (cpl_dbglevel > 1) then
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_Upoint")
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+        end if
+!
+      else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
+        do jj = JstrV, JendV
+          do ii = IstrV, IendV
+            ptrX(ii,jj) = GRID(n)%lonv(ii,jj)
+            ptrY(ii,jj) = GRID(n)%latv(ii,jj)
+            ptrM(ii,jj) = int(GRID(n)%vmask(ii,jj))
+          end do
+        end do
+!
+        if (cpl_dbglevel > 1) then       
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_Vpoint")
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+        end if
+       end if
 !
 !-----------------------------------------------------------------------
 !     Nullify pointers 
@@ -1081,7 +1063,7 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Get pointers and put data 
+!     Get pointers 
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
@@ -1097,20 +1079,6 @@
 !
       models(Iocean)%dataExport(i,ng)%ptr = MISSING_R8 
 !
-!-----------------------------------------------------------------------
-!     Put data in it 
-!-----------------------------------------------------------------------
-!
-!      name = models(Iocean)%dataExport(i,ng)%name
-!
-!      if (trim(adjustl(name)) == "SST") then
-!        do jj = JstrR, JendR
-!          do ii = IstrR, IendR
-!            models(Iocean)%dataExport(i,ng)%ptr(ii,jj) =                &
-!                                 OCEAN(ng)%t(ii,jj,N(ng),nstp(ng),itemp)
-!          end do
-!        end do 
-!      end if        
       end do
 !
 !-----------------------------------------------------------------------
@@ -1183,7 +1151,7 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Get pointers and initialize it 
+!     Get pointers 
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
@@ -1193,13 +1161,12 @@
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
+!-----------------------------------------------------------------------
+!     Initialize pointer 
+!-----------------------------------------------------------------------
+!
       models(Iocean)%dataImport(i,ng)%ptr = 0.0d0
-!      write(*,60) localPet, j, 'R-3', &
-!      lbound(models(Iocean)%dataImport(i,ng)%ptr, dim=1), &
-!      ubound(models(Iocean)%dataImport(i,ng)%ptr, dim=1), &
-!      lbound(models(Iocean)%dataImport(i,ng)%ptr, dim=2), &
-!      ubound(models(Iocean)%dataImport(i,ng)%ptr, dim=2)
-!      call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       end do
 !
 !-----------------------------------------------------------------------
@@ -1309,53 +1276,46 @@
 !     Debug: write field to ASCII file    
 !-----------------------------------------------------------------------
 !
-!        write(*,70) localPet, j, 'R-0', LBi, UBi, LBj, UBj 
-!        write(*,70) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
-!        write(*,70) localPet, j, 'R-2', &
-!                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
-!                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
-!                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=2), &
-!                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=2)
-!        write(*,70) localPet, j, 'R-3', &
-!                    lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
-!                    ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
-!                    lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2), &
-!                    ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2)
+      if (cpl_dbglevel > 3) then
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
+            'ocn_export',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour,                                   &
+            localPet
 !
-!      write(outfile,                                                    &
-!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
-!            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-!            'ocn_export',                                               &
-!            trim(adjustl(name)),                                        &
-!            models(Iocean)%time%year,                                   &
-!            models(Iocean)%time%month,                                  &
-!            models(Iocean)%time%day,                                    &
-!            models(Iocean)%time%hour,                                   &
-!            localPet
-!
-!      open(unit=99, file = trim(outfile)) 
-!      call print_matrix_r8(models(Iocean)%dataExport(k,ng)%ptr,         &
-!                           1, 1, localPet, 99, "ESMF_PTR")
-!      call print_matrix_r8(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp),       &
-!                           1, 1, localPet, 99, "RDATA")
-!      close(unit=99)
+      open(unit=99, file = trim(outfile)) 
+      call print_matrix_r8(models(Iocean)%dataExport(k,ng)%ptr,         &
+                           1, 1, localPet, 99, "OCN_PTR")
+      call print_matrix_r8(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp),       &
+                           1, 1, localPet, 99, "RDATA")
+      close(unit=99)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Debug: write field to NetCDF file    
 !-----------------------------------------------------------------------
 !
-!      write(outfile,                                                    &
-!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
-!            'ocn_export',                                               &
-!            trim(adjustl(name)),                                        &
-!            models(Iocean)%time%year,                                   &
-!            models(Iocean)%time%month,                                  &
-!            models(Iocean)%time%day,                                    &
-!            models(Iocean)%time%hour
+      if (cpl_dbglevel > 2) then
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'ocn_export',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour
 !
-!      call ESMF_FieldWrite(models(Iocean)%dataExport(k,ng)%field,       &
-!                           trim(adjustl(outfile)),                      &
-!                           rc=rc)
+      call ESMF_FieldWrite(models(Iocean)%dataExport(k,ng)%field,       &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+!
       end do
       end do
 !
@@ -1385,12 +1345,6 @@
       use mod_scalars, only : dt
 !
       implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-!      integer, intent(in) :: localPet
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
@@ -1558,20 +1512,6 @@
           rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
-!        rdata(ng)%Vwind = (ptr*scale_factor)+add_offset
-
-!        write(*,80) localPet, j, 'R-0', LBi, UBi, LBj, UBj 
-!        write(*,80) localPet, j, 'R-1', IstrR, IendR, JstrR, JendR
-!        write(*,80) localPet, j, 'R-2', &
-!                    lbound(ptr, dim=1), &
-!                    ubound(ptr, dim=1), &
-!                    lbound(ptr, dim=2), &
-!                    ubound(ptr, dim=2)
-!        write(*,80) localPet, j, 'R-3', &
-!                    lbound(rdata(ng)%Vwind, dim=1), &
-!                    ubound(rdata(ng)%Vwind, dim=1), &
-!                    lbound(rdata(ng)%Vwind, dim=2), &
-!                    ubound(rdata(ng)%Vwind, dim=2)
       end select
       end do
 !
@@ -1579,39 +1519,43 @@
 !     Debug: write field to ASCII file    
 !-----------------------------------------------------------------------
 !
-!      write(outfile,                                                    &
-!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
-!            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-!            'ocn_import',                                               &
-!            trim(adjustl(name)),                                        &
-!            models(Iocean)%time%year,                                   &
-!            models(Iocean)%time%month,                                  &
-!            models(Iocean)%time%day,                                    &
-!            models(Iocean)%time%hour,                                   &
-!            localPet
+      if (cpl_dbglevel > 3) then
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
+            'ocn_import',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour,                                   &
+            localPet
 !
-!      open(unit=99, file = trim(outfile)) 
-!      call print_matrix_r8(ptr, 1, 1, localPet, 99, "ESMF_PTR")
-!      call print_matrix_r8(rdata(ng)%Vwind, 1, 1, localPet, 99, "RDATA")
-!      close(unit=99)
+      open(unit=99, file = trim(outfile)) 
+      call print_matrix_r8(ptr, 1, 1, localPet, 99, "OCN_PTR")
+      call print_matrix_r8(rdata(ng)%Vwind, 1, 1, localPet, 99, "RDATA")
+      close(unit=99)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Debug: write field to NetCDF file    
 !-----------------------------------------------------------------------
 !
-!      write(outfile,                                                    &
-!            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
-!            'ocn_import',                                               &
-!            trim(adjustl(name)),                                        &
-!            models(Iocean)%time%year,                                   &
-!            models(Iocean)%time%month,                                  &
-!            models(Iocean)%time%day,                                    &
-!            models(Iocean)%time%hour
+      if (cpl_dbglevel > 2) then
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'ocn_import',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour
 !
-!      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,       &
-!                           trim(adjustl(outfile)),                      &
-!                           rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,       &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 

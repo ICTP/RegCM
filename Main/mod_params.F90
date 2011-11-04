@@ -147,7 +147,8 @@ module mod_params
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
 
-  namelist /cplparam/ vtk_on, dtcpl 
+  namelist /cplparam/ cpldt, cplexvars, cplinterp, &
+    cplbdysmooth, cpldbglevel 
 !
 !
 !----------------------------------------------------------------------
@@ -212,6 +213,7 @@ module mod_params
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
 !     = 3 ; ROMS
+!     = 4 ; ROMS + Zeng et al.
 !
 !     iocnrough: Zeng Ocean Model Roughness model
 !     = 1 ; (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
@@ -421,10 +423,30 @@ module mod_params
   lband = .false.
 #endif
 
-!------namelist timeparam:
+!------namelist cplparam ;
+! cplexvars:
+! 1 = atm -> ocn : tair, pair, qair, uwind, vwind, rain, swrad, lwrad_down
+!     ocn -> atm : sst
+! 2 = atm -> ocn : tair, pair, qair, uwind, vwind, rain, swrad, lwrad 
+!     ocn -> atm : sst
 !
-  vtk_on = .false.     ! write grid definitions in VTK format
-  dtcpl = 21600.0D0    ! coupling time step in seconds
+! cplinterp:
+! 0 = no interpolation (grids are identical)
+! 1 = bilinear interpolation
+! 2 = bilinear + conservative (for only heat fluxes)
+!
+! cpldbglevel:
+! 0 = no debugging
+! 1 = only informative print
+! 2 = previous + write grid information in VTK format
+! 3 = previous + write exchange fields into NetCDF
+! 4 = previous + write exchange fileds into ASCII
+!
+  cpldt = 21600.0D0       ! coupling time step in seconds (seconds)
+  cplexvars = 1           ! configuration for exchange variables
+  cplinterp = 1           ! interpolation type to exchange data
+  cplbdysmooth = .false.  ! applies smoothing to the ground temperature in boundaries
+  cpldbglevel = 1         ! debugging level
 
 !---------------------------------------------------------------------
 !
@@ -571,9 +593,12 @@ module mod_params
   call mpi_bcast(clmfrq,1,mpi_real8,0,mycomm,ierr)
 #endif
 
-  if (iocnflx == 3) then
-    call mpi_bcast(vtk_on,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(dtcpl,1,mpi_real8,0,mycomm,ierr)
+  if ((iocnflx == 3) .or. (iocnflx == 4)) then
+    call mpi_bcast(cpldt,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(cplexvars,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(cplinterp,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(cplbdysmooth,1,mpi_logical,0,mycomm,ierr)
+    call mpi_bcast(cpldbglevel,1,mpi_integer,0,mycomm,ierr)
   end if
 
   if ( ipptls == 1 ) then
