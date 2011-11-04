@@ -29,7 +29,6 @@ module mod_tendency
   use mod_lm_interface
   use mod_rad_interface
   use mod_pbl_interface
-  use mod_che_tend
   use mod_bdycod
   use mod_precip
   use mod_sun

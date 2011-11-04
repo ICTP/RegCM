@@ -32,6 +32,7 @@ module mod_che_interface
   use mod_che_emission
   use mod_che_carbonaer
   use mod_che_species
+  use mod_che_tend
 !
   public
 !
