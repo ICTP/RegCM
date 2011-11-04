@@ -294,9 +294,9 @@ module mod_cu_bm
     do i = istart , iend
       do j = jstart , jend
         do k = 1 , kz
-          t(j,i,k) = tas(i,k,j)
+          t(j,i,k) = tas(j,i,k)
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = qvas(i,k,j)
+          q(j,i,k) = qvas(j,i,k)
           pppk = (hlev(k)*sfcps(i,j)+ptop)*d_1000
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do

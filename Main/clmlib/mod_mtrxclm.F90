@@ -282,14 +282,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
       if ( .not.ifrest ) then
 !           T(K) at bottom layer
-        r2ctb(j,i) = tatm(ci,kz,cj)
+        r2ctb(j,i) = tatm(cj,ci,kz)
 !           Specific Humidity
-        r2cqb(j,i) = qvatm(ci,kz,cj)/(d_one+qvatm(ci,kz,cj))
+        r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
 !           Reference Height (m)
         r2czga(j,i) = hgt(ci,kz,cj)
 !           Surface winds
-        r2cuxb(j,i) = uatm(ci,kz,cj)
-        r2cvxb(j,i) = vatm(ci,kz,cj)
+        r2cuxb(j,i) = uatm(cj,ci,kz)
+        r2cvxb(j,i) = vatm(cj,ci,kz)
 !           Surface Pressure in Pa from hPa
         r2cpsb(j,i)   = (sfps(ci,cj)+ptop)*d_1000
         r2crnc(j,i)   = pptc(ci,cj)
@@ -869,14 +869,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         end if
  
 !           T(K) at bottom layer
-        r2ctb(j,i) = tatm(ci,kz,cj)
+        r2ctb(j,i) = tatm(cj,ci,kz)
 !           Specific Humidity ?
-        r2cqb(j,i) = qvatm(ci,kz,cj)/(d_one+qvatm(ci,kz,cj))
+        r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
 !           Reference Height (m)
         r2czga(j,i) = hgt(ci,kz,cj)
 !           Surface winds
-        r2cuxb(j,i) = uatm(ci,kz,cj)
-        r2cvxb(j,i) = vatm(ci,kz,cj)
+        r2cuxb(j,i) = uatm(cj,ci,kz)
+        r2cvxb(j,i) = vatm(cj,ci,kz)
 !           Surface Pressure in Pa from cbar
         r2cpsb(j,i) = (sfps(ci,cj)+ptop)*d_1000
 !           Rainfall
@@ -1328,12 +1328,12 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
           do n = 1 , nnsg
             if ( ocld2d(n,i,j) /= 0 ) then
-              u10m_s(n,j,i-1) = real(uatm(i,kz,j))
-              v10m_s(n,j,i-1) = real(vatm(i,kz,j))
+              u10m_s(n,j,i-1) = real(uatm(j,i,kz))
+              v10m_s(n,j,i-1) = real(vatm(j,i,kz))
               tg_s(n,j,i-1) = real(tg2d(n,i,j))
               t2m_s(n,j,i-1) = real(taf2d(n,i,j))
-              u10m_o(j,i-1) = u10m_o(j,i-1) + real(uatm(i,kz,j))
-              v10m_o(j,i-1) = v10m_o(j,i-1) + real(vatm(i,kz,j))
+              u10m_o(j,i-1) = u10m_o(j,i-1) + real(uatm(j,i,kz))
+              v10m_o(j,i-1) = v10m_o(j,i-1) + real(vatm(j,i,kz))
               t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf2d(n,i,j))
               tg_o(j,i-1) = tg_o(j,i-1) + real(tg2d(n,i,j))
             else if ( ocld2d(n,i,j) == 0 ) then

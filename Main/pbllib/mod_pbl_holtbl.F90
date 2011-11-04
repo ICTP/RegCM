@@ -156,7 +156,7 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        thvx(i,k,j) = thxatm(i,k,j)*(d_one+ep1*qvatm(i,k,j))
+        thvx(i,k,j) = thxatm(j,i,k)*(d_one+ep1*qvatm(j,i,k))
       end do
     end do
   end do
@@ -175,7 +175,7 @@ module mod_pbl_holtbl
   end do
   do i = istart , iend
     do j = jstart , jend
-      govrth(j,i) = egrav/thxatm(i,kz,j)
+      govrth(j,i) = egrav/thxatm(j,i,kz)
     end do
   end do
 !
@@ -199,11 +199,11 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         kzmax = 0.8D0*dza(j,i,k-1)*dzq(i,k,j)*rdtpbl
-        vv(j,i,k) = uatm(i,k,j)*uatm(i,k,j) + vatm(i,k,j)*vatm(i,k,j)
-        ss = ((uatm(i,k-1,j)-uatm(i,k,j))*   &
-              (uatm(i,k-1,j)-uatm(i,k,j))+   &
-              (vatm(i,k-1,j)-vatm(i,k,j))*   &
-              (vatm(i,k-1,j)-vatm(i,k,j)))/  &
+        vv(j,i,k) = uatm(j,i,k)*uatm(j,i,k) + vatm(j,i,k)*vatm(j,i,k)
+        ss = ((uatm(j,i,k-1)-uatm(j,i,k))*   &
+              (uatm(j,i,k-1)-uatm(j,i,k))+   &
+              (vatm(j,i,k-1)-vatm(j,i,k))*   &
+              (vatm(j,i,k-1)-vatm(j,i,k)))/  &
               (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0D-9
         ri = govrth(j,i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(j,i,k-1))
         if ( (ri-rc(j,i,k)) >= d_zero ) then
@@ -252,14 +252,14 @@ module mod_pbl_holtbl
       if ( myid == nproc-1 ) jdx = min0(jdx,jend)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #endif
-      uflxsfx = uvdrag(idx,jdx)*uatm(i,kz,j)
-      vflxsfx = uvdrag(idx,jdx)*vatm(i,kz,j)
+      uflxsfx = uvdrag(idx,jdx)*uatm(j,i,kz)
+      vflxsfx = uvdrag(idx,jdx)*vatm(j,i,kz)
       ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(i,j))
       ! convert surface fluxes to kinematic units
       xhfx(j,i) = hfx(i,j)/(cpd*rhox2d(i,j))
       xqfx(j,i) = qfx(i,j)/rhox2d(i,j)
       ! compute virtual heat flux at surface
-      hfxv(j,i) = xhfx(j,i) + mult*thxatm(i,kz,j)*xqfx(j,i)
+      hfxv(j,i) = xhfx(j,i) + mult*thxatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
       pfcor(j,i) = dmax1(dabs(coriolis(i,j)),2.546D-5)
     end do
@@ -272,17 +272,17 @@ module mod_pbl_holtbl
   !
   do i = istart , iend
     do j = jstart , jend
-!     th10(j,i) = ((thxatm(i,kz,j)+tg(i,j))*d_half)*(d_one+mult*sh10)
+!     th10(j,i) = ((thxatm(j,i,kz)+tg(i,j))*d_half)*(d_one+mult*sh10)
 !     th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i)* &
 !                 dlog(za(i,kz,j)*d_r10)
-      sh10 = qvatm(i,kz,j)/(qvatm(i,kz,j)+d_one)
+      sh10 = qvatm(j,i,kz)/(qvatm(j,i,kz)+d_one)
       ! "virtual" potential temperature
       if ( hfxv(j,i) >= d_zero ) then
         th10(j,i) = thvx(i,kz,j)
       else
         ! first approximation for obhukov length
-        ! th10(j,i) = (0.25*thxatm(i,kz,j)+0.75*tg(i,j))*(d_one+mult*sh10)
-        oblen = -d_half*(thxatm(i,kz,j)+tg(i,j)) *  &
+        ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(i,j))*(d_one+mult*sh10)
+        oblen = -d_half*(thxatm(j,i,kz)+tg(i,j)) *  &
                 (d_one+mult*sh10)*ustr(j,i)**d_three /  &
                 (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
         if ( oblen >= za(i,kz,j) ) then
@@ -470,8 +470,8 @@ module mod_pbl_holtbl
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = udatm(i,1,j)/coef2(j,i,1)
-      coeff2(j,i,1) = vdatm(i,1,j)/coef2(j,i,1)
+      coeff1(j,i,1) = udatm(j,i,1)/coef2(j,i,1)
+      coeff2(j,i,1) = vdatm(j,i,1)/coef2(j,i,1)
     end do
   end do
 
@@ -483,9 +483,9 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (udatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1))/       &
+        coeff1(j,i,k) = (udatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1))/       &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff2(j,i,k) = (vdatm(i,k,j)+coef3(j,i,k)*coeff2(j,i,k-1))/       &
+        coeff2(j,i,k) = (vdatm(j,i,k)+coef3(j,i,k)*coeff2(j,i,k-1))/       &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -512,13 +512,13 @@ module mod_pbl_holtbl
       drgdot = (uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)+  &
                 uvdrag(idx,jdxm1)+uvdrag(idx,jdx))*d_rfour
 #endif
-      uflxsf = drgdot*udatm(i,kz,j)
-      vflxsf = drgdot*vdatm(i,kz,j)
+      uflxsf = drgdot*udatm(j,i,kz)
+      vflxsf = drgdot*vdatm(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (udatm(i,kz,j)-dtpbl*alphak(j,i,kz)*uflxsf+      &
+      coeff1(j,i,kz) = (udatm(j,i,kz)-dtpbl*alphak(j,i,kz)*uflxsf+      &
                       coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      coeff2(j,i,kz) = (vdatm(i,kz,j)-dtpbl*alphak(j,i,kz)*vflxsf+      &
+      coeff2(j,i,kz) = (vdatm(j,i,kz)-dtpbl*alphak(j,i,kz)*vflxsf+      &
                       coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -550,9 +550,9 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         uten(i,k,j) = uten(i,k,j) + &
-                      (tpred1(j,i,k)-udatm(i,k,j))*rdtpbl*sfcpd(i,j)
+                      (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(i,j)
         vten(i,k,j) = vten(i,k,j) + &
-                      (tpred2(j,i,k)-vdatm(i,k,j))*rdtpbl*sfcpd(i,j)
+                      (tpred2(j,i,k)-vdatm(j,i,k))*rdtpbl*sfcpd(i,j)
       end do
     end do
   end do
@@ -584,7 +584,7 @@ module mod_pbl_holtbl
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = thxatm(i,1,j)/coef2(j,i,1)
+      coeff1(j,i,1) = thxatm(j,i,1)/coef2(j,i,1)
     end do
   end do
 
@@ -595,7 +595,7 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (thxatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (thxatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -607,7 +607,7 @@ module mod_pbl_holtbl
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (thxatm(i,kz,j) + dtpbl*alphak(j,i,kz)*hfx(i,j)*rcpd + &
+      coeff1(j,i,kz) = (thxatm(j,i,kz) + dtpbl*alphak(j,i,kz)*hfx(i,j)*rcpd + &
                        coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -636,9 +636,9 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        sf = (tatm(i,k,j)*sfcps(i,j))/thxatm(i,k,j)
+        sf = (tatm(j,i,k)*sfcps(i,j))/thxatm(j,i,k)
         difft(i,k,j) = difft(i,k,j) + &
-                       (tpred1(j,i,k)-thxatm(i,k,j))*rdtpbl*sf
+                       (tpred1(j,i,k)-thxatm(j,i,k))*rdtpbl*sf
       end do
     end do
   end do
@@ -659,7 +659,7 @@ module mod_pbl_holtbl
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = qvatm(i,1,j)/coef2(j,i,1)
+      coeff1(j,i,1) = qvatm(j,i,1)/coef2(j,i,1)
     end do
   end do
  
@@ -670,7 +670,7 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (qvatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (qvatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                        (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -682,7 +682,7 @@ module mod_pbl_holtbl
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (qvatm(i,kz,j) + &
+      coeff1(j,i,kz) = (qvatm(j,i,kz) + &
                dtpbl*alphak(j,i,kz)*qfx(i,j) + &
                coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
@@ -713,7 +713,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
+          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(i,j)
         end do
       end do
     end do
@@ -722,7 +722,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           diffq(i,k,j) = diffq(i,k,j) + &
-                         (tpred1(j,i,k)-qvatm(i,k,j))*rdtpbl*sfcps(i,j)
+                         (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(i,j)
         end do
       end do
     end do
@@ -743,7 +743,7 @@ module mod_pbl_holtbl
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = qcatm(i,1,j)/coef2(j,i,1)
+      coeff1(j,i,1) = qcatm(j,i,1)/coef2(j,i,1)
     end do
   end do
   do k = 2 , kz - 1
@@ -753,7 +753,7 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (qcatm(i,k,j)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (qcatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -764,7 +764,7 @@ module mod_pbl_holtbl
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (qcatm(i,kz,j)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+      coeff1(j,i,kz) = (qcatm(j,i,kz)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
   end do
@@ -792,7 +792,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
+          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(i,j)
         end do
       end do
     end do
@@ -801,7 +801,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           qcten(i,k,j) = qcten(i,k,j) + &
-                      (tpred1(j,i,k)-qcatm(i,k,j))*rdtpbl*sfcps(i,j)
+                      (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(i,j)
         end do
       end do
     end do
@@ -819,7 +819,7 @@ module mod_pbl_holtbl
   do k = 2 , kz
     do i = istart , iend
       do j = jstart , jend
-        sf = tatm(i,k,j)/thxatm(i,k,j)
+        sf = tatm(j,i,k)/thxatm(j,i,k)
         ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
       end do
     end do
@@ -893,7 +893,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff1(j,i,1) = chmx(i,1,j,itr)/coef2(j,i,1)
+          coeff1(j,i,1) = chmx(j,i,1,itr)/coef2(j,i,1)
         end do
       end do
       do k = 2 , kz - 1
@@ -901,7 +901,7 @@ module mod_pbl_holtbl
           do j = jstart , jend
             coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
                            coef3(j,i,k)*coefe(j,i,k-1))
-            coeff1(j,i,k) = (chmx(i,k,j,itr)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+            coeff1(j,i,k) = (chmx(j,i,k,itr)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
           end do
         end do
@@ -911,8 +911,8 @@ module mod_pbl_holtbl
         do j = jstart , jend
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
-          coeff1(j,i,kz) = (chmx(i,kz,j,itr)-dtpbl*alphak(j,i,kz) * &
-                            chmx(i,kz,j,itr)*vdep(j,i,itr)*rhox2d(i,j) + &
+          coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dtpbl*alphak(j,i,kz) * &
+                            chmx(j,i,kz,itr)*vdep(j,i,itr)*rhox2d(i,j) + &
                             coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                            (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
@@ -943,14 +943,14 @@ module mod_pbl_holtbl
           do j = jstart , jend
 !CGAFFE     TEST diffusion/10
             chten(i,k,j,itr) = chten(i,k,j,itr) +  &
-                        (tpred1(j,i,k)-chmx(i,k,j,itr))*rdtpbl*sfcps(i,j)
+                        (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(i,j)
           end do
         end do
       end do
       do i = istart , iend
         do j = jstart , jend
           if ( chname(itr) /= 'DUST' ) &
-            drmr(i,j,itr) = drmr(i,j,itr) + chmx(i,kz,j,itr)* &
+            drmr(i,j,itr) = drmr(i,j,itr) + chmx(j,i,kz,itr)* &
                 vdep(j,i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
                 hydf(kz)/sfcps(i,j)
  
@@ -1052,7 +1052,7 @@ module mod_pbl_holtbl
         xfmt = (d_one-(binm*zpbl(j,i)/obklen(j,i)))**onet
         wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
-        therm(j,i) = (xhfx(j,i)+mult*thxatm(i,kz,j)*xqfx(j,i))*fak/wsc
+        therm(j,i) = (xhfx(j,i)+mult*thxatm(j,i,kz)*xqfx(j,i))*fak/wsc
         ri(j,i,kz) = -egrav*therm(j,i)*za(i,kz,j)/(th10(j,i)*vv(j,i,kz))
       else
         therm(j,i) = d_zero
@@ -1065,7 +1065,7 @@ module mod_pbl_holtbl
       do j = jstart , jend
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
-          tkv = thxatm(i,k,j)*(d_one+mult*(qvatm(i,k,j)/(qvatm(i,k,j)+d_one)))
+          tkv = thxatm(j,i,k)*(d_one+mult*(qvatm(j,i,k)/(qvatm(j,i,k)+d_one)))
           ri(j,i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(j,i)*vv(j,i,k))
         end if
       end do

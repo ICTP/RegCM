@@ -606,7 +606,7 @@ module mod_rad_colmod3
 !
     do k = 1 , kz
       do j = jstart , jend
-        tm1(j,k) = tatms(i,k,j)
+        tm1(j,k) = tatms(j,i,k)
       end do
     end do
 !
@@ -614,7 +614,7 @@ module mod_rad_colmod3
 !
     do k = 1 , kz
       do j = jstart , jend
-        h2ommr(j,k) = dmax1(1.0D-7,qvatms(i,k,j))
+        h2ommr(j,k) = dmax1(1.0D-7,qvatms(j,i,k))
         qm1(j,k) = h2ommr(j,k)
       end do
     end do

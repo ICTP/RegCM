@@ -919,7 +919,7 @@ module mod_output
           do k = 1 , kz
             do i = 1 , iy
               sav0c(i,k,j) = rsheat(j,i,k)
-              sav0c(i,kz+k,j) = rswat(i,k,j)
+              sav0c(i,kz+k,j) = rswat(j,i,k)
             end do
           end do
         end do

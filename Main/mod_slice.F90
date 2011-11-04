@@ -32,70 +32,70 @@ module mod_slice
 !
   contains 
 !
-  subroutine mkslice
- 
+  subroutine mkslice(jstart,jend,istart,iend)
   implicit none
+  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(8) :: cell , pl , pres , psrf , rh , satvp , thcon , tv
   integer :: i , idx , idxp1 , j , jdx , jdxp1 , k , kk , n
  
-  do j = 1 , jendx
-    do k = 1 , kz
-      do i = 1 , iym1
-        atms%tb3d(i,k,j) = atm2%t(i,k,j)/sps2%ps(i,j)
-        atms%qvb3d(i,k,j) = atm2%qv(i,k,j)/sps2%ps(i,j)
-        atms%qcb3d(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        atms%tb3d(j,i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
+        atms%qvb3d(j,i,k) = atm2%qv(i,k,j)/sps2%ps(i,j)
+        atms%qcb3d(j,i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)
         if ( ichem == 1 ) then
           do n = 1 , ntr
-            atms%chib3d(i,k,j,n) = chib(i,k,j,n)/sps2%ps(i,j)
+            atms%chib3d(j,i,k,n) = chib(i,k,j,n)/sps2%ps(i,j)
           end do
         end if
       end do
     end do
   end do
-  do j = jbegin , jendx
-    jdx = j
-    jdxp1 = j + 1
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jbegin , jend
+        jdx = j
+        jdxp1 = j + 1
 #ifndef BAND
-    if ( myid == 0 ) jdx = max0(j,2)
-    if ( myid == nproc-1 ) jdxp1 = min0(j+1,jendx)
+        if ( myid == 0 ) jdx = max0(jdx,jbegin)
+        if ( myid == nproc-1 ) jdxp1 = min0(jdxp1,jend)
 #endif
-    do k = 1 , kz
-      do i = 1 , iym1
-        idx = max0(i,2)
-        idxp1 = min0(i+1,iym1)
-        atms%ubx3d(i,k,j) = d_rfour* & 
+        idx = max0(i,istart)
+        idxp1 = min0(i+1,iend)
+        atms%ubx3d(j,i,k) = d_rfour* & 
             (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
              atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
-        atms%vbx3d(i,k,j) = d_rfour* &
+        atms%vbx3d(j,i,k) = d_rfour* &
             (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
              atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
       end do
     end do
   end do
  
-  do j = 1 , jendl
-    do k = 1 , kz
-      do i = 1 , iy
-        atms%ubd3d(i,k,j) = atm2%u(i,k,j)/sps2%pdot(i,j)
-        atms%vbd3d(i,k,j) = atm2%v(i,k,j)/sps2%pdot(i,j)
+  do k = 1 , kz
+    do i = istart , iend+1
+      do j = jstart , jend
+        atms%ubd3d(j,i,k) = atm2%u(i,k,j)/sps2%pdot(i,j)
+        atms%vbd3d(j,i,k) = atm2%v(i,k,j)/sps2%pdot(i,j)
       end do
     end do
   end do
  
-  do j = jbegin , jendx
-    do k = 1 , kz
-      do i = 2 , iym1
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
         pl = a(k)*sps2%ps(i,j) + ptop
         thcon = ((sps2%ps(i,j)+ptop)/pl)**rovcp
-        atms%pb3d(i,k,j) = pl
-        atms%thx3d(i,k,j) = atms%tb3d(i,k,j)*thcon
+        atms%pb3d(j,i,k) = pl
+        atms%thx3d(j,i,k) = atms%tb3d(j,i,k)*thcon
       end do
     end do
   end do
  
 !-----compute the height at full (za) and half (zq) sigma levels:
-  do j = jbegin , jendx
+  do j = jbegin , jend
     do i = 2 , iym1
       zq(i,kzp1) = d_zero
     end do
@@ -103,7 +103,7 @@ module mod_slice
       k = kzp1 - kk
       do i = 2 , iym1
         cell = ptop/sps2%ps(i,j)
-        zq(i,k) = zq(i,k+1) + rovg*atms%tb3d(i,k,j) *  &
+        zq(i,k) = zq(i,k+1) + rovg*atms%tb3d(j,i,k) *  &
                   dlog((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
     end do
@@ -114,34 +114,47 @@ module mod_slice
         dzq(i,k,j) = zq(i,k) - zq(i,k+1)
       end do
     end do
+  end do
  
 !-----Calculate the relative humidity and air density
 
+  do j = jbegin , jend
     do i = 2 , iym1
       psrf = (sps2%ps(i,j)+ptop)*d_1000
-      tv = atms%tb3d(i,kz,j)
+      tv = atms%tb3d(j,i,kz)
       rhox2d(i,j) = psrf/(rgas*tv)
     end do
-    do k = 1 , kz
-      do i = 2 , iym2
+  end do
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
         pres = (a(k)*sps2%ps(i,j)+ptop)*d_1000
-        atms%rhob3d(i,k,j) = pres/(rgas*atms%tb3d(i,k,j)) !air density
-        if ( atms%tb3d(i,k,j) > tzero ) then
-          satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(i,k,j)-tzero)           &
-                & /(atms%tb3d(i,k,j)-svp3))
+        atms%rhob3d(j,i,k) = pres/(rgas*atms%tb3d(j,i,k)) !air density
+        if ( atms%tb3d(j,i,k) > tzero ) then
+          satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(j,i,k)-tzero)           &
+                & /(atms%tb3d(j,i,k)-svp3))
         else
-          satvp = svp4*d_1000*dexp(svp5-svp6/atms%tb3d(i,k,j))
+          satvp = svp4*d_1000*dexp(svp5-svp6/atms%tb3d(j,i,k))
         end if
-        atms%qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
+        atms%qsb3d(j,i,k) = ep2*satvp/(pres-satvp)
         rh = d_zero
-        if ( atms%qsb3d(i,k,j) > d_zero ) then
-          rh = atms%qvb3d(i,k,j)/atms%qsb3d(i,k,j)
+        if ( atms%qsb3d(j,i,k) > d_zero ) then
+          rh = atms%qvb3d(j,i,k)/atms%qsb3d(j,i,k)
         end if
-        atms%rhb3d(i,k,j) = rh
+        atms%rhb3d(j,i,k) = rh
       end do
     end do
   end do
  
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    do k = 1 , kzp1
+      do i = istart , iend
+        do j = jstart , jend
+          atms%tkeb3d(j,i,k) = atm2%tke(i,k,j)
+        end do
+      end do
+    end do
+  end if
   end subroutine mkslice
 !
 end module mod_slice

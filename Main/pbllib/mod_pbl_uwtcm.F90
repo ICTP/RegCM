@@ -250,15 +250,15 @@ module mod_pbl_uwtcm
         do k = kz , 1 , -1
           rttenx(k) = radheatrt(j,i,k)
           cell = ptop/psbx
-          zqx(k) = zqx(k+1) + rgas/egrav*tatm(i,k,j)*   &
+          zqx(k) = zqx(k+1) + rgas/egrav*tatm(j,i,k)*   &
                    log((flev(k+1)+cell)/(flev(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
           tke(k) = tkests(i,k,j)
-          tx(k)  = tatm(i,k,j)
-          qx(k)  = qvatm(i,k,j)
-          qcx(k) = qcatm(i,k,j)
-          ux(k)  = uatm(i,k,j)
-          vx(k)  = vatm(i,k,j)
+          tx(k)  = tatm(j,i,k)
+          qx(k)  = qvatm(j,i,k)
+          qcx(k) = qcatm(j,i,k)
+          ux(k)  = uatm(j,i,k)
+          vx(k)  = vatm(j,i,k)
           ! if ( tx(k) > tzero ) then
 !         if ( tx(k) > tzero ) then
 !           isice(k) = 0
@@ -660,7 +660,7 @@ module mod_pbl_uwtcm
         ! Output the PBL top index and height
         uwstateb%zpbl(i,j) = pblx
 
-        kpbl(i,j) = kpbl2dx
+        kpbl(j,i) = kpbl2dx
 
       end do jloop
     end do iloop

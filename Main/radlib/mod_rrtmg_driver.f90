@@ -510,7 +510,7 @@ module mod_rrtmg_driver
     do k = 1 , kz
       kj = kzp1 - k 
       do j = jstart , jend
-        tlay(j,kj) = tatms(i,k,j)
+        tlay(j,kj) = tatms(j,i,k)
       end do
     end do
     !
@@ -542,7 +542,7 @@ module mod_rrtmg_driver
     do k = 1 , kz 
       kj = kzp1 - k       
       do j = jstart , jend
-        h2ommr(j,kj) = dmax1(1.0D-7,qvatms(i,k,j))
+        h2ommr(j,kj) = dmax1(1.0D-7,qvatms(j,i,k))
         h2ovmr(j,kj) = h2ommr(j,kj) * ep2
       end do
     end do

@@ -97,10 +97,10 @@ module mod_bats_zengocn
 #else
           if ( ocld2d(n,i,j) == 0 ) then
 #endif
-            uv995 = dsqrt(uatm(i,kz,j)**d_two+vatm(i,kz,j)**d_two)
+            uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
             tsurf = tground2(i,j) - tzero
-            t995 = tatm(i,kz,j) - tzero
-            q995 = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
+            t995 = tatm(j,i,kz) - tzero
+            q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
             z995 = hgt(i,kz,j)
             zi = hpbl(j,i)
             psurf = (sfps(i,j)+ptop)*d_10
@@ -202,8 +202,8 @@ module mod_bats_zengocn
             ! Back out Drag Coefficient
             drag(n,j,i) = ustar**d_two*rho(i,j)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            u10m(n,j,i) = uatm(i,kz,j)*uv10/uv995
-            v10m(n,j,i) = vatm(i,kz,j)*uv10/uv995
+            u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
+            v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
             t2m(n,j,i) = t995 + tzero - dth*facttq
             q2m(n,j,i) = q995 - dqh*facttq
             !

@@ -103,9 +103,9 @@
           do i = istart , iend
 !           rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
 !      what the hell   1000./287./atm2%t(i,k,j)*sps2%ps(i,j)
-            rho(i,k) = crhob3d(i,k,j)
-            wl(i,k) = cqcb3d(i,k,j)*rho(i,k)
-            ttb(i,k) = ctb3d(i,k,j)
+            rho(i,k) = crhob3d(j,i,k)
+            wl(i,k) = cqcb3d(j,i,k)*rho(i,k)
+            ttb(i,k) = ctb3d(j,i,k)
 !           precipiation rate is a rquired variable for deposition routines.
 !           It is directly taken as rembc (saved in precip routine) in mm/hr !!
             prec(i,k) = crembc(i,k) / 3600.D0 !passed in mm/s  
@@ -158,14 +158,14 @@
             zeff(i) = zoce
           end if
 !         10 m wind
-          u10 = (cubx3d(i,kz,j))*(1-fact)
-          v10 = (cvbx3d(i,kz,j))*(1-fact)
+          u10 = (cubx3d(j,i,kz))*(1-fact)
+          v10 = (cvbx3d(j,i,kz))*(1-fact)
           wid10(i) = sqrt(u10**2+v10**2)
 !         10 m air temperature
           temp10(i) = ttb(i,kz) - csdeltk2d(i,j)*fact
 !         specific  humidity at 10m
-          shu10 = cqvb3d(i,kz,j)/ &
-                  (d_one+cqvb3d(i,kz,j))-csdelqk2d(i,j)*fact
+          shu10 = cqvb3d(j,i,kz)/ &
+                  (d_one+cqvb3d(j,i,kz))-csdelqk2d(i,j)*fact
 !         back to mixing ratio
           shu10 = shu10/(1-shu10)
 !         saturation mixing ratio at 10m

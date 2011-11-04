@@ -52,8 +52,8 @@ module mod_cu_kuo
 !
   subroutine allocate_mod_cu_kuo
     implicit none
-    call getmem3d(rsheat,1,iy,1,kz,1,jxp,'cu_kuo:rsheat')
-    call getmem3d(rswat,1,iy,1,kz,1,jxp,'cu_kuo:rswat')
+    call getmem3d(rsheat,1,jxp,1,iy,1,kz,'cu_kuo:rsheat')
+    call getmem3d(rswat,1,jxp,1,iy,1,kz,'cu_kuo:rswat')
     call getmem1d(qwght,1,kz,'cu_kuo:qwght')
     call getmem3d(twght,1,kz,5,kz,1,kz-3,'cu_kuo:twght')
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
@@ -259,11 +259,11 @@ module mod_cu_kuo
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dtcum*d_half
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtcum*d_half
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 qvten(i,k,j) = eddyf
-                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dtcum*d_half
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtcum*d_half
               end do
 !
 !             find cloud fractional cover and liquid water content
@@ -321,14 +321,14 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          rsheat(i,k,j) = dmax1(rsheat(i,k,j),d_zero)
-          rswat(i,k,j) = dmax1(rswat(i,k,j),d_zero)
-          rsht = rsheat(i,k,j)/tauht
-          rswt = rswat(i,k,j)/tauht
+          rsheat(j,i,k) = dmax1(rsheat(j,i,k),d_zero)
+          rswat(j,i,k) = dmax1(rswat(j,i,k),d_zero)
+          rsht = rsheat(j,i,k)/tauht
+          rswt = rswat(j,i,k)/tauht
           tten(i,k,j) = tten(i,k,j) + rsht
           qvten(i,k,j) = qvten(i,k,j) + rswt
-          rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dtcum/(d_two*tauht))
-          rswat(i,k,j) = rswat(i,k,j)*(d_one-dtcum/(d_two*tauht))
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtcum/(d_two*tauht))
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtcum/(d_two*tauht))
         end do
       end do
     end do
@@ -369,7 +369,7 @@ module mod_cu_kuo
         do i = istart , iend
           im1 = max0(i-1,istart)
           ip1 = min0(i+1,iend)
-          rsheat(i,k,j) = rsheat(i,k,j)+akht1*dtmdl/dxsq * &
+          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtmdl/dxsq * &
                    (wr1(im1,j,k)+wr1(ip1,j,k)+wr1(i,jm1,k) + &
                     wr1(i,jp1,k)-d_four*wr1(i,j,k))
         end do
@@ -396,7 +396,7 @@ module mod_cu_kuo
         do i = istart , iend
           im1 = max0(i-1,istart)
           ip1 = min0(i+1,iend)
-          rswat(i,k,j) = rswat(i,k,j)+akht1*dtmdl/dxsq * &
+          rswat(j,i,k) = rswat(j,i,k)+akht1*dtmdl/dxsq * &
                 (wr2(im1,j,k)+wr2(ip1,j,k)+wr2(i,jm1,k) + &
                  wr2(i,jp1,k)-d_four*wr2(i,j,k))
         end do

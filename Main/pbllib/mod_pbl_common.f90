@@ -167,7 +167,7 @@ module mod_pbl_common
     call getmem3d(za,1,iy,1,kz,1,jxp,'pbl_common:za')
     call getmem2d(rhox2d,1,iy,1,jxp,'pbl_common:rhox2d')
     call getmem2d(kpbl,1,jxp,1,iy,'pbl_common:kpbl')
-    call getmem2d(zpbl,1,jxp,1,iy,'pbl_common:kpbl')
+    call getmem2d(zpbl,1,jxp,1,iy,'pbl_common:zpbl')
     !
     ! Allocate the tcm state variables
     !

@@ -165,11 +165,11 @@ module mod_cu_tiedtke
           ! Pascal
           papp1(ii,k) = (hlev(k)*sfcps(i,j)+ptop)*d_1000
 
-          ptm1(ii,k)  = tas(i,k,j)  ! temperature
-          pum1(ii,k)  = uas(i,k,j)  ! u (guessing!)
-          pvm1(ii,k)  = vas(i,k,j)  ! v     "
-          pqm1(ii,k)  = qvas(i,k,j) ! humidity
-          pxlm1(ii,k) = qcas(i,k,j) ! cloud liquid water
+          ptm1(ii,k)  = tas(j,i,k)  ! temperature
+          pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
+          pvm1(ii,k)  = vas(j,i,k)  ! v     "
+          pqm1(ii,k)  = qvas(j,i,k) ! humidity
+          pxlm1(ii,k) = qcas(j,i,k) ! cloud liquid water
 
           ptte(ii,k)  = tten(i,k,j)/sfcps(i,j)
           pvom(ii,k)  = uten(i,k,j)/sfcps(i,j)

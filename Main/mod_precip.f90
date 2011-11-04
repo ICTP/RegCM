@@ -75,7 +75,6 @@ module mod_precip
       type(surfpstate) , intent(in) :: sps
       type(surfstate) , intent(in) :: surface
       real(8) , pointer , dimension(:,:) :: lsmrainnc
-      real(8) , pointer , dimension(:,:) :: remrat , rembc
       real(8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
       call assignpnt(atmslice%tb3d,t3)
@@ -94,8 +93,6 @@ module mod_precip
       call assignpnt(sps%ps,psf)
       call assignpnt(surface%rainnc,rainnc)
       call assignpnt(lsmrainnc,lsmrnc)
- !     call assignpnt(remrat,chrmrat)
- !     call assignpnt(rembc,chrmbc)
       call assignpnt(radcldf,cldfra)
       call assignpnt(radlqwc,cldlwc)
 
@@ -155,12 +152,12 @@ module mod_precip
         if ( afc > 0.01D0 ) then !   if there is a cloud
 !       1aa. Compute temperature and humidities with the adjustments
 !            due to convection.
-          q = qv3(i,1,j)                                     ![kg/kg][avg]
-          tk = t3(i,1,j)                                     ![k][avg]
+          q = qv3(j,i,1)                                     ![kg/kg][avg]
+          tk = t3(j,i,1)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = p3(i,1,j)*d_1000                               ![Pa][avg]
+          p = p3(j,i,1)*d_1000                               ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
-          qcw = qc3(i,1,j)                                   ![kg/kg][avg]
+          qcw = qc3(j,i,1)                                   ![kg/kg][avg]
 !         1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
 !         1ac. Compute the maximum precipation rate
@@ -216,12 +213,12 @@ module mod_precip
      
 !         1ba. Compute temperature and humidities with the adjustments
 !              due to convection.
-          q = qv3(i,k,j)                                     ![kg/kg][avg]
-          tk = t3(i,k,j)                                     ![k][avg]
+          q = qv3(j,i,k)                                     ![kg/kg][avg]
+          tk = t3(j,i,k)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = p3(i,k,j)*d_1000                               ![Pa][avg]
+          p = p3(j,i,k)*d_1000                               ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
-          qcw = qc3(i,k,j)                                   ![kg/kg][avg]
+          qcw = qc3(j,i,k)                                   ![kg/kg][avg]
           afc = fcc(i,k,j)                                   ![frac][avg]
           if ( tcel > d_zero ) then
             es = svp1*d_1000*dexp(svp2*tcel/(tk-svp3))       ![Pa][avg]
@@ -319,7 +316,7 @@ module mod_precip
             rembc(i,k) = d_zero
             if ( remrat(i,k) > d_zero ) then
               do kk = 1 , k - 1
-                rembc(i,k) = rembc(i,k) + remrat(i,kk)*qc3(i,kk,j) *  &
+                rembc(i,k) = rembc(i,k) + remrat(i,kk)*qc3(j,i,kk) *  &
                              psf(i,j)*dsigma(kk)*uch          ![mm/hr]
               end do
 ! the below cloud precipitation rate is now used directly in chemistry
@@ -395,17 +392,17 @@ module mod_precip
       ! Adjusted relative humidity threshold
       do i = istart , iend
         do j = jstart , jend
-          if ( t3(i,k,j) > tc0 ) then
+          if ( t3(j,i,k) > tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-t3(i,k,j)))
+            rh0adj = rhmax-(rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-t3(j,i,k)))
           end if
-          if ( rh3(i,k,j) >= rhmax ) then        ! full cloud cover
+          if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
             fcc(i,k,j) = d_one
-          else if ( rh3(i,k,j) <= rh0adj ) then  ! no cloud cover
+          else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
             fcc(i,k,j) = d_zero
           else                                   ! partial cloud cover
-            fcc(i,k,j) = d_one-dsqrt(d_one-(rh3(i,k,j)-rh0adj) / &
+            fcc(i,k,j) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
                           (rhmax-rh0adj))
             fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
           end if !  rh0 threshold
@@ -416,11 +413,11 @@ module mod_precip
 !         An Improved Parameterization for Simulating Arctic Cloud Amount
 !         in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
-          if ( p3(i,k,j) >= 75.0D0 ) then
+          if ( p3(j,i,k) >= 75.0D0 ) then
             ! Clouds below 750hPa
-            if ( qv3(i,k,j) <= 0.003D0 ) then
+            if ( qv3(j,i,k) <= 0.003D0 ) then
               fcc(i,k,j) = fcc(i,k,j) * &
-                     dmax1(0.15D0,dmin1(d_one,qv3(i,k,j)/0.003D0))
+                     dmax1(0.15D0,dmin1(d_one,qv3(j,i,k)/0.003D0))
             end if
           end if
 !---------------------------------------------------------------------
@@ -439,16 +436,16 @@ module mod_precip
         do j = jstart , jend
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          exlwc = qc3(i,k,j)*rho3(i,k,j)*d_1000
+          exlwc = qc3(j,i,k)*rho3(j,i,k)*d_1000
 
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
-          cldlwc(j,i,k)  = 0.127D+00 + 6.78D-03*(t3(i,k,j)-tzero) + &
-                         1.29D-04* (t3(i,k,j)-tzero)**d_two  +    &
-                         8.36D-07*(t3(i,k,j)-tzero)**d_three
+          cldlwc(j,i,k)  = 0.127D+00 + 6.78D-03*(t3(j,i,k)-tzero) + &
+                         1.29D-04* (t3(j,i,k)-tzero)**d_two  +    &
+                         8.36D-07*(t3(j,i,k)-tzero)**d_three
 
           if ( cldlwc(j,i,k) > 0.3D+00 ) cldlwc(j,i,k) = 0.3D+00
-          if ( (t3(i,k,j)-tzero) < -50D+00 ) cldlwc(j,i,k) = 0.001D+00
+          if ( (t3(j,i,k)-tzero) < -50D+00 ) cldlwc(j,i,k) = 0.001D+00
           ! Apply the parameterisation based on temperature to the
           ! convective fraction AND the large scale clouds :
           ! the large scale cloud water content is not really used by
@@ -539,7 +536,7 @@ module mod_precip
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            qvc_cld = dmax1((qs3(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
+            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if

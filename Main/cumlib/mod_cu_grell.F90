@@ -309,8 +309,8 @@ module mod_cu_grell
                 pvatm(i+1,kk,j)/sfcps(i+1,j)+   &
                 pvatm(i,kk,jp1)/sfcps(i,jp1)+   &
                 pvatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
-          t(j,i,k) = tas(i,kk,j)
-          q(j,i,k) = qvas(i,kk,j)
+          t(j,i,k) = tas(j,i,kk)
+          q(j,i,k) = qvas(j,i,kk)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
           tn(j,i,k) = t(j,i,k) + (tten(i,kk,j))/sfcps(i,j)*dtcum
           qo(j,i,k) = q(j,i,k) + (qvten(i,kk,j))/sfcps(i,j)*dtcum

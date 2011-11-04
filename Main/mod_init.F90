@@ -716,8 +716,8 @@ module mod_init
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
-            rsheat(i,k,j) = sav0c(i,k,j)
-            rswat(i,k,j)  = sav0c(i,kz+k,j)
+            rsheat(j,i,k) = sav0c(i,k,j)
+            rswat(j,i,k)  = sav0c(i,kz+k,j)
           end do
         end do
       end do

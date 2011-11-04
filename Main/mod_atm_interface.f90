@@ -81,6 +81,7 @@ module mod_atm_interface
     real(8) , pointer , dimension(:,:,:) :: qvb3d
     real(8) , pointer , dimension(:,:,:) :: qsb3d
     real(8) , pointer , dimension(:,:,:) :: qcb3d
+    real(8) , pointer , dimension(:,:,:) :: tkeb3d
     real(8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
 
@@ -252,23 +253,27 @@ module mod_atm_interface
       call getmem2d(sfs%uvdrag,1,iy,0,jxp,'surfstate:uvdrag')
     end subroutine allocate_surfstate
 !
-    subroutine allocate_slice(ax)
+    subroutine allocate_slice(ax,ibltyp)
       implicit none
       type(slice) , intent(out) :: ax
-      call getmem3d(ax%pb3d,1,iy,1,kz,1,jxp,'slice:pb3d')
-      call getmem3d(ax%qsb3d,1,iy,1,kz,1,jxp,'slice:qsb3d')
-      call getmem3d(ax%rhb3d,1,iy,1,kz,1,jxp,'slice:rhb3d')
-      call getmem3d(ax%rhob3d,1,iy,1,kz,1,jxp,'slice:rhob3d')
-      call getmem3d(ax%ubx3d,1,iy,1,kz,1,jxp,'slice:ubx3d')
-      call getmem3d(ax%vbx3d,1,iy,1,kz,1,jxp,'slice:vbx3d')
-      call getmem3d(ax%thx3d,1,iy,1,kz,1,jxp,'slice:thx3d')
-      call getmem3d(ax%qcb3d,1,iy,1,kz,-1,jxp+2,'slice:qcb3d')
-      call getmem3d(ax%qvb3d,1,iy,1,kz,-1,jxp+2,'slice:qvb3d')
-      call getmem3d(ax%tb3d,1,iy,1,kz,-1,jxp+2,'slice:tb3d')
-      call getmem3d(ax%ubd3d,1,iy,1,kz,-1,jxp+2,'slice:ubd3d')
-      call getmem3d(ax%vbd3d,1,iy,1,kz,-1,jxp+2,'slice:vbd3d')
+      integer , intent(in) :: ibltyp
+      call getmem3d(ax%pb3d,1,jxp,1,iy,1,kz,'slice:pb3d')
+      call getmem3d(ax%qsb3d,1,jxp,1,iy,1,kz,'slice:qsb3d')
+      call getmem3d(ax%rhb3d,1,jxp,1,iy,1,kz,'slice:rhb3d')
+      call getmem3d(ax%rhob3d,1,jxp,1,iy,1,kz,'slice:rhob3d')
+      call getmem3d(ax%ubx3d,1,jxp,1,iy,1,kz,'slice:ubx3d')
+      call getmem3d(ax%vbx3d,1,jxp,1,iy,1,kz,'slice:vbx3d')
+      call getmem3d(ax%thx3d,1,jxp,1,iy,1,kz,'slice:thx3d')
+      call getmem3d(ax%qcb3d,-1,jxp+2,1,iy,1,kz,'slice:qcb3d')
+      call getmem3d(ax%qvb3d,-1,jxp+2,1,iy,1,kz,'slice:qvb3d')
+      call getmem3d(ax%tb3d,-1,jxp+2,1,iy,1,kz,'slice:tb3d')
+      call getmem3d(ax%ubd3d,-1,jxp+2,1,iy,1,kz,'slice:ubd3d')
+      call getmem3d(ax%vbd3d,-1,jxp+2,1,iy,1,kz,'slice:vbd3d')
       if ( ichem == 1 ) then
-        call getmem4d(ax%chib3d,1,iy,1,kz,-1,jxp+2,1,ntr,'slice:chib3d')
+        call getmem4d(ax%chib3d,-1,jxp+2,1,iy,1,kz,1,ntr,'slice:chib3d')
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        call getmem3d(ax%tkeb3d,-1,jxp+2,1,iy,1,kzp1,'slice:tkeb3d')
       end if
     end subroutine allocate_slice
 !
@@ -309,7 +314,7 @@ module mod_atm_interface
 
       call allocate_surfstate(sfsta)
 
-      call allocate_slice(atms)
+      call allocate_slice(atms,ibltyp)
 
       call allocate_diffx(adf)
 

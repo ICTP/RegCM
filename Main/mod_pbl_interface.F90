@@ -22,6 +22,7 @@ module mod_pbl_interface
   use mod_realkinds
   use mod_service
   use mod_constants
+  use mod_dynparam
   use mod_atm_interface , only : atmstate , diffx , slice , surfstate , &
                    surfpstate , surftstate , domain , uvcross2dot
   use mod_pbl_common
@@ -61,7 +62,7 @@ module mod_pbl_interface
     if ( ichdrydepo == 1 ) lchdrydepo = .true.
 
     itcmstart = 2
-    itcmend = iy-1 
+    itcmend = iym1 
     if ( myid == 0 ) then
       jtcmstart = 2
     else
@@ -69,9 +70,9 @@ module mod_pbl_interface
     end if
 
     if ( myid == nproc-1 ) then
-      jtcmend = jxp-1 
+      jtcmend = jxp-1
     else
-      jtcmend = jxp 
+      jtcmend = jxp
     end if
 
     dttke = dt
@@ -167,7 +168,7 @@ module mod_pbl_interface
       end if
 
       zpbl(jtcmstart:jtcmend,itcmstart:itcmend) = &
-                tcmstate%zpbl(itcmstart:itcmend,jtcmstart:jtcmend)
+                transpose(tcmstate%zpbl(itcmstart:itcmend,jtcmstart:jtcmend))
     end if
 
 !   !

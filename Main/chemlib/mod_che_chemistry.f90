@@ -256,7 +256,7 @@ module mod_che_chemistry
 
       do k = 1 , kz
         do i = 2 , iym2
-          taa(i,k) = ctb3d(i,k,j)
+          taa(i,k) = ctb3d(j,i,k)
           psaa(i,k)= (cpsb(i,j)*hlev(k)+chptop)
         end do
       end do 
@@ -266,7 +266,7 @@ module mod_che_chemistry
           cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
           cfactor = cfactor/cpsb(i,j)
           zena(i) = dacos(czen(j,i)*degrad)
-          chemin(i,k,j,ind_H2O)  = cqvb3d(i,k,j)*cfactor
+          chemin(i,k,j,ind_H2O)  = cqvb3d(j,i,k)*cfactor
           chemin(i,k,j,ind_O3)   = chib(i,k,j,io3)*cfactor*amd/W_O3
           chemin(i,k,j,ind_NO2)  = chib(i,k,j,ino2)*cfactor*amd/W_NO2
           chemin(i,k,j,ind_NO)   = chib(i,k,j,ino)*cfactor*amd/W_NO

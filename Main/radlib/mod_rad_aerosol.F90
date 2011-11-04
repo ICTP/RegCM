@@ -619,7 +619,7 @@ module mod_rad_aerosol
       do j = jstart , jend
  
 !       July 13, 2000: needed for aerosols in radiation
-        rh(j,k) = dmin1(rhatms(i,k,j),nearone)
+        rh(j,k) = dmin1(rhatms(j,i,k),nearone)
 !EES:   do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
 !       divided by RH.  rh is limited to .99 to avoid dividing by zero added
 !

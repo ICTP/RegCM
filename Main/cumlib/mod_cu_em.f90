@@ -81,12 +81,12 @@ module mod_cu_em
           kk = kzp1 - k
           rcldlwc(j,i,k) = d_zero       ! Zero out cloud water content
           rcldfra(j,i,k) = d_zero       ! Zero out cloud fraction coverage
-          tcup(k) = tas(i,kk,j)                          ! [k]
-          qcup(k) = qvas(i,kk,j)/(d_one+qvas(i,kk,j))   ! [kg/kg]
-          qscup(k) = qsas(i,kk,j)/(d_one+qsas(i,kk,j))  ! [kg/kg]
-          ucup(k) = uas(i,kk,j)                         ! [m/s]
-          vcup(k) = vas(i,kk,j)                         ! [m/s]
-          pcup(k) = pas(i,kk,j)*d_10                     ! [hPa]
+          tcup(k) = tas(j,i,kk)                         ! [k]
+          qcup(k) = qvas(j,i,kk)/(d_one+qvas(j,i,kk))   ! [kg/kg]
+          qscup(k) = qsas(j,i,kk)/(d_one+qsas(j,i,kk))  ! [kg/kg]
+          ucup(k) = uas(j,i,kk)                         ! [m/s]
+          vcup(k) = vas(j,i,kk)                         ! [m/s]
+          pcup(k) = pas(j,i,kk)*d_10                    ! [hPa]
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
