@@ -128,10 +128,10 @@ module mod_savefile
       read (iutrst) aldifl2d_io
       read (iutrst) lndcat2d_io
 #endif
-      read (iutrst) sol2d_io
+      read (iutrst) solis_io
       read (iutrst) solvd2d_io
       read (iutrst) solvs2d_io
-      read (iutrst) sabv2d_io
+      read (iutrst) sabveg_io
       read (iutrst) tlef2d_io
       read (iutrst) ssw2d_io
       read (iutrst) srw2d_io
@@ -143,7 +143,6 @@ module mod_savefile
       read (iutrst) sice2d_io
       read (iutrst) dew2d_io
       read (iutrst) ircp2d_io
-      read (iutrst) col2d_io
       read (iutrst) veg2d_io
       read (iutrst) ldmsk_io
       read (iutrst) veg2d1_io
@@ -291,10 +290,10 @@ module mod_savefile
       write (iutsav) aldifl2d_io
       write (iutsav) lndcat2d_io
 #endif
-      write (iutsav) sol2d_io
+      write (iutsav) solis_io
       write (iutsav) solvd2d_io
       write (iutsav) solvs2d_io
-      write (iutsav) sabv2d_io
+      write (iutsav) sabveg_io
       write (iutsav) tlef2d_io
       write (iutsav) ssw2d_io
       write (iutsav) srw2d_io
@@ -306,7 +305,6 @@ module mod_savefile
       write (iutsav) sice2d_io
       write (iutsav) dew2d_io
       write (iutsav) ircp2d_io
-      write (iutsav) col2d_io
       write (iutsav) veg2d_io
       write (iutsav) ldmsk_io
       write (iutsav) veg2d1_io

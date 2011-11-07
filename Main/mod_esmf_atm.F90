@@ -1055,11 +1055,11 @@
         models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
                             models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
       else if (trim(adjustl(name)) == "swrad") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = transpose(fsw2d)
         models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
                               models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "lwrad_down") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = transpose(flw2d)
         models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
                               models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "rain") then ! mm/day

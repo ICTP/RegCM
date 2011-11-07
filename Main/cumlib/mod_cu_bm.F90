@@ -256,7 +256,7 @@ module mod_cu_bm
 !
     do i = istart , iend
       do j = jstart , jend
-        if ( lmask(i,j) == 0 ) then
+        if ( lmask(j,i) == 0 ) then
           xsm(j,i) = d_one
         else
           xsm(j,i) = d_zero
@@ -719,9 +719,9 @@ module mod_cu_bm
         rainc(i,j) = rainc(i,j) + prainx
 !       precipitation rate for bats (mm/s)
         if ( ktau == 0 ) then
-          lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtcum
+          lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtcum
         else
-          lmpcpc(i,j) = lmpcpc(i,j) + (prainx*dtcum)/aprdiv
+          lmpcpc(j,i) = lmpcpc(j,i) + (prainx*dtcum)/aprdiv
         end if
       end if
       do l = ltpk , lb

@@ -25,6 +25,7 @@ module mod_bats_mtrxbats
   use mod_constants
   use mod_service
   use mod_bats_common
+  use mod_bats_internal
   use mod_bats_lake
   use mod_bats_bndry
   use mod_bats_drag
@@ -236,11 +237,11 @@ module mod_bats_mtrxbats
 !
     do i = istart , iend
       do j = jstart , jend
-        pptnc(i,j) = d_zero
-        pptc(i,j) = d_zero
-        veg2d(i,j) = idnint(lndcat(i,j)+0.1D0)
+        pptnc(j,i) = d_zero
+        pptc(j,i) = d_zero
+        veg2d(j,i) = idnint(lndcat(i,j)+0.1D0)
         do n = 1 , nnsg
-          veg2d1(n,i,j) = idnint(lndcat1(n,i,j)+0.1D0)
+          veg2d1(n,j,i) = idnint(lndcat1(n,j,i)+0.1D0)
         end do
       end do
     end do
@@ -251,57 +252,57 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          tg2d(n,i,j) = tground2(i,j)
-          tgb2d(n,i,j) = tground2(i,j)
-          taf2d(n,i,j) = tground2(i,j)
-          tlef2d(n,i,j) = tground2(i,j)
+          tgrd(n,j,i) = tground2(i,j)
+          tgbrd(n,j,i) = tground2(i,j)
+          taf(n,j,i) = tground2(i,j)
+          tlef(n,j,i) = tground2(i,j)
 
-          if ( ocld2d(n,i,j) == 2 ) then
+          if ( ocld2d(n,j,i) == 2 ) then
             if ( lseaice .or. llake ) then
-              sice2d(n,i,j) = d_1000
-              scv2d(n,i,j) = d_zero
+              sfice(n,j,i) = d_1000
+              sncv(n,j,i) = d_zero
             end if
             nlveg = 12
-          else if ( ocld2d(n,i,j) == 1 ) then
-            sice2d(n,i,j) = d_zero
-            scv2d(n,i,j) = dmax1(scv2d(n,i,j),d_zero)
-            nlveg = veg2d1(n,i,j)
+          else if ( ocld2d(n,j,i) == 1 ) then
+            sfice(n,j,i) = d_zero
+            sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
+            nlveg = veg2d1(n,j,i)
           else
-            sice2d(n,i,j) = d_zero
-            scv2d(n,i,j) = d_zero
-            nlveg = veg2d1(n,i,j)
+            sfice(n,j,i) = d_zero
+            sncv(n,j,i) = d_zero
+            nlveg = veg2d1(n,j,i)
           end if
 !         Initialize soil moisture in the 3 layers
-          is = idint(lndcat1(n,i,j))
+          is = idint(lndcat1(n,j,i))
           itex = iexsol(nlveg)
-          swt2d(n,i,j) = deptv(nlveg)*xmopor(itex)*slmo(is)
-          srw2d(n,i,j) = deprv(nlveg)*xmopor(itex)*slmo(is)
-          ssw2d(n,i,j) = depuv(nlveg)*xmopor(itex)*slmo(is)
+          tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(is)
+          rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(is)
+          ssw(n,j,i) = depuv(nlveg)*xmopor(itex)*slmo(is)
 
-          dew2d(n,i,j) = d_zero
-          sag2d(n,i,j) = d_zero
-          gwet2d(n,i,j) = d_half
-          sena2d(n,i,j) = d_zero
-          evpa2d(n,i,j) = d_zero
-          rnos2d(n,i,j) = d_zero
-          rno2d(n,i,j) = d_zero
-          ircp2d(n,i,j) = d_zero
+          dew2d(n,j,i) = d_zero
+          snag(n,j,i) = d_zero
+          gwet(n,j,i) = d_half
+          sena2d(n,j,i) = d_zero
+          evpa2d(n,j,i) = d_zero
+          srfrno(n,j,i) = d_zero
+          runoff(n,j,i) = d_zero
+          ircp(n,j,i) = d_zero
         end do
       end do
     end do
  
     do i = istart , iend
       do j = jstart , jend
-        fsw2d(i,j) = d_zero
-        flw2d(i,j) = d_zero
-        sabv2d(i,j) = d_zero
-        sol2d(i,j) = d_zero
-        fswa2d(i,j) = d_zero
-        flwa2d(i,j) = d_zero
-        prca2d(i,j) = d_zero
-        prnca2d(i,j) = d_zero
-        svga2d(i,j) = d_zero
-        sina2d(i,j) = d_zero
+        fsw2d(j,i) = d_zero
+        flw2d(j,i) = d_zero
+        sabveg(j,i) = d_zero
+        solis(j,i) = d_zero
+        fswa(j,i) = d_zero
+        flwa(j,i) = d_zero
+        prca2d(j,i) = d_zero
+        prnca2d(j,i) = d_zero
+        svga(j,i) = d_zero
+        sina(j,i) = d_zero
       end do
     end do
 ! 
@@ -351,39 +352,26 @@ module mod_bats_mtrxbats
           rh0 = dmax1(qs0/(ep2*satvp/(p0*0.01D0-satvp)),d_zero)
           do n = 1 , nnsg
             qs(n,j,i) = qs0
-            sts(n,j,i) = ts0-lrate*regrav*(ht1(n,i,j)-ht(i,j))
+            sts(n,j,i) = ts0-lrate*regrav*(ht1(n,j,i)-ht(i,j))
             sfcp(n,j,i) = p0*(sts(n,j,i)/ts0)
             hl = lh0 - lh1*(sts(n,j,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(n,j,i)))
             qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
-            tgrd(n,j,i) = tg2d(n,i,j)
             rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
-            prcp(n,j,i) = pptnc(i,j) + pptc(i,j)
+            prcp(n,j,i) = pptnc(j,i) + pptc(j,i)
             !
             ! quantities stored on 2d surface array for bats use only
             !
-            tgbrd(n,j,i) = tgb2d(n,i,j)
-            taf(n,j,i) = taf2d(n,i,j)
-            tlef(n,j,i) = tlef2d(n,i,j)
-            tsw(n,j,i) = swt2d(n,i,j)
-            rsw(n,j,i) = srw2d(n,i,j)
-            ssw(n,j,i) = ssw2d(n,i,j)
-            ldew(n,j,i) = dew2d(n,i,j)
-            snag(n,j,i) = sag2d(n,i,j)
-            sncv(n,j,i) = scv2d(n,i,j)
-            sfice(n,j,i) = sice2d(n,i,j)
-            gwet(n,j,i) = gwet2d(n,i,j)
+            ldew(n,j,i) = dew2d(n,j,i)
             sent(n,j,i) = hfx(i,j)
             evpr(n,j,i) = qfx(i,j)
-            ldimsk(n,j,i) = ocld2d(n,i,j)
-            ircp(n,j,i) = ircp2d(n,i,j)
-            lveg(n,j,i) = veg2d1(n,i,j)
+            ldimsk(n,j,i) = ocld2d(n,j,i)
+            lveg(n,j,i) = veg2d1(n,j,i)
             oveg(n,j,i) = lveg(n,j,i)
             if ( ldimsk(n,j,i) == 2 ) lveg(n,j,i) = 12
             amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
-            emiss(n,j,i) = emiss2d(n,i,j)
             zh(n,j,i) = hgt(i,kz,j)
             z1log(n,j,i)  = dlog(zh(n,j,i))
             z2fra(n,j,i)  = dlog(zh(n,j,i)*d_half)
@@ -407,13 +395,11 @@ module mod_bats_mtrxbats
  
           usw(j,i) = uatm(j,i,kz)
           vsw(j,i) = vatm(j,i,kz)
-          fsw(j,i) = fsw2d(i,j)
-          flw(j,i) = flw2d(i,j)
-          solis(j,i) = sol2d(i,j)
-          sabveg(j,i) = sabv2d(i,j)
-          solvt = solvd2d(i,j) + solvs2d(i,j)
+          fsw(j,i) = fsw2d(j,i)
+          flw(j,i) = flw2d(j,i)
+          solvt = solvd(j,i) + solvs(j,i)
           if ( solvt > d_zero ) then
-            fracd(j,i) = solvd2d(i,j)/solvt
+            fracd(j,i) = solvd(j,i)/solvt
           else
             fracd(j,i) = 0.2D0
           end if
@@ -431,13 +417,13 @@ module mod_bats_mtrxbats
           tground1(i,j) = d_zero
           tgbb(i,j) = d_zero
           if ( lchem ) then
-            ssw2da(i,j) = d_zero
-            sdeltk2d(i,j) = d_zero
-            sdelqk2d(i,j) = d_zero
-            sfracv2d(i,j) = d_zero
-            sfracb2d(i,j) = d_zero
-            sfracs2d(i,j) = d_zero
-            svegfrac2d(i,j) = d_zero
+            ssw2da(j,i) = d_zero
+            sdeltk2d(j,i) = d_zero
+            sdelqk2d(j,i) = d_zero
+            sfracv2d(j,i) = d_zero
+            sfracb2d(j,i) = d_zero
+            sfracs2d(j,i) = d_zero
+            svegfrac2d(j,i) = d_zero
           end if
 
           do n = 1 , nnsg
@@ -447,15 +433,15 @@ module mod_bats_mtrxbats
             tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
             tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
             if ( lchem ) then
-              ssw2da(i,j) = ssw2da(i,j) + ssw(n,j,i)
-              sdeltk2d(i,j) = sdeltk2d(i,j) + delt(n,j,i)
-              sdelqk2d(i,j) = sdelqk2d(i,j) + delq(n,j,i)
-              sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,j,i)
-              sfracb2d(i,j) = sfracb2d(i,j)+ &
+              ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
+              sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
+              sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
+              sfracv2d(j,i) = sfracv2d(j,i) + sigf(n,j,i)
+              sfracb2d(j,i) = sfracb2d(j,i)+ &
                               (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
-              sfracs2d(i,j) = sfracs2d(i,j) + &
+              sfracs2d(j,i) = sfracs2d(j,i) + &
                        lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
-              svegfrac2d(i,j) = svegfrac2d(i,j) + lncl(n,j,i)
+              svegfrac2d(j,i) = svegfrac2d(j,i) + lncl(n,j,i)
             end if
             if ( iocnflx == 1 .or. &
                 (iocnflx == 2 .and. ldimsk(n,j,i) /= 0 ) ) then
@@ -482,52 +468,40 @@ module mod_bats_mtrxbats
           tgbb(i,j) = tgbb(i,j)*rdnnsg
 
           if ( lchem ) then
-            ssw2da(i,j) = ssw2da(i,j)*rdnnsg
-            sdeltk2d(i,j) = sdeltk2d(i,j)*rdnnsg
-            sdelqk2d(i,j) = sdelqk2d(i,j)*rdnnsg
-            sfracv2d(i,j) = sfracv2d(i,j)*rdnnsg
-            sfracb2d(i,j) = sfracb2d(i,j)*rdnnsg
-            sfracs2d(i,j) = sfracs2d(i,j)*rdnnsg
-            svegfrac2d(i,j) = svegfrac2d(i,j)*rdnnsg
+            ssw2da(j,i) = ssw2da(j,i)*rdnnsg
+            sdeltk2d(j,i) = sdeltk2d(j,i)*rdnnsg
+            sdelqk2d(j,i) = sdelqk2d(j,i)*rdnnsg
+            sfracv2d(j,i) = sfracv2d(j,i)*rdnnsg
+            sfracb2d(j,i) = sfracb2d(j,i)*rdnnsg
+            sfracs2d(j,i) = sfracs2d(j,i)*rdnnsg
+            svegfrac2d(j,i) = svegfrac2d(j,i)*rdnnsg
           end if
           do n = 1 , nnsg
-            scv2d(n,i,j) = sncv(n,j,i)
-            tg2d(n,i,j) = tgrd(n,j,i)
-            tgb2d(n,i,j) = tgbrd(n,j,i)
-            taf2d(n,i,j) = taf(n,j,i)
-            tlef2d(n,i,j) = tlef(n,j,i)
-            swt2d(n,i,j) = tsw(n,j,i)
-            srw2d(n,i,j) = rsw(n,j,i)
-            ssw2d(n,i,j) = ssw(n,j,i)
-            dew2d(n,i,j) = ldew(n,j,i)
-            sag2d(n,i,j) = snag(n,j,i)
-            sice2d(n,i,j) = sfice(n,j,i)
-            gwet2d(n,i,j) = gwet(n,j,i)
-            ocld2d(n,i,j) = ldimsk(n,j,i)
-            ircp2d(n,i,j) = ircp(n,j,i)
-            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr(n,j,i)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent(n,j,i)
+            dew2d(n,j,i) = ldew(n,j,i)
+            ocld2d(n,j,i) = ldimsk(n,j,i)
+            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*evpr(n,j,i)
+            sena2d(n,j,i) = sena2d(n,j,i) + dtbat*sent(n,j,i)
             if ( dabs(srnof(n,j,i)) > 1.0D-10 ) then
-              rnos2d(n,i,j) = rnos2d(n,i,j) + srnof(n,j,i)*dtbat
+              srfrno(n,j,i) = srfrno(n,j,i) + srnof(n,j,i)*dtbat
             end if
             if ( dabs(srnof(n,j,i))  > 1.0D-10 .and. &
                  dabs(trnof(n,j,i))   > 1.0D-10 ) then
-              rno2d(n,i,j) = rno2d(n,i,j) + &
+              runoff(n,j,i) = runoff(n,j,i) + &
                      (trnof(n,j,i)-srnof(n,j,i))*dtbat
             end if
           end do
           !
           ! quantities stored on 2d surface array for bats use only
           !
-          prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
-          prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
-          flwa2d(i,j) = flwa2d(i,j) + dtbat*flw(j,i)
-          flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-          fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw(j,i)
-          svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(j,i)
-          sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
-          pptnc(i,j) = d_zero
-          pptc(i,j) = d_zero
+          prca2d(j,i) = prca2d(j,i) + dtbat*pptc(j,i)
+          prnca2d(j,i) = prnca2d(j,i) + dtbat*pptnc(j,i)
+          flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
+          flwda(j,i) = flwda(j,i) + dtbat*flwd2d(j,i)
+          fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
+          svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
+          sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
+          pptnc(j,i) = d_zero
+          pptc(j,i) = d_zero
         end do
       end do
 
@@ -631,25 +605,25 @@ module mod_bats_mtrxbats
                 end if
               end if
               drag_s(n,j,i-1) = real(drag(n,j,i))
-              evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
-              sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
-              tpr_s(n,j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-              prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
+              evpa_s(n,j,i-1) = real(evpa2d(n,j,i)*mmpd)
+              sena_s(n,j,i-1) = real(sena2d(n,j,i)*wpm2)
+              tpr_s(n,j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
+              prcv_s(n,j,i-1) = real(prca2d(j,i)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               drag_o(j,i-1) = real(drag_o(j,i-1) + drag(n,j,i))
-              evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,i,j))
-              sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,i,j))
+              evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,j,i))
+              sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,j,i))
             end do
-            tpr_o(j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
+            tpr_o(j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
             drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
             evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
             sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)
-            flwa_o(j,i-1) = real(flwa2d(i,j)*wpm2)
-            fswa_o(j,i-1) = real(fswa2d(i,j)*wpm2)
-            flwd_o(j,i-1) = real(flwda2d(i,j)*wpm2)
-            sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
-            prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
+            flwa_o(j,i-1) = real(flwa(j,i)*wpm2)
+            fswa_o(j,i-1) = real(fswa(j,i)*wpm2)
+            flwd_o(j,i-1) = real(flwda(j,i)*wpm2)
+            sina_o(j,i-1) = real(sina(j,i)*wpm2)
+            prcv_o(j,i-1) = real(prca2d(j,i)*mmpd)
             ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
             zpbl_o(j,i-1) = real(hpbl(j,i))
  
@@ -664,12 +638,12 @@ module mod_bats_mtrxbats
                 tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef(n,j,i))
                 ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw(n,j,i))
                 rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw(n,j,i))
-                rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,i,j))
+                rnos_o(j,i-1) = rnos_o(j,i-1) + real(srfrno(n,j,i))
                 scv_o(j,i-1) = scv_o(j,i-1) + real(sncv(n,j,i))
                 tlef_s(n,j,i-1) = real(tlef(n,j,i))
                 ssw_s(n,j,i-1) = real(ssw(n,j,i))
                 rsw_s(n,j,i-1) = real(rsw(n,j,i))
-                rnos_s(n,j,i-1) = real(rnos2d(n,i,j)*mmpd)
+                rnos_s(n,j,i-1) = real(srfrno(n,j,i)*mmpd)
                 scv_s(n,j,i-1) = real(sncv(n,j,i))
                 nnn = nnn + 1
               else
@@ -697,17 +671,17 @@ module mod_bats_mtrxbats
             ! reset accumulation arrays to zero
             !
             do n = 1 , nnsg
-              evpa2d(n,i,j) = d_zero
-              rnos2d(n,i,j) = d_zero
-              sena2d(n,i,j) = d_zero
+              evpa2d(n,j,i) = d_zero
+              srfrno(n,j,i) = d_zero
+              sena2d(n,j,i) = d_zero
             end do
-            prnca2d(i,j) = d_zero
-            prca2d(i,j) = d_zero
-            flwa2d(i,j) = d_zero
-            flwda2d(i,j) = d_zero
-            fswa2d(i,j) = d_zero
-            svga2d(i,j) = d_zero
-            sina2d(i,j) = d_zero
+            prnca2d(j,i) = d_zero
+            prca2d(j,i) = d_zero
+            flwa(j,i) = d_zero
+            flwda(j,i) = d_zero
+            fswa(j,i) = d_zero
+            svga(j,i) = d_zero
+            sina(j,i) = d_zero
           end do
         end do
       end if
@@ -795,7 +769,7 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          lveg(n,j,i) = veg2d1(n,i,j)
+          lveg(n,j,i) = veg2d1(n,j,i)
         end do
       end do
     end do
@@ -963,7 +937,7 @@ module mod_bats_mtrxbats
         aldifl(j,i) = aldifl_s(1)
         albdirs(1,j,i) = aldirs_s(1)
         albdifs(1,j,i) = aldifs_s(1)
-        aemiss(j,i) = emiss2d(1,i,j)
+        aemiss(j,i) = emiss(1,j,i)
         do n = 2 , nnsg
           albvs(j,i) = albvs(j,i) + albvs_s(n)
           albvl(j,i) = albvl(j,i) + albvl_s(n)
@@ -973,7 +947,7 @@ module mod_bats_mtrxbats
           aldifl(j,i) = aldifl(j,i) + aldifl_s(n)
           albdirs(n,j,i) = aldirs_s(n)
           albdifs(n,j,i) = aldifs_s(n)
-          aemiss(j,i) = aemiss(j,i) + emiss2d(n,i,j)
+          aemiss(j,i) = aemiss(j,i) + emiss(n,j,i)
         end do
         albvs(j,i) = albvs(j,i)*rdnnsg
         albvl(j,i) = albvl(j,i)*rdnnsg
@@ -1073,19 +1047,14 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          ldimsk(n,j,i) = ocld2d(n,i,j)
-          sfice(n,j,i) = sice2d(n,i,j)
-          tgbrd(n,j,i) = tgb2d(n,i,j)
-          ssw(n,j,i) = ssw2d(n,i,j)
-          lveg(n,j,i) = veg2d1(n,i,j)
+          ldimsk(n,j,i) = ocld2d(n,j,i)
+          lveg(n,j,i) = veg2d1(n,j,i)
           oveg(n,j,i) = lveg(n,j,i)
           if ( ldimsk(n,j,i) == 2 ) lveg(n,j,i) = 12
           amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
           lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
-          sts(n,j,i) = thatm(j,i,kz)-6.5D-3*regrav*(ht1(n,i,j)-ht(i,j))
-          sncv(n,j,i) = scv2d(n,i,j)
-          snag(n,j,i) = sag2d(n,i,j)
+          sts(n,j,i) = thatm(j,i,kz)-6.5D-3*regrav*(ht1(n,j,i)-ht(i,j))
         end do
       end do
     end do

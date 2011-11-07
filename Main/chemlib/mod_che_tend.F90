@@ -131,7 +131,7 @@
 ! 
         ivegcov=0   
         do i = istart , iend
-          ivegcov(i) = cveg2d(i,j)
+          ivegcov(i) = cveg2d(j,i)
           psurf(i) = cpsb(i,j) * 1.0D3 + ptop
  
 !         method based on bats diagnostic in routine interf.
@@ -142,16 +142,16 @@
             facb = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zlnd)
             facs = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zsno)
  
-!           fact = csfracv2d(i,j)*facv 
-            fact = cvegfrac(i,j) * facv + (d_one-cvegfrac(i,j)) * facb
+!           fact = csfracv2d(j,i)*facv 
+            fact = cvegfrac(j,i) * facv + (d_one-cvegfrac(j,i)) * facb
 !           FAB REVOIR CETTE partie et definir interface pour sfracs,sfracv
-!                   + sfracb2d(i,j)*facb + sfracs2d(i,j)*facs
+!                   + sfracb2d(j,i)*facb + sfracs2d(j,i)*facs
 ! 
 !           grid level effective roughness lenght (linear averaging for now)
-!           zeff(i) = rough(ivegcov(i))*sfracv2d(i,j) + &
-!                     zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
-            zeff(i) = crough(ivegcov(i))*cvegfrac(i,j) + &
-                      zlnd*(d_one-cvegfrac(i,j))
+!           zeff(i) = rough(ivegcov(i))*sfracv2d(j,i) + &
+!                     zlnd * sfracb2d(j,i) + zsno * sfracs2d(j,i)
+            zeff(i) = crough(ivegcov(i))*cvegfrac(j,i) + &
+                      zlnd*(d_one-cvegfrac(j,i))
           else
 !           water surface
             fact = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zoce)
@@ -162,10 +162,10 @@
           v10 = (cvbx3d(j,i,kz))*(1-fact)
           wid10(i) = sqrt(u10**2+v10**2)
 !         10 m air temperature
-          temp10(i) = ttb(i,kz) - csdeltk2d(i,j)*fact
+          temp10(i) = ttb(i,kz) - csdeltk2d(j,i)*fact
 !         specific  humidity at 10m
           shu10 = cqvb3d(j,i,kz)/ &
-                  (d_one+cqvb3d(j,i,kz))-csdelqk2d(i,j)*fact
+                  (d_one+cqvb3d(j,i,kz))-csdelqk2d(j,i)*fact
 !         back to mixing ratio
           shu10 = shu10/(1-shu10)
 !         saturation mixing ratio at 10m
@@ -189,16 +189,16 @@
  
 !           soil wetness
  
-          soilw(i) = cssw2da(i,j)/cdepuv(idnint(clndcat(i,j)))/(2650.0D0 * &
+          soilw(i) = cssw2da(j,i)/cdepuv(idnint(clndcat(i,j)))/(2650.0D0 * &
                 (d_one-cxmopor(ciexsol(idnint(clndcat(i,j))))))
 !         fraction of vegetation
-          vegfrac(i) = cvegfrac(i,j)
+          vegfrac(i) = cvegfrac(j,i)
 !         surface temperature
 !         over land recalculated from the BATS  deltk air/ surface
 !         temperature account for a composite temperature between
 !         bare ground and vegetation
           if ( ivegcov(i) /= 0 ) then
-            tsurf(i) = ttb(i,kz) - csdeltk2d(i,j)
+            tsurf(i) = ttb(i,kz) - csdeltk2d(j,i)
           else
 !           ocean temperature in this case
             tsurf(i) = ctg(i,j)

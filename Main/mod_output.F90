@@ -165,9 +165,9 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            atm0(i,3+kz*6+n,j)        = tgb2d(n,i,j)
-            atm0(i,3+kz*6+n+nnsg,j)   = swt2d(n,i,j)
-            atm0(i,3+kz*6+n+nnsg*2,j) = rno2d(n,i,j)
+            atm0(i,3+kz*6+n,j)        = tgbrd(n,j,i)
+            atm0(i,3+kz*6+n+nnsg,j)   = tsw(n,j,i)
+            atm0(i,3+kz*6+n+nnsg*2,j) = runoff(n,j,i)
           end do
         end do
       end do
@@ -237,7 +237,7 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            var2d1(i,n,j) = ocld2d(n,i,j)
+            var2d1(i,n,j) = ocld2d(n,j,i)
           end do
         end do
       end do
@@ -264,7 +264,7 @@ module mod_output
       do j = 1 , jendx
         do i = 1 , iym1
           do n = 1 , nnsg
-            rno2d(n,i,j) = d_zero
+            runoff(n,j,i) = d_zero
           end do
           sfsta%rainc(i,j)  = d_zero
           sfsta%rainnc(i,j) = d_zero
@@ -285,7 +285,7 @@ module mod_output
       if ( iseaice == 1 .or. lakemod == 1 ) then
         do j = 1 , jendx
           do i = 1 , iym1
-            var2d0(i,j) = ldmsk(i,j)
+            var2d0(i,j) = ldmsk(j,i)
           end do
         end do
         call mpi_gather(var2d0, iy*jxp,mpi_integer, &
@@ -1046,18 +1046,17 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav2(i,n,j) = taf2d(n,i,j)
-            sav2(i,nnsg+n,j) = tlef2d(n,i,j)
-            sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
-            sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
-            sav2(i,nnsg*4+n,j) = col2d(n,i,j)
+            sav2(i,n,j) = taf(n,j,i)
+            sav2(i,nnsg+n,j) = tlef(n,j,i)
+            sav2(i,nnsg*2+n,j) = ssw(n,j,i)
+            sav2(i,nnsg*3+n,j) = rsw(n,j,i)
           end do
         end do
         do i = 1 , iym1
-          sav2(i,nnsg*5+1,j) = sol2d(i,j)
-          sav2(i,nnsg*5+2,j) = solvd2d(i,j)
-          sav2(i,nnsg*5+3,j) = solvs2d(i,j)
-          sav2(i,nnsg*5+4,j) = flw2d(i,j)
+          sav2(i,nnsg*5+1,j) = solis(j,i)
+          sav2(i,nnsg*5+2,j) = solvd(j,i)
+          sav2(i,nnsg*5+3,j) = solvs(j,i)
+          sav2(i,nnsg*5+4,j) = flw2d(j,i)
         end do
       end do
       allrec = nnsg*5 + 4
@@ -1076,11 +1075,10 @@ module mod_output
               tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
               ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
               srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-              col2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            sol2d_io(i,j) = sav_2(i,nnsg*5+1,j)
+            solis_io(i,j) = sav_2(i,nnsg*5+1,j)
             solvd2d_io(i,j) = sav_2(i,nnsg*5+2,j)
             solvs2d_io(i,j) = sav_2(i,nnsg*5+3,j)
             flw2d_io(i,j) = sav_2(i,nnsg*5+4,j)
@@ -1128,18 +1126,18 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav2(i,n,j) = tgb2d(n,i,j)
-            sav2(i,nnsg+n,j) = swt2d(n,i,j)
-            sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
-            sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
-            sav2(i,nnsg*4+n,j) = tg2d(n,i,j)
+            sav2(i,n,j) = tgbrd(n,j,i)
+            sav2(i,nnsg+n,j) = tsw(n,j,i)
+            sav2(i,nnsg*2+n,j) = sncv(n,j,i)
+            sav2(i,nnsg*3+n,j) = gwet(n,j,i)
+            sav2(i,nnsg*4+n,j) = tgrd(n,j,i)
           end do
         end do
         do i = 1 , iym1
-          sav2(i,nnsg*5+1,j) = flwd2d(i,j)
-          sav2(i,nnsg*5+2,j) = fsw2d(i,j)
-          sav2(i,nnsg*5+3,j) = sabv2d(i,j)
-          sav2(i,nnsg*5+4,j) = sinc2d(i,j)
+          sav2(i,nnsg*5+1,j) = flwd2d(j,i)
+          sav2(i,nnsg*5+2,j) = fsw2d(j,i)
+          sav2(i,nnsg*5+3,j) = sabveg(j,i)
+          sav2(i,nnsg*5+4,j) = sinc(j,i)
         end do
       end do
       allrec = nnsg*5 + 4
@@ -1164,7 +1162,7 @@ module mod_output
           do i = 1 , iym1
             flwd2d_io(i,j) = sav_2(i,nnsg*5+1,j)
             fsw2d_io(i,j) = sav_2(i,nnsg*5+2,j)
-            sabv2d_io(i,j) = sav_2(i,nnsg*5+3,j)
+            sabveg_io(i,j) = sav_2(i,nnsg*5+3,j)
             sinc2d_io(i,j) = sav_2(i,nnsg*5+4,j)
           end do
         end do
@@ -1172,18 +1170,18 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav2(i,n,j)        = ircp2d(n,i,j)
-            sav2(i,nnsg+n,j)   = sag2d(n,i,j)
-            sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
-            sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
-            sav2(i,nnsg*4+n,j) = emiss2d(n,i,j)
+            sav2(i,n,j)        = ircp(n,j,i)
+            sav2(i,nnsg+n,j)   = snag(n,j,i)
+            sav2(i,nnsg*2+n,j) = sfice(n,j,i)
+            sav2(i,nnsg*3+n,j) = dew2d(n,j,i)
+            sav2(i,nnsg*4+n,j) = emiss(n,j,i)
           end do
         end do
         do i = 1 , iym1
-          sav2(i,nnsg*5+1,j) = pptnc(i,j)
-          sav2(i,nnsg*5+2,j) = pptc(i,j)
-          sav2(i,nnsg*5+3,j) = prca2d(i,j)
-          sav2(i,nnsg*5+4,j) = prnca2d(i,j)
+          sav2(i,nnsg*5+1,j) = pptnc(j,i)
+          sav2(i,nnsg*5+2,j) = pptc(j,i)
+          sav2(i,nnsg*5+3,j) = prca2d(j,i)
+          sav2(i,nnsg*5+4,j) = prnca2d(j,i)
         end do
       end do
       allrec = nnsg*5 + 4
@@ -1216,13 +1214,13 @@ module mod_output
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav2a(i,n,j)      = veg2d1(n,i,j)
-            sav2a(i,nnsg+n,j) = ocld2d(n,i,j)
+            sav2a(i,n,j)      = veg2d1(n,j,i)
+            sav2a(i,nnsg+n,j) = ocld2d(n,j,i)
           end do
         end do
         do i = 1 , iym1
-          sav2a(i,nnsg*2+1,j) = veg2d(i,j)
-          sav2a(i,nnsg*2+2,j) = ldmsk(i,j)
+          sav2a(i,nnsg*2+1,j) = veg2d(j,i)
+          sav2a(i,nnsg*2+2,j) = ldmsk(j,i)
         end do
       end do
       allrec = nnsg*2 + 2
@@ -1297,13 +1295,13 @@ module mod_output
         end if
         do j = 1 , jendx
           do i = 1 , iym1
-            sav4a(i,1,j) = ssw2da(i,j)
-            sav4a(i,2,j) = sdeltk2d(i,j)
-            sav4a(i,3,j) = sdelqk2d(i,j)
-            sav4a(i,4,j) = sfracv2d(i,j)
-            sav4a(i,5,j) = sfracb2d(i,j)
-            sav4a(i,6,j) = sfracs2d(i,j)
-            sav4a(i,7,j) = svegfrac2d(i,j)
+            sav4a(i,1,j) = ssw2da(j,i)
+            sav4a(i,2,j) = sdeltk2d(j,i)
+            sav4a(i,3,j) = sdelqk2d(j,i)
+            sav4a(i,4,j) = sfracv2d(j,i)
+            sav4a(i,5,j) = sfracb2d(j,i)
+            sav4a(i,6,j) = sfracs2d(j,i)
+            sav4a(i,7,j) = svegfrac2d(j,i)
           end do
         end do
         call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &

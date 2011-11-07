@@ -40,14 +40,14 @@ module mod_che_interface
 !
   subroutine init_chem(idirect,dt,chemfrq,dtrad,calday,dsigma,atms,sps1, &
                        sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,&
-                       ptop,coszrs,veg2d,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
+                       ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
     implicit none
     integer , intent(in) :: idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad, calday
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
-    real(dp), pointer, dimension(:,:) :: rembc,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
+    real(dp), pointer, dimension(:,:) :: rembc,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
     real(dp), pointer, dimension(:,:,:) :: cldfra
     integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
     type(surfpstate) , intent(in) :: sps1 , sps2
@@ -92,7 +92,7 @@ module mod_che_interface
     call assignpnt(cldfra,ccldfra)
     call assignpnt(rembc,crembc)
     call assignpnt(remrat,cremrat)
-    call assignpnt(sol2d,csol2d)
+    call assignpnt(solis,csol2d)
     call assignpnt(svegfrac2d,cvegfrac)
     call assignpnt(sdeltk2d,csdeltk2d) 
     call  assignpnt(sdelqk2d,csdelqk2d)

@@ -139,9 +139,9 @@ module mod_cu_em
           if ( prainx > dlowval ) then
             rainc(i,j)  = rainc(i,j)  + prainx  ! mm
             if ( ktau == 0 ) then
-              lmpcpc(i,j) = lmpcpc(i,j) + pret
+              lmpcpc(j,i) = lmpcpc(j,i) + pret
             else
-              lmpcpc(i,j) = lmpcpc(i,j) + pret*aprdiv
+              lmpcpc(j,i) = lmpcpc(j,i) + pret*aprdiv
             end if
             total_precip_points = total_precip_points + 1
           end if

@@ -65,8 +65,6 @@ module mod_rad_common
   ! Emissivity at surface
   real(8) , pointer , dimension(:,:) :: emsvt   ! emiss1d
   ! Bidimensional collector storage for above
-  real(8) , pointer , dimension(:,:) :: abveg2d ! sabv2d
-  real(8) , pointer , dimension(:,:) :: solar2d ! sol2d
   real(8) , pointer , dimension(:,:) :: totsol2d ! sinc2d
   real(8) , pointer , dimension(:,:) :: soldir2d ! solvs2d
   real(8) , pointer , dimension(:,:) :: soldif2d ! solvd2d

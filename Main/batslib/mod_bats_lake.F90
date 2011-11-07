@@ -98,12 +98,12 @@ module mod_bats_lake
       do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
-        if ( (lndcat1(n,i,j) > 13.9D0 .and.   &
-              lndcat1(n,i,j) < 14.1D0) .and.  &
+        if ( (lndcat1(n,j,i) > 13.9D0 .and.   &
+              lndcat1(n,j,i) < 14.1D0) .and.  &
              dhlake1(n,i,j) > d_one) then
           idep2d(n,i,j) = idint(dmax1(d_two,dmin1(dhlake1(n,i,j), &
                                 dble(ndpmax)))/dz)
-          if ( ocld2d(n,i,j) == 2 ) then
+          if ( ocld2d(n,j,i) == 2 ) then
             tlak3d(1,n,i,j) = 1.78D0
             tlak3d(2,n,i,j) = 1.78D0
             aveice2d(n,i,j) = d_1000
@@ -164,7 +164,7 @@ module mod_bats_lake
           if (nnsg == 1) then
             xl = xlat(i,j)
           else
-            xl = xlat1(n,i,j)
+            xl = xlat1(n,j,i)
           end if
 
           call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl,    &
@@ -177,14 +177,14 @@ module mod_bats_lake
           tgbrd(n,j,i) = tgl
 
           if ( aveice2d(n,i,j) <= iceminh ) then
-            ocld2d(n,i,j) = 0 
+            ocld2d(n,j,i) = 0 
             ldimsk(n,j,i) = 0
             lveg(n,j,i) = 14
             sfice(n,j,i) = d_zero
             sncv(n,j,i) = d_zero
             snag(n,j,i) = d_zero
           else
-            ocld2d(n,i,j) = 2 
+            ocld2d(n,j,i) = 2 
             ldimsk(n,j,i) = 2
             lveg(n,j,i) = 12
             sfice(n,j,i) = aveice2d(n,i,j)  !  units of ice = mm

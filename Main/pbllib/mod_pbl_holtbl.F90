@@ -877,7 +877,7 @@ module mod_pbl_holtbl
     do itr = 1 , ntr
       do i = istart , iend
         do j = jstart , jend
-          if ( landmsk(i,j) == 0 ) then
+          if ( landmsk(j,i) == 0 ) then
             vdep(j,i,itr) = depvel(itr,2)
           else
             vdep(j,i,itr) = depvel(itr,1)

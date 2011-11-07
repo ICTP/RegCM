@@ -66,7 +66,7 @@ module mod_precip
       call getmem2d(rembc,1,iy,1,kz,'pcp:rembc')
     end subroutine allocate_mod_precip
 !
-    subroutine init_precip(atmslice,atm,tendency,sps,surface,lsmrainnc, &
+    subroutine init_precip(atmslice,atm,tendency,sps,surface,pptnc, &
                            radcldf,radlqwc)
       implicit none
       type(slice) , intent(in) :: atmslice
@@ -74,7 +74,7 @@ module mod_precip
       type(atmstate) , intent(in) :: tendency
       type(surfpstate) , intent(in) :: sps
       type(surfstate) , intent(in) :: surface
-      real(8) , pointer , dimension(:,:) :: lsmrainnc
+      real(8) , pointer , dimension(:,:) :: pptnc
       real(8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
       call assignpnt(atmslice%tb3d,t3)
@@ -92,7 +92,7 @@ module mod_precip
       call assignpnt(tendency%qv,qvten)
       call assignpnt(sps%ps,psf)
       call assignpnt(surface%rainnc,rainnc)
-      call assignpnt(lsmrainnc,lsmrnc)
+      call assignpnt(pptnc,lsmrnc)
       call assignpnt(radcldf,cldfra)
       call assignpnt(radlqwc,cldlwc)
 
@@ -339,7 +339,7 @@ module mod_precip
         prainx = pptsum(j,i)*uconv
         if ( prainx > dlowval ) then
           rainnc(i,j) = rainnc(i,j) + prainx
-          lsmrnc(i,j) = lsmrnc(i,j) + pptsum(j,i)*aprdiv
+          lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
         end if
       end do
 

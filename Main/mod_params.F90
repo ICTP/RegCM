@@ -905,14 +905,13 @@ module mod_params
   if ( ichem == 1 ) then
     call init_chem(idirect,dtsec,chemfrq,dtrad,calday,dsigma,atms,sps1, &
                    sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,ptop, &
-                   coszrs,veg2d,svegfrac2d,sol2d,sdeltk2d,sdelqk2d,&
+                   coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,&
                    ssw2da,icumtop,icumbot)
  end if
   call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
                 mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
-                aldifl,albdir,albdif,albvs,albvl,aemiss,sabv2d,  &
-                sol2d,sinc2d,solvs2d,solvd2d,fsw2d,flw2d,flwd2d, &
-                ocld2d,chia,chtrname)
+                aldifl,albdir,albdif,albvs,albvl,aemiss,sinc,    &
+                solvs,solvd,fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
@@ -1190,10 +1189,10 @@ module mod_params
     end do
     do n = 1 , nnsg
       do i = 1 , iy
-        ht1(n,i,j) = inisrf0(i,7+n,j)
-        lndcat1(n,i,j) = inisrf0(i,7+nnsg+n,j)
-        xlat1(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
-        xlon1(n,i,j) = inisrf0(i,7+nnsg*3+n,j)
+        ht1(n,j,i) = inisrf0(i,7+n,j)
+        lndcat1(n,j,i) = inisrf0(i,7+nnsg+n,j)
+        xlat1(n,j,i) = inisrf0(i,7+nnsg*2+n,j)
+        xlon1(n,j,i) = inisrf0(i,7+nnsg*3+n,j)
       end do
     end do
   end do
@@ -1248,14 +1247,14 @@ module mod_params
         do i = 1 , iym1
           if ( mddom%lndcat(i,j) > 13.5D0 .and. &
                mddom%lndcat(i,j) < 15.5D0 ) then
-            ldmsk(i,j) = 0
+            ldmsk(j,i) = 0
             do n = 1, nnsg
-              ocld2d(n,i,j) = 0
+              ocld2d(n,j,i) = 0
             end do
           else
-            ldmsk(i,j) = 1
+            ldmsk(j,i) = 1
             do n = 1, nnsg
-              ocld2d(n,i,j) = 1
+              ocld2d(n,j,i) = 1
             end do
           end if
         end do

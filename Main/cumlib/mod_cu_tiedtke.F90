@@ -156,7 +156,7 @@ module mod_cu_tiedtke
 !     the ECMWF version of this - this array will then be obsolete 
         xphfx(ii) = qfx(i,j)
         ! Land/water flag - is correctly set?
-        ldland(ii) = (lmask(i,j) == 0)
+        ldland(ii) = (lmask(j,i) == 0)
       end do
 
       do k = 1 , kz
@@ -225,9 +225,9 @@ module mod_cu_tiedtke
             ! total precip cumulative 
             rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
             if ( ktau == 0 ) then
-              lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
+              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
             else
-              lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv
             end if
             do k = 1 , kz
               ! NOTE: there is an iconsistency here for the latent heating,

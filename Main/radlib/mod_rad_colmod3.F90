@@ -316,9 +316,9 @@ module mod_rad_colmod3
         jj1 = 0
         jj2 = 0
         do n = 1 , nnsg
-          if ( lndocnicemsk(n,i,j) == 2 ) then
+          if ( lndocnicemsk(n,j,i) == 2 ) then
             jj2 = jj2 + 1
-          else if ( lndocnicemsk(n,i,j) == 1 ) then
+          else if ( lndocnicemsk(n,j,i) == 1 ) then
             jj1 = jj1 + 1
           else
             jj0 = jj0 + 1

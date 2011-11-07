@@ -36,11 +36,10 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
-                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
-                      aldifl,albdir,albdif,albvs,albvl,emiss,sabv2d,   &
-                      sol2d,sinc2d,solvs2d,solvd2d,fsw2d,flw2d,flwd2d, &
-                      ocld2d,chia,chtrname)
+  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,      &
+                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,   &
+                      aldifl,albdir,albdif,albvs,albvl,emiss,sinc,      &
+                      solvs,solvd,fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
     real(8) , intent(in) :: ptop
@@ -62,11 +61,9 @@ module mod_rad_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: albvl
     real(8) , pointer , intent(in) , dimension(:,:) :: emiss
     real(8) , pointer , intent(in) , dimension(:,:) :: twt
-    real(8) , pointer , intent(in) , dimension(:,:) :: sabv2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: sol2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: sinc2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: solvs2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: solvd2d
+    real(8) , pointer , intent(in) , dimension(:,:) :: sinc
+    real(8) , pointer , intent(in) , dimension(:,:) :: solvs
+    real(8) , pointer , intent(in) , dimension(:,:) :: solvd
     real(8) , pointer , intent(in) , dimension(:,:) :: fsw2d
     real(8) , pointer , intent(in) , dimension(:,:) :: flw2d
     real(8) , pointer , intent(in) , dimension(:,:) :: flwd2d
@@ -98,11 +95,9 @@ module mod_rad_interface
     call assignpnt(albvs,swalb)
     call assignpnt(albvl,lwalb)
     call assignpnt(emiss,emsvt)
-    call assignpnt(sabv2d,abveg2d)
-    call assignpnt(sol2d,solar2d)
-    call assignpnt(sinc2d,totsol2d)
-    call assignpnt(solvs2d,soldir2d)
-    call assignpnt(solvd2d,soldif2d)
+    call assignpnt(sinc,totsol2d)
+    call assignpnt(solvs,soldir2d)
+    call assignpnt(solvd,soldif2d)
     call assignpnt(fsw2d,srfabswflx)
     call assignpnt(flw2d,srflwflxup)
     call assignpnt(flwd2d,srflwflxdw)

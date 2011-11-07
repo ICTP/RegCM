@@ -44,7 +44,7 @@ module mod_bats_internal
   real(dp) , pointer , dimension(:,:,:) :: trup , trupd
   real(dp) , pointer , dimension(:,:,:) :: cdrmin , dlstaf
   real(dp) , pointer , dimension(:,:,:) :: rib , rib1
-  real(dp) , pointer , dimension(:,:,:) :: emiss , apbm , prcp
+  real(dp) , pointer , dimension(:,:,:) :: apbm , prcp
   real(dp) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
   real(dp) , pointer , dimension(:,:,:) :: taf , sts , zh
   real(dp) , pointer , dimension(:,:,:) :: bfc , bsw
@@ -64,7 +64,8 @@ module mod_bats_internal
          wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
          wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
   real(dp) , pointer , dimension(:,:,:) :: ribl , ribn
-  real(dp) , pointer , dimension(:,:) :: usw , vsw
+  real(dp) , pointer , dimension(:,:) :: usw , vsw , flwa , flwda , fswa , &
+         sina , svga
   integer , pointer , dimension(:,:,:) :: ldimsk , lveg , oveg
 !
   public :: gwatr , rnof , rsubsr , rsubss , rsubst , rsur , sold ,     &
@@ -74,7 +75,7 @@ module mod_bats_internal
   public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,    &
             dcd , etrc , qsatld , dels , efpot , tbef , fsol0 , fsold , &
             radf , rmini , trup , trupd , cdrmin , dlstaf , rib  , rib1
-  public :: emiss , apbm , prcp , qgrd , qs , &
+  public :: apbm , prcp , qgrd , qs , &
             resp , rhs , taf , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
@@ -87,7 +88,8 @@ module mod_bats_internal
             zlgsno , zlgveg , zlgdis
   public :: cn1 , rgr , wta0 , wtaq0 , wtg , wtg0 , wtg2 , wtga , wtgaq , &
             wtgl , wtglq ,  wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 ,   &
-            wtshi , wtsqi , df , ribl , ribn , usw , vsw
+            wtshi , wtsqi , df , ribl , ribn , usw , vsw , flwa , flwda , &
+            fswa , sina , svga
   public :: ldimsk , lveg , oveg
 
   public :: allocate_mod_bats_internal
@@ -149,7 +151,6 @@ module mod_bats_internal
     call getmem3d(swtrta,1,nnsg,1,jxp,1,iym1,'bats_internal:swtrta')
     call getmem3d(swtrtd,1,nnsg,1,jxp,1,iym1,'bats_internal:swtrtd')
     call getmem3d(cari,1,nnsg,1,jxp,1,iym1,'bats_internal:cari')
-    call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats_internal:emiss')
     call getmem3d(apbm,1,nnsg,1,jxp,1,iym1,'bats_internal:apbm')
     call getmem3d(prcp,1,nnsg,1,jxp,1,iym1,'bats_internal:prcp')
     call getmem3d(qgrd,1,nnsg,1,jxp,1,iym1,'bats_internal:qgrd')
@@ -257,6 +258,11 @@ module mod_bats_internal
 
     call getmem2d(usw,1,jxp,1,iym1,'bats_internal:usw')
     call getmem2d(vsw,1,jxp,1,iym1,'bats_internal:vsw')
+    call getmem2d(flwa,1,jxp,1,iym1,'bats_internal:flwa')
+    call getmem2d(flwda,1,jxp,1,iym1,'bats_internal:flwda')
+    call getmem2d(fswa,1,jxp,1,iym1,'bats_internal:fswa')
+    call getmem2d(sina,1,jxp,1,iym1,'bats_internal:sina')
+    call getmem2d(svga,1,jxp,1,iym1,'bats_internal:svga')
 !
   end subroutine allocate_mod_bats_internal
 !

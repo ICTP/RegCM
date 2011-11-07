@@ -40,7 +40,8 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_bats_mppio.o mod_bats_mppio.mod : mod_bats_mppio.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
+  mod_bats_common.o
 mod_bats_param.o mod_bats_param.mod : mod_bats_param.f90
 mod_bats_common.o mod_bats_common.mod : mod_bats_common.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \

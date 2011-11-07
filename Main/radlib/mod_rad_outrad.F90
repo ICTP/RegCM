@@ -120,14 +120,14 @@ module mod_rad_outrad
 !------surface absorbed solar flux in watts/m2
 !------
     do j = jstart , jend
-      srfabswflx(i,j) = frsa(j)
+      srfabswflx(j,i) = frsa(j)
     end do
 !------
 !------net up longwave flux at the surface
 !------
     do j = jstart , jend
-      srflwflxup(i,j) = frla(j)
-      srflwflxdw(i,j) = slwd(j)  ! BATS Output
+      srflwflxup(j,i) = frla(j)
+      srflwflxdw(j,i) = slwd(j)  ! BATS Output
     end do
 !------
 !------for coupling with bats
@@ -137,11 +137,9 @@ module mod_rad_outrad
 !     over sparsely vegetated areas in which vegetation and ground
 !     albedo are significantly different
     do j = jstart , jend
-      abveg2d(i,j) = abveg(j,i)
-      solar2d(i,j) = solar(j,i)
-      totsol2d(i,j) = soll(j) + sols(j) + solsd(j) + solld(j)
-      soldir2d(i,j) = sols(j)
-      soldif2d(i,j) = solsd(j)
+      totsol2d(j,i) = soll(j) + sols(j) + solsd(j) + solld(j)
+      soldir2d(j,i) = sols(j)
+      soldif2d(j,i) = solsd(j)
 #ifdef CLM
       solswdir(i,j) = sols(j)
       sollwdir(i,j) = soll(j)

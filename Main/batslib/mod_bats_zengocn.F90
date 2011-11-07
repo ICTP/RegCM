@@ -93,9 +93,9 @@ module mod_bats_zengocn
       do j = jstart , jend
         do n = 1 , nnsg
 #ifdef CLM
-          if ( ocld2d(n,i,j) == 0 .or. lmask(jj,i) == 3 ) then
+          if ( ocld2d(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
 #else
-          if ( ocld2d(n,i,j) == 0 ) then
+          if ( ocld2d(n,j,i) == 0 ) then
 #endif
             uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
             tsurf = tground2(i,j) - tzero
@@ -131,17 +131,17 @@ module mod_bats_zengocn
               ! end if
               !
               ! rs is the net surface sw flux (sw energy absorbed)
-              rs = fsw2d(i,j)
+              rs = fsw2d(j,i)
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
               ! ustar water (with air density ==1)
               ustarw = d_half*ustar*(rho(i,j)/rhoh2o)**d_half
-              ! lwds =  flwd2d(i,j)
+              ! lwds =  flwd2d(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4
               ! q is the skin cooling term inckude net lw flux from
               ! the radiative scheme
               ! q = -(lh+sh+(lwus-lwds))
-              q = -(lh+sh+flw2d(i,j))
+              q = -(lh+sh+flw2d(j,i))
               ! fraction of solar radiation abosrbed in the sublayer
               fs = 0.065D0+11.0D0*delta-(6.6D-5/delta) * &
                           (d_one-dexp(-delta/8.0D-4))
@@ -209,7 +209,7 @@ module mod_bats_zengocn
             !
             if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)
-              tgb2d(n,i,j) = tground2(i,j)
+              tgbrd(n,j,i) = tground2(i,j)
             end if
           end if
         end do

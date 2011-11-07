@@ -34,9 +34,9 @@ module mod_mppio
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
   integer , pointer , dimension(:,:) :: kpbl_io
 
-  real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
-         evpa2d_io , gwet2d_io , ircp2d_io , rno2d_io , &
-         rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
+  real(8) , pointer , dimension(:,:,:) :: dew2d_io ,     &
+         gwet2d_io , ircp2d_io , rno2d_io , &
+         rnos2d_io , sag2d_io , scv2d_io , sice2d_io ,  &
          srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
          tg2d_io , tgb2d_io , tlef2d_io , emiss2d_io
 
@@ -44,8 +44,8 @@ module mod_mppio
                                           xlat1_io , xlon1_io
 !
   real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
-                                   fsw2d_io , sabv2d_io ,           &
-                                   sinc2d_io , sol2d_io ,           &
+                                   fsw2d_io , sabveg_io ,           &
+                                   sinc2d_io , solis_io ,           &
                                    solvd2d_io , solvs2d_io
 !
   real(4) , pointer , dimension(:,:,:) :: fbat_io
@@ -207,16 +207,13 @@ module mod_mppio
         call getmem3d(uw_0,1,iy,1,kz*3,1,jx,'mod_mppio:uw_0')
       end if
 
-      call getmem3d(col2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:col2d_io')
       call getmem3d(dew2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:dew2d_io')
-      call getmem3d(evpa2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:evpa2d_io')
       call getmem3d(gwet2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:gwet2d_io')
       call getmem3d(ircp2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ircp2d_io')
       call getmem3d(rno2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rno2d_io')
       call getmem3d(rnos2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rnos2d_io')
       call getmem3d(sag2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sag2d_io')
       call getmem3d(scv2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:scv2d_io')
-      call getmem3d(sena2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sena2d_io')
       call getmem3d(sice2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sice2d_io')
       call getmem3d(srw2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:srw2d_io')
       call getmem3d(ssw2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ssw2d_io')
@@ -238,9 +235,9 @@ module mod_mppio
       call getmem2d(flw2d_io,1,iym1,1,mjj,'mod_mppio:flw2d_io')
       call getmem2d(flwd2d_io,1,iym1,1,mjj,'mod_mppio:flwd2d_io')
       call getmem2d(fsw2d_io,1,iym1,1,mjj,'mod_mppio:fsw2d_io')
-      call getmem2d(sabv2d_io,1,iym1,1,mjj,'mod_mppio:sabv2d_io')
+      call getmem2d(sabveg_io,1,iym1,1,mjj,'mod_mppio:sabveg_io')
       call getmem2d(sinc2d_io,1,iym1,1,mjj,'mod_mppio:sinc2d_io')
-      call getmem2d(sol2d_io,1,iym1,1,mjj,'mod_mppio:sol2d_io')
+      call getmem2d(solis_io,1,iym1,1,mjj,'mod_mppio:solis_io')
       call getmem2d(solvd2d_io,1,iym1,1,mjj,'mod_mppio:solvd2d_io')
       call getmem2d(solvs2d_io,1,iym1,1,mjj,'mod_mppio:solvs2d_io')
 

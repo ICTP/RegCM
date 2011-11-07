@@ -56,9 +56,9 @@ module mod_bats_common
 !
   real(dp) , pointer , dimension(:,:) :: coszrs
 !
-  real(dp) , pointer , dimension(:,:) :: flw2d , flwa2d , flwd2d ,    &
-         flwda2d , fsw2d , fswa2d , pptc , pptnc , prca2d , prnca2d , &
-         sabv2d , sina2d , sinc2d , sol2d , solvd2d , solvs2d , svga2d
+  real(dp) , pointer , dimension(:,:) :: flw2d , flwd2d ,    &
+         fsw2d , pptc , pptnc , prca2d , prnca2d , &
+         sinc , solvd , solvs
 !
   real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
@@ -66,10 +66,8 @@ module mod_bats_common
   integer , pointer , dimension(:,:,:) :: ocld2d , veg2d1
   integer , pointer , dimension(:,:) :: veg2d , ldmsk
 !
-  real(dp) , pointer , dimension(:,:,:) :: col2d , dew2d ,        &
-       emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,     &
-       sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d , &
-       taf2d , tg2d , tgb2d , tlef2d
+  real(dp) , pointer , dimension(:,:,:) :: dew2d , runoff , &
+       srfrno , emiss , evpa2d , sena2d
 !
   real(dp) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
 !
@@ -104,7 +102,8 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
   real(dp) , pointer , dimension(:,:) :: tground1      ! sts1%tg
   real(dp) , pointer , dimension(:,:) :: tground2      ! sts2%tg
-  real(dp) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
+  real(dp) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
+  real(dp) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
   real(dp) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
@@ -118,7 +117,7 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: ts            ! ts1
   real(dp) , pointer , dimension(:,:) :: tsf           ! ts0_io
   real(dp) , pointer , dimension(:,:) :: rho           ! rhox2d
-  integer , pointer , dimension(:,:) :: lmask         ! CLM landmask
+  integer , pointer , dimension(:,:) :: lmask          ! CLM landmask
 
   contains
 
@@ -129,60 +128,42 @@ module mod_bats_common
     rrnnsg = 1.0/real(nnsg)
     rdnnsg = d_one/dble(nnsg)
 
-    call getmem2d(veg2d,1,iym1,1,jxp,'bats:veg2d')
-    call getmem2d(ldmsk,1,iym1,1,jxp,'bats:ldmsk')
-    call getmem2d(flw2d,1,iym1,1,jxp,'bats:flw2d')
-    call getmem2d(flwa2d,1,iym1,1,jxp,'bats:flwa2d')
-    call getmem2d(flwd2d,1,iym1,1,jxp,'bats:flwd2d')
-    call getmem2d(flwda2d,1,iym1,1,jxp,'bats:flwda2d')
-    call getmem2d(fsw2d,1,iym1,1,jxp,'bats:fsw2d')
-    call getmem2d(fswa2d,1,iym1,1,jxp,'bats:fswa2d')
-    call getmem2d(pptc,1,iym1,1,jxp,'bats:pptc')
-    call getmem2d(pptnc,1,iym1,1,jxp,'bats:pptnc')
-    call getmem2d(prca2d,1,iym1,1,jxp,'bats:prca2d')
-    call getmem2d(prnca2d,1,iym1,1,jxp,'bats:prnca2d')
-    call getmem2d(sabv2d,1,iym1,1,jxp,'bats:sabv2d')
-    call getmem2d(sina2d,1,iym1,1,jxp,'bats:sina2d')
-    call getmem2d(sinc2d,1,iym1,1,jxp,'bats:sinc2d')
-    call getmem2d(sol2d,1,iym1,1,jxp,'bats:sol2d')
-    call getmem2d(solvd2d,1,iym1,1,jxp,'bats:solvd2d')
-    call getmem2d(solvs2d,1,iym1,1,jxp,'bats:solvs2d')
-    call getmem2d(svga2d,1,iym1,1,jxp,'bats:svga2d')
+    call getmem2d(veg2d,1,jxp,1,iym1,'bats:veg2d')
+    call getmem2d(ldmsk,1,jxp,1,iym1,'bats:ldmsk')
+    call getmem2d(flw2d,1,jxp,1,iym1,'bats:flw2d')
+    call getmem2d(flwd2d,1,jxp,1,iym1,'bats:flwd2d')
+    call getmem2d(fsw2d,1,jxp,1,iym1,'bats:fsw2d')
+    call getmem2d(pptc,1,jxp,1,iym1,'bats:pptc')
+    call getmem2d(pptnc,1,jxp,1,iym1,'bats:pptnc')
+    call getmem2d(prca2d,1,jxp,1,iym1,'bats:prca2d')
+    call getmem2d(prnca2d,1,jxp,1,iym1,'bats:prnca2d')
+    call getmem2d(sinc,1,jxp,1,iym1,'bats:sinc')
+    call getmem2d(solvd,1,jxp,1,iym1,'bats:solvd')
+    call getmem2d(solvs,1,jxp,1,iym1,'bats:solvs')
     if ( ichem == 1 ) then
-      call getmem2d(ssw2da,1,iym1,1,jxp,'bats:ssw2da')
-      call getmem2d(sdeltk2d,1,iym1,1,jxp,'bats:sdeltk2d')
-      call getmem2d(sdelqk2d,1,iym1,1,jxp,'bats:sdelqk2d')
-      call getmem2d(sfracv2d,1,iym1,1,jxp,'bats:sfracv2d')
-      call getmem2d(sfracb2d,1,iym1,1,jxp,'bats:sfracb2d')
-      call getmem2d(sfracs2d,1,iym1,1,jxp,'bats:sfracs2d')
-      call getmem2d(svegfrac2d,1,iym1,1,jxp,'bats:svegfrac2d')
+      call getmem2d(ssw2da,1,jxp,1,iym1,'bats:ssw2da')
+      call getmem2d(sdeltk2d,1,jxp,1,iym1,'bats:sdeltk2d')
+      call getmem2d(sdelqk2d,1,jxp,1,iym1,'bats:sdelqk2d')
+      call getmem2d(sfracv2d,1,jxp,1,iym1,'bats:sfracv2d')
+      call getmem2d(sfracb2d,1,jxp,1,iym1,'bats:sfracb2d')
+      call getmem2d(sfracs2d,1,jxp,1,iym1,'bats:sfracs2d')
+      call getmem2d(svegfrac2d,1,jxp,1,iym1,'bats:svegfrac2d')
     end if
-    call getmem3d(ocld2d,1,nnsg,1,iym1,1,jxp,'bats:ocld2d')
-    call getmem3d(veg2d1,1,nnsg,1,iym1,1,jxp,'bats:veg2d1')
-    call getmem3d(col2d,1,nnsg,1,iym1,1,jxp,'bats:col2d')
-    call getmem3d(dew2d,1,nnsg,1,iym1,1,jxp,'bats:dew2d')
-    call getmem3d(emiss2d,1,nnsg,1,iym1,1,jxp,'bats:emiss2d')
-    call getmem3d(evpa2d,1,nnsg,1,iym1,1,jxp,'bats:evpa2d')
-    call getmem3d(gwet2d,1,nnsg,1,iym1,1,jxp,'bats:gwet2d')
-    call getmem3d(ircp2d,1,nnsg,1,iym1,1,jxp,'bats:ircp2d')
-    call getmem3d(rno2d,1,nnsg,1,iym1,1,jxp,'bats:rno2d')
-    call getmem3d(rnos2d,1,nnsg,1,iym1,1,jxp,'bats:rnos2d')
-    call getmem3d(sag2d,1,nnsg,1,iym1,1,jxp,'bats:sag2d')
-    call getmem3d(scv2d,1,nnsg,1,iym1,1,jxp,'bats:scv2d')
-    call getmem3d(sena2d,1,nnsg,1,iym1,1,jxp,'bats:sena2d')
-    call getmem3d(sice2d,1,nnsg,1,iym1,1,jxp,'bats:sice2d')
-    call getmem3d(srw2d,1,nnsg,1,iym1,1,jxp,'bats:srw2d')
-    call getmem3d(ssw2d,1,nnsg,1,iym1,1,jxp,'bats:ssw2d')
-    call getmem3d(swt2d,1,nnsg,1,iym1,1,jxp,'bats:swt2d')
-    call getmem3d(taf2d,1,nnsg,1,iym1,1,jxp,'bats:taf2d')
-    call getmem3d(tg2d,1,nnsg,1,iym1,1,jxp,'bats:tg2d')
-    call getmem3d(tgb2d,1,nnsg,1,iym1,1,jxp,'bats:tgb2d')
-    call getmem3d(tlef2d,1,nnsg,1,iym1,1,jxp,'bats:tlef2d')
+    call getmem3d(ocld2d,1,nnsg,1,jxp,1,iym1,'bats:ocld2d')
+    call getmem3d(veg2d1,1,nnsg,1,jxp,1,iym1,'bats:veg2d1')
+    call getmem3d(dew2d,1,nnsg,1,jxp,1,iym1,'bats:dew2d')
+    call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats:emiss')
+    call getmem3d(evpa2d,1,nnsg,1,jxp,1,iym1,'bats:evpa2d')
+    call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')
+    call getmem3d(ircp,1,nnsg,1,jxp,1,iym1,'bats:ircp')
+    call getmem3d(runoff,1,nnsg,1,jxp,1,iym1,'bats:runoff')
+    call getmem3d(srfrno,1,nnsg,1,jxp,1,iym1,'bats:srfrno')
+    call getmem3d(sena2d,1,nnsg,1,jxp,1,iym1,'bats:sena2d')
 
-    call getmem3d(ht1,1,nnsg,1,iy,1,jxp,'bats:ht1')
-    call getmem3d(lndcat1,1,nnsg,1,iy,1,jxp,'bats:lndcat1')
-    call getmem3d(xlat1,1,nnsg,1,iy,1,jxp,'bats:xlat1')
-    call getmem3d(xlon1,1,nnsg,1,iy,1,jxp,'bats:xlon1')
+    call getmem3d(ht1,1,nnsg,1,jxp,1,iy,'bats:ht1')
+    call getmem3d(lndcat1,1,nnsg,1,jxp,1,iy,'bats:lndcat1')
+    call getmem3d(xlat1,1,nnsg,1,jxp,1,iy,'bats:xlat1')
+    call getmem3d(xlon1,1,nnsg,1,jxp,1,iy,'bats:xlon1')
 
     if (idcsst == 1) then
       call getmem2d(deltas,1,iy,1,jxp,'bats:deltas')
@@ -195,8 +176,6 @@ module mod_bats_common
     call getmem3d(delt,1,nnsg,1,jxp,1,iym1,'bats:delt')
     call getmem3d(drag,1,nnsg,1,jxp,1,iym1,'bats:drag')
     call getmem3d(evpr,1,nnsg,1,jxp,1,iym1,'bats:evpr')
-    call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')
-    call getmem3d(ircp,1,nnsg,1,jxp,1,iym1,'bats:ircp')
     call getmem3d(ldew,1,nnsg,1,jxp,1,iym1,'bats:ldew')
     call getmem3d(sfcp,1,nnsg,1,jxp,1,iym1,'bats:sfcp')
     call getmem3d(q2m,1,nnsg,1,jxp,1,iym1,'bats:q2m')

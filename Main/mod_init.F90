@@ -299,7 +299,7 @@ module mod_init
               ts0(i,j) = icetemp
               ldmsk(i,j) = 2
               do n = 1, nnsg
-                ocld2d(n,i,j) = 2
+                ocld2d(n,j,i) = 2
               end do
             end if
           end if
@@ -317,7 +317,7 @@ module mod_init
               ts0(i,j) = icetemp
               ldmsk(i,j) = 2
               do n = 1, nnsg
-                ocld2d(n,i,j) = 2
+                ocld2d(n,j,i) = 2
               end do
             end if
           end if
@@ -839,11 +839,10 @@ module mod_init
             sav_2(i,nnsg+n,j) = tlef2d_io(n,i,j)
             sav_2(i,nnsg*2+n,j) = ssw2d_io(n,i,j)
             sav_2(i,nnsg*3+n,j) = srw2d_io(n,i,j)
-            sav_2(i,nnsg*4+n,j) = col2d_io(n,i,j)
           end do
         end do
         do i = 1 , iym1
-          sav_2(i,nnsg*5+1,j) = sol2d_io(i,j)
+          sav_2(i,nnsg*5+1,j) = solis_io(i,j)
           sav_2(i,nnsg*5+2,j) = solvd2d_io(i,j)
           sav_2(i,nnsg*5+3,j) = solvs2d_io(i,j)
           sav_2(i,nnsg*5+4,j) = flw2d_io(i,j)
@@ -857,18 +856,17 @@ module mod_init
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
-          taf2d(n,i,j) = sav2(i,n,j)
-          tlef2d(n,i,j) = sav2(i,nnsg+n,j)
-          ssw2d(n,i,j) = sav2(i,nnsg*2+n,j)
-          srw2d(n,i,j) = sav2(i,nnsg*3+n,j)
-          col2d(n,i,j) = sav2(i,nnsg*4+n,j)
+          taf(n,j,i) = sav2(i,n,j)
+          tlef(n,j,i) = sav2(i,nnsg+n,j)
+          ssw(n,j,i) = sav2(i,nnsg*2+n,j)
+          rsw(n,j,i) = sav2(i,nnsg*3+n,j)
         end do
       end do
       do i = 1 , iym1
-        sol2d(i,j) = sav2(i,nnsg*5+1,j)
-        solvd2d(i,j) = sav2(i,nnsg*5+2,j)
-        solvs2d(i,j) = sav2(i,nnsg*5+3,j)
-        flw2d(i,j) = sav2(i,nnsg*5+4,j)
+        solis(j,i) = sav2(i,nnsg*5+1,j)
+        solvd(j,i) = sav2(i,nnsg*5+2,j)
+        solvs(j,i) = sav2(i,nnsg*5+3,j)
+        flw2d(j,i) = sav2(i,nnsg*5+4,j)
       end do
     end do
     if ( myid == 0 ) then
@@ -889,7 +887,7 @@ module mod_init
         do i = 1 , iym1
           sav_2(i,nnsg*5+1,j) = flwd2d_io(i,j)
           sav_2(i,nnsg*5+2,j) = fsw2d_io(i,j)
-          sav_2(i,nnsg*5+3,j) = sabv2d_io(i,j)
+          sav_2(i,nnsg*5+3,j) = sabveg_io(i,j)
           sav_2(i,nnsg*5+4,j) = sinc2d_io(i,j)
         end do
       end do
@@ -901,18 +899,18 @@ module mod_init
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
-          tgb2d(n,i,j) = sav2(i,n,j)
-          swt2d(n,i,j) = sav2(i,nnsg+n,j)
-          scv2d(n,i,j) = sav2(i,nnsg*2+n,j)
-          gwet2d(n,i,j) = sav2(i,nnsg*3+n,j)
-          tg2d(n,i,j) = sav2(i,nnsg*4+n,j)
+          tgbrd(n,j,i) = sav2(i,n,j)
+          tsw(n,j,i) = sav2(i,nnsg+n,j)
+          sncv(n,j,i) = sav2(i,nnsg*2+n,j)
+          gwet(n,j,i) = sav2(i,nnsg*3+n,j)
+          tgrd(n,j,i) = sav2(i,nnsg*4+n,j)
         end do
       end do
       do i = 1 , iym1
-        flwd2d(i,j) = sav2(i,nnsg*5+1,j)
-        fsw2d(i,j) = sav2(i,nnsg*5+2,j)
-        sabv2d(i,j) = sav2(i,nnsg*5+3,j)
-        sinc2d(i,j) = sav2(i,nnsg*5+4,j)
+        flwd2d(j,i) = sav2(i,nnsg*5+1,j)
+        fsw2d(j,i) = sav2(i,nnsg*5+2,j)
+        sabveg(j,i) = sav2(i,nnsg*5+3,j)
+        sinc(j,i) = sav2(i,nnsg*5+4,j)
       end do
     end do
     if ( myid == 0 ) then
@@ -945,18 +943,18 @@ module mod_init
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
-          ircp2d(n,i,j)  = sav2(i,n,j)
-          sag2d(n,i,j)   = sav2(i,nnsg+n,j)
-          sice2d(n,i,j)  = sav2(i,nnsg*2+n,j)
-          dew2d(n,i,j)   = sav2(i,nnsg*3+n,j)
-          emiss2d(n,i,j) = sav2(i,nnsg*4+n,j)
+          ircp(n,j,i)  = sav2(i,n,j)
+          snag(n,j,i)   = sav2(i,nnsg+n,j)
+          sfice(n,j,i)  = sav2(i,nnsg*2+n,j)
+          dew2d(n,j,i)   = sav2(i,nnsg*3+n,j)
+          emiss(n,j,i) = sav2(i,nnsg*4+n,j)
         end do
       end do
       do i = 1 , iym1
-        pptnc(i,j) = sav2(i,nnsg*5+1,j)
-        pptc(i,j) = sav2(i,nnsg*5+2,j)
-        prca2d(i,j) = sav2(i,nnsg*5+3,j)
-        prnca2d(i,j) = sav2(i,nnsg*5+4,j)
+        pptnc(j,i) = sav2(i,nnsg*5+1,j)
+        pptc(j,i) = sav2(i,nnsg*5+2,j)
+        prca2d(j,i) = sav2(i,nnsg*5+3,j)
+        prnca2d(j,i) = sav2(i,nnsg*5+4,j)
       end do
     end do
     if ( myid == 0 ) then
@@ -984,13 +982,13 @@ module mod_init
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
-          veg2d1(n,i,j) = sav2a(i,n,j)
-          ocld2d(n,i,j) = sav2a(i,nnsg+n,j)
+          veg2d1(n,j,i) = sav2a(i,n,j)
+          ocld2d(n,j,i) = sav2a(i,nnsg+n,j)
         end do
       end do
       do i = 1 , iym1
-        veg2d(i,j) = sav2a(i,nnsg*2+1,j)
-        ldmsk(i,j) = sav2a(i,nnsg*2+2,j)
+        veg2d(j,i) = sav2a(i,nnsg*2+1,j)
+        ldmsk(j,i) = sav2a(i,nnsg*2+2,j)
       end do
     end do
     if ( ichem == 1 ) then
@@ -1063,13 +1061,13 @@ module mod_init
                        0,mycomm,ierr)
       do j = 1 , jendx
         do i = 1 , iym1
-          ssw2da(i,j) = sav4a(i,1,j)
-          sdeltk2d(i,j) = sav4a(i,2,j)
-          sdelqk2d(i,j) = sav4a(i,3,j)
-          sfracv2d(i,j) = sav4a(i,4,j)
-          sfracb2d(i,j) = sav4a(i,5,j)
-          sfracs2d(i,j) = sav4a(i,6,j)
-          svegfrac2d(i,j) = sav4a(i,7,j)
+          ssw2da(j,i) = sav4a(i,1,j)
+          sdeltk2d(j,i) = sav4a(i,2,j)
+          sdelqk2d(j,i) = sav4a(i,3,j)
+          sfracv2d(j,i) = sav4a(i,4,j)
+          sfracb2d(j,i) = sav4a(i,5,j)
+          sfracs2d(j,i) = sav4a(i,6,j)
+          svegfrac2d(j,i) = sav4a(i,7,j)
         end do
       end do
     end if
@@ -1170,20 +1168,20 @@ module mod_init
     do j = 1 , jendx
       do i = 1 , iym1
         do n = 1 , nnsg
-          ist = veg2d1(n,i,j)
+          ist = veg2d1(n,j,i)
           if ( ist == 14 .or. ist == 15 ) then
-            emiss2d(n,i,j) = 0.955D0
+            emiss(n,j,i) = 0.955D0
           else if ( ist == 8 ) then
-            emiss2d(n,i,j) = 0.76D0
+            emiss(n,j,i) = 0.76D0
           else if ( ist == 11 ) then
-            emiss2d(n,i,j) = 0.85D0
+            emiss(n,j,i) = 0.85D0
           else if ( ist == 12 ) then
-            emiss2d(n,i,j) = 0.97D0
+            emiss(n,j,i) = 0.97D0
           else
-            emiss2d(n,i,j) = 0.99D0 - &
+            emiss(n,j,i) = 0.99D0 - &
                     (albvgs(ist)+albvgl(ist))*0.1D0
           end if
-!             emiss2d(n,i,j) = d_one
+!             emiss(n,j,i) = d_one
         end do
       end do
     end do

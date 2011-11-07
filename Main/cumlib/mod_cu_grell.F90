@@ -359,9 +359,9 @@ module mod_cu_grell
           rainc(i,j) = rainc(i,j) + prainx
 !         precipitation rate for bats (mm/s)
           if ( ktau == 0 ) then
-            lmpcpc(i,j) = lmpcpc(i,j) + pret(j,i)
+            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)
           else
-            lmpcpc(i,j) = lmpcpc(i,j) + pret(j,i)*aprdiv
+            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*aprdiv
           end if
           total_precip_points = total_precip_points + 1
         end if
