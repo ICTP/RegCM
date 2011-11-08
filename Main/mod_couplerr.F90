@@ -200,6 +200,7 @@
 !**********************************************************************
 !
       integer :: i, j, k, nPets
+      character(100) :: fmt_123 
 !
 !-----------------------------------------------------------------------
 !     Initialize the coupler variables
@@ -234,16 +235,30 @@
           ! For example; two models and seven cpu (or pet)
           ! model a - 0, 2, 4, 6
           ! model b - 1, 3, 5
-          do j = 1, nPets 
-            models(i)%petList(j) = (i+(j-1)*nModels)-1
+          !do j = 1, nPets 
+          !  models(i)%petList(j) = (i+(j-1)*nModels)-1
+          !end do
+
+          ! For example; two models and seven cpu (or pet)
+          ! model a - 0, 1, 2, 3
+          ! model b - 4, 5, 6
+          do j = 1, nPets
+            if (i .eq. 1) then 
+              models(i)%petList(j) = j-1
+            else
+              k = ubound(models(i-1)%petList, dim=1)
+              models(i)%petList(j) = models(i-1)%petList(k)+j 
+            end if 
           end do
 !
-!          if (.not. allocated(models(i)%petList)) then
-!            allocate(models(i)%petList(petCount))
-!          end if
-!          do j = 1, petCount
-!            models(i)%petList(j) = j-1
-!          end do
+          k = ubound(models(i)%petList, dim=1)
+          write(fmt_123, fmt="('(A3, ', I3, 'I4)')") k
+          if (i .eq. 1) then
+            write(*, fmt=trim(fmt_123)) "ATM", models(i)%petList 
+          else
+            write(*, fmt=trim(fmt_123)) "OCN", models(i)%petList
+          end if
+!
         end do
       end if
 !
