@@ -668,13 +668,14 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, n, rc 
+      integer :: i, j, ii, jj, n, tile, rc 
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
       integer :: IstrV, IendV, JstrV, JendV     
       integer :: staggerEdgeLWidth(2)
       integer :: staggerEdgeUWidth(2)
+      integer, allocatable :: deBlockList(:,:,:)
 !
       type(ESMF_Decomp_Flag) :: deCompFlag(2)
       type(ESMF_StaggerLoc) :: staggerLoc
@@ -718,17 +719,28 @@
       JstrV = BOUNDS(n)%Jstr(localPet)
       JendV = BOUNDS(n)%JendR(localPet)
 !
+      if (.not.allocated(deBlockList)) then
+        allocate(deBlockList(2,2,NtileI(n)*NtileJ(n)))
+      end if
+      do tile=0,NtileI(n)*NtileJ(n)-1
+        deBlockList(1,1,tile+1)=BOUNDS(n)%Istr(tile)
+        deBlockList(1,2,tile+1)=BOUNDS(n)%Iend(tile)
+        deBlockList(2,1,tile+1)=BOUNDS(n)%Jstr(tile)
+        deBlockList(2,2,tile+1)=BOUNDS(n)%Jend(tile)
+      end do
+!
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
 !
-      deCompFlag = (/ ESMF_DECOMP_RESTFIRST, ESMF_DECOMP_RESTFIRST /)
+!      deCompFlag = (/ ESMF_DECOMP_RESTFIRST, ESMF_DECOMP_RESTFIRST /)
 !
       models(Iocean)%distGrid(n) = ESMF_DistGridCreate (                &
                                    minIndex=(/ 1, 1 /),                 &
                                    maxIndex=(/ Lm(n), Mm(n) /),         &
-                                   regDecomp=(/ NtileI(n), NtileJ(n) /),&
-                                   decompflag=deCompFlag,               &
+                                   deBlockList=deBlockList,             &
+!                                   regDecomp=(/ NtileI(n), NtileJ(n) /),&
+!                                   decompflag=deCompFlag,               &
                                    rc=rc)
 !
       call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
@@ -846,6 +858,16 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       if (models(Iocean)%mesh(i,n)%gtype == Icross) then
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, j, "IDX", IstrR, IendR, JstrR, JendR
+          write(*,40) localPet, j, "PTR",                               &
+            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
+            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+          write(*,40) localPet, j, "OCN",                               &
+            lbound(GRID(n)%lonr, dim=1), ubound(GRID(n)%lonr, dim=1),   &
+            lbound(GRID(n)%lonr, dim=2), ubound(GRID(n)%lonr, dim=2)
+        end if              
+!
         do jj = JstrR, JendR
           do ii = IstrR, IendR
             ptrX(ii,jj) = GRID(n)%lonr(ii,jj)
@@ -863,11 +885,21 @@
         end if
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, j, "IDX", IstrU, IendU, JstrU, JendU
+          write(*,40) localPet, j, "PTR",                               &
+            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
+            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+          write(*,40) localPet, j, "OCN",                               &
+            lbound(GRID(n)%lonu, dim=1), ubound(GRID(n)%lonu, dim=1),   &
+            lbound(GRID(n)%lonu, dim=2), ubound(GRID(n)%lonu, dim=2)
+        end if
+!
         do jj = JstrU, JendU
           do ii = IstrU, IendU
             ptrX(ii,jj) = GRID(n)%lonu(ii,jj)
             ptrY(ii,jj) = GRID(n)%latu(ii,jj)
-            ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
+            ptrM(ii,jj) = int(GRID(n)%umask(ii,jj))
           end do
         end do
 !
@@ -880,6 +912,16 @@
         end if
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, j, "IDX", IstrV, IendV, JstrV, JendV
+          write(*,40) localPet, j, "PTR",                               &
+            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
+            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+          write(*,40) localPet, j, "OCN",                               &
+            lbound(GRID(n)%lonv, dim=1), ubound(GRID(n)%lonv, dim=1),   &
+            lbound(GRID(n)%lonv, dim=2), ubound(GRID(n)%lonv, dim=2)
+        end if
+!
         do jj = JstrV, JendV
           do ii = IstrV, IendV
             ptrX(ii,jj) = GRID(n)%lonv(ii,jj)
