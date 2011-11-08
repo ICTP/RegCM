@@ -62,7 +62,6 @@ module mod_bats_romsocn
             tgbrd(n,j,i) = sst2d(i,j)
           end if
         end do
-        !call print_matrix_r8(tgrd(n,:,:), 1, 1, 0, "TGRD") 
       end do
     end do
 !
