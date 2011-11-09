@@ -1063,9 +1063,19 @@
         models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
                               models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "rain") then ! mm/day
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        !models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
+        !models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+        !                      models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        do ii = imin+1, imax-1
+          do jj = jmin, jmax
+            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
+                                                  tpr_o(jj-jmin+1,ii-1)
+          end do
+        end do
+        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
+                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
       else if (trim(adjustl(name)) == "Uwind") then ! m/s
         do ii = imin+1, imax-1
           do jj = jmin, jmax
