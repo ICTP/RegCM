@@ -1140,46 +1140,50 @@ module mod_mppgrid
       bsize = esize1*esize2
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
-      if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dd(1:njj) = l(1:njj,1)
-      end if
-      call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
-                        rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%top /= mpi_proc_null ) then
-        l(1:njj,nii+1) = rcvbuf1dd(1:njj)
-      end if
-      if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dd(1:nii) = l(njj,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
-                        rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%lhs /= mpi_proc_null ) then
-        l(0,1:nii) = rcvbuf1dd(1:nii)
-      end if
-      if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dd(1:nii) = l(1,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
-                        rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%rhs /= mpi_proc_null ) then
-        l(njj+1,1:nii) = rcvbuf1dd(1:nii)
-      end if
-      if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dd(1:njj) = l(1:njj,nii)
-      end if
-      call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
-                        rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%btm /= mpi_proc_null ) then
-        l(1:njj,0) = rcvbuf1dd(1:njj)
-      end if
+      do i = 1 , esize2
+        if ( pspace%btm /= mpi_proc_null ) then
+          sndbuf1dd(1:njj) = l(1:njj,i)
+        end if
+        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%top /= mpi_proc_null ) then
+          l(1:njj,nii+i) = rcvbuf1dd(1:njj)
+        end if
+        if ( pspace%top /= mpi_proc_null ) then
+          sndbuf1dd(1:njj) = l(1:njj,nii-i+1)
+        end if
+        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%btm /= mpi_proc_null ) then
+          l(1:njj,-i+1) = rcvbuf1dd(1:njj)
+        end if
+      end do
+      do j = 1 , esize1
+        if ( pspace%rhs /= mpi_proc_null ) then
+          sndbuf1dd(1:nii) = l(njj-j+1,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%lhs /= mpi_proc_null ) then
+          l(-j+1,1:nii) = rcvbuf1dd(1:nii)
+        end if
+        if ( pspace%lhs /= mpi_proc_null ) then
+          sndbuf1dd(1:nii) = l(j,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%rhs /= mpi_proc_null ) then
+          l(njj+j,1:nii) = rcvbuf1dd(1:nii)
+        end if
+      end do
       if ( pspace%rht /= mpi_proc_null ) then
         icount = 0
         do i = 1 , esize2
@@ -1285,46 +1289,50 @@ module mod_mppgrid
       bsize = esize1*esize2
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
-      if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dr(1:njj) = l(1:njj,1)
-      end if
-      call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
-                        rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%top /= mpi_proc_null ) then
-        l(1:njj,nii+1) = rcvbuf1dr(1:njj)
-      end if
-      if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dr(1:nii) = l(njj,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
-                        rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%lhs /= mpi_proc_null ) then
-        l(0,1:nii) = rcvbuf1dr(1:nii)
-      end if
-      if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dr(1:nii) = l(1,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
-                        rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%rhs /= mpi_proc_null ) then
-        l(njj+1,1:nii) = rcvbuf1dr(1:nii)
-      end if
-      if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dr(1:njj) = l(1:njj,nii)
-      end if
-      call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
-                        rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%btm /= mpi_proc_null ) then
-        l(1:njj,0) = rcvbuf1dr(1:njj)
-      end if
+      do i = 1 , esize2
+        if ( pspace%btm /= mpi_proc_null ) then
+          sndbuf1dr(1:njj) = l(1:njj,i)
+        end if
+        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%top /= mpi_proc_null ) then
+          l(1:njj,nii+i) = rcvbuf1dr(1:njj)
+        end if
+        if ( pspace%top /= mpi_proc_null ) then
+          sndbuf1dr(1:njj) = l(1:njj,nii-i+1)
+        end if
+        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%btm /= mpi_proc_null ) then
+          l(1:njj,-i+1) = rcvbuf1dr(1:njj)
+        end if
+      end do
+      do j = 1 , esize1
+        if ( pspace%rhs /= mpi_proc_null ) then
+          sndbuf1dr(1:nii) = l(njj-j+1,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%lhs /= mpi_proc_null ) then
+          l(-j+1,1:nii) = rcvbuf1dr(1:nii)
+        end if
+        if ( pspace%lhs /= mpi_proc_null ) then
+          sndbuf1dr(1:nii) = l(j,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%rhs /= mpi_proc_null ) then
+          l(njj+j,1:nii) = rcvbuf1dr(1:nii)
+        end if
+      end do
       if ( pspace%rht /= mpi_proc_null ) then
         icount = 0
         do i = 1 , esize2
@@ -1430,46 +1438,50 @@ module mod_mppgrid
       bsize = esize1*esize2
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
-      if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1di(1:njj) = l(1:njj,1)
-      end if
-      call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1,&
-                        rcvbuf1di,csize,mpi_integer,pspace%top,1,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%top /= mpi_proc_null ) then
-        l(1:njj,nii+1) = rcvbuf1di(1:njj)
-      end if
-      if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1di(1:nii) = l(njj,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2,&
-                        rcvbuf1di,csize,mpi_integer,pspace%lhs,2,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%lhs /= mpi_proc_null ) then
-        l(0,1:nii) = rcvbuf1di(1:nii)
-      end if
-      if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1di(1:nii) = l(1,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3,&
-                        rcvbuf1di,csize,mpi_integer,pspace%rhs,3,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%rhs /= mpi_proc_null ) then
-        l(njj+1,1:nii) = rcvbuf1di(1:nii)
-      end if
-      if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1di(1:njj) = l(1:njj,nii)
-      end if
-      call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4,&
-                        rcvbuf1di,csize,mpi_integer,pspace%btm,4,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%btm /= mpi_proc_null ) then
-        l(1:njj,0) = rcvbuf1di(1:njj)
-      end if
+      do i = 1 , esize2
+        if ( pspace%btm /= mpi_proc_null ) then
+          sndbuf1di(1:njj) = l(1:njj,i)
+        end if
+        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
+                          rcvbuf1di,csize,mpi_integer,pspace%top,1, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%top /= mpi_proc_null ) then
+          l(1:njj,nii+i) = rcvbuf1di(1:njj)
+        end if
+        if ( pspace%top /= mpi_proc_null ) then
+          sndbuf1di(1:njj) = l(1:njj,nii-i+1)
+        end if
+        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
+                          rcvbuf1di,csize,mpi_integer,pspace%btm,4, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%btm /= mpi_proc_null ) then
+          l(1:njj,-i+1) = rcvbuf1di(1:njj)
+        end if
+      end do
+      do j = 1 , esize1
+        if ( pspace%rhs /= mpi_proc_null ) then
+          sndbuf1di(1:nii) = l(njj-j+1,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
+                          rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%lhs /= mpi_proc_null ) then
+          l(-j+1,1:nii) = rcvbuf1di(1:nii)
+        end if
+        if ( pspace%lhs /= mpi_proc_null ) then
+          sndbuf1di(1:nii) = l(j,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
+                          rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%rhs /= mpi_proc_null ) then
+          l(njj+j,1:nii) = rcvbuf1di(1:nii)
+        end if
+      end do
       if ( pspace%rht /= mpi_proc_null ) then
         icount = 0
         do i = 1 , esize2
@@ -1575,46 +1587,50 @@ module mod_mppgrid
       bsize = esize1*esize2
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
-      if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1ds(1:njj) = l(1:njj,1)
-      end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1,&
-                        rcvbuf1ds,csize,mpi_integer2,pspace%top,1,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%top /= mpi_proc_null ) then
-        l(1:njj,nii+1) = rcvbuf1ds(1:njj)
-      end if
-      if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1ds(1:nii) = l(njj,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2,&
-                        rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%lhs /= mpi_proc_null ) then
-        l(0,1:nii) = rcvbuf1ds(1:nii)
-      end if
-      if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1ds(1:nii) = l(1,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3,&
-                        rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%rhs /= mpi_proc_null ) then
-        l(njj+1,1:nii) = rcvbuf1ds(1:nii)
-      end if
-      if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1ds(1:njj) = l(1:njj,nii)
-      end if
-      call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4,&
-                        rcvbuf1ds,csize,mpi_integer2,pspace%btm,4,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%btm /= mpi_proc_null ) then
-        l(1:njj,0) = rcvbuf1ds(1:njj)
-      end if
+      do i = 1 , esize2
+        if ( pspace%btm /= mpi_proc_null ) then
+          sndbuf1ds(1:njj) = l(1:njj,i)
+        end if
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%top,1, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%top /= mpi_proc_null ) then
+          l(1:njj,nii+i) = rcvbuf1ds(1:njj)
+        end if
+        if ( pspace%top /= mpi_proc_null ) then
+          sndbuf1ds(1:njj) = l(1:njj,nii-i+1)
+        end if
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%btm,4, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%btm /= mpi_proc_null ) then
+          l(1:njj,-i+1) = rcvbuf1ds(1:njj)
+        end if
+      end do
+      do j = 1 , esize1
+        if ( pspace%rhs /= mpi_proc_null ) then
+          sndbuf1ds(1:nii) = l(njj-j+1,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%lhs /= mpi_proc_null ) then
+          l(-j+1,1:nii) = rcvbuf1ds(1:nii)
+        end if
+        if ( pspace%lhs /= mpi_proc_null ) then
+          sndbuf1ds(1:nii) = l(j,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%rhs /= mpi_proc_null ) then
+          l(njj+j,1:nii) = rcvbuf1ds(1:nii)
+        end if
+      end do
       if ( pspace%rht /= mpi_proc_null ) then
         icount = 0
         do i = 1 , esize2
@@ -1720,46 +1736,50 @@ module mod_mppgrid
       bsize = esize1*esize2
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
-      if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dl(1:njj) = l(1:njj,1)
-      end if
-      call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1,&
-                        rcvbuf1dl,csize,mpi_logical,pspace%top,1,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%top /= mpi_proc_null ) then
-        l(1:njj,nii+1) = rcvbuf1dl(1:njj)
-      end if
-      if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dl(1:nii) = l(njj,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2,&
-                        rcvbuf1dl,csize,mpi_logical,pspace%lhs,2,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%lhs /= mpi_proc_null ) then
-        l(0,1:nii) = rcvbuf1dl(1:nii)
-      end if
-      if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dl(1:nii) = l(1,1:nii)
-      end if
-      call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3,&
-                        rcvbuf1dl,csize,mpi_logical,pspace%rhs,3,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%rhs /= mpi_proc_null ) then
-        l(njj+1,1:nii) = rcvbuf1dl(1:nii)
-      end if
-      if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dl(1:njj) = l(1:njj,nii)
-      end if
-      call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4,&
-                        rcvbuf1dl,csize,mpi_logical,pspace%btm,4,&
-                        pspace%cartesian_communicator,mpi_status_ignore,ierr)
-      if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      if ( pspace%btm /= mpi_proc_null ) then
-        l(1:njj,0) = rcvbuf1dl(1:njj)
-      end if
+      do i = 1 , esize2
+        if ( pspace%btm /= mpi_proc_null ) then
+          sndbuf1dl(1:njj) = l(1:njj,i)
+        end if
+        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%top,1, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%top /= mpi_proc_null ) then
+          l(1:njj,nii+i) = rcvbuf1dl(1:njj)
+        end if
+        if ( pspace%top /= mpi_proc_null ) then
+          sndbuf1dl(1:njj) = l(1:njj,nii-i+1)
+        end if
+        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%btm,4, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%btm /= mpi_proc_null ) then
+          l(1:njj,-i+1) = rcvbuf1dl(1:njj)
+        end if
+      end do
+      do j = 1 , esize1
+        if ( pspace%rhs /= mpi_proc_null ) then
+          sndbuf1dl(1:nii) = l(njj-j+1,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%lhs /= mpi_proc_null ) then
+          l(-j+1,1:nii) = rcvbuf1dl(1:nii)
+        end if
+        if ( pspace%lhs /= mpi_proc_null ) then
+          sndbuf1dl(1:nii) = l(j,1:nii)
+        end if
+        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+        if ( pspace%rhs /= mpi_proc_null ) then
+          l(njj+j,1:nii) = rcvbuf1dl(1:nii)
+        end if
+      end do
       if ( pspace%rht /= mpi_proc_null ) then
         icount = 0
         do i = 1 , esize2
@@ -1868,46 +1888,50 @@ module mod_mppgrid
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
       do k = nk1 , nk2
-        if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dd(1:njj) = l(1:njj,1,k)
-        end if
-        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
+        do i = 1 , esize2
+          if ( pspace%btm /= mpi_proc_null ) then
+            sndbuf1dd(1:njj) = l(1:njj,i,k)
+          end if
+          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
                           rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%top /= mpi_proc_null ) then
-          l(1:njj,nii+1,k) = rcvbuf1dd(1:njj)
-        end if
-        if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dd(1:nii) = l(njj,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
-                          rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%lhs /= mpi_proc_null ) then
-          l(0,1:nii,k) = rcvbuf1dd(1:nii)
-        end if
-        if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dd(1:nii) = l(1,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
-                          rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%rhs /= mpi_proc_null ) then
-          l(njj+1,1:nii,k) = rcvbuf1dd(1:nii)
-        end if
-        if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dd(1:njj) = l(1:njj,nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1:njj,nii+i,k) = rcvbuf1dd(1:njj)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            sndbuf1dd(1:njj) = l(1:njj,nii-i+1,k)
+          end if
+          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
                           rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%btm /= mpi_proc_null ) then
-          l(1:njj,0,k) = rcvbuf1dd(1:njj)
-        end if
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1:njj,-i+1,k) = rcvbuf1dd(1:njj)
+          end if
+        end do
+        do j = 1 , esize1
+          if ( pspace%rhs /= mpi_proc_null ) then
+            sndbuf1dd(1:nii) = l(njj-j+1,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%lhs /= mpi_proc_null ) then
+            l(-j+1,1:nii,k) = rcvbuf1dd(1:nii)
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            sndbuf1dd(1:nii) = l(j,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%rhs /= mpi_proc_null ) then
+            l(njj+j,1:nii,k) = rcvbuf1dd(1:nii)
+          end if
+        end do
         if ( pspace%rht /= mpi_proc_null ) then
           icount = 0
           do i = 1 , esize2
@@ -2017,46 +2041,50 @@ module mod_mppgrid
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
       do k = nk1 , nk2
-        if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dr(1:njj) = l(1:njj,1,k)
-        end if
-        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
+        do i = 1 , esize2
+          if ( pspace%btm /= mpi_proc_null ) then
+            sndbuf1dr(1:njj) = l(1:njj,i,k)
+          end if
+          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
                           rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%top /= mpi_proc_null ) then
-          l(1:njj,nii+1,k) = rcvbuf1dr(1:njj)
-        end if
-        if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dr(1:nii) = l(njj,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
-                          rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%lhs /= mpi_proc_null ) then
-          l(0,1:nii,k) = rcvbuf1dr(1:nii)
-        end if
-        if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dr(1:nii) = l(1,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
-                          rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%rhs /= mpi_proc_null ) then
-          l(njj+1,1:nii,k) = rcvbuf1dr(1:nii)
-        end if
-        if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dr(1:njj) = l(1:njj,nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1:njj,nii+i,k) = rcvbuf1dr(1:njj)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            sndbuf1dr(1:njj) = l(1:njj,nii-i+1,k)
+          end if
+          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
                           rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%btm /= mpi_proc_null ) then
-          l(1:njj,0,k) = rcvbuf1dr(1:njj)
-        end if
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1:njj,-i+1,k) = rcvbuf1dr(1:njj)
+          end if
+        end do
+        do j = 1 , esize1
+          if ( pspace%rhs /= mpi_proc_null ) then
+            sndbuf1dr(1:nii) = l(njj-j+1,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%lhs /= mpi_proc_null ) then
+            l(-j+1,1:nii,k) = rcvbuf1dr(1:nii)
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            sndbuf1dr(1:nii) = l(j,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%rhs /= mpi_proc_null ) then
+            l(njj+j,1:nii,k) = rcvbuf1dr(1:nii)
+          end if
+        end do
         if ( pspace%rht /= mpi_proc_null ) then
           icount = 0
           do i = 1 , esize2
@@ -2166,46 +2194,50 @@ module mod_mppgrid
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
       do k = nk1 , nk2
-        if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1di(1:njj) = l(1:njj,1,k)
-        end if
-        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
+        do i = 1 , esize2
+          if ( pspace%btm /= mpi_proc_null ) then
+            sndbuf1di(1:njj) = l(1:njj,i,k)
+          end if
+          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
                           rcvbuf1di,csize,mpi_integer,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%top /= mpi_proc_null ) then
-          l(1:njj,nii+1,k) = rcvbuf1di(1:njj)
-        end if
-        if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1di(1:nii) = l(njj,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
-                          rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%lhs /= mpi_proc_null ) then
-          l(0,1:nii,k) = rcvbuf1di(1:nii)
-        end if
-        if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1di(1:nii) = l(1,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
-                          rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%rhs /= mpi_proc_null ) then
-          l(njj+1,1:nii,k) = rcvbuf1di(1:nii)
-        end if
-        if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1di(1:njj) = l(1:njj,nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1:njj,nii+i,k) = rcvbuf1di(1:njj)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            sndbuf1di(1:njj) = l(1:njj,nii-i+1,k)
+          end if
+          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
                           rcvbuf1di,csize,mpi_integer,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%btm /= mpi_proc_null ) then
-          l(1:njj,0,k) = rcvbuf1di(1:njj)
-        end if
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1:njj,-i+1,k) = rcvbuf1di(1:njj)
+          end if
+        end do
+        do j = 1 , esize1
+          if ( pspace%rhs /= mpi_proc_null ) then
+            sndbuf1di(1:nii) = l(njj-j+1,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
+                          rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%lhs /= mpi_proc_null ) then
+            l(-j+1,1:nii,k) = rcvbuf1di(1:nii)
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            sndbuf1di(1:nii) = l(j,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
+                          rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%rhs /= mpi_proc_null ) then
+            l(njj+j,1:nii,k) = rcvbuf1di(1:nii)
+          end if
+        end do
         if ( pspace%rht /= mpi_proc_null ) then
           icount = 0
           do i = 1 , esize2
@@ -2315,46 +2347,50 @@ module mod_mppgrid
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
       do k = nk1 , nk2
-        if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1ds(1:njj) = l(1:njj,1,k)
-        end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
+        do i = 1 , esize2
+          if ( pspace%btm /= mpi_proc_null ) then
+            sndbuf1ds(1:njj) = l(1:njj,i,k)
+          end if
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
                           rcvbuf1ds,csize,mpi_integer2,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%top /= mpi_proc_null ) then
-          l(1:njj,nii+1,k) = rcvbuf1ds(1:njj)
-        end if
-        if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1ds(1:nii) = l(njj,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
-                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%lhs /= mpi_proc_null ) then
-          l(0,1:nii,k) = rcvbuf1ds(1:nii)
-        end if
-        if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1ds(1:nii) = l(1,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
-                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%rhs /= mpi_proc_null ) then
-          l(njj+1,1:nii,k) = rcvbuf1ds(1:nii)
-        end if
-        if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1ds(1:njj) = l(1:njj,nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1:njj,nii+i,k) = rcvbuf1ds(1:njj)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            sndbuf1ds(1:njj) = l(1:njj,nii-i+1,k)
+          end if
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
                           rcvbuf1ds,csize,mpi_integer2,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%btm /= mpi_proc_null ) then
-          l(1:njj,0,k) = rcvbuf1ds(1:njj)
-        end if
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1:njj,-i+1,k) = rcvbuf1ds(1:njj)
+          end if
+        end do
+        do j = 1 , esize1
+          if ( pspace%rhs /= mpi_proc_null ) then
+            sndbuf1ds(1:nii) = l(njj-j+1,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%lhs /= mpi_proc_null ) then
+            l(-j+1,1:nii,k) = rcvbuf1ds(1:nii)
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            sndbuf1ds(1:nii) = l(j,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%rhs /= mpi_proc_null ) then
+            l(njj+j,1:nii,k) = rcvbuf1ds(1:nii)
+          end if
+        end do
         if ( pspace%rht /= mpi_proc_null ) then
           icount = 0
           do i = 1 , esize2
@@ -2464,46 +2500,50 @@ module mod_mppgrid
       njj = ubound(l,1) - esize1
       nii = ubound(l,2) - esize2
       do k = nk1 , nk2
-        if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dl(1:njj) = l(1:njj,1,k)
-        end if
-        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
+        do i = 1 , esize2
+          if ( pspace%btm /= mpi_proc_null ) then
+            sndbuf1dl(1:njj) = l(1:njj,i,k)
+          end if
+          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
                           rcvbuf1dl,csize,mpi_logical,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%top /= mpi_proc_null ) then
-          l(1:njj,nii+1,k) = rcvbuf1dl(1:njj)
-        end if
-        if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dl(1:nii) = l(njj,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
-                          rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%lhs /= mpi_proc_null ) then
-          l(0,1:nii,k) = rcvbuf1dl(1:nii)
-        end if
-        if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dl(1:nii) = l(1,1:nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
-                          rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%rhs /= mpi_proc_null ) then
-          l(njj+1,1:nii,k) = rcvbuf1dl(1:nii)
-        end if
-        if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dl(1:njj) = l(1:njj,nii,k)
-        end if
-        call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%top /= mpi_proc_null ) then
+            l(1:njj,nii+i,k) = rcvbuf1dl(1:njj)
+          end if
+          if ( pspace%top /= mpi_proc_null ) then
+            sndbuf1dl(1:njj) = l(1:njj,nii-i+1,k)
+          end if
+          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
                           rcvbuf1dl,csize,mpi_logical,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-        if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-        if ( pspace%btm /= mpi_proc_null ) then
-          l(1:njj,0,k) = rcvbuf1dl(1:njj)
-        end if
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%btm /= mpi_proc_null ) then
+            l(1:njj,-i+1,k) = rcvbuf1dl(1:njj)
+          end if
+        end do
+        do j = 1 , esize1
+          if ( pspace%rhs /= mpi_proc_null ) then
+            sndbuf1dl(1:nii) = l(njj-j+1,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%lhs /= mpi_proc_null ) then
+            l(-j+1,1:nii,k) = rcvbuf1dl(1:nii)
+          end if
+          if ( pspace%lhs /= mpi_proc_null ) then
+            sndbuf1dl(1:nii) = l(j,1:nii,k)
+          end if
+          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+          if ( pspace%rhs /= mpi_proc_null ) then
+            l(njj+j,1:nii,k) = rcvbuf1dl(1:nii)
+          end if
+        end do
         if ( pspace%rht /= mpi_proc_null ) then
           icount = 0
           do i = 1 , esize2
@@ -2616,46 +2656,50 @@ module mod_mppgrid
       nii = ubound(l,2) - esize2
       do t = nt1 , nt2
         do k = nk1 , nk2
-          if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dd(1:njj) = l(1:njj,1,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
+          do i = 1 , esize2
+            if ( pspace%btm /= mpi_proc_null ) then
+              sndbuf1dd(1:njj) = l(1:njj,i,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
                           rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1:njj,nii+1,k,t) = rcvbuf1dd(1:njj)
-          end if
-          if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dd(1:nii) = l(njj,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
-                          rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%lhs /= mpi_proc_null ) then
-            l(0,1:nii,k,t) = rcvbuf1dd(1:nii)
-          end if
-          if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dd(1:nii) = l(1,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
-                          rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%rhs /= mpi_proc_null ) then
-            l(njj+1,1:nii,k,t) = rcvbuf1dd(1:nii)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dd(1:njj) = l(1:njj,nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%top /= mpi_proc_null ) then
+              l(1:njj,nii+i,k,t) = rcvbuf1dd(1:njj)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              sndbuf1dd(1:njj) = l(1:njj,nii-i+1,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
                           rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1:njj,0,k,t) = rcvbuf1dd(1:njj)
-          end if
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(1:njj,-i+1,k,t) = rcvbuf1dd(1:njj)
+            end if
+          end do
+          do j = 1 , esize1
+            if ( pspace%rhs /= mpi_proc_null ) then
+              sndbuf1dd(1:nii) = l(njj-j+1,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%lhs /= mpi_proc_null ) then
+              l(-j+1,1:nii,k,t) = rcvbuf1dd(1:nii)
+            end if
+            if ( pspace%lhs /= mpi_proc_null ) then
+              sndbuf1dd(1:nii) = l(j,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
+                          rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%rhs /= mpi_proc_null ) then
+              l(njj+j,1:nii,k,t) = rcvbuf1dd(1:nii)
+            end if
+          end do
           if ( pspace%rht /= mpi_proc_null ) then
             icount = 0
             do i = 1 , esize2
@@ -2769,46 +2813,50 @@ module mod_mppgrid
       nii = ubound(l,2) - esize2
       do t = nt1 , nt2
         do k = nk1 , nk2
-          if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dr(1:njj) = l(1:njj,1,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
+          do i = 1 , esize2
+            if ( pspace%btm /= mpi_proc_null ) then
+              sndbuf1dr(1:njj) = l(1:njj,i,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
                           rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1:njj,nii+1,k,t) = rcvbuf1dr(1:njj)
-          end if
-          if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dr(1:nii) = l(njj,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
-                          rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%lhs /= mpi_proc_null ) then
-            l(0,1:nii,k,t) = rcvbuf1dr(1:nii)
-          end if
-          if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dr(1:nii) = l(1,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
-                          rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%rhs /= mpi_proc_null ) then
-            l(njj+1,1:nii,k,t) = rcvbuf1dr(1:nii)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dr(1:njj) = l(1:njj,nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%top /= mpi_proc_null ) then
+              l(1:njj,nii+i,k,t) = rcvbuf1dr(1:njj)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              sndbuf1dr(1:njj) = l(1:njj,nii-i+1,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
                           rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1:njj,0,k,t) = rcvbuf1dr(1:njj)
-          end if
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(1:njj,-i+1,k,t) = rcvbuf1dr(1:njj)
+            end if
+          end do
+          do j = 1 , esize1
+            if ( pspace%rhs /= mpi_proc_null ) then
+              sndbuf1dr(1:nii) = l(njj-j+1,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%lhs /= mpi_proc_null ) then
+              l(-j+1,1:nii,k,t) = rcvbuf1dr(1:nii)
+            end if
+            if ( pspace%lhs /= mpi_proc_null ) then
+              sndbuf1dr(1:nii) = l(j,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
+                          rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%rhs /= mpi_proc_null ) then
+              l(njj+j,1:nii,k,t) = rcvbuf1dr(1:nii)
+            end if
+          end do
           if ( pspace%rht /= mpi_proc_null ) then
             icount = 0
             do i = 1 , esize2
@@ -2922,46 +2970,50 @@ module mod_mppgrid
       nii = ubound(l,2) - esize2
       do t = nt1 , nt2
         do k = nk1 , nk2
-          if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1di(1:njj) = l(1:njj,1,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
+          do i = 1 , esize2
+            if ( pspace%btm /= mpi_proc_null ) then
+              sndbuf1di(1:njj) = l(1:njj,i,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
                           rcvbuf1di,csize,mpi_integer,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1:njj,nii+1,k,t) = rcvbuf1di(1:njj)
-          end if
-          if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1di(1:nii) = l(njj,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
-                          rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%lhs /= mpi_proc_null ) then
-            l(0,1:nii,k,t) = rcvbuf1di(1:nii)
-          end if
-          if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1di(1:nii) = l(1,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
-                          rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%rhs /= mpi_proc_null ) then
-            l(njj+1,1:nii,k,t) = rcvbuf1di(1:nii)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1di(1:njj) = l(1:njj,nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%top /= mpi_proc_null ) then
+              l(1:njj,nii+i,k,t) = rcvbuf1di(1:njj)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              sndbuf1di(1:njj) = l(1:njj,nii-i+1,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
                           rcvbuf1di,csize,mpi_integer,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1:njj,0,k,t) = rcvbuf1di(1:njj)
-          end if
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(1:njj,-i+1,k,t) = rcvbuf1di(1:njj)
+            end if
+          end do
+          do j = 1 , esize1
+            if ( pspace%rhs /= mpi_proc_null ) then
+              sndbuf1di(1:nii) = l(njj-j+1,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
+                          rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%lhs /= mpi_proc_null ) then
+              l(-j+1,1:nii,k,t) = rcvbuf1di(1:nii)
+            end if
+            if ( pspace%lhs /= mpi_proc_null ) then
+              sndbuf1di(1:nii) = l(j,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
+                          rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%rhs /= mpi_proc_null ) then
+              l(njj+j,1:nii,k,t) = rcvbuf1di(1:nii)
+            end if
+          end do
           if ( pspace%rht /= mpi_proc_null ) then
             icount = 0
             do i = 1 , esize2
@@ -3075,46 +3127,50 @@ module mod_mppgrid
       nii = ubound(l,2) - esize2
       do t = nt1 , nt2
         do k = nk1 , nk2
-          if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1ds(1:njj) = l(1:njj,1,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
+          do i = 1 , esize2
+            if ( pspace%btm /= mpi_proc_null ) then
+              sndbuf1ds(1:njj) = l(1:njj,i,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%btm,1, &
                           rcvbuf1ds,csize,mpi_integer2,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1:njj,nii+1,k,t) = rcvbuf1ds(1:njj)
-          end if
-          if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1ds(1:nii) = l(njj,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
-                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%lhs /= mpi_proc_null ) then
-            l(0,1:nii,k,t) = rcvbuf1ds(1:nii)
-          end if
-          if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1ds(1:nii) = l(1,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
-                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%rhs /= mpi_proc_null ) then
-            l(njj+1,1:nii,k,t) = rcvbuf1ds(1:nii)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1ds(1:njj) = l(1:njj,nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%top /= mpi_proc_null ) then
+              l(1:njj,nii+i,k,t) = rcvbuf1ds(1:njj)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              sndbuf1ds(1:njj) = l(1:njj,nii-i+1,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%top,4, &
                           rcvbuf1ds,csize,mpi_integer2,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1:njj,0,k,t) = rcvbuf1ds(1:njj)
-          end if
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(1:njj,-i+1,k,t) = rcvbuf1ds(1:njj)
+            end if
+          end do
+          do j = 1 , esize1
+            if ( pspace%rhs /= mpi_proc_null ) then
+              sndbuf1ds(1:nii) = l(njj-j+1,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%rhs,2, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%lhs /= mpi_proc_null ) then
+              l(-j+1,1:nii,k,t) = rcvbuf1ds(1:nii)
+            end if
+            if ( pspace%lhs /= mpi_proc_null ) then
+              sndbuf1ds(1:nii) = l(j,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1ds,csize,mpi_integer2,pspace%lhs,3, &
+                          rcvbuf1ds,csize,mpi_integer2,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%rhs /= mpi_proc_null ) then
+              l(njj+j,1:nii,k,t) = rcvbuf1ds(1:nii)
+            end if
+          end do
           if ( pspace%rht /= mpi_proc_null ) then
             icount = 0
             do i = 1 , esize2
@@ -3228,46 +3284,50 @@ module mod_mppgrid
       nii = ubound(l,2) - esize2
       do t = nt1 , nt2
         do k = nk1 , nk2
-          if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dl(1:njj) = l(1:njj,1,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
+          do i = 1 , esize2
+            if ( pspace%btm /= mpi_proc_null ) then
+              sndbuf1dl(1:njj) = l(1:njj,i,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
                           rcvbuf1dl,csize,mpi_logical,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%top /= mpi_proc_null ) then
-            l(1:njj,nii+1,k,t) = rcvbuf1dl(1:njj)
-          end if
-          if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dl(1:nii) = l(njj,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
-                          rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%lhs /= mpi_proc_null ) then
-            l(0,1:nii,k,t) = rcvbuf1dl(1:nii)
-          end if
-          if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dl(1:nii) = l(1,1:nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
-                          rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
-                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%rhs /= mpi_proc_null ) then
-            l(njj+1,1:nii,k,t) = rcvbuf1dl(1:nii)
-          end if
-          if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dl(1:njj) = l(1:njj,nii,k,t)
-          end if
-          call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%top /= mpi_proc_null ) then
+              l(1:njj,nii+i,k,t) = rcvbuf1dl(1:njj)
+            end if
+            if ( pspace%top /= mpi_proc_null ) then
+              sndbuf1dl(1:njj) = l(1:njj,nii-i+1,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
                           rcvbuf1dl,csize,mpi_logical,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
-          if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-          if ( pspace%btm /= mpi_proc_null ) then
-            l(1:njj,0,k,t) = rcvbuf1dl(1:njj)
-          end if
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%btm /= mpi_proc_null ) then
+              l(1:njj,-i+1,k,t) = rcvbuf1dl(1:njj)
+            end if
+          end do
+          do j = 1 , esize1
+            if ( pspace%rhs /= mpi_proc_null ) then
+              sndbuf1dl(1:nii) = l(njj-j+1,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%lhs /= mpi_proc_null ) then
+              l(-j+1,1:nii,k,t) = rcvbuf1dl(1:nii)
+            end if
+            if ( pspace%lhs /= mpi_proc_null ) then
+              sndbuf1dl(1:nii) = l(j,1:nii,k,t)
+            end if
+            call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
+                          rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
+                          pspace%cartesian_communicator,mpi_status_ignore,ierr)
+            if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
+            if ( pspace%rhs /= mpi_proc_null ) then
+              l(njj+j,1:nii,k,t) = rcvbuf1dl(1:nii)
+            end if
+          end do
           if ( pspace%rht /= mpi_proc_null ) then
             icount = 0
             do i = 1 , esize2
