@@ -685,19 +685,19 @@ module mod_mppgrid
         write(stdout,'(a,i0)') 'Corner East procs overhead  : ', &
                         mod(gspace%g_j,jbj)
       end if
-      max_p = max(pspace%p_i,pspace%p_j)+1
+      max_p = max(pspace%p_i,pspace%p_j)
       csize = max_p
       gsize = gspace%g_i*gspace%g_j
-      call getmem1d(sndbuf1dr,0,max_p,__FILE__)
-      call getmem1d(rcvbuf1dr,0,max_p,__FILE__)
-      call getmem1d(sndbuf1dd,0,max_p,__FILE__)
-      call getmem1d(rcvbuf1dd,0,max_p,__FILE__)
-      call getmem1d(sndbuf1di,0,max_p,__FILE__)
-      call getmem1d(rcvbuf1di,0,max_p,__FILE__)
-      call getmem1d(sndbuf1ds,0,max_p,__FILE__)
-      call getmem1d(rcvbuf1ds,0,max_p,__FILE__)
-      call getmem1d(sndbuf1dl,0,max_p,__FILE__)
-      call getmem1d(rcvbuf1dl,0,max_p,__FILE__)
+      call getmem1d(sndbuf1dr,1,max_p,__FILE__)
+      call getmem1d(rcvbuf1dr,1,max_p,__FILE__)
+      call getmem1d(sndbuf1dd,1,max_p,__FILE__)
+      call getmem1d(rcvbuf1dd,1,max_p,__FILE__)
+      call getmem1d(sndbuf1di,1,max_p,__FILE__)
+      call getmem1d(rcvbuf1di,1,max_p,__FILE__)
+      call getmem1d(sndbuf1ds,1,max_p,__FILE__)
+      call getmem1d(rcvbuf1ds,1,max_p,__FILE__)
+      call getmem1d(sndbuf1dl,1,max_p,__FILE__)
+      call getmem1d(rcvbuf1dl,1,max_p,__FILE__)
       if ( am_i_master( ) ) then
         maxcpu = xproc%total_cpus-1
         call getmem1d(mnode%pgis,0,maxcpu,__FILE__)
@@ -1185,7 +1185,7 @@ module mod_mppgrid
         end if
       end do
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dd(icount) = l(njj-j+1,nii-i+1)
@@ -1198,7 +1198,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,-i+1) = rcvbuf1dd(icount)
@@ -1207,7 +1207,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dd(icount) = l(j,i)
@@ -1220,7 +1220,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,nii+i) = rcvbuf1dd(icount)
@@ -1229,7 +1229,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dd(icount) = l(njj-j+1,i)
@@ -1242,7 +1242,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,nii+i) = rcvbuf1dd(icount)
@@ -1251,7 +1251,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dd(icount) = l(j,nii-i+1)
@@ -1264,7 +1264,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,-i+1) = rcvbuf1dd(icount)
@@ -1334,7 +1334,7 @@ module mod_mppgrid
         end if
       end do
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dr(icount) = l(njj-j+1,nii-i+1)
@@ -1347,7 +1347,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,-i+1) = rcvbuf1dr(icount)
@@ -1356,7 +1356,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dr(icount) = l(j,i)
@@ -1369,7 +1369,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,nii+i) = rcvbuf1dr(icount)
@@ -1378,7 +1378,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dr(icount) = l(njj-j+1,i)
@@ -1391,7 +1391,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,nii+i) = rcvbuf1dr(icount)
@@ -1400,7 +1400,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dr(icount) = l(j,nii-i+1)
@@ -1413,7 +1413,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,-i+1) = rcvbuf1dr(icount)
@@ -1483,7 +1483,7 @@ module mod_mppgrid
         end if
       end do
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1di(icount) = l(njj-j+1,nii-i+1)
@@ -1496,7 +1496,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,-i+1) = rcvbuf1di(icount)
@@ -1505,7 +1505,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1di(icount) = l(j,i)
@@ -1518,7 +1518,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,nii+i) = rcvbuf1di(icount)
@@ -1527,7 +1527,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1di(icount) = l(njj-j+1,i)
@@ -1540,7 +1540,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,nii+i) = rcvbuf1di(icount)
@@ -1549,7 +1549,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1di(icount) = l(j,nii-i+1)
@@ -1562,7 +1562,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,-i+1) = rcvbuf1di(icount)
@@ -1632,7 +1632,7 @@ module mod_mppgrid
         end if
       end do
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1ds(icount) = l(njj-j+1,nii-i+1)
@@ -1645,7 +1645,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,-i+1) = rcvbuf1ds(icount)
@@ -1654,7 +1654,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1ds(icount) = l(j,i)
@@ -1667,7 +1667,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,nii+i) = rcvbuf1ds(icount)
@@ -1676,7 +1676,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1ds(icount) = l(njj-j+1,i)
@@ -1689,7 +1689,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,nii+i) = rcvbuf1ds(icount)
@@ -1698,7 +1698,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1ds(icount) = l(j,nii-i+1)
@@ -1711,7 +1711,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,-i+1) = rcvbuf1ds(icount)
@@ -1781,7 +1781,7 @@ module mod_mppgrid
         end if
       end do
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dl(icount) = l(njj-j+1,nii-i+1)
@@ -1794,7 +1794,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,-i+1) = rcvbuf1dl(icount)
@@ -1803,7 +1803,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dl(icount) = l(j,i)
@@ -1816,7 +1816,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,nii+i) = rcvbuf1dl(icount)
@@ -1825,7 +1825,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dl(icount) = l(njj-j+1,i)
@@ -1838,7 +1838,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(-j+1,nii+i) = rcvbuf1dl(icount)
@@ -1847,7 +1847,7 @@ module mod_mppgrid
         end do
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             sndbuf1dl(icount) = l(j,nii-i+1)
@@ -1860,7 +1860,7 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        icount = 0
+        icount = 1
         do i = 1 , esize2
           do j = 1 , esize1
             l(njj+j,-i+1) = rcvbuf1dl(icount)
@@ -1933,7 +1933,7 @@ module mod_mppgrid
           end if
         end do
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dd(icount) = l(njj-j+1,nii-i+1,k)
@@ -1946,7 +1946,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,-i+1,k) = rcvbuf1dd(icount)
@@ -1955,7 +1955,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dd(icount) = l(j,i,k)
@@ -1968,7 +1968,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,nii+i,k) = rcvbuf1dd(icount)
@@ -1977,7 +1977,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dd(icount) = l(njj-j+1,i,k)
@@ -1990,7 +1990,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,nii+i,k) = rcvbuf1dd(icount)
@@ -1999,7 +1999,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dd(icount) = l(j,nii-i+1,k)
@@ -2012,7 +2012,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,-i+1,k) = rcvbuf1dd(icount)
@@ -2086,7 +2086,7 @@ module mod_mppgrid
           end if
         end do
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dr(icount) = l(njj-j+1,nii-i+1,k)
@@ -2099,7 +2099,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,-i+1,k) = rcvbuf1dr(icount)
@@ -2108,7 +2108,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dr(icount) = l(j,i,k)
@@ -2121,7 +2121,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,nii+i,k) = rcvbuf1dr(icount)
@@ -2130,7 +2130,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dr(icount) = l(njj-j+1,i,k)
@@ -2143,7 +2143,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,nii+i,k) = rcvbuf1dr(icount)
@@ -2152,7 +2152,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dr(icount) = l(j,nii-i+1,k)
@@ -2165,7 +2165,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,-i+1,k) = rcvbuf1dr(icount)
@@ -2239,7 +2239,7 @@ module mod_mppgrid
           end if
         end do
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1di(icount) = l(njj-j+1,nii-i+1,k)
@@ -2252,7 +2252,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,-i+1,k) = rcvbuf1di(icount)
@@ -2261,7 +2261,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1di(icount) = l(j,i,k)
@@ -2274,7 +2274,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,nii+i,k) = rcvbuf1di(icount)
@@ -2283,7 +2283,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1di(icount) = l(njj-j+1,i,k)
@@ -2296,7 +2296,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,nii+i,k) = rcvbuf1di(icount)
@@ -2305,7 +2305,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1di(icount) = l(j,nii-i+1,k)
@@ -2318,7 +2318,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,-i+1,k) = rcvbuf1di(icount)
@@ -2392,7 +2392,7 @@ module mod_mppgrid
           end if
         end do
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1ds(icount) = l(njj-j+1,nii-i+1,k)
@@ -2405,7 +2405,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,-i+1,k) = rcvbuf1ds(icount)
@@ -2414,7 +2414,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1ds(icount) = l(j,i,k)
@@ -2427,7 +2427,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,nii+i,k) = rcvbuf1ds(icount)
@@ -2436,7 +2436,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1ds(icount) = l(njj-j+1,i,k)
@@ -2449,7 +2449,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,nii+i,k) = rcvbuf1ds(icount)
@@ -2458,7 +2458,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1ds(icount) = l(j,nii-i+1,k)
@@ -2471,7 +2471,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,-i+1,k) = rcvbuf1ds(icount)
@@ -2545,7 +2545,7 @@ module mod_mppgrid
           end if
         end do
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dl(icount) = l(njj-j+1,nii-i+1,k)
@@ -2558,7 +2558,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,-i+1,k) = rcvbuf1dl(icount)
@@ -2567,7 +2567,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dl(icount) = l(j,i,k)
@@ -2580,7 +2580,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,nii+i,k) = rcvbuf1dl(icount)
@@ -2589,7 +2589,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dl(icount) = l(njj-j+1,i,k)
@@ -2602,7 +2602,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(-j+1,nii+i,k) = rcvbuf1dl(icount)
@@ -2611,7 +2611,7 @@ module mod_mppgrid
           end do
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               sndbuf1dl(icount) = l(j,nii-i+1,k)
@@ -2624,7 +2624,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          icount = 0
+          icount = 1
           do i = 1 , esize2
             do j = 1 , esize1
               l(njj+j,-i+1,k) = rcvbuf1dl(icount)
@@ -2701,7 +2701,7 @@ module mod_mppgrid
             end if
           end do
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dd(icount) = l(njj-j+1,nii-i+1,k,t)
@@ -2714,7 +2714,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,-i+1,k,t) = rcvbuf1dd(icount)
@@ -2723,7 +2723,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dd(icount) = l(j,i,k,t)
@@ -2736,7 +2736,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,nii+i,k,t) = rcvbuf1dd(icount)
@@ -2745,7 +2745,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dd(icount) = l(njj-j+1,i,k,t)
@@ -2758,7 +2758,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,nii+i,k,t) = rcvbuf1dd(icount)
@@ -2767,7 +2767,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dd(icount) = l(j,nii-i+1,k,t)
@@ -2780,7 +2780,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,-i+1,k,t) = rcvbuf1dd(icount)
@@ -2858,7 +2858,7 @@ module mod_mppgrid
             end if
           end do
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dr(icount) = l(njj-j+1,nii-i+1,k,t)
@@ -2871,7 +2871,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,-i+1,k,t) = rcvbuf1dr(icount)
@@ -2880,7 +2880,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dr(icount) = l(j,i,k,t)
@@ -2893,7 +2893,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,nii+i,k,t) = rcvbuf1dr(icount)
@@ -2902,7 +2902,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dr(icount) = l(njj-j+1,i,k,t)
@@ -2915,7 +2915,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,nii+i,k,t) = rcvbuf1dr(icount)
@@ -2924,7 +2924,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dr(icount) = l(j,nii-i+1,k,t)
@@ -2937,7 +2937,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,-i+1,k,t) = rcvbuf1dr(icount)
@@ -3015,7 +3015,7 @@ module mod_mppgrid
             end if
           end do
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1di(icount) = l(njj-j+1,nii-i+1,k,t)
@@ -3028,7 +3028,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,-i+1,k,t) = rcvbuf1di(icount)
@@ -3037,7 +3037,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1di(icount) = l(j,i,k,t)
@@ -3050,7 +3050,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,nii+i,k,t) = rcvbuf1di(icount)
@@ -3059,7 +3059,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1di(icount) = l(njj-j+1,i,k,t)
@@ -3072,7 +3072,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,nii+i,k,t) = rcvbuf1di(icount)
@@ -3081,7 +3081,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1di(icount) = l(j,nii-i+1,k,t)
@@ -3094,7 +3094,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,-i+1,k,t) = rcvbuf1di(icount)
@@ -3172,7 +3172,7 @@ module mod_mppgrid
             end if
           end do
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1ds(icount) = l(njj-j+1,nii-i+1,k,t)
@@ -3185,7 +3185,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,-i+1,k,t) = rcvbuf1ds(icount)
@@ -3194,7 +3194,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1ds(icount) = l(j,i,k,t)
@@ -3207,7 +3207,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,nii+i,k,t) = rcvbuf1ds(icount)
@@ -3216,7 +3216,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1ds(icount) = l(njj-j+1,i,k,t)
@@ -3229,7 +3229,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,nii+i,k,t) = rcvbuf1ds(icount)
@@ -3238,7 +3238,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1ds(icount) = l(j,nii-i+1,k,t)
@@ -3251,7 +3251,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,-i+1,k,t) = rcvbuf1ds(icount)
@@ -3329,7 +3329,7 @@ module mod_mppgrid
             end if
           end do
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dl(icount) = l(njj-j+1,nii-i+1,k,t)
@@ -3342,7 +3342,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,-i+1,k,t) = rcvbuf1dl(icount)
@@ -3351,7 +3351,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dl(icount) = l(j,i,k,t)
@@ -3364,7 +3364,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,nii+i,k,t) = rcvbuf1dl(icount)
@@ -3373,7 +3373,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dl(icount) = l(njj-j+1,-i+1,k,t)
@@ -3386,7 +3386,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(-j+1,nii+i,k,t) = rcvbuf1dl(icount)
@@ -3395,7 +3395,7 @@ module mod_mppgrid
             end do
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 sndbuf1dl(icount) = l(j,nii-i+1,k,t)
@@ -3408,7 +3408,7 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            icount = 0
+            icount = 1
             do i = 1 , esize2
               do j = 1 , esize1
                 l(njj+j,-i+1,k,t) = rcvbuf1dl(icount)
