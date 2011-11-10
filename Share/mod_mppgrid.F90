@@ -35,11 +35,14 @@ module mod_mppgrid
   integer , parameter :: mindimsize = 3  ! Do not touch this
   integer , parameter :: minpatchpoints = mindimsize*mindimsize
 
-  logical , parameter , public :: global_grid = .true.
-  logical , parameter , public :: proc_grid = .false.
-  logical , parameter , public :: exchange_grid = .true.
-  logical , parameter , public :: local_grid = .false.
-  logical , parameter , public :: dot_grid = .true.
+  logical , parameter , public :: global_grid    = .true.
+  logical , parameter , public :: processor_grid = .false.
+
+  integer , parameter , public :: ghost_none     = 0
+  integer , parameter , public :: ghost_1_point  = 1
+  integer , parameter , public :: ghost_2_points = 2
+
+  logical , parameter , public :: dot_grid   = .true.
   logical , parameter , public :: cross_grid = .false.
 
   logical :: is_setup = .false.
@@ -832,9 +835,10 @@ module mod_mppgrid
       is_setup = .false.
     end subroutine delete_domain
 
-    subroutine getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+    subroutine getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       implicit none
-      logical , intent(in) :: isglobal , isstagger , isexchange
+      logical , intent(in) :: isglobal , isstagger
+      integer , intent(in) :: ghostp
       integer , intent(out) :: i1 , i2 , j1 , j2
       if ( .not. is_setup ) then
         call fatal(__FILE__,__LINE__,'Calling getgrid before domain_setup')
@@ -845,16 +849,10 @@ module mod_mppgrid
         j1 = 1
         j2 = gspace%g_j
       else
-        i1 = 1
-        i2 = pspace%p_i
-        j1 = 1
-        j2 = pspace%p_j
-        if ( isexchange ) then
-          i1 = i1 - 1
-          j1 = j1 - 1
-          i2 = i2 + 1
-          j2 = j2 + 1
-        end if
+        i1 = 1 - ghostp
+        i2 = pspace%p_i + ghostp
+        j1 = 1 - ghostp
+        j2 = pspace%p_j + ghostp
       end if
       if ( isstagger ) then
         i2 = i2 + 1
@@ -862,268 +860,268 @@ module mod_mppgrid
       end if
     end subroutine getextrema
 
-    subroutine getgrid2d_d(g,lglobal,lexchange,lstagger)
+    subroutine getgrid2d_d(g,lglobal,lstagger,nghost)
       implicit none
       real(dp) , pointer , dimension(:,:) , intent(inout) :: g
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_d
 
-    subroutine getgrid2d_r(g,lglobal,lexchange,lstagger)
+    subroutine getgrid2d_r(g,lglobal,lstagger,nghost)
       implicit none
       real(sp) , pointer , dimension(:,:) , intent(inout) :: g
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_r
 
-    subroutine getgrid2d_i(g,lglobal,lexchange,lstagger)
+    subroutine getgrid2d_i(g,lglobal,lstagger,nghost)
       implicit none
       integer , pointer , dimension(:,:) , intent(inout) :: g
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_i
 
-    subroutine getgrid2d_s(g,lglobal,lexchange,lstagger)
+    subroutine getgrid2d_s(g,lglobal,lstagger,nghost)
       implicit none
       integer(2) , pointer , dimension(:,:) , intent(inout) :: g
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_s
 
-    subroutine getgrid2d_l(g,lglobal,lexchange,lstagger)
+    subroutine getgrid2d_l(g,lglobal,lstagger,nghost)
       implicit none
       logical , pointer , dimension(:,:) , intent(inout) :: g
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_l
 
-    subroutine getgrid3d_d(g,k1,k2,lglobal,lexchange,lstagger)
+    subroutine getgrid3d_d(g,k1,k2,lglobal,lstagger,nghost)
       implicit none
       real(dp) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_d
 
-    subroutine getgrid3d_r(g,k1,k2,lglobal,lexchange,lstagger)
+    subroutine getgrid3d_r(g,k1,k2,lglobal,lstagger,nghost)
       implicit none
       real(sp) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_r
 
-    subroutine getgrid3d_i(g,k1,k2,lglobal,lexchange,lstagger)
+    subroutine getgrid3d_i(g,k1,k2,lglobal,lstagger,nghost)
       implicit none
       integer , pointer , dimension(:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_i
 
-    subroutine getgrid3d_s(g,k1,k2,lglobal,lexchange,lstagger)
+    subroutine getgrid3d_s(g,k1,k2,lglobal,lstagger,nghost)
       implicit none
       integer(2) , pointer , dimension(:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_s
 
-    subroutine getgrid3d_l(g,k1,k2,lglobal,lexchange,lstagger)
+    subroutine getgrid3d_l(g,k1,k2,lglobal,lstagger,nghost)
       implicit none
       logical , pointer , dimension(:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_l
 
-    subroutine getgrid4d_d(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
+    subroutine getgrid4d_d(g,k1,k2,t1,t2,lglobal,lstagger,nghost)
       implicit none
       real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2 , t1 , t2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_d
 
-    subroutine getgrid4d_r(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
+    subroutine getgrid4d_r(g,k1,k2,t1,t2,lglobal,lstagger,nghost)
       implicit none
       real(sp) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2 , t1 , t2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_r
 
-    subroutine getgrid4d_i(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
+    subroutine getgrid4d_i(g,k1,k2,t1,t2,lglobal,lstagger,nghost)
       implicit none
       integer , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2 , t1 , t2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_i
 
-    subroutine getgrid4d_s(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
+    subroutine getgrid4d_s(g,k1,k2,t1,t2,lglobal,lstagger,nghost)
       implicit none
       integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2 , t1 , t2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_s
 
-    subroutine getgrid4d_l(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
+    subroutine getgrid4d_l(g,k1,k2,t1,t2,lglobal,lstagger,nghost)
       implicit none
       logical , pointer , dimension(:,:,:,:) , intent(inout) :: g
       integer , intent(in) :: k1 , k2 , t1 , t2
       logical , intent(in) , optional :: lglobal
-      logical , intent(in) , optional :: lexchange
       logical , intent(in) , optional :: lstagger
-      logical :: isglobal = .false.
-      logical :: isstagger = .false.
-      logical :: isexchange = .false.
+      integer , intent(in) , optional :: nghost
+      logical :: isglobal = processor_grid
+      logical :: isstagger = cross_grid
+      integer :: ghostp = ghost_none
       integer :: i1 , i2 , j1 , j2
       if ( present(lglobal) )   isglobal   = lglobal
-      if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
+      if ( present(nghost) )    ghostp = nghost
+      call getextrema(isglobal,isstagger,ghostp,i1,i2,j1,j2)
       call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_l
 
@@ -6209,7 +6207,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
       call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
       if ( .not. jperiodic ) then
@@ -6226,7 +6224,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
       call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6243,7 +6241,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6259,7 +6257,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
       call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
       if ( .not. jperiodic ) then
@@ -6276,7 +6274,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
       call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6293,7 +6291,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6309,7 +6307,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
       call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
       if ( .not. jperiodic ) then
@@ -6326,7 +6324,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
       call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6343,7 +6341,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6359,7 +6357,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
       call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
       if ( .not. jperiodic ) then
@@ -6376,7 +6374,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
       call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6393,7 +6391,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6409,7 +6407,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem2d(g%north,j1,j2,1,bdysize,__FILE__)
       call getmem2d(g%south,j1,j2,1,bdysize,__FILE__)
       if ( .not. jperiodic ) then
@@ -6426,7 +6424,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem3d(g%north,j1,j2,1,bdysize,k1,k2,__FILE__)
       call getmem3d(g%south,j1,j2,1,bdysize,k1,k2,__FILE__)
       if ( .not. jperiodic ) then
@@ -6443,7 +6441,7 @@ module mod_mppgrid
       logical :: isstagger = .false.
       integer :: i1 , i2 , j1 , j2
       if ( present(lstagger) )  isstagger  = lstagger
-      call getextrema(global_grid,local_grid,isstagger,i1,i2,j1,j2)
+      call getextrema(global_grid,isstagger,ghost_none,i1,i2,j1,j2)
       call getmem4d(g%north,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       call getmem4d(g%south,j1,j2,1,bdysize,k1,k2,t1,t2,__FILE__)
       if ( .not. jperiodic ) then
