@@ -324,7 +324,7 @@ module mod_cu_grell
           pkk = psur(j,i) - po(j,i,k)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
           outq(j,i,k) = d_zero
-          ter11(j,i) = sfhgt(i,j)*regrav
+          ter11(j,i) = sfhgt(j,i)*regrav
           if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
           qcrit(j,i) = qcrit(j,i) + qvten(i,kk,j)
         end do
@@ -426,7 +426,7 @@ module mod_cu_grell
           xac(j,i) = -d_one
         end if
         if ( icup /= 2 ) then
-          if (cucontrol(i,j) /= 2 ) then
+          if (cucontrol(j,i) /= 2 ) then
             xac(j,i) = -d_one
           end if
         end if

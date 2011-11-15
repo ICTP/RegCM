@@ -75,6 +75,7 @@ module mod_params
              edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
   integer :: kbmax
   real(8) , dimension(nsplit) :: dtsplit
+  real(8) , dimension(iy) :: trans1 , trans2 , trans3 , trans4
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   character(len=5) , dimension(maxntr) :: inpchtrname
   real(8) , dimension(maxntr) :: inpchtrsol
@@ -1125,10 +1126,10 @@ module mod_params
 #endif
       do j = 1 , jx
         do i = 1 , iy
-          ht1_io(1,i,j) = mddom_io%ht(i,j)*egrav
-          lndcat1_io(1,i,j) = mddom_io%lndcat(i,j)
-          xlat1_io(1,i,j) = mddom_io%xlat(i,j)
-          xlon1_io(1,i,j) = mddom_io%xlon(i,j)
+          ht1_io(1,i,j) = mddom_io%ht(j,i)*egrav
+          lndcat1_io(1,i,j) = mddom_io%lndcat(j,i)
+          xlat1_io(1,i,j) = mddom_io%xlat(j,i)
+          xlon1_io(1,i,j) = mddom_io%xlon(j,i)
         end do
       end do
     end if
@@ -1138,21 +1139,21 @@ module mod_params
 !
     do j = 1 , jx
       do i = 1 , iy
-        mddom_io%ht(i,j)   = mddom_io%ht(i,j)*egrav
-        mddom_io%msfd(i,j) = d_one/mddom_io%msfd(i,j)
-        mddom_io%msfx(i,j) = d_one/mddom_io%msfx(i,j)
+        mddom_io%ht(j,i)   = mddom_io%ht(j,i)*egrav
+        mddom_io%msfd(j,i) = d_one/mddom_io%msfd(j,i)
+        mddom_io%msfx(j,i) = d_one/mddom_io%msfx(j,i)
       end do
     end do
 
     do j = 1 , jx
       do i = 1 , iy
-        inisrf_0(i,1,j) = mddom_io%ht(i,j)
-        inisrf_0(i,2,j) = mddom_io%lndcat(i,j)
-        inisrf_0(i,3,j) = mddom_io%xlat(i,j)
-        inisrf_0(i,4,j) = mddom_io%xlon(i,j)
-        inisrf_0(i,5,j) = mddom_io%msfx(i,j)
-        inisrf_0(i,6,j) = mddom_io%msfd(i,j)
-        inisrf_0(i,7,j) = mddom_io%coriol(i,j)
+        inisrf_0(i,1,j) = mddom_io%ht(j,i)
+        inisrf_0(i,2,j) = mddom_io%lndcat(j,i)
+        inisrf_0(i,3,j) = mddom_io%xlat(j,i)
+        inisrf_0(i,4,j) = mddom_io%xlon(j,i)
+        inisrf_0(i,5,j) = mddom_io%msfx(j,i)
+        inisrf_0(i,6,j) = mddom_io%msfd(j,i)
+        inisrf_0(i,7,j) = mddom_io%coriol(j,i)
       end do
       do n = 1 , nnsg
         do i = 1 , iy
@@ -1179,13 +1180,13 @@ module mod_params
 
   do j = 1 , jxp
     do i = 1 , iy
-      mddom%ht(i,j) = inisrf0(i,1,j)
-      mddom%lndcat(i,j) = inisrf0(i,2,j)
-      mddom%xlat(i,j) = inisrf0(i,3,j)
-      mddom%xlon(i,j) = inisrf0(i,4,j)
-      mddom%msfx(i,j) = inisrf0(i,5,j)
-      mddom%msfd(i,j) = inisrf0(i,6,j)
-      mddom%coriol(i,j) = inisrf0(i,7,j)
+      mddom%ht(j,i) = inisrf0(i,1,j)
+      mddom%lndcat(j,i) = inisrf0(i,2,j)
+      mddom%xlat(j,i) = inisrf0(i,3,j)
+      mddom%xlon(j,i) = inisrf0(i,4,j)
+      mddom%msfx(j,i) = inisrf0(i,5,j)
+      mddom%msfd(j,i) = inisrf0(i,6,j)
+      mddom%coriol(j,i) = inisrf0(i,7,j)
     end do
     do n = 1 , nnsg
       do i = 1 , iy
@@ -1221,32 +1222,87 @@ module mod_params
 
   end if
 
-  call mpi_sendrecv(mddom%ht(1,jxp),  iy,mpi_real8,ieast,1,      &
-                    mddom%ht(1,0),    iy,mpi_real8,iwest,1,      &
+  if ( ieast /= mpi_proc_null ) then
+    trans1 = mddom%ht(jxp,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                    trans2,iy,mpi_real8,iwest,1, &
                     mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(mddom%ht(1,1),    iy,mpi_real8,iwest,2,      &
-                    mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
+  if ( iwest /= mpi_proc_null ) then
+    mddom%ht(0,:) = trans2
+  end if
+  if ( iwest /= mpi_proc_null ) then
+    trans1 = mddom%ht(1,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
+                    trans2,iy,mpi_real8,ieast,2, &
                     mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
-                    mddom%msfx(1,-1),   iy*2,mpi_real8,iwest,1,  &
+  if ( ieast /= mpi_proc_null ) then
+    mddom%ht(jxp+1,:) = trans2
+  end if
+  if ( ieast /= mpi_proc_null ) then
+    trans1 = mddom%msfx(jxp,:)
+    trans3 = mddom%msfx(jxp-1,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                    trans2,iy,mpi_real8,iwest,1, &
                     mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(mddom%msfx(1,1),    iy*2,mpi_real8,iwest,2,  &
-                    mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+  call mpi_sendrecv(trans3,iy,mpi_real8,ieast,2, &
+                    trans4,iy,mpi_real8,iwest,2, &
                     mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
-                    mddom%msfd(1,-1),   iy*2,mpi_real8,iwest,1,  &
+  if ( iwest /= mpi_proc_null ) then
+    mddom%msfx(0,:)  = trans2
+    mddom%msfx(-1,:) = trans4
+  end if
+  if ( iwest /= mpi_proc_null ) then
+    trans1 = mddom%msfx(1,:)
+    trans3 = mddom%msfx(2,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,3, &
+                    trans2,iy,mpi_real8,ieast,3, &
                     mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(mddom%msfd(1,1),    iy*2,mpi_real8,iwest,2,  &
-                    mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+  call mpi_sendrecv(trans3,iy,mpi_real8,iwest,4, &
+                    trans4,iy,mpi_real8,ieast,4, &
                     mycomm,mpi_status_ignore,ierr)
-
+  if ( ieast /= mpi_proc_null ) then
+    mddom%msfx(jxp+1,:) = trans2
+    mddom%msfx(jxp+2,:) = trans4
+  end if
+  if ( ieast /= mpi_proc_null ) then
+    trans1 = mddom%msfd(jxp,:)
+    trans3 = mddom%msfd(jxp-1,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                    trans2,iy,mpi_real8,iwest,1, &
+                    mycomm,mpi_status_ignore,ierr)
+  call mpi_sendrecv(trans3,iy,mpi_real8,ieast,2, &
+                    trans4,iy,mpi_real8,iwest,2, &
+                    mycomm,mpi_status_ignore,ierr)
+  if ( iwest /= mpi_proc_null ) then
+    mddom%msfd(0,:)  = trans2
+    mddom%msfd(-1,:) = trans4
+  end if
+  if ( iwest /= mpi_proc_null ) then
+    trans1 = mddom%msfd(1,:)
+    trans3 = mddom%msfd(2,:)
+  end if
+  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,3, &
+                    trans2,iy,mpi_real8,ieast,3, &
+                    mycomm,mpi_status_ignore,ierr)
+  call mpi_sendrecv(trans3,iy,mpi_real8,iwest,4, &
+                    trans4,iy,mpi_real8,ieast,4, &
+                    mycomm,mpi_status_ignore,ierr)
+  if ( ieast /= mpi_proc_null ) then
+    mddom%msfd(jxp+1,:) = trans2
+    mddom%msfd(jxp+2,:) = trans4
+  end if
 !
 !-----compute land/water mask on subgrid space
 !
       do j = 1 , jendx
         do i = 1 , iym1
-          if ( mddom%lndcat(i,j) > 13.5D0 .and. &
-               mddom%lndcat(i,j) < 15.5D0 ) then
+          if ( mddom%lndcat(j,i) > 13.5D0 .and. &
+               mddom%lndcat(j,i) < 15.5D0 ) then
             ldmsk(j,i) = 0
             do n = 1, nnsg
               ocld2d(n,j,i) = 0
@@ -1482,8 +1538,8 @@ module mod_params
     call say
     do j = 1 , jendx
       do i = 1 , iym1
-        if ( mddom%lndcat(i,j) > 14.5D0 .and. &
-             mddom%lndcat(i,j) < 15.5D0) then
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0) then
           shrmax2d(j,i) = shrmax_ocn
           shrmin2d(j,i) = shrmin_ocn
           edtmax2d(j,i) = edtmax_ocn
@@ -1708,8 +1764,8 @@ module mod_params
   if ( ipptls == 1 ) then
     do j = 1 , jendx
       do i = 1 , iym1
-        if ( mddom%lndcat(i,j) > 14.5D0 .and. &
-             mddom%lndcat(i,j) < 15.5D0) then
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0) then
           qck1(i,j) = qck1oce  ! OCEAN
           cgul(i,j) = guloce   ! OCEAN
           rh0(i,j) = rh0oce    ! OCEAN

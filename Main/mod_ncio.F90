@@ -535,13 +535,13 @@ contains
     use netcdf
     implicit none
 
-    real(8) , dimension(iy,jx) , intent(out) :: ht
-    real(8) , dimension(iy,jx) , intent(out) :: lnd
-    real(8) , dimension(iy,jx) , intent(out) :: xlat
-    real(8) , dimension(iy,jx) , intent(out) :: xlon
-    real(8) , dimension(iy,jx) , intent(out) :: xmap
-    real(8) , dimension(iy,jx) , intent(out) :: dmap
-    real(8) , dimension(iy,jx) , intent(out) :: f
+    real(8) , dimension(jx,iy) , intent(out) :: ht
+    real(8) , dimension(jx,iy) , intent(out) :: lnd
+    real(8) , dimension(jx,iy) , intent(out) :: xlat
+    real(8) , dimension(jx,iy) , intent(out) :: xlon
+    real(8) , dimension(jx,iy) , intent(out) :: xmap
+    real(8) , dimension(jx,iy) , intent(out) :: dmap
+    real(8) , dimension(jx,iy) , intent(out) :: f
 
     integer :: ivarid
 
@@ -554,41 +554,41 @@ contains
     call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
-    ht = dble(transpose(sp2d))
+    ht = dble(sp2d)
     iotopo = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
-    lnd = dble(transpose(sp2d))
+    lnd = dble(sp2d)
     iolnds = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
-    xlat = dble(transpose(sp2d))
+    xlat = dble(sp2d)
     ioxlat = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
-    xlon = dble(transpose(sp2d))
+    xlon = dble(sp2d)
     ioxlon = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
-    xmap = dble(transpose(sp2d))
+    xmap = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
-    dmap = dble(transpose(sp2d))
+    dmap = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
-    f = dble(transpose(sp2d))
+    f = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'mask', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)

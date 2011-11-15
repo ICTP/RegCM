@@ -329,8 +329,8 @@ module mod_split
       do k = 1 , kz
         do j = 1 , jendl
           do i = 1 , iy
-            uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
-            vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
+            uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(j,i)
+            vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(j,i)
           end do
         end do
       end do
@@ -353,7 +353,7 @@ module mod_split
           do j = 1 , jendx
             jp1 = j+1
             do i = 1 , iym1
-              fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+              fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
               dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
                            & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
                            & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
@@ -499,8 +499,8 @@ module mod_split
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          uuu(i,k,j) = atm1%u(i,k,j)*mddom%msfd(i,j)
-          vvv(i,k,j) = atm1%v(i,k,j)*mddom%msfd(i,j)
+          uuu(i,k,j) = atm1%u(i,k,j)*mddom%msfd(j,i)
+          vvv(i,k,j) = atm1%v(i,k,j)*mddom%msfd(j,i)
         end do
       end do
     end do
@@ -521,7 +521,7 @@ module mod_split
         do j = 1 , jendx
           jp1 = j+1
           do i = 1 , iym1
-            fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
             deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)      &
                  & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j) &
                  & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1) &
@@ -548,8 +548,8 @@ module mod_split
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
-          vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
+          uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(j,i)
+          vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(j,i)
         end do
       end do
     end do
@@ -569,7 +569,7 @@ module mod_split
         do j = 1 , jendx
           jp1 = j+1
           do i = 1 , iym1
-            fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
             deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)     &
                 & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j) &
                 & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1) &
@@ -723,7 +723,7 @@ module mod_split
         do j = jbegin , jendx
           jm1 = j-1
           do i = 2 , iym1
-            fac = psdot(i,j)/(dx2*mddom%msfd(i,j))
+            fac = psdot(i,j)/(dx2*mddom%msfd(j,i))
             x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,jm1,l) &
               & -dhsum(i-1,jm1,l))
             y = fac*(dhsum(i,j,l)-dhsum(i-1,j,l)+dhsum(i,jm1,l) &
@@ -804,7 +804,7 @@ module mod_split
       do j = jbegin , jendx
         jm1 = j-1
         do i = 2 , iym1
-          fac = dx2*mddom%msfx(i,j)
+          fac = dx2*mddom%msfx(j,i)
           work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)  &
                       & -delh(i,jm1,ns,n0)-delh(i-1,jm1,ns,n0))/fac
           work(i,j,2) = (delh(i,j,ns,n0)+delh(i,jm1,ns,n0) &
@@ -831,8 +831,8 @@ module mod_split
 !
       do j = jbegin , jendx
         do i = 2 , iym1
-          uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
-          vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
+          uu(i,j) = work(i,j,1)*mddom%msfd(j,i)
+          vv(i,j) = work(i,j,2)*mddom%msfd(j,i)
         end do
       end do
 !
@@ -851,7 +851,7 @@ module mod_split
       do j = jbegin , jendm
         jp1 = j+1
         do i = 2 , iym2
-          fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+          fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
           work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
                        & +vv(i+1,j)+vv(i+1,jp1)-vv(i,j)-vv(i,jp1))/fac
         end do
@@ -907,7 +907,7 @@ module mod_split
         do j = jbegin , jendx
           jm1 = j-1
           do i = 2 , iym1
-            fac = dx2*mddom%msfx(i,j)
+            fac = dx2*mddom%msfx(j,i)
             work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)  &
                           -delh(i,jm1,ns,n1)-delh(i-1,jm1,ns,n1))/fac
             work(i,j,2) = (delh(i,j,ns,n1)+delh(i,jm1,ns,n1)  &
@@ -933,8 +933,8 @@ module mod_split
 !
         do j = jbegin , jendx
           do i = 2 , iym1
-            uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
-            vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
+            uu(i,j) = work(i,j,1)*mddom%msfd(j,i)
+            vv(i,j) = work(i,j,2)*mddom%msfd(j,i)
           end do
         end do
 !
@@ -953,7 +953,7 @@ module mod_split
         do j = jbegin , jendm
           jp1 = j+1
           do i = 2 , iym2
-            fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
                         & +vv(i+1,j)+vv(i+1,jp1)-vv(i,j)-vv(i,jp1)) &
                         & /fac

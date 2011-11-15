@@ -251,7 +251,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) / &
-                       (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
+                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
         end do
       end do
     end if
@@ -259,7 +259,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) / &
-                       (mddom%msfx(i,1)*mddom%msfx(i,1))
+                       (mddom%msfx(1,i)*mddom%msfx(1,i))
         end do
       end do
     end if
@@ -288,9 +288,9 @@ module mod_diagnosis
         do j = 1 , jxm1
           tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*             &
                ((vaix_g(k,j+1)+vaix_g(k,j)) /                   &
-                (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) - &
+                (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) - &
                 (va01_g(k,j+1)+va01_g(k,j)) /                   &
-                (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
+                (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
         end do
       end do
     end if
@@ -307,7 +307,7 @@ module mod_diagnosis
         do i = 1 , iym1
           worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
                        (atm1%qv(i,k,jendx)/sps1%ps(jendx,i)) /   &
-                       (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
+                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
         end do
       end do
     end if
@@ -316,7 +316,7 @@ module mod_diagnosis
         do i = 1 , iym1
           workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) * &
                         (atm1%qv(i,k,1)/sps1%ps(1,i)) / &
-                        (mddom%msfx(i,1)*mddom%msfx(i,1))
+                        (mddom%msfx(1,i)*mddom%msfx(1,i))
         end do
       end do
     end if
@@ -351,9 +351,9 @@ module mod_diagnosis
         do j = 1 , jxm1
           tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
                  ((vaix_g(k,j+1)+vaix_g(k,j))*(qvailx_g(k,j)/psailx_g(j)) / &
-                  (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) -           &
+                  (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) -           &
                   (va01_g(k,j+1)+va01_g(k,j))*(qva01_g(k,j)/psa01_g(j)) /   &
-                  (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
+                  (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
         end do
       end do
     end if
@@ -368,7 +368,7 @@ module mod_diagnosis
         do i = 1 , iym1
           worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
                        (atm1%qc(i,k,jendx)/sps1%ps(jendx,i))  /  &
-                       (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
+                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
         end do
       end do
     end if
@@ -377,7 +377,7 @@ module mod_diagnosis
         do i = 1 , iym1
           workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))* &
                        (atm1%qc(i,k,1)/sps1%ps(1,i)) /  &
-                       (mddom%msfx(i,1)*mddom%msfx(i,1))
+                       (mddom%msfx(1,i)*mddom%msfx(1,i))
         end do
       end do
     end if
@@ -406,9 +406,9 @@ module mod_diagnosis
         do j = 1 , jxm1
           tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
                  ((vaix_g(k,j+1)+vaix_g(k,j))*(qcailx_g(k,j)/psailx_g(j)) / &
-                  (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) -           &
+                  (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) -           &
                   (va01_g(k,j+1)+va01_g(k,j))*(qca01_g(k,j)/psa01_g(j)) /   &
-                  (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
+                  (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
         end do
       end do
     end if
@@ -619,15 +619,15 @@ module mod_diagnosis
             if ( uavg2 < d_zero ) then
               worka(i,k,n) =  &
                   -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(jendx,i)/ &
-                  (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))+        &
+                  (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))+        &
                   fact2*chia(i,k,jendm,n)/sps1%ps(jendm,i)/         &
-                  (mddom%msfx(i,jendm)*mddom%msfx(i,jendm)))
+                  (mddom%msfx(jendm,i)*mddom%msfx(jendm,i)))
             else
               worka(i,k,n) = &
                   -uavg2*(fact1*chia(i,k,jendm,n)/sps1%ps(jendm,i)/ &
-                  (mddom%msfx(i,jendm)*mddom%msfx(i,jendm))+        &
+                  (mddom%msfx(jendm,i)*mddom%msfx(jendm,i))+        &
                   fact2*chia(i,k,jendx,n)/sps1%ps(jendx,i) /        &
-                  (mddom%msfx(i,jendx)*mddom%msfx(i,jendx)))
+                  (mddom%msfx(jendx,i)*mddom%msfx(jendx,i)))
             end if
           end if
           if ( myid == 0 ) then
@@ -635,15 +635,15 @@ module mod_diagnosis
             if ( uavg1 > d_zero ) then
               workb(i,k,n) = &
                   -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(1,i)/ &
-                  (mddom%msfx(i,1)*mddom%msfx(i,1)) +       &
+                  (mddom%msfx(1,i)*mddom%msfx(1,i)) +       &
                   fact2*chia(i,k,2,n)/sps1%ps(2,i) /        &
-                  (mddom%msfx(i,2)*mddom%msfx(i,2)))
+                  (mddom%msfx(2,i)*mddom%msfx(2,i)))
             else
               workb(i,k,n) = & 
                   -uavg1*(fact1*chia(i,k,2,n)/sps1%ps(2,i) / &
-                  (mddom%msfx(i,2)*mddom%msfx(i,2)) +        &
+                  (mddom%msfx(2,i)*mddom%msfx(2,i)) +        &
                   fact2*chia(i,k,1,n)/sps1%ps(1,i) /         &
-                  (mddom%msfx(i,1)*mddom%msfx(i,1)))
+                  (mddom%msfx(1,i)*mddom%msfx(1,i)))
             end if
           end if
         end do
@@ -710,27 +710,27 @@ module mod_diagnosis
             vavg2 = (vaill_g(k,j+1)+vaill_g(k,j))*d_half
             if ( vavg2 < d_zero ) then
               fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j) /      &
-                     (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) +  &
+                     (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) +  &
                      fact2*chiaill1_g(k,n,j)/psaill1_g(j) /           &
-                     (mddom_io%msfx(iym2,j)*mddom_io%msfx(iym2,j)))
+                     (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)))
             else
               fx2 = -vavg2*(fact1*chiaill1_g(k,n,j)/psaill1_g(j) /    &
-                     (mddom_io%msfx(iym2,j)*mddom_io%msfx(iym2,j)) +  &
+                     (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)) +  &
                      fact2*chiaill_g(k,n,j)/psaill_g(j) /             &
-                     (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)))
+                     (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)))
             end if
    
             vavg1 = (va02_g(k,j+1)+va02_g(k,j))*d_half
             if ( vavg1 > d_zero ) then
               fx1 = -vavg1*(fact1*chia01_g(k,n,j)/psa01_g(j) /        &
-                     (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)) +        &
+                     (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)) +        &
                      fact2*chia02_g(k,n,j)/psa02_g(j) /               &
-                     (mddom_io%msfx(2,j)*mddom_io%msfx(2,j)))
+                     (mddom_io%msfx(j,2)*mddom_io%msfx(j,2)))
             else
               fx1 = -vavg1*(fact1*chia02_g(k,n,j)/psa02_g(j) /   &
-                     (mddom_io%msfx(2,j)*mddom_io%msfx(2,j)) +   &
+                     (mddom_io%msfx(j,2)*mddom_io%msfx(j,2)) +   &
                      fact2*chia01_g(k,n,j)/psa01_g(j) /          &
-                     (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
+                     (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))
             end if
             tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx*(fx2-fx1)*regrav
           end do

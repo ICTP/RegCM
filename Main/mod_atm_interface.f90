@@ -224,21 +224,21 @@ module mod_atm_interface
       type(domain) , intent(out) :: dom
 
       if (lpar) then
-        call getmem2d(dom%ht,1,iy,0,jxp+1,'mod_atm_interface:ht')
-        call getmem2d(dom%lndcat,1,iy,1,jxp,'mod_atm_interface:lndcat')
-        call getmem2d(dom%xlat,1,iy,1,jxp,'mod_atm_interface:xlat')
-        call getmem2d(dom%xlon,1,iy,1,jxp,'mod_atm_interface:xlon')
-        call getmem2d(dom%msfx,1,iy,-1,jxp+2,'mod_atm_interface:msfx')
-        call getmem2d(dom%msfd,1,iy,-1,jxp+2,'mod_atm_interface:msfd')
-        call getmem2d(dom%coriol,1,iy,1,jxp,'mod_atm_interface:f')
+        call getmem2d(dom%ht,0,jxp+1,1,iy,'mod_atm_interface:ht')
+        call getmem2d(dom%lndcat,1,jxp,1,iy,'mod_atm_interface:lndcat')
+        call getmem2d(dom%xlat,1,jxp,1,iy,'mod_atm_interface:xlat')
+        call getmem2d(dom%xlon,1,jxp,1,iy,'mod_atm_interface:xlon')
+        call getmem2d(dom%msfx,-1,jxp+2,1,iy,'mod_atm_interface:msfx')
+        call getmem2d(dom%msfd,-1,jxp+2,1,iy,'mod_atm_interface:msfd')
+        call getmem2d(dom%coriol,1,jxp,1,iy,'mod_atm_interface:f')
       else
-        call getmem2d(dom%ht,1,iy,1,jx,'mod_atm_interface:ht')
-        call getmem2d(dom%lndcat,1,iy,1,jx,'mod_atm_interface:lndcat')
-        call getmem2d(dom%xlat,1,iy,1,jx,'mod_atm_interface:xlat')
-        call getmem2d(dom%xlon,1,iy,1,jx,'mod_atm_interface:xlon')
-        call getmem2d(dom%msfx,1,iy,1,jx,'mod_atm_interface:msfx')
-        call getmem2d(dom%msfd,1,iy,1,jx,'mod_atm_interface:msfd')
-        call getmem2d(dom%coriol,1,iy,1,jx,'mod_atm_interface:f')
+        call getmem2d(dom%ht,1,jx,1,iy,'mod_atm_interface:ht')
+        call getmem2d(dom%lndcat,1,jx,1,iy,'mod_atm_interface:lndcat')
+        call getmem2d(dom%xlat,1,jx,1,iy,'mod_atm_interface:xlat')
+        call getmem2d(dom%xlon,1,jx,1,iy,'mod_atm_interface:xlon')
+        call getmem2d(dom%msfx,1,jx,1,iy,'mod_atm_interface:msfx')
+        call getmem2d(dom%msfd,1,jx,1,iy,'mod_atm_interface:msfd')
+        call getmem2d(dom%coriol,1,jx,1,iy,'mod_atm_interface:f')
       end if
     end subroutine allocate_domain
 !

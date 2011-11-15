@@ -473,7 +473,7 @@ module mod_rrtmg_driver
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
 
     do j = jstart , jend
-      alat(j) = xlat(i,j)*degrad
+      alat(j) = xlat(j,i)*degrad
       ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
     end do
 

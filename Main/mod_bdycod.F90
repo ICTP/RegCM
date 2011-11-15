@@ -502,7 +502,7 @@ module mod_bdycod
     if ( idatex < bdydate1 ) then
       do j = 1 , jendx
         do i = 1 , iym1
-          if ( iswater(mddom%lndcat(i,j)) ) then
+          if ( iswater(mddom%lndcat(j,i)) ) then
             if (idcsst == 1) then
               sts1%tg(j,i) = tdum(i,j) + dtskin(i,j)
               sts2%tg(j,i) = tdum(i,j) + dtskin(i,j)
@@ -511,7 +511,7 @@ module mod_bdycod
               sts2%tg(j,i) = tdum(i,j)
             end if
             if ( iseaice == 1 ) then
-              if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
+              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
 !
               if ( tdum(i,j) <= icetemp ) then
                 sts1%tg(j,i) = icetemp
@@ -884,20 +884,20 @@ module mod_bdycod
 #ifndef BAND
         do i = 1 , iy
           if ( myid == 0 ) then
-            atm2%u(i,k,1) = atm1%u(i,k,1)/mddom%msfd(i,1)
-            atm2%v(i,k,1) = atm1%v(i,k,1)/mddom%msfd(i,1)
+            atm2%u(i,k,1) = atm1%u(i,k,1)/mddom%msfd(1,i)
+            atm2%v(i,k,1) = atm1%v(i,k,1)/mddom%msfd(1,i)
           end if
           if ( myid == nproc-1 ) then
-            atm2%u(i,k,jendl) = atm1%u(i,k,jendl)/mddom%msfd(i,jendl)
-            atm2%v(i,k,jendl) = atm1%v(i,k,jendl)/mddom%msfd(i,jendl)
+            atm2%u(i,k,jendl) = atm1%u(i,k,jendl)/mddom%msfd(jendl,i)
+            atm2%v(i,k,jendl) = atm1%v(i,k,jendl)/mddom%msfd(jendl,i)
           end if
         end do
 #endif
         do j = jbegin , jendx
-          atm2%u(1,k,j)  = atm1%u(1,k,j)/mddom%msfd(1,j)
-          atm2%u(iy,k,j) = atm1%u(iy,k,j)/mddom%msfd(iy,j)
-          atm2%v(1,k,j)  = atm1%v(1,k,j)/mddom%msfd(1,j)
-          atm2%v(iy,k,j) = atm1%v(iy,k,j)/mddom%msfd(iy,j)
+          atm2%u(1,k,j)  = atm1%u(1,k,j)/mddom%msfd(j,1)
+          atm2%u(iy,k,j) = atm1%u(iy,k,j)/mddom%msfd(j,iy)
+          atm2%v(1,k,j)  = atm1%v(1,k,j)/mddom%msfd(j,1)
+          atm2%v(iy,k,j) = atm1%v(iy,k,j)/mddom%msfd(j,iy)
         end do
       end do
 !

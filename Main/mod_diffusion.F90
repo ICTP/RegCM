@@ -86,15 +86,15 @@ module mod_diffusion
                         d_twelve*bd3d(j,i,k))*press(j,i)
           else
             ften(i,k,j) = ften(i,k,j) - xkc(i,k,j) *        &
-                        rdxsq*(bd3d(jp2,i,k)/mapf(i,jp2) +  &
-                        bd3d(jm2,i,k)/mapf(i,jm2) +         &
-                        bd3d(j,i+2,k)/mapf(i+2,j) +         &
-                        bd3d(i-2,k,j)/mapf(i-2,j) -         &
-                        d_four*(bd3d(jp1,i,k)/mapf(i,jp1) + &
-                        bd3d(jm1,i,k)/mapf(i,jm1) +         &
-                        bd3d(j,i+1,k)/mapf(i+1,j) +         &
-                        bd3d(j,i-1,k)/mapf(i-1,j)) +        &
-                        d_twelve*bd3d(j,i,k)/mapf(i,j))*press(j,i)
+                        rdxsq*(bd3d(jp2,i,k)/mapf(jp2,i) +  &
+                        bd3d(jm2,i,k)/mapf(jm2,i) +         &
+                        bd3d(j,i+2,k)/mapf(j,i+2) +         &
+                        bd3d(i-2,k,j)/mapf(j,i-2) -         &
+                        d_four*(bd3d(jp1,i,k)/mapf(jp1,i) + &
+                        bd3d(jm1,i,k)/mapf(jm1,i) +         &
+                        bd3d(j,i+1,k)/mapf(j,i+1) +         &
+                        bd3d(j,i-1,k)/mapf(j,i-1)) +        &
+                        d_twelve*bd3d(j,i,k)/mapf(j,i))*press(j,i)
           end if
         end do
       end do
@@ -110,11 +110,11 @@ module mod_diffusion
                         d_four*bd3d(j,i,k))*press(j,i)
           else
             ften(i,k,j) = ften(i,k,j) + xkc(i,k,j) *         &
-                        rdxsq*(bd3d(jp1,i,k)/mapf(i,jp1) +   &
-                        bd3d(jm1,i,k)/mapf(i,jm1) +          &
-                        bd3d(j,i+1,k)/mapf(i+1,j) +          &
-                        bd3d(j,i-1,k)/mapf(i-1,j) -          &
-                        d_four*bd3d(j,i,k)/mapf(i,j))*press(j,i)
+                        rdxsq*(bd3d(jp1,i,k)/mapf(jp1,i) +   &
+                        bd3d(jm1,i,k)/mapf(jm1,i) +          &
+                        bd3d(j,i+1,k)/mapf(j,i+1) +          &
+                        bd3d(j,i-1,k)/mapf(j,i-1) -          &
+                        d_four*bd3d(j,i,k)/mapf(j,i))*press(j,i)
           end if
         end do
       end do
@@ -137,11 +137,11 @@ module mod_diffusion
                           d_four*bd3d(j,i,k))*press(j,i)
             else
               ften(i,k,j) = ften(i,k,j) + xkc(i,k,j) *       &
-                          rdxsq*(bd3d(jp1,i,k)/mapf(i,jp1) + &
-                          bd3d(jm1,i,k)/mapf(i,jm1) +        &
-                          bd3d(j,i+1,k)/mapf(i+1,j) +        &
-                          bd3d(j,i-1,k)/mapf(i-1,j) -        &
-                          d_four*bd3d(j,i,k)/mapf(i,j))*press(j,i)
+                          rdxsq*(bd3d(jp1,i,k)/mapf(jp1,i) + &
+                          bd3d(jm1,i,k)/mapf(jm1,i) +        &
+                          bd3d(j,i+1,k)/mapf(j,i+1) +        &
+                          bd3d(j,i-1,k)/mapf(j,i-1) -        &
+                          d_four*bd3d(j,i,k)/mapf(j,i))*press(j,i)
             end if
           end do
         end do
@@ -161,15 +161,15 @@ module mod_diffusion
                           d_twelve*bd3d(j,i,k))*press(j,i)
             else
               ften(i,k,j) = ften(i,k,j) - xkc(i,k,j) *        &
-                          rdxsq*(bd3d(jp2,i,k)/mapf(i,jp2) +  &
-                          bd3d(jm2,i,k)/mapf(i,jm2) +         &
-                          bd3d(j,i+2,k)/mapf(i+2,j) +         &
-                          bd3d(j,i-2,k)/mapf(i-2,j) -         &
-                          d_four*(bd3d(jp1,i,k)/mapf(i,jp1) + &
-                          bd3d(jm1,i,k)/mapf(i,jm1) +         &
-                          bd3d(j,i+1,k)/mapf(i+1,j) +         &
-                          bd3d(j,i-1,k)/mapf(i-1,j)) +        &
-                          d_twelve*bd3d(j,i,k)/mapf(i,j))*press(j,i)
+                          rdxsq*(bd3d(jp2,i,k)/mapf(jp2,i) +  &
+                          bd3d(jm2,i,k)/mapf(jm2,i) +         &
+                          bd3d(j,i+2,k)/mapf(j,i+2) +         &
+                          bd3d(j,i-2,k)/mapf(j,i-2) -         &
+                          d_four*(bd3d(jp1,i,k)/mapf(jp1,i) + &
+                          bd3d(jm1,i,k)/mapf(jm1,i) +         &
+                          bd3d(j,i+1,k)/mapf(j,i+1) +         &
+                          bd3d(j,i-1,k)/mapf(j,i-1)) +        &
+                          d_twelve*bd3d(j,i,k)/mapf(j,i))*press(j,i)
             end if
           end do
         end do
@@ -185,11 +185,11 @@ module mod_diffusion
                           d_four*bd3d(j,i,k))*press(j,i)
             else
               ften(i,k,j) = ften(i,k,j) + xkc(i,k,j) *       &
-                          rdxsq*(bd3d(jp1,i,k)/mapf(i,jp1) + &
-                          bd3d(jm1,i,k)/mapf(i,jm1) +        &
-                          bd3d(j,i+1,k)/mapf(i+1,j) +        &
-                          bd3d(j,i-1,k)/mapf(i-1,j) -        &
-                          d_four*bd3d(j,i,k)/mapf(i,j))*press(j,i)
+                          rdxsq*(bd3d(jp1,i,k)/mapf(jp1,i) + &
+                          bd3d(jm1,i,k)/mapf(jm1,i) +        &
+                          bd3d(j,i+1,k)/mapf(j,i+1) +        &
+                          bd3d(j,i-1,k)/mapf(j,i-1) -        &
+                          d_four*bd3d(j,i,k)/mapf(j,i))*press(j,i)
             end if
           end do
         end do

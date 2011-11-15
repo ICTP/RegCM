@@ -171,7 +171,7 @@ module mod_advection
                              (f(i,k,j)+f(i,k,jm1))*ucmonc +  &
                              (f(i+1,k,j)+f(i,k,j))*vcmonb -  &
                              (f(i,k,j)+f(i-1,k,j))*vcmonc) / &
-                             (dxx*mapfd(i,j)*mapfd(i,j))
+                             (dxx*mapfd(j,i)*mapfd(j,i))
               end do
             end do
           else
@@ -193,7 +193,7 @@ module mod_advection
                      (u(i+1,k,j)+u(i,k,j)) *   (f(i,k,j)+f(i,k,jm1)) +  &
                      (v(i+1,k,jp1)+v(i+1,k,j))*(f(i+1,k,j)+f(i,k,j)) -  &
                      (v(i,k,jp1)+v(i,k,j)) *   (f(i-1,k,j)+f(i,k,j))) / &
-                     (dxx*mapfx(i,j)*mapfx(i,j))
+                     (dxx*mapfx(j,i)*mapfx(j,i))
               end do
             end do
 !
@@ -231,7 +231,7 @@ module mod_advection
                 end if
                 ften(i,k,j) = ften(i,k,j) -                          &
                      (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
-                     (dxx*mapfx(i,j)*mapfx(i,j))
+                     (dxx*mapfx(j,i)*mapfx(j,i))
               end do
             end do
           else
@@ -400,7 +400,7 @@ module mod_advection
           end do
           do k = kstart+1 , kstop
             do i = istart , istopd
-              fg(i,k) = d_half*(f(i,k,j)+f(i,k-1,j))/mapfd(i,j)
+              fg(i,k) = d_half*(f(i,k,j)+f(i,k-1,j))/mapfd(j,i)
             end do
           end do
           do i = istart , istopd

@@ -139,6 +139,9 @@ module mod_clm
   real(8) , pointer , dimension(:,:) :: ra2d
   ! 2 meter specific humidity
   real(8) , pointer , dimension(:,:) :: q2d
+
+  real(dp) , pointer , dimension(:,:) :: xlon     ! mddom%xlon
+  real(dp) , pointer , dimension(:,:) :: htf      ! mddom_io%ht
 !
   contains
 !
@@ -208,7 +211,7 @@ module mod_clm
     call getmem2d(rs2d,1,iym1,1,jxp,'clm:rs2d')
     call getmem2d(ra2d,1,iym1,1,jxp,'clm:ra2d')
     call getmem2d(q2d,1,iym1,1,jxp,'clm:q2d')
-    call getmem2d(lndcat2d,1,iy,1,jxp,'clm:lndcat2d')
+    call getmem2d(lndcat2d,1,jxp,1,iy,'clm:lndcat2d')
   end subroutine allocate_mod_clm
 !
 end module mod_clm

@@ -145,8 +145,8 @@ module mod_sun
          &            r2cobliqr,declinp1,r2ceccf)
     do i = istart , iend
       do j = jstart , jend
-        xxlat = mddom%xlat(i,j)*degrad
-        xxlon = mddom%xlon(i,j)*degrad
+        xxlat = mddom%xlat(j,i)*degrad
+        xxlon = mddom%xlon(j,i)*degrad
         coszrs(j,i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
         coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
         coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
@@ -156,10 +156,10 @@ module mod_sun
     xt24 = dble(idatex%second_of_day)/secph
     do i = istart , iend
       do j = jstart , jend
-        tlocap = xt24 + mddom%xlon(i,j)/15.0D0
+        tlocap = xt24 + mddom%xlon(j,i)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
         omga = 15.0D0*(tlocap-12.0D0)*degrad
-        xxlat = mddom%xlat(i,j)*degrad
+        xxlat = mddom%xlat(j,i)*degrad
 !       coszrs = cosine of solar zenith angle
         coszrs(j,i) = dsin(declin)*dsin(xxlat) +           &
                       dcos(declin)*dcos(xxlat)*dcos(omga)

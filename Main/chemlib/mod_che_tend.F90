@@ -189,8 +189,8 @@
  
 !           soil wetness
  
-          soilw(i) = cssw2da(j,i)/cdepuv(idnint(clndcat(i,j)))/(2650.0D0 * &
-                (d_one-cxmopor(ciexsol(idnint(clndcat(i,j))))))
+          soilw(i) = cssw2da(j,i)/cdepuv(idnint(clndcat(j,i)))/(2650.0D0 * &
+                (d_one-cxmopor(ciexsol(idnint(clndcat(j,i))))))
 !         fraction of vegetation
           vegfrac(i) = cvegfrac(j,i)
 !         surface temperature
@@ -299,7 +299,7 @@
 !       Wet Deposition for gasphase species 
 !!$
         if ( igaschem == 1 ) then
-          call sethet(j,cza(:,:,j),cht(:,j),ttb,checum,cremrat, &
+          call sethet(j,cza(:,:,j),cht(j,:),ttb,checum,cremrat, &
                       chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(j,2:iym2))
         end if
       end do

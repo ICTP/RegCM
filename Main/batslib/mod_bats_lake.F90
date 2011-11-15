@@ -162,7 +162,7 @@ module mod_bats_lake
           hsen = -d_one*sent(n,j,i)
           evp = evpr(n,j,i)
           if (nnsg == 1) then
-            xl = xlat(i,j)
+            xl = xlat(j,i)
           else
             xl = xlat1(n,j,i)
           end if

@@ -1120,7 +1120,8 @@ module mod_output
           end do
         end do
       end if
-      call mpi_gather(lndcat2d,   iy*jxp,mpi_real8, &
+      swapv = transpose(lndcat2d)
+      call mpi_gather(swapv,      iy*jxp,mpi_real8, &
                     & lndcat2d_io,iy*jxp,mpi_real8, &
                     & 0,mycomm,ierr)
 #endif

@@ -187,8 +187,8 @@ module mod_tendency
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          atm1%u(i,k,j) = atm1%u(i,k,j)*mddom%msfd(i,j)
-          atm1%v(i,k,j) = atm1%v(i,k,j)*mddom%msfd(i,j)
+          atm1%u(i,k,j) = atm1%u(i,k,j)*mddom%msfd(j,i)
+          atm1%v(i,k,j) = atm1%v(i,k,j)*mddom%msfd(j,i)
         end do
       end do
     end do
@@ -318,7 +318,7 @@ module mod_tendency
           do i = 3 , iym2
             psabar=(sps1%ps(j,i)+sps1%ps(jm1,i)+ &
                     sps1%ps(j,i-1)+sps1%ps(jm1,i-1))*d_rfour
-            xmsf = mddom%msfd(i,j)
+            xmsf = mddom%msfd(j,i)
             atmx%u(i,k,j) = atm1%u(i,k,j)/(psabar*xmsf)
             atmx%v(i,k,j) = atm1%v(i,k,j)/(psabar*xmsf)
           end do
@@ -854,7 +854,7 @@ module mod_tendency
                         (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j)- &
                          atm1%v(i,k,jp1)-atm1%v(i,k,j))
             pten(i,j) = pten(i,j) - divl(i,k)*dsigma(k)     &
-                        /(dx2*mddom%msfx(i,j)*mddom%msfx(i,j))
+                        /(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
          end do
       end do
 !
@@ -868,8 +868,8 @@ module mod_tendency
       do k = 2 , kz
          do i = 2 , iym2
             qdot(i,k,j) = qdot(i,k-1,j)                               &
-                       - (pten(i,j)+divl(i,k-1)/(dx2*mddom%msfx(i,j) &
-                       *mddom%msfx(i,j)))*dsigma(k-1)/sps1%ps(j,i)
+                       - (pten(i,j)+divl(i,k-1)/(dx2*mddom%msfx(j,i) &
+                       *mddom%msfx(j,i)))*dsigma(k-1)/sps1%ps(j,i)
          end do
       end do
 #ifndef BAND
@@ -902,7 +902,7 @@ module mod_tendency
                        (atmx%v(i,k,j)+atmx%v(i+1,k,j)+                &
                         atmx%v(i+1,k,jp1)+atmx%v(i,k,jp1))*           &
                        (sps1%ps(j,i+1)-sps1%ps(j,i-1)))/              &
-                       (dx8*mddom%msfx(i,j)))
+                       (dx8*mddom%msfx(j,i)))
          end do
       end do
 #ifndef BAND
@@ -1869,9 +1869,9 @@ module mod_tendency
       do k = 1 , kz
         do i = 2 , iym1
           aten%u(i,k,j) = aten%u(i,k,j) + &
-                       mddom%coriol(i,j)*atm1%v(i,k,j)/mddom%msfd(i,j)
+                       mddom%coriol(j,i)*atm1%v(i,k,j)/mddom%msfd(j,i)
           aten%v(i,k,j) = aten%v(i,k,j) - &
-                       mddom%coriol(i,j)*atm1%u(i,k,j)/mddom%msfd(i,j)
+                       mddom%coriol(j,i)*atm1%u(i,k,j)/mddom%msfd(j,i)
         end do
       end do
     end do
@@ -1896,11 +1896,11 @@ module mod_tendency
             aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
                   (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+ptop) -     &
                    dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+ptop))/ &
-                   (dx*mddom%msfd(i,j))
+                   (dx*mddom%msfd(j,i))
             aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
                   (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+ptop) -     &
                    dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+ptop))/ &
-                   (dx*mddom%msfd(i,j))
+                   (dx*mddom%msfd(j,i))
           end do
         end do
       else if ( ipgf == 0 ) then
@@ -1916,11 +1916,11 @@ module mod_tendency
             aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
                    (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+ptop) -    &
                     dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+ptop))/&
-                    (dx*mddom%msfd(i,j))
+                    (dx*mddom%msfd(j,i))
             aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
                    (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+ptop) -    &
                     dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+ptop))/&
-                    (dx*mddom%msfd(i,j))
+                    (dx*mddom%msfd(j,i))
           end do
         end do
       else   ! ipgf if block
@@ -1936,7 +1936,7 @@ module mod_tendency
         do i = 1 , iym1
           tv = (ttld(i,kz,j)/psd(i,j))/(d_one+atmx%qc(i,kz,j)/ &
                                        (d_one+atmx%qv(i,kz,j)))
-          phi(i,kz,j) = mddom%ht(i,j) + &
+          phi(i,kz,j) = mddom%ht(j,i) + &
                    rgas*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)**pgfaa1
           phi(i,kz,j) = phi(i,kz,j) - rgas * &
                   tv*dlog((a(kz)+ptop/psd(i,j))/(d_one+ptop/psd(i,j)))
@@ -1960,7 +1960,7 @@ module mod_tendency
         do i = 1 , iym1
           tv = (td(i,kz,j)/psd(i,j))/(d_one+atmx%qc(i,kz,j)/  &
                (d_one+atmx%qv(i,kz,j)))
-          phi(i,kz,j) = mddom%ht(i,j) - rgas * &
+          phi(i,kz,j) = mddom%ht(j,i) - rgas * &
                tv*dlog((a(kz)+ptop/psd(i,j))/(d_one+ptop/psd(i,j)))
         end do
  
@@ -1994,11 +1994,11 @@ module mod_tendency
           aten%u(i,k,j) = aten%u(i,k,j) -                              &
                (psd(i-1,jm1)+psd(i,jm1)+psd(i-1,j)+psd(i,j)) *         &
                (phi(i,k,j)+phi(i-1,k,j)-phi(i,k,jm1)-phi(i-1,k,jm1)) / &
-               (dx8*mddom%msfd(i,j))
+               (dx8*mddom%msfd(j,i))
           aten%v(i,k,j) = aten%v(i,k,j) -                              &
                (psd(i-1,jm1)+psd(i,jm1)+psd(i-1,j)+psd(i,j)) *         &
                (phi(i,k,j)+phi(i,k,jm1)-phi(i-1,k,j)-phi(i-1,k,jm1)) / &
-               (dx8*mddom%msfd(i,j))
+               (dx8*mddom%msfd(j,i))
         end do
       end do
     end do
@@ -2082,9 +2082,9 @@ module mod_tendency
     do j = jbegin , jendx
       do k = 1 , kz
         do i = 2 , iym1
-          atm2%u(i,k,j) = omuhf*atm1%u(i,k,j)/mddom%msfd(i,j)  &
+          atm2%u(i,k,j) = omuhf*atm1%u(i,k,j)/mddom%msfd(j,i)  &
                       + gnuhf*(atm2%u(i,k,j)+atmc%u(i,k,j))
-          atm2%v(i,k,j) = omuhf*atm1%v(i,k,j)/mddom%msfd(i,j)  &
+          atm2%v(i,k,j) = omuhf*atm1%v(i,k,j)/mddom%msfd(j,i)  &
                       + gnuhf*(atm2%v(i,k,j)+atmc%v(i,k,j))
           atm1%u(i,k,j) = atmc%u(i,k,j)
           atm1%v(i,k,j) = atmc%v(i,k,j)

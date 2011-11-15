@@ -204,7 +204,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( myid==0 ) then
     do j = 1 , jx
       do i = 1 , iy
-        ht_rcm(i,j)    = htf(i,j)
+        ht_rcm(i,j)    = htf(j,i)
         init_tgb(i,j)  = tsf(i,j)
         clm_fracveg(i,j) = d_zero
       end do
@@ -274,11 +274,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end if
  
 !         xlat,xlon in degrees
-      r2cxlatd(j,i) = xlat(ci,cj)
-      r2cxlond(j,i) = xlon(ci,cj)
+      r2cxlatd(j,i) = xlat(cj,ci)
+      r2cxlond(j,i) = xlon(cj,ci)
 !         xlat,xlon in radians
-      r2cxlat(j,i) = xlat(ci,cj)*degrad
-      r2cxlon(j,i) = xlon(ci,cj)*degrad
+      r2cxlat(j,i) = xlat(cj,ci)*degrad
+      r2cxlon(j,i) = xlon(cj,ci)*degrad
  
       if ( .not.ifrest ) then
 !           T(K) at bottom layer
@@ -726,14 +726,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         ! Set some clm land surface/vegetation variables to the ones
         ! used in RegCM.  Make sure all are consistent  
 
-        lndcat(i,j) = clm2bats_veg(jj,i)
-        if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat(i,j) = 15.0D0
+        lndcat(j,i) = clm2bats_veg(jj,i)
+        if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat(j,i) = 15.0D0
         do n = 1 , nnsg
           lndcat1(n,j,i) = clm2bats_veg(jj,i)
           if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
         end do
 
-        veg2d(j,i) = idnint(lndcat(i,j))
+        veg2d(j,i) = idnint(lndcat(j,i))
         do n = 1 , nnsg
           veg2d1(n,j,i)  = idnint(lndcat1(n,j,i))
         end do
@@ -741,7 +741,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         if ( ( veg2d(j,i) == 14 .or. veg2d(j,i) == 15 ) .and. &
                ldmsk(j,i) /= 0 ) then
           veg2d(j,i)        =  2
-          lndcat(i,j) =  d_two
+          lndcat(j,i) =  d_two
         end if
         do n = 1 , nnsg
           if ( ( veg2d1(n,j,i) == 14 .or. veg2d1(n,j,i) == 15 ) .and. &

@@ -257,7 +257,7 @@ module mod_pbl_interface
             -((atm%v(i,k-1,j)+atm%v(i,k-1,jp1))*twt(k,2)  &
              +(atm%v(i,k,j)  +atm%v(i,k,jp1))*twt(k,1)) &
              *( atm%tke(i,k,j)+atm%tke(i-1,k,j))) &
-             /(dxx*mapfcx(i,j)*mapfcx(i,j))
+             /(dxx*mapfcx(j,i)*mapfcx(j,i))
 
 !TAO Debug:
 !       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j) + 1d-8*atm%tke(i,k,jp1)

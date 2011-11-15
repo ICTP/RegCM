@@ -239,7 +239,7 @@ module mod_bats_mtrxbats
       do j = jstart , jend
         pptnc(j,i) = d_zero
         pptc(j,i) = d_zero
-        veg2d(j,i) = idnint(lndcat(i,j)+0.1D0)
+        veg2d(j,i) = idnint(lndcat(j,i)+0.1D0)
         do n = 1 , nnsg
           veg2d1(n,j,i) = idnint(lndcat1(n,j,i)+0.1D0)
         end do
@@ -352,7 +352,7 @@ module mod_bats_mtrxbats
           rh0 = dmax1(qs0/(ep2*satvp/(p0*0.01D0-satvp)),d_zero)
           do n = 1 , nnsg
             qs(n,j,i) = qs0
-            sts(n,j,i) = ts0-lrate*regrav*(ht1(n,j,i)-ht(i,j))
+            sts(n,j,i) = ts0-lrate*regrav*(ht1(n,j,i)-ht(j,i))
             sfcp(n,j,i) = p0*(sts(n,j,i)/ts0)
             hl = lh0 - lh1*(sts(n,j,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(n,j,i)))
@@ -1054,7 +1054,7 @@ module mod_bats_mtrxbats
           amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
           lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
-          sts(n,j,i) = thatm(j,i,kz)-6.5D-3*regrav*(ht1(n,j,i)-ht(i,j))
+          sts(n,j,i) = thatm(j,i,kz)-6.5D-3*regrav*(ht1(n,j,i)-ht(j,i))
         end do
       end do
     end do

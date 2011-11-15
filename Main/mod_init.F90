@@ -292,7 +292,7 @@ module mod_init
     if ( iseaice == 1 ) then
       do j = 1 , jendx
         do i = 1 , iym1
-          if ( isocean(mddom%lndcat(i,j)) ) then
+          if ( isocean(mddom%lndcat(j,i)) ) then
             if ( ts0(i,j) <= icetemp ) then
               sts1%tg(j,i) = icetemp
               sts2%tg(j,i) = icetemp
@@ -310,7 +310,7 @@ module mod_init
     if ( lakemod == 1 ) then
       do j = 1 , jendx
         do i = 1 , iym1
-          if ( islake(mddom%lndcat(i,j)) ) then
+          if ( islake(mddom%lndcat(j,i)) ) then
             if ( ts0(i,j) <= icetemp ) then
               sts1%tg(j,i) = icetemp
               sts2%tg(j,i) = icetemp
@@ -1106,8 +1106,9 @@ module mod_init
       end do
     end do
     call mpi_scatter(lndcat2d_io,iy*jxp,mpi_real8, &
-                     lndcat2d,   iy*jxp,mpi_real8, &
+                     swapv,      iy*jxp,mpi_real8, &
                      0,mycomm,ierr)
+    lndcat2d = transpose(swapv)
 #endif
     call mpi_bcast(ktau,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(mtau,1,mpi_integer,0,mycomm,ierr)
@@ -1230,10 +1231,10 @@ module mod_init
     do i = 2 , iym2
       im1h = max0(i-1,2)
       ip1h = min0(i+1,iym2)
-      hg1 = dabs((mddom%ht(i,j)-mddom%ht(im1h,j))/dx)
-      hg2 = dabs((mddom%ht(i,j)-mddom%ht(ip1h,j))/dx)
-      hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
-      hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
+      hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,im1h))/dx)
+      hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,ip1h))/dx)
+      hg3 = dabs((mddom%ht(j,i)-mddom%ht(jm1,i))/dx)
+      hg4 = dabs((mddom%ht(j,i)-mddom%ht(jp1,i))/dx)
       hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
       hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
     end do

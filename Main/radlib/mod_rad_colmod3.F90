@@ -723,7 +723,7 @@ module mod_rad_colmod3
         if ( cld(j,k) > 0.999D0 ) cld(j,k) = 0.999D0
       end do
 !
-      alat(j) = xlat(i,j)*degrad
+      alat(j) = xlat(j,i)*degrad
       ! pressure of tropopause
       ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
 !
