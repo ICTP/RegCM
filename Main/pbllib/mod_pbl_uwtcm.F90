@@ -237,9 +237,9 @@ module mod_pbl_uwtcm
         ! Copy in local versions of necessary variables
         psbx = sfcps(j,i)
         tgbx = tg(i,j)
-        qfxx = qfx(i,j)
-        hfxx = hfx(i,j)
-        uvdragx = uvdrag(i,j)
+        qfxx = qfx(j,i)
+        hfxx = hfx(j,i)
+        uvdragx = uvdrag(j,i)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero

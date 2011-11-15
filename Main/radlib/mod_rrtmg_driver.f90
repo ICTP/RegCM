@@ -502,7 +502,7 @@ module mod_rrtmg_driver
     ! ground temperature
     !
     do j = jstart , jend
-      tsfc(j) = tground(i,j)
+      tsfc(j) = tground(j,i)
     end do
     !
     ! air temperatures

@@ -702,7 +702,7 @@ module mod_rad_colmod3
 !     when using bats calculate an equivalent ground (skin)
 !     temperature by averaging over vegetated and non-vegetated areas
 !jsp  tg(j)=((d_one-vgfrac(j))*tgb(i,j)**4.+vgfrac(j)*tlef2d(i,j)**4.)**0.25
-      ts(j) = tground(i,j)
+      ts(j) = tground(j,i)
     end do
 !
 !   cloud cover at surface interface always zero

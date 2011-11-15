@@ -245,12 +245,12 @@ module mod_atm_interface
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
-      call getmem2d(sfs%hfx,1,iy,1,jxp,'surfstate:hfx')
-      call getmem2d(sfs%qfx,1,iy,1,jxp,'surfstate:qfx')
-      call getmem2d(sfs%rainc,1,iy,1,jxp,'surfstate:rainc')
-      call getmem2d(sfs%rainnc,1,iy,1,jxp,'surfstate:rainnc')
-      call getmem2d(sfs%tgbb,1,iy,1,jxp,'surfstate:tgbb')
-      call getmem2d(sfs%uvdrag,1,iy,0,jxp,'surfstate:uvdrag')
+      call getmem2d(sfs%hfx,1,jxp,1,iy,'surfstate:hfx')
+      call getmem2d(sfs%qfx,1,jxp,1,iy,'surfstate:qfx')
+      call getmem2d(sfs%rainc,1,jxp,1,iy,'surfstate:rainc')
+      call getmem2d(sfs%rainnc,1,jxp,1,iy,'surfstate:rainnc')
+      call getmem2d(sfs%tgbb,1,jxp,1,iy,'surfstate:tgbb')
+      call getmem2d(sfs%uvdrag,0,jxp,1,iy,'surfstate:uvdrag')
     end subroutine allocate_surfstate
 !
     subroutine allocate_slice(ax,ibltyp)

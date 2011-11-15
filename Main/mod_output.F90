@@ -158,8 +158,8 @@ module mod_output
         end do
         do i = 1 , iy
           atm0(i,1+kz*6,j) = sps1%ps(j,i)
-          atm0(i,2+kz*6,j) = sfsta%rainc(i,j)
-          atm0(i,3+kz*6,j) = sfsta%rainnc(i,j)
+          atm0(i,2+kz*6,j) = sfsta%rainc(j,i)
+          atm0(i,3+kz*6,j) = sfsta%rainnc(j,i)
         end do
       end do
       do j = 1 , jendx
@@ -266,8 +266,8 @@ module mod_output
           do n = 1 , nnsg
             runoff(n,j,i) = d_zero
           end do
-          sfsta%rainc(i,j)  = d_zero
-          sfsta%rainnc(i,j) = d_zero
+          sfsta%rainc(j,i)  = d_zero
+          sfsta%rainnc(j,i) = d_zero
         end do
       end do
     end if
@@ -753,8 +753,8 @@ module mod_output
           end do
         end do
         do i = 1 , iy
-          sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
-          sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
+          sav0(i,kz*4+1,j) = sfsta%rainc(j,i)
+          sav0(i,kz*4+2,j) = sfsta%rainnc(j,i)
         end do
       end do
       do j = 1 , jendx
@@ -871,10 +871,10 @@ module mod_output
 
       do j = 1 , jendl
         do i = 1 , iy
-          sav0a(i,1,j) = sfsta%hfx(i,j)
-          sav0a(i,2,j) = sfsta%qfx(i,j)
-          sav0a(i,3,j) = sfsta%uvdrag(i,j)
-          sav0a(i,4,j) = sfsta%tgbb(i,j)
+          sav0a(i,1,j) = sfsta%hfx(j,i)
+          sav0a(i,2,j) = sfsta%qfx(j,i)
+          sav0a(i,3,j) = sfsta%uvdrag(j,i)
+          sav0a(i,4,j) = sfsta%tgbb(j,i)
         end do
       end do
       do j = 1 , jendx

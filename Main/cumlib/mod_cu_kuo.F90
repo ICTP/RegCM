@@ -280,7 +280,7 @@ module mod_cu_kuo
 !             the unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
               if ( prainx > dlowval ) then
-                rainc(i,j) = rainc(i,j) + prainx
+                rainc(j,i) = rainc(j,i) + prainx
 !               instantaneous precipitation rate for use in bats (mm/s)
                 if ( ktau == 0 ) then
                   lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtmdl

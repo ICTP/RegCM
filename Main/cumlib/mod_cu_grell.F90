@@ -356,7 +356,7 @@ module mod_cu_grell
       do j = jstart , jend
         prainx = pret(j,i)*dtmdl
         if ( prainx > dlowval ) then
-          rainc(i,j) = rainc(i,j) + prainx
+          rainc(j,i) = rainc(j,i) + prainx
 !         precipitation rate for bats (mm/s)
           if ( ktau == 0 ) then
             lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)

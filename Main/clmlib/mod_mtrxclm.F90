@@ -1052,12 +1052,12 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       jj = (jxp*myid) + j
       do i = 2 , iym1
         ci = i
-        uvdrag(i,j) = d_zero
-        hfx(i,j) = d_zero
-        qfx(i,j) = d_zero
+        uvdrag(j,i) = d_zero
+        hfx(j,i) = d_zero
+        qfx(j,i) = d_zero
         tground2(i,j) = d_zero
         tground1(i,j) = d_zero
-        tgbb(i,j) = d_zero
+        tgbb(j,i) = d_zero
 
         if ( lchem ) then
           ssw2da(j,i) = d_zero
@@ -1071,10 +1071,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         if ( landmask(jj,ci)==1 ) then
           tground2(i,j) = c2rtgb(jj,ci)
           tground1(i,j) = c2rtgb(jj,ci)
-          hfx(i,j) = c2rsenht(jj,ci)
-          qfx(i,j) = c2rlatht(jj,ci)
-          uvdrag(i,j) = c2ruvdrag(jj,ci)
-          tgbb(i,j) = c2rtgbb(jj,ci)
+          hfx(j,i) = c2rsenht(jj,ci)
+          qfx(j,i) = c2rlatht(jj,ci)
+          uvdrag(j,i) = c2ruvdrag(jj,ci)
+          tgbb(j,i) = c2rtgbb(jj,ci)
  
           if ( i<=iym1 ) then
             aldirs2d(i,j) = c2ralbdirs(jj,ci)
@@ -1094,8 +1094,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             ssw(n,j,i) = c2rsm10cm(jj,ci)
             dew2d(n,j,i) = ldew(n,j,i)
             sncv(n,j,i) = c2rsnowc(jj,ci)
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(i,j)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
+            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(j,i)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(j,i)
             srfrno(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
@@ -1127,9 +1127,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         else if ( landmask(jj,ci)==0 ) then !ocean
  
           do n = 1 , nnsg
-            uvdrag(i,j) = uvdrag(i,j) + drag(n,j,i)
-            hfx(i,j) = hfx(i,j) + sent(n,j,i)
-            qfx(i,j) = qfx(i,j) + evpr(n,j,i)
+            uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
+            hfx(j,i) = hfx(j,i) + sent(n,j,i)
+            qfx(j,i) = qfx(j,i) + evpr(n,j,i)
             tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
             tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
 
@@ -1146,11 +1146,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
             if ( iocnflx==1 .or.                                    &
                  (iocnflx==2 .and. ocld2d(n,j,i) /= 0) ) then
-              tgbb(i,j) = tgbb(i,j)                     &
+              tgbb(j,i) = tgbb(j,i)                     &
                           + ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+   &
                           lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
             else
-              tgbb(i,j) = tgbb(i,j) + tgrd(n,j,i)
+              tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
             ssw(n,j,i)  = dmissval
             rsw(n,j,i)  = dmissval
@@ -1193,9 +1193,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         !gridcell with some % land and ocean
  
           do n = 1 , nnsg
-            uvdrag(i,j) = uvdrag(i,j) + drag(n,j,i)
-            hfx(i,j) = hfx(i,j) + sent(n,j,i)
-            qfx(i,j) = qfx(i,j) + evpr(n,j,i)
+            uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
+            hfx(j,i) = hfx(j,i) + sent(n,j,i)
+            qfx(j,i) = qfx(j,i) + evpr(n,j,i)
             tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
             tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
 
@@ -1227,24 +1227,24 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
             if ( iocnflx==1 .or.                                    &
                  (iocnflx==2 .and. ocld2d(n,j,i) /= 0) ) then
-              tgbb(i,j) = tgbb(i,j) + &
+              tgbb(j,i) = tgbb(j,i) + &
                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+ &
                             lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
             else
-              tgbb(i,j) = tgbb(i,j) + tgrd(n,j,i)
+              tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
           end do
  
-          uvdrag(i,j) = uvdrag(i,j)* &
+          uvdrag(j,i) = uvdrag(j,i)* &
                         (d_one-landfrac(jj,ci))+ &
                         c2ruvdrag(jj,ci)*landfrac(jj,ci)
-          hfx(i,j) = hfx(i,j)*(d_one-landfrac(jj,ci)) + &
+          hfx(j,i) = hfx(j,i)*(d_one-landfrac(jj,ci)) + &
                            c2rsenht(jj,ci)*landfrac(jj,ci)
-          qfx(i,j) = qfx(i,j)*(d_one-landfrac(jj,ci)) + &
+          qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,ci)) + &
                            c2rlatht(jj,ci)*landfrac(jj,ci)
           tground2(i,j) = tground2(i,j)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
-          tgbb(i,j) = tgbb(i,j)* (d_one-landfrac(jj,ci)) +   &
+          tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,ci)) +   &
                             c2rtgbb(jj,ci)*landfrac(jj,ci)
           tground1(i,j) = tground1(i,j)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
@@ -1272,8 +1272,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m(n,j,i)  &
                        *(d_one-landfrac(jj,ci))
  
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(i,j)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
+            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(j,i)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(j,i)
             srfrno(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)*dtbat
           end do
@@ -1343,7 +1343,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           do n = 1 , nnsg
             if ( ocld2d(n,j,i) /= 0 ) then
               q2m_s(n,j,i-1) = real(q2d(i,j))
-              drag_s(n,j,i-1) = real(uvdrag(i,j))
+              drag_s(n,j,i-1) = real(uvdrag(j,i))
               evpa_s(n,j,i-1) = real(evpa2d(n,j,ci)*mmpd)
               sena_s(n,j,i-1) = real(sena2d(n,ci,j)*wpm2)
               tpr_s(n,j,i-1) = real((prnca2d(j,ci)+prca2d(j,ci))*mmpd)
@@ -1351,7 +1351,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(i,j))
-              drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(i,j))
+              drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(j,i))
               evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,j,ci))
               sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
             else if ( ocld2d(n,j,i) == 0 ) then

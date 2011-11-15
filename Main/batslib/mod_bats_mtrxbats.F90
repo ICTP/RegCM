@@ -363,8 +363,8 @@ module mod_bats_mtrxbats
             ! quantities stored on 2d surface array for bats use only
             !
             ldew(n,j,i) = dew2d(n,j,i)
-            sent(n,j,i) = hfx(i,j)
-            evpr(n,j,i) = qfx(i,j)
+            sent(n,j,i) = hfx(j,i)
+            evpr(n,j,i) = qfx(j,i)
             ldimsk(n,j,i) = ocld2d(n,j,i)
             lveg(n,j,i) = veg2d1(n,j,i)
             oveg(n,j,i) = lveg(n,j,i)
@@ -410,12 +410,12 @@ module mod_bats_mtrxbats
  
       do i = istart, iend
         do j = jstart, jend
-          uvdrag(i,j) = d_zero
-          hfx(i,j) = d_zero
-          qfx(i,j) = d_zero
+          uvdrag(j,i) = d_zero
+          hfx(j,i) = d_zero
+          qfx(j,i) = d_zero
           tground2(i,j) = d_zero
           tground1(i,j) = d_zero
-          tgbb(i,j) = d_zero
+          tgbb(j,i) = d_zero
           if ( lchem ) then
             ssw2da(j,i) = d_zero
             sdeltk2d(j,i) = d_zero
@@ -427,9 +427,9 @@ module mod_bats_mtrxbats
           end if
 
           do n = 1 , nnsg
-            uvdrag(i,j) = uvdrag(i,j) + drag(n,j,i)
-            hfx(i,j) = hfx(i,j) + sent(n,j,i)
-            qfx(i,j) = qfx(i,j) + evpr(n,j,i)
+            uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
+            hfx(j,i) = hfx(j,i) + sent(n,j,i)
+            qfx(j,i) = qfx(j,i) + evpr(n,j,i)
             tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
             tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
             if ( lchem ) then
@@ -445,11 +445,11 @@ module mod_bats_mtrxbats
             end if
             if ( iocnflx == 1 .or. &
                 (iocnflx == 2 .and. ldimsk(n,j,i) /= 0 ) ) then
-              tgbb(i,j) = tgbb(i,j) +                 &
+              tgbb(j,i) = tgbb(j,i) +                 &
                          ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four +  &
                          lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
             else
-              tgbb(i,j) = tgbb(i,j) + tgrd(n,j,i)
+              tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
             if ( ldimsk(n,j,i) == 0 ) then
               ssw(n,j,i)  = dmissval
@@ -460,12 +460,12 @@ module mod_bats_mtrxbats
               sncv(n,j,i)  = dmissval
             end if
           end do
-          uvdrag(i,j) = uvdrag(i,j)*rdnnsg
-          hfx(i,j) = hfx(i,j)*rdnnsg
-          qfx(i,j) = qfx(i,j)*rdnnsg
+          uvdrag(j,i) = uvdrag(j,i)*rdnnsg
+          hfx(j,i) = hfx(j,i)*rdnnsg
+          qfx(j,i) = qfx(j,i)*rdnnsg
           tground2(i,j) = tground2(i,j)*rdnnsg
           tground1(i,j) = tground1(i,j)*rdnnsg
-          tgbb(i,j) = tgbb(i,j)*rdnnsg
+          tgbb(j,i) = tgbb(j,i)*rdnnsg
 
           if ( lchem ) then
             ssw2da(j,i) = ssw2da(j,i)*rdnnsg

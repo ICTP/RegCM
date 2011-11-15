@@ -716,7 +716,7 @@ module mod_cu_bm
 !
       prainx = d_half*((sfcps(j,i)*d_1000*preck*cprlg)*d_100)
       if ( prainx > dlowval ) then
-        rainc(i,j) = rainc(i,j) + prainx
+        rainc(j,i) = rainc(j,i) + prainx
 !       precipitation rate for bats (mm/s)
         if ( ktau == 0 ) then
           lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtcum

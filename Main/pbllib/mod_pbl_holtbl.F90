@@ -255,12 +255,12 @@ module mod_pbl_holtbl
       if ( myid == nproc-1 ) jdx = min0(jdx,jend)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #endif
-      uflxsfx = uvdrag(idx,jdx)*uatm(j,i,kz)
-      vflxsfx = uvdrag(idx,jdx)*vatm(j,i,kz)
+      uflxsfx = uvdrag(jdx,idx)*uatm(j,i,kz)
+      vflxsfx = uvdrag(jdx,idx)*vatm(j,i,kz)
       ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(j,i))
       ! convert surface fluxes to kinematic units
-      xhfx(j,i) = hfx(i,j)/(cpd*rhox2d(j,i))
-      xqfx(j,i) = qfx(i,j)/rhox2d(j,i)
+      xhfx(j,i) = hfx(j,i)/(cpd*rhox2d(j,i))
+      xqfx(j,i) = qfx(j,i)/rhox2d(j,i)
       ! compute virtual heat flux at surface
       hfxv(j,i) = xhfx(j,i) + mult*thxatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
@@ -505,15 +505,15 @@ module mod_pbl_holtbl
       idxm1 = i - 1
       idxm1 = max0(idxm1,2)
 #ifdef BAND
-      drgdot = (uvdrag(idxm1,jm1)+uvdrag(idxm1,j) + &
-                uvdrag(idx,jm1)  +uvdrag(idx,j))*d_rfour
+      drgdot = (uvdrag(jm1,idxm1)+uvdrag(j,idxm1) + &
+                uvdrag(jm1,idx)  +uvdrag(j,idx))*d_rfour
 #else
       jdx = j
       jdxm1 = j - 1
       if ( myid == nproc-1 ) jdx = min0(jdx,jend)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
-      drgdot = (uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)+  &
-                uvdrag(idx,jdxm1)+uvdrag(idx,jdx))*d_rfour
+      drgdot = (uvdrag(jdxm1,idxm1)+uvdrag(jdx,idxm1)+  &
+                uvdrag(jdxm1,idx)+uvdrag(jdx,idx))*d_rfour
 #endif
       uflxsf = drgdot*udatm(j,i,kz)
       vflxsf = drgdot*vdatm(j,i,kz)
@@ -610,7 +610,7 @@ module mod_pbl_holtbl
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (thxatm(j,i,kz) + dtpbl*alphak(j,i,kz)*hfx(i,j)*rcpd + &
+      coeff1(j,i,kz) = (thxatm(j,i,kz) + dtpbl*alphak(j,i,kz)*hfx(j,i)*rcpd + &
                        coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -686,7 +686,7 @@ module mod_pbl_holtbl
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (qvatm(j,i,kz) + &
-               dtpbl*alphak(j,i,kz)*qfx(i,j) + &
+               dtpbl*alphak(j,i,kz)*qfx(j,i) + &
                coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do

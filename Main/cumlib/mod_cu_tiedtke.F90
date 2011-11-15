@@ -154,7 +154,7 @@ module mod_cu_tiedtke
 !     The simpler switch on pressure difference still used in ECMWF 
 !     is commented out - possibly tests should be made to reinstate 
 !     the ECMWF version of this - this array will then be obsolete 
-        xphfx(ii) = qfx(i,j)
+        xphfx(ii) = qfx(j,i)
         ! Land/water flag - is correctly set?
         ldland(ii) = (lmask(j,i) == 0)
       end do
@@ -223,7 +223,7 @@ module mod_cu_tiedtke
           if ( paprc(ii)+paprs(ii) > dlowval ) then
             total_precip_points = total_precip_points + 1
             ! total precip cumulative 
-            rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
+            rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
             if ( ktau == 0 ) then
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
             else

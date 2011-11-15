@@ -338,7 +338,7 @@ module mod_precip
       do i = istart , iend
         prainx = pptsum(j,i)*uconv
         if ( prainx > dlowval ) then
-          rainnc(i,j) = rainnc(i,j) + prainx
+          rainnc(j,i) = rainnc(j,i) + prainx
           lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
         end if
       end do

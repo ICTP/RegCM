@@ -137,7 +137,7 @@ module mod_cu_em
           ! Precipitation
           prainx = pret*dtmdl
           if ( prainx > dlowval ) then
-            rainc(i,j)  = rainc(i,j)  + prainx  ! mm
+            rainc(j,i)  = rainc(j,i)  + prainx  ! mm
             if ( ktau == 0 ) then
               lmpcpc(j,i) = lmpcpc(j,i) + pret
             else

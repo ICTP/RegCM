@@ -351,7 +351,7 @@ module mod_init
       do i = 1 , iym1
         sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(j,i)
         sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(j,i)
-        sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(j,i)
+        sfsta%tgbb(j,i) = atm2%t(i,kz,j)/sps2%ps(j,i)
       end do
     end do
     if ( ichem == 1 ) then
@@ -581,8 +581,8 @@ module mod_init
         end do
       end do
       do i = 1 , iy
-        sfsta%rainc(i,j)  = sav0(i,kz*4+1,j)
-        sfsta%rainnc(i,j) = sav0(i,kz*4+2,j)
+        sfsta%rainc(j,i)  = sav0(i,kz*4+1,j)
+        sfsta%rainnc(j,i) = sav0(i,kz*4+2,j)
       end do
     end do
     do j = 1 , jendx
@@ -680,10 +680,10 @@ module mod_init
                      0,mycomm,ierr)
     do j = 1 , jendl
       do i = 1 , iy
-        sfsta%hfx(i,j)    = sav0a(i,1,j)
-        sfsta%qfx(i,j)    = sav0a(i,2,j)
-        sfsta%uvdrag(i,j) = sav0a(i,3,j)
-        sfsta%tgbb(i,j)   = sav0a(i,4,j)
+        sfsta%hfx(j,i)    = sav0a(i,1,j)
+        sfsta%qfx(j,i)    = sav0a(i,2,j)
+        sfsta%uvdrag(j,i) = sav0a(i,3,j)
+        sfsta%tgbb(j,i)   = sav0a(i,4,j)
       end do
     end do
     do j = 1 , jendx

@@ -57,8 +57,8 @@ module mod_tendency
   real(8) , pointer , dimension(:,:) :: qvcs
   real(8) , pointer , dimension(:,:,:) :: wrkkuo1
   real(8) , pointer , dimension(:,:,:) :: wrkkuo2
-  real(8) , pointer , dimension(:) :: pstrans1
-  real(8) , pointer , dimension(:) :: pstrans2
+  real(8) , pointer , dimension(:) :: trans1
+  real(8) , pointer , dimension(:) :: trans2
 
   integer(8) , parameter :: irep = 50
 
@@ -97,8 +97,8 @@ module mod_tendency
     call getmem2d(var2rcv,1,iy,1,n2,'tendency:var2rcv')
     call getmem2d(var2snd,1,iy,1,n2,'tendency:var2snd')
     call getmem2d(qvcs,1,iy,1,kz,'tendency:qvcs')
-    call getmem1d(pstrans1,1,iy,'tendency:pstrans1')
-    call getmem1d(pstrans2,1,iy,'tendency:pstrans2')
+    call getmem1d(trans1,1,iy,'tendency:trans1')
+    call getmem1d(trans2,1,iy,'tendency:trans2')
     if ( icup == 1 ) then
       call getmem3d(wrkkuo1,1,iy,0,jxp+1,1,kz,'tendency:wrkkuo1')
       call getmem3d(wrkkuo2,1,iy,0,jxp+1,1,kz,'tendency:wrkkuo2')
@@ -193,22 +193,22 @@ module mod_tendency
       end do
     end do
     if ( ieast /= mpi_proc_null ) then
-      pstrans1 = sps1%ps(jxp,:)
+      trans1 = sps1%ps(jxp,:)
     end if
-    call mpi_sendrecv(pstrans1,iy,mpi_real8,ieast,1, &
-                      pstrans2,iy,mpi_real8,iwest,1, &
+    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                      trans2,iy,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
     if ( iwest /= mpi_proc_null ) then
-      sps1%ps(0,:) = pstrans2
+      sps1%ps(0,:) = trans2
     end if
     if ( iwest /= mpi_proc_null ) then
-      pstrans1 = sps1%ps(1,:)
+      trans1 = sps1%ps(1,:)
     end if
-    call mpi_sendrecv(pstrans1,iy,mpi_real8,iwest,2, &
-                      pstrans2,iy,mpi_real8,ieast,2, &
+    call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
+                      trans2,iy,mpi_real8,ieast,2, &
                       mycomm,mpi_status_ignore,ierr)
     if ( ieast /= mpi_proc_null ) then
-      sps1%ps(jxp+1,:) = pstrans2
+      sps1%ps(jxp+1,:) = trans2
     end if
 !
 !   decouple u, v, t, qv, and qc
@@ -1598,9 +1598,15 @@ module mod_tendency
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! exchange internal ghost points
-      call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
-                        sfsta%uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
+      if ( ieast /= mpi_proc_null ) then
+        trans1 = sfsta%uvdrag(jxp,:)
+      end if
+      call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1,  &
+                        trans2,iy,mpi_real8,iwest,1,  &
                         mycomm,mpi_status_ignore,ierr)
+      if ( iwest /= mpi_proc_null ) then
+        sfsta%uvdrag(0,:) = trans2
+      end if
       ! Call the Holtslag PBL
       call holtbl(jbegin,jendx,2,iym1)
     end if

@@ -519,9 +519,11 @@ module mod_diagnosis
 !
 !   total raifall at this time:
 !
-    call mpi_gather(sfsta%rainc,iy*jxp,mpi_real8,rainc_io,iy*jxp,mpi_real8,   &
+    swapv = transpose(sfsta%rainc)
+    call mpi_gather(swapv,iy*jxp,mpi_real8,rainc_io,iy*jxp,mpi_real8,   &
                     0,mycomm,ierr)
-    call mpi_gather(sfsta%rainnc,iy*jxp,mpi_real8,rainnc_io,iy*jxp,mpi_real8, &
+    swapv = transpose(sfsta%rainnc)
+    call mpi_gather(swapv,iy*jxp,mpi_real8,rainnc_io,iy*jxp,mpi_real8, &
                     0,mycomm,ierr)
     if ( myid == 0 ) then
       tcrai = d_zero
@@ -997,7 +999,8 @@ module mod_diagnosis
     integer :: ierr
     integer :: i , j
 !
-    call mpi_gather(sfsta%qfx,iy*jxp,mpi_real8,  &
+    swapv = transpose(sfsta%qfx)
+    call mpi_gather(swapv,iy*jxp,mpi_real8,  &
                     qfx_io,   iy*jxp,mpi_real8,  &
                     0,mycomm,ierr)
     if ( myid == 0 ) then
