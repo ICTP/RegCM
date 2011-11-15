@@ -236,7 +236,7 @@ module mod_pbl_uwtcm
 
         ! Copy in local versions of necessary variables
         psbx = sfcps(j,i)
-        tgbx = tg(i,j)
+        tgbx = tg(j,i)
         qfxx = qfx(j,i)
         hfxx = hfx(j,i)
         uvdragx = uvdrag(j,i)

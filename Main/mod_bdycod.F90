@@ -504,18 +504,18 @@ module mod_bdycod
         do i = 1 , iym1
           if ( iswater(mddom%lndcat(i,j)) ) then
             if (idcsst == 1) then
-              sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-              sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
+              sts1%tg(j,i) = tdum(i,j) + dtskin(i,j)
+              sts2%tg(j,i) = tdum(i,j) + dtskin(i,j)
             else
-              sts1%tg(i,j) = tdum(i,j)
-              sts2%tg(i,j) = tdum(i,j)
+              sts1%tg(j,i) = tdum(i,j)
+              sts2%tg(j,i) = tdum(i,j)
             end if
             if ( iseaice == 1 ) then
               if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
 !
               if ( tdum(i,j) <= icetemp ) then
-                sts1%tg(i,j) = icetemp
-                sts2%tg(i,j) = icetemp
+                sts1%tg(j,i) = icetemp
+                sts2%tg(j,i) = icetemp
                 tdum(i,j) = icetemp
                 ldmsk(j,i) = 2
                 do n = 1, nnsg
@@ -524,8 +524,8 @@ module mod_bdycod
                   sncv(n,j,i) = d_zero
                 end do
               else
-                sts1%tg(i,j) = tdum(i,j)
-                sts2%tg(i,j) = tdum(i,j)
+                sts1%tg(j,i) = tdum(i,j)
+                sts2%tg(j,i) = tdum(i,j)
                 ldmsk(j,i) = 0
                 do n = 1, nnsg
                   ocld2d(n,j,i) = 0

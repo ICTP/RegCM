@@ -720,8 +720,8 @@ module mod_output
           end do
         end do
         do i = 1 , iy
-          sav0(i,kz*4+1,j) = sts1%tg(i,j)
-          sav0(i,kz*4+2,j) = sts2%tg(i,j)
+          sav0(i,kz*4+1,j) = sts1%tg(j,i)
+          sav0(i,kz*4+2,j) = sts2%tg(j,i)
         end do
       end do
       allrec = kz*4 + 2

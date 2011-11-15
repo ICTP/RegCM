@@ -699,9 +699,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       do i = 1 , iym1
         do n = 1 , nnsg
           ocld2d(n,j,i) = landmask(jj,i)
-          tgbrd(n,j,i) = tground2(i,j)
-          taf(n,j,i) = tground2(i,j)
-          tlef(n,j,i) = tground2(i,j)
+          tgbrd(n,j,i) = tground2(j,i)
+          taf(n,j,i) = tground2(j,i)
+          tlef(n,j,i) = tground2(j,i)
           dew2d(n,j,i) = d_zero
           snag(n,j,i) = d_zero
           sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
@@ -1055,8 +1055,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         uvdrag(j,i) = d_zero
         hfx(j,i) = d_zero
         qfx(j,i) = d_zero
-        tground2(i,j) = d_zero
-        tground1(i,j) = d_zero
+        tground2(j,i) = d_zero
+        tground1(j,i) = d_zero
         tgbb(j,i) = d_zero
 
         if ( lchem ) then
@@ -1069,8 +1069,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         end if
 
         if ( landmask(jj,ci)==1 ) then
-          tground2(i,j) = c2rtgb(jj,ci)
-          tground1(i,j) = c2rtgb(jj,ci)
+          tground2(j,i) = c2rtgb(jj,ci)
+          tground1(j,i) = c2rtgb(jj,ci)
           hfx(j,i) = c2rsenht(jj,ci)
           qfx(j,i) = c2rlatht(jj,ci)
           uvdrag(j,i) = c2ruvdrag(jj,ci)
@@ -1130,8 +1130,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
             hfx(j,i) = hfx(j,i) + sent(n,j,i)
             qfx(j,i) = qfx(j,i) + evpr(n,j,i)
-            tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
-            tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
+            tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
+            tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
 
             if ( lchem  ) then
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
@@ -1196,8 +1196,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
             hfx(j,i) = hfx(j,i) + sent(n,j,i)
             qfx(j,i) = qfx(j,i) + evpr(n,j,i)
-            tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
-            tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
+            tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
+            tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
 
             if ( lchem ) then
               ssw2da(j,i) = ssw2da(j,i) + ssw2d(n,i,j)
@@ -1242,11 +1242,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
                            c2rsenht(jj,ci)*landfrac(jj,ci)
           qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,ci)) + &
                            c2rlatht(jj,ci)*landfrac(jj,ci)
-          tground2(i,j) = tground2(i,j)*(d_one-landfrac(jj,ci)) +     &
+          tground2(j,i) = tground2(j,i)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
           tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,ci)) +   &
                             c2rtgbb(jj,ci)*landfrac(jj,ci)
-          tground1(i,j) = tground1(i,j)*(d_one-landfrac(jj,ci)) +     &
+          tground1(j,i) = tground1(j,i)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
  
           do n = 1 , nnsg

@@ -215,7 +215,7 @@ module mod_atm_interface
     subroutine allocate_surftstate(sts)
       implicit none
       type(surftstate) , intent(out) :: sts
-      call getmem2d(sts%tg,1,iy,1,jxp+1,'surftstate:tg')
+      call getmem2d(sts%tg,1,jxp+1,1,iy,'surftstate:tg')
     end subroutine allocate_surftstate
 !
     subroutine allocate_domain(dom,lpar)

@@ -98,7 +98,7 @@ module mod_bats_zengocn
           if ( ocld2d(n,j,i) == 0 ) then
 #endif
             uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
-            tsurf = tground2(i,j) - tzero
+            tsurf = tground2(j,i) - tzero
             t995 = tatm(j,i,kz) - tzero
             q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
             z995 = hgt(j,i,kz)
@@ -113,7 +113,7 @@ module mod_bats_zengocn
               ! handle the first call of the scheme
               if ( .not.firstcall(i,j) ) then
                 deltas(i,j) = 0.001D0
-                tdeltas(i,j) = tground2(i,j) - 0.001D0
+                tdeltas(i,j) = tground2(j,i) - 0.001D0
                 firstcall(i,j) = .true.
                 td = tdeltas(i,j)
               end if
@@ -192,11 +192,11 @@ module mod_bats_zengocn
               tdeltas(i,j) = tdelta
               dtskin(i,j) = tskin-td
               ! now feedback tskin in surface variable
-              tground2(i,j) = tskin
+              tground2(j,i) = tskin
             end if ! dcsst
 
-            tgrd(n,j,i) = tground2(i,j)
-            tgbrd(n,j,i) = tground2(i,j)
+            tgrd(n,j,i) = tground2(j,i)
+            tgbrd(n,j,i) = tground2(j,i)
             sent(n,j,i) = sh
             evpr(n,j,i) = lh/wlhv
             ! Back out Drag Coefficient
@@ -209,7 +209,7 @@ module mod_bats_zengocn
             !
             if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)
-              tgbrd(n,j,i) = tground2(i,j)
+              tgbrd(n,j,i) = tground2(j,i)
             end if
           end if
         end do

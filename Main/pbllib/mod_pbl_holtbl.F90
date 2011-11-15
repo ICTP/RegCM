@@ -275,7 +275,7 @@ module mod_pbl_holtbl
   !
   do i = istart , iend
     do j = jstart , jend
-!     th10(j,i) = ((thxatm(j,i,kz)+tg(i,j))*d_half)*(d_one+mult*sh10)
+!     th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
 !     th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
 !                 dlog(za(j,i,kz)*d_r10)
       sh10 = qvatm(j,i,kz)/(qvatm(j,i,kz)+d_one)
@@ -284,8 +284,8 @@ module mod_pbl_holtbl
         th10(j,i) = thvx(j,i,kz)
       else
         ! first approximation for obhukov length
-        ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(i,j))*(d_one+mult*sh10)
-        oblen = -d_half*(thxatm(j,i,kz)+tg(i,j)) *  &
+        ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(j,i))*(d_one+mult*sh10)
+        oblen = -d_half*(thxatm(j,i,kz)+tg(j,i)) *  &
                 (d_one+mult*sh10)*ustr(j,i)**d_three /  &
                 (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
         if ( oblen >= za(j,i,kz) ) then
@@ -299,8 +299,8 @@ module mod_pbl_holtbl
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
                       6.0D0*dlog(za(j,i,kz)*d_r10)
         end if
-        th10(j,i) = dmax1(th10(j,i),tg(i,j))
-!gtb    th10(j,i) = dmin1(th10(j,i),tg(i,j))  ! gtb add to minimize
+        th10(j,i) = dmax1(th10(j,i),tg(j,i))
+!gtb    th10(j,i) = dmin1(th10(j,i),tg(j,i))  ! gtb add to minimize
       end if
       ! obklen compute obukhov length
       obklen(j,i) = -th10(j,i)*ustr(j,i)**d_three / &

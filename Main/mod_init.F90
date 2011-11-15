@@ -285,8 +285,8 @@ module mod_init
       do i = 1 , iy
         sps1%ps(j,i) = xpsb%b0(i,j)
         sps2%ps(j,i) = xpsb%b0(i,j)
-        sts1%tg(i,j) = ts0(i,j)
-        sts2%tg(i,j) = ts0(i,j)
+        sts1%tg(j,i) = ts0(i,j)
+        sts2%tg(j,i) = ts0(i,j)
       end do
     end do
     if ( iseaice == 1 ) then
@@ -294,8 +294,8 @@ module mod_init
         do i = 1 , iym1
           if ( isocean(mddom%lndcat(i,j)) ) then
             if ( ts0(i,j) <= icetemp ) then
-              sts1%tg(i,j) = icetemp
-              sts2%tg(i,j) = icetemp
+              sts1%tg(j,i) = icetemp
+              sts2%tg(j,i) = icetemp
               ts0(i,j) = icetemp
               ldmsk(i,j) = 2
               do n = 1, nnsg
@@ -312,8 +312,8 @@ module mod_init
         do i = 1 , iym1
           if ( islake(mddom%lndcat(i,j)) ) then
             if ( ts0(i,j) <= icetemp ) then
-              sts1%tg(i,j) = icetemp
-              sts2%tg(i,j) = icetemp
+              sts1%tg(j,i) = icetemp
+              sts2%tg(j,i) = icetemp
               ts0(i,j) = icetemp
               ldmsk(i,j) = 2
               do n = 1, nnsg
@@ -349,8 +349,8 @@ module mod_init
 !
     do j = 1 , jendx
       do i = 1 , iym1
-        sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(j,i)
-        sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(j,i)
+        sts1%tg(j,i) = atm1%t(i,kz,j)/sps1%ps(j,i)
+        sts2%tg(j,i) = atm2%t(i,kz,j)/sps2%ps(j,i)
         sfsta%tgbb(j,i) = atm2%t(i,kz,j)/sps2%ps(j,i)
       end do
     end do
@@ -539,8 +539,8 @@ module mod_init
         end do
       end do
       do i = 1 , iy
-        sts1%tg(i,j) = sav0(i,kz*4+1,j)
-        sts2%tg(i,j) = sav0(i,kz*4+2,j)
+        sts1%tg(j,i) = sav0(i,kz*4+1,j)
+        sts2%tg(j,i) = sav0(i,kz*4+2,j)
       end do
     end do
     if ( myid == 0 ) then

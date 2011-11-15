@@ -201,7 +201,7 @@
             tsurf(i) = ttb(i,kz) - csdeltk2d(j,i)
           else
 !           ocean temperature in this case
-            tsurf(i) = ctg(i,j)
+            tsurf(i) = ctg(j,i)
           end if
  
 !        aborbed solar radiation (for stb criteria used to calculate

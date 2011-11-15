@@ -252,10 +252,10 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          tgrd(n,j,i) = tground2(i,j)
-          tgbrd(n,j,i) = tground2(i,j)
-          taf(n,j,i) = tground2(i,j)
-          tlef(n,j,i) = tground2(i,j)
+          tgrd(n,j,i) = tground2(j,i)
+          tgbrd(n,j,i) = tground2(j,i)
+          taf(n,j,i) = tground2(j,i)
+          tlef(n,j,i) = tground2(j,i)
 
           if ( ocld2d(n,j,i) == 2 ) then
             if ( lseaice .or. llake ) then
@@ -413,8 +413,8 @@ module mod_bats_mtrxbats
           uvdrag(j,i) = d_zero
           hfx(j,i) = d_zero
           qfx(j,i) = d_zero
-          tground2(i,j) = d_zero
-          tground1(i,j) = d_zero
+          tground2(j,i) = d_zero
+          tground1(j,i) = d_zero
           tgbb(j,i) = d_zero
           if ( lchem ) then
             ssw2da(j,i) = d_zero
@@ -430,8 +430,8 @@ module mod_bats_mtrxbats
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
             hfx(j,i) = hfx(j,i) + sent(n,j,i)
             qfx(j,i) = qfx(j,i) + evpr(n,j,i)
-            tground2(i,j) = tground2(i,j) + tgrd(n,j,i)
-            tground1(i,j) = tground1(i,j) + tgrd(n,j,i)
+            tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
+            tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
             if ( lchem ) then
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
@@ -463,8 +463,8 @@ module mod_bats_mtrxbats
           uvdrag(j,i) = uvdrag(j,i)*rdnnsg
           hfx(j,i) = hfx(j,i)*rdnnsg
           qfx(j,i) = qfx(j,i)*rdnnsg
-          tground2(i,j) = tground2(i,j)*rdnnsg
-          tground1(i,j) = tground1(i,j)*rdnnsg
+          tground2(j,i) = tground2(j,i)*rdnnsg
+          tground1(j,i) = tground1(j,i)*rdnnsg
           tgbb(j,i) = tgbb(j,i)*rdnnsg
 
           if ( lchem ) then
