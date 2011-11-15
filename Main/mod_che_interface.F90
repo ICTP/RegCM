@@ -38,7 +38,7 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(idirect,dt,chemfrq,dtrad,calday,dsigma,atms,sps1, &
+  subroutine init_chem(idirect,dt,chemfrq,dtrad,calday,dsigma,atms,&
                        sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,&
                        ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
     implicit none
@@ -50,7 +50,7 @@ module mod_che_interface
     real(dp), pointer, dimension(:,:) :: rembc,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
     real(dp), pointer, dimension(:,:,:) :: cldfra
     integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
-    type(surfpstate) , intent(in) :: sps1 , sps2
+    type(surfpstate) , intent(in) :: sps2
     type(slice) , intent(in) :: atms
     type(domain), intent(in):: mddom
     type(surftstate), intent(in) :: sts2
@@ -73,7 +73,6 @@ module mod_che_interface
     call assignpnt(dsigma,cdsigma)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
-!    call assignpnt(sps1%ps,psfcp)
     call assignpnt(sps2%ps,cpsb)
     call assignpnt(atms%tb3d,ctb3d)
     call assignpnt(atms%qvb3d,cqvb3d)

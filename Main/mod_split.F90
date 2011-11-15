@@ -49,6 +49,7 @@ module mod_split
   real(8) , pointer , dimension(:,:) :: psdot
   real(8) , pointer , dimension(:,:,:) :: work
   real(8) , pointer , dimension(:,:) :: uu , vv
+  real(8) , pointer , dimension(:) :: pstrans1 , pstrans2
 !
   contains 
 !
@@ -59,6 +60,8 @@ module mod_split
 !
     call time_begin(subroutine_name,idindx)
     call getmem1d(aam,1,nsplit,'split:aam')
+    call getmem1d(pstrans1,1,iy,'split:pstrans1')
+    call getmem1d(pstrans2,1,iy,'split:pstrans2')
     call getmem2d(am,1,kz,1,nsplit,'split:am')
     call getmem1d(an,1,nsplit,'split:naam')
     call getmem3d(ddsum,1,iy,1,jxp,1,nsplit,'split:ddsum')
@@ -121,14 +124,14 @@ module mod_split
     ijlx = iym1*jendx
     do j = 1 , jendx
       do i = 1 , iym1
-        xps = xps + sps1%ps(i,j)/ijlx
+        xps = xps + sps1%ps(j,i)/ijlx
       end do
     end do
 
     do k = 1 , kz
       do j = 1 , jendx
         do i = 1 , iym1
-          tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(sps1%ps(i,j)*ijlx)
+          tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(sps1%ps(j,i)*ijlx)
         end do
       end do
     end do
@@ -369,7 +372,7 @@ module mod_split
         eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
-            eps = eps1*(sps2%ps(i,j)-pd)
+            eps = eps1*(sps2%ps(j,i)-pd)
             hstor(i,j,l) = pdlog + eps
           end do
         end do
@@ -379,9 +382,9 @@ module mod_split
           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
           do j = 1 , jendx
             do i = 1 , iym1
-              eps = eps1*(sps2%ps(i,j)-pd)
+              eps = eps1*(sps2%ps(j,i)-pd)
               hstor(i,j,l) = hstor(i,j,l) + pdlog + &
-                          tau(l,k)*atm2%t(i,k,j)/sps2%ps(i,j) + eps
+                          tau(l,k)*atm2%t(i,k,j)/sps2%ps(j,i) + eps
             end do
           end do
         end do
@@ -433,40 +436,46 @@ module mod_split
 !   on the x-grid, a p(x) point outside the grid domain is assumed to
 !   satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the i's.
 !
-    call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
-                    & sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
-                    & mycomm,mpi_status_ignore,ierr)
+    if ( ieast /= mpi_proc_null ) then
+      pstrans1 = sps1%ps(jxp,:)
+    end if
+    call mpi_sendrecv(pstrans1,iy,mpi_real8,ieast,1,      &
+                      pstrans2,iy,mpi_real8,iwest,1,        &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      sps1%ps(0,:) = pstrans2
+    end if
     do j = jbegin , jendx
       jm1 = j-1
       do i = 2 , iym1
-        psdot(i,j)=(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
-                    sps1%ps(i,jm1)+sps1%ps(i-1,jm1))*d_rfour
+        psdot(i,j)=(sps1%ps(j,i)+sps1%ps(j,i-1)+ &
+                    sps1%ps(jm1,i)+sps1%ps(jm1,i-1))*d_rfour
       end do
     end do
 !
 #ifndef BAND
     do i = 2 , iym1
       if ( myid == 0 ) & 
-        psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
+        psdot(i,1) = (sps1%ps(1,i)+sps1%ps(1,i-1))*d_half
       if ( myid == nproc-1 ) &
-        psdot(i,jendl) = (sps1%ps(i,jendx)+sps1%ps(i-1,jendx))*d_half
+        psdot(i,jendl) = (sps1%ps(jendx,i)+sps1%ps(jendx,i-1))*d_half
     end do
 #endif
 !
     do j = jbegin , jendx
       jm1 = j-1
-      psdot(1,j) = (sps1%ps(1,j)+sps1%ps(1,jm1))*d_half
-      psdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,jm1))*d_half
+      psdot(1,j) = (sps1%ps(j,1)+sps1%ps(jm1,1))*d_half
+      psdot(iy,j) = (sps1%ps(j,iym1)+sps1%ps(jm1,iym1))*d_half
     end do
 !
 #ifndef BAND
     if ( myid == 0 ) then
       psdot(1,1) = sps1%ps(1,1)
-      psdot(iy,1) = sps1%ps(iym1,1)
+      psdot(iy,1) = sps1%ps(1,iym1)
     end if
     if ( myid == nproc-1 ) then
-      psdot(1,jendl) = sps1%ps(1,jendx)
-      psdot(iy,jendl) = sps1%ps(iym1,jendx)
+      psdot(1,jendl) = sps1%ps(jendx,1)
+      psdot(iy,jendl) = sps1%ps(jendx,iym1)
     end if
 #endif
 !
@@ -589,7 +598,7 @@ module mod_split
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do j = 1 , jendx
         do i = 1 , iym1
-          eps = eps1*(sps1%ps(i,j)-pd)
+          eps = eps1*(sps1%ps(j,i)-pd)
           delh(i,j,l,3) = pdlog + eps
         end do
       end do
@@ -598,9 +607,9 @@ module mod_split
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
-            eps = eps1*(sps1%ps(i,j)-pd)
+            eps = eps1*(sps1%ps(j,i)-pd)
             delh(i,j,l,3) = delh(i,j,l,3) + pdlog +  &
-                    tau(l,k)*atm1%t(i,k,j)/sps1%ps(i,j) + eps
+                    tau(l,k)*atm1%t(i,k,j)/sps1%ps(j,i) + eps
           end do
         end do
       end do
@@ -625,7 +634,7 @@ module mod_split
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do j = 1 , jendx
         do i = 1 , iym1
-          eps = eps1*(sps2%ps(i,j)-pd)
+          eps = eps1*(sps2%ps(j,i)-pd)
           delh(i,j,l,2) = pdlog + eps
         end do
       end do
@@ -634,9 +643,9 @@ module mod_split
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
-            eps = eps1*(sps2%ps(i,j)-pd)
+            eps = eps1*(sps2%ps(j,i)-pd)
             delh(i,j,l,2) = delh(i,j,l,2) + pdlog +  &
-                     tau(l,k)*atm2%t(i,k,j)/sps2%ps(i,j) + eps
+                     tau(l,k)*atm2%t(i,k,j)/sps2%ps(j,i) + eps
           end do
         end do
       end do
@@ -674,8 +683,8 @@ module mod_split
       gnuan = gnuhf*an(l)
       do j = jbegin , jendm
         do i = 2 , iym2
-          sps1%ps(i,j) = sps1%ps(i,j) - an(l)*ddsum(i,j,l)
-          sps2%ps(i,j) = sps2%ps(i,j) - gnuan*ddsum(i,j,l)
+          sps1%ps(j,i) = sps1%ps(j,i) - an(l)*ddsum(i,j,l)
+          sps2%ps(j,i) = sps2%ps(j,i) - gnuan*ddsum(i,j,l)
         end do
       end do
     end do
@@ -856,7 +865,7 @@ module mod_split
           deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                           & + deld(i,j,ns,3)/m2
           delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)  &
-                          & *deld(i,j,ns,n0)/sps1%ps(i,j) +      &
+                          & *deld(i,j,ns,n0)/sps1%ps(j,i) +      &
                              delh(i,j,ns,3)/m2
         end do
       end do
@@ -958,7 +967,7 @@ module mod_split
             deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                             & + deld(i,j,ns,3)/aam(ns)
             delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
-                            & *deld(i,j,ns,n1)/sps1%ps(i,j)           &
+                            & *deld(i,j,ns,n1)/sps1%ps(j,i)           &
                             & + delh(i,j,ns,3)/aam(ns)
           end do
         end do

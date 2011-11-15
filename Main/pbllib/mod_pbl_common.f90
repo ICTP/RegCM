@@ -30,10 +30,10 @@ module mod_pbl_common
 
   public :: tcm_state
 
-  real(dp) , pointer , dimension(:,:) :: zq
-  real(dp) , pointer ,  dimension(:,:) :: rhox2d
-  real(dp) , pointer , dimension(:,:,:) :: dzq , thvx
+  real(dp) , pointer , dimension(:,:,:) :: zq
   real(dp) , pointer , dimension(:,:,:) :: za
+  real(dp) , pointer , dimension(:,:,:) :: dzq
+  real(dp) , pointer ,  dimension(:,:) :: rhox2d
 !
   public :: kpbl , zpbl
   integer , pointer , dimension(:,:) :: kpbl
@@ -142,30 +142,25 @@ module mod_pbl_common
     type(tcm_state) , intent(out) :: tcmstate
     logical , intent(in) :: lpar
     if ( lpar ) then
-      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jxp,'pbl_common:tkeps')
+      call getmem3d(tcmstate%tkeps,1,jxp,1,iy,1,kzp1,'pbl_common:tkeps')
       call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jxp,'pbl_common:advtke')
-      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jxp,'pbl_common:kzm')
-      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jxp,'pbl_common:kth')
-      call getmem2d(tcmstate%zpbl,1,iy,1,jxp,'pbl_common:zpbl')
-      call getmem2d(tcmstate%srftke,1,iy,1,jxp,'pbl_common:srftke')
+      call getmem3d(tcmstate%kzm,1,jxp,1,iy,1,kzp1,'pbl_common:kzm')
+      call getmem3d(tcmstate%kth,1,jxp,1,iy,1,kzp1,'pbl_common:kth')
+      call getmem2d(tcmstate%zpbl,1,jxp,1,iy,'pbl_common:zpbl')
+      call getmem2d(tcmstate%srftke,1,jxp,1,iy,'pbl_common:srftke')
     else
-      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jx,'pbl_common:tkeps')
-      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jx,'pbl_common:advtke')
       call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jx,'pbl_common:kzm')
       call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jx,'pbl_common:kth')
-      call getmem2d(tcmstate%zpbl,1,iy,1,jx,'pbl_common:zpbl')
-      call getmem2d(tcmstate%srftke,1,iy,1,jx,'pbl_common:srftke')
     end if
   end subroutine allocate_tcm_state
 
   subroutine allocate_mod_pbl_common(ibltyp)
     implicit none
     integer , intent(in) :: ibltyp
-    call getmem2d(zq,1,iy,1,kzp1,'pbl_common:zq')
-    call getmem3d(dzq,1,iy,1,kz,1,jxp,'pbl_common:dzq')
-    call getmem3d(thvx,1,iy,1,kz,1,jxp,'pbl_common:thvx')
-    call getmem3d(za,1,iy,1,kz,1,jxp,'pbl_common:za')
-    call getmem2d(rhox2d,1,iy,1,jxp,'pbl_common:rhox2d')
+    call getmem3d(zq,1,jxp,1,iy,1,kzp1,'pbl_common:zq')
+    call getmem3d(za,1,jxp,1,iy,1,kz,'pbl_common:za')
+    call getmem3d(dzq,1,jxp,1,iy,1,kz,'pbl_common:dzq')
+    call getmem2d(rhox2d,1,jxp,1,iy,'pbl_common:rhox2d')
     call getmem2d(kpbl,1,jxp,1,iy,'pbl_common:kpbl')
     call getmem2d(zpbl,1,jxp,1,iy,'pbl_common:zpbl')
     !

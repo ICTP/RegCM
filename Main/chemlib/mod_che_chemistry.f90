@@ -257,14 +257,14 @@ module mod_che_chemistry
       do k = 1 , kz
         do i = 2 , iym2
           taa(i,k) = ctb3d(j,i,k)
-          psaa(i,k)= (cpsb(i,j)*hlev(k)+chptop)
+          psaa(i,k)= (cpsb(j,i)*hlev(k)+chptop)
         end do
       end do 
 
       do k = 1 , kz
         do i = 2 , iym2
           cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
-          cfactor = cfactor/cpsb(i,j)
+          cfactor = cfactor/cpsb(j,i)
           zena(i) = dacos(czen(j,i)*degrad)
           chemin(i,k,j,ind_H2O)  = cqvb3d(j,i,k)*cfactor
           chemin(i,k,j,ind_O3)   = chib(i,k,j,io3)*cfactor*amd/W_O3
@@ -303,7 +303,7 @@ module mod_che_chemistry
       do k = 1 , kz
         do i = 2 , iym2
           cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
-          pfact = cpsb(i,j)/(cfactor*amd)
+          pfact = cpsb(j,i)/(cfactor*amd)
           ! pfact to convert chemox to kg/kg
           chia(i,k,j,io3)    = chemox(i,k,j,ind_O3)*pfact*W_O3
           chia(i,k,j,ino2)   = chemox(i,k,j,ind_NO2)*pfact*W_NO2

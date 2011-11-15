@@ -157,7 +157,7 @@ module mod_output
           end do
         end do
         do i = 1 , iy
-          atm0(i,1+kz*6,j) = sps1%ps(i,j)
+          atm0(i,1+kz*6,j) = sps1%ps(j,i)
           atm0(i,2+kz*6,j) = sfsta%rainc(i,j)
           atm0(i,3+kz*6,j) = sfsta%rainnc(i,j)
         end do
@@ -213,8 +213,8 @@ module mod_output
           do k = 1 , kz
             do i = 1 , iy
               uw0(i,k,j)      = atm1%tke(i,k,j)
-              uw0(i,k+kz,j)   = uwstateb%kth(i,k,j)
-              uw0(i,k+kz*2,j) = uwstateb%kzm(i,k,j)
+              uw0(i,k+kz,j)   = uwstateb%kth(j,i,k)
+              uw0(i,k+kz*2,j) = uwstateb%kzm(j,i,k)
             end do
           end do
         end do
@@ -404,8 +404,9 @@ module mod_output
       call mpi_gather(rad0, iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
                       rad_0,iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
                       0,mycomm,ierr)
-      call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8, &
-                      psa_io,           iy*jxp,mpi_real8, &
+      swapv = transpose(sps1%ps(1:jxp,:))
+      call mpi_gather(swapv, iy*jxp,mpi_real8, &
+                      psa_io,iy*jxp,mpi_real8, &
                       0,mycomm,ierr)
       if ( myid == 0 ) then
         do n = 1 , nrad2d
@@ -487,7 +488,7 @@ module mod_output
       end do
       do j = 1 , jendl
         do i = 1 , iy
-          chem0(i,(ntr+3)*kz+ntr*7+5,j) = sps1%ps(i,j)
+          chem0(i,(ntr+3)*kz+ntr*7+5,j) = sps1%ps(j,i)
         end do
       end do
       call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*7+5)*jxp,            &
@@ -685,8 +686,8 @@ module mod_output
           end do
         end do
         do i = 1 , iy
-          sav0(i,kz*4+1,j) = sps1%ps(i,j)
-          sav0(i,kz*4+2,j) = sps2%ps(i,j)
+          sav0(i,kz*4+1,j) = sps1%ps(j,i)
+          sav0(i,kz*4+2,j) = sps2%ps(j,i)
         end do
       end do
       allrec = kz*4 + 2

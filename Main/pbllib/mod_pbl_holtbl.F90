@@ -42,7 +42,7 @@ module mod_pbl_holtbl
   real(8) , pointer , dimension(:,:) :: govrth
   real(8) , pointer , dimension(:) :: hydf
 !
-  real(8) , pointer , dimension(:,:,:) :: dza
+  real(8) , pointer , dimension(:,:,:) :: dza , thvx
   real(8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
   real(8) , pointer , dimension(:) :: wkrecv , wksend
   real(8) , pointer , dimension(:,:,:) :: rhohf
@@ -109,8 +109,11 @@ module mod_pbl_holtbl
     call getmem3d(rhohf,1,jxp,1,iy,1,kz,'mod_holtbl:rhohf')
     call getmem3d(akzz1,0,jxp+1,1,iym1,1,kz,'mod_holtbl:akzz1')
     call getmem3d(akzz2,0,jxp+1,1,iym1,1,kz,'mod_holtbl:akzz2')
+    call getmem3d(thvx,1,jxp,1,iy,1,kz,'mod_holtbl:thvx')
+
     call getmem1d(wkrecv,1,2*iym2*kz,'mod_holtbl:wkrecv')
     call getmem1d(wksend,1,2*iym2*kz,'mod_holtbl:wksend')
+
     if ( ichem == 1 ) then
       if ( ichdrdepo == 1 ) then
         call getmem3d(vdep,1,jxp,1,iym1,1,ntr,'mod_holtbl:vdep')
@@ -156,19 +159,19 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        thvx(i,k,j) = thxatm(j,i,k)*(d_one+ep1*qvatm(j,i,k))
+        thvx(j,i,k) = thxatm(j,i,k)*(d_one+ep1*qvatm(j,i,k))
       end do
     end do
   end do
   !
-  ! density at surface is stored in rhox2d(i,j), at half levels in rhohf(j,i,k).
+  ! density at surface is stored in rhox2d(j,i), at half levels in rhohf(j,i,k).
   !
   do k = 1 , kzm1
     do i = istart , iend
       do j = jstart , jend
-        dza(j,i,k) = za(i,k,j) - za(i,k+1,j)
-        xps = (hlev(k)*sfcps(i,j)+ptp)*d_1000
-        ps2 = (hlev(k+1)*sfcps(i,j)+ptp)*d_1000
+        dza(j,i,k) = za(j,i,k) - za(j,i,k+1)
+        xps = (hlev(k)*sfcps(j,i)+ptp)*d_1000
+        ps2 = (hlev(k+1)*sfcps(j,i)+ptp)*d_1000
         rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
       end do
     end do
@@ -187,7 +190,7 @@ module mod_pbl_holtbl
   do k = 2 , kz
     do i = istart , iend
       do j = jstart , jend
-        rc(j,i,k) = 0.257D0*dzq(i,k,j)**0.175D0
+        rc(j,i,k) = 0.257D0*dzq(j,i,k)**0.175D0
       end do
     end do
   end do
@@ -198,14 +201,14 @@ module mod_pbl_holtbl
   do k = 2 , kz
     do i = istart , iend
       do j = jstart , jend
-        kzmax = 0.8D0*dza(j,i,k-1)*dzq(i,k,j)*rdtpbl
+        kzmax = 0.8D0*dza(j,i,k-1)*dzq(j,i,k)*rdtpbl
         vv(j,i,k) = uatm(j,i,k)*uatm(j,i,k) + vatm(j,i,k)*vatm(j,i,k)
         ss = ((uatm(j,i,k-1)-uatm(j,i,k))*   &
               (uatm(j,i,k-1)-uatm(j,i,k))+   &
               (vatm(j,i,k-1)-vatm(j,i,k))*   &
               (vatm(j,i,k-1)-vatm(j,i,k)))/  &
               (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0D-9
-        ri = govrth(j,i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(j,i,k-1))
+        ri = govrth(j,i)*(thvx(j,i,k-1)-thvx(j,i,k))/(ss*dza(j,i,k-1))
         if ( (ri-rc(j,i,k)) >= d_zero ) then
           kzm(j,i,k) = kzo
         else
@@ -254,10 +257,10 @@ module mod_pbl_holtbl
 #endif
       uflxsfx = uvdrag(idx,jdx)*uatm(j,i,kz)
       vflxsfx = uvdrag(idx,jdx)*vatm(j,i,kz)
-      ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(i,j))
+      ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(j,i))
       ! convert surface fluxes to kinematic units
-      xhfx(j,i) = hfx(i,j)/(cpd*rhox2d(i,j))
-      xqfx(j,i) = qfx(i,j)/rhox2d(i,j)
+      xhfx(j,i) = hfx(i,j)/(cpd*rhox2d(j,i))
+      xqfx(j,i) = qfx(i,j)/rhox2d(j,i)
       ! compute virtual heat flux at surface
       hfxv(j,i) = xhfx(j,i) + mult*thxatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
@@ -273,28 +276,28 @@ module mod_pbl_holtbl
   do i = istart , iend
     do j = jstart , jend
 !     th10(j,i) = ((thxatm(j,i,kz)+tg(i,j))*d_half)*(d_one+mult*sh10)
-!     th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i)* &
-!                 dlog(za(i,kz,j)*d_r10)
+!     th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+!                 dlog(za(j,i,kz)*d_r10)
       sh10 = qvatm(j,i,kz)/(qvatm(j,i,kz)+d_one)
       ! "virtual" potential temperature
       if ( hfxv(j,i) >= d_zero ) then
-        th10(j,i) = thvx(i,kz,j)
+        th10(j,i) = thvx(j,i,kz)
       else
         ! first approximation for obhukov length
         ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(i,j))*(d_one+mult*sh10)
         oblen = -d_half*(thxatm(j,i,kz)+tg(i,j)) *  &
                 (d_one+mult*sh10)*ustr(j,i)**d_three /  &
                 (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
-        if ( oblen >= za(i,kz,j) ) then
-          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-             (dlog(za(i,kz,j)*d_r10)+d_five/oblen*(za(i,kz,j)-d_10))
-        else if ( oblen < za(i,kz,j) .and. oblen > d_10 ) then
-          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+        if ( oblen >= za(j,i,kz) ) then
+          th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+             (dlog(za(j,i,kz)*d_r10)+d_five/oblen*(za(j,i,kz)-d_10))
+        else if ( oblen < za(j,i,kz) .and. oblen > d_10 ) then
+          th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
               (dlog(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-              6.0D0*dlog(za(i,kz,j)/oblen))
+              6.0D0*dlog(za(j,i,kz)/oblen))
         else if ( oblen <= d_10 ) then
-          th10(j,i) = thvx(i,kz,j) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
-                      6.0D0*dlog(za(i,kz,j)*d_r10)
+          th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
+                      6.0D0*dlog(za(j,i,kz)*d_r10)
         end if
         th10(j,i) = dmax1(th10(j,i),tg(i,j))
 !gtb    th10(j,i) = dmin1(th10(j,i),tg(i,j))  ! gtb add to minimize
@@ -328,7 +331,7 @@ module mod_pbl_holtbl
 #ifndef BAND
         if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jend)) then
 #endif
-           akzz2(j,i,k) = hydf(k)/sfcps(i,j)
+           akzz2(j,i,k) = hydf(k)/sfcps(j,i)
 #ifndef BAND
         end if
 #endif
@@ -550,9 +553,9 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         uten(i,k,j) = uten(i,k,j) + &
-                      (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(i,j)
+                      (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(j,i)
         vten(i,k,j) = vten(i,k,j) + &
-                      (tpred2(j,i,k)-vdatm(j,i,k))*rdtpbl*sfcpd(i,j)
+                      (tpred2(j,i,k)-vdatm(j,i,k))*rdtpbl*sfcpd(j,i)
       end do
     end do
   end do
@@ -562,7 +565,7 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        alphak(j,i,k) = hydf(k)/sfcps(i,j)
+        alphak(j,i,k) = hydf(k)/sfcps(j,i)
       end do
     end do
   end do
@@ -636,7 +639,7 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        sf = (tatm(j,i,k)*sfcps(i,j))/thxatm(j,i,k)
+        sf = (tatm(j,i,k)*sfcps(j,i))/thxatm(j,i,k)
         difft(i,k,j) = difft(i,k,j) + &
                        (tpred1(j,i,k)-thxatm(j,i,k))*rdtpbl*sf
       end do
@@ -713,7 +716,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(i,j)
+          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -722,7 +725,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           diffq(i,k,j) = diffq(i,k,j) + &
-                         (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(i,j)
+                         (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -792,7 +795,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(i,j)
+          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -801,7 +804,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           qcten(i,k,j) = qcten(i,k,j) + &
-                      (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(i,j)
+                      (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -912,7 +915,7 @@ module mod_pbl_holtbl
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
           coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dtpbl*alphak(j,i,kz) * &
-                            chmx(j,i,kz,itr)*vdep(j,i,itr)*rhox2d(i,j) + &
+                            chmx(j,i,kz,itr)*vdep(j,i,itr)*rhox2d(j,i) + &
                             coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                            (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
@@ -943,7 +946,7 @@ module mod_pbl_holtbl
           do j = jstart , jend
 !CGAFFE     TEST diffusion/10
             chten(i,k,j,itr) = chten(i,k,j,itr) +  &
-                        (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(i,j)
+                        (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(j,i)
           end do
         end do
       end do
@@ -951,8 +954,8 @@ module mod_pbl_holtbl
         do j = jstart , jend
           if ( chname(itr) /= 'DUST' ) &
             drmr(i,j,itr) = drmr(i,j,itr) + chmx(j,i,kz,itr)* &
-                vdep(j,i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
-                hydf(kz)/sfcps(i,j)
+                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
+                hydf(kz)/sfcps(j,i)
  
         end do
       end do
@@ -1008,7 +1011,7 @@ module mod_pbl_holtbl
   do k = kz , kmxpbl , -1
     do i = istart , iend
       do j = jstart , jend
-        ri(j,i,k) = egrav*(thvx(i,k,j)-th10(j,i))*za(i,k,j) / &
+        ri(j,i,k) = egrav*(thvx(j,i,k)-th10(j,i))*za(j,i,k) / &
                           (th10(j,i)*vv(j,i,k))
       end do
     end do
@@ -1016,7 +1019,7 @@ module mod_pbl_holtbl
   ! first, set bl height to height of lowest model level
   do i = istart , iend
     do j = jstart , jend
-      zpbl(j,i) = za(i,kz,j)
+      zpbl(j,i) = za(j,i,kz)
       kpbl(j,i) = kz
     end do
   end do
@@ -1028,7 +1031,7 @@ module mod_pbl_holtbl
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
         if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
-          zpbl(j,i) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
+          zpbl(j,i) = za(j,i,k) + (za(j,i,k2)-za(j,i,k)) &
               *((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
           kpbl(j,i) = k
         end if
@@ -1039,7 +1042,7 @@ module mod_pbl_holtbl
     do j = jstart , jend
       ! set bl top to highest allowable model layer
       if ( ri(j,i,kmxpbl) < ricr ) then
-        zpbl(j,i) = za(i,kmxpbl,j)
+        zpbl(j,i) = za(j,i,kmxpbl)
         kpbl(j,i) = kmxpbl
       end if
     end do
@@ -1053,7 +1056,7 @@ module mod_pbl_holtbl
         wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
         therm(j,i) = (xhfx(j,i)+mult*thxatm(j,i,kz)*xqfx(j,i))*fak/wsc
-        ri(j,i,kz) = -egrav*therm(j,i)*za(i,kz,j)/(th10(j,i)*vv(j,i,kz))
+        ri(j,i,kz) = -egrav*therm(j,i)*za(j,i,kz)/(th10(j,i)*vv(j,i,kz))
       else
         therm(j,i) = d_zero
       end if
@@ -1066,7 +1069,7 @@ module mod_pbl_holtbl
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
           tkv = thxatm(j,i,k)*(d_one+mult*(qvatm(j,i,k)/(qvatm(j,i,k)+d_one)))
-          ri(j,i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(j,i)*vv(j,i,k))
+          ri(j,i,k) = egrav*(tkv-tlv)*za(j,i,k)/(th10(j,i)*vv(j,i,k))
         end if
       end do
     end do
@@ -1081,7 +1084,7 @@ module mod_pbl_holtbl
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
           if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
-            zpbl(j,i) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) * &
+            zpbl(j,i) = za(j,i,k) + (za(j,i,k2)-za(j,i,k)) * &
                         ((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
             kpbl(j,i) = k
           end if
@@ -1094,7 +1097,7 @@ module mod_pbl_holtbl
       if ( hfxv(j,i) > d_zero ) then
         ! set bl top to highest allowable model layer
         if ( ri(j,i,kmxpbl) < ricr ) then
-          zpbl(j,i) = za(i,kmxpbl,j)
+          zpbl(j,i) = za(j,i,kmxpbl)
         end if
       end if
     end do
@@ -1104,7 +1107,7 @@ module mod_pbl_holtbl
     do j = jstart , jend
       ! compute mechanical mixing depth, set to lowest model level if lower
       phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
-      phpblm = dmax1(phpblm,za(i,kz,j))
+      phpblm = dmax1(phpblm,za(j,i,kz))
       zpbl(j,i) = dmax1(zpbl(j,i),phpblm)
       kpbl(j,i) = kz
     end do
@@ -1115,8 +1118,8 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         pblk = d_zero
-        zm = za(i,k,j)
-        zp = za(i,k2,j)
+        zm = za(j,i,k)
+        zp = za(j,i,k2)
         if ( zm < zpbl(j,i) ) then
           zp = dmin1(zp,zpbl(j,i))
           z = (zm+zp)*d_half
@@ -1216,9 +1219,9 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         do k = 1 , kz
-          kvm(j,i,k) = uwstateb%kzm(i,k,j)
-          kvh(j,i,k) = uwstateb%kth(i,k,j)
-          kvq(j,i,k) = uwstateb%kth(i,k,j)
+          kvm(j,i,k) = uwstateb%kzm(j,i,k)
+          kvh(j,i,k) = uwstateb%kth(j,i,k)
+          kvq(j,i,k) = uwstateb%kth(j,i,k)
           cgh(j,i,k) = d_zero
         end do
       end do

@@ -49,6 +49,7 @@ module mod_bdycod
   public :: ts0 , so0
   public :: ts1 ! FOR DCSST
 !
+  real(8) , pointer , dimension(:) :: pstrans1 , pstrans2
   real(8) , pointer , dimension(:,:) :: ui1 , ui2 , uil , uilx , &
                                         vi1 , vi2 , vil , vilx
 #ifndef BAND
@@ -77,6 +78,9 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 
+    call getmem1d(pstrans1,1,iy,'bdycon:pstrans1')
+    call getmem1d(pstrans2,1,iy,'bdycon:pstrans2')
+!
     call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
     call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
 !
@@ -572,16 +576,22 @@ module mod_bdycod
 !
 !   compute the p* at dot points:
 !
-    call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,   &
-                      sps1%ps(1,0),  iy,mpi_real8,iwest,1,   &
+    if ( ieast /= mpi_proc_null ) then
+      pstrans1 = sps1%ps(jxp,:)
+    end if
+    call mpi_sendrecv(pstrans1,iy,mpi_real8,ieast,1, &
+                      pstrans2,iy,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      sps1%ps(0,:) = pstrans2
+    end if
 !
 !   interior points:
 !
     do j = jbegin , jendx
       do i = 2 , iym1
-        sps1%pdot(i,j) = d_rfour*(sps1%ps(i,j)  +sps1%ps(i-1,j) + &
-                                  sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
+        sps1%pdot(j,i) = d_rfour*(sps1%ps(j,i)  +sps1%ps(j,i-1) + &
+                                  sps1%ps(j-1,i)+sps1%ps(j-1,i-1))
       end do
     end do
 !
@@ -590,10 +600,10 @@ module mod_bdycod
 #ifndef BAND
     do i = 2 , iym1
       if ( myid == 0 ) then
-        sps1%pdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        sps1%pdot(1,i) = d_half*(sps1%ps(1,i)+sps1%ps(1,i-1))
       end if
       if ( myid == nproc-1 ) then
-        sps1%pdot(i,jendl) = d_half*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
+        sps1%pdot(jendl,i) = d_half*(sps1%ps(jendx,i)+sps1%ps(jendx,i-1))
       end if
     end do
 #endif
@@ -601,8 +611,8 @@ module mod_bdycod
 !   north and south boundaries:
 !
     do j = jbegin , jendx
-      sps1%pdot(1,j)  = d_half*(sps1%ps(1,j)   +sps1%ps(1,j-1))
-      sps1%pdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
+      sps1%pdot(j,1)  = d_half*(sps1%ps(j,1)   +sps1%ps(j-1,1))
+      sps1%pdot(j,iy) = d_half*(sps1%ps(j,iym1)+sps1%ps(j-1,iym1))
     end do
 !
 !   corner points:
@@ -610,11 +620,11 @@ module mod_bdycod
 #ifndef BAND
     if ( myid == 0 ) then
       sps1%pdot(1,1)  = sps1%ps(1,1)
-      sps1%pdot(iy,1) = sps1%ps(iym1,1)
+      sps1%pdot(1,iy) = sps1%ps(1,iym1)
     end if
     if ( myid == nproc-1 ) then
-      sps1%pdot(1,jendl)  = sps1%ps(1,jendx)
-      sps1%pdot(iy,jendl) = sps1%ps(iym1,jendx)
+      sps1%pdot(jendl,1)  = sps1%ps(jendx,1)
+      sps1%pdot(jendl,iy) = sps1%ps(jendx,iym1)
     end if
 #endif
 !
@@ -625,12 +635,12 @@ module mod_bdycod
 !
       do i = 2 , iym1
         if ( myid == 0 ) then
-          uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(i,2)
-          vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(i,2)
+          uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(2,i)
+          vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(2,i)
         end if
         if ( myid == nproc-1 ) then
-          ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(i,jendx)
-          vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(i,jendx)
+          ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(jendx,i)
+          vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(jendx,i)
         end if
       end do
 #endif
@@ -640,10 +650,10 @@ module mod_bdycod
 #else
       do j = jbegin , jendx
 #endif
-        ui2(k,j)  = atm1%u(2,k,j)/sps1%pdot(2,j)
-        vi2(k,j)  = atm1%v(2,k,j)/sps1%pdot(2,j)
-        uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(iym1,j)
-        vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(iym1,j)
+        ui2(k,j)  = atm1%u(2,k,j)/sps1%pdot(j,2)
+        vi2(k,j)  = atm1%v(2,k,j)/sps1%pdot(j,2)
+        uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(j,iym1)
+        vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(j,iym1)
       end do
     end do
 !
@@ -660,12 +670,12 @@ module mod_bdycod
 !
         do i = 1 , iy
           if ( myid == 0 ) then
-            uj1(i,k) = xub%wb(i,k,1)/sps1%pdot(i,1)
-            vj1(i,k) = xvb%wb(i,k,1)/sps1%pdot(i,1)
+            uj1(i,k) = xub%wb(i,k,1)/sps1%pdot(1,i)
+            vj1(i,k) = xvb%wb(i,k,1)/sps1%pdot(1,i)
           end if
           if ( myid == nproc-1 ) then
-            ujl(i,k) = xub%eb(i,k,1)/sps1%pdot(i,jendl)
-            vjl(i,k) = xvb%eb(i,k,1)/sps1%pdot(i,jendl)
+            ujl(i,k) = xub%eb(i,k,1)/sps1%pdot(jendl,i)
+            vjl(i,k) = xvb%eb(i,k,1)/sps1%pdot(jendl,i)
           end if
         end do
 #endif
@@ -673,10 +683,10 @@ module mod_bdycod
 !       south (i = 1) and north (i = iy) boundaries:
 !
         do j = 1 , jendl
-          ui1(k,j) = xub%sb(1,k,j)/sps1%pdot(1,j)
-          vi1(k,j) = xvb%sb(1,k,j)/sps1%pdot(1,j)
-          uil(k,j) = xub%nb(1,k,j)/sps1%pdot(iy,j)
-          vil(k,j) = xvb%nb(1,k,j)/sps1%pdot(iy,j)
+          ui1(k,j) = xub%sb(1,k,j)/sps1%pdot(j,1)
+          vi1(k,j) = xvb%sb(1,k,j)/sps1%pdot(j,1)
+          uil(k,j) = xub%nb(1,k,j)/sps1%pdot(j,iy)
+          vil(k,j) = xvb%nb(1,k,j)/sps1%pdot(j,iy)
         end do
       end do
     else
@@ -690,12 +700,12 @@ module mod_bdycod
 !
         do i = 1 , iy
           if ( myid == 0 ) then
-            uj1(i,k) = (xub%wb(i,k,1)+dtb*xub%wbt(i,k,1))/sps1%pdot(i,1)
-            vj1(i,k) = (xvb%wb(i,k,1)+dtb*xvb%wbt(i,k,1))/sps1%pdot(i,1)
+            uj1(i,k) = (xub%wb(i,k,1)+dtb*xub%wbt(i,k,1))/sps1%pdot(1,i)
+            vj1(i,k) = (xvb%wb(i,k,1)+dtb*xvb%wbt(i,k,1))/sps1%pdot(1,i)
           end if
           if ( myid == nproc-1 ) then
-            ujl(i,k) = (xub%eb(i,k,1)+dtb*xub%ebt(i,k,1))/sps1%pdot(i,jendl)
-            vjl(i,k) = (xvb%eb(i,k,1)+dtb*xvb%ebt(i,k,1))/sps1%pdot(i,jendl)
+            ujl(i,k) = (xub%eb(i,k,1)+dtb*xub%ebt(i,k,1))/sps1%pdot(jendl,i)
+            vjl(i,k) = (xvb%eb(i,k,1)+dtb*xvb%ebt(i,k,1))/sps1%pdot(jendl,i)
           end if
         end do
 #endif
@@ -703,10 +713,10 @@ module mod_bdycod
 !       south (i = 1) and north (i = iy) boundaries:
 !
         do j = 1 , jendl
-          ui1(k,j) = (xub%sb(1,k,j)+dtb*xub%sbt(1,k,j))/sps1%pdot(1,j)
-          vi1(k,j) = (xvb%sb(1,k,j)+dtb*xvb%sbt(1,k,j))/sps1%pdot(1,j)
-          uil(k,j) = (xub%nb(1,k,j)+dtb*xub%nbt(1,k,j))/sps1%pdot(iy,j)
-          vil(k,j) = (xvb%nb(1,k,j)+dtb*xvb%nbt(1,k,j))/sps1%pdot(iy,j)
+          ui1(k,j) = (xub%sb(1,k,j)+dtb*xub%sbt(1,k,j))/sps1%pdot(j,1)
+          vi1(k,j) = (xvb%sb(1,k,j)+dtb*xvb%sbt(1,k,j))/sps1%pdot(j,1)
+          uil(k,j) = (xub%nb(1,k,j)+dtb*xub%nbt(1,k,j))/sps1%pdot(j,iy)
+          vil(k,j) = (xvb%nb(1,k,j)+dtb*xvb%nbt(1,k,j))/sps1%pdot(j,iy)
         end do
       end do
 !
@@ -859,13 +869,13 @@ module mod_bdycod
 !
 #ifndef BAND
       do i = 1 , iym1
-        if ( myid == 0 )       sps2%ps(i,1)     = sps1%ps(i,1)
-        if ( myid == nproc-1 ) sps2%ps(i,jendx) = sps1%ps(i,jendx)
+        if ( myid == 0 )       sps2%ps(1,i)     = sps1%ps(1,i)
+        if ( myid == nproc-1 ) sps2%ps(jendx,i) = sps1%ps(jendx,i)
       end do
 #endif
       do j = jbegin , jendm
-        sps2%ps(1,j)    = sps1%ps(1,j)
-        sps2%ps(iym1,j) = sps1%ps(iym1,j)
+        sps2%ps(j,1)    = sps1%ps(j,1)
+        sps2%ps(j,iym1) = sps1%ps(j,iym1)
       end do
 !
 !     for p*u and p*v:
@@ -978,13 +988,13 @@ module mod_bdycod
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid == 0 )       sps1%ps(i,1)     = xpsb%wb(i,1)
-          if ( myid == nproc-1 ) sps1%ps(i,jendx) = xpsb%eb(i,1)
+          if ( myid == 0 )       sps1%ps(1,i)     = xpsb%wb(i,1)
+          if ( myid == nproc-1 ) sps1%ps(jendx,i) = xpsb%eb(i,1)
         end do
 #endif
         do j = jbegin , jendm
-          sps1%ps(1,j)    = xpsb%sb(1,j)
-          sps1%ps(iym1,j) = xpsb%nb(1,j)
+          sps1%ps(j,1)    = xpsb%sb(1,j)
+          sps1%ps(j,iym1) = xpsb%nb(1,j)
         end do
 !
         do k = 1 , kz
@@ -1014,16 +1024,16 @@ module mod_bdycod
 #ifndef BAND
       do i = 1 , iym1
         if ( myid == 0 ) then
-          sps1%ps(i,1) = xpsb%wb(i,1) + dtb*xpsb%wbt(i,1)
+          sps1%ps(1,i) = xpsb%wb(i,1) + dtb*xpsb%wbt(i,1)
         end if
         if ( myid == nproc-1 ) then
-          sps1%ps(i,jendx) = xpsb%eb(i,1) + dtb*xpsb%ebt(i,1)
+          sps1%ps(jendx,i) = xpsb%eb(i,1) + dtb*xpsb%ebt(i,1)
         end if
       end do
 #endif
       do j = jbegin , jendm
-        sps1%ps(1,j)    = xpsb%sb(1,j) + dtb*xpsb%sbt(1,j)
-        sps1%ps(iym1,j) = xpsb%nb(1,j) + dtb*xpsb%nbt(1,j)
+        sps1%ps(j,1)    = xpsb%sb(1,j) + dtb*xpsb%sbt(1,j)
+        sps1%ps(j,iym1) = xpsb%nb(1,j) + dtb*xpsb%nbt(1,j)
       end do
 !
       do k = 1 , kz
@@ -1133,15 +1143,15 @@ module mod_bdycod
 !
         if ( myid == 0 ) then
           do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
-            qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
+            qvx1 = atm1%qv(i,k,1)/sps1%ps(1,i)
+            qvx2 = atm1%qv(i,k,2)/sps1%ps(2,i)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
             if ( uavg >= d_zero ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(i,k,1) = qvx*sps1%ps(i,1)
+            atm1%qv(i,k,1) = qvx*sps1%ps(1,i)
           end do
         end if
 !
@@ -1149,15 +1159,15 @@ module mod_bdycod
 !
         if ( myid == nproc-1 ) then
           do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,jendx)/sps1%ps(i,jendx)
-            qvx2 = atm1%qv(i,k,jendm)/sps1%ps(i,jendm)
+            qvx1 = atm1%qv(i,k,jendx)/sps1%ps(jendx,i)
+            qvx2 = atm1%qv(i,k,jendm)/sps1%ps(jendm,i)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
             if ( uavg < d_zero ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(i,k,jendx) = qvx*sps1%ps(i,jendx)
+            atm1%qv(i,k,jendx) = qvx*sps1%ps(jendx,i)
           end do
         end if
 #endif
@@ -1165,29 +1175,29 @@ module mod_bdycod
 !       south boundary:
 !
         do j = jbegin , jendm
-          qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
-          qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
+          qvx1 = atm1%qv(1,k,j)/sps1%ps(j,1)
+          qvx2 = atm1%qv(2,k,j)/sps1%ps(j,2)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
           if ( vavg >= d_zero ) then
             qvx = qvx1
           else
             qvx = qvx2
           end if
-          atm1%qv(1,k,j) = qvx*sps1%ps(1,j)
+          atm1%qv(1,k,j) = qvx*sps1%ps(j,1)
         end do
 !
 !       north boundary:
 !
         do j = jbegin , jendm
-          qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
-          qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
+          qvx1 = atm1%qv(iym1,k,j)/sps1%ps(j,iym1)
+          qvx2 = atm1%qv(iym2,k,j)/sps1%ps(j,iym2)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
           if ( vavg < d_zero ) then
             qvx = qvx1
           else
             qvx = qvx2
           end if
-          atm1%qv(iym1,k,j) = qvx*sps1%ps(iym1,j)
+          atm1%qv(iym1,k,j) = qvx*sps1%ps(j,iym1)
         end do
 !
       end do
@@ -1209,14 +1219,14 @@ module mod_bdycod
 !
       if ( myid == 0 ) then
         do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
+          qcx2 = atm1%qc(i,k,2)/sps1%ps(2,i)
           uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
           if ( uavg >= d_zero ) then
             qcx = d_zero
           else
             qcx = qcx2
           end if
-          atm1%qc(i,k,1) = qcx*sps1%ps(i,1)
+          atm1%qc(i,k,1) = qcx*sps1%ps(1,i)
         end do
       end if
 !
@@ -1224,14 +1234,14 @@ module mod_bdycod
 !
       if ( myid == nproc-1 ) then
         do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,jendm)/sps1%ps(i,jendm)
+          qcx2 = atm1%qc(i,k,jendm)/sps1%ps(jendm,i)
           uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
           if ( uavg < d_zero ) then
             qcx = d_zero
           else
             qcx = qcx2
           end if
-          atm1%qc(i,k,jendx) = qcx*sps1%ps(i,jendx)
+          atm1%qc(i,k,jendx) = qcx*sps1%ps(jendx,i)
         end do
       end if
 #endif
@@ -1239,27 +1249,27 @@ module mod_bdycod
 !     south boundary:
 !
       do j = jbegin , jendm
-        qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
+        qcx2 = atm1%qc(2,k,j)/sps1%ps(j,2)
         vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
         if ( vavg >= d_zero ) then
           qcx = d_zero
         else
           qcx = qcx2
         end if
-        atm1%qc(1,k,j) = qcx*sps1%ps(1,j)
+        atm1%qc(1,k,j) = qcx*sps1%ps(j,1)
       end do
 !
 !     north boundary:
 !
       do j = jbegin , jendm
-        qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
+        qcx2 = atm1%qc(iym2,k,j)/sps1%ps(j,iym2)
         vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
         if ( vavg < d_zero ) then
           qcx = d_zero
         else
           qcx = qcx2
         end if
-        atm1%qc(iym1,k,j) = qcx*sps1%ps(iym1,j)
+        atm1%qc(iym1,k,j) = qcx*sps1%ps(j,iym1)
       end do
 !
     end do
@@ -1276,15 +1286,15 @@ module mod_bdycod
 !
           if ( myid == 0 ) then
             do i = 1 , iym1
-              chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
-              chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
+              chix1 = chia(i,k,1,itr)/sps1%ps(1,i)
+              chix2 = chia(i,k,2,itr)/sps1%ps(2,i)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
               if ( uavg >= d_zero ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,1,itr) = chix*sps1%ps(i,1)
+              chia(i,k,1,itr) = chix*sps1%ps(1,i)
             end do
           end if
 !
@@ -1292,15 +1302,15 @@ module mod_bdycod
 !
           if ( myid == nproc-1 ) then
             do i = 1 , iym1
-              chix1 = chia(i,k,jendx,itr)/sps1%ps(i,jendx)
-              chix2 = chia(i,k,jendm,itr)/sps1%ps(i,jendm)
+              chix1 = chia(i,k,jendx,itr)/sps1%ps(jendx,i)
+              chix2 = chia(i,k,jendm,itr)/sps1%ps(jendm,i)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
               if ( uavg < d_zero ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,jendx,itr) = chix*sps1%ps(i,jendx)
+              chia(i,k,jendx,itr) = chix*sps1%ps(jendx,i)
             end do
           end if
 #endif
@@ -1308,29 +1318,29 @@ module mod_bdycod
 !         south boundary:
 !
           do j = jbegin , jendm
-            chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
-            chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
+            chix1 = chia(1,k,j,itr)/sps1%ps(j,1)
+            chix2 = chia(2,k,j,itr)/sps1%ps(j,2)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
             if ( vavg >= d_zero ) then
               chix = chix1
             else
               chix = chix2
             end if
-            chia(1,k,j,itr) = chix*sps1%ps(1,j)
+            chia(1,k,j,itr) = chix*sps1%ps(j,1)
           end do
 !
 !         north boundary:
 !
           do j = jbegin , jendm
-            chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-            chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
+            chix1 = chia(iym1,k,j,itr)/sps1%ps(j,iym1)
+            chix2 = chia(iym2,k,j,itr)/sps1%ps(j,iym2)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
             if ( vavg < d_zero ) then
               chix = chix1
             else
               chix = chix2
             end if
-            chia(iym1,k,j,itr) = chix*sps1%ps(iym1,j)
+            chia(iym1,k,j,itr) = chix*sps1%ps(j,iym1)
           end do
         end do
       end do
@@ -1984,7 +1994,7 @@ module mod_bdycod
     logical , intent(in) :: ldot ! Dot flag
     integer , intent(in) :: ibdy , nk , ip , j
     real(8) , intent(in) :: fcoef , gcoef , xt
-    real(8) , intent(in) , dimension(iy,-1:jxp+2) :: f
+    real(8) , intent(in) , dimension(-1:jxp+2,iy) :: f
     type(v2dbound) , intent(in) :: bnd
     real(8) , intent(inout) , dimension(iy,jxp) :: ften
 !
@@ -2020,19 +2030,19 @@ module mod_bdycod
           fcx = fcoef*xfun(i,ldot)
           gcx = gcoef*xfun(i,ldot)
 !.......south boundary:
-          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
           ften(i,j) = ften(i,j) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
           ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
        end do
@@ -2047,19 +2057,19 @@ module mod_bdycod
           fcx = fcoef*xfune(i,kz)
           gcx = gcoef*xfune(i,kz)
 !........south boundary:
-          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
           ften(i,j) = ften(i,j) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
           ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
        end do
@@ -2104,19 +2114,19 @@ module mod_bdycod
           fcx = fcoef*xfun(i,ldot)
           gcx = gcoef*xfun(i,ldot)
 !.......south boundary:
-          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
           ften(i,j) = ften(i,j) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
           ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -2131,19 +2141,19 @@ module mod_bdycod
             fcx = fcoef*xfun(i,ldot)
             gcx = gcoef*xfun(i,ldot)
 !........south  boundary:
-            fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-            fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-            fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-            fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-            fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+            fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+            fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+            fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+            fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+            fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
             ften(i,j) = ften(i,j) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
-            fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-            fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-            fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-            fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-            fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+            fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+            fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+            fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+            fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+            fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
             ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                            gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -2156,11 +2166,11 @@ module mod_bdycod
           fcx = fcoef*xfun(jsls,ldot)
           gcx = gcoef*xfun(jsls,ldot)
           do i = ibeg , iend
-            fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(i,j)
-            fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(i-1,j)
-            fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(i+1,j)
-            fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(i,j-1)
-            fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(i,j+1)
+            fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(j,i)
+            fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(j,i-1)
+            fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(j,i+1)
+            fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(j-1,i)
+            fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(j+1,i)
             ften(i,j) = ften(i,j) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -2169,11 +2179,11 @@ module mod_bdycod
           fcx = fcoef*xfun(jsls,ldot)
           gcx = gcoef*xfun(jsls,ldot)
           do i = ibeg , iend
-            fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(i,j)
-            fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(i-1,j)
-            fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(i+1,j)
-            fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(i,j-1)
-            fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(i,j+1)
+            fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(j,i)
+            fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(j,i-1)
+            fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(j,i+1)
+            fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(j-1,i)
+            fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(j+1,i)
             ften(i,j) = ften(i,j) + fcx*fls0 -  &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -2191,19 +2201,19 @@ module mod_bdycod
           fcx = fcoef*xfune(i,kz)
           gcx = gcoef*xfune(i,kz)
 !........south boundary:
-          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
           ften(i,j) = ften(i,j) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
           ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -2218,19 +2228,19 @@ module mod_bdycod
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !.........south boundary:
-            fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
-            fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
-            fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
-            fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
-            fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+            fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(j,i)
+            fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(j-1,i)
+            fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
+            fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
+            fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
             ften(i,j) = ften(i,j) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
-            fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
-            fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
-            fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
-            fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
-            fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+            fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
+            fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(j-1,ii)
+            fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
+            fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
+            fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
             ften(ii,j) = ften(ii,j) + fcx*fls0 - &
                            gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -2243,11 +2253,11 @@ module mod_bdycod
           fcx = fcoef*xfune(jsls,kz)
           gcx = gcoef*xfune(jsls,kz)
           do i = ibeg , iend
-            fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(i,j)
-            fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(i-1,j)
-            fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(i+1,j)
-            fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(i,j-1)
-            fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(i,j+1)
+            fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(j,i)
+            fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(j,i-1)
+            fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(j,i+1)
+            fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(j-1,i)
+            fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(j+1,i)
             ften(i,j) = ften(i,j) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -2256,11 +2266,11 @@ module mod_bdycod
           fcx = fcoef*xfune(jsls,kz)
           gcx = gcoef*xfune(jsls,kz)
           do i = ibeg , iend
-            fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(i,j)
-            fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(i-1,j)
-            fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(i+1,j)
-            fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(i,j-1)
-            fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(i,j+1)
+            fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(j,i)
+            fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(j,i-1)
+            fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(j,i+1)
+            fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(j-1,i)
+            fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(j+1,i)
             ften(i,j) = ften(i,j) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do

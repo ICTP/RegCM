@@ -163,7 +163,7 @@ module mod_cu_tiedtke
         do i = istart , iend
           ii = i - 1
           ! Pascal
-          papp1(ii,k) = (hlev(k)*sfcps(i,j)+ptop)*d_1000
+          papp1(ii,k) = (hlev(k)*sfcps(j,i)+ptop)*d_1000
 
           ptm1(ii,k)  = tas(j,i,k)  ! temperature
           pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
@@ -171,11 +171,11 @@ module mod_cu_tiedtke
           pqm1(ii,k)  = qvas(j,i,k) ! humidity
           pxlm1(ii,k) = qcas(j,i,k) ! cloud liquid water
 
-          ptte(ii,k)  = tten(i,k,j)/sfcps(i,j)
-          pvom(ii,k)  = uten(i,k,j)/sfcps(i,j)
-          pvol(ii,k)  = vten(i,k,j)/sfcps(i,j)
-          pqte(ii,k)  = qvten(i,k,j)/sfcps(i,j)
-          pxlte(ii,k) = qcten(i,k,j)/sfcps(i,j)
+          ptte(ii,k)  = tten(i,k,j)/sfcps(j,i)
+          pvom(ii,k)  = uten(i,k,j)/sfcps(j,i)
+          pvol(ii,k)  = vten(i,k,j)/sfcps(j,i)
+          pqte(ii,k)  = qvten(i,k,j)/sfcps(j,i)
+          pxlte(ii,k) = qcten(i,k,j)/sfcps(j,i)
 
           ! IS vertical velocity in Pa/s or in m/s?
           pverv(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
@@ -187,14 +187,14 @@ module mod_cu_tiedtke
           pxtec(ii,k) = d_zero ! detrained cloud water tendancy
           pqtec(ii,k) = d_zero ! detrained humidity tendancy
 
-          xpg(ii,k) = hgt(i,k,j)*egrav  !   geopotential
+          xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
         end do
       end do
       do k = 1 , kzp1
         do i = istart , iend
           ii = i - 1
           ! 1st guess pressure at full levels
-          paphp1(ii,k) = (flev(k)*sfcps(i,j)+ptop)*d_1000
+          paphp1(ii,k) = (flev(k)*sfcps(j,i)+ptop)*d_1000
         end do
       end do
 
@@ -217,7 +217,7 @@ module mod_cu_tiedtke
       !
       rcldlwc(j,:,:) = d_zero
       rcldfra(j,:,:) = d_zero
-      do i = 2 , iym2
+      do i = istart , iend
         ii = i - 1
         if (ktype(ii) > 0) then
           if ( paprc(ii)+paprs(ii) > dlowval ) then
@@ -232,8 +232,8 @@ module mod_cu_tiedtke
             do k = 1 , kz
               ! NOTE: there is an iconsistency here for the latent heating,
               ! as heat of fusion used inside the conv. scheme - please correct!
-              qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
-              qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
+              qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(j,i)
+              qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(j,i)
             end do
             kclth = kcbot(ii) - kctop(ii) + 1
             akclth = d_one/dble(kclth)

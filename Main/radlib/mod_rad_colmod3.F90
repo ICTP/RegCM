@@ -580,9 +580,9 @@ module mod_rad_colmod3
 !   surface pressure and scaled pressure, from which level are computed
     do j = jstart , jend
       emsvt1(j) = emsvt(j,i)
-      ps(j) = (sfps(i,j)+ptp)*d_10
+      ps(j) = (sfps(j,i)+ptp)*d_10
       do k = 1 , kz
-        pmidm1(j,k) = (sfps(i,j)*hlev(k)+ptp)*d_10
+        pmidm1(j,k) = (sfps(j,i)*hlev(k)+ptp)*d_10
       end do
     end do
 !
@@ -597,7 +597,7 @@ module mod_rad_colmod3
     end do
     do k = 1 , kzp1
       do j = jstart , jend
-        pintm1(j,k) = (sfps(i,j)*flev(k)+ptp)*d_1000
+        pintm1(j,k) = (sfps(j,i)*flev(k)+ptp)*d_1000
         pilnm1(j,k) = dlog(pintm1(j,k))
       end do
     end do

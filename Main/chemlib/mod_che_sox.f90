@@ -120,14 +120,14 @@ module mod_che_sox
      ! Aqueous conversion from so2 to so4 : control by h2o2
      do k = 1 , kz
        do i = 2 , iym2
-         chimol = 28.9D0/64.0D0*chib(i,k,j,iso2)/cpsb(i,j) ! kg/kg to mole
+         chimol = 28.9D0/64.0D0*chib(i,k,j,iso2)/cpsb(j,i) ! kg/kg to mole
 
          if ( ichaer == 1 ) then 
            h2o2mol =  oxbc0%bc(i,k,j,iox_h2o2)
-           concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(i,j)
+           concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(j,i)
          else
          ! cb*kg/kg do tests, suppose h2o2 always enough
-           concmin(i,k) = chimol*64.D0/28.9D0*cpsb(i,j)     ! cb*kg/kg
+           concmin(i,k) = chimol*64.D0/28.9D0*cpsb(j,i)     ! cb*kg/kg
          end if
        end do
      end do

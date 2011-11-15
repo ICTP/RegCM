@@ -42,12 +42,12 @@ module mod_slice
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        atms%tb3d(j,i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
-        atms%qvb3d(j,i,k) = atm2%qv(i,k,j)/sps2%ps(i,j)
-        atms%qcb3d(j,i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)
+        atms%tb3d(j,i,k) = atm2%t(i,k,j)/sps2%ps(j,i)
+        atms%qvb3d(j,i,k) = atm2%qv(i,k,j)/sps2%ps(j,i)
+        atms%qcb3d(j,i,k) = atm2%qc(i,k,j)/sps2%ps(j,i)
         if ( ichem == 1 ) then
           do n = 1 , ntr
-            atms%chib3d(j,i,k,n) = chib(i,k,j,n)/sps2%ps(i,j)
+            atms%chib3d(j,i,k,n) = chib(i,k,j,n)/sps2%ps(j,i)
           end do
         end if
       end do
@@ -66,10 +66,10 @@ module mod_slice
         idxp1 = min0(i+1,iend)
         atms%ubx3d(j,i,k) = d_rfour* & 
             (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
-             atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
+             atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(j,i)
         atms%vbx3d(j,i,k) = d_rfour* &
             (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
-             atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
+             atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(j,i)
       end do
     end do
   end do
@@ -77,8 +77,8 @@ module mod_slice
   do k = 1 , kz
     do i = istart , iend+1
       do j = jstart , jend
-        atms%ubd3d(j,i,k) = atm2%u(i,k,j)/sps2%pdot(i,j)
-        atms%vbd3d(j,i,k) = atm2%v(i,k,j)/sps2%pdot(i,j)
+        atms%ubd3d(j,i,k) = atm2%u(i,k,j)/sps2%pdot(j,i)
+        atms%vbd3d(j,i,k) = atm2%v(i,k,j)/sps2%pdot(j,i)
       end do
     end do
   end do
@@ -86,8 +86,8 @@ module mod_slice
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        pl = a(k)*sps2%ps(i,j) + ptop
-        thcon = ((sps2%ps(i,j)+ptop)/pl)**rovcp
+        pl = a(k)*sps2%ps(j,i) + ptop
+        thcon = ((sps2%ps(j,i)+ptop)/pl)**rovcp
         atms%pb3d(j,i,k) = pl
         atms%thx3d(j,i,k) = atms%tb3d(j,i,k)*thcon
       end do
@@ -95,40 +95,44 @@ module mod_slice
   end do
  
 !-----compute the height at full (za) and half (zq) sigma levels:
-  do j = jbegin , jend
-    do i = 2 , iym1
-      zq(i,kzp1) = d_zero
+  do i = istart , iend
+    do j = jbegin , jend
+      zq(j,i,kzp1) = d_zero
     end do
-    do kk = 1 , kz
-      k = kzp1 - kk
-      do i = 2 , iym1
-        cell = ptop/sps2%ps(i,j)
-        zq(i,k) = zq(i,k+1) + rovg*atms%tb3d(j,i,k) *  &
+  end do
+  do kk = 1 , kz
+    k = kzp1 - kk
+    do i = istart , iend
+      do j = jbegin , jend
+        cell = ptop/sps2%ps(j,i)
+        zq(j,i,k) = zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
                   dlog((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
     end do
+  end do
 !
-    do k = 1 , kz
-      do i = 2 , iym1
-        za(i,k,j) = d_half*(zq(i,k)+zq(i,k+1))
-        dzq(i,k,j) = zq(i,k) - zq(i,k+1)
+  do k = 1 , kz
+    do j = jbegin , jend
+      do i = istart , iend
+        za(j,i,k) = d_half*(zq(j,i,k)+zq(j,i,k+1))
+        dzq(j,i,k) = zq(j,i,k) - zq(j,i,k+1)
       end do
     end do
   end do
  
 !-----Calculate the relative humidity and air density
 
-  do j = jbegin , jend
-    do i = 2 , iym1
-      psrf = (sps2%ps(i,j)+ptop)*d_1000
+  do i = istart , iend
+    do j = jbegin , jend
+      psrf = (sps2%ps(j,i)+ptop)*d_1000
       tv = atms%tb3d(j,i,kz)
-      rhox2d(i,j) = psrf/(rgas*tv)
+      rhox2d(j,i) = psrf/(rgas*tv)
     end do
   end do
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        pres = (a(k)*sps2%ps(i,j)+ptop)*d_1000
+        pres = (a(k)*sps2%ps(j,i)+ptop)*d_1000
         atms%rhob3d(j,i,k) = pres/(rgas*atms%tb3d(j,i,k)) !air density
         if ( atms%tb3d(j,i,k) > tzero ) then
           satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(j,i,k)-tzero)           &

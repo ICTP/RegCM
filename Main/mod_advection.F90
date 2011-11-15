@@ -302,9 +302,9 @@ module mod_advection
           do k = kstart+1 , kstop
             do i = istart , istopx
               fg(i,k) = twt(k,1)*f(i,k,j) *                              &
-                   ((ps(i,j)*sigma(k)+ptop)/(ps(i,j)*a(k)+ptop))**c287 + &
+                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*a(k)+ptop))**c287 + &
                         twt(k,2)*f(i,k-1,j) *                            &
-                   ((ps(i,j)*sigma(k)+ptop)/(ps(i,j)*a(k-1)+ptop))**c287
+                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*a(k-1)+ptop))**c287
             end do
           end do
           do i = istart , istopx

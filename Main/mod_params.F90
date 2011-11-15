@@ -903,10 +903,10 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(idirect,dtsec,chemfrq,dtrad,calday,dsigma,atms,sps1, &
-                   sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq,twt,ptop, &
-                   coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,&
-                   ssw2da,icumtop,icumbot)
+    call init_chem(idirect,dtsec,chemfrq,dtrad,calday,dsigma,atms,   &
+                   sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq, &
+                   twt,ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,  &
+                   sdelqk2d,ssw2da,icumtop,icumbot)
  end if
   call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
                 mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &

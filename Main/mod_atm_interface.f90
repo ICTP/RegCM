@@ -208,8 +208,8 @@ module mod_atm_interface
     subroutine allocate_surfpstate(sps)
       implicit none
       type(surfpstate) , intent(out) :: sps
-      call getmem2d(sps%ps,1,iy,-1,jxp+2,'surfpstate:ps')
-      call getmem2d(sps%pdot,1,iy,-1,jxp+2,'surfpstate:pdot')
+      call getmem2d(sps%ps,-1,jxp+2,1,iy,'surfpstate:ps')
+      call getmem2d(sps%pdot,-1,jxp+2,1,iy,'surfpstate:pdot')
     end subroutine allocate_surfpstate
 !
     subroutine allocate_surftstate(sts)

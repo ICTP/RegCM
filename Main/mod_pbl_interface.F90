@@ -168,7 +168,7 @@ module mod_pbl_interface
       end if
 
       zpbl(jtcmstart:jtcmend,itcmstart:itcmend) = &
-                transpose(tcmstate%zpbl(itcmstart:itcmend,jtcmstart:jtcmend))
+                tcmstate%zpbl(jtcmstart:jtcmend,itcmstart:itcmend)
     end if
 
 !   !
@@ -177,8 +177,8 @@ module mod_pbl_interface
 !   !
 !   if ( ibltyp == 99 ) then
 !     do k = 1 , kz
-!       tcmstate%kzm(:,k,:) = sqrt(tcmstate%kzm(:,k,:)*tcmstate%kzm(:,k+1,:))
-!       tcmstate%kth(:,k,:) = sqrt(tcmstate%kth(:,k,:)*tcmstate%kth(:,k+1,:))
+!       tcmstate%kzm(:,:,k) = sqrt(tcmstate%kzm(:,:,k)*tcmstate%kzm(:,:,k+1))
+!       tcmstate%kth(:,:,k) = sqrt(tcmstate%kth(:,:,k)*tcmstate%kth(:,:,k+1))
 !     end do
 !   end if
 !   !
@@ -186,8 +186,8 @@ module mod_pbl_interface
 !   !
 !   if ( ibltyp == 2 ) then
 !     do k = 1 , kz
-!       tcmstate%kzm(:,k,:) = tcmstate%kzm(:,k+1,:)
-!       tcmstate%kth(:,k,:) = tcmstate%kth(:,k+1,:)
+!       tcmstate%kzm(:,:,k) = tcmstate%kzm(:,:,k+1)
+!       tcmstate%kth(:,:,k) = tcmstate%kth(:,:,k+1)
 !     end do
 !   end if
 
@@ -197,9 +197,9 @@ module mod_pbl_interface
     ! Set the surface tke (diagnosed)
     !
     atm1%tke(itcmstart:itcmend,kzp1,jtcmstart:jtcmend) =  &
-               tcmstate%srftke(itcmstart:itcmend,jtcmstart:jtcmend)
+               transpose(tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend))
     atm2%tke(itcmstart:itcmend,kzp1,jtcmstart:jtcmend) =  &
-               tcmstate%srftke(itcmstart:itcmend,jtcmstart:jtcmend)
+               transpose(tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend))
 
 !   tcmtend%qc = 0.0d0
 !   tcmtend%qv = 0.0d0
@@ -260,7 +260,7 @@ module mod_pbl_interface
              /(dxx*mapfcx(i,j)*mapfcx(i,j))
 
 !TAO Debug:
-!       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j)  + 1d-8*atm%tke(i,k,jp1)
+!       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j) + 1d-8*atm%tke(i,k,jp1)
 
       end do
     end do
@@ -300,7 +300,7 @@ module mod_pbl_interface
       do k = 1 , kz
         do i = 2 , iym1
           dotqdot(i,k) = (qdot(i,k,j) + qdot(i,k+1,j))
-          ftmp(i,k) = 0.5D0*(tcmstate%tkeps(i,k,j) + tcmstate%tkeps(i,k+1,j))
+          ftmp(i,k) = 0.5D0*(tcmstate%tkeps(j,i,k) + tcmstate%tkeps(j,i,k+1))
         end do
       end do
 
@@ -318,18 +318,18 @@ module mod_pbl_interface
     else
       do i = 2 , iym1
         tcmstate%advtke(i,1,j)=tcmstate%advtke(i,1,j)-  &
-                              qdot(i,2,j)*tcmstate%tkeps(i,2,j)/dlev(1)
+                              qdot(i,2,j)*tcmstate%tkeps(j,i,2)/dlev(1)
       end do
       do k = 2 , kzm1
         do i = 2 , iym1
           tcmstate%advtke(i,k,j)=tcmstate%advtke(i,k,j) &
-                              -(qdot(i,k+1,j)*tcmstate%tkeps(i,k+1,j)   &
-                                -qdot(i,k,j)*tcmstate%tkeps(i,k,j))/dlev(k)
+                              -(qdot(i,k+1,j)*tcmstate%tkeps(j,i,k+1)   &
+                                -qdot(i,k,j)*tcmstate%tkeps(j,i,k))/dlev(k)
         end do
       end do
       do i = 2 , iym1
         tcmstate%advtke(i,kz,j)=tcmstate%advtke(i,kz,j)+  &
-                              qdot(i,kz,j)*tcmstate%tkeps(i,kz,j)/dlev(kz)
+                              qdot(i,kz,j)*tcmstate%tkeps(j,i,kz)/dlev(kz)
       end do
     end if
 
@@ -377,11 +377,11 @@ module mod_pbl_interface
         do k = 1 , kzm1
           xps = (hlev(k)*sfcps(i,j)+ptp)
           ps2 = (hlev(k+1)*sfcps(i,j)+ptp)
-          dza = za(i,k,j) - za(i,k+1,j)
+          dza = za(j,i,k) - za(j,i,k+1)
           rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
 
         end do
-        rhobydpdz1d(kz) = rhox2d(i,j)
+        rhobydpdz1d(kz) = rhox2d(j,i)
         dtops = dtpbl/sfcps(i,j)
 
         rho1d = d_1000*(hlev*sfcps(i,j) + ptp) / &
@@ -390,15 +390,15 @@ module mod_pbl_interface
 
 
         qwtcm = sum((tcmtend%qv(i,:,j) + tcmtend%qc(i,:,j))  &
-                      *rho1d*dzq(i,:,j))*dtops
+                      *rho1d*dzq(j,i,:))*dtops
         qwrcm = sum((rcmqvten(i,:,j) + rcmqcten(i,:,j))   &
-                      *rho1d*dzq(i,:,j))*dtops
-!                     *rhobydpdz1d*dzq(i,:,j))*dtops
+                      *rho1d*dzq(j,i,:))*dtops
+!                     *rhobydpdz1d*dzq(j,i,:))*dtops
 
 !       qwanom = qwtcm - qwrcm
 !       qwanom = qwrcm-qfx(i,j)*dt
         qwanom = qwtcm - dtpbl*qfx(i,j)
-        tcmstate%kzm(i,1,j) = qwanom
+        tcmstate%kzm(j,i,1) = qwanom
 
       end do
     end do

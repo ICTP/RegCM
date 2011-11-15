@@ -90,8 +90,9 @@ module mod_diagnosis
 !
 !   dry air (unit = kg):
 !
-    call mpi_gather(sps1%ps, iy*jxp,mpi_real8, &
-                    psa_io,  iy*jxp,mpi_real8, &
+    swapv = transpose(sps1%ps(1:jxp,1:iy))
+    call mpi_gather(swapv, iy*jxp,mpi_real8, &
+                    psa_io,iy*jxp,mpi_real8, &
                     0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
@@ -305,7 +306,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
-                       (atm1%qv(i,k,jendx)/sps1%ps(i,jendx)) /   &
+                       (atm1%qv(i,k,jendx)/sps1%ps(jendx,i)) /   &
                        (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
         end do
       end do
@@ -314,7 +315,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) * &
-                        (atm1%qv(i,k,1)/sps1%ps(i,1)) / &
+                        (atm1%qv(i,k,1)/sps1%ps(1,i)) / &
                         (mddom%msfx(i,1)*mddom%msfx(i,1))
         end do
       end do
@@ -334,8 +335,8 @@ module mod_diagnosis
         qvailx(k,j) = atm1%qv(iym1,k,j)
         qva01(k,j) = atm1%qv(1,k,j)
       end do
-      psailx(j) = sps1%ps(iym1,j)
-      psa01(j) = sps1%ps(1,j)
+      psailx(j) = sps1%ps(j,iym1)
+      psa01(j) = sps1%ps(j,1)
     end do
     call mpi_gather(qvailx,kz*jxp,mpi_real8,qvailx_g,kz*jxp,mpi_real8, &
                     0,mycomm,ierr)
@@ -366,7 +367,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
-                       (atm1%qc(i,k,jendx)/sps1%ps(i,jendx))  /  &
+                       (atm1%qc(i,k,jendx)/sps1%ps(jendx,i))  /  &
                        (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
         end do
       end do
@@ -375,7 +376,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 1 , iym1
           workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))* &
-                       (atm1%qc(i,k,1)/sps1%ps(i,1)) /  &
+                       (atm1%qc(i,k,1)/sps1%ps(1,i)) /  &
                        (mddom%msfx(i,1)*mddom%msfx(i,1))
         end do
       end do
@@ -452,7 +453,8 @@ module mod_diagnosis
 !-----dry air (unit = kg):
 !
     tdrym = d_zero
-    call mpi_gather(sps1%ps,iy*jxp,mpi_real8,psa_io,iy*jxp,mpi_real8, &
+    swapv = transpose(sps1%ps(1:jxp,1:iy))
+    call mpi_gather(swapv,iy*jxp,mpi_real8,psa_io,iy*jxp,mpi_real8, &
                     0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
@@ -614,15 +616,15 @@ module mod_diagnosis
             uavg2 = (atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))*d_half
             if ( uavg2 < d_zero ) then
               worka(i,k,n) =  &
-                  -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(i,jendx)/ &
+                  -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(jendx,i)/ &
                   (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))+        &
-                  fact2*chia(i,k,jendm,n)/sps1%ps(i,jendm)/         &
+                  fact2*chia(i,k,jendm,n)/sps1%ps(jendm,i)/         &
                   (mddom%msfx(i,jendm)*mddom%msfx(i,jendm)))
             else
               worka(i,k,n) = &
-                  -uavg2*(fact1*chia(i,k,jendm,n)/sps1%ps(i,jendm)/ &
+                  -uavg2*(fact1*chia(i,k,jendm,n)/sps1%ps(jendm,i)/ &
                   (mddom%msfx(i,jendm)*mddom%msfx(i,jendm))+        &
-                  fact2*chia(i,k,jendx,n)/sps1%ps(i,jendx) /        &
+                  fact2*chia(i,k,jendx,n)/sps1%ps(jendx,i) /        &
                   (mddom%msfx(i,jendx)*mddom%msfx(i,jendx)))
             end if
           end if
@@ -630,15 +632,15 @@ module mod_diagnosis
             uavg1 = (atm1%u(i+1,k,2)+atm1%u(i,k,2))*d_half
             if ( uavg1 > d_zero ) then
               workb(i,k,n) = &
-                  -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1)/ &
+                  -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(1,i)/ &
                   (mddom%msfx(i,1)*mddom%msfx(i,1)) +       &
-                  fact2*chia(i,k,2,n)/sps1%ps(i,2) /        &
+                  fact2*chia(i,k,2,n)/sps1%ps(2,i) /        &
                   (mddom%msfx(i,2)*mddom%msfx(i,2)))
             else
               workb(i,k,n) = & 
-                  -uavg1*(fact1*chia(i,k,2,n)/sps1%ps(i,2) / &
+                  -uavg1*(fact1*chia(i,k,2,n)/sps1%ps(2,i) / &
                   (mddom%msfx(i,2)*mddom%msfx(i,2)) +        &
-                  fact2*chia(i,k,1,n)/sps1%ps(i,1) /         &
+                  fact2*chia(i,k,1,n)/sps1%ps(1,i) /         &
                   (mddom%msfx(i,1)*mddom%msfx(i,1)))
             end if
           end if
@@ -660,10 +662,10 @@ module mod_diagnosis
           chia02(k,n,j) = chia(2,k,j,n)
         end do
       end do
-      psaill(j) = sps1%ps(iym1,j)
-      psaill1(j) = sps1%ps(iym2,j)
-      psa01(j) = sps1%ps(1,j)
-      psa02(j) = sps1%ps(2,j)
+      psaill(j) = sps1%ps(j,iym1)
+      psaill1(j) = sps1%ps(j,iym2)
+      psa01(j) = sps1%ps(j,1)
+      psa02(j) = sps1%ps(j,2)
     end do
     call mpi_gather(vaill,  kz*jxp,mpi_real8,                      &
                     vaill_g,kz*jxp,mpi_real8,0,mycomm,ierr)
@@ -741,11 +743,12 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 2 , iym2
           if ( myid == nproc-1 )  &
-            worka(i,k,n) = xkc(i,k,jendm)*sps1%ps(i,jendm) * &
-               (chia(i,k,jendm,n)/sps1%ps(i,jendm)-chia(i,k,jendx,n)/sps1%ps(i,jendx))
+            worka(i,k,n) = xkc(i,k,jendm)*sps1%ps(jendm,i) * &
+               (chia(i,k,jendm,n)/sps1%ps(jendm,i) - &
+                chia(i,k,jendx,n)/sps1%ps(jendx,i))
           if ( myid == 0 ) &
-            workb(i,k,n) = xkc(i,k,2)*sps1%ps(i,2) *  &
-               (chia(i,k,2,n)/sps1%ps(i,2)-chia(i,k,1,n)/sps1%ps(i,1))
+            workb(i,k,n) = xkc(i,k,2)*sps1%ps(2,i) *  &
+               (chia(i,k,2,n)/sps1%ps(2,i)-chia(i,k,1,n)/sps1%ps(1,i))
         end do
       end do
     end do

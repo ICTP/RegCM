@@ -759,7 +759,7 @@ module mod_che_drydep
 
           do i=2,iym2
           do n = 1, ntr
-            Kd =  drydepvg(i,n) / cdzq(i,kz,j) !Kd removal rate in s-1
+            Kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
              ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
 !update chiten
              chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
@@ -777,17 +777,13 @@ module mod_che_drydep
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
 
-#ifdef MPP1
        jj = j + (jxp*myid)
-#else
-       jj = j
-#endif
 
           do i=2,iym2
           do n = 1, ntr
 
 ! use clm dry deposition velocity
-            Kd =  c2rvdep(jj,i,itr) / dzq(i,kz,j) !Kd removal rate in s-1
+            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
              ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
 !update chiten
              chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)

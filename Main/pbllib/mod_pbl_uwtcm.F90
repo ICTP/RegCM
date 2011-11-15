@@ -235,7 +235,7 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 
         ! Copy in local versions of necessary variables
-        psbx = sfcps(i,j)
+        psbx = sfcps(j,i)
         tgbx = tg(i,j)
         qfxx = qfx(i,j)
         hfxx = hfx(i,j)
@@ -649,16 +649,16 @@ module mod_pbl_uwtcm
           qcuwten(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdtpbl
 
           ! Momentum diffusivity
-          uwstateb%kzm(i,k,j) = kzm(k)
+          uwstateb%kzm(j,i,k) = kzm(k)
           ! Scalar diffusivity
-          uwstateb%kth(i,k,j) = kth(k)
+          uwstateb%kth(j,i,k) = kth(k)
         end do tcmtend
 
         ! Output the diagnosed TKE
-        uwstatea%srftke(i,j) = tke(kzp1)
-        uwstateb%srftke(i,j) = tke(kzp1)
+        uwstatea%srftke(j,i) = tke(kzp1)
+        uwstateb%srftke(j,i) = tke(kzp1)
         ! Output the PBL top index and height
-        uwstateb%zpbl(i,j) = pblx
+        uwstateb%zpbl(j,i) = pblx
 
         kpbl(j,i) = kpbl2dx
 

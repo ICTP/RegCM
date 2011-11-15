@@ -101,9 +101,9 @@ module mod_bats_zengocn
             tsurf = tground2(i,j) - tzero
             t995 = tatm(j,i,kz) - tzero
             q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
-            z995 = hgt(i,kz,j)
+            z995 = hgt(j,i,kz)
             zi = hpbl(j,i)
-            psurf = (sfps(i,j)+ptop)*d_10
+            psurf = (sfps(j,i)+ptop)*d_10
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
                          uv10,tau,lh,sh,dth,dqh,ustar,zo)
             if ( ldcsst ) then
@@ -135,7 +135,7 @@ module mod_bats_zengocn
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
               ! ustar water (with air density ==1)
-              ustarw = d_half*ustar*(rho(i,j)/rhoh2o)**d_half
+              ustarw = d_half*ustar*(rho(j,i)/rhoh2o)**d_half
               ! lwds =  flwd2d(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4
               ! q is the skin cooling term inckude net lw flux from
@@ -200,7 +200,7 @@ module mod_bats_zengocn
             sent(n,j,i) = sh
             evpr(n,j,i) = lh/wlhv
             ! Back out Drag Coefficient
-            drag(n,j,i) = ustar**d_two*rho(i,j)/uv995
+            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
             v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995

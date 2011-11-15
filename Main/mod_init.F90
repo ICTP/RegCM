@@ -283,8 +283,8 @@ module mod_init
     end do
     do j = 1 , jendl
       do i = 1 , iy
-        sps1%ps(i,j) = xpsb%b0(i,j)
-        sps2%ps(i,j) = xpsb%b0(i,j)
+        sps1%ps(j,i) = xpsb%b0(i,j)
+        sps2%ps(j,i) = xpsb%b0(i,j)
         sts1%tg(i,j) = ts0(i,j)
         sts2%tg(i,j) = ts0(i,j)
       end do
@@ -330,7 +330,7 @@ module mod_init
         do j = 1 , jendl
           do i = 1 , iy
             tbase(i,k,j) = ts00 + &
-                      tlp*dlog((sps1%ps(i,j)*a(k)+ptop)*d_r100)
+                      tlp*dlog((sps1%ps(j,i)*a(k)+ptop)*d_r100)
           end do
         end do
       end do
@@ -349,9 +349,9 @@ module mod_init
 !
     do j = 1 , jendx
       do i = 1 , iym1
-        sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
-        sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
-        sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
+        sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(j,i)
+        sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(j,i)
+        sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(j,i)
       end do
     end do
     if ( ichem == 1 ) then
@@ -379,10 +379,10 @@ module mod_init
         do k = 1 , kz
           do j = 1 , jendx
             do i = 1 , iym1
-              chia(i,k,j,itr) = sps1%ps(i,j)*d_zero
-              chib(i,k,j,itr) = sps2%ps(i,j)*d_zero
-!                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
-!                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
+              chia(i,k,j,itr) = sps1%ps(j,i)*d_zero
+              chib(i,k,j,itr) = sps2%ps(j,i)*d_zero
+!                 chia(i,k,j,itr)=sps1%ps(j,i)*1.e-11
+!                 chib(i,k,j,itr)=sps2%ps(j,i)*1.e-11
             end do
           end do
         end do
@@ -506,8 +506,8 @@ module mod_init
         end do
       end do
       do i = 1 , iy
-        sps1%ps(i,j) = sav0(i,kz*4+1,j)
-        sps2%ps(i,j) = sav0(i,kz*4+2,j)
+        sps1%ps(j,i) = sav0(i,kz*4+1,j)
+        sps2%ps(j,i) = sav0(i,kz*4+2,j)
       end do
     end do
     if ( myid == 0 ) then

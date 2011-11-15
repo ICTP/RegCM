@@ -637,7 +637,7 @@ module mod_rad_aerosol
         end if
         if ( lchem ) then
           do itr = 1 , ntr
-            aermmr(j,k,itr) = chspmix(i,k,j,itr)/psfps(i,j)
+            aermmr(j,k,itr) = chspmix(i,k,j,itr)/psfps(j,i)
           end do
         end if
       end do

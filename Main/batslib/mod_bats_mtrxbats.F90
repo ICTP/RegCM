@@ -344,7 +344,7 @@ module mod_bats_mtrxbats
 
       do i = istart, iend
         do j = jstart, jend
-          p0 = (sfps(i,j)+ptop)*d_1000
+          p0 = (sfps(j,i)+ptop)*d_1000
           qs0 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
           ts0 = thatm(j,i,kz)
           hl = lh0 - lh1*(ts0-tzero)
@@ -372,7 +372,7 @@ module mod_bats_mtrxbats
             amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
-            zh(n,j,i) = hgt(i,kz,j)
+            zh(n,j,i) = hgt(j,i,kz)
             z1log(n,j,i)  = dlog(zh(n,j,i))
             z2fra(n,j,i)  = dlog(zh(n,j,i)*d_half)
             z10fra(n,j,i) = dlog(zh(n,j,i)*d_r10)
@@ -569,7 +569,7 @@ module mod_bats_mtrxbats
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                           sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-          real_4 = real((sfps(i,j)+ptop)*d_10)
+          real_4 = real((sfps(j,i)+ptop)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
         end do
       end do
@@ -624,7 +624,7 @@ module mod_bats_mtrxbats
             flwd_o(j,i-1) = real(flwda(j,i)*wpm2)
             sina_o(j,i-1) = real(sina(j,i)*wpm2)
             prcv_o(j,i-1) = real(prca2d(j,i)*mmpd)
-            ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
+            ps_o(j,i-1) = real((sfps(j,i)+ptop)*d_10)
             zpbl_o(j,i-1) = real(hpbl(j,i))
  
             tlef_o(j,i-1) = 0.0

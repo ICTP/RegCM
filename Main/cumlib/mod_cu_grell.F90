@@ -301,25 +301,25 @@ module mod_cu_grell
         do j = jstart , jend
           kk = kz - k + 1
           jp1 = j + 1
-          us = (puatm(i,kk,j)/sfcps(i,j)+       &
-                puatm(i+1,kk,j)/sfcps(i+1,j)+   &
-                puatm(i,kk,jp1)/sfcps(i,jp1)+   &
-                puatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
-          vs = (pvatm(i,kk,j)/sfcps(i,j)+       &
-                pvatm(i+1,kk,j)/sfcps(i+1,j)+   &
-                pvatm(i,kk,jp1)/sfcps(i,jp1)+   &
-                pvatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
+          us = (puatm(i,kk,j)/sfcps(j,i)+       &
+                puatm(i+1,kk,j)/sfcps(j,i+1)+   &
+                puatm(i,kk,jp1)/sfcps(jp1,i)+   &
+                puatm(i+1,kk,jp1)/sfcps(jp1,i+1))*d_rfour
+          vs = (pvatm(i,kk,j)/sfcps(j,i)+       &
+                pvatm(i+1,kk,j)/sfcps(j,i+1)+   &
+                pvatm(i,kk,jp1)/sfcps(jp1,i)+   &
+                pvatm(i+1,kk,jp1)/sfcps(jp1,i+1))*d_rfour
           t(j,i,k) = tas(j,i,kk)
           q(j,i,k) = qvas(j,i,kk)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (tten(i,kk,j))/sfcps(i,j)*dtcum
-          qo(j,i,k) = q(j,i,k) + (qvten(i,kk,j))/sfcps(i,j)*dtcum
-          p(j,i,k) = d_10*sfcps(i,j)*hlev(kk) + d_10*ptop
+          tn(j,i,k) = t(j,i,k) + (tten(i,kk,j))/sfcps(j,i)*dtcum
+          qo(j,i,k) = q(j,i,k) + (qvten(i,kk,j))/sfcps(j,i)*dtcum
+          p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
           vsp(j,i,k) = dsqrt(us**d_two+vs**d_two)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !
            po(j,i,k) = p(j,i,k)
-          psur(j,i) = d_10*sfcps(i,j) + d_10*ptop
+          psur(j,i) = d_10*sfcps(j,i) + d_10*ptop
           outt(j,i,k) = d_zero
           pkk = psur(j,i) - po(j,i,k)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
@@ -342,8 +342,8 @@ module mod_cu_grell
         do j = jstart , jend
           if ( pret(j,i) > d_zero ) then
             kk = kz - k + 1
-            tten(i,kk,j) = sfcps(i,j)*outt(j,i,k) + tten(i,kk,j)
-            qvten(i,kk,j) = sfcps(i,j)*outq(j,i,k) + qvten(i,kk,j)
+            tten(i,kk,j) = sfcps(j,i)*outt(j,i,k) + tten(i,kk,j)
+            qvten(i,kk,j) = sfcps(j,i)*outq(j,i,k) + qvten(i,kk,j)
           end if
         end do
       end do

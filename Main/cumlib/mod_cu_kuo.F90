@@ -133,9 +133,9 @@ module mod_cu_kuo
 !
           eqtm = d_zero
           do k = k700 , kz
-            ttp = ptatm(i,k,j)/psfcps(i,j) + pert
-            q = pvqvtm(i,k,j)/psfcps(i,j) + perq
-            psg = psfcps(i,j)*hlev(k) + ptop
+            ttp = ptatm(i,k,j)/psfcps(j,i) + pert
+            q = pvqvtm(i,k,j)/psfcps(j,i) + perq
+            psg = psfcps(j,i)*hlev(k) + ptop
             t1 = ttp*(d_100/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
@@ -157,7 +157,7 @@ module mod_cu_kuo
           tmean = (tmax+tlcl)*d_half
           dlnp = (egrav*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
-          siglcl = (plcl-ptop)/psfcps(i,j)
+          siglcl = (plcl-ptop)/psfcps(j,i)
 !
 !         3) compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
@@ -171,8 +171,8 @@ module mod_cu_kuo
 !         kbase is the layer where lcl is located.
 !
           do k = 1 , kbase
-            ttp = ptatm(i,k,j)/psfcps(i,j)
-            psg = psfcps(i,j)*hlev(k) + ptop
+            ttp = ptatm(i,k,j)/psfcps(j,i)
+            psg = psfcps(j,i)*hlev(k) + ptop
             es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(d_100/psg)**rovcp
@@ -230,7 +230,7 @@ module mod_cu_kuo
               suma = d_zero
               sumb = d_zero
               arh = d_zero
-              psx = psfcps(i,j)
+              psx = psfcps(j,i)
               do k = 1 , kz
                 qwght(k) = d_zero
               end do

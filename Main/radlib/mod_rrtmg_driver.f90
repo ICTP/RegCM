@@ -483,10 +483,10 @@ module mod_rrtmg_driver
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
     do j = jstart , jend
-      psfc(j) = (sfps(i,j)+ptp)*d_10
+      psfc(j) = (sfps(j,i)+ptp)*d_10
      do k = 1 , kz
         kj = kzp1 - k        
-        play(j,kj) = (sfps(i,j)*hlev(k)+ptp)*d_10
+        play(j,kj) = (sfps(j,i)*hlev(k)+ptp)*d_10
       end do
     end do
     !
@@ -495,7 +495,7 @@ module mod_rrtmg_driver
     do k = 1 , kzp1
       do j = jstart , jend
         kj = kzp1 - k  +1   
-        plev(j,kj) = (sfps(i,j)*flev(k)+ptp)*d_10
+        plev(j,kj) = (sfps(j,i)*flev(k)+ptp)*d_10
       end do
     end do
     !
@@ -777,7 +777,7 @@ module mod_rrtmg_driver
         !
         ! Determine rei as function of normalized pressure
         !
-        pnrml = pmid(j,k)/sfps(i,j)
+        pnrml = pmid(j,k)/sfps(j,i)
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
         rei(j,k) = reimax - rirnge*weight
         !

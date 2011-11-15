@@ -132,7 +132,7 @@
         ivegcov=0   
         do i = istart , iend
           ivegcov(i) = cveg2d(j,i)
-          psurf(i) = cpsb(i,j) * 1.0D3 + ptop
+          psurf(i) = cpsb(j,i) * 1.0D3 + ptop
  
 !         method based on bats diagnostic in routine interf.
  
@@ -300,7 +300,7 @@
 !!$
         if ( igaschem == 1 ) then
           call sethet(j,cza(:,:,j),cht(:,j),ttb,checum,cremrat, &
-                      chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(2:iym2,j))
+                      chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(j,2:iym2))
         end if
       end do
     end subroutine tractend2

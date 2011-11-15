@@ -1042,15 +1042,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       wpm2 = d_one/(srffrq*secph)
     end if
  
+    call interf(1,jbegin,jendx,2,iym1,ktau)
+
+    if ( iocnflx==2 ) then
+      call zengocndrv(jbegin,jendx,2,iym1,ktau)
+    end if
+ 
     do j = jbegin , jendx
       jj = (jxp*myid) + j
- 
-      call interf(1,j,j,2,iym1,ktau)
-
-      if ( iocnflx==2 ) then
-        call zengocndrv(j,j,2,iym1,ktau)
-      end if
- 
       do i = 2 , iym1
         ci = i
         uvdrag(i,j) = d_zero

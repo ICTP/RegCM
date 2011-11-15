@@ -193,10 +193,10 @@ module mod_precip
 !           [kg/kg/s]
             pptnew = dmin1(pptmax,pptacc+pptnew)             ![kg/kg/s][avg]
 !           1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psf(i,j)*thog                  ![kg/m2]
+            dpovg = dsigma(1)*psf(j,i)*thog                  ![kg/m2]
             pptsum(j,i) = pptnew*dpovg                         ![kg/m2/s][avg]
 !           1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,1,j) = qcten(i,1,j) - pptnew*psf(i,j)    ![kg/kg/s*cb][avg]
+            qcten(i,1,j) = qcten(i,1,j) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
           else  !   Cloud but no new precipitation
             pptsum(j,i) = d_zero                               ![kg/m2/s][avg]
           end if
@@ -230,7 +230,7 @@ module mod_precip
      
 !         1bb. Convert accumlated precipitation to kg/kg/s.
 !              Used for raindrop evaporation and accretion.
-          dpovg = dsigma(k)*psf(i,j)*thog                    ![kg/m2][avg]
+          dpovg = dsigma(k)*psf(j,i)*thog                    ![kg/m2][avg]
           pptkm1 = pptsum(j,i)/dpovg                           ![kg/kg/s][avg]
      
 !         1bc. Compute the raindrop evaporation in the clear portion of
@@ -251,9 +251,9 @@ module mod_precip
 !                 evaporation [kg/m2/s]
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg             ![kg/m2/s][avg]
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-            qvten(i,k,j) = qvten(i,k,j) + rdevap*psf(i,j)    ![kg/kg/s*cb][avg]
+            qvten(i,k,j) = qvten(i,k,j) + rdevap*psf(j,i)    ![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
-            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*psf(i,j)
+            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*psf(j,i)
                                                              ![k/s*cb][avg]
           else
             !   no precipitation from above
@@ -295,7 +295,7 @@ module mod_precip
 !           1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg             ![kg/m2/s][avg]
 !           1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,k,j) = qcten(i,k,j) - pptnew*psf(i,j)    ![kg/kg/s*cb][avg]
+            qcten(i,k,j) = qcten(i,k,j) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
           else
             pptnew = d_zero                                  ![kg/kg/s][avg]
           end if
@@ -317,7 +317,7 @@ module mod_precip
             if ( remrat(i,k) > d_zero ) then
               do kk = 1 , k - 1
                 rembc(i,k) = rembc(i,k) + remrat(i,kk)*qc3(j,i,kk) *  &
-                             psf(i,j)*dsigma(kk)*uch          ![mm/hr]
+                             psf(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
 ! the below cloud precipitation rate is now used directly in chemistry
 !              rembc(i,k) = 6.5D0*1.0D-5*rembc(i,k)**0.68D0   ![s^-1]
