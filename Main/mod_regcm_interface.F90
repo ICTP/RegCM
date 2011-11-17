@@ -248,7 +248,7 @@ module mod_regcm_interface
     end if
 #endif
 !
-    call spinit
+    call spinit(1,jendx,1,iym1)
 ! 
     if ( ichem == 1 ) call chsrfem
 
@@ -352,7 +352,7 @@ module mod_regcm_interface
 !
 !     Split modes
 !
-      call splitf
+      call splitf(1,jendx,1,iym1)
 !
 !     Write output for this timestep if requested
 !

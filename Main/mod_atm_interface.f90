@@ -328,8 +328,8 @@ module mod_atm_interface
         call getmem3d(sulfate,1,iy,1,kz,1,jxp,'mod_atm_interface:sulfate')
       end if
 
-      call getmem3d(dstor,1,iy,0,jxp+1,1,nsplit,'mod_atm_interface:dstor')
-      call getmem3d(hstor,1,iy,0,jxp+1,1,nsplit,'mod_atm_interface:hstor')
+      call getmem3d(dstor,0,jxp+1,1,iy,1,nsplit,'mod_atm_interface:dstor')
+      call getmem3d(hstor,0,jxp+1,1,iy,1,nsplit,'mod_atm_interface:hstor')
 !
       call getmem2d(hgfact,1,iy,1,jxp,'mod_atm_interface:hgfact')
       call getmem3d(omega,1,iy,1,kz,1,jxp,'mod_atm_interface:omega')

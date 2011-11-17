@@ -1330,8 +1330,8 @@ module mod_output
       do j = 1 , jendl
         do n = 1 , nsplit
           do i = 1 , iy
-            sav0d(i,n,j)        = dstor(i,j,n)
-            sav0d(i,n+nsplit,j) = hstor(i,j,n)
+            sav0d(i,n,j)        = dstor(j,i,n)
+            sav0d(i,n+nsplit,j) = hstor(j,i,n)
           end do
         end do
       end do
