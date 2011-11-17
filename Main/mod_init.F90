@@ -1206,37 +1206,38 @@ module mod_init
   call inirad
 !
 !-----calculating topographical correction to diffusion coefficient
-  do j = 1 , jendl
-    do i = 1 , iy
-      hgfact(i,j) = d_one
+  do i = 1 , iy
+    do j = 1 , jendl
+      hgfact(j,i) = d_one
     end do
   end do
+
+  do i = 2 , iym2
+    im1h = max0(i-1,2)
+    ip1h = min0(i+1,iym2)
 #ifdef BAND
-  do j = jbegin , jendm
-    jm1 = j-1
-    jp1 = j+1
+    do j = jbegin , jendm
+      jm1 = j-1
+      jp1 = j+1
 #else
-  do j = jbegin , jendm
-    if ( myid == 0 ) then
-      jm1 = max0(j-1,2)
-    else
-      jm1 = j - 1
-    end if
-    if ( myid == nproc-1 ) then
-      jp1 = min0(j+1,jxp-2)
-    else
-      jp1 = j + 1
-    end if
+    do j = jbegin , jendm
+      if ( myid == 0 ) then
+        jm1 = max0(j-1,2)
+      else
+        jm1 = j - 1
+      end if
+      if ( myid == nproc-1 ) then
+        jp1 = min0(j+1,jxp-2)
+      else
+        jp1 = j + 1
+      end if
 #endif
-    do i = 2 , iym2
-      im1h = max0(i-1,2)
-      ip1h = min0(i+1,iym2)
       hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,im1h))/dx)
       hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,ip1h))/dx)
       hg3 = dabs((mddom%ht(j,i)-mddom%ht(jm1,i))/dx)
       hg4 = dabs((mddom%ht(j,i)-mddom%ht(jp1,i))/dx)
       hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-      hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
+      hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**d_two)
     end do
   end do
 !

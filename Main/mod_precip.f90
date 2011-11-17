@@ -504,14 +504,14 @@ module mod_precip
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          tmp3 = (t2(i,k,j)+dt*tten(i,k,j))/psc(i,j)
-          qvcs = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(i,j),lowq)
-          qccs = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(i,j),lowq)
+          tmp3 = (t2(i,k,j)+dt*tten(i,k,j))/psc(j,i)
+          qvcs = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(j,i),lowq)
+          qccs = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(j,i),lowq)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = (a(k)*psc(i,j)+ptop)*d_1000
+          pres = (a(k)*psc(j,i)+ptop)*d_1000
           if ( tmp3 > tzero ) then
             satvp = svp1*d_1000*dexp(svp2*(tmp3-tzero)/(tmp3-svp3))
           else
@@ -536,7 +536,7 @@ module mod_precip
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
+            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(i,k,j)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
@@ -551,9 +551,9 @@ module mod_precip
           !-----------------------------------------------------------
           !     3.  Compute the tendencies.
           !-----------------------------------------------------------
-          qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2
-          qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2
-          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2*wlhvocp
+          qvten(i,k,j) = qvten(i,k,j) - psc(j,i)*tmp2
+          qcten(i,k,j) = qcten(i,k,j) + psc(j,i)*tmp2
+          tten(i,k,j) = tten(i,k,j) + psc(j,i)*tmp2*wlhvocp
         end do
       end do
     end do

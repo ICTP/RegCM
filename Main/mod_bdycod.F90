@@ -1509,7 +1509,7 @@ module mod_bdycod
     integer , intent(in) :: ip , j , nk
     real(8) , intent(in) , dimension(ip) :: wg
     type(v2dbound) , intent(in) :: bnd
-    real(8) , intent(inout) , dimension(iy,jxp) :: ften
+    real(8) , pointer , intent(inout) , dimension(:,:) :: ften
 !
     integer :: i , ii , k , ido
 #ifndef BAND
@@ -1536,9 +1536,9 @@ module mod_bdycod
     do i = 2 , ip
        ii = iy - i + ido
 !.......south boundary:
-        ften(i,j) = wg(i)*ften(i,j) + (d_one-wg(i))*bnd%sbt(i,j)
+        ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(i,j)
 !.......north boundary:
-        ften(ii,j) = wg(i)*ften(ii,j) + (d_one-wg(i))*bnd%nbt(i,j)
+        ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(i,j)
     end do
 
 #else
@@ -1573,9 +1573,9 @@ module mod_bdycod
       do i = 2 , ip
         ii = iy - i + ido
 !.......south boundary:
-        ften(i,j) = wg(i)*ften(i,j) + (d_one-wg(i))*bnd%sbt(i,j)
+        ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(i,j)
 !.......north boundary:
-        ften(ii,j) = wg(i)*ften(ii,j) + (d_one-wg(i))*bnd%nbt(i,j)
+        ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(i,j)
       end do
 !
     else if ( jsls <= ip ) then
@@ -1585,9 +1585,9 @@ module mod_bdycod
         do i = 2 , jsls - 1
           ii = iy - i + ido
 !........south boundary:
-          ften(i,j) = wg(i)*ften(i,j) + (d_one-wg(i))*bnd%sbt(i,j)
+          ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(i,j)
 !........north boundary:
-          ften(ii,j) = wg(i)*ften(ii,j) + (d_one-wg(i))*bnd%nbt(i,j)
+          ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(i,j)
         end do
         ibeg = jsls
         iend = iy - jsls + ido
@@ -1597,14 +1597,14 @@ module mod_bdycod
 !------west-boundary slice:
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,j) = wg(jsls)*ften(i,j)+(d_one-wg(jsls))*bnd%wbt(i,jwb)
+            ften(j,i) = wg(jsls)*ften(j,i)+(d_one-wg(jsls))*bnd%wbt(i,jwb)
           end if
         end do
       else if ( jj <= ip ) then
 !------east-boundary slice:
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,j) = wg(jsls)*ften(i,j)+(d_one-wg(jsls))*bnd%ebt(i,jeb)
+            ften(j,i) = wg(jsls)*ften(j,i)+(d_one-wg(jsls))*bnd%ebt(i,jeb)
           end if
         end do
       end if
@@ -1994,9 +1994,9 @@ module mod_bdycod
     logical , intent(in) :: ldot ! Dot flag
     integer , intent(in) :: ibdy , nk , ip , j
     real(8) , intent(in) :: fcoef , gcoef , xt
-    real(8) , intent(in) , dimension(-1:jxp+2,iy) :: f
+    real(8) , pointer , intent(in) , dimension(:,:) :: f
+    real(8) , pointer , intent(inout) , dimension(:,:) :: ften
     type(v2dbound) , intent(in) :: bnd
-    real(8) , intent(inout) , dimension(iy,jxp) :: ften
 !
     real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
     integer :: i , ido , ii , k
@@ -2035,7 +2035,7 @@ module mod_bdycod
           fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
           fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
           fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-          ften(i,j) = ften(i,j) + fcx*fls0 - &
+          ften(j,i) = ften(j,i) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
           fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2043,7 +2043,7 @@ module mod_bdycod
           fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
           fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
           fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
        end do
 
@@ -2062,7 +2062,7 @@ module mod_bdycod
           fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
           fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
           fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-          ften(i,j) = ften(i,j) + fcx*fls0 - &
+          ften(j,i) = ften(j,i) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
           fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2070,7 +2070,7 @@ module mod_bdycod
           fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
           fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
           fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
        end do
     end if
@@ -2119,7 +2119,7 @@ module mod_bdycod
           fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
           fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
           fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-          ften(i,j) = ften(i,j) + fcx*fls0 - &
+          ften(j,i) = ften(j,i) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
           fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2127,7 +2127,7 @@ module mod_bdycod
           fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
           fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
           fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
 !
@@ -2146,7 +2146,7 @@ module mod_bdycod
             fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
             fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
             fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-            ften(i,j) = ften(i,j) + fcx*fls0 - &
+            ften(j,i) = ften(j,i) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
             fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2154,7 +2154,7 @@ module mod_bdycod
             fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
             fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
             fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-            ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+            ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                            gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
           ibeg = jsls
@@ -2171,7 +2171,7 @@ module mod_bdycod
             fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(j,i+1)
             fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(j-1,i)
             fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(j+1,i)
-            ften(i,j) = ften(i,j) + fcx*fls0 - &
+            ften(j,i) = ften(j,i) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         else if ( jj <= ip ) then
@@ -2184,7 +2184,7 @@ module mod_bdycod
             fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(j,i+1)
             fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(j-1,i)
             fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(j+1,i)
-            ften(i,j) = ften(i,j) + fcx*fls0 -  &
+            ften(j,i) = ften(j,i) + fcx*fls0 -  &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end if
@@ -2206,7 +2206,7 @@ module mod_bdycod
           fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
           fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
           fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-          ften(i,j) = ften(i,j) + fcx*fls0 - &
+          ften(j,i) = ften(j,i) + fcx*fls0 - &
                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
           fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2214,7 +2214,7 @@ module mod_bdycod
           fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
           fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
           fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
 !
@@ -2233,7 +2233,7 @@ module mod_bdycod
             fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(j+1,i)
             fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(j,i-1)
             fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(j,i+1)
-            ften(i,j) = ften(i,j) + fcx*fls0 - &
+            ften(j,i) = ften(j,i) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
             fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(j,ii)
@@ -2241,7 +2241,7 @@ module mod_bdycod
             fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(j+1,ii)
             fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(j,ii-1)
             fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(j,ii+1)
-            ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+            ften(j,ii) = ften(j,ii) + fcx*fls0 - &
                            gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
           ibeg = jsls
@@ -2258,7 +2258,7 @@ module mod_bdycod
             fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(j,i+1)
             fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(j-1,i)
             fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(j+1,i)
-            ften(i,j) = ften(i,j) + fcx*fls0 - &
+            ften(j,i) = ften(j,i) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         else if ( jj <= ip ) then
@@ -2271,7 +2271,7 @@ module mod_bdycod
             fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(j,i+1)
             fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(j-1,i)
             fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(j+1,i)
-            ften(i,j) = ften(i,j) + fcx*fls0 - &
+            ften(j,i) = ften(j,i) + fcx*fls0 - &
                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end if
