@@ -128,7 +128,6 @@ module mod_atm_interface
   public :: uvcross2dot
 
   real(8) , public , pointer , dimension(:,:) :: hgfact
-  real(8) , public , pointer , dimension(:,:,:) :: sulfate
   real(8) , public , pointer, dimension(:,:,:) :: dstor
   real(8) , public , pointer, dimension(:,:,:) :: hstor
 !
@@ -322,10 +321,6 @@ module mod_atm_interface
       call allocate_v3dbound(xub,lband,kz,nspgd)
       call allocate_v3dbound(xvb,lband,kz,nspgd)
       call allocate_v2dbound(xpsb,lband,nspgx)
-
-      if ( ehso4 ) then
-        call getmem3d(sulfate,1,iy,1,kz,1,jxp,'mod_atm_interface:sulfate')
-      end if
 
       call getmem3d(dstor,0,jxp+1,1,iy,1,nsplit,'mod_atm_interface:dstor')
       call getmem3d(hstor,0,jxp+1,1,iy,1,nsplit,'mod_atm_interface:hstor')

@@ -143,10 +143,6 @@ module mod_dynparam
 !
   character(5) :: ssttyp
 
-! SO4 Control Flag
-
-  logical :: ehso4
-
 ! Land Surface Legend number
 
   integer :: nveg
@@ -334,7 +330,7 @@ module mod_dynparam
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
                    medium_nudge , low_nudge
     namelist /modesparam/ nsplit
-    namelist /globdatparam/ dattyp , ssttyp , ehso4 , gdate1 , gdate2 , &
+    namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
                    dirglob , inpglob , calendar , ibdyfrq
     namelist /aerosolparam/ aertyp , ntr, nbin, sbin
 

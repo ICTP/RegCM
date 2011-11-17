@@ -101,8 +101,6 @@ module mod_mppparam
 
     call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,ierr)
 
-    call mpi_bcast(ehso4,1,mpi_logical,0,mycomm,ierr)
-
     call mpi_bcast(aertyp,7,mpi_character,0,mycomm,ierr)
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)

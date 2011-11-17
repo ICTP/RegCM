@@ -655,27 +655,6 @@ module mod_output
           end do
         end do
       end if
-      if ( ehso4 ) then
-        do j = 1 , jendl
-          do k = 1 , kz
-            do i = 1 , iy
-              sav0s(i,k,j) = so0(i,k,j)
-            end do
-          end do
-        end do
-        call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
-                      & sav_0s,iy*kz*jxp,mpi_real8,          &
-                      & 0,mycomm,ierr)
-        if ( myid == 0 ) then
-          do j = 1 , jx
-            do k = 1 , kz
-              do i = 1 , iy
-                so0_io(i,k,j) = sav_0s(i,k,j)
-              end do
-            end do
-          end do
-        end if
-      end if
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy

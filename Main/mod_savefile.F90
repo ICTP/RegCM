@@ -80,11 +80,7 @@ module mod_savefile
       end if
 
       read (iutrst) ktau, idatex, nbdytime
-      if ( ehso4 ) then
-        read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, ts0_io, so0_io
-      else
-        read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, ts0_io
-      end if
+      read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, ts0_io
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
       read (iutrst) atm1_io%t
@@ -240,13 +236,7 @@ module mod_savefile
       end if
 
       write (iutsav) ktau , idatex , nbdytime
-      if ( ehso4 ) then
-        write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
-                       ps0_io , ts0_io , so0_io
-      else
-        write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
-                       ps0_io , ts0_io
-      end if
+      write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , ts0_io
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t

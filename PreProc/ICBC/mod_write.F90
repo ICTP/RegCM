@@ -58,9 +58,6 @@ module mod_write
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
-    if ( ehso4) then
-      call getmem3d(sulfate4,1,jx,1,iy,1,kz,'mod_write:sulfate4')
-    end if
     call getmem1d(yiy,1,iy,'mod_write:yiy')
     call getmem1d(xjx,1,jx,'mod_write:xjx')
   end subroutine init_output
@@ -158,11 +155,6 @@ module mod_write
     end if
     istatus = nf90_put_att(ncout, nf90_global, 'global_data_source', dattyp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding global data_source')
-    if (ehso4) then
-      cdum = 'Yes'
-    else
-      cdum = 'No'
-    end if
     istatus = nf90_put_att(ncout, nf90_global, 'sulfate_data_present', cdum)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding global sulfate_present')
     istatus = nf90_def_dim(ncout, 'iy', iy, idims(2))
@@ -351,23 +343,6 @@ module mod_write
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding qv units')
     istatus = nf90_put_att(ncout, ivar(7), 'coordinates', 'xlon xlat')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding qv coordinates')
-    if ( ehso4) then
-      istatus = nf90_def_var(ncout, 'so4', nf90_float, x3ddim, ivar(8))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error adding variable so4')
-#ifdef NETCDF4_HDF5
-      istatus = nf90_def_var_deflate(ncout, ivar(8), 1, 1, 9)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error setting compression on qv')
-#endif
-      istatus = nf90_put_att(ncout, ivar(8), 'standard_name', &
-                             'atmosphere_sulfate_content')
-      call checkncerr(istatus,__FILE__,__LINE__,'Error adding so4 standard_name')
-      istatus = nf90_put_att(ncout, ivar(8), 'long_name', 'Sulfate')
-      call checkncerr(istatus,__FILE__,__LINE__,'Error adding so4 long_name')
-      istatus = nf90_put_att(ncout, ivar(8), 'units', 'kg m-2')
-      call checkncerr(istatus,__FILE__,__LINE__,'Error adding so4 units')
-      istatus = nf90_put_att(ncout, ivar(8), 'coordinates', 'xlon xlat')
-      call checkncerr(istatus,__FILE__,__LINE__,'Error adding so4 coordinates')
-    end if
 !
     istatus = nf90_enddef(ncout)
     call checkncerr(istatus,__FILE__,__LINE__,'Error End Definitions NetCDF output')
@@ -447,10 +422,6 @@ module mod_write
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable t write')
     istatus = nf90_put_var(ncout, ivar(7), q4, istart, icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable qv write')
-    if ( ehso4) then
-      istatus = nf90_put_var(ncout, ivar(8), sulfate4,  istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error variable so4 write')
-    end if
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncout)
       call checkncerr(istatus,__FILE__,__LINE__,'Error sync output file')

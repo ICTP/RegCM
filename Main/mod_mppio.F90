@@ -74,10 +74,8 @@ module mod_mppio
 
   real(8) , pointer , dimension(:,:) :: ps0_io , ps1_io , ts0_io ,  &
                            ts1_io
-  real(8) , pointer , dimension(:,:,:) :: qb0_io , qb1_io , so0_io ,&
-                                    so1_io , tb0_io , tb1_io ,      &
-                                    ub0_io , ub1_io , vb0_io ,      &
-                                    vb1_io
+  real(8) , pointer , dimension(:,:,:) :: qb0_io , qb1_io , &
+            tb0_io , tb1_io , ub0_io , ub1_io , vb0_io , vb1_io
   real(8) , pointer , dimension(:,:) :: ui1_io , ui2_io , uilx_io , &
                                  uil_io , vi1_io , vi2_io ,         &
                                  vilx_io , vil_io
@@ -273,8 +271,6 @@ module mod_mppio
       call getmem2d(ts1_io,1,iy,1,jx,'mod_mppio:ts1_io')
       call getmem3d(qb0_io,1,iy,1,kz,1,jx,'mod_mppio:qb0_io')
       call getmem3d(qb1_io,1,iy,1,kz,1,jx,'mod_mppio:qb1_io')
-      call getmem3d(so0_io,1,iy,1,kz,1,jx,'mod_mppio:so0_io')
-      call getmem3d(so1_io,1,iy,1,kz,1,jx,'mod_mppio:so1_io')
       call getmem3d(tb0_io,1,iy,1,kz,1,jx,'mod_mppio:tb0_io')
       call getmem3d(tb1_io,1,iy,1,kz,1,jx,'mod_mppio:tb1_io')
       call getmem3d(ub0_io,1,iy,1,kz,1,jx,'mod_mppio:ub0_io')

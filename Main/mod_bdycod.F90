@@ -46,7 +46,7 @@ module mod_bdycod
 #endif
   public :: ui1 , ui2 , uilx , uil
   public :: vi1 , vi2 , vilx , vil
-  public :: ts0 , so0
+  public :: ts0
   public :: ts1 ! FOR DCSST
 !
   real(8) , pointer , dimension(:) :: pstrans1 , pstrans2
@@ -56,7 +56,6 @@ module mod_bdycod
   real(8) , pointer , dimension(:,:) :: uj1 , uj2 , ujl , ujlx , &
                                         vj1 , vj2 , vjl , vjlx
 #endif
-  real(8) , pointer , dimension(:,:,:) :: so0 , so1
   real(8) , pointer , dimension(:,:) :: ts0 , ts1
 !
   interface nudge
@@ -84,8 +83,6 @@ module mod_bdycod
     call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
     call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
 !
-    call getmem3d(so0,1,iy,1,kz,1,jxp,'bdycon:so0')
-    call getmem3d(so1,1,iy,1,kz,1,jxp,'bdycon:so1')
     call getmem2d(ui1,1,kz,0,jxp+1,'bdycon:ui1')
     call getmem2d(ui2,1,kz,0,jxp+1,'bdycon:ui2')
     call getmem2d(uil,1,kz,0,jxp+1,'bdycon:uil')
@@ -138,15 +135,6 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 !
     if ( myid == 0 ) then
-      if ( ehso4 ) then
-        do k = 1 , kz
-          do j = 1 , jendl
-            do i = 1 , iy
-              sulfate(i,k,j) = so0(i,k,j)
-            end do
-          end do
-        end do
-      end if
       bdydate2 = bdydate2 + intbdy
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
       mmrec = icbc_search(bdydate2)
@@ -158,7 +146,7 @@ module mod_bdycod
           call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
         end if
       end if
-      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
+      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io)
       ps1_io = ps1_io*d_r10
       do j = 1 , jx
         do k = 1 , kz
@@ -174,15 +162,6 @@ module mod_bdycod
           sav_0(i,kz*4+2,j) = ts1_io(i,j)
         end do
       end do
-      if ( ehso4 ) then
-        do j = 1 , jx
-          do k = 1 , kz
-            do i = 1 , iy
-              sav_0s(i,k,j) = so1_io(i,k,j)
-            end do
-          end do
-        end do
-      end if
     end if
 !
     call date_bcast(bdydate2,0,mycomm,ierr)
@@ -204,18 +183,6 @@ module mod_bdycod
         ts1(i,j) = sav0(i,kz*4+2,j)
       end do
     end do
-    if ( ehso4 ) then
-      call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,  &
-                       sav0s, iy*kz*jxp,mpi_real8,  &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do k = 1 , kz
-          do i = 1 , iy
-            so1(i,k,j) = sav0s(i,k,j)
-          end do
-        end do
-      end do
-    end if
 !
 !   Convert surface pressure to pstar
 !
@@ -489,15 +456,6 @@ module mod_bdycod
         ts0(i,j) = ts1(i,j)
       end do
     end do
-    if ( ehso4 ) then
-      do k = 1 , kz
-        do j = 1 , jendl
-          do i = 1 , iy
-            so0(i,k,j) = so1(i,k,j)
-          end do
-        end do
-      end do
-    end if
    
     if ( idatex < bdydate1 ) then
       do j = 1 , jendx

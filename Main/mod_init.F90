@@ -143,7 +143,7 @@ module mod_init
         call fatal(__FILE__,__LINE__, &
                    'ICBC for '//appdat//' not found')
       end if
-      call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io,so0_io)
+      call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
       appdat = tochar(bdydate1)
       write (6,*) 'READY IC DATA for ', appdat
       ps0_io = ps0_io*d_r10
@@ -161,15 +161,6 @@ module mod_init
           sav_0(i,kz*4+2,j) = ts0_io(i,j)
         end do
       end do
-      if ( ehso4 ) then
-        do j = 1 , jx
-          do k = 1 , kz
-            do i = 1 , iy
-              sav_0s(i,k,j) = so0_io(i,k,j)
-            end do
-          end do
-        end do
-      end if
     end if
 !
 !       Start transmission of data to other processors
@@ -177,10 +168,6 @@ module mod_init
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                      0,mycomm,ierr)
-    if ( ehso4 )                                                    &
-        call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,         &
-                         sav0s, iy*kz*jxp,mpi_real8,         &
-                         0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -194,13 +181,6 @@ module mod_init
         xpsb%b0(i,j) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
-      if ( ehso4 ) then
-        do k = 1 , kz
-          do i = 1 , iy
-            so0(i,k,j) = sav0s(i,k,j)
-          end do
-        end do
-      end if
     end do
 !
 !       Convert surface pressure to pstar
@@ -335,15 +315,6 @@ module mod_init
         end do
       end do
     end if
-    if ( ehso4 ) then
-      do k = 1 , kz
-        do j = 1 , jendl
-          do i = 1 , iy
-            sulfate(i,k,j) = so0(i,k,j)
-          end do
-        end do
-      end do
-    end if
 !
     zpbl(:,:) = 500.0D0  ! For Zeng Ocean Flux Scheme
 !
@@ -438,23 +409,11 @@ module mod_init
           sav_0(i,kz*4+1,j) = ps0_io(i,j)
           sav_0(i,kz*4+2,j) = ts0_io(i,j)
         end do
-        if ( ehso4 ) then
-          do k = 1 , kz
-            do i = 1 , iy
-              sav_0s(i,k,j) = so0_io(i,k,j)
-            end do
-          end do
-        end if
       end do
     end if
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
                      0,mycomm,ierr)
-    if ( ehso4 ) then
-      call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,  &
-                       sav0s, iy*kz*jxp,mpi_real8,  &
-                       0,mycomm,ierr)
-    end if
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -468,13 +427,6 @@ module mod_init
         xpsb%b0(i,j) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
-      if ( ehso4 ) then
-        do k = 1 , kz
-          do i = 1 , iy
-            so0(i,k,j) = sav0s(i,k,j)
-          end do
-        end do
-      end if
     end do
 
     if ( myid == 0 ) then

@@ -55,7 +55,6 @@ module mod_ncio
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   real(4) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
-  logical :: lso4p
   real(8) :: tpd, cfd
   real(8) :: xns2d
   real(4) :: xns2r
@@ -101,7 +100,6 @@ module mod_ncio
 
   character(128) :: cdum
 
-  data lso4p   /.false./
   data lmaskfill /.false./
   data idmin   /-1/
   data isdmin  /-1/
@@ -871,20 +869,15 @@ contains
     call check_ok(__FILE__,__LINE__,'variable t miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
     call check_ok(__FILE__,__LINE__,'variable qv miss', 'ICBC FILE')
-    istatus = nf90_inq_varid(ibcin, 'so4', icbc_ivar(7))
-    if ( istatus == nf90_noerr) then
-      lso4p = .true.
-    end if
   end subroutine open_icbc
 
-  subroutine read_icbc(ps,ts,u,v,t,qv,so4)
+  subroutine read_icbc(ps,ts,u,v,t,qv)
     use netcdf
     implicit none
     real(8) , dimension(iy,kz,jx) , intent(out) :: u
     real(8) , dimension(iy,kz,jx) , intent(out) :: v
     real(8) , dimension(iy,kz,jx) , intent(out) :: t
     real(8) , dimension(iy,kz,jx) , intent(out) :: qv
-    real(8) , dimension(iy,kz,jx) , intent(out) :: so4
     real(8) , dimension(iy,jx) , intent(out) :: ps
     real(8) , dimension(iy,jx) , intent(out) :: ts
 
@@ -950,19 +943,6 @@ contains
         end do
       end do
     end do
-    if (lso4p) then
-      istatus = nf90_get_var(ibcin, icbc_ivar(7), xread, istart, icount)
-      call check_ok(__FILE__,__LINE__,'variable so4 read error', 'ICBC FILE')
-      do k = 1 , kz
-        do j = 1 , jx
-          do i = 1 , iy
-            so4(i,k,j) = dble(xread(j,i,k))
-          end do
-        end do
-      end do
-    else
-      so4 = d_zero
-    end if
   end subroutine read_icbc
 
   subroutine close_icbc
