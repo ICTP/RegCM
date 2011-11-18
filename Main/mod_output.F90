@@ -825,29 +825,28 @@ module mod_output
             end do
           end do
         end if
-        do j = 1 , jendx
-          do i = 1 , iym1
-            var2d0(i,j) = kpbl(j,i)
-          end do
-        end do
-        call mpi_gather(var2d0, iy*jxp,mpi_integer, &
-                      & var2d_0,iy*jxp,mpi_integer, &
-                      & 0,mycomm,ierr)
-        if (myid == 0) then
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-            do i = 1 , iym1
-              kpbl_io(i,j) = var2d_0(i,j)
-            end do
-          end do
-        end if
       end if
 !end UW variable gather
 !!!!!!!!!!!!!!!!!!!!
-
+      do j = 1 , jendx
+        do i = 1 , iym1
+          var2d0(i,j) = kpbl(j,i)
+        end do
+      end do
+      call mpi_gather(var2d0, iy*jxp,mpi_integer, &
+                    & var2d_0,iy*jxp,mpi_integer, &
+                    & 0,mycomm,ierr)
+      if (myid == 0) then
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+          do i = 1 , iym1
+            kpbl_io(i,j) = var2d_0(i,j)
+          end do
+        end do
+      end if
       do j = 1 , jendl
         do i = 1 , iy
           sav0a(i,1,j) = sfsta%hfx(j,i)

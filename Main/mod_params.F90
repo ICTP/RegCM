@@ -1674,7 +1674,7 @@ module mod_params
     call init_mod_pbl_uwtcm
   end if
 
-  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chib,chiten,remdrd, &
+  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd, &
                 sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
                 chtrdpv,chtrname,ichem,ichdrdepo,dt)
  

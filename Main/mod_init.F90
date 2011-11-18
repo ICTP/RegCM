@@ -558,8 +558,8 @@ module mod_init
           end do
         end do
       end if
-      call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
-                       sav0, iy*kzp1*jxp,mpi_real8,   &
+      call mpi_scatter(sav_0b,iy*kzp1*jxp,mpi_real8,   &
+                       sav0b, iy*kzp1*jxp,mpi_real8,   &
                        0,mycomm,ierr)
       do j = 1 , jendx
         do k = 1 , kzp1
@@ -577,8 +577,8 @@ module mod_init
           end do
         end do
       end if
-      call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
-                       sav0, iy*kzp1*jxp,mpi_real8,   &
+      call mpi_scatter(sav_0b,iy*kzp1*jxp,mpi_real8,   &
+                       sav0b, iy*kzp1*jxp,mpi_real8,   &
                        0,mycomm,ierr)
       do j = 1 , jendx
         do k = 1 , kzp1
@@ -587,23 +587,28 @@ module mod_init
           end do
         end do
       end do
+
+    end if ! ibltyp == 2 .or. ibltyp == 99
+!
+    if ( myid == 0 ) then
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 1 , jxm1
-        do i = 1 , iy
+#endif
+        do i = 1 , iym1
           var2d_0(i,j) = kpbl_io(i,j)
         end do
       end do
-      call mpi_scatter(var2d_0,iy*jxp,mpi_integer, &
-                       var2d0, iy*jxp,mpi_integer, &
-                       0,mycomm,ierr)
-      if (myid == 0) then
-        do j = 1 , jendx
-          do i = 1 , iy
-            kpbl(j,i) = var2d_0(i,j)
-          end do
-        end do
-      end if
-!
-    end if ! ibltyp == 2 .or. ibltyp == 99
+    end if
+    call mpi_scatter(var2d_0,iy*jxp,mpi_integer, &
+                     var2d0, iy*jxp,mpi_integer, &
+                     0,mycomm,ierr)
+    do j = 1 , jendx
+      do i = 1 , iym1
+        kpbl(j,i) = var2d0(i,j)
+      end do
+    end do
 !
     if ( myid == 0 ) then
       do j = 1 , jx

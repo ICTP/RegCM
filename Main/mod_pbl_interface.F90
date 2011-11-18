@@ -33,7 +33,7 @@ module mod_pbl_interface
 
   contains
 
-  subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chib,chiten,    &
+  subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,    &
                       remdrd,sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
                       chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
@@ -46,7 +46,6 @@ module mod_pbl_interface
     type (surftstate) , intent(in) :: sts2
     type (surfpstate) , intent(in) :: sps2
     real(dp) , pointer , dimension(:,:,:) :: heatrt
-    real(dp) , pointer , dimension(:,:,:,:) :: chib
     real(dp) , pointer , dimension(:,:,:,:) :: chiten
     real(dp) , pointer , dimension(:,:,:) :: remdrd
     integer , pointer , dimension(:,:) :: ldmsk
