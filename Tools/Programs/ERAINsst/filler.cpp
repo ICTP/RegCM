@@ -16,6 +16,7 @@ static int nlon = 240;
 static int ntot = nlon*nlat;
 static int nsize = ntot*sizeof(short);
 static int ntimes = 29824;
+//static int ntimes = 1;
 static short missval = -32767;
 static int spole = 109;
 void fillholes(short *a, short *b, int ni, int nj);
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
     // Write back data
     ncvtmp->put(iobuf,1,nlat,nlon);
     newf->sync();
+    std::cout << "Time : " << i+1 << std::endl;
   }
 
   newf->close();
@@ -74,6 +76,94 @@ void fillholes(short *a, short*b, int ni, int nj)
       int ib = i*3*nj+nj+j;
       if (a[ib] == missval)
       {
+        // African lakes fix
+        if ( i > 56 && i < 72 && j > 16 && j < 26 )
+        {
+          double twgt = 0.0;
+          double val = 0.0;
+          for (int ii = 56; ii < 72; ii ++)
+          {
+            for (int jj = 16; jj < 26; jj ++)
+            {
+              int ib = ii*3*nj+nj+jj;
+              if ( a[ib] != missval )
+              {
+                double wgt = 1.0 / 
+                  sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
+                val = val + wgt*double(a[ib]);
+                twgt = twgt + wgt;
+              }
+            }
+          }
+          b[i*nj+j] = short(val/twgt);
+          continue;
+        }
+        // Great lakes fix
+        if ( i > 26 && i < 36 && j > 177 && j < 193 )
+        {
+          double twgt = 0.0;
+          double val = 0.0;
+          for (int ii = 26; ii < 36; ii ++)
+          {
+            for (int jj = 177; jj < 193; jj ++)
+            {
+              int ib = ii*3*nj+nj+jj;
+              if ( a[ib] != missval )
+              {
+                double wgt = 1.0 / 
+                  sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
+                val = val + wgt*double(a[ib]);
+                twgt = twgt + wgt;
+              }
+            }
+          }
+          b[i*nj+j] = short(val/twgt);
+          continue;
+        }
+        // Caspian & black sea fix
+        if ( i > 25 && i < 38 && j > 30 && j < 44 )
+        {
+          double twgt = 0.0;
+          double val = 0.0;
+          for (int ii = 25; ii < 38; ii ++)
+          {
+            for (int jj = 30; jj < 44; jj ++)
+            {
+              int ib = ii*3*nj+nj+jj;
+              if ( a[ib] != missval )
+              {
+                double wgt = 1.0 / 
+                  sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
+                val = val + wgt*double(a[ib]);
+                twgt = twgt + wgt;
+              }
+            }
+          }
+          b[i*nj+j] = short(val/twgt);
+          continue;
+        }
+        // China lakes fix
+        if ( i > 22 && i < 32 && j > 66 && j < 76 )
+        {
+          double twgt = 0.0;
+          double val = 0.0;
+          for (int ii = 22; ii < 32; ii ++)
+          {
+            for (int jj = 66; jj < 76; jj ++)
+            {
+              int ib = ii*3*nj+nj+jj;
+              if ( a[ib] != missval )
+              {
+                double wgt = 1.0 / 
+                  sqrt(double((ii-i)*(ii-i))+double((jj-j)*(jj-j)));
+                val = val + wgt*double(a[ib]);
+                twgt = twgt + wgt;
+              }
+            }
+          }
+          b[i*nj+j] = short(val/twgt);
+          continue;
+        }
         bool closed = false;
         double twgt , val;
         int id = 3;
