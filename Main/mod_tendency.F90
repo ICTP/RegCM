@@ -13,7 +13,7 @@
 !    GNU General Public License for more details.
 !
 !    You should have received a copy of the GNU General Public License
-!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
@@ -30,6 +30,7 @@ module mod_tendency
   use mod_rad_interface
   use mod_pbl_interface
   use mod_bdycod
+  use mod_che_bdyco
   use mod_precip
   use mod_sun
   use mod_slice
@@ -167,6 +168,9 @@ module mod_tendency
 !
     if ( .not. ifrest .and. iexec == 1 ) then
       call bdyval(xbctime,iexec)
+
+      !      if(ichem==1 ) call chem_bdyval(xtime,iexec)
+
       iexec = 2
     else
       iexec = 2
@@ -942,8 +946,25 @@ module mod_tendency
           bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,ieast,1, &
-                        bdyewrcv,iy*(kz*16+4),mpi_real8,iwest,1, &
+          if(ichem==1 ) then           
+           do n=1,ntr       
+            do k = 1 , kz
+              do i = 1 , iy   
+             bdyewsnd(i,4+kz*16+ (n-1)*4*kz+k) = chieb(i,k,1,n)
+             bdyewsnd(i,4+kz*16+ (n-1)*4*kz+kz+k) = chiwb(i,k,jxp,n)
+             bdyewsnd(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k) = chiebt(i,k,1,n)
+             bdyewsnd(i,4+kz*16+ (n-1)*4*kz+ 3*kz +k) = chiwbt(i,k,jxp,n)
+             end do
+            end do
+           end do
+          end if
+
+        numrec = iy*(kz*16+4)
+ 
+        if (ichem==1) numrec = iy*(kz*16+4 + kz*4*ntr)
+
+      call mpi_sendrecv(bdyewsnd,numrec,mpi_real8,ieast,1, &
+                        bdyewrcv,numrec,mpi_real8,iwest,1, &
                         mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         if ( myid == nproc-1 ) then
@@ -983,6 +1004,28 @@ module mod_tendency
           xvb%wbt(i,k,0) = bdyewrcv(i,4+kz*15+k)
         end do
       end do
+
+        if (ichem==1) then 
+        do n=1,ntr
+        do k = 1 , kz
+          do i = 1 , iy
+            if ( myid.eq.nproc-1 ) then
+              chieb(i,k,jendl,n) = bdyewrcv(i,4+kz*16+ (n-1)*4*kz+k)
+              chiebt(i,k,jendl,n) = bdyewrcv(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k)
+            else 
+              chieb(i,k,jxp+1,n) = bdyewrcv(i,4+kz*16+(n-1)*4*kz+k)
+              chiebt(i,k,jxp+1,n) = bdyewrcv(i,4+kz*16+(n-1)*4*kz+ 2*kz +k)
+            end if
+ 
+            chiwb(i,k,0,n) = bdyewrcv(i, 4+kz*16+ (n-1)*4*kz+kz+k  )
+            chiwbt(i,k,0,n) = bdyewrcv(i,4+kz*16+ (n-1)*4*kz+ 3*kz +k )
+ 
+          end do
+        end do
+        end do
+        end if
+
+
       do i = 1 , iy
         if ( myid == nproc-1 ) then
           bdyewsnd(i,1) = xpsb%eb(i,jendx)
@@ -1021,8 +1064,34 @@ module mod_tendency
           bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,1)
         end do
       end do
-      call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,iwest,2, &
-                        bdyewrcv,iy*(kz*16+4),mpi_real8,ieast,2, &
+        if(ichem ==1 ) then
+        do n=1,ntr
+        do k = 1 , kz
+          do i = 1 , iy
+            if ( myid.eq.nproc-1 ) then
+
+              bdyewsnd(i,4+kz*16+ (n-1)*4*kz+k) = chieb(i,k,jendx,n)
+              bdyewsnd(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k ) = chiebt(i,k,jendx,n)
+            else
+
+              bdyewsnd(i,4+kz*16+ (n-1)*4*kz+k) = chieb(i,k,jxp,n)
+              bdyewsnd(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k) = chiebt(i,k,jxp,n)
+            end if
+
+            bdyewsnd(i,4+kz*16+ (n-1)*4*kz+kz+k) = chiwb(i,k,1,n)
+            bdyewsnd(i,4+kz*16+ (n-1)*4*kz+ 3*kz +k) = chiwbt(i,k,1,n)
+
+          end do
+        end do
+        end do
+        end if
+
+        numrec=iy*(kz*16+4)
+        if(ichem==1) numrec = iy*(kz*16+4 + kz*ntr*4)
+
+
+      call mpi_sendrecv(bdyewsnd,numrec,mpi_real8,iwest,2, &
+                        bdyewrcv,numrec,mpi_real8,ieast,2, &
                         mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         xpsb%eb(i,0) = bdyewrcv(i,1)
@@ -1082,11 +1151,33 @@ module mod_tendency
           bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,jxp)
         end do
       end do
+
+
+          if(ichem==1) then           
+           do n=1,ntr       
+            do k = 1 , kz
+              do i = 1 , nspgx 
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+k) = chinb(i,k,jxp,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+kz+k) = chinbt(i,k,jxp,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k) = chisb(i,k,jxp,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+ 3*kz +k) = chisbt(i,k,jxp,n)
+ 
+
+           end do
+            end do
+           end do
+
+          end if
+
+
 #ifndef BAND
     end if
 #endif
-    call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,ieast,1, &
-                      bdynsrcv,nspgx*(kz*16+4),mpi_real8,iwest,1, &
+      numrec = nspgx*(kz*16+4)
+      if (ichem==1) numrec = nspgx*(kz*16+4 +kz*ntr*4)
+
+    call mpi_sendrecv(bdynssnd,numrec,mpi_real8,ieast,1, &
+                      bdynsrcv,numrec,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= 0 ) then
@@ -1117,6 +1208,22 @@ module mod_tendency
           xvb%sbt(i,k,0) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
+       if(ichem==1) then
+        do n=1,ntr
+         do k = 1 , kz
+         do i = 1 , nspgx                     
+            chinb(i,k,0,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+k)
+            chinbt(i,k,0,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+kz+k)
+            chisb(i,k,0,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+kz*2+k)
+            chisbt(i,k,0,n) = bdynsrcv(i, 4+kz*16+ (n-1)*4*kz+kz*3+k)
+          end do
+        end do
+        end do
+
+       end if
+
+
+
 #ifndef BAND
     end if
     if ( myid /= 0 ) then
@@ -1147,11 +1254,33 @@ module mod_tendency
           bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,1)
         end do
       end do
+          if(ichem==1 ) then           
+           do n=1,ntr       
+            do k = 1 , kz
+             do i = 1 , nspgx   
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+k) = chinb(i,k,1,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+kz+k) = chinbt(i,k,1,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+ 2*kz +k) = chisb(i,k,1,n)
+             bdynssnd(i,4+kz*16+ (n-1)*4*kz+ 3*kz +k) = chisbt(i,k,1,n)
+             end do
+            end do
+           end do
+
+
+          end if
+
+
+
+
 #ifndef BAND
     end if
 #endif
-    call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,iwest,2, &
-                      bdynsrcv,nspgx*(kz*16+4),mpi_real8,ieast,2, &
+       numrec = nspgx*(kz*16+4 )   
+      if(ichem ==1) numrec = nspgx*(kz*16+4 +  kz*ntr*4)
+   
+
+    call mpi_sendrecv(bdynssnd,numrec,mpi_real8,iwest,2, &
+                      bdynsrcv,numrec,mpi_real8,ieast,2, &
                       mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= nproc-1 ) then
@@ -1182,6 +1311,20 @@ module mod_tendency
           xvb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
+if(ichem==1 ) then
+        do n=1,ntr
+         do k = 1 , kz
+          do i = 1 , nspgx                     
+            chinb(i,k,jxp+1,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+k)
+            chinbt(i,k,jxp+1,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+kz+k)
+            chisb(i,k,jxp+1,n) = bdynsrcv(i,4+kz*16+ (n-1)*4*kz+kz*2+k)
+            chisbt(i,k,jxp+1,n) = bdynsrcv(i, 4+kz*16+ (n-1)*4*kz+kz*3+k)
+          end do
+        end do
+        end do
+
+
+       end if
 #ifndef BAND
     end if
 #endif
@@ -1503,7 +1646,7 @@ module mod_tendency
         call diffu_x(jbegin,jendx,2,iym2,spchiten,spchib3d,cpsb,xkc,kz)
       end do ! end tracer loop
       !
-      ! Compute tendencies
+      ! Compute chemistry tendencies (other yhan transport)
       !
       call tractend2(jbegin,jendm,2,iym1,ktau,xmonth,xkc)
       !
@@ -1704,6 +1847,13 @@ module mod_tendency
                      xtm1,atm2%t,aten%t,j,kz,iboudy,xtb)
           call nudge(.false.,ispgx,fnudge,gnudge, &
                      xtm1,atm2%qv,aten%qv,j,kz,iboudy,xqb)
+          
+           if (ichem==1) then
+! keep nudge_chi for now 
+!FAB             call nudge_chi(ispgx,fnudge,gnudge,xtm1,chiten(:,:,j,:),j,  &
+!                       & iboudy)
+           end if
+
         end if
 !
 !       forecast t, qv, and qc at tau+1:
@@ -2204,6 +2354,8 @@ module mod_tendency
 !   fill up the boundary values for xxb and xxa variables:
 !
     call bdyval(xbctime,iexec)
+
+!FAB     if(ichem==1) call chem_bdyval(xbctime,iexec)
 !
 !   compute the nonconvective precipitation:
 !
