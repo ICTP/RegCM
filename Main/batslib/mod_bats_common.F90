@@ -56,9 +56,8 @@ module mod_bats_common
 !
   real(dp) , pointer , dimension(:,:) :: coszrs
 !
-  real(dp) , pointer , dimension(:,:) :: flw2d , flwd2d ,    &
-         fsw2d , pptc , pptnc , prca2d , prnca2d , &
-         sinc , solvd , solvs
+  real(dp) , pointer , dimension(:,:) :: flwd , pptc , pptnc , &
+         prca , prnca , sinc , solvd , solvs
 !
   real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
@@ -66,8 +65,8 @@ module mod_bats_common
   integer , pointer , dimension(:,:,:) :: ocld2d , veg2d1
   integer , pointer , dimension(:,:) :: veg2d , ldmsk
 !
-  real(dp) , pointer , dimension(:,:,:) :: dew2d , runoff , &
-       srfrno , emiss , evpa2d , sena2d
+  real(dp) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
+        srfrna
 !
   real(dp) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
 !
@@ -128,13 +127,11 @@ module mod_bats_common
 
     call getmem2d(veg2d,1,jxp,1,iym1,'bats:veg2d')
     call getmem2d(ldmsk,1,jxp,1,iym1,'bats:ldmsk')
-    call getmem2d(flw2d,1,jxp,1,iym1,'bats:flw2d')
-    call getmem2d(flwd2d,1,jxp,1,iym1,'bats:flwd2d')
-    call getmem2d(fsw2d,1,jxp,1,iym1,'bats:fsw2d')
+    call getmem2d(flwd,1,jxp,1,iym1,'bats:flwd')
     call getmem2d(pptc,1,jxp,1,iym1,'bats:pptc')
     call getmem2d(pptnc,1,jxp,1,iym1,'bats:pptnc')
-    call getmem2d(prca2d,1,jxp,1,iym1,'bats:prca2d')
-    call getmem2d(prnca2d,1,jxp,1,iym1,'bats:prnca2d')
+    call getmem2d(prca,1,jxp,1,iym1,'bats:prca')
+    call getmem2d(prnca,1,jxp,1,iym1,'bats:prnca')
     call getmem2d(sinc,1,jxp,1,iym1,'bats:sinc')
     call getmem2d(solvd,1,jxp,1,iym1,'bats:solvd')
     call getmem2d(solvs,1,jxp,1,iym1,'bats:solvs')
@@ -149,14 +146,14 @@ module mod_bats_common
     end if
     call getmem3d(ocld2d,1,nnsg,1,jxp,1,iym1,'bats:ocld2d')
     call getmem3d(veg2d1,1,nnsg,1,jxp,1,iym1,'bats:veg2d1')
-    call getmem3d(dew2d,1,nnsg,1,jxp,1,iym1,'bats:dew2d')
     call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats:emiss')
-    call getmem3d(evpa2d,1,nnsg,1,jxp,1,iym1,'bats:evpa2d')
     call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')
     call getmem3d(ircp,1,nnsg,1,jxp,1,iym1,'bats:ircp')
     call getmem3d(runoff,1,nnsg,1,jxp,1,iym1,'bats:runoff')
-    call getmem3d(srfrno,1,nnsg,1,jxp,1,iym1,'bats:srfrno')
-    call getmem3d(sena2d,1,nnsg,1,jxp,1,iym1,'bats:sena2d')
+
+    call getmem3d(evpa,1,nnsg,1,jxp,1,iym1,'bats:evpa')
+    call getmem3d(srfrna,1,nnsg,1,jxp,1,iym1,'bats:srfrna')
+    call getmem3d(sena,1,nnsg,1,jxp,1,iym1,'bats:sena')
 
     call getmem3d(ht1,1,nnsg,1,jxp,1,iy,'bats:ht1')
     call getmem3d(lndcat1,1,nnsg,1,jxp,1,iy,'bats:lndcat1')

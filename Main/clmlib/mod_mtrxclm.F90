@@ -707,9 +707,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
           sfice(n,j,i) = d_zero
           gwet(n,j,i) = d_half
-          sena2d(n,i,j) = d_zero
-          evpa2d(n,j,i) = d_zero
-          srfrno(n,j,i) = d_zero
+          sena(n,i,j) = d_zero
+          evpa(n,j,i) = d_zero
+          srfrna(n,j,i) = d_zero
           runoff(n,j,i) = d_zero
           ircp(n,j,i) = d_zero
         end do
@@ -1094,9 +1094,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             ssw(n,j,i) = c2rsm10cm(jj,ci)
             dew2d(n,j,i) = ldew(n,j,i)
             sncv(n,j,i) = c2rsnowc(jj,ci)
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(j,i)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(j,i)
-            srfrno(n,j,i) = c2rro_sur(jj,ci)*dtbat
+            evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
+            sena(n,i,j) = sena(n,i,j) + dtbat*hfx(j,i)
+            srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
             if ( lchem ) then
@@ -1164,8 +1164,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             taf(n,j,i) = t2m(n,j,i)
             dew2d(n,j,i) = ldew(n,j,i)
             sncv(n,j,i) = sncv(n,j,i)
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*evpr(n,j,i)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent(n,j,i)
+            evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
+            sena(n,i,j) = sena(n,i,j) + dtbat*sent(n,j,i)
             if ( dabs(trnof(n,j,i)) > 1.0D-10 ) then
               rnos2d(n,i,j) = rnos2d(n,i,j) + &
                               trnof(n,j,i)/secpd*dtbat
@@ -1272,9 +1272,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m(n,j,i)  &
                        *(d_one-landfrac(jj,ci))
  
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*qfx(j,i)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(j,i)
-            srfrno(n,j,i) = c2rro_sur(jj,ci)*dtbat
+            evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
+            sena(n,i,j) = sena(n,i,j) + dtbat*hfx(j,i)
+            srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)*dtbat
           end do
 !
@@ -1344,29 +1344,29 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             if ( ocld2d(n,j,i) /= 0 ) then
               q2m_s(n,j,i-1) = real(q2d(i,j))
               drag_s(n,j,i-1) = real(uvdrag(j,i))
-              evpa_s(n,j,i-1) = real(evpa2d(n,j,ci)*mmpd)
-              sena_s(n,j,i-1) = real(sena2d(n,ci,j)*wpm2)
+              evpa_s(n,j,i-1) = real(evpa(n,j,ci)*mmpd)
+              sena_s(n,j,i-1) = real(sena(n,ci,j)*wpm2)
               tpr_s(n,j,i-1) = real((prnca2d(j,ci)+prca2d(j,ci))*mmpd)
               prcv_s(n,j,i-1) = real(prca2d(j,ci)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(i,j))
               drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(j,i))
-              evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,j,ci))
-              sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
+              evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa(n,j,ci))
+              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,ci,j))
             else if ( ocld2d(n,j,i) == 0 ) then
               q2m_s(n,j,i-1) = real(q2m(n,j,i))
               drag_s(n,j,i-1) = real(drag(n,j,i))
-              evpa_s(n,j,i-1) = real(evpa2d(n,j,i)*mmpd)
-              sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
+              evpa_s(n,j,i-1) = real(evpa(n,j,i)*mmpd)
+              sena_s(n,j,i-1) = real(sena(n,i,j)*wpm2)
               tpr_s(n,j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
               prcv_s(n,j,i-1) = real(prca2d(j,i)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m(n,j,i))
               drag_o(j,i-1) = drag_o(j,i-1) + real(drag(n,j,i))
-              evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,j,i))
-              sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,i,j))
+              evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa(n,j,i))
+              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,i,j))
             end if
           end do
           tpr_o(j,i-1) = real((prnca2d(j,ci)+prca2d(j,ci))*mmpd)
@@ -1391,12 +1391,12 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               tlef_o(j,i-1) = tlef_o(j,i-1) + real(c2rtlef(jj,ci))
               ssw_o(j,i-1) = ssw_o(j,i-1) + real(c2rsm10cm(jj,ci))
               rsw_o(j,i-1) = rsw_o(j,i-1) + real(c2rsm1m(jj,ci))
-              rnos_o(j,i-1) = rnos_o(j,i-1) + real(srfrno(n,j,ci))
+              rnos_o(j,i-1) = rnos_o(j,i-1) + real(srfrna(n,j,ci))
               scv_o(j,i-1) = scv_o(j,i-1) + real(c2rsnowc(jj,ci))
               tlef_s(n,j,i-1) = real(c2rtlef(jj,ci))
               ssw_s(n,j,i-1) = real(c2rsm10cm(jj,ci))
               rsw_s(n,j,i-1) = real(c2rsm1m(jj,ci))
-              rnos_s(n,j,i-1) = real(srfrno(n,j,ci)*mmpd)
+              rnos_s(n,j,i-1) = real(srfrna(n,j,ci)*mmpd)
               scv_s(n,j,i-1) = real(c2rsnowc(jj,ci))
               nnn = nnn + 1
             else
@@ -1422,9 +1422,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           end if
 !               ******    reset accumulation arrays to zero
           do n = 1 , nnsg
-            evpa2d(n,j,ci) = d_zero
-            srfrno(n,j,ci) = d_zero
-            sena2d(n,ci,j) = d_zero
+            evpa(n,j,ci) = d_zero
+            srfrna(n,j,ci) = d_zero
+            sena(n,ci,j) = d_zero
           end do
           prnca2d(j,ci) = d_zero
           prca2d(j,ci) = d_zero

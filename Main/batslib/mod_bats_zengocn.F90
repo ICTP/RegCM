@@ -131,17 +131,17 @@ module mod_bats_zengocn
               ! end if
               !
               ! rs is the net surface sw flux (sw energy absorbed)
-              rs = fsw2d(j,i)
+              rs = fsw(j,i)
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
               ! ustar water (with air density ==1)
               ustarw = d_half*ustar*(rho(j,i)/rhoh2o)**d_half
-              ! lwds =  flwd2d(j,i)
+              ! lwds =  flwd(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4
               ! q is the skin cooling term inckude net lw flux from
               ! the radiative scheme
               ! q = -(lh+sh+(lwus-lwds))
-              q = -(lh+sh+flw2d(j,i))
+              q = -(lh+sh+flw(j,i))
               ! fraction of solar radiation abosrbed in the sublayer
               fs = 0.065D0+11.0D0*delta-(6.6D-5/delta) * &
                           (d_one-dexp(-delta/8.0D-4))

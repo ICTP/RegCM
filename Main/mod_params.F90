@@ -912,7 +912,7 @@ module mod_params
   call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
                 mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
                 aldifl,albdir,albdif,albvs,albvl,aemiss,sinc,    &
-                solvs,solvd,fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
+                solvs,solvd,fsw,flw,flwd,ocld2d,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

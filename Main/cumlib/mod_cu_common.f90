@@ -69,7 +69,6 @@ module mod_cu_common
 
   real(8) :: dtmdl
   real(8) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
-  real(8) :: dtcum2 ! 2*dtcum
 
   logical :: lchem
   integer :: icup

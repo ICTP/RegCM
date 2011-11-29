@@ -55,7 +55,6 @@ module mod_cu_interface
     if ( ichem    == 1 ) lchem = .true.
     dtcum  = dtsec
     dtmdl  = dtsec
-    dtcum2 = dtsec*d_two
     aprdiv = d_one/dble(ntsrf)
 
     call assignpnt(mddom%ht,sfhgt)

@@ -237,8 +237,6 @@ module mod_bats_mtrxbats
 !
     do i = istart , iend
       do j = jstart , jend
-        pptnc(j,i) = d_zero
-        pptc(j,i) = d_zero
         veg2d(j,i) = idnint(lndcat(j,i)+0.1D0)
         do n = 1 , nnsg
           veg2d1(n,j,i) = idnint(lndcat1(n,j,i)+0.1D0)
@@ -260,16 +258,12 @@ module mod_bats_mtrxbats
           if ( ocld2d(n,j,i) == 2 ) then
             if ( lseaice .or. llake ) then
               sfice(n,j,i) = d_1000
-              sncv(n,j,i) = d_zero
             end if
             nlveg = 12
           else if ( ocld2d(n,j,i) == 1 ) then
-            sfice(n,j,i) = d_zero
             sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
             nlveg = veg2d1(n,j,i)
           else
-            sfice(n,j,i) = d_zero
-            sncv(n,j,i) = d_zero
             nlveg = veg2d1(n,j,i)
           end if
 !         Initialize soil moisture in the 3 layers
@@ -278,31 +272,8 @@ module mod_bats_mtrxbats
           tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(is)
           rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(is)
           ssw(n,j,i) = depuv(nlveg)*xmopor(itex)*slmo(is)
-
-          dew2d(n,j,i) = d_zero
-          snag(n,j,i) = d_zero
           gwet(n,j,i) = d_half
-          sena2d(n,j,i) = d_zero
-          evpa2d(n,j,i) = d_zero
-          srfrno(n,j,i) = d_zero
-          runoff(n,j,i) = d_zero
-          ircp(n,j,i) = d_zero
         end do
-      end do
-    end do
- 
-    do i = istart , iend
-      do j = jstart , jend
-        fsw2d(j,i) = d_zero
-        flw2d(j,i) = d_zero
-        sabveg(j,i) = d_zero
-        solis(j,i) = d_zero
-        fswa(j,i) = d_zero
-        flwa(j,i) = d_zero
-        prca2d(j,i) = d_zero
-        prnca2d(j,i) = d_zero
-        svga(j,i) = d_zero
-        sina(j,i) = d_zero
       end do
     end do
 ! 
@@ -312,10 +283,10 @@ module mod_bats_mtrxbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-!  this subroutine interfaces mm42d and bats variables
+!  this subroutine interfaces regcm and bats variables
 !
-!  ivers = 1 ,   regcm2d --> bats
-!  ivers = 2 ,   bats --> regcm2d
+!  ivers = 1 ,   regcm --> bats
+!  ivers = 2 ,   bats --> regcm
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -340,7 +311,7 @@ module mod_bats_mtrxbats
 !
     call time_begin(subroutine_name,idindx)
  
-    if ( ivers == 1 ) then ! regcm2d --> bats
+    if ( ivers == 1 ) then ! regcm --> bats
 
       do i = istart, iend
         do j = jstart, jend
@@ -362,7 +333,6 @@ module mod_bats_mtrxbats
             !
             ! quantities stored on 2d surface array for bats use only
             !
-            ldew(n,j,i) = dew2d(n,j,i)
             sent(n,j,i) = hfx(j,i)
             evpr(n,j,i) = qfx(j,i)
             ldimsk(n,j,i) = ocld2d(n,j,i)
@@ -395,8 +365,6 @@ module mod_bats_mtrxbats
  
           usw(j,i) = uatm(j,i,kz)
           vsw(j,i) = vatm(j,i,kz)
-          fsw(j,i) = fsw2d(j,i)
-          flw(j,i) = flw2d(j,i)
           solvt = solvd(j,i) + solvs(j,i)
           if ( solvt > d_zero ) then
             fracd(j,i) = solvd(j,i)/solvt
@@ -452,10 +420,10 @@ module mod_bats_mtrxbats
               tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
             if ( ldimsk(n,j,i) == 0 ) then
-              ssw(n,j,i)  = dmissval
-              rsw(n,j,i)  = dmissval
-              tsw(n,j,i)  = dmissval
-              trnof(n,j,i)  = dmissval
+              ssw(n,j,i)   = dmissval
+              rsw(n,j,i)   = dmissval
+              tsw(n,j,i)   = dmissval
+              trnof(n,j,i) = dmissval
               srnof(n,j,i) = dmissval
               sncv(n,j,i)  = dmissval
             end if
@@ -477,12 +445,11 @@ module mod_bats_mtrxbats
             svegfrac2d(j,i) = svegfrac2d(j,i)*rdnnsg
           end if
           do n = 1 , nnsg
-            dew2d(n,j,i) = ldew(n,j,i)
             ocld2d(n,j,i) = ldimsk(n,j,i)
-            evpa2d(n,j,i) = evpa2d(n,j,i) + dtbat*evpr(n,j,i)
-            sena2d(n,j,i) = sena2d(n,j,i) + dtbat*sent(n,j,i)
+            evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
+            sena(n,j,i) = sena(n,j,i) + dtbat*sent(n,j,i)
             if ( dabs(srnof(n,j,i)) > 1.0D-10 ) then
-              srfrno(n,j,i) = srfrno(n,j,i) + srnof(n,j,i)*dtbat
+              srfrna(n,j,i) = srfrna(n,j,i) + srnof(n,j,i)*dtbat
             end if
             if ( dabs(srnof(n,j,i))  > 1.0D-10 .and. &
                  dabs(trnof(n,j,i))   > 1.0D-10 ) then
@@ -493,15 +460,15 @@ module mod_bats_mtrxbats
           !
           ! quantities stored on 2d surface array for bats use only
           !
-          prca2d(j,i) = prca2d(j,i) + dtbat*pptc(j,i)
-          prnca2d(j,i) = prnca2d(j,i) + dtbat*pptnc(j,i)
+          prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
+          prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
-          flwda(j,i) = flwda(j,i) + dtbat*flwd2d(j,i)
+          flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
           fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
-          pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
+          pptnc(j,i) = d_zero
         end do
       end do
 
@@ -605,17 +572,17 @@ module mod_bats_mtrxbats
                 end if
               end if
               drag_s(n,j,i-1) = real(drag(n,j,i))
-              evpa_s(n,j,i-1) = real(evpa2d(n,j,i)*mmpd)
-              sena_s(n,j,i-1) = real(sena2d(n,j,i)*wpm2)
-              tpr_s(n,j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
-              prcv_s(n,j,i-1) = real(prca2d(j,i)*mmpd)
+              evpa_s(n,j,i-1) = real(evpa(n,j,i)*mmpd)
+              sena_s(n,j,i-1) = real(sena(n,j,i)*wpm2)
+              tpr_s(n,j,i-1) = real((prnca(j,i)+prca(j,i))*mmpd)
+              prcv_s(n,j,i-1) = real(prca(j,i)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               drag_o(j,i-1) = real(drag_o(j,i-1) + drag(n,j,i))
-              evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,j,i))
-              sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,j,i))
+              evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa(n,j,i))
+              sena_o(j,i-1) = real(sena_o(j,i-1) + sena(n,j,i))
             end do
-            tpr_o(j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
+            tpr_o(j,i-1) = real((prnca(j,i)+prca(j,i))*mmpd)
             drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
             evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
             sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)
@@ -623,7 +590,7 @@ module mod_bats_mtrxbats
             fswa_o(j,i-1) = real(fswa(j,i)*wpm2)
             flwd_o(j,i-1) = real(flwda(j,i)*wpm2)
             sina_o(j,i-1) = real(sina(j,i)*wpm2)
-            prcv_o(j,i-1) = real(prca2d(j,i)*mmpd)
+            prcv_o(j,i-1) = real(prca(j,i)*mmpd)
             ps_o(j,i-1) = real((sfps(j,i)+ptop)*d_10)
             zpbl_o(j,i-1) = real(hpbl(j,i))
  
@@ -638,12 +605,12 @@ module mod_bats_mtrxbats
                 tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef(n,j,i))
                 ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw(n,j,i))
                 rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw(n,j,i))
-                rnos_o(j,i-1) = rnos_o(j,i-1) + real(srfrno(n,j,i))
+                rnos_o(j,i-1) = rnos_o(j,i-1) + real(srfrna(n,j,i))
                 scv_o(j,i-1) = scv_o(j,i-1) + real(sncv(n,j,i))
                 tlef_s(n,j,i-1) = real(tlef(n,j,i))
                 ssw_s(n,j,i-1) = real(ssw(n,j,i))
                 rsw_s(n,j,i-1) = real(rsw(n,j,i))
-                rnos_s(n,j,i-1) = real(srfrno(n,j,i)*mmpd)
+                rnos_s(n,j,i-1) = real(srfrna(n,j,i)*mmpd)
                 scv_s(n,j,i-1) = real(sncv(n,j,i))
                 nnn = nnn + 1
               else
@@ -671,12 +638,12 @@ module mod_bats_mtrxbats
             ! reset accumulation arrays to zero
             !
             do n = 1 , nnsg
-              evpa2d(n,j,i) = d_zero
-              srfrno(n,j,i) = d_zero
-              sena2d(n,j,i) = d_zero
+              evpa(n,j,i) = d_zero
+              srfrna(n,j,i) = d_zero
+              sena(n,j,i) = d_zero
             end do
-            prnca2d(j,i) = d_zero
-            prca2d(j,i) = d_zero
+            prnca(j,i) = d_zero
+            prca(j,i) = d_zero
             flwa(j,i) = d_zero
             flwda(j,i) = d_zero
             fswa(j,i) = d_zero
@@ -1019,7 +986,8 @@ module mod_bats_mtrxbats
             tweak1 = (bsw(n,j,i)*(bsw(n,j,i)-6.0D0)+10.3D0) / &
                      (bsw(n,j,i)*bsw(n,j,i)+40.0D0*bsw(n,j,i))
             ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
-            evmx0(n,j,i) = 1.02D0*dmax*ck/dsqrt(depuv(lveg(n,j,i))*deprv(lveg(n,j,i)))
+            evmx0(n,j,i) = 1.02D0*dmax*ck / &
+                 dsqrt(depuv(lveg(n,j,i))*deprv(lveg(n,j,i)))
             gwmx0(n,j,i) = depuv(lveg(n,j,i))*porsl(n,j,i)
             gwmx1(n,j,i) = deprv(lveg(n,j,i))*porsl(n,j,i)
             gwmx2(n,j,i) = deptv(lveg(n,j,i))*porsl(n,j,i)

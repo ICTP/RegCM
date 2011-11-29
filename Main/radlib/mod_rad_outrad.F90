@@ -103,43 +103,44 @@ module mod_rad_outrad
 !
     data firstin /.true./
 !
-!     compute total radiative heating flux for the surface
+!   compute total radiative heating flux for the surface
 !
     do j = jstart , jend
       srfrad(j) = frsa(j) + slwd(j)
     end do
-!------
-!------total heating rate in deg/s
-!------
+!
+!   total heating rate in deg/s
+!
     do k = 1 , kz
       do j = jstart , jend
         heatrt(j,i,k) = qrs(j,k) + qrl(j,k)
       end do
     end do
-!------
-!------surface absorbed solar flux in watts/m2
-!------
+!
+!   surface absorbed solar flux in watts/m2
+!
     do j = jstart , jend
       srfabswflx(j,i) = frsa(j)
     end do
-!------
-!------net up longwave flux at the surface
-!------
+!
+!   net up longwave flux at the surface
+!
     do j = jstart , jend
       srflwflxup(j,i) = frla(j)
       srflwflxdw(j,i) = slwd(j)  ! BATS Output
     end do
-!------
-!------for coupling with bats
-!------
-!     for now assume abveg (solar absorbed by vegetation) is equal
-!     to frsa (solar absorbed by surface). possible problems are
-!     over sparsely vegetated areas in which vegetation and ground
-!     albedo are significantly different
+!
+!   for coupling with bats
+!
+!   for now assume abveg (solar absorbed by vegetation) is equal
+!   to frsa (solar absorbed by surface). possible problems are
+!   over sparsely vegetated areas in which vegetation and ground
+!   albedo are significantly different
+!
     do j = jstart , jend
-      totsol2d(j,i) = soll(j) + sols(j) + solsd(j) + solld(j)
-      soldir2d(j,i) = sols(j)
-      soldif2d(j,i) = solsd(j)
+      totsol(j,i) = soll(j) + sols(j) + solsd(j) + solld(j)
+      soldir(j,i) = sols(j)
+      soldif(j,i) = solsd(j)
 #ifdef CLM
       solswdir(i,j) = sols(j)
       sollwdir(i,j) = soll(j)

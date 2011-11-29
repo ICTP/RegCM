@@ -1185,8 +1185,7 @@ module mod_rad_radiation
                h2ostr , path , pdel , psf , pthco2 , pthh2o , ptho2 , &
                ptho3 , xptop , rdenom , sqrco2 , tmp1 , tmp1i ,       &
                tmp1l , tmp2 , tmp2i , tmp2l , tmp3i , tmp3l ,         &
-               trayoslp , wavmid , wgtint , sfltot , x0fsnrtc ,       &
-               soldir , soldif
+               trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
     integer , dimension(2) :: je , js
     integer :: j , indxsl , k , n , nloop , ns
 !
@@ -1620,12 +1619,8 @@ module mod_rad_radiation
    
 !     solar is incident visible solar radiation
       if ( ns == 8 ) then
-        soldif = 0
-        soldir = 0
         do n = 1 , nloop
           do j = js(n) , je(n)
-            soldir = exptdn(j,kzp1)*solflx(j)*d_r1000
-            soldif = (fluxdn(j,kzp1)-exptdn(j,kz + 1))*solflx(j)*d_r1000
             solar(j,i) = solflx(j)*d_r1000*fluxdn(j,kzp1)
           end do
         end do

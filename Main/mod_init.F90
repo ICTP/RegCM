@@ -383,7 +383,7 @@ module mod_init
     if ( myid == 0 ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
+        write (6,'(1x,7E12.4)') o3prof_io(3,k,3)
       end do
       appdat = tochar(idatex)
       print 99001 , nbdytime, ktau, appdat
@@ -823,7 +823,7 @@ module mod_init
         solis(j,i) = sav2(i,nnsg*5+1,j)
         solvd(j,i) = sav2(i,nnsg*5+2,j)
         solvs(j,i) = sav2(i,nnsg*5+3,j)
-        flw2d(j,i) = sav2(i,nnsg*5+4,j)
+        flw(j,i)   = sav2(i,nnsg*5+4,j)
       end do
     end do
     if ( myid == 0 ) then
@@ -864,8 +864,8 @@ module mod_init
         end do
       end do
       do i = 1 , iym1
-        flwd2d(j,i) = sav2(i,nnsg*5+1,j)
-        fsw2d(j,i) = sav2(i,nnsg*5+2,j)
+        flwd(j,i) = sav2(i,nnsg*5+1,j)
+        fsw(j,i) = sav2(i,nnsg*5+2,j)
         sabveg(j,i) = sav2(i,nnsg*5+3,j)
         sinc(j,i) = sav2(i,nnsg*5+4,j)
       end do
@@ -901,17 +901,17 @@ module mod_init
       do n = 1 , nnsg
         do i = 1 , iym1
           ircp(n,j,i)  = sav2(i,n,j)
-          snag(n,j,i)   = sav2(i,nnsg+n,j)
-          sfice(n,j,i)  = sav2(i,nnsg*2+n,j)
-          dew2d(n,j,i)   = sav2(i,nnsg*3+n,j)
+          snag(n,j,i)  = sav2(i,nnsg+n,j)
+          sfice(n,j,i) = sav2(i,nnsg*2+n,j)
+          ldew(n,j,i)  = sav2(i,nnsg*3+n,j)
           emiss(n,j,i) = sav2(i,nnsg*4+n,j)
         end do
       end do
       do i = 1 , iym1
         pptnc(j,i) = sav2(i,nnsg*5+1,j)
         pptc(j,i) = sav2(i,nnsg*5+2,j)
-        prca2d(j,i) = sav2(i,nnsg*5+3,j)
-        prnca2d(j,i) = sav2(i,nnsg*5+4,j)
+        prca(j,i) = sav2(i,nnsg*5+3,j)
+        prnca(j,i) = sav2(i,nnsg*5+4,j)
       end do
     end do
     if ( myid == 0 ) then
@@ -1139,7 +1139,7 @@ module mod_init
             emiss(n,j,i) = 0.99D0 - &
                     (albvgs(ist)+albvgl(ist))*0.1D0
           end if
-!             emiss(n,j,i) = d_one
+!         emiss(n,j,i) = d_one
         end do
       end do
     end do

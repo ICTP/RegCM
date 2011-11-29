@@ -39,7 +39,7 @@ module mod_rad_interface
   subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,      &
                       mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,   &
                       aldifl,albdir,albdif,albvs,albvl,emiss,sinc,      &
-                      solvs,solvd,fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
+                      solvs,solvd,fsw,flw,flwd,ocld2d,chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
     real(8) , intent(in) :: ptop
@@ -64,9 +64,9 @@ module mod_rad_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: sinc
     real(8) , pointer , intent(in) , dimension(:,:) :: solvs
     real(8) , pointer , intent(in) , dimension(:,:) :: solvd
-    real(8) , pointer , intent(in) , dimension(:,:) :: fsw2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: flw2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: flwd2d
+    real(8) , pointer , intent(in) , dimension(:,:) :: fsw
+    real(8) , pointer , intent(in) , dimension(:,:) :: flw
+    real(8) , pointer , intent(in) , dimension(:,:) :: flwd
     integer , pointer , intent(in) , dimension(:,:,:) :: ocld2d
     real(8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
     character(len=5) , pointer , intent(in) , dimension(:) :: chtrname
@@ -95,27 +95,27 @@ module mod_rad_interface
     call assignpnt(albvs,swalb)
     call assignpnt(albvl,lwalb)
     call assignpnt(emiss,emsvt)
-    call assignpnt(sinc,totsol2d)
-    call assignpnt(solvs,soldir2d)
-    call assignpnt(solvd,soldif2d)
-    call assignpnt(fsw2d,srfabswflx)
-    call assignpnt(flw2d,srflwflxup)
-    call assignpnt(flwd2d,srflwflxdw)
+    call assignpnt(sinc,totsol)
+    call assignpnt(solvs,soldir)
+    call assignpnt(solvd,soldif)
+    call assignpnt(fsw,srfabswflx)
+    call assignpnt(flw,srflwflxup)
+    call assignpnt(flwd,srflwflxdw)
     call assignpnt(ocld2d,lndocnicemsk)
     call assignpnt(chia,chspmix)
     if ( associated(chtrname) ) tracname => chtrname
   end subroutine init_rad
 !
-  subroutine init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
+  subroutine init_rad_clm(sols,soll,solsd,solld)
     implicit none
-    real(8) , pointer , intent(in) , dimension(:,:) :: sols2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: soll2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: solsd2d
-    real(8) , pointer , intent(in) , dimension(:,:) :: solld2d
-    call assignpnt(sols2d,solswdir)
-    call assignpnt(soll2d,sollwdir)
-    call assignpnt(solsd2d,solswdif)
-    call assignpnt(solld2d,sollwdif)
+    real(8) , pointer , intent(in) , dimension(:,:) :: sols
+    real(8) , pointer , intent(in) , dimension(:,:) :: soll
+    real(8) , pointer , intent(in) , dimension(:,:) :: solsd
+    real(8) , pointer , intent(in) , dimension(:,:) :: solld
+    call assignpnt(sols,solswdir)
+    call assignpnt(soll,sollwdir)
+    call assignpnt(solsd,solswdif)
+    call assignpnt(solld,sollwdif)
   end subroutine init_rad_clm
 
 end module mod_rad_interface

@@ -65,16 +65,16 @@ module mod_rad_common
   ! Emissivity at surface
   real(8) , pointer , dimension(:,:) :: emsvt   ! emiss1d
   ! Bidimensional collector storage for above
-  real(8) , pointer , dimension(:,:) :: totsol2d ! sinc2d
-  real(8) , pointer , dimension(:,:) :: soldir2d ! solvs2d
-  real(8) , pointer , dimension(:,:) :: soldif2d ! solvd2d
-  real(8) , pointer , dimension(:,:) :: solswdir ! sols2d
-  real(8) , pointer , dimension(:,:) :: sollwdir ! soll2d
-  real(8) , pointer , dimension(:,:) :: solswdif ! solsd2d
-  real(8) , pointer , dimension(:,:) :: sollwdif ! solld2d
-  real(8) , pointer , dimension(:,:) :: srfabswflx ! fsw2d
-  real(8) , pointer , dimension(:,:) :: srflwflxup ! flw2d
-  real(8) , pointer , dimension(:,:) :: srflwflxdw ! flwd2d
+  real(8) , pointer , dimension(:,:) :: totsol ! sinc
+  real(8) , pointer , dimension(:,:) :: soldir ! solvs
+  real(8) , pointer , dimension(:,:) :: soldif ! solvd
+  real(8) , pointer , dimension(:,:) :: solswdir ! sols
+  real(8) , pointer , dimension(:,:) :: sollwdir ! soll
+  real(8) , pointer , dimension(:,:) :: solswdif ! solsd
+  real(8) , pointer , dimension(:,:) :: sollwdif ! solld
+  real(8) , pointer , dimension(:,:) :: srfabswflx ! fsw
+  real(8) , pointer , dimension(:,:) :: srflwflxup ! flw
+  real(8) , pointer , dimension(:,:) :: srflwflxdw ! flwd
 
   ! Land Ocean Ice (1,0,2) mask
   integer , pointer , dimension(:,:,:) :: lndocnicemsk ! ocld2d
