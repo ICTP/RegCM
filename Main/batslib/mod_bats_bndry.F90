@@ -691,8 +691,10 @@ module mod_bats_bndry
             !         5.   accumulate leaf interception
             !=================================================================
             !
-            ircp(n,j,i) = ircp(n,j,i) + sigf(n,j,i) * &
-                          (dtbat*prcp(n,j,i)) - (sdrop(n,j,i)+etrrun(n,j,i))
+            ! Graziano : This is NEVER used elsewhere in the code...
+            ! ircp = ircp + sigf(n,j,i) * &
+            !              (dtbat*prcp(n,j,i)) - (sdrop(n,j,i)+etrrun(n,j,i))
+            ! Graziano : This is NEVER used elsewhere in the code...
             !
             !=================================================================
             !         6.   evaluate runoff (incremented in ccm)

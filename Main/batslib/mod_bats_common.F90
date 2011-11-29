@@ -40,7 +40,7 @@ module mod_bats_common
   integer :: iocnrough , iocnflx
 
   real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs , &
-         drag , evpr , gwet , ircp , ldew , albdirs ,      &
+         drag , evpr , gwet , ldew , albdirs ,      &
          sfcp , q2m , trnof , srnof , rsw , snag , sncv , sent ,   &
          sfice , ssw , t2m , tgrd , tgbrd , tlef ,    &
          tsw , u10m , v10m , lncl
@@ -148,7 +148,6 @@ module mod_bats_common
     call getmem3d(veg2d1,1,nnsg,1,jxp,1,iym1,'bats:veg2d1')
     call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats:emiss')
     call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')
-    call getmem3d(ircp,1,nnsg,1,jxp,1,iym1,'bats:ircp')
     call getmem3d(runoff,1,nnsg,1,jxp,1,iym1,'bats:runoff')
 
     call getmem3d(evpa,1,nnsg,1,jxp,1,iym1,'bats:evpa')

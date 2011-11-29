@@ -138,7 +138,6 @@ module mod_savefile
       read (iutrst) sag2d_io
       read (iutrst) sice2d_io
       read (iutrst) dew2d_io
-      read (iutrst) ircp2d_io
       read (iutrst) veg2d_io
       read (iutrst) ldmsk_io
       read (iutrst) veg2d1_io
@@ -294,7 +293,6 @@ module mod_savefile
       write (iutsav) sag2d_io
       write (iutsav) sice2d_io
       write (iutsav) dew2d_io
-      write (iutsav) ircp2d_io
       write (iutsav) veg2d_io
       write (iutsav) ldmsk_io
       write (iutsav) veg2d1_io

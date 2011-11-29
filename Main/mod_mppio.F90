@@ -35,7 +35,7 @@ module mod_mppio
   integer , pointer , dimension(:,:) :: kpbl_io
 
   real(8) , pointer , dimension(:,:,:) :: dew2d_io ,     &
-         gwet2d_io , ircp2d_io , rno2d_io , &
+         gwet2d_io , rno2d_io , &
          rnos2d_io , sag2d_io , scv2d_io , sice2d_io ,  &
          srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
          tg2d_io , tgb2d_io , tlef2d_io , emiss2d_io
@@ -207,7 +207,6 @@ module mod_mppio
 
       call getmem3d(dew2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:dew2d_io')
       call getmem3d(gwet2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:gwet2d_io')
-      call getmem3d(ircp2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ircp2d_io')
       call getmem3d(rno2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rno2d_io')
       call getmem3d(rnos2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rnos2d_io')
       call getmem3d(sag2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sag2d_io')

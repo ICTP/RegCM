@@ -878,7 +878,6 @@ module mod_init
 #endif
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav_2(i,n,j)        = ircp2d_io(n,i,j)
             sav_2(i,nnsg+n,j)   = sag2d_io(n,i,j)
             sav_2(i,nnsg*2+n,j) = sice2d_io(n,i,j)
             sav_2(i,nnsg*3+n,j) = dew2d_io(n,i,j)
@@ -900,7 +899,6 @@ module mod_init
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
-          ircp(n,j,i)  = sav2(i,n,j)
           snag(n,j,i)  = sav2(i,nnsg+n,j)
           sfice(n,j,i) = sav2(i,nnsg*2+n,j)
           ldew(n,j,i)  = sav2(i,nnsg*3+n,j)
