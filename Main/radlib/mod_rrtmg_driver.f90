@@ -202,11 +202,10 @@ module mod_rrtmg_driver
 
   end subroutine allocate_mod_rad_rrtmg
 !
-  subroutine rrtmg_driver(jstart,jend,istart,iend,ktau,iyear,eccf,lout)
+  subroutine rrtmg_driver(jstart,jend,istart,iend,iyear,eccf,lout)
     implicit none
 
     integer , intent(in) :: jstart , jend , istart , iend
-    integer(8) , intent(in) :: ktau
     integer , intent(in) :: iyear
     logical, intent(in) :: lout
     real(dp), intent(in) :: eccf

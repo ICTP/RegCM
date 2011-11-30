@@ -299,7 +299,6 @@ module mod_precip
           else
             pptnew = d_zero                                  ![kg/kg/s][avg]
           end if
-     
         end do
       end do
 !     
@@ -320,7 +319,7 @@ module mod_precip
                              psf(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
 ! the below cloud precipitation rate is now used directly in chemistry
-!              rembc(i,k) = 6.5D0*1.0D-5*rembc(i,k)**0.68D0   ![s^-1]
+!             rembc(i,k) = 6.5D0*1.0D-5*rembc(i,k)**0.68D0   ![s^-1]
 
             end if
           end do
@@ -344,7 +343,7 @@ module mod_precip
       end do
 
     end do
-   
+
     end subroutine pcp
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -537,7 +536,7 @@ module mod_precip
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(i,k,j)/psc(j,i)),d_zero)
-            dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
+            dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
      

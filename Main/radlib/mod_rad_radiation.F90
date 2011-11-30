@@ -44,9 +44,9 @@ module mod_rad_radiation
 ! abstot  - Non-adjacent layer absorptivites
 ! emstot  - Total emissivity
 
-  real(8) , pointer , dimension(:,:,:,:)  :: absnxt , absnxt0
-  real(8) , pointer , dimension(:,:,:,:)  :: abstot , abstot0
-  real(8) , pointer , dimension(:,:,:) :: emstot , emstot0
+  real(8) , pointer , dimension(:,:,:,:)  :: absnxt
+  real(8) , pointer , dimension(:,:,:,:)  :: abstot
+  real(8) , pointer , dimension(:,:,:) :: emstot
   real(8) , pointer , dimension(:,:,:,:):: xuinpl
 !
   real(8) , pointer , dimension(:) :: co2plk , dtx , dty
@@ -504,11 +504,8 @@ module mod_rad_radiation
     implicit none        
 !
     call getmem4d(absnxt,1,jxp,1,iym1,1,kz,1,4,'radiation:absnxt')
-    call getmem4d(absnxt0,1,jxp,1,iym1,1,kz,1,4,'radiation:absnxt0')
     call getmem4d(abstot,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:abstot')
-    call getmem4d(abstot0,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:abstot0')
     call getmem3d(emstot,1,jxp,1,iym1,1,kzp1,'radiation:emstot')
-    call getmem3d(emstot0,1,jxp,1,iym1,1,kzp1,'radiation:emstot0')
     call getmem4d(xuinpl,1,jxp,1,iym1,1,kzp1,1,4,'radiation:xuinpl')
 
     call getmem2d(diralb,1,jxp,1,iym1,'radiation:diralb')
@@ -797,11 +794,12 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jstart,jend,i,ktau,alat,ptrop,ts,pmid,pint, &
+  subroutine radctl(jstart,jend,i,alat,ptrop,ts,pmid,pint, &
                     pmln,piln,t,h2ommr,cld,effcld,clwp,fsns,qrs,qrl,   &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,  &
-                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr)
+                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr, &
+                    labsem)
 !
     implicit none
 !
@@ -837,7 +835,7 @@ module mod_rad_radiation
 !   flwds   - Surface down longwave flux
 !
     integer , intent(in) :: jstart , jend , i
-    integer(8) , intent(in) :: ktau
+    logical , intent(in) :: labsem
     real(8) , intent(in) :: eccf
     real(8) , pointer , dimension(:) :: alb , albc , alat , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
@@ -966,9 +964,10 @@ module mod_rad_radiation
 !
       call trcmix(jstart,jend,pmid,alat,ptrop,n2o,ch4,cfc11,cfc12)
 !
-      call radclw(jstart,jend,i,ktau,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
+      call radclw(jstart,jend,i,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos)
+                  flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,      &
+                  aerlwfos,labsem)
 !
 !     Convert units of longwave fields needed by rest of model from CGS to MKS
 !
@@ -1855,14 +1854,15 @@ module mod_rad_radiation
 ! flntc   - Net clear sky outgoing flux
 ! flwds   - Down longwave flux at surface
 !
-  subroutine radclw(jstart,jend,i,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln, &
-                    piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,  &
-                    flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos)
+  subroutine radclw(jstart,jend,i,ts,tnm,qnm,o3vmr,pmid,pint,pmln,     &
+                    piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt, &
+                    flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos,  &
+                    labsem)
 !
     implicit none
 !
     integer , intent(in) :: jstart , jend , i
-    integer(8) , intent(in) :: ktau
+    logical , intent(in) :: labsem
     real(8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
                o3vmr , pmid , pmln , qnm , qrl , tnm
     real(8) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
@@ -1905,8 +1905,7 @@ module mod_rad_radiation
 !   do emissivity and absorptivity calculations
 !   only if abs/ems computation
 !
-    if ( ktau == 0 .or. (mod(ktau+1,ntabem) == 0) ) then
- 
+    if ( labsem ) then
 !
 !     Compute ozone path lengths at frequency of a/e calculation.
 !
@@ -1927,11 +1926,6 @@ module mod_rad_radiation
 !
       call radabs(jstart,jend,i,pint,pmid,piln,pmln)
 
-       if ( .not. lchem .and. idirect > 0) then
-         abstot0(:,i,:,:) = abstot(:,i,:,:)
-         emstot0(:,i,:) = emstot(:,i,:)
-         absnxt0(:,i,:,:) = absnxt(:,i,:,:)   
-      end if
     end if
 !
 !   Find the lowest and highest level cloud for each grid point
@@ -1981,13 +1975,10 @@ module mod_rad_radiation
 !   option to calculate LW aerosol radiative forcing
 !
 !   FAB LW radiative forcing ( rad=1 : avec dust)
-    if ( .not. lchem .and. idirect > 0) then
+    if ( .not. lchem .and. idirect > 0 ) then
       nradaer = 2
       fsul0(:,:) = d_zero
       fsdl0(:,:) = d_zero
-      abstot(:,i,:,:) = abstot0(:,i,:,:)
-      emstot(:,i,:) = emstot0(:,i,:)
-      absnxt(:,i,:,:) = absnxt0(:,i,:,:)
     else
       nradaer = 1
     end if
@@ -1995,11 +1986,11 @@ module mod_rad_radiation
     do irad = 1 , nradaer
 
       if ( lchem .and. idirect > 0 .and. irad==2 ) then
-        abstot(:,i,:,:) = d_one-(d_one-abstot0(:,i,:,:))*aertrlw(:,:,:)
-        emstot(:,i,:) = d_one-(d_one-emstot0(:,i,:))*aertrlw(:,:,1)
+        abstot(:,i,:,:) = d_one-(d_one-abstot(:,i,:,:))*aertrlw(:,:,:)
+        emstot(:,i,:) = d_one-(d_one-emstot(:,i,:))*aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
           do n = 1 , 4
-            absnxt(:,i,k,n) = d_one-(d_one-absnxt0(:,i,k,n)) *   &
+            absnxt(:,i,k,n) = d_one-(d_one-absnxt(:,i,k,n)) *   &
                               (aertrlw(:,k,k+1)**xuinpl(:,i,k,n))
           end do
         end do

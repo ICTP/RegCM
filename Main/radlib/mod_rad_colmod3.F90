@@ -168,13 +168,12 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine colmod3(jstart,jend,istart,iend,ktau,iyear,eccf,lout)
+  subroutine colmod3(jstart,jend,istart,iend,iyear,eccf,lout,labsem)
 !
     implicit none
 !
-    integer(8) , intent(in) :: ktau
     integer , intent(in) :: iyear
-    logical , intent(in) :: lout
+    logical , intent(in) :: lout , labsem
     integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , intent(in) :: eccf
 !
@@ -364,62 +363,11 @@ module mod_rad_colmod3
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
 !
-      if ( myid == 0 .and. i == 2) then
-        print *, 'ptrop    ', maxval(ptrop(jstart:jend)), &
-                              minval(ptrop(jstart:jend))
-        print *, 'ts       ', maxval(ts(jstart:jend)), &
-                              minval(ts(jstart:jend))
-        print *, 'pmidm1   ', maxval(pmidm1(jstart:jend,:)), &
-                              minval(pmidm1(jstart:jend,:))
-        print *, 'pintm1   ', maxval(pintm1(jstart:jend,:)), &
-                              minval(pintm1(jstart:jend,:))
-        print *, 'pmlnm1   ', maxval(pmlnm1(jstart:jend,:)), &
-                              minval(pmlnm1(jstart:jend,:))
-        print *, 'pilnm1   ', maxval(pilnm1(jstart:jend,:)), &
-                              minval(pilnm1(jstart:jend,:))
-        print *, 'tm1      ', maxval(tm1(jstart:jend,:)), &
-                              minval(tm1(jstart:jend,:))
-        print *, 'qm1      ', maxval(qm1(jstart:jend,:)), &
-                              minval(qm1(jstart:jend,:))
-        print *, 'cld      ', maxval(cld(jstart:jend,:)), &
-                              minval(cld(jstart:jend,:))
-        print *, 'effcld   ', maxval(effcld(jstart:jend,:)), &
-                              minval(effcld(jstart:jend,:))
-        print *, 'clwp     ', maxval(clwp(jstart:jend,:)), &
-                              minval(clwp(jstart:jend,:))
-        print *, 'o3vmr    ', maxval(o3vmr(jstart:jend,:)), &
-                              minval(o3vmr(jstart:jend,:))
-        print *, 'abveg    ', maxval(abveg(jstart:jend,:)), &
-                              minval(abveg(jstart:jend,:))
-        print *, 'solar    ', maxval(solar(jstart:jend,:)), &
-                              minval(solar(jstart:jend,:))
-        print *, 'coszen   ', maxval(coszen(jstart:jend,:)), &
-                              minval(coszen(jstart:jend,:))
-        print *, 'swdiralb ', maxval(swdiralb(jstart:jend,:)), &
-                              minval(swdiralb(jstart:jend,:))
-        print *, 'swdifalb ', maxval(swdifalb(jstart:jend,:)), &
-                              minval(swdifalb(jstart:jend,:))
-        print *, 'lwdiralb ', maxval(lwdiralb(jstart:jend,:)), &
-                              minval(lwdiralb(jstart:jend,:))
-        print *, 'lwdifalb ', maxval(lwdifalb(jstart:jend,:)), &
-                              minval(lwdifalb(jstart:jend,:))
-        print *, 'swalb    ', maxval(swalb(jstart:jend,:)), &
-                              minval(swalb(jstart:jend,:))
-        print *, 'lwalb    ', maxval(lwalb(jstart:jend,:)), &
-                              minval(lwalb(jstart:jend,:))
-        print *, 'totsol   ', maxval(totsol(jstart:jend,:)), &
-                              minval(totsol(jstart:jend,:))
-        print *, 'solvs    ', maxval(soldir(jstart:jend,:)), &
-                              minval(soldir(jstart:jend,:))
-        print *, 'solvd    ', maxval(soldif(jstart:jend,:)), &
-                              minval(soldif(jstart:jend,:))
-        print *, 'eccf     ', eccf
-      end if
-      call radctl(jstart,jend,i,ktau,alat,ptrop,ts,pmidm1,pintm1,pmlnm1, &
-                  pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel, &
+      call radctl(jstart,jend,i,alat,ptrop,ts,pmidm1,pintm1,pmlnm1,       &
+                  pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,  &
                   rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
-                  flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,      &
-                  fsnrtc,fsnirtsq,eccf,o3vmr)
+                  flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,       &
+                  fsnrtc,fsnirtsq,eccf,o3vmr,labsem)
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm radiation package
@@ -627,14 +575,14 @@ module mod_rad_colmod3
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
 !
-!   surface pressure and scaled pressure, from which level are computed
-!
     if ( iemiss == 1 ) then
       do j = jstart , jend
         emsvt1(j) = emsvt(j,i)
       end do
     end if
-
+!
+!   surface pressure and scaled pressure, from which level are computed
+!
     do j = jstart , jend
       ps(j) = (sfps(j,i)+ptp)*d_10
       do k = 1 , kz
@@ -686,17 +634,15 @@ module mod_rad_colmod3
 !
 !   fractional cloud cover (dependent on relative humidity)
 !
-!   qc   = gary's mods for clouds/radiation tie-in to exmois
     do k = 1 , kz
       do j = jstart , jend
    
         ccvtem = d_zero   !cqc mod
-!KN     cldfrc(j,k)=dmax1(cldfra(j,i,k)*0.9999999,ccvtem)
         cld(j,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-!KN     cldfrc(j,k)=dmin1(cldfrc(j,i,k),0.9999999)
         cld(j,k) = dmin1(cld(j,k),0.9999999D0)
 !
-!       implement here the new formula then multiply by 10e6
+!qc     gary's mods for clouds/radiation tie-in to exmois
+!qc     implement here the new formula then multiply by 10e6
 !qc     if (tm1(j,k) > t0max) clwtem=clwmax
 !qc     if (tm1(j,k) >= t0st .and. tm1(j,k) <= t0max) then
 !qc       clwtem=clw0st+((tm1(j,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
@@ -709,18 +655,18 @@ module mod_rad_colmod3
 !
 !       convert liquid water content into liquid water path, i.e.
 !       multiply b deltaz
+!
         clwtem = cldlwc(j,i,k) !cqc mod
         deltaz(j,k) = rgas*tm1(j,k)*(pintm1(j,k+1) - &
                         pintm1(j,k))/(egrav*pmidm1(j,k))
         clwp(j,k) = clwtem*deltaz(j,k)
-!KN     if (cldfrc(j,k) == 0.) clwp(j,k)=d_zero
         if ( dabs(cld(j,k)) < lowcld ) then
           cld(j,k) = d_zero
           clwp(j,k) = d_zero
         end if
       end do
     end do
-   
+!   
 !   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !   do k = 1 , kz
 !     do j = jstart , jend
@@ -735,8 +681,8 @@ module mod_rad_colmod3
 !   set cloud fractional cover at top model level = 0
     do j = jstart , jend
       cld(j,1) = d_zero
-      clwp(j,1) = d_zero
       cld(j,2) = d_zero       !yhuang, 8/97 two-level
+      clwp(j,1) = d_zero
       clwp(j,2) = d_zero
     end do
 !
@@ -745,7 +691,6 @@ module mod_rad_colmod3
     ncldm1 = ncld - 1
     do k = kz - ncldm1 , kz
       do j = jstart , jend
-!KN     cldfrc(j,k)=d_zero
         cld(j,k) = d_zero
         clwp(j,k) = d_zero
       end do
@@ -764,12 +709,8 @@ module mod_rad_colmod3
 !   cloud cover at surface interface always zero
 !
     do j = jstart , jend
-!KN   effcld(j,kzp1) = d_zero
-!KN   cldfrc(j,kzp1) = d_zero
       cld(j,kzp1) = d_zero
     end do
-!
-!KN adopted from regcm above
 !
 !----------------------------------------------------------------------
 !
@@ -790,7 +731,6 @@ module mod_rad_colmod3
     vmmr = amo/amd
     do k = 1 , kz
       do j = jstart , jend
-!       o3mmr(j,k) = vmmr*o3vmr(j,k)
         o3vmr(j,k) = o3mmr(j,k)/vmmr
       end do
     end do
