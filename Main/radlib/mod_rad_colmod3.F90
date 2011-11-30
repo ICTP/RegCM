@@ -364,15 +364,65 @@ module mod_rad_colmod3
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
 !
+      if ( myid == 0 .and. i == 2) then
+        print *, 'ptrop    ', maxval(ptrop(jstart:jend)), &
+                              minval(ptrop(jstart:jend))
+        print *, 'ts       ', maxval(ts(jstart:jend)), &
+                              minval(ts(jstart:jend))
+        print *, 'pmidm1   ', maxval(pmidm1(jstart:jend,:)), &
+                              minval(pmidm1(jstart:jend,:))
+        print *, 'pintm1   ', maxval(pintm1(jstart:jend,:)), &
+                              minval(pintm1(jstart:jend,:))
+        print *, 'pmlnm1   ', maxval(pmlnm1(jstart:jend,:)), &
+                              minval(pmlnm1(jstart:jend,:))
+        print *, 'pilnm1   ', maxval(pilnm1(jstart:jend,:)), &
+                              minval(pilnm1(jstart:jend,:))
+        print *, 'tm1      ', maxval(tm1(jstart:jend,:)), &
+                              minval(tm1(jstart:jend,:))
+        print *, 'qm1      ', maxval(qm1(jstart:jend,:)), &
+                              minval(qm1(jstart:jend,:))
+        print *, 'cld      ', maxval(cld(jstart:jend,:)), &
+                              minval(cld(jstart:jend,:))
+        print *, 'effcld   ', maxval(effcld(jstart:jend,:)), &
+                              minval(effcld(jstart:jend,:))
+        print *, 'clwp     ', maxval(clwp(jstart:jend,:)), &
+                              minval(clwp(jstart:jend,:))
+        print *, 'o3vmr    ', maxval(o3vmr(jstart:jend,:)), &
+                              minval(o3vmr(jstart:jend,:))
+        print *, 'abveg    ', maxval(abveg(jstart:jend,:)), &
+                              minval(abveg(jstart:jend,:))
+        print *, 'solar    ', maxval(solar(jstart:jend,:)), &
+                              minval(solar(jstart:jend,:))
+        print *, 'coszen   ', maxval(coszen(jstart:jend,:)), &
+                              minval(coszen(jstart:jend,:))
+        print *, 'swdiralb ', maxval(swdiralb(jstart:jend,:)), &
+                              minval(swdiralb(jstart:jend,:))
+        print *, 'swdifalb ', maxval(swdifalb(jstart:jend,:)), &
+                              minval(swdifalb(jstart:jend,:))
+        print *, 'lwdiralb ', maxval(lwdiralb(jstart:jend,:)), &
+                              minval(lwdiralb(jstart:jend,:))
+        print *, 'lwdifalb ', maxval(lwdifalb(jstart:jend,:)), &
+                              minval(lwdifalb(jstart:jend,:))
+        print *, 'swalb    ', maxval(swalb(jstart:jend,:)), &
+                              minval(swalb(jstart:jend,:))
+        print *, 'lwalb    ', maxval(lwalb(jstart:jend,:)), &
+                              minval(lwalb(jstart:jend,:))
+        print *, 'totsol   ', maxval(totsol(jstart:jend,:)), &
+                              minval(totsol(jstart:jend,:))
+        print *, 'solvs    ', maxval(soldir(jstart:jend,:)), &
+                              minval(soldir(jstart:jend,:))
+        print *, 'solvd    ', maxval(soldif(jstart:jend,:)), &
+                              minval(soldif(jstart:jend,:))
+        print *, 'eccf     ', eccf
+      end if
       call radctl(jstart,jend,i,ktau,alat,ptrop,ts,pmidm1,pintm1,pmlnm1, &
                   pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel, &
                   rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
                   flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,      &
                   fsnrtc,fsnirtsq,eccf,o3vmr)
 !
-
 !     subroutine radout() is not included in the ccm3 crm itself
-!     but introduced from the former regcm2 radiation package
+!     but introduced from the former regcm radiation package
 !     for the output of results from radiation calculations
 !     this subroutine is used also for the coupling with bats
 !
@@ -578,8 +628,14 @@ module mod_rad_colmod3
     real(dp) , parameter :: amo = 48.0000D0
 !
 !   surface pressure and scaled pressure, from which level are computed
+!
+    if ( iemiss == 1 ) then
+      do j = jstart , jend
+        emsvt1(j) = emsvt(j,i)
+      end do
+    end if
+
     do j = jstart , jend
-      emsvt1(j) = emsvt(j,i)
       ps(j) = (sfps(j,i)+ptp)*d_10
       do k = 1 , kz
         pmidm1(j,k) = (sfps(j,i)*hlev(k)+ptp)*d_10
@@ -713,7 +769,7 @@ module mod_rad_colmod3
       cld(j,kzp1) = d_zero
     end do
 !
-!KN adopted from regcm2 above
+!KN adopted from regcm above
 !
 !----------------------------------------------------------------------
 !

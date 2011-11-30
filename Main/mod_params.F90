@@ -909,10 +909,10 @@ module mod_params
                    twt,ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,  &
                    sdelqk2d,ssw2da,icumtop,icumbot)
  end if
-  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,     &
-                mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,  &
-                aldifl,albdir,albdif,albvs,albvl,aemiss,sinc,    &
-                solvs,solvd,fsw,flw,flwd,ocld2d,chia,chtrname)
+  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
+                mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl, &
+                aldifl,albvs,albvl,aemiss,sinc,solvs,solvd,fsw, &
+                flw,flwd,ocld2d,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

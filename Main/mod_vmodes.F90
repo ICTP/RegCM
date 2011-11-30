@@ -66,6 +66,7 @@ module mod_vmodes
 !   This subroutine determines the vertical modes of the PSU/NCAR meso-
 !   scale model designated MM4.  It also computes associated transform
 !   matrices used by the initialization software used with MM4.
+!   Adapted to be used in RegCM.
 !
 !----------------------------------------------------------------------
 !

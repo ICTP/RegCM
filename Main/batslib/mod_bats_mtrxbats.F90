@@ -373,6 +373,25 @@ module mod_bats_mtrxbats
           end if
         end do
       end do
+
+      if ( myid == 0 ) then
+        print *, 'SENT : ', maxval(hfx(jstart:jend,istart:iend)) , &
+                            minval(hfx(jstart:jend,istart:iend))
+        print *, 'FRAC : ', maxval(fracd(jstart:jend,istart:iend)) , &
+                            minval(fracd(jstart:jend,istart:iend))
+        print *, 'EVPR : ', maxval(qfx(jstart:jend,istart:iend)) , &
+                            minval(qfx(jstart:jend,istart:iend))
+        print *, 'ZH   : ', maxval(hgt(jstart:jend,istart:iend,kz)) , &
+                            minval(hgt(jstart:jend,istart:iend,kz))
+        print *, 'STS  : ', maxval(sts(:,jstart:jend,istart:iend)) , &
+                            minval(sts(:,jstart:jend,istart:iend))
+        print *, 'RHS  : ', maxval(rhs(:,jstart:jend,istart:iend)) , &
+                            minval(rhs(:,jstart:jend,istart:iend))
+        print *, 'TGRD : ', maxval(tgrd(:,jstart:jend,istart:iend)) , &
+                            minval(tgrd(:,jstart:jend,istart:iend))
+        print *, 'TGBRD: ', maxval(tgbrd(:,jstart:jend,istart:iend)) , &
+                            minval(tgbrd(:,jstart:jend,istart:iend))
+      end if
  
     else if ( ivers == 2 ) then ! bats --> regcm2d
  

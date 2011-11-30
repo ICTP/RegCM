@@ -56,6 +56,7 @@ module mod_rad_radiation
   real(8) , pointer , dimension(:) :: abstrc , dw , pnew , to3co2 , ux
   real(8) , pointer , dimension(:,:) :: emplnk , pinpl , uinpl , winpl , tbar
   real(8) , pointer , dimension(:,:,:) :: bplnk
+  real(8) , pointer , dimension(:,:) :: diralb , difalb
 !
 ! Trace gas variables
 !
@@ -510,6 +511,9 @@ module mod_rad_radiation
     call getmem3d(emstot0,1,jxp,1,iym1,1,kzp1,'radiation:emstot0')
     call getmem4d(xuinpl,1,jxp,1,iym1,1,kzp1,1,4,'radiation:xuinpl')
 
+    call getmem2d(diralb,1,jxp,1,iym1,'radiation:diralb')
+    call getmem2d(difalb,1,jxp,1,iym1,'radiation:difalb')
+
     call getmem1d(co2plk,1,jxp,'radiation:co2plk')
     call getmem1d(dtx,1,jxp,'radiation:dtx')
     call getmem1d(dty,1,jxp,'radiation:dty')
@@ -713,7 +717,7 @@ module mod_rad_radiation
       cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
       cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
     else
-      write (aline,*) '  Simulation year:  ' , iyear
+      write (aline,*) 'Loading gas scenario for simulation year: ', iyear
       call say
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')

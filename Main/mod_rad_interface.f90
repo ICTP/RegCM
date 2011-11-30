@@ -36,10 +36,10 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,      &
-                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl,   &
-                      aldifl,albdir,albdif,albvs,albvl,emiss,sinc,      &
-                      solvs,solvd,fsw,flw,flwd,ocld2d,chia,chtrname)
+  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
+                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl, &
+                      aldifl,albvs,albvl,emiss,sinc,solvs,solvd,fsw,  &
+                      flw,flwd,ocld2d,chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
     real(8) , intent(in) :: ptop
@@ -55,8 +55,6 @@ module mod_rad_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: aldifs
     real(8) , pointer , intent(in) , dimension(:,:) :: aldirl
     real(8) , pointer , intent(in) , dimension(:,:) :: aldifl
-    real(8) , pointer , intent(in) , dimension(:,:) :: albdir
-    real(8) , pointer , intent(in) , dimension(:,:) :: albdif
     real(8) , pointer , intent(in) , dimension(:,:) :: albvs
     real(8) , pointer , intent(in) , dimension(:,:) :: albvl
     real(8) , pointer , intent(in) , dimension(:,:) :: emiss
@@ -90,8 +88,6 @@ module mod_rad_interface
     call assignpnt(aldifs,swdifalb)
     call assignpnt(aldirl,lwdiralb)
     call assignpnt(aldifl,lwdifalb)
-    call assignpnt(albdir,diralb)
-    call assignpnt(albdif,difalb)
     call assignpnt(albvs,swalb)
     call assignpnt(albvl,lwalb)
     call assignpnt(emiss,emsvt)

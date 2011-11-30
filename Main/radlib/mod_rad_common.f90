@@ -54,10 +54,6 @@ module mod_rad_common
   real(8) , pointer , dimension(:,:) :: lwdiralb ! aldirl
   ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
   real(8) , pointer , dimension(:,:) :: lwdifalb ! aldifl
-  ! Total direct albedo
-  real(8) , pointer , dimension(:,:) :: diralb  ! albdir
-  ! Total diffuse albedo
-  real(8) , pointer , dimension(:,:) :: difalb  ! albdif
   ! Total Short wave albedo (0.2-0.7 micro-meter)
   real(8) , pointer , dimension(:,:) :: swalb   ! albvs
   ! Total Long wave albedo (0.7-5.0 micro-meter)

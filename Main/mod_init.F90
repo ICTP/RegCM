@@ -792,17 +792,17 @@ module mod_init
 #endif
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav_2(i,n,j) = taf2d_io(n,i,j)
-            sav_2(i,nnsg+n,j) = tlef2d_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = ssw2d_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = srw2d_io(n,i,j)
+            sav_2(i,n,j) = taf_io(n,i,j)
+            sav_2(i,nnsg+n,j) = tlef_io(n,i,j)
+            sav_2(i,nnsg*2+n,j) = ssw_io(n,i,j)
+            sav_2(i,nnsg*3+n,j) = rsw_io(n,i,j)
           end do
         end do
         do i = 1 , iym1
           sav_2(i,nnsg*5+1,j) = solis_io(i,j)
-          sav_2(i,nnsg*5+2,j) = solvd2d_io(i,j)
-          sav_2(i,nnsg*5+3,j) = solvs2d_io(i,j)
-          sav_2(i,nnsg*5+4,j) = flw2d_io(i,j)
+          sav_2(i,nnsg*5+2,j) = solvd_io(i,j)
+          sav_2(i,nnsg*5+3,j) = solvs_io(i,j)
+          sav_2(i,nnsg*5+4,j) = flw_io(i,j)
         end do
       end do
     end if
@@ -834,18 +834,18 @@ module mod_init
 #endif
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav_2(i,n,j) = tgb2d_io(n,i,j)
-            sav_2(i,nnsg+n,j) = swt2d_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = scv2d_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = gwet2d_io(n,i,j)
-            sav_2(i,nnsg*4+n,j) = tg2d_io(n,i,j)
+            sav_2(i,n,j) = tgbrd_io(n,i,j)
+            sav_2(i,nnsg+n,j) = tsw_io(n,i,j)
+            sav_2(i,nnsg*2+n,j) = sncv_io(n,i,j)
+            sav_2(i,nnsg*3+n,j) = gwet_io(n,i,j)
+            sav_2(i,nnsg*4+n,j) = tgrd_io(n,i,j)
           end do
         end do
         do i = 1 , iym1
-          sav_2(i,nnsg*5+1,j) = flwd2d_io(i,j)
-          sav_2(i,nnsg*5+2,j) = fsw2d_io(i,j)
+          sav_2(i,nnsg*5+1,j) = flwd_io(i,j)
+          sav_2(i,nnsg*5+2,j) = fsw_io(i,j)
           sav_2(i,nnsg*5+3,j) = sabveg_io(i,j)
-          sav_2(i,nnsg*5+4,j) = sinc2d_io(i,j)
+          sav_2(i,nnsg*5+4,j) = sinc_io(i,j)
         end do
       end do
     end if
@@ -878,10 +878,10 @@ module mod_init
 #endif
         do n = 1 , nnsg
           do i = 1 , iym1
-            sav_2(i,nnsg+n,j)   = sag2d_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = sice2d_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = dew2d_io(n,i,j)
-            sav_2(i,nnsg*4+n,j) = emiss2d_io(n,i,j)
+            sav_2(i,nnsg+n,j)   = snag_io(n,i,j)
+            sav_2(i,nnsg*2+n,j) = sfice_io(n,i,j)
+            sav_2(i,nnsg*3+n,j) = ldew_io(n,i,j)
+            sav_2(i,nnsg*4+n,j) = emiss_io(n,i,j)
           end do
         end do
         do i = 1 , iym1

@@ -125,33 +125,33 @@ module mod_savefile
       read (iutrst) lndcat2d_io
 #endif
       read (iutrst) solis_io
-      read (iutrst) solvd2d_io
-      read (iutrst) solvs2d_io
+      read (iutrst) solvd_io
+      read (iutrst) solvs_io
       read (iutrst) sabveg_io
-      read (iutrst) tlef2d_io
-      read (iutrst) ssw2d_io
-      read (iutrst) srw2d_io
-      read (iutrst) tg2d_io
-      read (iutrst) tgb2d_io
-      read (iutrst) scv2d_io
-      read (iutrst) gwet2d_io
-      read (iutrst) sag2d_io
-      read (iutrst) sice2d_io
-      read (iutrst) dew2d_io
+      read (iutrst) tlef_io
+      read (iutrst) ssw_io
+      read (iutrst) rsw_io
+      read (iutrst) tgrd_io
+      read (iutrst) tgbrd_io
+      read (iutrst) sncv_io
+      read (iutrst) gwet_io
+      read (iutrst) snag_io
+      read (iutrst) sfice_io
+      read (iutrst) ldew_io
       read (iutrst) veg2d_io
       read (iutrst) ldmsk_io
       read (iutrst) veg2d1_io
       read (iutrst) heatrt_io
       read (iutrst) o3prof_io
       read (iutrst) tgbb_io
-      read (iutrst) flw2d_io
-      read (iutrst) flwd2d_io
-      read (iutrst) fsw2d_io
-      read (iutrst) swt2d_io
-      read (iutrst) sinc2d_io
-      read (iutrst) taf2d_io
+      read (iutrst) flw_io
+      read (iutrst) flwd_io
+      read (iutrst) fsw_io
+      read (iutrst) tsw_io
+      read (iutrst) sinc_io
+      read (iutrst) taf_io
       read (iutrst) ocld2d_io
-      read (iutrst) emiss2d_io
+      read (iutrst) emiss_io
       read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
       if ( iocnflx == 2 ) read (iutrst) zpbl_io
       if ( ichem == 1 ) then
@@ -280,33 +280,33 @@ module mod_savefile
       write (iutsav) lndcat2d_io
 #endif
       write (iutsav) solis_io
-      write (iutsav) solvd2d_io
-      write (iutsav) solvs2d_io
+      write (iutsav) solvd_io
+      write (iutsav) solvs_io
       write (iutsav) sabveg_io
-      write (iutsav) tlef2d_io
-      write (iutsav) ssw2d_io
-      write (iutsav) srw2d_io
-      write (iutsav) tg2d_io
-      write (iutsav) tgb2d_io
-      write (iutsav) scv2d_io
-      write (iutsav) gwet2d_io
-      write (iutsav) sag2d_io
-      write (iutsav) sice2d_io
-      write (iutsav) dew2d_io
+      write (iutsav) tlef_io
+      write (iutsav) ssw_io
+      write (iutsav) rsw_io
+      write (iutsav) tgrd_io
+      write (iutsav) tgbrd_io
+      write (iutsav) sncv_io
+      write (iutsav) gwet_io
+      write (iutsav) snag_io
+      write (iutsav) sfice_io
+      write (iutsav) ldew_io
       write (iutsav) veg2d_io
       write (iutsav) ldmsk_io
       write (iutsav) veg2d1_io
       write (iutsav) heatrt_io
       write (iutsav) o3prof_io
       write (iutsav) tgbb_io
-      write (iutsav) flw2d_io
-      write (iutsav) flwd2d_io
-      write (iutsav) fsw2d_io
-      write (iutsav) swt2d_io
-      write (iutsav) sinc2d_io
-      write (iutsav) taf2d_io
+      write (iutsav) flw_io
+      write (iutsav) flwd_io
+      write (iutsav) fsw_io
+      write (iutsav) tsw_io
+      write (iutsav) sinc_io
+      write (iutsav) taf_io
       write (iutsav) ocld2d_io
-      write (iutsav) emiss2d_io
+      write (iutsav) emiss_io
       write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
       if ( iocnflx == 2 ) write (iutsav) zpbl_io
       if ( ichem == 1 ) then

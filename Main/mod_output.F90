@@ -144,7 +144,7 @@ module mod_output
   if ( ifatm ) then
     if ( ldoatm ) then
 !=======================================================================
-!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
+!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgbrd,tsw,olcd2d,rno2d
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -199,9 +199,9 @@ module mod_output
 #endif
           do n = 1 , nnsg
             do i = 1 , iym1
-              tgb2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
-              swt2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
-              rno2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
+              tgbrd_io(n,i,j) = atm_0(i,3+kz*6+n,j)
+              tsw_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
+              rno_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
             end do
           end do
         end do
@@ -1050,17 +1050,17 @@ module mod_output
 #endif
           do n = 1 , nnsg
             do i = 1 , iym1
-              taf2d_io(n,i,j) = sav_2(i,n,j)
-              tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-              ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-              srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+              taf_io(n,i,j) = sav_2(i,n,j)
+              tlef_io(n,i,j) = sav_2(i,nnsg+n,j)
+              ssw_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+              rsw_io(n,i,j) = sav_2(i,nnsg*3+n,j)
             end do
           end do
           do i = 1 , iym1
             solis_io(i,j) = sav_2(i,nnsg*5+1,j)
-            solvd2d_io(i,j) = sav_2(i,nnsg*5+2,j)
-            solvs2d_io(i,j) = sav_2(i,nnsg*5+3,j)
-            flw2d_io(i,j) = sav_2(i,nnsg*5+4,j)
+            solvd_io(i,j) = sav_2(i,nnsg*5+2,j)
+            solvs_io(i,j) = sav_2(i,nnsg*5+3,j)
+            flw_io(i,j) = sav_2(i,nnsg*5+4,j)
           end do
         end do
       end if
@@ -1132,18 +1132,18 @@ module mod_output
 #endif
           do n = 1 , nnsg
             do i = 1 , iym1
-              tgb2d_io(n,i,j) = sav_2(i,n,j)
-              swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-              scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-              gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-              tg2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+              tgbrd_io(n,i,j) = sav_2(i,n,j)
+              tsw_io(n,i,j) = sav_2(i,nnsg+n,j)
+              sncv_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+              gwet_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+              tgrd_io(n,i,j) = sav_2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            flwd2d_io(i,j) = sav_2(i,nnsg*5+1,j)
-            fsw2d_io(i,j) = sav_2(i,nnsg*5+2,j)
+            flwd_io(i,j) = sav_2(i,nnsg*5+1,j)
+            fsw_io(i,j) = sav_2(i,nnsg*5+2,j)
             sabveg_io(i,j) = sav_2(i,nnsg*5+3,j)
-            sinc2d_io(i,j) = sav_2(i,nnsg*5+4,j)
+            sinc_io(i,j) = sav_2(i,nnsg*5+4,j)
           end do
         end do
       end if
@@ -1175,10 +1175,10 @@ module mod_output
 #endif
           do n = 1 , nnsg
             do i = 1 , iym1
-              sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-              sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-              dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-              emiss2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+              snag_io(n,i,j) = sav_2(i,nnsg+n,j)
+              sfice_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+              ldew_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+              emiss_io(n,i,j) = sav_2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
@@ -1438,7 +1438,7 @@ module mod_output
   call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
           omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1_io%tke, &
           tcmstate_io%kth,tcmstate_io%kzm,psa_io,rainc_io,      &
-          rainnc_io,tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
+          rainnc_io,tgbrd_io,tsw_io,rno_io,ocld2d_io,idatex)
  
   print *, 'ATM variables written at ' , tochar(idatex)
  

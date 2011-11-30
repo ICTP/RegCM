@@ -19,8 +19,8 @@
  
 module mod_bats_bndry
 !
-  use mod_realkinds
   use mod_dynparam
+  use mod_realkinds
   use mod_service
   use mod_bats_common
   use mod_bats_leaftemp
@@ -34,6 +34,7 @@ module mod_bats_bndry
   real(dp) , parameter :: minsigf = 0.001D+00
   real(dp) , parameter :: lowsice = 1.0D-22
   real(dp) , parameter :: rainsnowtemp = 2.2D0
+  real(dp) , parameter :: xnu = twopi/secpd
 !
   contains
 !
@@ -242,7 +243,7 @@ module mod_bats_bndry
           end if
           ! 6.1  rate of momentum transfer per velocity
           drag(n,j,i) = -cdrx(n,j,i)*vspda(n,j,i)*rhs(n,j,i)
-          drag(n,j,i) = -drag(n,j,i)        ! for coupling with mm4
+          drag(n,j,i) = -drag(n,j,i)        ! for coupling with regcm
           ! 6.3  latent and heat fluxes over ocean, plus a dummy taf
           if ( ldimsk(n,j,i) == 0 ) then
             tlef(n,j,i) = sts(n,j,i)
@@ -888,17 +889,16 @@ module mod_bats_bndry
   subroutine tgrund(jstart,jend,istart,iend)
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
-    real(dp) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
-             depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,&
-             t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds
-    real(dp) :: dtbat2 , rdtbat2 , xlexp
+    real(dp) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
+             depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,  &
+             tbef , tg , tinc , wtas , wtax , wtd , wtds
+    real(dp) :: dtbat2 , rdtbat2 , xlexp , xnua
     integer :: n , i , j
     character (len=64) :: subroutine_name='tgrund'
     integer :: idindx = 0
 !
-    real(dp) , parameter :: xnu = twopi/secpd
-    real(dp) , parameter :: xnua = xnu/365.0D0
     real(dp) , parameter :: xkperi = 1.4D-6
+    real(dp) , parameter :: t3 = 271.0D0 ! permafrost temperature
 !
     call time_begin(subroutine_name,idindx)
 ! 
@@ -909,12 +909,11 @@ module mod_bats_bndry
 !   1.   define thermal conductivity, heat capacity,
 !        and other force restore parameters
 !=======================================================================
+
+    xnua = xnu/dayspy
     xdtime = dtbat*xnu
     dtimea = dtbat*xnua
     xdt2 = d_half*xdtime
-   
-!   3.4  permafrost temperature
-    t3 = 271.0D0
    
     do i = istart , iend
       do j = jstart , jend
