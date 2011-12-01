@@ -24,6 +24,7 @@ module mod_clm
 ! Storage and parameters for CLM model v3.5
 !
   use mod_dynparam
+  use mod_realkinds
   use mod_constants
   use mod_memutil
 !
@@ -210,7 +211,7 @@ module mod_clm
     call getmem2d(aldifl2d,1,iym1,1,jxp,'clm:aldifl2d')
     call getmem2d(rs2d,1,iym1,1,jxp,'clm:rs2d')
     call getmem2d(ra2d,1,iym1,1,jxp,'clm:ra2d')
-    call getmem2d(q2d,1,iym1,1,jxp,'clm:q2d')
+    call getmem2d(q2d,1,jxp,1,iym1,'clm:q2d')
     call getmem2d(lndcat2d,1,jxp,1,iy,'clm:lndcat2d')
   end subroutine allocate_mod_clm
 !

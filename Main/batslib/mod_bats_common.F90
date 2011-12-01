@@ -40,8 +40,8 @@ module mod_bats_common
   integer :: iocnrough , iocnflx
 
   real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs , &
-         drag , evpr , gwet , ldew , albdirs ,      &
-         sfcp , q2m , trnof , srnof , rsw , snag , sncv , sent ,   &
+         drag , evpr , gwet , ldew , albdirs , q2m , &
+         sfcp , trnof , srnof , rsw , snag , sncv , sent ,   &
          sfice , ssw , t2m , tgrd , tgbrd , tlef ,    &
          tsw , u10m , v10m , lncl
 !
@@ -56,7 +56,7 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: coszrs
 !
   real(dp) , pointer , dimension(:,:) :: flwd , pptc , pptnc , &
-         prca , prnca , sinc , solvd , solvs
+         prca , prnca , sinc , solvd , solvs , totpr
 !
   real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
@@ -129,6 +129,7 @@ module mod_bats_common
     call getmem2d(flwd,1,jxp,1,iym1,'bats:flwd')
     call getmem2d(pptc,1,jxp,1,iym1,'bats:pptc')
     call getmem2d(pptnc,1,jxp,1,iym1,'bats:pptnc')
+    call getmem2d(totpr,1,jxp,1,iym1,'bats:totpr')
     call getmem2d(prca,1,jxp,1,iym1,'bats:prca')
     call getmem2d(prnca,1,jxp,1,iym1,'bats:prnca')
     call getmem2d(sinc,1,jxp,1,iym1,'bats:sinc')

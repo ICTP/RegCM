@@ -78,6 +78,7 @@ module mod_init
   real(8) , dimension(iy,jxp) :: psdot
   character(len=32) :: appdat
   integer :: mmrec , allrec , ierr , l
+  real(8) , dimension(iy) :: trans1 , trans2
 
   tgmx_o = -1.E30
   t2mx_o = -1.E30
@@ -171,14 +172,14 @@ module mod_init
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          xub%b0(i,k,j) = sav0(i,k,j)
-          xvb%b0(i,k,j) = sav0(i,kz+k,j)
-          xqb%b0(i,k,j) = sav0(i,kz*2+k,j)
-          xtb%b0(i,k,j) = sav0(i,kz*3+k,j)
+          xub%b0(j,i,k) = sav0(i,k,j)
+          xvb%b0(j,i,k) = sav0(i,kz+k,j)
+          xqb%b0(j,i,k) = sav0(i,kz*2+k,j)
+          xtb%b0(j,i,k) = sav0(i,kz*3+k,j)
         end do
       end do
       do i = 1 , iy
-        xpsb%b0(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b0(j,i) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
     end do
@@ -187,7 +188,7 @@ module mod_init
 !
     do j = 1 , jendl
       do i = 1 , iy
-        xpsb%b0(i,j) = xpsb%b0(i,j) - ptop
+        xpsb%b0(j,i) = xpsb%b0(j,i) - ptop
       end do
     end do
 !=======================================================================
@@ -197,38 +198,44 @@ module mod_init
 !       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !       and similarly for the i's.
 !
-    call mpi_sendrecv(xpsb%b0(:,jxp),iy,mpi_real8,ieast,1,              &
-                      xpsb%b0(:,0),iy,mpi_real8,iwest,1,                &
+    if ( ieast /= mpi_proc_null ) then
+      trans1 = xpsb%b0(jxp,:)
+    end if
+    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                      trans2,iy,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      xpsb%b0(0,:) = trans2
+    end if
     do j = jbegin , jendx
       do i = 2 , iym1
-        psdot(i,j) = (xpsb%b0(i,j)   + xpsb%b0(i-1,j) +   &
-                      xpsb%b0(i,j-1) + xpsb%b0(i-1,j-1))*d_rfour
+        psdot(i,j) = (xpsb%b0(j,i)   + xpsb%b0(j,i-1) +   &
+                      xpsb%b0(j-1,i) + xpsb%b0(j-1,i-1))*d_rfour
       end do
     end do
 !
 #ifndef BAND
     do i = 2 , iym1
-      if ( myid == 0 ) psdot(i,1) = (xpsb%b0(i,1)+xpsb%b0(i-1,1))*d_half
+      if ( myid == 0 ) psdot(i,1) = (xpsb%b0(1,i)+xpsb%b0(1,i-1))*d_half
       if ( myid == nproc-1 ) then
-        psdot(i,jendl) = (xpsb%b0(i,jendx)+xpsb%b0(i-1,jendx))*d_half
+        psdot(i,jendl) = (xpsb%b0(jendx,i)+xpsb%b0(jendx,i-1))*d_half
       end if
     end do
 #endif
 !
     do j = jbegin , jendx
-      psdot(1,j) = (xpsb%b0(1,j)+xpsb%b0(1,j-1))*d_half
-      psdot(iy,j) = (xpsb%b0(iym1,j)+xpsb%b0(iym1,j-1))*d_half
+      psdot(1,j) = (xpsb%b0(j,1)+xpsb%b0(j-1,1))*d_half
+      psdot(iy,j) = (xpsb%b0(j,iym1)+xpsb%b0(j-1,iym1))*d_half
     end do
 !
 #ifndef BAND
     if ( myid == 0 ) then
       psdot(1,1) = xpsb%b0(1,1)
-      psdot(iy,1) = xpsb%b0(iym1,1)
+      psdot(iy,1) = xpsb%b0(1,iym1)
     end if
     if ( myid == nproc-1 ) then
-      psdot(1,jendl) = xpsb%b0(1,jendx)
-      psdot(iy,jendl) = xpsb%b0(iym1,jendx)
+      psdot(1,jendl) = xpsb%b0(jendx,1)
+      psdot(iy,jendl) = xpsb%b0(jendx,iym1)
     end if
 #endif
 !
@@ -237,10 +244,10 @@ module mod_init
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          xub%b0(i,k,j) = xub%b0(i,k,j)*psdot(i,j)
-          xvb%b0(i,k,j) = xvb%b0(i,k,j)*psdot(i,j)
-          xqb%b0(i,k,j) = xqb%b0(i,k,j)*xpsb%b0(i,j)
-          xtb%b0(i,k,j) = xtb%b0(i,k,j)*xpsb%b0(i,j)
+          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(i,j)
+          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(i,j)
+          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
+          xtb%b0(j,i,k) = xtb%b0(j,i,k)*xpsb%b0(j,i)
         end do
      end do
     end do
@@ -250,21 +257,21 @@ module mod_init
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          atm1%u(i,k,j) = xub%b0(i,k,j)
-          atm2%u(i,k,j) = xub%b0(i,k,j)
-          atm1%v(i,k,j) = xvb%b0(i,k,j)
-          atm2%v(i,k,j) = xvb%b0(i,k,j)
-          atm1%qv(i,k,j) = xqb%b0(i,k,j)
-          atm2%qv(i,k,j) = xqb%b0(i,k,j)
-          atm1%t(i,k,j) = xtb%b0(i,k,j)
-          atm2%t(i,k,j) = xtb%b0(i,k,j)
+          atm1%u(i,k,j) = xub%b0(j,i,k)
+          atm2%u(i,k,j) = xub%b0(j,i,k)
+          atm1%v(i,k,j) = xvb%b0(j,i,k)
+          atm2%v(i,k,j) = xvb%b0(j,i,k)
+          atm1%qv(i,k,j) = xqb%b0(j,i,k)
+          atm2%qv(i,k,j) = xqb%b0(j,i,k)
+          atm1%t(i,k,j) = xtb%b0(j,i,k)
+          atm2%t(i,k,j) = xtb%b0(j,i,k)
         end do
       end do
     end do
     do j = 1 , jendl
       do i = 1 , iy
-        sps1%ps(j,i) = xpsb%b0(i,j)
-        sps2%ps(j,i) = xpsb%b0(i,j)
+        sps1%ps(j,i) = xpsb%b0(j,i)
+        sps2%ps(j,i) = xpsb%b0(j,i)
         sts1%tg(j,i) = ts0(i,j)
         sts2%tg(j,i) = ts0(i,j)
       end do
@@ -417,14 +424,14 @@ module mod_init
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          xub%b0(i,k,j) = sav0(i,k,j)
-          xvb%b0(i,k,j) = sav0(i,kz+k,j)
-          xqb%b0(i,k,j) = sav0(i,kz*2+k,j)
-          xtb%b0(i,k,j) = sav0(i,kz*3+k,j)
+          xub%b0(j,i,k) = sav0(i,k,j)
+          xvb%b0(j,i,k) = sav0(i,kz+k,j)
+          xqb%b0(j,i,k) = sav0(i,kz*2+k,j)
+          xtb%b0(j,i,k) = sav0(i,kz*3+k,j)
         end do
       end do
       do i = 1 , iy
-        xpsb%b0(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b0(j,i) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
     end do

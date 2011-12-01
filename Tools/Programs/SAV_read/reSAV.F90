@@ -37,7 +37,7 @@ program resav
         sfracs2d , sfracv2d , svegfrac2d
   real(8) , allocatable , dimension(:,:,:) :: tlef2d , ssw2d , srw2d , &
         tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , ircp2d , &
-        col2d , taf2d , emiss2d
+        taf2d , emiss2d
   integer , allocatable , dimension(:,:) :: veg2d , ldmsk
   integer , allocatable , dimension(:,:,:) :: veg2d1 , ocld2d
   real(8) , allocatable , dimension(:,:,:) :: heatrt , o3prof , swt2d
@@ -189,7 +189,6 @@ program resav
   allocate(sice2d(nnsg,iym1,jx))
   allocate(dew2d(nnsg,iym1,jx))
   allocate(ircp2d(nnsg,iym1,jx))
-  allocate(col2d(nnsg,iym1,jx))
   allocate(veg2d(iym1,jx))
   allocate(ldmsk(iym1,jx))
   allocate(veg2d1(nnsg,iym1,jx))
@@ -232,7 +231,6 @@ program resav
   allocate(sice2d(nnsg,iym1,jxm1))
   allocate(dew2d(nnsg,iym1,jxm1))
   allocate(ircp2d(nnsg,iym1,jxm1))
-  allocate(col2d(nnsg,iym1,jxm1))
   allocate(veg2d(iym1,jxm1))
   allocate(ldmsk(iym1,jxm1))
   allocate(veg2d1(nnsg,iym1,jxm1))
@@ -353,7 +351,6 @@ program resav
   read (iutrst) sice2d
   read (iutrst) dew2d
   read (iutrst) ircp2d
-  read (iutrst) col2d
   read (iutrst) veg2d
   read (iutrst) ldmsk
   read (iutrst) veg2d1

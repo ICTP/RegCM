@@ -330,6 +330,7 @@ module mod_bats_mtrxbats
             qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
             rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
             prcp(n,j,i) = pptnc(j,i) + pptc(j,i)
+            totpr(j,i) = pptnc(j,i) + pptc(j,i)
             !
             ! quantities stored on 2d surface array for bats use only
             !

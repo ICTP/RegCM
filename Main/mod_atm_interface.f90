@@ -139,8 +139,8 @@ module mod_atm_interface
       type(v3dbound) , intent(out) :: xb
       logical , intent(in) :: lband
       integer , intent(in) :: ke , nsp
-      call getmem3d(xb%b0,1,iy,1,ke,1,jxp,'v3dbound:b0')
-      call getmem3d(xb%b1,1,iy,1,ke,1,jxp,'v3dbound:b1')
+      call getmem3d(xb%b0,1,jxp,1,iy,1,ke,'v3dbound:b0')
+      call getmem3d(xb%b1,1,jxp,1,iy,1,ke,'v3dbound:b1')
       call getmem3d(xb%nb,1,nsp,1,ke,0,jxp+1,'v3dbound:nb')
       call getmem3d(xb%sb,1,nsp,1,ke,0,jxp+1,'v3dbound:sb')
       call getmem3d(xb%nbt,1,nsp,1,ke,0,jxp+1,'v3dbound:nbt')
@@ -157,8 +157,8 @@ module mod_atm_interface
       type(v2dbound) , intent(out) :: xb
       logical , intent(in) :: lband
       integer , intent(in) :: nsp
-      call getmem2d(xb%b0,1,iy,0,jxp+1,'v2dbound:b0')
-      call getmem2d(xb%b1,1,iy,0,jxp+1,'v2dbound:b1')
+      call getmem2d(xb%b0,0,jxp+1,1,iy,'v2dbound:b0')
+      call getmem2d(xb%b1,0,jxp+1,1,iy,'v2dbound:b1')
       call getmem2d(xb%nb,1,nsp,0,jxp+1,'v2dbound:nb')
       call getmem2d(xb%sb,1,nsp,0,jxp+1,'v2dbound:sb')
       call getmem2d(xb%nbt,1,nsp,0,jxp+1,'v2dbound:nbt')

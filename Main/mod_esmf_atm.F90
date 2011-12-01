@@ -1069,7 +1069,7 @@
         do ii = imin+1, imax-1
           do jj = jmin, jmax
             models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
-                                                  tpr_o(jj-jmin+1,ii-1)
+                                                  totpr(jj-jmin+1,ii-1)
           end do
         end do
         models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &

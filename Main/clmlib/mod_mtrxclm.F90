@@ -234,13 +234,13 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     soll2d(:,:)  = d_zero
     solsd2d(:,:) = d_zero
     solld2d(:,:) = d_zero
-    flwd2d(:,:)  = d_zero
+    flwd(:,:)  = d_zero
 !       Albedo
 !       Set initial albedos to clm dry soil values for mid-colored soils
-    aldirs2d(:,:) = 0.16D0
-    aldifs2d(:,:) = 0.16D0
-    aldirl2d(:,:) = 0.32D0
-    aldifl2d(:,:) = 0.32D0
+    aldirs(:,:) = 0.16D0
+    aldifs(:,:) = 0.16D0
+    aldirl(:,:) = 0.32D0
+    aldifl(:,:) = 0.32D0
   end if
  
   do j = 1 , jxp
@@ -298,7 +298,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         r2csoll(j,i)  = soll2d(ci,cj)
         r2csolsd(j,i) = solsd2d(ci,cj)
         r2csolld(j,i) = solld2d(ci,cj)
-        r2cflwd(j,i)  = flwd2d(cj,ci)
+        r2cflwd(j,i)  = flwd(cj,ci)
       end if
     end do
   end do
@@ -702,24 +702,23 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
-          dew2d(n,j,i) = d_zero
+          ldew(n,j,i) = d_zero
           snag(n,j,i) = d_zero
           sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
           sfice(n,j,i) = d_zero
           gwet(n,j,i) = d_half
-          sena(n,i,j) = d_zero
+          sena(n,j,i) = d_zero
           evpa(n,j,i) = d_zero
           srfrna(n,j,i) = d_zero
           runoff(n,j,i) = d_zero
-          ircp(n,j,i) = d_zero
         end do
-        fsw2d(j,i)   = d_zero
-        flw2d(j,i)   = d_zero
+        fsw(j,i)   = d_zero
+        flw(j,i)   = d_zero
         sabveg(j,i)  = d_zero
         fswa(j,i)  = d_zero
         flwa(j,i)  = d_zero
-        prca2d(j,i)  = d_zero
-        prnca2d(j,i) = d_zero
+        prca(j,i)  = d_zero
+        prnca(j,i) = d_zero
         svga(j,i)  = d_zero
         sina(j,i)  = d_zero
  
@@ -782,19 +781,19 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   do i = istart , iend
     do j = jstart , jend
       jj = j+(jxp*myid)
-      if (ocld2d(1,i,j) /= 0 .and. &
-          (d_one-aldirs2d(i,j)) > 1.0D-10) then
-        aldirs(j,i) = aldirs2d(i,j)*landfrac(jj,i) + &
+      if (ocld2d(1,j,i) /= 0 .and. &
+          (d_one-aldirs(j,i)) > 1.0D-10) then
+        aldirs(j,i) = aldirs(j,i)*landfrac(jj,i) + &
                     aldirs(j,i)*(d_one-landfrac(jj,i))
-        aldirl(j,i) = aldirl2d(i,j)*landfrac(jj,i) + &
+        aldirl(j,i) = aldirl(j,i)*landfrac(jj,i) + &
                     aldirl(j,i)*(d_one-landfrac(jj,i))
-        aldifs(j,i) = aldifs2d(i,j)*landfrac(jj,i) + &
+        aldifs(j,i) = aldifs(j,i)*landfrac(jj,i) + &
                     aldifs(j,i)*(d_one-landfrac(jj,i))
-        aldifl(j,i) = aldifl2d(i,j)*landfrac(jj,i) + &
+        aldifl(j,i) = aldifl(j,i)*landfrac(jj,i) + &
                     aldifl(j,i)*(d_one-landfrac(jj,i))
-        albvs(j,i)  = aldirs2d(i,j)*landfrac(jj,i) + &
+        albvs(j,i)  = aldirs(j,i)*landfrac(jj,i) + &
                     albvs(j,i) *(d_one-landfrac(jj,i))
-        albvl(j,i)  = aldirl2d(i,j)*landfrac(jj,i) + &
+        albvl(j,i)  = aldirl(j,i)*landfrac(jj,i) + &
                     albvl(j,i) *(d_one-landfrac(jj,i)) 
       end if
       aldirs_o(j,i-1) = real(aldirs(j,i))
@@ -886,7 +885,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         r2csoll(j,i) = soll2d(ci,cj)
         r2csolsd(j,i) = solsd2d(ci,cj)
         r2csolld(j,i) = solld2d(ci,cj)
-        r2cflwd(j,i) = flwd2d(cj,ci)
+        r2cflwd(j,i) = flwd(cj,ci)
  
       end do
     end do
@@ -1077,10 +1076,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           tgbb(j,i) = c2rtgbb(jj,ci)
  
           if ( i<=iym1 ) then
-            aldirs2d(i,j) = c2ralbdirs(jj,ci)
-            aldirl2d(i,j) = c2ralbdirl(jj,ci)
-            aldifs2d(i,j) = c2ralbdifs(jj,ci)
-            aldifl2d(i,j) = c2ralbdifl(jj,ci)
+            aldirs(j,i) = c2ralbdirs(jj,ci)
+            aldirl(j,i) = c2ralbdirl(jj,ci)
+            aldifs(j,i) = c2ralbdifs(jj,ci)
+            aldifl(j,i) = c2ralbdifl(jj,ci)
           end if
  
           do n = 1 , nnsg
@@ -1092,15 +1091,15 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             tsw(n,j,i) = c2rsmtot(jj,ci)
             rsw(n,j,i) = c2rsm1m(jj,ci)
             ssw(n,j,i) = c2rsm10cm(jj,ci)
-            dew2d(n,j,i) = ldew(n,j,i)
+            ldew(n,j,i) = ldew(n,j,i)
             sncv(n,j,i) = c2rsnowc(jj,ci)
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
-            sena(n,i,j) = sena(n,i,j) + dtbat*hfx(j,i)
+            sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
             srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
             if ( lchem ) then
-              ssw2da(j,i) = ssw2da(j,i) + ssw2d(n,i,j)
+              ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
               sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ci)
@@ -1111,14 +1110,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           end do
  
           !abt added for 2m humidity when landmask = 1 or 3
-          q2d(i,j) = c2r2mq(jj,ci)
+          q2d(j,i) = c2r2mq(jj,ci)
 !
 !             quantities stored on 2d surface array for bats use only
 !
-          prca2d(j,i) = prca2d(j,i) + dtbat*pptc(j,i)
-          prnca2d(j,i) = prnca2d(j,i) + dtbat*pptnc(j,i)
+          prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
+          prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
-          flwda(j,i) = flwda(j,i) + dtbat*flwd2d(j,i)
+          flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
           fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
@@ -1162,12 +1161,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
           do n = 1 , nnsg
             taf(n,j,i) = t2m(n,j,i)
-            dew2d(n,j,i) = ldew(n,j,i)
             sncv(n,j,i) = sncv(n,j,i)
             evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
-            sena(n,i,j) = sena(n,i,j) + dtbat*sent(n,j,i)
+            sena(n,j,i) = sena(n,j,i) + dtbat*sent(n,j,i)
             if ( dabs(trnof(n,j,i)) > 1.0D-10 ) then
-              rnos2d(n,i,j) = rnos2d(n,i,j) + &
+              srfrna(n,j,i) = srfrna(n,j,i) + &
                               trnof(n,j,i)/secpd*dtbat
             end if
             if ( dabs(srnof(n,j,i)) > 1.0D-10 .and. &
@@ -1179,10 +1177,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !
 !             quantities stored on 2d surface array for bats use only
 !
-          prca2d(j,i) = prca2d(j,i) + dtbat*pptc(j,i)
-          prnca2d(j,i) = prnca2d(j,i) + dtbat*pptnc(j,i)
+          prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
+          prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
-          flwda(j,i) = flwda(j,i) + dtbat*flwd2d(j,i)
+          flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
           fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
@@ -1200,7 +1198,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
 
             if ( lchem ) then
-              ssw2da(j,i) = ssw2da(j,i) + ssw2d(n,i,j)
+              ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
               sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ci)
@@ -1250,7 +1248,6 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
                          c2rtgb(jj,ci)*landfrac(jj,ci)
  
           do n = 1 , nnsg
-            dew2d(n,j,i) = ldew(n,j,i)
 !abt            added below for the landfraction method
             sncv(n,j,i) = c2rsnowc(jj,ci)*landfrac(jj,ci)          &
                            + sncv(n,j,i)*(d_one-landfrac(jj,ci))
@@ -1269,21 +1266,21 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
                            + rsw(n,j,i)*(d_one-landfrac(jj,ci))
             ssw(n,j,i) = c2rsm10cm(jj,ci)*landfrac(jj,ci)         &
                            + ssw(n,j,i)*(d_one-landfrac(jj,ci))
-            q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m(n,j,i)  &
+            q2d(j,i) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m(n,j,i)  &
                        *(d_one-landfrac(jj,ci))
  
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
-            sena(n,i,j) = sena(n,i,j) + dtbat*hfx(j,i)
+            sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
             srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
             runoff(n,j,i) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)*dtbat
           end do
 !
 !             quantities stored on 2d surface array for bats use only
 !
-          prca2d(j,i) = prca2d(j,i) + dtbat*pptc(j,i)
-          prnca2d(j,i) = prnca2d(j,i) + dtbat*pptnc(j,i)
+          prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
+          prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
-          flwda(j,i) = flwda(j,i) + dtbat*flwd2d(j,i)
+          flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
           fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
@@ -1333,7 +1330,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                    sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-          real_4 = real((sfps(i,j)+ptop)*d_10)
+          real_4 = real((sfps(j,i)+ptop)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
  
           drag_o(j,i-1) = 0.0
@@ -1342,43 +1339,43 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sena_o(j,i-1) = 0.0
           do n = 1 , nnsg
             if ( ocld2d(n,j,i) /= 0 ) then
-              q2m_s(n,j,i-1) = real(q2d(i,j))
+              q2m_s(n,j,i-1) = real(q2d(j,i))
               drag_s(n,j,i-1) = real(uvdrag(j,i))
               evpa_s(n,j,i-1) = real(evpa(n,j,ci)*mmpd)
-              sena_s(n,j,i-1) = real(sena(n,ci,j)*wpm2)
-              tpr_s(n,j,i-1) = real((prnca2d(j,ci)+prca2d(j,ci))*mmpd)
-              prcv_s(n,j,i-1) = real(prca2d(j,ci)*mmpd)
+              sena_s(n,j,i-1) = real(sena(n,j,ci)*wpm2)
+              tpr_s(n,j,i-1) = real((prnca(j,ci)+prca(j,ci))*mmpd)
+              prcv_s(n,j,i-1) = real(prca(j,ci)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
-              q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(i,j))
+              q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(j,i))
               drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(j,i))
               evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa(n,j,ci))
-              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,ci,j))
+              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,j,ci))
             else if ( ocld2d(n,j,i) == 0 ) then
               q2m_s(n,j,i-1) = real(q2m(n,j,i))
               drag_s(n,j,i-1) = real(drag(n,j,i))
               evpa_s(n,j,i-1) = real(evpa(n,j,i)*mmpd)
-              sena_s(n,j,i-1) = real(sena(n,i,j)*wpm2)
-              tpr_s(n,j,i-1) = real((prnca2d(j,i)+prca2d(j,i))*mmpd)
-              prcv_s(n,j,i-1) = real(prca2d(j,i)*mmpd)
+              sena_s(n,j,i-1) = real(sena(n,j,i)*wpm2)
+              tpr_s(n,j,i-1) = real((prnca(j,i)+prca(j,i))*mmpd)
+              prcv_s(n,j,i-1) = real(prca(j,i)*mmpd)
               ps_s(n,j,i-1) = real(sfcp(n,j,i)*0.01D0)
  
               q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m(n,j,i))
               drag_o(j,i-1) = drag_o(j,i-1) + real(drag(n,j,i))
               evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa(n,j,i))
-              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,i,j))
+              sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,j,i))
             end if
           end do
-          tpr_o(j,i-1) = real((prnca2d(j,ci)+prca2d(j,ci))*mmpd)
+          tpr_o(j,i-1) = real((prnca(j,ci)+prca(j,ci))*mmpd)
           evpa_o(j,i-1) = evpa_o(j,i-1)*real(mmpd)
           sena_o(j,i-1) = sena_o(j,i-1)*real(wpm2)
           flwa_o(j,i-1) = real(flwa(j,ci)*wpm2)
           fswa_o(j,i-1) = real(fswa(j,ci)*wpm2)
           flwd_o(j,i-1) = real(flwda(j,ci)*wpm2)
           sina_o(j,i-1) = real(sina(j,ci)*wpm2)
-          prcv_o(j,i-1) = real(prca2d(j,ci)*mmpd)
-          ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
-          zpbl_o(j,i-1) = real(zpbl(i,j))
+          prcv_o(j,i-1) = real(prca(j,ci)*mmpd)
+          ps_o(j,i-1) = real((sfps(j,i)+ptop)*d_10)
+          zpbl_o(j,i-1) = real(hpbl(j,i))
  
           tlef_o(j,i-1) = 0.0
           ssw_o(j,i-1) = 0.0
@@ -1424,10 +1421,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           do n = 1 , nnsg
             evpa(n,j,ci) = d_zero
             srfrna(n,j,ci) = d_zero
-            sena(n,ci,j) = d_zero
+            sena(n,j,ci) = d_zero
           end do
-          prnca2d(j,ci) = d_zero
-          prca2d(j,ci) = d_zero
+          prnca(j,ci) = d_zero
+          prca(j,ci) = d_zero
           flwa(j,ci) = d_zero
           flwda(j,ci) = d_zero
           fswa(j,ci) = d_zero

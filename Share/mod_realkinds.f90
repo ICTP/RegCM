@@ -24,7 +24,9 @@ module mod_realkinds
   ! Kind helpers
   integer , parameter :: dp = kind(1.0D0)
   integer , parameter :: sp = kind(1.0)
-  integer , parameter :: r8 = kind(1.0D0)
-  integer , parameter :: r4 = kind(1.0)
+
+  ! The two below break CLM
+  !integer , parameter :: r8 = kind(1.0D0)
+  !integer , parameter :: r4 = kind(1.0)
 
 end module mod_realkinds

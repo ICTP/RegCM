@@ -49,7 +49,7 @@ module mod_bdycod
   public :: ts0
   public :: ts1 ! FOR DCSST
 !
-  real(8) , pointer , dimension(:) :: pstrans1 , pstrans2
+  real(8) , pointer , dimension(:) :: trans1 , trans2
   real(8) , pointer , dimension(:,:) :: ui1 , ui2 , uil , uilx , &
                                         vi1 , vi2 , vil , vilx
 #ifndef BAND
@@ -77,8 +77,8 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 
-    call getmem1d(pstrans1,1,iy,'bdycon:pstrans1')
-    call getmem1d(pstrans2,1,iy,'bdycon:pstrans2')
+    call getmem1d(trans1,1,iy,'bdycon:trans1')
+    call getmem1d(trans2,1,iy,'bdycon:trans2')
 !
     call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
     call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
@@ -172,14 +172,14 @@ module mod_bdycod
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          xub%b1(i,k,j) = sav0(i,k,j)
-          xvb%b1(i,k,j) = sav0(i,kz+k,j)
-          xqb%b1(i,k,j) = sav0(i,kz*2+k,j)
-          xtb%b1(i,k,j) = sav0(i,kz*3+k,j)
+          xub%b1(j,i,k) = sav0(i,k,j)
+          xvb%b1(j,i,k) = sav0(i,kz+k,j)
+          xqb%b1(j,i,k) = sav0(i,kz*2+k,j)
+          xtb%b1(j,i,k) = sav0(i,kz*3+k,j)
         end do
       end do
       do i = 1 , iy
-        xpsb%b1(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b1(j,i) = sav0(i,kz*4+1,j)
         ts1(i,j) = sav0(i,kz*4+2,j)
       end do
     end do
@@ -188,7 +188,7 @@ module mod_bdycod
 !
     do j = 1 , jendl
       do i = 1 , iy
-        xpsb%b1(i,j) = xpsb%b1(i,j) - ptop
+        xpsb%b1(j,i) = xpsb%b1(j,i) - ptop
       end do
     end do
 !
@@ -197,43 +197,49 @@ module mod_bdycod
 !  domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !  and similarly for the i's.
 !
-    call mpi_sendrecv(xpsb%b1(:,jxp),iy,mpi_real8,ieast,1,   &
-                      xpsb%b1(:,0),  iy,mpi_real8,iwest,1,   &
+    if ( ieast /= mpi_proc_null ) then
+      trans1 = xpsb%b1(jxp,:)
+    end if
+    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                      trans2,iy,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      xpsb%b1(0,:) = trans2
+    end if
     do j = jbegin , jendx
       do i = 2 , iym1
-        psdot(i,j) = d_rfour*(xpsb%b1(i,j)+xpsb%b1(i-1,j) + &
-                              xpsb%b1(i,j-1)+xpsb%b1(i-1,j-1))
+        psdot(i,j) = d_rfour*(xpsb%b1(j,i)+xpsb%b1(j,i-1) + &
+                              xpsb%b1(j-1,i)+xpsb%b1(j-1,i-1))
       end do
     end do
 #ifdef BAND
     do j = jbegin , jendx
-      psdot(1,j)  = d_half*(xpsb%b1(1,j)+xpsb%b1(1,j-1))
-      psdot(iy,j) = d_half*(xpsb%b1(iym1,j)+xpsb%b1(iym1,j-1))
+      psdot(1,j)  = d_half*(xpsb%b1(j,1)+xpsb%b1(j-1,1))
+      psdot(iy,j) = d_half*(xpsb%b1(j,iym1)+xpsb%b1(j-1,iym1))
     end do
 #else
 !
     do i = 2 , iym1
       if ( myid == 0 ) then
-        psdot(i,1) = d_half*(xpsb%b1(i,1)+xpsb%b1(i-1,1))
+        psdot(i,1) = d_half*(xpsb%b1(1,i)+xpsb%b1(1,i-1))
       end if
       if ( myid == nproc-1 ) then
-        psdot(i,jendl) = d_half*(xpsb%b1(i,jendx)+xpsb%b1(i-1,jendx))
+        psdot(i,jendl) = d_half*(xpsb%b1(jendx,i)+xpsb%b1(jendx,i-1))
       end if
     end do
 !
     do j = jbegin , jendx
-      psdot(1,j)  = d_half*(xpsb%b1(1,j)+xpsb%b1(1,j-1))
-      psdot(iy,j) = d_half*(xpsb%b1(iym1,j)+xpsb%b1(iym1,j-1))
+      psdot(1,j)  = d_half*(xpsb%b1(j,1)+xpsb%b1(j-1,1))
+      psdot(iy,j) = d_half*(xpsb%b1(j,iym1)+xpsb%b1(j-1,iym1))
     end do
 !
     if ( myid == 0 ) then
       psdot(1,1)  = xpsb%b1(1,1)
-      psdot(iy,1) = xpsb%b1(iym1,1)
+      psdot(iy,1) = xpsb%b1(1,iym1)
     end if
     if ( myid == nproc-1 ) then
-      psdot(1,jendl)  = xpsb%b1(1,jendx)
-      psdot(iy,jendl) = xpsb%b1(iym1,jendx)
+      psdot(1,jendl)  = xpsb%b1(jendx,1)
+      psdot(iy,jendl) = xpsb%b1(jendx,iym1)
     end if
 #endif
 !
@@ -242,10 +248,10 @@ module mod_bdycod
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          xub%b1(i,k,j) = xub%b1(i,k,j)*psdot(i,j)
-          xvb%b1(i,k,j) = xvb%b1(i,k,j)*psdot(i,j)
-          xtb%b1(i,k,j) = xtb%b1(i,k,j)*xpsb%b1(i,j)
-          xqb%b1(i,k,j) = xqb%b1(i,k,j)*xpsb%b1(i,j)
+          xub%b1(j,i,k) = xub%b1(j,i,k)*psdot(i,j)
+          xvb%b1(j,i,k) = xvb%b1(j,i,k)*psdot(i,j)
+          xtb%b1(j,i,k) = xtb%b1(j,i,k)*xpsb%b1(j,i)
+          xqb%b1(j,i,k) = xqb%b1(j,i,k)*xpsb%b1(j,i)
         end do
       end do
     end do
@@ -289,25 +295,25 @@ module mod_bdycod
     end if
     do nn = 1 , nxwb
       do i = 1 , iym1
-        xpsb%wb(i,nn) = xpsb%b0(i,nn)
-        xpsb%wbt(i,nn) = (xpsb%b1(i,nn)-xpsb%b0(i,nn))/dtbdys
+        xpsb%wb(i,nn) = xpsb%b0(nn,i)
+        xpsb%wbt(i,nn) = (xpsb%b1(nn,i)-xpsb%b0(nn,i))/dtbdys
       end do
     end do
     do nn = 1 , nxeb
       nnb = min0(jendx,jxp) - nn + 1
       do i = 1 , iym1
-        xpsb%eb(i,nn) = xpsb%b0(i,nnb)
-        xpsb%ebt(i,nn) = (xpsb%b1(i,nnb)-xpsb%b0(i,nnb))/dtbdys
+        xpsb%eb(i,nn) = xpsb%b0(nnb,i)
+        xpsb%ebt(i,nn) = (xpsb%b1(nnb,i)-xpsb%b0(nnb,i))/dtbdys
       end do
     end do
 #endif
     do nn = 1 , nspgx
       nnb = iym1 - nn + 1
       do j = 1 , jendx
-        xpsb%nb(nn,j) = xpsb%b0(nnb,j)
-        xpsb%sb(nn,j) = xpsb%b0(nn,j)
-        xpsb%nbt(nn,j) = (xpsb%b1(nnb,j)-xpsb%b0(nnb,j))/dtbdys
-        xpsb%sbt(nn,j) = (xpsb%b1(nn,j)-xpsb%b0(nn,j))/dtbdys
+        xpsb%nb(nn,j) = xpsb%b0(j,nnb)
+        xpsb%sb(nn,j) = xpsb%b0(j,nn)
+        xpsb%nbt(nn,j) = (xpsb%b1(j,nnb)-xpsb%b0(j,nnb))/dtbdys
+        xpsb%sbt(nn,j) = (xpsb%b1(j,nn)-xpsb%b0(j,nn))/dtbdys
       end do
     end do
 !
@@ -351,10 +357,10 @@ module mod_bdycod
     do nn = 1 , ndwb
       do k = 1 , kz
         do i = 1 , iy
-          xub%wb(i,k,nn)  = xub%b0(i,k,nn)
-          xvb%wb(i,k,nn)  = xvb%b0(i,k,nn)
-          xub%wbt(i,k,nn) = (xub%b1(i,k,nn)-xub%b0(i,k,nn))/dtbdys
-          xvb%wbt(i,k,nn) = (xvb%b1(i,k,nn)-xvb%b0(i,k,nn))/dtbdys
+          xub%wb(i,k,nn)  = xub%b0(nn,i,k)
+          xvb%wb(i,k,nn)  = xvb%b0(nn,i,k)
+          xub%wbt(i,k,nn) = (xub%b1(nn,i,k)-xub%b0(nn,i,k))/dtbdys
+          xvb%wbt(i,k,nn) = (xvb%b1(nn,i,k)-xvb%b0(nn,i,k))/dtbdys
         end do
       end do
     end do
@@ -362,10 +368,10 @@ module mod_bdycod
       nnb = min0(jendl,jxp) - nn + 1
       do k = 1 , kz
         do i = 1 , iy
-          xub%eb(i,k,nn)  = xub%b0(i,k,nnb)
-          xvb%eb(i,k,nn)  = xvb%b0(i,k,nnb)
-          xub%ebt(i,k,nn) = (xub%b1(i,k,nnb)-xub%b0(i,k,nnb))/dtbdys
-          xvb%ebt(i,k,nn) = (xvb%b1(i,k,nnb)-xvb%b0(i,k,nnb))/dtbdys
+          xub%eb(i,k,nn)  = xub%b0(nnb,i,k)
+          xvb%eb(i,k,nn)  = xvb%b0(nnb,i,k)
+          xub%ebt(i,k,nn) = (xub%b1(nnb,i,k)-xub%b0(nnb,i,k))/dtbdys
+          xvb%ebt(i,k,nn) = (xvb%b1(nnb,i,k)-xvb%b0(nnb,i,k))/dtbdys
         end do
       end do
     end do
@@ -374,14 +380,14 @@ module mod_bdycod
       nnb = iy - nn + 1
       do k = 1 , kz
         do j = 1 , jendl
-          xub%nb(nn,k,j)  = xub%b0(nnb,k,j)
-          xub%sb(nn,k,j)  = xub%b0(nn,k,j)
-          xvb%nb(nn,k,j)  = xvb%b0(nnb,k,j)
-          xvb%sb(nn,k,j)  = xvb%b0(nn,k,j)
-          xub%nbt(nn,k,j) = (xub%b1(nnb,k,j)-xub%b0(nnb,k,j))/dtbdys
-          xub%sbt(nn,k,j) = (xub%b1(nn,k,j)-xub%b0(nn,k,j))/dtbdys
-          xvb%nbt(nn,k,j) = (xvb%b1(nnb,k,j)-xvb%b0(nnb,k,j))/dtbdys
-          xvb%sbt(nn,k,j) = (xvb%b1(nn,k,j)-xvb%b0(nn,k,j))/dtbdys
+          xub%nb(nn,k,j)  = xub%b0(j,nnb,k)
+          xub%sb(nn,k,j)  = xub%b0(j,nn,k)
+          xvb%nb(nn,k,j)  = xvb%b0(j,nnb,k)
+          xvb%sb(nn,k,j)  = xvb%b0(j,nn,k)
+          xub%nbt(nn,k,j) = (xub%b1(j,nnb,k)-xub%b0(j,nnb,k))/dtbdys
+          xub%sbt(nn,k,j) = (xub%b1(j,nn,k)-xub%b0(j,nn,k))/dtbdys
+          xvb%nbt(nn,k,j) = (xvb%b1(j,nnb,k)-xvb%b0(j,nnb,k))/dtbdys
+          xvb%sbt(nn,k,j) = (xvb%b1(j,nn,k)-xvb%b0(j,nn,k))/dtbdys
         end do
       end do
     end do
@@ -392,10 +398,10 @@ module mod_bdycod
     do nn = 1 , nxwb
       do k = 1 , kz
         do i = 1 , iym1
-          xtb%wb(i,k,nn)  = xtb%b0(i,k,nn)
-          xqb%wb(i,k,nn)  = xqb%b0(i,k,nn)
-          xtb%wbt(i,k,nn) = (xtb%b1(i,k,nn)-xtb%b0(i,k,nn))/dtbdys
-          xqb%wbt(i,k,nn) = (xqb%b1(i,k,nn)-xqb%b0(i,k,nn))/dtbdys
+          xtb%wb(i,k,nn)  = xtb%b0(nn,i,k)
+          xqb%wb(i,k,nn)  = xqb%b0(nn,i,k)
+          xtb%wbt(i,k,nn) = (xtb%b1(nn,i,k)-xtb%b0(nn,i,k))/dtbdys
+          xqb%wbt(i,k,nn) = (xqb%b1(nn,i,k)-xqb%b0(nn,i,k))/dtbdys
         end do
       end do
     end do
@@ -403,10 +409,10 @@ module mod_bdycod
       nnb = min0(jendx,jxp) - nn + 1
       do k = 1 , kz
         do i = 1 , iym1
-          xtb%eb(i,k,nn)  = xtb%b0(i,k,nnb)
-          xqb%eb(i,k,nn)  = xqb%b0(i,k,nnb)
-          xtb%ebt(i,k,nn) = (xtb%b1(i,k,nnb)-xtb%b0(i,k,nnb))/dtbdys
-          xqb%ebt(i,k,nn) = (xqb%b1(i,k,nnb)-xqb%b0(i,k,nnb))/dtbdys
+          xtb%eb(i,k,nn)  = xtb%b0(nnb,i,k)
+          xqb%eb(i,k,nn)  = xqb%b0(nnb,i,k)
+          xtb%ebt(i,k,nn) = (xtb%b1(nnb,i,k)-xtb%b0(nnb,i,k))/dtbdys
+          xqb%ebt(i,k,nn) = (xqb%b1(nnb,i,k)-xqb%b0(nnb,i,k))/dtbdys
         end do
       end do
     end do
@@ -415,14 +421,14 @@ module mod_bdycod
       nnb = iym1 - nn + 1
       do k = 1 , kz
         do j = 1 , jendx
-          xtb%nb(nn,k,j)  = xtb%b0(nnb,k,j)
-          xtb%sb(nn,k,j)  = xtb%b0(nn,k,j)
-          xqb%nb(nn,k,j)  = xqb%b0(nnb,k,j)
-          xqb%sb(nn,k,j)  = xqb%b0(nn,k,j)
-          xtb%nbt(nn,k,j) = (xtb%b1(nnb,k,j)-xtb%b0(nnb,k,j))/dtbdys
-          xtb%sbt(nn,k,j) = (xtb%b1(nn,k,j)-xtb%b0(nn,k,j))/dtbdys
-          xqb%nbt(nn,k,j) = (xqb%b1(nnb,k,j)-xqb%b0(nnb,k,j))/dtbdys
-          xqb%sbt(nn,k,j) = (xqb%b1(nn,k,j)-xqb%b0(nn,k,j))/dtbdys
+          xtb%nb(nn,k,j)  = xtb%b0(j,nnb,k)
+          xtb%sb(nn,k,j)  = xtb%b0(j,nn,k)
+          xqb%nb(nn,k,j)  = xqb%b0(j,nnb,k)
+          xqb%sb(nn,k,j)  = xqb%b0(j,nn,k)
+          xtb%nbt(nn,k,j) = (xtb%b1(j,nnb,k)-xtb%b0(j,nnb,k))/dtbdys
+          xtb%sbt(nn,k,j) = (xtb%b1(j,nn,k)-xtb%b0(j,nn,k))/dtbdys
+          xqb%nbt(nn,k,j) = (xqb%b1(j,nnb,k)-xqb%b0(j,nnb,k))/dtbdys
+          xqb%sbt(nn,k,j) = (xqb%b1(j,nn,k)-xqb%b0(j,nn,k))/dtbdys
         end do
       end do
     end do
@@ -443,16 +449,16 @@ module mod_bdycod
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          xub%b0(i,k,j) = xub%b1(i,k,j)
-          xvb%b0(i,k,j) = xvb%b1(i,k,j)
-          xqb%b0(i,k,j) = xqb%b1(i,k,j)
-          xtb%b0(i,k,j) = xtb%b1(i,k,j)
+          xub%b0(j,i,k) = xub%b1(j,i,k)
+          xvb%b0(j,i,k) = xvb%b1(j,i,k)
+          xqb%b0(j,i,k) = xqb%b1(j,i,k)
+          xtb%b0(j,i,k) = xtb%b1(j,i,k)
         end do
       end do
     end do
     do j = 1 , jendl
       do i = 1 , iy
-        xpsb%b0(i,j) = xpsb%b1(i,j)
+        xpsb%b0(j,i) = xpsb%b1(j,i)
         ts0(i,j) = ts1(i,j)
       end do
     end do
@@ -535,13 +541,13 @@ module mod_bdycod
 !   compute the p* at dot points:
 !
     if ( ieast /= mpi_proc_null ) then
-      pstrans1 = sps1%ps(jxp,:)
+      trans1 = sps1%ps(jxp,:)
     end if
-    call mpi_sendrecv(pstrans1,iy,mpi_real8,ieast,1, &
-                      pstrans2,iy,mpi_real8,iwest,1, &
+    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
+                      trans2,iy,mpi_real8,iwest,1, &
                       mycomm,mpi_status_ignore,ierr)
     if ( iwest /= mpi_proc_null ) then
-      sps1%ps(0,:) = pstrans2
+      sps1%ps(0,:) = trans2
     end if
 !
 !   interior points:

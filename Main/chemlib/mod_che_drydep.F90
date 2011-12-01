@@ -632,10 +632,6 @@ module mod_che_drydep
           end do
           end do
 
-
-
-
-
       call time_end(subroutine_name,idindx)
       end subroutine drydep_aero
 !
@@ -645,7 +641,6 @@ module mod_che_drydep
       subroutine drydep_gas (j, ivegcov ,       &
                  rh10, srad , tsurf , prec, temp10 ,  &
                  wind10 , zeff, drydepvg)
-
 
 #ifdef CLM
        use clm_drydep, only : c2rvdep

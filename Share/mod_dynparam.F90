@@ -410,7 +410,7 @@ module mod_dynparam
       dayspy = 365.0D+00
       ical = noleap
     else if (calendar == '360_day') then
-      dayspy = 365.0D+00
+      dayspy = 360.0D+00
       ical = y360
     else
       dayspy = 365.2422D+00
