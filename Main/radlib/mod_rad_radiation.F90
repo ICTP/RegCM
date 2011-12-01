@@ -37,7 +37,7 @@ module mod_rad_radiation
   real(8) :: cftotmax
 
   public :: allocate_mod_rad_radiation , radini , radctl
-  public :: absnxt , abstot , emstot
+  public :: gasabsnxt , gasabstot , gasemstot
   public :: cftotmax
 
 ! absnxt  - Nearest layer absorptivities
@@ -47,6 +47,9 @@ module mod_rad_radiation
   real(8) , pointer , dimension(:,:,:,:)  :: absnxt
   real(8) , pointer , dimension(:,:,:,:)  :: abstot
   real(8) , pointer , dimension(:,:,:) :: emstot
+  real(8) , pointer , dimension(:,:,:,:)  :: gasabsnxt
+  real(8) , pointer , dimension(:,:,:,:)  :: gasabstot
+  real(8) , pointer , dimension(:,:,:) :: gasemstot
   real(8) , pointer , dimension(:,:,:,:):: xuinpl
 !
   real(8) , pointer , dimension(:) :: co2plk , dtx , dty
@@ -506,6 +509,10 @@ module mod_rad_radiation
     call getmem4d(absnxt,1,jxp,1,iym1,1,kz,1,4,'radiation:absnxt')
     call getmem4d(abstot,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:abstot')
     call getmem3d(emstot,1,jxp,1,iym1,1,kzp1,'radiation:emstot')
+    call getmem4d(gasabsnxt,1,jxp,1,iym1,1,kz,1,4,'radiation:gasabsnxt')
+    call getmem4d(gasabstot,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:gasabstot')
+    call getmem3d(gasemstot,1,jxp,1,iym1,1,kzp1,'radiation:gasemstot')
+
     call getmem4d(xuinpl,1,jxp,1,iym1,1,kzp1,1,4,'radiation:xuinpl')
 
     call getmem2d(diralb,1,jxp,1,iym1,'radiation:diralb')
@@ -1983,6 +1990,10 @@ module mod_rad_radiation
       nradaer = 1
     end if
 
+    abstot(:,i,:,:) = gasabstot(:,i,:,:)
+    absnxt(:,i,:,:) = gasabsnxt(:,i,:,:)
+    emstot(:,i,:)   = gasemstot(:,i,:)
+
     do irad = 1 , nradaer
 
       if ( lchem .and. idirect > 0 .and. irad==2 ) then
@@ -3276,8 +3287,8 @@ module mod_rad_radiation
             abso(6) = trab2*co2em(j,k2)*absbnd
             tco2(j) = d_one/(d_one+d_10*(u7/dsqrt(d_four+u7*(d_one+rbeta7))))
 !           trab3(j)  = 1. - bndfct*absbnd
-            abstot(j,i,k1,k2) = abso(1) + abso(2) + abso(3) + &
-                                abso(4) + abso(5) + abso(6)
+            gasabstot(j,i,k1,k2) = abso(1) + abso(2) + abso(3) + &
+                                   abso(4) + abso(5) + abso(6)
           end do
 !
 !         Calculate absorptivity due to trace gases
@@ -3290,7 +3301,7 @@ module mod_rad_radiation
 !         Sum total absorptivity
 !
           do j = jstart , jend
-            abstot(j,i,k1,k2) = abstot(j,i,k1,k2) + abstrc(j)
+            gasabstot(j,i,k1,k2) = gasabstot(j,i,k1,k2) + abstrc(j)
           end do
         end if
       end do
@@ -3526,8 +3537,8 @@ module mod_rad_radiation
           abso(6) = trab2*emm(kn)*absbnd
           tco2(j) = d_one/(d_one+d_10*u7/dsqrt(d_four+u7*(d_one+rbeta7)))
 !         trab3(j) = 1. - bndfct*absbnd
-          absnxt(j,i,k2,kn) = abso(1) + abso(2) + abso(3) + &
-                              abso(4) + abso(5) + abso(6) 
+          gasabsnxt(j,i,k2,kn) = abso(1) + abso(2) + abso(3) + &
+                                 abso(4) + abso(5) + abso(6) 
         end do
       end do
 !
@@ -3542,7 +3553,7 @@ module mod_rad_radiation
 !       Total next layer absorptivity:
 !
         do j = jstart , jend
-          absnxt(j,i,k2,kn) = absnxt(j,i,k2,kn) + abstrc(j)
+          gasabsnxt(j,i,k2,kn) = gasabsnxt(j,i,k2,kn) + abstrc(j)
         end do
       end do
     end do  !  end of nearest layer level loop
@@ -3969,7 +3980,7 @@ module mod_rad_radiation
 !     Total emissivity:
 !
       do j = jstart , jend
-        emstot(j,i,k) = h2oems(j,k)+co2ems(j,k)+o3ems(j,k)+emstrc(j,k)
+        gasemstot(j,i,k) = h2oems(j,k)+co2ems(j,k)+o3ems(j,k)+emstrc(j,k)
       end do
     end do  ! End of interface loop
 !

@@ -111,7 +111,7 @@ module mod_savefile
 #ifndef BAND
       call restdiag(iutrst)
 #endif
-      read (iutrst) absnxt_io , abstot_io , emstot_io
+      read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
       if ( ipptls == 1 ) read (iutrst) fcc_io
 #ifdef CLM
       read (iutrst) sols2d_io
@@ -266,7 +266,7 @@ module mod_savefile
 #ifndef BAND
       call savediag(iutsav)
 #endif
-      write (iutsav) absnxt_io , abstot_io , emstot_io
+      write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
       if ( ipptls == 1 ) write (iutsav) fcc_io
 #ifdef CLM
       write (iutsav) sols2d_io

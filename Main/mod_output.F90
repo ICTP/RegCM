@@ -954,7 +954,7 @@ module mod_output
         do l = 1 , 4
           do k = 1 , kz
             do i = 1 , iym1
-              sav1(i,(l-1)*kz+k,j) = absnxt(j,i,k,l)
+              sav1(i,(l-1)*kz+k,j) = gasabsnxt(j,i,k,l)
             end do
           end do
         end do
@@ -964,7 +964,7 @@ module mod_output
         do l = 1 , kzp1
           do k = 1 , kzp1
             do i = 1 , iym1
-              sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(j,i,k,l)
+              sav1(i,allrec+(l-1)*(kzp1)+k,j) = gasabstot(j,i,k,l)
             end do
           end do
         end do
@@ -973,7 +973,7 @@ module mod_output
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iym1
-            sav1(i,allrec+k,j) = emstot(j,i,k)
+            sav1(i,allrec+k,j) = gasemstot(j,i,k)
           end do
         end do
       end do
@@ -990,7 +990,7 @@ module mod_output
           do l = 1 , 4
             do k = 1 , kz
               do i = 1 , iym1
-                absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
+                gasabsnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
               end do
             end do
           end do
@@ -1004,7 +1004,7 @@ module mod_output
           do l = 1 , kzp1
             do k = 1 , kzp1
               do i = 1 , iym1
-                abstot_io(i,k,l,j) = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
+                gasabstot_io(i,k,l,j) = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
               end do
             end do
           end do
@@ -1017,7 +1017,7 @@ module mod_output
 #endif
           do k = 1 , kzp1
             do i = 1 , iym1
-              emstot_io(i,k,j) = sav_1(i,allrec+k,j)
+              gasemstot_io(i,k,j) = sav_1(i,allrec+k,j)
             end do
           end do
         end do
