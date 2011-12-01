@@ -96,7 +96,6 @@
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
                              !          EHA1B, CCSMN, ECEXY
- ehso4 = .false.,            ! Sulfate dataset Control Flag
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
