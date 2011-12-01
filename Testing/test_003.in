@@ -49,7 +49,6 @@
  ibdyfrq = 6,
  ssttyp = 'OI_WK',
  dattyp = 'EIN75',
- ehso4 = .false.,
  gdate1 = 1991010100,
  gdate2 = 1991020100,
  dirglob = '/set/this/to/where/your/icbc/for/model/is',

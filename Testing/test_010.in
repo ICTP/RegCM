@@ -48,7 +48,6 @@
  &globdatparam
  ssttyp = 'OI_WK',
  dattyp = 'EIN15',
- ehso4 = .false.,
  gdate1 = 1990060100,
  gdate2 = 1990070100,
  ibdyfrq = 6,
