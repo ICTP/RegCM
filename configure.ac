@@ -31,7 +31,7 @@ AC_PROG_FC
 
 AC_LANG([Fortran])
 
-AX_PROG_NC_CONFIG([NC_PREFIX=`nf-config --prefix` && NCAUTO="yes"],
+AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"],
                   [NC_PREFIX="${NETCDF}" && NCAUTO="no"])
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
@@ -171,12 +171,12 @@ fi
 if eval "test x$NCAUTO = xno"; then
   NC_INCLUDES="-I$NC_PREFIX/include"
 else
-  NCVER=`nf-config --version | cut -d " " -f 2`
+  NCVER=`nc-config --version | cut -d " " -f 2`
   if eval "test x$NCVER = x4.0.1"; then
-    NC_INCLUDES="`nf-config --fflags`"
+    NC_INCLUDES="`nc-config --fflags`"
   else
     # new netcdf library has this
-    NC_INCLUDES="-I`nf-config --includedir`"
+    NC_INCLUDES="-I`nc-config --includedir`"
   fi
 fi
 
@@ -185,7 +185,7 @@ if eval "test x$NCAUTO = xno"; then
   NC_LIBS="-lnetcdf"
 else
   NC_LDFLAGS=""
-  NC_LIBS="`nf-config --libs`"
+  NC_LIBS="`nc-config --libs`"
 fi
 AC_SUBST(NC_PREFIX)
 
