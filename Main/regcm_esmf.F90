@@ -264,7 +264,7 @@
 !     Debug: print clock 
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel > 0) then
+      if (cpl_dbglevel > 0 .and. localPet == 0) then
       call ESMF_ClockPrint (cplClock, "currTime string", rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if

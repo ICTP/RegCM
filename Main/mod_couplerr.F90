@@ -6,6 +6,8 @@
 !
       use ESMF
 !
+      use mod_realkinds, only : sp, dp
+!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -178,6 +180,15 @@
       real*8, parameter :: Cp = 3985.0d0
       real*8, parameter :: rho0 = 1025.0d0
       real*8, parameter :: Hscale=1.0d0/(rho0*Cp)
+!
+!-----------------------------------------------------------------------
+!     Temporary variables ( atm->ocn )
+!-----------------------------------------------------------------------
+!
+      real*8, allocatable, dimension(:,:) :: zi, z995, u995, v995
+      real*8, allocatable, dimension(:,:) :: psurf, tsurf, t995, q995
+      real*8, allocatable, dimension(:,:) :: t2, q2, u10, v10
+      real*8, allocatable, dimension(:,:) :: taux, tauy
 !
       contains
 !
@@ -890,5 +901,400 @@
 !
       return
       end subroutine print_matrix_r8      
+!
+      subroutine calc_uvmet (u, v, urot, vrot, localPet)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_dynparam, only : iproj, truelatl, truelath
+      use mod_atm_interface, only : mddom
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(sp), dimension(:,:), intent(in) :: u, v
+      integer, intent(in) :: localPet
+      real(sp), dimension(:,:), intent(inout) :: urot, vrot
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(dp) :: cone
+      real(dp) :: PI, RAD_PER_DEG
+!
+!-----------------------------------------------------------------------
+!     Calculate parameters 
+!-----------------------------------------------------------------------
+!
+      PI = atan(1.0d0)*4.0d0
+      RAD_PER_DEG = PI/180.0d0 
+
+      cone = 1.0d0
+!
+      if (iproj .eq. 'LAMCON') then !  Lambert Conformal mapping
+        if (abs(truelatl-truelath) > 0.1d0) then
+          cone = (log(cos(truelatl*RAD_PER_DEG))-                      &
+                  log(cos(truelath*RAD_PER_DEG)))/                     &
+                 (log(tan((90.0d0-abs(truelatl))*RAD_PER_DEG*0.5d0))-  &
+                  log(tan((90.0d0-abs(truelath))*RAD_PER_DEG*0.5d0)))
+        else
+          cone = dsin(abs(truelatl)*RAD_PER_DEG)
+        end if
+      end if
+!
+      write(*, fmt="(A3, 5I8)") "U--", localPet,                        &
+                            lbound(u, dim=1),                           &
+                            ubound(u, dim=1),                           &
+                            lbound(u, dim=2),                           &
+                            ubound(u, dim=2)
+      write(*, fmt="(A3, 5I8)") "D--", localPet,                        &
+                            lbound(mddom%xlon, dim=1),                  &
+                            ubound(mddom%xlon, dim=1),                  &
+                            lbound(mddom%xlon, dim=2),                  &
+                            ubound(mddom%xlon, dim=2)
+
+      return
+      end subroutine calc_uvmet
+!
+      subroutine ocnrough(zo,zot,zoq,ustar,visa)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_constants
+      use mod_bats_common, only : iocnrough
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(dp), dimension(:,:), intent(in) :: ustar, visa
+      real(dp), dimension(:,:), intent(out) :: zoq, zot
+      real(dp), dimension(:,:), intent(inout) :: zo
+!
+!     Graziano: make this selectable on iocnrough flag
+!
+      if ( iocnrough == 2 ) then
+        zo = (0.013d0*ustar*ustar)*regrav+0.11d0*visa/ustar
+      else
+        zo = (0.0065d0*ustar*ustar)*regrav
+      end if
+!
+      zoq = zo/dexp(2.67d0*(((ustar*zo)/visa)**d_rfour)-2.57d0)
+      zot = zoq
+!
+      return
+      end subroutine ocnrough
+!
+      function psi (k, zeta)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_constants
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer,  intent(in) :: k
+      real(dp), intent(in) :: zeta
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(dp) :: chik, psi
+!
+      chik = (d_one-16.0D0*zeta)**d_rfour
+      if ( k == 1 ) then
+        psi = d_two*dlog((d_one+chik)*d_half) +                       &
+                      dlog((d_one+chik*chik)*d_half) -                  &
+                d_two*datan(chik) + d_two*datan(d_one)
+      else
+        psi = d_two*dlog((d_one+chik*chik)*d_half)
+      end if
+      end function psi
+!
+      function psi2d (k, zeta)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_constants
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer, intent(in) :: k
+      real(dp), dimension(:,:), intent(in) :: zeta
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: jxmin, jxmax, iymin, iymax
+      real(dp), allocatable, dimension(:,:) :: chik, psi2d
+!
+      jxmin = lbound(zeta, dim=1)
+      jxmax = ubound(zeta, dim=1)
+      iymin = lbound(zeta, dim=2)
+      iymax = ubound(zeta, dim=2)
+
+      if (.not.allocated(chik))allocate(chik(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(psi2d))allocate(psi2d(jxmin:jxmax,iymin:iymax))
+!
+      chik = (d_one-16.0D0*zeta)**d_rfour
+      if ( k == 1 ) then
+        psi2d = d_two*dlog((d_one+chik)*d_half) +                       &
+                      dlog((d_one+chik*chik)*d_half) -                  &
+                d_two*datan(chik) + d_two*datan(d_one)
+      else
+        psi2d = d_two*dlog((d_one+chik*chik)*d_half)
+      end if
+      end function psi2d
+!
+      subroutine adjustvars(z, t, q, u, v, zi, ps, ts, t2, q2,           &
+                           u10, v10, taux, tauy)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_constants
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(dp), dimension(:,:), intent(in) :: z 
+      real(dp), dimension(:,:), intent(in) :: t 
+      real(dp), dimension(:,:), intent(in) :: q 
+      real(dp), dimension(:,:), intent(in) :: u 
+      real(dp), dimension(:,:), intent(in) :: v 
+      real(dp), dimension(:,:), intent(in) :: zi 
+      real(dp), dimension(:,:), intent(in) :: ps 
+      real(dp), dimension(:,:), intent(in) :: ts
+!
+      real(dp), dimension(:,:), intent(inout) :: t2
+      real(dp), dimension(:,:), intent(inout) :: q2
+      real(dp), dimension(:,:), intent(inout) :: u10
+      real(dp), dimension(:,:), intent(inout) :: v10
+      real(dp), dimension(:,:), intent(inout) :: taux 
+      real(dp), dimension(:,:), intent(inout) :: tauy
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, jxmin, jxmax, iymin, iymax
+      real(dp), allocatable, dimension(:,:) :: th, dth, qs, dqh
+      real(dp), allocatable, dimension(:,:) :: thv, dthv, rho, xlv, visa
+      real(dp), allocatable, dimension(:,:) :: wc, ustr, wspd, um, zo
+      real(dp), allocatable, dimension(:,:) :: rb, zeta, obu, tstr, qstr
+      real(dp), allocatable, dimension(:,:) :: zot, zoq, thvstr, facttq 
+!
+      real(dp), parameter :: zetat = 0.465D0
+      real(dp), parameter :: zetam = 1.574D0
+!
+      real(dp), parameter :: z2  = d_two   ! m  (reference height)
+      real(dp), parameter :: z10 = d_10    ! m  (reference height)
+      real(dp), parameter :: zbeta = d_one ! -  (in computing W_*)
+!
+!     Get dimension bounds and allocate variables
+!
+      jxmin = lbound(t, dim=1)
+      jxmax = ubound(t, dim=1)
+      iymin = lbound(t, dim=2)
+      iymax = ubound(t, dim=2)
+
+      if (.not.allocated(th)) allocate(th(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(dth)) allocate(dth(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(qs)) allocate(qs(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(dqh)) allocate(dqh(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(thv)) allocate(thv(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(dthv)) allocate(dthv(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(rho)) allocate(rho(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(xlv)) allocate(xlv(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(visa)) allocate(visa(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(wc)) allocate(wc(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(ustr)) allocate(ustr(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(wspd)) allocate(wspd(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(um)) allocate(um(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(zo)) allocate(zo(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(rb)) allocate(rb(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(zeta)) allocate(zeta(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(obu)) allocate(obu(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(tstr)) allocate(tstr(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(qstr)) allocate(qstr(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(zot)) allocate(zot(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(zoq)) allocate(zoq(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(thvstr)) allocate(thvstr(jxmin:jxmax,iymin:iymax))
+      if (.not.allocated(facttq)) allocate(facttq(jxmin:jxmax,iymin:iymax))
+!
+!     Compute potential temperature and difference
+!
+      th = (t+tzero)*(d_1000/ps)**rovcp
+      dth = t+0.0098d0*z-ts
+!
+!     Compute specific humidity at saturation using Tetens' formula
+!
+      qs = (1.0007d0+3.46d-6*ps)*6.1121d0*dexp(17.502d0*t/(240.97d0+ts))
+      qs = qs*0.98d0
+      qs = ep2*qs/(ps-0.378d0*qs) 
+      dqh = q-qs
+!
+!     Compute virtual potential temperature and difference
+!
+      thv = th*(d_one+0.61d0*q)
+      dthv = dth*(d_one+0.61d0*q) + 0.61d0*th*dqh
+!
+!     Compute density and latent heat of vap. (J/kg)
+!
+      rho = ps*d_100/(rgas*(ts+tzero)*(d_one+0.61d0*qs))
+      xlv = (2.501d0-0.00237d0*ts)*1.0d+6
+!
+!     Kinematic viscosity of dry air (m2/s)- Andreas (1989) CRREL Rep. 89-11
+!
+      visa = 1.326d-5*(d_one+6.542d-3*t+8.301d-6*t*t-4.84d-9*t*t*t)
+!
+!     Initial values of u* (fiction velocity) and convective velocity
+!
+      wc = d_half
+      ustr = 0.06d0
+      wspd = dsqrt(u**d_two+v**d_two)
+      where ( dthv >= d_zero )
+        um = dmax1(wspd, 0.1d0)
+      elsewhere
+        um = dsqrt(wspd*wspd+wc*wc)
+      end where
+!
+!     Loop to obtain initial and good ustar and zo
+!
+      do i = 1, 5
+        zo = 0.013d0*ustr*ustr*regrav+0.11d0*visa/ustr
+        ustr = vonkar*um/dlog(z/zo)
+      end do
+!
+      rb = egrav*z*dthv/(thv*um*um)
+      where ( rb >= d_zero )       ! neutral or stable
+        zeta = rb*dlog(z/zo)/(d_one-d_five*dmin1(rb,0.19d0))
+        zeta = dmin1(d_two,dmax1(zeta,1.0d-6))
+      elsewhere                    ! unstable
+        zeta = rb*dlog(z/zo)
+        zeta = dmax1(-d_100,dmin1(zeta,-1.0d-6))
+      end where
+      obu = z/zeta
+!
+!     Main iteration (2-10 iterations would be fine)
+!
+      do i = 1, 10
+        call ocnrough (zo, zot, zoq, ustr, visa)
+!
+!       Wind
+!
+        zeta = z/obu
+        where ( zeta < -zetam )        ! zeta < -1
+          ustr = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+          &
+                  psi2d(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
+        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
+          ustr = vonkar*um/(dlog(z/zo)-psi2d(1,zeta)+psi2d(1,zo/obu))
+        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
+          ustr = vonkar*um/(dlog(z/zo)+d_five*zeta-d_five*zo/obu)
+        elsewhere                      !  1 < zeta, phi=5+zeta
+          ustr = vonkar*um/(dlog(obu/zo)+d_five-d_five*zo/obu+          &
+                  (d_five*dlog(zeta)+zeta-d_one))
+        end where  
+!
+!       Temperature
+!
+        zeta = z/obu
+        where ( zeta < -zetat )        ! zeta < -1
+          tstr = vonkar*dth/                                            &
+                 (dlog(-zetat*obu/zot)-psi(2,-zetat)+psi2d(2,zot/obu)+  &
+                 0.8d0*((zetat)**(-onet)-(-zeta)**(-onet)))
+        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
+          tstr = vonkar*dth/(dlog(z/zot)-                              &
+                 psi2d(2,zeta)+psi2d(2,zot/obu))
+        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
+          tstr = vonkar*dth/(dlog(z/zot)+d_five*zeta-d_five*zot/obu)
+        elsewhere                      !  1 < zeta, phi=5+zeta
+          tstr = vonkar*dth/(dlog(obu/zot)+d_five-d_five*zot/obu+       &
+                 (d_five*dlog(zeta)+zeta-d_one))
+        end where
+!
+!       Humidity
+!
+        zeta = z/obu
+        where ( zeta < -zetat )        ! zeta < -1
+          qstr = vonkar*dqh/                                            &
+                 (dlog(-zetat*obu/zoq)-psi(2,-zetat)+psi2d(2,zoq/obu)+  &
+                 0.8d0*((zetat)**(-onet)-(-zeta)**(-onet)))
+        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
+          qstr = vonkar*dqh/(dlog(z/zoq)-                               &
+                 psi2d(2,zeta)+psi2d(2,zoq/obu))
+        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
+          qstr = vonkar*dqh/(dlog(z/zoq)+d_five*zeta-d_five*zoq/obu)
+        elsewhere                      !  1 < zeta, phi=5+zeta
+          qstr = vonkar*dqh/(dlog(obu/zoq)+d_five-d_five*zoq/obu+       &
+                 (d_five*dlog(zeta)+zeta-d_one))
+        end where
+!
+        thvstr = tstr*(d_one+0.61d0*q) + 0.61d0*th*qstr
+!
+        zeta = vonkar*egrav*thvstr*z/(ustr**d_two*thv)
+        where ( zeta >= d_zero )   !neutral or stable
+          um = dmax1(wspd, 0.1d0)
+          zeta = dmin1(d_two,dmax1(zeta,1.0d-6))
+        elsewhere                  !unstable
+          wc = zbeta*(-egrav*ustr*thvstr*zi/thv)**onet
+          um = dsqrt(wspd*wspd+wc*wc)
+          zeta = dmax1(-d_100,dmin1(zeta,-1.0d-6))
+        end where
+        obu = z/zeta
+      end do
+!
+!     Compute surface variables (adjust height of the lowest sigma lev.) 
+!
+      taux = rho*ustr*ustr*u995/um
+      tauy = rho*ustr*ustr*u995/um
+!
+      zeta = z10/obu
+      where ( zeta < d_zero )
+        u10 = u+(ustr/vonkar)*(dlog(z10/z)-                             &
+              (psi2d(1,zeta)-psi2d(1,z/obu)))  
+        v10 = v+(ustr/vonkar)*(dlog(z10/z)-                             &
+              (psi2d(1,zeta)-psi2d(1,z/obu)))
+      elsewhere
+        u10 = u+(ustr/vonkar)*(dlog(z10/z)+                             &
+              d_five*zeta-d_five*z/obu)
+        v10 = v+(ustr/vonkar)*(dlog(z10/z)+                             &
+              d_five*zeta-d_five*z/obu)
+      end where
+!
+      facttq = dlog(z995*d_half)/dlog(z995/zo)
+      t2 = t+tzero-dth*facttq
+      q2 = q-dqh*facttq
+!      
+      return
+      end subroutine adjustvars
 !
       end module mod_couplerr

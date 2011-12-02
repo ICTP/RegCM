@@ -170,7 +170,7 @@
 !     Debug: print coupling direction
 !-----------------------------------------------------------------------
 !  
-      if (cpl_dbglevel > 0) then
+      if (cpl_dbglevel > 0 .and. localPet == 0) then
       if (dir == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else
@@ -212,7 +212,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (cpl_dbglevel > 0) then
+          if (cpl_dbglevel > 0 .and. localPet == 0) then
             write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
           end if
         end if
@@ -287,7 +287,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (cpl_dbglevel > 0) then
+          if (cpl_dbglevel > 0 .and. localPet == 0) then
             write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
           end if
         end if
@@ -517,7 +517,7 @@
 !     Debug: print coupling direction
 !-----------------------------------------------------------------------
 !  
-      if (cpl_dbglevel > 0) then
+      if (cpl_dbglevel > 0 .and. localPet == 0) then
       if (dir == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else

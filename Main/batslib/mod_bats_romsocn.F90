@@ -25,6 +25,7 @@ module mod_bats_romsocn
   use mod_dynparam
   use mod_service
   use mod_bats_common
+  use mod_bats_zengocn
 !
   private
 !
@@ -38,7 +39,7 @@ module mod_bats_romsocn
 
   subroutine allocate_mod_bats_romsocn()
     implicit none
-    call getmem2d(sst2d,1,iy,1,jxp,'roms:sst2d') 
+    call getmem2d(sst2d,1,jxp,1,iy,'roms:sst2d') 
     sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 
@@ -46,6 +47,10 @@ module mod_bats_romsocn
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
+!
+    real(dp) :: uv995, tsurf, t995, q995, z995, zi, psurf
+    real(dp) :: qs, uv10, tau, lh, sh, dth, dqh, ustar, zo
+    real(dp) :: facttq 
 !
     integer i , j , n
     character (len=64) :: subroutine_name='romsocndrv'
@@ -56,10 +61,30 @@ module mod_bats_romsocn
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          ! Feed back ground temperature (in Kelvin) 
-          if (sst2d(i,j) .lt. MISSING_R8) then  
-            tgrd(n,j,i) = sst2d(i,j)
-            tgbrd(n,j,i) = sst2d(i,j)
+          ! feedback from ocn -> atm
+          if (sst2d(j,i) .lt. MISSING_R8) then  
+            ! update ground temperature
+            tgrd(n,j,i) = sst2d(j,i)
+            tgbrd(n,j,i) = sst2d(j,i)
+            ! calculate bulk fluxes using zengocean bulk flux alg.
+            uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
+            tsurf = sst2d(j,i)-tzero
+            t995 = tatm(j,i,kz)-tzero
+            q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
+            z995 = hgt(j,i,kz)
+            zi = hpbl(j,i)
+            psurf = (sfps(j,i)+ptop)*d_10
+            call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
+                         uv10,tau,lh,sh,dth,dqh,ustar,zo)
+            ! update surface variables
+            sent(n,j,i) = sh
+            evpr(n,j,i) = lh/wlhv
+            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
+            facttq = dlog(z995*d_half)/dlog(z995/zo)
+            u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
+            v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
+            t2m(n,j,i) = t995 + tzero - dth*facttq
+            q2m(n,j,i) = q995 - dqh*facttq 
           end if
         end do
       end do

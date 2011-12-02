@@ -188,14 +188,13 @@ module mod_bats_mtrxbats
 
 !   ROMS ocean model
     if ( iocnflx == 3 ) then
-!     Call Zeng ocean flux model until ROMS runs once
+!     call Zeng ocean flux model at the begining until first
+!     exchange between ocean and atmosphere models
       if (ktau <= ntcpl) then
-        print*, ktau, ntcpl, "ocean - zeng"
         call zengocndrv(jstart,jend,istart,iend,ktau)
       else
-!       Then update ground temperature in each coupling time step
+!       update ground temperature in each coupling time step
         if (mod(ktau+1,ntcpl) == ntsrf2) then 
-          print*, ktau, ntcpl, "ocean - roms"
           call romsocndrv(jstart,jend,istart,iend,ktau)
         end if
       end if

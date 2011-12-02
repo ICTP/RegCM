@@ -29,7 +29,7 @@ module mod_bats_zengocn
 !
   private
 !
-  public :: zengocndrv
+  public :: zengocndrv, zengocn
 !
 ! Module Constants
 !

@@ -355,7 +355,7 @@
 !     Formats 
 !-----------------------------------------------------------------------
 !
- 20   format(' PET (', I2, ') - ATM Model ', A, ' = ', A)
+ 20   format(' PET (', I3, ') - ATM Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -630,8 +630,8 @@
 !
       models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (                &
                                         minIndex=(/ 1, 1 /),            &
-                                        maxIndex=(/ iy, jx /),          &
-                                        regDecomp=(/1,nproc/),          &
+                                        maxIndex=(/ jx, iy /),          &
+                                        regDecomp=(/nproc,1/),          &
                                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -724,6 +724,14 @@
         end if
 !
         if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
+          if (cpl_dbglevel > 1) then
+            write(*,30) localPet, j, "PTR",                             &
+              lbound(ptrX, dim=1), ubound(ptrX, dim=1),                 &
+              lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+            write(*,30) localPet, j, "ATM",                             &
+              lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),     &
+              lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
+          end if
           ptrX = mddom%xlon
           ptrY = mddom%xlat
         end if
@@ -753,6 +761,12 @@
 !
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Format definition 
+!-----------------------------------------------------------------------
+!
+ 30   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -819,6 +833,7 @@
       models(Iatmos)%dataExport(i,n)%field = ESMF_FieldCreate (         &
                                   models(Iatmos)%mesh(id,n)%grid,       &
                                   models(Iatmos)%arrSpec(n),            &
+                                  indexflag=ESMF_INDEX_GLOBAL,          &
                                   staggerloc=staggerLoc,                &
                                   name=trim(name),                      &
                                   rc=rc)
@@ -891,8 +906,9 @@
 !
       name = models(Iatmos)%dataImport(i,n)%name
       models(Iatmos)%dataImport(i,n)%field = ESMF_FieldCreate (         &
-                                  models(Iatmos)%mesh(i,n)%grid,        &
+                                  models(Iatmos)%mesh(id,n)%grid,       &
                                   models(Iatmos)%arrSpec(n),            &
+                                  indexflag=ESMF_INDEX_GLOBAL,          &
                                   staggerloc=staggerLoc,                &
                                   name=trim(name),                      &
                                   rc=rc)
@@ -996,6 +1012,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common
+      use mod_dynparam, only : kz
 !
       implicit none
 !
@@ -1009,11 +1026,12 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, id, n, rc, localDECount
-      integer :: ii, jj, imin, imax, jmin, jmax
+      integer :: i, j, k, l, id, n, rc, localDECount
+      integer, dimension(2) :: dims
       logical :: flag
       character (len=40) :: name
       character (len=100) :: outfile
+      real(sp), allocatable, dimension(:,:) :: urot, vrot
 !
       type(ESMF_StaggerLoc) :: staggerLoc
 !
@@ -1024,6 +1042,12 @@
       do n = 1, nNest(Iatmos)
 !
 !-----------------------------------------------------------------------
+!     Rotate wind components (u and v) to earth coordinates 
+!-----------------------------------------------------------------------
+!
+!      call calc_uvmet (u10m_o, v10m_o, urot, vrot, localPet) 
+!
+!-----------------------------------------------------------------------
 !     Create export state fields 
 !-----------------------------------------------------------------------
 !
@@ -1031,83 +1055,125 @@
       name = models(Iatmos)%dataExport(i,n)%name
 !
 !-----------------------------------------------------------------------
+!     Adjust variables to surface (995 -> 2m and 10m)
+!-----------------------------------------------------------------------
+!
+      if (i == 1) then
+!
+!-----------------------------------------------------------------------
+!     Allocate variables 
+!-----------------------------------------------------------------------
+!
+      if (.not. allocated(z995)) then
+        dims(1) = (ubound(hgt, dim=1)-lbound(hgt, dim=1))+1
+        dims(2) = (ubound(hgt, dim=2)-lbound(hgt, dim=2))+1
+!
+        allocate(z995(dims(1),dims(2)))
+        allocate(t995(dims(1),dims(2)))
+        allocate(q995(dims(1),dims(2)))
+        allocate(u995(dims(1),dims(2)))
+        allocate(v995(dims(1),dims(2)))
+        allocate(psurf(dims(1),dims(2)))
+        allocate(tsurf(dims(1),dims(2)))
+        allocate(t2(dims(1),dims(2)))
+        allocate(q2(dims(1),dims(2)))
+        allocate(u10(dims(1),dims(2)))
+        allocate(v10(dims(1),dims(2)))
+        allocate(zi(dims(1),dims(2)))
+        allocate(taux(dims(1),dims(2)))
+        allocate(tauy(dims(1),dims(2)))
+      end if
+!
+!-----------------------------------------------------------------------
+!     Initialize variables
+!-----------------------------------------------------------------------
+!
+      z995 = 0.0d0
+      t995 = 0.0d0
+      q995 = 0.0d0
+      u995 = 0.0d0
+      v995 = 0.0d0
+      psurf = 0.0d0
+      tsurf = 0.0d0
+      t2 = 0.0d0
+      q2 = 0.0d0
+      u10 = 0.0d0
+      v10 = 0.0d0
+      zi = 0.0d0
+      taux = 0.0d0
+      tauy = 0.0d0
+!
+!-----------------------------------------------------------------------
+!     Fill variables 
+!-----------------------------------------------------------------------
+!
+      do k = 1, jxp
+        do l = 1, iy 
+          z995(k,l) = hgt(k,l,kz)
+          t995(k,l) = tatm(k,l,kz)-tzero
+          q995(k,l) = qvatm(k,l,kz)/(d_one+qvatm(k,l,kz))
+          u995(k,l) = uatm(k,l,kz)
+          v995(k,l) = vatm(k,l,kz)
+          zi(k,l) = hpbl(k,l)
+          psurf(k,l) = (sfps(k,l)+ptop)*d_10
+          tsurf(k,l) = tground2(k,l)-tzero
+        end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Adjust variables to surface level
+!-----------------------------------------------------------------------
+!
+      call adjustvars(z995, t995, q995, u995, v995,                     &
+                      zi, psurf, tsurf, t2, q2,                         &
+                      u10, v10, taux, tauy)
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to stdout    
+!-----------------------------------------------------------------------
+!
+      if (localPet == 0 .and. cpldbglevel > 3) then
+        call print_matrix_r8(z995, 1, 1, localPet, 6, "Z995")
+        call print_matrix_r8(t995, 1, 1, localPet, 6, "T995")
+        call print_matrix_r8(q995, 1, 1, localPet, 6, "Q995")
+        call print_matrix_r8(u995, 1, 1, localPet, 6, "U995")
+        call print_matrix_r8(v995, 1, 1, localPet, 6, "V995")
+!
+        call print_matrix_r8(t2, 1, 1, localPet, 6, "T2")
+        call print_matrix_r8(q2, 1, 1, localPet, 6, "Q2")
+        call print_matrix_r8(u10, 1, 1, localPet, 6, "U10")
+        call print_matrix_r8(v10, 1, 1, localPet, 6, "V10")
+        call print_matrix_r8(taux, 1, 1, localPet, 6, "TAUX")
+        call print_matrix_r8(tauy, 1, 1, localPet, 6, "TAUY")
+      end if
+      end if
+!
+!-----------------------------------------------------------------------
 !     Index 
 !-----------------------------------------------------------------------
 !
-      imin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
-      imax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1)
-      jmin = lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
-      jmax = ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
-!
       if (trim(adjustl(name)) == "Pair") then ! mb
-        models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
+        models(Iatmos)%dataExport(i,n)%ptr = psurf
       else if (trim(adjustl(name)) == "Tair") then ! Kelvin 
-        models(Iatmos)%dataExport(i,n)%ptr = tground1(:,1:jxp)
+        models(Iatmos)%dataExport(i,n)%ptr = t2
       else if (trim(adjustl(name)) == "Qair") then ! kg/kg
-        do ii = imin+1, imax-1
-          do jj = jmin, jmax
-            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
-                                                   q2m_o(jj-jmin+1,ii-1)
-          end do
-        end do
-        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
-        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
+        models(Iatmos)%dataExport(i,n)%ptr = q2 
       else if (trim(adjustl(name)) == "swrad") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = transpose(fsw)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = fsw2d
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = fsw2d(:,iym1)
       else if (trim(adjustl(name)) == "lwrad_down") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = transpose(flw)
-        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-                              models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = flwd2d
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flwd2d(:,iym1)
+      else if (trim(adjustl(name)) == "lwrad") then ! W/m2
+        models(Iatmos)%dataExport(i,n)%ptr = flw2d
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flw2d(:,iym1)
       else if (trim(adjustl(name)) == "rain") then ! mm/day
-        !models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
-        !models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
-        !                      models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
-        do ii = imin+1, imax-1
-          do jj = jmin, jmax
-            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
-                                                  totpr(jj-jmin+1,ii-1)
-          end do
-        end do
-        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
-        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = totpr 
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = totpr(:,iym1)
       else if (trim(adjustl(name)) == "Uwind") then ! m/s
-        do ii = imin+1, imax-1
-          do jj = jmin, jmax
-            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
-                                                  u10m_o(jj-jmin+1,ii-1)
-          end do
-        end do
-        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
-        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
+        models(Iatmos)%dataExport(i,n)%ptr = u10
       else if (trim(adjustl(name)) == "Vwind") then ! m/s
-        do ii = imin+1, imax-1
-          do jj = jmin, jmax
-            models(Iatmos)%dataExport(i,n)%ptr(ii,jj) =                 &
-                                                  v10m_o(jj-jmin+1,ii-1)
-          end do
-        end do
-
-        models(Iatmos)%dataExport(i,n)%ptr(imin,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imin+1,:)
-        models(Iatmos)%dataExport(i,n)%ptr(imax,:) =                    &
-                            models(Iatmos)%dataExport(i,n)%ptr(imax-1,:)
-
-        if (localPet == 0) then
-          models(Iatmos)%dataExport(i,n)%ptr(:,1) =                     &
-                                 models(Iatmos)%dataExport(i,n)%ptr(:,2)
-        end if
-        if (localPet == nproc-1) then
-          models(Iatmos)%dataExport(i,n)%ptr(:,jmax) =                  &
-                            models(Iatmos)%dataExport(i,n)%ptr(:,jmax-1)
-        end if
+        models(Iatmos)%dataExport(i,n)%ptr = v10
       end if
 !
 !-----------------------------------------------------------------------

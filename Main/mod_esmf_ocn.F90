@@ -351,7 +351,7 @@
 !     Formats 
 !-----------------------------------------------------------------------
 !
- 30   format(' PET (', I2, ') - OCN Model ', A, ' = ', A)
+ 30   format(' PET (', I3, ') - OCN Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -961,7 +961,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 40   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+ 40   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1047,14 +1047,18 @@
       JstrV = BOUNDS(ng)%Jstr(localPet)
       JendV = BOUNDS(ng)%JendR(localPet)
 !
-      do tile=0,NtileI(ng)*NtileJ(ng)-1
-        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
-        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
-        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
-        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
-      end do
-      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
-      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
+!      do tile=0,NtileI(ng)*NtileJ(ng)-1
+!        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
+!        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
+!        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
+!        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
+!      end do
+!      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
+!      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
+      TLW(1)=BOUNDS(ng)%Istr(localPet)-BOUNDS(ng)%LBi(localPet)
+      TLW(2)=BOUNDS(ng)%Jstr(localPet)-BOUNDS(ng)%LBj(localPet)
+      TUW(1)=BOUNDS(ng)%UBi(localPet)-BOUNDS(ng)%Iend(localPet)
+      TUW(2)=BOUNDS(ng)%UBj(localPet)-BOUNDS(ng)%Jend(localPet)       
 !
 !-----------------------------------------------------------------------
 !     Create export state arrays.
@@ -1178,10 +1182,16 @@
 !     Store routehandle to exchage halo region data 
 !-----------------------------------------------------------------------
 !
+      if (i .eq. 1) then
+      call ESMF_FieldPrint(models(Iocean)%dataImport(i,ng)%field, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+!
       call ESMF_FieldHaloStore(models(Iocean)%dataImport(i,ng)%field,   &
                    routehandle=models(Iocean)%dataImport(i,ng)%rhandle, &
                    rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      print*, "name -> ", trim(models(Iocean)%dataImport(i,ng)%name)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -1226,7 +1236,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 60   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+ 60   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1365,8 +1375,8 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !     
- 60   format(' PET (', I2, ') - ', 2I4, ' - ', 2F15.4)
- 70   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+ 60   format(' PET (', I3, ') - ', 2I4, ' - ', 2F15.4)
+ 70   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success
@@ -1401,6 +1411,7 @@
       character (len=40) :: name
       character (len=100) :: outfile
       real*8 :: scale_factor, add_offset
+      logical :: checkflag = .false.
 !
       real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
@@ -1482,8 +1493,11 @@
 !     Call halo region update 
 !-----------------------------------------------------------------------
 !
+      if (cpl_dbglevel > 1) checkflag = .true. 
+!
       call ESMF_FieldHalo(models(Iocean)%dataImport(i,ng)%field,        &
              routehandle=models(Iocean)%dataImport(i,ng)%rhandle,       &
+             checkflag=checkflag,                                       &
              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -1614,7 +1628,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 80   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+ 80   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
