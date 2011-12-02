@@ -141,15 +141,15 @@ module mod_atm_interface
       integer , intent(in) :: ke , nsp
       call getmem3d(xb%b0,1,jxp,1,iy,1,ke,'v3dbound:b0')
       call getmem3d(xb%b1,1,jxp,1,iy,1,ke,'v3dbound:b1')
-      call getmem3d(xb%nb,1,nsp,1,ke,0,jxp+1,'v3dbound:nb')
-      call getmem3d(xb%sb,1,nsp,1,ke,0,jxp+1,'v3dbound:sb')
-      call getmem3d(xb%nbt,1,nsp,1,ke,0,jxp+1,'v3dbound:nbt')
-      call getmem3d(xb%sbt,1,nsp,1,ke,0,jxp+1,'v3dbound:sbt')
+      call getmem3d(xb%nb,0,jxp+1,1,nsp,1,ke,'v3dbound:nb')
+      call getmem3d(xb%sb,0,jxp+1,1,nsp,1,ke,'v3dbound:sb')
+      call getmem3d(xb%nbt,0,jxp+1,1,nsp,1,ke,'v3dbound:nbt')
+      call getmem3d(xb%sbt,0,jxp+1,1,nsp,1,ke,'v3dbound:sbt')
       if ( .not. lband ) then
-        call getmem3d(xb%eb,1,iy,1,ke,0,jxp+1,'v3dbound:eb')
-        call getmem3d(xb%wb,1,iy,1,ke,0,jxp+1,'v3dbound:wb')
-        call getmem3d(xb%ebt,1,iy,1,ke,0,jxp+1,'v3dbound:ebt')
-        call getmem3d(xb%wbt,1,iy,1,ke,0,jxp+1,'v3dbound:wbt')
+        call getmem3d(xb%eb,0,jxp+1,1,iy,1,ke,'v3dbound:eb')
+        call getmem3d(xb%wb,0,jxp+1,1,iy,1,ke,'v3dbound:wb')
+        call getmem3d(xb%ebt,0,jxp+1,1,iy,1,ke,'v3dbound:ebt')
+        call getmem3d(xb%wbt,0,jxp+1,1,iy,1,ke,'v3dbound:wbt')
       end if
     end subroutine allocate_v3dbound
 !
@@ -159,15 +159,15 @@ module mod_atm_interface
       integer , intent(in) :: nsp
       call getmem2d(xb%b0,0,jxp+1,1,iy,'v2dbound:b0')
       call getmem2d(xb%b1,0,jxp+1,1,iy,'v2dbound:b1')
-      call getmem2d(xb%nb,1,nsp,0,jxp+1,'v2dbound:nb')
-      call getmem2d(xb%sb,1,nsp,0,jxp+1,'v2dbound:sb')
-      call getmem2d(xb%nbt,1,nsp,0,jxp+1,'v2dbound:nbt')
-      call getmem2d(xb%sbt,1,nsp,0,jxp+1,'v2dbound:sbt')
+      call getmem2d(xb%nb,0,jxp+1,1,nsp,'v2dbound:nb')
+      call getmem2d(xb%sb,0,jxp+1,1,nsp,'v2dbound:sb')
+      call getmem2d(xb%nbt,0,jxp+1,1,nsp,'v2dbound:nbt')
+      call getmem2d(xb%sbt,0,jxp+1,1,nsp,'v2dbound:sbt')
       if ( .not. lband ) then
-        call getmem2d(xb%eb,1,iy,0,jxp+1,'v2dbound:eb')
-        call getmem2d(xb%wb,1,iy,0,jxp+1,'v2dbound:wb')
-        call getmem2d(xb%ebt,1,iy,0,jxp+1,'v2dbound:ebt')
-        call getmem2d(xb%wbt,1,iy,0,jxp+1,'v2dbound:wbt')
+        call getmem2d(xb%eb,0,jxp+1,1,iy,'v2dbound:eb')
+        call getmem2d(xb%wb,0,jxp+1,1,iy,'v2dbound:wb')
+        call getmem2d(xb%ebt,0,jxp+1,1,iy,'v2dbound:ebt')
+        call getmem2d(xb%wbt,0,jxp+1,1,iy,'v2dbound:wbt')
       end if
     end subroutine allocate_v2dbound
 !

@@ -908,29 +908,29 @@ module mod_tendency
 #ifndef BAND
     if ( nspgx >= jxp ) then
       do i = 1 , iy
-        bdyewsnd(i,1) = xpsb%eb(i,1)
-        bdyewsnd(i,2) = xpsb%wb(i,jxp)
-        bdyewsnd(i,3) = xpsb%ebt(i,1)
-        bdyewsnd(i,4) = xpsb%wbt(i,jxp)
+        bdyewsnd(i,1) = xpsb%eb(1,i)
+        bdyewsnd(i,2) = xpsb%wb(jxp,i)
+        bdyewsnd(i,3) = xpsb%ebt(1,i)
+        bdyewsnd(i,4) = xpsb%wbt(jxp,i)
       end do
       do k = 1 , kz
         do i = 1 , iy
-          bdyewsnd(i,4+k) = xtb%eb(i,k,1)
-          bdyewsnd(i,4+kz+k) = xtb%wb(i,k,jxp)
-          bdyewsnd(i,4+kz*2+k) = xtb%ebt(i,k,1)
-          bdyewsnd(i,4+kz*3+k) = xtb%wbt(i,k,jxp)
-          bdyewsnd(i,4+kz*4+k) = xqb%eb(i,k,1)
-          bdyewsnd(i,4+kz*5+k) = xqb%wb(i,k,jxp)
-          bdyewsnd(i,4+kz*6+k) = xqb%ebt(i,k,1)
-          bdyewsnd(i,4+kz*7+k) = xqb%wbt(i,k,jxp)
-          bdyewsnd(i,4+kz*8+k) = xub%eb(i,k,1)
-          bdyewsnd(i,4+kz*9+k) = xub%wb(i,k,jxp)
-          bdyewsnd(i,4+kz*10+k) = xub%ebt(i,k,1)
-          bdyewsnd(i,4+kz*11+k) = xub%wbt(i,k,jxp)
-          bdyewsnd(i,4+kz*12+k) = xvb%eb(i,k,1)
-          bdyewsnd(i,4+kz*13+k) = xvb%wb(i,k,jxp)
-          bdyewsnd(i,4+kz*14+k) = xvb%ebt(i,k,1)
-          bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,jxp)
+          bdyewsnd(i,4+k) = xtb%eb(1,i,k)
+          bdyewsnd(i,4+kz+k) = xtb%wb(jxp,i,k)
+          bdyewsnd(i,4+kz*2+k) = xtb%ebt(1,i,k)
+          bdyewsnd(i,4+kz*3+k) = xtb%wbt(jxp,i,k)
+          bdyewsnd(i,4+kz*4+k) = xqb%eb(1,i,k)
+          bdyewsnd(i,4+kz*5+k) = xqb%wb(jxp,i,k)
+          bdyewsnd(i,4+kz*6+k) = xqb%ebt(1,i,k)
+          bdyewsnd(i,4+kz*7+k) = xqb%wbt(jxp,i,k)
+          bdyewsnd(i,4+kz*8+k) = xub%eb(1,i,k)
+          bdyewsnd(i,4+kz*9+k) = xub%wb(jxp,i,k)
+          bdyewsnd(i,4+kz*10+k) = xub%ebt(1,i,k)
+          bdyewsnd(i,4+kz*11+k) = xub%wbt(jxp,i,k)
+          bdyewsnd(i,4+kz*12+k) = xvb%eb(1,i,k)
+          bdyewsnd(i,4+kz*13+k) = xvb%wb(jxp,i,k)
+          bdyewsnd(i,4+kz*14+k) = xvb%ebt(1,i,k)
+          bdyewsnd(i,4+kz*15+k) = xvb%wbt(jxp,i,k)
         end do
       end do
       if ( ichem == 1 ) then           
@@ -954,40 +954,40 @@ module mod_tendency
                         mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         if ( myid == nproc-1 ) then
-          xpsb%eb(i,jendl) = bdyewrcv(i,1)
-          xpsb%ebt(i,jendl) = bdyewrcv(i,3)
+          xpsb%eb(jendl,i) = bdyewrcv(i,1)
+          xpsb%ebt(jendl,i) = bdyewrcv(i,3)
         else
-          xpsb%eb(i,jxp+1) = bdyewrcv(i,1)
-          xpsb%ebt(i,jxp+1) = bdyewrcv(i,3)
+          xpsb%eb(jxp+1,i) = bdyewrcv(i,1)
+          xpsb%ebt(jxp+1,i) = bdyewrcv(i,3)
         end if
-        xpsb%wb(i,0) = bdyewrcv(i,2)
-        xpsb%wbt(i,0) = bdyewrcv(i,4)
+        xpsb%wb(0,i) = bdyewrcv(i,2)
+        xpsb%wbt(0,i) = bdyewrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , iy
           if ( myid == nproc-1 ) then
-            xtb%eb(i,k,jendl) = bdyewrcv(i,4+k)
-            xtb%ebt(i,k,jendl) = bdyewrcv(i,4+kz*2+k)
-            xqb%eb(i,k,jendl) = bdyewrcv(i,4+kz*4+k)
-            xqb%ebt(i,k,jendl) = bdyewrcv(i,4+kz*6+k)
+            xtb%eb(jendl,i,k) = bdyewrcv(i,4+k)
+            xtb%ebt(jendl,i,k) = bdyewrcv(i,4+kz*2+k)
+            xqb%eb(jendl,i,k) = bdyewrcv(i,4+kz*4+k)
+            xqb%ebt(jendl,i,k) = bdyewrcv(i,4+kz*6+k)
           else
-            xtb%eb(i,k,jxp+1) = bdyewrcv(i,4+k)
-            xtb%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*2+k)
-            xqb%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*4+k)
-            xqb%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*6+k)
+            xtb%eb(jxp+1,i,k) = bdyewrcv(i,4+k)
+            xtb%ebt(jxp+1,i,k) = bdyewrcv(i,4+kz*2+k)
+            xqb%eb(jxp+1,i,k) = bdyewrcv(i,4+kz*4+k)
+            xqb%ebt(jxp+1,i,k) = bdyewrcv(i,4+kz*6+k)
           end if
-          xub%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*8+k)
-          xub%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*10+k)
-          xvb%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*12+k)
-          xvb%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*14+k)
-          xtb%wb(i,k,0) = bdyewrcv(i,4+kz+k)
-          xtb%wbt(i,k,0) = bdyewrcv(i,4+kz*3+k)
-          xqb%wb(i,k,0) = bdyewrcv(i,4+kz*5+k)
-          xqb%wbt(i,k,0) = bdyewrcv(i,4+kz*7+k)
-          xub%wb(i,k,0) = bdyewrcv(i,4+kz*9+k)
-          xub%wbt(i,k,0) = bdyewrcv(i,4+kz*11+k)
-          xvb%wb(i,k,0) = bdyewrcv(i,4+kz*13+k)
-          xvb%wbt(i,k,0) = bdyewrcv(i,4+kz*15+k)
+          xub%eb(jxp+1,i,k) = bdyewrcv(i,4+kz*8+k)
+          xub%ebt(jxp+1,i,k) = bdyewrcv(i,4+kz*10+k)
+          xvb%eb(jxp+1,i,k) = bdyewrcv(i,4+kz*12+k)
+          xvb%ebt(jxp+1,i,k) = bdyewrcv(i,4+kz*14+k)
+          xtb%wb(0,i,k) = bdyewrcv(i,4+kz+k)
+          xtb%wbt(0,i,k) = bdyewrcv(i,4+kz*3+k)
+          xqb%wb(0,i,k) = bdyewrcv(i,4+kz*5+k)
+          xqb%wbt(0,i,k) = bdyewrcv(i,4+kz*7+k)
+          xub%wb(0,i,k) = bdyewrcv(i,4+kz*9+k)
+          xub%wbt(0,i,k) = bdyewrcv(i,4+kz*11+k)
+          xvb%wb(0,i,k) = bdyewrcv(i,4+kz*13+k)
+          xvb%wbt(0,i,k) = bdyewrcv(i,4+kz*15+k)
         end do
       end do
 
@@ -1011,40 +1011,40 @@ module mod_tendency
 
       do i = 1 , iy
         if ( myid == nproc-1 ) then
-          bdyewsnd(i,1) = xpsb%eb(i,jendx)
-          bdyewsnd(i,3) = xpsb%ebt(i,jendx)
+          bdyewsnd(i,1) = xpsb%eb(jendx,i)
+          bdyewsnd(i,3) = xpsb%ebt(jendx,i)
         else
-          bdyewsnd(i,1) = xpsb%eb(i,jxp)
-          bdyewsnd(i,3) = xpsb%ebt(i,jxp)
+          bdyewsnd(i,1) = xpsb%eb(jxp,i)
+          bdyewsnd(i,3) = xpsb%ebt(jxp,i)
         end if
-        bdyewsnd(i,2) = xpsb%wb(i,1)
-        bdyewsnd(i,4) = xpsb%wbt(i,1)
+        bdyewsnd(i,2) = xpsb%wb(1,i)
+        bdyewsnd(i,4) = xpsb%wbt(1,i)
       end do
       do k = 1 , kz
         do i = 1 , iy
           if ( myid == nproc-1 ) then
-            bdyewsnd(i,4+k) = xtb%eb(i,k,jendx)
-            bdyewsnd(i,4+kz*2+k) = xtb%ebt(i,k,jendx)
-            bdyewsnd(i,4+kz*4+k) = xqb%eb(i,k,jendx)
-            bdyewsnd(i,4+kz*6+k) = xqb%ebt(i,k,jendx)
+            bdyewsnd(i,4+k) = xtb%eb(jendx,i,k)
+            bdyewsnd(i,4+kz*2+k) = xtb%ebt(jendx,i,k)
+            bdyewsnd(i,4+kz*4+k) = xqb%eb(jendx,i,k)
+            bdyewsnd(i,4+kz*6+k) = xqb%ebt(jendx,i,k)
           else
-            bdyewsnd(i,4+k) = xtb%eb(i,k,jxp)
-            bdyewsnd(i,4+kz*2+k) = xtb%ebt(i,k,jxp)
-            bdyewsnd(i,4+kz*4+k) = xqb%eb(i,k,jxp)
-            bdyewsnd(i,4+kz*6+k) = xqb%ebt(i,k,jxp)
+            bdyewsnd(i,4+k) = xtb%eb(jxp,i,k)
+            bdyewsnd(i,4+kz*2+k) = xtb%ebt(jxp,i,k)
+            bdyewsnd(i,4+kz*4+k) = xqb%eb(jxp,i,k)
+            bdyewsnd(i,4+kz*6+k) = xqb%ebt(jxp,i,k)
           end if
-          bdyewsnd(i,4+kz*8+k) = xub%eb(i,k,jxp)
-          bdyewsnd(i,4+kz*10+k) = xub%ebt(i,k,jxp)
-          bdyewsnd(i,4+kz*12+k) = xvb%eb(i,k,jxp)
-          bdyewsnd(i,4+kz*14+k) = xvb%ebt(i,k,jxp)
-          bdyewsnd(i,4+kz+k) = xtb%wb(i,k,1)
-          bdyewsnd(i,4+kz*3+k) = xtb%wbt(i,k,1)
-          bdyewsnd(i,4+kz*5+k) = xqb%wb(i,k,1)
-          bdyewsnd(i,4+kz*7+k) = xqb%wbt(i,k,1)
-          bdyewsnd(i,4+kz*9+k) = xub%wb(i,k,1)
-          bdyewsnd(i,4+kz*11+k) = xub%wbt(i,k,1)
-          bdyewsnd(i,4+kz*13+k) = xvb%wb(i,k,1)
-          bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,1)
+          bdyewsnd(i,4+kz*8+k) = xub%eb(jxp,i,k)
+          bdyewsnd(i,4+kz*10+k) = xub%ebt(jxp,i,k)
+          bdyewsnd(i,4+kz*12+k) = xvb%eb(jxp,i,k)
+          bdyewsnd(i,4+kz*14+k) = xvb%ebt(jxp,i,k)
+          bdyewsnd(i,4+kz+k) = xtb%wb(1,i,k)
+          bdyewsnd(i,4+kz*3+k) = xtb%wbt(1,i,k)
+          bdyewsnd(i,4+kz*5+k) = xqb%wb(1,i,k)
+          bdyewsnd(i,4+kz*7+k) = xqb%wbt(1,i,k)
+          bdyewsnd(i,4+kz*9+k) = xub%wb(1,i,k)
+          bdyewsnd(i,4+kz*11+k) = xub%wbt(1,i,k)
+          bdyewsnd(i,4+kz*13+k) = xvb%wb(1,i,k)
+          bdyewsnd(i,4+kz*15+k) = xvb%wbt(1,i,k)
         end do
       end do
       if ( ichem == 1 ) then
@@ -1072,29 +1072,29 @@ module mod_tendency
                         bdyewrcv,numrec,mpi_real8,ieast,2, &
                         mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
-        xpsb%eb(i,0) = bdyewrcv(i,1)
-        xpsb%ebt(i,0) = bdyewrcv(i,3)
-        xpsb%wb(i,jxp+1) = bdyewrcv(i,2)
-        xpsb%wbt(i,jxp+1) = bdyewrcv(i,4)
+        xpsb%eb(0,i) = bdyewrcv(i,1)
+        xpsb%ebt(0,i) = bdyewrcv(i,3)
+        xpsb%wb(jxp+1,i) = bdyewrcv(i,2)
+        xpsb%wbt(jxp+1,i) = bdyewrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , iy
-          xtb%eb(i,k,0) = bdyewrcv(i,4+k)
-          xtb%wb(i,k,jxp+1) = bdyewrcv(i,4+kz+k)
-          xtb%ebt(i,k,0) = bdyewrcv(i,4+kz*2+k)
-          xtb%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*3+k)
-          xqb%eb(i,k,0) = bdyewrcv(i,4+kz*4+k)
-          xqb%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*5+k)
-          xqb%ebt(i,k,0) = bdyewrcv(i,4+kz*6+k)
-          xqb%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*7+k)
-          xub%eb(i,k,0) = bdyewrcv(i,4+kz*8+k)
-          xub%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*9+k)
-          xub%ebt(i,k,0) = bdyewrcv(i,4+kz*10+k)
-          xub%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*11+k)
-          xvb%eb(i,k,0) = bdyewrcv(i,4+kz*12+k)
-          xvb%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*13+k)
-          xvb%ebt(i,k,0) = bdyewrcv(i,4+kz*14+k)
-          xvb%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*15+k)
+          xtb%eb(0,i,k) = bdyewrcv(i,4+k)
+          xtb%wb(jxp+1,i,k) = bdyewrcv(i,4+kz+k)
+          xtb%ebt(0,i,k) = bdyewrcv(i,4+kz*2+k)
+          xtb%wbt(jxp+1,i,k) = bdyewrcv(i,4+kz*3+k)
+          xqb%eb(0,i,k) = bdyewrcv(i,4+kz*4+k)
+          xqb%wb(jxp+1,i,k) = bdyewrcv(i,4+kz*5+k)
+          xqb%ebt(0,i,k) = bdyewrcv(i,4+kz*6+k)
+          xqb%wbt(jxp+1,i,k) = bdyewrcv(i,4+kz*7+k)
+          xub%eb(0,i,k) = bdyewrcv(i,4+kz*8+k)
+          xub%wb(jxp+1,i,k) = bdyewrcv(i,4+kz*9+k)
+          xub%ebt(0,i,k) = bdyewrcv(i,4+kz*10+k)
+          xub%wbt(jxp+1,i,k) = bdyewrcv(i,4+kz*11+k)
+          xvb%eb(0,i,k) = bdyewrcv(i,4+kz*12+k)
+          xvb%wb(jxp+1,i,k) = bdyewrcv(i,4+kz*13+k)
+          xvb%ebt(0,i,k) = bdyewrcv(i,4+kz*14+k)
+          xvb%wbt(jxp+1,i,k) = bdyewrcv(i,4+kz*15+k)
         end do
       end do
     end if
@@ -1104,29 +1104,29 @@ module mod_tendency
     if ( myid /= nproc-1 ) then
 #endif
       do i = 1 , nspgx
-        bdynssnd(i,1) = xpsb%nb(i,jxp)
-        bdynssnd(i,2) = xpsb%nbt(i,jxp)
-        bdynssnd(i,3) = xpsb%sb(i,jxp)
-        bdynssnd(i,4) = xpsb%sbt(i,jxp)
+        bdynssnd(i,1) = xpsb%nb(jxp,i)
+        bdynssnd(i,2) = xpsb%nbt(jxp,i)
+        bdynssnd(i,3) = xpsb%sb(jxp,i)
+        bdynssnd(i,4) = xpsb%sbt(jxp,i)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
-          bdynssnd(i,4+k) = xtb%nb(i,k,jxp)
-          bdynssnd(i,4+kz+k) = xtb%nbt(i,k,jxp)
-          bdynssnd(i,4+kz*2+k) = xtb%sb(i,k,jxp)
-          bdynssnd(i,4+kz*3+k) = xtb%sbt(i,k,jxp)
-          bdynssnd(i,4+kz*4+k) = xqb%nb(i,k,jxp)
-          bdynssnd(i,4+kz*5+k) = xqb%nbt(i,k,jxp)
-          bdynssnd(i,4+kz*6+k) = xqb%sb(i,k,jxp)
-          bdynssnd(i,4+kz*7+k) = xqb%sbt(i,k,jxp)
-          bdynssnd(i,4+kz*8+k) = xub%nb(i,k,jxp)
-          bdynssnd(i,4+kz*9+k) = xub%nbt(i,k,jxp)
-          bdynssnd(i,4+kz*10+k) = xub%sb(i,k,jxp)
-          bdynssnd(i,4+kz*11+k) = xub%sbt(i,k,jxp)
-          bdynssnd(i,4+kz*12+k) = xvb%nb(i,k,jxp)
-          bdynssnd(i,4+kz*13+k) = xvb%nbt(i,k,jxp)
-          bdynssnd(i,4+kz*14+k) = xvb%sb(i,k,jxp)
-          bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,jxp)
+          bdynssnd(i,4+k) = xtb%nb(jxp,i,k)
+          bdynssnd(i,4+kz+k) = xtb%nbt(jxp,i,k)
+          bdynssnd(i,4+kz*2+k) = xtb%sb(jxp,i,k)
+          bdynssnd(i,4+kz*3+k) = xtb%sbt(jxp,i,k)
+          bdynssnd(i,4+kz*4+k) = xqb%nb(jxp,i,k)
+          bdynssnd(i,4+kz*5+k) = xqb%nbt(jxp,i,k)
+          bdynssnd(i,4+kz*6+k) = xqb%sb(jxp,i,k)
+          bdynssnd(i,4+kz*7+k) = xqb%sbt(jxp,i,k)
+          bdynssnd(i,4+kz*8+k) = xub%nb(jxp,i,k)
+          bdynssnd(i,4+kz*9+k) = xub%nbt(jxp,i,k)
+          bdynssnd(i,4+kz*10+k) = xub%sb(jxp,i,k)
+          bdynssnd(i,4+kz*11+k) = xub%sbt(jxp,i,k)
+          bdynssnd(i,4+kz*12+k) = xvb%nb(jxp,i,k)
+          bdynssnd(i,4+kz*13+k) = xvb%nbt(jxp,i,k)
+          bdynssnd(i,4+kz*14+k) = xvb%sb(jxp,i,k)
+          bdynssnd(i,4+kz*15+k) = xvb%sbt(jxp,i,k)
         end do
       end do
 
@@ -1156,29 +1156,29 @@ module mod_tendency
     if ( myid /= 0 ) then
 #endif
       do i = 1 , nspgx
-        xpsb%nb(i,0) = bdynsrcv(i,1)
-        xpsb%nbt(i,0) = bdynsrcv(i,2)
-        xpsb%sb(i,0) = bdynsrcv(i,3)
-        xpsb%sbt(i,0) = bdynsrcv(i,4)
+        xpsb%nb(0,i) = bdynsrcv(i,1)
+        xpsb%nbt(0,i) = bdynsrcv(i,2)
+        xpsb%sb(0,i) = bdynsrcv(i,3)
+        xpsb%sbt(0,i) = bdynsrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
-          xtb%nb(i,k,0) = bdynsrcv(i,4+k)
-          xtb%nbt(i,k,0) = bdynsrcv(i,4+kz+k)
-          xtb%sb(i,k,0) = bdynsrcv(i,4+kz*2+k)
-          xtb%sbt(i,k,0) = bdynsrcv(i,4+kz*3+k)
-          xqb%nb(i,k,0) = bdynsrcv(i,4+kz*4+k)
-          xqb%nbt(i,k,0) = bdynsrcv(i,4+kz*5+k)
-          xqb%sb(i,k,0) = bdynsrcv(i,4+kz*6+k)
-          xqb%sbt(i,k,0) = bdynsrcv(i,4+kz*7+k)
-          xub%nb(i,k,0) = bdynsrcv(i,4+kz*8+k)
-          xub%nbt(i,k,0) = bdynsrcv(i,4+kz*9+k)
-          xub%sb(i,k,0) = bdynsrcv(i,4+kz*10+k)
-          xub%sbt(i,k,0) = bdynsrcv(i,4+kz*11+k)
-          xvb%nb(i,k,0) = bdynsrcv(i,4+kz*12+k)
-          xvb%nbt(i,k,0) = bdynsrcv(i,4+kz*13+k)
-          xvb%sb(i,k,0) = bdynsrcv(i,4+kz*14+k)
-          xvb%sbt(i,k,0) = bdynsrcv(i,4+kz*15+k)
+          xtb%nb(0,i,k) = bdynsrcv(i,4+k)
+          xtb%nbt(0,i,k) = bdynsrcv(i,4+kz+k)
+          xtb%sb(0,i,k) = bdynsrcv(i,4+kz*2+k)
+          xtb%sbt(0,i,k) = bdynsrcv(i,4+kz*3+k)
+          xqb%nb(0,i,k) = bdynsrcv(i,4+kz*4+k)
+          xqb%nbt(0,i,k) = bdynsrcv(i,4+kz*5+k)
+          xqb%sb(0,i,k) = bdynsrcv(i,4+kz*6+k)
+          xqb%sbt(0,i,k) = bdynsrcv(i,4+kz*7+k)
+          xub%nb(0,i,k) = bdynsrcv(i,4+kz*8+k)
+          xub%nbt(0,i,k) = bdynsrcv(i,4+kz*9+k)
+          xub%sb(0,i,k) = bdynsrcv(i,4+kz*10+k)
+          xub%sbt(0,i,k) = bdynsrcv(i,4+kz*11+k)
+          xvb%nb(0,i,k) = bdynsrcv(i,4+kz*12+k)
+          xvb%nbt(0,i,k) = bdynsrcv(i,4+kz*13+k)
+          xvb%sb(0,i,k) = bdynsrcv(i,4+kz*14+k)
+          xvb%sbt(0,i,k) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
       if ( ichem == 1 ) then
@@ -1198,29 +1198,29 @@ module mod_tendency
     if ( myid /= 0 ) then
 #endif
       do i = 1 , nspgx
-        bdynssnd(i,1) = xpsb%nb(i,1)
-        bdynssnd(i,2) = xpsb%nbt(i,1)
-        bdynssnd(i,3) = xpsb%sb(i,1)
-        bdynssnd(i,4) = xpsb%sbt(i,1)
+        bdynssnd(i,1) = xpsb%nb(1,i)
+        bdynssnd(i,2) = xpsb%nbt(1,i)
+        bdynssnd(i,3) = xpsb%sb(1,i)
+        bdynssnd(i,4) = xpsb%sbt(1,i)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
-          bdynssnd(i,4+k) = xtb%nb(i,k,1)
-          bdynssnd(i,4+kz+k) = xtb%nbt(i,k,1)
-          bdynssnd(i,4+kz*2+k) = xtb%sb(i,k,1)
-          bdynssnd(i,4+kz*3+k) = xtb%sbt(i,k,1)
-          bdynssnd(i,4+kz*4+k) = xqb%nb(i,k,1)
-          bdynssnd(i,4+kz*5+k) = xqb%nbt(i,k,1)
-          bdynssnd(i,4+kz*6+k) = xqb%sb(i,k,1)
-          bdynssnd(i,4+kz*7+k) = xqb%sbt(i,k,1)
-          bdynssnd(i,4+kz*8+k) = xub%nb(i,k,1)
-          bdynssnd(i,4+kz*9+k) = xub%nbt(i,k,1)
-          bdynssnd(i,4+kz*10+k) = xub%sb(i,k,1)
-          bdynssnd(i,4+kz*11+k) = xub%sbt(i,k,1)
-          bdynssnd(i,4+kz*12+k) = xvb%nb(i,k,1)
-          bdynssnd(i,4+kz*13+k) = xvb%nbt(i,k,1)
-          bdynssnd(i,4+kz*14+k) = xvb%sb(i,k,1)
-          bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,1)
+          bdynssnd(i,4+k) = xtb%nb(1,i,k)
+          bdynssnd(i,4+kz+k) = xtb%nbt(1,i,k)
+          bdynssnd(i,4+kz*2+k) = xtb%sb(1,i,k)
+          bdynssnd(i,4+kz*3+k) = xtb%sbt(1,i,k)
+          bdynssnd(i,4+kz*4+k) = xqb%nb(1,i,k)
+          bdynssnd(i,4+kz*5+k) = xqb%nbt(1,i,k)
+          bdynssnd(i,4+kz*6+k) = xqb%sb(1,i,k)
+          bdynssnd(i,4+kz*7+k) = xqb%sbt(1,i,k)
+          bdynssnd(i,4+kz*8+k) = xub%nb(1,i,k)
+          bdynssnd(i,4+kz*9+k) = xub%nbt(1,i,k)
+          bdynssnd(i,4+kz*10+k) = xub%sb(1,i,k)
+          bdynssnd(i,4+kz*11+k) = xub%sbt(1,i,k)
+          bdynssnd(i,4+kz*12+k) = xvb%nb(1,i,k)
+          bdynssnd(i,4+kz*13+k) = xvb%nbt(1,i,k)
+          bdynssnd(i,4+kz*14+k) = xvb%sb(1,i,k)
+          bdynssnd(i,4+kz*15+k) = xvb%sbt(1,i,k)
         end do
       end do
       if ( ichem == 1 ) then           
@@ -1248,29 +1248,29 @@ module mod_tendency
     if ( myid /= nproc-1 ) then
 #endif
       do i = 1 , nspgx
-        xpsb%nb(i,jxp+1) = bdynsrcv(i,1)
-        xpsb%nbt(i,jxp+1) = bdynsrcv(i,2)
-        xpsb%sb(i,jxp+1) = bdynsrcv(i,3)
-        xpsb%sbt(i,jxp+1) = bdynsrcv(i,4)
+        xpsb%nb(jxp+1,i) = bdynsrcv(i,1)
+        xpsb%nbt(jxp+1,i) = bdynsrcv(i,2)
+        xpsb%sb(jxp+1,i) = bdynsrcv(i,3)
+        xpsb%sbt(jxp+1,i) = bdynsrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
-          xtb%nb(i,k,jxp+1) = bdynsrcv(i,4+k)
-          xtb%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz+k)
-          xtb%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*2+k)
-          xtb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*3+k)
-          xqb%nb(i,k,jxp+1) = bdynsrcv(i,4+kz*4+k)
-          xqb%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*5+k)
-          xqb%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*6+k)
-          xqb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*7+k)
-          xub%nb(i,k,jxp+1) = bdynsrcv(i,4+kz*8+k)
-          xub%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*9+k)
-          xub%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*10+k)
-          xub%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*11+k)
-          xvb%nb(i,k,jxp+1) = bdynsrcv(i,4+kz*12+k)
-          xvb%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*13+k)
-          xvb%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*14+k)
-          xvb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*15+k)
+          xtb%nb(jxp+1,i,k) = bdynsrcv(i,4+k)
+          xtb%nbt(jxp+1,i,k) = bdynsrcv(i,4+kz+k)
+          xtb%sb(jxp+1,i,k) = bdynsrcv(i,4+kz*2+k)
+          xtb%sbt(jxp+1,i,k) = bdynsrcv(i,4+kz*3+k)
+          xqb%nb(jxp+1,i,k) = bdynsrcv(i,4+kz*4+k)
+          xqb%nbt(jxp+1,i,k) = bdynsrcv(i,4+kz*5+k)
+          xqb%sb(jxp+1,i,k) = bdynsrcv(i,4+kz*6+k)
+          xqb%sbt(jxp+1,i,k) = bdynsrcv(i,4+kz*7+k)
+          xub%nb(jxp+1,i,k) = bdynsrcv(i,4+kz*8+k)
+          xub%nbt(jxp+1,i,k) = bdynsrcv(i,4+kz*9+k)
+          xub%sb(jxp+1,i,k) = bdynsrcv(i,4+kz*10+k)
+          xub%sbt(jxp+1,i,k) = bdynsrcv(i,4+kz*11+k)
+          xvb%nb(jxp+1,i,k) = bdynsrcv(i,4+kz*12+k)
+          xvb%nbt(jxp+1,i,k) = bdynsrcv(i,4+kz*13+k)
+          xvb%sb(jxp+1,i,k) = bdynsrcv(i,4+kz*14+k)
+          xvb%sbt(jxp+1,i,k) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
       if ( ichem == 1 ) then
