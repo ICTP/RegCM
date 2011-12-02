@@ -1159,14 +1159,14 @@
       else if (trim(adjustl(name)) == "Qair") then ! kg/kg
         models(Iatmos)%dataExport(i,n)%ptr = q2 
       else if (trim(adjustl(name)) == "swrad") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = fsw2d
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = fsw2d(:,iym1)
+        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = fsw
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = fsw(:,iym1)
       else if (trim(adjustl(name)) == "lwrad_down") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = flwd2d
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flwd2d(:,iym1)
+        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = flwd
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flwd(:,iym1)
       else if (trim(adjustl(name)) == "lwrad") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr = flw2d
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flw2d(:,iym1)
+        models(Iatmos)%dataExport(i,n)%ptr = flw
+        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flw(:,iym1)
       else if (trim(adjustl(name)) == "rain") then ! mm/day
         models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = totpr 
         models(Iatmos)%dataExport(i,n)%ptr(:,iy) = totpr(:,iym1)
