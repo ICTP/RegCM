@@ -495,15 +495,17 @@ module mod_rrtmg_driver
     !
     do k = 1 , kzp1
       do j = jstart , jend
+        jj = jstart+j-1
         kj = kzp1 - k  +1   
-        plev(j,kj) = (sfps(j,i)*flev(k)+ptp)*d_10
+        plev(jj,kj) = (sfps(j,i)*flev(k)+ptp)*d_10
       end do
     end do
     !
     ! ground temperature
     !
     do j = jstart , jend
-      tsfc(j) = tground(j,i)
+      do j = jstart , jend
+      tsfc(jj) = tground(j,i)
     end do
     !
     ! air temperatures
@@ -511,7 +513,8 @@ module mod_rrtmg_driver
     do k = 1 , kz
       kj = kzp1 - k 
       do j = jstart , jend
-        tlay(j,kj) = tatms(j,i,k)
+        jj = jstart+j-1
+        tlay(jj,kj) = tatms(j,i,k)
       end do
     end do
     !
@@ -521,7 +524,7 @@ module mod_rrtmg_driver
     c287 = 0.287D+00
     do k = 2 , kz
       kj = kzp1 - k   +1        
-      do j = jstart , jend
+      do j = 1 , njp
         w1 =  (hlev(kj) - flev(kj)) / (hlev(kj) - hlev(kj-1))
         w2 =  (flev(kj) - hlev(kj-1) ) / (hlev(kj) - hlev(kj-1))
         if (k < kz-1) then    
@@ -533,7 +536,7 @@ module mod_rrtmg_driver
         end if 
       end do
     end do
-    do j = jstart , jend
+    do j = 1 , njp
       tlev(j,1) = tsfc(j)
       tlev(j,kzp1) = tlay(j,kz)
     end do
@@ -543,8 +546,9 @@ module mod_rrtmg_driver
     do k = 1 , kz 
       kj = kzp1 - k       
       do j = jstart , jend
-        h2ommr(j,kj) = dmax1(1.0D-7,qvatms(j,i,k))
-        h2ovmr(j,kj) = h2ommr(j,kj) * ep2
+        jj = jstart+j-1
+        h2ommr(jj,kj) = dmax1(1.0D-7,qvatms(j,i,k))
+        h2ovmr(jj,kj) = h2ommr(jj,kj) * ep2
       end do
     end do
     !
@@ -552,16 +556,17 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       do j = jstart , jend
-        o3vmr(j,k) = o3prof(j,i,k) * amo/amd
+        jj = jstart+j-1
+        o3vmr(jj,k) = o3prof(j,i,k) * amo/amd
       end do
     end do
     !
     ! other gas (n2o,ch4)
     !
-    call trcmix(jstart,jend,play,alat,ptrop,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+    call trcmix(1,njp,play,alat,ptrop,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kz
-      do j = jstart , jend
+      do j = 1 , njp
         n2ovmr (j,k) = n2ommr(j,k) * (44.D0/amd)
         ch4vmr (j,k) =  ch4mmr (j,k) * (16.D0/amd)
         co2vmr(j,k)  = cgas(2,iyear)*1.0D-6
@@ -586,9 +591,10 @@ module mod_rrtmg_driver
     do k = 1 , kz
       kj = kzp1 - k
       do j = jstart , jend
+        jj = jstart+j-1
         ccvtem = d_zero   !cqc mod
-        cldf(j,kj) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-        cldf(j,kj) = dmin1(cldf(j,kj),0.9999999D0)
+        cldf(jj,kj) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
+        cldf(jj,kj) = dmin1(cldf(j,kj),0.9999999D0)
         !
         ! convert liquid water content into liquid water path, i.e.
         ! multiply b deltaz
@@ -598,12 +604,12 @@ module mod_rrtmg_driver
         ! deltaz,clwp are on the right grid since plev and tlay are
         ! care pressure is on botom/toa grid
         !
-        deltaz(j,k) = rgas*tlay(j,k)*(plev(j,k) - &
-                      plev(j,k+1))/(egrav*play(j,k))
-        clwp(j,k) = clwtem * deltaz(j,k)
-        if ( dabs(cldf(j,k)) < lowcld ) then
-          cldf(j,k) = d_zero
-          clwp(j,k) = d_zero
+        deltaz(jj,k) = rgas*tlay(jj,k)*(plev(jj,k) - &
+                       plev(jj,k+1))/(egrav*play(jj,k))
+        clwp(jj,k) = clwtem * deltaz(jj,k)
+        if ( dabs(cldf(jj,k)) < lowcld ) then
+          cldf(jj,k) = d_zero
+          clwp(jj,k) = d_zero
         end if
       end do
     end do
@@ -612,7 +618,7 @@ module mod_rrtmg_driver
     !
     ncldm1 = ncld - 1
     do k = 1 ,ncldm1
-      do j = jstart , jend
+      do j = 1 , njp
         cldf(j,k) = d_zero
         clwp(j,k) = d_zero
       end do
@@ -621,7 +627,7 @@ module mod_rrtmg_driver
     ! maximum cloud fraction
     !----------------------------------------------------------------------
     do k = 1 , kz
-      do j = jstart , jend
+      do j = 1 , njp
         if ( cldf(j,k) > 0.999D0 ) cldf(j,k) = 0.999D0
       end do
     end do
@@ -636,6 +642,7 @@ module mod_rrtmg_driver
       jj0 = 0
       jj1 = 0
       jj2 = 0
+      jj = jstart+j-1
       do n = 1 , nnsg
         if ( lndocnicemsk(n,j,i) == 2 ) then
           jj2 = jj2 + 1
@@ -645,9 +652,9 @@ module mod_rrtmg_driver
           jj0 = jj0 + 1
         end if
       end do
-      if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(j) = 0
-      if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(j) = 1
-      if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(j) = 2
+      if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(jj) = 0
+      if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(jj) = 1
+      if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(jj) = 2
     end do
     !
     call cldefr_rrtm(jstart,jend,i,tlay,rel,rei,fice,play)
@@ -657,9 +664,9 @@ module mod_rrtmg_driver
     ! ( waiting for prognostic ice !) 
     !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = 1 , njp
         ciwp(j,k) =  clwp(j,k) *  fice(j,k)
-        clwp(j,k) =  clwp(j,k) * (1- fice(j,k))
+        clwp(j,k) =  clwp(j,k) * (d_one - fice(j,k))
         ! now clwp is liquide only !
       end do
     end do
@@ -697,7 +704,7 @@ module mod_rrtmg_driver
         fbarii = fbari(indsl(ns))
 !
         do k = 1 , kz
-          do j = jstart , jend
+          do j = 1 , njp
             if ( clwp(j,k) < dlowval .and. ciwp(j,k) < dlowval) cycle 
             ! liquid
             tmp1l = abarli + bbarli/rel(j,k)
@@ -742,7 +749,7 @@ module mod_rrtmg_driver
     intent (in) pmid , t
     intent (out) fice , rei , rel
 !
-    integer :: j , k
+    integer :: j , jj , k
     real(dp) :: pnrml , rliq , weight
 !
 !   reimax - maximum ice effective radius
@@ -759,10 +766,11 @@ module mod_rrtmg_driver
 !
     do k = 1 , kz
       do j = jstart , jend
+        jj = jstart+j-1
         !
         ! Define liquid drop size
         !
-        if ( ioro(j) /= 1 ) then
+        if ( ioro(jj) /= 1 ) then
           !
           ! Effective liquid radius over ocean and sea ice
           !
@@ -772,36 +780,36 @@ module mod_rrtmg_driver
           ! Effective liquid radius over land
           !
           rliq = d_five+d_five* & 
-                  dmin1(d_one,dmax1(d_zero,(minus10-t(j,k))*0.05D0))
+                  dmin1(d_one,dmax1(d_zero,(minus10-t(jj,k))*0.05D0))
         end if
-        rel(j,k) = rliq
+        rel(jj,k) = rliq
         !
         ! Determine rei as function of normalized pressure
         !
-        pnrml = pmid(j,k)/sfps(j,i)
+        pnrml = pmid(jj,k)/sfps(j,i)
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
-        rei(j,k) = reimax - rirnge*weight
+        rei(jj,k) = reimax - rirnge*weight
         !
         ! Define fractional amount of cloud that is ice
         !
         ! if warmer than -10 degrees C then water phase
         !
-        if ( t(j,k) > minus10 ) fice(j,k) = d_zero
+        if ( t(jj,k) > minus10 ) fice(jj,k) = d_zero
         !
         ! if colder than -10 degrees C but warmer than -30 C mixed phase
         !
-        if ( t(j,k) <= minus10 .and. t(j,k) >= minus30 ) then
-          fice(j,k) = (minus10-t(j,k))/20.0D0
+        if ( t(jj,k) <= minus10 .and. t(jj,k) >= minus30 ) then
+          fice(jj,k) = (minus10-t(jj,k))/20.0D0
         end if
         !
         !       if colder than -30 degrees C then ice phase
         !
-        if ( t(j,k) < minus30 ) fice(j,k) = d_one
+        if ( t(jj,k) < minus30 ) fice(jj,k) = d_one
         !
         !       Turn off ice radiative properties by setting fice = 0.0
         !
         !fil    no-ice test
-        ! fice(j,k) = d_zero
+        ! fice(jj,k) = d_zero
         !
       end do
     end do
