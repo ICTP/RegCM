@@ -25,7 +25,7 @@ module mod_rad_common
 
   public
 
-  integer :: irrtm
+  integer :: irrtm, irrtm_cldov,irrtm_sw_opcliq, irrtm_sw_opcice
 
   logical :: lchem ! ichem logical equiv
   real(8) :: ptp ! ptop

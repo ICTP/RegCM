@@ -365,9 +365,9 @@ module mod_rrtmg_driver
       ! coupling with BATS
       !  abveg set to frsa (as in standard version : potential inconsistency
       !  if soil fraction is large)
-      abveg(:,i) = frsa(:) 
+      abveg(jstart:jend,i) = frsa(:) 
       ! solar is normally the visible band only total incident surface flux
-      solar(:,i) = swdvisflx(:,1)
+      solar(jstart:jend,i) = swdvisflx(:,1)
       ! surface SW incident
       sols(:) =  swddiruviflx(:,1)
       solsd(:) =  swddifuviflx(:,1)
@@ -381,6 +381,7 @@ module mod_rrtmg_driver
         kj = kzp1-k
         qrs(:,kj) = swhr(:,k) / secpd
         qrl(:,kj) = lwhr(:,k) / secpd
+
         cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics  
         clwp_int(:,kj) = clwp(:,k)
       end do 
@@ -473,9 +474,9 @@ module mod_rrtmg_driver
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
 
     do j = jstart , jend
-      jj = jstart+j-1
+      jj = j - jstart + 1
       alat(jj) = xlat(j,i)*degrad
-      ptrop(jj) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
+      ptrop(jj) = 250.0D2 - 150.0D2*dcos(alat(jj))**d_two
     end do
 
     ! CONVENTION : RRTMG driver takes layering form botom to TOA. 
@@ -484,7 +485,7 @@ module mod_rrtmg_driver
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
     do j = jstart , jend
-      jj = jstart+j-1
+      jj = j-jstart+1
       psfc(jj) = (sfps(j,i)+ptp)*d_10
       do k = 1 , kz
         kj = kzp1 - k        
@@ -496,7 +497,7 @@ module mod_rrtmg_driver
     !
     do k = 1 , kzp1
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         kj = kzp1 - k  +1   
         plev(jj,kj) = (sfps(j,i)*flev(k)+ptp)*d_10
       end do
@@ -505,7 +506,7 @@ module mod_rrtmg_driver
     ! ground temperature
     !
     do j = jstart , jend
-      jj = jstart+j-1
+      jj = j-jstart+1
       tsfc(jj) = tground(j,i)
     end do
     !
@@ -514,7 +515,7 @@ module mod_rrtmg_driver
     do k = 1 , kz
       kj = kzp1 - k 
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         tlay(jj,kj) = tatms(j,i,k)
       end do
     end do
@@ -547,7 +548,7 @@ module mod_rrtmg_driver
     do k = 1 , kz 
       kj = kzp1 - k       
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         h2ommr(jj,kj) = dmax1(1.0D-7,qvatms(j,i,k))
         h2ovmr(jj,kj) = h2ommr(jj,kj) * ep2
       end do
@@ -557,7 +558,7 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         o3vmr(jj,k) = o3prof(j,i,k) * amo/amd
       end do
     end do
@@ -592,10 +593,10 @@ module mod_rrtmg_driver
     do k = 1 , kz
       kj = kzp1 - k
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         ccvtem = d_zero   !cqc mod
         cldf(jj,kj) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-        cldf(jj,kj) = dmin1(cldf(j,kj),0.9999999D0)
+        cldf(jj,kj) = dmin1(cldf(jj,kj),0.9999999D0)
         !
         ! convert liquid water content into liquid water path, i.e.
         ! multiply b deltaz
@@ -643,7 +644,7 @@ module mod_rrtmg_driver
       jj0 = 0
       jj1 = 0
       jj2 = 0
-      jj = jstart+j-1
+      jj = j-jstart+1
       do n = 1 , nnsg
         if ( lndocnicemsk(n,j,i) == 2 ) then
           jj2 = jj2 + 1
@@ -767,7 +768,7 @@ module mod_rrtmg_driver
 !
     do k = 1 , kz
       do j = jstart , jend
-        jj = jstart+j-1
+        jj = j-jstart+1
         !
         ! Define liquid drop size
         !

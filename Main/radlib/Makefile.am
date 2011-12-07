@@ -82,7 +82,7 @@ mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 \
   mod_rad_tracer.o mod_rad_scenarios.o mod_rad_aerosol.o
 mod_rrtmg_driver.o mod_rrtmg_driver.mod: mod_rrtmg_driver.f90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(RRTMGSW) rrtmg_sw_rad.o rrtmg_lw_rad.o mcica_subcol_gen_sw.o mod_rad_common.o \
+  $(RRTMGSW) rrtmg_sw_rad.o rrtmg_lw_rad.o mcica_subcol_gen_sw.o mcica_subcol_gen_lw.o mod_rad_common.o \
   mod_rad_scenarios.o mod_rad_tracer.o mod_rad_outrad.o 
 rrtmg_sw_cldprmc.o rrtmg_sw_cldprmc.mod : rrtmg_sw_cldprmc.f90 $(RRTMGSW)
 rrtmg_sw_read_nc.o rrtmg_sw_read_nc.mod : rrtmg_sw_read_nc.f90  $(RRTMGSW)
