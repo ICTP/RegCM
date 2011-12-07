@@ -48,7 +48,7 @@ module mod_tendency
   public :: allocate_mod_tend , tend
 
   real(8) , pointer , dimension(:,:) :: divl
-  real(8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td
+  real(8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi
   real(8) , pointer , dimension(:,:) :: bdyewrcv , bdyewsnd
   real(8) , pointer , dimension(:,:) :: bdynsrcv , bdynssnd
   real(8) , pointer , dimension(:,:,:) :: ps4
@@ -73,6 +73,7 @@ module mod_tendency
 
     call getmem2d(divl,1,iy,1,kz,'tendency:divl')
     call getmem3d(ttld,1,iy,1,kz,1,jxp,'tendency:ttld')
+    call getmem3d(phi,1,iy,1,kz,0,jxp,'tendency:phi')
     call getmem3d(xkc,1,iy,1,kz,1,jxp,'tendency:xkc')
     call getmem3d(xkcf,1,iy,1,kzp1,1,jxp,'tendency:xkcf')
     call getmem3d(td,1,iy,1,kz,1,jxp,'tendency:td')
@@ -1312,7 +1313,7 @@ module mod_tendency
     do j = 1 , jendx
       if ( myid == 0 .and. j == 1 ) then
         do i = 1 , iym1
-          psc(j,i) = sps2%ps(j,i) + dt*xpsb%wbt(i,j)
+          psc(j,i) = sps2%ps(j,i) + dt*xpsb%wbt(j,i)
           psd(j,i) = sps1%ps(j,i)
         end do
       else if ( myid == nproc-1 .and. j == jendx ) then

@@ -131,7 +131,7 @@ module mod_atm_interface
   real(8) , public , pointer, dimension(:,:,:) :: dstor
   real(8) , public , pointer, dimension(:,:,:) :: hstor
 !
-  real(8) , public , pointer , dimension(:,:,:) :: phi , qdot , omega
+  real(8) , public , pointer , dimension(:,:,:) :: qdot , omega
 !
   contains 
 !
@@ -327,7 +327,6 @@ module mod_atm_interface
 !
       call getmem2d(hgfact,1,jxp,1,iy,'mod_atm_interface:hgfact')
       call getmem3d(omega,1,iy,1,kz,1,jxp,'mod_atm_interface:omega')
-      call getmem3d(phi,1,iy,1,kz,0,jxp,'mod_atm_interface:phi')
       call getmem3d(qdot,1,iy,1,kzp1,0,jxp+1,'mod_atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
