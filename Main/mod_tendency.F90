@@ -1342,8 +1342,8 @@ module mod_tendency
          psd(j,i) = sps1%ps(j,i)
        end do
 !
-       psc(j,1) = sps2%ps(j,1) + dt*xpsb%sbt(1,j)
-       psc(j,iym1) = sps2%ps(j,iym1) + dt*xpsb%nbt(1,j)
+       psc(j,1) = sps2%ps(j,1) + dt*xpsb%sbt(j,1)
+       psc(j,iym1) = sps2%ps(j,iym1) + dt*xpsb%nbt(j,1)
        psd(j,1) = sps1%ps(j,1)
        psd(j,iym1) = sps1%ps(j,iym1)
 #ifndef BAND
