@@ -83,6 +83,7 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg(jstart,jend)
     implicit none
+    integer , intent(in) :: jstart , jend
     npj = jend-jstart+1
     call getmem1d(solin,1,npj,'rrtmg:solin')
     call getmem1d(frsa,1,npj,'rrtmg:frsa')
@@ -504,7 +505,7 @@ module mod_rrtmg_driver
     ! ground temperature
     !
     do j = jstart , jend
-      do j = jstart , jend
+      jj = jstart+j-1
       tsfc(jj) = tground(j,i)
     end do
     !
@@ -524,7 +525,7 @@ module mod_rrtmg_driver
     c287 = 0.287D+00
     do k = 2 , kz
       kj = kzp1 - k   +1        
-      do j = 1 , njp
+      do j = 1 , npj
         w1 =  (hlev(kj) - flev(kj)) / (hlev(kj) - hlev(kj-1))
         w2 =  (flev(kj) - hlev(kj-1) ) / (hlev(kj) - hlev(kj-1))
         if (k < kz-1) then    
@@ -536,7 +537,7 @@ module mod_rrtmg_driver
         end if 
       end do
     end do
-    do j = 1 , njp
+    do j = 1 , npj
       tlev(j,1) = tsfc(j)
       tlev(j,kzp1) = tlay(j,kz)
     end do
@@ -563,10 +564,10 @@ module mod_rrtmg_driver
     !
     ! other gas (n2o,ch4)
     !
-    call trcmix(1,njp,play,alat,ptrop,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+    call trcmix(1,npj,play,alat,ptrop,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kz
-      do j = 1 , njp
+      do j = 1 , npj
         n2ovmr (j,k) = n2ommr(j,k) * (44.D0/amd)
         ch4vmr (j,k) =  ch4mmr (j,k) * (16.D0/amd)
         co2vmr(j,k)  = cgas(2,iyear)*1.0D-6
@@ -618,7 +619,7 @@ module mod_rrtmg_driver
     !
     ncldm1 = ncld - 1
     do k = 1 ,ncldm1
-      do j = 1 , njp
+      do j = 1 , npj
         cldf(j,k) = d_zero
         clwp(j,k) = d_zero
       end do
@@ -627,7 +628,7 @@ module mod_rrtmg_driver
     ! maximum cloud fraction
     !----------------------------------------------------------------------
     do k = 1 , kz
-      do j = 1 , njp
+      do j = 1 , npj
         if ( cldf(j,k) > 0.999D0 ) cldf(j,k) = 0.999D0
       end do
     end do
@@ -664,7 +665,7 @@ module mod_rrtmg_driver
     ! ( waiting for prognostic ice !) 
     !
     do k = 1 , kz
-      do j = 1 , njp
+      do j = 1 , npj
         ciwp(j,k) =  clwp(j,k) *  fice(j,k)
         clwp(j,k) =  clwp(j,k) * (d_one - fice(j,k))
         ! now clwp is liquide only !
@@ -704,7 +705,7 @@ module mod_rrtmg_driver
         fbarii = fbari(indsl(ns))
 !
         do k = 1 , kz
-          do j = 1 , njp
+          do j = 1 , npj
             if ( clwp(j,k) < dlowval .and. ciwp(j,k) < dlowval) cycle 
             ! liquid
             tmp1l = abarli + bbarli/rel(j,k)
