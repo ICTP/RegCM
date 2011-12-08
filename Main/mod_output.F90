@@ -950,6 +950,8 @@ module mod_output
                         cbmf2d_io,iy*jxp,mpi_real8, &
                         0,mycomm,ierr)
       end if
+
+      if(irrtm == 0) then
       do j = 1 , jendx
         do l = 1 , 4
           do k = 1 , kz
@@ -1022,6 +1024,8 @@ module mod_output
           end do
         end do
       end if
+      end if ! rrtm test
+
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1

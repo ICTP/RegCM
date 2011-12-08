@@ -718,6 +718,8 @@ module mod_init
                        cbmf2d,   iy*jxp,mpi_real8,  &
                        0,mycomm,ierr)
     end if
+
+    if (irrtm == 0) then 
     if ( myid == 0 ) then
 #ifdef BAND
       do j = 1 , jx
@@ -791,6 +793,8 @@ module mod_init
         end do
       end do
     end do
+    end if ! irrtm test
+
     if ( myid == 0 ) then
 #ifdef BAND
       do j = 1 , jx
