@@ -559,7 +559,7 @@ chib0 = d_zero
 chib1 = d_zero
 !!!!!!!!
 
-if (ifrest == .false.) then
+if (.not.ifrest ) then
          do j=1,jendl
          do i=1,iy
          do k=1,kz
