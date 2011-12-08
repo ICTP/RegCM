@@ -70,7 +70,6 @@
 
       hvrini = '$Revision: 1.5 $'
 
-print*, 'FAB LW init' , tblint
 ! Initialize model data
       call lwdatinit(cpdair)
       call lwcmbdat               ! g-point interval reduction data

@@ -729,7 +729,7 @@ module mod_params
   call allocate_mod_rad_o3blk
   call allocate_mod_rad_outrad
   if ( irrtm == 1 ) then
-    call allocate_mod_rad_rrtmg
+    call allocate_mod_rad_rrtmg(jbegin,jendx)
   else
     call allocate_mod_rad_radiation 
     call allocate_mod_rad_colmod3 
@@ -742,6 +742,9 @@ module mod_params
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)
   call allocate_mod_che_dust
+  call allocate_mod_che_bdyco
+
+
 
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
@@ -904,8 +907,8 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(idirect,dtsec,chemfrq,dtrad,calday,dsigma,atms,   &
-                   sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,za,dzq, &
+    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,calday,dsigma,atms,   &
+                   sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
                    twt,ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,  &
                    sdelqk2d,ssw2da,icumtop,icumbot)
  end if

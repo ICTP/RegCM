@@ -137,10 +137,10 @@
 !         method based on bats diagnostic in routine interf.
  
           if ( (ivegcov(i) /= 0) ) then
-            facv = dlog(cza(i,kz,j)/d_10) / &
-                   dlog(cza(i,kz,j)/crough(ivegcov(i)))
-            facb = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zlnd)
-            facs = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zsno)
+            facv = dlog(cza(j,i,kz)/d_10) / &
+                   dlog(cza(j,i,kz)/crough(ivegcov(i)))
+            facb = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zlnd)
+            facs = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zsno)
  
 !           fact = csfracv2d(j,i)*facv 
             fact = cvegfrac(j,i) * facv + (d_one-cvegfrac(j,i)) * facb
@@ -154,7 +154,7 @@
                       zlnd*(d_one-cvegfrac(j,i))
           else
 !           water surface
-            fact = dlog(cza(i,kz,j)/d_10)/dlog(cza(i,kz,j)/zoce)
+            fact = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zoce)
             zeff(i) = zoce
           end if
 !         10 m wind
@@ -207,7 +207,7 @@
 !        aborbed solar radiation (for stb criteria used to calculate
 !        aerodynamic resistance)
  
-         srad(i) = csol2d(i,j)
+         srad(i) = csol2d(j,i)
  
         end do
 !
@@ -299,7 +299,7 @@
 !       Wet Deposition for gasphase species 
 !!$
         if ( igaschem == 1 ) then
-          call sethet(j,cza(:,:,j),cht(j,:),ttb,checum,cremrat, &
+          call sethet(j,cza(j,:,:),cht(j,:),ttb,checum,cremrat, &
                       chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(j,2:iym2))
         end if
       end do

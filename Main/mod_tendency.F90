@@ -77,12 +77,17 @@ module mod_tendency
     call getmem3d(xkc,1,iy,1,kz,1,jxp,'tendency:xkc')
     call getmem3d(xkcf,1,iy,1,kzp1,1,jxp,'tendency:xkcf')
     call getmem3d(td,1,iy,1,kz,1,jxp,'tendency:td')
+  
+    n1 = kz*16+4
+    if (ichem ==1) then 
+      n1 = n1 + ntr*kz*4
+    end if 
     if ( .not. lband ) then
-      call getmem2d(bdyewrcv,1,iy,1,kz*16+4,'tendency:bdyewrcv')
-      call getmem2d(bdyewsnd,1,iy,1,kz*16+4,'tendency:bdyewsnd')
+      call getmem2d(bdyewrcv,1,iy,1,n1,'tendency:bdyewrcv')
+      call getmem2d(bdyewsnd,1,iy,1,n1,'tendency:bdyewsnd')
     end if
-    call getmem2d(bdynsrcv,1,nspgx,1,kz*16+4,'tendency:bdynsrcv')
-    call getmem2d(bdynssnd,1,nspgx,1,kz*16+4,'tendency:bdynssnd')
+    call getmem2d(bdynsrcv,1,nspgx,1,n1,'tendency:bdynsrcv')
+    call getmem2d(bdynssnd,1,nspgx,1,n1,'tendency:bdynssnd')
     call getmem3d(ps4,1,iy,1,4,1,jxp,'tendency:ps4')
     call getmem3d(ps_4,1,iy,1,4,1,jx,'tendency:ps_4')
     n1 = kz*11 + 1
@@ -1598,13 +1603,23 @@ module mod_tendency
         spchiten                      => chiten(:,:,:,itr)
         spchi(1:,1:,lbound(chi,3):)   => chi(:,:,:,itr)
         spchia(1:,1:,lbound(chia,3):) => chia(:,:,:,itr)
-        spchib3d(1:,1:,lbound(chia,3):) => chib3d(:,:,:,itr)
+
+!FAB CARE : chib3d : j,i,k but chia stil i,k,j : needs to be harmonized !!
+!        spchib3d(1:,1:,lbound(chib3d,3):) => chib3d(:,:,:,itr)
+        spchib3d(lbound(chib3d,1):,1:,1:) => chib3d(:,:,:,itr)
+
+
         call hadv(.false.,spchiten,spchi,jbegin,jendx,2)
         call vadv(spchiten,spchia,jbegin,jendx,5)
+
         ! horizontal diffusion: initialize scratch vars to 0.
         ! need to compute tracer tendencies due to diffusion
-        call diffu_x(jbegin,jendx,2,iym2,spchiten,spchib3d,cpsb,xkc,kz)
-      end do ! end tracer loop
+        print*, 'Hello', ntr,jbegin,jendx,size(spchib3d,1), size(spchib3d,2), size(spchib3d,3) 
+        print*, 'shape', shape(spchib3d)
+        call diffu_x(jbegin,jendx,2,iym2,spchiten,spchib3d,sps2%ps,xkc,kz)
+
+       end do ! end tracer loop
+      
       !
       ! Compute chemistry tendencies (other yhan transport)
       !

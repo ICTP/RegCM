@@ -360,7 +360,6 @@
                  forfrac(lay) * (forref(indf+1,ig) - forref(indf,ig))) 
             taun2 = scalen2*(kb_mn2(indm,ig) + & 
                  minorfrac(lay) * (kb_mn2(indm+1,ig) - kb_mn2(indm,ig)))
-           print*, 'FAB', ind0,jp(lay)
             taug(lay,ig) = corradj * (colh2o(lay) * &
                 (fac00(lay) * absb(ind0,ig) + &
                  fac10(lay) * absb(ind0+1,ig) + &

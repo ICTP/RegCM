@@ -85,22 +85,30 @@ module mod_rrtmg_driver
     implicit none
     integer , intent(in) :: jstart , jend
     npj = jend-jstart+1
-    call getmem1d(solin,1,npj,'rrtmg:solin')
-    call getmem1d(frsa,1,npj,'rrtmg:frsa')
-    call getmem1d(sabtp,1,npj,'rrtmg:sabtp')
-    call getmem1d(clrst,1,npj,'rrtmg:clrst')
-    call getmem1d(clrss,1,npj,'rrtmg:clrss')
-    call getmem1d(firtp,1,npj,'rrtmg:firtp')
-    call getmem1d(frla,1,npj,'rrtmg:frla')
-    call getmem1d(clrlt,1,npj,'rrtmg:clrlt')
-    call getmem1d(clrls,1,npj,'rrtmg:clrls')
-    call getmem1d(empty1,1,npj,'rrtmg:empty1')
-    call getmem1d(srfrad,1,npj,'rrtmg:srfrad')
-    call getmem1d(sols,1,npj,'rrtmg:sols')
-    call getmem1d(soll,1,npj,'rrtmg:soll')
-    call getmem1d(solsd,1,npj,'rrtmg:solsd')
-    call getmem1d(solld,1,npj,'rrtmg:solld')
-    call getmem1d(slwd,1,npj,'rrtmg:slwd')
+
+! note 
+! final output variables ( notably passed to radout)  are allocated from jstart to jend
+! interface variable with RRTM routine are defines from 1 to npj since RRTM internal loop start from 1
+! npj utlimately depends on the proc
+!
+    call getmem1d(solin,jstart,jend,'rrtmg:solin')
+    call getmem1d(frsa,jstart,jend,'rrtmg:frsa')
+    call getmem1d(sabtp,jstart,jend,'rrtmg:sabtp')
+    call getmem1d(clrst,jstart,jend,'rrtmg:clrst')
+    call getmem1d(clrss,jstart,jend,'rrtmg:clrss')
+    call getmem1d(firtp,jstart,jend,'rrtmg:firtp')
+    call getmem1d(frla,jstart,jend,'rrtmg:frla')
+    call getmem1d(clrlt,jstart,jend,'rrtmg:clrlt')
+    call getmem1d(clrls,jstart,jend,'rrtmg:clrls')
+    call getmem1d(empty1,jstart,jend,'rrtmg:empty1')
+    call getmem1d(srfrad,jstart,jend,'rrtmg:srfrad')
+    call getmem1d(sols,jstart,jend,'rrtmg:sols')
+    call getmem1d(soll,jstart,jend,'rrtmg:soll')
+    call getmem1d(solsd,jstart,jend,'rrtmg:solsd')
+    call getmem1d(solld,jstart,jend,'rrtmg:solld')
+    call getmem1d(slwd,jstart,jend,'rrtmg:slwd')
+
+
     call getmem1d(tsfc,1,npj,'rrtmg:tsfc')
     call getmem1d(psfc,1,npj,'rrtmg:psfc')
     call getmem1d(asdir,1,npj,'rrtmg:asdir')
@@ -112,11 +120,12 @@ module mod_rrtmg_driver
     call getmem1d(ptrop,1,npj,'rrtmg:ptrop')
     call getmem1d(ioro,1,npj,'rrtmg:ioro')
 
-    call getmem2d(qrs,1,npj,1,kz,'rrtmg:qrs')
-    call getmem2d(qrl,1,npj,1,kz,'rrtmg:qrl')
-    call getmem2d(clwp_int,1,npj,1,kz,'rrtmg:clwp_int')
-    call getmem2d(cld_int,1,npj,1,kz,'rrtmg:cld_int')
-    call getmem2d(empty2,1,npj,1,kz,'rrtmg:empty2')
+    call getmem2d(qrs,jstart,jend,1,kz,'rrtmg:qrs')
+    call getmem2d(qrl,jstart,jend,1,kz,'rrtmg:qrl')
+    call getmem2d(clwp_int,jstart,jend,1,kz,'rrtmg:clwp_int')
+    call getmem2d(cld_int,jstart,jend,1,kz,'rrtmg:cld_int')
+    call getmem2d(empty2,jstart,jend,1,kz,'rrtmg:empty2')
+
     call getmem2d(play,1,npj,1,kz,'rrtmg:play')
     call getmem2d(tlay,1,npj,1,kz,'rrtmg:tlay')
     call getmem2d(h2ovmr,1,npj,1,kz,'rrtmg:h2ovmr')
@@ -351,16 +360,16 @@ module mod_rrtmg_driver
       ! fsds     - Flux Shortwave Downwelling Surface
       !
 
-      solin(:) = swdflx(:,kzp1)
-      frsa(:) =   swdflx(:,1) - swuflx(:,1)
-      sabtp(:) =  swdflx(:,kzp1) -  swuflx(:,kzp1)
-      clrst(:) =   swdflxc(:,kzp1) -  swuflxc(:,kzp1)
-      clrss(:) =   swdflxc(:,1) -  swuflxc(:,1)
+      solin(jstart:jend) = swdflx(:,kzp1)
+      frsa(jstart:jend) =   swdflx(:,1) - swuflx(:,1)
+      sabtp(jstart:jend) =  swdflx(:,kzp1) -  swuflx(:,kzp1)
+      clrst(jstart:jend) =   swdflxc(:,kzp1) -  swuflxc(:,kzp1)
+      clrss(jstart:jend) =   swdflxc(:,1) -  swuflxc(:,1)
 
-      firtp(:) =  -d_one*(lwdflx(:,kzp1) -  lwuflx(:,kzp1))
-      frla(:) =   -d_one*(lwdflx(:,1) - lwuflx(:,1))
-      clrlt(:) =  -d_one* (lwdflxc(:,kzp1) -  lwuflxc(:,kzp1))
-      clrls(:) =   -d_one*(lwdflxc(:,1) -  lwuflxc(:,1))
+      firtp(jstart:jend) =  -d_one*(lwdflx(:,kzp1) -  lwuflx(:,kzp1))
+      frla(jstart:jend) =   -d_one*(lwdflx(:,1) - lwuflx(:,1))
+      clrlt(jstart:jend) =  -d_one* (lwdflxc(:,kzp1) -  lwuflxc(:,kzp1))
+      clrls(jstart:jend) =   -d_one*(lwdflxc(:,1) -  lwuflxc(:,1))
 
       ! coupling with BATS
       !  abveg set to frsa (as in standard version : potential inconsistency
@@ -369,21 +378,21 @@ module mod_rrtmg_driver
       ! solar is normally the visible band only total incident surface flux
       solar(jstart:jend,i) = swdvisflx(:,1)
       ! surface SW incident
-      sols(:) =  swddiruviflx(:,1)
-      solsd(:) =  swddifuviflx(:,1)
-      soll(:) =  swddirpirflx(:,1)
-      solld(:) =  swddifpirflx(:,1)
+      sols(jstart:jend) =  swddiruviflx(:,1)
+      solsd(jstart:jend) =  swddifuviflx(:,1)
+      soll(jstart:jend) =  swddirpirflx(:,1)
+      solld(jstart:jend) =  swddifpirflx(:,1)
       ! LW incident 
-      slwd(:) = lwdflx(:,1)
+      slwd(jstart:jend) = lwdflx(:,1)
 
       ! 3d heating rate back on regcm grid and converted to K.S-1
       do k = 1 , kz
         kj = kzp1-k
-        qrs(:,kj) = swhr(:,k) / secpd
-        qrl(:,kj) = lwhr(:,k) / secpd
+        qrs(jstart:jend,kj) = swhr(:,k) / secpd
+        qrl(jstart:jend,kj) = lwhr(:,k) / secpd
 
-        cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics  
-        clwp_int(:,kj) = clwp(:,k)
+        cld_int(jstart:jend,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics  
+        clwp_int(jstart:jend,kj) = clwp(:,k)
       end do 
 
       ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields

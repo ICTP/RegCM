@@ -66,14 +66,14 @@ module mod_che_common
                                              rxsaq1 , rxsaq2 , rxsg
 
 !atmospheric variable interface for chemistry 
-  real(dp) :: ccalday
+  real(dp) :: ccalday, crdxsq
   real(dp) , pointer , dimension(:,:,:,:) ::chib3d
   real(dp) , pointer , dimension(:,:,:) :: ctb3d,cqvb3d,cubx3d,cvbx3d,crhob3d,cqcb3d,cfcc,cza,cdzq,ccldfra
   real(dp) , pointer , dimension(:,:) ::  cpsb,ctg,clndcat,cht,cssw2da,crembc,cremrat, &
                                           cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt
 
  
-  real(dp) , pointer , dimension(:) :: hlev, cdsigma
+  real(dp) , pointer , dimension(:) :: hlev, cdsigma,canudg
   real(dp) , pointer , dimension(:,:) :: czen
 
  real(dp) :: chptop

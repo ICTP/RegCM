@@ -88,33 +88,36 @@ use mod_memutil
 !!$!     this subroutine reads in the boundary conditions.               c
 !!$!                                                                     c
 !!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!!$  subroutine chem_bdyin
-!!$
-!!$    use mod_che_indices
+  subroutine chem_bdyin (dtbdys)
+
+    use mod_che_indices
+
 !!$#ifndef IBM
 !!$    use mpi
 !!$#endif
-!!$    implicit none
-!!$#ifdef IBM
-!!$    include 'mpif.h'
-!!$#endif
-!!$
-!!$    real(dp) :: dtbdys
-!!$    integer :: i , j , k , nn , nnb , mmrec, itr
-!!$    integer ::  nxeb , nxwb, ierr
-!!$#ifndef BAND
-!!$    integer :: nkk
-!!$#endif
-!!$    real(8) , dimension(iy,jxp) :: psdot , tdum
-!!$    integer :: n
-!!$    character (len=64) :: subroutine_name='chem_bdyin'
-!!$    integer :: idindx=0
-!!$!
-!!$    call time_begin(subroutine_name,idindx)
-!!$!
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+
+    real(dp), intent(in) :: dtbdys
+    integer :: i , j , k , nn , nnb , mmrec, itr
+    integer ::  nxeb , nxwb, ierr
+#ifndef BAND
+    integer :: nkk
+#endif
+    real(8) , dimension(iy,jxp) :: psdot , tdum
+    integer :: n
+    character (len=64) :: subroutine_name='chem_bdyin'
+    integer :: idindx=0
+!
+    call time_begin(subroutine_name,idindx)
+!
 !!$    if ( dabs(xtime).gt.0.0001 ) return
 !!$!
-!!$    dtbdys = ibdyfrq*60.*60.
+ 
+
+! FAB : le bloc de lecture est commente pour l'instant
 !!$
 !!$    if ( myid .eq. 0 .and. igaschem==0)then
 !!$
@@ -329,190 +332,193 @@ use mod_memutil
 !!$
 !!$
 !!$! fab modif ici
-!!$!-----compute boundary conditions for p*chi
-!!$! first define nxeb and nxwb
-!!$!
-!!$
+!-----compute boundary conditions for p*chi
+! first define nxeb and nxwb
+!
 
-!!$#ifdef BAND
-!!$    nxwb=0
-!!$    nxeb=0
-!!$#else
-!!$    if ( nspgx.le.jxp ) then
-!!$      nxwb = nspgx
-!!$    else
-!!$      nkk = nspgx/jxp
-!!$      if ( nspgx.eq.nkk*jxp ) then
-!!$        nxwb = jxp
-!!$      else
-!!$        nxwb = nspgx - nkk*jxp
-!!$      end if
-!!$    end if
-!!$    if ( nxwb+myid*jxp.gt.nspgx ) then
-!!$      nxwb = 0
-!!$    else if ( nxwb+myid*jxp.lt.nspgx ) then
-!!$      nxwb = jxp
-!!$    end if
-!!$!
-!!$    if ( nspgx.le.jxp-1 ) then
-!!$      nxeb = nspgx
-!!$    else
-!!$      nkk = (nspgx-jxp+1)/jxp
-!!$      if ( (nspgx-jxp+1).eq.nkk*jxp ) then
-!!$        nxeb = jxp
-!!$      else
-!!$        nxeb = (nspgx-jxp+1) - nkk*jxp
-!!$      end if
-!!$    end if
-!!$    if ( jxm1-(myid*jxp+jxp-nxeb).gt.nspgx ) then
-!!$      nxeb = 0
-!!$    else if ( jxm1-(myid*jxp+jxp-nxeb).lt.nspgx ) then
-!!$      nxeb = min(jendx,jxp)
-!!$    end if
 !!$
-!!$#endif
-!!$
-!!$!
-!!$#ifndef BAND
-!!$    do nn = 1 , nxwb
-!!$      do k = 1 , kz
-!!$        do i = 1 , iym1
-!!$
-!!$          chiwb(i,k,nn,:) = chib0(i,k,nn,:)
-!!$          chiwbt(i,k,nn,:) = (chib1(i,k,nn,:)-chib0(i,k,nn,:))/dtbdys
-!!$
-!!$        end do
-!!$      end do
-!!$    end do
-!!$    do nn = 1 , nxeb
-!!$      nnb = min(jendx,jxp) - nn + 1
-!!$      do k = 1 , kz
-!!$        do i = 1 , iym1
-!!$          chieb(i,k,nn,:) = chib0(i,k,nnb,:)
-!!$          chiebt(i,k,nn,:) = (chib1(i,k,nnb,:)-chib0(i,k,nnb,:))/dtbdys
-!!$
-!!$        end do
-!!$      end do
-!!$    end do
-!!$#endif
-!!$    do nn = 1 , nspgx
-!!$      nnb = iym1 - nn + 1
-!!$      do k = 1 , kz
-!!$        do j = 1 , jendx
-!!$          chinb(nn,k,j,:) = chib0(nnb,k,j,:)
-!!$          chisb(nn,k,j,:) = chib0(nn,k,j,:)
-!!$          chinbt(nn,k,j,:) = (chib1(nnb,k,j,:)-chib0(nnb,k,j,:))/dtbdys
-!!$          chisbt(nn,k,j,:) = (chib1(nn,k,j,:)-chib0(nn,k,j,:))/dtbdys
-!!$        end do
-!!$      end do
-!!$    end do
-!!$    do k = 1 , kz
-!!$      do j = 1 , jendl
-!!$        do i = 1 , iy
-!!$          chib0(i,k,j,:) = chib1(i,k,j,:)
-!!$        end do
-!!$      end do
-!!$    end do
-!!$  end subroutine chem_bdyin
+#ifdef BAND
+    nxwb=0
+    nxeb=0
+#else
+    if ( nspgx.le.jxp ) then
+      nxwb = nspgx
+    else
+      nkk = nspgx/jxp
+      if ( nspgx.eq.nkk*jxp ) then
+        nxwb = jxp
+      else
+        nxwb = nspgx - nkk*jxp
+      end if
+    end if
+    if ( nxwb+myid*jxp.gt.nspgx ) then
+      nxwb = 0
+    else if ( nxwb+myid*jxp.lt.nspgx ) then
+      nxwb = jxp
+    end if
+!
+    if ( nspgx.le.jxp-1 ) then
+      nxeb = nspgx
+    else
+      nkk = (nspgx-jxp+1)/jxp
+      if ( (nspgx-jxp+1).eq.nkk*jxp ) then
+        nxeb = jxp
+      else
+        nxeb = (nspgx-jxp+1) - nkk*jxp
+      end if
+    end if
+    if ( jxm1-(myid*jxp+jxp-nxeb).gt.nspgx ) then
+      nxeb = 0
+    else if ( jxm1-(myid*jxp+jxp-nxeb).lt.nspgx ) then
+      nxeb = min(jendx,jxp)
+    end if
 
-!!$  subroutine chem_bdyval(xt,iexec)
-!!$    use mod_che_indices
-!!$!
-!!$    implicit none
-!!$!
-!!$    integer :: iexec
-!!$    real(8) :: xt
-!!$    intent (in) iexec , xt
-!!$!
-!!$    real(8) :: chix , chix1 , chix2 , dtb , vavg
-!!$    integer :: itr , j , k
-!!$#ifndef BAND
-!!$    integer :: i
-!!$    real(8) :: uavg
-!!$#endif
-!!$    character (len=50) :: subroutine_name='chem_bdyval'
-!!$    integer :: idindx=0
-!!$!
-!!$    call time_begin(subroutine_name,idindx)
-!!$!
-!!$!*********************************************************************
-!!$!*****fill up the boundary value for xxb variables from xxa variables:
-!!$!     if this subroutine is called for the first time, this part
-!!$!     shall be skipped.
-!!$
-!!$!gaffe je considere defaut mpp
-!!$
-!!$!
-!!$    if ( iexec.ne.1 ) then
-!!$!
-!!$!      if ( ichem.eq.1 ) then
-!!$!-----for p*chi (tracers)
-!!$        do itr = 1 , ntr
-!!$          do k = 1 , kz
-!!$#ifndef BAND
-!!$            do i = 1 , iym1
-!!$              if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
-!!$              if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
-!!$                 & = chia(i,k,jendx,itr)
-!!$            end do
-!!$#endif
-!!$            do j = jbegin , jendm
-!!$              chib(1,k,j,itr) = chia(1,k,j,itr)
-!!$              chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
-!!$            end do
-!!$          end do
-!!$        end do
-!!$!      end if
-!!$!chem2_
-!!$!
-!!$!
-!!$    end if      !end if(iexec.ne.1) test
-!!$!**********************************************************************
-!!$!*****compute the boundary values for xxa variables:
-!!$!
-!!$!-----compute the time interval for boundary tendency:
-!!$!
-!!$    dtb = xt*60.
-!!$    if ( dabs(xt).lt.0.00001 .and. ldatez.gt.idate0 )                 &
-!!$       & dtb = ibdyfrq*60.*60.
-!!$!
-!!$!
-!!$!-----set boundary values for p*t:
-!!$!-----set boundary values for p*qv:
-!!$!
-!!$
-!!$    if (iexec.eq.1 .and. ifrest)  return
-!!$
-!!$
-!!$    if ( iboudy.eq.0 ) then
-!!$!.....fixed boundary conditions:
-!!$    end if
-!!$!
-!!$!.....time-dependent boundary conditions:
-!!$!
-!!$!
-!!$! FAB modif chemistry time dependant boundary conditions
-!!$! default case here
-!!$
-!!$    do k = 1 , kz
-!!$!fabtest remplace chia par chib
-!!$#ifndef BAND
-!!$      do i = 1 , iym1
-!!$        if ( myid.eq.0 ) chia(i,k,1,:) = chiwb(i,k,1,:) + dtb*chiwbt(i,k,1,:)
-!!$        if ( myid.eq.nproc-1 ) chia(i,k,jendx,:) = chieb(i,k,1,:)        &
-!!$           & + dtb*chiebt(i,k,1,:)
-!!$      end do
-!!$#endif
-!!$      do j = jbegin , jendm
-!!$        chia(1,k,j,:) = chisb(1,k,j,:) + dtb*chisbt(1,k,j,:)
-!!$        chia(iym1,k,j,:) = chinb(1,k,j,:) + dtb*chinbt(1,k,j,:)
-!!$      end do
-!!$    end do
-!!$
-!!$! for the
+#endif
+
+!
+#ifndef BAND
+    do nn = 1 , nxwb
+      do k = 1 , kz
+        do i = 1 , iym1
+
+          chiwb(i,k,nn,:) = chib0(i,k,nn,:)
+          chiwbt(i,k,nn,:) = (chib1(i,k,nn,:)-chib0(i,k,nn,:))/dtbdys
+
+        end do
+      end do
+    end do
+    do nn = 1 , nxeb
+      nnb = min(jendx,jxp) - nn + 1
+      do k = 1 , kz
+        do i = 1 , iym1
+          chieb(i,k,nn,:) = chib0(i,k,nnb,:)
+          chiebt(i,k,nn,:) = (chib1(i,k,nnb,:)-chib0(i,k,nnb,:))/dtbdys
+
+        end do
+      end do
+    end do
+#endif
+    do nn = 1 , nspgx
+      nnb = iym1 - nn + 1
+      do k = 1 , kz
+        do j = 1 , jendx
+          chinb(nn,k,j,:) = chib0(nnb,k,j,:)
+          chisb(nn,k,j,:) = chib0(nn,k,j,:)
+          chinbt(nn,k,j,:) = (chib1(nnb,k,j,:)-chib0(nnb,k,j,:))/dtbdys
+          chisbt(nn,k,j,:) = (chib1(nn,k,j,:)-chib0(nn,k,j,:))/dtbdys
+        end do
+      end do
+    end do
+! prepare for next bdy step
+    do k = 1 , kz
+      do j = 1 , jendl
+        do i = 1 , iy
+          chib0(i,k,j,:) = chib1(i,k,j,:)
+        end do
+      end do
+    end do
+  end subroutine chem_bdyin
+
+
+
+  subroutine chem_bdyval(xt,iexec,nbdytime,dtbdys,ktau,ifrest)
+    use mod_che_indices
+!
+    implicit none
+!
+    integer :: iexec
+    integer(8)::nbdytime, ktau
+    real(8) :: xt, dtbdys
+    logical :: ifrest
+    intent (in) iexec , xt, nbdytime,dtbdys,ktau,ifrest
+!
+    real(8) :: chix , chix1 , chix2 , dtb , vavg
+    integer :: itr , j , k
+#ifndef BAND
+    integer :: i
+    real(8) :: uavg
+#endif
+    character (len=50) :: subroutine_name='chem_bdyval'
+    integer :: idindx=0
+!
+!    call time_begin(subroutine_name,idindx)
+!
+!*********************************************************************
+!*****fill up the boundary value for xxb variables from xxa variables:
+!     if this subroutine is called for the first time, this part
+!     shall be skipped.
+!
+    if ( iexec.ne.1 ) then
+!
+!      if ( ichem.eq.1 ) then
+!-----for p*chi (tracers)
+        do itr = 1 , ntr
+          do k = 1 , kz
+#ifndef BAND
+            do i = 1 , iym1
+              if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
+              if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
+                 & = chia(i,k,jendx,itr)
+            end do
+#endif
+            do j = jbegin , jendm
+              chib(1,k,j,itr) = chia(1,k,j,itr)
+              chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
+            end do
+          end do
+        end do
+!      end if
+!chem2_
+!
+!
+    end if      !end if(iexec.ne.1) test
+!**********************************************************************
+!*****compute the boundary values for xxa variables:
+!
+!-----compute the time interval for boundary tendency:
+!
+    dtb = xt
+    if ( nbdytime == 0 .and. ktau > 0 ) then
+      dtb = dtbdys
+    end if
+
+!
+!
+!-----set boundary values for p*t:
+!-----set boundary values for p*qv:
+!
+
+    if (iexec.eq.1 .and. ifrest)  return
+
+
+!    if ( iboudy.eq.0 ) then
+!.....fixed boundary conditions:
+!    end if
+!
+
+
+!.....time-dependent boundary conditions:
+! for chemistry relaxation towrds
+! time dependant boundary conditions is considered
+
+    do k = 1 , kz
+
+#ifndef BAND
+      do i = 1 , iym1
+        if ( myid.eq.0 ) chia(i,k,1,:) = chiwb(i,k,1,:) + dtb*chiwbt(i,k,1,:)
+        if ( myid.eq.nproc-1 ) chia(i,k,jendx,:) = chieb(i,k,1,:)        &
+           & + dtb*chiebt(i,k,1,:)
+      end do
+#endif
+      do j = jbegin , jendm
+        chia(1,k,j,:) = chisb(1,k,j,:) + dtb*chisbt(1,k,j,:)
+        chia(iym1,k,j,:) = chinb(1,k,j,:) + dtb*chinbt(1,k,j,:)
+      end do
+    end do
+
 !!$    if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !!$!
-!!$!-----determine boundary values depends on inflow/outflow:
+!!$!-----determine boundary values depends on inflow/outflow:0
 !!$!overwrite the dfault case : keep it maybe for certainspecific  tracers in the future
 !!$
 !!$!    if ( ichem.eq.1 ) then
@@ -593,9 +599,267 @@ use mod_memutil
 
 !!$    end if      !end if(iboudy.eq.3.or.4) test
 !!$!
+!    call time_end(subroutine_name,idindx)
+
+
+  end subroutine chem_bdyval
 !!$!
-!
-!!$    call time_end(subroutine_name,idindx)
-!!$  end subroutine chem_bdyval
-!
+
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                     c
+  !     these subroutines apply relaxation boundary conditions to the   c
+  !     tendency term - xpten.                                          c
+  !                                                                     c
+  !     ip    : is the number of slices affected by nudging.            c
+  !                                                                     c
+  !     xt    : is the time in minutes for variable "psb".              c
+  !                                                                     c
+  !     fcoef : are the coefficients for the newtonian term.            c
+  !                                                                     c
+  !     gcoef : are the coefficients for the diffusion term.            c
+  !                                                                     c
+  !     xpten : is the tendency calculated from the model.              c
+  !                                                                     c
+  !     peb, pwb, pss, pnb : are the observed boundary values           c
+  !                   on east, west, south, and north boundaries.       c
+  !                                                                     c
+  !     pebt, pwbt, psbt, pnbt : are the large-scale or observed        c
+  !             tendencies at east, west, south, and north boundaries.  c
+  !                                                                     c
+  !     psb    : is the variable at tau-1.                               c
+  !                                                                     c
+  !     ie = iy, je = jx for dot-point variables.                       c
+  !     ie = iym1, je = jxm1 for cross-point variables.                 c
+  !                                                                     c
+  !     j    : is the j'th slice of the tendency to be adjusted.        c
+  !     ibdy : type of boundary condition relaxation, 1=linear        c
+  !              5 = exponential                                        c
+  !                                                                     c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  subroutine nudge_chi(ip,fcoef,gcoef,xt,ften,j,ibdy)
+    !
+    implicit none
+    !
+    real(8) :: fcoef , gcoef , xt
+    integer :: ibdy , ip , j
+    real(8) , dimension(iy,kz,ntr) :: ften
+    intent (in) fcoef , gcoef , ibdy , ip , j , xt
+    intent (inout) ften
+    !
+    real(8) :: dtb , fcx ,gcx
+    real(8), dimension(ntr)::    fls0 , fls1 , fls2 , fls3 , fls4
+    integer :: i , ii , k
+
+#ifndef BAND
+    integer :: ibeg , iend , jj , jsls, jwb , jeb
+#endif
+
+
+    !
+    cHARACTER (len=50) :: subroutine_name='nudge_chi'
+    integer :: idindx=0
+    !
+!    call time_begin(subroutine_name,idindx)
+
+
+#ifdef BAND
+    !----------------------------------------------------------------------
+    !
+    !FAB: care here 
+    dtb = xt
+    !
+    !-----determine which relaxation method to use:linear/expon.
+    !
+    if ( ibdy.eq.1 ) then
+       !
+    print*,'LINEAR NUDGING NOT IMPLEMENTED for CHEM fields !!'
+
+    else if ( ibdy.eq.5 ) then
+
+       !----------use exponential method
+       !------interior j slices:
+       do i = 2 , ip
+          ii = iym1 - i + 1
+          do k = 1 , kz
+             fcx = fcoef*xfune(i,k)
+             gcx = gcoef*xfune(i,k)
+             !........south boundary:
+             fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
+             fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:)) -chib(i,k,j-1,:)
+             fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:)) -chib(i,k,j+1,:)
+             fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:)) -chib(i-1,k,j,:)
+             fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:)) -chib(i+1,k,j,:)
+             ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                        &
+                  & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+             !........north boundary:
+             fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
+             fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:))-chib(ii,k,j-1,:)
+             fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:))-chib(ii,k,j+1,:)
+             fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:))-chib(ii-1,k,j,:)
+             fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:))-chib(ii+1,k,j,:)
+             ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                      &
+                  & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+          end do
+       end do
+
+    else
+    end if
+
+#else ! fin ifdef band
+    !----------------------------------------------------------------------
+    !
+    dtb = xt
+
+    jsls = j + myid*jxp
+    jj = jx - jsls
+    if ( jj.le.ip ) jsls = jj
+    jwb = jsls
+    if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+    if ( jwb.eq.0 ) jwb = jxp
+    if ( myid.eq.nproc-1 ) then
+       jeb = jsls
+    else
+       jeb = jsls + 1
+    end if
+    if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+    if ( jeb.eq.0 ) jeb = jxp
+
+    !
+    !-----determine which relaxation method to use:linear/expon.
+    !
+    if ( ibdy.eq.1 ) then
+       !
+     print*,'CHEM LINEAR NUDGING NOT IMPLEMENTED !!!'
+       !
+    else if ( ibdy.eq.5 ) then
+
+       !----------use exponential method
+
+       if ( jsls.gt.ip ) then
+          !------interior j slices:
+          do i = 2 , ip
+             ii = iym1 - i + 1
+             do k = 1 , kz
+                fcx = fcoef*xfune(i,k)
+                gcx = gcoef*xfune(i,k)
+!!$                !........south boundary:
+                fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
+                fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:)) -chib(i,k,j-1,:)
+                fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:)) -chib(i,k,j+1,:)
+                fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:)) -chib(i-1,k,j,:)
+                fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:)) -chib(i+1,k,j,:)
+                ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                        &
+                     & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+                !........north boundary:
+                fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
+                fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:))-chib(ii,k,j-1,:)
+                fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:))-chib(ii,k,j+1,:)
+                fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:))-chib(ii-1,k,j,:)
+                fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:))-chib(ii+1,k,j,:)
+                ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                      &
+                     & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+
+           end do
+          end do
+          !
+       else if ( jsls.le.ip ) then
+          !------east or west boundary slices:
+          ibeg = 2
+          iend = iym1 - 1
+          if ( jsls.gt.2 ) then
+               do i = 2 , jsls - 1
+                ii = iym1 - i + 1
+                do k = 1 , kz
+                   fcx = fcoef*xfune(i,k)
+                   gcx = gcoef*xfune(i,k)
+                   !.........south boundary:
+                   fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
+                   fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:))-chib(i,k,j-1,:)
+                   fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:))-chib(i,k,j+1,:)
+                   fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:))-chib(i-1,k,j,:)
+                   fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:))-chib(i+1,k,j,:)
+                   ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
+                        & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+                   !.........north boundary:
+                   fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
+                   fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:)) - &
+                        chib(ii,k,j-1,:)
+                   fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:)) - &
+                        chib(ii,k,j+1,:)
+                   fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:)) - &
+                        chib(ii-1,k,j,:)
+                   fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:)) - &
+                        chib(ii+1,k,j,:)
+                   ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                    &
+                        & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+                end do
+             end do
+             ibeg = jsls
+             iend = iym1 - jsls + 1
+          end if
+          !
+          if ( jj.gt.ip ) then
+             !-------west-boundary slice:
+             do k = 1 , kz
+                fcx = fcoef*xfune(jsls,k)
+                gcx = gcoef*xfune(jsls,k)
+                do i = ibeg , iend
+
+                   fls0(:) = (chiwb(i,k,jwb,:)+dtb*chiwbt(i,k,jwb,:)) -chib(i,k,j,:)
+                   fls1(:) = (chiwb(i-1,k,jwb,:)+dtb*chiwbt(i-1,k,jwb,:))             &
+                        & -chib(i-1,k,j,:)
+                   fls2(:) = (chiwb(i+1,k,jwb,:)+dtb*chiwbt(i+1,k,jwb,:))             &
+                        & -chib(i+1,k,j,:)
+                   fls3(:) = (chiwb(i,k,jwb-1,:)+dtb*chiwbt(i,k,jwb-1,:))             &
+                        & -chib(i,k,j-1,:)
+                   fls4(:) = (chiwb(i,k,jwb+1,:)+dtb*chiwbt(i,k,jwb+1,:))             &
+                        & -chib(i,k,j+1,:)
+
+                   ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
+                        & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+                end do
+             end do
+          else if ( jj.le.ip ) then
+             !-------east-boundary slice:
+             do k = 1 , kz
+                fcx = fcoef*xfune(jsls,k)
+                gcx = gcoef*xfune(jsls,k)
+                do i = ibeg , iend
+
+                   fls0(:) = (chieb(i,k,jeb,:)+dtb*chiebt(i,k,jeb,:)) -chib(i,k,j,:)
+                   fls1(:) = (chieb(i-1,k,jeb,:)+dtb*chiebt(i-1,k,jeb,:))             &
+                        & -chib(i-1,k,j,:)
+                   fls2(:) = (chieb(i+1,k,jeb,:)+dtb*chiebt(i+1,k,jeb,:))             &
+                        & -chib(i+1,k,j,:)
+                   fls3(:) = (chieb(i,k,jeb-1,:)+dtb*chiebt(i,k,jeb-1,:))             &
+                        & -chib(i,k,j-1,:)
+                   fls4(:) = (chieb(i,k,jeb+1,:)+dtb*chiebt(i,k,jeb+1,:))             &
+                        & -chib(i,k,j+1,:)
+
+                   ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
+                        & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
+                end do
+             end do
+          else
+          end if
+       else
+       end if
+       !
+    else
+    end if
+#endif
+!    call time_end(subroutine_name,idindx)
+  end subroutine nudge_chi
+  !
+
+      function xfune(mm,kk)
+        implicit none
+        real(8) :: xfune
+        integer , intent(in) :: mm , kk
+        xfune = exp(-dble(mm-2)/canudg(kk))
+        end function xfune
+
+
+
 end module mod_che_bdyco

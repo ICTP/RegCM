@@ -235,30 +235,30 @@ module mod_runparams
     output_variable('ps','','','',.true.),                                           &
     output_variable('cld','cloud_area_fraction_in_atmosphere_layer',                 &
                     'Cloud fractional cover','1',.true.),                            &
-    output_variable('clwp','atmosphere_cloud_liquid_water_content',                  &
+    output_variable('clwp','atmosphere_cloud_liquid_water_path',                  &
                     'Cloud liquid water content','g m-2',.true.),                    &
     output_variable('qrs','tendency_of_air_temperature_due_to_shortwave_heating',    &
                     'Solar heating rate','K s-1',.true.),                            &
     output_variable('qrl','tendency_of_air_temperature_due_to_longwave_heating',     &
                     'Longwave cooling rate','K s-1',.true.),                         &
-    output_variable('frsa','surface_downwelling_shortwave_flux_in_air',              &
+    output_variable('frsa','surface_net_shortwave_flux_in_air',              &
                     'Surface absorbed solar flux','W m-2',.true.),                   &
-    output_variable('frla','downwelling_longwave_flux_in_air',                       &
-                    'Longwave cooling of surface flux','W m-2',.true.),              &
-    output_variable('clrst','downwelling_shortwave_flux_in_air_assuming_clear_sky',  &
+    output_variable('frla','surface_net_longwave_flux_in_air',                       &
+                    'Surface_Longwave_radiative_cooling_flux','W m-2',.true.),              &
+    output_variable('clrst','toa_net_shortwave_flux_in_air_assuming_clear_sky',  &
                     'clearsky total column absorbed solar flux','W m-2',.true.),     &
-    output_variable('clrss','net_downward_shortwave_flux_in_air_assuming_clear_sky', &
+    output_variable('clrss','Surface_net_shortwave_flux_in_air_assuming_clear_sky', &
                     'clearsky surface absorbed solar flux','W m-2',.true.),          &
-    output_variable('clrlt','toa_net_upward_longwave_flux_assuming_clear_sky',       &
-                    'clearsky net upward LW flux at TOA','W m-2',.true.),            &
-    output_variable('clrls','net_upward_longwave_flux_in_air_assuming_clear_sky',    &
-                    'clearsky LW cooling at surface','W m-2',.true.),                &
+    output_variable('clrlt','toa_net_longwave_flux_assuming_clear_sky',       &
+                    'clearsky outgoing LW flux at TOA','W m-2',.true.),            &
+    output_variable('clrls','Surface_net_longwave_flux_in_air_assuming_clear_sky',    &
+                    'surface clearsky LW radiative cooling flux','W m-2',.true.),                &
     output_variable('solin','toa_instantaneous_shortwave_forcing',                   &
                     'Instantaneous incident solar','W m-2',.true.),                  &
-    output_variable('sabtp','atmosphere_net_rate_of_absorption_of_shortwave_energy', &
+    output_variable('sabtp','toa_net_sw_flux', &
                     'Total column absorbed solar flux','W m-2',.true.),              &
-    output_variable('firtp','atmosphere_net_rate_of_absorption_of_longwave_energy',  &
-                    'net upward LW flux at TOA','W m-2',.true.) /
+    output_variable('firtp','toa_net_lw_flux',  &
+                    'outgoing LW flux at TOA','W m-2',.true.) /
 
   data che_variables / &
     output_variable('time','','','',.true.),                                    &
