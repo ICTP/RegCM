@@ -1,0 +1,73 @@
+#!/bin/bash
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# This scripts converts GRIB data from EC-EARTH to netCDF format for preparing
+# ICBC for the RegCM model. All pressure levels .grb files in a given directory
+# are converted to netcdf files divided per year in subdirectories.
+
+for file in *.grb
+do
+  vfile=`basename $file .grb`
+  ncfile=$vfile.nc
+  var=`echo $vfile | cut -d "_" -f 2`
+  date=`echo $vfile | cut -d "_" -f 3`
+  yy=`echo $date | cut -b 1-4`
+  mkdir -p $yy
+  if [ "$var" = "q" ]
+  then
+    cdo -R -f nc2 copy $file $yy/$ncfile
+    ncrename -v var133,q $yy/$ncfile
+    ncatted -a standard_name,q,c,c,'specific_humidity' \
+            -a units,q,c,c,"1" \
+            -a table,q,d,, -a grid_type,q,d,, $yy/$ncfile
+  else
+    cdo sp2gpl $file ${vfile}_gpl.grb
+    cdo -R -f nc2 copy ${vfile}_gpl.grb $yy/$ncfile
+    rm -f ${vfile}_gpl.grb
+    if [ "$var" = "t" ]
+    then
+      gname="var130"
+      sname="air_temperature"
+      units="K"
+    elif [ "$var" = "u" ]
+    then
+      gname="var131"
+      sname="eastward_wind"
+      units="m s-1"
+    elif [ "$var" = "v" ]
+    then
+      gname="var132"
+      sname="northward_wind"
+      units="m s-1"
+    elif [ "$var" = "z" ]
+    then
+      gname="var129"
+      sname="geopotential"
+      units="m2 s-2"
+    else
+      echo "Got an error, unknown var"
+      exit 1
+    fi
+    ncrename -v $gname,$var $yy/$ncfile
+    ncatted -a standard_name,$var,c,c,$sname \
+            -a units,$var,c,c,"""$units""" \
+            -a table,$var,d,, -a grid_type,$var,d,, $yy/$ncfile
+  fi
+done
