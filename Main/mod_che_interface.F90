@@ -39,7 +39,7 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,calday,dsigma,atms,&
+  subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms,&
                        sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,twt,&
                        ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
 
@@ -49,7 +49,7 @@ module mod_che_interface
     implicit none
     logical, intent(in) :: ifrest
     integer , intent(in) :: idirect
-    real(dp) , intent(in) :: dt , chemfrq , dtrad, calday,rdxsq
+    real(dp) , intent(in) :: dt , chemfrq , dtrad, rdxsq
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
@@ -70,7 +70,6 @@ module mod_che_interface
     rafrq = dtrad
     dtche = dt
     crdxsq = rdxsq    
-    ccalday=calday
     chptop = ptop
 
 
@@ -115,7 +114,7 @@ call assignpnt(veg2d,cveg2d)
 !!$
 ! Peform chemistry initialisation
 
-    call start_chem(ifrest)
+!    call start_chem(ifrest)
 
 
 

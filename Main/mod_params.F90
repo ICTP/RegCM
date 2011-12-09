@@ -907,7 +907,7 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,calday,dsigma,atms,   &
+    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms,   &
                    sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
                    twt,ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,  &
                    sdelqk2d,ssw2da,icumtop,icumbot)
@@ -1102,6 +1102,9 @@ module mod_params
       chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
       dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
       chtrsol(1:ntr) = inpchtrsol(1:ntr)
+
+       print*, 'CHTRNAME', chtrname, inpchtrname
+
     end if
     do n = 1 , ntr
       call mpi_bcast(chtrname(n),5,mpi_character,0,mycomm,ierr)

@@ -195,8 +195,8 @@ module mod_che_sox
      ! wet removal by cumulus clouds (over the fraction of grid box
      ! fracum) assume the cloud water content = 2 g/m3  (ref Kasibhatla )
      do i = 2 , iym2
-       if ( kcumtop(i,j) /= 0 ) then
-         do k = kcumtop(i,j) , kz
+       if ( kcumtop(j,i) /= 0 ) then
+         do k = kcumtop(j,i) , kz
            rxs2 = d_zero
            rxs21 = d_zero    ! fraction of conversion, not removed, as SO4 src
            wetrem_cvc(iso2) = d_zero ! scavenging for SO2, below lsc

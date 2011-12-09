@@ -52,14 +52,14 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(jstart,jend,istart,iend,ktau,lmonth,xkc)
+    subroutine tractend2(jstart,jend,istart,iend,ktau,lmonth,calday)
       implicit none
 !
       integer , intent(in) :: jstart , jend , istart , iend , lmonth
       integer(8) , intent(in) :: ktau
-      real(8) , pointer , dimension(:,:,:) , intent(in):: xkc
+
 !
-      real(8) :: agct , ak00t , ak0tm , akval , clmin , facb , facs , &
+      real(8) ::calday, agct , ak00t , ak0tm , akval , clmin , facb , facs , &
                  fact , facv , pres10 , qsat10 , remcum , satvp ,     &
                  shu10 , u10 , v10 , chias , chibs
 
@@ -96,7 +96,7 @@
         fracloud = d_zero
         fracum = d_zero
         psurf = d_zero
-        igaschem = 1
+        igaschem = 0
 
 !       the unit: rho - kg/m3, wl - g/m3
         do k = 1 , kz
@@ -274,7 +274,7 @@
 !       option compatible with BATS and CLM
 !!$
         if ( igaschem == 1 ) then
-          call drydep_gas(j,ivegcov,rh10,srad,tsurf,prec(:,kz),temp10,  &
+          call drydep_gas(j,calday, ivegcov,rh10,srad,tsurf,prec(:,kz),temp10,  &
                           wid10,zeff,drydepvg)
         end if
 !!$

@@ -229,11 +229,10 @@ module mod_regcm_interface
 #endif 
 !
     call init
-#ifdef CHEMTEST
+
     if ( ichem == 1 ) then
-      call init_chem
+      call start_chem(ifrest)
     end if
-#endif
 !
 !**********************************************************************
 !

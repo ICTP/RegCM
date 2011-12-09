@@ -900,9 +900,9 @@ module mod_rad_aerosol
 ! 
     do k = 1 , kz
       do j = jstart , jend
-        aerext(j,k,i) = tauxar3d(j,k,8)
-        aerssa(j,k,i) = tauasc3d(j,k,8)
-        aerasp(j,k,i) = gtota3d(j,k,8)
+        aerext(j,i,k) = tauxar3d(j,k,8)
+        aerssa(j,i,k) = tauasc3d(j,k,8)
+        aerasp(j,i,k) = gtota3d(j,k,8)
       end do
     end do
 !

@@ -1696,7 +1696,8 @@ module mod_rad_radiation
           end do
         end do
 !
-        do n = 1 , nloop
+       x0fsnrtc = d_zero  
+       do n = 1 , nloop
           do j = js(n) , je(n)
 !           SAVE the ref net TOA flux ( and put back the cumul variables to 0.)
             x0fsntc(j) = x0fsntc(j) + solflx(j)*(fluxdn(j,0)-fluxup(j,0))

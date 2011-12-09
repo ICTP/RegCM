@@ -1614,8 +1614,7 @@ module mod_tendency
 
         ! horizontal diffusion: initialize scratch vars to 0.
         ! need to compute tracer tendencies due to diffusion
-        print*, 'Hello', ntr,jbegin,jendx,size(spchib3d,1), size(spchib3d,2), size(spchib3d,3) 
-        print*, 'shape', shape(spchib3d)
+
         call diffu_x(jbegin,jendx,2,iym2,spchiten,spchib3d,sps2%ps,xkc,kz)
 
        end do ! end tracer loop
@@ -1623,7 +1622,7 @@ module mod_tendency
       !
       ! Compute chemistry tendencies (other yhan transport)
       !
-      call tractend2(jbegin,jendm,2,iym1,ktau,xmonth,xkc)
+      call tractend2(jbegin,jendm,2,iym1,ktau,xmonth,calday)
       !
     end if ! ichem
 !

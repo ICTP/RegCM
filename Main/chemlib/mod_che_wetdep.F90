@@ -596,8 +596,8 @@ module mod_che_wetdep
       ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
       ! remcum = 1.e-3
       do i = 2 , iym2
-        if ( kcumtop(i,j) /= 0 ) then
-          do k = kcumtop(i,j) , kz
+        if ( kcumtop(j,i) >  0 ) then
+          do k = kcumtop(j,i) , kz
             wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
                  chib(i,k,j,indp(n))*(dexp(-remcum*dtche)-d_one)
             chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &

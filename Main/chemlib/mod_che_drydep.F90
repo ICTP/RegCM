@@ -600,7 +600,7 @@ module mod_che_drydep
 !         deposition
           do k = 2 , kz
             do i = 2 , iym2
-              wk(i,k) = (1./cpsb(i,j))*          &
+              wk(i,k) = (1./cpsb(j,i))*          &
                       & (ctwt(k,1)*chib(i,k,j,indsp(ib))+ &
                       &  ctwt(k,2)*chib(i,k-1,j,indsp(ib)))
             end do
@@ -617,7 +617,7 @@ module mod_che_drydep
             end do
 !
 ! at first level include surface drydep velocity to calculte the divergence
-            settend(i,kz) =   (chib(i,kz,j,indsp(ib))/ cpsb(i,j) * ddepv(i,indsp(ib))   &  
+            settend(i,kz) =   (chib(i,kz,j,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))   &  
                               -wk(i,kz)*pdepv(i,kz,indsp(ib)) ) &
                               *egrav*1.E-3/cdsigma(kz)
 
@@ -638,7 +638,7 @@ module mod_che_drydep
 ! 
 !*************************************************************************************************************
 !*************************************************************************************************************
-      subroutine drydep_gas (j, ivegcov ,       &
+      subroutine drydep_gas (j, ccalday, ivegcov ,       &
                  rh10, srad , tsurf , prec, temp10 ,  &
                  wind10 , zeff, drydepvg)
 
@@ -653,6 +653,7 @@ module mod_che_drydep
 !
 
       integer :: j   
+      real(8) :: ccalday
       integer , dimension(iy) :: ivegcov
    
       real(8) , dimension(iy) :: rh10 , srad , tsurf ,  prec,     &
@@ -682,6 +683,8 @@ module mod_che_drydep
    
         im = INT(ccalday / 30.5 ) + 1
         iday_m =ccalday - INT((im-1)*30.5+0.5)
+
+      print*, 'drydep calday', ccalday
 
       if (iday_m .eq. 0) THEN
            im = im - 1

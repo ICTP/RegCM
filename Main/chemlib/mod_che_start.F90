@@ -134,6 +134,10 @@ ibin=0
 jbin=0
 kbin=0
 
+
+
+        print*,'startchem',chtrname
+
         do itr = 1 , ntr
 
            if ( chtrname(itr).eq.'SO2' ) iso2 = itr

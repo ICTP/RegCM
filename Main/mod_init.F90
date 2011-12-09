@@ -345,31 +345,6 @@ module mod_init
     if (debug_level > 2) call initdiag
 #endif
 !
-!chem2
-    if ( ichem == 1 ) then
-!-----set tracer concs to 1 (kg/kg) initially. Must convert this to p*
-!-----mixing ratio to compute tendencies:
-!US       mass test zero concs init input for advection
-!qhy      initial chia is 10ppt
-!hy       set the initial tracer concentration 10ppt (1.e-11), 9/4/98
- 
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do j = 1 , jendx
-            do i = 1 , iym1
-              chia(i,k,j,itr) = sps1%ps(j,i)*d_zero
-              chib(i,k,j,itr) = sps2%ps(j,i)*d_zero
-!                 chia(i,k,j,itr)=sps1%ps(j,i)*1.e-11
-!                 chib(i,k,j,itr)=sps2%ps(j,i)*1.e-11
-            end do
-          end do
-        end do
-      end do
- 
-    end if
-!chem2_
-!
-!------set rainc and rainnc equal to 0. initially
 !
     sfsta%rainc  = d_zero
     sfsta%rainnc = d_zero
@@ -1094,38 +1069,6 @@ module mod_init
 !-----end of initial/restart if test
 !
   end if
-!chem2
-  if ( ichem == 1 ) then
-    iso2  = 0
-    iso4  = 0
-    ibchl = 0
-    ibchb = 0
-    iochl = 0
-    iochb = 0
-    ibin  = 0
-    do itr = 1 , ntr
-      if ( chtrname(itr) == 'SO2' ) iso2 = itr
-      if ( chtrname(itr) == 'SO4' ) then
-        iso4 = itr
-        ichso4 = itr
-      end if
-      if ( chtrname(itr) == 'BC_HL' ) then
-        ibchl = itr
-        ichbc = itr
-      end if
-      if ( chtrname(itr) == 'BC_HB' ) then
-        ibchb = itr
-        ichoc = itr
-      end if
-      if ( chtrname(itr) == 'OC_HL' ) iochl = itr
-      if ( chtrname(itr) == 'OC_HB' ) iochb = itr
-      if ( chtrname(itr) == 'DUST' ) then
-        ibin = ibin + 1
-        idust(ibin) = itr
-      end if
-    end do
-  end if
-!chem2_
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
  

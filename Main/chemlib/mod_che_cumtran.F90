@@ -46,11 +46,11 @@ module mod_che_cumtran
   do n = 1 , ntr
     do j = jbegin , jendx
       do i = 2 , iym1
-        if ( kcumtop(i,j) > 0 ) then
+        if ( kcumtop(j,i) > 0 ) then
           deltas = d_zero
           chiabar = d_zero
           chibbar = d_zero
-          kctop = max0(kcumtop(i,j),4)
+          kctop = max0(kcumtop(j,i),4)
           do k = kctop , kz
             deltas = deltas + chlevs(k)
             chiabar = chiabar + chia(i,k,j,n)*chlevs(k)

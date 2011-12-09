@@ -458,9 +458,9 @@ module mod_output
       do j = 1 , jendx
         do k = 1 , kz
           do i = 1 , iym1
-            chem0(i,ntr*kz+k,j) = aerext(i,k,j)
-            chem0(i,ntr*kz+kz+k,j) = aerssa(i,k,j)
-            chem0(i,ntr*kz+kz*2+k,j) = aerasp(i,k,j)
+            chem0(i,ntr*kz+k,j) = aerext(j,i,k)
+            chem0(i,ntr*kz+kz+k,j) = aerssa(j,i,k)
+            chem0(i,ntr*kz+kz*2+k,j) = aerasp(j,i,k)
           end do
         end do
       end do
@@ -479,10 +479,10 @@ module mod_output
       end do
       do j = 1 , jendx
         do i = 1 , iym1
-          chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(i,j)
-          chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(i,j)
-          chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(i,j)
-          chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(i,j)             
+          chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(j,i)
+          chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(j,i)
+          chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(j,i)
+          chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(j,i)             
 
         end do
       end do
@@ -605,10 +605,10 @@ module mod_output
       end do
       do j = 1 , jendl
         do i = 1 , iym1
-          aertarf(i,j) = d_zero
-          aersrrf(i,j) = d_zero
-          aertalwrf(i,j) = d_zero              
-          aersrlwrf(i,j) = d_zero
+          aertarf(j,i) = d_zero
+          aersrrf(j,i) = d_zero
+          aertalwrf(j,i) = d_zero              
+          aersrlwrf(j,i) = d_zero
         end do
       end do
     end if
