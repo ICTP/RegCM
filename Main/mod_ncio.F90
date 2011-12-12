@@ -124,7 +124,7 @@ module mod_ncio
   data ilakrec / 1/
 
   data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, &
-                   1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 /
+                   1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 /
 
 contains
 
@@ -1593,7 +1593,10 @@ contains
       istatus = nf90_put_att(ncid, istsvar(8), 'cell_methods', cmethodmax)
       call check_ok(__FILE__,__LINE__,'Error add w10max cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,9)
-      istatus = nf90_put_att(ncid, istsvar(9), 'cell_methods', cmethodmin)
+      istatus = nf90_put_att(ncid, istsvar(9), 'cell_methods', cmethodmax)
+      call check_ok(__FILE__,__LINE__,'Error add pcpmax cell_methods', fterr)
+      call addvara(ncid,ctype,tyx,.false.,10)
+      istatus = nf90_put_att(ncid, istsvar(10), 'cell_methods', cmethodmin)
       call check_ok(__FILE__,__LINE__,'Error add ps_min cell_methods', fterr)
     else if (ctype == 'SUB') then
       isubvar = -1
@@ -1967,7 +1970,7 @@ contains
           icount(2) = o_ni
           icount(1) = o_nj
           istatus = nf90_put_var(ncsts, istsvar(ivar), &
-                          fbat(:,:,n), istart, icount)
+                                 fbat(:,:,n), istart, icount)
           call check_ok(__FILE__,__LINE__, &
                         'Error writing '//sts_variables(ivar)%vname// &
                         ' at '//ctime, 'STS FILE')
@@ -1979,7 +1982,7 @@ contains
           icount(2) = o_ni
           icount(1) = o_nj
           istatus = nf90_put_var(ncsts, istsvar(ivar), & 
-                   fbat(:,:,n), istart(1:3), icount(1:3))
+                                 fbat(:,:,n), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                         'Error writing '//sts_variables(ivar)%vname// &
                         ' at '//ctime, 'STS FILE')

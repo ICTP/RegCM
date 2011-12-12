@@ -39,11 +39,10 @@ module mod_bats_common
 
   integer :: iocnrough , iocnflx
 
-  real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs , &
-         drag , evpr , gwet , ldew , albdirs , q2m , &
-         sfcp , trnof , srnof , rsw , snag , sncv , sent ,   &
-         sfice , ssw , t2m , tgrd , tgbrd , tlef ,    &
-         tsw , u10m , v10m , lncl
+  real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs ,  &
+         drag , evpr , gwet , ldew , albdirs , q2m , sfcp , trnof , &
+         srnof , rsw , snag , sncv , sent , sfice , ssw , t2m ,     &
+         tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl
 !
   real(dp) :: rdnnsg
   real(sp) :: rrnnsg
@@ -75,7 +74,7 @@ module mod_bats_common
         flwd_o , fswa_o , prcv_o , psmn_o , ps_o , q2m_o , rnos_o , &
         rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
         t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
-        v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o
+        v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o , pcpx_o
 !
   real(sp) , pointer , dimension(:,:,:,:) :: fsub
 !
@@ -235,7 +234,8 @@ module mod_bats_common
     t2mx_o => fbat(:,:,26)
     t2mn_o => fbat(:,:,27)
     w10x_o => fbat(:,:,28)
-    psmn_o => fbat(:,:,29)
+    pcpx_o => fbat(:,:,29)
+    psmn_o => fbat(:,:,30)
 
     call getmem4d(fsub,1,nnsg,1,jxp,1,iym2,1,numsub,'bats:fsub')
     ps_s   => fsub(:,:,:,1)

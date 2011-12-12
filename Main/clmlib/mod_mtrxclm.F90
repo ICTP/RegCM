@@ -1284,9 +1284,6 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
-          pptnc(j,i) = d_zero
-          pptc(j,i) = d_zero
- 
         end if
       end do !i loop
  
@@ -1330,8 +1327,12 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                    sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
+          pcpx_o(j,i-1) = amax1(pcpx_o(j,i-1), &
+                          real((pptnc(i,j)+pptc(i,j))*dtbat))
           real_4 = real((sfps(j,i)+ptop)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
+          pptnc(j,i) = d_zero
+          pptc(j,i) = d_zero
  
           drag_o(j,i-1) = 0.0
           q2m_o(j,i-1) = 0.0
