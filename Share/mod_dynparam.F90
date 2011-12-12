@@ -260,8 +260,10 @@ module mod_dynparam
 
 ! Fixed dimensions
 
-  integer , parameter :: numbat = 23 + 6
+  integer , parameter :: numsts = 6
+  integer , parameter :: numbat = 23 + numsts
   integer , parameter :: numsub = 16
+
   integer , parameter :: mpy = 12         ! Months per Year
 
 ! Number of Soil texture categories, leave it to 17
@@ -301,6 +303,7 @@ module mod_dynparam
 
   logical :: ifsrf
   logical :: ifsub
+  logical :: ifsts
   logical :: iflak
   real(8) :: lakfrq
   real(8) :: srffrq
@@ -491,9 +494,9 @@ module mod_dynparam
   subroutine init_outparam
     implicit none
 
-    namelist /outparam/ ifsave , savfrq , ifatm , atmfrq ,    &
-    &     ifrad , radfrq , ifsrf , ifsub ,  iflak , srffrq ,  &
-    &     lakfrq , ifchem , chemfrq
+    namelist /outparam/ ifsave , savfrq , ifatm , atmfrq ,       &
+      ifrad , radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , &
+      lakfrq , ifchem , chemfrq
 
     read(ipunit, outparam, err=100)
     return

@@ -58,6 +58,8 @@ module mod_runparams
   real(8) :: dtsec
   ! Internal count for how many SRF outputs every LAK output
   integer :: klak
+  ! Internal count for how many SRF outputs per day
+  integer :: ksts , kstsoff
 !
   real(8) :: dt , dt2 , dtbdys
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
@@ -83,11 +85,12 @@ module mod_runparams
   character(len=3) :: scenario
 
   integer , parameter :: n_atmvar = 15
-  integer , parameter :: n_srfvar = 31
+  integer , parameter :: n_srfvar = 24
   integer , parameter :: n_subvar = 16
   integer , parameter :: n_radvar = 15
   integer , parameter :: n_chevar = 17
   integer , parameter :: n_lakvar = 16
+  integer , parameter :: n_stsvar = 9
 
   integer, private  :: ierr 
   real(8) , private :: total_allocation_size
@@ -106,6 +109,7 @@ module mod_runparams
   type(output_variable) , dimension(n_radvar) :: rad_variables
   type(output_variable) , dimension(n_chevar) :: che_variables
   type(output_variable) , dimension(n_lakvar) :: lak_variables
+  type(output_variable) , dimension(n_stsvar) :: sts_variables
 
   data total_allocation_size /d_zero/
   data doing_restart /.false./
@@ -141,7 +145,6 @@ module mod_runparams
 
   data srf_variables / &
     output_variable('time','','','',.true.),                                      &
-    output_variable('tbnds','','','',.true.),                                     &
     output_variable('ps','','','',.true.),                                        &
     output_variable('u10m','eastward_wind',                                       &
                     '10 meters U component (westerly) of wind','m s-1',.true.),   &
@@ -180,6 +183,17 @@ module mod_runparams
                     'Convective precipitation','kg m-2 day-1',.true.),            &
     output_variable('zpbl','atmosphere_boundary_layer_thickness',                 &
                     'PBL layer thickness','m',.true.),                            &
+    output_variable('aldirs','surface_albedo_short_wave_direct',                  &
+                    'Surface albedo to direct short wave radiation','1',.true.),  &
+    output_variable('aldifs','surface_albedo_short_wave_diffuse',                 &
+                    'Surface albedo to diffuse short wave radiation','1',.true.), &
+    output_variable('seaice','seaice_binary_mask',                                &
+                    'Sea ice mask','1',.false.) /
+
+  data sts_variables / &
+    output_variable('time','','','',.true.),                                      &
+    output_variable('tbnds','','','',.true.),                                     &
+    output_variable('ps','','','',.true.),                                        &
     output_variable('tgmax','surface_temperature',                                &
                     'Maximum surface temperature','K',.true.),                    &
     output_variable('tgmin','surface_temperature',                                &
@@ -191,13 +205,7 @@ module mod_runparams
     output_variable('w10max','wind_speed',                                        &
                     'Maximum speed of 10m wind','m s-1',.true.),                  &
     output_variable('ps_min','air_pressure',                                      &
-                    'Minimum of surface pressure','hPa',.true.),                  &
-    output_variable('aldirs','surface_albedo_short_wave_direct',                  &
-                    'Surface albedo to direct short wave radiation','1',.true.),  &
-    output_variable('aldifs','surface_albedo_short_wave_diffuse',                 &
-                    'Surface albedo to diffuse short wave radiation','1',.true.), &
-    output_variable('seaice','seaice_binary_mask',                                &
-                    'Sea ice mask','1',.false.) /
+                    'Minimum of surface pressure','hPa',.true.) /
 
   data sub_variables / &
     output_variable('time','','','',.true.),                                     &

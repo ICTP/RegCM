@@ -1012,6 +1012,16 @@ module mod_init
         end do
       end do
     end if
+    call mpi_scatter(fsavsts_io,iym2*numsts*jxp,mpi_real4, &
+                     fsavsts,   iym2*numsts*jxp,mpi_real4, &
+                     0,mycomm,ierr)
+    do j = 1 , jendx
+      do l = 1 , numsts
+        do i = 1 , iym2
+          fbat(j,i,23+l) = fsavsts(i,l,j)
+        end do
+      end do
+    end do
 #ifdef CLM
     if ( myid == 0 ) then
 #ifdef BAND
