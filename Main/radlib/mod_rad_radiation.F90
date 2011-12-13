@@ -223,7 +223,7 @@ module mod_rad_radiation
 !   n2o      - nitrous oxide mass mixing ratio
 !
   real(8) , pointer , dimension(:) :: fslwdcs , aeradfo , aeradfos , &
-          aerlwfo , aerlwfos , totcf
+          aerlwfo , aerlwfos
   real(8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr , rh
   real(8) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
@@ -653,7 +653,6 @@ module mod_rad_radiation
     call getmem1d(aeradfos,1,jxp,'radiation:aeradfos')
     call getmem1d(aerlwfo,1,jxp,'radiation:aerlwfo')
     call getmem1d(aerlwfos,1,jxp,'radiation:aerlwfos')
-    call getmem1d(totcf,1,jxp,'radiation:totcf')
 
     call getmem2d(cfc11,1,jxp,1,kz,'radiation:cfc11')
     call getmem2d(cfc12,1,jxp,1,kz,'radiation:cfc12')
@@ -805,7 +804,7 @@ module mod_rad_radiation
                     pmln,piln,t,h2ommr,cld,effcld,clwp,fsns,qrs,qrl,   &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,  &
-                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr, &
+                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr, &
                     labsem)
 !
     implicit none
@@ -847,7 +846,7 @@ module mod_rad_radiation
     real(8) , pointer , dimension(:) :: alb , albc , alat , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
-            sols , solsd , ts , ptrop
+            sols , solsd , ts , ptrop , totcf
     real(8) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t
@@ -855,7 +854,7 @@ module mod_rad_radiation
     intent (out) alb , albc
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin
+                   fsntc , solin , totcf
 !
 !---------------------------Local variables-----------------------------
 !

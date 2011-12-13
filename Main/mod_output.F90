@@ -1543,7 +1543,7 @@ module mod_output
     end do
   end do
 
-  call writerec_rad(jmax, imax, kz, 4, 9, &
+  call writerec_rad(jmax, imax, kz, 4, 10, &
                     frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
                     radpsa_io, idatex)
 

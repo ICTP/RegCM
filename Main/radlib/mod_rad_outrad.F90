@@ -28,7 +28,7 @@ module mod_rad_outrad
   public :: allocate_mod_rad_outrad , radout
   public :: nrad2d , nrad3d
 
-  integer , parameter :: nrad2d = 21
+  integer , parameter :: nrad2d = 22
   integer , parameter :: nrad3d = 5
 
   real(4) , pointer , dimension(:,:,:) :: frad2d
@@ -45,7 +45,7 @@ module mod_rad_outrad
   subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss, &
                     qrs,firtp,frla,clrlt,clrls,qrl,slwd,srfrad,sols, &
                     soll,solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,    &
-                    fsnirtsq,h2ommr,cld,clwp)
+                    fsnirtsq,totcf,h2ommr,cld,clwp)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -90,12 +90,12 @@ module mod_rad_outrad
     real(8) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt , &
                 fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,     &
-                solld , sols , solsd , srfrad
+                solld , sols , solsd , srfrad , totcf
     real(8) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
     intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&
                 clwp , firtp , frla , frsa , fsds , fsnirt ,      &
                 fsnirtsq , fsnrtc , h2ommr , qrl , qrs , sabtp ,  &
-                slwd , solin , soll , solld , sols , solsd
+                slwd , solin , soll , solld , sols , solsd , totcf
     intent (out) srfrad
 !
     integer :: j , k
@@ -174,35 +174,36 @@ module mod_rad_outrad
           frad2d(j,i-1,6) = real(clrls(j))     ! write
           frad2d(j,i-1,7) = real(solin(j))     ! write
           frad2d(j,i-1,8) = real(sabtp(j))     ! write
-          frad2d(j,i-1,9) = real(firtp(j))     ! write
-          frad2d(j,i-1,10) = real(alb(j))      ! skip
-          frad2d(j,i-1,11) = real(albc(j))     ! skip
-          frad2d(j,i-1,12) = real(fsds(j))     ! skip
-          frad2d(j,i-1,13) = real(fsnirt(j))   ! skip
-          frad2d(j,i-1,14) = real(fsnrtc(j))   ! skip
-          frad2d(j,i-1,15) = real(fsnirtsq(j)) ! skip
+          frad2d(j,i-1,9) = real(totcf(j))     ! write
+          frad2d(j,i-1,10) = real(firtp(j))    ! write
+          frad2d(j,i-1,11) = real(alb(j))      ! skip
+          frad2d(j,i-1,12) = real(albc(j))     ! skip
+          frad2d(j,i-1,13) = real(fsds(j))     ! skip
+          frad2d(j,i-1,14) = real(fsnirt(j))   ! skip
+          frad2d(j,i-1,15) = real(fsnrtc(j))   ! skip
+          frad2d(j,i-1,16) = real(fsnirtsq(j)) ! skip
           if ( soll(j) < dlowval ) then
-            frad2d(j,i-1,16) = 0.0
-          else
-            frad2d(j,i-1,16) = real(soll(j))   ! skip
-          end if
-          if ( sols(j) < dlowval ) then
             frad2d(j,i-1,17) = 0.0
           else
-            frad2d(j,i-1,17) = real(sols(j))   ! skip
+            frad2d(j,i-1,17) = real(soll(j))   ! skip
           end if
-          if ( solsd(j) < dlowval ) then
+          if ( sols(j) < dlowval ) then
             frad2d(j,i-1,18) = 0.0
           else
-            frad2d(j,i-1,18) = real(solsd(j))  ! skip
+            frad2d(j,i-1,18) = real(sols(j))   ! skip
           end if
-          if ( solld(j) < dlowval ) then
+          if ( solsd(j) < dlowval ) then
             frad2d(j,i-1,19) = 0.0
           else
-            frad2d(j,i-1,19) = real(solld(j))  ! skip
+            frad2d(j,i-1,19) = real(solsd(j))  ! skip
           end if
-          frad2d(j,i-1,20) = real(solar(j,i))    ! skip
-          frad2d(j,i-1,21) = real(abveg(j,i))   ! skip
+          if ( solld(j) < dlowval ) then
+            frad2d(j,i-1,20) = 0.0
+          else
+            frad2d(j,i-1,20) = real(solld(j))  ! skip
+          end if
+          frad2d(j,i-1,21) = real(solar(j,i))    ! skip
+          frad2d(j,i-1,22) = real(abveg(j,i))   ! skip
         end do
       end if
     end if

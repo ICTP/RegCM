@@ -535,7 +535,7 @@ module mod_bats_mtrxbats
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                           sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
           pcpx_o(j,i-1) = amax1(pcpx_o(j,i-1), &
-                          real((pptnc(i,j)+pptc(i,j))*dtbat))
+                          real((pptnc(j,i)+pptc(j,i))*dtbat))
           real_4 = real((sfps(j,i)+ptop)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
           pptc(j,i) = d_zero

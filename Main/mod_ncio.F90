@@ -1633,6 +1633,7 @@ contains
       call addvara(ncid,ctype,tyx,.false.,13)
       call addvara(ncid,ctype,tyx,.false.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
+      call addvara(ncid,ctype,tyx,.false.,16)
     else if (ctype == 'CHE') then
       istatus = nf90_def_var(ncid, 'chtrname', nf90_char, &
                              inmlen, ichname)

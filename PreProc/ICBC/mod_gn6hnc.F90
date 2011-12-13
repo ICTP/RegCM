@@ -589,10 +589,21 @@ module mod_gn6hnc
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
             filedate = filedate + tdif
           else
-            do i = 1 , nfiles
-              istatus = nf90_close(inet(i))
-              call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
-            end do
+            if ( dattyp(1:3) == 'HA_' ) then
+              do i = 1 , nfiles-1
+                if ( havars(i) /= 'XXX' ) then
+                  istatus = nf90_close(inet(i))
+                  call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+                end if
+              end do
+            else
+              do i = 1 , nfiles
+                if ( havars(i) /= 'XXX' ) then
+                  istatus = nf90_close(inet(i))
+                  call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+                end if
+              end do
+            end if
           end if
         else
           if ( dattyp == 'CAM4N' ) then
@@ -661,12 +672,12 @@ module mod_gn6hnc
                   trim(havars(i)), pthsep, trim(havars(i)), trim(habase), &
                   iyear1, imon1, '010600-', iyear2, imon2, '010000.nc.nc'
               end if
+              pathaddname = trim(inpglob)//'/HadGEM2/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
             end if
-            pathaddname = trim(inpglob)//'/HadGEM2/'//inname
-            istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error open '//trim(pathaddname))
-            write (stdout,*) inet(i), trim(pathaddname)
           end do
           varname => havars
         else if ( dattyp(1:3) == 'CA_' ) then

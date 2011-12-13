@@ -59,7 +59,7 @@ module mod_runparams
   ! Internal count for how many SRF outputs every LAK output
   integer :: klak
   ! Internal count for how many SRF outputs per day
-  integer :: ksts , kstsoff
+  integer(8) :: ksts , kstsoff
 !
   real(8) :: dt , dt2 , dtbdys
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
@@ -87,7 +87,7 @@ module mod_runparams
   integer , parameter :: n_atmvar = 15
   integer , parameter :: n_srfvar = 24
   integer , parameter :: n_subvar = 16
-  integer , parameter :: n_radvar = 15
+  integer , parameter :: n_radvar = 16
   integer , parameter :: n_chevar = 17
   integer , parameter :: n_lakvar = 16
   integer , parameter :: n_stsvar = 10
@@ -267,6 +267,8 @@ module mod_runparams
                     'Instantaneous incident solar','W m-2',.true.),                  &
     output_variable('sabtp','toa_net_sw_flux', &
                     'Total column absorbed solar flux','W m-2',.true.),              &
+    output_variable('totcf','cloud_area_fraction', &
+                    'Total cloud fraction','1',.true.),                              &
     output_variable('firtp','toa_net_lw_flux',  &
                     'outgoing LW flux at TOA','W m-2',.true.) /
 

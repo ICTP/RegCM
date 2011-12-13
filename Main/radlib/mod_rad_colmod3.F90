@@ -39,7 +39,7 @@ module mod_rad_colmod3
   real(dp) , pointer , dimension(:) :: alb , albc , alat , ptrop ,    &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
-    sols , solsd , srfrad , ps , ts , emsvt1
+    sols , solsd , srfrad , ps , ts , emsvt1 , totcf
   real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
@@ -72,6 +72,7 @@ module mod_rad_colmod3
       call getmem1d(solld,1,jxp,'colmod3:solld')
       call getmem1d(sols,1,jxp,'colmod3:sols')
       call getmem1d(solsd,1,jxp,'colmod3:solsd')
+      call getmem1d(totcf,1,jxp,'colmod3:totcf')
       call getmem1d(srfrad,1,jxp,'colmod3:srfrad')
       call getmem1d(ps,1,jxp,'colmod3:ps')
       call getmem1d(ts,1,jxp,'colmod3:ts')
@@ -367,7 +368,7 @@ module mod_rad_colmod3
                   pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,  &
                   rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
                   flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,       &
-                  fsnrtc,fsnirtsq,eccf,o3vmr,labsem)
+                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,labsem)
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm radiation package
@@ -381,7 +382,7 @@ module mod_rad_colmod3
       call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs, &
                   flnt,flns,flntc,flnsc,qrl,flwds,srfrad,sols,soll,   &
                   solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,   &
-                  h2ommr,cld,clwp)
+                  totcf,h2ommr,cld,clwp)
     end do
 !
   end subroutine colmod3
