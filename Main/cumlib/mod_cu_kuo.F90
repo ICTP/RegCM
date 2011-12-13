@@ -85,14 +85,6 @@ module mod_cu_kuo
     pmax = d_zero
     qmax = d_zero
     tmax = d_zero
-    do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          rcldlwc(j,i,k) = d_zero
-          rcldfra(j,i,k) = d_zero
-        end do
-      end do
-    end do
 !
     if ( lchem ) then
 !

@@ -1532,6 +1532,12 @@ module mod_tendency
       end if
     end if
  
+    !
+    ! Zero out radiative clouds
+    !
+    cldfra(:,:,:) = d_zero
+    cldlwc(:,:,:) = d_zero
+
     if ( icup == 1 ) then
       call cupara(jbegin,jendx,2,iym2,ktau)
     end if

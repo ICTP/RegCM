@@ -225,14 +225,6 @@ module mod_cu_bm
     lqm = 0
     lshu = 0
 !
-    do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          rcldlwc(j,i,k) = d_zero
-          rcldfra(j,i,k) = d_zero
-        end do
-      end do
-    end do
     if ( lchem ) then
 !
 !     icumtop = top level of cumulus clouds

@@ -79,8 +79,6 @@ module mod_cu_em
         end if
         do k = 1 , kz
           kk = kzp1 - k
-          rcldlwc(j,i,k) = d_zero       ! Zero out cloud water content
-          rcldfra(j,i,k) = d_zero       ! Zero out cloud fraction coverage
           tcup(k) = tas(j,i,kk)                         ! [k]
           qcup(k) = qvas(j,i,kk)/(d_one+qvas(j,i,kk))   ! [kg/kg]
           qscup(k) = qsas(j,i,kk)/(d_one+qsas(j,i,kk))  ! [kg/kg]

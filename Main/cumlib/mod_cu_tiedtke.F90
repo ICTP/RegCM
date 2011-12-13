@@ -215,8 +215,6 @@ module mod_cu_tiedtke
       !
       ! postprocess some fields including precipitation fluxes
       !
-      rcldlwc(j,:,:) = d_zero
-      rcldfra(j,:,:) = d_zero
       do i = istart , iend
         ii = i - 1
         if (ktype(ii) > 0) then

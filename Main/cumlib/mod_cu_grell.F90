@@ -195,11 +195,6 @@ module mod_cu_grell
 !
     call time_begin(subroutine_name,idindx)
 !
-!   zero out radiative clouds
-!
-    rcldlwc = d_zero
-    rcldfra = d_zero
-
     pkdcut = 75.0D0
 !
 !   prepare input, erase output
