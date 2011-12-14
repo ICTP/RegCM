@@ -249,7 +249,7 @@ module mod_regcm_interface
 !
     call spinit(1,jendx,1,iym1)
 ! 
-    if ( ichem == 1 ) call chsrfem
+    if ( ichem == 1 ) call chem_emission(xmonth)
 
 !
 !**********************************************************************

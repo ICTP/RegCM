@@ -153,13 +153,13 @@ module mod_tendency
     intent (inout) iexec
 !
     real(8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
-               psabar , psasum , pt2bar , pt2tot , ptnbar , maxv , &
+               psabar , psasum , pt2bar , pt2tot , ptnbar ,        &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
     real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
                                             spchib3d
-    integer :: i , iptn , itr , j , k , lev , n , ii , jj , kk
+    integer :: i , iptn , itr , j , k , lev , n
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
     logical :: loutrad , labsem
@@ -2388,20 +2388,6 @@ module mod_tendency
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
-        maxv = maxval(aten%t)
-        if ( maxv > d_one ) then
-          print *, 'MAXVAL ATEN T :', maxv
-          maxv = maxv - 0.001D0
-          do ii = 1 , iym1
-            do kk = 1 , kz
-              do jj = jbegin , jendx
-                if ( aten%t(ii,kk,jj) > maxv ) then
-                  print *, 'II :', ii , ', JJ :', myid*jxp+jj , ', KK :', kk
-                end if
-              end do
-            end do
-          end do
-        end if
         if ( myid == 0 ) then
           write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
           write (*,*) 'No more atmosphere here....'

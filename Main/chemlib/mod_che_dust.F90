@@ -484,7 +484,6 @@ module mod_che_dust
        xvegfrac,xsurfwd,xftex,xclayrow,xroarow,xz0,xsrel2d,         &
        xustarnd,xrsfrow)
     
-!     if ( ieffmax>0. ) print *, 'FLUX : ' , maxval(xrsfrow)
 !     put back the dust flux on the right grid
  
   ieff = 0

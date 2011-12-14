@@ -57,16 +57,33 @@ module mod_che_emission
 !
     character (len=64) :: subroutine_name = 'chem_emission'
     integer :: idindx = 0
+
+    integer, save :: currmonth
 !
     call time_begin(subroutine_name,idindx)
 
-    ! read the monthly aerosol emission files
+! read the monthly aerosol emission files
+! FAB: remember for now, we have 1 emission file containing all monthly emission for the whole simulation period
+! change that in the future. Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+!
+!
 
-    write(*,*) 'DISTIBUTE EMISSION -----------------'
+    if (lmonth == currmonth) then 
+     ! exit this routine
+     return 
+    else
+     currmonth=lmonth
+    end if
 
     if ( myid == 0 ) then
-      chemsrc_io(:,:,:,:) = d_zero
-      call read_emission(chtrname,lmonth,chemsrc_io)
+ 
+     write(*,*)'READ CHEM EMISSION for month', lmonth
+
+     chemsrc_io(:,:,:,:) = d_zero
+
+!  Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+
+      call read_emission(lmonth,chemsrc_io)
       do j = 1 , jx
         do itr = 1 , ntr
           do m = 1 , mpy
@@ -91,29 +108,6 @@ module mod_che_emission
       end do
     end do
 
-    ! sulfates sources
-
-    do m = 1 , mpy
-      do j = 1 , jendl
-        do i = 1 , iy
-          if ( iso4 > 0 ) then
-            chemsrc(i,j,m,iso4) = 0.02D0*chemsrc(i,j,m,iso2)
-          end if
-          if ( iso2 > 0 ) then
-            chemsrc(i,j,m,iso2) = 0.98D0*chemsrc(i,j,m,iso2)
-          end if
-          !  partition hydrophilic hydrophonic ( cooke et al.1999)
-          if ( ibchb > 0 .and. ibchl > 0 ) then
-            chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
-            chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
-          end if
-          if ( iochb > 0 .and. iochl > 0 ) then
-            chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
-            chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
-          end if
-        end do
-      end do
-    end do
 
     call time_end(subroutine_name,idindx) 
   end subroutine chem_emission

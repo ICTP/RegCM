@@ -27,7 +27,7 @@ module mod_che_ncio
 !
   private
 !
-  public :: read_texture , read_aerosol , read_emission
+  public :: read_texture , read_aerosol , read_emission, recc
 !
   integer :: istatus
   integer :: recc
@@ -220,40 +220,38 @@ module mod_che_ncio
 
   end subroutine read_aerosol
 
-  subroutine read_emission(chtrname,lmonth,echemsrc)
+  subroutine read_emission(lmonth,echemsrc)
     implicit none
 
     integer , intent(in) :: lmonth
-    character(5) , dimension(ntr) , intent(in) :: chtrname
+
     real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
 
     character(256) :: aername
-    character(5) :: aerctl
-    integer :: ncid , istatus
+ 
+    integer :: ncid 
     integer , dimension(3) :: istart , icount
     integer :: itr , ivarid
-    integer :: currmonth , oldmonth
-    save    :: oldmonth
+ 
+! FAB: remember for now, we have 1 emission file containing all monthly emission for the whole simulation period
+! change that in the future. Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+!all aggregations / lumping should in the future be done in emission preproc 
 
-    aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+
+    aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
+
+    print*, 'Opening ch. emission file', aername
+
     istatus = nf90_open(aername, nf90_nowrite, ncid)
     call check_ok(__FILE__,__LINE__, &
-                  'Error Opening Aerosol file '//trim(aername), &
-                  'AEROSOL FILE OPEN ERROR')
+                  'Error Opening chem emissiom file '//trim(aername), &
+                  'CHE EMISS FILE OPEN ERROR')
 
     !*** intialized in start_chem
     !*** Advice record counter
     recc = recc + 1
-    do itr = 1 , ntr
-      aerctl = chtrname(itr)
-      write (*, *) itr, aerctl, lmonth, recc
-    end do
+ 
 
-!   if ( oldmonth /= lmonth ) then
-!     recc = recc+1
-!   else 
-!     recc = recc
-!   end if
 
     istart(1) = 1
     istart(2) = 1
@@ -271,6 +269,7 @@ module mod_che_ncio
     if ( ico /= 0 ) then
       call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
                 'a_CO',.false.,'bio_co','o_co')
+    print*, 'FAB emis testco','ico', maxval(echemsrc)
     end if
     ! HCHO emission                  
     if ( ihcho /= 0 ) then
@@ -361,12 +360,11 @@ module mod_che_ncio
                 'b_OC',.false.,'a_OC')
     end if
 
-    oldmonth = lmonth
-
+ 
     istatus = nf90_close(ncid)
     call check_ok(__FILE__,__LINE__, &
-                  'Error Closing Aerosol file '//trim(aername), &
-                  'AEROSOL FILE CLOSE ERROR')
+                  'Error Closing Chem emission file '//trim(aername), &
+                  'CH EMISS FILE CLOSE ERROR')
 
   end subroutine read_emission
 
@@ -380,7 +378,7 @@ module mod_che_ncio
     character(len=*) , intent(in) , optional :: cnb
     character(len=*) , intent(in) , optional :: cnc
     character(len=*) , intent(in) , optional :: cnd
-    integer :: ivarid , istatus
+    integer :: ivarid 
     real(sp) , dimension(jx,iy) :: toto
     integer :: i , j
 

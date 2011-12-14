@@ -46,8 +46,6 @@ module mod_mppio
 !
   real(4) , pointer , dimension(:,:,:) :: fbat_io
   real(4) , pointer , dimension(:,:,:,:) :: fsub_io
-  real(4) , pointer , dimension(:,:,:) :: fsavsts_io
-  real(4) , pointer , dimension(:,:,:) :: fsavsts
   real(4) , pointer , dimension(:,:,:) :: frad2d_io
   real(4) , pointer , dimension(:,:,:,:) :: frad3d_io
   real(4) , pointer , dimension(:,:) :: radpsa_io
@@ -178,7 +176,6 @@ module mod_mppio
     call getmem3d(bat0,1,iym2,1,numbat,1,jxp,'mppio:bat0')
     call getmem3d(rad0,1,iym2,1,nrad3d*kz+nrad2d,1,jxp,'mppio:rad0')
     call getmem4d(sub0,1,iym2,1,nnsg,1,numsub,1,jxp,'mppio:sub0')
-    call getmem3d(fsavsts,1,iym2,1,numsts,1,jxp,'mod_mppio:fsavsts')
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call getmem3d(uw0,1,iy,1,kz*3,1,jxp,'mppio:uw0')
     end if
@@ -200,7 +197,6 @@ module mod_mppio
       call getmem3d(bat_0,1,iym2,1,numbat,1,jx,'mppio:bat_0')
       call getmem3d(rad_0,1,iym2,1,nrad3d*kz+nrad2d,1,jx,'mppio:rad_0')
       call getmem4d(sub_0,1,iym2,1,nnsg,1,numsub,1,jx,'mppio:sub_0')
-      call getmem3d(fsavsts_io,1,iym2,1,numsts,1,jx,'mod_mppio:fsavsts_io')
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call getmem3d(uw_0,1,iy,1,kz*3,1,jx,'mppio:uw_0')
       end if

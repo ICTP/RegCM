@@ -23,14 +23,10 @@
     use mod_che_common
 !    use mod_mpmessage
     use mod_che_indices
-
-!    use mod_chemio
-
     use mod_che_bdyco
     use mod_che_wetdep
     use mod_che_carbonaer
-
-!    use mod_chem_mppio
+    use mod_che_ncio
 
     
     implicit none
@@ -278,8 +274,8 @@ print*, 'After startchem', icarb, isslt,idust
 !        if(.not.allocated(chevap)) allocate(chevap(iy,kz))
 !        if(.not.allocated(checum)) allocate(checum(iy,kz))
 
-  !*** Initialize record read counter for AERO_new.nc (see mod_chemio.F90)
-!  recc = 0
+  !*** Initialize record read counter for CH EMISSI (see mod_che_ncio.F90)
+  recc = 0
   
   open( 26,file='TUVGRID2', status='old')
   open( 25,file='REACTION.DAT_CBMZ', status='old')  

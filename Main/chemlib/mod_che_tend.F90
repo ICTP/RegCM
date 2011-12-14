@@ -30,9 +30,6 @@
   use mod_che_drydep
   use mod_che_wetdep
   use mod_che_emission
-! use mod_chem_sox
-! use mod_sea_salt
-! use mod_chem_emis
   use mod_che_dust
   use mod_che_seasalt
   use mod_che_carbonaer
@@ -234,12 +231,16 @@
         end if
 
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
+        if ( size(idust) > 0 ) then
+        wid10(:) = 20.
+        ustar (:)= 2.
 
-        if ( idust(1) > 0 ) then
-          call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar, &
+        call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar, &
                       zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)     
-        end if
-!       if ( isslt(1) > 0 ) call sea_salt(j,wid10,ivegcov,seasalt_flx)
+        
+              end if
+
+        if (  size(isslt) > 0 ) call sea_salt(j,wid10,ivegcov,seasalt_flx)
 !
 !       update emission tendencies from inventories
 
@@ -251,19 +252,19 @@
 !
         pdepv = d_zero
         ddepa = d_zero
-        if ( idust(1) > 0 ) then
+        if ( size(idust) > 0 ) then
           call drydep_aero(j,nbin,idust,rhodust,ivegcov,ttb,rho,hlev,psurf, &
                            temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,      &
                            pdepv,ddepa)
         end if
 
-!       if (isslt(1) >0 ) then
-!         call drydep_aero(j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf, &
-!                          temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,      &
-!                          pdepv,ddepa)
-!       end if 
+       if ( size(isslt) >0 ) then
+         call drydep_aero(j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf, &
+                          temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,      &
+                          pdepv,ddepa)
+       end if 
 
-        if ( icarb(1) > 0 ) then
+        if ( size(icarb) > 0 ) then
           ibin = count( icarb > 0 ) 
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov,ttb,rho,hlev, &
                            psurf,temp10,tsurf,srad,rh10,wid10,zeff,         &
@@ -285,15 +286,15 @@
                        fracum,psurf,hlev,rho,prec,pdepv)  
         end if
 
-!       if ( isslt(1) > 0 )  then   
-!         call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb,wl,fracloud, &
-!                      fracum,psurf,hlev,rho, prec, pdepv )  
-!       end if
-!       if ( icarb(1) > 0 )  then   
-!         ibin = count( icarb > 0 ) 
-!         call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
-!                      ttb,wl,fracloud,fracum,psurf,hlev,rho,prec,pdepv)  
-!       end if
+       if ( size(isslt) > 0 )  then   
+         call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb,wl,fracloud, &
+                      fracum,psurf,hlev,rho, prec, pdepv )  
+       end if
+       if ( size(icarb) > 0 )  then   
+         ibin = count( icarb > 0 ) 
+         call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
+                      ttb,wl,fracloud,fracum,psurf,hlev,rho,prec,pdepv)  
+       end if
 !
 !!$
 !       Wet Deposition for gasphase species 

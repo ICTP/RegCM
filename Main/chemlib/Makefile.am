@@ -113,4 +113,5 @@ mod_che_bdyco.o mod_che_bdyco.mod: mod_che_bdyco.F90  \
 
 mod_che_start.o mod_che_start.mod: mod_che_start.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  mod_che_common.o mod_che_indices.o mod_che_wetdep.o  mod_che_bdyco.o mod_che_carbonaer.o
+  mod_che_common.o mod_che_indices.o mod_che_wetdep.o  mod_che_bdyco.o mod_che_carbonaer.o\
+  mod_che_ncio.o

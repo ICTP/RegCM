@@ -83,7 +83,6 @@ module mod_params
   real(8) , dimension(maxnbin,2) :: inpdustbsiz
   logical , dimension(n_atmvar) :: atm_enablevar
   logical , dimension(n_srfvar) :: srf_enablevar
-  logical , dimension(n_stsvar) :: sts_enablevar
   logical , dimension(n_subvar) :: sub_enablevar
   logical , dimension(n_radvar) :: rad_enablevar
   logical , dimension(n_chevar) :: che_enablevar
@@ -112,10 +111,9 @@ module mod_params
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
   namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,   &
-    radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,    &
-    ifchem , chemfrq , atm_enablevar , srf_enablevar ,             &
-    rad_enablevar , sub_enablevar , sts_enablevar ,                &
-    lak_enablevar , che_enablevar , dirout
+    radfrq , ifsrf , ifsub , iflak , srffrq , lakfrq , ifchem ,    &
+    chemfrq , atm_enablevar , srf_enablevar , rad_enablevar ,      &
+    sub_enablevar , lak_enablevar , che_enablevar , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
@@ -278,14 +276,12 @@ module mod_params
   ifrad = .true.
   radfrq = 6.0D0     ! time interval for disposing rad output (hrs)
   ifsrf = .true.
-  ifsts = .true.
-  ifsub = .false.
-  iflak = .false.
+  ifsub = .true.
+  iflak = .true.
   srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
   lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
   atm_enablevar(:) = .true.
   srf_enablevar(:) = .true.
-  sts_enablevar(:) = .true.
   sub_enablevar(:) = .true.
   lak_enablevar(:) = .true.
   rad_enablevar(:) = .true.
@@ -565,12 +561,11 @@ module mod_params
   call mpi_bcast(radfrq,1,mpi_real8,0,mycomm,ierr)
   call mpi_bcast(ifsrf,1,mpi_logical,0,mycomm,ierr)
   call mpi_bcast(ifsub,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(iflak,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(ifsts,1,mpi_logical,0,mycomm,ierr)
   call mpi_bcast(srffrq,1,mpi_real8,0,mycomm,ierr)
   call mpi_bcast(lakfrq,1,mpi_real8,0,mycomm,ierr)
   call mpi_bcast(ifchem,1,mpi_logical,0,mycomm,ierr)
   call mpi_bcast(chemfrq,1,mpi_real8,0,mycomm,ierr)
+  call mpi_bcast(iflak,1,mpi_logical,0,mycomm,ierr)
  
   call mpi_bcast(iboudy,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ibltyp,1,mpi_integer,0,mycomm,ierr)
@@ -749,6 +744,8 @@ module mod_params
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
 
+
+
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
 !
@@ -764,31 +761,20 @@ module mod_params
     if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTRAD=' , dtrad , 'DT=' , dt
       call say
-      call fatal(__FILE__,__LINE__, &
+      call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTSRF=' , dtsrf , 'DT=' , dt
       call say
-      call fatal(__FILE__,__LINE__, &
+      call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
-    if ( ifsrf ) then
-      if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
-        write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
-        call say
-        call fatal(__FILE__,__LINE__, &
-                   'INCONSISTENT SURFACE OUTPUT FREQUENCY SPECIFIED')
-      end if
-      if ( ifsts .and. srffrq > 24.0D0 ) then
-        call fatal(__FILE__,__LINE__, &
-                   'NEED SRF FREQUENCY LESS THAN 24H FOR STS OUTPUT')
-      end if
-    else
-      if ( ifsts ) then
-        call fatal(__FILE__,__LINE__, &
-                   'TO ENABLE STS, ENABLE SRF OUTPUT IS REQUIRED')
-      end if
+    if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
+      write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
+      call say
+      call fatal(__FILE__,__LINE__,                                   &
+                 'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( lakemod == 1 ) then
       if ( lakfrq < srffrq .or. &
@@ -807,7 +793,7 @@ module mod_params
     if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
       call say
-      call fatal(__FILE__,__LINE__, &
+      call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
@@ -833,9 +819,6 @@ module mod_params
     end do
     do i = 1 , n_srfvar
       srf_variables(i)%enabled = srf_enablevar(i)
-    end do
-    do i = 1 , n_stsvar
-      sts_variables(i)%enabled = sts_enablevar(i)
     end do
     do i = 1 , n_lakvar
       lak_variables(i)%enabled = lak_enablevar(i)
@@ -883,7 +866,6 @@ module mod_params
   kbdy = nbdyfrq/idnint(dtsec)
   katm = natmfrq/idnint(dtsec)
   ksrf = nsrffrq/idnint(dtsec)
-  ksts = khour*24
   krad = nradfrq/idnint(dtsec)
   kche = nchefrq/idnint(dtsec)
   kdbg = ndbgfrq/idnint(dtsec)
@@ -961,7 +943,6 @@ module mod_params
   call say
   idatex = idate1
   call split_idate(idatex,xyear,xmonth,xday,xhour)
-  kstsoff = khour*xhour
 !
   if ( myid == 0 ) then
     call open_domain(dx,sigma)
@@ -1117,12 +1098,16 @@ module mod_params
 
   if ( ichem == 1 ) then
     if ( myid == 0 ) then
-      chtrname(1:ntr)(1:5) = inpchtrname(1:ntr)(1:5)
-      chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
-      dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
-      chtrsol(1:ntr) = inpchtrsol(1:ntr)
+    !  chtrname(1:ntr)(1:5) = inpchtrname(1:ntr)(1:5)
+    !  chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
+    !  dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
+    !  chtrsol(1:ntr) = inpchtrsol(1:ntr)
+      chtrname = inpchtrname(1:ntr)
+      chtrdpv = inpchtrdpv(1:ntr,:)
+      dustbsiz = inpdustbsiz(1:nbin,:)
+      chtrsol = inpchtrsol(1:ntr)
 
-       print*, 'CHTRNAME', chtrname, inpchtrname
+       print*, 'CHTRNAME', dustbsiz
 
     end if
     do n = 1 , ntr
