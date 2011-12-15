@@ -115,6 +115,7 @@ MODULE mod_service
      MODULE PROCEDURE check_memory_i
   END INTERFACE
 
+  PUBLIC :: activate_debug, start_debug, stop_debug
 
 CONTAINS
 

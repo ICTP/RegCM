@@ -187,16 +187,13 @@ module mod_bats_mtrxbats
     if ( iocnflx == 2 ) call zengocndrv(jstart,jend,istart,iend,ktau)
 
 !   ROMS ocean model
-    if ( iocnflx == 3 ) then
-!     call Zeng ocean flux model at the begining until first
-!     exchange between ocean and atmosphere models
-      if (ktau <= ntcpl) then
-        call zengocndrv(jstart,jend,istart,iend,ktau)
-      else
-!       update ground temperature in each coupling time step
-        if (mod(ktau+1,ntcpl) == ntsrf2) then 
-          call romsocndrv(jstart,jend,istart,iend,ktau)
+    if ( iocncpl == 1 ) then
+!     update ground temperature in each coupling time step
+      if (mod(ktau+1,ntcpl) == ntsrf2) then 
+        if (myid == 0) then 
+          print*, "[debug] -- updating fields with ROMS SST ..."
         end if
+        call romsocndrv(jstart,jend,istart,iend,ktau)
       end if
     end if
 

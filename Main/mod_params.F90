@@ -118,8 +118,9 @@ module mod_params
     lak_enablevar , che_enablevar , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-    iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
-    scenario , idcsst , iseaice , idesseas , iconvlwp , irrtm
+    iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
+    ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
+    irrtm
 
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
     gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -215,8 +216,10 @@ module mod_params
 !     iocnflx: type of ocean flux parameterization
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
-!     = 3 ; ROMS
-!     = 4 ; ROMS + Zeng et al.
+!
+!     iocncpl: controls the coupling with ROMS
+!     = 0 ; no coupling
+!     = 1 ; activate ROMS coupling
 !
 !     iocnrough: Zeng Ocean Model Roughness model
 !     = 1 ; (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
@@ -308,6 +311,7 @@ module mod_params
   ipgf = 1
   iemiss = 1
   iocnflx = 1
+  iocncpl = 0
   iocnrough = 1
   lakemod = 0
   ichem = 0
@@ -537,7 +541,7 @@ module mod_params
     read (ipunit , clmparam)
     print * , 'CLMPARAM namelist READ IN'
 #endif
-    if (iocnflx == 3) then
+    if (iocncpl == 1) then
       read (ipunit , cplparam)
       print *, 'CPLPARAM namelist READ IN'
     end if
@@ -578,6 +582,7 @@ module mod_params
   call mpi_bcast(igcc,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ipptls,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iocnflx,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(iocncpl,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iocnrough,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ipgf,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iemiss,1,mpi_integer,0,mycomm,ierr)
@@ -599,7 +604,7 @@ module mod_params
   call mpi_bcast(clmfrq,1,mpi_real8,0,mycomm,ierr)
 #endif
 
-  if ((iocnflx == 3) .or. (iocnflx == 4)) then
+  if (iocncpl == 1) then
     call mpi_bcast(cpldt,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(cplexvars,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(cplinterp,1,mpi_integer,0,mycomm,ierr)
@@ -1054,6 +1059,8 @@ module mod_params
     write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
     call say
   end if
+  write  (aline,'(a,i2)') ' Coupling with ROMS ocean model: iocncpl = ' , iocncpl
+  call say
   write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
   call say
   write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &

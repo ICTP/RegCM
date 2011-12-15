@@ -532,8 +532,7 @@
 !
       MyStopTime=0.0_r8
       do ng = 1, nNest(Iocean)
-        MyStopTime=MAX(MyStopTime,                                      &
-                       tdays(ng)+(REAL(ntimes(ng),r8)*dt(ng))*sec2day)
+        MyStopTime=MAX(MyStopTime, (REAL(ntimes(ng),r8)*dt(ng))*sec2day)
       end do
       call caldate (r_date, MyStopTime, end_year, yday, end_month,      &
                     end_day, hour)

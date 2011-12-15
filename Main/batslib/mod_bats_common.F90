@@ -37,7 +37,7 @@ module mod_bats_common
   integer(8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(8) :: ntsrf2 ! Number of time step to call BATs 
 
-  integer :: iocnrough , iocnflx
+  integer :: iocnrough , iocnflx, iocncpl
 
   real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs ,  &
          drag , evpr , gwet , ldew , albdirs , q2m , sfcp , trnof , &
