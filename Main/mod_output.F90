@@ -40,13 +40,12 @@ module mod_output
 
   private
 
-  integer :: iolak , iosts
+  integer :: iolak
   logical :: lskipsrf , lskiprad , lskipche
 
   public :: output , mkfile
 
   data iolak /0/
-  data iosts /0/
   data lskipsrf /.false./
   data lskiprad /.false./
   data lskipche /.false./
@@ -331,7 +330,6 @@ module mod_output
       end if
 
       iolak = iolak + 1
-      iosts = iosts + 1
 
       if ( ifsub .and. nsg > 1 ) then
 
@@ -1481,7 +1479,6 @@ module mod_output
         psmn_o(j,i) =  1.E30
       end do
     end do
-    iosts = 0
   end if
 
 #ifndef CLM

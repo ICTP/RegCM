@@ -586,7 +586,7 @@ module mod_params
   call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(scenario,3,mpi_character,0,mycomm,ierr)
+  call mpi_bcast(scenario,8,mpi_character,0,mycomm,ierr)
   call mpi_bcast(idcsst,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(idesseas,1,mpi_integer,0,mycomm,ierr)

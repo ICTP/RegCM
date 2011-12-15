@@ -82,7 +82,7 @@ module mod_runparams
   real(8) , pointer , dimension(:) :: wgtd
   real(8) , pointer , dimension(:) :: wgtx
 
-  character(len=3) :: scenario
+  character(len=8) :: scenario
 
   integer , parameter :: n_atmvar = 15
   integer , parameter :: n_srfvar = 24
