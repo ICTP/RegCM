@@ -301,12 +301,9 @@ module mod_bats_mtrxbats
                solvt , wpm2 , p0 , qs0 , ts0
     integer :: i , j , n , nnn
     real(sp) :: real_4
-    logical , save :: first_pass
 !
     character (len=64) :: subroutine_name='interf'
     integer :: idindx=0
-!
-    data first_pass /.true./
 !
     call time_begin(subroutine_name,idindx)
  
@@ -543,8 +540,8 @@ module mod_bats_mtrxbats
         end do
       end do
 
-      if ( mod(ktau+1,kbats) == 0 .or. first_pass ) then
-        if ( ktau <= 1 ) then
+      if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
+        if ( ktau == 0 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
         else if ( ktau+1 == kbats ) then
@@ -655,8 +652,8 @@ module mod_bats_mtrxbats
         end do
       end if
     end if
-    first_pass = .false.
     call time_end(subroutine_name,idindx)
+!
   end subroutine interf
 !
 ! Albedo calculates fragmented albedos (direct and diffuse) in

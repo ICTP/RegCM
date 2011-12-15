@@ -153,13 +153,13 @@ module mod_tendency
     intent (inout) iexec
 !
     real(8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
-               psabar , psasum , pt2bar , pt2tot , ptnbar ,        &
+               psabar , psasum , pt2bar , pt2tot , ptnbar , maxv , &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
     real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
                                             spchib3d
-    integer :: i , iptn , itr , j , k , lev , n
+    integer :: i , iptn , itr , j , k , lev , n , ii , jj , kk
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
     logical :: loutrad , labsem
@@ -1771,34 +1771,30 @@ module mod_tendency
     end if
 !
     do j = jbegin , jendx
-#ifndef BAND
-      if ( myid /= nproc-1 .or. j /= jendx ) then
-#endif
-!       add ccm radiative transfer package-calculated heating rates to
-!       temperature tendency
-        do k = 1 , kz
-          do i = 2 , iym2
-            ! heating rate in deg/sec
-            aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(j,i)*heatrt(j,i,k)
-          end do
+!     add ccm radiative transfer package-calculated heating rates to
+!     temperature tendency
+      do k = 1 , kz
+        do i = 2 , iym2
+          ! heating rate in deg/sec
+          aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(j,i)*heatrt(j,i,k)
         end do
+      end do
 !
-!       add horizontal diffusion and pbl tendencies for t and qv to aten%t
-!       and aten%qv for calculating condensational term in subroutine
-!       "condtq".
+!     add horizontal diffusion and pbl tendencies for t and qv to aten%t
+!     and aten%qv for calculating condensational term in subroutine
+!     "condtq".
 !
-        do k = 1 , kz
-          do i = 2 , iym2
-            aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
-          end do
+      do k = 1 , kz
+        do i = 2 , iym2
+          aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
         end do
+      end do
 !
-        do k = 1 , kz
-          do i = 2 , iym2
-            aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
-          end do
+      do k = 1 , kz
+        do i = 2 , iym2
+          aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
         end do
-      end if
+      end do
     end do
 !
 !   compute the condensation and precipitation terms for explicit
@@ -1810,86 +1806,80 @@ module mod_tendency
 !   aten%qv for appling the sponge boundary conditions on t and qv:
 !
     do j = jbegin , jendx
-#ifndef BAND
-      if ( myid /= nproc-1 .or. j /= jendx ) then
-#endif
-        if ( iboudy == 4 ) then
-          do k = 1 , kz
-            do i = 2 , iym2
-              aten%t(i,k,j) = aten%t(i,k,j) - adf%difft(i,k,j)
-            end do
-          end do
-          call sponge(.false.,ispgx,wgtx,aten%t,j,kz,xtb)
-          do k = 1 , kz
-            do i = 2 , iym2
-              aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
-            end do
-          end do
-          do k = 1 , kz
-            do i = 2 , iym2
-              aten%qv(i,k,j) = aten%qv(i,k,j) - adf%diffq(i,k,j)
-            end do
-          end do
-          call sponge(.false.,ispgx,wgtx,aten%qv,j,kz,xqb)
-          do k = 1 , kz
-            do i = 2 , iym2
-              aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
-            end do
-          end do
-        end if
-!
-!       apply the nudging boundary conditions:
-!
-        if ( iboudy == 1 .or. iboudy == 5 ) then
-          xtm1 = xbctime - dtsec
-          if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
-          call nudge(.false.,ispgx,fnudge,gnudge, &
-                     xtm1,atm2%t,aten%t,j,kz,iboudy,xtb)
-          call nudge(.false.,ispgx,fnudge,gnudge, &
-                     xtm1,atm2%qv,aten%qv,j,kz,iboudy,xqb)
-          
-          if ( ichem == 1 ) then
-! keep nudge_chi for now 
-!FAB        call nudge_chi(ispgx,fnudge,gnudge,xtm1,chiten(:,:,j,:),j, &
-!FAB                       iboudy)
-          end if
-
-        end if
-!
-!       forecast t, qv, and qc at tau+1:
-!
+      if ( iboudy == 4 ) then
         do k = 1 , kz
           do i = 2 , iym2
-            atmc%qv(i,k,j) = atm2%qv(i,k,j) + dt*aten%qv(i,k,j)
+            aten%t(i,k,j) = aten%t(i,k,j) - adf%difft(i,k,j)
           end do
         end do
-!
+        call sponge(.false.,ispgx,wgtx,aten%t,j,kz,xtb)
         do k = 1 , kz
           do i = 2 , iym2
-            atmc%qc(i,k,j) = atm2%qc(i,k,j) + dt*aten%qc(i,k,j)
+            aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
           end do
         end do
-!
         do k = 1 , kz
           do i = 2 , iym2
-            atmc%t(i,k,j) = atm2%t(i,k,j) + dt*aten%t(i,k,j)
+            aten%qv(i,k,j) = aten%qv(i,k,j) - adf%diffq(i,k,j)
           end do
         end do
+        call sponge(.false.,ispgx,wgtx,aten%qv,j,kz,xqb)
+        do k = 1 , kz
+          do i = 2 , iym2
+            aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
+          end do
+        end do
+      end if
 !
-!       forecast tracer chi at at tau+1:
+!     apply the nudging boundary conditions:
+!
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        xtm1 = xbctime - dtsec
+        if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
+        call nudge(.false.,ispgx,fnudge,gnudge, &
+                   xtm1,atm2%t,aten%t,j,kz,iboudy,xtb)
+        call nudge(.false.,ispgx,fnudge,gnudge, &
+                   xtm1,atm2%qv,aten%qv,j,kz,iboudy,xqb)
+        
         if ( ichem == 1 ) then
+! keep nudge_chi for now 
+!FAB      call nudge_chi(ispgx,fnudge,gnudge,xtm1,chiten(:,:,j,:),j, &
+!FAB                     iboudy)
+        end if
+
+      end if
 !
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do i = 2 , iym2
-                chic(i,k,j,itr) = chib(i,k,j,itr) + dt*chiten(i,k,j,itr)
-              end do
+!     forecast t, qv, and qc at tau+1:
+!
+      do k = 1 , kz
+        do i = 2 , iym2
+          atmc%qv(i,k,j) = atm2%qv(i,k,j) + dt*aten%qv(i,k,j)
+        end do
+      end do
+!
+      do k = 1 , kz
+        do i = 2 , iym2
+          atmc%qc(i,k,j) = atm2%qc(i,k,j) + dt*aten%qc(i,k,j)
+        end do
+      end do
+!
+      do k = 1 , kz
+        do i = 2 , iym2
+          atmc%t(i,k,j) = atm2%t(i,k,j) + dt*aten%t(i,k,j)
+        end do
+      end do
+!
+!     forecast tracer chi at at tau+1:
+      if ( ichem == 1 ) then
+!
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = 2 , iym2
+              chic(i,k,j,itr) = chib(i,k,j,itr) + dt*chiten(i,k,j,itr)
             end do
           end do
-        end if
-#ifndef BAND
-      end if !end if (j /= jxm1),else test
-#endif
+        end do
+      end if
     end do
 !
 #ifndef BAND
@@ -2388,6 +2378,20 @@ module mod_tendency
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
+        maxv = maxval(aten%t)
+        if ( maxv > d_one ) then
+          print *, 'MAXVAL ATEN T :', maxv
+          maxv = maxv - 0.001D0
+          do ii = 1 , iym1
+            do kk = 1 , kz
+              do jj = jbegin , jendx
+                if ( aten%t(ii,kk,jj) > maxv ) then
+                  print *, 'II :', ii , ', JJ :', myid*jxp+jj , ', KK :', kk
+                end if
+              end do
+            end do
+          end do
+        end if
         if ( myid == 0 ) then
           write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
           write (*,*) 'No more atmosphere here....'

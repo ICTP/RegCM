@@ -40,12 +40,13 @@ module mod_output
 
   private
 
-  integer :: iolak
+  integer :: iolak , iosts
   logical :: lskipsrf , lskiprad , lskipche
 
   public :: output , mkfile
 
   data iolak /0/
+  data iosts /0/
   data lskipsrf /.false./
   data lskiprad /.false./
   data lskipche /.false./
@@ -328,18 +329,9 @@ module mod_output
         end do
         call outsrf
       end if
-      iolak = iolak + 1
 
-      do i = 1 , iym2
-        do j = 1 , jxp
-          tgmx_o(j,i) = -1.E30
-          t2mx_o(j,i) = -1.E30
-          tgmn_o(j,i) =  1.E30
-          t2mn_o(j,i) =  1.E30
-          w10x_o(j,i) = -1.E30
-          psmn_o(j,i) =  1.E30
-        end do
-      end do
+      iolak = iolak + 1
+      iosts = iosts + 1
 
       if ( ifsub .and. nsg > 1 ) then
 
@@ -1307,6 +1299,16 @@ module mod_output
           end do
         end if
       end if
+      do j = 1 , jendx
+        do l = 1 , numsts
+          do i = 1 , iym2
+            fsavsts(i,l,j) = fbat(j,i,23+l)
+          end do
+        end do
+      end do
+      call mpi_gather(fsavsts,   iym2*numsts*jxp,mpi_real4, &
+                      fsavsts_io,iym2*numsts*jxp,mpi_real4, &
+                      0,mycomm,ierr)
       do j = 1 , jendl
         do n = 1 , nsplit
           do i = 1 , iy
@@ -1402,6 +1404,7 @@ module mod_output
     if (lakemod == 1 .and. iflak) then
       call prepare_common_out(idatex,'LAK')
     end if
+    call prepare_common_out(idatex,'STS')
   end if
  
   if ( nsg > 1 .and. ifsub ) then
@@ -1464,12 +1467,29 @@ module mod_output
 
   call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
   print *, 'SRF variables written at ' , tochar(idatex)
- 
+
+  if ( ifsts .and. mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
+    call writerec_sts(j,i,numbat,fbat_io,idatex)
+    print *, 'STS variables written at ' , tochar(idatex)
+    do i = 1 , iym2
+      do j = 1 , jxp
+        tgmx_o(j,i) = -1.E30
+        t2mx_o(j,i) = -1.E30
+        tgmn_o(j,i) =  1.E30
+        t2mn_o(j,i) =  1.E30
+        w10x_o(j,i) = -1.E30
+        psmn_o(j,i) =  1.E30
+      end do
+    end do
+    iosts = 0
+  end if
+
 #ifndef CLM
   if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
     call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                       hsnow2d_io,tlak3d_io,idatex)
     print *, 'LAK variables written at ' , tochar(idatex)
+    iolak = 0
   end if
 #endif
 
@@ -1523,7 +1543,7 @@ module mod_output
     end do
   end do
 
-  call writerec_rad(jmax, imax, kz, 4, 9, &
+  call writerec_rad(jmax, imax, kz, 4, 10, &
                     frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
                     radpsa_io, idatex)
 
