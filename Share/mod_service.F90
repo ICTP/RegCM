@@ -414,7 +414,7 @@ CONTAINS
        DO ENTRY=1,n_of_ENTRY
 
           L_times_on_pe=.FALSE.
-          CALL gather_i(a_tmp,info_serial(ENTRY)%n_of_time)
+          CALL gather_i(a_tmp(i),info_serial(ENTRY)%n_of_time)
           ! check the number of time
           test=a_tmp(0)
           avg_value= SUM(a_tmp)/mxnode 
