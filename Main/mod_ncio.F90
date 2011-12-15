@@ -988,7 +988,6 @@ contains
     character(3) , intent(in) :: ctype
     character(64) :: title
     character(32) :: fbname , ctime
-    character(64) :: cmethodmax , cmethodmin
     character(16) :: fterr
     character(256) :: ofname , history
     integer , dimension(8) :: tvals
@@ -1505,6 +1504,8 @@ contains
     call check_ok(__FILE__,__LINE__,'Error add ps coord', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'grid_mapping', 'rcm_map')
     call check_ok(__FILE__,__LINE__,'Error add ps grid_mapping', fterr)
+    istatus = nf90_put_att(ncid, illtpvar(5), 'cell_methods', 'time: point')
+    call check_ok(__FILE__,__LINE__,'Error add ps cell_methods', fterr)
 
     tyx = (/idims(1),idims(2),idims(3),-1,-1/)
     tzyx = (/idims(1),idims(2),idims(4),idims(3),-1/)
@@ -1575,29 +1576,13 @@ contains
       istatus = nf90_put_att(ncid, istsvar(2), 'units', 'hours since '//ctime)
       call check_ok(__FILE__,__LINE__,'Error add tbnds units', fterr)
       istsvar(3) = illtpvar(5)
-      write (cmethodmax, '(a)') 'time: maximum (interval: 1 day)'
-      write (cmethodmin, '(a)') 'time: minimum (interval: 1 day)'
       call addvara(ncid,ctype,tyx,.false.,4)
-      istatus = nf90_put_att(ncid, istsvar(4), 'cell_methods', cmethodmax)
-      call check_ok(__FILE__,__LINE__,'Error add tgmax cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,5)
-      istatus = nf90_put_att(ncid, istsvar(5), 'cell_methods', cmethodmin)
-      call check_ok(__FILE__,__LINE__,'Error add tgmin cell_methods', fterr)
       call addvara(ncid,ctype,t2yx,.false.,6)
-      istatus = nf90_put_att(ncid, istsvar(6), 'cell_methods', cmethodmax)
-      call check_ok(__FILE__,__LINE__,'Error add t2max cell_methods', fterr)
       call addvara(ncid,ctype,t2yx,.false.,7)
-      istatus = nf90_put_att(ncid, istsvar(7), 'cell_methods', cmethodmin)
-      call check_ok(__FILE__,__LINE__,'Error add t2min cell_methods', fterr)
       call addvara(ncid,ctype,t10yx,.false.,8)
-      istatus = nf90_put_att(ncid, istsvar(8), 'cell_methods', cmethodmax)
-      call check_ok(__FILE__,__LINE__,'Error add w10max cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,9)
-      istatus = nf90_put_att(ncid, istsvar(9), 'cell_methods', cmethodmax)
-      call check_ok(__FILE__,__LINE__,'Error add pcpmax cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,10)
-      istatus = nf90_put_att(ncid, istsvar(10), 'cell_methods', cmethodmin)
-      call check_ok(__FILE__,__LINE__,'Error add ps_min cell_methods', fterr)
     else if (ctype == 'SUB') then
       isubvar = -1
       isubvar(1) = itvar
@@ -1799,9 +1784,10 @@ contains
 
     character(len=8)   :: vname
     character(len=128) :: vst , vln
-    character(len=16)  :: vuni
+    character(len=16)  :: vuni , vmeth
     logical :: lreq
     integer :: ivar
+    character(64) :: cmethodpnt , cmethodmax , cmethodmin , cmethodmean
 
     integer :: i , ndims
 
@@ -1810,48 +1796,60 @@ contains
       if (idims(i) > 0) ndims = ndims+1
     end do
 
+    write (cmethodpnt,  '(a)') 'time: point'
+    write (cmethodmax,  '(a)') 'time: maximum (interval: 1 day)'
+    write (cmethodmin,  '(a)') 'time: minimum (interval: 1 day)'
+    write (cmethodmean, '(a)') 'time: mean (interval: 1 day)'
+
     select case (ctype)
       case ('ATM')
         vname = atm_variables(nvar)%vname
         vst   = atm_variables(nvar)%vstd_name
         vln   = atm_variables(nvar)%vdesc
         vuni  = atm_variables(nvar)%vunit
+        vmeth = atm_variables(nvar)%time_meth
         lreq  = atm_variables(nvar)%enabled
       case ('SRF')
         vname = srf_variables(nvar)%vname
         vst   = srf_variables(nvar)%vstd_name
         vln   = srf_variables(nvar)%vdesc
         vuni  = srf_variables(nvar)%vunit
+        vmeth = srf_variables(nvar)%time_meth
         lreq  = srf_variables(nvar)%enabled
       case ('SUB')
         vname = sub_variables(nvar)%vname
         vst   = sub_variables(nvar)%vstd_name
         vln   = sub_variables(nvar)%vdesc
         vuni  = sub_variables(nvar)%vunit
+        vmeth = sub_variables(nvar)%time_meth
         lreq  = sub_variables(nvar)%enabled
       case ('STS')
         vname = sts_variables(nvar)%vname
         vst   = sts_variables(nvar)%vstd_name
         vln   = sts_variables(nvar)%vdesc
         vuni  = sts_variables(nvar)%vunit
+        vmeth = sts_variables(nvar)%time_meth
         lreq  = sts_variables(nvar)%enabled
       case ('LAK')
         vname = lak_variables(nvar)%vname
         vst   = lak_variables(nvar)%vstd_name
         vln   = lak_variables(nvar)%vdesc
         vuni  = lak_variables(nvar)%vunit
+        vmeth = lak_variables(nvar)%time_meth
         lreq  = lak_variables(nvar)%enabled
       case ('RAD')
         vname = rad_variables(nvar)%vname
         vst   = rad_variables(nvar)%vstd_name
         vln   = rad_variables(nvar)%vdesc
         vuni  = rad_variables(nvar)%vunit
+        vmeth = rad_variables(nvar)%time_meth
         lreq  = rad_variables(nvar)%enabled
       case ('CHE')
         vname = che_variables(nvar)%vname
         vst   = che_variables(nvar)%vstd_name
         vln   = che_variables(nvar)%vdesc
         vuni  = che_variables(nvar)%vunit
+        vmeth = che_variables(nvar)%time_meth
         lreq  = che_variables(nvar)%enabled
       case default
         call fatal(__FILE__,__LINE__,ctype//': Not defined output type')
@@ -1884,6 +1882,24 @@ contains
       istatus = nf90_put_att(ncid, ivar, 'grid_mapping', 'rcm_map')
       call check_ok(__FILE__,__LINE__,'Error add '//vname//' grid_mapping', &
                     ctype//' FILE')
+      select case (vmeth)
+        case ( 'point' )
+          istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodpnt)
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+                        ctype//' FILE')
+        case ( 'maximum' )
+          istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmax)
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+                        ctype//' FILE')
+        case ( 'minimum' )
+          istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmin)
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+                        ctype//' FILE')
+        case ( 'mean' )
+          istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmean)
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+                        ctype//' FILE')
+      end select
       if (lmiss) then
         istatus = nf90_put_att(ncid, ivar, '_FillValue', smissval)
         call check_ok(__FILE__,__LINE__,'Error add '//vname//' coord', &
