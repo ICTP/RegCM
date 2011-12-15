@@ -189,7 +189,7 @@ module mod_bats_mtrxbats
 !   ROMS ocean model
     if ( iocncpl == 1 ) then
 !     update ground temperature in each coupling time step
-      if (mod(ktau+1,ntcpl) == ntsrf2) then 
+      if ((mod(ktau+1,ntcpl) == ntsrf2) .and. (ktau > ntcpl)) then 
         if (myid == 0) then 
           print*, "[debug] -- updating fields with ROMS SST ..."
         end if
