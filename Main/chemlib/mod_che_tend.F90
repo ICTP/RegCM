@@ -265,6 +265,7 @@
        end if 
 
         if ( size(icarb) > 0 ) then
+          print*, 'icarb', icarb
           ibin = count( icarb > 0 ) 
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov,ttb,rho,hlev, &
                            psurf,temp10,tsurf,srad,rh10,wid10,zeff,         &

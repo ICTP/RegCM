@@ -131,7 +131,7 @@ module mod_che_emission
 !
     call time_begin(subroutine_name,idindx)
 
-    if ( idust(1) > 0 ) then
+    if ( size(idust) > 0 ) then
       ! fisrt activate dust initialization
       write (aline, *) 'Calling inidust'
       call say

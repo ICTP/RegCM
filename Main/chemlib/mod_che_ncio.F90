@@ -240,7 +240,10 @@ module mod_che_ncio
 
     aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
 
-    print*, 'Opening ch. emission file', aername
+    print*, 'Opening ch. emission file : RETURN !!!!', aername
+    !CARE FAB shut down the emission reading temporarily 
+
+    return
 
     istatus = nf90_open(aername, nf90_nowrite, ncid)
     call check_ok(__FILE__,__LINE__, &
@@ -384,10 +387,10 @@ module mod_che_ncio
 
     istatus = nf90_inq_varid(ncid, cna, ivarid)     
     call check_ok(__FILE__,__LINE__, &
-                  'Variable '//cna//' miss','AEROSOL FILE')
+                  'Variable '//cna//' miss','CHEM_EMISS FILE')
     istatus = nf90_get_var(ncid,ivarid,toto)
     call check_ok(__FILE__,__LINE__, &
-                  'Variable '//cna//' read err','AEROSOL FILE')
+                  'Variable '//cna//' read err','CHEM_EMISS FILE')
     if ( lh ) then  ! half of lumped Aromatics
       do j = 1 , jx
         do i = 1 , iy
@@ -404,10 +407,10 @@ module mod_che_ncio
     if ( present(cnb) ) then
       istatus = nf90_inq_varid(ncid, cnb, ivarid)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnb//' miss','AEROSOL FILE')
+                    'Variable '//cnb//' miss','CHEM_EMISS FILE')
       istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnb//' read err','AEROSOL FILE')
+                    'Variable '//cnb//' read err','CHEM_EMISS FILE')
       do j = 1 , jx
         do i = 1 , iy
           echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
@@ -417,10 +420,10 @@ module mod_che_ncio
     if ( present(cnc) ) then
       istatus = nf90_inq_varid(ncid, cnc, ivarid)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnc//' miss','AEROSOL FILE')
+                    'Variable '//cnc//' miss','CHEM_EMISS FILE')
       istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnc//' read err','AEROSOL FILE')
+                    'Variable '//cnc//' read err','CHEM_EMISS FILE')
       do j = 1 , jx
         do i = 1 , iy
           echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
@@ -430,10 +433,10 @@ module mod_che_ncio
     if ( present(cnd) ) then
       istatus = nf90_inq_varid(ncid, cnd, ivarid)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnd//' miss','AEROSOL FILE')
+                    'Variable '//cnd//' miss','CHEM_EMISS FILE')
       istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
       call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnd//' read err','AEROSOL FILE')
+                    'Variable '//cnd//' read err','CHEM_EMISS FILE')
       do j = 1 , jx
         do i = 1 , iy
           echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)

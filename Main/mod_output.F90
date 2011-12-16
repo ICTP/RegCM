@@ -446,174 +446,181 @@ module mod_output
 !     Call chem output
   if ( ifchem ) then
     if ( ldoche ) then
-      do j = 1 , jendl
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = 1 , iy
-              chem0(i,(n-1)*kz+k,j) = chia(i,k,j,n)
-            end do
-          end do
-        end do
-      end do
-      do j = 1 , jendx
-        do k = 1 , kz
-          do i = 1 , iym1
-            chem0(i,ntr*kz+k,j) = aerext(j,i,k)
-            chem0(i,ntr*kz+kz+k,j) = aerssa(j,i,k)
-            chem0(i,ntr*kz+kz*2+k,j) = aerasp(j,i,k)
-          end do
-        end do
-      end do
-      do j = 1 , jendl
-        do n = 1 , ntr
-          do i = 1 , iy
-            chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr+n,j) = wdlsc(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr*2+n,j) = wdcvc(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr*3+n,j) = ddsfc(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr*4+n,j) = wxsg(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr*5+n,j) = wxaq(i,j,n)
-            chem0(i,(ntr+3)*kz+ntr*6+n,j) = cemtrac(i,j,n)
-          end do
-        end do
-      end do
-      do j = 1 , jendx
-        do i = 1 , iym1
-          chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(j,i)
-          chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(j,i)
-          chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(j,i)
-          chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(j,i)             
 
-        end do
-      end do
-      do j = 1 , jendl
-        do i = 1 , iy
-          chem0(i,(ntr+3)*kz+ntr*7+5,j) = sps1%ps(j,i)
-        end do
-      end do
-      call mpi_gather(chem0, iy*((ntr+3)*kz+ntr*7+5)*jxp,mpi_real8, &
-                      chem_0,iy*((ntr+3)*kz+ntr*7+5)*jxp,mpi_real8, &
-                      0,mycomm,ierr)
-      if ( myid == 0 ) then
-        do j = 1 , jx
-          do n = 1 , ntr
-            do k = 1 , kz
-              do i = 1 , iy
-                chia_io(i,k,j,n) = chem_0(i,(n-1)*kz+k,j)
-              end do
-            end do
-          end do
-        end do
-#ifdef BAND
-        do j = 1 , jx
-          do k = 1 , kz
-            do i = 1 , iym1
-              aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
-              aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
-              aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
-#else
-        do j = 1 , jxm1
-          do k = 1 , kz
-            do i = 1 , iym1
-              aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
-              aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
-              aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
-#endif
-            end do
-          end do
-        end do
-        do j = 1 , jx
-          do n = 1 , ntr
-            do i = 1 , iy
-              dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kz+n,j)
-              wdlsc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr+n,j)
-              wdcvc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*2+n,j)
-              ddsfc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*3+n,j)
-              wxsg_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*4+n,j)
-              wxaq_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*5+n,j)
-              cemtrac_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*6+n,j)
-            end do
-          end do
-        end do
-#ifdef BAND
-        do j = 1 , jx
-          do i = 1 , iym1
-            aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j)
-            aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j)
-            aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j)
-            aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j)
-#else
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
-            aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
-            aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
-            aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
-#endif
-          end do
-        end do
-        do j = 1 , jx
-          do i = 1 , iy
-            psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+5,j)
-          end do
-        end do
-        call outche
-        remlsc_io  = d_zero
-        remcvc_io  = d_zero
-        rxsg_io    = d_zero
-        rxsaq1_io  = d_zero
-        rxsaq2_io  = d_zero
-        cemtr_io   = d_zero
-        remdrd_io  = d_zero
-        wdlsc_io   = d_zero
-        wdcvc_io   = d_zero
-        ddsfc_io   = d_zero
-        wxsg_io    = d_zero
-        wxaq_io    = d_zero
-        cemtrac_io = d_zero
-        aertarf_io = d_zero
-        aersrrf_io = d_zero
-        aersrlwrf_io=d_zero
-        aertalwrf_io=d_zero
-      end if
-      do n = 1 , ntr
-        do j = 1 , jendl
-          do k = 1 , kz
-            do i = 1 , iy
-              remlsc(i,k,j,n) = d_zero
-              remcvc(i,k,j,n) = d_zero
-              rxsg(i,k,j,n) = d_zero
-              rxsaq1(i,k,j,n) = d_zero
-              rxsaq2(i,k,j,n) = d_zero
-            end do
-          end do
-        end do
-      end do
-      do n = 1 , ntr
-        do j = 1 , jendl
-          do i = 1 , iy
-            cemtr(i,j,n) = d_zero
-            remdrd(i,j,n) = d_zero
-            wdlsc(i,j,n) = d_zero
-            wdcvc(i,j,n) = d_zero
-            ddsfc(i,j,n) = d_zero
-            wxsg(i,j,n) = d_zero
-            wxaq(i,j,n) = d_zero
-            cemtrac(i,j,n) = d_zero
-          end do
-        end do
-      end do
-      do j = 1 , jendl
-        do i = 1 , iym1
-          aertarf(j,i) = d_zero
-          aersrrf(j,i) = d_zero
-          aertalwrf(j,i) = d_zero              
-          aersrlwrf(j,i) = d_zero
-        end do
-      end do
-    end if
-  end if
-!
+!    call output_chem
+
+
+!!$      do j = 1 , jendl
+!!$        do n = 1 , ntr
+!!$          do k = 1 , kz
+!!$            do i = 1 , iy
+!!$              chem0(i,(n-1)*kz+k,j) = chia(i,k,j,n)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end do
+!!$      do j = 1 , jendx
+!!$        do k = 1 , kz
+!!$          do i = 1 , iym1
+!!$            chem0(i,ntr*kz+k,j) = aerext(j,i,k)
+!!$            chem0(i,ntr*kz+kz+k,j) = aerssa(j,i,k)
+!!$            chem0(i,ntr*kz+kz*2+k,j) = aerasp(j,i,k)
+!!$          end do
+!!$        end do
+!!$      end do
+!!$      do j = 1 , jendl
+!!$        do n = 1 , ntr
+!!$          do i = 1 , iy
+!!$            chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr+n,j) = wdlsc(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr*2+n,j) = wdcvc(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr*3+n,j) = ddsfc(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr*4+n,j) = wxsg(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr*5+n,j) = wxaq(i,j,n)
+!!$            chem0(i,(ntr+3)*kz+ntr*6+n,j) = cemtrac(i,j,n)
+!!$          end do
+!!$        end do
+!!$      end do
+!!$      do j = 1 , jendx
+!!$        do i = 1 , iym1
+!!$          chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(j,i)
+!!$          chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(j,i)
+!!$          chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(j,i)
+!!$          chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(j,i)             
+!!$
+!!$        end do
+!!$      end do
+!!$      do j = 1 , jendl
+!!$        do i = 1 , iy
+!!$          chem0(i,(ntr+3)*kz+ntr*7+5,j) = sps1%ps(j,i)
+!!$        end do
+!!$      end do
+!!$      call mpi_gather(chem0, iy*((ntr+3)*kz+ntr*7+5)*jxp,mpi_real8, &
+!!$                      chem_0,iy*((ntr+3)*kz+ntr*7+5)*jxp,mpi_real8, &
+!!$                      0,mycomm,ierr)
+!!$      if ( myid == 0 ) then
+!!$        do j = 1 , jx
+!!$          do n = 1 , ntr
+!!$            do k = 1 , kz
+!!$              do i = 1 , iy
+!!$                chia_io(i,k,j,n) = chem_0(i,(n-1)*kz+k,j)
+!!$              end do
+!!$            end do
+!!$          end do
+!!$        end do
+!!$#ifdef BAND
+!!$        do j = 1 , jx
+!!$          do k = 1 , kz
+!!$            do i = 1 , iym1
+!!$              aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
+!!$              aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
+!!$              aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
+!!$#else
+!!$        do j = 1 , jxm1
+!!$          do k = 1 , kz
+!!$            do i = 1 , iym1
+!!$              aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
+!!$              aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
+!!$              aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
+!!$#endif
+!!$            end do
+!!$          end do
+!!$        end do
+!!$        do j = 1 , jx
+!!$          do n = 1 , ntr
+!!$            do i = 1 , iy
+!!$              dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kz+n,j)
+!!$              wdlsc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr+n,j)
+!!$              wdcvc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*2+n,j)
+!!$              ddsfc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*3+n,j)
+!!$              wxsg_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*4+n,j)
+!!$              wxaq_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*5+n,j)
+!!$              cemtrac_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*6+n,j)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$#ifdef BAND
+!!$        do j = 1 , jx
+!!$          do i = 1 , iym1
+!!$            aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j)
+!!$            aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j)
+!!$            aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j)
+!!$            aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j)
+!!$#else
+!!$        do j = 1 , jxm1
+!!$          do i = 1 , iym1
+!!$            aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
+!!$            aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
+!!$            aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
+!!$            aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
+!!$#endif
+!!$          end do
+!!$        end do
+!!$        do j = 1 , jx
+!!$          do i = 1 , iy
+!!$            psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+5,j)
+!!$          end do
+!!$        end do
+!!$        call outche
+!!$        remlsc_io  = d_zero
+!!$        remcvc_io  = d_zero
+!!$        rxsg_io    = d_zero
+!!$        rxsaq1_io  = d_zero
+!!$        rxsaq2_io  = d_zero
+!!$        cemtr_io   = d_zero
+!!$        remdrd_io  = d_zero
+!!$        wdlsc_io   = d_zero
+!!$        wdcvc_io   = d_zero
+!!$        ddsfc_io   = d_zero
+!!$        wxsg_io    = d_zero
+!!$        wxaq_io    = d_zero
+!!$        cemtrac_io = d_zero
+!!$        aertarf_io = d_zero
+!!$        aersrrf_io = d_zero
+!!$        aersrlwrf_io=d_zero
+!!$        aertalwrf_io=d_zero
+!!$      end if
+!!$      do n = 1 , ntr
+!!$        do j = 1 , jendl
+!!$          do k = 1 , kz
+!!$            do i = 1 , iy
+!!$              remlsc(i,k,j,n) = d_zero
+!!$              remcvc(i,k,j,n) = d_zero
+!!$              rxsg(i,k,j,n) = d_zero
+!!$              rxsaq1(i,k,j,n) = d_zero
+!!$              rxsaq2(i,k,j,n) = d_zero
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end do
+!!$      do n = 1 , ntr
+!!$        do j = 1 , jendl
+!!$          do i = 1 , iy
+!!$            cemtr(i,j,n) = d_zero
+!!$            remdrd(i,j,n) = d_zero
+!!$            wdlsc(i,j,n) = d_zero
+!!$            wdcvc(i,j,n) = d_zero
+!!$            ddsfc(i,j,n) = d_zero
+!!$            wxsg(i,j,n) = d_zero
+!!$            wxaq(i,j,n) = d_zero
+!!$            cemtrac(i,j,n) = d_zero
+!!$          end do
+!!$        end do
+!!$      end do
+!!$      do j = 1 , jendl
+!!$        do i = 1 , iym1
+!!$          aertarf(j,i) = d_zero
+!!$          aersrrf(j,i) = d_zero
+!!$          aertalwrf(j,i) = d_zero              
+!!$          aersrlwrf(j,i) = d_zero
+!!$        end do
+!!$      end do
+
+
+
+   end if
+ end if
+!!$!
 !-----output for restart:
 !
   if ( ifsave ) then
@@ -1426,6 +1433,8 @@ module mod_output
   if ( ichem == 1 ) then
     if ( ifchem ) then
       call prepare_common_out(idatex,'CHE')
+!!$      if (iaerosol == 1) call prepare_opt_out(idatex)
+!!$      call prepare_chem_out(idatex)
     end if
   end if
 

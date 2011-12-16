@@ -28,7 +28,7 @@ module mod_che_common
 
   public
 !
-  integer , parameter :: maxntr = 20
+  integer , parameter :: maxntr =40 
   integer , parameter :: maxnbin = 4
   integer , parameter :: maxnssl = 2
 !
