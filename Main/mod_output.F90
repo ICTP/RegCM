@@ -328,6 +328,16 @@ module mod_output
         end do
         call outsrf
       end if
+      do i = 1 , iym2
+        do j = 1 , jxp
+          tgmx_o(j,i) = -1.E30
+          t2mx_o(j,i) = -1.E30
+          tgmn_o(j,i) =  1.E30
+          t2mn_o(j,i) =  1.E30
+          w10x_o(j,i) = -1.E30
+          psmn_o(j,i) =  1.E30
+        end do
+      end do
 
       iolak = iolak + 1
 
@@ -1469,16 +1479,6 @@ module mod_output
   if ( ifsts .and. mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
     call writerec_sts(j,i,numbat,fbat_io,idatex)
     print *, 'STS variables written at ' , tochar(idatex)
-    do i = 1 , iym2
-      do j = 1 , jxp
-        tgmx_o(j,i) = -1.E30
-        t2mx_o(j,i) = -1.E30
-        tgmn_o(j,i) =  1.E30
-        t2mn_o(j,i) =  1.E30
-        w10x_o(j,i) = -1.E30
-        psmn_o(j,i) =  1.E30
-      end do
-    end do
   end if
 
 #ifndef CLM
