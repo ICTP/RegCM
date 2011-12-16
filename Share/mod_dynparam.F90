@@ -260,7 +260,7 @@ module mod_dynparam
 
 ! Fixed dimensions
 
-  integer , parameter :: numsts = 7
+  integer , parameter :: numsts = 9
   integer , parameter :: numbat = 23 + numsts
   integer , parameter :: numsub = 16
 

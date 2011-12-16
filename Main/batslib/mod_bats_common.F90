@@ -37,6 +37,9 @@ module mod_bats_common
   integer(8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(8) :: ntsrf2 ! Number of time step to call BATs 
 
+  ! How many soil model steps for a day
+  real(sp) :: fdaysrf
+
   integer :: iocnrough , iocnflx, iocncpl
 
   real(dp) , pointer , dimension(:,:,:) :: delq , delt , albdifs ,  &
@@ -70,11 +73,12 @@ module mod_bats_common
 !
   real(sp) , pointer , dimension(:,:,:) :: fbat
 !
-  real(sp) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
+  real(sp) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o , &
         flwd_o , fswa_o , prcv_o , psmn_o , ps_o , q2m_o , rnos_o , &
         rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
         t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
-        v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o , pcpx_o
+        v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o , pcpx_o ,   &
+        pcpa_o , tavg_o
 !
   real(sp) , pointer , dimension(:,:,:,:) :: fsub
 !
@@ -233,9 +237,11 @@ module mod_bats_common
     tgmn_o => fbat(:,:,25)
     t2mx_o => fbat(:,:,26)
     t2mn_o => fbat(:,:,27)
-    w10x_o => fbat(:,:,28)
-    pcpx_o => fbat(:,:,29)
-    psmn_o => fbat(:,:,30)
+    tavg_o => fbat(:,:,28)
+    w10x_o => fbat(:,:,29)
+    pcpx_o => fbat(:,:,30)
+    pcpa_o => fbat(:,:,31)
+    psmn_o => fbat(:,:,32)
 
     call getmem4d(fsub,1,nnsg,1,jxp,1,iym2,1,numsub,'bats:fsub')
     ps_s   => fsub(:,:,:,1)

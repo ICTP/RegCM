@@ -123,8 +123,8 @@ module mod_ncio
   data nclak   /-1/
   data ilakrec / 1/
 
-  data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, &
-                   1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 /
+  data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, &
+                   1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 /
 
 contains
 
@@ -1580,9 +1580,11 @@ contains
       call addvara(ncid,ctype,tyx,.false.,5)
       call addvara(ncid,ctype,t2yx,.false.,6)
       call addvara(ncid,ctype,t2yx,.false.,7)
-      call addvara(ncid,ctype,t10yx,.false.,8)
-      call addvara(ncid,ctype,tyx,.false.,9)
+      call addvara(ncid,ctype,t2yx,.false.,8)
+      call addvara(ncid,ctype,t10yx,.false.,9)
       call addvara(ncid,ctype,tyx,.false.,10)
+      call addvara(ncid,ctype,tyx,.false.,11)
+      call addvara(ncid,ctype,tyx,.false.,12)
     else if (ctype == 'SUB') then
       isubvar = -1
       isubvar(1) = itvar
@@ -1976,6 +1978,7 @@ contains
     do n = 24 , numbat
       if ( sts_variables(ivar)%enabled ) then
         if (ivar == ivarname_lookup('STS', 'w10max') .or. &
+            ivar == ivarname_lookup('STS', 't2avg')  .or. &
             ivar == ivarname_lookup('STS', 't2max')  .or. &
             ivar == ivarname_lookup('STS', 't2min')) then
           istart(4) = istsrec

@@ -893,6 +893,7 @@ module mod_params
   kche = nchefrq/idnint(dtsec)
   kdbg = ndbgfrq/idnint(dtsec)
   ksav = nsavfrq/idnint(dtsec)
+  fdaysrf = real(secpd/dtsrf)
 
   bdif = idate2 - idate1
   mtau = idnint((tohours(bdif)*secph)/dt)

@@ -90,7 +90,7 @@ module mod_runparams
   integer , parameter :: n_radvar = 16
   integer , parameter :: n_chevar = 17
   integer , parameter :: n_lakvar = 16
-  integer , parameter :: n_stsvar = 10
+  integer , parameter :: n_stsvar = 12
 
   integer, private  :: ierr 
   real(8) , private :: total_allocation_size
@@ -205,10 +205,14 @@ module mod_runparams
           'Maximum 2 meters temperature','K','maximum',.true.),               &
     output_variable('t2min','air_temperature',                                &
           'Minimum 2 meters temperature','K','minimum',.true.),               &
+    output_variable('t2avg','air_temperature',                                &
+          'Average 2 meters temperature','K','mean',.true.),                  &
     output_variable('w10max','wind_speed',                                    &
           'Maximum speed of 10m wind','m s-1','maximum',.true.),              &
     output_variable('pcpmax','precipitation_flux',                            &
-          'Maximum precipitation','kg m-2 day-1','maximum',.true.),           &
+          'Maximum precipitation flux','kg m-2 s-1','maximum',.true.),        &
+    output_variable('pcpavg','precipitation_flux',                            &
+          'Average precipitation flux','kg m-2 s-1','mean',.true.),           &
     output_variable('ps_min','air_pressure',                                  &
           'Minimum of surface pressure','hPa','minimum',.true.) /
 
