@@ -1335,9 +1335,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
-          if ( coszrs(i) > dlowval ) then
-            sund_o(j,i-1) = sund_o(j,i-1) + dtbat
-            sunt_o(j,i-1) = sunt_o(j,i-1) + dtbat
+          if ( coszrs(j,i) > dlowval ) then
+            sund_o(j,i-1) = sund_o(j,i-1) + real(dtbat)
+            sunt_o(j,i-1) = sunt_o(j,i-1) + real(dtbat)
           end if
  
           drag_o(j,i-1) = 0.0
