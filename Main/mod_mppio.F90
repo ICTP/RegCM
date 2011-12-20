@@ -65,11 +65,6 @@ module mod_mppio
 
   real(8) , pointer , dimension(:,:,:) :: dstor_io , hstor_io
 
-  real(8) , pointer , dimension(:,:,:) :: aerasp_io ,           &
-                              aerext_io , aerssa_io
-  real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io,&
-                            aertalwrf_io , aersrlwrf_io
-
   real(8) , pointer , dimension(:,:) :: ps0_io , ps1_io , ts0_io ,  &
                            ts1_io
   real(8) , pointer , dimension(:,:,:) :: qb0_io , qb1_io , &
@@ -256,13 +251,6 @@ module mod_mppio
       call getmem3d(gasemstot_io,1,iym1,1,kzp1,1,mjj,'mppio:gasemstot_io')
       call getmem3d(heatrt_io,1,iym1,1,kz,1,mjj,'mppio:heatrt_io')
       call getmem3d(o3prof_io,1,iym1,1,kzp1,1,mjj,'mppio:o3prof_io')
-      call getmem3d(aerasp_io,1,iym1,1,kz,1,mjj,'mppio:aerasp_io')
-      call getmem3d(aerext_io,1,iym1,1,kz,1,mjj,'mppio:aerext_io')
-      call getmem3d(aerssa_io,1,iym1,1,kz,1,mjj,'mppio:aerssa_io')
-      call getmem2d(aersrrf_io,1,iym1,1,mjj,'mppio:aersrrf_io')
-      call getmem2d(aertarf_io,1,iym1,1,mjj,'mppio:aertarf_io')
-      call getmem2d(aertalwrf_io,1,iym1,1,mjj,'mppio:aertalwrf_io')
-      call getmem2d(aersrlwrf_io,1,iym1,1,mjj,'mppio:aersrlwrf_io')
 
       call getmem2d(ps0_io,1,iy,1,jx,'mppio:ps0_io')
       call getmem2d(ps1_io,1,iy,1,jx,'mppio:ps1_io')

@@ -45,6 +45,8 @@ subroutine start_chem (ifrest)
   character(256)       :: namelistfile,prgname
   integer              :: ierr,err
   integer              :: itr,i,k,j,ibin,jbin,kbin
+!fab provisoir
+  logical :: lband
 
 ! je sais pas a quoi ca sert
 !!$  if ( myid.eq.0 ) then
@@ -274,6 +276,9 @@ print*, 'After startchem', icarb, isslt,idust
 !        if(.not.allocated(chevap)) allocate(chevap(iy,kz))
 !        if(.not.allocated(checum)) allocate(checum(iy,kz))
 
+
+
+
   !*** Initialize record read counter for CH EMISSI (see mod_che_ncio.F90)
   recc = 0
   
@@ -282,8 +287,11 @@ print*, 'After startchem', icarb, isslt,idust
 
   call chem_initial_state(ifrest)
 
- print*, 'aprese chem_initial'
 
+lband = .false. !! provisoire!
+  call init_mod_che_ncio(lband) 
+
+ print*, 'aprese chem_initial'
 
 
 ! FAB Traiter le prbleme du restart apres

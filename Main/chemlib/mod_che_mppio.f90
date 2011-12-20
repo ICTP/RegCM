@@ -39,7 +39,14 @@ module mod_che_mppio
   real(dp) , pointer , dimension(:,:,:,:) :: chemall_io
   real(dp) , pointer , dimension(:,:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
-                                           wdcvc_io , wdlsc_io
+                                           wdcvc_io , wdlsc_io, drydepv_io
+
+
+  real(8) , pointer , dimension(:,:,:) :: aerasp_io ,           &
+                              aerext_io , aerssa_io
+  real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io,&
+                            aertalwrf_io , aersrlwrf_io
+
 
   real(dp) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,  &
                           sdelqk2d_io , sfracv2d_io , sfracb2d_io , &
@@ -56,7 +63,7 @@ module mod_che_mppio
 !
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
-
+  real(dp), pointer, dimension (:,:) :: cpsa_io
 !---------- DATA init section--------------------------------------------
 
   contains 
@@ -75,15 +82,17 @@ module mod_che_mppio
     end if
     if ( lch ) then
 
-      call getmem3d(chem0,1,iy,1,ntr*kz+kz*3+ntr*7+5,1,jxp,'che_mppio:chem0')
+      call getmem3d(chem0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jxp,'che_mppio:chem0')
       call getmem4d(src0,1,iy,1,mpy,1,ntr,1,jxp,'che_mppio:src0')
       call getmem3d(src1,1,iy,1,nats,1,jxp,'che_mppio:src1')
 
       if (myid == 0) then
         call getmem4d(chemall_io,1,iy,1,kz,1,jx,1,totsp,'che_mppio:chemall_io')
-        call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*7+5,1,jx,'che_mppio:chem_0')
+        call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
         call getmem4d(src_0,1,iy,1,mpy,1,ntr,1,jx,'che_mppio:src_0')
         call getmem3d(src_1,1,iy,1,nats,1,jx,'che_mppio:src_1')
+
+        call getmem2d(cpsa_io,1,iy,1,jx,'che_mppio:cpsa_io')
 
         call getmem2d(ssw2da_io,1,iym1,1,mmj,'che_mppio:ssw2da_io')
         call getmem2d(sdelqk2d_io,1,iym1,1,mmj,'che_mppio:sdelqk2d_io')
@@ -103,6 +112,7 @@ module mod_che_mppio
         call getmem4d(remcvc_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:remcvc_io')
         call getmem4d(remlsc_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:remlsc_io')
         call getmem3d(remdrd_io,1,iy,1,jx,1,ntr,'che_mppio:remdrd_io')
+        call getmem3d(drydepv_io,1,iy,1,jx,1,ntr,'che_mppio:drydepv_io')
         call getmem4d(chemsrc_io,1,iy,1,jx,1,mpy,1,ntr,'che_mppio:chemsrc_io')
         call getmem3d(ddsfc_io,1,iy,1,jx,1,ntr,'che_mppio:ddsfc_io')
         call getmem3d(dtrace_io,1,iy,1,jx,1,ntr,'che_mppio:dtrace_io')
@@ -111,6 +121,16 @@ module mod_che_mppio
         call getmem4d(chia_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chia_io')
         call getmem4d(chib_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chib_io')
         call getmem3d(dustsotex_io,1,iy,1,jx,1,nats,'che_mppio:dustsotex_io')
+
+        call getmem3d(aerasp_io,1,iym1,1,kz,1,mmj,'che_mppio:aerasp_io')
+        call getmem3d(aerext_io,1,iym1,1,kz,1,mmj,'che_mppio:aerext_io')
+        call getmem3d(aerssa_io,1,iym1,1,kz,1,mmj,'che_mppio:aerssa_io')
+        call getmem2d(aersrrf_io,1,iym1,1,mmj,'che_mppio:aersrrf_io')
+        call getmem2d(aertarf_io,1,iym1,1,mmj,'che_mppio:aertarf_io')
+        call getmem2d(aertalwrf_io,1,iym1,1,mmj,'che_mppio:aertalwrf_io')
+        call getmem2d(aersrlwrf_io,1,iym1,1,mmj,'che_mppio:aersrlwrf_io')
+
+
       end if
     end if
 

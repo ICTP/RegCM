@@ -134,7 +134,7 @@ mod_ncio.o: mod_ncio.F90 mod_che_interface.o mod_cu_interface.o \
 mod_output.o: mod_output.F90 mod_bdycod.o mod_cu_interface.o \
   mod_rad_interface.o mod_che_interface.o mod_atm_interface.o mod_precip.o \
   mod_runparams.o mod_diagnosis.o mod_lm_interface.o \
-  mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o
+  mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o $(CHELIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_params.o: mod_params.F90 mod_lm_interface.o mod_cu_interface.o \
   mod_atm_interface.o mod_runparams.o mod_mppio.o mod_precip.o \
