@@ -710,10 +710,10 @@ module mod_cu_bm
       if ( prainx > dlowval ) then
         rainc(j,i) = rainc(j,i) + prainx
 !       precipitation rate for bats (mm/s)
-        if ( ktau == 0 ) then
+        if ( ktau == 0 .and. debug_level > 2 ) then
           lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtcum
         else
-          lmpcpc(j,i) = lmpcpc(j,i) + (prainx*dtcum)/aprdiv
+          lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dtcum)/aprdiv
         end if
       end if
       do l = ltpk , lb

@@ -136,7 +136,7 @@ module mod_cu_em
           prainx = pret*dtmdl
           if ( prainx > dlowval ) then
             rainc(j,i)  = rainc(j,i)  + prainx  ! mm
-            if ( ktau == 0 ) then
+            if ( ktau == 0 .and. debug_level > 2 ) then
               lmpcpc(j,i) = lmpcpc(j,i) + pret
             else
               lmpcpc(j,i) = lmpcpc(j,i) + pret*aprdiv

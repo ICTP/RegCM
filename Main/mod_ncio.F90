@@ -124,7 +124,8 @@ module mod_ncio
   data ilakrec / 1/
 
   data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, &
-                   1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 /
+                   1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, &
+                   0, 0/
 
 contains
 
@@ -1296,7 +1297,7 @@ contains
       istatus = nf90_put_att(ncid, isrvvar(3), 'units', '1')
       call check_ok(__FILE__,__LINE__,'Error add layer units', fterr)
     end if
-    if (ctype == 'STS') then
+    if (ctype == 'STS' .or. ctype == 'SRF') then
       istatus = nf90_def_dim(ncid, 'nv', 2, idims(8))
       call check_ok(__FILE__,__LINE__,'Error create dim nv', fterr)
     end  if
@@ -1487,7 +1488,7 @@ contains
     call check_ok(__FILE__,__LINE__,'Error add time calendar', fterr)
     istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
     call check_ok(__FILE__,__LINE__,'Error add time units', fterr)
-    if (ctype == 'STS') then
+    if (ctype == 'STS' .or. ctype == 'SRF') then
       istatus = nf90_put_att(ncid, itvar, 'bounds', 'tbnds')
       call check_ok(__FILE__,__LINE__,'Error add time bounds', fterr)
     end if
@@ -1534,24 +1535,31 @@ contains
       call addvara(ncid,ctype,tyx,.false.,12)
       call addvara(ncid,ctype,tyx,.false.,13)
       call addvara(ncid,ctype,tyx,.true.,14)
-      call addvara(ncid,ctype,tyx,.true.,15)
     else if (ctype == 'SRF') then
       isrfvar = -1
       isrfvar(1) = itvar
       isrfvar(2) = illtpvar(5)
-      call addvara(ncid,ctype,t10yx,.false.,3)
+      istatus = nf90_def_var(ncid, 'tbnds', nf90_double, &
+                             (/idims(8),idims(3)/), isrfvar(2))
+      call check_ok(__FILE__,__LINE__,'Error add var tbnds', fterr)
+      istatus = nf90_put_att(ncid, isrfvar(2), &
+                             'calendar', calstr(idate%calendar))
+      call check_ok(__FILE__,__LINE__,'Error add tbnds calendar', fterr)
+      istatus = nf90_put_att(ncid, isrfvar(2), 'units', 'hours since '//ctime)
+      call check_ok(__FILE__,__LINE__,'Error add tbnds units', fterr)
+      isrfvar(3) = illtpvar(5)
       call addvara(ncid,ctype,t10yx,.false.,4)
-      call addvara(ncid,ctype,tyx,.false.,5)
+      call addvara(ncid,ctype,t10yx,.false.,5)
       call addvara(ncid,ctype,tyx,.false.,6)
-      call addvara(ncid,ctype,tyx,.true.,7)
-      call addvara(ncid,ctype,t2yx,.false.,8)
+      call addvara(ncid,ctype,tyx,.false.,7)
+      call addvara(ncid,ctype,tyx,.true.,8)
       call addvara(ncid,ctype,t2yx,.false.,9)
-      call addvara(ncid,ctype,tlyx,.true.,10)
-      call addvara(ncid,ctype,tyx,.false.,11)
+      call addvara(ncid,ctype,t2yx,.false.,10)
+      call addvara(ncid,ctype,tlyx,.true.,11)
       call addvara(ncid,ctype,tyx,.false.,12)
-      call addvara(ncid,ctype,tyx,.true.,13)
+      call addvara(ncid,ctype,tyx,.false.,13)
       call addvara(ncid,ctype,tyx,.true.,14)
-      call addvara(ncid,ctype,tyx,.false.,15)
+      call addvara(ncid,ctype,tyx,.true.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
       call addvara(ncid,ctype,tyx,.false.,17)
       call addvara(ncid,ctype,tyx,.false.,18)
@@ -1560,9 +1568,11 @@ contains
       call addvara(ncid,ctype,tyx,.false.,21)
       call addvara(ncid,ctype,tyx,.false.,22)
       call addvara(ncid,ctype,tyx,.false.,23)
+      call addvara(ncid,ctype,tyx,.false.,24)
+      call addvara(ncid,ctype,tyx,.false.,25)
       if ( iseaice == 1 .or. lakemod == 1 ) then
-        srf_variables(24)%enabled = .true.
-        call addvara(ncid,ctype,tyx,.false.,24)
+        srf_variables(26)%enabled = .true.
+        call addvara(ncid,ctype,tyx,.false.,26)
       end if
     else if (ctype == 'STS') then
       istsvar = -1
@@ -1585,6 +1595,7 @@ contains
       call addvara(ncid,ctype,tyx,.false.,10)
       call addvara(ncid,ctype,tyx,.false.,11)
       call addvara(ncid,ctype,tyx,.false.,12)
+      call addvara(ncid,ctype,tyx,.false.,13)
     else if (ctype == 'SUB') then
       isubvar = -1
       isubvar(1) = itvar
@@ -1603,6 +1614,8 @@ contains
       call addvara(ncid,ctype,tyx,.true.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
+      call addvara(ncid,ctype,tyx,.false.,17)
+      call addvara(ncid,ctype,tyx,.false.,18)
     else if (ctype == 'RAD') then
       iradvar = -1
       iradvar(1) = itvar
@@ -1621,6 +1634,8 @@ contains
       call addvara(ncid,ctype,tyx,.false.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
+      call addvara(ncid,ctype,tyx,.false.,17)
+      call addvara(ncid,ctype,tyx,.false.,18)
     else if (ctype == 'CHE') then
       istatus = nf90_def_var(ncid, 'chtrname', nf90_char, &
                              inmlen, ichname)
@@ -1789,7 +1804,8 @@ contains
     character(len=16)  :: vuni , vmeth
     logical :: lreq
     integer :: ivar
-    character(64) :: cmethodpnt , cmethodmax , cmethodmin , cmethodmean
+    character(64) :: cmethodpnt , cmethodmax , cmethodmin
+    character(64) :: cmethodsum , cmethodmean
 
     integer :: i , ndims
 
@@ -1798,10 +1814,23 @@ contains
       if (idims(i) > 0) ndims = ndims+1
     end do
 
-    write (cmethodpnt,  '(a)') 'time: point'
-    write (cmethodmax,  '(a)') 'time: maximum (interval: 1 day)'
-    write (cmethodmin,  '(a)') 'time: minimum (interval: 1 day)'
-    write (cmethodmean, '(a)') 'time: mean (interval: 1 day)'
+    if ( ctype == 'STS' ) then
+      write (cmethodpnt,  '(a)') 'time: point'
+      write (cmethodmax,  '(a)') 'time: maximum (interval: 1 day)'
+      write (cmethodmin,  '(a)') 'time: minimum (interval: 1 day)'
+      write (cmethodmean, '(a)') 'time: mean (interval: 1 day)'
+      write (cmethodsum,  '(a)') 'time: sum (interval: 1 day)'
+    else
+      write (cmethodpnt,  '(a)') 'time: point'
+      write (cmethodmax,  '(a,i2,a)') 'time: maximum (interval: ', & 
+                           idnint(srffrq), ' hours)'
+      write (cmethodmin,  '(a,i2,a)') 'time: minimum (interval: ', &
+                           idnint(srffrq), ' hours)'
+      write (cmethodmean, '(a,i2,a)') 'time: mean (interval: ', &
+                           idnint(srffrq), ' hours)'
+      write (cmethodsum,  '(a,i2,a)') 'time: sum (interval: ', &
+                           idnint(srffrq), ' hours)'
+    end if
 
     select case (ctype)
       case ('ATM')
@@ -1887,19 +1916,23 @@ contains
       select case (vmeth)
         case ( 'point' )
           istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodpnt)
-          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods',&
                         ctype//' FILE')
         case ( 'maximum' )
           istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmax)
-          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods',&
                         ctype//' FILE')
         case ( 'minimum' )
           istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmin)
-          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods',&
                         ctype//' FILE')
         case ( 'mean' )
           istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodmean)
-          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods', &
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods',&
+                        ctype//' FILE')
+        case ( 'sum' )
+          istatus = nf90_put_att(ncid, ivar, 'cell_methods', cmethodsum)
+          call check_ok(__FILE__,__LINE__,'Error add '//vname//' cell_methods',&
                         ctype//' FILE')
       end select
       if (lmiss) then
@@ -1975,7 +2008,7 @@ contains
                   'Error writing '//sts_variables(3)%vname// &
                   ' at '//ctime, 'STS FILE')
     ivar = 4
-    do n = 24 , numbat
+    do n = 25 , numbat
       if ( sts_variables(ivar)%enabled ) then
         if (ivar == ivarname_lookup('STS', 'w10max') .or. &
             ivar == ivarname_lookup('STS', 't2avg')  .or. &
@@ -2028,7 +2061,7 @@ contains
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(8) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     logical :: lskip
     character(len=36) :: ctime
@@ -2041,16 +2074,22 @@ contains
     end if
     ctime = tochar(idate)
 
-    istart(1) = isrfrec
-    icount(1) = 1
+    istart(2) = isrfrec
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = 2
     tdif = idate-cordex_refdate
-    nctime(1) = tohours(tdif)
-    istatus = nf90_put_var(ncsrf, isrfvar(1), nctime, istart(1:1), icount(1:1))
+    nctime(2) = tohours(tdif)
+    nctime(1) = nctime(2)-srffrq
+    istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(2:2), &
+                           istart(2:2), icount(2:2))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SRF FILE')
-
-    ivar = 2
+    istatus = nf90_put_var(ncsrf, isrfvar(2), nctime, &
+                           istart(1:2), icount(1:2))
+    call check_ok(__FILE__,__LINE__,'Error writing tbnds '//ctime, 'SRF FILE')
+    ivar = 3
     lskip = .false.
-    do n = 1 , 23
+    do n = 1 , 24
       if (lskip) then
         lskip = .false.
         cycle
@@ -2121,10 +2160,10 @@ contains
       icount(3) = 1
       icount(2) = o_ni
       icount(1) = o_nj
-      istatus = nf90_put_var(ncsrf, isrfvar(24), & 
+      istatus = nf90_put_var(ncsrf, isrfvar(26), & 
                dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
-                    'Error writing '//srf_variables(24)%vname// &
+                    'Error writing '//srf_variables(26)%vname// &
                     ' at '//ctime, 'SRF FILE')
     end if
 
@@ -2346,7 +2385,7 @@ contains
 
   subroutine writerec_atm(nx, ny, nnx, nny, nz, ns, u, v, omega,    &
                           t, qv, qc, tke , kth , kzm , ps, rc, rnc, &
-                          tgb, swt, rno, mask, idate)
+                          tgb, swt, mask, idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -2365,7 +2404,6 @@ contains
     real(8) , dimension(ny,nx) , intent(in) :: rnc
     real(8) , dimension(ns,nny,nnx) , intent(in) :: tgb
     real(8) , dimension(ns,nny,nnx) , intent(in) :: swt
-    real(8) , dimension(ns,nny,nnx) , intent(in) :: rno
     integer , dimension(ns,nny,nnx) , intent(in) :: mask
     integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
     integer , dimension(4) :: istart , icount
@@ -2680,26 +2718,6 @@ contains
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
                     'Error writing '//atm_variables(14)%vname//' at '//ctime, &
-                    'ATM FILE')
-    end if
-
-    if ( atm_variables(15)%enabled ) then
-      dumio(:,:,1) = 0.0
-      do n = 1 , ns
-        where (atmsrfmask(n,:,:) > 0)
-          dumio(:,:,1) = dumio(:,:,1) + &
-                           real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
-        end where
-      end do
-      where (atmsrfsum > 0)
-        dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
-      elsewhere
-        dumio(:,:,1) = -1.E34
-      end where
-      istatus = nf90_put_var(ncatm, iatmvar(15), & 
-                             dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok(__FILE__,__LINE__, &
-                    'Error writing '//atm_variables(15)%vname//' at '//ctime, &
                     'ATM FILE')
     end if
 

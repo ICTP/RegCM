@@ -34,7 +34,7 @@ module mod_mppio
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
   integer , pointer , dimension(:,:) :: kpbl_io
 
-  real(8) , pointer , dimension(:,:,:) :: ldew_io , gwet_io , rno_io , &
+  real(8) , pointer , dimension(:,:,:) :: ldew_io , gwet_io , &
          snag_io , sncv_io , sfice_io , rsw_io , ssw_io , tsw_io ,     &
          taf_io , text2d_io , tgrd_io , tgbrd_io , tlef_io , emiss_io
 
@@ -169,7 +169,7 @@ module mod_mppio
     call getmem2d(swapv,1,iy,1,jxp,'mppio:swap')
     call getmem3d(var2d1,1,iy,1,nnsg,1,jxp,'mppio:var2d1')
     call getmem3d(inisrf0,1,iy,1,nnsg*4+7,1,jxp,'mppio:inisrf0')
-    call getmem3d(atm0,1,iy,1,kz*6+3+nnsg*3,1,jxp,'mppio:atm0')
+    call getmem3d(atm0,1,iy,1,kz*6+3+nnsg*2,1,jxp,'mppio:atm0')
     call getmem3d(bat0,1,iym2,1,numbat,1,jxp,'mppio:bat0')
     call getmem3d(rad0,1,iym2,1,nrad3d*kz+nrad2d,1,jxp,'mppio:rad0')
     call getmem4d(sub0,1,iym2,1,nnsg,1,numsub,1,jxp,'mppio:sub0')
@@ -191,7 +191,7 @@ module mod_mppio
       call getmem2d(var2d_0,1,iy,1,jx,'mppio:var2d_0')
       call getmem3d(var2d_1,1,iy,1,nnsg,1,jx,'mppio:var2d_1')
       call getmem3d(inisrf_0,1,iy,1,nnsg*4+7,1,jx,'mppio:inisrf_0')
-      call getmem3d(atm_0,1,iy,1,kz*6+3+nnsg*3,1,jx,'mppio:atm_0')
+      call getmem3d(atm_0,1,iy,1,kz*6+3+nnsg*2,1,jx,'mppio:atm_0')
       call getmem3d(bat_0,1,iym2,1,numbat,1,jx,'mppio:bat_0')
       call getmem3d(rad_0,1,iym2,1,nrad3d*kz+nrad2d,1,jx,'mppio:rad_0')
       call getmem4d(sub_0,1,iym2,1,nnsg,1,numsub,1,jx,'mppio:sub_0')
@@ -202,7 +202,6 @@ module mod_mppio
 
       call getmem3d(ldew_io,1,nnsg,1,iym1,1,mjj,'mppio:ldew_io')
       call getmem3d(gwet_io,1,nnsg,1,iym1,1,mjj,'mppio:gwet_io')
-      call getmem3d(rno_io,1,nnsg,1,iym1,1,mjj,'mppio:rno_io')
       call getmem3d(snag_io,1,nnsg,1,iym1,1,mjj,'mppio:snag_io')
       call getmem3d(sncv_io,1,nnsg,1,iym1,1,mjj,'mppio:sncv_io')
       call getmem3d(sfice_io,1,nnsg,1,iym1,1,mjj,'mppio:sfice_io')

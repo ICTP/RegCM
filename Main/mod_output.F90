@@ -135,9 +135,11 @@ module mod_output
     ldosrf = .false.
     ldorad = .false.
     ldoche = .false.
-    lskipsrf = .true.
-    lskiprad = .true.
-    lskipche = .true.
+    if ( debug_level > 2 ) then
+      lskipsrf = .true.
+      lskiprad = .true.
+      lskipche = .true.
+    end if
   end if
 !
 !-----output for dataflow analyses:
@@ -145,7 +147,7 @@ module mod_output
   if ( ifatm ) then
     if ( ldoatm ) then
 !=======================================================================
-!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgbrd,tsw,olcd2d,rno2d
+!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgbrd,tsw,olcd2d
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -168,12 +170,11 @@ module mod_output
           do i = 1 , iym1
             atm0(i,3+kz*6+n,j)        = tgbrd(n,j,i)
             atm0(i,3+kz*6+n+nnsg,j)   = tsw(n,j,i)
-            atm0(i,3+kz*6+n+nnsg*2,j) = runoff(n,j,i)
           end do
         end do
       end do
-      call mpi_gather(atm0, iy*(kz*6+3+nnsg*3)*jxp,mpi_real8, &
-                      atm_0,iy*(kz*6+3+nnsg*3)*jxp,mpi_real8, &
+      call mpi_gather(atm0, iy*(kz*6+3+nnsg*2)*jxp,mpi_real8, &
+                      atm_0,iy*(kz*6+3+nnsg*2)*jxp,mpi_real8, &
                       0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
@@ -202,7 +203,6 @@ module mod_output
             do i = 1 , iym1
               tgbrd_io(n,i,j) = atm_0(i,3+kz*6+n,j)
               tsw_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
-              rno_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
             end do
           end do
         end do
@@ -334,12 +334,14 @@ module mod_output
         do i = 1 , iym2
           do j = 1 , jxp
             tgmx_o(j,i) = -1.E30
-            t2mx_o(j,i) = -1.E30
             tgmn_o(j,i) =  1.E30
+            t2mx_o(j,i) = -1.E30
             t2mn_o(j,i) =  1.E30
+            tavg_o(:,:) = 0.0
             w10x_o(j,i) = -1.E30
-            pcpa_o(j,i) = d_zero
-            tavg_o(j,i) = d_zero
+            pcpa_o(j,i) = 0.0
+            pcpx_o(j,i) = -1.E30
+            sund_o(j,i) = 0.0
             psmn_o(j,i) =  1.E30
           end do
         end do
@@ -1301,7 +1303,7 @@ module mod_output
   call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
           omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1_io%tke, &
           tcmstate_io%kth,tcmstate_io%kzm,psa_io,rainc_io,      &
-          rainnc_io,tgbrd_io,tsw_io,rno_io,ocld2d_io,idatex)
+          rainnc_io,tgbrd_io,tsw_io,ocld2d_io,idatex)
  
   print *, 'ATM variables written at ' , tochar(idatex)
  
@@ -1388,8 +1390,8 @@ module mod_output
     end do
   end do
 
-  call writerec_rad(jmax, imax, kz, 4, 10, &
-                    frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
+  call writerec_rad(jmax, imax, kz, 4, 12, &
+                    frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:12), &
                     radpsa_io, idatex)
 
   print * , 'RAD variables written at ' , tochar(idatex)

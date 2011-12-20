@@ -260,8 +260,8 @@ module mod_dynparam
 
 ! Fixed dimensions
 
-  integer , parameter :: numsts = 9
-  integer , parameter :: numbat = 23 + numsts
+  integer , parameter :: numsts = 10
+  integer , parameter :: numbat = 24 + numsts
   integer , parameter :: numsub = 16
 
   integer , parameter :: mpy = 12         ! Months per Year

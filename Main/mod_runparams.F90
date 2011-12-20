@@ -84,13 +84,13 @@ module mod_runparams
 
   character(len=8) :: scenario
 
-  integer , parameter :: n_atmvar = 15
-  integer , parameter :: n_srfvar = 24
+  integer , parameter :: n_atmvar = 14
+  integer , parameter :: n_srfvar = 26
   integer , parameter :: n_subvar = 16
-  integer , parameter :: n_radvar = 16
+  integer , parameter :: n_radvar = 18
   integer , parameter :: n_chevar = 17
   integer , parameter :: n_lakvar = 16
-  integer , parameter :: n_stsvar = 12
+  integer , parameter :: n_stsvar = 13
 
   integer, private  :: ierr 
   real(8) , private :: total_allocation_size
@@ -141,12 +141,11 @@ module mod_runparams
     output_variable('tgb','soil_temperature',                                 &
             'Lower groud temperature','K','point',.true.),                    &
     output_variable('swt','moisture_content_of_soil_layer',                   &
-            'Total soil water','kg m-2','point',.true.),                      &
-    output_variable('rno','runoff_flux',                                      &
-            'Runoff accumulated infiltration','kg m-2 day-1','point',.true.) /
+            'Total soil water','kg m-2','point',.true.) /
 
   data srf_variables / &
     output_variable('time','','','','',.true.),                               &
+    output_variable('tbnds','','','','',.true.),                              &
     output_variable('ps','','','','point',.true.),                            &
     output_variable('u10m','eastward_wind',                                   &
           '10 meters U component (westerly) of wind','m s-1','point',.true.), &
@@ -165,31 +164,33 @@ module mod_runparams
     output_variable('smw','soil_moisture_content',                            &
           'Moisture content','kg kg-1','point',.true.),                       &
     output_variable('tpr','precipitation_flux',                               &
-          'Total precipitation','kg m-2 day-1','point',.true.),               &
+          'Total precipitation','kg m-2 day-1','mean',.true.),                &
     output_variable('evp','water_evaporation_flux',                           &
-          'Total evapotranspiration','kg m-2 day-1','point',.true.),          &
+          'Total evapotranspiration','kg m-2 day-1','mean',.true.),           &
     output_variable('runoff','surface_runoff_flux',                           &
-          'Surface runoff','kg m-2 day-1','point',.true.),                    &
+          'Surface runoff','kg m-2 day-1','mean',.true.),                     &
     output_variable('scv','snowfall_flux',                                    &
-          'Snow precipitation','kg m-2 day-1','point',.true.),                &
+          'Snow precipitation','kg m-2 day-1','mean',.true.),                 &
     output_variable('sena','surface_downward_sensible_heat_flux',             &
-          'Sensible heat flux','W m-2','point',.true.),                       &
+          'Sensible heat flux','W m-2','mean',.true.),                        &
     output_variable('flw','net_upward_longwave_flux_in_air',                  &
-          'Net infrared energy flux','W m-2','point',.true.),                 &
+          'Net infrared energy flux','W m-2','mean',.true.),                  &
     output_variable('fsw','net_downward_shortwave_flux_in_air',               &
-          'Net solar absorbed energy flux','W m-2','point',.true.),           &
+          'Net solar absorbed energy flux','W m-2','mean',.true.),            &
     output_variable('fld','surface_downwelling_longwave_flux_in_air',         &
-          'Downward LW flux','W m-2','point',.true.),                         &
+          'Downward LW flux','W m-2','mean',.true.),                          &
     output_variable('sina','surface_downwelling_shortwave_flux_in_air',       &
-          'Incident solar energy flux','W m-2','point',.true.),               &
+          'Incident solar energy flux','W m-2','mean',.true.),                &
     output_variable('prcv','convective_rainfall_flux',                        &
-          'Convective precipitation','kg m-2 day-1','point',.true.),          &
+          'Convective precipitation','kg m-2 day-1','mean',.true.),           &
     output_variable('zpbl','atmosphere_boundary_layer_thickness',             &
           'PBL layer thickness','m','point',.true.),                          &
     output_variable('aldirs','surface_albedo_short_wave_direct',              &
           'Surface albedo to direct short wave radiation','1','point',.true.),&
     output_variable('aldifs','surface_albedo_short_wave_diffuse',             &
          'Surface albedo to diffuse short wave radiation','1','point',.true.),&
+    output_variable('sund','duration_of_sunshine',                            &
+         'Duration of sunshine','s','sum',.true.),                            &
     output_variable('seaice','seaice_binary_mask',                            &
           'Sea ice mask','1','point',.false.) /
 
@@ -213,6 +214,8 @@ module mod_runparams
           'Maximum precipitation flux','kg m-2 s-1','maximum',.true.),        &
     output_variable('pcpavg','precipitation_flux',                            &
           'Average precipitation flux','kg m-2 s-1','mean',.true.),           &
+    output_variable('sund','duration_of_sunshine',                            &
+          'Duration of sunshine','s','sum',.true.),                           &
     output_variable('ps_min','air_pressure',                                  &
           'Minimum of surface pressure','hPa','minimum',.true.) /
 
@@ -236,17 +239,17 @@ module mod_runparams
     output_variable('smw','soil_moisture_content',                            &
           'Soil moisture content','kg kg-1','point',.true.),                  &
     output_variable('tpr','precipitation_flux',                               &
-          'Total precipitation','kg m-2 day-1','point',.true.),               &
+          'Total precipitation','kg m-2 day-1','mean',.true.),                &
     output_variable('evp','water_evaporation_flux',                           &
           'Total evapotranspiration','kg m-2 day-1','point',.true.),          &
     output_variable('runoff','surface_runoff_flux',                           &
-          'Surface runoff','kg m-2 day-1','point',.true.),                    &
+          'Surface runoff','kg m-2 day-1','mean',.true.),                     &
     output_variable('scv','snowfall_flux',                                    &
-          'Snow precipitation','kg m-2 day-1','point',.true.),                &
+          'Snow precipitation','kg m-2 day-1','mean',.true.),                 &
     output_variable('sena','surface_downward_sensible_heat_flux',             &
-          'Sensible heat flux','W m-2','point',.true.),                       &
+          'Sensible heat flux','W m-2','mean',.true.),                        &
     output_variable('prcv','convective_rainfall_flux',                        &
-          'Convective precipitation','kg m-2 day-1','point',.true.) /
+          'Convective precipitation','kg m-2 day-1','mean',.true.) /
 
   data rad_variables / &
     output_variable('time','','','','',.true.),                               &
@@ -282,6 +285,10 @@ module mod_runparams
        'Net TOA upward shortwave flux','W m-2','point',.true.),               &
     output_variable('totcf','cloud_area_fraction',                            &
        'Total cloud fraction','1','point',.true.),                            &
+    output_variable('totcl','atmosphere_cloud_condensed_water_content',       &
+       'Total columnar water content','kg m-2','point',.true.),               &
+    output_variable('totci','atmosphere_ice_condensed_water_content',         &
+       'Total columnar ice content','kg m-2','point',.true.),                 &
     output_variable('firtp','toa_net_upward_longwave_flux',                   &
        'net upward LW flux at TOA','W m-2','point',.true.) /
 

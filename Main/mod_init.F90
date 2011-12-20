@@ -71,7 +71,7 @@ module mod_init
 #endif
   implicit none
 !
-  integer :: i , ibin , im1h , ip1h , ist ,itr , j , k , n
+  integer :: i , im1h , ip1h , ist , j , k , n
   type (rcm_time_and_date) :: icbc_date
   real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   integer :: jp1 , jm1
@@ -80,12 +80,16 @@ module mod_init
   integer :: mmrec , allrec , ierr , l
   real(8) , dimension(iy) :: trans1 , trans2
 
-  tgmx_o = -1.E30
-  t2mx_o = -1.E30
-  tgmn_o =  1.E30
-  t2mn_o =  1.E30
-  w10x_o = -1.E30
-  psmn_o =  1.E30
+  tgmx_o(:,:) = -1.E30
+  tgmn_o(:,:) =  1.E30
+  t2mx_o(:,:) = -1.E30
+  t2mn_o(:,:) =  1.E30
+  tavg_o(:,:) = 0.0
+  pcpx_o(:,:) = -1.E30
+  w10x_o(:,:) = -1.E30
+  pcpa_o(:,:) = 0.0
+  sund_o(:,:) = 0.0
+  psmn_o (:,:)=  1.E30
 
   bdydate1 = idate1
   bdydate2 = idate1

@@ -39,7 +39,7 @@ module mod_precip
   real(8) , pointer , dimension(:,:,:) :: tten , qvten , qcten
   real(8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
  
-  real(8) :: qcth
+  real(8) :: qcth , aprdiv
 !
   real(8) , parameter :: uch = d_1000*regrav*secph
   real(8) , parameter :: lowq = 1.0D-30
@@ -97,6 +97,8 @@ module mod_precip
       call assignpnt(radlqwc,cldlwc)
 
       call getmem2d(pptsum,1,jxp,2,iym1,'pcp:pptsum')
+
+      aprdiv = d_one/dble(ntsrf)
     end subroutine init_precip
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -120,10 +122,9 @@ module mod_precip
 !
     integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(8) :: aprdiv , dpovg , es , afc , p , pptacc ,               &
-               pptkm1 , pptmax , pptnew , q , qcincld , qcleft , qcw ,&
-               qs , rdevap , rh , rhcs , rho , tcel , thog , tk ,     &
-               uconv , prainx
+    real(8) :: dpovg , es , afc , p , pptacc , pptkm1 , pptmax ,   &
+               pptnew , q , qcincld , qcleft , qcw , qs , rdevap , &
+               rh , rhcs , rho , tcel , thog , tk , prainx
     integer :: i , j , k , kk
 !
 !   
@@ -331,14 +332,15 @@ module mod_precip
 !        the surface physics and the output
 !--------------------------------------------------------------------
 !
-      uconv = dtsec
-      aprdiv = d_one/dble(ntsrf)
-      if ( ktau == 0 ) aprdiv = uconv
       do i = istart , iend
-        prainx = pptsum(j,i)*uconv
+        prainx = pptsum(j,i)*dtsec
         if ( prainx > dlowval ) then
           rainnc(j,i) = rainnc(j,i) + prainx
-          lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
+          if ( ktau == 0 .and. debug_level > 2 ) then
+            lsmrnc(i,j) = lsmrnc(i,j) + pptsum(j,i)
+          else
+            lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
+          end if
         end if
       end do
 

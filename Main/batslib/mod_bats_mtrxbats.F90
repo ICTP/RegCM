@@ -536,14 +536,18 @@ module mod_bats_mtrxbats
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
           pptc(j,i) = d_zero
           pptnc(j,i) = d_zero
+          if ( coszrs(j,i) > dlowval ) then
+            sund_o(j,i-1) = sund_o(j,i-1) + real(dtbat)
+            sunt_o(j,i-1) = sunt_o(j,i-1) + real(dtbat)
+          end if
         end do
       end do
 
       if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
-        if ( ktau == 0 ) then
+        if ( ktau == 0 .and. debug_level > 2 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
-        else if ( ktau+1 == kbats ) then
+        else if ( ktau+1 == kbats .and. debug_level > 2 ) then
           mmpd = houpd/(srffrq-xdtsec/secph)
           wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
         else

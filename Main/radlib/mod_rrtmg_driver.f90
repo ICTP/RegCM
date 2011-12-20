@@ -404,7 +404,7 @@ module mod_rrtmg_driver
       call radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss,qrs, &
                   firtp,frla,clrlt,clrls,qrl,slwd,srfrad,sols,soll,    &
                   solsd,solld,empty1,empty1,empty1,empty1,empty1,      &
-                  empty1,empty1,empty2,cld_int,clwp_int)
+                  empty1,empty1,empty1,empty1,empty2,cld_int,clwp_int)
     end do
 
   end subroutine  rrtmg_driver

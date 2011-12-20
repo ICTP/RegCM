@@ -222,7 +222,7 @@ module mod_cu_tiedtke
             total_precip_points = total_precip_points + 1
             ! total precip cumulative 
             rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
-            if ( ktau == 0 ) then
+            if ( ktau == 0 .and. debug_level > 2 ) then
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
             else
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv

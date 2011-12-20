@@ -28,7 +28,7 @@ module mod_rad_outrad
   public :: allocate_mod_rad_outrad , radout
   public :: nrad2d , nrad3d
 
-  integer , parameter :: nrad2d = 22
+  integer , parameter :: nrad2d = 24
   integer , parameter :: nrad3d = 5
 
   real(4) , pointer , dimension(:,:,:) :: frad2d
@@ -45,7 +45,7 @@ module mod_rad_outrad
   subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss, &
                     qrs,firtp,frla,clrlt,clrls,qrl,slwd,srfrad,sols, &
                     soll,solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,    &
-                    fsnirtsq,totcf,h2ommr,cld,clwp)
+                    fsnirtsq,totcf,totcl,totci,h2ommr,cld,clwp)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -90,12 +90,13 @@ module mod_rad_outrad
     real(8) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt , &
                 fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,     &
-                solld , sols , solsd , srfrad , totcf
+                solld , sols , solsd , srfrad , totcf , totcl , totci
     real(8) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
     intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&
                 clwp , firtp , frla , frsa , fsds , fsnirt ,      &
                 fsnirtsq , fsnrtc , h2ommr , qrl , qrs , sabtp ,  &
-                slwd , solin , soll , solld , sols , solsd , totcf
+                slwd , solin , soll , solld , sols , solsd ,      &
+                totcf , totcl , totci
     intent (out) srfrad
 !
     integer :: j , k
@@ -175,35 +176,37 @@ module mod_rad_outrad
           frad2d(j,i-1,7) = real(solin(j))     ! write
           frad2d(j,i-1,8) = real(sabtp(j))     ! write
           frad2d(j,i-1,9) = real(totcf(j))     ! write
-          frad2d(j,i-1,10) = real(firtp(j))    ! write
-          frad2d(j,i-1,11) = real(alb(j))      ! skip
-          frad2d(j,i-1,12) = real(albc(j))     ! skip
-          frad2d(j,i-1,13) = real(fsds(j))     ! skip
-          frad2d(j,i-1,14) = real(fsnirt(j))   ! skip
-          frad2d(j,i-1,15) = real(fsnrtc(j))   ! skip
-          frad2d(j,i-1,16) = real(fsnirtsq(j)) ! skip
+          frad2d(j,i-1,10) = real(totcl(j))    ! write
+          frad2d(j,i-1,11) = real(totci(j))    ! write
+          frad2d(j,i-1,12) = real(firtp(j))    ! write
+          frad2d(j,i-1,13) = real(alb(j))      ! skip
+          frad2d(j,i-1,14) = real(albc(j))     ! skip
+          frad2d(j,i-1,15) = real(fsds(j))     ! skip
+          frad2d(j,i-1,16) = real(fsnirt(j))   ! skip
+          frad2d(j,i-1,17) = real(fsnrtc(j))   ! skip
+          frad2d(j,i-1,18) = real(fsnirtsq(j)) ! skip
           if ( soll(j) < dlowval ) then
-            frad2d(j,i-1,17) = 0.0
-          else
-            frad2d(j,i-1,17) = real(soll(j))   ! skip
-          end if
-          if ( sols(j) < dlowval ) then
-            frad2d(j,i-1,18) = 0.0
-          else
-            frad2d(j,i-1,18) = real(sols(j))   ! skip
-          end if
-          if ( solsd(j) < dlowval ) then
             frad2d(j,i-1,19) = 0.0
           else
-            frad2d(j,i-1,19) = real(solsd(j))  ! skip
+            frad2d(j,i-1,19) = real(soll(j))   ! skip
           end if
-          if ( solld(j) < dlowval ) then
+          if ( sols(j) < dlowval ) then
             frad2d(j,i-1,20) = 0.0
           else
-            frad2d(j,i-1,20) = real(solld(j))  ! skip
+            frad2d(j,i-1,20) = real(sols(j))   ! skip
           end if
-          frad2d(j,i-1,21) = real(solar(j,i))    ! skip
-          frad2d(j,i-1,22) = real(abveg(j,i))   ! skip
+          if ( solsd(j) < dlowval ) then
+            frad2d(j,i-1,21) = 0.0
+          else
+            frad2d(j,i-1,21) = real(solsd(j))  ! skip
+          end if
+          if ( solld(j) < dlowval ) then
+            frad2d(j,i-1,22) = 0.0
+          else
+            frad2d(j,i-1,22) = real(solld(j))  ! skip
+          end if
+          frad2d(j,i-1,23) = real(solar(j,i))    ! skip
+          frad2d(j,i-1,24) = real(abveg(j,i))   ! skip
         end do
       end if
     end if

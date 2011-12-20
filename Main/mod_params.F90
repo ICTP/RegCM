@@ -753,9 +753,6 @@ module mod_params
   call allocate_mod_che_mppio(lband)
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
-
-  call init_advection(mddom,sps1,atm1,qdot,kpbl)
-  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -920,6 +917,9 @@ module mod_params
 !sb   end lake model mods
 !
   call set_scenario(scenario)
+
+  call init_advection(mddom,sps1,atm1,qdot,kpbl)
+  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
 #ifdef CLM
   call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfsta,sps2, &
                 sts1,sts2,za,ts1,ts0_io,rhox2d,landmask)

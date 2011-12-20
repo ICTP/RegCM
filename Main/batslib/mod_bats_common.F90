@@ -78,7 +78,7 @@ module mod_bats_common
         rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
         t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
         v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o , pcpx_o ,   &
-        pcpa_o , tavg_o
+        pcpa_o , tavg_o , sunt_o , sund_o
 !
   real(sp) , pointer , dimension(:,:,:,:) :: fsub
 !
@@ -233,15 +233,17 @@ module mod_bats_common
     zpbl_o => fbat(:,:,21)
     aldirs_o => fbat(:,:,22)
     aldifs_o => fbat(:,:,23)
-    tgmx_o => fbat(:,:,24)
-    tgmn_o => fbat(:,:,25)
-    t2mx_o => fbat(:,:,26)
-    t2mn_o => fbat(:,:,27)
-    tavg_o => fbat(:,:,28)
-    w10x_o => fbat(:,:,29)
-    pcpx_o => fbat(:,:,30)
-    pcpa_o => fbat(:,:,31)
-    psmn_o => fbat(:,:,32)
+    sunt_o => fbat(:,:,24)
+    tgmx_o => fbat(:,:,25)
+    tgmn_o => fbat(:,:,26)
+    t2mx_o => fbat(:,:,27)
+    t2mn_o => fbat(:,:,28)
+    tavg_o => fbat(:,:,29)
+    w10x_o => fbat(:,:,30)
+    pcpx_o => fbat(:,:,31)
+    pcpa_o => fbat(:,:,32)
+    sund_o => fbat(:,:,33)
+    psmn_o => fbat(:,:,34)
 
     call getmem4d(fsub,1,nnsg,1,jxp,1,iym2,1,numsub,'bats:fsub')
     ps_s   => fsub(:,:,:,1)

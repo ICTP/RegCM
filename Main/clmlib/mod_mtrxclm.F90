@@ -1030,10 +1030,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !c      cc
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
-    if ( ktau==0 ) then
+    if ( ktau==0 .and. debug_level == 2 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
-    else if ( ktau+1 == kbats ) then
+    else if ( ktau+1 == kbats .and. debug_level == 2 ) then
       mmpd = houpd/(srffrq-xdtsec/secph)
       wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
     else
@@ -1335,6 +1335,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
+          if ( coszrs(i) > dlowval ) then
+            sund_o(j,i-1) = sund_o(j,i-1) + dtbat
+            sunt_o(j,i-1) = sunt_o(j,i-1) + dtbat
+          end if
  
           drag_o(j,i-1) = 0.0
           q2m_o(j,i-1) = 0.0
