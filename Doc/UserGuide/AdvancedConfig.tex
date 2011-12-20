@@ -44,7 +44,7 @@ memory space to store the model internal variables.
 The things you need to know here:
 
 \begin{enumerate}
-\item In the current version 4.1 the model parallelizes execution dividing
+\item In the current version 4.2 the model parallelizes execution dividing
 the work between the processors along the jx (longitude) dimension. The
 minimum work per processor is 3 points along the jx dimension, so the maximum
 number of processors which can be used in a parallel run for the above
@@ -246,7 +246,7 @@ The things you need to know here:
 generated files will add this prefix to the old V3 naming convention,
 giving you the capability to recognize different runs. Try to use always
 meaningful names.
-\item In version 4.1 does exist a single input dataset, the 30s one. The
+\item In version 4.2 does exist a single input dataset, the 30s one. The
 \verb=ntypec= parameter controls initial subsampling of input dataset before
 the smoothing interpolation performed by the \verb=terrain= program.
 \item Use lakedepth if you plan to use the Hostetler lake model later on.
@@ -299,12 +299,12 @@ tell them how to build initial and bondary conditions.
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_RF, FV_A2, FV_B2,
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST
+                             !          ERSST, ERSKT, CCSST, CA_XX, HA_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY
+                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
@@ -362,7 +362,7 @@ are not a developer you may find this flags useless.
 {\footnotesize
 \begin{Verbatim}
  &debugparam
- debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
+ debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
  dbgfrq = 3,      ! Interval for printout if debug_level >= 3
  /
 \end{Verbatim}
@@ -548,6 +548,7 @@ written in the files.
  ifrad   = .true. ,         ! Output RAD ?
  radfrq  =     6.,          ! Frequency in hours to write to RAD
  ifsrf   = .true. ,         ! Output SRF ?
+ ifsts   = .true. ,         ! Output STS ?
  ifsub   = .true. ,         ! Output SUB ?
  srffrq  =     3.,          ! Frequency in hours to write to SRF and SUB (and CLM)
  iflak   = .true.,          ! Output LAK ?
@@ -555,8 +556,9 @@ written in the files.
                             ! It must be an integer multiple of batfrq
  ifchem  = .true.,          ! Output CHE ?
  chemfrq =     6.,          ! Frequency in hours to write to CHE
- atm_enablevar = 12*.true., ! Mask to eventually disable variables ATM
- srf_enablevar = 31*.true., ! Mask to eventually disable variables SRF
+ atm_enablevar = 14*.true., ! Mask to eventually disable variables ATM
+ srf_enablevar = 24*.true., ! Mask to eventually disable variables SRF
+ sts_enablevar = 9*.true.,  ! Mask to eventually disable variables STS
  lak_enablevar = 16*.true., ! Mask to eventually disable variables LAK
  sub_enablevar = 16*.true., ! Mask to eventually disable variables SUB
  rad_enablevar = 15*.true., ! Mask to eventually disable variables RAD
@@ -618,7 +620,7 @@ sensitivity experiments to select the best scheme for your application.
                         !   2 => Grell
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
-                        !   5 => Tiedtke (1986)
+                        !   5 => Tiedtke (1986) UNTESTED !!!
                         !  99 => Use Grell over land and Emanuel over ocean
                         !  98 => Use Emanuel over land and Grell over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
@@ -639,6 +641,7 @@ sensitivity experiments to select the best scheme for your application.
  lakemod =          0,  ! Use lake model
  ichem   =          1,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
+                        ! RCP Scenarios in RCP3PD,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          1, ! Model desert seasonal albedo variability
@@ -880,12 +883,12 @@ in the case of the band, and is named \verb=regcmMPI_band= or
 
 \subsubsection{Enable}
 
-At configure stage (see \ref{modconf}), input $1$ instead of the default $0$.
+At configure stage (see \ref{modconf}), the option is to be enabled with the
+right command line argument to the configure script
 
 \begin{Verbatim}
-  ****  Do you want to run the tropical band version, BAND - 1 or not - 0?
-        [0]
-        BAND = 1
+  --enable-band           Supply this option if you plan on using tropical
+                          band option.
 \end{Verbatim}
 
 This will enable a preprocessing flag, and build a different model executable.
@@ -938,12 +941,11 @@ serial), and no subgridding is possible (\verb=nsg= is always $1$).
 
 \subsubsection{Enable}
 
-At configure stage (see \ref{modconf}), input $1$ instead of the default $0$.
+At configure stage (see \ref{modconf}), the option is to be enabled with the
+right command line argument to the configure script
 
 \begin{Verbatim}
-  ****  Do you want to enable CLM  - 1 or not - 0?
-        [0]
-        CLM = 1
+  --enable-clm            Supply this option if you plan on using CLM option.
 \end{Verbatim}
 
 This will enable a preprocessing flag, and build a different model executable.

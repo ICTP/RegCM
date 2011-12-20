@@ -154,6 +154,8 @@ to 1991
 \item {\em FV\_A2} - Same as above, IPCC A2 scenario
 \item {\em FV\_B2} - Same as above, IPCC B2 scenario 
 \item {\em CCSST} - CCSM3 POP gx1v3 regridded 1x1 data
+\item {\em HA\_XX} - HadGEM CMPI5 dataset with XX in RF,26,45,85
+\item {\em CA\_XX} - CanESM CMPI5 dataset with XX in RF,26,45,85
 \end{enumerate}
 
 We will for now for our test run download just CAC OISST weekly for the
@@ -181,7 +183,7 @@ XX can have values 25, 15 or 75 for resolution 2.5x2.5L37, 1.5x1.5L37,
 0.75x0.75L37. Time resolution is 4 times daily.
 \item {\em ECMWF} - ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP).
 Reformatted by PWC/ICTP to direct-access binary, T42L15, Gaussian Grid.
-\footnote{As of RegCM 4.1 this input source is not tested}
+\footnote{As of RegCM 4.2 this input source is not tested}
 \item {\em ERA40} - ECMWF 40 year reanalysis datasets, available from \\
 {\bf http://data.ecmwf.int/data/d/era40\_daily}, \\
 Pressure levels, 2.5x2.5L23, 4 times daily.
@@ -196,12 +198,12 @@ format at \\ {\bf ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis} \\
 ($1979 - 2009$, 2.5x2.5L13). 
 \item {\em NRP2W} - Small Window (instead of global) of NNRP1/2 to save disk
 space. This window can be created from original files with NCO tools.
-\footnote{As of RegCM 4.1 this input source is not tested}
+\footnote{As of RegCM 4.2 this input source is not tested}
 \item {\em GFS11} - NCEP Global Forecast System (GFS) product FNL, from \\
 {\bf http://dss.ucar.edu/datasets/ds083.2/data/fnl-yyyymm}, \\
 Pressure levels, 1.0x1.0L27, 4 times daily.
 \item {\em FVGCM} - FVGCM run by the PWC group of Abdus Salam ICTP.
-\footnote{As of RegCM 4.1 this input source is not tested}
+\footnote{As of RegCM 4.2 this input source is not tested}
 \item {\em EH5XX} - Echam run by the MPI at Hamburg, T63, Gaussian grid.
 For present day  run: $1941 - 2000$, for A1B scenario run: $2001 - 2100$. 
 17 pressure levels, 4 times daily, direct-access binary.
@@ -212,6 +214,8 @@ global data on model levels with surface geopotential and natural logarithm
 of surface pressure.
 \item {\em CCSMN} - unpacked CCSM3 NETCDF L26 (six hourly) data, either global
 or window, can be obtained from \\ {\bf http://www.earthsystemgrid.org}
+\item {\em HA\_XX} - HadGEM CMPI5 dataset with XX in RF,26,45,85
+\item {\em CA\_XX} - CanESM CMPI5 dataset with XX in RF,26,45,85
 \item {\em FNEST} - Further oneway NESTing from previous RegCM run.
 \end{enumerate}
 

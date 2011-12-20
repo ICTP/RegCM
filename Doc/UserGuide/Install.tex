@@ -5,7 +5,7 @@
 %
 
 Whatever method is chosen to download the code, we assume that you have now
-on your working directory a new directory, named \verb=RegCM-4.1=.
+on your working directory a new directory, named \verb=RegCM-4.2=.
 That directory will be for the rest of this guide referred as 
 \verb=$REGCM_ROOT= .
 
@@ -18,22 +18,23 @@ In order to configure and install the RegCM code, the following software are
 needed:
 
 \begin{enumerate}
+\item Python 2 language interpreter
 \item GNU Make program
 \item Fortran 90 compiler
 \item netCDF \cite{Rew_90} Format I/O library compiled with the above compiler.
    Source code can be found from \\
 {\bf ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz} \\
-Note that current version 4.1.3 is dependent on HDF5 1.8.7.
-\item MPI2 Message Passing Library compiled with the above fortran compiler
-for parallel runs using multiple core single machines or cluster of machines.
-Source code for the implementation code was tested with can be obtained at: \\
-{\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
+Note that current netCDF version 4.1.3 is dependent on HDF5 1.8.6.
 \end{enumerate}
 
 Optional requirements strongly suggested are :
 
 \begin{enumerate}
 \item GNU \verb=patch= program if CLM option is activated.
+\item MPI2 Message Passing Library compiled with the above fortran compiler
+for parallel runs using multiple core single machines or cluster of machines.
+Source code for the implementation code was tested with can be obtained at: \\
+{\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
 \item HDF5 Format I/O Library compiled with the above fortran compiler to
 enable netCDF V4 features. Source code can be obtained at: \\
 {\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
@@ -66,15 +67,15 @@ RegCM model is detailed in chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
-The RegCM Version 4.1 is configured by a python2 script, which will select
+The RegCM Version 4.2 is configured by a python2 script, which will select
 and edit for you sample configuration files for the supported architectures.
 These files are kept in the \verb=Arch= directory under \verb=$REGCM_ROOT=.
 
 Currently tested and supported configurations (OS/Compiler) are:
 
 \begin{enumerate}
-\item Linux with GNU gfortran compiler version $\ge 4.6$
-\item Linux with Intel\texttrademark ifort compiler version $\ge 12.0$
+\item Linux with GNU gfortran compiler version $\ge 4.5$
+\item Linux with Intel\texttrademark ifort compiler version $\ge 11.0$
 \item Linux with Portland\texttrademark pgf90 compiler version $\ge 10.0$
 \item Mac OsX\texttrademark with g95 compiler
 \item IBM AIX\texttrademark with xlf compiler
@@ -82,218 +83,113 @@ Currently tested and supported configurations (OS/Compiler) are:
 compiler $\ge 8.3$
 \end{enumerate}
 
+The 4.2 version of the RegCM model relies on the standard GNU autotools to
+configure and build the model code.
+
 The first step is to change working directory to \verb=$REGCM_ROOT= and run the
-\verb=configure= script:
+\verb=configure= script giving as arguments the chosen compilers:
 
 \begin{Verbatim}
 $> cd $REGCM_ROOT
+$> ./configure CC=icc FC=ifort
+\end{Verbatim}
+
+To know the list of arguments that can be given to the configure script, the
+script can be launched with the \verb=--help= command line argument.
+
+\begin{Verbatim}
 $> ./configure --help
-        #######################################
-        # Welcome to the RegCM configuration! #
-        #######################################
-
-  This script will help you to setup the RegCM distribution
-  with some simple questions. Default options [between square brackets] 
-  will be assumed if you don't select valid options.
 \end{Verbatim}
 
-The script interactively asks you a series of questions, divided into three
-distinct groups:
-\begin{itemize}
-\item General path and software requirements
-\item Model configuration
-\item Choice of Fortran compiler
-\end{itemize}
+The useful arguments to successfully build the model are:
 
-\subsection{General path and software requirements}
-\begin{enumerate}
-\item The location of \verb=$REGCM_ROOT=.
 \begin{Verbatim}
-  ****  Please enter the path to your RegCM distribution: 
-  [ /home/regcm/RegCM4.1 ]
-  regcm_root =
+  --with-netcdf           Path to NetCDF installation (default: NETCDF
+                          environment)
+  --with-hdf5             Path to HDF5 installation (default: HDF5
+                          environment)
+  --with-szip             Path to SZIP installation (default: SZIP
+                          environment)
+  CC=         C compiler command
+  CFLAGS=     C compiler flags
+  LDFLAGS=    linker flags, e.g. -L<lib dir> if you have libraries in a
+              nonstandard directory <lib dir>
+  LIBS=       libraries to pass to the linker, e.g. -l<library>
+  CPPFLAGS=   (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
+              you have headers in a nonstandard directory <include dir>
+  CPP=        C preprocessor
+  FC=         Fortran compiler command
+  FCFLAGS=    Fortran compiler flags
+  MPIFC=      MPI Fortran compiler command
 \end{Verbatim}
-This is because you may be running the script from a different directory.
-You probably are not, so just press enter.
-\item Built binaries destination directory.
-\begin{Verbatim}
-  ****  Please enter the path where the RegCM binaries will be stored: 
-  [ /home/regcm/RegCM4.1/Bin ]
-\end{Verbatim}
-If you are the only one using the model on the machine, you may safely
-accept the default choice pressing enter.
-\item netCDF installation path. The script tries to detect the netCDF
-installation automatically using the \verb=nc-config= program, searching
-standard directories and using the \verb=NETCDF= environment variable.
-If successful, the message
-\begin{Verbatim}
-netCDF library found...
-\end{Verbatim}
-should appear. Otherwise you will be prompted the following question:
-\begin{Verbatim}
-   Unable to find a working netCDF. Please input a valid path...
-   For netCDF library =
-\end{Verbatim}
-The answer should be the directory where on your system the file
-\verb=libnetcdf.a= is stored. Next the file will ask:
-\begin{Verbatim}
-   For netCDF include files =
-\end{Verbatim}
-The answer should be the directory where on your system the file
-\verb=netcdf.mod= is stored.
-\item OPTIONAL - If version 4 of netCDF library is detected, but the
-script is unable to use the \verb=nc-config= program, and autodetection
-using standard paths or the HDF5 environment variable fails, you may be
-prompted also for location of HDF5 library
-\begin{Verbatim}
-   Unable to find a working HDF5. Please input a valid path...
-   For HDF5 library =
-\end{Verbatim}
-The answer should be the directory where on your system the file
-\verb=libhdf5.a= is stored.
-\item OPTIONAL - If version 4 of netCDF library is detected, the script
-will ask if to enable netCDF file compression filter.
-\begin{Verbatim}
-  ****  Would you like to enable netCDF v4 compression? (0/1)
-  [0]
-  zlib =
-\end{Verbatim}
-As the compression causes a run time penalty, it is not enabled by
-default. If you are concerned by disk space, this option may help
-significantly reduce storage usage by model output, especially if
-the chemistry option is enabled. To enable it enter \verb=1=, otherwise
-just accept default option pressing enter.
-\end{enumerate}
 
-\subsection{Model configuration}
+\subsection{Model configuration at build stage}
 \label{modconf}
-
-The configure script goes to the second phase.
-
-\begin{Verbatim}
-  !!!!  The following options are all documented in detail 
-        on the eForge wiki page and in the RegCM Users' Guide,
-        so please check there for more information.
-\end{Verbatim}
 
 \begin{enumerate}
 \item Enable debug
 \begin{Verbatim}
-  ****  Do you want a debug - 0 or a production - 1  binary?
-        [1]
-        dbg =
+  --enable-debug          Enable debugging flags and per processor log file
 \end{Verbatim}
 If enabled, the model will be compiled using debug flags for the compiler,
 which will allow the use of a debugger such as gdb. More diagnostics will
-also be generated during model run. To enable debug mode, enter \verb=0=.
+also be generated during model run.
 The default is to build production binaries with all optimization flags
 turned on.
-\item Parallel code using MPI library
+
+\item Serial code using stub MPI library
 \begin{Verbatim}
-  ****  Do you want a serial - 0 or MPI-parallel - 1 binary?
-        [1]
-        mpi =
+  --enable-mpiserial      Use the included MPI replacement library for single
+                          processor
 \end{Verbatim}
 The model is coded to use an MPI2 library to run in parallel mode using
-multiple cores/processors or run on a cluster. To enable this option you
-will need to have installed on your system this library. Note that even
-if built using MPI, the model can be still executed in serial mode using
-at run time just one processor. The penalty time in this case is less than
-$1\%$ of the run time of a serial built executable. The RegCM team
-strongly suggest to build MPI enabled model, as the serial option will be
-dropped in future releases. To enable serial build, enter \verb=0=, otherwise
-accept the default choice pressing enter. \footnote{The serial version of the
-model is deprecated, and support for this non MPI version will be dropped in
-future model releases.}
+multiple cores/processors or run on a cluster. To enable instead a serial
+compilation option, a stub MPI library with empty callbacks needs to be
+compiled and linked to the executable.
+The RegCM team strongly suggest to build MPI enabled model also on standalone
+systems, to take advantage of the multicore capabilities of any modern
+processor.
 \item BAND option
 \begin{Verbatim}
-  ****  Do you want to run the tropical band version, BAND - 1 or not - 0?
-        [0]
-        BAND =
+  --enable-band           Supply this option if you plan on using tropical
+                          band option.
 \end{Verbatim}
 This option builds a special version of the model capable of running an
 experiment with a spatial domain configured as a full circular equatorial
 band around earth. This is documented in the \cite{refman_11}.
 The default is to not enable this feature, i.e. to run the model on a limited
-area not going round the whole earth. If you are planning to run such a
-simulation, enter \verb=1=, otherwise accept the default choice pressing enter.
+area not going round the whole earth.
 For the scope of the tutorial test run in chapter \ref{tutorial}, use the
 default option.
 \item CLM option
 \begin{Verbatim}
-  ****  Do you want to enable CLM  - 1 or not - 0? 
-        [0]
-        CLM =
+  --enable-clm            Supply this option if you plan on using CLM option.
 \end{Verbatim}
 This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
-is to use the RegCM BATS Land Model. If you are planning to run a simulation
-using CLM, enter \verb=1=, otherwise accept the default choice pressing enter.
+is to use the RegCM BATS Land Model.
 \footnote{The CLM option needs the GNU patch program to be installed.}
 For the scope of the tutorial test run in chapter \ref{tutorial}, use the
 default option.
 \end{enumerate}
 
-\subsection{Choice of Fortran compiler}
-
-The \verb=configure= script now prompts the user for selecting a fortran
-compiler. Depending on your OS/compiler combination, select a supported one in the list
-, or ask for a generic configuration.
-
-\begin{Verbatim}
-  ****  The following compiler/architecture combinations 
-        are tested and known to work, please choose one:
-
-              1. GNU Fortran v. 4.4 (Linux x86-64)
-              2. Intel Fortran v. 10 or 11 (Linux x86-64)
-              3. PGI Fortran v. 9 (Linux x86-64)
-              4. IBM Xlf Compiler (generic AIX)
-              5. IBM Xlf Compiler (Cineca SP6)
-              6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)
-              7. GNU+g95 Fortran compiler (Linux x86-64)
-              8. Other
-
-        compiler =
-\end{Verbatim}
-
-If your OS/compiler is not listed, enter \verb=8= for a generic system.
-You are required afterwards to edit the \verb=Makefile.inc= file in the
-\verb=$REGCM_ROOT= directory to configure you build.
-Otherwise, select one in the list. The \verb=configure= script should now
-create a \verb=Makefile.inc= file inside \verb=$REGCM_ROOT= to be used
-to compile the RegCM model. You may now want to double check
-the \verb=Makefile.inc= file, or accept what we have arranged for you.
-
 \section{Build the model executables}
 
 Now that everything is hopefully configured, you may use the \verb=make=
 program to build executables.
-You have multiple targets for the build, but at this stage you may want to
 
 \begin{Verbatim}
-$> make all
+$> make
 \end{Verbatim}
 
-This target will builds all model parts. Other allowed targets are:
-
-\begin{enumerate}
-\item terrain : Just build the terrain program
-\item icbc : Just build the icbc programs
-\item clm2rcm : If CLM option selected, just build the clm2rcm program
-\item regcm : Build the model executable in Main directory
-\item postproc : Build postprocessing programs in PostProc
-\item clean : clean up the build directory for objects
-\end{enumerate}
-
+This target will builds all model parts. 
 The compilation is started in the whole model tree (PreProc, Main and PostProc).
-Lot of messages will appear on screen, and if everithing goes fine at the end
-you will see this message:
+Lot of messages will appear on screen, abd at the end all executables are built
+int the source directories.
+To copy them to the \verb=Bin= directory, esplicitly issue the command:
 
 \begin{Verbatim}
-##############################################################
-YOU HAVE DONE IT! YOU HAVE COMPILED THE MODEL!
-LET'S START PLAYING WITH THE BEAST....                        
-##############################################################
+$> make install
 \end{Verbatim}
 
 Congratulations! You can now go to next step and run a test simulation.

@@ -12,6 +12,7 @@ ReferenceMan.pdf: ReferenceMan.tex $(TEXFILES) $(BIBFILES) $(FIGURES)
 	bibtex ReferenceMan
 	latex ReferenceMan
 	latex ReferenceMan
+	latex ReferenceMan
 	dvipdf ReferenceMan
 
 clean:

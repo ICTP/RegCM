@@ -164,6 +164,7 @@
  ifrad   = .true. ,         ! Output RAD ?
  radfrq  =     6.,          ! Frequency in hours to write to RAD
  ifsrf   = .true. ,         ! Output SRF ?
+ ifsts   = .true. ,         ! Output STS ?
  ifsub   = .true. ,         ! Output SUB ?
  srffrq  =     3.,          ! Frequency in hours to write to SRF and SUB (and CLM)
  iflak   = .true.,          ! Output LAK ?
@@ -171,8 +172,9 @@
                             ! It must be an integer multiple of batfrq
  ifchem  = .true.,          ! Output CHE ?
  chemfrq =     6.,          ! Frequency in hours to write to CHE
- atm_enablevar = 12*.true., ! Mask to eventually disable variables ATM
- srf_enablevar = 31*.true., ! Mask to eventually disable variables SRF
+ atm_enablevar = 14*.true., ! Mask to eventually disable variables ATM
+ srf_enablevar = 24*.true., ! Mask to eventually disable variables SRF
+ sts_enablevar = 9*.true.,  ! Mask to eventually disable variables STS
  lak_enablevar = 16*.true., ! Mask to eventually disable variables LAK
  sub_enablevar = 16*.true., ! Mask to eventually disable variables SUB
  rad_enablevar = 15*.true., ! Mask to eventually disable variables RAD
@@ -220,6 +222,7 @@
  lakemod =          0,  ! Use lake model
  ichem   =          1,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
+                        ! RCP Scenario in RCP3PD,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          1, ! Model desert seasonal albedo variability
