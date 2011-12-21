@@ -40,11 +40,11 @@ module mod_che_ncio
    integer , dimension(n_chevar) :: ichevar
    integer, dimension(n_optvar) ::ioptvar 
    integer, dimension(9) :: idims 
- integer :: icherec, ioptrec
+ integer ::idmin, icherec, ioptrec
 
  type(rcm_time_and_date) , save :: icherefdate
-
-        real(8) :: rpt,cfd
+        real(8) :: tpd, cfd
+        real(8) :: rpt
 
         integer :: o_is
         integer :: o_ie
@@ -54,15 +54,16 @@ module mod_che_ncio
         integer :: o_nj
          integer :: o_nz
         logical :: lwrap 
-
-        real(4) , dimension(:) , allocatable :: hsigma
-        real(4) , dimension(:,:) , allocatable :: ioxlat
-        real(4) , dimension(:,:) , allocatable :: ioxlon
-        real(4) , dimension(:,:) , allocatable :: iotopo
- 
-        real(4) , dimension(:,:,:) , allocatable :: dumio
-      
-
+ character(256) :: dname 
+        real(4) , dimension(:) , pointer :: hsigma
+        real(4) , dimension(:,:) , pointer :: ioxlat
+        real(4) , dimension(:,:) , pointer :: ioxlon
+        real(4) , dimension(:,:) , pointer :: iotopo
+  real(4) , dimension(:,:) , pointer :: iomask
+        real(4) , dimension(:,:,:) , pointer :: dumio
+        
+        real(4) , dimension(:,:) , pointer :: sp2d
+        real(4) , dimension(:,:) , pointer :: iolnds
         real(4) , dimension(2) :: latrange
         real(4) , dimension(2) :: lonrange
 
@@ -74,7 +75,7 @@ module mod_che_ncio
           logical , intent(in) :: lband
           character(3) :: sbstring
  
-
+          dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
           if (lband) then
             o_is = 2
             o_ie = iy-1
@@ -95,14 +96,224 @@ module mod_che_ncio
             lwrap = .false.
           end if
 
-          allocate(hsigma(o_nz))
-          allocate(ioxlat(o_nj,o_ni))
-          allocate(ioxlon(o_nj,o_ni))
-          allocate(iotopo(o_nj,o_ni))
-          allocate(dumio(o_nj,o_ni,o_nz))
-          
+         call getmem1d(hsigma,1,o_nz,'ncio:hsigma')
+         call getmem2d(ioxlat,1,o_nj,1,o_ni,'ncio:ioxlat')
+         call getmem2d(ioxlon,1,o_nj,1,o_ni,'ncio:ioxlon')
+         call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
+         call getmem2d(iomask,1,o_nj,1,o_ni,'ncio:iomask')
+         call getmem3d(dumio,1,o_nj,1,o_ni,1,o_nz,'ncio:dumio')
+         call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
+         call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
+
+! Initialisation grid variable for mod_che_ncio outputs : Read again the domain file
+! ( I know argument could be passed or interface defined .also  evrything could be in mod_ncio !) 
+! does not include sub-grid possibilities  
+       ! call open_domain
+       ! call read_domain
+       ! call close_domain
+
         end subroutine init_mod_che_ncio
 
+
+! IMPORTANT : note the 2 following routine have to be duplicated in the che_ncio_module 
+! one day think about merging chem_ncio and ncio module ( Graziano would like that )  
+ subroutine open_domain
+    use netcdf
+    implicit none
+
+    real(8)                   :: dx
+    real(8) , dimension(kzp1) :: sigma
+
+    integer :: ivarid , idimid
+    integer :: iyy , jxx , kzz , k
+    character(6) :: proj
+    real(4) :: dsx , iclat , iclon , ptsp
+    real(4) , dimension(kzp1) :: rsdum
+
+    write (aline,*) 'open_domain: READING HEADER FILE:', dname
+    call say
+    istatus = nf90_open(dname, nf90_nowrite, idmin)
+    call check_ok(__FILE__,__LINE__,'Error Opening Domain file '//trim(dname), &
+                  'DOMAIN FILE')
+!!$    if ( nsg > 1 ) then
+!!$      write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
+!!$      call say
+!!$      istatus = nf90_open(sdname, nf90_nowrite, isdmin)
+!!$      call check_ok(__FILE__,__LINE__, &
+!!$           'Error Opening SubDomain file '//trim(sdname), 'SUBDOM FILE')
+!!$    end if
+    istatus = nf90_inq_dimid(idmin, 'iy', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'DOMAIN FILE')
+    istatus = nf90_inquire_dimension(idmin, idimid, len=iyy)
+    call check_ok(__FILE__,__LINE__,'Dimension iy read error', 'DOMAIN FILE')
+    istatus = nf90_inq_dimid(idmin, 'jx', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'DOMAIN FILE')
+    istatus = nf90_inquire_dimension(idmin, idimid, len=jxx)
+    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'DOMAIN FILE')
+    istatus = nf90_inq_dimid(idmin, 'kz', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'DOMAIN FILE')
+    istatus = nf90_inquire_dimension(idmin, idimid, len=kzz)
+    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'DOMAIN FILE')
+    istatus = nf90_inq_varid(idmin, 'ptop', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable ptop miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, ptsp)
+    call check_ok(__FILE__,__LINE__,'Variable ptop read error', 'DOMAIN FILE')
+    istatus = nf90_get_att(idmin, nf90_global, 'projection', proj)
+    call check_ok(__FILE__,__LINE__,'Attribute projection miss', &
+                  'DOMAIN FILE')
+    istatus = nf90_get_att(idmin, nf90_global,'grid_size_in_meters', dsx)
+    call check_ok(__FILE__,__LINE__,'Attribute gridsize miss','DOMAIN FILE')
+    istatus = nf90_get_att(idmin, nf90_global, &
+                           'latitude_of_projection_origin', iclat)
+    call check_ok(__FILE__,__LINE__,'Attribute clat miss', 'DOMAIN FILE')
+    istatus = nf90_get_att(idmin, nf90_global, &
+                           'longitude_of_projection_origin', iclon)
+    call check_ok(__FILE__,__LINE__,'Attribute clon miss', 'DOMAIN FILE')
+!
+!         Consistency Check
+!
+    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
+      write (6,*) 'Error: dims from regcm.in and DOMAIN file differ.'
+      write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
+      call say
+      write (aline,*) 'DOMAIN file    : IY=', iyy ,'  JX=', jxx, '  KZ=', kzz-1
+      call say
+      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+    end if
+    if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
+      write (6,*) 'Error: ptop from regcm.in and DOMAIN file differ.'
+      write (6,*) 'Input namelist = ', ptop
+      write (6,*) 'DOMAIN file    = ', ptsp*d_r10
+      call fatal(__FILE__,__LINE__, 'DOMAIN ptop')
+    end if
+    if (proj /= iproj) then
+      write (6,*) 'Error: proj from regcm.in and DOMAIN file differ.'
+      write (6,*) 'Input namelist = ', iproj
+      write (6,*) 'DOMAIN file    = ', proj
+      call fatal(__FILE__,__LINE__, 'DOMAIN proj')
+    end if
+    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00) then
+      write (6,*) 'Error: ds from regcm.in and DOMAIN file differ.'
+      write (6,*) 'Input namelist = ', ds
+      write (6,*) 'DOMAIN file    = ', dsx*d_r1000
+      call fatal(__FILE__,__LINE__, 'DOMAIN ds')
+    end if
+    if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
+      write (6,*) 'Error: clat from regcm.in and DOMAIN file differ.'
+      write (6,*) 'Input namelist = ', clat
+      write (6,*) 'DOMAIN file    = ', iclat
+      call fatal(__FILE__,__LINE__, 'DOMAIN clat')
+    end if
+    if (dabs(dble(iclon)-dble(clon)) > 0.001D+00) then
+      write (6,*) 'Error: clon from regcm.in and DOMAIN file differ.'
+      write (6,*) 'Input namelist = ', clon
+      write (6,*) 'DOMAIN file    = ', iclon
+      call fatal(__FILE__,__LINE__, 'DOMAIN clon')
+    end if
+!
+!         Assign values in the top data modules
+!
+    tpd = houpd/atmfrq
+    cfd = houpd/chemfrq
+    dx = dble(dsx)
+    istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable sigma miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, rsdum)
+    call check_ok(__FILE__,__LINE__,'Variable sigma read error','DOMAIN FILE')
+    sigma = dble(rsdum)
+    do k = 1 , kz
+      hsigma(k) = real((sigma(k)+sigma(k+1))/2.0D0)
+    end do
+
+  end subroutine open_domain
+
+  subroutine read_domain
+  !subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f)
+  ! I shut down passing the argument for now , but maybe could be usefull for chemistry module   
+
+   use netcdf
+    implicit none
+ !real(8) , dimension(jx,iy), intent(out)  :: ht
+ !....
+    real(8) , dimension(jx,iy)  :: ht
+    real(8) , dimension(jx,iy)  :: lnd
+    real(8) , dimension(jx,iy)  :: xlat
+    real(8) , dimension(jx,iy)  :: xlon
+    real(8) , dimension(jx,iy)  :: xmap
+    real(8) , dimension(jx,iy)  :: dmap
+    real(8) , dimension(jx,iy)  :: f
+
+    integer :: ivarid
+
+    if (idmin < 0) then
+      write (6,*) 'Error : Domain file not in open state'
+      call fatal(__FILE__,__LINE__, 'DOMAIN FILE')
+    end if
+
+    istatus = nf90_inq_varid(idmin, 'topo', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
+    ht = dble(sp2d)
+    iotopo = sp2d(o_js:o_je,o_is:o_ie)
+    istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
+    lnd = dble(sp2d)
+    iolnds = sp2d(o_js:o_je,o_is:o_ie)
+    istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
+    xlat = dble(sp2d)
+    ioxlat = sp2d(o_js:o_je,o_is:o_ie)
+    istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
+    xlon = dble(sp2d)
+    ioxlon = sp2d(o_js:o_je,o_is:o_ie)
+    istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
+    xmap = dble(sp2d)
+    istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
+    dmap = dble(sp2d)
+    istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
+    f = dble(sp2d)
+    istatus = nf90_inq_varid(idmin, 'mask', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    call check_ok(__FILE__,__LINE__,'Variable mask read error','DOMAIN FILE')
+    iomask = sp2d(o_js:o_je,o_is:o_ie)
+  end subroutine read_domain
+
+  subroutine close_domain
+    use netcdf
+    implicit none
+
+    if (idmin >= 0) then
+      istatus = nf90_close(idmin)
+      call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
+      idmin = -1
+    end if
+!!$    if ( nsg>1 .and. isdmin >=0 ) then
+!!$      istatus = nf90_close(isdmin)
+!!$      call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
+!!$                   'SUBDOMAIN FILE')
+!!$      isdmin = -1
+!!$    end if
+
+
+end subroutine close_domain
 
 
   subroutine read_texture(nats,texture)
@@ -552,7 +763,7 @@ module mod_che_ncio
           integer , dimension(4) :: isrvvar
           integer , dimension(5) :: illtpvar
           integer :: itvar , iyy , im , id , ih , i , j,k
-          integer :: l1,l2,ibin,jbin
+          integer :: l1,l2,ibin,jbin, noutf
 
           integer , dimension(9) :: tyx
           integer , dimension(9) :: tzyx
@@ -563,18 +774,25 @@ module mod_che_ncio
           real(4) , dimension(kz)    :: ppp
 
 
+
+
+! total number of output  = ntr + 1 for optical properties file
+          noutf = ntr
+          if (iaerosol == 1 ) noutf = ntr + 1 
+
+
           if (.not.allocated(ncche)) then
-                  allocate( ncche(ntr))
+                  allocate( ncche(noutf))
 !                  ncche(:) = -1
           end if
 
 ibin = 0
 jbin = 0
-! tracer loop , since we are generating one output per tracer 
-          do itr = 1, ntr
+! tracer loop , since we are generating one output per tracer + 1 output for OPT
+          do itr = 1, noutf
 !           
-            ncid = ncche(itr)
-     
+            if (itr < noutf ) then  
+            ncid = ncche(itr)     
             chevarnam =  chtrname(itr)
 
             if( chtrname (itr)== 'DUST')  then
@@ -586,7 +804,11 @@ jbin = 0
              write( chevarnam(5:6),'(I1)') jbin
             end if
  
-
+            else if (itr == noutf) then
+            chevarnam = 'OPT'
+            end if 
+           
+     
             title = 'ICTP Regional Climatic model V4  '  &
                      //chevarnam//' output'
             icherefdate = idate
@@ -598,7 +820,7 @@ jbin = 0
     write (fbname,'(a,a,i10)') trim(chevarnam), '.', toint10(idate)
     ofname = trim(dirout)//pthsep//trim(domname)// &
              '_'//trim(fbname)//'.nc'
- !   ctime = tochar(cordex_refdate)
+
     write (aline, *) 'Opening new output file ', trim(ofname)
     call say
 
@@ -798,10 +1020,10 @@ jbin = 0
       call check_ok(__FILE__,__LINE__,'Error create dim iy', fterr)
       istatus = nf90_def_dim(ncid, 'jx', o_nj, idims(1))
       call check_ok(__FILE__,__LINE__,'Error create dim jx', fterr)
-    istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-    call check_ok(__FILE__,__LINE__,'Error create dim time', fterr)
-    istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
-    call check_ok(__FILE__,__LINE__,'Error create dim kz', fterr)
+      istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
+      call check_ok(__FILE__,__LINE__,'Error create dim time', fterr)
+      istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
+      call check_ok(__FILE__,__LINE__,'Error create dim kz', fterr)
 
 !
 !         OUT TYPE DEPENDENT DIMENSIONS
@@ -928,6 +1150,8 @@ jbin = 0
     tzyx = (/idims(1),idims(2),idims(4),idims(3),-1,-1,-1,-1,-1/)
          
 
+    if (itr < noutf) then      
+
             ichevar = -1
             ichevar(1) = itvar
             ichevar(2) = illtpvar(4)
@@ -962,15 +1186,56 @@ jbin = 0
                 'dr. dep. vel','m.s-1', &
                 tyx,.false.,ichevar(8))
 
+     else if (itr==noutf) then 
+
+              
+            ioptvar = -1
+            ioptvar(1) = itvar
+            ioptvar(2) = illtpvar(4)
+
+            call ch_addvara(ncid,chevarnam,'aext8', &
+                'aerosol_optical_depth', &
+                'aer mix. aod.','1',tzyx,.false.,ioptvar(3))
+            call ch_addvara(ncid,chevarnam,'assa8', &
+                'aerosol_single_scattering_albedo', &
+                'aer mix. sin. scat. alb','1',tzyx,.false.,ioptvar(4))
+            call ch_addvara(ncid,chevarnam,'agfu8', &
+                'aerosol_asymmetry_parameter', &
+                'aer mix. sin. scat. alb','1',tzyx,.false.,ioptvar(5))
+
+            call ch_addvara(ncid,chevarnam,'acstoarf', &
+                'toa_instantaneous_shortwave_radiative_forcing', &
+                'TOArad SW forcing av.','W m-2', &
+                tyx,.false.,ioptvar(6))
+            call ch_addvara(ncid,chevarnam,'acstsrrf', &
+                'surface_shortwave_radiative_forcing', &
+                'SRFrad SW forcing av.','W m-2', &
+                tyx,.false.,ioptvar(7))
+            call ch_addvara(ncid,chevarnam,'acstalrf', &
+                'toa_longwave_radiative_forcing', &
+                'TOArad LW forcing av.','W m-2', &
+                tyx,.false.,ioptvar(8))
+            call ch_addvara(ncid,chevarnam,'acssrlrf', &
+                'surface_longwave_radiative_forcing', &
+                'SRFrad LW forcing av.','W m-2', &
+                tyx,.false.,ioptvar(9))
+
+     end if 
+
+
+
     istatus = nf90_enddef(ncid)
     call check_ok(__FILE__,__LINE__,'Error End Definitions NetCDF output',fterr)
+
+! write variables which are not time dependant in the file
 
     istatus = nf90_put_var(ncid, izvar(1), hsigma)
     call check_ok(__FILE__,__LINE__,'Error var sigma write', fterr)
     hptop = real(ptop*d_10)
     istatus = nf90_put_var(ncid, izvar(2), hptop)
     call check_ok(__FILE__,__LINE__,'Error var ptop write', fterr)
-  
+ 
+    
       yiy(1) = -real((dble(o_ni-1)/2.0D0)*ds)
       xjx(1) = -real((dble(o_nj-1)/2.0D0)*ds)
       do i = 2 , o_ni
@@ -989,15 +1254,21 @@ jbin = 0
       call check_ok(__FILE__,__LINE__,'Error var xlon write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(3), iotopo)
       call check_ok(__FILE__,__LINE__,'Error var topo write', fterr)
-!!$      istatus = nf90_put_var(ncid, illtpvar(4), iomask)
-!!$      call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
-!!$  
+      istatus = nf90_put_var(ncid, illtpvar(4), iomask)
+      call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
+  
       ncche(itr) = ncid
 
 ! end of tracer loop       
        end do      
 
         end subroutine prepare_chem_out
+!==========================================================================
+
+
+
+
+
 !=====================================================================
         subroutine ch_addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss, &
                            ivar)
@@ -1059,7 +1330,8 @@ jbin = 0
 
 !==================================================================================
         subroutine writerec_che2(nx, ny, nnx, nny, nz, nt, chia, wdlsc, &
-                                 wdcvc, ddsfc, cemtrac, drydepv, ps, idate)
+                                 wdcvc, ddsfc, cemtrac, drydepv,ext,ssa,asp,tarf, &
+                                ssrf,talwrf,srlwrf, ps, idate)
 
 
 !     DESCRIPTION
@@ -1068,14 +1340,17 @@ jbin = 0
 
           implicit none
           
-type(rcm_time_and_date) , intent(in) :: idate
+          type(rcm_time_and_date) , intent(in) :: idate
           integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
           real(8) , dimension(iy,kz,jx,nt) , intent(in) :: chia
           real(8) , dimension(iy,jx) , intent(in) :: ps
           real(8) , dimension(iy,jx,nt), intent(in) :: wdlsc, wdcvc, ddsfc,  &
                                              &         cemtrac, drydepv
+          real(8) , dimension(nny,nz,nnx) , intent(in) :: ext,ssa,asp 
+          real(8) , dimension(nny,nnx), intent(in) :: tarf, ssrf,talwrf,srlwrf
 
-          integer :: n , k
+
+          integer :: n , k, noutf
           integer , dimension(5) :: istart , icount
                     
           real(8) , dimension(1) :: nctime
@@ -1091,7 +1366,10 @@ type(rcm_time_and_date) , intent(in) :: idate
           end if
 
 
-         do n=1,ntr        
+          noutf = ntr
+          if (iaerosol == 1 ) noutf = ntr + 1 
+ 
+         do n=1,noutf        
 
        !     write (ctime, '(i10)') idate
        
@@ -1117,8 +1395,10 @@ type(rcm_time_and_date) , intent(in) :: idate
                                  dumio(:,:,1), istart(1:3), icount(1:3))
          call  check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'CHE FILE ERROR')
 
+          if( n < noutf ) then 
+ 
 
-            istart(4) = icherec
+           istart(4) = icherec
             istart(3) = 1
             istart(2) = 1
             istart(1) = 1
@@ -1189,6 +1469,85 @@ type(rcm_time_and_date) , intent(in) :: idate
 
             istatus = nf90_sync(ncche(n))
             call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'CHE FILE ERROR')
+
+
+        else if(n == noutf) then 
+
+ 
+           !*** extinction
+            do k = 1 , nz
+              dumio(:,:,k) = transpose(ext(o_is:o_ie,nz-k+1,o_js:o_je) )
+            end do
+            istatus = nf90_put_var(ncche(n), ioptvar(3), &
+                                 dumio, istart(1:4), icount(1:4))
+
+            call  check_ok(__FILE__,__LINE__,'Error writing EXT at '//ctime,&
+                          'CHE FILE ERROR')
+
+
+           !*** SSAE
+            do k = 1 , nz
+              dumio(:,:,k) = transpose(ssa(o_is:o_ie,nz-k+1,o_js:o_je) )
+            end do
+            istatus = nf90_put_var(ncche(n), ioptvar(4), &
+                                 dumio, istart(1:4), icount(1:4))
+
+            call  check_ok(__FILE__,__LINE__,'Error writing SSAE at '//ctime,&
+                          'CHE FILE ERROR')
+
+
+
+           !*** ASP
+            do k = 1 , nz
+              dumio(:,:,k) = transpose(asp(o_is:o_ie,nz-k+1,o_js:o_je) )
+            end do
+            istatus = nf90_put_var(ncche(n), ioptvar(5), &
+                                 dumio, istart(1:4), icount(1:4))
+
+            call  check_ok(__FILE__,__LINE__,'Error writing ASP at '//ctime,&
+                          'CHE FILE ERROR')
+
+          
+           !*** output 2-D Aerosl Radiative forcing : NB these variables are already accumulated and averagesd in aerout
+ 
+            istart(3) = icherec
+            istart(2) = 1
+            istart(1) = 1
+ 
+            icount(3) = 1
+            icount(2) = o_ni
+            icount(1) = o_nj
+
+          dumio(:,:,1) = transpose(tarf(o_is:o_ie,o_js:o_je))
+          istatus = nf90_put_var(ncche(n), ioptvar(6) , &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+          call  check_ok(__FILE__,__LINE__,'Error writing aertarf  at '//ctime, &
+                        'OPT FILE ERROR')
+          dumio(:,:,1) = transpose(ssrf(o_is:o_ie,o_js:o_je))
+          istatus = nf90_put_var(ncche(n),  ioptvar(7), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+          call  check_ok(__FILE__,__LINE__,'Error writing aersrrf  at '//ctime, &
+                        'OPT FILE ERROR')
+          dumio(:,:,1) = transpose(talwrf(o_is:o_ie,o_js:o_je))
+          istatus = nf90_put_var(ncche(n),ioptvar(8), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+          call  check_ok(__FILE__,__LINE__,'Error writing aertalwrf  at '//ctime, &
+                        'OPT FILE ERROR')
+          dumio(:,:,1) = transpose(srlwrf(o_is:o_ie,o_js:o_je))
+          istatus = nf90_put_var(ncche(n), ioptvar(9), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+          call  check_ok(__FILE__,__LINE__,'Error writing aersrlwrf   at '//ctime, &
+                        'OPT FILE ERROR')
+
+            istatus = nf90_sync(ncche(n))
+            call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'OPT FILE ERROR')
+
+
+        end if 
+
+
+
+
 
          end do     !main species looop
 

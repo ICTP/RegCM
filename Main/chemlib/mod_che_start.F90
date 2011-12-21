@@ -271,6 +271,7 @@ kbin=0
 
 print*, 'After startchem', icarb, isslt,idust
 
+       if  (size(icarb) > 0 .or. size(isslt) > 0 .or. size(idust) >0 )  iaerosol = 1
 
 !!$        !*** abt added for wet deposition scheme
 !        if(.not.allocated(chevap)) allocate(chevap(iy,kz))

@@ -147,6 +147,8 @@ module mod_che_output
 #endif
               end do
             end do
+
+
             do j = 1 , jx
               do i = 1 , iy
                 cpsa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+5,j)
@@ -155,7 +157,7 @@ module mod_che_output
 
 
 !            if (iaerosol==1)
-            call outopt(idatex)
+!            call outopt(idatex)
 
             call outche2(idatex) 
               
@@ -263,62 +265,65 @@ module mod_che_output
 !!$
  call writerec_che2(nj, ni, je, ie, nk, ntr, chia_io,     &
                 wdlsc_io, wdcvc_io, ddsfc_io, cemtrac_io,    &
-                drydepv_io, cpsa_io, idatex)
+                drydepv_io,  aerext_io, aerssa_io, aerasp_io,aertarf_io, aersrrf_io, &
+                aertalwrf_io, aersrlwrf_io, cpsa_io, idatex)
 
       write (*,*) 'CHE variables written at ' , idatex 
+      if (iaerosol > 0)  write (*,*) 'OPT variables written at ' , idatex 
+
 
       end subroutine outche2
 
 
 
-
-      subroutine outopt(idatex)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model chem (standard aerosol )       c
-!                                                                     c
-!     iutl : is the output unit number for large-domain variables.    c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      implicit none
-!
-     type(rcm_time_and_date) , intent(in) :: idatex  
-      integer :: ni , itr , nj , nk , is , ie , js , je
-
-!      character (len=50) :: subroutine_name='outche'
-!      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-#ifdef BAND
-      ni = iym2
-      nj = jx
-      nk = kz
-      itr = ntr
-      is = 2
-      js = 1
-      ie = iym1
-      je = jx
-#else
-      ni = iym2
-      nj = jxm2
-      nk = kz
-      itr = ntr
-      is = 2
-      js = 2
-      ie = iym1
-      je = jxm1
-#endif
-
 !!$
+!!$      subroutine outopt(idatex)
+!!$
+!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!$!                                                                     c
+!!$!     this subroutine writes the model chem (standard aerosol )       c
+!!$!                                                                     c
+!!$!     iutl : is the output unit number for large-domain variables.    c
+!!$!                                                                     c
+!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!$
+!!$      implicit none
+!!$!
+!!$     type(rcm_time_and_date) , intent(in) :: idatex  
+!!$      integer :: ni , itr , nj , nk , is , ie , js , je
+!!$
+!!$!      character (len=50) :: subroutine_name='outche'
+!!$!      integer :: idindx=0
+!!$!
+!!$!      call time_begin(subroutine_name,idindx)
+!!$#ifdef BAND
+!!$      ni = iym2
+!!$      nj = jx
+!!$      nk = kz
+!!$      itr = ntr
+!!$      is = 2
+!!$      js = 1
+!!$      ie = iym1
+!!$      je = jx
+!!$#else
+!!$      ni = iym2
+!!$      nj = jxm2
+!!$      nk = kz
+!!$      itr = ntr
+!!$      is = 2
+!!$      js = 2
+!!$      ie = iym1
+!!$      je = jxm1
+!!$#endif
+!!$
+
 !!$     call writerec_opt(nj, ni, je, ie, nk,       &
 !!$                aerext_io, aerssa_io, aerasp_io,aertarf_io, aersrrf_io, &
 !!$                aertalwrf_io, aersrlwrf_io, cpsa_io, idatex)
                                
-
-      write (*,*) 'OPT variables written at ' , idatex 
-
-      end subroutine outopt
+!!$
+!!$      write (*,*) 'OPT variables written at ' , idatex 
+!!$
+!!$      end subroutine outopt
  
      end module mod_che_output

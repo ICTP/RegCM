@@ -32,6 +32,9 @@ module mod_che_common
   integer , parameter :: maxnbin = 4
   integer , parameter :: maxnssl = 2
 !
+  integer       :: iaerosol
+
+
   real(dp) , pointer , dimension(:,:,:,:) :: chi
   real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten
 !
