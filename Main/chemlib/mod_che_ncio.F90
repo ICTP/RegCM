@@ -30,18 +30,26 @@ module mod_che_ncio
 !
   public :: read_texture , read_aerosol , read_emission, recc
   public :: prepare_chem_out, init_mod_che_ncio, writerec_che2
-!
+   public ::  open_chbc,close_chbc,chbc_search
+!read_chbc
   integer :: istatus
   integer :: recc
 
    integer , parameter :: n_chevar = 18
    integer, parameter :: n_optvar = 9
+    integer :: ichin 
+    integer :: ioxcl      
+
    integer, dimension(:), allocatable :: ncche     
    integer , dimension(n_chevar) :: ichevar
    integer, dimension(n_optvar) ::ioptvar 
-   integer, dimension(9) :: idims 
- integer ::idmin, icherec, ioptrec
 
+   integer , dimension(25) :: chbc_ivar
+   
+ type(rcm_time_and_date) , dimension(:) , allocatable :: oxcl_idate, chbc_idate
+ integer, dimension(9) :: idims 
+ integer ::idmin, icherec, ioptrec
+ integer :: ibcrec , ibcnrec
  type(rcm_time_and_date) , save :: icherefdate
         real(8) :: tpd, cfd
         real(8) :: rpt
@@ -53,8 +61,8 @@ module mod_che_ncio
         integer :: o_ni
         integer :: o_nj
          integer :: o_nz
-        logical :: lwrap 
- character(256) :: dname 
+        logical :: lwrap  
+ character(256) :: dname , icbcname
         real(4) , dimension(:) , pointer :: hsigma
         real(4) , dimension(:,:) , pointer :: ioxlat
         real(4) , dimension(:,:) , pointer :: ioxlon
@@ -66,6 +74,13 @@ module mod_che_ncio
         real(4) , dimension(:,:) , pointer :: iolnds
         real(4) , dimension(2) :: latrange
         real(4) , dimension(2) :: lonrange
+
+
+
+        data ichin   /-1/
+        data ioxcl  /-1/
+        data ibcrec  / 1/
+        data ibcnrec / 0/
 
   contains
 
@@ -768,12 +783,12 @@ end subroutine close_domain
           integer , dimension(9) :: tyx
           integer , dimension(9) :: tzyx
           
-
+          character(len=36) :: ctime
           real(4) , dimension(jx,iy) :: sp2d
           real(4) , dimension(iy,jx) :: xlat,xlon,topo
           real(4) , dimension(kz)    :: ppp
 
-
+          ctime = tochar(idate)
 
 
 ! total number of output  = ntr + 1 for optical properties file
@@ -1127,8 +1142,8 @@ jbin = 0
     call check_ok(__FILE__,__LINE__,'Error add time long_name', fterr)
     istatus = nf90_put_att(ncid, itvar, 'calendar', calstr(idate%calendar))
     call check_ok(__FILE__,__LINE__,'Error add time calendar', fterr)
-!    istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
-!    call check_ok(__FILE__,__LINE__,'Error add time units', fterr)
+    istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
+    call check_ok(__FILE__,__LINE__,'Error add time units', fterr)
    
     istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3), illtpvar(5))
     call check_ok(__FILE__,__LINE__,'Error add var ps', fterr)
@@ -1154,7 +1169,7 @@ jbin = 0
 
             ichevar = -1
             ichevar(1) = itvar
-            ichevar(2) = illtpvar(4)
+            ichevar(2) = illtpvar(5)
 
             call ch_addvara(ncid,chevarnam,chevarnam, &
                 'atmosphere_mixing_ratio_of_tracer', &
@@ -1380,6 +1395,8 @@ jbin = 0
           tdif = idate-icherefdate
           nctime(1) = tohours(tdif)
 
+
+
           istatus = nf90_put_var(ncche(n), ichevar(1), nctime, &
                                  istart(1:1), icount(1:1))
          call  check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE ERROR')
@@ -1555,9 +1572,191 @@ jbin = 0
 
 
    end subroutine writerec_che2
+!===========================================
 
 
-    
+
+  integer function chbc_search(idate)
+          implicit none
+           
+          type(rcm_time_and_date) , intent(in) :: idate
+          type(rcm_time_interval) :: tdif
+          character(len=32) :: appdat1, appdat2
+         if (idate > chbc_idate(ibcnrec) .or. idate < chbc_idate(1)) then
+            chbc_search = -1
+          else
+            tdif = idate - chbc_idate(1)
+            ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1 
+            if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
+             appdat1 = tochar(idate)
+             write (6,*) 'Record is not found in CHBC file for ',appdat1
+             appdat1 = tochar(chbc_idate(1))
+             appdat2 = tochar(chbc_idate(ibcnrec))
+             write (6,*) 'Range is : ', appdat1, '-', appdat2
+             call fatal(__FILE__,__LINE__,'CHBC READ')
+           end if
+           chbc_search = ibcrec
+          end if 
+        end function chbc_search
+
+
+!=============================================================
+
+        subroutine open_chbc(idate)
+
+
+          use netcdf
+    implicit none
+     type(rcm_time_and_date) , intent(in) :: idate
+    character(10) :: ctime
+    integer :: idimid , itvar , i , chkdiff
+    real(8) , dimension(:) , allocatable :: icbc_nctime
+    character(64) :: icbc_timeunits , icbc_timecal
+    integer :: iyy , jxx , kzz
+
+    call close_chbc
+    write (ctime, '(i10)') toint10(idate)
+    icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
+    istatus = nf90_open(icbcname, nf90_nowrite, ichin)
+    call check_ok(__FILE__,__LINE__, &
+        'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
+    ibcrec = 1
+    ibcnrec = 0
+    istatus = nf90_inq_dimid(ichin, 'iy', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
+    istatus = nf90_inquire_dimension(ichin, idimid, len=iyy)
+    call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
+    istatus = nf90_inq_dimid(ichin, 'jx', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
+    istatus = nf90_inquire_dimension(ichin, idimid, len=jxx)
+    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
+    istatus = nf90_inq_dimid(ichin, 'kz', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
+    istatus = nf90_inquire_dimension(ichin, idimid, len=kzz)
+    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
+    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
+      write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
+      write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
+      call say
+      write (aline,*) 'ICBC file      : IY=', iyy, '  JX=',  jxx, '  KZ=', kzz
+      call say
+      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+    end if
+    istatus = nf90_inq_dimid(ichin, 'time', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
+    istatus = nf90_inquire_dimension(ichin, idimid, len=ibcnrec)
+    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
+    if ( ibcnrec < 1 ) then
+      write (6,*) 'Time var in ICBC has zero dim.'
+      call fatal(__FILE__,__LINE__,'ICBC READ')
+    end if
+    istatus = nf90_inq_varid(ichin, 'time', itvar)
+    call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
+    istatus = nf90_get_att(ichin, itvar, 'units', icbc_timeunits)
+    call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
+!!$    istatus = nf90_get_att(ichin, itvar, 'calendar', icbc_timecal)
+!!$    call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
+
+    allocate(icbc_nctime(ibcnrec), stat=istatus)
+
+    if ( istatus /= 0 ) then
+      write(6,*) 'Memory allocation error in ICBC for time real values'
+      call fatal(__FILE__,__LINE__,'ICBC READ')
+    end if
+
+    allocate(chbc_idate(ibcnrec), stat=istatus)
+
+    if ( istatus /= 0 ) then
+      write(6,*) 'Memory allocation error in ICBC for time array'
+      call fatal(__FILE__,__LINE__,'ICBC READ')
+    end if
+    istatus = nf90_get_var(ichin, itvar, icbc_nctime)
+    call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+    do i = 1 , ibcnrec
+      chbc_idate(i) = timeval2date(icbc_nctime(i), icbc_timeunits, icbc_timecal)
+    end do
+    if ( ibcnrec > 1 ) then
+      chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
+      if (chkdiff /= ibdyfrq) then
+        write (6,*) 'Time var in ICBC inconsistency.'
+        write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
+        write (6,*) 'Found     ibdyfrq = ', chkdiff
+        call fatal(__FILE__,__LINE__,'ICBC READ')
+      end if
+    end if
+    deallocate(icbc_nctime)
+
+         
+          istatus = nf90_inq_varid(ichin, 'O3', chbc_ivar(1))
+          call check_ok(__FILE__,__LINE__,'variable O3 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'NO', chbc_ivar(2))
+          call check_ok(__FILE__,__LINE__,'variable NO missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'NO2', chbc_ivar(3))
+          call check_ok(__FILE__,__LINE__,'variable NO2 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'HNO3', chbc_ivar(4))
+          call check_ok(__FILE__,__LINE__,'variable HNO3 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'N2O5', chbc_ivar(5))
+          call check_ok(__FILE__,__LINE__,'variable N2O5 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'H2O2', chbc_ivar(6))
+          call check_ok(__FILE__,__LINE__,'variable H2O2 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CH4', chbc_ivar(7))
+          call check_ok(__FILE__,__LINE__,'variable CH4 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CO', chbc_ivar(8))
+          call check_ok(__FILE__,__LINE__,'variable CO missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CH2O', chbc_ivar(9))
+          call check_ok(__FILE__,__LINE__,'variable CH2O missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CH3OH', chbc_ivar(10))
+          call check_ok(__FILE__,__LINE__,'variable CH3OH missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'C2H5OH', chbc_ivar(11))
+          call check_ok(__FILE__,__LINE__,'variable C2H5OH missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'C2H4', chbc_ivar(12))
+          call check_ok(__FILE__,__LINE__,'variable C2H4 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'C2H6', chbc_ivar(13))
+          call check_ok(__FILE__,__LINE__,'variable C2H6 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CH3CHO', chbc_ivar(14))
+          call check_ok(__FILE__,__LINE__,'variable CH3CHO missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'CH3COCH3', chbc_ivar(15))
+          call check_ok(__FILE__,__LINE__,'variable CH3COCH3 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'BIGENE', chbc_ivar(16))
+          call check_ok(__FILE__,__LINE__,'variable BIGENE missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'BIGALK', chbc_ivar(17))
+          call check_ok(__FILE__,__LINE__,'variable BIGALK missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'C3H6', chbc_ivar(18))
+          call check_ok(__FILE__,__LINE__,'variable C3H6 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'C3H8', chbc_ivar(19))
+          call check_ok(__FILE__,__LINE__,'variable C3H8 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'ISOP', chbc_ivar(20))
+          call check_ok(__FILE__,__LINE__,'variable ISOP missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'TOLUE', chbc_ivar(21))
+          call check_ok(__FILE__,__LINE__,'variable TOLUE missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'PAN', chbc_ivar(22))
+          call check_ok(__FILE__,__LINE__,'variable PAN missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'SO2', chbc_ivar(23))
+          call check_ok(__FILE__,__LINE__,'variable SO2 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'SO4', chbc_ivar(24))
+          call check_ok(__FILE__,__LINE__,'variable SO4 missing', 'CHBC FILE ERROR')
+          istatus = nf90_inq_varid(ichin, 'DMS', chbc_ivar(25))
+          call check_ok(__FILE__,__LINE__,'variable DMS missing', 'CHBC FILE ERROR')
+
+
+        end subroutine open_chbc 
+
+
+
+    subroutine close_chbc
+    use netcdf
+    implicit none
+    if (ichin >= 0) then
+      istatus = nf90_close(ichin)
+      call check_ok(__FILE__,__LINE__, &
+           'Error Close CHBC file '//trim(icbcname),'CHBC FILE')
+      if ( allocated(chbc_idate) ) deallocate(chbc_idate)
+      ichin = -1
+    end if
+  end subroutine close_chbc
+
+
+
 
   subroutine check_ok(f,l,m1,mf)
     implicit none

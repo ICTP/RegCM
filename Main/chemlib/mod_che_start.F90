@@ -37,7 +37,7 @@
 
 !----------------------------------------------------------------------------------------------------
 
-subroutine start_chem (ifrest)
+subroutine start_chem (ifrest,bdydate1, bdydate2)
 !  use mpi
   implicit none
  
@@ -45,6 +45,8 @@ subroutine start_chem (ifrest)
   character(256)       :: namelistfile,prgname
   integer              :: ierr,err
   integer              :: itr,i,k,j,ibin,jbin,kbin
+
+   type (rcm_time_and_date) :: bdydate1, bdydate2
 !fab provisoir
   logical :: lband
 
@@ -286,11 +288,15 @@ print*, 'After startchem', icarb, isslt,idust
   open( 26,file='TUVGRID2', status='old')
   open( 25,file='REACTION.DAT_CBMZ', status='old')  
 
-  call chem_initial_state(ifrest)
 
 
-lband = .false. !! provisoire!
+
+  lband = .false. !! provisoire!
   call init_mod_che_ncio(lband) 
+
+  call chem_initial_state(ifrest,bdydate1, bdydate2)
+
+
 
  print*, 'aprese chem_initial'
 
@@ -303,7 +309,7 @@ lband = .false. !! provisoire!
 !----------------------------------------------------------------
 
 
-    subroutine chem_initial_state(ifrest)
+    subroutine chem_initial_state(ifrest,bdydate1, bdydate2 )
 
 !!$#ifndef IBM
 !!$    use mpi
@@ -318,9 +324,14 @@ lband = .false. !! provisoire!
 
     logical , intent(in) :: ifrest
     integer    :: i,j,k,ierr
-    integer    :: icbc_date
+   type (rcm_time_and_date) :: icbc_date
+    type (rcm_time_and_date), intent(in) :: bdydate1, bdydate2
 
     real(8) , dimension(iy,jxp) :: psdot
+
+
+
+
 
 
 ! FAB : TEMPORARY CUT the netcdf reading part to test the core
@@ -330,7 +341,21 @@ lband = .false. !! provisoire!
 !!$  call allocate_mod_chem_mppio(.false.)
 !!$
 !!$
-!!$   if(myid .eq. 0) then
+     
+
+      if ( myid == 0 ) then
+    if ( bdydate1 == globidate1 ) then
+      icbc_date = bdydate1
+    else
+      icbc_date = monfirst(bdydate1)
+    end if
+    call open_chbc(icbc_date)
+  end if
+!
+
+
+
+
 !!$ 
 !!$    write(*,*)'START CHEM INITIALIZATION',idate1,globidate1,myid
 !!$ 

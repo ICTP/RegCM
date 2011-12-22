@@ -728,7 +728,7 @@ module mod_rad_aerosol
             if ( tracname(itr) == 'XXXXX') then
               continue
             end if
-            if ( tracname(itr) == 'DUST' ) then
+            if ( tracname(itr)(1:4) == 'DUST' ) then
               uaer(j,k,itr) = aermmr(j,k,itr)*path
               ibin = ibin + 1
               if ( ibin > 4 ) then
@@ -749,7 +749,7 @@ module mod_rad_aerosol
               ga(j,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
                    (rh(j,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(j,k)+gscoef(ns,5)))
               fa(j,k,itr) = ga(j,k,itr)*ga(j,k,itr)
-            else if ( tracname(itr) == 'SSLT' ) then
+            else if ( tracname(itr)(1:4) == 'SSLT' ) then
               rh0 = dmin1(0.99D0,dmax1(d_zero,rh(j,k)))
               jbin = jbin+1
               if ( jbin > 2 ) then

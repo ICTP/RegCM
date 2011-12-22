@@ -231,7 +231,7 @@ module mod_regcm_interface
     call init
 
     if ( ichem == 1 ) then
-      call start_chem(ifrest)
+      call start_chem(ifrest, bdydate1,bdydate2)
     end if
 !
 !**********************************************************************
@@ -241,11 +241,11 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call bdyin
-#ifdef CHEMTEST
+
     if ( ichem == 1 ) then
-      call bdyin_chem
+      call chem_bdyin(150D00, bdydate1, bdydate2)
     end if
-#endif
+
 !
     call spinit(1,jendx,1,iym1)
 ! 

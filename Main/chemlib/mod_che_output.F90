@@ -33,6 +33,8 @@ module mod_che_output
 
  integer :: i,j,k,n,ierr
  
+ print*, 'FAB, outputchem',myid,  maxval(aerext) 
+           
           do j = 1 , jendl
             do n = 1 , ntr
               do k = 1 , kz
@@ -155,10 +157,6 @@ module mod_che_output
               end do
             end do
 
-
-!            if (iaerosol==1)
-!            call outopt(idatex)
-
             call outche2(idatex) 
               
             remlsc_io  = 0.0
@@ -180,6 +178,8 @@ module mod_che_output
             aersrlwrf_io=0.0
             aertalwrf_io=0.0
           end if
+
+! put back to zero accumulated variables
           do n = 1 , ntr
             do j = 1 , jendl
               do k = 1 , kz

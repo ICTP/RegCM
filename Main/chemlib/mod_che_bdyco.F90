@@ -33,6 +33,7 @@ use mod_memutil
   use mod_mpmessage
   use mod_che_common
   use mod_che_mppio
+  use mod_che_ncio
   use mod_che_species
 
   private
@@ -88,7 +89,7 @@ use mod_memutil
 !!$!     this subroutine reads in the boundary conditions.               c
 !!$!                                                                     c
 !!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  subroutine chem_bdyin (dtbdys)
+  subroutine chem_bdyin (dtbdys, bdydate1 , bdydate2)
 
     use mod_che_indices
 
@@ -99,6 +100,7 @@ use mod_memutil
 #ifdef IBM
     include 'mpif.h'
 #endif
+    type(rcm_time_and_date) ,intent(in) :: bdydate1 , bdydate2
 
     real(dp), intent(in) :: dtbdys
     integer :: i , j , k , nn , nnb , mmrec, itr
@@ -177,14 +179,17 @@ use mod_memutil
 !!$!  call allocate_species_bc
 !!$!  call allocate_mod_chem_mppio(.false.)
 !!$
-!!$    if(myid .eq. 0 .and. igaschem==1) then
-!!$
-!!$!      call addhours(ndate1, ibdyfrq)
-!!$    mmrec = chbc_search(ndate1)
-!!$    write(*,*)'BDYIN -----',mmrec,ndate1
-!!$    if (mmrec < 0) then
-!!$            call open_chbc(imonfirst(ndate1))
-!!$    end if
+      if(myid .eq. 0 ) then
+
+!      call addhours(ndate1, ibdyfrq)
+    mmrec = chbc_search(bdydate2)
+    write(*,*)'CH_BDYIN -----',mmrec,bdydate2
+    if (mmrec < 0) then
+            call open_chbc(bdydate2)
+    end if
+    
+     
+
 !!$
 !!$
 !!$       call read_chbc(ndate1,                                 &
@@ -228,7 +233,7 @@ use mod_memutil
 !!$       end do
 !!$    end do
 !!$
-!!$    end if
+     end if
 !!$    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
 !!$                     savch0, iy*kz*25*jxp,mpi_real8,      &
 !!$                     0,mpi_comm_world,ierr)
