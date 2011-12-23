@@ -403,6 +403,8 @@ module mod_bats_leaftemp
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
               trup(n,j,i) = dexp(-g*rlai(n,j,i)/(rilmax*coszrs(j,i)))
               trupd(n,j,i) = dexp(-difzen*g*rlai(n,j,i)/(rilmax))
+              if ( trup(n,j,i) < dlowval )  trup(n,j,i)  = dlowval
+              if ( trupd(n,j,i) < dlowval ) trupd(n,j,i) = dlowval
               fsold(n,j,i) = fracd(j,i)*solis(j,i)*fc(lveg(n,j,i))
               fsol0(n,j,i) = (d_one-fracd(j,i))*solis(j,i)*fc(lveg(n,j,i))
               rmini(n,j,i) = rsmin(lveg(n,j,i))/rmax0
