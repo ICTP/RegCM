@@ -53,8 +53,8 @@
 
       real(8) , parameter :: dlowval = 1.0D-30
       real(4) , parameter :: slowval = 1.0E-30
-      real(8) , parameter :: dmissval = -1.0D+34
-      real(4) , parameter :: smissval = -1.0E+34
+      real(8) , parameter :: dmissval = 1.0D+20
+      real(4) , parameter :: smissval = 1.0E+20
 
       ! time conversion
       real(8) , parameter :: secpm = 60.0D+00

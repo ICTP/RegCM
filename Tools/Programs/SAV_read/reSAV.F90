@@ -11,10 +11,10 @@ program resav
   type (rcm_time_and_date) :: idatex
   real(8) :: xbctime
   integer :: ktau , ntime
-  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
+  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
-  real(8) , allocatable , dimension(:,:,:) :: ua , va , ta  , qva , qca
-  real(8) , allocatable , dimension(:,:,:) :: ub , vb , tb  , qvb , qcb
+  real(8) , allocatable , dimension(:,:,:) :: ua , va , ta  , qva , qca , tkea
+  real(8) , allocatable , dimension(:,:,:) :: ub , vb , tb  , qvb , qcb , tkeb
   real(8) , allocatable , dimension(:,:) :: psa , psb
   real(8) , allocatable , dimension(:,:) :: tga , tgb
   real(8) , allocatable , dimension(:,:) :: rainc , rainnc
@@ -27,6 +27,7 @@ program resav
   real(8) , allocatable , dimension(:,:,:,:) :: absnxt , abstot
   real(8) , allocatable , dimension(:,:,:) :: emstot
   real(8) , allocatable , dimension(:,:,:) :: fcc
+  real(4) , allocatable , dimension(:,:,:) :: fsavsts
 #ifdef CLM
   real(8) , allocatable , dimension(:,:) :: sols2d , soll2d , solsd2d , &
         solld2d , aldirs2d , aldirl2d , aldifs2d , aldifl2d , lndcat2d
@@ -36,9 +37,9 @@ program resav
         prca2d , prnca2d , ssw2da , sdelqk2d , sdeltk2d , sfracb2d , &
         sfracs2d , sfracv2d , svegfrac2d
   real(8) , allocatable , dimension(:,:,:) :: tlef2d , ssw2d , srw2d , &
-        tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , ircp2d , &
+        tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , &
         taf2d , emiss2d
-  integer , allocatable , dimension(:,:) :: veg2d , ldmsk
+  integer , allocatable , dimension(:,:) :: veg2d , ldmsk , kpbl
   integer , allocatable , dimension(:,:,:) :: veg2d1 , ocld2d
   real(8) , allocatable , dimension(:,:,:) :: heatrt , o3prof , swt2d
   real(8) , allocatable , dimension(:,:) :: tgbb , zpbl
@@ -54,7 +55,7 @@ program resav
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
              idesseas , iconvlwp , iocnrough
-  character(3) :: scenario
+  character(8) :: scenario
 !
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem,        &
@@ -102,9 +103,6 @@ program resav
   allocate(vb0(iy,kz,jx))
   allocate(qb0(iy,kz,jx))
   allocate(tb0(iy,kz,jx))
-  if ( ehso4 ) then
-    allocate(so0(iy,kz,jx))
-  end if
   allocate(ps0(iy,jx))
   allocate(ts0(iy,jx))
 !
@@ -118,6 +116,10 @@ program resav
   allocate(tb(iy,kz,jx))
   allocate(qvb(iy,kz,jx))
   allocate(qcb(iy,kz,jx))
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    allocate(tkea(iy,kzp1,jx))
+    allocate(tkeb(iy,kzp1,jx))
+  end if
   allocate(psa(iy,jx))
   allocate(psb(iy,jx))
   allocate(tga(iy,jx))
@@ -188,9 +190,9 @@ program resav
   allocate(sag2d(nnsg,iym1,jx))
   allocate(sice2d(nnsg,iym1,jx))
   allocate(dew2d(nnsg,iym1,jx))
-  allocate(ircp2d(nnsg,iym1,jx))
   allocate(veg2d(iym1,jx))
   allocate(ldmsk(iym1,jx))
+  allocate(kpbl(iym1,jx))
   allocate(veg2d1(nnsg,iym1,jx))
   allocate(heatrt(ym1,kz,jx))
   allocate(o3prof(iym1,kzp1,jx))
@@ -230,8 +232,8 @@ program resav
   allocate(sag2d(nnsg,iym1,jxm1))
   allocate(sice2d(nnsg,iym1,jxm1))
   allocate(dew2d(nnsg,iym1,jxm1))
-  allocate(ircp2d(nnsg,iym1,jxm1))
   allocate(veg2d(iym1,jxm1))
+  allocate(kpbl(iym1,jxm1))
   allocate(ldmsk(iym1,jxm1))
   allocate(veg2d1(nnsg,iym1,jxm1))
   allocate(heatrt(iym1,kz,jxm1))
@@ -270,6 +272,7 @@ program resav
     allocate(tchie(ntr))
 #endif
   end if
+  allocate(fsavsts(iym2,numsts,jx))
   allocate(dstor(iy,jx,nsplit))
   allocate(hstor(iy,jx,nsplit))
 #ifndef BAND
@@ -293,11 +296,7 @@ program resav
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
   read (iutrst) ktau, xbctime, idatex, ntime
-  if ( ehso4 ) then
-    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
-  else
-    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
-  end if
+  read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
   read (iutrst) ua
   read (iutrst) va
   read (iutrst) ta
@@ -310,6 +309,11 @@ program resav
   read (iutrst) qcb
   read (iutrst) psa, psb
   read (iutrst) tga, tgb, rainc, rainnc
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    read (iutrst) tkea
+    read (iutrst) tkeb
+  end if
+  read (iutrst) kpbl
   if ( icup == 1 ) then
     read (iutrst) rsheat, rswat
   end if
@@ -350,7 +354,6 @@ program resav
   read (iutrst) sag2d
   read (iutrst) sice2d
   read (iutrst) dew2d
-  read (iutrst) ircp2d
   read (iutrst) veg2d
   read (iutrst) ldmsk
   read (iutrst) veg2d1
@@ -365,6 +368,7 @@ program resav
   read (iutrst) taf2d
   read (iutrst) ocld2d
   read (iutrst) emiss2d
+  read (iutrst) fsavsts
   read (iutrst) pptnc, pptc, prca2d, prnca2d
   if ( iocnflx == 2 ) read (iutrst) zpbl
   if ( ichem == 1 ) then

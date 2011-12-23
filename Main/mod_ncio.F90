@@ -55,15 +55,15 @@ module mod_ncio
   integer , dimension(n_lakvar) :: ilakvar
   character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  real(4) , dimension(:) , pointer :: hsigma
+  real(8) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
-  real(8) :: tpd, cfd
+  real(8) :: tpd , cfd
   real(8) :: xns2d
   real(4) :: xns2r
   type(rcm_time_and_date) , save :: cordex_refdate
 
   ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
-  ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv
+  ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is ntimes
   ! DIM9 is ntr ,  DIM10 is depth for lake
   integer , dimension(10) :: idims
 
@@ -536,7 +536,7 @@ contains
     call check_ok(__FILE__,__LINE__,'Variable sigma read error','DOMAIN FILE')
     sigma = dble(rsdum)
     do k = 1 , kz
-      hsigma(k) = real((sigma(k)+sigma(k+1))/2.0D0)
+      hsigma(k) = ((sigma(k)+sigma(k+1))/2.0D0)
     end do
 
   end subroutine open_domain
@@ -992,10 +992,12 @@ contains
     character(16) :: fterr
     character(256) :: ofname , history
     integer , dimension(8) :: tvals
-    real(4) :: hptop , rdum1
-    real(4) , dimension(2) :: trlat , rdum2
-    real(4) , dimension(iysg) :: yiy
-    real(4) , dimension(jxsg) :: xjx
+    real(8) :: hptop
+    real(8) :: rdum1
+    real(4) , dimension(2) :: trlat
+    real(8) , dimension(2) :: rdum2
+    real(8) , dimension(iysg) :: yiy
+    real(8) , dimension(jxsg) :: xjx
     real(4) , dimension(ndpmax) :: depth
     integer :: ncid
     integer , dimension(3) :: izvar
@@ -1031,7 +1033,7 @@ contains
       isubrec = 1
     else if (ctype == 'STS') then
       ncid = ncsts
-      title = 'ICTP Regional Climatic model V4 Dayly statistical output'
+      title = 'ICTP Regional Climatic model V4 Daily statistical output'
       istsrec = 1
     else if (ctype == 'RAD') then
       ncid = ncrad
@@ -1262,29 +1264,27 @@ contains
       call check_ok(__FILE__,__LINE__,'Error create dim m2', fterr)
       istatus = nf90_def_dim(ncid, 'soil_layer', 2, idims(7))
       call check_ok(__FILE__,__LINE__,'Error create dim soil_layer', fterr)
-      istatus = nf90_def_var(ncid, 'm10', nf90_float, idims(5), isrvvar(1))
+      istatus = nf90_def_var(ncid, 'm10', nf90_double, idims(5), isrvvar(1))
       call check_ok(__FILE__,__LINE__,'Error add var m10', fterr)
-      istatus = nf90_put_att(ncid, isrvvar(1), 'standard_name', 'altitude')
+      istatus = nf90_put_att(ncid, isrvvar(1), 'standard_name', 'height')
       call check_ok(__FILE__,__LINE__,'Error add m10 standard_name', fterr)
-      istatus = nf90_put_att(ncid, isrvvar(1), 'long_name', &
-                         'Convenience 10 m elevation level')
+      istatus = nf90_put_att(ncid, isrvvar(1), 'long_name','10 m height level')
       call check_ok(__FILE__,__LINE__,'Error add m10 long_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'positive', 'up')
       call check_ok(__FILE__,__LINE__,'Error add m10 positive', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'units', 'm')
       call check_ok(__FILE__,__LINE__,'Error add m10 units', fterr)
-      istatus = nf90_def_var(ncid, 'm2', nf90_float, idims(6), isrvvar(2))
+      istatus = nf90_def_var(ncid, 'm2', nf90_double, idims(6), isrvvar(2))
       call check_ok(__FILE__,__LINE__,'Error add var m2', fterr)
-      istatus = nf90_put_att(ncid, isrvvar(2), 'standard_name', 'altitude')
+      istatus = nf90_put_att(ncid, isrvvar(2), 'standard_name', 'height')
       call check_ok(__FILE__,__LINE__,'Error add m2 standard_name', fterr)
-      istatus = nf90_put_att(ncid, isrvvar(2), 'long_name', &
-                         'Convenience 2 m elevation level')
+      istatus = nf90_put_att(ncid, isrvvar(2), 'long_name','2 m height level')
       call check_ok(__FILE__,__LINE__,'Error add m2 long_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'positive', 'up')
       call check_ok(__FILE__,__LINE__, 'Error add m2 positive', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'units', 'm')
       call check_ok(__FILE__,__LINE__, 'Error add m2 units', fterr)
-      istatus = nf90_def_var(ncid, 'layer', nf90_float, idims(7), isrvvar(3))
+      istatus = nf90_def_var(ncid, 'layer', nf90_double, idims(7), isrvvar(3))
       call check_ok(__FILE__,__LINE__,'Error add var layer', fterr)
       istatus = nf90_put_att(ncid, isrvvar(3), 'standard_name', &
                          'model_level_number')
@@ -1298,8 +1298,8 @@ contains
       call check_ok(__FILE__,__LINE__,'Error add layer units', fterr)
     end if
     if (ctype == 'STS' .or. ctype == 'SRF') then
-      istatus = nf90_def_dim(ncid, 'nv', 2, idims(8))
-      call check_ok(__FILE__,__LINE__,'Error create dim nv', fterr)
+      istatus = nf90_def_dim(ncid, 'ntimes', 2, idims(8))
+      call check_ok(__FILE__,__LINE__,'Error create dim ntimes', fterr)
     end  if
     if (ctype == 'CHE') then
       istatus = nf90_def_dim(ncid, 'tracer', ntr, idims(9))
@@ -1373,7 +1373,7 @@ contains
                  'scale_factor_at_projection_origin', trlat(1:1))
       call check_ok(__FILE__,__LINE__,'Error add rcm_map scfac', fterr)
     end if
-    istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4), izvar(1))
+    istatus = nf90_def_var(ncid, 'sigma', nf90_double, idims(4), izvar(1))
     call check_ok(__FILE__,__LINE__,'Error add var sigma', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'standard_name', &
                          'atmosphere_sigma_coordinate')
@@ -1405,7 +1405,7 @@ contains
       istatus = nf90_put_att(ncid, izvar(3), 'positive', 'down')
       call check_ok(__FILE__,__LINE__,'Error add depth positive', fterr)
     end if
-    istatus = nf90_def_var(ncid, 'ptop', nf90_float, varid=izvar(2))
+    istatus = nf90_def_var(ncid, 'ptop', nf90_double, varid=izvar(2))
     call check_ok(__FILE__,__LINE__,'Error add var ptop', fterr)
     istatus = nf90_put_att(ncid, izvar(2), 'standard_name', 'air_pressure')
     call check_ok(__FILE__,__LINE__,'Error add ptop standard_name', fterr)
@@ -1413,7 +1413,7 @@ contains
     call check_ok(__FILE__,__LINE__,'Error add ptop long_name', fterr)
     istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
     call check_ok(__FILE__,__LINE__,'Error add ptop units', fterr)
-    istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), ivvar(1))
+    istatus = nf90_def_var(ncid, 'iy', nf90_double, idims(2), ivvar(1))
     call check_ok(__FILE__,__LINE__,'Error add var iy', fterr)
     istatus = nf90_put_att(ncid, ivvar(1), 'standard_name', &
                            'projection_y_coordinate')
@@ -1423,7 +1423,7 @@ contains
     call check_ok(__FILE__,__LINE__,'Error add iy long_name', fterr)
     istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
     call check_ok(__FILE__,__LINE__,'Error add iy units', fterr)
-    istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ivvar(2))
+    istatus = nf90_def_var(ncid, 'jx', nf90_double, idims(1), ivvar(2))
     call check_ok(__FILE__,__LINE__,'Error add var jx', fterr)
     istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                          'projection_x_coordinate')
@@ -1489,7 +1489,7 @@ contains
     istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
     call check_ok(__FILE__,__LINE__,'Error add time units', fterr)
     if (ctype == 'STS' .or. ctype == 'SRF') then
-      istatus = nf90_put_att(ncid, itvar, 'bounds', 'tbnds')
+      istatus = nf90_put_att(ncid, itvar, 'bounds', 'time_bnds')
       call check_ok(__FILE__,__LINE__,'Error add time bounds', fterr)
     end if
     istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3), illtpvar(5))
@@ -1539,14 +1539,14 @@ contains
       isrfvar = -1
       isrfvar(1) = itvar
       isrfvar(2) = illtpvar(5)
-      istatus = nf90_def_var(ncid, 'tbnds', nf90_double, &
+      istatus = nf90_def_var(ncid, 'time_bnds', nf90_double, &
                              (/idims(8),idims(3)/), isrfvar(2))
-      call check_ok(__FILE__,__LINE__,'Error add var tbnds', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var time_bnds', fterr)
       istatus = nf90_put_att(ncid, isrfvar(2), &
                              'calendar', calstr(idate%calendar))
-      call check_ok(__FILE__,__LINE__,'Error add tbnds calendar', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add time_bnds calendar', fterr)
       istatus = nf90_put_att(ncid, isrfvar(2), 'units', 'hours since '//ctime)
-      call check_ok(__FILE__,__LINE__,'Error add tbnds units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add time_bnds units', fterr)
       isrfvar(3) = illtpvar(5)
       call addvara(ncid,ctype,t10yx,.false.,4)
       call addvara(ncid,ctype,t10yx,.false.,5)
@@ -1577,14 +1577,14 @@ contains
     else if (ctype == 'STS') then
       istsvar = -1
       istsvar(1) = itvar
-      istatus = nf90_def_var(ncid, 'tbnds', nf90_double, &
+      istatus = nf90_def_var(ncid, 'time_bnds', nf90_double, &
                              (/idims(8),idims(3)/), istsvar(2))
-      call check_ok(__FILE__,__LINE__,'Error add var tbnds', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var time_bnds', fterr)
       istatus = nf90_put_att(ncid, istsvar(2), &
                              'calendar', calstr(idate%calendar))
-      call check_ok(__FILE__,__LINE__,'Error add tbnds calendar', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add time_bnds calendar', fterr)
       istatus = nf90_put_att(ncid, istsvar(2), 'units', 'hours since '//ctime)
-      call check_ok(__FILE__,__LINE__,'Error add tbnds units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add time_bnds units', fterr)
       istsvar(3) = illtpvar(5)
       call addvara(ncid,ctype,tyx,.false.,4)
       call addvara(ncid,ctype,tyx,.false.,5)
@@ -1692,7 +1692,7 @@ contains
 
     istatus = nf90_put_var(ncid, izvar(1), hsigma)
     call check_ok(__FILE__,__LINE__,'Error var sigma write', fterr)
-    hptop = real(ptop*d_10)
+    hptop = ptop*d_10
     istatus = nf90_put_var(ncid, izvar(2), hptop)
     call check_ok(__FILE__,__LINE__,'Error var ptop write', fterr)
     if (ctype == 'LAK') then
@@ -1703,13 +1703,13 @@ contains
       call check_ok(__FILE__,__LINE__,'Error var depth write', fterr)
     end if
     if (ctype == 'SUB') then
-      yiy(1) = -real((dble((o_nig-1)-1)/2.0D0)*ds)
-      xjx(1) = -real((dble((o_njg-1)-1)/2.0D0)*ds)
+      yiy(1) = -((dble((o_nig-1)-1)/2.0D0)*ds)
+      xjx(1) = -((dble((o_njg-1)-1)/2.0D0)*ds)
       do i = 2 , o_nig
-        yiy(i) = yiy(i-1)+real(ds)
+        yiy(i) = yiy(i-1)+ds
       end do
       do j = 2 , o_njg
-        xjx(j) = xjx(j-1)+real(ds)
+        xjx(j) = xjx(j-1)+ds
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_nig))
       call check_ok(__FILE__,__LINE__,'Error var iy write', fterr)
@@ -1724,13 +1724,13 @@ contains
       istatus = nf90_put_var(ncid, illtpvar(4), iomask_s)
       call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
     else
-      yiy(1) = -real((dble(o_ni-1)/2.0D0)*ds)
-      xjx(1) = -real((dble(o_nj-1)/2.0D0)*ds)
+      yiy(1) = -((dble(o_ni-1)/2.0D0)*ds)
+      xjx(1) = -((dble(o_nj-1)/2.0D0)*ds)
       do i = 2 , o_ni
-        yiy(i) = yiy(i-1)+real(ds)
+        yiy(i) = yiy(i-1)+ds
       end do
       do j = 2 , o_nj
-        xjx(j) = xjx(j-1)+real(ds)
+        xjx(j) = xjx(j-1)+ds
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
       call check_ok(__FILE__,__LINE__,'Error var iy write', fterr)
@@ -1746,14 +1746,14 @@ contains
       call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
     end if
     if (ctype == 'SRF' .or. ctype == 'SUB') then
-      rdum1 = 10.0
+      rdum1 = 10.0D0
       istatus = nf90_put_var(ncid, isrvvar(1), rdum1)
       call check_ok(__FILE__,__LINE__,'Error var m10 write', fterr)
-      rdum1 = 2.0
+      rdum1 = 2.0D0
       istatus = nf90_put_var(ncid, isrvvar(2), rdum1)
       call check_ok(__FILE__,__LINE__,'Error var m2 write', fterr)
-      rdum2(1) = 0.0
-      rdum2(2) = 1.0
+      rdum2(1) = 0.0D0
+      rdum2(2) = 1.0D0
       istatus = nf90_put_var(ncid, isrvvar(3), rdum2)
       call check_ok(__FILE__,__LINE__,'Error var layer write', fterr)
     end if
@@ -1987,14 +1987,16 @@ contains
     icount(2) = 1
     icount(1) = 2
     tdif = idate-cordex_refdate
-    nctime(2) = tohours(tdif)
-    nctime(1) = nctime(2)-24
-    istatus = nf90_put_var(ncsts, istsvar(1), nctime(2:2), &
+    nctime(1) = tohours(tdif)-12
+    istatus = nf90_put_var(ncsts, istsvar(1), nctime(1:1), &
                            istart(2:2), icount(2:2))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'STS FILE')
+    nctime(2) = tohours(tdif)
+    nctime(1) = nctime(2)-24
     istatus = nf90_put_var(ncsts, istsvar(2), nctime, &
                            istart(1:2), icount(1:2))
-    call check_ok(__FILE__,__LINE__,'Error writing tbnds '//ctime, 'STS FILE')
+    call check_ok(__FILE__,__LINE__,  &
+                  'Error writing time_bnds '//ctime, 'STS FILE')
 
     istart(3) = istsrec
     istart(2) = 1
@@ -2079,14 +2081,15 @@ contains
     icount(2) = 1
     icount(1) = 2
     tdif = idate-cordex_refdate
-    nctime(2) = tohours(tdif)
-    nctime(1) = nctime(2)-srffrq
-    istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(2:2), &
+    nctime(1) = tohours(tdif)
+    istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(1:1), &
                            istart(2:2), icount(2:2))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SRF FILE')
-    istatus = nf90_put_var(ncsrf, isrfvar(2), nctime, &
-                           istart(1:2), icount(1:2))
-    call check_ok(__FILE__,__LINE__,'Error writing tbnds '//ctime, 'SRF FILE')
+    nctime(2) = tohours(tdif)
+    nctime(1) = nctime(2)-srffrq
+    istatus = nf90_put_var(ncsrf, isrfvar(2), nctime, istart(1:2), icount(1:2))
+    call check_ok(__FILE__,__LINE__, &
+                  'Error writing time_bnds '//ctime, 'SRF FILE')
     ivar = 3
     lskip = .false.
     do n = 1 , 24

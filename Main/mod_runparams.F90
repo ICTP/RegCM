@@ -257,7 +257,7 @@ module mod_runparams
     output_variable('cld','cloud_area_fraction_in_atmosphere_layer',          &
        'Cloud fractional cover','1','point',.true.),                          &
     output_variable('clwp','thickness_of_liquid_water_cloud',                 &
-       'Cloud liquid water path','m','point',.true.),                         &
+       'Cloud liquid water path','g m-2','point',.true.),                     &
     output_variable('qrs',                                                    &
        'tendency_of_air_temperature_due_to_shortwave_heating',                &
        'Solar heating rate','K s-1','point',.true.),                          &

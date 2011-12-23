@@ -341,7 +341,7 @@ module mod_rad_colmod3
 !
 !     Cloud particle size and fraction of ice
 !
-      call cldefr(jstart,jend,i)
+      call cldefr(jstart,jend)
 !
 !     Cloud emissivity
 !
@@ -416,9 +416,9 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine cldefr(jstart,jend,i)
+  subroutine cldefr(jstart,jend)
     implicit none
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: jstart , jend
 !
     integer :: j , k
     real(dp) :: pnrml , rliq , weight
@@ -435,7 +435,6 @@ module mod_rad_colmod3
     real(dp) , parameter :: minus10 = wattp-d_10
     real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
 !
-    totcl(:) = d_zero
     totci(:) = d_zero
     do k = 1 , kz
       do j = jstart , jend
@@ -487,8 +486,7 @@ module mod_rad_colmod3
 !
 !fil    no-ice test
 !       fice(j,k) = d_zero
-        totcl(j) = totcl(j) + cldlwc(j,i,k)*d_1000
-        totci(j) = totci(j) + cldlwc(j,i,k)*d_1000*fice(j,k)
+        totci(j) = totci(j) + clwp(j,k)*fice(j,k)*d_r1000
 !
       end do
     end do
@@ -641,6 +639,7 @@ module mod_rad_colmod3
 !
 !   fractional cloud cover (dependent on relative humidity)
 !
+    totcl(:) = d_zero
     do k = 1 , kz
       do j = jstart , jend
    
@@ -671,6 +670,7 @@ module mod_rad_colmod3
           cld(j,k) = d_zero
           clwp(j,k) = d_zero
         end if
+        totcl(j) = totcl(j)+clwp(j,k)*d_r1000
       end do
     end do
 !   
