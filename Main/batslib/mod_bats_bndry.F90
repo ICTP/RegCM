@@ -619,6 +619,12 @@ module mod_bats_bndry
               rsur(n,j,i) = rsur(n,j,i) + &
                      (rsw(n,j,i)-relfc(n,j,i)*gwmx1(n,j,i))/dtbat
             end if
+            ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
+            ! see Kueppers et al. (2008)
+            ! if ( lveg(n,j,i) == 10 .and. watr(n,j,i) < relaw(n,j,i) ) then
+            !   rsur(n,j,i) = rsur(n,j,i) + &
+            !         (rsw(n,j,i)-relaw(n,j,i)*gwmx1(n,j,i))/dtbat
+            ! end if
             !
             ! 2.13 saturate swamp or rice paddy
             !

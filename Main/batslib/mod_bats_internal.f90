@@ -50,7 +50,7 @@ module mod_bats_internal
   real(dp) , pointer , dimension(:,:,:) :: bfc , bsw
   real(dp) , pointer , dimension(:,:,:) :: evmx0 , fdry , fwet
   real(dp) , pointer , dimension(:,:,:) :: gwmx0 , gwmx1 , gwmx2
-  real(dp) , pointer , dimension(:,:,:) :: porsl , relfc , rnet
+  real(dp) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
   real(dp) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
   real(dp) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,     &
          cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,       &
@@ -81,7 +81,7 @@ module mod_bats_internal
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
             cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,     &
             etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,        &
-            fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,         &
+            fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd , relaw , &
             rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,        &
             tm , uaf , vspda , wata , watr , watt , watu , wta , xlai ,    &
             xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,      &
@@ -170,6 +170,7 @@ module mod_bats_internal
     call getmem3d(fwet,1,nnsg,1,jxp,1,iym1,'bats_internal:fwet')
     call getmem3d(porsl,1,nnsg,1,jxp,1,iym1,'bats_internal:porsl')
     call getmem3d(relfc,1,nnsg,1,jxp,1,iym1,'bats_internal:relfc')
+    call getmem3d(relaw,1,nnsg,1,jxp,1,iym1,'bats_internal:relaw')
     call getmem3d(rnet,1,nnsg,1,jxp,1,iym1,'bats_internal:rnet')
     call getmem3d(texrat,1,nnsg,1,jxp,1,iym1,'bats_internal:texrat')
     call getmem3d(vegt,1,nnsg,1,jxp,1,iym1,'bats_internal:vegt')

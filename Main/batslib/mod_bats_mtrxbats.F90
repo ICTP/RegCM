@@ -996,6 +996,10 @@ module mod_bats_mtrxbats
             wiltr(n,j,i) = xmowil(itex)
             ! force irrigated crop to be at field capacity
             relfc(n,j,i) = xmofc(itex)
+            ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
+            ! see Kueppers et al. (2008)
+            ! relaw is between field capacity and wilting point
+            relaw(n,j,i) = 0.75*(xmofc(itex)-xmowil(itex))+xmowil(itex)
           end if
         end do
       end do
