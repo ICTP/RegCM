@@ -135,8 +135,8 @@ module mod_bats_lake
     end do
   end do
 
-  call mpi_gather(idep2d,   nnsg*iym1*jxp,mpi_integer, &
-                  idep2d_io,nnsg*iym1*jxp,mpi_integer, &
+  call mpi_gather(idep2d,   nnsg*iy*jxp,mpi_integer, &
+                  idep2d_io,nnsg*iy*jxp,mpi_integer, &
                   0, mycomm,ierr)
   end subroutine initlake
 !
@@ -144,8 +144,8 @@ module mod_bats_lake
   implicit none
   integer , intent(in) :: jstart , jend , istart , iend
 !
-  real(dp) :: flwx , fswx , hsen , prec , &
-             ql , tgl , tl , vl , zl , xl , evp , toth
+  real(dp) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
+              xl , evp , toth
   integer :: i , j , n
 !
   do i = istart , iend
@@ -673,20 +673,20 @@ module mod_bats_lake
 !
   integer :: ierr
 !
-  call mpi_gather(eta2d,   nnsg*iym1*jxp,mpi_real8, &
-                  eta2d_io,nnsg*iym1*jxp,mpi_real8, &
+  call mpi_gather(eta2d,   nnsg*iy*jxp,mpi_real8, &
+                  eta2d_io,nnsg*iy*jxp,mpi_real8, &
                   0, mycomm,ierr)
-  call mpi_gather(hi2d,   nnsg*iym1*jxp,mpi_real8, &
-                  hi2d_io,nnsg*iym1*jxp,mpi_real8, &
+  call mpi_gather(hi2d,   nnsg*iy*jxp,mpi_real8, &
+                  hi2d_io,nnsg*iy*jxp,mpi_real8, &
                   0, mycomm,ierr)
-  call mpi_gather(aveice2d,   nnsg*iym1*jxp,mpi_real8, &
-                  aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
+  call mpi_gather(aveice2d,   nnsg*iy*jxp,mpi_real8, &
+                  aveice2d_io,nnsg*iy*jxp,mpi_real8, &
                   0, mycomm,ierr)
-  call mpi_gather(hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
-                  hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
+  call mpi_gather(hsnow2d,   nnsg*iy*jxp,mpi_real8, &
+                  hsnow2d_io,nnsg*iy*jxp,mpi_real8, &
                   0, mycomm,ierr)
-  call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                  tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+  call mpi_gather(tlak3d,   ndpmax*nnsg*iy*jxp,mpi_real8, &
+                  tlak3d_io,ndpmax*nnsg*iy*jxp,mpi_real8, &
                   0, mycomm,ierr)
 
   end subroutine lakegather
@@ -705,23 +705,23 @@ module mod_bats_lake
 !
   integer :: ierr
 !
-  call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                   idep2d,   nnsg*iym1*jxp,mpi_integer, &
+  call mpi_scatter(idep2d_io,nnsg*iy*jxp,mpi_integer, &
+                   idep2d,   nnsg*iy*jxp,mpi_integer, &
                    0, mycomm,ierr)
-  call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                   eta2d,   nnsg*iym1*jxp,mpi_real8, &
+  call mpi_scatter(eta2d_io,nnsg*iy*jxp,mpi_real8, &
+                   eta2d,   nnsg*iy*jxp,mpi_real8, &
                    0, mycomm,ierr)
-  call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                   hi2d,   nnsg*iym1*jxp,mpi_real8, &
+  call mpi_scatter(hi2d_io,nnsg*iy*jxp,mpi_real8, &
+                   hi2d,   nnsg*iy*jxp,mpi_real8, &
                    0, mycomm,ierr)
-  call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                   aveice2d,   nnsg*iym1*jxp,mpi_real8, &
+  call mpi_scatter(aveice2d_io,nnsg*iy*jxp,mpi_real8, &
+                   aveice2d,   nnsg*iy*jxp,mpi_real8, &
                    0, mycomm,ierr)
-  call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                   hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
+  call mpi_scatter(hsnow2d_io,nnsg*iy*jxp,mpi_real8, &
+                   hsnow2d,   nnsg*iy*jxp,mpi_real8, &
                    0, mycomm,ierr)
-  call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                   tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
+  call mpi_scatter(tlak3d_io,ndpmax*nnsg*iy*jxp,mpi_real8, &
+                   tlak3d,   ndpmax*nnsg*iy*jxp,mpi_real8, &
                    0, mycomm,ierr)
 
   end subroutine lakescatter
