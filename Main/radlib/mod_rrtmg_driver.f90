@@ -321,6 +321,7 @@ module mod_rrtmg_driver
       end do 
 
       idrv = 0
+
       call  rrtmg_lw(npj,kz,icld,idrv,play,plev,tlay,tlev,tsfc,    & 
                      h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
                      cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf, &

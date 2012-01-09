@@ -62,7 +62,7 @@ module mod_che_mppio
   real(dp) , pointer , dimension(:,:,:) :: src_1
 
   real(dp) , pointer , dimension(:,:,:) :: savch0, savch_0
-
+  real(dp), pointer, dimension(:,:,:,:) :: chebdy
 !
 ! Boundary conditions arrays
 !
@@ -94,7 +94,7 @@ module mod_che_mppio
       call getmem4d(src0,1,iy,1,mpy,1,ntr,1,jxp,'che_mppio:src0')
       call getmem3d(src1,1,iy,1,nats,1,jxp,'che_mppio:src1')
       call getmem3d(savch0,1,iy,1,kz*25,1,jxp,'che_mppio:savch0')
-  
+      call getmem4d(chebdy,1,iy,1,kz,1,jxp,1,50, 'mod_che_mppio:chebdy')
       if (myid == 0) then
 
 

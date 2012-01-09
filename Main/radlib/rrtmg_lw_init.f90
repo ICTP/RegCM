@@ -113,8 +113,11 @@
       do itr = 1, ntbl-1
          tfn = float(itr) / float(ntbl)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
-         exp_tbl(itr) = exp(-tau_tbl(itr))
-         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
+         if ( tau_tbl(itr) .ge. 100._rb ) then
+           exp_tbl(itr) = expeps
+         else
+           exp_tbl(itr) = exp(-tau_tbl(itr))
+         end if
          if (tau_tbl(itr) .lt. 0.06_rb) then
             tfn_tbl(itr) = tau_tbl(itr)/6._rb
          else

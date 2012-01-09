@@ -1126,11 +1126,15 @@ module mod_params
   if ( ichem == 1 ) then
     if ( myid == 0 ) then
       chtrname(1:ntr)(1:5) = inpchtrname(1:ntr)(1:5)
-      chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
+!      chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
       dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
       chtrsol(1:ntr) = inpchtrsol(1:ntr)
+    !  chtrname = inpchtrname(1:ntr)
+    !  chtrdpv = inpchtrdpv(1:ntr,:)
+    !  dustbsiz = inpdustbsiz(1:nbin,:)
+    !  chtrsol = inpchtrsol(1:ntr)
 
-       print*, 'CHTRNAME', chtrname, inpchtrname
+       print*, 'CHTRNAME', dustbsiz
 
     end if
     do n = 1 , ntr

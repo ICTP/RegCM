@@ -44,7 +44,7 @@ use mod_memutil
   public :: chieb, chiebt , chiwb , chiwbt
 #endif
   public :: chisb , chisbt , chinb , chinbt
-  public :: chib0 , chib1
+  public :: chib0 , chib1,ichbdy2trac
 
   real(dp) ,  pointer, dimension(:,:,:,:) :: chib0 , chib1
 !
@@ -54,6 +54,9 @@ use mod_memutil
 #endif
   real(dp) , pointer, dimension(:,:,:,:) :: chinb , chinbt , &
                                                  chisb , chisbt
+ 
+  integer, pointer, dimension(:) ::ichbdy2trac
+   
 
   contains
 
@@ -79,6 +82,8 @@ use mod_memutil
     call getmem4d(chisb,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chisb')
     call getmem4d(chisbt,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chinst')
 
+    call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
+
 !    call time_end(subroutine_name,idindx)
 
   end subroutine allocate_mod_che_bdyco
@@ -93,23 +98,23 @@ use mod_memutil
 
     use mod_che_indices
 
-!!$#ifndef IBM
-!!$    use mpi
-!!$#endif
-    implicit none
+#ifndef IBM
+    use mpi
+#endif
 #ifdef IBM
     include 'mpif.h'
 #endif
+implicit none
+
     type(rcm_time_and_date) ,intent(in) :: bdydate1 , bdydate2
 
     real(dp), intent(in) :: dtbdys
-    integer :: i , j , k , nn , nnb , mmrec, itr
+    integer :: i , j , k ,n, nn , nnb , mmrec, itr
     integer ::  nxeb , nxwb, ierr
 #ifndef BAND
     integer :: nkk
 #endif
     real(8) , dimension(iy,jxp) :: psdot , tdum
-    integer :: n
     character (len=64) :: subroutine_name='chem_bdyin'
     integer :: idindx=0
 !
@@ -181,29 +186,19 @@ use mod_memutil
 !!$
       if(myid .eq. 0 ) then
 
-!      call addhours(ndate1, ibdyfrq)
     mmrec = chbc_search(bdydate2)
     write(*,*)'CH_BDYIN -----',mmrec,bdydate2
     if (mmrec < 0) then
             call open_chbc(bdydate2)
     end if
     
-     
+     call read_chbc(chebdy_io)  
 
-!!$
-!!$
-!!$       call read_chbc(ndate1,                                 &
-!!$            o3b1_io,nob1_io,no2b1_io,hno3b1_io,n2o5b1_io      &
-!!$           ,h2o2b1_io,ch4b1_io,cob1_io,hchob1_io,ch3ohb1_io   &
-!!$           ,c2h5ohb1_io,c2h4b1_io,c2h6b1_io,ch3chob1_io       &
-!!$           ,c3h6b1_io,c3h8b1_io,ch3coch3b1_io,bigeneb1_io     &
-!!$           ,bigalkb1_io,isopb1_io,tolueb1_io,panb1_io         &
-!!$           ,so2b1_io,dmsb1_io,so4b1_io)
-!!$
-!!$
-!!$    do j = 1 , jx
-!!$       do k = 1 , kz
-!!$          do i = 1 , iy
+   do n = 1, 25
+      do j = 1 , jx
+        do k = 1 , kz
+           do i = 1 , iy
+             savch_0(i,kz*(n-1) + k       ,j)  = chebdy_io(i,k,j,n)
 !!$             savch_0(i,k       ,j)  = o3b1_io(i,k,j)
 !!$             savch_0(i,kz    +k,j)  = nob1_io(i,k,j)
 !!$             savch_0(i,kz*2  +k,j)  = no2b1_io(i,k,j)
@@ -229,21 +224,26 @@ use mod_memutil
 !!$             savch_0(i,kz*22  +k,j) = so2b1_io(i,k,j)
 !!$             savch_0(i,kz*23  +k,j) = dmsb1_io(i,k,j)
 !!$             savch_0(i,kz*24  +k,j) = so4b1_io(i,k,j)
-!!$          end do
-!!$       end do
-!!$    end do
+          end do
+       end do
+    end do
+    end do
 !!$
      end if
-!!$    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
-!!$                     savch0, iy*kz*25*jxp,mpi_real8,      &
-!!$                     0,mpi_comm_world,ierr)
+    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
+                     savch0, iy*kz*25*jxp,mpi_real8,      &
+                     0,mpi_comm_world,ierr)
 !!$
 !!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jendl,jbegin,jendx,jxp
 !!$
-!!$    do j = 1 , jendl
-!!$    do k = 1 , kz
-!!$          do i = 1 , iy
-!!$             o3b1(i,k,j)        = savch0(i,       k,j)
+
+    do n=1,25 
+    do j = 1 , jendl
+    do k = 1 , kz
+      do i = 1 , iy
+
+        
+             chebdy(i,k,j,n)        = savch0(i, kz*(n-1) + k,j)
 !!$             nob1(i,k,j)        = savch0(i,kz    +k,j)
 !!$             no2b1(i,k,j)       = savch0(i,kz*2  +k,j)
 !!$             hno3b1(i,k,j)      = savch0(i,kz*3  +k,j)
@@ -268,9 +268,15 @@ use mod_memutil
 !!$             so2b1(i,k,j)       = savch0(i,kz*22  +k,j)
 !!$             dmsb1(i,k,j)       = savch0(i,kz*23  +k,j)
 !!$             so4b1(i,k,j)       = savch0(i,kz*24  +k,j)
-!!$          end do
-!!$       end do
-!!$    end do
+          end do
+       end do
+    end do
+
+     print*, 'apres transfert', myid, n,maxval(chebdy(:,:,:,n)) 
+
+    end do
+
+
 !!$    do j = jbegin , jendx
 !!$       do i = 2 , iym1
 !!$           psdot(i,j) = 0.25*(ps1(i,j)   + ps1(i-1,j) +  &
@@ -303,40 +309,19 @@ use mod_memutil
 !!$! fab modif
 !!$! intialise the chib1 tracer : correspondance betwwen bdy tables and chib
 !!$
-!!$    do k = 1 , kz
-!!$       do j = 1 , jendl
-!!$          do i = 1 , iy
-!!$              if(io3 > 0) chib1(i,k,j,io3)     =  o3b1(i,k,j)*psdot(i,j)
-!!$              if(ino > 0) chib1(i,k,j,ino)     =  nob1(i,k,j)*psdot(i,j)
-!!$              if(ino2 > 0) chib1(i,k,j,ino2)    =  no2b1(i,k,j)*psdot(i,j)
-!!$              if(ihno3 > 0) chib1(i,k,j,ihno3)   =  hno3b1(i,k,j)*psdot(i,j)
-!!$              if(in2o5 > 0) chib1(i,k,j,in2o5)   =  n2o5b1(i,k,j)*psdot(i,j)
-!!$              if(ih2o2 > 0) chib1(i,k,j,ih2o2)   =  h2o2b1(i,k,j)*psdot(i,j)
-!!$              if(ich4 > 0) chib1(i,k,j,ich4)    =  ch4b1(i,k,j)*psdot(i,j)
-!!$              if(ico > 0) chib1(i,k,j,ico)     =  cob1(i,k,j)*psdot(i,j)
-!!$              if(ihcho > 0) chib1(i,k,j,ihcho)   =  hchob1(i,k,j)*psdot(i,j)
-!!$              if(imoh > 0) chib1(i,k,j,imoh)    =  ch3ohb1(i,k,j)*psdot(i,j)
-!!$              if(ieoh > 0) chib1(i,k,j,ieoh)    =  c2h5ohb1(i,k,j)*psdot(i,j)
-!!$              if(iethe > 0) chib1(i,k,j,iethe)   =  c2h4b1(i,k,j)*psdot(i,j)
-!!$              if(ic2h6 > 0) chib1(i,k,j,ic2h6)   =  c2h6b1(i,k,j)*psdot(i,j)
-!!$              if(iald2 > 0) chib1(i,k,j,iald2)   =  ch3chob1(i,k,j)*psdot(i,j)
-!!$              if(iolt > 0) chib1(i,k,j,iolt)    =  c3h6b1(i,k,j)*psdot(i,j)
-!!$              if(ic3h8 > 0) chib1(i,k,j,ic3h8)   =  c3h8b1(i,k,j)*psdot(i,j)
-!!$              if(iacet > 0) chib1(i,k,j,iacet)   =  ch3coch3b1(i,k,j)*psdot(i,j)
-!!$              if(ioli > 0) chib1(i,k,j,ioli)    =  bigeneb1(i,k,j)*psdot(i,j)
-!!$              if(iisop > 0) chib1(i,k,j,iisop)   =  isopb1(i,k,j)*psdot(i,j)
-!!$              if(itolue > 0) chib1(i,k,j,itolue)  =  tolueb1(i,k,j)*psdot(i,j)
-!!$              if(ipan > 0) chib1(i,k,j,ipan)    =  panb1(i,k,j)*psdot(i,j)
-!!$              if(iso2 > 0) chib1(i,k,j,iso2)    =  so2b1(i,k,j)*psdot(i,j)
-!!$              if(idms > 0) chib1(i,k,j,idms)    =  dmsb1(i,k,j)*psdot(i,j)
-!!$              if(iso4 > 0) chib1(i,k,j,iso4)    =  so4b1(i,k,j)*psdot(i,j)
-!!$
-!!$          end do
-!!$       end do
-!!$    end do
-!!$
-!!$
-!!$! fab modif ici
+   do n=1,25
+    do k = 1 , kz
+       do j = 1 , jendl
+          do i = 1 , iy
+              if(ichbdy2trac(n) > 0) chib1(i,k,j,ichbdy2trac(n)) = chebdy(i,k,j,n)*cpsb(j,i)
+          end do
+       end do
+    end do
+   end do
+
+
+
+
 !-----compute boundary conditions for p*chi
 ! first define nxeb and nxwb
 !

@@ -838,6 +838,7 @@
          do imol = 1, nmol
             wkl(imol,l) = coldry(l) * wkl(imol,l)
          enddo
+         print*, l,'FAB wkl(1)', coldry(l),wkl(1,l)
          amttl = amttl + coldry(l)+wkl(1,l)
          wvttl = wvttl + wkl(1,l)
          do ix = 1,maxxsec
@@ -846,7 +847,7 @@
             endif
          enddo
       enddo
-
+      print*, 'faB RAD', amttl
       wvsh = (amw * wvttl) / (amd * amttl)
       pwvcm = wvsh * (1.e3_rb * pz(0)) / (1.e2_rb * grav)
 

@@ -249,7 +249,7 @@ module mod_regcm_interface
 !
     call spinit(1,jendx,1,iym1)
 ! 
-    if ( ichem == 1 ) call chsrfem
+    if ( ichem == 1 ) call chem_emission(7)
 
 !
 !**********************************************************************
@@ -327,9 +327,9 @@ module mod_regcm_interface
       if ( nbdytime == 0 .and. &
           (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
         call bdyin
-#ifdef CHEMTEST
-        if ( ichem == 1 ) call bdyin_chem
-#endif
+
+      if ( ichem == 1 )  call chem_bdyin(150D00, bdydate1, bdydate2)
+
       end if
 !
 !     Refined start

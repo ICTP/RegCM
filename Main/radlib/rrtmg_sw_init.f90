@@ -97,10 +97,13 @@
       exp_tbl(ntbl) = expeps
       bpade = 1.0_rb / pade
       do itr = 1, ntbl-1
-         tfn = float(itr) / float(ntbl)
+         tfn = dble(itr) / dble(ntbl)
          tau_tbl = bpade * tfn / (1._rb - tfn)
-         exp_tbl(itr) = exp(-tau_tbl)
-         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
+         if (tau_tbl .ge. 100._rb) then
+           exp_tbl(itr) = expeps
+         else
+           exp_tbl(itr) = dexp(-tau_tbl)
+         end if
       enddo
 
 ! Perform g-point reduction from 16 per band (224 total points) to

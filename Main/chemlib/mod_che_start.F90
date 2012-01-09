@@ -27,8 +27,8 @@
     use mod_che_wetdep
     use mod_che_carbonaer
     use mod_che_ncio
-
-    
+    use mod_che_mppio
+    use mod_che_bdyco
     implicit none
 
     public  :: start_chem
@@ -271,6 +271,40 @@ kbin=0
         end do
 
 
+! define now correspndance between boundary species indices and tracer indices
+! must be absoutely consistent with ch  / depends on chem mechanism
+
+ 
+  ichbdy2trac (:) = 0 
+
+  ichbdy2trac(1) = io3
+  ichbdy2trac(2) =ino
+  ichbdy2trac(3) =ino2
+  ichbdy2trac(4) =ihno3
+  ichbdy2trac(5) =in2o5
+  ichbdy2trac(6) =ih2o2
+  ichbdy2trac(7) =ich4
+  ichbdy2trac(8) =ico
+  ichbdy2trac(9) =ihcho
+  ichbdy2trac(10) =imoh
+  ichbdy2trac(11) =ieoh
+  ichbdy2trac(12) =iethe
+  ichbdy2trac(13) =ic2h6
+  ichbdy2trac(14) =iald2
+  ichbdy2trac(15) =iacet
+  ichbdy2trac(16) =ioli
+!ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
+  ichbdy2trac(17) =iolt
+  ichbdy2trac(18) =ic3h8
+  ichbdy2trac(19) =iisop
+  ichbdy2trac(20) =itolue
+  ichbdy2trac(21) =ipan
+  ichbdy2trac(22) =iso2
+  ichbdy2trac(23) =iso4
+  ichbdy2trac(24) =idms
+
+
+
 print*, 'After startchem', icarb, isslt,idust
 
        if  (size(icarb) > 0 .or. size(isslt) > 0 .or. size(idust) >0 )  iaerosol = 1
@@ -311,11 +345,11 @@ print*, 'After startchem', icarb, isslt,idust
 
     subroutine chem_initial_state(ifrest,bdydate1, bdydate2 )
 
-!!$#ifndef IBM
-!!$    use mpi
-!!$#else
-!!$      include 'mpif.h'
-!!$#endif
+#ifndef IBM
+    use mpi
+#else
+   include 'mpif.h'
+#endif
 
 
        use mod_che_indices
@@ -323,62 +357,69 @@ print*, 'After startchem', icarb, isslt,idust
     implicit none
 
     logical , intent(in) :: ifrest
-    integer    :: i,j,k,ierr
+    integer    :: i,j,k,n,ierr
    type (rcm_time_and_date) :: icbc_date
     type (rcm_time_and_date), intent(in) :: bdydate1, bdydate2
 
-    real(8) , dimension(iy,jxp) :: psdot
 
-
-
-
-
-
-! FAB : TEMPORARY CUT the netcdf reading part to test the core
-
-!!$  call allocate_species_bc
-!!$  call allocate_mod_chem_bdycon
-!!$  call allocate_mod_chem_mppio(.false.)
-!!$
-!!$
-     
-
-      if ( myid == 0 ) then
+  if ( myid == 0 ) then
     if ( bdydate1 == globidate1 ) then
       icbc_date = bdydate1
     else
       icbc_date = monfirst(bdydate1)
     end if
     call open_chbc(icbc_date)
-  end if
-!
+ 
+    call read_chbc(chebdy_io)
 
 
+   do n = 1, 25
+      do j = 1 , jx
+        do k = 1 , kz
+           do i = 1 , iy
+             savch_0(i,kz*(n-1) + k       ,j)  = chebdy_io(i,k,j,n)
 
+          end do
+       end do
+    end do
+    end do
+!!$
+     end if
+    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
+                     savch0, iy*kz*25*jxp,mpi_real8,      &
+                     0,mpi_comm_world,ierr)
+!!$
+!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jendl,jbegin,jendx,jxp
+!!$
 
-!!$ 
-!!$    write(*,*)'START CHEM INITIALIZATION',idate1,globidate1,myid
-!!$ 
-!!$    ndate0 = idate1
-!!$    ndate1 = ndate0
+    do n=1,25 
+    do j = 1 , jendl
+    do k = 1 , kz
+      do i = 1 , iy
+
+             chebdy(i,k,j,n) = savch0(i, kz*(n-1) + k,j)
+
+          end do
+       end do
+    end do
+    end do
+
+!!$! intialise the chib0 tracer
 !!$
+  do n=1,25 
+ print*, 'foune',n,ichbdy2trac(n)
+ 
+
+   do k = 1 , kz
+       do j = 1 , jendl
+          do i = 1 , iy
+              if(ichbdy2trac(n) > 0) chib0(i,k,j,ichbdy2trac(n))   =  chebdy(i,k,j,n)*cpsb(j,i)
+          end do
+       end do
+    end do
+  end do
 !!$
-!!$    if (ndate0.eq.globidate1 .or.               &
-!!$            (((ndate0/10000)*100+1)*100 .eq.    &
-!!$            ((globidate1/10000)*100+1)*100 ) ) then
-!!$            icbc_date = globidate1
-!!$       else
-!!$            icbc_date = ((ndate0/10000)*100+1)*100
-!!$    end if        
-!!$
-!!$
-!!$
-!!$   end if
-!!$
-!!$
-!!$
-!!$!FAB compatibility with standard chem mode
-!!$!( igasphase==0 does not open and read oxydant fields and initial /boundary conditions are set to zero) 
+!!$ open and read oxydant fields and initial /boundary conditions are set to zero) 
 !!$
 !!$     if (igaschem==0) then !*** abt added: only for simple sulfate chemistry
 !!$
@@ -430,168 +471,8 @@ print*, 'After startchem', icarb, isslt,idust
 !!$
 !!$
 !!$
-!!$
-!!$      if (igaschem==1) then 
-!!$       
-!!$      if ( myid.eq.0 ) then
-!!$
-!!$             call open_chbc(icbc_date)
-!!$
-!!$             call read_chbc(ndate0,                           &
-!!$              o3b0_io,nob0_io,no2b0_io,hno3b0_io,n2o5b0_io     &
-!!$             ,h2o2b0_io,ch4b0_io,cob0_io,hchob0_io,ch3ohb0_io  &
-!!$             ,c2h5ohb0_io,c2h4b0_io,c2h6b0_io,ch3chob0_io      &
-!!$             ,c3h6b0_io,c3h8b0_io,ch3coch3b0_io,bigeneb0_io    &
-!!$             ,bigalkb0_io,isopb0_io,tolueb0_io,panb0_io        &
-!!$             ,so2b0_io,dmsb0_io,so4b0_io)
-!!$
-!!$      do j = 1 , jx
-!!$         do k = 1 , kz
-!!$            do i = 1 , iy
-!!$               savch_0(i,k       ,j)  = o3b0_io(i,k,j)
-!!$               savch_0(i,kz    +k,j)  = nob0_io(i,k,j)
-!!$               savch_0(i,kz*2  +k,j)  = no2b0_io(i,k,j)
-!!$               savch_0(i,kz*3  +k,j)  = hno3b0_io(i,k,j)
-!!$               savch_0(i,kz*4  +k,j)  = n2o5b0_io(i,k,j)
-!!$               savch_0(i,kz*5  +k,j)  = h2o2b0_io(i,k,j)
-!!$               savch_0(i,kz*6  +k,j)  = ch4b0_io(i,k,j)
-!!$               savch_0(i,kz*7  +k,j)  = cob0_io(i,k,j)
-!!$               savch_0(i,kz*8  +k,j)  = hchob0_io(i,k,j)
-!!$               savch_0(i,kz*9  +k,j)  = ch3ohb0_io(i,k,j)
-!!$               savch_0(i,kz*10  +k,j) = c2h5ohb0_io(i,k,j)
-!!$               savch_0(i,kz*11  +k,j) = c2h4b0_io(i,k,j)
-!!$               savch_0(i,kz*12  +k,j) = c2h6b0_io(i,k,j)
-!!$               savch_0(i,kz*13  +k,j) = ch3chob0_io(i,k,j)
-!!$               savch_0(i,kz*14  +k,j) = c3h6b0_io(i,k,j)
-!!$               savch_0(i,kz*15  +k,j) = c3h8b0_io(i,k,j)
-!!$               savch_0(i,kz*16  +k,j) = ch3coch3b0_io(i,k,j)
-!!$               savch_0(i,kz*17  +k,j) = bigeneb0_io(i,k,j)
-!!$               savch_0(i,kz*18  +k,j) = bigalkb0_io(i,k,j)
-!!$               savch_0(i,kz*19  +k,j) = isopb0_io(i,k,j)
-!!$               savch_0(i,kz*20  +k,j) = tolueb0_io(i,k,j)
-!!$               savch_0(i,kz*21  +k,j) = panb0_io(i,k,j)
-!!$               savch_0(i,kz*22  +k,j) = so2b0_io(i,k,j)
-!!$               savch_0(i,kz*23  +k,j) = dmsb0_io(i,k,j)
-!!$               savch_0(i,kz*24  +k,j) = so4b0_io(i,k,j)
-!!$
-!!$            end do
-!!$         end do
-!!$      end do
-!!$
-!!$     end if
-!!$
-!!$
-!!$!       Start transmission of data to other processors
-!!$      call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,         &
-!!$                       savch0, iy*kz*25*jxp,mpi_real8,         &
-!!$                       0,mpi_comm_world,ierr)
-!!$
-!!$
-!!$      do j = 1 , jendl
-!!$         do k = 1 , kz
-!!$            do i = 1 , iy
-!!$               o3b0(i,k,j)        = savch0(i,       k,j)
-!!$               nob0(i,k,j)        = savch0(i,kz    +k,j)
-!!$               no2b0(i,k,j)       = savch0(i,kz*2  +k,j)
-!!$               hno3b0(i,k,j)      = savch0(i,kz*3  +k,j)
-!!$               n2o5b0(i,k,j)      = savch0(i,kz*4  +k,j)
-!!$               h2o2b0(i,k,j)      = savch0(i,kz*5  +k,j)
-!!$               ch4b0(i,k,j)       = savch0(i,kz*6  +k,j)
-!!$               cob0(i,k,j)        = savch0(i,kz*7  +k,j)
-!!$               hchob0(i,k,j)      = savch0(i,kz*8  +k,j)
-!!$               ch3ohb0(i,k,j)     = savch0(i,kz*9  +k,j)
-!!$               c2h5ohb0(i,k,j)    = savch0(i,kz*10  +k,j)
-!!$               c2h4b0(i,k,j)      = savch0(i,kz*11  +k,j)
-!!$               c2h6b0(i,k,j)      = savch0(i,kz*12  +k,j)
-!!$               ch3chob0(i,k,j)    = savch0(i,kz*13  +k,j)
-!!$               c3h6b0(i,k,j)      = savch0(i,kz*14  +k,j)
-!!$               c3h8b0(i,k,j)      = savch0(i,kz*15  +k,j)
-!!$               ch3coch3b0(i,k,j)  = savch0(i,kz*16  +k,j)
-!!$               bigeneb0(i,k,j)    = savch0(i,kz*17  +k,j)
-!!$               bigalkb0(i,k,j)    = savch0(i,kz*18  +k,j)
-!!$               isopb0(i,k,j)      = savch0(i,kz*19  +k,j)
-!!$               tolueb0(i,k,j)     = savch0(i,kz*20  +k,j)
-!!$               panb0(i,k,j)       = savch0(i,kz*21  +k,j)
-!!$               so2b0(i,k,j)       = savch0(i,kz*22  +k,j)
-!!$               dmsb0(i,k,j)       = savch0(i,kz*23  +k,j)
-!!$               so4b0(i,k,j)       = savch0(i,kz*24  +k,j)
-!!$            end do
-!!$         end do
-!!$      end do
-!!$
-!!$!
-!!$!=======================================================================
-!!$!       Couple pressure u,v,t,q
-!!$!=======================================================================
-!!$!
-!!$!       this routine determines p(.) from p(x) by a 4-point
-!!$!       interpolation. on the x-grid, a p(x) point outside the grid
-!!$!       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
-!!$!       and similarly for the i's.
-!!$
-!!$      do j = jbegin , jendx
-!!$         do i = 2 , iym1
-!!$            psdot(i,j) = 0.25*(ps0(i,j)   + ps0(i-1,j) +      &
-!!$                         ps0(i,j-1) + ps0(i-1,j-1))
-!!$         end do
-!!$      end do
-!!$      do j = jbegin , jendx
-!!$         psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,j-1))
-!!$         psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,j-1))
-!!$      end do
-!!$
-!!$
-!!$! intialise the chib0 tracer : correspondance betwwen bdy tables and chib
-!!$
-!!$      do k = 1 , kz
-!!$         do j = 1 , jendl
-!!$            do i = 1 , iy
-!!$          
-!!$                if(io3 > 0)    chib0(i,k,j,io3)     =  o3b0(i,k,j)*psdot(i,j)
-!!$                if(ino2 > 0)   chib0(i,k,j,ino2)    =  no2b0(i,k,j)*psdot(i,j)
-!!$                if(ino > 0)    chib0(i,k,j,ino)     =  nob0(i,k,j)*psdot(i,j)
-!!$                if(ico > 0)    chib0(i,k,j,ico)     =  cob0(i,k,j)*psdot(i,j)
-!!$                if(ih2o2 > 0)  chib0(i,k,j,ih2o2)   =  h2o2b0(i,k,j)*psdot(i,j)
-!!$                if(ihno3 > 0)  chib0(i,k,j,ihno3)   =  hno3b0(i,k,j)*psdot(i,j)
-!!$                if(in2o5 > 0)  chib0(i,k,j,in2o5)   =  n2o5b0(i,k,j)*psdot(i,j)
-!!$                if(iso2 > 0)   chib0(i,k,j,iso2)    =  so2b0(i,k,j)*psdot(i,j)
-!!$                if(iso4 > 0)   chib0(i,k,j,iso4)    =  so4b0(i,k,j)*psdot(i,j)
-!!$                if(idms > 0)   chib0(i,k,j,idms)    =  dmsb0(i,k,j)*psdot(i,j)
-!!$                if(ihcho > 0)  chib0(i,k,j,ihcho)   =  hchob0(i,k,j)*psdot(i,j)
-!!$                if(iald2 > 0)  chib0(i,k,j,iald2)   =  ch3chob0(i,k,j)*psdot(i,j)
-!!$                if(iisop > 0)  chib0(i,k,j,iisop)   =  isopb0(i,k,j)*psdot(i,j)
-!!$                if(ic2h6 > 0)  chib0(i,k,j,ic2h6)   =  c2h6b0(i,k,j)*psdot(i,j)
-!!$                if(ic3h8 > 0)  chib0(i,k,j,ic3h8)   =  c3h8b0(i,k,j)*psdot(i,j)
-!!$                if(ialk4 > 0)  chib0(i,k,j,ialk4)   =  bigalkb0(i,k,j)*psdot(i,j)
-!!$                if(ialk7 > 0)  chib0(i,k,j,ialk7)   =  bigalkb0(i,k,j)*psdot(i,j)
-!!$                if(iacet > 0)  chib0(i,k,j,iacet)   =  ch3coch3b0(i,k,j)*psdot(i,j)
-!!$                if(imoh > 0)   chib0(i,k,j,imoh)    =  ch3ohb0(i,k,j)*psdot(i,j)
-!!$                if(ieoh > 0)   chib0(i,k,j,ieoh)    =  c2h5ohb0(i,k,j)*psdot(i,j)
-!!$                if(ioli > 0)   chib0(i,k,j,ioli)    =  bigeneb0(i,k,j)*psdot(i,j)
-!!$                if(iolt > 0)   chib0(i,k,j,iolt)    =  c3h6b0(i,k,j)*psdot(i,j)
-!!$                if(itolue > 0) chib0(i,k,j,itolue)  =  tolueb0(i,k,j)*psdot(i,j)
-!!$                if(ich4 > 0)   chib0(i,k,j,ich4)    =  ch4b0(i,k,j)*psdot(i,j)
-!!$                if(ipan > 0)   chib0(i,k,j,ipan)    =  panb0(i,k,j)*psdot(i,j)
-!!$                if(iethe > 0)  chib0(i,k,j,iethe)   =  c2h4b0(i,k,j)*psdot(i,j)
-!!$            end do
-!!$         end do
-!!$      end do
-!!$
-!!$
-!!$ end if !end test igaschem
-!!$
 
 
-
-! also initialise chia and chib at this stage
-!if restart is not active 
-! note if igaschem ==0 , aerosol BC are set to chib0 = 0  for now 
-
-
-!!!!! FAB: temporay for the core testing 
-chib0 = d_zero
-chib1 = d_zero
-!!!!!!!!
 
 if (.not.ifrest ) then
          do j=1,jendl
