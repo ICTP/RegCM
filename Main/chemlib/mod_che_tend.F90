@@ -34,6 +34,7 @@
   use mod_che_seasalt
   use mod_che_carbonaer
   use mod_che_mppio
+  use mod_che_chemistry
   private
 
   public :: tractend2 , tracbud
@@ -49,14 +50,16 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(jstart,jend,istart,iend,ktau,lmonth,calday)
+    subroutine tractend2(jstart,jend,istart,iend,ktau,lyear,lmonth,lday,calday,secofday)
       implicit none
 !
-      integer , intent(in) :: jstart , jend , istart , iend , lmonth
+      integer , intent(in) :: jstart , jend , istart , iend , lmonth,lday,lyear
+      real(8), intent(in) :: calday,secofday
       integer(8) , intent(in) :: ktau
 
+
 !
-      real(8) ::calday, agct , ak00t , ak0tm , akval , clmin , facb , facs , &
+      real(8) :: agct , ak00t , ak0tm , akval , clmin , facb , facs , &
                  fact , facv , pres10 , qsat10 , remcum , satvp ,     &
                  shu10 , u10 , v10 , chias , chibs
 
@@ -79,12 +82,17 @@
       real(8), dimension(iy,ntr) :: drydepvg
       real(8) , dimension(ntr) :: wetrem , wetrem_cvc
 !
+      integer(8) :: kchsolv
       integer :: igaschem !!!PROVISOIRE
+
 !
 !**************************************************************************
 !     A : PRELIMINARY CALCULATIONS
 !*************************************************************************
 ! 
+
+  
+
       do j = jstart , jend
         rho = d_zero
         wl = d_zero
@@ -207,6 +215,9 @@
          srad(i) = csol2d(j,i)
  
         end do
+
+     end do ! jloop 
+
 !
 !       END of preliminary calculations)
 !
@@ -219,7 +230,9 @@
         if ( igaschem == 0 ) then
 !FAB :    regler le probleme de gas vs aerosol only
           if (iso2 > 0 .and. iso4 >0.) then
+          do j=jstart,jend
             call chemsox(j,wl,fracloud,fracum,rho,ttb)
+          end do
           end if
         end if
 !
@@ -227,24 +240,32 @@
 !
         if ( (ibchb > 0 .and. ibchl > 0 ) .or. &
              (iochb > 0 .and. iochl > 0) ) then
+          do j=jstart,jend
           call aging_carb(j)
+          end do
         end if
 
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
         if ( size(idust) > 0 ) then
+        do j= jstart,jend
         wid10(:) = 20.
         ustar (:)= 2.
-
+       
         call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar, &
                       zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)     
-        
-              end if
+        end do 
+        end if
 
-        if (  size(isslt) > 0 ) call sea_salt(j,wid10,ivegcov,seasalt_flx)
+        if (  size(isslt) > 0 )then
+        do j=jstart,jend
+         call sea_salt(j,wid10,ivegcov,seasalt_flx)
+        end do
+        end if
 !
 !       update emission tendencies from inventories
-
+        do j= jstart,jend
         call emis_tend(ktau,j,lmonth)
+        end do
 !
 !       aerosol settling and drydep 
 !       include calculation of dry dep/settling velocities and 
@@ -253,57 +274,96 @@
         pdepv = d_zero
         ddepa = d_zero
         if ( size(idust) > 0 ) then
+        do j=jstart,jend
           call drydep_aero(j,nbin,idust,rhodust,ivegcov,ttb,rho,hlev,psurf, &
                            temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,      &
                            pdepv,ddepa)
+        end do
         end if
 
        if ( size(isslt) >0 ) then
+       do j=jstart,jend
          call drydep_aero(j,sbin,isslt,rhosslt,ivegcov,ttb,rho,hlev,psurf, &
                           temp10,tsurf,srad,rh10,wid10,zeff,ssltbsiz,      &
                           pdepv,ddepa)
+       end do
        end if 
 
         if ( size(icarb) > 0 ) then
-          ibin = count( icarb > 0 ) 
+        ibin = count( icarb > 0 ) 
+          do j=jstart,jend
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov,ttb,rho,hlev, &
                            psurf,temp10,tsurf,srad,rh10,wid10,zeff,         &
                            carbsiz(1:ibin,:),pdepv,ddepa)
+         end do
         end if 
 !!$
 !       GAS phase dry deposition velocity + tendencies
 !       option compatible with BATS and CLM
 !!$
         if ( igaschem == 1 ) then
+          do j=jstart,jend
           call drydep_gas(j,calday, ivegcov,rh10,srad,tsurf,prec(:,kz),temp10,  &
                           wid10,zeff,drydepvg)
+          end do
         end if
 !!$
 !       WET deposition (rainout and washout) for aerosol
 !!$
         if ( idust(1) > 0 ) then
+         do j=jstart,jend
           call wetdepa(j,nbin,idust,dustbsiz,rhodust,ttb,wl,fracloud, &
                        fracum,psurf,hlev,rho,prec,pdepv)  
+         end do
         end if
 
        if ( size(isslt) > 0 )  then   
+         do j=jstart,jend
          call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb,wl,fracloud, &
                       fracum,psurf,hlev,rho, prec, pdepv )  
+         end do
        end if
        if ( size(icarb) > 0 )  then   
          ibin = count( icarb > 0 ) 
+          do j=jstart,jend
          call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
                       ttb,wl,fracloud,fracum,psurf,hlev,rho,prec,pdepv)  
+         end do
        end if
 !
 !!$
 !       Wet Deposition for gasphase species 
 !!$
         if ( igaschem == 1 ) then
+         do j=jstart,jend
           call sethet(j,cza(j,:,:),cht(j,:),ttb,checum,cremrat, &
                       chevap,dtche,rho,chib(:,:,j,:),iym3,cpsb(j,2:iym2))
+         end do
         end if
-      end do
+
+      
+ 
+
+!  Gas phase solver 
+!  note : solver is called every dtchsolv (900s)- chemten  chemistry raecation tendendy is calculated
+!  but chemical tracer tendency is still updated ever dtche ( =dt) time step  
+      chemten(:,:,jstart:jend,:) = d_zero
+      if ( igaschem == 1 ) then   
+
+      kchsolv = idnint(dtchsolv / dtche)
+
+      if (mod(ktau+1,kchsolv) == 0 ) then
+       do j = jstart,jend
+        call gas_phase(j,ktau,secofday,lyear,lmonth,lday)
+       end do
+       end if
+      
+       chiten(:,:,jstart:jend,:) =  chiten(:,:,jstart:jend,:) +   chemten(:,:,jstart:jend,:)
+
+      end if
+ 
+     
+
     end subroutine tractend2
 !
     subroutine conv_trans

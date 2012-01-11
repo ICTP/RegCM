@@ -90,7 +90,8 @@ mod_che_tend.o mod_che_tend.mod: mod_che_tend.F90 \
   $(REGCM_ROOT)/Share/mod_constants.o mod_che_common.o mod_che_indices.o \
   mod_che_param.o mod_che_sox.o mod_che_drydep.o mod_che_wetdep.o \
   mod_che_emission.o mod_che_sox.o mod_che_seasalt.o mod_che_emission.o \
-  mod_che_dust.o mod_che_seasalt.o mod_che_carbonaer.o mod_che_mppio.o
+  mod_che_dust.o mod_che_seasalt.o mod_che_carbonaer.o mod_che_mppio.o \
+  mod_che_chemistry.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_che_cumtran.o: mod_che_cumtran.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
   mod_che_common.o

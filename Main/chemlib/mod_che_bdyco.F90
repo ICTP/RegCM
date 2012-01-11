@@ -38,7 +38,7 @@ use mod_memutil
 
   private
 
-  public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval
+  public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval, nudge_chi
 
 #ifndef BAND
   public :: chieb, chiebt , chiwb , chiwbt

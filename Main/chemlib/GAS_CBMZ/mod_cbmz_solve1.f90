@@ -24,8 +24,10 @@ module mod_cbmz_solve1
   use mod_cbmz_chemmech
   use mod_cbmz_chemvars
   use mod_cbmz_chemlocal
-
-  private
+  use mod_cbmz_linslv
+  use mod_cbmz_init1
+ 
+ private
 
   public :: quadchem
 !
@@ -2663,7 +2665,7 @@ module mod_cbmz_solve1
       ! Species list passed to chemsolve
       integer :: ncsol(c_cdim)
       ! Function to return chem index ic
-      integer :: namechem
+!      integer :: namechem
 !
       kk = 1
       !

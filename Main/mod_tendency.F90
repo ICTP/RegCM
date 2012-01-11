@@ -156,7 +156,7 @@ module mod_tendency
                psabar , psasum , pt2bar , pt2tot , ptnbar , maxv , &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
-               tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
+               tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf,sod
     real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
                                             spchib3d
     integer :: i , iptn , itr , j , k , lev , n , ii , jj , kk
@@ -175,7 +175,7 @@ module mod_tendency
     if ( .not. ifrest .and. iexec == 1 ) then
       call bdyval(xbctime,iexec)
 
-      ! if ( ichem == 1 ) call chem_bdyval(xtime,iexec)
+      if ( ichem == 1 ) call chem_bdyval(xbctime,iexec,nbdytime,dtbdys,ktau, ifrest )
 
       iexec = 2
     else
@@ -1628,7 +1628,8 @@ module mod_tendency
       !
       ! Compute chemistry tendencies (other yhan transport)
       !
-      call tractend2(jbegin,jendm,2,iym1,ktau,xmonth,calday)
+      sod = dble(idatex%second_of_day)
+      call tractend2(jbegin,jendm,2,iym1,ktau,xyear,xmonth,xday,calday,sod)
       !
     end if ! ichem
 !
@@ -1843,8 +1844,8 @@ module mod_tendency
         
         if ( ichem == 1 ) then
 ! keep nudge_chi for now 
-!FAB      call nudge_chi(ispgx,fnudge,gnudge,xtm1,chiten(:,:,j,:),j, &
-!FAB                     iboudy)
+        call nudge_chi(ispgx,fnudge,gnudge,xtm1,chiten(:,:,j,:),j, &
+                     iboudy)
         end if
 
       end if
@@ -2345,7 +2346,7 @@ module mod_tendency
 !
     call bdyval(xbctime,iexec)
 
-!FAB if ( ichem == 1 ) call chem_bdyval(xbctime,iexec)
+    if ( ichem == 1 ) call chem_bdyval(xbctime,iexec,nbdytime,dtbdys,ktau, ifrest )
 !
 !   compute the nonconvective precipitation:
 !

@@ -29,10 +29,14 @@ module mod_che_chemistry
   use mod_cbmz_chemmech
   use mod_cbmz_chemvars
   use mod_cbmz_molwg
-
+  use mod_cbmz_main1
   private
 
-  public :: gas_phase
+
+  real(dp) , parameter :: dtchsolv=900.E00
+! 
+
+  public :: gas_phase, dtchsolv
 
   integer , parameter :: jvO2 = 1
   integer , parameter :: jvO3a = 2
@@ -300,37 +304,77 @@ module mod_che_chemistry
       call chemistry(j,chemin(:,:,j,:),chemox(:,:,j,:),      &
                      taa,psaa,zena,ktau,idatein,tod)
 
-      do k = 1 , kz
+ 
+
+!FAB :  Now save the chemistry tendency 
+!
+
+ do k = 1 , kz
         do i = 2 , iym2
+! convection factor to get the tendency in kg.kg-1.s-1
           cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
           pfact = cpsb(j,i)/(cfactor*amd)
-          ! pfact to convert chemox to kg/kg
-          chia(i,k,j,io3)    = chemox(i,k,j,ind_O3)*pfact*W_O3
-          chia(i,k,j,ino2)   = chemox(i,k,j,ind_NO2)*pfact*W_NO2
-          chia(i,k,j,ino)    = chemox(i,k,j,ind_NO)*pfact*W_NO
-          chia(i,k,j,ico)    = chemox(i,k,j,ind_CO)*pfact*W_CO
-          chia(i,k,j,ih2o2)  = chemox(i,k,j,ind_H2O2)*pfact*W_H2O2
-          chia(i,k,j,ihno3)  = chemox(i,k,j,ind_HNO3)*pfact*W_HNO3
-          chia(i,k,j,in2o5)  = chemox(i,k,j,ind_N2O5)*pfact*W_N2O5
-          chia(i,k,j,iso2)   = chemox(i,k,j,ind_SO2)*pfact*W_SO2
-          chia(i,k,j,iso4)   = chemox(i,k,j,ind_SULF)*pfact*W_SULF
-          chia(i,k,j,idms)   = chemox(i,k,j,ind_DMS)*pfact*W_DMS
-          chia(i,k,j,ihcho)  = chemox(i,k,j,ind_HCHO)*pfact*W_HCHO
-          chia(i,k,j,iald2)  = chemox(i,k,j,ind_ALD2)*pfact*W_ALD2
-          chia(i,k,j,iisop)  = chemox(i,k,j,ind_ISOP)*pfact*W_ISOP
-          chia(i,k,j,ic2h6)  = chemox(i,k,j,ind_C2H6)*pfact*W_C2H6
-          chia(i,k,j,ipar)   = chemox(i,k,j,ind_PAR)*pfact*W_C3H8
-          chia(i,k,j,itolue) = chemox(i,k,j,ind_TOLU)*pfact*W_TOLU
-          chia(i,k,j,ixyl)   = chemox(i,k,j,ind_XYLE)*pfact*W_XYLE
-          chia(i,k,j,iethe)  = chemox(i,k,j,ind_ETHE)*pfact*W_ETHENE
-          chia(i,k,j,ipan)   = chemox(i,k,j,ind_PAN)*pfact*W_PAN
-          chia(i,k,j,ich4)   = chemox(i,k,j,ind_CH4)*pfact*W_CH4
-          chia(i,k,j,iolt)   = chemox(i,k,j,ind_PRPE)*pfact*W_OLT
-          chia(i,k,j,ioli)   = chemox(i,k,j,ind_BUTE)*pfact*W_OLI
-          chia(i,k,j,imoh)   = chemox(i,k,j,ind_MOH)*pfact*W_MOH
-          chia(i,k,j,iacet)  = chemox(i,k,j,ind_ACET)*pfact*W_ACET
-        end do
-      end do
-    end subroutine gas_phase
+ 
+        chemten(i,k,j,io3)   =  (chemox(i,k,j,ind_O3)- chemin(i,k,j,ind_O3) )*pfact*W_O3         &
+     &                          /dtchsolv
+        chemten(i,k,j,ino2)  =  (chemox(i,k,j,ind_NO2)- chemin(i,k,j,ind_NO2) )*pfact*W_NO2       &
+     &                          /dtchsolv
+        chemten(i,k,j,ino)   =  (chemox(i,k,j,ind_NO)- chemin(i,k,j,ind_O3))*pfact*W_NO          & 
+     &                          /dtchsolv
+        chemten(i,k,j,ico)   =  (chemox(i,k,j,ind_CO) -  chemin(i,k,j,ind_CO)) *pfact*W_CO        &
+     &                          /dtchsolv
+        chemten(i,k,j,ih2o2) =  (chemox(i,k,j,ind_H2O2) - chemin(i,k,j,ind_H2O2)) *pfact*W_H2O2    &
+     &                          /dtchsolv
+        chemten(i,k,j,ihno3)  =  (chemox(i,k,j,ind_HNO3) - chemin(i,k,j,ind_HNO3)) *pfact*W_HNO3   &
+     &                          /dtchsolv
+        chemten(i,k,j,in2o5)  = (chemox(i,k,j,ind_N2O5) - chemin(i,k,j,ind_N2O5)) *pfact*W_N2O5     &
+     &                          /dtchsolv
+          chemten(i,k,j,iso2)   = (chemox(i,k,j,ind_SO2)  - chemin(i,k,j,ind_SO2))    *pfact*W_SO2   &
+     &                          /dtchsolv
+          chemten(i,k,j,iso4)   = (chemox(i,k,j,ind_SULF) - chemin(i,k,j,ind_SULF)) *pfact*W_SULF   &
+     &                          /dtchsolv
+          chemten(i,k,j,idms)   = (chemox(i,k,j,ind_DMS)  - chemin(i,k,j,ind_DMS)) *pfact*W_DMS     &
+     &                          /dtchsolv
+          chemten(i,k,j,ihcho)  = (chemox(i,k,j,ind_HCHO) - chemin(i,k,j,ind_HCHO)) *pfact*W_HCHO   &
+     &                          /dtchsolv
+          chemten(i,k,j,iald2)  = (chemox(i,k,j,ind_ALD2) - chemin(i,k,j,ind_ALD2)) *pfact*W_ALD2    &
+     &                          /dtchsolv
+          chemten(i,k,j,iisop)  = (chemox(i,k,j,ind_ISOP) - chemin(i,k,j,ind_ISOP))  *pfact*W_ISOP    &
+     &                          /dtchsolv 
+          chemten(i,k,j,ic2h6)  = (chemox(i,k,j,ind_C2H6) - chemin(i,k,j,ind_C2H6))  *pfact*W_C2H6     &
+     &                          /dtchsolv 
+          chemten(i,k,j,ipar)   = (chemox(i,k,j,ind_PAR)  - chemin(i,k,j,ind_PAR)) *pfact*W_C3H8      &
+     &                          /dtchsolv
+          chemten(i,k,j,itolue) = (chemox(i,k,j,ind_TOLU) - chemin(i,k,j,ind_TOLU)) *pfact*W_TOLU      &
+     &                          /dtchsolv
+          chemten(i,k,j,ixyl)   = (chemox(i,k,j,ind_XYLE) - chemin(i,k,j,ind_XYLE)) *pfact*W_XYLE     &
+     &                          /dtchsolv
+          chemten(i,k,j,iethe)  = (chemox(i,k,j,ind_ETHE) - chemin(i,k,j,ind_ETHE)) *pfact*W_ETHENE   &
+     &                          /dtchsolv
+          chemten(i,k,j,ipan)   = (chemox(i,k,j,ind_PAN)  - chemin(i,k,j,ind_PAN))  * pfact*W_PAN     &
+     &                          /dtchsolv
+          chemten(i,k,j,ich4)   = (chemox(i,k,j,ind_CH4)  - chemin(i,k,j,ind_CH4))  * pfact*W_CH4      &
+     &                          /dtchsolv
+          chemten(i,k,j,iolt)   = (chemox(i,k,j,ind_PRPE) - chemin(i,k,j,ind_PRPE))  * pfact*W_OLT     &
+     &                          /dtchsolv
+          chemten(i,k,j,ioli)   = (chemox(i,k,j,ind_BUTE) - chemin(i,k,j,ind_BUTE))  * pfact*W_OLI    &
+     &                          /dtchsolv
+          chemten(i,k,j,imoh)   = (chemox(i,k,j,ind_MOH)  - chemin(i,k,j,ind_MOH))   *pfact*W_MOH   & 
+     &                          /dtchsolv
+          chemten(i,k,j,iacet)  = (chemox(i,k,j,ind_ACET) - chemin(i,k,j,ind_ACET))  *pfact*W_ACET    &
+     &                          /dtchsolv
+
+
+
+!        chemten(i,k,j,ilimo) = (chia(i,k,j,ilimo)-chib(i,k,j,ilimo))
+!     &                          /dtchem
+!        chemten(i,k,j,iapin) = (chia(i,k,j,iapin)-chib(i,k,j,iapin))
+!     &                          /dtchem
+
+         
+       end do
+    end do
+
+end subroutine gas_phase
 
 end module mod_che_chemistry

@@ -543,9 +543,9 @@ end subroutine close_domain
 
     aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
 
-!    print*, 'Opening ch. emission file : RETURN !!!!', aername
+    print*, 'Opening ch. emission file : RETURN !!!!', aername
     !CARE FAB shut down the emission reading temporarily 
-!    return
+    return
 
     istatus = nf90_open(aername, nf90_nowrite, ncid)
     call check_ok(__FILE__,__LINE__, &
@@ -565,15 +565,18 @@ end subroutine close_domain
     icount(2) = iy
     icount(3) = 1
 
+
+!FAB VERY IMPORTANT : THIS REAQDING SECTION SHOULD BE FIXED WITH HOMOGENEOUS PREPROC
+
     ! NO emission                  
     if ( ino /= 0 ) then
       call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
-                'a_NO',.false.,'bio_nox')
+                'a_NOX',.false.,'b_NOX')
     end if
     ! CO emission
     if ( ico /= 0 ) then
       call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
-                'a_CO',.false.,'bio_co','o_co')
+                'a_CO',.false.,'b_CO','o_co')
     print*, 'FAB emis testco','ico', maxval(echemsrc)
     end if
     ! HCHO emission                  
@@ -583,22 +586,23 @@ end subroutine close_domain
     ! ACET emission                  
     if ( iacet /= 0 ) then
       call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
-                'a_ACET',.false.,'bio_acet')
+                'a_acet',.false.,'b_acet')
     end if
     ! SO2 emission
     if ( iso2 /= 0 ) then
       call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
-                'a_SO2',.false.)
+                'a_so2',.false.)
     end if
     ! CH4
     if ( ich4 /= 0 ) then
       call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
-                'a_ch4',.false.,'bio_ch4')
+                'a_ch4',.false.,'b_ch4')
+!!$    print*, ' ATTENTION SKIP CH4 EM'
     end if
     ! Ethane
     if ( ic2h6 /= 0 ) then
       call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
-                'a_ETHANE',.false.,'bio_c2h6','o_c2h6')
+                'a_ETHANE',.false.,'b_ETHANE','o_c2h6')
     end if
     ! PAR
     if ( ipar /= 0 ) then

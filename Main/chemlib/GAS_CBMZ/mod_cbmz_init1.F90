@@ -25,6 +25,7 @@ module mod_cbmz_init1
   use mod_cbmz_chemmech
   use mod_cbmz_chemlocal
   use mod_cbmz_chemvars
+  use mod_cbmz_jval1
 !
   private
 !

@@ -126,9 +126,9 @@ module mod_cbmz_rates1
       ! density, molec/cm3
       real(dp) :: denx
       ! Function: 3-bodyreaction rate cm3-sec
-      real(dp) :: bod
+    !  real(dp) :: bod
       ! Function: RNO3 yield from RO2+NO
-      real(dp) :: ytn
+    !  real(dp) :: ytn
 
       kk = 1
       !
