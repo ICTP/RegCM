@@ -38,7 +38,7 @@ mod_cbmz_jval1.o mod_cbmz_jval1.mod: mod_cbmz_jval1.f90 \
 mod_cbmz_solve1.o mod_cbmz_solve1.mod: mod_cbmz_solve1.f90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_constants.mod \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_cbmz_chemmech.o mod_cbmz_chemvars.o \
-  mod_cbmz_chemlocal.o
+  mod_cbmz_chemlocal.o mod_cbmz_init1.o 
 mod_cbmz_init1.o mod_cbmz_init1.mod: mod_cbmz_init1.F90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_constants.mod \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
