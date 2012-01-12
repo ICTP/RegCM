@@ -85,6 +85,7 @@
       integer(8) :: kchsolv
       integer :: igaschem !!!PROVISOIRE
 
+      igaschem = 1
 !
 !**************************************************************************
 !     A : PRELIMINARY CALCULATIONS
@@ -101,7 +102,6 @@
         fracloud = d_zero
         fracum = d_zero
         psurf = d_zero
-        igaschem = 0
 
 !       the unit: rho - kg/m3, wl - g/m3
         do k = 1 , kz

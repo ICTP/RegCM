@@ -684,8 +684,6 @@ module mod_che_drydep
         im = INT(ccalday / 30.5 ) + 1
         iday_m =ccalday - INT((im-1)*30.5+0.5)
 
-      print*, 'drydep calday', ccalday
-
       if (iday_m .eq. 0) THEN
            im = im - 1
            iday_m =ccalday - (im - 1)*30.5
@@ -748,8 +746,6 @@ module mod_che_drydep
        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
        drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
-
-
 
 
 
