@@ -44,8 +44,8 @@ module mod_precip
   real(8) , parameter :: uch = d_1000*regrav*secph
   real(8) , parameter :: lowq = 1.0D-30
 !
-  real(8) , public , pointer , dimension(:,:,:) :: fcc
-  real(8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0,remrat,rembc
+  real(8) , public , pointer , dimension(:,:,:) :: fcc,remrat,rembc
+  real(8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
   real(8) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
   ! TAO 2/8/11:
   ! Flag for using convective liquid water path as the large-scale
@@ -62,8 +62,8 @@ module mod_precip
       call getmem2d(qck1,1,iy,1,jxp,'pcp:qck1')
       call getmem2d(cgul,1,iy,1,jxp,'pcp:cgul')
       call getmem2d(rh0,1,iy,1,jxp,'pcp:rh0')
-      call getmem2d(remrat,1,iy,1,kz,'pcp:remrat')
-      call getmem2d(rembc,1,iy,1,kz,'pcp:rembc')
+      call getmem3d(remrat,1,jxp,1,iy,1,kz,'pcp:remrat')
+      call getmem3d(rembc,1,jxp,1,iy,1,kz,'pcp:rembc')
     end subroutine allocate_mod_precip
 !
     subroutine init_precip(atmslice,atm,tendency,sps,surface,pptnc, &
@@ -142,7 +142,7 @@ module mod_precip
     thog = d_1000*regrav
 !   precipation accumulated from above
     pptsum(:,:) = d_zero
-    remrat(istart:iend,1:kz) = d_zero
+    remrat(jstart:jend,istart:iend,1:kz) = d_zero
 
     do j = jstart , jend
 !
@@ -179,7 +179,7 @@ module mod_precip
 
           if ( pptnew > d_zero ) then !   New precipitation
 !           1af. Compute the cloud removal rate (for chemistry) [1/s]
-            remrat(i,1) = pptnew/qcw
+            remrat(j,i,1) = pptnew/qcw
 !           1ag. Compute the amount of cloud water removed by raindrop
 !                accretion [kg/kg/s].  In the layer where the precipitation
 !                is formed, only half of the precipitation is assumed to
@@ -276,7 +276,7 @@ module mod_precip
             pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
             if ( pptnew < dlowval ) pptnew = d_zero
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( pptnew > d_zero ) remrat(i,k) = pptnew/qcw
+            if ( pptnew > d_zero ) remrat(j,i,k) = pptnew/qcw
      
 !           1bf. Compute the amount of cloud water removed by raindrop
 !                accretion [kg/kg/s].  In the layer where the precipitation
@@ -311,12 +311,12 @@ module mod_precip
 !
       if ( ichem == 1 ) then
         do i = istart , iend
-          rembc(i,1) = d_zero
+          rembc(j,i,1) = d_zero
           do k = 2 , kz
-            rembc(i,k) = d_zero
-            if ( remrat(i,k) > d_zero ) then
+            rembc(j,i,k) = d_zero
+            if ( remrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                rembc(i,k) = rembc(i,k) + remrat(i,kk)*qc3(j,i,kk) *  &
+                rembc(j,i,k) = rembc(j,i,k) + remrat(j,i,kk)*qc3(j,i,kk) *  &
                              psf(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
 ! the below cloud precipitation rate is now used directly in chemistry

@@ -156,9 +156,9 @@ module mod_che_sox
            ! here remart is divided by fracloud
            ! ( large scale cloud fraction) to get the incloud removal rate
            !
-           if ( cremrat(i,k) > d_zero ) then
+           if ( cremrat(j,i,k) > d_zero ) then
              wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4) - &
-                      rxs11)*(dexp(-cremrat(i,k)/fracloud(i,k)*dtche)-d_one)
+                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
            end if
  
            ! Below cloud scavenging only for SO2 only stratiform precip !
@@ -166,9 +166,9 @@ module mod_che_sox
            ! below cloud scavenging rate for SO2 rate, s^-1)
            !     - Levin & Schwatz
            ! s^-1, it is already a grid scale removal rate!
-           krembc = 6.5D0*1.0D-5*crembc(i,k)**0.68D0
+           krembc = 6.5D0*1.0D-5*crembc(j,i,k)**0.68D0
 
-           if ( crembc(i,k) > d_zero ) then
+           if ( crembc(j,i,k) > d_zero ) then
              wetrem(iso2) =  chtrsol(iso2)*concmin(i,k) * &
                              (dexp(-krembc*dtche)-d_one)
            end if

@@ -53,8 +53,8 @@ module mod_che_interface
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
-    real(dp), pointer, dimension(:,:) :: rembc,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,remrat,twt
-    real(dp), pointer, dimension(:,:,:) :: cldfra
+    real(dp), pointer, dimension(:,:) :: svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,twt
+    real(dp), pointer, dimension(:,:,:) :: cldfra,rembc,remrat
     integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
     type(surfpstate) , intent(in) :: sps2
     type(slice) , intent(in) :: atms
