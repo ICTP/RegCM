@@ -29,7 +29,9 @@
     use mod_che_ncio
     use mod_che_mppio
     use mod_che_bdyco
-    implicit none
+    use mod_cbmz_init1
+
+   implicit none
 
     public  :: start_chem
 
@@ -319,10 +321,16 @@ print*, 'After startchem', icarb, isslt,idust
   !*** Initialize record read counter for CH EMISSI (see mod_che_ncio.F90)
   recc = 0
   
+
+
+!if igasphase
   open( 26,file='TUVGRID2', status='old')
   open( 25,file='REACTION.DAT_CBMZ', status='old')  
-
-
+! FAB Traiter le prbleme du restart apres
+!  call regchem
+  call chemread
+  call hvread
+  call cheminit 
 
 
   lband = .false. !! provisoire!
@@ -335,8 +343,7 @@ print*, 'After startchem', icarb, isslt,idust
  print*, 'aprese chem_initial'
 
 
-! FAB Traiter le prbleme du restart apres
-!  call regchem
+
 
 
  end subroutine start_chem

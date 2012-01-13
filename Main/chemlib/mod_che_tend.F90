@@ -77,7 +77,7 @@
       real(8) , dimension(jstart:jend,iy) :: psurf , rh10 , soilw , srad ,  &
           temp10 , tsurf , vegfrac , wid10 , zeff , ustar
 
-      real(8) , dimension(jstart:jend,iy,nbin) :: rsfrow
+      real(dp) , dimension(jstart:jend,iy,nbin) :: dust_flx
       real(8), dimension(jstart:jend,iy,sbin) :: seasalt_flx
       real(8), dimension(jstart:jend,iy,ntr) :: drydepvg
       real(8) , dimension(ntr) :: wetrem , wetrem_cvc
@@ -99,6 +99,8 @@
         fracloud = d_zero
         fracum = d_zero
         psurf = d_zero  
+        dust_flx = d_zero
+        seasalt_flx = d_zero
 
       do j = jstart , jend
 
@@ -246,12 +248,13 @@
 
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
         if ( size(idust) > 0 ) then
-        do j= jstart,jend
-        wid10(:,:) = 20.
+         wid10(:,:) = 20.
         ustar (:,:)= 2.
-       
+
+        do j= jstart,jend
+              
         call sfflux(iy,2,iym2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
-                      zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,rsfrow(j,:,:))     
+                      zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,dust_flx(j,:,:))     
         end do 
         end if
 
@@ -275,8 +278,8 @@
         if ( size(idust) > 0 ) then
         do j=jstart,jend
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
-                           temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbsiz,      &
-                           pdepv(j,:,:,:),ddepa(j,:,:))
+                            temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbsiz,      &
+                            pdepv(j,:,:,:),ddepa(j,:,:))
         end do
         end if
 
@@ -349,8 +352,10 @@
       if ( igaschem == 1 ) then   
 
       kchsolv = idnint(dtchsolv / dtche)
-
+      kchsolv = 6
+   
       if (mod(ktau+1,kchsolv) == 0 ) then
+   
        do j = jstart,jend
         call gas_phase(j,ktau,secofday,lyear,lmonth,lday)
        end do

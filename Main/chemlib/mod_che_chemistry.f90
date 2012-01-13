@@ -93,7 +93,7 @@ module mod_che_chemistry
       real(dp) :: levav
       integer :: i , k , kbl , kab , ll
 
-      time = 900.0D0
+      time = dtchsolv
       idate = idatein
       ktaubx = ktau
       xhour = tod        !abt added for time of day
@@ -164,9 +164,9 @@ module mod_che_chemistry
             xr(1,ic) = d_zero
           end do
 
-          do ic = 1 , totsp
-            xr(1,ic) = chemall(i,k,jj,ic) 
-          end do
+!          do ic = 1 , totsp
+!            xr(1,ic) = chemall(i,k,jj,ic) 
+!          end do
 
           xh2o           = chemin(i,k,ind_H2O)
           xr(1,ind_H2O)  = xh2o
@@ -196,8 +196,10 @@ module mod_che_chemistry
           xr(1,ind_PAN)  = chemin(i,k,ind_PAN) !0.750E+10
           xr(1,ind_ETHE) = chemin(i,k,ind_ETHE) !10.200E+09
 
+          print*, 'avant chemmain'
           call chemmain
 
+          print*,'apres chemmain'
           do ic = 1 , totsp
             chemall(i,k,jj,ic) = xr(1,ic)
           end do
@@ -248,7 +250,7 @@ module mod_che_chemistry
       real(dp) , dimension(2:iym2,1:kz,1:jxp,totsp) :: chemin , chemox
       real(dp) , dimension(1:iym2,1:kz,56) :: jphoto
       real(dp) , dimension(iy,jxp) :: psdot
-      real(dp) :: airmw , cfactor , ccfactor , pfact , ro3 , rh2o2 , kb
+      real(dp) :: airmw , cfactor , ccfactor , pfact , ro3 , rh2o2 
       real(dp) , dimension(2:iym2) :: zena
       real(dp) , dimension(iym1,ntr) :: vdep
       real(dp) :: fact1 , fact2 , srctemp , tod
@@ -257,7 +259,7 @@ module mod_che_chemistry
 
       chemin(:,:,j,:) = d_zero
       chemox(:,:,j,:) = d_zero
-
+     
       do k = 1 , kz
         do i = 2 , iym2
           taa(i,k) = ctb3d(j,i,k)
@@ -299,12 +301,15 @@ module mod_che_chemistry
       end do
 
       tod = secofday/3600.0D0
+     
       idatein = (lyear-1900)*10000+lmonth*100+lday
+
+      print*, 'FAB TOD', tod
 
       call chemistry(j,chemin(:,:,j,:),chemox(:,:,j,:),      &
                      taa,psaa,zena,ktau,idatein,tod)
 
- 
+       print*, 'FAB after chemistry' 
 
 !FAB :  Now save the chemistry tendency 
 !
