@@ -30,7 +30,7 @@
     use mod_che_mppio
     use mod_che_bdyco
     use mod_cbmz_init1
-
+    use mod_che_dust
    implicit none
 
     public  :: start_chem
@@ -310,6 +310,16 @@ kbin=0
 print*, 'After startchem', icarb, isslt,idust
 
        if  (size(icarb) > 0 .or. size(isslt) > 0 .or. size(idust) >0 )  iaerosol = 1
+
+
+   if ( size(idust) > 0 ) then
+      ! fisrt activate dust initialization
+      write (aline, *) 'Calling inidust'
+      call say
+      call inidust
+    end if
+
+
 
 !!$        !*** abt added for wet deposition scheme
 !        if(.not.allocated(chevap)) allocate(chevap(iy,kz))

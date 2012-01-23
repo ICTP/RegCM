@@ -119,6 +119,14 @@ module mod_cbmz_main1
     subroutine chemmain
 !
       implicit none
+  integer :: ihour , ihour2 , ix1 , ix0 , ix21 , ix20  ! bsetr hour integers
+  integer :: ind , j1 , jj2 , ij2 , ixn , n            ! brplac indices
+  integer :: ni , ic1 , ic2 , ip                       ! bsplac indices
+  integer :: j2 , nx2 , iw , i , j                     ! bprint indices
+!!$
+!!$
+  integer :: kk , ic                                   ! Standard counters
+
 !
       !
       ! Index for vector arrays, =1 unless vector loop entered
@@ -361,8 +369,9 @@ module mod_cbmz_main1
       !
       call hvrates
       !
-      ! CALL THE DRIVER SUBROUTINE FOR THE CHEMSTRY SOLUTION
+          ! CALL THE DRIVER SUBROUTINE FOR THE CHEMSTRY SOLUTION
       !
+       print*,'avant quadchem', c_xcin
       call quadchem
       !
       ! ---------------------------------------
@@ -371,7 +380,10 @@ module mod_cbmz_main1
       !
       ! OUTPUT SPECIES CONCENTRATIONS
       !    c_xcout(ic)  = final concentration, molec/cm3
+           
       !
+      print*,'apres quadchem', c_xcout
+      stop
       do ic = 1 , 64 !nchem1
         xr(1,ic) = c_xcout(1,ic)
       end do

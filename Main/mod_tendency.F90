@@ -1629,7 +1629,7 @@ module mod_tendency
       ! Compute chemistry tendencies (other yhan transport)
       !
       sod = dble(idatex%second_of_day)
-      call tractend2(jbegin,jendm,2,iym1,ktau,xyear,xmonth,xday,calday,sod)
+      call tractend2(jbegin,jendx,2,iym1,ktau,xyear,xmonth,xday,calday,sod)
       !
     end if ! ichem
 !

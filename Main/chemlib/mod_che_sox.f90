@@ -228,7 +228,7 @@ module mod_che_sox
          end do
        end if
      end do
-!
+!!$!
 !!$  if ( (chtrname(itr) == 'DMS' ) .and. iso2 > 0 ) then
 !!$            
 !!$    !---------------------------------------------

@@ -757,7 +757,7 @@ module mod_che_drydep
              ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
 !update chiten
              chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
-!drydep flux diagnostic (accumulated between two outputs time step) 
+!drydep flux diagnostic (accumulated between two outputs time step) ! the fluc form is calulated in tracbud
              remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
 !dry dep velocity diagnostic in m.s-1  (accumulated between two outputs time step) 
              drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 

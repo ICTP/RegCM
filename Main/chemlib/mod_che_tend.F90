@@ -68,24 +68,24 @@
                                     ttb, wl, fracloud, fracum , prec
 
       integer :: i , j , ibin , itr , k , kk , kb , kdwd
-      integer , dimension(jstart:jend,iy) :: ivegcov
+      integer , dimension(1:jxp,iy) :: ivegcov
 
-      real(8) , dimension(jstart:jend,iy,kz,ntr) :: pdepv
-      real(8) , dimension(jstart:jend,iy,ntr) :: ddepa
+      real(8) , dimension(1:jxp,iy,kz,ntr) :: pdepv
+      real(8) , dimension(1:jxp,iy,ntr) :: ddepa
 
 
-      real(8) , dimension(jstart:jend,iy) :: psurf , rh10 , soilw , srad ,  &
+      real(8) , dimension(1:jxp,iy) :: psurf , rh10 , soilw , srad ,  &
           temp10 , tsurf , vegfrac , wid10 , zeff , ustar
 
-      real(dp) , dimension(jstart:jend,iy,nbin) :: dust_flx
-      real(8), dimension(jstart:jend,iy,sbin) :: seasalt_flx
-      real(8), dimension(jstart:jend,iy,ntr) :: drydepvg
+      real(dp) , dimension(1:jxp,iy,nbin) :: dust_flx
+      real(8), dimension(1:jxp,iy,sbin) :: seasalt_flx
+      real(8), dimension(1:jxp,iy,ntr) :: drydepvg
       real(8) , dimension(ntr) :: wetrem , wetrem_cvc
 !
       integer(8) :: kchsolv
       integer :: igaschem !!!PROVISOIRE
 
-      igaschem = 1
+      igaschem = 0
 !
 !**************************************************************************
 !     A : PRELIMINARY CALCULATIONS
@@ -101,7 +101,7 @@
         psurf = d_zero  
         dust_flx = d_zero
         seasalt_flx = d_zero
-
+        ivegcov=0
       do j = jstart , jend
 
 !       the unit: rho - kg/m3, wl - g/m3
@@ -135,7 +135,7 @@
 !
 !       variables used for natural fluxes and deposition velocities 
 ! 
-        ivegcov=0   
+        
         do i = istart , iend
           ivegcov(j,i) = cveg2d(j,i)
           psurf(j,i) = cpsb(j,i) * 1.0D3 + ptop
@@ -217,7 +217,7 @@
  
         end do
 
-     end do ! jloop 
+    end do ! jloop 
 
 !
 !       END of preliminary calculations)
@@ -236,6 +236,8 @@
           end do
           end if
         end if
+
+
 !
 !       aging of carboneaceous aerosols
 !
@@ -348,9 +350,9 @@
 !  note : solver is called every dtchsolv (900s)- chemten  chemistry raecation tendendy is calculated
 !  but chemical tracer tendency is still updated every dtche ( =dt) time step ( insure smoothness)  
 
-      chemten(:,:,jstart:jend,:) = d_zero
+      chemten(:,:,:,:) = d_zero
+     
       if ( igaschem == 1 ) then   
-
       kchsolv = idnint(dtchsolv / dtche)
       kchsolv = 6
    
@@ -369,63 +371,6 @@
 
     end subroutine tractend2
 !
-    subroutine conv_trans
-      implicit none
-!
-!!$      if ( ichcumtra.eq.2 ) then
-!!$        do k = 2 , kz
-!!$          do i = 2 , iym2
-!!$            wk(i,k) = (d_one/sps1%ps(i,j))                                 &
-!!$                    & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1,j, &
-!!$                    & itr))
-!!$ 
-!!$            cutend_up(i,k) = 0.
-!!$            cutend_dwd(i,k) = 0.
-!!$          end do
-!!$        end do
-!!$ 
-!!$        do i = 2 , iym2
-!!$ 
-!!$          if ( icumtop(i,j) /= 0 ) then
-!!$ 
-!!$            kt = max0(icumtop(i,j),3)
-!!$            kb = icumbot(i,j)
-!!$            kdwd = icumdwd(i,j)
-!!$ 
-!!$!           cutend(i,kt) =  mflx(i) * g * 1.0d-3*
-!!$!           &               (wk(i,kb)-wk(i,kt))/(sigma(kb)-sigma(kt))
-!!$ 
-!!$!           transport linked to updraft
-!!$!           betwwen kt et kdwd , the tendancy is averaged (mixing)
-!!$ 
-!!$            if ( kdwd < kt ) then
-!!$              write (aline, *) 'Problem in tractend2 !'
-!!$              call say
-!!$            end if
-!!$            do k = kt , kdwd
-!!$              cutend_up(i,k) = mflx(i,1)*egrav*1.0D-3*wk(i,kb)             &
-!!$                             & /(sigma(kdwd)-sigma(kt))
-!!$            end do
-!!$ 
-!!$            cutend_up(i,kb) = -mflx(i,1)*egrav*1.0D-3*wk(i,kb)/(dsigma(kb))
-!!$!           transport linked to downdraft
-!!$ 
-!!$            cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*1.0D-3*wk(i,kdwd)        &
-!!$                               & /(dsigma(kdwd))
-!!$ 
-!!$            cutend_dwd(i,kz) = +mflx(i,2)*egrav*1.0D-3*wk(i,kdwd)          &
-!!$                             & /(dsigma(kz))
-!!$ 
-!!$            do k = kt , kz
-!!$              chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k)    &
-!!$                                & + cutend_dwd(i,k)
-!!$            end do
-!!$          end if
-!!$        end do
-!!$      end if
-!!$ 
-      end subroutine conv_trans
-
       subroutine tracbud
       implicit none
 !

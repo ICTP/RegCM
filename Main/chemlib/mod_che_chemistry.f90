@@ -91,7 +91,7 @@ module mod_che_chemistry
       real(dp) , dimension(1:iy,0:kz+1) :: psaa2 , taa2
       real(dp) , dimension(1:kz) :: hcbl , hcab
       real(dp) :: levav
-      integer :: i , k , kbl , kab , ll
+      integer :: i , k , kbl , kab , ll,ic
 
       time = dtchsolv
       idate = idatein
@@ -111,6 +111,8 @@ module mod_che_chemistry
           taa2(i,ll) = taa(i,k)
         end do
       end do
+
+       print*, 'before chemin', maxval(chemin), minval(chemin) 
 
       do k = kz , 1 , -1
         do i = 2 , iym2
@@ -164,9 +166,9 @@ module mod_che_chemistry
             xr(1,ic) = d_zero
           end do
 
-!          do ic = 1 , totsp
-!            xr(1,ic) = chemall(i,k,jj,ic) 
-!          end do
+          do ic = 1 , totsp
+            xr(1,ic) = chemall(i,k,jj,ic) 
+          end do
 
           xh2o           = chemin(i,k,ind_H2O)
           xr(1,ind_H2O)  = xh2o
@@ -196,10 +198,41 @@ module mod_che_chemistry
           xr(1,ind_PAN)  = chemin(i,k,ind_PAN) !0.750E+10
           xr(1,ind_ETHE) = chemin(i,k,ind_ETHE) !10.200E+09
 
-          print*, 'avant chemmain'
+ 
+!fab deb
+!!$          xr(1,ind_O3)   =  0.094E+13
+!!$          xr(1,ind_NO2)  = 0.300E+09
+!!$          xr(1,ind_NO)   = 0.300E+09
+!!$          xr(1,ind_CO)   = 0.100E+13
+!!$          xr(1,ind_H2O2) = 0.200E+11
+!!$          xr(1,ind_HNO3) = 0.200E+10
+!!$          xr(1,ind_N2O5) = 0.100E+08
+!!$          xr(1,ind_SO2)  = 0.200E+11
+!!$          xr(1,ind_SULF) = 0.200E+11
+!!$          xr(1,ind_DMS)  = 0.200E+10
+!!$          xr(1,ind_HCHO) = 0.200E+10
+!!$          xr(1,ind_ALD2) = 0.200E+10
+!!$          xr(1,ind_ISOP) = 0.500E+10
+!!$          xr(1,ind_C2H6) = 0.500E+10
+!!$          xr(1,ind_PAR)  = 0.200E+08
+!!$          xr(1,ind_ACET) = 0.200E+10
+!!$          xr(1,ind_MOH)  = 0.200E+10
+!!$          xr(1,ind_PRPE) = 0.200E+09
+!!$          xr(1,ind_BUTE) = 0.200E+07
+!!$          xr(1,ind_TOLU) = 0.200E+07
+!!$          xr(1,ind_XYLE) = 0.000E+10
+!!$       
+!!$          xr(1,ind_PAN)  =  0.750E+10
+!!$          xr(1,ind_ETHE) = 10.200E+09
+!!$
+!!$
+!!$         xr(1,:) = d_zero
+
           call chemmain
 
-          print*,'apres chemmain'
+ 
+          
+
           do ic = 1 , totsp
             chemall(i,k,jj,ic) = xr(1,ic)
           end do
@@ -234,7 +267,10 @@ module mod_che_chemistry
           chemox(i,k,ind_ACET) = xr(1,ind_ACET)
         end do
       end do
-    end subroutine chemistry
+      
+ print*, 'FAB apres chemox', jj, maxval(chemox),xr
+
+   end subroutine chemistry
 !
 !c -------------------------------------------------------------------
     subroutine gas_phase(j,ktau,secofday,lyear,lmonth,lday)
@@ -267,36 +303,41 @@ module mod_che_chemistry
         end do
       end do 
 
+      zena(:) = dacos(czen(j,:)*degrad)
+
       do k = 1 , kz
         do i = 2 , iym2
-          cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
-          cfactor = cfactor/cpsb(j,i)
-          zena(i) = dacos(czen(j,i)*degrad)
-          chemin(i,k,j,ind_H2O)  = cqvb3d(j,i,k)*cfactor
-          chemin(i,k,j,ind_O3)   = chib(i,k,j,io3)*cfactor*amd/W_O3
-          chemin(i,k,j,ind_NO2)  = chib(i,k,j,ino2)*cfactor*amd/W_NO2
-          chemin(i,k,j,ind_NO)   = chib(i,k,j,ino)*cfactor*amd/W_NO
-          chemin(i,k,j,ind_CO)   = chib(i,k,j,ico)*cfactor*amd/W_CO
-          chemin(i,k,j,ind_H2O2) = chib(i,k,j,ih2o2)*cfactor*amd/W_H2O2
-          chemin(i,k,j,ind_HNO3) = chib(i,k,j,ihno3)*cfactor*amd/W_HNO3
-          chemin(i,k,j,ind_N2O5) = chib(i,k,j,in2o5)*cfactor*amd/W_N2O5
-          chemin(i,k,j,ind_SO2)  = chib(i,k,j,iso2)*cfactor*amd/W_SO2
-          chemin(i,k,j,ind_SULF) = chib(i,k,j,iso4)*cfactor*amd/W_SULF
-          chemin(i,k,j,ind_DMS)  = chib(i,k,j,idms)*cfactor*amd/W_DMS
-          chemin(i,k,j,ind_HCHO) = chib(i,k,j,ihcho)*cfactor*amd/W_HCHO
-          chemin(i,k,j,ind_ALD2) = chib(i,k,j,iald2)*cfactor*amd/W_ALD2
-          chemin(i,k,j,ind_ISOP) = chib(i,k,j,iisop)*cfactor*amd/W_ISOP
-          chemin(i,k,j,ind_C2H6) = chib(i,k,j,ic2h6)*cfactor*amd/W_C2H6
-          chemin(i,k,j,ind_PAR)  = chib(i,k,j,ipar)*cfactor*amd/W_C3H8
-          chemin(i,k,j,ind_ETHE) = chib(i,k,j,iethe)*cfactor*amd/W_ETHENE
-          chemin(i,k,j,ind_PRPE) = chib(i,k,j,iolt)*cfactor*amd/W_OLT
-          chemin(i,k,j,ind_BUTE) = chib(i,k,j,ioli)*cfactor*amd/W_OLI
-          chemin(i,k,j,ind_TOLU) = chib(i,k,j,itolue)*cfactor*amd/W_TOLU
-          chemin(i,k,j,ind_XYLE) = chib(i,k,j,ixyl)*cfactor*amd/W_XYLE
-          chemin(i,k,j,ind_PAN)  = chib(i,k,j,ipan)*cfactor*amd/W_PAN
-          chemin(i,k,j,ind_CH4)  = chib(i,k,j,ich4)*cfactor*amd/W_CH4
-          chemin(i,k,j,ind_MOH)  = chib(i,k,j,imoh)*cfactor*amd/W_MOH
-          chemin(i,k,j,ind_ACET) = chib(i,k,j,iacet)*cfactor*amd/W_ACET
+
+!work with chib3d arrays which are in kg.kg-1 
+!convert into molec.cm-3 
+
+          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
+          chemin(i,k,j,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
+
+          chemin(i,k,j,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
+          chemin(i,k,j,ind_NO2)  = chib3d(j,i,k,ino2)*cfactor /W_NO2
+          chemin(i,k,j,ind_NO)   = chib3d(j,i,k,ino)*cfactor/W_NO
+          chemin(i,k,j,ind_CO)   = chib3d(j,i,k,ico)*cfactor/W_CO
+          chemin(i,k,j,ind_H2O2) = chib3d(j,i,k,ih2o2)*cfactor/W_H2O2
+          chemin(i,k,j,ind_HNO3) = chib3d(j,i,k,ihno3)*cfactor/W_HNO3
+          chemin(i,k,j,ind_N2O5) = chib3d(j,i,k,in2o5)*cfactor/W_N2O5
+          chemin(i,k,j,ind_SO2)  = chib3d(j,i,k,iso2)*cfactor/W_SO2
+          chemin(i,k,j,ind_SULF) = chib3d(j,i,k,iso4)*cfactor/W_SULF
+          chemin(i,k,j,ind_DMS)  = chib3d(j,i,k,idms)*cfactor/W_DMS
+          chemin(i,k,j,ind_HCHO) = chib3d(j,i,k,ihcho)*cfactor/W_HCHO
+          chemin(i,k,j,ind_ALD2) = chib3d(j,i,k,iald2)*cfactor/W_ALD2
+          chemin(i,k,j,ind_ISOP) = chib3d(j,i,k,iisop)*cfactor/W_ISOP
+          chemin(i,k,j,ind_C2H6) = chib3d(j,i,k,ic2h6)*cfactor/W_C2H6
+          chemin(i,k,j,ind_PAR)  = chib3d(j,i,k,ipar)*cfactor/W_C3H8
+          chemin(i,k,j,ind_ETHE) = chib3d(j,i,k,iethe)*cfactor/W_ETHENE
+          chemin(i,k,j,ind_PRPE) = chib3d(j,i,k,iolt)*cfactor/W_OLT
+          chemin(i,k,j,ind_BUTE) = chib3d(j,i,k,ioli)*cfactor/W_OLI
+          chemin(i,k,j,ind_TOLU) = chib3d(j,i,k,itolue)*cfactor/W_TOLU
+          chemin(i,k,j,ind_XYLE) = chib3d(j,i,k,ixyl)*cfactor/W_XYLE
+          chemin(i,k,j,ind_PAN)  = chib3d(j,i,k,ipan)*cfactor/W_PAN
+          chemin(i,k,j,ind_CH4)  = chib3d(j,i,k,ich4)*cfactor/W_CH4
+          chemin(i,k,j,ind_MOH)  = chib3d(j,i,k,imoh)*cfactor/W_MOH
+          chemin(i,k,j,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
         end do
       end do
 
@@ -304,21 +345,18 @@ module mod_che_chemistry
      
       idatein = (lyear-1900)*10000+lmonth*100+lday
 
-      print*, 'FAB TOD', tod
-
       call chemistry(j,chemin(:,:,j,:),chemox(:,:,j,:),      &
                      taa,psaa,zena,ktau,idatein,tod)
 
-       print*, 'FAB after chemistry' 
-
+ 
 !FAB :  Now save the chemistry tendency 
-!
+!be carefull should be multiplied by surface pressure ( consistency with chib unit)
 
  do k = 1 , kz
         do i = 2 , iym2
-! convection factor to get the tendency in kg.kg-1.s-1
-          cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
-          pfact = cpsb(j,i)/(cfactor*amd)
+! convection factor to get the tendency from mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
+          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
+          pfact = cpsb(j,i)/ cfactor
  
         chemten(i,k,j,io3)   =  (chemox(i,k,j,ind_O3)- chemin(i,k,j,ind_O3) )*pfact*W_O3         &
      &                          /dtchsolv

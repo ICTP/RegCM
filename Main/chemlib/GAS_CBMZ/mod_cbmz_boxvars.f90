@@ -69,7 +69,7 @@ module mod_cbmz_boxvars
 ! UNIT INDICES
 
   integer :: iit , itr , itime , nhkem
-  integer :: isol                 ! input starting hour
+!  integer :: isol                 ! input starting hour
   integer :: iplu , jcloud
   integer :: lin                  ! Basic input (fort.41)
   integer :: lcin                 ! Chem concentration input (fort.87)
@@ -112,20 +112,29 @@ module mod_cbmz_boxvars
   real(dp) :: frgen , frngen
 
 ! GENERAL VARIABLES USED IN BOX MODEL PROGRAMS (not in common)
-  real(dp) :: xhm2 , fr1 , fr0 , frx    ! bsetr fraction setters
-  real(dp) :: sxh , ct , temps , windd , frwin , fn1 , fn0
-  real(dp) :: conc
-  real(dp) :: xn          ! brplac time  calc
-  real(dp) :: tint        ! bprint time calc
-  real(dp) :: xh1 , xh2   ! bprint time calc
-  real(dp) :: gas         ! bprint gas concentration
-  real(dp) :: ffgen       ! boxdyn parameter
+!FAB AGIN local variable shopuld notbe declared here !!
+!  real(dp) :: xhm2 , fr1 , fr0 , frx    ! bsetr fraction setters
+!  real(dp) :: sxh , ct , temps , windd , frwin , fn1 , fn0
+!  real(dp) :: conc
+!  real(dp) :: xn          ! brplac time  calc
+!  real(dp) :: tint        ! bprint time calc
+!  real(dp) :: xh1 , xh2   ! bprint time calc
+!  real(dp) :: gas         ! bprint gas concentration
+!  real(dp) :: ffgen       ! boxdyn parameter
 !
-  integer :: ihour , ihour2 , ix1 , ix0 , ix21 , ix20  ! bsetr hour integers
-  integer :: ind , j1 , jj2 , ij2 , ixn , n            ! brplac indices
-  integer :: ni , ic1 , ic2 , ip                       ! bsplac indices
-  integer :: j2 , nx2 , iw , i , j                     ! bprint indices
-  integer :: kk , ic                                   ! Standard counters
+
+!!$  integer :: ihour , ihour2 , ix1 , ix0 , ix21 , ix20  ! bsetr hour integers
+!!$  integer :: ind , j1 , jj2 , ij2 , ixn , n            ! brplac indices
+!!$  integer :: ni , ic1 , ic2 , ip                       ! bsplac indices
+!!$  integer :: j2 , nx2 , iw , i , j                     ! bprint indices
+
+
+!!$  integer :: kk , ic                                   ! Standard counters
+!!$
+
+
+
+
   real(dp) :: zenith                          ! zenith angle from RegCM3
 !
   ! O3 column DU
