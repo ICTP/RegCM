@@ -73,7 +73,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:,:) ::chib3d
   real(dp) , pointer , dimension(:,:,:) :: ctb3d,cqvb3d,cubx3d,cvbx3d,crhob3d,cqcb3d,cfcc,cza,cdzq,ccldfra,crembc,cremrat
   real(dp) , pointer , dimension(:,:) ::  cpsb,ctg,clndcat,cht,cssw2da, &
-                                          cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt
+                                          cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt,cuvdrag
 
  
   real(dp) , pointer , dimension(:) :: hlev, cdsigma,canudg

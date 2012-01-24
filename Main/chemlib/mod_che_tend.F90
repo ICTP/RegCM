@@ -96,6 +96,7 @@
         wl = d_zero
         ttb = d_zero
         prec = d_zero
+        ustar =d_zero
         fracloud = d_zero
         fracum = d_zero
         psurf = d_zero  
@@ -186,12 +187,11 @@
           rh10(j,i) = d_zero
           if ( qsat10 > d_zero ) rh10(j,i) = shu10/qsat10
 !
-!         friction velocity ( from uvdrag so updtaed at  bats or clm frequency )
+!         friction velocity ( from uvdrag so updtaed at  bats or clm frequency : little inconsistenccy here)
 !
-!!$   FAB AFIXER         ustar(i) = sqrt ( sfsta%uvdrag(i,j)             *           &
-!!$           &           sqrt ( (atm2%u(i,kz,j)/sps2%ps(i,j) )**2   +     &
-!!$           &                  (atm2%v(i,kz,j)/sps2%ps(i,j) )**2 ) /     &
-!!$           &                   rho(i,kz) )
+          ustar(j,i) = sqrt ( cuvdrag(j,i)             *           &
+                       sqrt ( (cubx3d(j,i,kz))**2   +  (cvbx3d(j,i,kz))**2 ) /     &
+                             crhob3d(j,i,kz) )
  
 !           soil wetness
  
@@ -250,11 +250,11 @@
 
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
         if ( size(idust) > 0 ) then
-         wid10(:,:) = 20.
-        ustar (:,:)= 2.
+        
+       
 
         do j= jstart,jend
-              
+            print*, 'USTARJ',j,minval( ustar(j,:)), maxval(ustar(j,:)  )
         call sfflux(iy,2,iym2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
                       zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,dust_flx(j,:,:))     
         end do 

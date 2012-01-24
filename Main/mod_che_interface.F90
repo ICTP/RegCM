@@ -20,7 +20,7 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , surfpstate, domain, surftstate
+  use mod_atm_interface , only : slice , surfpstate, domain, surftstate, surfstate
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -40,8 +40,9 @@ module mod_che_interface
   contains 
 !
   subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms,&
-                       sps2,mddom,sts2,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,twt,&
-                       ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,icubot)
+                       sps2,mddom,sts2,sfsta,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,twt,&
+                       ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,&
+                        icutop,icubot)
 
 ! this routine define the pointer interface between the chem module and the rest of the model
 ! It also call startchem which is the chemistry initialisation routine
@@ -60,6 +61,8 @@ module mod_che_interface
     type(slice) , intent(in) :: atms
     type(domain), intent(in):: mddom
     type(surftstate), intent(in) :: sts2
+    type (surfstate) , intent(in) :: sfsta
+
     real(dp) , pointer , dimension(:) :: a,anudg
     real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
@@ -90,7 +93,8 @@ module mod_che_interface
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%ht,cht)
     call assignpnt(sts2%tg,ctg)
-
+    call assignpnt(sfsta%uvdrag,cuvdrag)
+    
     call assignpnt(fcc,cfcc)
     call assignpnt(cldfra,ccldfra)
     call assignpnt(rembc,crembc)

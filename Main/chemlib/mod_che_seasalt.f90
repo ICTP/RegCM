@@ -151,7 +151,7 @@ module mod_che_seasalt
         ! chemsrc(i,j,lmonth,isslt(ib)) = seasalt_flx(i,ib)
 
         chiten(i,kz,j,isslt(ib)) = chiten(i,kz,j,isslt(ib)) + &
-                seasalt_flx(i,ib)*egrav/(chlevs(kz)*1.D3)
+                seasalt_flx(i,ib)*egrav/(cdsigma(kz)*1.D3)
         ! diagnostic source
         cemtr(i,j,isslt(ib)) = cemtr(i,j,isslt(ib)) + &
                  seasalt_flx(i,ib)*dtche/d_two
