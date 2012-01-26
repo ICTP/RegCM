@@ -26,14 +26,28 @@ module mod_che_common
   use mod_che_param
   use mod_che_species
 
-  public
+  
 !
+  public
+
+  character(len=8)   :: chemsimtype 
+  integer, parameter :: nbin = 4
+  integer, parameter :: sbin = 2
+ 
+
+
   integer , parameter :: maxntr =40 
   integer , parameter :: maxnbin = 4
   integer , parameter :: maxnssl = 2
-!
-  integer       :: iaerosol
 
+!chemistry nameliste option
+  integer , public ::  ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
+
+!usefull flags
+  integer       :: iaerosol, igaschem
+
+
+! tracer variables
 
   real(dp) , pointer , dimension(:,:,:,:) :: chi
   real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten, chemten
@@ -55,38 +69,32 @@ module mod_che_common
   ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
   real(dp) , pointer , dimension(:,:) :: chevap , checum
 
-  real(dp) , pointer , dimension(:,:) :: chtrsize , dustbsiz
-  real(dp) , pointer , dimension(:,:) :: ssltbsiz
+  real(dp) , pointer , dimension(:,:) :: chtrsize
   real(dp) , pointer , dimension(:) :: chtrsol
-!
-  integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
-!
+!!
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
   real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
- 
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
 
-!atmospheric variable interface for chemistry 
+
+!***************************************************************************
+!INTERFACE VARIABLES  for chemistry / regcm 
+!**************************************************************************
+
   real(dp) :: ccalday, crdxsq
   real(dp) , pointer , dimension(:,:,:,:) ::chib3d
   real(dp) , pointer , dimension(:,:,:) :: ctb3d,cqvb3d,cubx3d,cvbx3d,crhob3d,cqcb3d,cfcc,cza,cdzq,ccldfra,crembc,cremrat
   real(dp) , pointer , dimension(:,:) ::  cpsb,ctg,clndcat,cht,cssw2da, &
                                           cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt,cuvdrag
-
  
   real(dp) , pointer , dimension(:) :: hlev, cdsigma,canudg
   real(dp) , pointer , dimension(:,:) :: czen
-
- real(dp) :: chptop
-
+  real(dp) :: chptop
 
 
-
-
-
- contains
+contains
 
   subroutine allocate_mod_che_common(ichem)
     implicit none
@@ -94,18 +102,6 @@ module mod_che_common
     integer , intent(in) :: ichem
 
     if ( ichem == 1 ) lch = .true.
-
-    if ( ntr>maxntr ) then
-      write (aline , *) 'In mod_che_common, resetting ntr to maxntr ', maxntr
-      call say
-      ntr = maxntr
-    end if
-    if ( nbin>maxnbin ) then
-      write (aline , *) 'In mod_che_common, resetting nbin to maxnbin ', maxnbin
-      call say
-      nbin = maxnbin
-    end if
-
 
     if ( lch ) then
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
@@ -117,8 +113,7 @@ module mod_che_common
       call getmem4d(rxsaq2,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:rxsaq2')
       call getmem4d(rxsg,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:rxsg')
 
-      allocate(chtrname(ntr))
-      chtrname = ' '
+     
 
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
       call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
@@ -126,8 +121,6 @@ module mod_che_common
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
       call getmem1d(icarb,1,5,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
-      call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_common:dustbsiz')
-      call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_common:ssltbsiz')
 
       call getmem4d(chemall,1,iy,1,kz,1,jxp,1,totsp,'mod_che_common:chemall')
       call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_common:chi')
@@ -152,4 +145,86 @@ module mod_che_common
 
   end subroutine allocate_mod_che_common
 !
+
+  subroutine chem_config
+
+    implicit none
+    ! Define here the possible types of simulation and fix the dimension of relevant tracer dimension and parameters 
+
+
+    igaschem =0
+    iaerosol =1
+
+
+    if (chemsimtype(1:4) == 'DUST') then
+       ntr = nbin
+       allocate(chtrname(nbin))
+       chtrname(1:ntr)(1:5) = (/'DUST1','DUST2','DUST3','DUST4'/)
+       iaerosol=1
+       write (aline,*) 'DUST simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif (chemsimtype(1:4) == 'SSLT') then 
+       ntr = sbin
+       allocate(chtrname(ntr))
+       chtrname(1:ntr)(1:5) = (/'SSLT1','SSLT2'/)
+       iaerosol=1
+       write (aline,*) 'SSLT simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif(chemsimtype(1:4) == 'CARB') then 
+       ntr = 4
+       allocate(chtrname(ntr))
+       chtrname(1:ntr)(1:5) = (/'BC_HL','BC_HB','OC_HB','OC_HL'/)
+       iaerosol=1
+       write (aline,*) 'CARB simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif(chemsimtype(1:4) == 'SULF') then 
+       ntr = 2
+       allocate(chtrname(ntr))
+       chtrname(1:ntr)(1:5) = (/'SO2','SO4'/)
+       iaerosol=1
+       write (aline,*) 'SULF simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif(chemsimtype(1:4) == 'SUCA') then 
+       ntr = 6
+       allocate(chtrname(ntr))
+       chtrname(1:ntr)(1:5) = (/'SO2','SO4','BC_HL','BC_HB','OC_HB','OC_HL' /)
+       iaerosol=1
+       write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif(chemsimtype(1:4) == 'AERO') then 
+       ntr = 6
+       allocate(chtrname(ntr))
+       iaerosol=1
+       chtrname(1:ntr)(1:5) = (/'SO2','SO4','BC_HL','BC_HB','OC_HB','OC_HL',&
+            'DUST1','DUST2','DUST3','DUST4',            &              
+            'SSLT1','SSLT2'    /)
+       write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
+       call say
+
+    elseif(chemsimtype(1:4) == 'CBMZ') then 
+       ntr = 26
+       allocate(chtrname(ntr))      
+       chtrname(1:ntr)(1:5) = (/  'SO2','SO4','DMS','O3','NO2','NO','CO','H2O2','HNO3','N2O5',   &
+            'HCHO','ALD2','ISOP','C2H6','PAR','ACET','MOH','OLT','OLI',    &
+            'TOLUE','XYL','ETHE','PAN','CH4','NH3'  /)
+       igaschem=1
+       write (aline,*) 'CBMZ gas-phase + sulfate  simulation , used tracers: ', chtrname(:)
+       call say
+
+    else 
+       write (aline,*) 'Not a valid chemtype simulation : STOP !'
+       call say
+       stop
+    end if
+
+
+
+  end subroutine chem_config
+
+
 end module mod_che_common

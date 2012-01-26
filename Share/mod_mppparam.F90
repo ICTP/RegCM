@@ -103,8 +103,8 @@ module mod_mppparam
 
     call mpi_bcast(aertyp,7,mpi_character,0,mycomm,ierr)
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
+!    call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
+!    call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
 
     call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,ierr)
 

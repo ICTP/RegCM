@@ -410,7 +410,7 @@ module mod_tendency
       end do
       numrec = kz*11+1
       if ( ichem == 1 ) then
-        do n = 1 , ntr
+       do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
               tvar1snd(i,numrec+(n-1)*2*kz+k)    = chi(i,k,jxp,n)

@@ -32,6 +32,21 @@ module mod_che_dust
  
 
   implicit none
+
+  
+! 
+  real(dp), dimension (nbin, 2 ) ::  dustbsiz
+  ! Fix the actual dust aerosol bin size
+  data  dustbsiz /0.01, 1.00, 2.50, 5.00, 1.00, 2.50, 5.00,20.00 /
+
+! solubility of od dust aer for param of giorgi and chameides
+  real(dp), dimension (nbin) ::  soldust
+  data  soldust /0.1,0.1,0.1,0.1 / 
+
+!     Basic dust aerosol density (ACE-2 ) in kg/m3
+!        
+  real(dp) , parameter :: rhodust = 2650.0D0
+
 !
   integer , parameter :: nsoil = 152
   integer , parameter :: mode = 3
@@ -56,9 +71,7 @@ module mod_che_dust
   real(dp),parameter  :: e2 = 3.52D0
   real(dp),parameter  :: e3 = 3.46D0
 
-  !     Basic dust aerosol density (ACE-2 ) in kg/m3
-  !        
-    real(dp) , parameter :: rhodust = 2650.0D0
+ 
   !        
   real(dp), dimension (2,isize)  ::  aerosize       
   real(dp) , pointer, dimension(:) ::  frac1 , frac2 , frac3
@@ -81,6 +94,7 @@ module mod_che_dust
        2.56D-06 , 5.12D-06 , 5.12D-06 , 10.4D-06 , 10.24D-06 ,      &
        20.48D-06 , 20.48D-06 , 40.6D-06/
 !
+
   contains 
 !
   subroutine allocate_mod_che_dust 

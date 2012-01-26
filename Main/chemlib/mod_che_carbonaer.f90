@@ -48,11 +48,19 @@ real(dp) , public , parameter :: rhooc   = 1200.0D0
   ! Cooke et al.
   real(dp) , parameter :: chagct = 1.15D0 * 86400.0D0
   !
+  ! solubility of carbon aer for rain out param of giorgi and chameides
+  !
+  real(dp), parameter :: solbc = 0.05
+  real(dp), parameter :: solbchl = 0.8
+  real(dp), parameter :: soloc = 0.05
+  real(dp), parameter :: solochl = 0.8
+ 
+
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
   real(dp) , public , dimension(5,2) :: carbsiz
 
-  public :: aging_carb
+  public :: aging_carb, solbc, solbchl, soloc, solochl
 
   contains
 

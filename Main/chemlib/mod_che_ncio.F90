@@ -1697,7 +1697,6 @@ jbin = 0
 
          
           istatus = nf90_inq_varid(ichin, 'O3', chbc_ivar(1))
-          print*, 'shize', chbc_ivar(1)
 
           call check_ok(__FILE__,__LINE__,'variable O3 missing', 'CHBC FILE ERROR')
           istatus = nf90_inq_varid(ichin, 'NO', chbc_ivar(2))
@@ -1799,7 +1798,6 @@ jbin = 0
             end do
           end do
 
-         print*, 'in read_chbc espece',n,maxval(chebdio(:,:,:,n))
         end do
 !!$
 !!$          istatus = nf90_get_var(ichin, chbc_ivar(3), xread, &

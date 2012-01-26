@@ -28,11 +28,20 @@ module mod_che_seasalt
 
   ! sea-salt density
   real(dp) , parameter  :: rhosslt = 1000.
+  real(dp), dimension (sbin, 2 ) ::  ssltbsiz
+  data   ssltbsiz / 0.05D0 ,1.0D0,  1.0D0, 10.0D0/
 
-  public :: sea_salt , rhosslt
+ ! solubility of od dust aer for param of giorgi and chameides
+   real(dp), dimension (sbin) ::  solsslt
+   data  solsslt /0.8,0.8/ 
+
+
+
+  public :: sea_salt , rhosslt, ssltbsiz, solsslt
 
   contains
-
+!
+!FAB : NB THIS ROUTINE IS NOT OPTIMIZED AT ALL
   !************************************************************
   !*                                                        ***
   !* Purpose:                                               ***
@@ -72,11 +81,7 @@ module mod_che_seasalt
     modeptr_coarseas = 1
     modeptr_accum = 1
 
-    ssltbsiz(1,1) = 0.05D0
-    ssltbsiz(1,2) = 1.0D0 
-    ssltbsiz(2,1) = 1.0D0
-    ssltbsiz(2,2) = 10.0D0
-
+ 
     dplo_acc = ssltbsiz(1,1)*1.0D-04
     dphi_acc = ssltbsiz(1,2)*1.0D-04
     dplo_cor = ssltbsiz(2,1)*1.0D-04
@@ -127,6 +132,7 @@ module mod_che_seasalt
 
       seasalt_flx(i,1) = seasalt_emfac_masacc * iflg
       seasalt_flx(i,2) = seasalt_emfac_mascor * iflg
+
 
       if ( wind10(i) > d_zero ) then
         dumu10 = dmax1( d_zero, dmin1( 100.0D0, wind10(i) ))

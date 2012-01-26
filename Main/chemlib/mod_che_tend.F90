@@ -83,9 +83,7 @@
       real(8) , dimension(ntr) :: wetrem , wetrem_cvc
 !
       integer(8) :: kchsolv
-      integer :: igaschem !!!PROVISOIRE
 
-      igaschem = 0
 !
 !**************************************************************************
 !     A : PRELIMINARY CALCULATIONS
@@ -138,7 +136,17 @@
 ! 
         
         do i = istart , iend
+
+! care ocean-lake in veg2d is now back type 14-15 !!
+
+          if ( cveg2d(j,i)== 14 .or. cveg2d(j,i)==15 ) then 
+          ivegcov(j,i) = 0
+          else
           ivegcov(j,i) = cveg2d(j,i)
+          end if 
+
+
+
           psurf(j,i) = cpsb(j,i) * 1.0D3 + ptop
  
 !         method based on bats diagnostic in routine interf.
@@ -229,7 +237,6 @@
 !       SOX CHEMSITRY ( from offline oxidant) 
 !
         if ( igaschem == 0 ) then
-!FAB :    regler le probleme de gas vs aerosol only
           if (iso2 > 0 .and. iso4 >0.) then
           do j=jstart,jend
             call chemsox(j,wl(j,:,:),fracloud(j,:,:),fracum(j,:,:),rho(j,:,:),ttb(j,:,:))
@@ -249,18 +256,16 @@
         end if
 
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
-        if ( size(idust) > 0 ) then
+        if ( idust(1) > 0 ) then
         
-       
-
         do j= jstart,jend
-            print*, 'USTARJ',j,minval( ustar(j,:)), maxval(ustar(j,:)  )
+ 
         call sfflux(iy,2,iym2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
                       zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,dust_flx(j,:,:))     
         end do 
         end if
 
-        if (  size(isslt) > 0 )then
+        if (  isslt(1) > 0 )then
         do j=jstart,jend
          call sea_salt(j,wid10(j,:),ivegcov(j,:),seasalt_flx(j,:,:))
         end do
@@ -277,7 +282,7 @@
 !
         pdepv = d_zero
         ddepa = d_zero
-        if ( size(idust) > 0 ) then
+        if ( idust(1) > 0 ) then
         do j=jstart,jend
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
                             temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbsiz,      &
@@ -285,7 +290,7 @@
         end do
         end if
 
-       if ( size(isslt) >0 ) then
+       if ( isslt(1) >0 ) then
        do j=jstart,jend
          call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
                           temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),ssltbsiz,      &
@@ -293,7 +298,7 @@
        end do
        end if 
 
-        if ( size(icarb) > 0 ) then
+        if ( icarb(1) > 0 ) then
         ibin = count( icarb > 0 ) 
           do j=jstart,jend
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev, &
@@ -321,13 +326,13 @@
          end do
         end if
 
-       if ( size(isslt) > 0 )  then   
+       if ( isslt(1) > 0 )  then   
          do j=jstart,jend
          call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                       fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) )  
          end do
        end if
-       if ( size(icarb) > 0 )  then   
+       if ( icarb(1) > 0 )  then   
          ibin = count( icarb > 0 ) 
           do j=jstart,jend
          call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
@@ -354,15 +359,14 @@
      
       if ( igaschem == 1 ) then   
       kchsolv = idnint(dtchsolv / dtche)
-      kchsolv = 6
+      kchsolv = 6 ! for the moment
    
-      if (mod(ktau+1,kchsolv) == 0 ) then
-   
+      if (mod(ktau+1,kchsolv) == 0 ) then   
        do j = jstart,jend
         call gas_phase(j,ktau,secofday,lyear,lmonth,lday)
        end do
        end if
-! add tendency due to chemistry reaction       
+! add tendency due to chemistry reaction (every dtche)      
        chiten(:,:,jstart:jend,:) =  chiten(:,:,jstart:jend,:) +   chemten(:,:,jstart:jend,:)
 
       end if

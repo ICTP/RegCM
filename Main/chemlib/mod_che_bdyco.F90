@@ -272,7 +272,7 @@ implicit none
        end do
     end do
 
-     print*, 'apres transfert', myid, n,maxval(chebdy(:,:,:,n)) 
+!     print*, 'apres transfert', myid, n,maxval(chebdy(:,:,:,n)) 
 
     end do
 

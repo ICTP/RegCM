@@ -31,6 +31,9 @@
     use mod_che_bdyco
     use mod_cbmz_init1
     use mod_che_dust
+    use mod_che_sox
+    use mod_che_seasalt
+  
    implicit none
 
     public  :: start_chem
@@ -52,14 +55,8 @@ subroutine start_chem (ifrest,bdydate1, bdydate2)
 !fab provisoir
   logical :: lband
 
-! je sais pas a quoi ca sert
-!!$  if ( myid.eq.0 ) then
-!!$
-!!$  call getarg(0, prgname)
-!!$  call getarg(1, namelistfile)
-!!$  call init_mod_ncio2(.false.)
-!!$
-!!$  end if
+
+
 
 !A : Intialise chemistry tracer indices         
 
@@ -71,6 +68,10 @@ subroutine start_chem (ifrest,bdydate1, bdydate2)
         ibchb = 0
         iochl = 0
         iochb = 0
+        idust =0
+        isslt =0
+        icarb =0
+
 
 
         io3       =  0
@@ -138,7 +139,7 @@ kbin=0
 
 
 
-        print*,'startchem',chtrname
+        print*,'startchem',ntr,chtrname
 
         do itr = 1 , ntr
 
@@ -154,6 +155,7 @@ kbin=0
                 icarb(kbin) = itr
                 carbsiz(kbin,1) = reffochl - 0.1
                 carbsiz(kbin,2) = reffochl + 0.1
+                chtrsol(iso4) = solso4
            end if
            if ( chtrname(itr).eq.'BC_HL' ) then 
                 kbin = kbin + 1
@@ -161,6 +163,7 @@ kbin=0
                 icarb(kbin) = itr
                 carbsiz(kbin,1) = reffbchl - 0.06
                 carbsiz(kbin,2) = reffbchl + 0.06
+                chtrsol(itr) = solbchl
            end if
            if ( chtrname(itr).eq.'BC_HB' ) then 
                   kbin = kbin + 1
@@ -168,6 +171,7 @@ kbin=0
                   icarb(kbin) = itr
                   carbsiz(kbin,1) = reffbc - 0.01
                   carbsiz(kbin,2) = reffbc + 0.01
+                  chtrsol(itr) = solbc   
            end if
            if ( chtrname(itr).eq.'OC_HL' ) then
                    kbin = kbin + 1
@@ -175,6 +179,7 @@ kbin=0
                    icarb(kbin) = itr
                    carbsiz(kbin,1) = reffochl - 0.1
                    carbsiz(kbin,2) = reffochl + 0.1
+           chtrsol(itr) = soloc             
            end if
            if ( chtrname(itr).eq.'OC_HB' ) then
                    kbin = kbin + 1
@@ -182,19 +187,23 @@ kbin=0
                    icarb(kbin) = itr 
                    carbsiz(kbin,1) = reffoc - 0.07
                    carbsiz(kbin,2) = reffoc + 0.07
+             chtrsol(itr) = solochl  
            end if
 
 
            if ( chtrname(itr)(1:4).eq. 'DUST') then
               ibin = ibin + 1
               idust(ibin) = itr
+              chtrsol(itr) = soldust(ibin)   
            end if
 
            if ( chtrname(itr)(1:4).eq. 'SSLT') then
             jbin = jbin + 1
-              isslt(jbin) = itr
+            isslt(jbin) = itr
+            chtrsol(itr) = solsslt(jbin)   
            end if
 
+! gas phas species (CBMZ)
 
            if  (chtrname(itr).eq. 'O3'    ) io3       = itr
            if  (chtrname(itr).eq. 'NO'    ) ino       = itr
@@ -306,13 +315,7 @@ kbin=0
   ichbdy2trac(24) =idms
 
 
-
-print*, 'After startchem', icarb, isslt,idust
-
-       if  (size(icarb) > 0 .or. size(isslt) > 0 .or. size(idust) >0 )  iaerosol = 1
-
-
-   if ( size(idust) > 0 ) then
+   if ( idust(1) > 0 ) then
       ! fisrt activate dust initialization
       write (aline, *) 'Calling inidust'
       call say
@@ -424,9 +427,7 @@ print*, 'After startchem', icarb, isslt,idust
 !!$! intialise the chib0 tracer
 !!$
   do n=1,25 
- print*, 'foune',n,ichbdy2trac(n)
  
-
    do k = 1 , kz
        do j = 1 , jendl
           do i = 1 , iy

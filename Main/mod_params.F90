@@ -141,7 +141,7 @@ module mod_params
     cmtcape , zdlev , cprcon , nmctop , lmfpen , lmfscv ,        &
     lmfmid , lmfdd , lmfdudv
 
-  namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
+  namelist /chemparam/ chemsimtype, ichremlsc , ichremcvc , ichdrdepo ,          &
     ichcumtra , idirect , inpchtrname , inpchtrsol ,      &
     inpchtrdpv , inpdustbsiz
 
@@ -520,21 +520,11 @@ module mod_params
       print * , 'param: UWPARAM namelist READ IN'
     end if
     if ( ichem == 1 ) then
-      if (ntr <= 0) then
-        call fatal(__FILE__,__LINE__,                                 &
-                 'CHEMICAL SCHEME WITH 0 TRACERS?')
-      end if
-      if (ntr < nbin+sbin) then
-        call fatal(__FILE__,__LINE__,                                 &
-                 'NUMBER OF DUST + SALT CLASSES GREATER THAN TRACERS?')
-      end if
       read (ipunit, chemparam)
       print * , 'CHEMPARAM namelist READ IN'
     else
       ichem = 0
       ntr = 0
-      nbin = 0
-      sbin = 0
       ifchem = .false.
     end if
 #ifdef CLM
@@ -589,8 +579,6 @@ module mod_params
   call mpi_bcast(lakemod,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ichem,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(scenario,8,mpi_character,0,mycomm,ierr)
   call mpi_bcast(idcsst,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
@@ -702,11 +690,18 @@ module mod_params
   end if
 
   if ( ichem == 1 ) then
+    call mpi_bcast(chemsimtype,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichremlsc,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichremcvc,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichdrdepo,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichcumtra,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(idirect,1,mpi_integer,0,mycomm,ierr)
+
+    call chem_config
+
+    call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(iaerosol,1,mpi_integer,0,mycomm,ierr)  
+    call mpi_bcast(igaschem,1,mpi_integer,0,mycomm,ierr)  
   end if
 !
 !-----------------------------------------------------------------------
@@ -715,6 +710,7 @@ module mod_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
+
   call allocate_mod_runparams
   call allocate_mod_atm_interface(lband,ibltyp)
   call allocate_mod_tend(lband)
@@ -1123,27 +1119,13 @@ module mod_params
   write (aline, *) ' '
   call say
 
-  if ( ichem == 1 ) then
-    if ( myid == 0 ) then
-      chtrname(1:ntr)(1:5) = inpchtrname(1:ntr)(1:5)
-!      chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
-      dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
-      chtrsol(1:ntr) = inpchtrsol(1:ntr)
-    !  chtrname = inpchtrname(1:ntr)
-    !  chtrdpv = inpchtrdpv(1:ntr,:)
-    !  dustbsiz = inpdustbsiz(1:nbin,:)
-    !  chtrsol = inpchtrsol(1:ntr)
-
-       print*, 'CHTRNAME', dustbsiz
-
-    end if
+ if (ichem==1) then
     do n = 1 , ntr
       call mpi_bcast(chtrname(n),5,mpi_character,0,mycomm,ierr)
     end do
-    call mpi_bcast(chtrsol,ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mycomm,ierr)
-  end if
+end if
+
+
 
   write (aline, *) 'Reading in DOMAIN data'
   call say

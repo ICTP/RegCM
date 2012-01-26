@@ -27,7 +27,11 @@ module mod_che_sox
 
   private
 
-  public :: chemsox
+   real(dp)  ::  solso4
+   data  solsslt /0.9/ 
+
+
+   public :: chemsox,solso4
 
   contains
 

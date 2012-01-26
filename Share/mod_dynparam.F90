@@ -163,8 +163,8 @@ module mod_dynparam
 ! Tracer parameters: number of tracers and bins number for dust and sea salt
 
   integer :: ntr   ! Total number of chemical tracers
-  integer :: nbin  ! Number of bins for dust particles
-  integer :: sbin  ! Number of bins for sea salt particles
+!  integer :: nbin  ! Number of bins for dust particles
+!  integer :: sbin  ! Number of bins for sea salt particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
@@ -335,7 +335,8 @@ module mod_dynparam
     namelist /modesparam/ nsplit
     namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
                    dirglob , inpglob , calendar , ibdyfrq
-    namelist /aerosolparam/ aertyp , ntr, nbin, sbin
+    namelist /aerosolparam/ aertyp , ntr
+! , nbin, sbin
 
     open(ipunit, file=filename, status='old', &
                  action='read', err=100)
@@ -426,8 +427,8 @@ module mod_dynparam
     call setcal(globidate2,ical)
 
     ntr  = 0
-    nbin = 0
-    sbin = 0
+  !  nbin = 0
+  !  sbin = 0 
     read(ipunit, aerosolparam, err=111)
 
     ierr = 0

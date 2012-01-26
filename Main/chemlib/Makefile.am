@@ -69,13 +69,13 @@ mod_che_seasalt.o: mod_che_seasalt.f90 \
 mod_che_common.o: mod_che_common.f90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  mod_che_param.o mod_che_species.o
+  mod_che_param.o mod_che_species.o 
 mod_che_mppio.o: mod_che_mppio.f90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
   mod_che_param.o mod_che_species.o $(REGCM_ROOT)/Share/mod_dynparam.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_memutil.mod
 mod_che_ncio.o: mod_che_ncio.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
-  mod_che_indices.o
+  mod_che_indices.o  mod_che_common.o
 mod_che_dust.o: mod_che_dust.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
