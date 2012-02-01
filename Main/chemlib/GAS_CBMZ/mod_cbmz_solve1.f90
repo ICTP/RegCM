@@ -548,7 +548,6 @@ module mod_cbmz_solve1
 
       end do runiter
 
-       print*,'apres runiter', xc
 
       !
       ! -----------------------
@@ -3958,7 +3957,8 @@ module mod_cbmz_solve1
          ! possible error with this and other ZERO PROTECT?
          ! 2004 fix - insures no descent to zero->NaN.
          !
-         if ( c_xcin(kk,ic) <= 0.000001D0 ) c_xcin(kk,ic) = 0.000001D0
+         ! FAB TEST
+         if ( c_xcin(kk,ic) <= 0.000001 ) c_xcin(kk,ic) = 0.000001
          xc(kk,ic) = c_xcin(kk,ic)
          !
          ! SET XR=0.1 AND XXO=0. FOR STEADY-STATE.
@@ -3969,6 +3969,7 @@ module mod_cbmz_solve1
            c_xcin(kk,ic) = d_zero
            c_xcemit(kk,ic) = d_zero
          end if
+       end do loopnchem1
          !
          ! ----------------------
          ! LUMPED SPECIES ARE IDENTIFIED FROM ARRAY LUMP(I,J)
@@ -3977,7 +3978,7 @@ module mod_cbmz_solve1
          !
          do i = 1 , c_cdim
            ics = c_lump(i,1)
-           if ( ics == 0 ) exit loopnchem1
+           if ( ics == 0 ) exit 
            ic1 = c_lump(i,2)
            ic2 = c_lump(i,3)
            !
@@ -4025,7 +4026,8 @@ module mod_cbmz_solve1
              end if
            end do
          end do
-       end do loopnchem1
+
+!FAB : not the same loop structure than original code       end do loopnchem1
        !
        ! SET AQUEOUS CONCENTRATIONS EQUAL TO ZERO
        !

@@ -524,10 +524,10 @@ module mod_che_wetdep
           chtrname(itr).ne.'SSALT' .or. chtrname(itr).ne.'BC_HL' .or. &
           chtrname(itr).ne.'DMS'   .or. chtrname(itr).ne.'OC_HB' .or. &
           chtrname(itr).ne.'OC_HL' ) then
-        temp_dep = (d_one-dexp( -het_rates(:,k,itr)*delt))*qin(:,k,itr)
-        chiten(2:iym2,k,j,itr) = chiten(2:iym2,k,j,itr) - temp_dep/delt 
-        remcvc(2:iym2,k,j,itr) = remcvc(2:iym2,k,j,itr) + temp_dep/d_two
-        remlsc(2:iym2,k,j,itr) = remlsc(2:iym2,k,j,itr) + temp_dep/d_two
+        temp_dep(:) = (d_one-dexp( -het_rates(:,k,itr)*delt))*qin(:,k,itr)
+        chiten(2:iym2,k,j,itr) = chiten(2:iym2,k,j,itr) - temp_dep(:)/delt 
+        remcvc(2:iym2,k,j,itr) = remcvc(2:iym2,k,j,itr) + temp_dep(:)/d_two
+        remlsc(2:iym2,k,j,itr) = remlsc(2:iym2,k,j,itr) + temp_dep(:)/d_two
       end if
     end do tracer_loop1
   end do level_loop2

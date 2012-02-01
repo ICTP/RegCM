@@ -67,7 +67,7 @@ module mod_che_common
 
   ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
   ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-  real(dp) , pointer , dimension(:,:) :: chevap , checum
+  real(dp) , pointer , dimension(:,:,:) :: chevap , checum
 
   real(dp) , pointer , dimension(:,:) :: chtrsize
   real(dp) , pointer , dimension(:) :: chtrsol
@@ -139,8 +139,8 @@ contains
       call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_common:wdlsc')
       call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_common:wxaq')
       call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_common:wxsg')
-      call getmem2d(chevap,1,iy,1,kz,'mod_che_common:chevap')
-      call getmem2d(checum,1,iy,1,kz,'mod_che_common:checum')
+      call getmem3d(chevap,1,jxp,1,iy,1,kz,'mod_che_common:chevap')
+      call getmem3d(checum,1,jxp,1,iy,1,kz,'mod_che_common:checum')
     end if
 
   end subroutine allocate_mod_che_common
@@ -207,7 +207,7 @@ contains
        call say
 
     elseif(chemsimtype(1:4) == 'CBMZ') then 
-       ntr = 26
+       ntr = 25
        allocate(chtrname(ntr))      
        chtrname(1:ntr)(1:5) = (/  'SO2','SO4','DMS','O3','NO2','NO','CO','H2O2','HNO3','N2O5',   &
             'HCHO','ALD2','ISOP','C2H6','PAR','ACET','MOH','OLT','OLI',    &

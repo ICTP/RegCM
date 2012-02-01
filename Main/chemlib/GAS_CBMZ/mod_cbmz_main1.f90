@@ -371,7 +371,6 @@ module mod_cbmz_main1
       !
           ! CALL THE DRIVER SUBROUTINE FOR THE CHEMSTRY SOLUTION
       !
-       print*,'avant quadchem', c_xcin
       call quadchem
       !
       ! ---------------------------------------
@@ -382,8 +381,6 @@ module mod_cbmz_main1
       !    c_xcout(ic)  = final concentration, molec/cm3
            
       !
-      print*,'apres quadchem', c_xcout
-      stop
       do ic = 1 , 64 !nchem1
         xr(1,ic) = c_xcout(1,ic)
       end do

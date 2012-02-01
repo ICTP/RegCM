@@ -112,8 +112,6 @@ module mod_che_chemistry
         end do
       end do
 
-       print*, 'before chemin', maxval(chemin), minval(chemin) 
-
       do k = kz , 1 , -1
         do i = 2 , iym2
           ll = (kz+1)-k
@@ -268,7 +266,6 @@ module mod_che_chemistry
         end do
       end do
       
- print*, 'FAB apres chemox', jj, maxval(chemox),xr
 
    end subroutine chemistry
 !

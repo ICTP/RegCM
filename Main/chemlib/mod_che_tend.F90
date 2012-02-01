@@ -345,9 +345,11 @@
 !       Wet Deposition for gasphase species 
 !!$
         if ( igaschem == 1 ) then
-         do j=jstart,jend
-          !call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
-          !            chevap(j,:,:),dtche,rho(j,:,:),chib(:,:,j,:),iym3,cpsb(j,2:iym2))
+        checum = d_zero !  fix the interface for this variable ! no effect of cumulus scavenging now
+        chevap = d_zero
+         do j=jstart,jend        
+          call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
+                      chevap(j,:,:),dtche,rho(j,:,:),chib(:,:,j,:),iym3,cpsb(j,2:iym2))
          end do
         end if
     
