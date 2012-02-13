@@ -100,9 +100,17 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(64) :: habase  = '_6hrLev_HadGEM2-ES_historical_r1i1p1_'
-  character(64) :: habase1 = '_6hrPlev_HadGEM2-ES_historical_r1i1p1_'
-  character(64) :: cabase  = '_6hrLev_CanESM2_historical_r1i1p1_'
+  character(64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
+  character(64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
+  character(64) :: hapbase1 = '_6hrPlev_HadGEM2-ES_historical'
+  character(64) :: hapbase2 = '_6hrPlev_HadGEM2-ES_rcp'
+  character(64) :: habase3 = '_r1i1p1_'
+  character(64) :: cabase1 = '_6hrLev_CanESM2_historical'
+  character(64) :: cabase2 = '_6hrLev_CanESM2_rcp'
+  character(64) :: cabase3 = '_r1i1p1_'
+  character(64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
+  character(64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
+  character(64) :: ipbase3 = '_r1i1p1_'
 
   character(3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
@@ -112,8 +120,12 @@ module mod_gn6hnc
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'psl'/)
   character(3) , target , dimension(nvars) :: cavars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+  character(3) , target , dimension(nvars) :: ipvars = &
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
+  character(3) , target , dimension(nvars) :: echvars = &
+                         (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , '   '/)
 
   character(4) , dimension(nvars) :: ccsmfname = &
                          (/'air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres'/)
@@ -152,8 +164,16 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/CanESM2/RF/ta/ta_6hrLev_CanESM2_historical_'// &
             'r1i1p1_195001010000-195012311800.nc'
+    else if ( dattyp(1:3) == 'IP_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
+      pathaddname = trim(inpglob)// &
+            '/IPSL-CM5A-LR/HIST/ta/ta_6hrLev_IPSL-CM5A-LR_historical_'// &
+            'r1i1p1_195001010300-195912312100.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
+    else if ( dattyp == 'E_ICH' ) then
+      pathaddname = trim(inpglob)//'/EC_EARTH/fixed/ecearth.nc'
     else
       call die('Unknown dattyp in generic 6h NetCDF driver.')
     end if
@@ -182,7 +202,7 @@ module mod_gn6hnc
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
-    if ( dattyp /= 'GFS11' ) then
+    if ( dattyp /= 'GFS11' .and. dattyp /= 'E_ICH' ) then
       call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
       call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
       call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
@@ -204,10 +224,12 @@ module mod_gn6hnc
       tvar => b2(:,:,1:klev)
       hvar => b2(:,:,klev+1:2*klev)
       qvar => b2(:,:,2*klev+1:3*klev)
-      istatus = nf90_inq_dimid(inet1,'rhlev',jdim)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find rhlev dim')
-      istatus = nf90_inquire_dimension(inet1,jdim,len=nrhlev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire rhlev dim')
+      if ( dattyp == 'GFS11' ) then
+        istatus = nf90_inq_dimid(inet1,'rhlev',jdim)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find rhlev dim')
+        istatus = nf90_inquire_dimension(inet1,jdim,len=nrhlev)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire rhlev dim')
+      end if
     end if
  
     istatus = nf90_inq_varid(inet1,'lat',ivar1)
@@ -271,15 +293,36 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
-
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
-
       ! This one contains just orography.
       pathaddname = trim(inpglob)// &
             '/CanESM2/fixed/orog_fx_CanESM2_historical_r0i0p0.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+    else if ( dattyp(1:3) == 'IP_' ) then
+      istatus = nf90_inq_varid(inet1,'ap',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read ap var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+            '/IPSL-CM5A-LR/fixed/orog_fx_IPSL-CM5A-LR_historical_r0i0p0.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -298,6 +341,25 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      do j = 1 , nlat
+        gltemp(nlat-j+1) = glat(j)
+      end do
+      glat(:) = gltemp(:)
+      call relmem1d(gltemp)
+    else if ( dattyp == 'E_ICH' ) then
+      npl = klev ! Data are on pressure levels
+      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      istatus = nf90_inq_varid(inet1,'lev',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      istatus = nf90_get_var(inet1,ivar1,pplev)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      istatus = nf90_inq_varid(inet1,'geo',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find geo var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read geo var')
+      ! Transform geopotential to elevation
+      zsvar(:,:) = zsvar(:,:)/real(egrav)
+      ! We need latitude south/north, in file is north/south
       do j = 1 , nlat
         gltemp(nlat-j+1) = glat(j)
       end do
@@ -352,8 +414,7 @@ module mod_gn6hnc
 
     sigmar(:) = pplev(:)*0.001
 
-    write (stdout,*) 'Read in Static fields'
-
+    write (stdout,*) 'Read in Static fields OK'
 
   end subroutine headgn6hnc
 !
@@ -386,8 +447,8 @@ module mod_gn6hnc
       end if
  
       ! All processing assumes dataset in top -> bottom
-      ! CanESM is read bottom -> top
-      if ( dattyp(1:3) == 'CA_' ) then
+      ! CanESM and IPSL are read bottom -> top
+      if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then
         call top2btm(tvar,nlon,nlat,klev)
         call top2btm(qvar,nlon,nlat,klev)
         call top2btm(uvar,nlon,nlat,klev)
@@ -476,7 +537,6 @@ module mod_gn6hnc
 !   all variables already on pressure levels.
 !
     if ( dattyp == 'GFS11' ) then
-
       if ( inet(1) > 0 ) then
         istatus = nf90_close(inet(1))
         call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
@@ -527,6 +587,54 @@ module mod_gn6hnc
       end do
 
     ! More difficult. Each data type has its own quirks.
+    else if ( dattyp == 'E_ICH' ) then
+      if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
+        do kkrec = 1 , 5
+          istatus = nf90_close(inet(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+        end do
+        varname => gfsvars
+        do kkrec = 1 , 5
+          write (inname,99006) year, pthsep, 'ich1_', trim(varname(kkrec)), &
+                               year, month, '.nc'
+          pathaddname = trim(inpglob)//'/EC_EARTH/'//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          write (stdout,*) inet(kkrec), trim(pathaddname)
+          istatus = nf90_inq_varid(inet(kkrec),trim(varname(kkrec)),ivar(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var '//trim(varname(kkrec)))
+        end do
+      end if
+      istatus = nf90_get_var(inet(1),ivar(1),vwork)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      do j = 1 , nlat
+        tvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      istatus = nf90_get_var(inet(1),ivar(2),vwork)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      do j = 1 , nlat
+        hvar(:,nlat-j+1,:) = vwork(:,j,:)/real(egrav)
+      end do
+      vwork = 0.0
+      istatus = nf90_get_var(inet(1),ivar(3),vwork(:,:,klev-nrhlev+1:klev))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      do j = 1 , nlat
+        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01
+      end do
+      istatus = nf90_get_var(inet(1),ivar(4),vwork)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+      do j = 1 , nlat
+        uvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      istatus = nf90_get_var(inet(1),ivar(5),vwork)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      do j = 1 , nlat
+        vvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+
+    ! More difficult. Each data type has its own quirks.
 
     else
 
@@ -546,12 +654,13 @@ module mod_gn6hnc
           end if
           if ( dattyp(4:4) == 'R' ) then
             write (inname,99005) 'RF', pthsep, trim(havars(6)), pthsep, &
-                 trim(havars(6)), trim(habase1), iyear1-1, '12010600-', &
-                 iyear1, '12010000.nc'
+                 trim(havars(6)), trim(hapbase1)//trim(habase3), &
+                 iyear1-1, '12010600-', iyear1, '12010000.nc'
           else
             write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-              trim(havars(6)), pthsep, trim(havars(6)), trim(habase1), &
-              iyear1-1, '12010600-', iyear1+1, '12010000.nc'
+              trim(havars(6)), pthsep, trim(havars(6)), &
+              trim(hapbase2)//dattyp(4:5)//trim(habase3), &
+              iyear1-1, '12010600-', iyear1, '12010000.nc'
           end if
           pathaddname = trim(inpglob)//'/HadGEM2/'//inname
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
@@ -665,12 +774,13 @@ module mod_gn6hnc
               end if
               if ( dattyp(4:4) == 'R' ) then
                 write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
-                  trim(havars(i)), trim(habase), iyear1, imon1 , '010600-', &
-                  iyear2, imon2, '010000.nc'
+                  trim(havars(i)), trim(habase1)//trim(habase3), &
+                  iyear1, imon1 , '010600-', iyear2, imon2, '010000.nc'
               else
                 write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(havars(i)), pthsep, trim(havars(i)), trim(habase), &
-                  iyear1, imon1, '010600-', iyear2, imon2, '010000.nc.nc'
+                  trim(havars(i)), pthsep, trim(havars(i)), &
+                  trim(habase2)//dattyp(4:5)//trim(habase3), &
+                  iyear1, imon1, '010600-', iyear2, imon2, '010000.nc'
               end if
               pathaddname = trim(inpglob)//'/HadGEM2/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -683,14 +793,15 @@ module mod_gn6hnc
         else if ( dattyp(1:3) == 'CA_' ) then
           ! yearly files, one for each variable
           do i = 1 , nfiles
-            if ( havars(i) /= 'XXX' ) then
+            if ( cavars(i) /= 'XXX' ) then
               if ( dattyp(4:4) == 'R' ) then
                 write (inname,99005) 'RF', pthsep, trim(cavars(i)), pthsep, &
-                  trim(cavars(i)), trim(cabase), year, '01010000-', &
-                  year, '12311800.nc'
+                  trim(cavars(i)), trim(cabase1)//trim(cabase3), &
+                  year, '01010000-', year, '12311800.nc'
               else
                 write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(cavars(i)), pthsep, trim(cavars(i)), trim(cabase), &
+                  trim(cavars(i)), pthsep, trim(cavars(i)), &
+                  trim(cabase2)//dattyp(4:5)//trim(cabase3), &
                   year, '01010000-', year, '12311800.nc'
               end if
               pathaddname = trim(inpglob)//'/CanESM2/'//inname
@@ -701,6 +812,60 @@ module mod_gn6hnc
             write (stdout,*) inet(i), trim(pathaddname)
           end do
           varname => cavars
+        else if ( dattyp(1:3) == 'IP_' ) then
+          ! 10 yearly files, one for each variable
+          do i = 1 , nfiles-1
+            if ( ipvars(i) /= 'XXX' ) then
+              if ( dattyp(4:4) == 'R' ) then
+                if ( year > 2000 ) then
+                  write (inname,99005) 'HIST',pthsep,trim(ipvars(i)), pthsep, &
+                    trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
+                    2000, '01010300-', 2005, '12312100.nc'
+                else
+                  write (inname,99005) 'HIST',pthsep,trim(ipvars(i)), pthsep, &
+                    trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
+                    (year/10*10), '01010300-', (year/10*10+9), '12312100.nc'
+                end if
+              else
+                write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                  trim(ipvars(i)), pthsep, trim(ipvars(i)), &
+                  trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
+                  (year/10*10+6), '01010300-', (year/10*10+15), '12312100.nc'
+              end if
+              pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
+            end if
+          end do
+          ! PS is in 50 years file...
+          if ( dattyp(4:4) == 'R' ) then
+            if ( year < 1950 ) then
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    1900, '01010300-', 1949, '12312100.nc'
+            else if ( year < 2000 ) then
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    1950, '01010300-', 1999, '12312100.nc'
+            else
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    2000, '01010300-', 2005, '12312100.nc'
+            end if
+          else
+            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+               trim(ipvars(6)), pthsep, trim(ipvars(6)), &
+               trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
+               (year/50*50+6), '01010300-', (year/50*50+55), '12312100.nc'
+          end if
+          pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          write (stdout,*) inet(6), trim(pathaddname)
+          varname => ipvars
         end if
       end if
 
@@ -781,7 +946,7 @@ module mod_gn6hnc
         end do
         call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
         call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
-      else if ( dattyp(1:3) == 'CA_' ) then
+      else if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then
         ! Data on sigma P levels, the factor for ak is ipotized.
         ! Units in file is Pa, but calculations suggest mPa
         do k = 1, klev
@@ -815,7 +980,7 @@ module mod_gn6hnc
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
       end if
 
-    end if ! Other data types not the GFS11
+    end if ! Other data types not the GFS11 or E_ICH1
  
 
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
@@ -823,6 +988,7 @@ module mod_gn6hnc
 99003   format (i0.4,'/','ccsm.',a,a,'.',i0.4,'.nc')
 99004   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99005   format (a,a,a,a,a,a,i0.4,a,i0.4,a)
+99006   format (i0.4,a,a,a,i0.4,i0.2,a)
 
   end subroutine readgn6hnc
 !

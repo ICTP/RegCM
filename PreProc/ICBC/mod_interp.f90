@@ -24,25 +24,22 @@ module mod_interp
   use mod_stdio
   use mod_message
 
-  use mod_constants , only : degrad
+  use mod_constants , only : degrad , earthrad
 
   private
 
   real(sp) , public :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
               glonmn , glonmx
-  real(sp) , public :: dlatmax , dlonmax
   integer , public :: imxmn , lcross , ldot
 
-  real(sp) , public , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
-                                            dc1xd , dc1xt
+  real(sp) , public , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
+  real(sp) , public , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
   integer , public , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
                               ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
-  real(sp) , public , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
-                                             dd1xd , dd1xt
   integer , public , pointer, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
                               id1ur , jd1dl , jd1dr , jd1ul , jd1ur
 
-  public :: bilinx , bilinx2 , cressmcr , cressmdt
+  public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr
 
   data imxmn /0/
   data lcross /0/
@@ -311,23 +308,21 @@ module mod_interp
 
   end subroutine bilinx2
 !
-!-----------------------------------------------------------------------
-!
-  subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
+  subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
   implicit none
 !
-  integer :: iy , jx , nlat , nlev , nlon , nf
+  integer :: iy , jx , nlat , nlon
   real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(jx,iy,nlev*nf) :: b3
+  real(sp) , dimension(jx,iy) :: b3
   real(sp) , dimension(nlon,nlat) :: glat , glon
-  real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
-  intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
-              nlev , nlon , nf
+  real(sp) , dimension(nlon,nlat) :: b2
+  intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(sp) :: aaa , dist , dista , distb , distc , distd
-  integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
-             ndr , nul , nur , kin
+  real(sp) :: dist , dista , distb , distc , distd
+  real(sp) :: v1 , v2 , v3 , v4 , wg
+  integer :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
+             ndr , nul , nur , ifound
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
 !     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -351,34 +346,30 @@ module mod_interp
     glatmn = minval(glat)
     alatmx = maxval(alat)
     alatmn = minval(alat)
-    dlatmax = (glatmx-glatmn)/nlat * 2.
-    dlonmax = (glonmx-glonmn)/nlon * 2.
-    write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
+    write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX= '
     write (stdout,*) glonmn , alonmn , alonmx , glonmx
-    write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
+    write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
     write (stdout,*) glatmn , alatmn , alatmx , glatmx
     imxmn = 1
   end if
 
   if ( lcross == 0 ) then
-    if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'mod_interp:ic1dl')
-    if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'mod_interp:ic1dr')
-    if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'mod_interp:ic1ul')
-    if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'mod_interp:ic1ur')
-    if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'mod_interp:jc1dl')
-    if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'mod_interp:jc1dr')
-    if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'mod_interp:jc1ul')
-    if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'mod_interp:jc1ur')
-    if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'mod_interp:dc1xa')
-    if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'mod_interp:dc1xb')
-    if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'mod_interp:dc1xc')
-    if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'mod_interp:dc1xd')
-    if (.not. associated(dc1xt)) call getmem2d(dc1xt,1,jx,1,iy,'mod_interp:dc1xt')
+    if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'interp:ic1dl')
+    if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'interp:ic1dr')
+    if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'interp:ic1ul')
+    if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'interp:ic1ur')
+    if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'interp:jc1dl')
+    if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'interp:jc1dr')
+    if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'interp:jc1ul')
+    if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'interp:jc1ur')
+    if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'interp:dc1xa')
+    if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'interp:dc1xb')
+    if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'interp:dc1xc')
+    if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'interp:dc1xd')
     write (stdout,*) 'FIRST TIME in CRESSMCR'
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do j = 1 , iy
       do i = 1 , jx
- 
         mur = -1000
         nur = -1000
         mul = -1000
@@ -387,71 +378,52 @@ module mod_interp
         ndr = -1000
         mdl = -1000
         ndl = -1000
- 
         dista = 1.E8
         distb = 1.E8
         distc = 1.E8
         distd = 1.E8
-        do n = 2 , nlat
-          do m = 2 , nlon
-            if ( (glon(m,n) >= alon(i,j) .and.                      &
-                  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n) >= alat(i,j) .and.                      &
-                  glat(m,n)-alat(i,j) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( dista > aaa ) then
-                dista = aaa
+        do n = 1 , nlat
+          do m = 1 , nlon
+            if ( glon(m,n) > alon(i,j) .and. &
+                 glat(m,n) > alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < dista ) then
+                dista = dist
                 mur = m
                 nur = n
               end if
             end if
-            if ( (glon(m,n) < alon(i,j) .and.                       &
-                  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n) >= alat(i,j) .and.                      &
-                  glat(m,n)-alat(i,j) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distb > aaa ) then
-                distb = aaa
+            if ( glon(m,n) < alon(i,j) .and. &
+                 glat(m,n) > alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distb ) then
+                distb = dist
                 mul = m
                 nul = n
               end if
             end if
-            if ( (glon(m,n) >= alon(i,j) .and.                      &
-                  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n) < alat(i,j) .and.                       &
-                  alat(i,j)-glat(m,n) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distc > aaa ) then
-                distc = aaa
+            if ( glon(m,n) > alon(i,j) .and. &
+                 glat(m,n) < alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distc ) then
+                distc = dist
                 mdr = m
                 ndr = n
               end if
             end if
-            if ( (glon(m,n) < alon(i,j) .and.                       &
-                  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n) < alat(i,j) .and.                       &
-                  alat(i,j)-glat(m,n) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distd > aaa ) then
-                distd = aaa
+            if ( glon(m,n) < alon(i,j) .and. &
+                 glat(m,n) < alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distd ) then
+                distd = dist
                 mdl = m
                 ndl = n
               end if
             end if
           end do
         end do
-
         if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
-             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
-        then
+             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 ) then
           write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
           write (stderr,*) mur , nur , mdr , ndr
           write (stderr,*) mul , nul , mdl , ndl
@@ -460,9 +432,6 @@ module mod_interp
           write (stderr,*) alat(i,j)
           call die('cressmcr')
         end if
-
-        dist = amin1(dista,distb,distc,distd)
- 
         ic1ur(i,j) = mur
         jc1ur(i,j) = nur
         ic1ul(i,j) = mul
@@ -471,77 +440,278 @@ module mod_interp
         jc1dr(i,j) = ndr
         ic1dl(i,j) = mdl
         jc1dl(i,j) = ndl
-        dc1xt(i,j) = dist
-        dc1xa(i,j) = dista
-        dc1xb(i,j) = distb
-        dc1xc(i,j) = distc
-        dc1xd(i,j) = distd
-
-        do l = 1 , nf
-          do k = 1 , nlev
-            kin = (l-1)*nlev+k
-            if ( dist > 0.000001 ) then
-              b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
-                            /distb+b2(mdr,ndr,kin)                  &
-                            /distc+b2(mdl,ndl,kin)/distd)           &
-                            /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist == dista ) then
-              b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist == distb ) then
-              b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist == distc ) then
-              b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist == distd ) then
-              b3(i,j,kin) = b2(mdl,ndl,kin)
-            else
-            end if
-          end do
-        end do
+        dc1xa(i,j) = (1.0/dista)**2.0
+        dc1xb(i,j) = (1.0/distb)**2.0
+        dc1xc(i,j) = (1.0/distc)**2.0
+        dc1xd(i,j) = (1.0/distd)**2.0
       end do
     end do
     write (stdout,*) 'Done.'
     lcross = 1
-  else
+  end if
+
+  b3(:,:) = -9999.0
+
+  do j = 1 , iy
+    do i = 1 , jx
+      mur = ic1ur(i,j)
+      nur = jc1ur(i,j)
+      mul = ic1ul(i,j)
+      nul = jc1ul(i,j)
+      mdr = ic1dr(i,j)
+      ndr = jc1dr(i,j)
+      mdl = ic1dl(i,j)
+      ndl = jc1dl(i,j)
+      dista = dc1xa(i,j)
+      distb = dc1xb(i,j)
+      distc = dc1xc(i,j)
+      distd = dc1xd(i,j)
+ 
+      ifound = 0
+      wg = 0.0
+      v1 = 0.0
+      v2 = 0.0
+      v3 = 0.0
+      v4 = 0.0
+      if ( b2(mur,nur) > -9990.0 ) then
+        v1 = b2(mur,nur)*dista
+        ifound = 1
+        wg = wg + dista
+      end if
+      if ( b2(mul,nul) > -9990.0 ) then
+        v2 = b2(mul,nul)*distb
+        ifound = 1
+        wg = wg + distb
+      end if
+      if ( b2(mdr,ndr) > -9990.0 ) then
+        v3 = b2(mdr,ndr)*distc
+        ifound = 1
+        wg = wg + distc
+      end if
+      if ( b2(mdl,ndl) > -9990.0 ) then
+        v4= b2(mdl,ndl)*distd
+        ifound = 1
+        wg = wg + distd
+      end if
+      if ( ifound /= 0 ) b3(i,j) = v1/wg+v2/wg+v3/wg+v4/wg
+    end do
+  end do
+ 
+  end subroutine distwgtcr
+!
+  subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
+  implicit none
+!
+  integer :: iy , jx , nlat , nlon
+  real(sp) , dimension(jx,iy) :: alat , alon
+  real(sp) , dimension(jx,iy) :: b3
+  real(sp) , dimension(nlon,nlat) :: glat , glon
+  real(sp) , dimension(nlon,nlat) :: b2
+  intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
+  intent (out) b3
+!
+  real(sp) :: dist , dista , distb , distc , distd
+  real(sp) :: v1 , v2 , v3 , v4 , wg
+  integer :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
+             ndr , nul , nur , ifound
+!
+!     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
+!     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
+!     THE CLOSEST ONE HAS BIGGEST WEIGHT.
+!
+!     B2(JX,IX,NLEV) IS THE INPUT FIELD ON PREVIOUS regular or
+!     irregular GRID. B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON new
+!     (regular or irregular) GRID. GLON......LONGITUDE VALUES IN
+!     DEGREES OF THE INTERMEDIATE GRID4. GLAT......LATITUDE VALUES IN
+!     DEGREES OF THE INTERMEDIATE GRID4.
+!
+!     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
+!
+  if ( imxmn == 0 ) then
+    glonmx = maxval(glon)
+    glonmn = minval(glon)
+    alonmx = maxval(alon)
+    alonmn = minval(alon)
+    glatmx = maxval(glat)
+    glatmn = minval(glat)
+    alatmx = maxval(alat)
+    alatmn = minval(alat)
+    write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX= '
+    write (stdout,*) glonmn , alonmn , alonmx , glonmx
+    write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
+    write (stdout,*) glatmn , alatmn , alatmx , glatmx
+    imxmn = 1
+  end if
+
+  if ( ldot == 0 ) then
+    if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'interp:id1dl')
+    if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'interp:id1dr')
+    if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'interp:id1ul')
+    if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'interp:id1ur')
+    if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'interp:jd1dl')
+    if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'interp:jd1dr')
+    if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'interp:jd1ul')
+    if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'interp:jd1ur')
+    if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'interp:dd1xa')
+    if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'interp:dd1xb')
+    if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'interp:dd1xc')
+    if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'interp:dd1xd')
+    write (stdout,*) 'FIRST TIME in CRESSMDT'
+    write (stdout,*) 'Calculating weights.... (will take long time)'
     do j = 1 , iy
       do i = 1 , jx
- 
-        mur = ic1ur(i,j)
-        nur = jc1ur(i,j)
-        mul = ic1ul(i,j)
-        nul = jc1ul(i,j)
-        mdr = ic1dr(i,j)
-        ndr = jc1dr(i,j)
-        mdl = ic1dl(i,j)
-        ndl = jc1dl(i,j)
-        dist = dc1xt(i,j)
-        dista = dc1xa(i,j)
-        distb = dc1xb(i,j)
-        distc = dc1xc(i,j)
-        distd = dc1xd(i,j)
- 
-        do l = 1 , nf
-          do k = 1 , nlev
-            kin = (l-1)*nlev+k
-            if ( dist > 0.000001 ) then
-              b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
-                            /distb+b2(mdr,ndr,kin)                  &
-                            /distc+b2(mdl,ndl,kin)/distd)           &
-                            /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist == dista ) then
-              b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist == distb ) then
-              b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist == distc ) then
-              b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist == distd ) then
-              b3(i,j,kin) = b2(mdl,ndl,kin)
-            else
+        mur = -1000
+        nur = -1000
+        mul = -1000
+        nul = -1000
+        mdr = -1000
+        ndr = -1000
+        mdl = -1000
+        ndl = -1000
+        dista = 1.E8
+        distb = 1.E8
+        distc = 1.E8
+        distd = 1.E8
+        do n = 1 , nlat
+          do m = 1 , nlon
+            if ( glon(m,n) > alon(i,j) .and. &
+                 glat(m,n) > alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < dista ) then
+                dista = dist
+                mur = m
+                nur = n
+              end if
+            end if
+            if ( glon(m,n) < alon(i,j) .and. &
+                 glat(m,n) > alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distb ) then
+                distb = dist
+                mul = m
+                nul = n
+              end if
+            end if
+            if ( glon(m,n) > alon(i,j) .and. &
+                 glat(m,n) < alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distc ) then
+                distc = dist
+                mdr = m
+                ndr = n
+              end if
+            end if
+            if ( glon(m,n) < alon(i,j) .and. &
+                 glat(m,n) < alat(i,j) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+              if ( dist < distd ) then
+                distd = dist
+                mdl = m
+                ndl = n
+              end if
             end if
           end do
         end do
+        if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
+             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 ) then
+          write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+          write (stderr,*) mur , nur , mdr , ndr
+          write (stderr,*) mul , nul , mdl , ndl
+          write (stderr,*) i , j
+          write (stderr,*) alon(i,j)
+          write (stderr,*) alat(i,j)
+          call die('cressmdt')
+        end if
+        id1ur(i,j) = mur
+        jd1ur(i,j) = nur
+        id1ul(i,j) = mul
+        jd1ul(i,j) = nul
+        id1dr(i,j) = mdr
+        jd1dr(i,j) = ndr
+        id1dl(i,j) = mdl
+        jd1dl(i,j) = ndl
+        dd1xa(i,j) = dista
+        dd1xb(i,j) = distb
+        dd1xc(i,j) = distc
+        dd1xd(i,j) = distd
       end do
     end do
+    write (stdout,*) 'Done.'
+    ldot = 1
   end if
+
+  b3(:,:) = -9999.0
+
+  do j = 1 , iy
+    do i = 1 , jx
+      mur = id1ur(i,j)
+      nur = jd1ur(i,j)
+      mul = id1ul(i,j)
+      nul = jd1ul(i,j)
+      mdr = id1dr(i,j)
+      ndr = jd1dr(i,j)
+      mdl = id1dl(i,j)
+      ndl = jd1dl(i,j)
+      dista = dd1xa(i,j)
+      distb = dd1xb(i,j)
+      distc = dd1xc(i,j)
+      distd = dd1xd(i,j)
+ 
+      ifound = 0
+      wg = 0.0
+      v1 = 0.0
+      v2 = 0.0
+      v3 = 0.0
+      v4 = 0.0
+      if ( b2(mur,nur) > -9990.0 ) then
+        v1 = b2(mur,nur)*dista
+        ifound = 1
+        wg = wg + dista
+      end if
+      if ( b2(mul,nul) > -9990.0 ) then
+        v2 = b2(mul,nul)*distb
+        ifound = 1
+        wg = wg + distb
+      end if
+      if ( b2(mdr,ndr) > -9990.0 ) then
+        v3 = b2(mdr,ndr)*distc
+        ifound = 1
+        wg = wg + distc
+      end if
+      if ( b2(mdl,ndl) > -9990.0 ) then
+        v4= b2(mdl,ndl)*distd
+        ifound = 1
+        wg = wg + distd
+      end if
+      if ( ifound /= 0 ) b3(i,j) = v1/wg+v2/wg+v3/wg+v4/wg
+    end do
+  end do
+ 
+  end subroutine distwgtdt
+!
+!-----------------------------------------------------------------------
+!
+  subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
+  implicit none
+!
+  integer :: iy , jx , nlat , nlev , nlon , nf
+  real(sp) , dimension(jx,iy) :: alat , alon
+  real(sp) , dimension(jx,iy,nlev*nf) :: b3
+  real(sp) , dimension(nlon,nlat) :: glat , glon
+  real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
+  intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
+              nlev , nlon , nf
+  intent (out) b3
+!
+  integer :: k , l , kin
+!
+  do l = 1 , nf
+    do k = 1 , nlev
+       kin = (l-1)*nlev+k
+       call distwgtcr(b3(:,:,kin),b2(:,:,kin),alon,alat, &
+                         glon,glat,jx,iy,nlon,nlat)
+    end do
+  end do
  
   end subroutine cressmcr
 !
@@ -559,222 +729,30 @@ module mod_interp
               nlev , nlon , nf
   intent (out) b3
 !
-  real(sp) :: aaa , dist , dista , distb , distc , distd
-  integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
-             ndr , nul , nur , kin
+  integer :: k , l , kin
 !
-!     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
-!     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
-!     THE CLOSEST ONE HAS BIGGEST WEIGHT.
-!
-!     B2(JX,IX,NLEV) IS THE INPUT FIELD ON PREVIOUS regular or
-!     irregular GRID. B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON new
-!     (regular or irregular) GRID. GLON......LONGITUDE VALUES IN
-!     DEGREES OF THE INTERMEDIATE GRID4. GLAT......LATITUDE VALUES IN
-!     DEGREES OF THE INTERMEDIATE GRID4.
-!
-!     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
-!
-  if ( imxmn == 0 ) then
-    glonmx = maxval(glon)
-    glonmn = minval(glon)
-    alonmx = maxval(alon)
-    alonmn = minval(alon)
-    glatmx = maxval(glat)
-    glatmn = minval(glat)
-    alatmx = maxval(alat)
-    alatmn = minval(alat)
-    dlatmax = (glatmx-glatmn)/nlat * 2.
-    dlonmax = (glonmx-glonmn)/nlon * 2.
-    write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
-    write (stdout,*) glonmn , alonmn , alonmx , glonmx
-    write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
-    write (stdout,*) glatmn , alatmn , alatmx , glatmx
-    imxmn = 1
-  end if
-
-  if ( ldot == 0 ) then
-    if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'mod_interp:id1dl')
-    if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'mod_interp:id1dr')
-    if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'mod_interp:id1ul')
-    if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'mod_interp:id1ur')
-    if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'mod_interp:jd1dl')
-    if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'mod_interp:jd1dr')
-    if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'mod_interp:jd1ul')
-    if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'mod_interp:jd1ur')
-    if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'mod_interp:dd1xa')
-    if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'mod_interp:dd1xb')
-    if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'mod_interp:dd1xc')
-    if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'mod_interp:dd1xd')
-    if (.not. associated(dd1xt)) call getmem2d(dd1xt,1,jx,1,iy,'mod_interp:dd1xt')
-    write (stdout,*) 'FIRST TIME in CRESSMDT'
-    write (stdout,*) 'Calculating weights.... (will take long time)'
-    do j = 1 , iy
-      do i = 1 , jx
- 
-        mur = 1000
-        nur = 1000
-        mul = 1000
-        nul = 1000
-        mdr = 1000
-        ndr = 1000
-        mdl = 1000
-        ndl = 1000
- 
-        dista = 1.E8
-        distb = 1.E8
-        distc = 1.E8
-        distd = 1.E8
-        do n = 2 , nlat
-          do m = 2 , nlon
-            if ( (glon(m,n) >= alon(i,j) .and.                      &
-                  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n) >= alat(i,j) .and.                      &
-                  glat(m,n)-alat(i,j) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( dista > aaa ) then
-                dista = aaa
-                mur = m
-                nur = n
-              end if
-            end if
-            if ( (glon(m,n) < alon(i,j) .and.                       &
-                  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n) >= alat(i,j) .and.                      &
-                  glat(m,n)-alat(i,j) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distb > aaa ) then
-                distb = aaa
-                mul = m
-                nul = n
-              end if
-            end if
-            if ( (glon(m,n) >= alon(i,j) .and.                      &
-                  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n) < alat(i,j) .and.                       &
-                  alat(i,j)-glat(m,n) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distc > aaa ) then
-                distc = aaa
-                mdr = m
-                ndr = n
-              end if
-            end if
-            if ( (glon(m,n) < alon(i,j) .and.                       &
-                  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n) < alat(i,j) .and.                       &
-                  alat(i,j)-glat(m,n) < dlatmax ) ) then
-              aaa = real((dble(glon(m,n)-alon(i,j)) *               &
-                    dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
-                    dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distd > aaa ) then
-                distd = aaa
-                mdl = m
-                ndl = n
-              end if
-            end if
-          end do
-        end do
-
-        if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
-             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
-        then
-          write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-          write (stderr,*) mur , nur , mdr , ndr
-          write (stderr,*) mul , nul , mdl , ndl
-          write (stderr,*) i , j
-          write (stderr,*) alon(i,j)
-          write (stderr,*) alat(i,j)
-          call die('cressmdt')
-        end if
-
-        dist = amin1(dista,distb,distc,distd)
- 
-        id1ur(i,j) = mur
-        jd1ur(i,j) = nur
-        id1ul(i,j) = mul
-        jd1ul(i,j) = nul
-        id1dr(i,j) = mdr
-        jd1dr(i,j) = ndr
-        id1dl(i,j) = mdl
-        jd1dl(i,j) = ndl
-        dd1xt(i,j) = dist
-        dd1xa(i,j) = dista
-        dd1xb(i,j) = distb
-        dd1xc(i,j) = distc
-        dd1xd(i,j) = distd
-        do l = 1 , nf
-          do k = 1 , nlev
-            kin = (l-1)*nlev+k
-            if ( dist > 0.000001 ) then
-              b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
-                            /distb+b2(mdr,ndr,kin)                  &
-                            /distc+b2(mdl,ndl,kin)/distd)           &
-                            /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist == dista ) then
-              b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist == distb ) then
-              b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist == distc ) then
-              b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist == distd ) then
-              b3(i,j,kin) = b2(mdl,ndl,kin)
-            else
-            end if
-          end do
-        end do
-      end do
+  do l = 1 , nf
+    do k = 1 , nlev
+       kin = (l-1)*nlev+k
+       call distwgtdt(b3(:,:,kin),b2(:,:,kin),alon,alat, &
+                         glon,glat,jx,iy,nlon,nlat)
     end do
-    ldot = 1
-    write (stdout,*) 'Done.'
-  else
-    do j = 1 , iy
-      do i = 1 , jx
- 
-        mur = id1ur(i,j)
-        nur = jd1ur(i,j)
-        mul = id1ul(i,j)
-        nul = jd1ul(i,j)
-        mdr = id1dr(i,j)
-        ndr = jd1dr(i,j)
-        mdl = id1dl(i,j)
-        ndl = jd1dl(i,j)
-        dist = dd1xt(i,j)
-        dista = dd1xa(i,j)
-        distb = dd1xb(i,j)
-        distc = dd1xc(i,j)
-        distd = dd1xd(i,j)
- 
-        do l = 1 , nf
-          do k = 1 , nlev
-            kin = (l-1)*nlev+k
-            if ( dist > 0.000001 ) then
-              b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
-                            /distb+b2(mdr,ndr,kin)                  &
-                            /distc+b2(mdl,ndl,kin)/distd)           &
-                            /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist == dista ) then
-              b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist == distb ) then
-              b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist == distc ) then
-              b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist == distd ) then
-              b3(i,j,kin) = b2(mdl,ndl,kin)
-            else
-            end if
-          end do
-        end do
-      end do
-    end do
-  end if
+  end do
  
   end subroutine cressmdt
+!
+  real(sp) function gcdist(lat1,lon1,lat2,lon2)
+    implicit none
+    real(sp) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(dp) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
+
+    clat1 = cos(dble(lat1)*degrad)
+    slat1 = sin(dble(lat1)*degrad)
+    clat2 = cos(dble(lat2)*degrad)
+    slat2 = sin(dble(lat2)*degrad)
+    cdlon = cos(dble(lon1-lon2)*degrad)
+    crd   = slat1*slat2+clat1*clat2*cdlon
+    gcdist = real(earthrad*acos(crd))
+  end function gcdist
 !
 end module mod_interp

@@ -83,9 +83,18 @@ program sst
     end if
     call sst_gnmnc
   else if ( ssttyp == 'HA_RF' .or. ssttyp == 'HA_26' .or. &
-            ssttyp == 'HA_45' .or. ssttyp == 'HA_85') then
+            ssttyp == 'HA_45' .or. ssttyp == 'HA_85' ) then
     if (ical /= y360 ) then
       write(stderr,*) ssttyp//' calendar should be set to 360_day'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
+  else if ( ssttyp == 'E_ICH' ) then
+    call sst_gnmnc
+  else if ( ssttyp == 'IP_RF' .or. ssttyp == 'IP_45' .or. &
+            ssttyp == 'IP_85' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc

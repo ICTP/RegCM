@@ -453,8 +453,9 @@ program clm2rcm
     call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
  
-!       ** Write the interpolated data to NetCDF for CLM and checkfile
+!   ** Write the interpolated data to NetCDF for CLM and checkfile
 
+    imondate = irefdate
     do l = 1 , ntim(ifld)
       if ( ifld==ipft ) then
         do i = 1 , iy
@@ -492,11 +493,13 @@ program clm2rcm
           end do
         end do
       end do
- 
-      xhr = d_zero
+      tdif = imondate-irefdate
+      xhr = tohours(tdif)
       call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
                     xhr,lnam(ifld),units(ifld),xscale,offset,varmin,&
                     varmax,xlat1d,xlon1d,zlev,0,vmisdat,jotyp)
+      imondate = nextmon(imondate)
+      imondate = monmiddle(imondate)
     end do
 
     istatus = nf90_redef(ncid)

@@ -72,6 +72,8 @@ module mod_sst_gnmnc
 !
   real(sp) , pointer , dimension(:) :: glat
   real(sp) , pointer , dimension(:) :: glon
+  real(sp) , pointer , dimension(:,:) :: glat2
+  real(sp) , pointer , dimension(:,:) :: glon2
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
@@ -112,6 +114,15 @@ module mod_sst_gnmnc
   else if ( ssttyp == "HA_85" ) then
     inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
     varname(2) = 'ts'
+  else if ( ssttyp == 'IP_RF' ) then
+    inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_historical_r1i1p1_185001-200512.nc'
+    varname(2) = 'tos'
+  else if ( ssttyp == 'IP_45' ) then
+    inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp45_r1i1p1_200601-230012.nc'
+    varname(2) = 'tos'
+  else if ( ssttyp == 'IP_85' ) then
+    inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp85_r1i1p1_200601-230012.nc'
+    varname(2) = 'tos'
   else
     call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
   end if
@@ -121,28 +132,34 @@ module mod_sst_gnmnc
   write (stdout,*) inet1 , trim(inpfile)
 
 ! GET DIMENSION IDs
-  istatus = nf90_inq_dimid(inet1,'lat',latid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
-  istatus = nf90_inq_dimid(inet1,'lon',lonid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+  if ( ssttyp(1:3) /= 'IP_' ) then
+    istatus = nf90_inq_dimid(inet1,'lat',latid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    istatus = nf90_inq_dimid(inet1,'lon',lonid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
+    istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
+  else
+    istatus = nf90_inq_dimid(inet1,'j',latid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim j')
+    istatus = nf90_inq_dimid(inet1,'i',lonid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim i')
+    istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim j')
+    istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim i')
+  end if
   istatus = nf90_inq_dimid(inet1,'time',timid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
 
 ! GET DIMENSION LENGTHS
-  istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
-  istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
   istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
   call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
 
   call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
-  call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
-  call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
-  call getmem2d(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
-  call getmem2d(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
-  call getmem2d(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
-  
+
 ! GET VARIABLE IDs
   istatus = nf90_inq_varid(inet1,'lat',latid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
@@ -153,12 +170,36 @@ module mod_sst_gnmnc
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
 
-! GET LATITUDE AND LONGITUDE
-  istatus = nf90_get_var(inet1,latid,glat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
-  istatus = nf90_get_var(inet1,lonid,glon)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
-
+  if ( ssttyp(1:3) /= 'IP_' ) then
+    call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
+    call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
+!   GET LATITUDE AND LONGITUDE
+    istatus = nf90_get_var(inet1,latid,glat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    istatus = nf90_get_var(inet1,lonid,glon)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+  else  
+    call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
+    call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
+!   GET LATITUDE AND LONGITUDE
+    istatus = nf90_get_var(inet1,latid,glat2)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    istatus = nf90_get_var(inet1,lonid,glon2)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+!    call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
+!    call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
+!    glat(:) = glat2(1,:)
+!    glon(:) = glon2(:,1)
+!    call relmem2d(glat2)
+!    call relmem2d(glon2)
+    where (glon2 >= 180.0)
+      glon2 = glon2-360.0
+    end where
+  end if
+  call getmem2d(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
+  call getmem2d(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
+  call getmem2d(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
+  
 ! GET TIME VALUES
   istart(1) = 1
   icount(1) = timlen
@@ -184,10 +225,14 @@ module mod_sst_gnmnc
   do k = 1 , nsteps
 
     call gnmnc_sst(idate)
-    call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
+    if ( ssttyp(1:3) == 'IP_' ) then
+      call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
+    else
+      call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
+    end if
 
-    do j = 1 , jx
-      do i = 1 , iy
+    do j = 2 , jx-1
+      do i = 2 , iy-1
         if ( sstmm(i,j) < -5000 .and.      &
             (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
           do iv = 1 , 20
@@ -265,7 +310,11 @@ module mod_sst_gnmnc
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon
-      sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
+      if (work2(i,j) < 0.9E+20) then
+        sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
+      else
+        sst(i,j) = -9999.0
+      end if
     end do
   end do
 

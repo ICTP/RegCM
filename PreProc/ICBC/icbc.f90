@@ -40,7 +40,19 @@ program icbc
 !                                                                      !
 !   CCSMN: unpacked CCSM NETCDF (six hourly) data                      !
 !          Get from EarthSystemGrid                                    !
-!   CAM4N: CAM2 NETCDF (six hourly) data                               !
+!   CAM4N: CAM2/4 NETCDF (six hourly) data                             !
+!   CA_XX: Canadian model CMIP5 netCDF (6 hourly) data                 !
+!          The XX stands for one in RF, 26, 45, 60, 85                 !
+!          which reference the RCP scenarios                           !
+!   HA_XX: The Hadgem model CMIP5 netCDF (6 hourly) data               !
+!          The XX stands for one in RF, 26, 45, 60, 85                 !
+!          which reference the RCP scenarios                           !
+!   E_ICH: The EC-Earth dataset (6 hourly) on pressure levels          !
+!          The original grib on sperical coordinates was processed     !
+!          with the script to be found in the Tools/Script directory   !
+!   IP_XX: The IPSL CMIP5 dataset (6 hourly)                           !
+!          The XX stands for one in RF, 26, 45, 60, 85                 !
+!          which reference the RCP scenarios                           !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -211,7 +223,8 @@ program icbc
   else if ( dattyp == 'FNEST' ) then
     call headernest
   else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
-            dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
+            dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
+            dattyp(1:3) == 'IP_' .or. dattyp == 'E_ICH' ) then
     call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)
@@ -249,7 +262,8 @@ program icbc
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
     else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
-              dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
+              dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
+              dattyp(1:3) == 'IP_' .or. dattyp == 'E_ICH' ) then
       call get_gn6hnc(idate)
     end if
     call writef(idate)
