@@ -37,9 +37,9 @@ module mod_runparams
   type(rcm_time_interval) , save :: intmdl
   type(rcm_time_interval) , save :: intbdy
 
-  real(8) :: declin , deltmx
-  real(8) :: xbctime
-  real(8) :: calday , twodt
+  real(dp) :: declin , deltmx
+  real(dp) :: xbctime
+  real(dp) :: calday , twodt
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
   integer(8) :: ktau
@@ -55,32 +55,29 @@ module mod_runparams
   integer(8) :: ntsrf , ntrad
   ! Model timestep in seconds (real and integer)
   integer(8) :: ntsec
-  real(8) :: dtsec
+  real(dp) :: dtsec
   ! Internal count for how many SRF outputs every LAK output
   integer :: klak
   ! Internal count for how many SRF outputs per day
   integer(8) :: ksts , kstsoff
 !
-  real(8) :: dt , dt2 , dtbdys
-  real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
-  real(8) :: fnudge , gnudge
-  real(8) :: xkhmax , xkhz
+  real(dp) :: dt , dt2 , dtbdys
+  real(dp) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
+  real(dp) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
+  real(dp) :: xkhmax , xkhz
 
   integer :: iboudy , ichem , ipgf , ipptls , cplexvars , cplinterp
 
   logical :: ifrest , rfstrt , doing_restart , cplbdysmooth
 
-  integer :: ispgd , ispgx , kchi , kclo , kcmd , cpldbglevel
+  integer :: kchi , kclo , kcmd , cpldbglevel
 !
-  real(8) :: akht1 , akht2
+  real(dp) :: akht1 , akht2
 
-  real(8) , pointer , dimension(:) :: dtau
-  real(8) , pointer , dimension(:) :: a , anudg , dsigma , qcon
-  real(8) , pointer , dimension(:) :: sigma
-  real(8) , pointer , dimension(:,:) :: twt
-  real(8) , pointer , dimension(:) :: wgtd
-  real(8) , pointer , dimension(:) :: wgtx
+  real(dp) , pointer , dimension(:) :: dtau
+  real(dp) , pointer , dimension(:) :: a , dsigma , qcon
+  real(dp) , pointer , dimension(:) :: sigma
+  real(dp) , pointer , dimension(:,:) :: twt
 
   character(len=8) :: scenario
 
@@ -93,7 +90,7 @@ module mod_runparams
   integer , parameter :: n_stsvar = 13
 
   integer, private  :: ierr 
-  real(8) , private :: total_allocation_size
+  real(dp) , private :: total_allocation_size
 
   type output_variable
     character(len=8) :: vname
@@ -366,30 +363,27 @@ module mod_runparams
   subroutine allocate_mod_runparams
     implicit none
     call getmem1d(a,1,kz,'mod_runparams:a')
-    call getmem1d(anudg,1,kz,'mod_runparams:anudg')
     call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
     call getmem1d(qcon,1,kz,'mod_runparams:qcon')
     call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
-    call getmem1d(wgtd,1,nspgd,'mod_runparams:wgtd')
-    call getmem1d(wgtx,1,nspgx,'mod_runparams:wgtx')
     call getmem1d(dtau,1,nsplit,'mod_runparams:nsplit')
   end subroutine allocate_mod_runparams
 !
   logical function iswater(a)
-    real(8) , intent(in) :: a
+    real(dp) , intent(in) :: a
     iswater = .false.
     if (a > 13.5D0 .and. a < 15.5D0) iswater = .true.
   end function
 !
   logical function isocean(a)
-    real(8) , intent(in) :: a
+    real(dp) , intent(in) :: a
     isocean = .false.
     if (a > 14.5D0 .and. a < 15.5D0) isocean = .true.
   end function
 !
   logical function islake(a)
-    real(8) , intent(in) :: a
+    real(dp) , intent(in) :: a
     islake = .false.
     if (a > 13.5D0 .and. a < 14.5D0) islake = .true.
   end function

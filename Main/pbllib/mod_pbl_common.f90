@@ -114,12 +114,12 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:,:) :: chmx    ! chib
   real(dp) , pointer , dimension(:,:,:,:) :: chten   ! chiten
   real(dp) , pointer , dimension(:,:,:) :: drmr      ! remdrd
-  real(dp) , pointer , dimension(:,:) :: sfcps       ! sps2%ps
-  real(dp) , pointer , dimension(:,:) :: sfcpd       ! sps2%pdot
-  real(dp) , pointer , dimension(:,:) :: tg          ! sts2%tg
-  real(dp) , pointer , dimension(:,:) :: qfx         ! sfsta%qfx
-  real(dp) , pointer , dimension(:,:) :: hfx         ! sfsta%hfx
-  real(dp) , pointer , dimension(:,:) :: uvdrag      ! sfsta%uvdrag
+  real(dp) , pointer , dimension(:,:) :: sfcpd       ! psdot
+  real(dp) , pointer , dimension(:,:) :: sfcps       ! sfs%psb
+  real(dp) , pointer , dimension(:,:) :: tg          ! sfs%tgb
+  real(dp) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
+  real(dp) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
+  real(dp) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
   real(dp) , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
   real(dp) , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
   integer , pointer , dimension(:,:) :: landmsk      ! ldmsk
@@ -143,14 +143,14 @@ module mod_pbl_common
     logical , intent(in) :: lpar
     if ( lpar ) then
       call getmem3d(tcmstate%tkeps,1,jxp,1,iy,1,kzp1,'pbl_common:tkeps')
-      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jxp,'pbl_common:advtke')
+      call getmem3d(tcmstate%advtke,1,jxp,1,iy,1,kzp1,'pbl_common:advtke')
       call getmem3d(tcmstate%kzm,1,jxp,1,iy,1,kzp1,'pbl_common:kzm')
       call getmem3d(tcmstate%kth,1,jxp,1,iy,1,kzp1,'pbl_common:kth')
       call getmem2d(tcmstate%zpbl,1,jxp,1,iy,'pbl_common:zpbl')
       call getmem2d(tcmstate%srftke,1,jxp,1,iy,'pbl_common:srftke')
     else
-      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jx,'pbl_common:kzm')
-      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jx,'pbl_common:kth')
+      call getmem3d(tcmstate%kzm,1,jx,1,iy,1,kzp1,'pbl_common:kzm')
+      call getmem3d(tcmstate%kth,1,jx,1,iy,1,kzp1,'pbl_common:kth')
     end if
   end subroutine allocate_tcm_state
 

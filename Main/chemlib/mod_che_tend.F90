@@ -106,8 +106,8 @@
 !       the unit: rho - kg/m3, wl - g/m3
         do k = 1 , kz
           do i = istart , iend
-!           rho(j,i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
-!      what the hell   1000./287./atm2%t(i,k,j)*sps2%ps(i,j)
+!           rho(j,i,k) = (sfs%psb(i,j)*a(k)+r8pt)* &
+!      what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
             rho(j,i,k) = crhob3d(j,i,k)
             wl(j,i,k) = cqcb3d(j,i,k)*rho(j,i,k)
             ttb(j,i,k) = ctb3d(j,i,k)

@@ -27,7 +27,6 @@ module mod_split
   use mod_vmodes
   use mod_bdycod
   use mod_atm_interface
-  use mod_savefile
   use mod_memutil
   use mod_service
   use mod_mppio
@@ -36,19 +35,18 @@ module mod_split
 !
   public :: allocate_mod_split , spinit , splitf
 !
-  real(8) , pointer , dimension(:) :: aam
-  real(8) , pointer , dimension(:) :: an
-  real(8) , pointer , dimension(:,:) :: am
-  real(8) , pointer , dimension(:,:,:) :: uuu , vvv
+  real(dp) , pointer , dimension(:) :: aam
+  real(dp) , pointer , dimension(:) :: an
+  real(dp) , pointer , dimension(:,:) :: am
+  real(dp) , pointer , dimension(:,:,:) :: uuu , vvv
 !
-  real(8) , pointer , dimension(:,:,:) :: ddsum
-  real(8) , pointer , dimension(:,:,:) :: dhsum
-  real(8) , pointer , dimension(:,:,:,:) :: deld
-  real(8) , pointer , dimension(:,:,:,:) :: delh
-  real(8) , pointer , dimension(:,:) :: psdot
-  real(8) , pointer , dimension(:,:,:) :: work
-  real(8) , pointer , dimension(:,:) :: uu , vv
-  real(8) , pointer , dimension(:) :: trans1 , trans2
+  real(dp) , pointer , dimension(:,:,:) :: ddsum
+  real(dp) , pointer , dimension(:,:,:) :: dhsum
+  real(dp) , pointer , dimension(:,:,:,:) :: deld
+  real(dp) , pointer , dimension(:,:,:,:) :: delh
+  real(dp) , pointer , dimension(:,:,:) :: work
+  real(dp) , pointer , dimension(:,:) :: uu , vv
+  real(dp) , pointer , dimension(:,:) :: xdelh
 !
   contains 
 !
@@ -59,26 +57,24 @@ module mod_split
 !
     call time_begin(subroutine_name,idindx)
     call getmem1d(aam,1,nsplit,'split:aam')
-    call getmem1d(trans1,1,iy,'split:trans1')
-    call getmem1d(trans2,1,iy,'split:trans2')
     call getmem2d(am,1,kz,1,nsplit,'split:am')
     call getmem1d(an,1,nsplit,'split:naam')
-    call getmem3d(ddsum,1,jxp,1,iy,1,nsplit,'split:ddsum')
-    call getmem4d(deld,1,jxp,1,iy,1,nsplit,1,3,'split:deld')
-    call getmem4d(delh,0,jxp,1,iy,1,nsplit,1,3,'split:delh')
-    call getmem3d(dhsum,0,jxp,1,iy,1,nsplit,'split:dhsum')
-    call getmem2d(psdot,0,jxp,1,iy,'split:psdot')
-    call getmem3d(work,1,jxp,1,iy,1,3,'split:work')
-    call getmem2d(uu,1,jxp+1,1,iy,'split:uu')
-    call getmem2d(vv,1,jxp+1,1,iy,'split:vv')
-    call getmem3d(uuu,1,jxp+1,1,iy,1,kz,'split:uuu')
-    call getmem3d(vvv,1,jxp+1,1,iy,1,kz,'split:vvv')
+    call getmem3d(ddsum,1,jxp,idot1,idot2,1,nsplit,'split:ddsum')
+    call getmem4d(deld,1,jxp,idot1,idot2,1,nsplit,1,3,'split:deld')
+    call getmem4d(delh,1,jxp,idot1,idot2,1,nsplit,1,3,'split:delh')
+    call getmem2d(xdelh,0,jxp,idot1,idot2,'split:xdelh')
+    call getmem3d(dhsum,0,jxp,idot1,idot2,1,nsplit,'split:dhsum')
+    call getmem3d(work,1,jxp,idot1,idot2,1,3,'split:work')
+    call getmem2d(uu,1,jxp+1,idot1,idot2,'split:uu')
+    call getmem2d(vv,1,jxp+1,idot1,idot2,'split:vv')
+    call getmem3d(uuu,1,jxp+1,idot1,idot2,1,kz,'split:uuu')
+    call getmem3d(vvv,1,jxp+1,idot1,idot2,1,kz,'split:vvv')
     call time_end(subroutine_name,idindx)
   end subroutine allocate_mod_split
 !
 ! Intial computation of vertical modes.
 !
-  subroutine spinit(jstart,jend,istart,iend)
+  subroutine spinit
 #ifndef IBM
     use mpi
 #endif
@@ -86,24 +82,13 @@ module mod_split
 #ifdef IBM
     include 'mpif.h'
 #endif
-!
-    integer , intent(in) :: jstart , jend , istart , iend
-    real(8) :: eps , eps1 , fac , pdlog
+    real(dp) :: eps , eps1 , fac , pdlog
     integer :: i , ijlx , j , k , l , n , ns
     logical :: lstand
-    integer :: ierr
-    integer :: jp1
     character (len=64) :: subroutine_name='spinit'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!   zero new arrays
-!
-    dstor(:,:,:) = d_zero
-    hstor(:,:,:) = d_zero
-!
-    ijlx = jendx*iym1
 !
 !   compute m.
 !
@@ -120,19 +105,20 @@ module mod_split
     call allocate_mod_vmodes
 !
     xps = d_zero
+    ijlx = (jce2-jce1+1)*(ice2-ice1+1)
     do k = 1 , kz
       tbarh(k) = d_zero
     end do
-    do i = 1 , iym1
-      do j = 1 , jendx
-        xps = xps + sps1%ps(j,i)/ijlx
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        xps = xps + sfs%psa(j,i)/ijlx
       end do
     end do
 
     do k = 1 , kz
-      do i = 1 , iym1
-        do j = 1 , jendx
-          tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(sps1%ps(j,i)*ijlx)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          tbarh(k) = tbarh(k) + atm1%t(j,i,k)/(sfs%psa(j,i)*ijlx)
         end do
       end do
     end do
@@ -191,211 +177,74 @@ module mod_split
       end do
     end do
 !
-    if ( ifrest ) then
-      call read_savefile_part2
-!
-      if ( myid == 0 ) then
-        do j = 1 , jx
-          do n = 1 , nsplit
-            do i = 1 , iy
-              sav_0d(i,n,j) = dstor_io(i,j,n)
-              sav_0d(i,n+nsplit,j) = hstor_io(i,j,n)
-            end do
-          end do
-        end do
-        do j = 1 , jx
-          do k = 1 , kz
-            sav_6(k,1,j) = ui1_io(k,j)
-            sav_6(k,2,j) = ui2_io(k,j)
-            sav_6(k,3,j) = uilx_io(k,j)
-            sav_6(k,4,j) = uil_io(k,j)
-            sav_6(k,5,j) = vi1_io(k,j)
-            sav_6(k,6,j) = vi2_io(k,j)
-            sav_6(k,7,j) = vilx_io(k,j)
-            sav_6(k,8,j) = vil_io(k,j)
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_0d,iy*nsplit*2*jxp,mpi_real8,       &
-                       sav0d, iy*nsplit*2*jxp,mpi_real8,       &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do n = 1 , nsplit
-          do i = 1 , iy
-            dstor(j,i,n) = sav0d(i,n,j)
-            hstor(j,i,n) = sav0d(i,n+nsplit,j)
-          end do
-        end do
-      end do
-      call mpi_scatter(sav_6,kz*8*jxp,mpi_real8, &
-                       sav6, kz*8*jxp,mpi_real8, &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do k = 1 , kz
-          ui1(k,j) = sav6(k,1,j)
-          ui2(k,j) = sav6(k,2,j)
-          uilx(k,j) = sav6(k,3,j)
-          uil(k,j) = sav6(k,4,j)
-          vi1(k,j) = sav6(k,5,j)
-          vi2(k,j) = sav6(k,6,j)
-          vilx(k,j) = sav6(k,7,j)
-          vil(k,j) = sav6(k,8,j)
-        end do
-      end do
-#ifndef BAND
-      call mpi_bcast(uj1,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(uj2,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(vj1,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(vj2,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(ujlx,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(ujl,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(vjl,iy*kz,mpi_real8,0,mycomm,ierr)
-      if ( myid /= nproc-1 ) then
-#endif
-        do k = 1 , kz
-          var1snd(k,1) = ui1(k,jxp)
-          var1snd(k,2) = vi1(k,jxp)
-          var1snd(k,3) = ui2(k,jxp)
-          var1snd(k,4) = vi2(k,jxp)
-          var1snd(k,5) = uilx(k,jxp)
-          var1snd(k,6) = vilx(k,jxp)
-          var1snd(k,7) = uil(k,jxp)
-          var1snd(k,8) = vil(k,jxp)
-        end do
-#ifndef BAND
-      end if
-#endif
-      call mpi_sendrecv(var1snd,kz*8,mpi_real8,ieast,1, &
-                        var1rcv,kz*8,mpi_real8,iwest,1, &
-                        mycomm,mpi_status_ignore,ierr)
-#ifndef BAND
-      if ( myid /= 0 ) then
-#endif
-        do k = 1 , kz
-          ui1(k,0) = var1rcv(k,1)
-          vi1(k,0) = var1rcv(k,2)
-          ui2(k,0) = var1rcv(k,3)
-          vi2(k,0) = var1rcv(k,4)
-          uilx(k,0) = var1rcv(k,5)
-          vilx(k,0) = var1rcv(k,6)
-          uil(k,0) = var1rcv(k,7)
-          vil(k,0) = var1rcv(k,8)
-        end do
-#ifndef BAND
-      end if
-      if ( myid /= 0 ) then
-#endif
-        do k = 1 , kz
-          var1snd(k,1) = ui1(k,1)
-          var1snd(k,2) = vi1(k,1)
-          var1snd(k,3) = ui2(k,1)
-          var1snd(k,4) = vi2(k,1)
-          var1snd(k,5) = uilx(k,1)
-          var1snd(k,6) = vilx(k,1)
-          var1snd(k,7) = uil(k,1)
-          var1snd(k,8) = vil(k,1)
-        end do
-#ifndef BAND
-      end if
-#endif
-      call mpi_sendrecv(var1snd,kz*8,mpi_real8,iwest,2, &
-                        var1rcv,kz*8,mpi_real8,ieast,2, &
-                        mycomm,mpi_status_ignore,ierr)
-#ifndef BAND
-      if ( myid /= nproc-1 ) then
-#endif
-        do k = 1 , kz
-          ui1(k,jxp+1) = var1rcv(k,1)
-          vi1(k,jxp+1) = var1rcv(k,2)
-          ui2(k,jxp+1) = var1rcv(k,3)
-          vi2(k,jxp+1) = var1rcv(k,4)
-          uilx(k,jxp+1) = var1rcv(k,5)
-          vilx(k,jxp+1) = var1rcv(k,6)
-          uil(k,jxp+1) = var1rcv(k,7)
-          vil(k,jxp+1) = var1rcv(k,8)
-        end do
-#ifndef BAND
-      end if
-#endif
-    else
+    if ( ifrest ) return
 !
 !=======================================================================
-!     Divergence manipulations (0)
 !
-!     compute divergence z from u and v
-!     ( u must be pstar * u ; similarly for v )
-!     ( note: map scale factors have been inverted in model (init) )
+!   zero new arrays
 !
+    dstor(:,:,:) = d_zero
+    hstor(:,:,:) = d_zero
+!
+!   Divergence manipulations (0)
+!
+!   compute divergence z from u and v
+!   ( u must be pstar * u ; similarly for v )
+!   ( note: map scale factors have been inverted in model (init) )
+!
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
+          vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
+        end do
+      end do
+    end do
+!
+    call deco1_exchange_right(uuu,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(vvv,1,ide1,ide2,1,kz)
+!
+    dstor(:,:,:) = d_zero
+!
+    do l = 1 , nsplit
       do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jendl
-            uuu(j,i,k) = atm2%u(i,k,j)*mddom%msfd(j,i)
-            vvv(j,i,k) = atm2%v(i,k,j)*mddom%msfd(j,i)
-          end do
-        end do
-        if ( iwest /= mpi_proc_null ) then
-          trans1 = uuu(1,:,k)
-        end if
-        call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                          trans2,iy,mpi_real8,ieast,2, &
-                          mycomm,mpi_status_ignore,ierr)
-        if ( ieast /= mpi_proc_null ) then
-          uuu(jxp+1,:,k) = trans2
-        end if
-        if ( iwest /= mpi_proc_null ) then
-          trans1 = vvv(1,:,k)
-        end if
-        call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                          trans2,iy,mpi_real8,ieast,2, &
-                          mycomm,mpi_status_ignore,ierr)
-        if ( ieast /= mpi_proc_null ) then
-          vvv(jxp+1,:,k) = trans2
-        end if
-      end do
-!
-      dstor(:,:,:) = d_zero
-      do l = 1 , nsplit
-        do k = 1 , kz
-          do i = 1 , iym1
-            do j = 1 , jendx
-              jp1 = j+1
-              fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-              dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * & 
-                   (-uuu(j,i+1,k)+uuu(jp1,i+1,k)-uuu(j,i,k)+uuu(jp1,i,k) + &
-                     vvv(j,i+1,k)+vvv(jp1,i+1,k)-vvv(j,i,k)-vvv(jp1,i,k))/fac
-            end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
+            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * & 
+                 (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
+                   vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
           end do
         end do
       end do
+    end do
 !
 !=======================================================================
 !
 !     Geopotential manipulations
 !
-      do l = 1 , nsplit
-        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
-        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-        do i = 1 , iym1
-          do j = 1 , jendx
-            eps = eps1*(sps2%ps(j,i)-pd)
-            hstor(j,i,l) = pdlog + eps
-          end do
+    do l = 1 , nsplit
+      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          eps = eps1*(sfs%psb(j,i)-pd)
+          hstor(j,i,l) = pdlog + eps
         end do
+      end do
 
-        do k = 1 , kz
-          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
-          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-          do i = 1 , iym1
-            do j = 1 , jendx
-              eps = eps1*(sps2%ps(j,i)-pd)
-              hstor(j,i,l) = hstor(j,i,l) + pdlog + &
-                          tau(l,k)*atm2%t(i,k,j)/sps2%ps(j,i) + eps
-            end do
+      do k = 1 , kz
+        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            eps = eps1*(sfs%psb(j,i)-pd)
+            hstor(j,i,l) = hstor(j,i,l) + pdlog + &
+                           tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
           end do
         end do
       end do
-    end if
+    end do
 !
     call time_end(subroutine_name,idindx)
 !
@@ -403,7 +252,7 @@ module mod_split
 !
 ! Compute deld, delh, integrate in time and add correction terms appropriately
 !
-  subroutine splitf(jstart,jend,istart,iend)
+  subroutine splitf
 #ifndef IBM
     use mpi
 #endif
@@ -411,13 +260,8 @@ module mod_split
 #ifdef IBM
     include 'mpif.h'
 #endif
-!
-    integer , intent(in) :: jstart , jend , istart , iend
-    real(8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
+    real(dp) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
     integer :: i , j , k , l , n
-    integer :: jm1 , jp1
-    integer :: ierr , ii
-    real(8) , dimension(iy*nsplit) :: wkrecv , wksend
     character (len=64) :: subroutine_name='splitf'
     integer :: idindx=0
 !
@@ -431,58 +275,18 @@ module mod_split
 !
 !   this routine determines p(.) from p(x) by a 4-point interpolation.
 !   on the x-grid, a p(x) point outside the grid domain is assumed to
-!   satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the i's.
+!   satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1); and similarly for the i's.
 !
-    if ( ieast /= mpi_proc_null ) then
-      trans1 = sps1%ps(jxp,:)
-    end if
-    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1,      &
-                      trans2,iy,mpi_real8,iwest,1,        &
-                      mycomm,mpi_status_ignore,ierr)
-    if ( iwest /= mpi_proc_null ) then
-      sps1%ps(0,:) = trans2
-    end if
-    do i = 2 , iym1
-      do j = jbegin , jendx
-        jm1 = j-1
-        psdot(j,i) = (sps1%ps(j,i)  +sps1%ps(j,i-1)+ &
-                      sps1%ps(jm1,i)+sps1%ps(jm1,i-1))*d_rfour
-      end do
-    end do
-!
-#ifndef BAND
-    do i = 2 , iym1
-      if ( myid == 0 ) & 
-        psdot(1,i) = (sps1%ps(1,i)+sps1%ps(1,i-1))*d_half
-      if ( myid == nproc-1 ) &
-        psdot(jendx,i) = (sps1%ps(jendx,i)+sps1%ps(jendx,i-1))*d_half
-    end do
-#endif
-!
-    do j = jbegin , jendx
-      jm1 = j-1
-      psdot(j,1) = (sps1%ps(j,1)+sps1%ps(jm1,1))*d_half
-      psdot(j,iy) = (sps1%ps(j,iym1)+sps1%ps(jm1,iym1))*d_half
-    end do
-!
-#ifndef BAND
-    if ( myid == 0 ) then
-      psdot(1,1) = sps1%ps(1,1)
-      psdot(1,iy) = sps1%ps(1,iym1)
-    end if
-    if ( myid == nproc-1 ) then
-      psdot(jendl,1) = sps1%ps(jendx,1)
-      psdot(jendl,iy) = sps1%ps(jendx,iym1)
-    end if
-#endif
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call psc2psd(sfs%psa,psdot)
 !
 !=======================================================================
 !
 !   get deld(0), delh(0) from storage
 !
    do n = 1 , nsplit
-     do i = 1 , iy
-       do j = 1 , jendl
+     do i = ide1 , ide2
+       do j = jde1 , jde2
          deld(j,i,n,1) = dstor(j,i,n)
          delh(j,i,n,1) = hstor(j,i,n)
        end do
@@ -494,56 +298,42 @@ module mod_split
 !   Divergence manipulations (f)
 !
     do k = 1 , kz
-      do i = 1 , iy
-        do j = 1 , jendl
-          uuu(j,i,k) = atm1%u(i,k,j)*mddom%msfd(j,i)
-          vvv(j,i,k) = atm1%v(i,k,j)*mddom%msfd(j,i)
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          uuu(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
+          vvv(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
         end do
       end do
-      if ( iwest /= mpi_proc_null ) then
-        trans1 = uuu(1,:,k)
-      end if
-      call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                        trans2,iy,mpi_real8,ieast,2, &
-                        mycomm,mpi_status_ignore,ierr)
-      if ( ieast /= mpi_proc_null ) then
-        uuu(jxp+1,:,k) = trans2
-      end if
-      if ( iwest /= mpi_proc_null ) then
-        trans1 = vvv(1,:,k)
-      end if
-      call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                        trans2,iy,mpi_real8,ieast,2, &
-                        mycomm,mpi_status_ignore,ierr)
-      if ( ieast /= mpi_proc_null ) then
-        vvv(jxp+1,:,k) = trans2
-      end if
     end do
+!
+    call deco1_exchange_right(uuu,1,1,iy,1,kz)
+    call deco1_exchange_right(vvv,1,1,iy,1,kz)
+!
     do l = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           deld(j,i,l,3) = d_zero
         end do
       end do
 
       do k = 1 , kz
-        do i = 1 , iym1
-          do j = 1 , jendx
-            jp1 = j+1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
             deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * &
-               (-uuu(j,i+1,k)+uuu(jp1,i+1,k)-uuu(j,i,k)+uuu(jp1,i,k) + &
-                 vvv(j,i+1,k)+vvv(jp1,i+1,k)-vvv(j,i,k)-vvv(jp1,i,k))/fac
+               (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
+                 vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
           end do
         end do
       end do
     end do
+
 !
 !=======================================================================
 ! 
     do n = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           deld(j,i,n,3) = deld(j,i,n,3) - deld(j,i,n,1)
         end do
       end do
@@ -554,45 +344,30 @@ module mod_split
 !   Divergence manipulations (0)
 !
     do k = 1 , kz
-      do i = 1 , iy
-        do j = 1 , jendl
-          uuu(j,i,k) = atm2%u(i,k,j)*mddom%msfd(j,i)
-          vvv(j,i,k) = atm2%v(i,k,j)*mddom%msfd(j,i)
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
+          vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
         end do
       end do
-      if ( iwest /= mpi_proc_null ) then
-        trans1 = uuu(1,:,k)
-      end if
-      call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                        trans2,iy,mpi_real8,ieast,2, &
-                        mycomm,mpi_status_ignore,ierr)
-      if ( ieast /= mpi_proc_null ) then
-        uuu(jxp+1,:,k) = trans2
-      end if
-      if ( iwest /= mpi_proc_null ) then
-        trans1 = vvv(1,:,k)
-      end if
-      call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                        trans2,iy,mpi_real8,ieast,2, &
-                        mycomm,mpi_status_ignore,ierr)
-      if ( ieast /= mpi_proc_null ) then
-        vvv(jxp+1,:,k) = trans2
-      end if
     end do
+!
+    call deco1_exchange_right(uuu,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(vvv,1,ide1,ide2,1,kz)
+!
     do l = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           deld(j,i,l,2) = d_zero
         end do
       end do
       do k = 1 , kz
-        do i = 1 , iym1
-          do j = 1 , jendx
-            jp1 = j+1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
             deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * &
-              (-uuu(j,i+1,k)+uuu(jp1,i+1,k)-uuu(j,i,k)+uuu(jp1,i,k) + &
-                vvv(j,i+1,k)+vvv(jp1,i+1,k)-vvv(j,i,k)-vvv(jp1,i,k))/fac
+              (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
+                vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
           end do
         end do
       end do
@@ -601,8 +376,8 @@ module mod_split
 !=======================================================================
 !
     do n = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           deld(j,i,n,1) = deld(j,i,n,1) - deld(j,i,n,2)
         end do
       end do
@@ -615,20 +390,20 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-      do i = 1 , iym1
-        do j = 1 , jendx
-          eps = eps1*(sps1%ps(j,i)-pd)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          eps = eps1*(sfs%psa(j,i)-pd)
           delh(j,i,l,3) = pdlog + eps
         end do
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-        do i = 1 , iym1
-          do j = 1 , jendx
-            eps = eps1*(sps1%ps(j,i)-pd)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            eps = eps1*(sfs%psa(j,i)-pd)
             delh(j,i,l,3) = delh(j,i,l,3) + pdlog +  &
-                    tau(l,k)*atm1%t(i,k,j)/sps1%ps(j,i) + eps
+                    tau(l,k)*atm1%t(j,i,k)/sfs%psa(j,i) + eps
           end do
         end do
       end do
@@ -637,8 +412,8 @@ module mod_split
 !=======================================================================
 ! 
     do n = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           delh(j,i,n,3) = delh(j,i,n,3) - delh(j,i,n,1)
         end do
       end do
@@ -651,20 +426,20 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-      do i = 1 , iym1
-        do j = 1 , jendx
-          eps = eps1*(sps2%ps(j,i)-pd)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          eps = eps1*(sfs%psb(j,i)-pd)
           delh(j,i,l,2) = pdlog + eps
         end do
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-        do i = 1 , iym1
-          do j = 1 , jendx
-            eps = eps1*(sps2%ps(j,i)-pd)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            eps = eps1*(sfs%psb(j,i)-pd)
             delh(j,i,l,2) = delh(j,i,l,2) + pdlog +  &
-                     tau(l,k)*atm2%t(i,k,j)/sps2%ps(j,i) + eps
+                     tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
           end do
         end do
       end do
@@ -673,8 +448,8 @@ module mod_split
 !=======================================================================
 !
     do n = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           delh(j,i,n,1) = delh(j,i,n,1) - delh(j,i,n,2)
         end do
       end do
@@ -683,8 +458,8 @@ module mod_split
 !   put deld(0), delh(0) into storage
 !
    do n = 1 , nsplit
-     do i = 1 , iy
-       do j = 1 , jendl
+     do i = ide1 , ide2
+       do j = jde1 , jde2
          dstor(j,i,n) = deld(j,i,n,2)
          hstor(j,i,n) = delh(j,i,n,2)
        end do
@@ -701,57 +476,43 @@ module mod_split
 !
     do l = 1 , nsplit
       gnuan = gnuhf*an(l)
-      do i = 2 , iym2
-        do j = jbegin , jendm
-          sps1%ps(j,i) = sps1%ps(j,i) - an(l)*ddsum(j,i,l)
-          sps2%ps(j,i) = sps2%ps(j,i) - gnuan*ddsum(j,i,l)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sfs%psa(j,i) = sfs%psa(j,i) - an(l)*ddsum(j,i,l)
+          sfs%psb(j,i) = sfs%psb(j,i) - gnuan*ddsum(j,i,l)
         end do
       end do
     end do
     do l = 1 , nsplit
       do k = 1 , kz
         gnuam = gnuhf*am(k,l)
-        do i = 2 , iym2
-          do j = jbegin , jendm
-            atm1%t(i,k,j) = atm1%t(i,k,j) + am(k,l)*ddsum(j,i,l)
-            atm2%t(i,k,j) = atm2%t(i,k,j) + gnuam*ddsum(j,i,l)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atm1%t(j,i,k) = atm1%t(j,i,k) + am(k,l)*ddsum(j,i,l)
+            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuam*ddsum(j,i,l)
           end do
         end do
       end do
     end do
+
 !=======================================================================
-    ii = 0
-    do l = 1 , nsplit
-      do i = 1 , iy
-        ii = ii + 1
-        wksend(ii) = dhsum(jxp,i,l)
-      end do
-    end do
-    call mpi_sendrecv(wksend,iy*nsplit,mpi_real8,ieast,1, &
-                      wkrecv,iy*nsplit,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
-    ii = 0
-    do l = 1 , nsplit
-      do i = 1 , iy
-        ii = ii + 1
-        dhsum(0,i,l) = wkrecv(ii)
-      end do
-    end do
+
+    call deco1_exchange_left(dhsum,1,1,iy,1,nsplit)
+
     do l = 1 , nsplit
       do k = 1 , kz
         gnuzm = gnuhf*zmatx(k,l)
-        do i = 2 , iym1
-          do j = jbegin , jendx
-            jm1 = j-1
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             fac = psdot(j,i)/(dx2*mddom%msfd(j,i))
             x = fac*(dhsum(j,i,l)+dhsum(j,i-1,l) - &
-                     dhsum(jm1,i,l)-dhsum(jm1,i-1,l))
+                     dhsum(j-1,i,l)-dhsum(j-1,i-1,l))
             y = fac*(dhsum(j,i,l)-dhsum(j,i-1,l) + &
-                     dhsum(jm1,i,l)-dhsum(jm1,i-1,l))
-            atm1%u(i,k,j) = atm1%u(i,k,j) - zmatx(k,l)*x
-            atm1%v(i,k,j) = atm1%v(i,k,j) - zmatx(k,l)*y
-            atm2%u(i,k,j) = atm2%u(i,k,j) - gnuzm*x
-            atm2%v(i,k,j) = atm2%v(i,k,j) - gnuzm*y
+                     dhsum(j-1,i,l)-dhsum(j-1,i-1,l))
+            atm1%u(j,i,k) = atm1%u(j,i,k) - zmatx(k,l)*x
+            atm1%v(j,i,k) = atm1%v(j,i,k) - zmatx(k,l)*y
+            atm2%u(j,i,k) = atm2%u(j,i,k) - gnuzm*x
+            atm2%v(j,i,k) = atm2%v(j,i,k) - gnuzm*y
           end do
         end do
       end do
@@ -764,28 +525,18 @@ module mod_split
   end subroutine splitf
 !
   subroutine spstep
-!
-#ifndef IBM
-    use mpi
-#else
-    include 'mpif.h'
-#endif
     implicit none
 !
-    real(8) :: dtau2 , fac
+    real(dp) :: dtau2 , fac
     integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
-    integer :: jm1, jp1
-    integer :: ierr
-    real(8) , dimension(iy*2) :: wkrecv , wksend
     character (len=64) :: subroutine_name='spstep'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!--
-    
+!
     do n = 1 , nsplit
-      do i = 1 , iy
-        do j = 1 , jendl
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           ddsum(j,i,n) = d_zero
           dhsum(j,i,n) = d_zero
         end do
@@ -802,8 +553,8 @@ module mod_split
 !
 !     below follows Madala (1987)
 !
-      do i = 1 , iym1
-        do j = 1 , jendx
+      do i = ice1 , ice2
+        do j = jce1 , jce2
 !         deld, delh: 1,ilx on cross grid
           ddsum(j,i,ns) = deld(j,i,ns,n0)
           dhsum(j,i,ns) = delh(j,i,ns,n0)
@@ -816,31 +567,23 @@ module mod_split
 !
 !     compute gradient of delh;  output = (work1,work2)
 !
-      if ( ieast /= mpi_proc_null ) then
-        trans1 = delh(jxp,:,ns,n0)
-      end if
-      call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                        trans2,iy,mpi_real8,iwest,1, &
-                        mycomm,mpi_status_ignore,ierr)
-      if ( iwest /= mpi_proc_null ) then
-        delh(0,:,ns,n0) = trans2
-      end if
-      do i = 2 , iym1
-        do j = jbegin , jendx
-          jm1 = j-1
+      xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n0)
+      call deco1_exchange_left(xdelh,1,1,iy)
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
           fac = dx2*mddom%msfx(j,i)
-          work(j,i,1) = (delh(j,i,ns,n0)+delh(j,i-1,ns,n0)  &
-                      & -delh(jm1,i,ns,n0)-delh(jm1,i-1,ns,n0))/fac
-          work(j,i,2) = (delh(j,i,ns,n0)+delh(jm1,i,ns,n0) &
-                      & -delh(j,i-1,ns,n0)-delh(jm1,i-1,ns,n0))/fac
+          work(j,i,1) = (xdelh(j,i)  +xdelh(j,i-1) - &
+                         xdelh(j-1,i)-xdelh(j-1,i-1))/fac
+          work(j,i,2) = (xdelh(j,i)  +xdelh(j-1,i) - &
+                         xdelh(j,i-1)-xdelh(j-1,i-1))/fac
         end do
       end do
 !
 !=======================================================================
 !
       do nw = 1 , 2
-        do i = 2 , iym1
-          do j = jbegin , jendx
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
 !           work: 2,ilx on dot grid
             work(j,i,nw) = work(j,i,nw)*psdot(j,i)
           end do
@@ -853,63 +596,60 @@ module mod_split
 !     ( u must be pstar * u ; similarly for v )
 !     ( note: map scale factors have been inverted in model (init) )
 !
-      do i = 2 , iym1
-        do j = jbegin , jendx
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
           uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
           vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
         end do
       end do
 !
-      do i = 1 , iy
-        wksend(i) = uu(1,i)
-        wksend(i+iy) = vv(1,i)
-      end do
-      call mpi_sendrecv(wksend,2*iy,mpi_real8,iwest,2,             &
-                      & wkrecv,2*iy,mpi_real8,ieast,2,             &
-                      & mycomm,mpi_status_ignore,ierr)
-      do i = 1 , iy
-        uu(jxp+1,i) = wkrecv(i)
-        vv(jxp+1,i) = wkrecv(i+iy)
-      end do
+      call deco1_exchange_right(uu,1,1,iy)
+      call deco1_exchange_right(vv,1,1,iy)
 !
-      do i = 2 , iym2
-        do j = jbegin , jendm
-          jp1 = j+1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-          work(j,i,3) = (-uu(j,i+1)+uu(jp1,i+1)-uu(j,i)+uu(jp1,i) &
-                         +vv(j,i+1)+vv(jp1,i+1)-vv(j,i)-vv(jp1,i))/fac
+          work(j,i,3) = (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) &
+                         +vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
         end do
       end do
 !
 !=======================================================================
 !
-      do i = 2 , iym2
-        do j = jbegin , jendm
-!           work3: 2,iym2 on cross grid
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           deld(j,i,ns,n1) = deld(j,i,ns,n0) - dtau(ns)*work(j,i,3) + &
                             deld(j,i,ns,3)/m2
           delh(j,i,ns,n1) = delh(j,i,ns,n0) - dtau(ns)*hbar(ns) * &
-                            deld(j,i,ns,n0)/sps1%ps(j,i)+delh(j,i,ns,3)/m2
+                            deld(j,i,ns,n0)/sfs%psa(j,i)+delh(j,i,ns,3)/m2
         end do
       end do
  
 !     not in Madala (1987)
       fac = (aam(ns)-d_one)/aam(ns)
-#ifndef BAND
-      do i = 2 , iym2
-        if ( myid == 0 ) &
-          delh(1,i,ns,n1) = delh(1,i,ns,n0)*fac
-        if ( myid == nproc-1 ) &
-          delh(jendx,i,ns,n1) = delh(jendx,i,ns,n0)*fac
-      end do
-#endif
-      do j = 1 , jendx
-        delh(j,1,ns,n1) = delh(j,1,ns,n0)*fac
-        delh(j,iym1,ns,n1) = delh(j,iym1,ns,n0)*fac
-      end do
+      if ( ma%hasleft ) then
+        do i = ici1 , ici2
+          delh(jce1,i,ns,n1) = delh(jce1,i,ns,n0)*fac
+        end do
+      end if
+      if ( ma%hasright ) then
+        do i = ici1 , ici2
+          delh(jce2,i,ns,n1) = delh(jce2,i,ns,n0)*fac
+        end do
+      end if
+      if ( ma%hasbottom ) then
+        do j = jce1 , jce2
+          delh(j,ice1,ns,n1) = delh(j,ice1,ns,n0)*fac
+        end do
+      end if
+      if ( ma%hastop ) then
+        do j = jce1 , jce2
+          delh(j,ice2,ns,n1) = delh(j,ice2,ns,n0)*fac
+        end do
+      end if
 !
-      do i = 1 , iym1
-        do j = 1 , jendx
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n1)
           dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n1)
         end do
@@ -923,31 +663,23 @@ module mod_split
 !
 !       compute gradient of delh;  output = (work1,work2)
 !
-        if ( ieast /= mpi_proc_null ) then
-          trans1 = delh(jxp,:,ns,n1)
-        end if
-        call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                          trans2,iy,mpi_real8,iwest,1, &
-                          mycomm,mpi_status_ignore,ierr)
-        if ( iwest /= mpi_proc_null ) then
-          delh(0,:,ns,n1) = trans2
-        end if
-        do i = 2 , iym1
-          do j = jbegin , jendx
-            jm1 = j-1
+        xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n1)
+        call deco1_exchange_left(xdelh,1,1,iy)
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             fac = dx2*mddom%msfx(j,i)
-            work(j,i,1) = (delh(j,i,ns,n1)+delh(j,i-1,ns,n1)- &
-                           delh(jm1,i,ns,n1)-delh(jm1,i-1,ns,n1))/fac
-            work(j,i,2) = (delh(j,i,ns,n1)+delh(jm1,i,ns,n1)- &
-                           delh(j,i-1,ns,n1)-delh(jm1,i-1,ns,n1))/fac
+            work(j,i,1) = (xdelh(j,i)+xdelh(j,i-1)- &
+                           xdelh(j-1,i)-xdelh(j-1,i-1))/fac
+            work(j,i,2) = (xdelh(j,i)+xdelh(j-1,i)- &
+                           xdelh(j,i-1)-xdelh(j-1,i-1))/fac
           end do
         end do
 !
 !=======================================================================
 !
         do nw = 1 , 2
-          do i = 2 , iym1
-            do j = jbegin , jendx
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
               work(j,i,nw) = work(j,i,nw)*psdot(j,i)
             end do
           end do
@@ -959,63 +691,61 @@ module mod_split
 !       ( u must be pstar * u ; similarly for v )
 !       ( note: map scale factors have been inverted in model (init) )
 !
-        do i = 2 , iym1
-          do j = jbegin , jendx
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
             vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
           end do
         end do
 !
-        do i = 1 , iy
-          wksend(i) = uu(1,i)
-          wksend(i+iy) = vv(1,i)
-        end do
-        call mpi_sendrecv(wksend,2*iy,mpi_real8,iwest,2,           &
-                          wkrecv,2*iy,mpi_real8,ieast,2,           &
-                          mycomm,mpi_status_ignore,ierr)
-        do i = 1 , iy
-          uu(jxp+1,i) = wkrecv(i)
-          vv(jxp+1,i) = wkrecv(i+iy)
-        end do
+        call deco1_exchange_right(uu,1,1,iy)
+        call deco1_exchange_right(vv,1,1,iy)
 !
-        do i = 2 , iym2
-          do j = jbegin , jendm
-            jp1 = j+1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            work(j,i,3) = (-uu(j,i+1)+uu(jp1,i+1)-uu(j,i)+uu(jp1,i) + &
-                            vv(j,i+1)+vv(jp1,i+1)-vv(j,i)-vv(jp1,i))/fac
+            work(j,i,3) = (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) + &
+                            vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
           end do
         end do
 !
 !=======================================================================
 !
-        do i = 2 , iym2
-          do j = jbegin , jendm
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             deld(j,i,ns,n2) = deld(j,i,ns,n0) - dtau2*work(j,i,3) + &
                               deld(j,i,ns,3)/aam(ns)
             delh(j,i,ns,n2) = delh(j,i,ns,n0) - dtau2*hbar(ns) * &
-                              deld(j,i,ns,n1)/sps1%ps(j,i) +     &
+                              deld(j,i,ns,n1)/sfs%psa(j,i) +     &
                               delh(j,i,ns,3)/aam(ns)
           end do
         end do
 !
 !       not in Madala (1987)
 !
-#ifndef BAND
-        do i = 2 , iym2
-          if ( myid == 0 ) &
-            delh(1,i,ns,n2) = d_two*delh(1,i,ns,n1)-delh(1,i,ns,n0)
-          if ( myid == nproc-1 ) &
-            delh(jendx,i,ns,n2) = d_two*delh(jendx,i,ns,n1)-delh(jendx,i,ns,n0)
-        end do
-#endif
-        do j = 1 , jendx
-          delh(j,1,ns,n2) = d_two*delh(j,1,ns,n1)-delh(j,1,ns,n0)
-          delh(j,iym1,ns,n2) = d_two*delh(j,iym1,ns,n1)-delh(j,iym1,ns,n0)
-        end do
+        if ( ma%hasleft ) then 
+          do i = ici1 , ici2
+            delh(jce1,i,ns,n2) = d_two*delh(jce1,i,ns,n1)-delh(jce1,i,ns,n0)
+          end do
+        end if
+        if ( ma%hasright ) then
+          do i = ici1 , ici2
+            delh(jce2,i,ns,n2) = d_two*delh(jce2,i,ns,n1)-delh(jce2,i,ns,n0)
+          end do
+        end if
+        if ( ma%hasbottom ) then
+          do j = jce1 , jce2
+            delh(j,ice1,ns,n2) = d_two*delh(j,ice1,ns,n1)-delh(j,ice1,ns,n0)
+          end do
+        end if
+        if ( ma%hastop ) then
+          do j = jce1 , jce2
+            delh(j,ice2,ns,n2) = d_two*delh(j,ice2,ns,n1)-delh(j,ice2,ns,n0)
+          end do
+        end if
 !
-        do i = 1 , iym1
-          do j = 1 , jendx
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n2)
             dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n2)
           end do

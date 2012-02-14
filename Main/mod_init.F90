@@ -51,8 +51,8 @@ module mod_init
 !
   public :: init
 !
-  real(8) , parameter :: tlp = 50.0D0
-  real(8) , parameter :: ts00 = 288.0D0
+  real(dp) , parameter :: tlp = 50.0D0
+  real(dp) , parameter :: ts00 = 288.0D0
 !
   contains
 !
@@ -71,14 +71,11 @@ module mod_init
 #endif
   implicit none
 !
-  integer :: i , im1h , ip1h , ist , j , k , n
+  integer :: i , ist , j , k , n
   type (rcm_time_and_date) :: icbc_date
-  real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
-  integer :: jp1 , jm1
-  real(8) , dimension(iy,jxp) :: psdot
+  real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  integer :: mmrec , allrec , ierr , l
-  real(8) , dimension(iy) :: trans1 , trans2
+  integer :: mmrec , maxj , ierr
 
   tgmx_o(:,:) = -1.E30
   tgmn_o(:,:) =  1.E30
@@ -102,18 +99,25 @@ module mod_init
     call open_icbc(icbc_date)
   end if
 !
-  if ( .not.ifrest ) then
-!-----for initial run--not using restart
+#ifdef BAND
+  maxj = jx
+#else
+  maxj = jxm1
+#endif
+
+  !
+  ! for initial run--not using restart
+  !
+  if ( .not. ifrest ) then
+    !
+    ! set rainwater and cloud water equal to zero initially.
+    !
+    atm1%qc(:,:,:) = d_zero
+    atm2%qc(:,:,:) = d_zero
 !
-!------set rainwater and cloud water equal to zero initially.
-!
-    atm1%qc = d_zero
-    atm2%qc = d_zero
-!
-!chem2
     if ( ichem == 1 ) then
-!qhy      tchie, tchitb(replace tchidp:deposition)
-!         initialize removal terms
+      !qhy tchie, tchitb(replace tchidp:deposition)
+      !    initialize removal terms
       remlsc = d_zero
       remcvc = d_zero
       rxsg   = d_zero
@@ -122,22 +126,22 @@ module mod_init
       remdrd = d_zero
       wdlsc  = d_zero
     end if
-!chem2_
-!------set the variables related to blackadar pbl equal to 0 initially.
-!
+    !
+    ! set the variables related to blackadar pbl equal to 0 initially.
+    !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      atm1%tke = tkemin
-      atm2%tke = tkemin
+      atm1%tke(:,:,:) = tkemin
+      atm2%tke(:,:,:) = tkemin
     end if
-!
+    !
     if ( icup == 1 ) then
-      rsheat = d_zero
-      rswat  = d_zero
+      rsheat(:,:,:) = d_zero
+      rswat(:,:,:)  = d_zero
     end if
-!
-!------read in the initial conditions for large domain:
-!       the initial conditions are the output from PREPROC/ICBC.
-!
+    !
+    ! Read in the initial conditions for large domain:
+    ! the initial conditions are the output from PREPROC/ICBC.
+    !
 #ifdef CLM
     if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
@@ -145,152 +149,101 @@ module mod_init
       mmrec = icbc_search(bdydate1)
       if (mmrec < 0) then
         appdat = tochar(bdydate2)
-        call fatal(__FILE__,__LINE__, &
-                   'ICBC for '//appdat//' not found')
+        call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
       call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
       appdat = tochar(bdydate1)
       write (6,*) 'READY IC DATA for ', appdat
-      ps0_io = ps0_io*d_r10
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j) = ub0_io(i,k,j)
-            sav_0(i,kz+k,j) = vb0_io(i,k,j)
-            sav_0(i,kz*2+k,j) = qb0_io(i,k,j)
-            sav_0(i,kz*3+k,j) = tb0_io(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = ps0_io(i,j)
-          sav_0(i,kz*4+2,j) = ts0_io(i,j)
-        end do
-      end do
+      !
+      ! Convert surface pressure to pstar
+      !
+      ps0_io(:,:) = ps0_io(:,:)*d_r10 - ptop
     end if
 !
-!       Start transmission of data to other processors
-!
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          xub%b0(j,i,k) = sav0(i,k,j)
-          xvb%b0(j,i,k) = sav0(i,kz+k,j)
-          xqb%b0(j,i,k) = sav0(i,kz*2+k,j)
-          xtb%b0(j,i,k) = sav0(i,kz*3+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        xpsb%b0(j,i) = sav0(i,kz*4+1,j)
-        ts0(i,j) = sav0(i,kz*4+2,j)
-      end do
-    end do
-!
-!       Convert surface pressure to pstar
-!
-    do j = 1 , jendl
-      do i = 1 , iy
-        xpsb%b0(j,i) = xpsb%b0(j,i) - ptop
-      end do
-    end do
-!=======================================================================
-!
-!       this routine determines p(.) from p(x) by a 4-point
-!       interpolation. on the x-grid, a p(x) point outside the grid
-!       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
-!       and similarly for the i's.
-!
-    if ( ieast /= mpi_proc_null ) then
-      trans1 = xpsb%b0(jxp,:)
-    end if
-    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                      trans2,iy,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
-    if ( iwest /= mpi_proc_null ) then
-      xpsb%b0(0,:) = trans2
-    end if
-    do j = jbegin , jendx
-      do i = 2 , iym1
-        psdot(i,j) = (xpsb%b0(j,i)   + xpsb%b0(j,i-1) +   &
-                      xpsb%b0(j-1,i) + xpsb%b0(j-1,i-1))*d_rfour
-      end do
-    end do
-!
-#ifndef BAND
-    do i = 2 , iym1
-      if ( myid == 0 ) psdot(i,1) = (xpsb%b0(1,i)+xpsb%b0(1,i-1))*d_half
-      if ( myid == nproc-1 ) then
-        psdot(i,jendl) = (xpsb%b0(jendx,i)+xpsb%b0(jendx,i-1))*d_half
-      end if
-    end do
-#endif
-!
-    do j = jbegin , jendx
-      psdot(1,j) = (xpsb%b0(j,1)+xpsb%b0(j-1,1))*d_half
-      psdot(iy,j) = (xpsb%b0(j,iym1)+xpsb%b0(j-1,iym1))*d_half
-    end do
-!
-#ifndef BAND
-    if ( myid == 0 ) then
-      psdot(1,1) = xpsb%b0(1,1)
-      psdot(iy,1) = xpsb%b0(1,iym1)
-    end if
-    if ( myid == nproc-1 ) then
-      psdot(1,jendl) = xpsb%b0(jendx,1)
-      psdot(iy,jendl) = xpsb%b0(jendx,iym1)
-    end if
-#endif
-!
-!=======================================================================
-!       Couple pressure u,v,t,q
+    call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(qb0_io,xqb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
+    !
+    ! this piece of code determines p(.) from p(x) by a 4-point
+    ! interpolation. on the x-grid, a p(x) point outside the grid
+    ! domain is assumed to satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1);
+    ! and similarly for the i's.
+    !
+    call deco1_exchange_left(xpsb%b0,1,icross1,icross2)
+    call deco1_exchange_right(xpsb%b0,1,icross1,icross2)
+    call psc2psd(xpsb%b0,psdot)
+    !
+    ! Couple pressure u,v,t,q
+    !
     do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iy
-          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(i,j)
-          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(i,j)
-          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(j,i)
+          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           xtb%b0(j,i,k) = xtb%b0(j,i,k)*xpsb%b0(j,i)
-        end do
-     end do
-    end do
-!
-!       Initialize variables and convert to double precision
-!
-    do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iy
-          atm1%u(i,k,j) = xub%b0(j,i,k)
-          atm2%u(i,k,j) = xub%b0(j,i,k)
-          atm1%v(i,k,j) = xvb%b0(j,i,k)
-          atm2%v(i,k,j) = xvb%b0(j,i,k)
-          atm1%qv(i,k,j) = xqb%b0(j,i,k)
-          atm2%qv(i,k,j) = xqb%b0(j,i,k)
-          atm1%t(i,k,j) = xtb%b0(j,i,k)
-          atm2%t(i,k,j) = xtb%b0(j,i,k)
+          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
         end do
       end do
     end do
-    do j = 1 , jendl
-      do i = 1 , iy
-        sps1%ps(j,i) = xpsb%b0(j,i)
-        sps2%ps(j,i) = xpsb%b0(j,i)
-        sts1%tg(j,i) = ts0(i,j)
-        sts2%tg(j,i) = ts0(i,j)
+    call deco1_exchange_left(xtb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%b0,1,ice1,ice2,1,kz)
+    !
+    ! Initialize model atmospheric status variables
+    !
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          atm1%u(j,i,k) = xub%b0(j,i,k)
+          atm1%v(j,i,k) = xvb%b0(j,i,k)
+          atm2%u(j,i,k) = xub%b0(j,i,k)
+          atm2%v(j,i,k) = xvb%b0(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atm1%t(j,i,k) = xtb%b0(j,i,k)
+          atm2%t(j,i,k) = xtb%b0(j,i,k)
+          atm1%qv(j,i,k) = xqb%b0(j,i,k)
+          atm2%qv(j,i,k) = xqb%b0(j,i,k)
+        end do
+      end do
+    end do
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        sfs%psa(j,i) = xpsb%b0(j,i)
+        sfs%psb(j,i) = xpsb%b0(j,i)
+        sfs%tga(j,i) = ts0(j,i)
+        sfs%tgb(j,i) = ts0(j,i)
       end do
     end do
     if ( iseaice == 1 ) then
-      do j = 1 , jendx
-        do i = 1 , iym1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           if ( isocean(mddom%lndcat(j,i)) ) then
-            if ( ts0(i,j) <= icetemp ) then
-              sts1%tg(j,i) = icetemp
-              sts2%tg(j,i) = icetemp
-              ts0(i,j) = icetemp
-              ldmsk(i,j) = 2
+            if ( ts0(j,i) <= icetemp ) then
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
+              ts0(j,i) = icetemp
+              ldmsk(j,i) = 2
               do n = 1, nnsg
-                ocld2d(n,j,i) = 2
+                ocld(n,j,i) = 2
               end do
             end if
           end if
@@ -299,16 +252,16 @@ module mod_init
     end if
 #ifndef CLM
     if ( lakemod == 1 ) then
-      do j = 1 , jendx
-        do i = 1 , iym1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           if ( islake(mddom%lndcat(j,i)) ) then
-            if ( ts0(i,j) <= icetemp ) then
-              sts1%tg(j,i) = icetemp
-              sts2%tg(j,i) = icetemp
-              ts0(i,j) = icetemp
-              ldmsk(i,j) = 2
+            if ( ts0(j,i) <= icetemp ) then
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
+              ts0(j,i) = icetemp
+              ldmsk(j,i) = 2
               do n = 1, nnsg
-                ocld2d(n,j,i) = 2
+                ocld(n,j,i) = 2
               end do
             end if
           end if
@@ -318,43 +271,41 @@ module mod_init
 #endif
     if (icup == 3) then
       do k = 1 , kz
-        do j = 1 , jendl
-          do i = 1 , iy
-            tbase(i,k,j) = ts00 + &
-                      tlp*dlog((sps1%ps(j,i)*a(k)+ptop)*d_r100)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tbase(j,i,k) = ts00 + &
+                      tlp*dlog((sfs%psa(j,i)*a(k)+ptop)*d_r100)
           end do
         end do
       end do
     end if
 !
     zpbl(:,:) = 500.0D0  ! For Zeng Ocean Flux Scheme
-!
-    do j = 1 , jendx
-      do i = 1 , iym1
-        sts1%tg(j,i) = atm1%t(i,kz,j)/sps1%ps(j,i)
-        sts2%tg(j,i) = atm2%t(i,kz,j)/sps2%ps(j,i)
-        sfsta%tgbb(j,i) = atm2%t(i,kz,j)/sps2%ps(j,i)
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        sfs%tga(j,i) = atm1%t(j,i,kz)/sfs%psa(j,i)
+        sfs%tgb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
+        sfs%tgbb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
       end do
     end do
     if ( ichem == 1 ) then
-      ssw2da    = d_zero
-      sdeltk2d  = d_zero
-      sdelqk2d  = d_zero
-      sfracv2d  = d_half
-      sfracb2d  = d_half
-      sfracs2d  = d_zero
-      svegfrac2d = d_zero
+      ssw2da(:,:)    = d_zero
+      sdeltk2d(:,:)  = d_zero
+      sdelqk2d(:,:)  = d_zero
+      sfracv2d(:,:)  = d_half
+      sfracb2d(:,:)  = d_half
+      sfracs2d(:,:)  = d_zero
+      svegfrac2d(:,:) = d_zero
     end if
 #ifndef BAND
     if (debug_level > 2) call initdiag
 #endif
 !
-!
-    sfsta%rainc  = d_zero
-    sfsta%rainnc = d_zero
+    sfs%rainc(:,:)  = d_zero
+    sfs%rainnc(:,:) = d_zero
  
     if ( icup==4 .or. icup==99 .or. icup==98) then
-      cbmf2d = d_zero
+      cbmf2d(:,:) = d_zero
     end if
 !
   else ! ifrest=.true.
@@ -362,737 +313,267 @@ module mod_init
 !-----when ifrest=.true., read in the data saved from previous run
 !       for large domain
 !
-    call read_savefile_part1(bdydate1)
+    call read_savefile(bdydate1)
 !
+    call mpi_bcast(ktau,1,mpi_integer8,0,mycomm,ierr)
+    call mpi_bcast(mtau,1,mpi_integer8,0,mycomm,ierr)
+    call mpi_bcast(nbdytime,1,mpi_integer8,0,mycomm,ierr)
+    call date_bcast(idatex,0,mycomm,ierr)
+
     mtau = mtau + ktau
+    xbctime = dble(nbdytime)
 !
-    if ( myid == 0 ) then
-      print * , 'ozone profiles restart'
-      do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof_io(3,k,3)
-      end do
-      appdat = tochar(idatex)
-      print 99001 , nbdytime, ktau, appdat
-    end if
-!
-#ifndef CLM
-    if ( lakemod == 1 ) then
-      call lakescatter
-    endif
-#endif
+    call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(qb0_io,xqb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
 
-    if ( myid == 0 ) then
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j)      = ub0_io(i,k,j)
-            sav_0(i,kz+k,j)   = vb0_io(i,k,j)
-            sav_0(i,kz*2+k,j) = qb0_io(i,k,j)
-            sav_0(i,kz*3+k,j) = tb0_io(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = ps0_io(i,j)
-          sav_0(i,kz*4+2,j) = ts0_io(i,j)
-        end do
-      end do
-    end if
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          xub%b0(j,i,k) = sav0(i,k,j)
-          xvb%b0(j,i,k) = sav0(i,kz+k,j)
-          xqb%b0(j,i,k) = sav0(i,kz*2+k,j)
-          xtb%b0(j,i,k) = sav0(i,kz*3+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        xpsb%b0(j,i) = sav0(i,kz*4+1,j)
-        ts0(i,j) = sav0(i,kz*4+2,j)
-      end do
-    end do
+    call deco1_exchange_left(xub%b0,1,idot1,idot2,1,kz)
+    call deco1_exchange_right(xub%b0,1,idot1,idot2,1,kz)
+    call deco1_exchange_left(xvb%b0,1,idot1,idot2,1,kz)
+    call deco1_exchange_right(xvb%b0,1,idot1,idot2,1,kz)
+    call deco1_exchange_left(xtb%b0,1,icross1,icross2,1,kz)
+    call deco1_exchange_right(xtb%b0,1,icross1,icross2,1,kz)
+    call deco1_exchange_left(xqb%b0,1,icross1,icross2,1,kz)
+    call deco1_exchange_right(xqb%b0,1,icross1,icross2,1,kz)
+    call deco1_exchange_left(xpsb%b0,1,icross1,icross2)
+    call deco1_exchange_right(xpsb%b0,1,icross1,icross2)
 
-    if ( myid == 0 ) then
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j)      = atm1_io%u(i,k,j)
-            sav_0(i,kz+k,j)   = atm2_io%u(i,k,j)
-            sav_0(i,kz*2+k,j) = atm1_io%v(i,k,j)
-            sav_0(i,kz*3+k,j) = atm2_io%v(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = psa_io(i,j)
-          sav_0(i,kz*4+2,j) = psb_io(i,j)
-        end do
-      end do
-    end if
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          atm1%u(i,k,j) = sav0(i,k,j)
-          atm2%u(i,k,j) = sav0(i,kz+k,j)
-          atm1%v(i,k,j) = sav0(i,kz*2+k,j)
-          atm2%v(i,k,j) = sav0(i,kz*3+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        sps1%ps(j,i) = sav0(i,kz*4+1,j)
-        sps2%ps(j,i) = sav0(i,kz*4+2,j)
-      end do
-    end do
-    if ( myid == 0 ) then
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j)      = atm1_io%t(i,k,j)
-            sav_0(i,kz+k,j)   = atm2_io%t(i,k,j)
-            sav_0(i,kz*2+k,j) = atm1_io%qv(i,k,j)
-            sav_0(i,kz*3+k,j) = atm2_io%qv(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = tga_io(i,j)
-          sav_0(i,kz*4+2,j) = tgb_io(i,j)
-        end do
-      end do
-    end if
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,   &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          atm1%t(i,k,j)  = sav0(i,k,j)
-          atm2%t(i,k,j)  = sav0(i,kz+k,j)
-          atm1%qv(i,k,j) = sav0(i,kz*2+k,j)
-          atm2%qv(i,k,j) = sav0(i,kz*3+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        sts1%tg(j,i) = sav0(i,kz*4+1,j)
-        sts2%tg(j,i) = sav0(i,kz*4+2,j)
-      end do
-    end do
-    if ( myid == 0 ) then
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j)      = atm1_io%qc(i,k,j)
-            sav_0(i,kz+k,j)   = atm2_io%qc(i,k,j)
-            sav_0(i,kz*2+k,j) = fcc_io(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = rainc_io(i,j)
-          sav_0(i,kz*4+2,j) = rainnc_io(i,j)
-        end do
-      end do
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do k = 1 , kz
-          do i = 1 , iym1
-            sav_0(i,kz*3+k,j) = heatrt_io(i,k,j)
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          atm1%qc(i,k,j) = sav0(i,k,j)
-          atm2%qc(i,k,j) = sav0(i,kz+k,j)
-          fcc(i,k,j)     = sav0(i,kz*2+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        sfsta%rainc(j,i)  = sav0(i,kz*4+1,j)
-        sfsta%rainnc(j,i) = sav0(i,kz*4+2,j)
-      end do
-    end do
-    do j = 1 , jendx
-      do k = 1 , kz
-        do i = 1 , iym1
-          heatrt(j,i,k) = sav0(i,kz*3+k,j)
-        end do
-      end do
-    end do
-!
+    call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(atm1_io%t,atm1%t,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm1_io%qv,atm1%qv,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm1_io%qc,atm1%qc,jcross1,jcross2,icross1,icross2,1,kz)
+
+    call deco1_scatter(atm2_io%u,atm2%u,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(atm2_io%v,atm2%v,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(atm2_io%t,atm2%t,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm2_io%qv,atm2%qv,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm2_io%qc,atm2%qc,jcross1,jcross2,icross1,icross2,1,kz)
+
+    call deco1_scatter(sfs_io%psa,sfs%psa,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%psb,sfs%psb,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%tga,sfs%tga,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%tgb,sfs%tgb,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%hfx,sfs%hfx,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%qfx,sfs%qfx,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%rainc,sfs%rainc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%rainnc,sfs%rainnc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%uvdrag,sfs%uvdrag,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sfs_io%tgbb,sfs%tgbb,jcross1,jcross2,icross1,icross2)
+
+    call deco1_exchange_left(sfs%psa,1,icross1,icross2)
+    call deco1_exchange_right(sfs%psa,1,icross1,icross2)
+    call deco1_exchange_left(sfs%psb,1,icross1,icross2)
+    call deco1_exchange_right(sfs%psb,1,icross1,icross2)
+
+    call deco1_scatter(fcc_io,fcc,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(heatrt_io,heatrt,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(o3prof_io,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
+
+    call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
+
+    ! Scatter of the UW variables read in from the restart file
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-!    
-!     Begin scatter of the UW variables read in from the restart file
-!
-      if ( myid == 0 ) then
-        do j = 1 , jxm1
-          do k = 1 , kzp1
-            do i = 1 , iy
-               sav_0b(i,k,j) = atm1_io%tke(i,k,j)
-            end do
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_0b,iy*kzp1*jxp,mpi_real8,   &
-                       sav0b, iy*kzp1*jxp,mpi_real8,   &
-                       0,mycomm,ierr)
-      do j = 1 , jendx
-        do k = 1 , kzp1
-          do i = 1 , iy
-            atm1%tke(i,k,j) = sav0b(i,k,j)
-          end do
-        end do
-      end do
-      if ( myid == 0 ) then
-        do j = 1 , jxm1
-          do k = 1 , kzp1
-            do i = 1 , iy
-               sav_0b(i,k,j) = atm2_io%tke(i,k,j)
-            end do
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_0b,iy*kzp1*jxp,mpi_real8,   &
-                       sav0b, iy*kzp1*jxp,mpi_real8,   &
-                       0,mycomm,ierr)
-      do j = 1 , jendx
-        do k = 1 , kzp1
-          do i = 1 , iy
-            atm2%tke(i,k,j) = sav0b(i,k,j)
-          end do
-        end do
-      end do
-
+      call deco1_scatter(atm1_io%tke,atm1%tke, &
+                         jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_scatter(atm2_io%tke,atm2%tke, &
+                         jcross1,jcross2,icross1,icross2,1,kz)
     end if ! ibltyp == 2 .or. ibltyp == 99
 !
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do i = 1 , iym1
-          var2d_0(i,j) = kpbl_io(i,j)
-        end do
-      end do
-    end if
-    call mpi_scatter(var2d_0,iy*jxp,mpi_integer, &
-                     var2d0, iy*jxp,mpi_integer, &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do i = 1 , iym1
-        kpbl(j,i) = var2d0(i,j)
-      end do
-    end do
-!
-    if ( myid == 0 ) then
-      do j = 1 , jx
-        do i = 1 , iy
-          sav_0a(i,1,j) = hfx_io(i,j)
-          sav_0a(i,2,j) = qfx_io(i,j)
-          sav_0a(i,3,j) = uvdrag_io(i,j)
-          sav_0a(i,4,j) = tgbb_io(i,j)
-        end do
-      end do
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do k = 1 , kzp1
-          do i = 1 , iym1
-            sav_0a(i,4+k,j) = o3prof_io(i,k,j)
-          end do
-        end do
-      end do
-    end if
-    allrec = 4 + kzp1
-    call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,  &
-                     sav0a, iy*allrec*jxp,mpi_real8,  &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do i = 1 , iy
-        sfsta%hfx(j,i)    = sav0a(i,1,j)
-        sfsta%qfx(j,i)    = sav0a(i,2,j)
-        sfsta%uvdrag(j,i) = sav0a(i,3,j)
-        sfsta%tgbb(j,i)   = sav0a(i,4,j)
-      end do
-    end do
-    do j = 1 , jendx
-      do k = 1 , kzp1
-        do i = 1 , iym1
-          o3prof(j,i,k) = sav0a(i,4+k,j)
-        end do
-      end do
-    end do
     if ( iocnflx == 2 ) then
-      call mpi_scatter(zpbl_io, iy*jxp,mpi_real8, &
-                       swapv,   iy*jxp,mpi_real8, &
-                       0,mycomm,ierr)
-      zpbl = transpose(swapv)
+      call deco1_scatter(zpbl_io,zpbl,jcross1,jcross2,icross1,icross2)
     end if
+
     if ( icup == 1 ) then
-      if ( myid == 0 ) then
-        do j = 1 , jx
-          do k = 1 , kz
-            do i = 1 , iy
-              sav_0c(i,k,j)    = rsheat_io(i,k,j)
-              sav_0c(i,kz+k,j) = rswat_io(i,k,j)
-            end do
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_0c,iy*kz*2*jxp,mpi_real8,  &
-                       sav0c, iy*kz*2*jxp,mpi_real8,  &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do k = 1 , kz
-          do i = 1 , iy
-            rsheat(j,i,k) = sav0c(i,k,j)
-            rswat(j,i,k)  = sav0c(i,kz+k,j)
-          end do
-        end do
-      end do
+      call deco1_scatter(rsheat_io,rsheat,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_scatter(rswat_io,rswat,jcross1,jcross2,icross1,icross2,1,kz)
     end if
     if ( icup == 3 ) then
-      if ( myid == 0 ) then
-        do j = 1 , jx
-          do k = 1 , kz
-            do i = 1 , iy
-              sav_0b(i,k,j) = tbase_io(i,k,j)
-            end do
-          end do
-          do i = 1 , iy
-            sav_0b(i,kzp1,j) = cldefi_io(i,j)
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_0b,iy*(kzp1)*jxp,mpi_real8,  &
-                       sav0b, iy*(kzp1)*jxp,mpi_real8,  &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do k = 1 , kz
-          do i = 1 , iy
-            tbase(i,k,j) = sav0b(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          cldefi(i,j) = sav0b(i,kzp1,j)
-        end do
-      end do
+      call deco1_scatter(tbase_io,tbase,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_scatter(cldefi_io,cldefi,jcross1,jcross2,icross1,icross2)
     end if
     if ( icup==4 .or. icup==99 .or. icup==98 ) then
-      call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,  &
-                       cbmf2d,   iy*jxp,mpi_real8,  &
-                       0,mycomm,ierr)
+      call deco1_scatter(cbmf2d_io,cbmf2d,jcross1,jcross2,icross1,icross2)
     end if
 
     if (irrtm == 0) then 
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do l = 1 , 4
-          do k = 1 , kz
-            do i = 1 , iym1
-              sav_1(i,(l-1)*kz+k,j) = gasabsnxt_io(i,k,l,j)
-            end do
-          end do
-        end do
-      end do
-      allrec = kz*4
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do l = 1 , kzp1
-          do k = 1 , kzp1
-            do i = 1 , iym1
-              sav_1(i,allrec+(l-1)*(kzp1)+k,j) = gasabstot_io(i,k,l,j)
-            end do
-          end do
-        end do
-      end do
-      allrec = allrec + (kzp1)*(kz+1)
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do k = 1 , kzp1
-          do i = 1 , iym1
-            sav_1(i,allrec+k,j) = gasemstot_io(i,k,j)
-          end do
-        end do
-      end do
-      allrec = allrec + kzp1
-    end if
-    allrec = kz*4 + (kzp1*kzp2)
-    call mpi_scatter(sav_1,iym1*allrec*jxp,mpi_real8,   &
-                     sav1, iym1*allrec*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do l = 1 , 4
-        do k = 1 , kz
-          do i = 1 , iym1
-            gasabsnxt(j,i,k,l) = sav1(i,(l-1)*kz+k,j)
-          end do
-        end do
-      end do
-    end do
-    allrec = kz*4
-    do j = 1 , jendx
-      do l = 1 , kzp1
-        do k = 1 , kzp1
-          do i = 1 , iym1
-            gasabstot(j,i,k,l) = sav1(i,allrec+(l-1)*(kzp1)+k,j)
-          end do
-        end do
-      end do
-    end do
-    allrec = allrec + (kzp1)*(kz+1)
-    do j = 1 , jendx
-      do k = 1 , kzp1
-        do i = 1 , iym1
-          gasemstot(j,i,k) = sav1(i,allrec+k,j)
-        end do
-      end do
-    end do
+      call deco1_scatter(gasabsnxt_io,gasabsnxt, &
+                         jcross1,jcross2,icross1,icross2,1,kz,1,4)
+      call deco1_scatter(gasabstot_io,gasabstot, &
+                         jcross1,jcross2,icross1,icross2,1,kzp1,1,kzp1)
+      call deco1_scatter(gasemstot_io,gasemstot, &
+                         jcross1,jcross2,icross1,icross2,1,kzp1)
     end if ! irrtm test
 
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do n = 1 , nnsg
-          do i = 1 , iym1
-            sav_2(i,n,j) = taf_io(n,i,j)
-            sav_2(i,nnsg+n,j) = tlef_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = ssw_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = rsw_io(n,i,j)
+    call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solvd_io,solvd,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solvs_io,solvs,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sabveg_io,sabveg,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(flw_io,flw,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(pptc_io,pptc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
+
+    call subgrid_deco1_scatter(tlef_io,tlef,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(ssw_io,ssw,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(rsw_io,rsw,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(tgrd_io,tgrd,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(tgbrd_io,tgbrd,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(sncv_io,sncv,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(gwet_io,gwet,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(snag_io,snag,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(sfice_io,sfice,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(ldew_io,ldew,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(taf_io,taf,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(tsw_io,tsw,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(emiss_io,emiss,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(ocld_io,ocld,jcross1,jcross2,icross1,icross2)
+
+    if ( iseaice == 1 .or. lakemod == 1 ) then
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          do n = 1 , nnsg
+            if ( ocld(j,i,n) == 2 ) iveg1(n,j,i) = 12
           end do
-        end do
-        do i = 1 , iym1
-          sav_2(i,nnsg*5+1,j) = solis_io(i,j)
-          sav_2(i,nnsg*5+2,j) = solvd_io(i,j)
-          sav_2(i,nnsg*5+3,j) = solvs_io(i,j)
-          sav_2(i,nnsg*5+4,j) = flw_io(i,j)
         end do
       end do
     end if
-    allrec = nnsg*5 + 4
-    call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
-                     sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do n = 1 , nnsg
-        do i = 1 , iym1
-          taf(n,j,i) = sav2(i,n,j)
-          tlef(n,j,i) = sav2(i,nnsg+n,j)
-          ssw(n,j,i) = sav2(i,nnsg*2+n,j)
-          rsw(n,j,i) = sav2(i,nnsg*3+n,j)
-        end do
-      end do
-      do i = 1 , iym1
-        solis(j,i) = sav2(i,nnsg*5+1,j)
-        solvd(j,i) = sav2(i,nnsg*5+2,j)
-        solvs(j,i) = sav2(i,nnsg*5+3,j)
-        flw(j,i)   = sav2(i,nnsg*5+4,j)
-      end do
-    end do
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do n = 1 , nnsg
-          do i = 1 , iym1
-            sav_2(i,n,j) = tgbrd_io(n,i,j)
-            sav_2(i,nnsg+n,j) = tsw_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = sncv_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = gwet_io(n,i,j)
-            sav_2(i,nnsg*4+n,j) = tgrd_io(n,i,j)
-          end do
-        end do
-        do i = 1 , iym1
-          sav_2(i,nnsg*5+1,j) = flwd_io(i,j)
-          sav_2(i,nnsg*5+2,j) = fsw_io(i,j)
-          sav_2(i,nnsg*5+3,j) = sabveg_io(i,j)
-          sav_2(i,nnsg*5+4,j) = sinc_io(i,j)
-        end do
-      end do
-    end if
-    allrec = nnsg*5 + 4
-    call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
-                     sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do n = 1 , nnsg
-        do i = 1 , iym1
-          tgbrd(n,j,i) = sav2(i,n,j)
-          tsw(n,j,i) = sav2(i,nnsg+n,j)
-          sncv(n,j,i) = sav2(i,nnsg*2+n,j)
-          gwet(n,j,i) = sav2(i,nnsg*3+n,j)
-          tgrd(n,j,i) = sav2(i,nnsg*4+n,j)
-        end do
-      end do
-      do i = 1 , iym1
-        flwd(j,i) = sav2(i,nnsg*5+1,j)
-        fsw(j,i) = sav2(i,nnsg*5+2,j)
-        sabveg(j,i) = sav2(i,nnsg*5+3,j)
-        sinc(j,i) = sav2(i,nnsg*5+4,j)
-      end do
-    end do
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do n = 1 , nnsg
-          do i = 1 , iym1
-            sav_2(i,nnsg+n,j)   = snag_io(n,i,j)
-            sav_2(i,nnsg*2+n,j) = sfice_io(n,i,j)
-            sav_2(i,nnsg*3+n,j) = ldew_io(n,i,j)
-            sav_2(i,nnsg*4+n,j) = emiss_io(n,i,j)
-          end do
-        end do
-        do i = 1 , iym1
-          sav_2(i,nnsg*5+1,j) = pptnc_io(i,j)
-          sav_2(i,nnsg*5+2,j) = pptc_io(i,j)
-          sav_2(i,nnsg*5+3,j) = prca2d_io(i,j)
-          sav_2(i,nnsg*5+4,j) = prnca2d_io(i,j)
-        end do
-      end do
-    end if
-    allrec = nnsg*5 + 4
-    call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
-                     sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do n = 1 , nnsg
-        do i = 1 , iym1
-          snag(n,j,i)  = sav2(i,nnsg+n,j)
-          sfice(n,j,i) = sav2(i,nnsg*2+n,j)
-          ldew(n,j,i)  = sav2(i,nnsg*3+n,j)
-          emiss(n,j,i) = sav2(i,nnsg*4+n,j)
-        end do
-      end do
-      do i = 1 , iym1
-        pptnc(j,i) = sav2(i,nnsg*5+1,j)
-        pptc(j,i) = sav2(i,nnsg*5+2,j)
-        prca(j,i) = sav2(i,nnsg*5+3,j)
-        prnca(j,i) = sav2(i,nnsg*5+4,j)
-      end do
-    end do
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do n = 1 , nnsg
-          do i = 1 , iym1
-            sav_2a(i,n,j)      = veg2d1_io(n,i,j)
-            sav_2a(i,nnsg+n,j) = ocld2d_io(n,i,j)
-          end do
-        end do
-        do i = 1 , iym1
-          sav_2a(i,nnsg*2+1,j) = veg2d_io(i,j)
-          sav_2a(i,nnsg*2+2,j) = ldmsk_io(i,j)
-        end do
-      end do
-    end if
-    allrec = nnsg*2 + 2
-    call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_integer,  &
-                     sav2a, iym1*allrec*jxp,mpi_integer,  &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do n = 1 , nnsg
-        do i = 1 , iym1
-          veg2d1(n,j,i) = sav2a(i,n,j)
-          ocld2d(n,j,i) = sav2a(i,nnsg+n,j)
-        end do
-      end do
-      do i = 1 , iym1
-        veg2d(j,i) = sav2a(i,nnsg*2+1,j)
-        ldmsk(j,i) = sav2a(i,nnsg*2+2,j)
-      end do
-    end do
+
     if ( ichem == 1 ) then
-      if ( myid == 0 ) then
-        do j = 1 , jx
-          do n = 1 , ntr
-            do k = 1 , kz
-              do i = 1 , iy
-                sav_4(i,(n-1)*kz+k,j) = chia_io(i,k,j,n)
-                sav_4(i,ntr*kz+(n-1)*kz+k,j) = chib_io(i,k,j,n)
-                sav_4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc_io(i,k,j,n)
-                sav_4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc_io(i,k,j,n)
-              end do
-            end do
-          end do
-        end do
-        allrec = 4*ntr*kz
-        do j = 1 , jx
-          do n = 1 , ntr
-            do i = 1 , iy
-              sav_4(i,allrec+n,j) = remdrd_io(i,j,n)
-            end do
-          end do
-        end do
-        allrec = allrec + ntr
-      end if
-      allrec = ntr*(kz*4+1)
-      call mpi_scatter(sav_4,iy*allrec*jxp,mpi_real8,   &
-                       sav4, iy*allrec*jxp,mpi_real8,   &
-                       0,mycomm,ierr)
-      do j = 1 , jendl
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = 1 , iy
-              chia(i,k,j,n) = sav4(i,(n-1)*kz+k,j)
-              chib(i,k,j,n) = sav4(i,ntr*kz+(n-1)*kz+k,j)
-              remlsc(i,k,j,n) = sav4(i,ntr*kz*2+(n-1)*kz+k,j)
-              remcvc(i,k,j,n) = sav4(i,ntr*kz*3+(n-1)*kz+k,j)
-            end do
-          end do
-        end do
-      end do
-      allrec = 4*ntr*kz
-      do j = 1 , jendl
-        do n = 1 , ntr
-          do i = 1 , iy
-            remdrd(i,j,n) = sav4(i,allrec+n,j)
-          end do
-        end do
-      end do
-      if ( myid == 0 ) then
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          do i = 1 , iym1
-            sav_4a(i,1,j) = ssw2da_io(i,j)
-            sav_4a(i,2,j) = sdeltk2d_io(i,j)
-            sav_4a(i,3,j) = sdelqk2d_io(i,j)
-            sav_4a(i,4,j) = sfracv2d_io(i,j)
-            sav_4a(i,5,j) = sfracb2d_io(i,j)
-            sav_4a(i,6,j) = sfracs2d_io(i,j)
-            sav_4a(i,7,j) = svegfrac2d_io(i,j)
-          end do
-        end do
-      end if
-      call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,   &
-                       sav4a, iym1*7*jxp,mpi_real8,   &
-                       0,mycomm,ierr)
-      do j = 1 , jendx
-        do i = 1 , iym1
-          ssw2da(j,i) = sav4a(i,1,j)
-          sdeltk2d(j,i) = sav4a(i,2,j)
-          sdelqk2d(j,i) = sav4a(i,3,j)
-          sfracv2d(j,i) = sav4a(i,4,j)
-          sfracb2d(j,i) = sav4a(i,5,j)
-          sfracs2d(j,i) = sav4a(i,6,j)
-          svegfrac2d(j,i) = sav4a(i,7,j)
-        end do
-      end do
+      call deco1_scatter(chia_io,chia, &
+                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+      call deco1_scatter(chib_io,chib, &
+                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+      call deco1_scatter(remlsc_io,remlsc, &
+                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+      call deco1_scatter(remcvc_io,remcvc, &
+                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+      call deco1_scatter(remdrd_io,remdrd, &
+                         jcross1,jcross2,icross1,icross2,1,ntr)
+      call deco1_scatter(ssw2da_io,ssw2da,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(sdeltk2d_io,sdeltk2d,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(sdelqk2d_io,sdelqk2d,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(sfracv2d_io,sfracv2d,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(sfracb2d_io,sfracb2d,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(sfracs2d_io,sfracs2d,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(svegfrac2d_io,svegfrac2d, &
+                         jcross1,jcross2,icross1,icross2)
     end if
-    call mpi_scatter(fsavsts_io,iym2*numsts*jxp,mpi_real4, &
-                     fsavsts,   iym2*numsts*jxp,mpi_real4, &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do l = 1 , numsts
-        do i = 1 , iym2
-          fbat(j,i,23+l) = fsavsts(i,l,j)
-        end do
-      end do
-    end do
+
+    call deco1_scatter(fbat_io,fbat, &
+                       jout1,jout2,iout1,iout2,numbat-numsts+1,numbat)
+
 #ifdef CLM
-    if ( myid == 0 ) then
-#ifdef BAND
-      do j = 1 , jx
+    call deco1_scatter(sols2d_io,sols2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(soll2d_io,soll2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solsd2d_io,solsd2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solld2d_io,solld2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldirs2d_io,aldirs2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldirl2d_io,aldirl2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldifs2d_io,aldifs2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldifl2d_io,aldifl2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(lndcat2d_io,lndcat2d,jcross1,jcross2,icross1,icross2)
 #else
-      do j = 1 , jxm1
+    if ( lakemod == 1 ) then
+      call subgrid_deco1_scatter(eta,eta_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(hi,hi_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(aveice,aveice_io, &
+                                 jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(hsnow,hsnow_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(tlak,tlak_io, &
+                                 jcross1,jcross2,icross1,icross2,1,ndpmax)
+    endif
 #endif
-        do i = 1 , iym1
-          sav_clmout(i,1,j)  = sols2d_io(i,j)
-          sav_clmout(i,2,j)  = soll2d_io(i,j)
-          sav_clmout(i,3,j)  = solsd2d_io(i,j)
-          sav_clmout(i,4,j)  = solld2d_io(i,j)
-          sav_clmout(i,5,j)  = aldirs2d_io(i,j)
-          sav_clmout(i,6,j)  = aldirl2d_io(i,j)
-          sav_clmout(i,7,j)  = aldifs2d_io(i,j)
-          sav_clmout(i,8,j)  = aldifl2d_io(i,j)
-        end do
-      end do
-    end if
-    call mpi_scatter(sav_clmout,iym1*8*jxp,mpi_real8,   &
-                     sav_clmin, iym1*8*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-    do j = 1 , jendx
-      do i = 1 , iym1
-        sols2d(i,j)   = sav_clmin(i,1,j)
-        soll2d(i,j)   = sav_clmin(i,2,j)
-        solsd2d(i,j)  = sav_clmin(i,3,j)
-        solld2d(i,j)  = sav_clmin(i,4,j)
-        aldirs2d(i,j) = sav_clmin(i,5,j)
-        aldirl2d(i,j) = sav_clmin(i,6,j)
-        aldifs2d(i,j) = sav_clmin(i,7,j)
-        aldifl2d(i,j) = sav_clmin(i,8,j)
-      end do
-    end do
-    call mpi_scatter(lndcat2d_io,iy*jxp,mpi_real8, &
-                     swapv,      iy*jxp,mpi_real8, &
-                     0,mycomm,ierr)
-    lndcat2d = transpose(swapv)
-#endif
-    call mpi_bcast(ktau,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(mtau,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(nbdytime,1,mpi_integer,0,mycomm,ierr)
-    call date_bcast(idatex,0,mycomm,ierr)
-    xbctime = dble(nbdytime)
+!
+    call deco1_scatter(dstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
+    call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
+!
+    call deco1_scatter(sue_io,sue,jdot1,jdot2,1,kz)
+    call deco1_scatter(sui_io,sui,jdot1,jdot2,1,kz)
+    call deco1_scatter(nue_io,nue,jdot1,jdot2,1,kz)
+    call deco1_scatter(nui_io,nui,jdot1,jdot2,1,kz)
+    call deco1_scatter(sve_io,sve,jdot1,jdot2,1,kz)
+    call deco1_scatter(svi_io,svi,jdot1,jdot2,1,kz)
+    call deco1_scatter(nve_io,nve,jdot1,jdot2,1,kz)
+    call deco1_scatter(nvi_io,nvi,jdot1,jdot2,1,kz)
+!
+    call deco1_exchange_left(sue,1,1,kz)
+    call deco1_exchange_right(sue,1,1,kz)
+    call deco1_exchange_left(sui,1,1,kz)
+    call deco1_exchange_right(sui,1,1,kz)
+    call deco1_exchange_left(nue,1,1,kz)
+    call deco1_exchange_right(nue,1,1,kz)
+    call deco1_exchange_left(nui,1,1,kz)
+    call deco1_exchange_right(nui,1,1,kz)
+    call deco1_exchange_left(sve,1,1,kz)
+    call deco1_exchange_right(sve,1,1,kz)
+    call deco1_exchange_left(svi,1,1,kz)
+    call deco1_exchange_right(svi,1,1,kz)
+    call deco1_exchange_left(nve,1,1,kz)
+    call deco1_exchange_right(nve,1,1,kz)
+    call deco1_exchange_left(nvi,1,1,kz)
+    call deco1_exchange_right(nvi,1,1,kz)
+!
 #ifndef BAND
+    call mpi_bcast(eui,nidot*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(eue,nidot*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(evi,nidot*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(eve,nidot*kz,mpi_real8,0,mycomm,ierr)
     if (debug_level > 2) call mpidiag
 #endif
+
     dt = dt2    ! First timestep successfully read in
     dtcum = dt2
     dtpbl = dt2
     dtche = dt2
     rdtpbl = d_one/dt2
     dttke = dt2
+
+    if ( myid == 0 ) then
+      print * , 'ozone profiles restart'
+      do k = 1 , kzp1
+        write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
+      end do
+      appdat = tochar(idatex)
+      print 99001 , nbdytime, ktau, appdat
+    end if
 !
 !-----end of initial/restart if test
 !
   end if
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
- 
-  if ( ktau == 0 ) call initb(jbegin,jendx,2,iym1)
+
+  !
+  ! The following allows to change landuse on restart.
+  !
+  do i = ice1 , ice2
+    do j = jce1 , jce2
+      iveg(j,i) = idnint(lndcat(j,i)+0.1D0)
+      do n = 1 , nnsg
+        iveg1(n,j,i) = idnint(lndcat1(n,j,i)+0.1D0)
+      end do
+    end do
+  end do
+  
+  if ( ktau == 0 ) then
+    call initb(jci1,jci2,ici1,ici2)
+    if ( lakemod == 1 ) then
+      call subgrid_deco1_gather(idep,idep_io,jcross1,jcross2,icross1,icross2)
+    end if
+  end if
 
   if ( iemiss == 1 .and. .not. ifrest ) then
-    do j = 1 , jendx
-      do i = 1 , iym1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
-          ist = veg2d1(n,j,i)
+          ist = iveg1(n,j,i)
           if ( ist == 14 .or. ist == 15 ) then
             emiss(n,j,i) = 0.955D0
           else if ( ist == 8 ) then
@@ -1127,38 +608,21 @@ module mod_init
   init_grid = .true.
 #endif
   call inirad
-!
-!-----calculating topographical correction to diffusion coefficient
-  do i = 1 , iy
-    do j = 1 , jendl
+  !
+  ! calculating topographical correction to diffusion coefficient
+  !
+  do i = ide1 , ide2
+    do j = jde1 , jde2
       hgfact(j,i) = d_one
     end do
   end do
 
-  do i = 2 , iym2
-    im1h = max0(i-1,2)
-    ip1h = min0(i+1,iym2)
-#ifdef BAND
-    do j = jbegin , jendm
-      jm1 = j-1
-      jp1 = j+1
-#else
-    do j = jbegin , jendm
-      if ( myid == 0 ) then
-        jm1 = max0(j-1,2)
-      else
-        jm1 = j - 1
-      end if
-      if ( myid == nproc-1 ) then
-        jp1 = min0(j+1,jxp-2)
-      else
-        jp1 = j + 1
-      end if
-#endif
-      hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,im1h))/dx)
-      hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,ip1h))/dx)
-      hg3 = dabs((mddom%ht(j,i)-mddom%ht(jm1,i))/dx)
-      hg4 = dabs((mddom%ht(j,i)-mddom%ht(jp1,i))/dx)
+  do i = idi1 , idi2
+    do j = jdi1 , jdi2
+      hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+      hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+      hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+      hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
       hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
       hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**d_two)
     end do
@@ -1185,30 +649,17 @@ module mod_init
 !     compute ozone mixing ratio distribution
 !
   subroutine inirad
- 
   implicit none
-!
-  integer :: i , j , k
+  integer :: k
 !
   if ( ktau == 0 ) then
-    do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iym1
-          heatrt(j,i,k) = d_zero
-          o3prof(j,i,k) = d_zero
-        end do
-      end do
-    end do
-    do j = 1 , jendl
-      do i = 1 , iym1
-        o3prof(j,i,kzp1) = d_zero
-      end do
-    end do
-    call o3data(1,jendx,1,iym1)
+    heatrt(:,:,:) = d_zero
+    o3prof(:,:,:) = d_zero
+    call o3data(jci1,jci2,ici1,ici2)
     if ( myid == 0 ) then
       write (6,*) 'ozone profiles'
       do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof(2,3,k)
+        write (6,'(1x,7E12.4)') o3prof(3,3,k)
       end do
     end if
     ! RRTM_SW gas / abs constant initialisation

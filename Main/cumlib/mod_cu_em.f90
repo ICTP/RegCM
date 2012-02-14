@@ -32,22 +32,22 @@ module mod_cu_em
             omtrain , omtsnow , coeffr , coeffs , cu , betae , &
             dtmax , alphae , damp , minorig
 !
-  real(8) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
+  real(dp) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
              elcrit , entp , minsig , omtrain , omtsnow , sigd ,    &
              sigs , tlcrit
 !
   integer :: minorig
-  real(8) , parameter :: cl = 2500.0D0
-  real(8) , parameter :: cpvmcl = cl - cpv
-  real(8) , parameter :: mincbmf = 1.0D-30
+  real(dp) , parameter :: cl = 2500.0D0
+  real(dp) , parameter :: cpvmcl = cl - cpv
+  real(dp) , parameter :: mincbmf = 1.0D-30
 !
-  real(8) , public , pointer , dimension(:,:) :: cbmf2d
+  real(dp) , public , pointer , dimension(:,:) :: cbmf2d
 !
   contains
 !
   subroutine allocate_mod_cu_em
     implicit none
-    call getmem2d(cbmf2d,1,iy,1,jxp,'mod_cu_em:cbmf2d')
+    call getmem2d(cbmf2d,1,jxp,1,iy,'mod_cu_em:cbmf2d')
   end subroutine allocate_mod_cu_em
 !
 !
@@ -64,12 +64,12 @@ module mod_cu_em
 !
     integer , parameter :: ntra = 0
 !
-    real(8) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
-    real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
+    real(dp) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
+    real(dp) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                qscup , tcup , ucup , vcup
-    real(8) , dimension(kz,1) :: ftra , tra
+    real(dp) , dimension(kz,1) :: ftra , tra
     integer :: i , j , k , iflag , kbase , kclth , kk , ktop
-    real(8) , dimension(kzp1) :: phcup
+    real(dp) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
     do i = istart , iend
@@ -90,13 +90,13 @@ module mod_cu_em
           kk = kzp1 - k + 1
           phcup(k) = (flev(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
         end do
-        cbmf = cbmf2d(i,j)                              ! [(kg/m**2)/s]
+        cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
    
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                      kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,    &
                      tprime,qprime,cbmf,kbase,ktop)
    
-        cbmf2d(i,j) = cbmf
+        cbmf2d(j,i) = cbmf
    
         ! iflag=0: No moist convection; atmosphere stable or surface
         !          temperature < 250K or surface humidity is negative.
@@ -113,14 +113,14 @@ module mod_cu_em
           ! Tendencies
           do k = 1 , kz
             kk = kzp1 - k
-            tten(i,kk,j) = ft(k)*sfcps(j,i) + tten(i,kk,j)
-            qvten(i,kk,j) = fq(k)/(d_one-fq(k))* &
-                              sfcps(j,i)+qvten(i,kk,j)
+            tten(j,i,kk) = ft(k)*sfcps(j,i) + tten(j,i,kk)
+            qvten(j,i,kk) = fq(k)/(d_one-fq(k))* &
+                              sfcps(j,i)+qvten(j,i,kk)
             ! There is a bit of an inconsistency here...  The wind
             ! tendencies from convection are on cross points, but the
             ! model wants them on dot points.
-            uten(i,kk,j) = fu(k)*sfcps(j,i) + uten(i,kk,j)
-            vten(i,kk,j) = fv(k)*sfcps(j,i) + vten(i,kk,j)
+            uten(j,i,kk) = fu(k)*sfcps(j,i) + uten(j,i,kk)
+            vten(j,i,kk) = fv(k)*sfcps(j,i) + vten(j,i,kk)
           end do
    
           ! Cloud fraction and cloud water
@@ -293,17 +293,17 @@ module mod_cu_em
 !
     implicit none
 !
-    real(8) :: cbmf , precip , qprime , tprime , wd
+    real(dp) :: cbmf , precip , qprime , tprime , wd
     integer :: icb , iflag , inb , na , nd , nl , ntra
-    real(8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
+    real(dp) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                t , u , v
-    real(8) , dimension(nd,1) :: ftra , tra
+    real(dp) , dimension(nd,1) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    inb , precip , q , qprime , qs , t , tra , u , v
 !
-    real(8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
+    real(dp) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
                cbmfold , chi , coeff , cpinv , cwat , damps , dbo ,   &
@@ -312,18 +312,18 @@ module mod_cu_em
                elacrit , ents , epmax , fac , fqold , frac , ftold ,  &
                ftraold , fuold , fvold , plcl , qnew , qp1 , qsm ,    &
                qstm , qti , rat , rdcp , revap , rh , rm , scrit , sigt
-    real(8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
+    real(dp) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
                                hp , lv , lvcp , m , mp , qp , sigp ,  &
                                th , told , tp , tratm , tv , tvp ,    &
                                up , vp , water , wt
-    real(8) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
+    real(dp) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
     integer :: i , ihmin , inb1 , ipbl , j , jc , jn , jtt , k , nk
     integer , dimension(na) :: nent
-    real(8) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
+    real(dp) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
                thbar , tnew , traav , tvaplcl , tvpplcl , tvx , tvy , &
                uav , um , vav , vm , wdtrain , x
-    real(8) , dimension(na,na,ntra) :: traent
-    real(8) , dimension(na,ntra) :: trap
+    real(dp) , dimension(na,na,ntra) :: traent
+    real(dp) , dimension(na,ntra) :: trap
 !
 !   specify switches                        
 !
@@ -1115,12 +1115,12 @@ module mod_cu_em
     implicit none
 !
     integer :: icb , kk , nd , nk , nl
-    real(8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
+    real(dp) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
     intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
     intent (out) tvp
     intent (inout) clw , tpk
 !
-    real(8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
+    real(dp) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
                qg , rg , s , tc , tg
     integer :: i , j , nsb , nst
 !

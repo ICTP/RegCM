@@ -93,9 +93,9 @@ module mod_bats_zengocn
       do j = jstart , jend
         do n = 1 , nnsg
 #ifdef CLM
-          if ( ocld2d(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
+          if ( ocld(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
 #else
-          if ( ocld2d(n,j,i) == 0 ) then
+          if ( ocld(n,j,i) == 0 ) then
 #endif
             uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
             tsurf = tground2(j,i) - tzero
@@ -111,23 +111,23 @@ module mod_bats_zengocn
               ! temperature , equal to BATS time step
               dtsst = dtbat
               ! handle the first call of the scheme
-              if ( .not.firstcall(i,j) ) then
-                deltas(i,j) = 0.001D0
-                tdeltas(i,j) = tground2(j,i) - 0.001D0
-                firstcall(i,j) = .true.
-                td = tdeltas(i,j)
+              if ( .not.firstcall(j,i) ) then
+                deltas(j,i) = 0.001D0
+                tdeltas(j,i) = tground2(j,i) - 0.001D0
+                firstcall(j,i) = .true.
+                td = tdeltas(j,i)
               end if
               ! Init local variables
-              delta = deltas(i,j)
-              tdelta = tdeltas(i,j)
+              delta = deltas(j,i)
+              tdelta = tdeltas(j,i)
               ! td is now the 3m bulk SST from the forcing variable
-              td = ts(i,j)
+              td = ts(j,i)
               !
               ! deep impact of aod on sst
-              ! if ( sum(aerext(i,:,j)) <= 1 ) then
-              !   td = ts(i,j) - sum(aerext(i,:,j))*0.8D0
-              ! else if ( sum(aerext(i,:,j)) > 1 ) then
-              !   td = ts(i,j)- d_one*0.8D0
+              ! if ( sum(aerext(j,i,:)) <= 1 ) then
+              !   td = ts(j,i) - sum(aerext(j,i,:))*0.8D0
+              ! else if ( sum(aerext(j,i,:)) > 1 ) then
+              !   td = ts(j,i)- d_one*0.8D0
               ! end if
               !
               ! rs is the net surface sw flux (sw energy absorbed)
@@ -188,9 +188,9 @@ module mod_bats_zengocn
               end if
               ! save the temperature difference and skin layer thickness
               ! for next time step
-              deltas(i,j) = delta
-              tdeltas(i,j) = tdelta
-              dtskin(i,j) = tskin-td
+              deltas(j,i) = delta
+              tdeltas(j,i) = tdelta
+              dtskin(j,i) = tskin-td
               ! now feedback tskin in surface variable
               tground2(j,i) = tskin
             end if ! dcsst

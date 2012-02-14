@@ -26,30 +26,30 @@ module mod_cu_grell
  
   private
 
-  real(8) , parameter :: xacact = -0.99999D0
-  real(8) , parameter :: tcrit = 50.0D0
-  real(8) , parameter :: c0 = 0.002D0
-  real(8) :: alsixt
-  real(8) , dimension(2) :: ae , be
-  real(8) , pointer , dimension(:,:,:) :: outq , outt , p , po ,  &
+  real(dp) , parameter :: xacact = -0.99999D0
+  real(dp) , parameter :: tcrit = 50.0D0
+  real(dp) , parameter :: c0 = 0.002D0
+  real(dp) :: alsixt
+  real(dp) , dimension(2) :: ae , be
+  real(dp) , pointer , dimension(:,:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
-  real(8) , pointer , dimension(:,:,:) :: dby , dbyo , dellah ,       &
+  real(dp) , pointer , dimension(:,:,:) :: dby , dbyo , dellah ,       &
               dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
-  real(8) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
+  real(dp) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
   integer , pointer , dimension(:,:) :: kdet
   integer , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , kds , ktop
-  real(8) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
+  real(dp) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
               edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 !
-  real(8) , public , pointer , dimension(:,:,:) :: mflx
+  real(dp) , public , pointer , dimension(:,:,:) :: mflx
 !
-  real(8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
+  real(dp) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
               edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
               htmin2d
@@ -187,7 +187,7 @@ module mod_cu_grell
     integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
-    real(8) :: pkdcut , pkk , prainx , us , vs
+    real(dp) :: pkdcut , pkk , prainx , us , vs
     integer :: i , j , k , jp1 , kk
 !
     character (len=64) :: subroutine_name='cuparan'
@@ -296,24 +296,24 @@ module mod_cu_grell
         do j = jstart , jend
           kk = kz - k + 1
           jp1 = j + 1
-          us = (puatm(i,kk,j)/sfcps(j,i)+       &
-                puatm(i+1,kk,j)/sfcps(j,i+1)+   &
-                puatm(i,kk,jp1)/sfcps(jp1,i)+   &
-                puatm(i+1,kk,jp1)/sfcps(jp1,i+1))*d_rfour
-          vs = (pvatm(i,kk,j)/sfcps(j,i)+       &
-                pvatm(i+1,kk,j)/sfcps(j,i+1)+   &
-                pvatm(i,kk,jp1)/sfcps(jp1,i)+   &
-                pvatm(i+1,kk,jp1)/sfcps(jp1,i+1))*d_rfour
+          us = (puatm(j,i,kk)/sfcps(j,i)+       &
+                puatm(j,i+1,kk)/sfcps(j,i+1)+   &
+                puatm(jp1,i,kk)/sfcps(jp1,i)+   &
+                puatm(jp1,i+1,kk)/sfcps(jp1,i+1))*d_rfour
+          vs = (pvatm(j,i,kk)/sfcps(j,i)+       &
+                pvatm(j,i+1,kk)/sfcps(j,i+1)+   &
+                pvatm(jp1,i,kk)/sfcps(jp1,i)+   &
+                pvatm(jp1,i+1,kk)/sfcps(jp1,i+1))*d_rfour
           t(j,i,k) = tas(j,i,kk)
           q(j,i,k) = qvas(j,i,kk)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (tten(i,kk,j))/sfcps(j,i)*dtcum
-          qo(j,i,k) = q(j,i,k) + (qvten(i,kk,j))/sfcps(j,i)*dtcum
+          tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dtcum
+          qo(j,i,k) = q(j,i,k) + (qvten(j,i,kk))/sfcps(j,i)*dtcum
           p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
           vsp(j,i,k) = dsqrt(us**d_two+vs**d_two)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !
-           po(j,i,k) = p(j,i,k)
+          po(j,i,k) = p(j,i,k)
           psur(j,i) = d_10*sfcps(j,i) + d_10*ptop
           outt(j,i,k) = d_zero
           pkk = psur(j,i) - po(j,i,k)
@@ -321,7 +321,7 @@ module mod_cu_grell
           outq(j,i,k) = d_zero
           ter11(j,i) = sfhgt(j,i)*regrav
           if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
-          qcrit(j,i) = qcrit(j,i) + qvten(i,kk,j)
+          qcrit(j,i) = qcrit(j,i) + qvten(j,i,kk)
         end do
       end do
     end do
@@ -337,8 +337,8 @@ module mod_cu_grell
         do j = jstart , jend
           if ( pret(j,i) > d_zero ) then
             kk = kz - k + 1
-            tten(i,kk,j) = sfcps(j,i)*outt(j,i,k) + tten(i,kk,j)
-            qvten(i,kk,j) = sfcps(j,i)*outq(j,i,k) + qvten(i,kk,j)
+            tten(j,i,kk) = sfcps(j,i)*outt(j,i,k) + tten(j,i,kk)
+            qvten(j,i,kk) = sfcps(j,i)*outq(j,i,k) + qvten(j,i,kk)
           end if
         end do
       end do
@@ -375,7 +375,7 @@ module mod_cu_grell
 !
     integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(8) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
+    real(dp) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , e , eo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
@@ -1152,12 +1152,12 @@ module mod_cu_grell
        implicit none
 !
       integer , intent (in) :: jstart , jend , istart , iend , ke
-       real(8) , intent(in) , dimension(:,:,:) :: array
+       real(dp) , intent(in) , dimension(:,:,:) :: array
        integer , intent(in) , dimension(:,:) :: ks
        integer , intent(out) , dimension(:,:) :: kt
 !
        integer :: i , j , k
-       real(8) :: x
+       real(dp) :: x
        character (len=64) :: subroutine_name='minimi'
        integer :: idindx=0
 !
@@ -1183,11 +1183,11 @@ module mod_cu_grell
       implicit none
 !
       integer , intent (in) :: jstart , jend , istart , iend , ks , ke
-      real(8) , intent(in) , dimension(:,:,:) :: array
+      real(dp) , intent(in) , dimension(:,:,:) :: array
       integer , intent(out) , dimension(:,:) :: imax
 !
       integer :: i , j , k
-      real(8) :: x , xar
+      real(dp) :: x , xar
 !
       character (len=64) :: subroutine_name='maximi'
       integer :: idindx=0

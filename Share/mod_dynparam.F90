@@ -163,8 +163,6 @@ module mod_dynparam
 ! Tracer parameters: number of tracers and bins number for dust and sea salt
 
   integer :: ntr   ! Total number of chemical tracers
-!  integer :: nbin  ! Number of bins for dust particles
-!  integer :: sbin  ! Number of bins for sea salt particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
@@ -174,9 +172,9 @@ module mod_dynparam
   integer :: iym1
   integer :: iym2
   integer :: iym3
-  integer :: jxp1
   integer :: jxm1
   integer :: jxm2
+  integer :: jxm3
   integer :: kzm1
   integer :: kzm2
   integer :: kzp1
@@ -189,10 +187,22 @@ module mod_dynparam
   integer :: jxm1sg
   integer :: iym2sg
   integer :: jxm2sg
+  integer :: iym3sg
+  integer :: jxm3sg
   integer :: nnsg
   integer :: nspgv
   integer :: nspgp
-
+!
+  integer :: njcross , njdot , njout
+  integer :: nicross , nidot , niout
+!
+  integer :: jcross1 , icross1
+  integer :: jcross2 , icross2
+  integer :: jdot1 , idot1
+  integer :: jdot2 , idot2
+  integer :: jout1 , iout1
+  integer :: jout2 , iout2
+!
 !####################### MPI parameters ################################
 
   integer :: mycomm
@@ -201,10 +211,7 @@ module mod_dynparam
   integer :: jxp
   integer :: jxpsg
   integer :: iwest , ieast , isouth , inorth
-  integer :: jbegin , ibegin
-  integer :: jendl , iendl
-  integer :: jendx , iendx
-  integer :: jendm , iendm
+  integer :: jbegin , jendx , jendm
 
 !####################### MPI parameters ################################
 
@@ -351,9 +358,9 @@ module mod_dynparam
     iym1 = iy - 1
     iym2 = iy - 2
     iym3 = iy - 3
-    jxp1 = jx + 1
     jxm1 = jx - 1
     jxm2 = jx - 2
+    jxm3 = jx - 3
     kzm1 = kz - 1
     kzm2 = kz - 2
     kzp1 = kz + 1
@@ -366,6 +373,34 @@ module mod_dynparam
     jxm1sg = (jx-1) * nsg
     iym2sg = (iy-2) * nsg
     jxm2sg = (jx-2) * nsg
+    iym3sg = (iy-3) * nsg
+    jxm3sg = (jx-3) * nsg
+
+    jdot1 = 1
+    jdot2 = jx
+    jcross1 = 1
+#ifdef BAND
+    jcross2 = jx
+    jout1 = 1
+    jout2 = jx
+#else
+    jout1 = 2
+    jcross2 = jxm1
+    jout2 = jxm2
+#endif
+    idot1 = 1
+    idot2 = iy
+    icross1 = 1
+    icross2 = iym1
+    iout1 = 2
+    iout2 = iym2
+    njcross = jcross2-jcross1+1
+    nicross = icross2-icross1+1
+    njdot = jdot2-jdot1+1
+    nidot = idot2-idot1+1
+    njout = jout2-jout1+1
+    niout = iout2-iout1+1
+
     nnsg = nsg*nsg
     nveg = 22
 
@@ -427,8 +462,6 @@ module mod_dynparam
     call setcal(globidate2,ical)
 
     ntr  = 0
-  !  nbin = 0
-  !  sbin = 0 
     read(ipunit, aerosolparam, err=111)
 
     ierr = 0

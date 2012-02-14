@@ -1306,7 +1306,7 @@ jbin = 0
           logical , intent(in) :: lmiss
           integer , intent(out) :: ivar
           character(64) :: cdum
-          real(4) , parameter :: fillv = -1E+34
+          real(4) , parameter :: fillv = +1E+20
           integer :: i , ndims
        
           ndims = 0

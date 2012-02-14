@@ -366,11 +366,11 @@ module mod_projections
     if ( abs(zarg2)>=dlowval ) then
       lon = real(raddeg*atan2(zarg1,zarg2))
     else if ( abs(zarg1)<dlowval ) then
-      lon = deg00
+      lon = real(deg00)
     else if ( zarg1>d_zero ) then
-      lon = deg90
+      lon = real(deg90)
     else
-      lon = -deg90
+      lon = real(-deg90)
     end if
     if (lon >  180.0) lon = lon - 360.0
     if (lon < -180.0) lon = lon + 360.0

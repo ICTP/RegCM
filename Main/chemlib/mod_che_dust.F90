@@ -224,7 +224,7 @@ module mod_che_dust
                    mycomm,ierr)
 
 
-    do j=1,jendl
+    do j=1,jxp
       do n=1,nats
         do i=1,iy
           dustsotex(i,j,n)=src1(i,n,j)

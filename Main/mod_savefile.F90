@@ -41,12 +41,11 @@ module mod_savefile
 #endif
   private
 
-  public :: read_savefile_part1 , read_savefile_part2
+  public :: read_savefile
   public :: write_savefile
 
   integer :: isavlast
   integer :: iutrst
-  logical :: lrp1
 #ifdef CLM
   character(len=256) :: thisclmrest
   character(len=256) :: lastclmrest
@@ -54,15 +53,16 @@ module mod_savefile
 
   data isavlast /-1/
   data iutrst   /-1/
-  data lrp1 /.false./
 
   contains
 
-  subroutine read_savefile_part1(idate)
+  subroutine read_savefile(idate)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idate
     character(256) :: ffin
     character(16) :: fbname
+    integer(8) :: idt1 , idt2
+    real(8) :: odtsec
     logical :: existing
 
     if ( myid == 0 ) then
@@ -79,8 +79,21 @@ module mod_savefile
         open (iutrst,file=ffin,form='unformatted',status='old')
       end if
 
-      read (iutrst) ktau, idatex, nbdytime
-      read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, ts0_io
+      read (iutrst) ktau, odtsec, idatex, nbdytime
+      idt1 = idnint(odtsec)
+      idt2 = idnint(dtsec)
+      if ( idt1 /= idt2 ) then
+        write (aline,*) 'Recalculating ktau for the new dt'
+        call say
+        write (aline,*) 'Restart file ktau is       = ', ktau
+        call say
+        ktau = (ktau * idt1) / idt2
+        write (aline,*) 'Actual ktau with new dt is = ', ktau
+        call say
+        write (aline,*) 'Done Recalculating ktau for the new dt'
+        call say
+      end if
+      read (iutrst) ub0_io , vb0_io , tb0_io , qb0_io , ps0_io , ts0_io
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
       read (iutrst) atm1_io%t
@@ -91,8 +104,11 @@ module mod_savefile
       read (iutrst) atm2_io%t
       read (iutrst) atm2_io%qv
       read (iutrst) atm2_io%qc
-      read (iutrst) psa_io , psb_io
-      read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
+      read (iutrst) sfs_io%psa , sfs_io%psb
+      read (iutrst) sfs_io%tga , sfs_io%tgb
+      read (iutrst) sfs_io%hfx , sfs_io%qfx
+      read (iutrst) sfs_io%rainc , sfs_io%rainnc
+      read (iutrst) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         read (iutrst) atm1_io%tke
         read (iutrst) atm2_io%tke
@@ -107,7 +123,6 @@ module mod_savefile
       if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         read (iutrst) cbmf2d_io
       end if
-      read (iutrst) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
       call restdiag(iutrst)
 #endif
@@ -138,22 +153,19 @@ module mod_savefile
       read (iutrst) snag_io
       read (iutrst) sfice_io
       read (iutrst) ldew_io
-      read (iutrst) veg2d_io
       read (iutrst) ldmsk_io
-      read (iutrst) veg2d1_io
       read (iutrst) heatrt_io
       read (iutrst) o3prof_io
-      read (iutrst) tgbb_io
       read (iutrst) flw_io
       read (iutrst) flwd_io
       read (iutrst) fsw_io
       read (iutrst) tsw_io
       read (iutrst) sinc_io
       read (iutrst) taf_io
-      read (iutrst) ocld2d_io
+      read (iutrst) ocld_io
       read (iutrst) emiss_io
-      read (iutrst) fsavsts_io
-      read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
+      read (iutrst) fbat_io(jout1:jout2,iout1:iout2,numbat-numsts+1:)
+      read (iutrst) pptnc_io, pptc_io
       if ( iocnflx == 2 ) read (iutrst) zpbl_io
       if ( ichem == 1 ) then
         read (iutrst) chia_io
@@ -175,37 +187,21 @@ module mod_savefile
 #endif
       end if
 #ifndef CLM
-!------lake model
       if ( lakemod == 1 ) then
         call lakesav_i(iutrst)
       end if
 #endif
-      lrp1 = .true.
-    end if
-  end subroutine read_savefile_part1
-
-  subroutine read_savefile_part2
-    implicit none
-
-    if ( myid == 0 ) then
-      if (.not. lrp1) then
-        write (6,*) 'Reading part2 before part1'
-        call fatal(__FILE__,__LINE__, 'SAV FILE ERROR')
-      end if
-
       read (iutrst) dstor_io
       read (iutrst) hstor_io
 #ifndef BAND
-      read (iutrst) uj1 , uj2 , ujlx , ujl
+      read (iutrst) eue , eui , wue , wui
+      read (iutrst) eve , evi , wve , wvi
 #endif
-      read (iutrst) ui1_io , ui2_io , uilx_io , uil_io
-#ifndef BAND
-      read (iutrst) vj1 , vj2 , vjlx , vjl
-#endif
-      read (iutrst) vi1_io , vi2_io , vilx_io , vil_io
+      read (iutrst) nue_io , nui_io , sue_io , sui_io
+      read (iutrst) nve_io , nvi_io , sve_io , svi_io
       close(iutrst)
     end if
-  end subroutine read_savefile_part2
+  end subroutine read_savefile
 
   subroutine write_savefile(idate,ltmp)
     implicit none
@@ -216,7 +212,7 @@ module mod_savefile
     character(32) :: fbname
     logical :: existing
 #ifdef CLM
-    real(8) :: cdtime
+    real(dp) :: cdtime
 #endif
     if ( myid == 0 ) then
       if (ltmp) then
@@ -235,8 +231,8 @@ module mod_savefile
         call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
       end if
 
-      write (iutsav) ktau , idatex , nbdytime
-      write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , ts0_io
+      write (iutsav) ktau , dtsec , idatex , nbdytime
+      write (iutsav) ub0_io , vb0_io , tb0_io , qb0_io , ps0_io , ts0_io
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t
@@ -247,8 +243,11 @@ module mod_savefile
       write (iutsav) atm2_io%t
       write (iutsav) atm2_io%qv
       write (iutsav) atm2_io%qc
-      write (iutsav) psa_io , psb_io
-      write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
+      write (iutsav) sfs_io%psa , sfs_io%psb
+      write (iutsav) sfs_io%tga , sfs_io%tgb
+      write (iutsav) sfs_io%hfx , sfs_io%qfx
+      write (iutsav) sfs_io%rainc , sfs_io%rainnc
+      write (iutsav) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         write (iutsav) atm1_io%tke
         write (iutsav) atm2_io%tke
@@ -263,7 +262,6 @@ module mod_savefile
       if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         write (iutsav) cbmf2d_io
       end if
-      write (iutsav) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
       call savediag(iutsav)
 #endif
@@ -294,22 +292,19 @@ module mod_savefile
       write (iutsav) snag_io
       write (iutsav) sfice_io
       write (iutsav) ldew_io
-      write (iutsav) veg2d_io
       write (iutsav) ldmsk_io
-      write (iutsav) veg2d1_io
       write (iutsav) heatrt_io
       write (iutsav) o3prof_io
-      write (iutsav) tgbb_io
       write (iutsav) flw_io
       write (iutsav) flwd_io
       write (iutsav) fsw_io
       write (iutsav) tsw_io
       write (iutsav) sinc_io
       write (iutsav) taf_io
-      write (iutsav) ocld2d_io
+      write (iutsav) ocld_io
       write (iutsav) emiss_io
-      write (iutsav) fsavsts_io
-      write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
+      write (iutsav) fbat_io(jout1:jout2,iout1:iout2,numbat-numsts+1:)
+      write (iutsav) pptnc_io , pptc_io
       if ( iocnflx == 2 ) write (iutsav) zpbl_io
       if ( ichem == 1 ) then
         write (iutsav) chia_io
@@ -338,13 +333,11 @@ module mod_savefile
       write (iutsav) dstor_io
       write (iutsav) hstor_io
 #ifndef BAND
-      write (iutsav) uj1 , uj2 , ujlx , ujl
+      write (iutsav) eue , eui , wue , wui
+      write (iutsav) eve , evi , wve , wvi
 #endif
-      write (iutsav) ui1_io , ui2_io , uilx_io , uil_io
-#ifndef BAND
-      write (iutsav) vj1 , vj2 , vjlx , vjl
-#endif
-      write (iutsav) vi1_io , vi2_io , vilx_io , vil_io
+      write (iutsav) nue_io , nui_io , sue_io , sui_io
+      write (iutsav) nve_io , nvi_io , sve_io , svi_io
       close(iutsav)
     end if
 

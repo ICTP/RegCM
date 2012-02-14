@@ -103,10 +103,10 @@ module mod_bats_romsocn
     integer :: i, j, imin, imax, jmin, jmax
     character(100) :: fmt_123
 !
-    imin = lbound(inp, dim=1)
-    imax = ubound(inp, dim=1)
-    jmin = lbound(inp, dim=2)
-    jmax = ubound(inp, dim=2)
+    jmin = lbound(inp, dim=1)
+    jmax = ubound(inp, dim=1)
+    imin = lbound(inp, dim=2)
+    imax = ubound(inp, dim=2)
 !
     write(6, fmt="('PET(',I2,') - ',A)") pet, trim(header)
 !
@@ -115,7 +115,7 @@ module mod_bats_romsocn
 !  
     write(fmt_123, fmt="('(I5, ', I3, 'F10.2)')") jmax
     do i=imin, imax, iskip
-      write(6, fmt=trim(fmt_123)) i, (inp(i,j),j=jmin, jmax, jskip)
+      write(6, fmt=trim(fmt_123)) i, (inp(j,i),j=jmin, jmax, jskip)
     end do
 !
     return

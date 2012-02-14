@@ -30,6 +30,7 @@ module mod_regcm_interface
   use mod_mppgrid
   use mod_service
   use mod_che_interface
+  use mod_atm_interface
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -56,8 +57,8 @@ module mod_regcm_interface
   public :: RCM_run
   public :: RCM_finalize
 
-  real(8) :: dtinc
-  real(8) :: extime
+  real(dp) :: dtinc
+  real(dp) :: extime
 
   contains
  
@@ -154,23 +155,33 @@ module mod_regcm_interface
 !      print * , "process" , myid , "of" , nproc
     call mpi_barrier(mycomm,ierr)
 !     starttime= MPI_WTIME()
-    if ( myid > 0 ) then
-      iwest = myid - 1
-    else
+    if ( nproc == 1 ) then
 #ifdef BAND
-      iwest = nproc-1
-#else
-      iwest = mpi_proc_null
-#endif
-    end if
-    if ( myid < nproc-1 ) then
-      ieast = myid + 1
-    else
-#ifdef BAND
-      ieast = 0
+      iwest = myid
+      ieast = myid
 #else
       ieast = mpi_proc_null
+      iwest = mpi_proc_null
 #endif
+    else
+      if ( myid == 0 ) then
+#ifdef BAND
+        iwest = nproc-1
+#else
+        iwest = mpi_proc_null
+#endif
+        ieast = myid+1
+      else if ( myid == nproc-1 ) then
+#ifdef BAND
+        ieast = 0
+#else
+        ieast = mpi_proc_null
+#endif
+        iwest = myid-1
+      else
+        ieast = myid+1
+        iwest = myid-1
+      end if
     end if
     if ( jxp < 3 ) then
       write (aline,*) 'The number of jxp must be greater than 2'
@@ -189,7 +200,6 @@ module mod_regcm_interface
                & ' processor number')
     end if
     jbegin = 1
-    jendl = jxp
     jendx = jxp
     jendm = jxp
 #ifndef BAND
@@ -223,7 +233,8 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-! this below enable debugging
+!   this below enable debugging
+!
 #ifdef DEBUG 
     call start_debug()
 #endif 
@@ -240,17 +251,15 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call bdyin
-
+    call bdyin(0)
     if ( ichem == 1 ) then
       call chem_bdyin(150D00, bdydate1, bdydate2)
     end if
-
 !
-    call spinit(1,jendx,1,iym1)
-! 
+    call spinit
+!
     if ( ichem == 1 ) call chem_emission(7)
-
+!
 !
 !**********************************************************************
 !
@@ -290,9 +299,9 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    real(8), intent(in) :: timestr   ! starting time-step
-    real(8), intent(in) :: timeend   ! ending   time-step
-    logical, intent(in) :: first
+    real(dp) , intent(in) :: timestr   ! starting time-step
+    real(dp) , intent(in) :: timeend   ! ending   time-step
+    logical , intent(in) :: first
 !
 !**********************************************************************
 !
@@ -301,7 +310,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     character(len=32) :: appdat
-    integer :: iexec
+    integer , save :: iexec
 !
 !**********************************************************************
 !
@@ -326,10 +335,8 @@ module mod_regcm_interface
 !
       if ( nbdytime == 0 .and. &
           (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
-        call bdyin
-
-      if ( ichem == 1 )  call chem_bdyin(150D00, bdydate1, bdydate2)
-
+        call bdyin(1)
+        if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
       end if
 !
 !     Refined start
@@ -351,7 +358,7 @@ module mod_regcm_interface
 !
 !     Split modes
 !
-      call splitf(1,jendx,1,iym1)
+      call splitf
 !
 !     Write output for this timestep if requested
 !
@@ -397,7 +404,6 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    integer :: ierr
     character(len=32) :: appdat
     type(rcm_time_interval) :: tdif
 !

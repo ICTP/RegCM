@@ -27,26 +27,26 @@ module mod_precip
 !
   use mod_runparams
   use mod_memutil
-  use mod_atm_interface , only : atmstate , slice , surfpstate , surfstate
+  use mod_atm_interface , only : atmstate , slice , surfstate
 !
   private
 !
 ! Precip sum beginning from top
-  real(8) , pointer , dimension(:,:) :: pptsum
-  real(8) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
-  real(8) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
-  real(8) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
-  real(8) , pointer , dimension(:,:,:) :: tten , qvten , qcten
-  real(8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
+  real(dp) , pointer , dimension(:,:) :: pptsum
+  real(dp) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
+  real(dp) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
+  real(dp) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
+  real(dp) , pointer , dimension(:,:,:) :: tten , qvten , qcten
+  real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
  
-  real(8) :: qcth , aprdiv
+  real(dp) :: qcth , aprdiv
 !
-  real(8) , parameter :: uch = d_1000*regrav*secph
-  real(8) , parameter :: lowq = 1.0D-30
+  real(dp) , parameter :: uch = d_1000*regrav*secph
+  real(dp) , parameter :: lowq = 1.0D-8
 !
-  real(8) , public , pointer , dimension(:,:,:) :: fcc,remrat,rembc
-  real(8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
-  real(8) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
+  real(dp) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
+  real(dp) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
+  real(dp) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
   ! TAO 2/8/11:
   ! Flag for using convective liquid water path as the large-scale
   ! liquid water path (iconvlwp=1)
@@ -58,24 +58,22 @@ module mod_precip
 !
     subroutine allocate_mod_precip
       implicit none
-      call getmem3d(fcc,1,iy,1,kz,1,jxp,'pcp:fcc')
-      call getmem2d(qck1,1,iy,1,jxp,'pcp:qck1')
-      call getmem2d(cgul,1,iy,1,jxp,'pcp:cgul')
-      call getmem2d(rh0,1,iy,1,jxp,'pcp:rh0')
+      call getmem3d(fcc,1,jxp,1,iy,1,kz,'pcp:fcc')
+      call getmem2d(qck1,1,jxp,1,iy,'pcp:qck1')
+      call getmem2d(cgul,1,jxp,1,iy,'pcp:cgul')
+      call getmem2d(rh0,1,jxp,1,iy,'pcp:rh0')
       call getmem3d(remrat,1,jxp,1,iy,1,kz,'pcp:remrat')
       call getmem3d(rembc,1,jxp,1,iy,1,kz,'pcp:rembc')
     end subroutine allocate_mod_precip
 !
-    subroutine init_precip(atmslice,atm,tendency,sps,surface,pptnc, &
-                           radcldf,radlqwc)
+    subroutine init_precip(atmslice,atm,aten,sfs,pptnc,radcldf,radlqwc)
       implicit none
       type(slice) , intent(in) :: atmslice
       type(atmstate) , intent(in) :: atm
-      type(atmstate) , intent(in) :: tendency
-      type(surfpstate) , intent(in) :: sps
-      type(surfstate) , intent(in) :: surface
-      real(8) , pointer , dimension(:,:) :: pptnc
-      real(8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
+      type(atmstate) , intent(in) :: aten
+      type(surfstate) , intent(in) :: sfs
+      real(dp) , pointer , dimension(:,:) :: pptnc
+      real(dp) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
       call assignpnt(atmslice%tb3d,t3)
       call assignpnt(atmslice%pb3d,p3)
@@ -87,16 +85,16 @@ module mod_precip
       call assignpnt(atm%t,t2)
       call assignpnt(atm%qv,qv2)
       call assignpnt(atm%qc,qc2)
-      call assignpnt(tendency%t,tten)
-      call assignpnt(tendency%qc,qcten)
-      call assignpnt(tendency%qv,qvten)
-      call assignpnt(sps%ps,psf)
-      call assignpnt(surface%rainnc,rainnc)
+      call assignpnt(aten%t,tten)
+      call assignpnt(aten%qc,qcten)
+      call assignpnt(aten%qv,qvten)
+      call assignpnt(sfs%psb,psf)
+      call assignpnt(sfs%rainnc,rainnc)
       call assignpnt(pptnc,lsmrnc)
       call assignpnt(radcldf,cldfra)
       call assignpnt(radlqwc,cldlwc)
 
-      call getmem2d(pptsum,1,jxp,2,iym1,'pcp:pptsum')
+      call getmem2d(pptsum,1,jxp,2,iym2,'pcp:pptsum')
 
       aprdiv = d_one/dble(ntsrf)
     end subroutine init_precip
@@ -122,7 +120,7 @@ module mod_precip
 !
     integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(8) :: dpovg , es , afc , p , pptacc , pptkm1 , pptmax ,   &
+    real(dp) :: dpovg , es , afc , p , pptacc , pptkm1 , pptmax ,   &
                pptnew , q , qcincld , qcleft , qcw , qs , rdevap , &
                rh , rhcs , rho , tcel , thog , tk , prainx
     integer :: i , j , k , kk
@@ -148,7 +146,7 @@ module mod_precip
 !
       do i = istart , iend
      
-        afc = fcc(i,1,j)                                     ![frac][avg]
+        afc = fcc(j,i,1)                                     ![frac][avg]
      
         if ( afc > 0.01D0 ) then !   if there is a cloud
 !       1aa. Compute temperature and humidities with the adjustments
@@ -170,10 +168,10 @@ module mod_precip
 !              - The factor of cgul accounts for the fact that the Gultepe
 !                and Isaac equation is for mean cloud water while qcth is the
 !                theshhold for auto-conversion.
-          qcth = cgul(i,j)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000 
+          qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000 
                                                              ![kg/kg][cld]
 !         1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(i,j)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
+          pptnew = qck1(j,i)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)        ![kg/kg/s][avg]
           if ( pptnew < dlowval ) pptnew = d_zero
 
@@ -197,7 +195,7 @@ module mod_precip
             dpovg = dsigma(1)*psf(j,i)*thog                  ![kg/m2]
             pptsum(j,i) = pptnew*dpovg                         ![kg/m2/s][avg]
 !           1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,1,j) = qcten(i,1,j) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
+            qcten(j,i,1) = qcten(j,i,1) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
           else  !   Cloud but no new precipitation
             pptsum(j,i) = d_zero                               ![kg/m2/s][avg]
           end if
@@ -220,7 +218,7 @@ module mod_precip
           p = p3(j,i,k)*d_1000                               ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qc3(j,i,k)                                   ![kg/kg][avg]
-          afc = fcc(i,k,j)                                   ![frac][avg]
+          afc = fcc(j,i,k)                                   ![frac][avg]
           if ( tcel > d_zero ) then
             es = svp1*d_1000*dexp(svp2*tcel/(tk-svp3))       ![Pa][avg]
           else
@@ -252,9 +250,9 @@ module mod_precip
 !                 evaporation [kg/m2/s]
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg             ![kg/m2/s][avg]
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-            qvten(i,k,j) = qvten(i,k,j) + rdevap*psf(j,i)    ![kg/kg/s*cb][avg]
+            qvten(j,i,k) = qvten(j,i,k) + rdevap*psf(j,i)    ![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
-            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*psf(j,i)
+            tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psf(j,i)
                                                              ![k/s*cb][avg]
           else
             !   no precipitation from above
@@ -269,10 +267,10 @@ module mod_precip
 !                 (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = qcw/dt                                  ![kg/kg/s][cld]
 !           1bdc. Implement the Gultepe & Isaac formula for qcth.
-            qcth = cgul(i,j)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+            qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
                                                              ![kg/kg][cld]
 !           1bdd. Compute the gridcell average autoconversion [kg/kg/s]
-            pptnew = qck1(i,j)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
+            pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
             pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
             if ( pptnew < dlowval ) pptnew = d_zero
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
@@ -296,7 +294,7 @@ module mod_precip
 !           1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg             ![kg/m2/s][avg]
 !           1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,k,j) = qcten(i,k,j) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
+            qcten(j,i,k) = qcten(j,i,k) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
           else
             pptnew = d_zero                                  ![kg/kg/s][avg]
           end if
@@ -320,7 +318,7 @@ module mod_precip
                              psf(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
 ! the below cloud precipitation rate is now used directly in chemistry
-!             rembc(i,k) = 6.5D0*1.0D-5*rembc(i,k)**0.68D0   ![s^-1]
+!             rembc(j,i,k) = 6.5D0*1.0D-5*rembc(j,i,k)**0.68D0   ![s^-1]
 
             end if
           end do
@@ -337,7 +335,7 @@ module mod_precip
         if ( prainx > dlowval ) then
           rainnc(j,i) = rainnc(j,i) + prainx
           if ( ktau == 0 .and. debug_level > 2 ) then
-            lsmrnc(i,j) = lsmrnc(i,j) + pptsum(j,i)
+            lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)
           else
             lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
           end if
@@ -383,7 +381,7 @@ module mod_precip
 !
     integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(8) :: exlwc , rh0adj
+    real(dp) :: exlwc , rh0adj
     integer :: i , j , k
 !
 !--------------------------------------------------------------------
@@ -394,18 +392,18 @@ module mod_precip
       do i = istart , iend
         do j = jstart , jend
           if ( t3(j,i,k) > tc0 ) then
-            rh0adj = rh0(i,j)
+            rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-t3(j,i,k)))
+            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
           end if
           if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
-            fcc(i,k,j) = d_one
+            fcc(j,i,k) = d_one
           else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-            fcc(i,k,j) = d_zero
+            fcc(j,i,k) = d_zero
           else                                   ! partial cloud cover
-            fcc(i,k,j) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+            fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
                           (rhmax-rh0adj))
-            fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
+            fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
           end if !  rh0 threshold
 !---------------------------------------------------------------------
 !         Correction:
@@ -417,7 +415,7 @@ module mod_precip
           if ( p3(j,i,k) >= 75.0D0 ) then
             ! Clouds below 750hPa
             if ( qv3(j,i,k) <= 0.003D0 ) then
-              fcc(i,k,j) = fcc(i,k,j) * &
+              fcc(j,i,k) = fcc(j,i,k) * &
                      dmax1(0.15D0,dmin1(d_one,qv3(j,i,k)/0.003D0))
             end if
           end if
@@ -454,9 +452,9 @@ module mod_precip
           !TAO: but only apply this parameterization to large scale LWC 
           !if the user specifies it
           if (iconvlwp == 1) exlwc = cldlwc(j,i,k)
-          cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(i,k,j)*exlwc) / &
-                        dmax1(cldfra(j,i,k)+fcc(i,k,j),0.01D0)
-          cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(i,k,j)),fcmax)
+          cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(j,i,k)*exlwc) / &
+                        dmax1(cldfra(j,i,k)+fcc(j,i,k),0.01D0)
+          cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(j,i,k)),fcmax)
         end do
       end do
     end do
@@ -482,20 +480,19 @@ module mod_precip
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! 
-    subroutine condtq(jstart,jend,istart,iend,psc,qvcs)
+    subroutine condtq(jstart,jend,istart,iend,psc)
 !
     implicit none
 !
     integer , intent(in) :: jstart , jend , istart , iend
-    real(8) , pointer , dimension(:,:) , intent(in) :: psc
-    real(8) , pointer , dimension(:,:) , intent(inout) :: qvcs
+    real(dp) , pointer , dimension(:,:) , intent(in) :: psc
 !
 !   rhc    - Relative humidity at ktau+1
 !   rh0adj - Adjusted relative humidity threshold at ktau+1
 !   fccc   - Cloud fraction at ktau+1
 !
-    real(8) :: qccs , tmp1 , tmp2 , tmp3
-    real(8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
+    real(dp) :: qccs , qvcs , tmp1 , tmp2 , tmp3
+    real(dp) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
                r1 , rh0adj , rhc , satvp
     integer :: i , j , k
 
@@ -505,9 +502,9 @@ module mod_precip
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          tmp3 = (t2(i,k,j)+dt*tten(i,k,j))/psc(j,i)
-          qvcs = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(j,i),lowq)
-          qccs = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(j,i),lowq)
+          tmp3 = (t2(j,i,k)+dt*tten(j,i,k))/psc(j,i)
+          qvcs = dmax1((qv2(j,i,k)+dt*qvten(j,i,k))/psc(j,i),lowq)
+          qccs = dmax1((qc2(j,i,k)+dt*qcten(j,i,k))/psc(j,i),dlowval)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
@@ -519,25 +516,25 @@ module mod_precip
             satvp = svp4*d_1000*dexp(svp5-svp6/tmp3)
           end if
           qvs = dmax1(ep2*satvp/(pres-satvp),lowq)
-          rhc = dmax1(qvcs(i,k)/qvs,lowq)
+          rhc = dmax1(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
      
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( tmp3 > tc0 ) then
-            rh0adj = rh0(i,j)
+            rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax - (rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-tmp3))
+            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-tmp3))
           end if
      
           ! 2c. Compute the water vapor in excess of saturation
           if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
-            dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
+            dqv = qvcs - qvs*conf ! Water vapor in excess of sat
             tmp1 = r1*dqv
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(i,k,j)/psc(j,i)),d_zero)
+            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(j,i,k)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
@@ -552,9 +549,9 @@ module mod_precip
           !-----------------------------------------------------------
           !     3.  Compute the tendencies.
           !-----------------------------------------------------------
-          qvten(i,k,j) = qvten(i,k,j) - psc(j,i)*tmp2
-          qcten(i,k,j) = qcten(i,k,j) + psc(j,i)*tmp2
-          tten(i,k,j) = tten(i,k,j) + psc(j,i)*tmp2*wlhvocp
+          qvten(j,i,k) = qvten(j,i,k) - psc(j,i)*tmp2
+          qcten(j,i,k) = qcten(j,i,k) + psc(j,i)*tmp2
+          tten(j,i,k) = tten(j,i,k) + psc(j,i)*tmp2*wlhvocp
         end do
       end do
     end do

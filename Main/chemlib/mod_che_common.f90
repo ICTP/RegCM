@@ -183,7 +183,7 @@ contains
     elseif(chemsimtype(1:4) == 'SULF') then 
        ntr = 2
        allocate(chtrname(ntr))
-       chtrname(1:ntr)(1:5) = (/'SO2','SO4'/)
+       chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  '/)
        iaerosol=1
        write (aline,*) 'SULF simulation , used tracers: ', chtrname(:)
        call say
@@ -191,7 +191,8 @@ contains
     elseif(chemsimtype(1:4) == 'SUCA') then 
        ntr = 6
        allocate(chtrname(ntr))
-       chtrname(1:ntr)(1:5) = (/'SO2','SO4','BC_HL','BC_HB','OC_HB','OC_HL' /)
+       chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL', &
+                                'BC_HB','OC_HB','OC_HL' /)
        iaerosol=1
        write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
        call say
@@ -200,20 +201,24 @@ contains
        ntr = 6
        allocate(chtrname(ntr))
        iaerosol=1
-       chtrname(1:ntr)(1:5) = (/'SO2','SO4','BC_HL','BC_HB','OC_HB','OC_HL',&
-            'DUST1','DUST2','DUST3','DUST4',            &              
-            'SSLT1','SSLT2'    /)
+       chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL','BC_HB', &
+                                'OC_HB','OC_HL','DUST1','DUST2', &
+                                'DUST3','DUST4','SSLT1','SSLT2' /)
        write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
        call say
 
     elseif(chemsimtype(1:4) == 'CBMZ') then 
        ntr = 25
        allocate(chtrname(ntr))      
-       chtrname(1:ntr)(1:5) = (/  'SO2','SO4','DMS','O3','NO2','NO','CO','H2O2','HNO3','N2O5',   &
-            'HCHO','ALD2','ISOP','C2H6','PAR','ACET','MOH','OLT','OLI',    &
-            'TOLUE','XYL','ETHE','PAN','CH4','NH3'  /)
+       chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','DMS  ','O3   ', &
+                                'NO2  ','NO   ','CO   ','H2O2 ', &
+                                'HNO3 ','N2O5 ','HCHO ','ALD2 ', &
+                                'ISOP ','C2H6 ','PAR  ','ACET ', &
+                                'MOH  ','OLT  ','OLI  ','TOLUE', &
+                                'XYL  ','ETHE ','PAN  ','CH4  ', &
+                                'NH3  '  /)
        igaschem=1
-       write (aline,*) 'CBMZ gas-phase + sulfate  simulation , used tracers: ', chtrname(:)
+       write (aline,*) 'CBMZ gas-phase + sulfate simulation , used tracers: ', chtrname(:)
        call say
 
     else 

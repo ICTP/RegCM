@@ -37,13 +37,13 @@ module mod_vmodes
   public :: tau , varpa1
   public :: hydroc , hydros
 
-  real(8) :: xps , pd
-  real(8) , pointer , dimension(:,:) :: a0
-  real(8) , pointer , dimension(:) ::  sigmah , tbarh , hbar
-  real(8) , pointer , dimension(:,:) :: zmatx , zmatxr
-  real(8) , pointer , dimension(:,:) :: tau
-  real(8) , pointer , dimension(:,:) :: varpa1
-  real(8) , pointer , dimension(:,:) :: hydroc , hydros
+  real(dp) :: xps , pd
+  real(dp) , pointer , dimension(:,:) :: a0
+  real(dp) , pointer , dimension(:) ::  sigmah , tbarh , hbar
+  real(dp) , pointer , dimension(:,:) :: zmatx , zmatxr
+  real(dp) , pointer , dimension(:,:) :: tau
+  real(dp) , pointer , dimension(:,:) :: varpa1
+  real(dp) , pointer , dimension(:,:) :: hydroc , hydros
 !
   contains
 
@@ -86,22 +86,22 @@ module mod_vmodes
 !
     logical , intent(in) :: lstand
 !
-    real(8) , dimension(2) :: det
+    real(dp) , dimension(2) :: det
     integer :: ier , k , k1 , k2 , l , mm , numerr
     logical :: lhydro , lprint , lsigma
-    real(8) :: ps2 , x
-    real(8) , dimension(kz) :: work
-    real(8) , dimension(1) :: pps
-    real(8) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
+    real(dp) :: ps2 , x
+    real(dp) , dimension(kz) :: work
+    real(dp) , dimension(1) :: pps
+    real(dp) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
                    e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
-    real(8) , dimension(kzp1,kz) :: w3
+    real(dp) , dimension(kzp1,kz) :: w3
     integer , dimension(kz) :: iw2
-    real(8) , dimension(kzp1) :: tbarf , thetaf
-    real(8) , dimension(kz) :: thetah , tweigh
-    real(8) :: alpha1 , alpha2
-    real(8) , dimension(kz) :: cpfac , sdsigma , hweigh
-    real(8) , dimension(kzp1,kzp1) :: varpa2
-    real(8) , dimension(kz,kz) :: hydror
+    real(dp) , dimension(kzp1) :: tbarf , thetaf
+    real(dp) , dimension(kz) :: thetah , tweigh
+    real(dp) :: alpha1 , alpha2
+    real(dp) , dimension(kz) :: cpfac , sdsigma , hweigh
+    real(dp) , dimension(kzp1,kzp1) :: varpa2
+    real(dp) , dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
 !
     character (len=64) :: subroutine_name='vmodes'
@@ -517,7 +517,7 @@ module mod_vmodes
     subroutine vchekt
       implicit none
 !
-      real(8) :: ds1 , ds2 , g1 , g2 , tb
+      real(dp) :: ds1 , ds2 , g1 , g2 , tb
       integer :: k
       logical :: lstab
 !
@@ -551,10 +551,10 @@ module mod_vmodes
     subroutine vtlaps
       implicit none
 !
-      real(8) , parameter :: tstrat = 218.15D0
-      real(8) , parameter :: zstrat = 10769.0D0
+      real(dp) , parameter :: tstrat = 218.15D0
+      real(dp) , parameter :: zstrat = 10769.0D0
 !
-      real(8) :: p0 , fac , p , z
+      real(dp) :: p0 , fac , p , z
       integer :: k
 !
       p0 = stdp*d_r1000
@@ -575,7 +575,7 @@ module mod_vmodes
     subroutine vorder
       implicit none
 !
-      real(8) :: hmax
+      real(dp) :: hmax
       integer :: k , kmax , l
 !
       kmax = 1
@@ -612,7 +612,7 @@ module mod_vmodes
     subroutine vnorml
       implicit none
 !
-      real(8) :: a , v , zmax
+      real(dp) :: a , v , zmax
       integer :: k , kmax , l
 !
       kmax = 1
@@ -642,9 +642,9 @@ module mod_vmodes
     subroutine vcheke
       implicit none
 !
-      real(8) , parameter :: tol = 1.0D-9
+      real(dp) , parameter :: tol = 1.0D-9
 !
-      real(8) :: emax
+      real(dp) :: emax
       integer :: n , nimag , numneg
 !
       numneg = 0
@@ -699,7 +699,7 @@ module mod_vmodes
 !
     integer :: na , nv , n , ier
     integer , dimension(n) :: ip
-    real(8) :: a(n,n) , v(n,n) , work(n) , d(2)
+    real(dp) :: a(n,n) , v(n,n) , work(n) , d(2)
     integer :: i , j
 !
 !   08/23/91 Version 1.0
@@ -737,7 +737,7 @@ module mod_vmodes
 !
     integer :: n
     character(8) :: nam
-    real(8) , dimension(n) :: a
+    real(dp) , dimension(n) :: a
     intent (in) a , n , nam
  
     print 99001 , nam , a
@@ -749,7 +749,7 @@ module mod_vmodes
 !
     integer :: n1 , n2
     character(8) :: nam
-    real(8) , dimension(n1,n2) :: a
+    real(dp) , dimension(n1,n2) :: a
     intent (in) a , n1 , n2 , nam
 !
     integer :: k , l

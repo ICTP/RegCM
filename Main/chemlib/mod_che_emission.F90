@@ -98,7 +98,7 @@ module mod_che_emission
     call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,  &
                      src0, iy*mpy*ntr*jxp,mpi_real8,  &
                      0,mpi_comm_world,ierr)
-    do j = 1 , jendl
+    do j = 1 , jxp
       do itr = 1 , ntr
         do m = 1 , mpy
           do i = 1 , iy
@@ -157,7 +157,7 @@ module mod_che_emission
     call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8, &
                      src0, iy*mpy*ntr*jxp,mpi_real8, &
                      0,mpi_comm_world,ierr)
-    do j = 1 , jendl
+    do j = 1 , jxp
       do itr = 1 , ntr
         do m = 1 , mpy
           do i = 1 , iy
@@ -170,7 +170,7 @@ module mod_che_emission
     ! sulfates sources
 
     do m = 1 , mpy
-      do j = 1 , jendl
+      do j = 1 , jxp
         do i = 1 , iy
           if ( iso4 > 0 ) then
             chemsrc(i,j,m,iso4) = 0.02D0*chemsrc(i,j,m,iso2)

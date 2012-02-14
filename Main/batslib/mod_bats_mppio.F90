@@ -25,14 +25,14 @@ module mod_bats_mppio
 
   public
 
-  integer , pointer , dimension(:,:,:) :: idep2d_io
+  integer , pointer , dimension(:,:,:) :: idep_io
   real(dp) , pointer , dimension(:,:,:) :: dhlake1_io
-  real(dp) , pointer , dimension(:,:,:) :: eta2d_io
-  real(dp) , pointer , dimension(:,:,:) :: hi2d_io
-  real(dp) , pointer , dimension(:,:,:) :: aveice2d_io
-  real(dp) , pointer , dimension(:,:,:) :: hsnow2d_io
-  real(dp) , pointer , dimension(:,:,:) :: evl2d_io
-  real(dp) , pointer , dimension(:,:,:,:) :: tlak3d_io
+  real(dp) , pointer , dimension(:,:,:) :: eta_io
+  real(dp) , pointer , dimension(:,:,:) :: hi_io
+  real(dp) , pointer , dimension(:,:,:) :: aveice_io
+  real(dp) , pointer , dimension(:,:,:) :: hsnow_io
+  real(dp) , pointer , dimension(:,:,:) :: evl_io
+  real(dp) , pointer , dimension(:,:,:,:) :: tlak_io
 
   contains
 
@@ -41,15 +41,15 @@ module mod_bats_mppio
       integer , intent(in) :: lakemod
       if ( lakemod == 1 ) then
         if ( myid == 0 ) then
-          call getmem3d(dhlake1_io,1,nnsg,1,iy,1,jx,'mod_mppio:dhlake1_io')
-          call getmem3d(idep2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:idep2d_io')
-          call getmem3d(eta2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:eta2d_io')
-          call getmem3d(hi2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:hi2d_io')
-          call getmem3d(aveice2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:aveice2d_io')
-          call getmem3d(hsnow2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:hsnow2d_io')
-          call getmem3d(evl2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:evl2d_io')
-          call getmem4d(tlak3d_io,1,ndpmax,1,nnsg, &
-                                  1,iym1,1,jx,'mod_mppio:tlak3d_io')
+          call getmem3d(dhlake1_io,1,nnsg,1,jx,1,iy,'bats_mppio:dhlake1_io')
+          call getmem3d(idep_io,1,nnsg,1,jx,1,iym1,'bats_mppio:idep_io')
+          call getmem3d(eta_io,1,nnsg,1,jx,1,iym1,'bats_mppio:eta_io')
+          call getmem3d(hi_io,1,nnsg,1,jx,1,iym1,'bats_mppio:hi_io')
+          call getmem3d(aveice_io,1,nnsg,1,jx,1,iym1,'bats_mppio:aveice_io')
+          call getmem3d(hsnow_io,1,nnsg,1,jx,1,iym1,'bats_mppio:hsnow_io')
+          call getmem3d(evl_io,1,nnsg,1,jx,1,iym1,'bats_mppio:evl_io')
+          call getmem4d(tlak_io,1,nnsg,1,jx,1,iym1,1,ndpmax, &
+                        'bats_mppio:tlak_io')
         end if
       end if
     end subroutine allocate_mod_bats_mppio

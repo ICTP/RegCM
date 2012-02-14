@@ -25,6 +25,7 @@ module mod_rad_scenarios
 !
   use mod_dynparam
   use mod_mpmessage
+  use mod_realkinds
 !
   private
 !
@@ -33,7 +34,7 @@ module mod_rad_scenarios
   integer , parameter :: nsc = 9
   character(len=8) , dimension(nsc) :: scenarios
 !
-  real(8) , dimension(10,1850:2100) :: cgas
+  real(dp) , dimension(10,1850:2100) :: cgas
 !
   integer :: i , j
 !

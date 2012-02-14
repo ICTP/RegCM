@@ -51,6 +51,7 @@
       real(8) , parameter :: deg180 = 180.0D+00
       real(8) , parameter :: deg360 = 360.0D+00
 
+      real(8) , parameter :: minqx   = 1.0D-08
       real(8) , parameter :: dlowval = 1.0D-30
       real(4) , parameter :: slowval = 1.0E-30
       real(8) , parameter :: dmissval = 1.0D+20

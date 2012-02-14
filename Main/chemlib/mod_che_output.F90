@@ -35,7 +35,7 @@ module mod_che_output
  
  print*, 'FAB, outputchem',myid,  maxval(aerext) 
            
-          do j = 1 , jendl
+          do j = 1 , jxp
             do n = 1 , ntr
               do k = 1 , kz
                 do i = 1 , iy
@@ -53,7 +53,7 @@ module mod_che_output
               end do
             end do
           end do
-          do j = 1 , jendl
+          do j = 1 , jxp
             do n = 1 , ntr
               do i = 1 , iy
                 chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
@@ -77,7 +77,7 @@ module mod_che_output
 
             end do
           end do
-          do j = 1 , jendl
+          do j = 1 , jxp
             do i = 1 , iy
               chem0(i,(ntr+3)*kz+ntr*8+5,j) = cpsb(j,i)
             end do
@@ -181,7 +181,7 @@ module mod_che_output
 
 ! put back to zero accumulated variables
           do n = 1 , ntr
-            do j = 1 , jendl
+            do j = 1 , jxp
               do k = 1 , kz
                 do i = 1 , iy
                   remlsc(i,k,j,n) = 0.
@@ -194,7 +194,7 @@ module mod_che_output
             end do
           end do
           do n = 1 , ntr
-            do j = 1 , jendl
+            do j = 1 , jxp
               do i = 1 , iy
                 cemtr(i,j,n) = 0.
                 remdrd(i,j,n) = 0.
@@ -208,7 +208,7 @@ module mod_che_output
               end do
             end do
           end do
-          do j = 1 , jendl
+          do j = 1 , jxp
             do i = 1 , iym1
               aertarf(j,i) = 0.
               aersrrf(j,i) = 0.

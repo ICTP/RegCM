@@ -244,7 +244,7 @@ module mod_pbl_uwtcm
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
         zqx(kzp1+1) = d_zero
-        tke(kzp1) = tkests(i,kzp1,j)
+        tke(kzp1) = tkests(j,i,kzp1)
 
         kinitloop: &
         do k = kz , 1 , -1
@@ -253,7 +253,7 @@ module mod_pbl_uwtcm
           zqx(k) = zqx(k+1) + rgas/egrav*tatm(j,i,k)*   &
                    log((flev(k+1)+cell)/(flev(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
-          tke(k) = tkests(i,k,j)
+          tke(k) = tkests(j,i,k)
           tx(k)  = tatm(j,i,k)
           qx(k)  = qvatm(j,i,k)
           qcx(k) = qcatm(j,i,k)
@@ -636,17 +636,17 @@ module mod_pbl_uwtcm
         tcmtend: &
         do k = 1 , kz
           ! Zonal wind tendency
-          uuwten(i,k,j)= psbx*(ux(k)-uxs(k))*rdtpbl
+          uuwten(j,i,k)= psbx*(ux(k)-uxs(k))*rdtpbl
           ! Meridional wind tendency
-          vuwten(i,k,j)= psbx*(vx(k)-vxs(k))*rdtpbl
+          vuwten(j,i,k)= psbx*(vx(k)-vxs(k))*rdtpbl
           ! TKE tendency
-          tkeuwten(i,k,j) = (tke(k)-tkes(k))*rdtpbl
+          tkeuwten(j,i,k) = (tke(k)-tkes(k))*rdtpbl
           ! Temperature tendency
-          tuwten(i,k,j)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdtpbl
+          tuwten(j,i,k)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdtpbl
           ! Water vapor tendency
-          qvuwten(i,k,j) = psbx*(qx(k)-qxs(k))*rdtpbl
+          qvuwten(j,i,k) = psbx*(qx(k)-qxs(k))*rdtpbl
           ! Cloud water tendency
-          qcuwten(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdtpbl
+          qcuwten(j,i,k) = psbx*(qcx(k)-qcxs(k))*rdtpbl
 
           ! Momentum diffusivity
           uwstateb%kzm(j,i,k) = kzm(k)

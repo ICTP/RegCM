@@ -63,24 +63,23 @@ module mod_params
 #endif 
   implicit none
 !
-  real(8) :: afracl , afracs , bb , cc , chibot , delsig , &
+  real(dp) :: afracl , afracs , bb , cc , chibot , delsig , &
              dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
              qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
              wkp1 , xbot , xtop , xx , yy
-  real(8) :: gulland , guloce , mincld , qck1land , qck1oce , &
+  real(dp) :: gulland , guloce , mincld , qck1land , qck1oce , &
              rh0land , rh0oce , skbmax , clfrcvmax
-  real(8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
+  real(dp) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
              edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
-  real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
+  real(dp) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
              edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
   integer :: kbmax
-  real(8) , dimension(nsplit) :: dtsplit
-  real(8) , dimension(iy) :: trans1 , trans2 , trans3 , trans4
+  real(dp) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   character(len=5) , dimension(maxntr) :: inpchtrname
-  real(8) , dimension(maxntr) :: inpchtrsol
-  real(8) , dimension(maxntr,2) :: inpchtrdpv
-  real(8) , dimension(maxnbin,2) :: inpdustbsiz
+  real(dp) , dimension(maxntr) :: inpchtrsol
+  real(dp) , dimension(maxntr,2) :: inpchtrdpv
+  real(dp) , dimension(maxnbin,2) :: inpdustbsiz
   logical , dimension(n_atmvar) :: atm_enablevar
   logical , dimension(n_srfvar) :: srf_enablevar
   logical , dimension(n_stsvar) :: sts_enablevar
@@ -96,7 +95,7 @@ module mod_params
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
 #ifndef CLM
-  real(8) :: clmfrq
+  real(dp) :: clmfrq
 #endif
 !
 !----------------------------------------------------------------------
@@ -153,7 +152,6 @@ module mod_params
 
   namelist /cplparam/ cpldt, cplexvars, cplinterp, &
     cplbdysmooth, cpldbglevel 
-!
 !
 !----------------------------------------------------------------------
 !-----specify the parameters used in the model:
@@ -706,25 +704,32 @@ module mod_params
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+!-----------------------SETUP DOMAIN DECOMPOSITION----------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!
+  call deco1_model(lband)
+!
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !-----------------------ALLOCATE NEEDED SPACE---------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
 
   call allocate_mod_runparams
-  call allocate_mod_atm_interface(lband,ibltyp)
-  call allocate_mod_tend(lband)
-  call allocate_mod_bdycon
+  call allocate_mod_atm_interface(ibltyp)
+  call allocate_mod_tend
+  call allocate_mod_bdycon(iboudy,lband)
   call allocate_mod_pbl_common(ibltyp)
   call allocate_mod_cu_common
   call allocate_mod_precip
   call allocate_mod_split
-  call allocate_mod_mppio(lband)
+  call allocate_mod_mppio
 
-  call allocate_mod_bats_common(ichem,idcsst)
+  call allocate_mod_bats_common(ichem,idcsst,lakemod)
   call allocate_mod_bats_mppio(lakemod)
 #ifndef CLM
-  call allocate_mod_bats_lake(lakemod)
   call allocate_mod_bats_romsocn
 #else
   call allocate_mod_clm(lband)
@@ -735,7 +740,7 @@ module mod_params
   call allocate_mod_rad_o3blk
   call allocate_mod_rad_outrad
   if ( irrtm == 1 ) then
-    call allocate_mod_rad_rrtmg(jbegin,jendx)
+    call allocate_mod_rad_rrtmg(jce1,jce2)
   else
     call allocate_mod_rad_radiation 
     call allocate_mod_rad_colmod3 
@@ -914,28 +919,28 @@ module mod_params
 !
   call set_scenario(scenario)
 
-  call init_advection(mddom,sps1,atm1,qdot,kpbl)
-  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,cldfra,cldlwc)
+  call init_advection(mddom,sfs,atm1,qdot,kpbl)
+  call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfsta,sps2, &
-                sts1,sts2,za,ts1,ts0_io,rhox2d,landmask)
+  call getmem2d(landmask,1,jx,1,iy,'param:landmask')
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
+                za,ts1,ts0_io,rhox2d,landmask)
 #else
-  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfsta,sps2,sts1,sts2, &
+  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
                  za,ts1,rhox2d,zpbl)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
-                     sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
+                     sfs,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms,   &
-                   sps2,mddom,sts2,sfsta,fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
-                   twt,ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,  &
+    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms, &
+                   mddom,sfs,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,   &
+                   twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
                    sdelqk2d,ssw2da,icumtop,icumbot)
  end if
-  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
-                mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl, &
-                aldifl,albvs,albvl,aemiss,sinc,solvs,solvd,fsw, &
-                flw,flwd,ocld2d,chia,chtrname)
+  call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
+                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &
+                sinc,solvs,solvd,fsw,flw,flwd,ocld,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
@@ -1145,10 +1150,10 @@ end if
 #endif
       do j = 1 , jx
         do i = 1 , iy
-          ht1_io(1,i,j) = mddom_io%ht(j,i)*egrav
-          lndcat1_io(1,i,j) = mddom_io%lndcat(j,i)
-          xlat1_io(1,i,j) = mddom_io%xlat(j,i)
-          xlon1_io(1,i,j) = mddom_io%xlon(j,i)
+          ht1_io(1,j,i) = mddom_io%ht(j,i)*egrav
+          lndcat1_io(1,j,i) = mddom_io%lndcat(j,i)
+          xlat1_io(1,j,i) = mddom_io%xlat(j,i)
+          xlon1_io(1,j,i) = mddom_io%xlon(j,i)
         end do
       end do
     end if
@@ -1156,68 +1161,14 @@ end if
 !
 !------invert mapscale factors and convert hgt to geopotential
 !
-    do j = 1 , jx
-      do i = 1 , iy
+    do i = 1 , iy
+      do j = 1 , jx
         mddom_io%ht(j,i)   = mddom_io%ht(j,i)*egrav
         mddom_io%msfd(j,i) = d_one/mddom_io%msfd(j,i)
         mddom_io%msfx(j,i) = d_one/mddom_io%msfx(j,i)
       end do
     end do
 
-    do j = 1 , jx
-      do i = 1 , iy
-        inisrf_0(i,1,j) = mddom_io%ht(j,i)
-        inisrf_0(i,2,j) = mddom_io%lndcat(j,i)
-        inisrf_0(i,3,j) = mddom_io%xlat(j,i)
-        inisrf_0(i,4,j) = mddom_io%xlon(j,i)
-        inisrf_0(i,5,j) = mddom_io%msfx(j,i)
-        inisrf_0(i,6,j) = mddom_io%msfd(j,i)
-        inisrf_0(i,7,j) = mddom_io%coriol(j,i)
-      end do
-      do n = 1 , nnsg
-        do i = 1 , iy
-          inisrf_0(i,7+n,j) = ht1_io(n,i,j)
-          inisrf_0(i,7+nnsg+n,j) = lndcat1_io(n,i,j)
-          inisrf_0(i,7+nnsg*2+n,j) = xlat1_io(n,i,j)
-          inisrf_0(i,7+nnsg*3+n,j) = xlon1_io(n,i,j)
-        end do
-      end do
-    end do
-  end if  ! end if (myid == 0)
-
-#ifndef CLM
-  if ( lakemod == 1 ) then
-    call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
-                     dhlake1,   iy*nnsg*jxp,mpi_real8,   &
-                     0,mycomm,ierr)
-  endif
-#endif
- 
-  call mpi_scatter(inisrf_0,iy*(nnsg*4+7)*jxp,mpi_real8,   &
-                   inisrf0, iy*(nnsg*4+7)*jxp,mpi_real8,   &
-                   0,mycomm,ierr)
-
-  do j = 1 , jxp
-    do i = 1 , iy
-      mddom%ht(j,i) = inisrf0(i,1,j)
-      mddom%lndcat(j,i) = inisrf0(i,2,j)
-      mddom%xlat(j,i) = inisrf0(i,3,j)
-      mddom%xlon(j,i) = inisrf0(i,4,j)
-      mddom%msfx(j,i) = inisrf0(i,5,j)
-      mddom%msfd(j,i) = inisrf0(i,6,j)
-      mddom%coriol(j,i) = inisrf0(i,7,j)
-    end do
-    do n = 1 , nnsg
-      do i = 1 , iy
-        ht1(n,j,i) = inisrf0(i,7+n,j)
-        lndcat1(n,j,i) = inisrf0(i,7+nnsg+n,j)
-        xlat1(n,j,i) = inisrf0(i,7+nnsg*2+n,j)
-        xlon1(n,j,i) = inisrf0(i,7+nnsg*3+n,j)
-      end do
-    end do
-  end do
-
-  if ( myid == 0 ) then
     print * , ' '
     print * ,                                                     &
           '***************************************************'
@@ -1239,101 +1190,52 @@ end if
           '***************************************************'
     print * , ' '
 
-  end if
+  end if  ! end if (myid == 0)
 
-  if ( ieast /= mpi_proc_null ) then
-    trans1 = mddom%ht(jxp,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                    trans2,iy,mpi_real8,iwest,1, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( iwest /= mpi_proc_null ) then
-    mddom%ht(0,:) = trans2
-  end if
-  if ( iwest /= mpi_proc_null ) then
-    trans1 = mddom%ht(1,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,2, &
-                    trans2,iy,mpi_real8,ieast,2, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( ieast /= mpi_proc_null ) then
-    mddom%ht(jxp+1,:) = trans2
-  end if
-  if ( ieast /= mpi_proc_null ) then
-    trans1 = mddom%msfx(jxp,:)
-    trans3 = mddom%msfx(jxp-1,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                    trans2,iy,mpi_real8,iwest,1, &
-                    mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(trans3,iy,mpi_real8,ieast,2, &
-                    trans4,iy,mpi_real8,iwest,2, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( iwest /= mpi_proc_null ) then
-    mddom%msfx(0,:)  = trans2
-    mddom%msfx(-1,:) = trans4
-  end if
-  if ( iwest /= mpi_proc_null ) then
-    trans1 = mddom%msfx(1,:)
-    trans3 = mddom%msfx(2,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,3, &
-                    trans2,iy,mpi_real8,ieast,3, &
-                    mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(trans3,iy,mpi_real8,iwest,4, &
-                    trans4,iy,mpi_real8,ieast,4, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( ieast /= mpi_proc_null ) then
-    mddom%msfx(jxp+1,:) = trans2
-    mddom%msfx(jxp+2,:) = trans4
-  end if
-  if ( ieast /= mpi_proc_null ) then
-    trans1 = mddom%msfd(jxp,:)
-    trans3 = mddom%msfd(jxp-1,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                    trans2,iy,mpi_real8,iwest,1, &
-                    mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(trans3,iy,mpi_real8,ieast,2, &
-                    trans4,iy,mpi_real8,iwest,2, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( iwest /= mpi_proc_null ) then
-    mddom%msfd(0,:)  = trans2
-    mddom%msfd(-1,:) = trans4
-  end if
-  if ( iwest /= mpi_proc_null ) then
-    trans1 = mddom%msfd(1,:)
-    trans3 = mddom%msfd(2,:)
-  end if
-  call mpi_sendrecv(trans1,iy,mpi_real8,iwest,3, &
-                    trans2,iy,mpi_real8,ieast,3, &
-                    mycomm,mpi_status_ignore,ierr)
-  call mpi_sendrecv(trans3,iy,mpi_real8,iwest,4, &
-                    trans4,iy,mpi_real8,ieast,4, &
-                    mycomm,mpi_status_ignore,ierr)
-  if ( ieast /= mpi_proc_null ) then
-    mddom%msfd(jxp+1,:) = trans2
-    mddom%msfd(jxp+2,:) = trans4
-  end if
+  call deco1_scatter(mddom_io%ht,mddom%ht,1,jx,1,iy)
+  call deco1_scatter(mddom_io%lndcat,mddom%lndcat,1,jx,1,iy)
+  call deco1_scatter(mddom_io%xlat,mddom%xlat,1,jx,1,iy)
+  call deco1_scatter(mddom_io%xlon,mddom%xlon,1,jx,1,iy)
+  call deco1_scatter(mddom_io%msfx,mddom%msfx,1,jx,1,iy)
+  call deco1_scatter(mddom_io%msfd,mddom%msfd,1,jx,1,iy)
+  call deco1_scatter(mddom_io%coriol,mddom%coriol,1,jx,1,iy)
+
+  call subgrid_deco1_scatter(ht1_io,ht1,1,jx,1,iy)
+  call subgrid_deco1_scatter(lndcat1_io,lndcat1,1,jx,1,iy)
+  call subgrid_deco1_scatter(xlat1_io,xlat1,1,jx,1,iy)
+  call subgrid_deco1_scatter(xlon1_io,xlon1,1,jx,1,iy)
+
+#ifndef CLM
+  if ( lakemod == 1 ) then
+    call subgrid_deco1_scatter(dhlake1_io,dhlake1,1,jx,1,iy)
+  endif
+#endif
+! 
+  call deco1_exchange_left(mddom%ht,1,1,iy)
+  call deco1_exchange_right(mddom%ht,1,1,iy)
+  call deco1_exchange_left(mddom%msfx,2,1,iy)
+  call deco1_exchange_right(mddom%msfx,2,1,iy)
+  call deco1_exchange_left(mddom%msfd,2,1,iy)
+  call deco1_exchange_right(mddom%msfd,2,1,iy)
 !
 !-----compute land/water mask on subgrid space
 !
-      do j = 1 , jendx
-        do i = 1 , iym1
-          if ( mddom%lndcat(j,i) > 13.5D0 .and. &
-               mddom%lndcat(j,i) < 15.5D0 ) then
-            ldmsk(j,i) = 0
-            do n = 1, nnsg
-              ocld2d(n,j,i) = 0
-            end do
-          else
-            ldmsk(j,i) = 1
-            do n = 1, nnsg
-              ocld2d(n,j,i) = 1
-            end do
-          end if
-        end do
-      end do
+   do j = jce1 , jce2
+     do i = ice1 , ice2
+       if ( mddom%lndcat(j,i) > 13.5D0 .and. &
+            mddom%lndcat(j,i) < 15.5D0 ) then
+         ldmsk(j,i) = 0
+         do n = 1, nnsg
+           ocld(n,j,i) = 0
+         end do
+       else
+         ldmsk(j,i) = 1
+         do n = 1, nnsg
+           ocld(n,j,i) = 1
+         end do
+       end if
+     end do
+   end do
 !
 !-----compute dsigma and half sigma levels.
 !
@@ -1342,15 +1244,6 @@ end if
     a(k) = (sigma(k+1)+sigma(k))*d_half
   end do
  
-  do k = 1 , kz
-    if ( a(k) < 0.4D0 ) then
-      anudg(k) = high_nudge
-    else if ( a(k) < 0.8D0 ) then
-      anudg(k) = medium_nudge
-    else
-      anudg(k) = low_nudge
-    end if
-  end do
 !
 !
 !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
@@ -1555,8 +1448,8 @@ end if
 
     write (aline, *) '*********************************'
     call say
-    do j = 1 , jendx
-      do i = 1 , iym1
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0) then
           shrmax2d(j,i) = shrmax_ocn
@@ -1591,7 +1484,7 @@ end if
     write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                     ' properly implemented'
     call say
-    call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
+    !call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     call allocate_mod_cu_em
@@ -1694,8 +1587,8 @@ end if
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd, &
-                sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
-                chtrdpv,chtrname,ichem,ichdrdepo,dt)
+                psdot,sfs,mddom,ldmsk,a,sigma,dsigma,ptop,chtrdpv,   &
+                chtrname,ichem,ichdrdepo,dt)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg
@@ -1755,55 +1648,31 @@ end if
 !
 !-----specify the coefficients for sponge boundary conditions.
 !
-  ispgd = nspgd - 1
-  ispgx = nspgx - 1
-!.....for dot point variables:
-  if ( iboudy == 4 ) then
-    wgtd(1) = 0.00D0
-    wgtd(2) = 0.20D0
-    wgtd(3) = 0.55D0
-    wgtd(4) = 0.80D0
-    wgtd(5) = 0.95D0
-    do k = 4 , nspgx
-      wgtd(k) = d_one
-    end do
-!.....for cross point variables:
-    wgtx(1) = 0.0D0
-    wgtx(2) = 0.4D0
-    wgtx(3) = 0.7D0
-    wgtx(4) = 0.9D0
-    do k = 5 , nspgx
-      wgtx(k) = 1.0D0
-    end do
-  end if
 !
 ! Move back form init : the land categories are read just here,
 ! they are no more in the restart file.
 !
   if ( ipptls == 1 ) then
-    do j = 1 , jendx
-      do i = 1 , iym1
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0) then
-          qck1(i,j) = qck1oce  ! OCEAN
-          cgul(i,j) = guloce   ! OCEAN
-          rh0(i,j) = rh0oce    ! OCEAN
+          qck1(j,i) = qck1oce  ! OCEAN
+          cgul(j,i) = guloce   ! OCEAN
+          rh0(j,i) = rh0oce    ! OCEAN
         else
-          qck1(i,j) = qck1land ! LAND
-          cgul(i,j) = gulland  ! LAND
-          rh0(i,j) = rh0land   ! LAND
+          qck1(j,i) = qck1land ! LAND
+          cgul(j,i) = gulland  ! LAND
+          rh0(j,i) = rh0land   ! LAND
         end if
       end do
     end do
   end if
 !
-!-----specify the coefficients for nudging boundary conditions:
+! Setup Boundary condition routines.
 !
-!.....for large domain:
-  if ( iboudy == 1 .or. iboudy == 5 ) then
-    fnudge = 0.1D0/dt2
-    gnudge = (dxsq/dt)/50.0D0
-  end if
+  call setup_bdycon(a)
+!
   if ( icup == 3 ) call lutbl(ptop)
 !
 !-----print out the parameters specified in the model.
@@ -1833,6 +1702,18 @@ end if
     print 99018 , xkhz
     print 99019 , xkhmax
   end if
+
+  ! Calculate boundary areas per processor
+
+  call deco1_bound(cross,lband,ba_cr)
+  call deco1_bound(dot,lband,ba_dt)
+
+  call deco1_allocate_v2dbound(xpsb,cross)
+  call deco1_allocate_v3dbound(xtb,kz,cross)
+  call deco1_allocate_v3dbound(xqb,kz,cross)
+  call deco1_allocate_v3dbound(xub,kz,dot)
+  call deco1_allocate_v3dbound(xvb,kz,dot)
+
   call mpi_barrier(mycomm,ierr) 
 !
 99002 format (/'   frictionless and insulated for the lower boundary.')

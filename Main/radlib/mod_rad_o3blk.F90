@@ -26,10 +26,10 @@ module mod_rad_o3blk
 
   public
 
-  real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
+  real(dp) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                              ppsum , ppwin , ppwrk
-  real(8) , dimension(32) :: ppwrkh
-  real(8) , pointer , dimension(:) :: prlevh
+  real(dp) , dimension(32) :: ppwrkh
+  real(dp) , pointer , dimension(:) :: prlevh
   private :: o3ann , o3sum , o3win , o3wrk , ppann , ppsum , ppwin ,&
              ppwrk , ppwrkh , prlevh
 !
@@ -77,7 +77,7 @@ module mod_rad_o3blk
   integer , intent(in) :: istart , iend , jstart , jend
 !
   integer :: i , j , jj , k , kj
-  real(8) :: pb1 , pb2 , pt1 , pt2
+  real(dp) :: pb1 , pb2 , pt1 , pt2
 !
   do k = 1 , 31
     ppann(k) = ppsum(k)

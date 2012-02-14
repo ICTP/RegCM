@@ -30,45 +30,45 @@ module mod_pbl_holtbl
 !
   public :: allocate_mod_pbl_holtbl , holtbl
 !
-  real(8) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
+  real(dp) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
                                           kvm , kvq ! , cgq
-  real(8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
+  real(dp) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
                                        ustr , xhfx , xqfx , pfcor
 !
-  real(8) , pointer , dimension(:,:,:) :: alphak , betak , &
+  real(dp) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
-  real(8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
-  real(8) , pointer , dimension(:,:) :: govrth
-  real(8) , pointer , dimension(:) :: hydf
+  real(dp) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
+  real(dp) , pointer , dimension(:,:) :: govrth
+  real(dp) , pointer , dimension(:) :: hydf
 !
-  real(8) , pointer , dimension(:,:,:) :: dza , thvx
-  real(8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
-  real(8) , pointer , dimension(:) :: wkrecv , wksend
-  real(8) , pointer , dimension(:,:,:) :: rhohf
+  real(dp) , pointer , dimension(:,:,:) :: dza , thvx
+  real(dp) , pointer , dimension(:,:,:) :: akzz1 , akzz2
+  real(dp) , pointer , dimension(:) :: wkrecv , wksend
+  real(dp) , pointer , dimension(:,:,:) :: rhohf
 !
-  real(8) , pointer , dimension(:,:,:) :: ri
-  real(8) , pointer , dimension(:,:) :: therm
+  real(dp) , pointer , dimension(:,:,:) :: ri
+  real(dp) , pointer , dimension(:,:) :: therm
 !
 ! minimum eddy diffusivity
-  real(8) , parameter :: kzo = d_one
-  real(8) , parameter :: szkm = 1600.0D0
+  real(dp) , parameter :: kzo = d_one
+  real(dp) , parameter :: szkm = 1600.0D0
 ! coef. of proportionality and lower % of bl in sfc layer
-  real(8) , parameter :: fak = 8.5D0
-  real(8) , parameter :: sffrac = 0.1D0
+  real(dp) , parameter :: fak = 8.5D0
+  real(dp) , parameter :: sffrac = 0.1D0
 ! beta coefs. for momentum, stable conditions and heat
-  real(8) , parameter :: betam = 15.0D0
-  real(8) , parameter :: betas = 5.0D0
-  real(8) , parameter :: betah = 15.0D0
-  real(8) , parameter :: mult = 0.61D0
-  real(8) , parameter :: ccon = fak*sffrac*vonkar
-  real(8) , parameter :: gvk = egrav*vonkar
-  real(8) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
-  real(8) , parameter :: binm = betam*sffrac
-  real(8) , parameter :: binh = betah*sffrac
+  real(dp) , parameter :: betam = 15.0D0
+  real(dp) , parameter :: betas = 5.0D0
+  real(dp) , parameter :: betah = 15.0D0
+  real(dp) , parameter :: mult = 0.61D0
+  real(dp) , parameter :: ccon = fak*sffrac*vonkar
+  real(dp) , parameter :: gvk = egrav*vonkar
+  real(dp) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
+  real(dp) , parameter :: binm = betam*sffrac
+  real(dp) , parameter :: binh = betah*sffrac
 ! power in formula for k and critical ri for judging stability
-  real(8) , parameter :: pink = d_two
-  real(8) , parameter :: ricr = d_rfour
+  real(dp) , parameter :: pink = d_two
+  real(dp) , parameter :: ricr = d_rfour
 ! 
   contains
 !
@@ -133,14 +133,10 @@ module mod_pbl_holtbl
 #endif 
   integer , intent(in) :: jstart , jend , istart , iend
 !
-  real(8) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
+  real(dp) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
              vflxsfx
-  integer :: jdx , jm1
-#ifndef BAND
-  integer :: jdxm1
-#endif
-  integer :: i , j , k , idx , idxm1 , itr
+  integer :: i , j , k , itr
   integer :: ierr , ii
 !
 !----------------------------------------------------------------------
@@ -245,18 +241,8 @@ module mod_pbl_holtbl
   do i = istart , iend
     do j = jstart , jend
       ! compute friction velocity
-      idx = i
-      jdx = j
-#ifndef BAND
-      idx = min0(idx,iend)
-      idxm1 = i - 1
-      idxm1 = max0(idxm1,2)
-      jdxm1 = j - 1
-      if ( myid == nproc-1 ) jdx = min0(jdx,jend)
-      if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
-#endif
-      uflxsfx = uvdrag(jdx,idx)*uatm(j,i,kz)
-      vflxsfx = uvdrag(jdx,idx)*vatm(j,i,kz)
+      uflxsfx = uvdrag(j,i)*uatm(j,i,kz)
+      vflxsfx = uvdrag(j,i)*vatm(j,i,kz)
       ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(j,i))
       ! convert surface fluxes to kinematic units
       xhfx(j,i) = hfx(j,i)/(cpd*rhox2d(j,i))
@@ -375,48 +361,30 @@ module mod_pbl_holtbl
   if ( myid == 0 .and. j == 2 ) then
     do k = 2 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          betak(j,i,k) = d_half*(akzz1(j,idx,k)+akzz1(j,idxm1,k))
+          betak(j,i,k) = d_half*(akzz1(j,i,k)+akzz1(j,i-1,k))
         end do
       end do
     end do
     do k = 1 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          alphak(j,i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
+          alphak(j,i,k) = d_half*(akzz2(j,i,k)+akzz2(j,i-1,k))
         end do
       end do
     end do
   else if ( myid == nproc-1 .and. j == jend ) then
     do k = 2 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          jm1 = j-1
-          betak(j,i,k) = d_half*(akzz1(jm1,idx,k)+akzz1(jm1,idxm1,k))
+          betak(j,i,k) = d_half*(akzz1(j-1,i,k)+akzz1(j-1,i-1,k))
         end do
       end do
     end do
     do k = 1 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          jm1 = j-1
-          alphak(j,i,k) = d_half*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
+          alphak(j,i,k) = d_half*(akzz2(j-1,i,k)+akzz2(j-1,i-1,k))
         end do
       end do
     end do
@@ -424,27 +392,17 @@ module mod_pbl_holtbl
 #endif
     do k = 2 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          jm1 = j-1
-          betak(j,i,k) = (akzz1(jm1,idx,k)+akzz1(jm1,idxm1,k)+ &
-                          akzz1(j,idx,k)  +akzz1(j,idxm1,k))*d_rfour
+          betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
+                          akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
         end do
       end do
     end do
     do k = 1 , kz
       do i = istart , iend
-        idx = i
-        idx = min0(idx,iend-1)
-        idxm1 = i - 1
-        idxm1 = max0(idxm1,2)
         do j = jstart , jend
-          jm1 = j-1
-          alphak(j,i,k) = (akzz2(jm1,idx,k)+akzz2(jm1,idxm1,k)+ &
-                           akzz2(j,idx,k)  +akzz2(j,idxm1,k))*d_rfour
+          alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
+                           akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
         end do
       end do
     end do
@@ -500,20 +458,12 @@ module mod_pbl_holtbl
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      idx = i
-      idx = min0(idx,iend)
-      idxm1 = i - 1
-      idxm1 = max0(idxm1,2)
 #ifdef BAND
-      drgdot = (uvdrag(jm1,idxm1)+uvdrag(j,idxm1) + &
-                uvdrag(jm1,idx)  +uvdrag(j,idx))*d_rfour
+      drgdot = (uvdrag(j-1,i-1)+uvdrag(j,i-1) + &
+                uvdrag(j-1,i)  +uvdrag(j,i))*d_rfour
 #else
-      jdx = j
-      jdxm1 = j - 1
-      if ( myid == nproc-1 ) jdx = min0(jdx,jend)
-      if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
-      drgdot = (uvdrag(jdxm1,idxm1)+uvdrag(jdx,idxm1)+  &
-                uvdrag(jdxm1,idx)+uvdrag(jdx,idx))*d_rfour
+      drgdot = (uvdrag(j-1,i-1)+uvdrag(j,i-1)+  &
+                uvdrag(j-1,i)+uvdrag(j,i))*d_rfour
 #endif
       uflxsf = drgdot*udatm(j,i,kz)
       vflxsf = drgdot*vdatm(j,i,kz)
@@ -552,9 +502,9 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-        uten(i,k,j) = uten(i,k,j) + &
+        uten(j,i,k) = uten(j,i,k) + &
                       (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(j,i)
-        vten(i,k,j) = vten(i,k,j) + &
+        vten(j,i,k) = vten(j,i,k) + &
                       (tpred2(j,i,k)-vdatm(j,i,k))*rdtpbl*sfcpd(j,i)
       end do
     end do
@@ -640,7 +590,7 @@ module mod_pbl_holtbl
     do i = istart , iend
       do j = jstart , jend
         sf = (tatm(j,i,k)*sfcps(j,i))/thxatm(j,i,k)
-        difft(i,k,j) = difft(i,k,j) + &
+        difft(j,i,k) = difft(j,i,k) + &
                        (tpred1(j,i,k)-thxatm(j,i,k))*rdtpbl*sf
       end do
     end do
@@ -716,7 +666,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqv(i,k,j) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
+          diagqv(j,i,k) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -724,7 +674,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diffq(i,k,j) = diffq(i,k,j) + &
+          diffq(j,i,k) = diffq(j,i,k) + &
                          (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
@@ -795,7 +745,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          diagqc(i,k,j) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
+          diagqc(j,i,k) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -803,7 +753,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = istart , iend
         do j = jstart , jend
-          qcten(i,k,j) = qcten(i,k,j) + &
+          qcten(j,i,k) = qcten(j,i,k) + &
                       (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
@@ -832,13 +782,13 @@ module mod_pbl_holtbl
   !
   do i = istart , iend
     do j = jstart , jend
-      difft(i,kz,j) = difft(i,kz,j) - hydf(kz)*ttnp(j,i,kz)/cpd
+      difft(j,i,kz) = difft(j,i,kz) - hydf(kz)*ttnp(j,i,kz)/cpd
     end do
   end do
   do k = 1 , kzm1
     do i = istart , iend
       do j = jstart , jend
-        difft(i,k,j) = difft(i,k,j) + hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))/cpd
+        difft(j,i,k) = difft(j,i,k) + hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))/cpd
       end do
     end do
   end do
@@ -945,7 +895,7 @@ module mod_pbl_holtbl
         do i = istart , iend
           do j = jstart , jend
 !CGAFFE     TEST diffusion/10
-            chten(i,k,j,itr) = chten(i,k,j,itr) +  &
+            chten(j,i,k,itr) = chten(j,i,k,itr) +  &
                         (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(j,i)
           end do
         end do
@@ -953,7 +903,7 @@ module mod_pbl_holtbl
       do i = istart , iend
         do j = jstart , jend
           if ( chname(itr) /= 'DUST' ) &
-            drmr(i,j,itr) = drmr(i,j,itr) + chmx(j,i,kz,itr)* &
+            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
                 vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
                 hydf(kz)/sfcps(j,i)
  
@@ -1001,7 +951,7 @@ module mod_pbl_holtbl
   implicit none
   integer , intent(in) :: jstart , jend , istart , iend
 !
-  real(8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
+  real(dp) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
              zl , zm , zp , zzh , zzhnew , zzhnew2
   integer :: i , j , k , k2

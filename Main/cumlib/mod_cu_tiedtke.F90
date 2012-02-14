@@ -171,14 +171,14 @@ module mod_cu_tiedtke
           pqm1(ii,k)  = qvas(j,i,k) ! humidity
           pxlm1(ii,k) = qcas(j,i,k) ! cloud liquid water
 
-          ptte(ii,k)  = tten(i,k,j)/sfcps(j,i)
-          pvom(ii,k)  = uten(i,k,j)/sfcps(j,i)
-          pvol(ii,k)  = vten(i,k,j)/sfcps(j,i)
-          pqte(ii,k)  = qvten(i,k,j)/sfcps(j,i)
-          pxlte(ii,k) = qcten(i,k,j)/sfcps(j,i)
+          ptte(ii,k)  = tten(j,i,k)/sfcps(j,i)
+          pvom(ii,k)  = uten(j,i,k)/sfcps(j,i)
+          pvol(ii,k)  = vten(j,i,k)/sfcps(j,i)
+          pqte(ii,k)  = qvten(j,i,k)/sfcps(j,i)
+          pxlte(ii,k) = qcten(j,i,k)/sfcps(j,i)
 
           ! IS vertical velocity in Pa/s or in m/s?
-          pverv(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
+          pverv(ii,k)  = d_half*(svv(j,i,k)+svv(j,i,k+1))
 
           pxim1(ii,k) = d_zero ! cloud ice water
           pxite(ii,k) = d_zero ! ice tend
@@ -230,8 +230,8 @@ module mod_cu_tiedtke
             do k = 1 , kz
               ! NOTE: there is an iconsistency here for the latent heating,
               ! as heat of fusion used inside the conv. scheme - please correct!
-              qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(j,i)
-              qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(j,i)
+              qcten(j,i,k) = qcten(j,i,k)+pxtec(ii,k)*sfcps(j,i)
+              qvten(j,i,k) = qvten(j,i,k)+pqtec(ii,k)*sfcps(j,i)
             end do
             kclth = kcbot(ii) - kctop(ii) + 1
             akclth = d_one/dble(kclth)

@@ -20,8 +20,7 @@
 module mod_mppio
 
   use mod_runparams
-  use mod_atm_interface , only : atmstate , allocate_atmstate
-  use mod_atm_interface , only : domain , allocate_domain
+  use mod_atm_interface
   use mod_lm_interface
   use mod_cu_interface
   use mod_che_interface
@@ -30,119 +29,182 @@ module mod_mppio
   use mod_memutil
   use mod_mpmessage
 !
-  integer , pointer , dimension(:,:,:) :: ocld2d_io , veg2d1_io
-  integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
+  real(dp) , pointer , dimension(:) :: r8vector1
+  real(dp) , pointer , dimension(:) :: r8vector2
+  real(sp) , pointer , dimension(:) :: r4vector1
+  real(sp) , pointer , dimension(:) :: r4vector2
+  integer , pointer , dimension(:) :: i4vector1
+  integer , pointer , dimension(:) :: i4vector2
+
+  integer , pointer , dimension(:,:,:) :: ocld_io
+  integer , pointer , dimension(:,:,:) :: iveg1_io
+  integer , pointer , dimension(:,:) :: iveg_io
+  integer , pointer , dimension(:,:) :: ldmsk_io
+
+  real(dp) , pointer , dimension(:,:,:) :: ldew_io
+  real(dp) , pointer , dimension(:,:,:) :: gwet_io
+  real(dp) , pointer , dimension(:,:,:) :: snag_io
+  real(dp) , pointer , dimension(:,:,:) :: sncv_io
+  real(dp) , pointer , dimension(:,:,:) :: sfice_io
+  real(dp) , pointer , dimension(:,:,:) :: rsw_io
+  real(dp) , pointer , dimension(:,:,:) :: ssw_io
+  real(dp) , pointer , dimension(:,:,:) :: tsw_io
+  real(dp) , pointer , dimension(:,:,:) :: taf_io
+  real(dp) , pointer , dimension(:,:,:) :: text2d_io
+  real(dp) , pointer , dimension(:,:,:) :: tgrd_io
+  real(dp) , pointer , dimension(:,:,:) :: tgbrd_io
+  real(dp) , pointer , dimension(:,:,:) :: tlef_io
+  real(dp) , pointer , dimension(:,:,:) :: emiss_io
+
+  real(dp) , pointer , dimension(:,:,:) :: ht1_io
+  real(dp) , pointer , dimension(:,:,:) :: lndcat1_io
+  real(dp) , pointer , dimension(:,:,:) :: xlat1_io
+  real(dp) , pointer , dimension(:,:,:) :: xlon1_io
+!
+  real(dp) , pointer , dimension(:,:) :: flw_io
+  real(dp) , pointer , dimension(:,:) :: flwd_io
+  real(dp) , pointer , dimension(:,:) :: fsw_io
+  real(dp) , pointer , dimension(:,:) :: sabveg_io
+  real(dp) , pointer , dimension(:,:) :: sinc_io
+  real(dp) , pointer , dimension(:,:) :: solis_io
+  real(dp) , pointer , dimension(:,:) :: solvd_io
+  real(dp) , pointer , dimension(:,:) :: solvs_io
+
   integer , pointer , dimension(:,:) :: kpbl_io
-
-  real(8) , pointer , dimension(:,:,:) :: ldew_io , gwet_io , &
-         snag_io , sncv_io , sfice_io , rsw_io , ssw_io , tsw_io ,     &
-         taf_io , text2d_io , tgrd_io , tgbrd_io , tlef_io , emiss_io
-
-  real(8) , pointer , dimension(:,:,:) :: ht1_io , lndcat1_io ,     &
-                                          xlat1_io , xlon1_io
 !
-  real(8) , pointer , dimension(:,:) :: flw_io , flwd_io , fsw_io , &
-         sabveg_io , sinc_io , solis_io ,  solvd_io , solvs_io
-!
-  real(4) , pointer , dimension(:,:,:) :: fbat_io
-  real(4) , pointer , dimension(:,:,:,:) :: fsub_io
-  real(4) , pointer , dimension(:,:,:) :: fsavsts_io
-  real(4) , pointer , dimension(:,:,:) :: fsavsts
-  real(4) , pointer , dimension(:,:,:) :: frad2d_io
-  real(4) , pointer , dimension(:,:,:,:) :: frad3d_io
-  real(4) , pointer , dimension(:,:) :: radpsa_io
+  real(sp) , pointer , dimension(:,:,:) :: fbat_io
+  real(sp) , pointer , dimension(:,:,:,:) :: fsub_io
+  real(sp) , pointer , dimension(:,:,:) :: frad2d_io
+  real(sp) , pointer , dimension(:,:,:,:) :: frad3d_io
+  real(sp) , pointer , dimension(:,:) :: radpsa_io
 
-  real(8) , pointer , dimension(:,:) :: cbmf2d_io
-  real(8) , pointer , dimension(:,:,:) :: fcc_io , rsheat_io ,  &
-                                    rswat_io
+  real(dp) , pointer , dimension(:,:) :: cbmf2d_io
+  real(dp) , pointer , dimension(:,:,:) :: fcc_io
+  real(dp) , pointer , dimension(:,:,:) :: rsheat_io
+  real(dp) , pointer , dimension(:,:,:) :: rswat_io
 
-  real(8) , pointer , dimension(:,:,:,:) :: gasabsnxt_io
-  real(8) , pointer , dimension(:,:,:,:) :: gasabstot_io
-  real(8) , pointer , dimension(:,:,:) :: gasemstot_io
+  real(dp) , pointer , dimension(:,:,:,:) :: gasabsnxt_io
+  real(dp) , pointer , dimension(:,:,:,:) :: gasabstot_io
+  real(dp) , pointer , dimension(:,:,:) :: gasemstot_io
 
-  real(8) , pointer , dimension(:,:,:) :: heatrt_io
-  real(8) , pointer , dimension(:,:,:) :: o3prof_io
+  real(dp) , pointer , dimension(:,:,:) :: heatrt_io
+  real(dp) , pointer , dimension(:,:,:) :: o3prof_io
 
-  real(8) , pointer , dimension(:,:,:) :: dstor_io , hstor_io
+  real(dp) , pointer , dimension(:,:,:) :: dstor_io
+  real(dp) , pointer , dimension(:,:,:) :: hstor_io
 
-  real(8) , pointer , dimension(:,:) :: ps0_io , ps1_io , ts0_io ,  &
-                           ts1_io
-  real(8) , pointer , dimension(:,:,:) :: qb0_io , qb1_io , &
-            tb0_io , tb1_io , ub0_io , ub1_io , vb0_io , vb1_io
-  real(8) , pointer , dimension(:,:) :: ui1_io , ui2_io , uilx_io , &
-                                 uil_io , vi1_io , vi2_io ,         &
-                                 vilx_io , vil_io
+  real(dp) , pointer , dimension(:,:) :: ps0_io
+  real(dp) , pointer , dimension(:,:) :: ps1_io
+  real(dp) , pointer , dimension(:,:) :: ts0_io
+  real(dp) , pointer , dimension(:,:) :: ts1_io
 
-  real(8) , pointer , dimension(:,:) :: pptc_io , pptnc_io ,    &
-                                 prca2d_io , prnca2d_io
+  real(dp) , pointer , dimension(:,:,:) :: qb0_io
+  real(dp) , pointer , dimension(:,:,:) :: qb1_io
+  real(dp) , pointer , dimension(:,:,:) :: tb0_io
+  real(dp) , pointer , dimension(:,:,:) :: tb1_io
+  real(dp) , pointer , dimension(:,:,:) :: ub0_io
+  real(dp) , pointer , dimension(:,:,:) :: ub1_io
+  real(dp) , pointer , dimension(:,:,:) :: vb0_io
+  real(dp) , pointer , dimension(:,:,:) :: vb1_io
 
-  real(8) , pointer , dimension(:,:) :: cldefi_io , hfx_io , &
-                                 psa_io , psb_io , qfx_io ,  &
-                                 rainc_io , rainnc_io ,    &
-                                 tga_io , tgbb_io ,     &
-                                 tgb_io , uvdrag_io , &
-                                 zpbl_io
-  real(8) , pointer , dimension(:,:,:) :: omega_io , tbase_io
+  real(dp) , pointer , dimension(:,:) :: sue_io
+  real(dp) , pointer , dimension(:,:) :: sui_io
+  real(dp) , pointer , dimension(:,:) :: nui_io
+  real(dp) , pointer , dimension(:,:) :: nue_io
+  real(dp) , pointer , dimension(:,:) :: sve_io
+  real(dp) , pointer , dimension(:,:) :: svi_io
+  real(dp) , pointer , dimension(:,:) :: nve_io
+  real(dp) , pointer , dimension(:,:) :: nvi_io
 
-  type(atmstate) :: atm1_io , atm2_io
+  real(dp) , pointer , dimension(:,:) :: pptc_io
+  real(dp) , pointer , dimension(:,:) :: pptnc_io
+
+  real(dp) , pointer , dimension(:,:) :: cldefi_io
+  real(dp) , pointer , dimension(:,:) :: hfx_io
+                  
+  real(dp) , pointer , dimension(:,:) :: zpbl_io
+
+  real(dp) , pointer , dimension(:,:,:) :: omega_io
+  real(dp) , pointer , dimension(:,:,:) :: tbase_io
+
   type(domain) :: mddom_io
+  type(atmstate) :: atm1_io
+  type(atmstate) :: atm2_io
+  type(surfstate) :: sfs_io
   type(tcm_state) :: tcmstate_io
 
-  real(8) , pointer , dimension(:,:,:) :: inisrf0
-  real(8) , pointer , dimension(:,:,:) :: inisrf_0
-
-  real(8) , pointer , dimension(:,:) :: var1snd , var1rcv
-  integer , pointer , dimension(:,:) :: var2d0
-  integer , pointer , dimension(:,:) :: var2d_0
-  integer , pointer , dimension(:,:,:) :: var2d1
-  integer , pointer , dimension(:,:,:) :: var2d_1
-  real(8) , pointer , dimension(:,:) :: swapv
- 
-  real(8) , pointer , dimension(:,:,:) :: atm0
-  real(8) , pointer , dimension(:,:,:) :: atm_0
-  real(8) , pointer , dimension(:,:,:) :: uw0
-  real(8) , pointer , dimension(:,:,:) :: uw_0
-  real(4) , pointer , dimension(:,:,:) :: bat0
-  real(4) , pointer , dimension(:,:,:) :: bat_0
-  real(4) , pointer , dimension(:,:,:) :: rad0
-  real(4) , pointer , dimension(:,:,:) :: rad_0
-  real(4) , pointer , dimension(:,:,:,:) :: sub0
-  real(4) , pointer , dimension(:,:,:,:) :: sub_0
 #ifdef CLM
-  real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
-                      solsd2d_io , solld2d_io , aldifl2d_io ,       &
-                      aldirs2d_io , aldirl2d_io , aldifs2d_io
-  real(8) , pointer , dimension(:,:) :: lndcat2d_io
+  real(dp) , pointer , dimension(:,:) :: sols2d_io
+  real(dp) , pointer , dimension(:,:) :: soll2d_io
+  real(dp) , pointer , dimension(:,:) :: solsd2d_io
+  real(dp) , pointer , dimension(:,:) :: solld2d_io
+  real(dp) , pointer , dimension(:,:) :: aldifl2d_io
+  real(dp) , pointer , dimension(:,:) :: aldirs2d_io
+  real(dp) , pointer , dimension(:,:) :: aldirl2d_io
+  real(dp) , pointer , dimension(:,:) :: aldifs2d_io
+  real(dp) , pointer , dimension(:,:) :: lndcat2d_io
 #endif
 !
-  real(8) , pointer , dimension(:,:,:) :: sav0
-  real(8) , pointer , dimension(:,:,:) :: sav_0
-  real(8) , pointer , dimension(:,:,:) :: sav0a
-  real(8) , pointer , dimension(:,:,:) :: sav_0a
-  real(8) , pointer , dimension(:,:,:) :: sav0b
-  real(8) , pointer , dimension(:,:,:) :: sav_0b
-  real(8) , pointer , dimension(:,:,:) :: sav0c
-  real(8) , pointer , dimension(:,:,:) :: sav_0c
-  real(8) , pointer , dimension(:,:,:) :: sav0s
-  real(8) , pointer , dimension(:,:,:) :: sav_0s
-  real(8) , pointer , dimension(:,:,:) :: sav0d
-  real(8) , pointer , dimension(:,:,:) :: sav_0d
-  real(8) , pointer , dimension(:,:,:) :: sav1
-  real(8) , pointer , dimension(:,:,:) :: sav_1
-  real(8) , pointer , dimension(:,:,:) :: sav2
-  real(8) , pointer , dimension(:,:,:) :: sav_2
-  integer , pointer , dimension(:,:,:) :: sav2a
-  integer , pointer , dimension(:,:,:) :: sav_2a
-  real(8) , pointer , dimension(:,:,:) :: sav4
-  real(8) , pointer , dimension(:,:,:) :: sav_4
-  real(8) , pointer , dimension(:,:,:) :: sav4a
-  real(8) , pointer , dimension(:,:,:) :: sav_4a
-  real(8) , pointer , dimension(:,:,:) :: sav6
-  real(8) , pointer , dimension(:,:,:) :: sav_6
-#ifdef CLM
-  real(8) , pointer , dimension(:,:,:) :: sav_clmout
-  real(8) , pointer , dimension(:,:,:) :: sav_clmin
-#endif
+  interface deco1_scatter
+    module procedure deco1_1d_real8_scatter ,   &
+                     deco1_2d_real8_scatter ,   &
+                     deco1_3d_real8_scatter ,   &
+                     deco1_4d_real8_scatter ,   &
+                     deco1_2d_real4_scatter ,   &
+                     deco1_3d_real4_scatter ,   &
+                     deco1_4d_real4_scatter ,   &
+                     deco1_2d_integer_scatter , &
+                     deco1_3d_integer_scatter , &
+                     deco1_4d_integer_scatter
+  end interface deco1_scatter
+
+  interface deco1_gather
+    module procedure deco1_1d_real8_gather ,   &
+                     deco1_2d_real8_gather ,   &
+                     deco1_3d_real8_gather ,   &
+                     deco1_4d_real8_gather ,   &
+                     deco1_2d_real4_gather ,   &
+                     deco1_3d_real4_gather ,   &
+                     deco1_4d_real4_gather ,   &
+                     deco1_2d_integer_gather , &
+                     deco1_3d_integer_gather , &
+                     deco1_4d_integer_gather
+  end interface deco1_gather
+
+  interface subgrid_deco1_scatter
+    module procedure subgrid_deco1_2d_real8_scatter ,   &
+                     subgrid_deco1_3d_real8_scatter ,   &
+                     subgrid_deco1_2d_real4_scatter ,   &
+                     subgrid_deco1_3d_real4_scatter ,   &
+                     subgrid_deco1_2d_integer_scatter , &
+                     subgrid_deco1_3d_integer_scatter
+  end interface subgrid_deco1_scatter
+
+  interface subgrid_deco1_gather
+    module procedure subgrid_deco1_2d_real8_gather ,   &
+                     subgrid_deco1_3d_real8_gather ,   &
+                     subgrid_deco1_2d_real4_gather ,   &
+                     subgrid_deco1_3d_real4_gather ,   &
+                     subgrid_deco1_2d_integer_gather , &
+                     subgrid_deco1_3d_integer_gather
+  end interface subgrid_deco1_gather
+
+  interface deco1_exchange_left
+    module procedure deco1_2d_real8_exchange_left ,  &
+                     deco1_3d_real8_exchange_left,   &
+                     deco1_4d_real8_exchange_left
+  end interface deco1_exchange_left
+
+  interface deco1_exchange_right
+    module procedure deco1_2d_real8_exchange_right , &
+                     deco1_3d_real8_exchange_right,  &
+                     deco1_4d_real8_exchange_right
+  end interface deco1_exchange_right
+
+  public :: deco1_scatter , deco1_gather
+  public :: subgrid_deco1_scatter , subgrid_deco1_gather
+  public :: deco1_exchange_left , deco1_exchange_right
+  public :: uvcross2dot , psc2psd
 
 !---------- DATA init section--------------------------------------------
 
@@ -150,33 +212,8 @@ module mod_mppio
 !
 !     This routines allocate all the arrays contained in the module
 !
-  subroutine allocate_mod_mppio(lband)
+  subroutine allocate_mod_mppio
     implicit none
-    logical , intent(in) :: lband
-    integer :: mjj , mojj
-
-    if ( lband ) then
-      mjj = jx
-      mojj = jx
-    else
-      mjj = jxm1
-      mojj = jxm2
-    end if
-
-    call getmem2d(var1snd,1,kz,1,8,'mppio:var1snd')
-    call getmem2d(var1rcv,1,kz,1,8,'mppio:var1rcv')
-    call getmem2d(var2d0,1,iy,1,jxp,'mppio:var2d0')
-    call getmem2d(swapv,1,iy,1,jxp,'mppio:swap')
-    call getmem3d(var2d1,1,iy,1,nnsg,1,jxp,'mppio:var2d1')
-    call getmem3d(inisrf0,1,iy,1,nnsg*4+7,1,jxp,'mppio:inisrf0')
-    call getmem3d(atm0,1,iy,1,kz*6+3+nnsg*2,1,jxp,'mppio:atm0')
-    call getmem3d(bat0,1,iym2,1,numbat,1,jxp,'mppio:bat0')
-    call getmem3d(rad0,1,iym2,1,nrad3d*kz+nrad2d,1,jxp,'mppio:rad0')
-    call getmem4d(sub0,1,iym2,1,nnsg,1,numsub,1,jxp,'mppio:sub0')
-    call getmem3d(fsavsts,1,iym2,1,numsts,1,jxp,'mod_mppio:fsavsts')
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call getmem3d(uw0,1,iy,1,kz*3,1,jxp,'mppio:uw0')
-    end if
 
     if (myid == 0) then
       call allocate_domain(mddom_io,.false.)
@@ -185,173 +222,122 @@ module mod_mppio
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call allocate_tcm_state(tcmstate_io,.false.)
       end if
+      call allocate_surfstate(sfs_io,.false.)
 
-      call getmem2d(kpbl_io,1,iy,1,jx,'mppio:kpbl_io')
 
-      call getmem2d(var2d_0,1,iy,1,jx,'mppio:var2d_0')
-      call getmem3d(var2d_1,1,iy,1,nnsg,1,jx,'mppio:var2d_1')
-      call getmem3d(inisrf_0,1,iy,1,nnsg*4+7,1,jx,'mppio:inisrf_0')
-      call getmem3d(atm_0,1,iy,1,kz*6+3+nnsg*2,1,jx,'mppio:atm_0')
-      call getmem3d(bat_0,1,iym2,1,numbat,1,jx,'mppio:bat_0')
-      call getmem3d(rad_0,1,iym2,1,nrad3d*kz+nrad2d,1,jx,'mppio:rad_0')
-      call getmem4d(sub_0,1,iym2,1,nnsg,1,numsub,1,jx,'mppio:sub_0')
-      call getmem3d(fsavsts_io,1,iym2,1,numsts,1,jx,'mod_mppio:fsavsts_io')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        call getmem3d(uw_0,1,iy,1,kz*3,1,jx,'mppio:uw_0')
-      end if
+      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
+      call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
+      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
+      call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
+      call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
+      call getmem3d(rsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'rsw_io')
+      call getmem3d(ssw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ssw_io')
+      call getmem3d(tsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tsw_io')
+      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
+      call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
+      call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
+      call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
+      call getmem3d(emiss_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emiss_io')
+      call getmem3d(ocld_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ocld_io')
+      call getmem3d(iveg1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'iveg1_io')
+      call getmem2d(iveg_io,jcross1,jcross2,icross1,icross2,'iveg_io')
+      call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
+      call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
+      call getmem2d(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
+      call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
+      call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
+      call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
+      call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
+      call getmem2d(solvd_io,jcross1,jcross2,icross1,icross2,'solvd_io')
+      call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
+      call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
 
-      call getmem3d(ldew_io,1,nnsg,1,iym1,1,mjj,'mppio:ldew_io')
-      call getmem3d(gwet_io,1,nnsg,1,iym1,1,mjj,'mppio:gwet_io')
-      call getmem3d(snag_io,1,nnsg,1,iym1,1,mjj,'mppio:snag_io')
-      call getmem3d(sncv_io,1,nnsg,1,iym1,1,mjj,'mppio:sncv_io')
-      call getmem3d(sfice_io,1,nnsg,1,iym1,1,mjj,'mppio:sfice_io')
-      call getmem3d(rsw_io,1,nnsg,1,iym1,1,mjj,'mppio:rsw_io')
-      call getmem3d(ssw_io,1,nnsg,1,iym1,1,mjj,'mppio:ssw_io')
-      call getmem3d(tsw_io,1,nnsg,1,iym1,1,mjj,'mppio:tsw_io')
-      call getmem3d(taf_io,1,nnsg,1,iym1,1,mjj,'mppio:taf_io')
-      call getmem3d(text2d_io,1,nnsg,1,iym1,1,mjj,'mppio:text2d_io')
-      call getmem3d(tgrd_io,1,nnsg,1,iym1,1,mjj,'mppio:tgrd_io')
-      call getmem3d(tgbrd_io,1,nnsg,1,iym1,1,mjj,'mppio:tgbrd_io')
-      call getmem3d(tlef_io,1,nnsg,1,iym1,1,mjj,'mppio:tlef_io')
-      call getmem3d(emiss_io,1,nnsg,1,iym1,1,mjj,'mppio:emiss_io')
-      call getmem3d(veg2d1_io,1,nnsg,1,iym1,1,mjj,'mppio:veg2d1_io')
-      call getmem3d(ocld2d_io,1,nnsg,1,iym1,1,mjj,'mppio:ocld2d_io')
-      call getmem2d(veg2d_io,1,iym1,1,mjj,'mppio:veg2d_io')
-      call getmem2d(ldmsk_io,1,iym1,1,mjj,'mppio:ldmsk_io')
-      call getmem3d(ht1_io,1,nnsg,1,iy,1,jx,'mppio:ht1_io')
-      call getmem3d(lndcat1_io,1,nnsg,1,iy,1,jx,'mppio:lndcat1_io')
-      call getmem3d(xlat1_io,1,nnsg,1,iy,1,jx,'mppio:xlat1_io')
-      call getmem3d(xlon1_io,1,nnsg,1,iy,1,jx,'mppio:xlon1_io')
-      call getmem2d(flw_io,1,iym1,1,mjj,'mppio:flw_io')
-      call getmem2d(flwd_io,1,iym1,1,mjj,'mppio:flwd_io')
-      call getmem2d(fsw_io,1,iym1,1,mjj,'mppio:fsw_io')
-      call getmem2d(sabveg_io,1,iym1,1,mjj,'mppio:sabveg_io')
-      call getmem2d(sinc_io,1,iym1,1,mjj,'mppio:sinc_io')
-      call getmem2d(solis_io,1,iym1,1,mjj,'mppio:solis_io')
-      call getmem2d(solvd_io,1,iym1,1,mjj,'mppio:solvd_io')
-      call getmem2d(solvs_io,1,iym1,1,mjj,'mppio:solvs_io')
+      call getmem3d(ht1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'ht1_io')
+      call getmem3d(lndcat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'lndcat1_io')
+      call getmem3d(xlat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlat1_io')
+      call getmem3d(xlon1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlon1_io')
 
-      call getmem3d(fbat_io,1,mojj,1,iym2,1,numbat,'mppio:fbat_io')
-      call getmem4d(fsub_io,1,nnsg,1,mojj,1,iym2,1,numsub,'mppio:fsub_io')
-      call getmem3d(frad2d_io,1,mojj,1,iym2,1,nrad2d,'mppio:frad2d_io')
-      call getmem4d(frad3d_io,1,mojj,1,iym2,1,kz,1,nrad3d,'mppio:frad3d_io')
-      call getmem2d(radpsa_io,1,mojj,1,iym2,'mppio:radpsa_io')
+      call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
+      call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
+      call getmem3d(rsheat_io,jcross1,jcross2,icross1,icross2,1,kz,'rsheat_io')
+      call getmem3d(rswat_io,jcross1,jcross2,icross1,icross2,1,kz,'rswat_io')
 
-      call getmem2d(cbmf2d_io,1,iy,1,jx,'mppio:cbmf2d_io')
-      call getmem3d(fcc_io,1,iy,1,kz,1,jx,'mppio:fcc_io')
-      call getmem3d(rsheat_io,1,iy,1,kz,1,jx,'mppio:rsheat_io')
-      call getmem3d(rswat_io,1,iy,1,kz,1,jx,'mppio:rswat_io')
-      call getmem3d(dstor_io,1,iy,1,jx,1,nsplit,'mppio:dstor_io')
-      call getmem3d(hstor_io,1,iy,1,jx,1,nsplit,'mppio:hstor_io')
+      call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
+      call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
 
-      call getmem4d(gasabsnxt_io,1,iym1,1,kz,1,4,1,mjj,'mppio:gasabsnxt_io')
-      call getmem4d(gasabstot_io,1,iym1,1,kzp1,1,kzp1,1,mjj, &
-                    'mppio:gasabstot_io')
-      call getmem3d(gasemstot_io,1,iym1,1,kzp1,1,mjj,'mppio:gasemstot_io')
-      call getmem3d(heatrt_io,1,iym1,1,kz,1,mjj,'mppio:heatrt_io')
-      call getmem3d(o3prof_io,1,iym1,1,kzp1,1,mjj,'mppio:o3prof_io')
+      call getmem4d(gasabsnxt_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,1,4,'gasabsnxt_io')
+      call getmem4d(gasabstot_io,jcross1,jcross2, &
+                    icross1,icross2,1,kzp1,1,kzp1,'gasabstot_io')
+      call getmem3d(gasemstot_io,jcross1,jcross2, &
+                    icross1,icross2,1,kzp1,'gasemstot_io')
 
-      call getmem2d(ps0_io,1,iy,1,jx,'mppio:ps0_io')
-      call getmem2d(ps1_io,1,iy,1,jx,'mppio:ps1_io')
-      call getmem2d(ts0_io,1,iy,1,jx,'mppio:ts0_io')
-      call getmem2d(ts1_io,1,iy,1,jx,'mppio:ts1_io')
-      call getmem3d(qb0_io,1,iy,1,kz,1,jx,'mppio:qb0_io')
-      call getmem3d(qb1_io,1,iy,1,kz,1,jx,'mppio:qb1_io')
-      call getmem3d(tb0_io,1,iy,1,kz,1,jx,'mppio:tb0_io')
-      call getmem3d(tb1_io,1,iy,1,kz,1,jx,'mppio:tb1_io')
-      call getmem3d(ub0_io,1,iy,1,kz,1,jx,'mppio:ub0_io')
-      call getmem3d(ub1_io,1,iy,1,kz,1,jx,'mppio:ub1_io')
-      call getmem3d(vb0_io,1,iy,1,kz,1,jx,'mppio:vb0_io')
-      call getmem3d(vb1_io,1,iy,1,kz,1,jx,'mppio:vb1_io')
-      call getmem2d(ui1_io,1,kz,1,jx,'mppio:ui1_io')
-      call getmem2d(ui2_io,1,kz,1,jx,'mppio:ui2_io')
-      call getmem2d(uilx_io,1,kz,1,jx,'mppio:uilx_io')
-      call getmem2d(uil_io,1,kz,1,jx,'mppio:uil_io')
-      call getmem2d(vi1_io,1,kz,1,jx,'mppio:vi1_io')
-      call getmem2d(vi2_io,1,kz,1,jx,'mppio:vi2_io')
-      call getmem2d(vilx_io,1,kz,1,jx,'mppio:vilx_io')
-      call getmem2d(vil_io,1,kz,1,jx,'mppio:vil_io')
-      call getmem2d(pptc_io,1,iym1,1,mjj,'mppio:pptc_io')
-      call getmem2d(pptnc_io,1,iym1,1,mjj,'mppio:pptnc_io')
-      call getmem2d(prca2d_io,1,iym1,1,mjj,'mppio:prca2d_io')
-      call getmem2d(prnca2d_io,1,iym1,1,mjj,'mppio:prnca2d_io')
-      call getmem2d(hfx_io,1,iy,1,jx,'mppio:hfx_io')
-      call getmem2d(psa_io,1,iy,1,jx,'mppio:psa_io')
-      call getmem2d(psb_io,1,iy,1,jx,'mppio:psb_io')
-      call getmem2d(qfx_io,1,iy,1,jx,'mppio:qfx_io')
-      call getmem2d(rainc_io,1,iy,1,jx,'mppio:rainc_io')
-      call getmem2d(rainnc_io,1,iy,1,jx,'mppio:rainnc_io')
-      call getmem2d(tga_io,1,iy,1,jx,'mppio:tga_io')
-      call getmem2d(tgbb_io,1,iy,1,jx,'mppio:tgbb_io')
-      call getmem2d(tgb_io,1,iy,1,jx,'mppio:tgb_io')
-      call getmem2d(uvdrag_io,1,iy,1,jx,'mppio:uvdrag_io')
-      call getmem2d(zpbl_io,1,iy,1,jx,'mppio:zpbl_io')
-      call getmem3d(omega_io,1,iy,1,kz,1,jx,'mppio:omega_io')
+      call getmem3d(heatrt_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,'heatrt_io')
+      call getmem3d(o3prof_io,jcross1,jcross2, &
+                    icross1,icross2,1,kzp1,'o3prof_io')
+
+      call getmem2d(ps0_io,jdot1,jdot2,idot1,idot2,'ps0_io')
+      call getmem2d(ps1_io,jdot1,jdot2,idot1,idot2,'ps1_io')
+      call getmem2d(ts0_io,jdot1,jdot2,idot1,idot2,'ts0_io')
+      call getmem2d(ts1_io,jdot1,jdot2,idot1,idot2,'ts1_io')
+      call getmem3d(qb0_io,jdot1,jdot2,idot1,idot2,1,kz,'qb0_io')
+      call getmem3d(qb1_io,jdot1,jdot2,idot1,idot2,1,kz,'qb1_io')
+      call getmem3d(tb0_io,jdot1,jdot2,idot1,idot2,1,kz,'tb0_io')
+      call getmem3d(tb1_io,jdot1,jdot2,idot1,idot2,1,kz,'tb1_io')
+      call getmem3d(ub0_io,jdot1,jdot2,idot1,idot2,1,kz,'ub0_io')
+      call getmem3d(ub1_io,jdot1,jdot2,idot1,idot2,1,kz,'ub1_io')
+      call getmem3d(vb0_io,jdot1,jdot2,idot1,idot2,1,kz,'vb0_io')
+      call getmem3d(vb1_io,jdot1,jdot2,idot1,idot2,1,kz,'vb1_io')
+
+      call getmem2d(sui_io,jdot1,jdot2,1,kz,'sue_io')
+      call getmem2d(sue_io,jdot1,jdot2,1,kz,'sui_io')
+      call getmem2d(nui_io,jdot1,jdot2,1,kz,'nui_io')
+      call getmem2d(nue_io,jdot1,jdot2,1,kz,'nue_io')
+      call getmem2d(sve_io,jdot1,jdot2,1,kz,'sve_io')
+      call getmem2d(svi_io,jdot1,jdot2,1,kz,'svi_io')
+      call getmem2d(nve_io,jdot1,jdot2,1,kz,'nve_io')
+      call getmem2d(nvi_io,jdot1,jdot2,1,kz,'nvi_io')
+
+      call getmem2d(pptc_io,jcross1,jcross2,icross1,icross2,'pptc_io')
+      call getmem2d(pptnc_io,jcross1,jcross2,icross1,icross2,'pptnc_io')
+      call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+      call getmem3d(omega_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,'omega_io')
       if (icup == 3) then
-        call getmem2d(cldefi_io,1,iy,1,jx,'mppio:cldefi_io')
-        call getmem3d(tbase_io,1,iy,1,kz,1,jx,'mppio:tbase_io')
+        call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
+        call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if
 #ifdef CLM
-      call getmem2d(sols2d_io,1,iym1,1,mjj,'mppio:sols2d_io')
-      call getmem2d(soll2d_io,1,iym1,1,mjj,'mppio:soll2d_io')
-      call getmem2d(solsd2d_io,1,iym1,1,mjj,'mppio:solsd2d_io')
-      call getmem2d(solld2d_io,1,iym1,1,mjj,'mppio:solld2d_io')
-      call getmem2d(aldifl2d_io,1,iym1,1,mjj,'mppio:aldifl2d_io')
-      call getmem2d(aldifs2d_io,1,iym1,1,mjj,'mppio:aldifs2d_io')
-      call getmem2d(aldirl2d_io,1,iym1,1,mjj,'mppio:aldirl2d_io')
-      call getmem2d(aldirs2d_io,1,iym1,1,mjj,'mppio:aldirs2d_io')
-      call getmem2d(lndcat2d_io,1,iy,1,jx,'mppio:lndcat2d_io')
+      call getmem2d(sols2d_io,jcross1,jcross2,icross1,icross2,'sols2d_io')
+      call getmem2d(soll2d_io,jcross1,jcross2,icross1,icross2,'soll2d_io')
+      call getmem2d(solsd2d_io,jcross1,jcross2,icross1,icross2,'solsd2d_io')
+      call getmem2d(solld2d_io,jcross1,jcross2,icross1,icross2,'solld2d_io')
+      call getmem2d(aldifl2d_io,jcross1,jcross2,icross1,icross2,'aldifl2d_io')
+      call getmem2d(aldifs2d_io,jcross1,jcross2,icross1,icross2,'aldifs2d_io')
+      call getmem2d(aldirl2d_io,jcross1,jcross2,icross1,icross2,'aldirl2d_io')
+      call getmem2d(aldirs2d_io,jcross1,jcross2,icross1,icross2,'aldirs2d_io')
+      call getmem2d(lndcat2d_io,jcross1,jcross2,icross1,icross2,'lndcat2d_io')
 #endif
+      !
+      ! Output array for SRF , RAD , SUB
+      !
+      call getmem3d(fbat_io,jout1,jout2,iout1,iout2,1,numbat,'fbat_io')
+      call getmem4d(fsub_io,1,nnsg,jout1,jout2,iout1,iout2,1,numsub,'fsub_io')
+      call getmem3d(frad2d_io,jout1,jout2,iout1,iout2,1,nrad2d,'frad2d_io')
+      call getmem4d(frad3d_io,jout1,jout2,iout1,iout2,1,kz,1,nrad3d,'frad3d_io')
+      call getmem2d(radpsa_io,jout1,jout2,iout1,iout2,'radpsa_io')
     endif
-    if (myid == 0) then
-      call getmem3d(sav_0,1,iy,1,kz*4+2,1,jx,'mppio:sav_0')
-      call getmem3d(sav_0a,1,iy,1,kzp1+4,1,jx,'mppio:sav_0a')
-      call getmem3d(sav_0b,1,iy,1,kzp1,1,jx,'mppio:sav_0b')
-      call getmem3d(sav_0c,1,iy,1,kz*2,1,jx,'mppio:sav_0c')
-      call getmem3d(sav_0s,1,iy,1,kz,1,jx,'mppio:sav_0s')
-      call getmem3d(sav_0d,1,iy,1,nsplit*2,1,jx,'mppio:sav_0d')
-      call getmem3d(sav_1,1,iym1,1,kz*4+(kzp1*kzp2),1,jx,'mppio:sav_1')
-      call getmem3d(sav_2,1,iym1,1,nnsg*5+4,1,jx,'mppio:sav_2')
-      call getmem3d(sav_2a,1,iym1,1,nnsg*2+2,1,jx,'mppio:sav_2a')
-      if ( ichem == 1 ) then
-        call getmem3d(sav_4,1,iy,1,ntr*(kz*4+1),1,jx,'mppio:sav_4')
-        call getmem3d(sav_4a,1,iym1,1,7,1,jx,'mppio:sav_4a')
-      end if
-      call getmem3d(sav_6,1,kz,1,8,1,jx,'mppio:sav_6')
-#ifdef CLM
-      call getmem3d(sav_clmout,1,iym1,1,8,1,jx,'mppio:sav_clmout')
-#endif
-    end if
-
-    call getmem3d(sav0,1,iy,1,kz*4+2,1,jxp,'mppio:sav0')
-    call getmem3d(sav0a,1,iy,1,kzp1+4,1,jxp,'mppio:sav0a')
-    call getmem3d(sav0b,1,iy,1,kzp1,1,jxp,'mppio:sav0b')
-    call getmem3d(sav0c,1,iy,1,kz*2,1,jxp,'mppio:sav0c')
-    call getmem3d(sav0s,1,iy,1,kz,1,jxp,'mppio:sav0s')
-    call getmem3d(sav0d,1,iy,1,nsplit*2,1,jxp,'mppio:sav0d')
-    call getmem3d(sav1,1,iym1,1,kz*4+(kzp1*kzp2),1,jxp,'mppio:sav1')
-    call getmem3d(sav2,1,iym1,1,nnsg*5+4,1,jxp,'mppio:sav2')
-    call getmem3d(sav2a,1,iym1,1,nnsg*2+2,1,jxp,'mppio:sav2a')
-    if ( ichem == 1 ) then
-      call getmem3d(sav4,1,iy,1,ntr*(kz*4+1),1,jxp,'mppio:sav4')
-      call getmem3d(sav4a,1,iym1,1,7,1,jxp,'mppio:sav4a')
-    end if
-    call getmem3d(sav6,1,kz,1,8,1,jxp,'mppio:sav6')
-#ifdef CLM
-    call getmem3d(sav_clmin,1,iym1,1,8,1,jxp,'mppio:sav_clmin')
-#endif
 
   end subroutine allocate_mod_mppio
 !
   subroutine free_mpp_initspace
     implicit none
-    call relmem3d(inisrf0)
     if (ichem == 1) then
       call relmem4d(src0)
       call relmem3d(src1)
     end if
     if (myid == 0) then
-      call relmem3d(inisrf_0)
       if (ichem == 1) then
         call relmem4d(src_0)
         call relmem3d(src_1)
@@ -359,4 +345,2423 @@ module mod_mppio
     end if
   end subroutine free_mpp_initspace
 !
+  subroutine deco1_1d_real8_scatter(mg,ml)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:) , intent(out) :: ml ! model local
+    integer :: ierr
+    call mpi_scatter(mg,jxp,mpi_real8,ml,jxp,mpi_real8,0,mycomm,ierr)
+  end subroutine deco1_1d_real8_scatter
+!
+  subroutine deco1_1d_real8_gather(ml,mg)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:) , intent(out) :: mg ! model global
+    integer :: ierr
+    call mpi_gather(ml,jxp,mpi_real8,mg,jxp,mpi_real8,0,mycomm,ierr)
+  end subroutine deco1_1d_real8_gather
+!
+  subroutine deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_scatter')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_scatter')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_scatter')
+      end if
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          r8vector1(ib) = mg(j,i)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    call mpi_scatter(r8vector1,lsize,mpi_real8, &
+                     r8vector2,lsize,mpi_real8, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        ml(j,i) = r8vector2(ib)
+        ib = ib + 1
+      end do
+    end do
+  end subroutine deco1_2d_real8_scatter
+!
+  subroutine deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_gather')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        r8vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_gather')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_gather')
+      end if
+    end if
+    call mpi_gather(r8vector2,lsize,mpi_real8, &
+                    r8vector1,lsize,mpi_real8, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          mg(j,i) = r8vector1(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine deco1_2d_real8_gather
+!
+  subroutine deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_scatter')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_scatter')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_scatter')
+      end if
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            r8vector1(ib) = mg(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r8vector1,lsize,mpi_real8, &
+                     r8vector2,lsize,mpi_real8, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          ml(j,i,k) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine deco1_3d_real8_scatter
+!
+  subroutine deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_gather')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          r8vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_gather')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_gather')
+      end if
+    end if
+    call mpi_gather(r8vector2,lsize,mpi_real8, &
+                    r8vector1,lsize,mpi_real8, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            mg(j,i,k) = r8vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_3d_real8_gather
+!
+  subroutine deco1_4d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_scatter')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_scatter')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              r8vector1(ib) = mg(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r8vector1,lsize,mpi_real8, &
+                     r8vector2,lsize,mpi_real8, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            ml(j,i,k,n) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine deco1_4d_real8_scatter
+!
+  subroutine deco1_4d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_gather')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            r8vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_gather')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_gather')
+      end if
+    end if
+    call mpi_gather(r8vector2,lsize,mpi_real8, &
+                    r8vector1,lsize,mpi_real8, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              mg(j,i,k,n) = r8vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_4d_real8_gather
+!
+  subroutine deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_scatter')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_scatter')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_scatter')
+      end if
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          r4vector1(ib) = mg(j,i)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    call mpi_scatter(r4vector1,lsize,mpi_real4, &
+                     r4vector2,lsize,mpi_real4, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        ml(j,i) = r4vector2(ib)
+        ib = ib + 1
+      end do
+    end do
+  end subroutine deco1_2d_real4_scatter
+!
+  subroutine deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_gather')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        r4vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_gather')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_gather')
+      end if
+    end if
+    call mpi_gather(r4vector2,lsize,mpi_real4, &
+                    r4vector1,lsize,mpi_real4, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          mg(j,i) = r4vector1(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine deco1_2d_real4_gather
+!
+  subroutine deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_scatter')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_scatter')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_scatter')
+      end if
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            r4vector1(ib) = mg(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r4vector1,lsize,mpi_real4, &
+                     r4vector2,lsize,mpi_real4, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          ml(j,i,k) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine deco1_3d_real4_scatter
+!
+  subroutine deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_gather')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          r4vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_gather')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_gather')
+      end if
+    end if
+    call mpi_gather(r4vector2,lsize,mpi_real4, &
+                    r4vector1,lsize,mpi_real4, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            mg(j,i,k) = r4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_3d_real4_gather
+!
+  subroutine deco1_4d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_scatter')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_scatter')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              r4vector1(ib) = mg(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r4vector1,lsize,mpi_real4, &
+                     r4vector2,lsize,mpi_real4, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            ml(j,i,k,n) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine deco1_4d_real4_scatter
+!
+  subroutine deco1_4d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_gather')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            r4vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_gather')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_gather')
+      end if
+    end if
+    call mpi_gather(r4vector2,lsize,mpi_real4, &
+                    r4vector1,lsize,mpi_real4, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              mg(j,i,k,n) = r4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_4d_real4_gather
+!
+  subroutine deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_scatter')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_scatter')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_scatter')
+      end if
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          i4vector1(ib) = mg(j,i)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    call mpi_scatter(i4vector1,lsize,mpi_integer, &
+                     i4vector2,lsize,mpi_integer, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        ml(j,i) = i4vector2(ib)
+        ib = ib + 1
+      end do
+    end do
+  end subroutine deco1_2d_integer_scatter
+!
+  subroutine deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx
+    lsize = isize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_gather')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        i4vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_gather')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_gather')
+      end if
+    end if
+    call mpi_gather(i4vector2,lsize,mpi_integer, &
+                    i4vector1,lsize,mpi_integer, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize+1
+      do j = j1 , j2
+        do i = i1 , i2
+          mg(j,i) = i4vector1(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine deco1_2d_integer_gather
+!
+  subroutine deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_scatter')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_scatter')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_scatter')
+      end if
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            i4vector1(ib) = mg(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(i4vector1,lsize,mpi_integer, &
+                     i4vector2,lsize,mpi_integer, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          ml(j,i,k) = i4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine deco1_3d_integer_scatter
+!
+  subroutine deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx
+    lsize = isize*ksize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_gather')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          i4vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_gather')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_gather')
+      end if
+    end if
+    call mpi_gather(i4vector2,lsize,mpi_integer, &
+                    i4vector1,lsize,mpi_integer, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            mg(j,i,k) = i4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_3d_integer_gather
+!
+  subroutine deco1_4d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_scatter')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_scatter')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              i4vector1(ib) = mg(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(i4vector1,lsize,mpi_integer, &
+                     i4vector2,lsize,mpi_integer, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            ml(j,i,k,n) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine deco1_4d_integer_scatter
+!
+  subroutine deco1_4d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: isize , ksize , nsize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    gsize = isize*ksize*nsize*jx
+    lsize = isize*ksize*nsize*jxp
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_gather')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nsize+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            i4vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_gather')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_gather')
+      end if
+    end if
+    call mpi_gather(i4vector2,lsize,mpi_integer, &
+                    i4vector1,lsize,mpi_integer, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nsize+1
+      do j = j1 , j2
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              mg(j,i,k,n) = i4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_4d_integer_gather
+!
+  subroutine subgrid_deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*nnsg*jx
+    lsize = isize*nnsg*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_scatter')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_scatter')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_scatter')
+      end if
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            r8vector1(ib) = mg(nn,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r8vector1,lsize,mpi_real8, &
+                     r8vector2,lsize,mpi_real8, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          ml(nn,j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_2d_real8_scatter
+!
+  subroutine subgrid_deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*nnsg*jx
+    lsize = isize*nnsg*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_gather')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          r8vector2(ib) = ml(nn,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_gather')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_gather')
+      end if
+    end if
+    call mpi_gather(r8vector2,lsize,mpi_real8, &
+                    r8vector1,lsize,mpi_real8, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            mg(nn,j,i) = r8vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_2d_real8_gather
+!
+  subroutine subgrid_deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*nnsg*jx
+    lsize = isize*ksize*nnsg*jxp
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_scatter')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_scatter')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              r8vector1(ib) = mg(nn,j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r8vector1,lsize,mpi_real8, &
+                     r8vector2,lsize,mpi_real8, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            ml(nn,j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_3d_real8_scatter
+!
+  subroutine subgrid_deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , nn , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx*nnsg
+    lsize = isize*ksize*jxp*nnsg
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_gather')
+    else if ( size(r8vector2) < lsize ) then
+      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            r8vector2(ib) = ml(nn,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_gather')
+      else if ( size(r8vector1) < gsize ) then
+        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_gather')
+      end if
+    end if
+    call mpi_gather(r8vector2,lsize,mpi_real8, &
+                    r8vector1,lsize,mpi_real8, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              mg(nn,j,i,k) = r8vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_3d_real8_gather
+!
+  subroutine subgrid_deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx*nnsg
+    lsize = isize*jxp*nnsg
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_scatter')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_scatter')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_scatter')
+      end if
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            r4vector1(ib) = mg(nn,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r4vector1,lsize,mpi_real4, &
+                     r4vector2,lsize,mpi_real4, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          ml(nn,j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_2d_real4_scatter
+!
+  subroutine subgrid_deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx*nnsg
+    lsize = isize*jxp*nnsg
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_gather')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          r4vector2(ib) = ml(nn,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_gather')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_gather')
+      end if
+    end if
+    call mpi_gather(r4vector2,lsize,mpi_real4, &
+                    r4vector1,lsize,mpi_real4, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            mg(nn,j,i) = r4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_2d_real4_gather
+!
+  subroutine subgrid_deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx*nnsg
+    lsize = isize*ksize*jxp*nnsg
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_scatter')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_scatter')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              r4vector1(ib) = mg(nn,j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(r4vector1,lsize,mpi_real4, &
+                     r4vector2,lsize,mpi_real4, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            ml(nn,j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_3d_real4_scatter
+!
+  subroutine subgrid_deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , k , nn , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx*nnsg
+    lsize = isize*ksize*jxp*nnsg
+    if ( .not. associated(r4vector2) ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_gather')
+    else if ( size(r4vector2) < lsize ) then
+      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            r4vector2(ib) = ml(nn,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(r4vector1) ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_gather')
+      else if ( size(r4vector1) < gsize ) then
+        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_gather')
+      end if
+    end if
+    call mpi_gather(r4vector2,lsize,mpi_real4, &
+                    r4vector1,lsize,mpi_real4, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              mg(nn,j,i,k) = r4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_3d_real4_gather
+!
+  subroutine subgrid_deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx*nnsg
+    lsize = isize*jxp*nnsg
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_scatter')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_scatter')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_scatter')
+      end if
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            i4vector1(ib) = mg(nn,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(i4vector1,lsize,mpi_integer, &
+                     i4vector2,lsize,mpi_integer, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          ml(nn,j,i) = i4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_2d_integer_scatter
+!
+  subroutine subgrid_deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    isize = i2-i1+1
+    gsize = isize*jx*nnsg
+    lsize = isize*jxp*nnsg
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_gather')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do i = i1 , i2
+        do nn = 1 , nnsg
+          i4vector2(ib) = ml(nn,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_gather')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_gather')
+      end if
+    end if
+    call mpi_gather(i4vector2,lsize,mpi_integer, &
+                    i4vector1,lsize,mpi_integer, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*nnsg+1
+      do j = j1 , j2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            mg(nn,j,i) = i4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_2d_integer_gather
+!
+  subroutine subgrid_deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx*nnsg
+    lsize = isize*ksize*jxp*nnsg
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_scatter')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_scatter')
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_scatter')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_scatter')
+      end if
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              i4vector1(ib) = mg(nn,j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(i4vector1,lsize,mpi_integer, &
+                     i4vector2,lsize,mpi_integer, &
+                     0,mycomm,ierr)
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            ml(nn,j,i,k) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+  end subroutine subgrid_deco1_3d_integer_scatter
+!
+  subroutine subgrid_deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: isize , ksize , gsize , lsize
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    gsize = isize*ksize*jx*nnsg
+    lsize = isize*ksize*jxp*nnsg
+    if ( .not. associated(i4vector2) ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_gather')
+    else if ( size(i4vector2) < lsize ) then
+      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_gather')
+    end if
+    if ( myid == 0 ) then
+      js = j1
+      je = jxp
+      ib = (j1-1)*isize*ksize*nnsg+1
+    else if ( myid == nproc-1 ) then
+      js = 1
+      je = jxp-(jx-j2)
+      ib = 1
+    else
+      js = 1
+      je = jxp
+      ib = 1
+    end if
+    do j = js , je
+      do k = k1 , k2
+        do i = i1 , i2
+          do nn = 1 , nnsg
+            i4vector2(ib) = ml(nn,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    if ( myid == 0 ) then
+      if ( .not. associated(i4vector1) ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_gather')
+      else if ( size(i4vector1) < gsize ) then
+        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_gather')
+      end if
+    end if
+    call mpi_gather(i4vector2,lsize,mpi_integer, &
+                    i4vector1,lsize,mpi_integer, &
+                    0,mycomm,ierr)
+    if ( myid == 0 ) then
+      ib = (j1-1)*isize*ksize*nnsg+1
+      do j = j1 , j2
+        do k = k1 , k2
+          do i = i1 , i2
+            do nn = 1 , nnsg
+              mg(nn,j,i,k) = i4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine subgrid_deco1_3d_integer_gather
+!
+  subroutine deco1_2d_real8_exchange_right(ml,nex,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2
+    integer :: isize , ssize , i , j , ib
+    integer :: ierr
+    isize = i2-i1+1
+    ssize = nex*isize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_right')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_right')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_right')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_right')
+    end if
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do i = i1 , i2
+          r8vector1(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
+                      r8vector2,ssize,mpi_real8,ieast,2, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do i = i1 , i2
+          ml(jxp+j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine deco1_2d_real8_exchange_right
+!
+  subroutine deco1_2d_real8_exchange_left(ml,nex,i1,i2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2
+    integer :: isize , ssize , j , i , ib
+    integer :: ierr
+    isize = i2-i1+1
+    ssize = nex*isize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_left')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_left')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_left')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_left')
+    end if
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1 
+      do j = 1 , nex
+        do i = i1 , i2
+          r8vector1(ib) = ml((jxp-j)+1,i)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
+                      r8vector2,ssize,mpi_real8,iwest,1, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do i = i1 , i2
+          ml((1-j),i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine deco1_2d_real8_exchange_left
+!
+  subroutine deco1_3d_real8_exchange_right(ml,nex,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2 , k1 , k2
+    integer :: isize , ksize , ssize , hsize , i , j , k , ib
+    integer :: ierr
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    hsize = isize*ksize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_right')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_right')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_right')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_right')
+    end if
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do k = k1 , k2
+          do i = i1 , i2
+            r8vector1(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
+                      r8vector2,ssize,mpi_real8,ieast,2, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do k = k1 , k2
+          do i = i1 , i2
+            ml(jxp+j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_3d_real8_exchange_right
+!
+  subroutine deco1_3d_real8_exchange_left(ml,nex,i1,i2,k1,k2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2 , k1 , k2
+    integer :: isize , ksize , ssize , hsize , i , j , k , ib
+    integer :: ierr
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    hsize = isize*ksize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_left')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_left')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_left')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_left')
+    end if
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do k = k1 , k2
+          do i = i1 , i2
+            r8vector1(ib) = ml((jxp-j)+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
+                      r8vector2,ssize,mpi_real8,iwest,1, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do k = k1 , k2
+          do i = i1 , i2
+            ml((1-j),i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_3d_real8_exchange_left
+!
+  subroutine deco1_4d_real8_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
+    integer :: i , j , k , n
+    integer :: ierr
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    vsize = isize*ksize
+    hsize = vsize*nsize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_right')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_right')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_right')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_right')
+    end if
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              r8vector1(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
+                      r8vector2,ssize,mpi_real8,ieast,2, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              ml(jxp+j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_4d_real8_exchange_right
+!
+  subroutine deco1_4d_real8_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
+    integer :: i , j , k , n
+    integer :: ierr
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    vsize = isize*ksize
+    hsize = vsize*nsize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_left')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_left')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_left')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_left')
+    end if
+    if ( ieast /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
+                      r8vector2,ssize,mpi_real8,iwest,1, &
+                      mycomm,mpi_status_ignore,ierr)
+    if ( iwest /= mpi_proc_null ) then
+      ib = 1
+      do j = 1 , nex
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              ml((1-j),i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine deco1_4d_real8_exchange_left
+!
+! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
+! and interpolates the u and v to the dot grid.
+! This routine sheilds the user of the function from the need to worry
+! about the details of the domain decomposition.  
+!
+! Written by Travis A. O'Brien 01/04/11.
+!
+  subroutine uvcross2dot(ux,vx,ud,vd)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
+    integer :: ib , ie , jb , je , i , j
+
+    ! TODO:  It might make sense to encapsulate the following code
+    ! in to a standard routine, since this boundary sending code is
+    ! ubiquitous throughout the RegCM code and it is domain
+    ! decomposition-dependent.
+
+    ! Send the right-edge of the u/v tendencies to the left
+    ! edge of the next process's u/v tendencies (so that
+    ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
+    ! chunk next door)
+
+    call deco1_exchange_left(ux,1,1,iy,1,kz)
+    call deco1_exchange_left(vx,1,1,iy,1,kz)
+
+    ! Set j-loop boundaries
+    jb = jbegin
+    je = jendx
+    ! Set i-loop boundaries
+    ib = 2
+    ie = iym1
+
+    !
+    !     x     x     x     x     x     x
+    !
+    !        o     o     o     o     o 
+    !         (i-1,j-1)     (i,j-1)            
+    !     x     x     x-----x     x     x
+    !                 |(i,j)|
+    !        o     o  |  o  |  o     o 
+    !                 |     |
+    !     x     x     x-----x     x     x
+    !           (i-1,j)     (i,j)
+    !
+    !        o     o     o     o     o 
+    !
+    !     x     x     x     x     x     x
+    !
+
+    ! Perform the bilinear interpolation necessary
+    ! to put the u and v variables on the dot grid.
+
+    do i = ib , ie
+      do j = jb , je
+        ud(j,i,:) =  ud(j,i,:) +             &
+          d_rfour*(ux(j,i,:) + ux(j-1,i,:) +   &
+                   ux(j,i-1,:) + ux(j-1,i-1,:))
+        vd(j,i,:) =  vd(j,i,:) +             &
+          d_rfour*(vx(j,i,:) + vx(j-1,i,:) +   &
+                   vx(j,i-1,:) + vx(j-1,i-1,:))
+      end do
+    end do
+  end subroutine uvcross2dot
+!
+  subroutine psc2psd(pc,pd)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(in)  :: pc
+    real(dp) , pointer , dimension(:,:) , intent(out) :: pd
+    integer :: i , j
+
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        pd(j,i) = (pc(j,i)+pc(j,i-1)+pc(j-1,i)+pc(j-1,i-1))*d_rfour
+      end do
+    end do
+    if ( .not. ma%bandflag ) then
+      if ( ma%hasleft ) then
+        do i = idi1 , idi2
+          pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
+        end do
+        pd(jde1,ide1) = pc(jce1,ice1)
+        pd(jde1,ide2) = pc(jce1,ice2)
+      end if
+      if ( ma%hasright ) then
+        do i = idi1 , idi2
+          pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
+        end do
+        pd(jde2,ide1) = pc(jce2,ice1)
+        pd(jde2,ide2) = pc(jce2,ice2)
+      end if
+      if ( ma%hasbottom ) then
+        do j = jdi1 , jdi2
+          pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
+        end do
+      end if
+      if ( ma%hastop ) then
+        do j = jdi1 , jdi2
+          pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
+        end do
+      end if
+    else
+      if ( ma%hasbottom ) then
+        do j = jde1 , jde2
+          pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
+        end do
+      end if
+      if ( ma%hastop ) then
+        do j = jde1 , jde2
+          pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
+        end do
+      end if
+    end if
+  end subroutine psc2psd
+
 end module mod_mppio

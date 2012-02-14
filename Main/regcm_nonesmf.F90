@@ -31,7 +31,7 @@ program regcm
 !
   implicit none
 !
-  real(8) :: timestr, timeend
+  real(dp) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer :: ierr
   logical :: first

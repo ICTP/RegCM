@@ -22,6 +22,7 @@ module mod_cu_interface
 ! Link atmospheric model and cumulus schemes
 !
   use mod_constants
+  use mod_realkinds
   use mod_cu_common
   use mod_cu_tiedtke
   use mod_cu_tables
@@ -29,28 +30,26 @@ module mod_cu_interface
   use mod_cu_em
   use mod_cu_kuo
   use mod_cu_grell
-  use mod_atm_interface , only : atmstate , slice , surfstate , &
-                                 surfpstate , domain
+  use mod_atm_interface , only : atmstate , slice , surfstate , domain
 !
   contains
 
-  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms, &
-                           sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,  &
-                           dsigma,qcon,cldfra,cldlwc)
+  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,  &
+                           sfs,za,qdot,pptc,ldmsk,sigma,a,dsigma, &
+                           qcon,cldfra,cldlwc)
     implicit none
-    real(8) , intent(in) :: dtsec
+    real(dp) , intent(in) :: dtsec
     integer(8) , intent(in) :: ntsrf
     integer , intent(in) :: ichem
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
-    type(surfstate) , intent(in) :: sfsta
-    type(surfpstate) , intent(in) :: sps1 , sps2
-    real(8) , pointer , intent(in) , dimension(:,:,:) :: za , qdot
-    real(8) , pointer , intent(in) , dimension(:,:) :: pptc
+    type(surfstate) , intent(in) :: sfs
+    real(dp) , pointer , intent(in) , dimension(:,:,:) :: za , qdot
+    real(dp) , pointer , intent(in) , dimension(:,:) :: pptc
     integer , pointer , intent(in) , dimension(:,:) :: ldmsk
-    real(8) , pointer , intent(in) , dimension(:) :: sigma , a , dsigma , qcon
-    real(8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
+    real(dp) , pointer , intent(in) , dimension(:) :: sigma , a , dsigma , qcon
+    real(dp) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
     if ( ichem    == 1 ) lchem = .true.
     dtcum  = dtsec
@@ -58,8 +57,6 @@ module mod_cu_interface
     aprdiv = d_one/dble(ntsrf)
 
     call assignpnt(mddom%ht,sfhgt)
-    call assignpnt(sps1%ps,psfcps)
-    call assignpnt(sps2%ps,sfcps)
     call assignpnt(za,hgt)
     call assignpnt(atm1%t,ptatm)
     call assignpnt(atm1%u,puatm)
@@ -77,8 +74,10 @@ module mod_cu_interface
     call assignpnt(aten%v,vten)
     call assignpnt(aten%qv,qvten)
     call assignpnt(aten%qc,qcten)
-    call assignpnt(sfsta%rainc,rainc)
-    call assignpnt(sfsta%qfx,qfx)
+    call assignpnt(sfs%psa,psfcps)
+    call assignpnt(sfs%psb,sfcps)
+    call assignpnt(sfs%rainc,rainc)
+    call assignpnt(sfs%qfx,qfx)
     call assignpnt(qdot,svv)
     call assignpnt(pptc,lmpcpc)
     call assignpnt(ldmsk,lmask)

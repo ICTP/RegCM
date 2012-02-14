@@ -20,6 +20,7 @@
 module mod_header
 
   use mod_constants
+  use mod_realkinds
   use mod_date
 
   private
@@ -29,7 +30,7 @@ module mod_header
   integer , parameter :: nrite=6
   character (len=24) :: cdata='?'
   integer , dimension(8) :: timearr
-  real(8) :: start_time
+  real(dp) :: start_time
 
   contains
 
@@ -84,7 +85,7 @@ module mod_header
   subroutine finaltime(myid)
     implicit none
     integer , intent (in) :: myid
-    real(8) :: finish_time
+    real(dp) :: finish_time
 
     if ( myid ==  0 ) then
 #ifdef IBM

@@ -20,7 +20,7 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , surfpstate, domain, surftstate, surfstate
+  use mod_atm_interface , only : slice , domain, surfstate
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -39,10 +39,10 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms,&
-                       sps2,mddom,sts2,sfsta,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,twt,&
-                       ptop,coszrs,veg2d,svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,&
-                        icutop,icubot)
+  subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms, &
+                       mddom,sfs,fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
+                       twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
+                       sdelqk2d,ssw2da,icutop,icubot)
 
 ! this routine define the pointer interface between the chem module and the rest of the model
 ! It also call startchem which is the chemistry initialisation routine
@@ -53,17 +53,16 @@ module mod_che_interface
     real(dp) , intent(in) :: dt , chemfrq , dtrad, rdxsq
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
-    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc,za,dzq
-    real(dp), pointer, dimension(:,:) :: svegfrac2d,solis,sdeltk2d,sdelqk2d,ssw2da,twt
-    real(dp), pointer, dimension(:,:,:) :: cldfra,rembc,remrat
-    integer , pointer , dimension(:,:) :: icutop , icubot, veg2d
-    type(surfpstate) , intent(in) :: sps2
+    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc , za , dzq
+    real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
+                                         sdelqk2d , ssw2da , twt
+    real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
+    integer , pointer , dimension(:,:) :: icutop , icubot, iveg
     type(slice) , intent(in) :: atms
     type(domain), intent(in):: mddom
-    type(surftstate), intent(in) :: sts2
-    type (surfstate) , intent(in) :: sfsta
+    type (surfstate) , intent(in) :: sfs
 
-    real(dp) , pointer , dimension(:) :: a,anudg
+    real(dp) , pointer , dimension(:) :: a , anudg
     real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
 
@@ -75,12 +74,9 @@ module mod_che_interface
     crdxsq = rdxsq    
     chptop = ptop
 
-
-
     call assignpnt(dsigma,cdsigma)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
-    call assignpnt(sps2%ps,cpsb)
     call assignpnt(atms%tb3d,ctb3d)
     call assignpnt(atms%qvb3d,cqvb3d)
     call assignpnt(atms%qcb3d,cqcb3d)
@@ -92,8 +88,9 @@ module mod_che_interface
 !   
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%ht,cht)
-    call assignpnt(sts2%tg,ctg)
-    call assignpnt(sfsta%uvdrag,cuvdrag)
+    call assignpnt(sfs%psb,cpsb)
+    call assignpnt(sfs%tgb,ctg)
+    call assignpnt(sfs%uvdrag,cuvdrag)
     
     call assignpnt(fcc,cfcc)
     call assignpnt(cldfra,ccldfra)
@@ -102,10 +99,10 @@ module mod_che_interface
     call assignpnt(solis,csol2d)
     call assignpnt(svegfrac2d,cvegfrac)
     call assignpnt(sdeltk2d,csdeltk2d) 
-    call  assignpnt(sdelqk2d,csdelqk2d)
-call assignpnt(veg2d,cveg2d) 
+    call assignpnt(sdelqk2d,csdelqk2d)
+    call assignpnt(iveg,cveg2d) 
 !call assignpnt(rough,crough) 
-!call  assignpnt(iexsol,ciexsol) 
+!call assignpnt(iexsol,ciexsol) 
 !call assignpnt(xmopor,cxmopor) 
 !call assignpnt(depuv,cdepuv) 
     call assignpnt(za,cza)
@@ -118,9 +115,7 @@ call assignpnt(veg2d,cveg2d)
 !!$
 ! Peform chemistry initialisation
 
-!    call start_chem(ifrest)
-
-
+!   call start_chem(ifrest)
 
   end subroutine init_chem
 !

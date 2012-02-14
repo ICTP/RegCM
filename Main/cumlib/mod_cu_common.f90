@@ -23,52 +23,52 @@ module mod_cu_common
 !
   use mod_dynparam
   use mod_memutil
+  use mod_realkinds
 
   public
 !
 
-  real(8) :: clfrcv ! Cloud fractional cover for convective precip
-  real(8) :: cllwcv ! Cloud liquid water content for convective precip.
-  real(8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  real(dp) :: clfrcv ! Cloud fractional cover for convective precip
+  real(dp) :: cllwcv ! Cloud liquid water content for convective precip.
+  real(dp) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
   integer , pointer , dimension(:,:) :: cucontrol ! which scheme to use
 
   ! Grell shared parameters for tracers removal
   integer , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
 !
-  real(8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
-  real(8) , pointer , dimension(:,:) :: psfcps   ! sps1%ps
-  real(8) , pointer , dimension(:,:) :: sfcps    ! sps2%ps
-  real(8) , pointer , dimension(:,:,:) :: hgt    ! za
-  real(8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
-  real(8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
-  real(8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
-  real(8) , pointer , dimension(:,:,:) :: pvqvtm ! atm1%qv
-  real(8) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
-  real(8) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
-  real(8) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
-  real(8) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
-  real(8) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
-  real(8) , pointer , dimension(:,:,:) :: qcas   ! atms%qcb3d
-  real(8) , pointer , dimension(:,:,:) :: qvas   ! atms%qvb3d
-  real(8) , pointer , dimension(:,:,:) :: tten   ! aten%t
-  real(8) , pointer , dimension(:,:,:) :: uten   ! aten%u
-  real(8) , pointer , dimension(:,:,:) :: vten   ! aten%v
-  real(8) , pointer , dimension(:,:,:) :: qvten  ! aten%qv
-  real(8) , pointer , dimension(:,:,:) :: qcten  ! aten%qc
-  real(8) , pointer , dimension(:,:) :: rainc    ! sfsta%rainc
-  real(8) , pointer , dimension(:,:) :: qfx      ! sfsta%qfx
-  real(8) , pointer , dimension(:,:,:) :: svv    ! qdot
-  real(8) , pointer , dimension(:,:) :: lmpcpc   ! pptc
+  real(dp) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
+  real(dp) , pointer , dimension(:,:,:) :: hgt    ! za
+  real(dp) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
+  real(dp) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
+  real(dp) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
+  real(dp) , pointer , dimension(:,:,:) :: pvqvtm ! atm1%qv
+  real(dp) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
+  real(dp) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
+  real(dp) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
+  real(dp) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
+  real(dp) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
+  real(dp) , pointer , dimension(:,:,:) :: qcas   ! atms%qcb3d
+  real(dp) , pointer , dimension(:,:,:) :: qvas   ! atms%qvb3d
+  real(dp) , pointer , dimension(:,:,:) :: tten   ! aten%t
+  real(dp) , pointer , dimension(:,:,:) :: uten   ! aten%u
+  real(dp) , pointer , dimension(:,:,:) :: vten   ! aten%v
+  real(dp) , pointer , dimension(:,:,:) :: qvten  ! aten%qv
+  real(dp) , pointer , dimension(:,:,:) :: qcten  ! aten%qc
+  real(dp) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
+  real(dp) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
+  real(dp) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
+  real(dp) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
+  real(dp) , pointer , dimension(:,:,:) :: svv    ! qdot
+  real(dp) , pointer , dimension(:,:) :: lmpcpc   ! pptc
   integer , pointer , dimension(:,:) :: lmask    ! ldmsk
-  real(8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
-  real(8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
+  real(dp) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
+  real(dp) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
 
-  real(8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
+  real(dp) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon
-
-  real(8) :: dtmdl
-  real(8) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
+  real(dp) :: dtmdl
+  real(dp) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
 
   logical :: lchem
   integer :: icup

@@ -20,8 +20,7 @@
 module mod_rad_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : atmstate , slice , surfpstate , surfstate , &
-                                 domain
+  use mod_atm_interface , only : atmstate , slice , surfstate , domain
   use mod_rad_common
   use mod_rad_aerosol
   use mod_rad_colmod3
@@ -36,37 +35,36 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
-                      mddom,sabveg,solis,coszrs,aldirs,aldifs,aldirl, &
-                      aldifl,albvs,albvl,emiss,sinc,solvs,solvd,fsw,  &
-                      flw,flwd,ocld2d,chia,chtrname)
+  subroutine init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg, &
+                      solis,coszrs,aldirs,aldifs,aldirl,aldifl,albvs, &
+                      albvl,emiss,sinc,solvs,solvd,fsw,flw,flwd,ocld, &
+                      chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
-    real(8) , intent(in) :: ptop
-    real(8) , pointer , dimension(:) :: a , sigma
-    type(surfpstate) , intent(in) :: sps1 , sps2
+    real(dp) , intent(in) :: ptop
+    real(dp) , pointer , dimension(:) :: a , sigma
     type(slice) , intent(in) :: atms
-    type(surfstate) , intent(in) :: sfsta
+    type(surfstate) , intent(in) :: sfs
     type(domain) , intent(in) :: mddom
-    real(8) , pointer , intent(in) , dimension(:,:) :: sabveg
-    real(8) , pointer , intent(in) , dimension(:,:) :: solis
-    real(8) , pointer , intent(in) , dimension(:,:) :: coszrs
-    real(8) , pointer , intent(in) , dimension(:,:) :: aldirs
-    real(8) , pointer , intent(in) , dimension(:,:) :: aldifs
-    real(8) , pointer , intent(in) , dimension(:,:) :: aldirl
-    real(8) , pointer , intent(in) , dimension(:,:) :: aldifl
-    real(8) , pointer , intent(in) , dimension(:,:) :: albvs
-    real(8) , pointer , intent(in) , dimension(:,:) :: albvl
-    real(8) , pointer , intent(in) , dimension(:,:) :: emiss
-    real(8) , pointer , intent(in) , dimension(:,:) :: twt
-    real(8) , pointer , intent(in) , dimension(:,:) :: sinc
-    real(8) , pointer , intent(in) , dimension(:,:) :: solvs
-    real(8) , pointer , intent(in) , dimension(:,:) :: solvd
-    real(8) , pointer , intent(in) , dimension(:,:) :: fsw
-    real(8) , pointer , intent(in) , dimension(:,:) :: flw
-    real(8) , pointer , intent(in) , dimension(:,:) :: flwd
-    integer , pointer , intent(in) , dimension(:,:,:) :: ocld2d
-    real(8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
+    real(dp) , pointer , intent(in) , dimension(:,:) :: sabveg
+    real(dp) , pointer , intent(in) , dimension(:,:) :: solis
+    real(dp) , pointer , intent(in) , dimension(:,:) :: coszrs
+    real(dp) , pointer , intent(in) , dimension(:,:) :: aldirs
+    real(dp) , pointer , intent(in) , dimension(:,:) :: aldifs
+    real(dp) , pointer , intent(in) , dimension(:,:) :: aldirl
+    real(dp) , pointer , intent(in) , dimension(:,:) :: aldifl
+    real(dp) , pointer , intent(in) , dimension(:,:) :: albvs
+    real(dp) , pointer , intent(in) , dimension(:,:) :: albvl
+    real(dp) , pointer , intent(in) , dimension(:,:) :: emiss
+    real(dp) , pointer , intent(in) , dimension(:,:) :: twt
+    real(dp) , pointer , intent(in) , dimension(:,:) :: sinc
+    real(dp) , pointer , intent(in) , dimension(:,:) :: solvs
+    real(dp) , pointer , intent(in) , dimension(:,:) :: solvd
+    real(dp) , pointer , intent(in) , dimension(:,:) :: fsw
+    real(dp) , pointer , intent(in) , dimension(:,:) :: flw
+    real(dp) , pointer , intent(in) , dimension(:,:) :: flwd
+    integer , pointer , intent(in) , dimension(:,:,:) :: ocld
+    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: chia
     character(len=5) , pointer , intent(in) , dimension(:) :: chtrname
 
     if ( ichem == 1 ) lchem = .true.
@@ -74,12 +72,12 @@ module mod_rad_interface
     call assignpnt(sigma,flev)
     call assignpnt(a,hlev)
     call assignpnt(twt,twtr)
-    call assignpnt(sps1%ps,psfps)
-    call assignpnt(sps2%ps,sfps)
     call assignpnt(atms%tb3d,tatms)
     call assignpnt(atms%qvb3d,qvatms)
     call assignpnt(atms%rhb3d,rhatms)
-    call assignpnt(sfsta%tgbb,tground)
+    call assignpnt(sfs%tgbb,tground)
+    call assignpnt(sfs%psa,psfps)
+    call assignpnt(sfs%psb,sfps)
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(sabveg,abveg)
     call assignpnt(solis,solar)
@@ -97,17 +95,17 @@ module mod_rad_interface
     call assignpnt(fsw,srfabswflx)
     call assignpnt(flw,srflwflxup)
     call assignpnt(flwd,srflwflxdw)
-    call assignpnt(ocld2d,lndocnicemsk)
+    call assignpnt(ocld,lndocnicemsk)
     call assignpnt(chia,chspmix)
     if ( associated(chtrname) ) tracname => chtrname
   end subroutine init_rad
 !
   subroutine init_rad_clm(sols,soll,solsd,solld)
     implicit none
-    real(8) , pointer , intent(in) , dimension(:,:) :: sols
-    real(8) , pointer , intent(in) , dimension(:,:) :: soll
-    real(8) , pointer , intent(in) , dimension(:,:) :: solsd
-    real(8) , pointer , intent(in) , dimension(:,:) :: solld
+    real(dp) , pointer , intent(in) , dimension(:,:) :: sols
+    real(dp) , pointer , intent(in) , dimension(:,:) :: soll
+    real(dp) , pointer , intent(in) , dimension(:,:) :: solsd
+    real(dp) , pointer , intent(in) , dimension(:,:) :: solld
     call assignpnt(sols,solswdir)
     call assignpnt(soll,sollwdir)
     call assignpnt(solsd,solswdif)

@@ -36,10 +36,10 @@ module mod_tstep
 !
     implicit none
 !
-    real(8) , intent (in) :: extime
-    real(8) , intent (out) :: dtinc
+    real(dp) , intent (in) :: extime
+    real(dp) , intent (out) :: dtinc
 !
-    real(8) :: deltmn , tscale
+    real(dp) :: deltmn , tscale
     integer :: idtmax
 !
 !---------------------------------------------------------------------

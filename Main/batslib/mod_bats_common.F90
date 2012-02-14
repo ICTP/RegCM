@@ -63,8 +63,8 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
-  integer , pointer , dimension(:,:,:) :: ocld2d , veg2d1
-  integer , pointer , dimension(:,:) :: veg2d , ldmsk
+  integer , pointer , dimension(:,:,:) :: ocld , iveg1
+  integer , pointer , dimension(:,:) :: iveg , ldmsk
 !
   real(dp) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
         srfrna
@@ -89,6 +89,14 @@ module mod_bats_common
   ! dtskin is difference between skin temp and bulk sst
   real(dp) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   logical , pointer , dimension(:,:) :: firstcall
+  ! Lake model
+  real(dp) , pointer , dimension(:,:,:) :: dhlake1
+  integer , pointer , dimension(:,:,:) :: idep
+  real(dp) , pointer , dimension(:,:,:) :: eta
+  real(dp) , pointer , dimension(:,:,:) :: hi
+  real(dp) , pointer , dimension(:,:,:) :: aveice
+  real(dp) , pointer , dimension(:,:,:) :: hsnow
+  real(dp) , pointer , dimension(:,:,:,:) :: tlak
 !
   data lchem  /.false./
   data lemiss /.false./
@@ -99,19 +107,21 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
   real(dp) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(dp) , pointer , dimension(:,:) :: ht            ! mddom%ht
-  real(dp) , pointer , dimension(:,:) :: tground1      ! sts1%tg
-  real(dp) , pointer , dimension(:,:) :: tground2      ! sts2%tg
+  real(dp) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
+  real(dp) , pointer , dimension(:,:) :: lndcatf       ! mddom_io%lndcat
   real(dp) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
   real(dp) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
   real(dp) , pointer , dimension(:,:) :: hpbl          ! zpbl
-  real(dp) , pointer , dimension(:,:) :: hfx           ! sfsta%hfx
-  real(dp) , pointer , dimension(:,:) :: qfx           ! sfsta%qfx
-  real(dp) , pointer , dimension(:,:) :: uvdrag        ! sfsta%uvdrag
-  real(dp) , pointer , dimension(:,:) :: tgbb          ! sfsta%tgbb
-  real(dp) , pointer , dimension(:,:) :: sfps          ! sps2%ps
+  real(dp) , pointer , dimension(:,:) :: hfx           ! sfs%hfx
+  real(dp) , pointer , dimension(:,:) :: qfx           ! sfs%qfx
+  real(dp) , pointer , dimension(:,:) :: uvdrag        ! sfs%uvdrag
+  real(dp) , pointer , dimension(:,:) :: tgbb          ! sfs%tgbb
+  real(dp) , pointer , dimension(:,:) :: tground1      ! sfs%tga
+  real(dp) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
+  real(dp) , pointer , dimension(:,:) :: sfps          ! sfs%psb
   real(dp) , pointer , dimension(:,:,:) :: hgt         ! za
   real(dp) , pointer , dimension(:,:) :: ts            ! ts1
   real(dp) , pointer , dimension(:,:) :: tsf           ! ts0_io
@@ -120,14 +130,14 @@ module mod_bats_common
 
   contains
 
-    subroutine allocate_mod_bats_common(ichem,idcsst)
+    subroutine allocate_mod_bats_common(ichem,idcsst,lakemod)
     implicit none
-    integer , intent(in) :: ichem , idcsst
+    integer , intent(in) :: ichem , idcsst , lakemod
 
     rrnnsg = 1.0/real(nnsg)
     rdnnsg = d_one/dble(nnsg)
 
-    call getmem2d(veg2d,1,jxp,1,iym1,'bats:veg2d')
+    call getmem2d(iveg,1,jxp,1,iym1,'bats:iveg')
     call getmem2d(ldmsk,1,jxp,1,iym1,'bats:ldmsk')
     call getmem2d(flwd,1,jxp,1,iym1,'bats:flwd')
     call getmem2d(pptc,1,jxp,1,iym1,'bats:pptc')
@@ -147,8 +157,8 @@ module mod_bats_common
       call getmem2d(sfracs2d,1,jxp,1,iym1,'bats:sfracs2d')
       call getmem2d(svegfrac2d,1,jxp,1,iym1,'bats:svegfrac2d')
     end if
-    call getmem3d(ocld2d,1,nnsg,1,jxp,1,iym1,'bats:ocld2d')
-    call getmem3d(veg2d1,1,nnsg,1,jxp,1,iym1,'bats:veg2d1')
+    call getmem3d(ocld,1,nnsg,1,jxp,1,iym1,'bats:ocld')
+    call getmem3d(iveg1,1,nnsg,1,jxp,1,iym1,'bats:iveg1')
     call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats:emiss')
     call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')
     call getmem3d(runoff,1,nnsg,1,jxp,1,iym1,'bats:runoff')
@@ -163,10 +173,10 @@ module mod_bats_common
     call getmem3d(xlon1,1,nnsg,1,jxp,1,iy,'bats:xlon1')
 
     if (idcsst == 1) then
-      call getmem2d(deltas,1,iy,1,jxp,'bats:deltas')
-      call getmem2d(tdeltas,1,iy,1,jxp,'bats:tdeltas')
-      call getmem2d(dtskin,1,iy,1,jxp,'bats:dtskin')
-      call getmem2d(firstcall,1,iy,1,jxp,'bats:firstcall')
+      call getmem2d(deltas,1,jxp,1,iy,'bats:deltas')
+      call getmem2d(tdeltas,1,jxp,1,iy,'bats:tdeltas')
+      call getmem2d(dtskin,1,jxp,1,iy,'bats:dtskin')
+      call getmem2d(firstcall,1,jxp,1,iy,'bats:firstcall')
     end if
 
     call getmem3d(delq,1,nnsg,1,jxp,1,iym1,'bats:delq')
@@ -209,60 +219,70 @@ module mod_bats_common
     call getmem2d(aldirl,1,jxp,1,iym1,'bats:aldirl')
     call getmem2d(aldirs,1,jxp,1,iym1,'bats:aldirs')
 
-    call getmem3d(fbat,1,jxp,1,iym2,1,numbat,'bats:fbat')
-    ps_o   => fbat(:,:,1)
-    u10m_o => fbat(:,:,2)
-    v10m_o => fbat(:,:,3)
-    drag_o => fbat(:,:,4)
-    tg_o   => fbat(:,:,5)
-    tlef_o => fbat(:,:,6)
-    t2m_o  => fbat(:,:,7)
-    q2m_o  => fbat(:,:,8)
-    ssw_o  => fbat(:,:,9)
-    rsw_o  => fbat(:,:,10)
-    tpr_o  => fbat(:,:,11)
-    evpa_o => fbat(:,:,12)
-    rnos_o => fbat(:,:,13)
-    scv_o  => fbat(:,:,14)
-    sena_o => fbat(:,:,15)
-    flwa_o => fbat(:,:,16)
-    fswa_o => fbat(:,:,17)
-    flwd_o => fbat(:,:,18)
-    sina_o => fbat(:,:,19)
-    prcv_o => fbat(:,:,20)
-    zpbl_o => fbat(:,:,21)
-    aldirs_o => fbat(:,:,22)
-    aldifs_o => fbat(:,:,23)
-    sunt_o => fbat(:,:,24)
-    tgmx_o => fbat(:,:,25)
-    tgmn_o => fbat(:,:,26)
-    t2mx_o => fbat(:,:,27)
-    t2mn_o => fbat(:,:,28)
-    tavg_o => fbat(:,:,29)
-    w10x_o => fbat(:,:,30)
-    pcpx_o => fbat(:,:,31)
-    pcpa_o => fbat(:,:,32)
-    sund_o => fbat(:,:,33)
-    psmn_o => fbat(:,:,34)
+    call getmem3d(fbat,1,jxp,2,iym2,1,numbat,'bats:fbat')
+    ps_o(1:,2:) => fbat(:,:,1)
+    u10m_o(1:,2:) => fbat(:,:,2)
+    v10m_o(1:,2:) => fbat(:,:,3)
+    drag_o(1:,2:) => fbat(:,:,4)
+    tg_o(1:,2:)   => fbat(:,:,5)
+    tlef_o(1:,2:) => fbat(:,:,6)
+    t2m_o(1:,2:)  => fbat(:,:,7)
+    q2m_o(1:,2:)  => fbat(:,:,8)
+    ssw_o(1:,2:)  => fbat(:,:,9)
+    rsw_o(1:,2:)  => fbat(:,:,10)
+    tpr_o(1:,2:)  => fbat(:,:,11)
+    evpa_o(1:,2:) => fbat(:,:,12)
+    rnos_o(1:,2:) => fbat(:,:,13)
+    scv_o(1:,2:)  => fbat(:,:,14)
+    sena_o(1:,2:) => fbat(:,:,15)
+    flwa_o(1:,2:) => fbat(:,:,16)
+    fswa_o(1:,2:) => fbat(:,:,17)
+    flwd_o(1:,2:) => fbat(:,:,18)
+    sina_o(1:,2:) => fbat(:,:,19)
+    prcv_o(1:,2:) => fbat(:,:,20)
+    zpbl_o(1:,2:) => fbat(:,:,21)
+    aldirs_o(1:,2:) => fbat(:,:,22)
+    aldifs_o(1:,2:) => fbat(:,:,23)
+    sunt_o(1:,2:) => fbat(:,:,24)
+    tgmx_o(1:,2:) => fbat(:,:,25)
+    tgmn_o(1:,2:) => fbat(:,:,26)
+    t2mx_o(1:,2:) => fbat(:,:,27)
+    t2mn_o(1:,2:) => fbat(:,:,28)
+    tavg_o(1:,2:) => fbat(:,:,29)
+    w10x_o(1:,2:) => fbat(:,:,30)
+    pcpx_o(1:,2:) => fbat(:,:,31)
+    pcpa_o(1:,2:) => fbat(:,:,32)
+    sund_o(1:,2:) => fbat(:,:,33)
+    psmn_o(1:,2:) => fbat(:,:,34)
 
-    call getmem4d(fsub,1,nnsg,1,jxp,1,iym2,1,numsub,'bats:fsub')
-    ps_s   => fsub(:,:,:,1)
-    u10m_s => fsub(:,:,:,2)
-    v10m_s => fsub(:,:,:,3)
-    drag_s => fsub(:,:,:,4)
-    tg_s   => fsub(:,:,:,5)
-    tlef_s => fsub(:,:,:,6)
-    t2m_s  => fsub(:,:,:,7)
-    q2m_s  => fsub(:,:,:,8)
-    ssw_s  => fsub(:,:,:,9)
-    rsw_s  => fsub(:,:,:,10)
-    tpr_s  => fsub(:,:,:,11)
-    evpa_s => fsub(:,:,:,12)
-    rnos_s => fsub(:,:,:,13)
-    scv_s  => fsub(:,:,:,14)
-    sena_s => fsub(:,:,:,15)
-    prcv_s => fsub(:,:,:,16)
+    call getmem4d(fsub,1,nnsg,1,jxp,2,iym2,1,numsub,'bats:fsub')
+    ps_s(1:,1:,2:)   => fsub(:,:,:,1)
+    u10m_s(1:,1:,2:) => fsub(:,:,:,2)
+    v10m_s(1:,1:,2:) => fsub(:,:,:,3)
+    drag_s(1:,1:,2:) => fsub(:,:,:,4)
+    tg_s(1:,1:,2:)   => fsub(:,:,:,5)
+    tlef_s(1:,1:,2:) => fsub(:,:,:,6)
+    t2m_s(1:,1:,2:)  => fsub(:,:,:,7)
+    q2m_s(1:,1:,2:)  => fsub(:,:,:,8)
+    ssw_s(1:,1:,2:)  => fsub(:,:,:,9)
+    rsw_s(1:,1:,2:)  => fsub(:,:,:,10)
+    tpr_s(1:,1:,2:)  => fsub(:,:,:,11)
+    evpa_s(1:,1:,2:) => fsub(:,:,:,12)
+    rnos_s(1:,1:,2:) => fsub(:,:,:,13)
+    scv_s(1:,1:,2:)  => fsub(:,:,:,14)
+    sena_s(1:,1:,2:) => fsub(:,:,:,15)
+    prcv_s(1:,1:,2:) => fsub(:,:,:,16)
 !
+    if ( lakemod == 1 ) then
+      call getmem3d(dhlake1,1,nnsg,1,jxp,1,iy,'bats:dhlake1')
+      call getmem3d(idep,1,nnsg,1,jxp,1,iym1,'bats:idep')
+      call getmem3d(eta,1,nnsg,1,jxp,1,iym1,'bats:eta')
+      call getmem3d(hi,1,nnsg,1,jxp,1,iym1,'bats:hi')
+      call getmem3d(aveice,1,nnsg,1,jxp,1,iym1,'bats:aveice')
+      call getmem3d(hsnow,1,nnsg,1,jxp,1,iym1,'bats:hsnow')
+      call getmem4d(tlak,1,nnsg,1,jxp,1,iym1,1,ndpmax,'bats:tlak')
+    end if
+
     call allocate_mod_bats_internal
 !
   end subroutine allocate_mod_bats_common

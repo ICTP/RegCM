@@ -409,11 +409,11 @@ kbin=0
                      savch0, iy*kz*25*jxp,mpi_real8,      &
                      0,mpi_comm_world,ierr)
 !!$
-!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jendl,jbegin,jendx,jxp
+!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jxp,jbegin,jendx,jxp
 !!$
 
     do n=1,25 
-    do j = 1 , jendl
+    do j = 1 , jxp
     do k = 1 , kz
       do i = 1 , iy
 
@@ -429,7 +429,7 @@ kbin=0
   do n=1,25 
  
    do k = 1 , kz
-       do j = 1 , jendl
+       do j = 1 , jxp
           do i = 1 , iy
               if(ichbdy2trac(n) > 0) chib0(i,k,j,ichbdy2trac(n))   =  chebdy(i,k,j,n)*cpsb(j,i)
           end do
@@ -470,7 +470,7 @@ kbin=0
 !!$                       0,mpi_comm_world,ierr)
 !!$
 !!$
-!!$      do j = 1 , jendl
+!!$      do j = 1 , jxp
 !!$         do k = 1 , kz
 !!$            do i = 1 , iy
 !!$               ohc0(i,k,j)        = savch0(i,      k,j)
@@ -493,7 +493,7 @@ kbin=0
 
 
 if (.not.ifrest ) then
-         do j=1,jendl
+         do j=1,jxp
          do i=1,iy
          do k=1,kz
               chia(i,k,j,:) =   chib0(i,k,j,:) 

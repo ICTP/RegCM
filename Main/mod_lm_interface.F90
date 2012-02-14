@@ -23,12 +23,10 @@ module mod_lm_interface
 !
   use mod_bats_common
   use mod_runparams, only : cpldt, dtsrf, dtsec
-  use mod_atm_interface , only : slice , surfstate , surfpstate , &
-                                 surftstate , domain
+  use mod_atm_interface , only : slice , surfstate , domain
 #ifdef CLM
   use mod_mtrxclm
   use mod_clm
-  use mod_bats_mppio
   use mod_bats_mtrxbats
 #else
   use mod_bats_param
@@ -50,18 +48,16 @@ module mod_lm_interface
   contains
 
   subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs, &
-                       sps,st1,st2,za,ts1,rhox2d,zpbl)
+                       za,ts1,rhox2d,zpbl)
     implicit none
-    real(8) , intent(in) :: dt
+    real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
     integer , intent(in) :: ichem , iemiss
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    type(surfpstate) , intent(in) :: sps
-    type(surftstate) , intent(in) :: st1 , st2
-    real(8) , pointer , intent(in) , dimension(:,:,:) :: za
-    real(8) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d , zpbl
+    real(dp) , pointer , intent(in) , dimension(:,:,:) :: za
+    real(dp) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d , zpbl
     xdtsec = dt
     kbats = ksrf
     ntcpl  = idnint(cpldt/dtsec)
@@ -84,9 +80,9 @@ module mod_lm_interface
     call assignpnt(sfs%qfx,qfx)
     call assignpnt(sfs%uvdrag,uvdrag)
     call assignpnt(sfs%tgbb,tgbb)
-    call assignpnt(sps%ps,sfps)
-    call assignpnt(st1%tg,tground1)
-    call assignpnt(st2%tg,tground2)
+    call assignpnt(sfs%psb,sfps)
+    call assignpnt(sfs%tga,tground1)
+    call assignpnt(sfs%tgb,tground2)
     call assignpnt(za,hgt)
     call assignpnt(ts1,ts)
     call assignpnt(rhox2d,rho)
@@ -97,7 +93,7 @@ module mod_lm_interface
   subroutine init_clm(dt,ksrf,ichem,iemiss,dom,dom1,atm,sfs,&
                       sps,st1,st2,za,ts1,ts0,rhox2d,lm)
     implicit none
-    real(8) , intent(in) :: dt
+    real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
     integer , intent(in) :: ichem , iemiss
     type(domain) , intent(in) :: dom , dom1
@@ -105,13 +101,14 @@ module mod_lm_interface
     type(surfstate) , intent(in) :: sfs
     type(surfpstate) , intent(in) :: sps
     type(surftstate) , intent(in) :: st1 , st2
-    real(8) , pointer , intent(in) , dimension(:,:,:) :: za
-    real(8) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d
+    real(dp) , pointer , intent(in) , dimension(:,:,:) :: za
+    real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d
     integer , target , intent(in) , dimension(:,:) :: lm
 
     call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
     call assignpnt(ts0,tsf)
     call assignpnt(dom1%ht,htf)
+    call assignpnt(dom1%lndcat,lndcatf)
     call assignpnt(dom%xlon,xlon)
     call assignpnt(lm,lmask)
   end subroutine init_clm

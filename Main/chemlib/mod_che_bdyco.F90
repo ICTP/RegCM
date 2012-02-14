@@ -162,7 +162,7 @@ implicit none
 !!$                     0,mpi_comm_world,ierr)
 !!$
 !!$
-!!$    do j = 1 , jendl
+!!$    do j = 1 , jxp
 !!$       do k = 1 , kz
 !!$          do i = 1 , iy
 !!$             ohc0(i,k,j)       = savch0(i,      k,j)
@@ -234,11 +234,11 @@ implicit none
                      savch0, iy*kz*25*jxp,mpi_real8,      &
                      0,mpi_comm_world,ierr)
 !!$
-!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jendl,jbegin,jendx,jxp
+!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jxp,jbegin,jendx,jxp
 !!$
 
     do n=1,25 
-    do j = 1 , jendl
+    do j = 1 , jxp
     do k = 1 , kz
       do i = 1 , iy
 
@@ -286,7 +286,7 @@ implicit none
 !!$    do i = 2 , iym1
 !!$       if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
 !!$       if ( myid.eq.nproc-1 )                             &
-!!$           psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
+!!$           psdot(i,jxp) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
 !!$    end do
 !!$    do j = jbegin , jendx
 !!$       psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
@@ -299,8 +299,8 @@ implicit none
 !!$    end if
 !!$
 !!$    if ( myid.eq.nproc-1 ) then
-!!$       psdot(1,jendl) = ps1(1,jendx)
-!!$       psdot(iy,jendl) = ps1(iym1,jendx)
+!!$       psdot(1,jxp) = ps1(1,jendx)
+!!$       psdot(iy,jxp) = ps1(iym1,jendx)
 !!$    end if
 !!$    write(*,*)' BDYIN---ZZZ--',maxval(o3b1(:,1,:)),maxval(psdot(:,:)),myid
 !!$!=======================================================================
@@ -311,7 +311,7 @@ implicit none
 !!$
    do n=1,25
     do k = 1 , kz
-       do j = 1 , jendl
+       do j = 1 , jxp
           do i = 1 , iy
               if(ichbdy2trac(n) > 0) chib1(i,k,j,ichbdy2trac(n)) = chebdy(i,k,j,n)*cpsb(j,i)
           end do
@@ -401,7 +401,7 @@ implicit none
     end do
 ! prepare for next bdy step
     do k = 1 , kz
-      do j = 1 , jendl
+      do j = 1 , jxp
         do i = 1 , iy
           chib0(i,k,j,:) = chib1(i,k,j,:)
         end do
@@ -524,15 +524,15 @@ implicit none
 !!$!
 !!$          if ( myid.eq.0 ) then
 !!$            do i = 1 , iym1
-!!$              chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
-!!$              chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
+!!$              chix1 = chia(i,k,1,itr)/sfs%psa(i,1)
+!!$              chix2 = chia(i,k,2,itr)/sfs%psa(i,2)
 !!$              uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
 !!$              if ( uavg.ge.0. ) then
 !!$                chix = chix1
 !!$              else
 !!$                chix = chix2
 !!$              end if
-!!$              chia(i,k,1,itr) = chix*sps1%ps(i,1)
+!!$              chia(i,k,1,itr) = chix*sfs%psa(i,1)
 !!$            end do
 !!$          end if
 !!$!
@@ -540,8 +540,8 @@ implicit none
 !!$!
 !!$          if ( myid.eq.nproc-1 ) then
 !!$            do i = 1 , iym1
-!!$              chix1 = chia(i,k,jendx,itr)/sps1%ps(i,jendx)
-!!$              chix2 = chia(i,k,jendm,itr)/sps1%ps(i,jendm)
+!!$              chix1 = chia(i,k,jendx,itr)/sfs%psa(i,jendx)
+!!$              chix2 = chia(i,k,jendm,itr)/sfs%psa(i,jendm)
 !!$              uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
 !!$              if ( uavg.lt.0. ) then
 !!$                chix = chix1
@@ -549,7 +549,7 @@ implicit none
 !!$              else
 !!$                chix = chix2
 !!$              end if
-!!$              chia(i,k,jendx,itr) = chix*sps1%ps(i,jendx)
+!!$              chia(i,k,jendx,itr) = chix*sfs%psa(i,jendx)
 !!$            end do
 !!$          end if
 !!$#endif
@@ -557,8 +557,8 @@ implicit none
 !!$!.....south boundary:
 !!$!
 !!$          do j = jbegin , jendm
-!!$            chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
-!!$            chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
+!!$            chix1 = chia(1,k,j,itr)/sfs%psa(1,j)
+!!$            chix2 = chia(2,k,j,itr)/sfs%psa(2,j)
 !!$            vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 !!$            if ( vavg.ge.0. ) then
 !!$              chix = chix1
@@ -566,21 +566,21 @@ implicit none
 !!$            else
 !!$              chix = chix2
 !!$            end if
-!!$            chia(1,k,j,itr) = chix*sps1%ps(1,j)
+!!$            chia(1,k,j,itr) = chix*sfs%psa(1,j)
 !!$          end do
 !!$!
 !!$!.....north boundary:
 !!$!
 !!$          do j = jbegin , jendm
-!!$            chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-!!$            chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
+!!$            chix1 = chia(iym1,k,j,itr)/sfs%psa(iym1,j)
+!!$            chix2 = chia(iym2,k,j,itr)/sfs%psa(iym2,j)
 !!$            vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 !!$            if ( vavg.lt.0. ) then
 !!$              chix = chix1
 !!$            else
 !!$              chix = chix2
 !!$            end if
-!!$            chia(iym1,k,j,itr) = chix*sps1%ps(iym1,j)
+!!$            chia(iym1,k,j,itr) = chix*sfs%psa(iym1,j)
 !!$          end do
 !!$        end do
 !!$      end do

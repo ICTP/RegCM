@@ -9,9 +9,9 @@ program resav
   character(256) :: namelistfile , prgname , savfile
   integer :: ierr
   type (rcm_time_and_date) :: idatex
-  real(8) :: xbctime
+  real(8) :: xbctime , dt
   integer :: ktau , ntime
-  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0
+  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
   real(8) , allocatable , dimension(:,:,:) :: ua , va , ta  , qva , qca , tkea
   real(8) , allocatable , dimension(:,:,:) :: ub , vb , tb  , qvb , qcb , tkeb
@@ -37,7 +37,7 @@ program resav
         prca2d , prnca2d , ssw2da , sdelqk2d , sdeltk2d , sfracb2d , &
         sfracs2d , sfracv2d , svegfrac2d
   real(8) , allocatable , dimension(:,:,:) :: tlef2d , ssw2d , srw2d , &
-        tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , &
+        tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , ircp2d , &
         taf2d , emiss2d
   integer , allocatable , dimension(:,:) :: veg2d , ldmsk , kpbl
   integer , allocatable , dimension(:,:,:) :: veg2d1 , ocld2d
@@ -55,7 +55,7 @@ program resav
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
              idesseas , iconvlwp , iocnrough
-  character(8) :: scenario
+  character(3) :: scenario
 !
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem,        &
@@ -103,6 +103,9 @@ program resav
   allocate(vb0(iy,kz,jx))
   allocate(qb0(iy,kz,jx))
   allocate(tb0(iy,kz,jx))
+  if ( ehso4 ) then
+    allocate(so0(iy,kz,jx))
+  end if
   allocate(ps0(iy,jx))
   allocate(ts0(iy,jx))
 !
@@ -190,6 +193,7 @@ program resav
   allocate(sag2d(nnsg,iym1,jx))
   allocate(sice2d(nnsg,iym1,jx))
   allocate(dew2d(nnsg,iym1,jx))
+  allocate(ircp2d(nnsg,iym1,jx))
   allocate(veg2d(iym1,jx))
   allocate(ldmsk(iym1,jx))
   allocate(kpbl(iym1,jx))
@@ -232,6 +236,7 @@ program resav
   allocate(sag2d(nnsg,iym1,jxm1))
   allocate(sice2d(nnsg,iym1,jxm1))
   allocate(dew2d(nnsg,iym1,jxm1))
+  allocate(ircp2d(nnsg,iym1,jxm1))
   allocate(veg2d(iym1,jxm1))
   allocate(kpbl(iym1,jxm1))
   allocate(ldmsk(iym1,jxm1))
@@ -295,8 +300,12 @@ program resav
   allocate(vilx(kz,jx))
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
-  read (iutrst) ktau, xbctime, idatex, ntime
-  read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
+  read (iutrst) ktau, dt, xbctime, idatex, ntime
+  if ( ehso4 ) then
+    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
+  else
+    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
+  end if
   read (iutrst) ua
   read (iutrst) va
   read (iutrst) ta
@@ -354,6 +363,7 @@ program resav
   read (iutrst) sag2d
   read (iutrst) sice2d
   read (iutrst) dew2d
+  read (iutrst) ircp2d
   read (iutrst) veg2d
   read (iutrst) ldmsk
   read (iutrst) veg2d1

@@ -23,8 +23,7 @@ module mod_pbl_interface
   use mod_service
   use mod_constants
   use mod_dynparam
-  use mod_atm_interface , only : atmstate , diffx , slice , surfstate , &
-                   surfpstate , surftstate , domain , uvcross2dot
+  use mod_atm_interface
   use mod_pbl_common
   use mod_pbl_holtbl
   use mod_pbl_uwtcm
@@ -33,22 +32,21 @@ module mod_pbl_interface
 
   contains
 
-  subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,    &
-                      remdrd,sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
-                      chtrdpv,chtrname,ichem,ichdrydepo,dt)
+  subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
+                      remdrd,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,  &
+                      ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
     integer , intent(in) :: ichem , ichdrydepo
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
     type (slice) , intent(in) :: atms
     type (diffx) , intent(in) :: adf
     type (domain) , intent(in) :: mddom
-    type (surfstate) , intent(in) :: sfsta
-    type (surftstate) , intent(in) :: sts2
-    type (surfpstate) , intent(in) :: sps2
+    type (surfstate) , intent(in) :: sfs
     real(dp) , pointer , dimension(:,:,:) :: heatrt
     real(dp) , pointer , dimension(:,:,:,:) :: chiten
     real(dp) , pointer , dimension(:,:,:) :: remdrd
     integer , pointer , dimension(:,:) :: ldmsk
+    real(dp) , pointer , dimension(:,:) :: psdot
     real(dp) , pointer , dimension(:) :: a
     real(dp) , pointer , dimension(:) :: sigma
     real(dp) , pointer , dimension(:) :: dsigma
@@ -108,12 +106,12 @@ module mod_pbl_interface
     call assignpnt(holtten%qc,diagqc)
     call assignpnt(chiten,chten)
     call assignpnt(remdrd,drmr)
-    call assignpnt(sps2%ps,sfcps)
-    call assignpnt(sps2%pdot,sfcpd)
-    call assignpnt(sts2%tg,tg)
-    call assignpnt(sfsta%qfx,qfx)
-    call assignpnt(sfsta%hfx,hfx)
-    call assignpnt(sfsta%uvdrag,uvdrag)
+    call assignpnt(sfs%psb,sfcps)
+    call assignpnt(psdot,sfcpd)
+    call assignpnt(sfs%tgb,tg)
+    call assignpnt(sfs%qfx,qfx)
+    call assignpnt(sfs%hfx,hfx)
+    call assignpnt(sfs%uvdrag,uvdrag)
     call assignpnt(mddom%coriol,coriolis)
     call assignpnt(mddom%msfx,mapfcx)
     call assignpnt(ldmsk,landmsk)
@@ -138,32 +136,29 @@ module mod_pbl_interface
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
-                  tcmtend%qv(itcmstart:itcmend,:,jtcmstart:jtcmend)
-      difft(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  difft(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
-                  tcmtend%t(itcmstart:itcmend,:,jtcmstart:jtcmend)
+      diffq(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
+                  diffq(jtcmstart:jtcmend,itcmstart:itcmend,:) +  &
+                  tcmtend%qv(jtcmstart:jtcmend,itcmstart:itcmend,:)
+      difft(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
+                  difft(jtcmstart:jtcmend,itcmstart:itcmend,:) +  &
+                  tcmtend%t(jtcmstart:jtcmend,itcmstart:itcmend,:)
 
       ! Put the cloud water tendency in aten
-      aten%qc(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                 aten%qc(itcmstart:itcmend,:,jtcmstart:jtcmend) +   &
-                 tcmtend%qc(itcmstart:itcmend,:,jtcmstart:jtcmend)
+      aten%qc(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
+                 aten%qc(jtcmstart:jtcmend,itcmstart:itcmend,:) +   &
+                 tcmtend%qc(jtcmstart:jtcmend,itcmstart:itcmend,:)
 
-      if ( bRegridWinds ) then
+      if ( .not. bRegridWinds ) then
         !
-        ! If the TCM calculations were all done on the cross grid, then
-        ! the u and v tendencies need to be regridded to the dot grid
+        ! If the TCM calculations were done on the dot grid, then
+        ! the u and v tendencies need not to be regridded to the dot grid
         !
-        call uvcross2dot(tcmtend,aten)
-      else
-        ! Otherwise, simply set the appropriate variables in aten
-        aten%u(itcmstart:itcmend,:,jtcmstart:jtcmend) = &
-                 aten%u(itcmstart:itcmend,:,jtcmstart:jtcmend) +    &
-                 tcmtend%u(itcmstart:itcmend,:,jtcmstart:jtcmend)
-        aten%v(itcmstart:itcmend,:,jtcmstart:jtcmend) = &
-                 aten%v(itcmstart:itcmend,:,jtcmstart:jtcmend) +    &
-                 tcmtend%v(itcmstart:itcmend,:,jtcmstart:jtcmend)
+        aten%u(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
+                 aten%u(jtcmstart:jtcmend,itcmstart:itcmend,:) +    &
+                 tcmtend%u(jtcmstart:jtcmend,itcmstart:itcmend,:)
+        aten%v(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
+                 aten%v(jtcmstart:jtcmend,itcmstart:itcmend,:) +    &
+                 tcmtend%v(jtcmstart:jtcmend,itcmstart:itcmend,:)
       end if
 
       zpbl(jtcmstart:jtcmend,itcmstart:itcmend) = &
@@ -190,15 +185,15 @@ module mod_pbl_interface
 !     end do
 !   end if
 
-    aten%tke(itcmstart:itcmend,:,jtcmstart:jtcmend) = &
-                tcmtend%tke(itcmstart:itcmend,:,jtcmstart:jtcmend)
+    aten%tke(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
+                tcmtend%tke(jtcmstart:jtcmend,itcmstart:itcmend,:)
     !
     ! Set the surface tke (diagnosed)
     !
-    atm1%tke(itcmstart:itcmend,kzp1,jtcmstart:jtcmend) =  &
-               transpose(tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend))
-    atm2%tke(itcmstart:itcmend,kzp1,jtcmstart:jtcmend) =  &
-               transpose(tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend))
+    atm1%tke(jtcmstart:jtcmend,itcmstart:itcmend,kzp1) =  &
+               tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend)
+    atm2%tke(jtcmstart:jtcmend,itcmstart:itcmend,kzp1) =  &
+               tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend)
 
 !   tcmtend%qc = 0.0d0
 !   tcmtend%qv = 0.0d0
@@ -243,23 +238,23 @@ module mod_pbl_interface
         ! Interpoalte the winds to the full sigma levels
         ! while the advection term is calculated
         !
-        tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j)  &
-           -(((atm%u(i+1,k-1,jp1)+atm%u(i,k-1,jp1))*twt(k,2)  &
-             +(atm%u(i+1,k,jp1)  +atm%u(i,k,jp1))*twt(k,1)) &
-             *( atm%tke(i,k,j)+atm%tke(i,k,jp1))  &
-            -((atm%u(i+1,k-1,j)+atm%u(i,k-1,j))*twt(k,2)  &
-             +(atm%u(i+1,k,j)  +atm%u(i,k,j))*twt(k,1)) &
-             *( atm%tke(i,k,j)+atm%tke(i,k,jm1))  &
-            +((atm%v(i+1,k-1,j)+atm%v(i+1,k-1,jp1))*twt(k,2)  &
-             +(atm%v(i+1,k,j)  +atm%v(i+1,k,jp1))*twt(k,1)) &
-             *( atm%tke(i,k,j)+atm%tke(i+1,k,j))  &
-            -((atm%v(i,k-1,j)+atm%v(i,k-1,jp1))*twt(k,2)  &
-             +(atm%v(i,k,j)  +atm%v(i,k,jp1))*twt(k,1)) &
-             *( atm%tke(i,k,j)+atm%tke(i-1,k,j))) &
+        tcmstate%advtke(j,i,k)= tcmstate%advtke(j,i,k)  &
+           -(((atm%u(jp1,i+1,k-1)+atm%u(jp1,i,k-1))*twt(k,2)  &
+             +(atm%u(jp1,i+1,k)  +atm%u(jp1,i,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(jp1,i,k))  &
+            -((atm%u(j,i+1,k-1)+atm%u(j,i,k-1))*twt(k,2)  &
+             +(atm%u(j,i+1,k)  +atm%u(j,i,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(jm1,i,k))  &
+            +((atm%v(j,i+1,k-1)+atm%v(jp1,i+1,k-1))*twt(k,2)  &
+             +(atm%v(j,i+1,k)  +atm%v(jp1,i+1,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(j,i+1,k))  &
+            -((atm%v(j,i,k-1)+atm%v(jp1,i,k-1))*twt(k,2)  &
+             +(atm%v(j,i,k)  +atm%v(jp1,i,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(j,i-1,k))) &
              /(dxx*mapfcx(j,i)*mapfcx(j,i))
 
 !TAO Debug:
-!       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j) + 1d-8*atm%tke(i,k,jp1)
+!       tcmstate%advtke(j,i,k)= tcmstate%advtke(j,i,k) + 1d-8*atm%tke(jp1,i,k)
 
       end do
     end do
@@ -298,16 +293,16 @@ module mod_pbl_interface
     if ( ind == 1 ) then
       do k = 1 , kz
         do i = 2 , iym1
-          dotqdot(i,k) = (qdot(i,k,j) + qdot(i,k+1,j))
+          dotqdot(i,k) = (qdot(j,i,k) + qdot(j,i,k+1))
           ftmp(i,k) = 0.5D0*(tcmstate%tkeps(j,i,k) + tcmstate%tkeps(j,i,k+1))
         end do
       end do
 
       do k = 2 , kz
         do i = 2 , iym1
-          tcmstate%advtke(i,k,j) = tcmstate%advtke(i,k,j) - &
+          tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) - &
                                     (dotqdot(i,k)*ftmp(i,k) -  &
-                                    dotqdot(i,k-1)*ftmp(i,k-1))/ &
+                                     dotqdot(i,k-1)*ftmp(i,k-1))/ &
                                     (dlev(k)+dlev(k-1))
         end do
       end do
@@ -316,19 +311,19 @@ module mod_pbl_interface
     !
     else
       do i = 2 , iym1
-        tcmstate%advtke(i,1,j)=tcmstate%advtke(i,1,j)-  &
-                              qdot(i,2,j)*tcmstate%tkeps(j,i,2)/dlev(1)
+        tcmstate%advtke(j,i,1)=tcmstate%advtke(j,i,1)-  &
+                              qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dlev(1)
       end do
       do k = 2 , kzm1
         do i = 2 , iym1
-          tcmstate%advtke(i,k,j)=tcmstate%advtke(i,k,j) &
-                              -(qdot(i,k+1,j)*tcmstate%tkeps(j,i,k+1)   &
-                                -qdot(i,k,j)*tcmstate%tkeps(j,i,k))/dlev(k)
+          tcmstate%advtke(j,i,k)=tcmstate%advtke(j,i,k) &
+                              -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
+                                -qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dlev(k)
         end do
       end do
       do i = 2 , iym1
-        tcmstate%advtke(i,kz,j)=tcmstate%advtke(i,kz,j)+  &
-                              qdot(i,kz,j)*tcmstate%tkeps(j,i,kz)/dlev(kz)
+        tcmstate%advtke(j,i,kz)=tcmstate%advtke(j,i,kz)+  &
+                              qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dlev(kz)
       end do
     end if
 
@@ -343,18 +338,18 @@ module mod_pbl_interface
     ! Set tke boundary conditions
     !
     if ( myid == 0 ) then
-      atm1%tke(:,:,0:1) = tkemin ! East boundary
-      atm2%tke(:,:,-1:1) = tkemin ! East boundary
+      atm1%tke(0:1,:,:) = tkemin ! East boundary
+      atm2%tke(-1:1,:,:) = tkemin ! East boundary
     end if
     if ( myid == nproc-1 ) then
-      atm1%tke(:,:,jxp:jxp+1) = tkemin ! West boundary
-      atm2%tke(:,:,jxp:jxp+2) = tkemin ! West boundary
+      atm1%tke(jxp:jxp+1,:,:) = tkemin ! West boundary
+      atm2%tke(jxp:jxp+2,:,:) = tkemin ! West boundary
     end if
 
-    atm1%tke(1,:,:) = tkemin  !North boundary
-    atm2%tke(1,:,:) = tkemin  !North boundary
-    atm1%tke(iy,:,:) = tkemin  !South boundary
-    atm2%tke(iy,:,:) = tkemin  !South boundary
+    atm1%tke(:,1,:) = tkemin  !North boundary
+    atm2%tke(:,1,:) = tkemin  !North boundary
+    atm1%tke(:,iy,:) = tkemin  !South boundary
+    atm2%tke(:,iy,:) = tkemin  !South boundary
     !
     ! End set tke boundary conditions
     !
@@ -370,37 +365,34 @@ module mod_pbl_interface
     real(dp) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
     integer :: i , j , k
 
-    do i = 2 , iym1
-      do j = jbegin , jendx
-
-        do k = 1 , kzm1
-          xps = (hlev(k)*sfcps(i,j)+ptp)
-          ps2 = (hlev(k+1)*sfcps(i,j)+ptp)
+    do k = 1 , kzm1
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+          xps = (hlev(k)*sfcps(j,i)+ptp)
+          ps2 = (hlev(k+1)*sfcps(j,i)+ptp)
           dza = za(j,i,k) - za(j,i,k+1)
           rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
-
         end do
         rhobydpdz1d(kz) = rhox2d(j,i)
-        dtops = dtpbl/sfcps(i,j)
+        dtops = dtpbl/sfcps(j,i)
 
-        rho1d = d_1000*(hlev*sfcps(i,j) + ptp) / &
-                    ( rgas * tatm(i,:,j) *  &
-                    (d_one + ep1* qvatm(i,:,j) - qcatm(i,:,j))  )
+        rho1d = d_1000*(hlev*sfcps(j,i) + ptp) / &
+                    ( rgas * tatm(j,i,:) *  &
+                    (d_one + ep1* qvatm(j,i,:) - qcatm(j,i,:))  )
 
 
-        qwtcm = sum((tcmtend%qv(i,:,j) + tcmtend%qc(i,:,j))  &
+        qwtcm = sum((tcmtend%qv(j,i,:) + tcmtend%qc(j,i,:))  &
                       *rho1d*dzq(j,i,:))*dtops
-        qwrcm = sum((rcmqvten(i,:,j) + rcmqcten(i,:,j))   &
+        qwrcm = sum((rcmqvten(j,i,:) + rcmqcten(j,i,:))   &
                       *rho1d*dzq(j,i,:))*dtops
 !                     *rhobydpdz1d*dzq(j,i,:))*dtops
 
 !       qwanom = qwtcm - qwrcm
-!       qwanom = qwrcm-qfx(i,j)*dt
-        qwanom = qwtcm - dtpbl*qfx(i,j)
+!       qwanom = qwrcm-qfx(j,i)*dt
+        qwanom = qwtcm - dtpbl*qfx(j,i)
         tcmstate%kzm(j,i,1) = qwanom
-
       end do
     end do
   end subroutine check_conserve_qt
-
+!
 end module mod_pbl_interface

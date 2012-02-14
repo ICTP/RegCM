@@ -103,8 +103,6 @@ module mod_mppparam
 
     call mpi_bcast(aertyp,7,mpi_character,0,mycomm,ierr)
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
-!    call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
-!    call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
 
     call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,ierr)
 
@@ -114,9 +112,9 @@ module mod_mppparam
       iym1 = iy - 1
       iym2 = iy - 2
       iym3 = iy - 3
-      jxp1 = jx + 1
       jxm1 = jx - 1
       jxm2 = jx - 2
+      jxm3 = jx - 3
       kzm1 = kz - 1
       kzm2 = kz - 2
       kzp1 = kz + 1
@@ -129,7 +127,33 @@ module mod_mppparam
       jxm1sg = (jx-1) * nsg
       iym2sg = (iy-2) * nsg
       jxm2sg = (jx-2) * nsg
+      iym3sg = (iy-3) * nsg
+      jxm3sg = (jx-3) * nsg
       nnsg = nsg*nsg
+      jdot1 = 1
+      jdot2 = jx
+      jcross1 = 1
+#ifdef BAND
+      jcross2 = jx
+      jout1 = 1
+      jout2 = jx
+#else
+      jout1 = 2
+      jcross2 = jxm1
+      jout2 = jxm2
+#endif
+      idot1 = 1
+      idot2 = iy
+      icross1 = 1
+      icross2 = iym1
+      iout1 = 2
+      iout2 = iym2
+      njcross = jcross2-jcross1+1
+      nicross = icross2-icross1+1
+      njdot = jdot2-jdot1+1
+      nidot = idot2-idot1+1
+      njout = jout2-jout1+1
+      niout = iout2-iout1+1
     end if
 
     call mpi_barrier(mycomm,ierr)

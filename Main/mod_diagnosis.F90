@@ -38,26 +38,77 @@ module mod_diagnosis
   public :: tracdiag , contrac
   public :: mpidiag
 !
-  real(8) :: tdadv , tdini , tqadv , tqeva , tqini , tqrai
+  real(dp) :: tdadv , tdini , tqadv , tqeva , tqini , tqrai
 !
-  real(8) , pointer , dimension(:) :: tchiad , tchie , tchitb
-  real(8) , pointer , dimension(:,:) :: tremcvc , tremdrd ,     &
+  real(dp) , pointer , dimension(:) :: tchiad , tchie , tchitb
+  real(dp) , pointer , dimension(:,:) :: tremcvc , tremdrd ,     &
               tremlsc , trxsaq1 , trxsaq2 , trxsg , ttrace
+  real(dp) , pointer , dimension(:) :: psa01 , psailx , psa01_g , psailx_g , &
+              psa02 , psaill , psaill1 , psa02_g , psaill_g , psaill1_g
+  real(dp) , pointer , dimension(:,:) :: qca01 , qcailx , qva01 , qvailx ,  &
+              va01 , vaix , va02 , vaill , xkc02 , xkcill1
+  real(dp) , pointer , dimension(:,:) :: qca01_g , qcailx_g , qva01_g ,  &
+              qvailx_g , va01_g , vaix_g , va02_g , vaill_g , xkc02_g , &
+              xkcill1_g
+  real(dp) , pointer , dimension(:,:,:) :: chia01 , chia02 , chiaill , chiaill1
+  real(dp) , pointer , dimension(:,:,:) :: chia01_g , chia02_g ,  &
+              chiaill1_g , chiaill_g
+
   contains
 
   subroutine allocate_mod_diagnosis
   implicit none
-    if ( ichem == 1 ) then
-      call getmem1d(tchie,1,ntr,'diagnosis:tchie')
-      call getmem1d(tchiad,1,ntr,'diagnosis:tchiad')
-      call getmem1d(tchitb,1,ntr,'diagnosis:tchitb')
-      call getmem2d(tremcvc,1,ntr,1,2,'diagnosis:tremcvc')
-      call getmem2d(tremdrd,1,ntr,1,2,'diagnosis:tremdrd')
-      call getmem2d(tremlsc,1,ntr,1,2,'diagnosis:tremlsc')
-      call getmem2d(trxsaq1,1,ntr,1,2,'diagnosis:trxsaq1')
-      call getmem2d(trxsaq2,1,ntr,1,2,'diagnosis:trxsaq2')
-      call getmem2d(trxsg,1,ntr,1,2,'diagnosis:trxsg')
-      call getmem2d(ttrace,1,ntr,1,2,'diagnosis:ttrace')
+    if ( debug_level > 2 ) then
+      if ( ichem == 1 ) then
+        call getmem1d(tchie,1,ntr,'diagnosis:tchie')
+        call getmem1d(tchiad,1,ntr,'diagnosis:tchiad')
+        call getmem1d(tchitb,1,ntr,'diagnosis:tchitb')
+        call getmem2d(tremcvc,1,ntr,1,2,'diagnosis:tremcvc')
+        call getmem2d(tremdrd,1,ntr,1,2,'diagnosis:tremdrd')
+        call getmem2d(tremlsc,1,ntr,1,2,'diagnosis:tremlsc')
+        call getmem2d(trxsaq1,1,ntr,1,2,'diagnosis:trxsaq1')
+        call getmem2d(trxsaq2,1,ntr,1,2,'diagnosis:trxsaq2')
+        call getmem2d(trxsg,1,ntr,1,2,'diagnosis:trxsg')
+        call getmem2d(ttrace,1,ntr,1,2,'diagnosis:ttrace')
+        call getmem1d(psa02,1,jxp,'diagnosis:psa02')
+        call getmem1d(psaill,1,jxp,'diagnosis:psaill')
+        call getmem1d(psaill1,1,jxp,'diagnosis:psaill1')
+        call getmem1d(psa02_g,1,jx,'diagnosis:psa02_g')
+        call getmem1d(psaill_g,1,jx,'diagnosis:psaill_g')
+        call getmem1d(psaill1_g,1,jx,'diagnosis:psaill1_g')
+        call getmem2d(va02,1,jxp,1,kz,'diagnosis:va02')
+        call getmem2d(vaill,1,jxp,1,kz,'diagnosis:vaill')
+        call getmem2d(xkc02,1,jxp,1,kz,'diagnosis:xkc02')
+        call getmem2d(xkcill1,1,jxp,1,kz,'diagnosis:xkcill1')
+        call getmem2d(va02_g,1,jx,1,kz,'diagnosis:va02_g')
+        call getmem2d(vaill_g,1,jx,1,kz,'diagnosis:vaill_g')
+        call getmem2d(xkc02_g,1,jx,1,kz,'diagnosis:xkc02_g')
+        call getmem2d(xkcill1_g,1,jx,1,kz,'diagnosis:xkcill1_g')
+        call getmem3d(chia01,1,jxp,1,kz,1,ntr,'diagnosis:chia01')
+        call getmem3d(chia02,1,jxp,1,kz,1,ntr,'diagnosis:chia02')
+        call getmem3d(chiaill,1,jxp,1,kz,1,ntr,'diagnosis:chiaill')
+        call getmem3d(chiaill1,1,jxp,1,kz,1,ntr,'diagnosis:chiaill1')
+        call getmem3d(chia01_g,1,jx,1,kz,1,ntr,'diagnosis:chia01_g')
+        call getmem3d(chia02_g,1,jx,1,kz,1,ntr,'diagnosis:chia02_g')
+        call getmem3d(chiaill_g,1,jx,1,kz,1,ntr,'diagnosis:chiaill_g')
+        call getmem3d(chiaill1_g,1,jx,1,kz,1,ntr,'diagnosis:chiaill1_g')
+      end if
+      call getmem1d(psa01,1,jxp,'diagnosis:psa01')
+      call getmem1d(psailx,1,jxp,'diagnosis:psailx')
+      call getmem1d(psa01_g,1,jx,'diagnosis:psa01_g')
+      call getmem1d(psailx_g,1,jx,'diagnosis:psailx_g')
+      call getmem2d(qca01,1,jxp,1,kz,'diagnosis:qca01')
+      call getmem2d(qcailx,1,jxp,1,kz,'diagnosis:qcailx')
+      call getmem2d(qva01,1,jxp,1,kz,'diagnosis:qva01')
+      call getmem2d(qvailx,1,jxp,1,kz,'diagnosis:qvailx')
+      call getmem2d(va01,1,jxp,1,kz,'diagnosis:va01')
+      call getmem2d(vaix,1,jxp,1,kz,'diagnosis:vaix')
+      call getmem2d(qca01_g,1,jx,1,kz,'diagnosis:qca01_g')
+      call getmem2d(qcailx_g,1,jx,1,kz,'diagnosis:qcailx_g')
+      call getmem2d(qva01_g,1,jx,1,kz,'diagnosis:qva01_g')
+      call getmem2d(qvailx_g,1,jx,1,kz,'diagnosis:qvailx_g')
+      call getmem2d(va01_g,1,jx,1,kz,'diagnosis:va01_g')
+      call getmem2d(vaix_g,1,jx,1,kz,'diagnosis:vaix_g')
     end if
   end subroutine allocate_mod_diagnosis
 !
@@ -69,7 +120,7 @@ module mod_diagnosis
 #endif 
     implicit none
     integer :: ierr
-    real(8) :: tvmass , tcmass , tttmp
+    real(dp) :: tvmass , tcmass , tttmp
     integer :: i , j , k
 
     tvmass = d_zero
@@ -90,16 +141,13 @@ module mod_diagnosis
 !
 !   dry air (unit = kg):
 !
-    swapv = transpose(sps1%ps(1:jxp,1:iy))
-    call mpi_gather(swapv, iy*jxp,mpi_real8, &
-                    psa_io,iy*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(sfs%psa,sfs_io%psa,jcross1,jcross2,icross1,icross2)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + psa_io(i,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + sfs_io%psa(j,i)
           end do
         end do
         tdini = tdini + tttmp*dsigma(k)
@@ -111,15 +159,13 @@ module mod_diagnosis
 !
 !   water substance (unit = kg):
 !
-    call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8, &
-                    atm1_io%qv,iy*kz*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + atm1_io%qv(i,k,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + atm1_io%qv(j,i,k)
           end do
         end do
         tvmass = tvmass + tttmp*dsigma(k)
@@ -129,15 +175,13 @@ module mod_diagnosis
 
     call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
-    call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
-                    atm1_io%qc,iy*kz*jxp,mpi_real8,              &
-                    0,mycomm,ierr)
+    call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + atm1_io%qc(i,k,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + atm1_io%qc(j,i,k)
           end do
         end do
         tcmass = tcmass + tttmp*dsigma(k)
@@ -232,14 +276,8 @@ module mod_diagnosis
     implicit none
 !
     integer :: ierr
-    real(8) , dimension(jxp) :: psa01 , psailx
-    real(8) , dimension(jx) :: psa01_g , psailx_g
-    real(8) , dimension(kz,jxp) :: qca01 , qcailx , qva01 , qvailx ,  &
-                                   va01 , vaix
-    real(8) , dimension(kz,jx) :: qca01_g , qcailx_g , qva01_g ,      &
-                                  qvailx_g , va01_g , vaix_g
-    real(8) , dimension(iym1,kz) :: worka , workb
     integer :: i ,  j , k
+    real(dp) , dimension(nicross,kz) :: worka , workb
 !
 !----------------------------------------------------------------------
 !
@@ -247,49 +285,47 @@ module mod_diagnosis
 !
 !   advection through east-west boundaries:
 !
-    if ( myid == nproc-1 ) then
+    if ( ma%hasright ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) / &
-                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
+        do i = ice1 , ice2
+          worka(i,k) = (atm1%u(jdi2,i+1,k)+atm1%u(jdi2,i,k)) / &
+                       (mddom%msfx(jci2,i)*mddom%msfx(jci2,i))
         end do
       end do
     end if
-    if ( myid == 0 ) then
+    if ( ma%hasleft ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) / &
-                       (mddom%msfx(1,i)*mddom%msfx(1,i))
+        do i = ice1 , ice2
+          workb(i,k) = (atm1%u(jdi1,i+1,k)+atm1%u(jdi1,i,k)) / &
+                       (mddom%msfx(jci1,i)*mddom%msfx(jci1,i))
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(worka,nicross*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,nicross*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
-      do i = 1 , iym1
+      do i = ice1 , ice2
         tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
 !   advection through north-south boundaries:
 !
-    do j = 1 , jendl
-      do k = 1 , kz
-        vaix(k,j) = atm1%v(iy,k,j)
-        va01(k,j) = atm1%v(1,k,j)
+    do k = 1 , kz
+      do j = jde1 , jde2
+        vaix(j,k) = atm1%v(j,ide2,k)
+        va01(j,k) = atm1%v(j,ide1,k)
       end do
     end do
-    call mpi_gather(vaix,  kz*jxp,mpi_real8,vaix_g,kz*jxp,mpi_real8,  &
-                    0,mycomm,ierr)
-    call mpi_gather(va01,  kz*jxp,mpi_real8,va01_g,kz*jxp,mpi_real8,  &
-                    0,mycomm,ierr)
+    call deco1_gather(vaix,vaix_g,1,jx,1,kz)
+    call deco1_gather(va01,va01_g,1,jx,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
-        do j = 1 , jxm1
+        do j = jce1 , jce2
           tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*             &
-               ((vaix_g(k,j+1)+vaix_g(k,j)) /                   &
-                (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) - &
-                (va01_g(k,j+1)+va01_g(k,j)) /                   &
+               ((vaix_g(j+1,k)+vaix_g(j,k)) /                   &
+                (mddom_io%msfx(j,ice2)*mddom_io%msfx(j,ice2)) - &
+                (va01_g(j+1,k)+va01_g(j,k)) /                   &
                 (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
         end do
       end do
@@ -302,58 +338,56 @@ module mod_diagnosis
 !
 !   advection through east-west boundaries:
 !
-    if ( myid == nproc-1 ) then
+    if ( ma%hasright ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
-                       (atm1%qv(i,k,jendx)/sps1%ps(jendx,i)) /   &
-                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
+        do i = ice1 , ice2
+          worka(i,k) = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
+                       (atm1%qv(jce2,i,k)/sfs%psa(jce2,i)) /   &
+                       (mddom%msfx(jce2,i)*mddom%msfx(jce2,i))
         end do
       end do
     end if
-    if ( myid == 0 ) then
+    if ( ma%hasleft ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) * &
-                        (atm1%qv(i,k,1)/sps1%ps(1,i)) / &
-                        (mddom%msfx(1,i)*mddom%msfx(1,i))
+        do i = ice1 , ice2
+          workb(i,k) = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k)) * &
+                        (atm1%qv(jce1,i,k)/sfs%psa(jce1,i)) / &
+                        (mddom%msfx(jce1,i)*mddom%msfx(jce1,i))
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(worka,nicross*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,nicross*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
-      do i = 1 , iym1
+      do i = ice1 , ice2
         tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
 !   advection through north-south boundaries:
 !
-    do j = 1 , jendl
-      do k = 1 , kz
-        qvailx(k,j) = atm1%qv(iym1,k,j)
-        qva01(k,j) = atm1%qv(1,k,j)
+    do k = 1 , kz
+      do j = jce1 , jce2
+        qvailx(j,k) = atm1%qv(j,ice2,k)
+        qva01(j,k) = atm1%qv(j,ice1,k)
       end do
-      psailx(j) = sps1%ps(j,iym1)
-      psa01(j) = sps1%ps(j,1)
     end do
-    call mpi_gather(qvailx,kz*jxp,mpi_real8,qvailx_g,kz*jxp,mpi_real8, &
-                    0,mycomm,ierr)
-    call mpi_gather(qva01,kz*jxp,mpi_real8,qva01_g,kz*jxp,mpi_real8,   &
-                    0,mycomm,ierr)
-    call mpi_gather(psailx,jxp,mpi_real8,psailx_g,jxp,mpi_real8, &
-                    0,mycomm,ierr)
-    call mpi_gather(psa01,jxp,mpi_real8,psa01_g,jxp,mpi_real8,   &
-                    0,mycomm,ierr)
+    do j = jce1 , jce2
+      psailx(j) = sfs%psa(j,ice2)
+      psa01(j) = sfs%psa(j,ice1)
+    end do
+    call deco1_gather(qvailx,qvailx_g,1,jx,1,kz)
+    call deco1_gather(qva01,qva01_g,1,jx,1,kz)
+    call deco1_gather(psailx,psailx_g)
+    call deco1_gather(psa01,psa01_g)
     if ( myid == 0 ) then
       do k = 1 , kz
-        do j = 1 , jxm1
+        do j = jce1 , jce2
           tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
-                 ((vaix_g(k,j+1)+vaix_g(k,j))*(qvailx_g(k,j)/psailx_g(j)) / &
-                  (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) -           &
-                  (va01_g(k,j+1)+va01_g(k,j))*(qva01_g(k,j)/psa01_g(j)) /   &
-                  (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
+                 ((vaix_g(j+1,k)+vaix_g(j,k))*(qvailx_g(j,k)/psailx_g(j)) / &
+                  (mddom_io%msfx(j,ice2)*mddom_io%msfx(j,ice2)) -           &
+                  (va01_g(j+1,k)+va01_g(j,k))*(qva01_g(j,k)/psa01_g(j)) /   &
+                  (mddom_io%msfx(j,ice1)*mddom_io%msfx(j,ice1)))*regrav
         end do
       end do
     end if
@@ -363,52 +397,50 @@ module mod_diagnosis
 !
 !   advection through east-west boundaries:
 !
-    if ( myid == nproc-1 ) then
+    if ( ma%hasright ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) * &
-                       (atm1%qc(i,k,jendx)/sps1%ps(jendx,i))  /  &
-                       (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))
+        do i = ice1 , ice2
+          worka(i,k) = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
+                       (atm1%qc(jce2,i,k)/sfs%psa(jce2,i))  /  &
+                       (mddom%msfx(jce2,i)*mddom%msfx(jce2,i))
         end do
       end do
     end if
-    if ( myid == 0 ) then
+    if ( ma%hasleft ) then
       do k = 1 , kz
-        do i = 1 , iym1
-          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))* &
-                       (atm1%qc(i,k,1)/sps1%ps(1,i)) /  &
-                       (mddom%msfx(1,i)*mddom%msfx(1,i))
+        do i = ice1 , ice2
+          workb(i,k) = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k))* &
+                       (atm1%qc(jce1,i,k)/sfs%psa(jce1,i)) /  &
+                       (mddom%msfx(jce1,i)*mddom%msfx(jce1,i))
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(worka,nicross*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,nicross*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
-      do i = 1 , iym1
+      do i = ice1 , ice2
         tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
 !   advection through north-south boundaries:
 !
-    do j = 1 , jendl
-      do k = 1 , kz
-        qcailx(k,j) = atm1%qc(iym1,k,j)
-        qca01(k,j) = atm1%qc(1,k,j)
+    do k = 1 , kz
+      do j = jce1 , jce2
+        qcailx(j,k) = atm1%qc(j,ice2,k)
+        qca01(j,k)  = atm1%qc(j,ice1,k)
       end do
     end do
-    call mpi_gather(qcailx,kz*jxp,mpi_real8,qcailx_g,kz*jxp,mpi_real8, &
-                    0,mycomm,ierr)
-    call mpi_gather(qca01,kz*jxp,mpi_real8,qca01_g,kz*jxp,mpi_real8,   &
-                    0,mycomm,ierr)
+    call deco1_gather(qcailx,qcailx_g,1,jx,1,kz)
+    call deco1_gather(qca01,qca01_g,1,jx,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
-        do j = 1 , jxm1
+        do j = jce1 , jce2
           tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
-                 ((vaix_g(k,j+1)+vaix_g(k,j))*(qcailx_g(k,j)/psailx_g(j)) / &
-                  (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) -           &
-                  (va01_g(k,j+1)+va01_g(k,j))*(qca01_g(k,j)/psa01_g(j)) /   &
-                  (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))*regrav
+                 ((vaix_g(j+1,k)+vaix_g(j,k))*(qcailx_g(j,k)/psailx_g(j)) / &
+                  (mddom_io%msfx(j,ice2)*mddom_io%msfx(j,ice2)) -           &
+                  (va01_g(j+1,k)+va01_g(j,k))*(qca01_g(j,k)/psa01_g(j)) /   &
+                  (mddom_io%msfx(j,ice1)*mddom_io%msfx(j,ice1)))*regrav
         end do
       end do
     end if
@@ -434,7 +466,7 @@ module mod_diagnosis
 #endif 
     implicit none
 !
-    real(8) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
+    real(dp) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
                tqmass , tttmp , tvmass
     character(len=32) :: appdat
     integer :: i , j , k
@@ -453,15 +485,13 @@ module mod_diagnosis
 !-----dry air (unit = kg):
 !
     tdrym = d_zero
-    swapv = transpose(sps1%ps(1:jxp,1:iy))
-    call mpi_gather(swapv,iy*jxp,mpi_real8,psa_io,iy*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(sfs%psa,sfs_io%psa,jcross1,jcross2,icross1,icross2)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + psa_io(i,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + sfs_io%psa(j,i)
           end do
         end do
         tdrym = tdrym + tttmp*dsigma(k)
@@ -473,14 +503,13 @@ module mod_diagnosis
 !-----water substance (unit = kg):
 !
     tvmass = d_zero
-    call mpi_gather(atm1%qv,iy*kz*jxp,mpi_real8,atm1_io%qv,iy*kz*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + atm1_io%qv(i,k,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + atm1_io%qv(j,i,k)
           end do
         end do
         tvmass = tvmass + tttmp*dsigma(k)
@@ -490,14 +519,13 @@ module mod_diagnosis
     call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
     tcmass = d_zero
-    call mpi_gather(atm1%qc,iy*kz*jxp,mpi_real8,atm1_io%qc,iy*kz*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
-        do j = 1 , jxm1
-          do i = 1 , iym1
-            tttmp = tttmp + atm1_io%qc(i,k,j)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tttmp = tttmp + atm1_io%qc(j,i,k)
           end do
         end do
         tcmass = tcmass + tttmp*dsigma(k)
@@ -519,19 +547,15 @@ module mod_diagnosis
 !
 !   total raifall at this time:
 !
-    swapv = transpose(sfsta%rainc)
-    call mpi_gather(swapv,iy*jxp,mpi_real8,rainc_io,iy*jxp,mpi_real8,   &
-                    0,mycomm,ierr)
-    swapv = transpose(sfsta%rainnc)
-    call mpi_gather(swapv,iy*jxp,mpi_real8,rainnc_io,iy*jxp,mpi_real8, &
-                    0,mycomm,ierr)
+    call deco1_gather(sfs%rainc,sfs_io%rainc,jcross1,jcross2,icross1,icross2)
+    call deco1_gather(sfs%rainnc,sfs_io%rainnc,jcross1,jcross2,icross1,icross2)
     if ( myid == 0 ) then
       tcrai = d_zero
       tncrai = d_zero
-      do j = 1 , jxm1
-        do i = 1 , iym1
-          tcrai = tcrai + rainc_io(i,j)*dxsq
-          tncrai = tncrai + rainnc_io(i,j)*dxsq
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          tcrai = tcrai + sfs_io%rainc(j,i)*dxsq
+          tncrai = tncrai + sfs_io%rainnc(j,i)*dxsq
         end do
       end do
       tqrai = tcrai + tncrai
@@ -585,20 +609,13 @@ module mod_diagnosis
 #endif 
     implicit none
 !
-    real(8) , dimension(iy,kz,jxp) :: xkc
-    intent (in) xkc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
 !
     integer :: ierr
-    real(8) , dimension(kz,ntr,jxp) :: chia01 , chia02 , chiaill , chiaill1
-    real(8) , dimension(kz,ntr,jx) :: chia01_g , chia02_g , chiaill1_g , chiaill_g
-    real(8) , dimension(jxp) :: psa01 , psa02 , psaill , psaill1
-    real(8) , dimension(jx) :: psa01_g , psa02_g , psaill1_g , psaill_g
-    real(8) , dimension(kz,jxp) :: va02 , vaill , xkc02 , xkcill1
-    real(8) , dimension(kz,jx) :: va02_g , vaill_g , xkc02_g , xkcill1_g
-    real(8) :: chid1 , chid2
-    real(8) :: fact1 , fact2 , fx1 , fx2 , uavg1 , uavg2 , vavg1 , vavg2
     integer :: i , j , k , n
-    real(8) , dimension(iym1,kz,ntr) :: worka , workb
+    real(dp) :: chid1 , chid2
+    real(dp) :: fact1 , fact2 , fx1 , fx2 , uavg1 , uavg2 , vavg1 , vavg2
+    real(dp) , dimension(nicross,kz,ntr) :: worka , workb
 !
 !
 !   1  ADVECTION budgets
@@ -613,86 +630,76 @@ module mod_diagnosis
 !   inflow/outflow
     do n = 1 , ntr
       do k = 1 , kz
-        do i = 2 , iym2
-          if ( myid == nproc-1 ) then
-            uavg2 = (atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))*d_half
+        do i = ici1 , ici2
+          if ( ma%hasright ) then
+            uavg2 = (atm1%u(jdi2,i+1,k)+atm1%u(jdi2,i,k))*d_half
             if ( uavg2 < d_zero ) then
               worka(i,k,n) =  &
-                  -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(jendx,i)/ &
-                  (mddom%msfx(jendx,i)*mddom%msfx(jendx,i))+        &
-                  fact2*chia(i,k,jendm,n)/sps1%ps(jendm,i)/         &
-                  (mddom%msfx(jendm,i)*mddom%msfx(jendm,i)))
+                  -uavg2*(fact1*chia(jce2,i,k,n)/sfs%psa(jce2,i)/ &
+                  (mddom%msfx(jce2,i)*mddom%msfx(jce2,i))+        &
+                  fact2*chia(jci2,i,k,n)/sfs%psa(jci2,i)/         &
+                  (mddom%msfx(jci2,i)*mddom%msfx(jci2,i)))
             else
               worka(i,k,n) = &
-                  -uavg2*(fact1*chia(i,k,jendm,n)/sps1%ps(jendm,i)/ &
-                  (mddom%msfx(jendm,i)*mddom%msfx(jendm,i))+        &
-                  fact2*chia(i,k,jendx,n)/sps1%ps(jendx,i) /        &
-                  (mddom%msfx(jendx,i)*mddom%msfx(jendx,i)))
+                  -uavg2*(fact1*chia(jci2,i,k,n)/sfs%psa(jci2,i)/ &
+                  (mddom%msfx(jci2,i)*mddom%msfx(jci2,i))+        &
+                  fact2*chia(jce2,i,k,n)/sfs%psa(jce2,i) /        &
+                  (mddom%msfx(jce2,i)*mddom%msfx(jce2,i)))
             end if
           end if
-          if ( myid == 0 ) then
-            uavg1 = (atm1%u(i+1,k,2)+atm1%u(i,k,2))*d_half
+          if ( ma%hasleft ) then
+            uavg1 = (atm1%u(jdi1,i+1,k)+atm1%u(jdi1,i,k))*d_half
             if ( uavg1 > d_zero ) then
               workb(i,k,n) = &
-                  -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(1,i)/ &
-                  (mddom%msfx(1,i)*mddom%msfx(1,i)) +       &
-                  fact2*chia(i,k,2,n)/sps1%ps(2,i) /        &
-                  (mddom%msfx(2,i)*mddom%msfx(2,i)))
+                  -uavg1*(fact1*chia(jce1,i,k,n)/sfs%psa(jce1,i)/ &
+                  (mddom%msfx(jce1,i)*mddom%msfx(jce1,i)) +       &
+                  fact2*chia(jci1,i,k,n)/sfs%psa(jci1,i) /        &
+                  (mddom%msfx(jci1,i)*mddom%msfx(jci1,i)))
             else
               workb(i,k,n) = & 
-                  -uavg1*(fact1*chia(i,k,2,n)/sps1%ps(2,i) / &
-                  (mddom%msfx(2,i)*mddom%msfx(2,i)) +        &
-                  fact2*chia(i,k,1,n)/sps1%ps(1,i) /         &
-                  (mddom%msfx(1,i)*mddom%msfx(1,i)))
+                  -uavg1*(fact1*chia(jci1,i,k,n)/sfs%psa(jci1,i) / &
+                  (mddom%msfx(jci1,i)*mddom%msfx(jci1,i)) +        &
+                  fact2*chia(jce1,i,k,n)/sfs%psa(jce1,i) /         &
+                  (mddom%msfx(jce1,i)*mddom%msfx(jce1,i)))
             end if
           end if
         end do
       end do
     end do
-    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(worka,nicross*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
 
-    do j = 1 , jendl
-      do k = 1 , kz
-        vaill(k,j) = atm1%v(iym1,k,j)
-        va02(k,j) = atm1%v(2,k,j)
-        xkcill1(k,j) = xkc(iym2,k,j)
-        xkc02(k,j) = xkc(2,k,j)
+    do k = 1 , kz
+      do j = jde1 , jde2
+        vaill(j,k) = atm1%v(j,idi2,k)
+        va02(j,k)  = atm1%v(j,idi1,k)
+        xkcill1(j,k) = xkc(j,ici2,k)
+        xkc02(j,k)   = xkc(j,ici1,k)
         do n = 1 , ntr
-          chiaill(k,n,j) = chia(iym1,k,j,n)
-          chiaill1(k,n,j) = chia(iym2,k,j,n)
-          chia01(k,n,j) = chia(1,k,j,n)
-          chia02(k,n,j) = chia(2,k,j,n)
+          chiaill(j,k,n)  = chia(j,ice2,k,n)
+          chiaill1(j,k,n) = chia(j,ici2,k,n)
+          chia01(j,k,n) = chia(j,ice1,k,n)
+          chia02(j,k,n) = chia(j,ici1,k,n)
         end do
       end do
-      psaill(j) = sps1%ps(j,iym1)
-      psaill1(j) = sps1%ps(j,iym2)
-      psa01(j) = sps1%ps(j,1)
-      psa02(j) = sps1%ps(j,2)
     end do
-    call mpi_gather(vaill,  kz*jxp,mpi_real8,                      &
-                    vaill_g,kz*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(va02,  kz*jxp,mpi_real8,                       &
-                    va02_g,kz*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(xkcill1,  kz*jxp,mpi_real8,                    &
-                    xkcill1_g,kz*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(xkc02,  kz*jxp,mpi_real8,                      &
-                    xkc02_g,kz*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(chiaill,  kz*ntr*jxp,mpi_real8,                &
-                    chiaill_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(chiaill1,  kz*ntr*jxp,mpi_real8,               &
-                    chiaill1_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(chia01,  kz*ntr*jxp,mpi_real8,                 &
-                    chia01_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(chia02,  kz*ntr*jxp,mpi_real8,                 &
-                    chia02_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(psaill,  jxp,mpi_real8,                        &
-                    psaill_g,jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(psaill1,  jxp,mpi_real8,                       &
-                    psaill1_g,jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(psa01,  jxp,mpi_real8,                         &
-                    psa01_g,jxp,mpi_real8,0,mycomm,ierr)
-    call mpi_gather(psa02,  jxp,mpi_real8,                         &
-                    psa02_g,jxp,mpi_real8,0,mycomm,ierr)
+    do j = jde1 , jde2
+      psaill(j)  = sfs%psa(j,ice2)
+      psaill1(j) = sfs%psa(j,ici2)
+      psa01(j) = sfs%psa(j,ice1)
+      psa02(j) = sfs%psa(j,ici1)
+    end do
+    call deco1_gather(vaill,vaill_g,1,jx,1,kz)
+    call deco1_gather(va02,va02_g,1,jx,1,kz)
+    call deco1_gather(xkcill1,xkcill1_g,1,jx,1,kz)
+    call deco1_gather(xkc02,xkc02_g,1,jx,1,kz)
+    call deco1_gather(chiaill,chiaill_g,1,jx,1,kz,1,ntr)
+    call deco1_gather(chiaill1,chiaill1_g,1,jx,1,kz,1,ntr)
+    call deco1_gather(chia01,chia01_g,1,jx,1,kz,1,ntr)
+    call deco1_gather(chia02,chia02_g,1,jx,1,kz,1,ntr)
+    call deco1_gather(psaill,psaill_g)
+    call deco1_gather(psaill1,psaill1_g)
+    call deco1_gather(psa01,psa01_g)
+    call deco1_gather(psa02,psa02_g)
     if ( myid == 0 ) then
       do n = 1 , ntr
         do k = 1 , kz
@@ -707,29 +714,29 @@ module mod_diagnosis
         do k = 1 , kz
           do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = (vaill_g(k,j+1)+vaill_g(k,j))*d_half
+            vavg2 = (vaill_g(j+1,k)+vaill_g(j,k))*d_half
             if ( vavg2 < d_zero ) then
-              fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j) /      &
+              fx2 = -vavg2*(fact1*chiaill_g(j,k,n)/psaill_g(j) /      &
                      (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) +  &
-                     fact2*chiaill1_g(k,n,j)/psaill1_g(j) /           &
+                     fact2*chiaill1_g(j,k,n)/psaill1_g(j) /           &
                      (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)))
             else
-              fx2 = -vavg2*(fact1*chiaill1_g(k,n,j)/psaill1_g(j) /    &
+              fx2 = -vavg2*(fact1*chiaill1_g(j,k,n)/psaill1_g(j) /    &
                      (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)) +  &
-                     fact2*chiaill_g(k,n,j)/psaill_g(j) /             &
+                     fact2*chiaill_g(j,k,n)/psaill_g(j) /             &
                      (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)))
             end if
    
-            vavg1 = (va02_g(k,j+1)+va02_g(k,j))*d_half
+            vavg1 = (va02_g(j+1,k)+va02_g(j,k))*d_half
             if ( vavg1 > d_zero ) then
-              fx1 = -vavg1*(fact1*chia01_g(k,n,j)/psa01_g(j) /        &
+              fx1 = -vavg1*(fact1*chia01_g(j,k,n)/psa01_g(j) /        &
                      (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)) +        &
-                     fact2*chia02_g(k,n,j)/psa02_g(j) /               &
+                     fact2*chia02_g(j,k,n)/psa02_g(j) /               &
                      (mddom_io%msfx(j,2)*mddom_io%msfx(j,2)))
             else
-              fx1 = -vavg1*(fact1*chia02_g(k,n,j)/psa02_g(j) /   &
+              fx1 = -vavg1*(fact1*chia02_g(j,k,n)/psa02_g(j) /   &
                      (mddom_io%msfx(j,2)*mddom_io%msfx(j,2)) +   &
-                     fact2*chia01_g(k,n,j)/psa01_g(j) /          &
+                     fact2*chia01_g(j,k,n)/psa01_g(j) /          &
                      (mddom_io%msfx(j,1)*mddom_io%msfx(j,1)))
             end if
             tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx*(fx2-fx1)*regrav
@@ -745,16 +752,16 @@ module mod_diagnosis
       do k = 1 , kz
         do i = 2 , iym2
           if ( myid == nproc-1 )  &
-            worka(i,k,n) = xkc(i,k,jendm)*sps1%ps(jendm,i) * &
-               (chia(i,k,jendm,n)/sps1%ps(jendm,i) - &
-                chia(i,k,jendx,n)/sps1%ps(jendx,i))
+            worka(i,k,n) = xkc(jci2,i,k)*sfs%psa(jci2,i) * &
+               (chia(jci2,i,k,n)/sfs%psa(jci2,i) - &
+                chia(jce2,i,k,n)/sfs%psa(jce2,i))
           if ( myid == 0 ) &
-            workb(i,k,n) = xkc(i,k,2)*sps1%ps(2,i) *  &
-               (chia(i,k,2,n)/sps1%ps(2,i)-chia(i,k,1,n)/sps1%ps(1,i))
+            workb(i,k,n) = xkc(2,i,k)*sfs%psa(2,i) *  &
+               (chia(2,i,k,n)/sfs%psa(2,i)-chia(1,i,k,n)/sfs%psa(1,i))
         end do
       end do
     end do
-    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(worka,nicross*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
 
     if ( myid == 0 ) then
       do n = 1 , ntr
@@ -769,11 +776,11 @@ module mod_diagnosis
    
         do k = 1 , kz
           do j = 2 , jxm2
-            chid1 = xkcill1_g(k,j)*psaill1_g(j)                       &
-                    *(chiaill1_g(k,n,j)/psaill1_g(j)-chiaill_g(k,n,j) &
+            chid1 = xkcill1_g(j,k)*psaill1_g(j)                       &
+                    *(chiaill1_g(j,k,n)/psaill1_g(j)-chiaill_g(j,k,n) &
                     /psaill_g(j))
-            chid2 = xkc02_g(k,j)*psa02_g(j)                           &
-                    *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
+            chid2 = xkc02_g(j,k)*psa02_g(j)                           &
+                    *(chia02_g(j,k,n)/psa02_g(j)-chia01_g(j,k,n)      &
                     /psa01_g(j))
             tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k)*(chid2+chid1)&
                         *regrav
@@ -800,9 +807,9 @@ module mod_diagnosis
     implicit none
 !
     integer :: i , itr , j , k
-    real(8) :: tttmp
+    real(dp) :: tttmp
     character(len=32) :: appdat
-    integer :: ierr , l
+    integer :: ierr
 !
 !   add tracers,  tremlsc, tremcvc, tremdrd are total amount mass
 !   and chemical conversion term
@@ -819,76 +826,61 @@ module mod_diagnosis
       tremdrd(itr,1) = d_zero
     end do
 !
-    do itr = 1 , ntr
-      call mpi_gather(chia(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
-                      chia_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
-                      0,mycomm,ierr)
-      call mpi_gather(remlsc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
-                      remlsc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mycomm,ierr)
-      call mpi_gather(remcvc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
-                      remcvc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mycomm,ierr)
-      call mpi_gather(rxsg(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
-                      rxsg_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
-                      0,mycomm,ierr)
-      call mpi_gather(rxsaq1(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
-                      rxsaq1_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mycomm,ierr)
-      call mpi_gather(rxsaq2(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
-                      rxsaq2_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mycomm,ierr)
-      call mpi_gather(remdrd(:,:,itr),   iy*jxp,mpi_real8,            &
-                      remdrd_io(:,:,itr),iy*jxp,mpi_real8,            &
-                      0,mycomm,ierr)
-      do l = 1 , mpy
-        call mpi_gather(chemsrc(:,:,l,itr),   iy*jxp,mpi_real8,       &
-                        chemsrc_io(:,:,l,itr),iy*jxp,mpi_real8,       &
-                        0,mycomm,ierr)
-      end do
-    end do
+    call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(remlsc,remlsc_io, &
+                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(remcvc,remcvc_io, &
+                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(rxsg,rxsg_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(rxsaq1,rxsaq1_io, &
+                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(rxsaq2,rxsaq2_io, &
+                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call deco1_gather(remdrd,remdrd_io,jcross1,jcross2,icross1,icross2,1,ntr)
+    call deco1_gather(chemsrc,chemsrc_io, &
+                      jcross1,jcross2,icross1,icross2,1,mpy,1,ntr)
     if ( myid == 0 ) then
       do itr = 1 , ntr
         do k = 1 , kz
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + chia_io(i,k,j,itr)
+              tttmp = tttmp + chia_io(j,i,k,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + remlsc_io(i,k,j,itr)
+              tttmp = tttmp + remlsc_io(j,i,k,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + remcvc_io(i,k,j,itr)
+              tttmp = tttmp + remcvc_io(j,i,k,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + rxsg_io(i,k,j,itr)
+              tttmp = tttmp + rxsg_io(j,i,k,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + rxsaq1_io(i,k,j,itr)
+              tttmp = tttmp + rxsaq1_io(j,i,k,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + rxsaq2_io(i,k,j,itr)
+              tttmp = tttmp + rxsaq2_io(j,i,k,itr)
             end do
           end do
           trxsaq2(itr,1) = trxsaq2(itr,1) + tttmp*dsigma(k)
@@ -908,7 +900,7 @@ module mod_diagnosis
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + remdrd_io(i,j,itr)
+            tttmp = tttmp + remdrd_io(j,i,itr)
           end do
         end do
         tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
@@ -917,21 +909,21 @@ module mod_diagnosis
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + chemsrc_io(i,j,xmonth,itr)*dtsec*dx*dx
+            tttmp = tttmp + chemsrc_io(j,i,xmonth,itr)*dtsec*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp
       end do
     end if
 
-    call mpi_bcast(ttrace(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tremlsc(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tremcvc(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(trxsg(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(trxsaq1(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(trxsaq2(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tremdrd(1,1),ntr,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tchie(1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(ttrace,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremlsc,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremcvc,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsg,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsaq1,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsaq2,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremdrd,ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tchie,ntr,mpi_real8,0,mycomm,ierr)
    
     do itr = 1 , ntr
       ttrace(itr,1) = ttrace(itr,1)*d_1000*regrav
@@ -999,14 +991,11 @@ module mod_diagnosis
     integer :: ierr
     integer :: i , j
 !
-    swapv = transpose(sfsta%qfx)
-    call mpi_gather(swapv,iy*jxp,mpi_real8,  &
-                    qfx_io,   iy*jxp,mpi_real8,  &
-                    0,mycomm,ierr)
+    call deco1_gather(sfs%qfx,sfs_io%qfx,jcross1,jcross2,icross1,icross2)
     if ( myid == 0 ) then
       do j = 2 , jxm2
         do i = 2 , iym2
-          tqeva = tqeva + qfx_io(i,j)*dx*dx*dtsec
+          tqeva = tqeva + sfs_io%qfx(j,i)*dx*dx*dtsec
         end do
       end do
     end if

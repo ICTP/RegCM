@@ -41,7 +41,7 @@ module mod_rrtmg_driver
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
   real(dp) , pointer , dimension(:) :: solin , frsa , sabtp , clrst , &
-         clrss , firtp , frla , clrlt , clrls , empty1 , srfrad ,     &
+         clrss , firtp , frla , clrlt , clrls , empty1 , &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
          asdif , aldir , aldif , czen , alat , ptrop
 
@@ -101,7 +101,6 @@ module mod_rrtmg_driver
     call getmem1d(clrlt,jstart,jend,'rrtmg:clrlt')
     call getmem1d(clrls,jstart,jend,'rrtmg:clrls')
     call getmem1d(empty1,jstart,jend,'rrtmg:empty1')
-    call getmem1d(srfrad,jstart,jend,'rrtmg:srfrad')
     call getmem1d(sols,jstart,jend,'rrtmg:sols')
     call getmem1d(soll,jstart,jend,'rrtmg:soll')
     call getmem1d(solsd,jstart,jend,'rrtmg:solsd')
@@ -344,7 +343,6 @@ module mod_rrtmg_driver
       ! clrls  - clr sky lw cooling of srf (up-dwn flx)
       ! qrl    - longwave cooling rate
       ! slwd   - surface longwave down flux
-      ! srfrad - surface radiative heating flux (frsa+slwd)
       ! h2ommr - ozone mixing ratio
       ! cld    - cloud fractional cover
       ! clwp   - cloud liquid water path
@@ -401,11 +399,12 @@ module mod_rrtmg_driver
       ! not used furthermore
       empty1 = dmissval
       empty2 = dmissval
+      call radout(jstart,jend,i,lout,solin,sabtp,frsa, &
+                  clrst,clrss,qrs,firtp,frla,clrlt,clrls,qrl,slwd, &
+                  sols,soll,solsd,solld,empty1,empty1,empty1, &
+                  empty1,empty1,empty1,empty1,empty1,empty1,empty2, &
+                  cld_int,clwp_int)
       !
-      call radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss,qrs, &
-                  firtp,frla,clrlt,clrls,qrl,slwd,srfrad,sols,soll,    &
-                  solsd,solld,empty1,empty1,empty1,empty1,empty1,      &
-                  empty1,empty1,empty1,empty1,empty2,cld_int,clwp_int)
     end do
 
   end subroutine  rrtmg_driver
@@ -419,7 +418,7 @@ module mod_rrtmg_driver
     real(dp) :: c287 , ccvtem , clwtem , w1 , w2
     integer :: jj , j , k , kj , ncldm1 , ns , n , jj0 , jj1 , jj2
     real(dp) , parameter :: lowcld = 1.0D-30
-    real(8) , parameter :: verynearone = 0.999999D0
+    real(dp) , parameter :: verynearone = 0.999999D0
     real(dp) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
 !
 !   Set index for cloud particle properties based on the wavelength,

@@ -69,7 +69,7 @@ module mod_mtrxclm
     call rcmdrv()
     call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
-    call interfclm(1,ktau)
+    call interfclm(2,ktau)
 !
   end subroutine mtrxclm
 !
@@ -115,7 +115,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   use shr_orb_mod
   use shr_kind_mod,  only : r8 => shr_kind_r8
   use clm_varpar,    only : lsmlon , lsmlat
-  use clm_varsur,    only : landmask , landfrac
+  use clm_varsur,    only : landmask , landfrac , satbrt_clm
   use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
   use clm_varsur,    only : clm2bats_veg , ht_rcm
   use clm_varsur,    only : clm_fracveg
@@ -168,13 +168,13 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
 !     calendar type (GREGORIAN not available in regcm)
-  if ( ical == noleap ) then
+!  if ( ical == noleap ) then
     r2cclndr = 'NO_LEAP'
-  else if ( ical == gregorian ) then
-    r2cclndr = 'GREGORIAN'
-  else
-    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
-  end if
+!  else if ( ical == gregorian ) then
+!    r2cclndr = 'GREGORIAN'
+!  else
+!    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
+!  end if
 !     don't write to NCAR Mass Store
   r2cmss_irt = 0
 !     clm output frequency
@@ -200,13 +200,15 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
   if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
   if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
+  if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(iy,jx))
   if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
   if ( myid==0 ) then
     do j = 1 , jx
       do i = 1 , iy
-        ht_rcm(i,j)    = htf(j,i)
-        init_tgb(i,j)  = tsf(i,j)
-        clm_fracveg(i,j) = d_zero
+        ht_rcm(j,i)    = htf(j,i)
+        satbrt_clm(j,i) = lndcatf(j,i)
+        init_tgb(j,i)  = tsf(j,i)
+        clm_fracveg(j,i) = d_zero
       end do
     end do
   end if
@@ -286,18 +288,18 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !           Specific Humidity
         r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
 !           Reference Height (m)
-        r2czga(j,i) = hgt(ci,kz,cj)
+        r2czga(j,i) = hgt(cj,ci,kz)
 !           Surface winds
         r2cuxb(j,i) = uatm(cj,ci,kz)
         r2cvxb(j,i) = vatm(cj,ci,kz)
 !           Surface Pressure in Pa from hPa
-        r2cpsb(j,i)   = (sfps(ci,cj)+ptop)*d_1000
+        r2cpsb(j,i)   = (sfps(cj,ci)+ptop)*d_1000
         r2crnc(j,i)   = pptc(cj,ci)
         r2crnnc(j,i)  = pptnc(cj,ci)
-        r2csols(j,i)  = sols2d(ci,cj)
-        r2csoll(j,i)  = soll2d(ci,cj)
-        r2csolsd(j,i) = solsd2d(ci,cj)
-        r2csolld(j,i) = solld2d(ci,cj)
+        r2csols(j,i)  = sols2d(cj,ci)
+        r2csoll(j,i)  = soll2d(cj,ci)
+        r2csolsd(j,i) = solsd2d(cj,ci)
+        r2csolld(j,i) = solld2d(cj,ci)
         r2cflwd(j,i)  = flwd(cj,ci)
       end if
     end do
@@ -690,7 +692,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
 
-!     Initialize ocld2d now that clm has determined the land sea mask
+!     Initialize ocld now that clm has determined the land sea mask
 !     Initialize accumulation variables at zero
  
   if ( .not.ifrest ) then
@@ -698,7 +700,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       jj = myid*jxp + j
       do i = 1 , iym1
         do n = 1 , nnsg
-          ocld2d(n,j,i) = landmask(jj,i)
+          ocld(n,j,i) = landmask(jj,i)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
@@ -732,21 +734,21 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
         end do
 
-        veg2d(j,i) = idnint(lndcat(j,i))
+        iveg(j,i) = idnint(lndcat(j,i))
         do n = 1 , nnsg
-          veg2d1(n,j,i)  = idnint(lndcat1(n,j,i))
+          iveg1(n,j,i) = idnint(lndcat1(n,j,i))
         end do
 
-        if ( ( veg2d(j,i) == 14 .or. veg2d(j,i) == 15 ) .and. &
+        if ( ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) .and. &
                ldmsk(j,i) /= 0 ) then
-          veg2d(j,i)        =  2
+          iveg(j,i)   =  2
           lndcat(j,i) =  d_two
         end if
         do n = 1 , nnsg
-          if ( ( veg2d1(n,j,i) == 14 .or. veg2d1(n,j,i) == 15 ) .and. &
-               ocld2d(n,j,i) /= 0 ) then
-            veg2d1(n,j,i)     =  2
-            lndcat1(n,j,i)    =  d_two
+          if ( ( iveg1(n,j,i) == 14 .or. iveg1(n,j,i) == 15 ) .and. &
+               ocld(n,j,i) /= 0 ) then
+            iveg1(n,j,i)   =  2
+            lndcat1(n,j,i) =  d_two
           end if
         end do
       end do
@@ -781,7 +783,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   do i = istart , iend
     do j = jstart , jend
       jj = j+(jxp*myid)
-      if (ocld2d(1,j,i) /= 0 .and. &
+      if (ocld(1,j,i) /= 0 .and. &
           (d_one-aldirs(j,i)) > 1.0D-10) then
         aldirs(j,i) = aldirs(j,i)*landfrac(jj,i) + &
                     aldirs(j,i)*(d_one-landfrac(jj,i))
@@ -871,20 +873,20 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !           Specific Humidity ?
         r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
 !           Reference Height (m)
-        r2czga(j,i) = hgt(ci,kz,cj)
+        r2czga(j,i) = hgt(cj,ci,kz)
 !           Surface winds
         r2cuxb(j,i) = uatm(cj,ci,kz)
         r2cvxb(j,i) = vatm(cj,ci,kz)
 !           Surface Pressure in Pa from cbar
-        r2cpsb(j,i) = (sfps(ci,cj)+ptop)*d_1000
+        r2cpsb(j,i) = (sfps(cj,ci)+ptop)*d_1000
 !           Rainfall
         r2crnc(j,i) = pptc(cj,ci)
         r2crnnc(j,i) = pptnc(cj,ci)
 !           Incident Solar Radiation
-        r2csols(j,i) = sols2d(ci,cj)
-        r2csoll(j,i) = soll2d(ci,cj)
-        r2csolsd(j,i) = solsd2d(ci,cj)
-        r2csolld(j,i) = solld2d(ci,cj)
+        r2csols(j,i) = sols2d(cj,ci)
+        r2csoll(j,i) = soll2d(cj,ci)
+        r2csolsd(j,i) = solsd2d(cj,ci)
+        r2csolld(j,i) = solld2d(cj,ci)
         r2cflwd(j,i) = flwd(cj,ci)
  
       end do
@@ -1144,7 +1146,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             end if
  
             if ( iocnflx==1 .or.                                    &
-                 (iocnflx==2 .and. ocld2d(n,j,i) /= 0) ) then
+                 (iocnflx==2 .and. ocld(n,j,i) /= 0) ) then
               tgbb(j,i) = tgbb(j,i)                     &
                           + ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+   &
                           lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
@@ -1224,7 +1226,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             end if
  
             if ( iocnflx==1 .or.                                    &
-                 (iocnflx==2 .and. ocld2d(n,j,i) /= 0) ) then
+                 (iocnflx==2 .and. ocld(n,j,i) /= 0) ) then
               tgbb(j,i) = tgbb(j,i) + &
                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+ &
                             lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
@@ -1300,7 +1302,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           t2m_o(j,i-1) = 0.0
  
           do n = 1 , nnsg
-            if ( ocld2d(n,j,i) /= 0 ) then
+            if ( ocld(n,j,i) /= 0 ) then
               u10m_s(n,j,i-1) = real(uatm(j,i,kz))
               v10m_s(n,j,i-1) = real(vatm(j,i,kz))
               tg_s(n,j,i-1) = real(tgrd(n,j,i))
@@ -1309,7 +1311,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               v10m_o(j,i-1) = v10m_o(j,i-1) + real(vatm(j,i,kz))
               t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf(n,j,i))
               tg_o(j,i-1) = tg_o(j,i-1) + real(tgrd(n,j,i))
-            else if ( ocld2d(n,j,i) == 0 ) then
+            else if ( ocld(n,j,i) == 0 ) then
               tg_s(n,j,i-1) = real(tgrd(n,j,i))
               u10m_s(n,j,i-1) = real(u10m(n,j,i))
               v10m_s(n,j,i-1) = real(v10m(n,j,i))
@@ -1345,7 +1347,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           evpa_o(j,i-1) = 0.0
           sena_o(j,i-1) = 0.0
           do n = 1 , nnsg
-            if ( ocld2d(n,j,i) /= 0 ) then
+            if ( ocld(n,j,i) /= 0 ) then
               q2m_s(n,j,i-1) = real(q2d(j,i))
               drag_s(n,j,i-1) = real(uvdrag(j,i))
               evpa_s(n,j,i-1) = real(evpa(n,j,ci)*mmpd)
@@ -1358,7 +1360,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(j,i))
               evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa(n,j,ci))
               sena_o(j,i-1) = sena_o(j,i-1) + real(sena(n,j,ci))
-            else if ( ocld2d(n,j,i) == 0 ) then
+            else if ( ocld(n,j,i) == 0 ) then
               q2m_s(n,j,i-1) = real(q2m(n,j,i))
               drag_s(n,j,i-1) = real(drag(n,j,i))
               evpa_s(n,j,i-1) = real(evpa(n,j,i)*mmpd)
@@ -1391,7 +1393,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           scv_o(j,i-1) = 0.0
           nnn = 0
           do n = 1 , nnsg
-            if ( ocld2d(n,j,ci) /= 0 .and. landmask(jj,ci)/=3 ) then
+            if ( ocld(n,j,ci) /= 0 .and. landmask(jj,ci)/=3 ) then
               tlef_o(j,i-1) = tlef_o(j,i-1) + real(c2rtlef(jj,ci))
               ssw_o(j,i-1) = ssw_o(j,i-1) + real(c2rsm10cm(jj,ci))
               rsw_o(j,i-1) = rsw_o(j,i-1) + real(c2rsm1m(jj,ci))

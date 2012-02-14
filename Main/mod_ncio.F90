@@ -55,11 +55,11 @@ module mod_ncio
   integer , dimension(n_lakvar) :: ilakvar
   character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  real(8) , dimension(:) , pointer :: hsigma
+  real(dp) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
-  real(8) :: tpd , cfd
-  real(8) :: xns2d
-  real(4) :: xns2r
+  real(dp) :: tpd , cfd
+  real(dp) :: xns2d
+  real(sp) :: xns2r
   type(rcm_time_and_date) , save :: cordex_refdate
 
   ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
@@ -82,21 +82,21 @@ module mod_ncio
   integer :: o_nz
   logical :: lwrap , lmaskfill
 
-  real(4) , dimension(:,:) , pointer :: ioxlat
-  real(4) , dimension(:,:) , pointer :: ioxlon
-  real(4) , dimension(:,:) , pointer :: iotopo
-  real(4) , dimension(:,:) , pointer :: iomask
-  real(4) , dimension(:,:) , pointer :: iolnds
-  real(4) , dimension(:,:) , pointer :: ioxlat_s
-  real(4) , dimension(:,:) , pointer :: ioxlon_s
-  real(4) , dimension(:,:) , pointer :: iotopo_s
-  real(4) , dimension(:,:) , pointer :: iomask_s
-  real(4) , dimension(:,:) , pointer :: subio
-  real(4) , dimension(:,:,:) , pointer :: dumio
-  real(4) , dimension(:,:) , pointer :: sp2d
-  real(4) , dimension(:,:) , pointer :: sp2d1
-  real(4) , dimension(:,:,:) , pointer :: atmsrfmask
-  real(4) , dimension(:,:) , pointer :: atmsrfsum
+  real(sp) , dimension(:,:) , pointer :: ioxlat
+  real(sp) , dimension(:,:) , pointer :: ioxlon
+  real(sp) , dimension(:,:) , pointer :: iotopo
+  real(sp) , dimension(:,:) , pointer :: iomask
+  real(sp) , dimension(:,:) , pointer :: iolnds
+  real(sp) , dimension(:,:) , pointer :: ioxlat_s
+  real(sp) , dimension(:,:) , pointer :: ioxlon_s
+  real(sp) , dimension(:,:) , pointer :: iotopo_s
+  real(sp) , dimension(:,:) , pointer :: iomask_s
+  real(sp) , dimension(:,:) , pointer :: subio
+  real(sp) , dimension(:,:,:) , pointer :: dumio
+  real(sp) , dimension(:,:) , pointer :: sp2d
+  real(sp) , dimension(:,:) , pointer :: sp2d1
+  real(sp) , dimension(:,:,:) , pointer :: atmsrfmask
+  real(sp) , dimension(:,:) , pointer :: atmsrfsum
 
   integer , dimension(numbat) :: lak_fbats
 
@@ -382,32 +382,32 @@ contains
 
     if (lband) then
       o_is = 2
-      o_ie = iy-1
+      o_ie = iym2
       o_js = 1
       o_je = jx
-      o_ni = iy-2
+      o_ni = iym3
       o_nj = jx
       o_isg = nsg+1
-      o_ieg = iysg-nsg
+      o_ieg = iysg-2*nsg
       o_jsg = 1
       o_jeg = jxsg
-      o_nig = iym2sg
+      o_nig = iym3sg
       o_njg = jxsg
       o_nz = kz
       lwrap = .true.
     else
       o_is = 2
-      o_ie = iy-1
+      o_ie = iym2
       o_js = 2
-      o_je = jx-1
-      o_ni = iy-2
-      o_nj = jx-2
+      o_je = jxm2
+      o_ni = iym3
+      o_nj = jxm3
       o_isg = nsg+1
-      o_ieg = iysg-nsg
+      o_ieg = iym2sg
       o_jsg = nsg+1
-      o_jeg = jxsg-nsg
-      o_nig = iym2sg
-      o_njg = jxm2sg
+      o_jeg = jxm2sg
+      o_nig = iym3sg
+      o_njg = jxm3sg
       o_nz = kz
       lwrap = .false.
     end if
@@ -435,14 +435,14 @@ contains
     use netcdf
     implicit none
 
-    real(8) , intent(out) :: dx
-    real(8) , dimension(kzp1) :: sigma
+    real(dp) , intent(out) :: dx
+    real(dp) , dimension(kzp1) :: sigma
 
     integer :: ivarid , idimid
     integer :: iyy , jxx , kzz , k
     character(6) :: proj
-    real(4) :: dsx , iclat , iclon , ptsp
-    real(4) , dimension(kzp1) :: rsdum
+    real(sp) :: dsx , iclat , iclon , ptsp
+    real(sp) , dimension(kzp1) :: rsdum
 
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
     call say
@@ -545,13 +545,13 @@ contains
     use netcdf
     implicit none
 
-    real(8) , dimension(jx,iy) , intent(out) :: ht
-    real(8) , dimension(jx,iy) , intent(out) :: lnd
-    real(8) , dimension(jx,iy) , intent(out) :: xlat
-    real(8) , dimension(jx,iy) , intent(out) :: xlon
-    real(8) , dimension(jx,iy) , intent(out) :: xmap
-    real(8) , dimension(jx,iy) , intent(out) :: dmap
-    real(8) , dimension(jx,iy) , intent(out) :: f
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ht
+    real(dp) , pointer , dimension(:,:) , intent(out) :: lnd
+    real(dp) , pointer , dimension(:,:) , intent(out) :: xlat
+    real(dp) , pointer , dimension(:,:) , intent(out) :: xlon
+    real(dp) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(dp) , pointer , dimension(:,:) , intent(out) :: dmap
+    real(dp) , pointer , dimension(:,:) , intent(out) :: f
 
     integer :: ivarid
 
@@ -562,43 +562,36 @@ contains
 
     istatus = nf90_inq_varid(idmin, 'topo', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, ht)
     call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
-    ht = dble(sp2d)
-    iotopo = sp2d(o_js:o_je,o_is:o_ie)
+    iotopo = real(ht(o_js:o_je,o_is:o_ie))
     istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, lnd)
     call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
-    lnd = dble(sp2d)
-    iolnds = sp2d(o_js:o_je,o_is:o_ie)
+    iolnds = real(lnd(o_js:o_je,o_is:o_ie))
     istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, xlat)
     call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
-    xlat = dble(sp2d)
-    ioxlat = sp2d(o_js:o_je,o_is:o_ie)
+    ioxlat = real(xlat(o_js:o_je,o_is:o_ie))
     istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, xlon)
     call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
-    xlon = dble(sp2d)
-    ioxlon = sp2d(o_js:o_je,o_is:o_ie)
+    ioxlon = real(xlon(o_js:o_je,o_is:o_ie))
     istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, xmap)
     call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
-    xmap = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, dmap)
     call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
-    dmap = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
+    istatus = nf90_get_var(idmin, ivarid, f)
     call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
-    f = dble(sp2d)
     istatus = nf90_inq_varid(idmin, 'mask', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -610,10 +603,9 @@ contains
     use netcdf
     implicit none
 
-    real(8) , dimension(iy,jx) , intent(out) :: hlake
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake
 
-    integer :: ivarid
-    real(4) , dimension(jx,iy) :: sp2d
+    integer :: n , ivarid
 
     if (idmin < 0) then
       write (6,*) 'Error : Domain file not in open state'
@@ -624,17 +616,19 @@ contains
     call check_ok(__FILE__,__LINE__,'Variable dhlake miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
     call check_ok(__FILE__,__LINE__,'Variable dhlake read error','DOMAIN FILE')
-    hlake = dble(transpose(sp2d))
+    do n = 1 , nnsg
+      hlake(n,:,:) = dble(sp2d)
+    end do
   end subroutine read_domain_lake
 
   subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
     use netcdf
     implicit none
 
-    real(8) , dimension(nnsg,iy,jx) , intent(out) :: ht1
-    real(8) , dimension(nnsg,iy,jx) , intent(out) :: lnd1
-    real(8) , dimension(nnsg,iy,jx) , intent(out) :: xlat1
-    real(8) , dimension(nnsg,iy,jx) , intent(out) :: xlon1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ht1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: lnd1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: xlat1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: xlon1
 
     integer :: ivarid
     integer :: i , j , n , ii , jj
@@ -657,7 +651,7 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        ht1(n,ii,jj) = dble(sp2d1(j,i))*egrav
+        ht1(n,jj,ii) = dble(sp2d1(j,i))*egrav
       end do
     end do
     iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -675,7 +669,7 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        lnd1(n,ii,jj) = dble(sp2d1(j,i))
+        lnd1(n,jj,ii) = dble(sp2d1(j,i))
       end do
     end do
     istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
@@ -691,7 +685,7 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        xlat1(n,ii,jj) = dble(sp2d1(j,i))
+        xlat1(n,jj,ii) = dble(sp2d1(j,i))
       end do
     end do
     ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -708,7 +702,7 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        xlon1(n,ii,jj) = dble(sp2d1(j,i))
+        xlon1(n,jj,ii) = dble(sp2d1(j,i))
       end do
     end do
     ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -723,11 +717,10 @@ contains
     use netcdf
     implicit none
 
-    real(8) , dimension(nnsg,iy,jx) , intent(out) :: hlake1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake1
 
     integer :: ivarid
     integer :: i , j , n , ii , jj
-    real(4) , dimension(jxsg,iysg) :: sp2d1
     
     if (isdmin < 0) then
       write (6,*) 'Error : Subdom file not in open state'
@@ -748,7 +741,7 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        hlake1(n,ii,jj) = dble(sp2d1(j,i))
+        hlake1(n,jj,ii) = dble(sp2d1(j,i))
       end do
     end do
   end subroutine read_subdomain_lake
@@ -798,7 +791,7 @@ contains
     type(rcm_time_and_date) , intent(in) :: idate
     character(10) :: ctime
     integer :: idimid , itvar , i , chkdiff
-    real(8) , dimension(:) , allocatable :: icbc_nctime
+    real(dp) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
     integer :: iyy , jxx , kzz
 
@@ -886,16 +879,14 @@ contains
   subroutine read_icbc(ps,ts,u,v,t,qv)
     use netcdf
     implicit none
-    real(8) , dimension(iy,kz,jx) , intent(out) :: u
-    real(8) , dimension(iy,kz,jx) , intent(out) :: v
-    real(8) , dimension(iy,kz,jx) , intent(out) :: t
-    real(8) , dimension(iy,kz,jx) , intent(out) :: qv
-    real(8) , dimension(iy,jx) , intent(out) :: ps
-    real(8) , dimension(iy,jx) , intent(out) :: ts
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: u
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: v
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: t
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: qv
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ps
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ts
 
     integer , dimension(4) :: istart , icount
-    real(4) , dimension(jx,iy,kz) :: xread
-    integer :: i , j , k
 
     istart(3) = ibcrec
     istart(2) = 1
@@ -903,14 +894,10 @@ contains
     icount(3) = 1
     icount(2) = iy
     icount(1) = jx
-    istatus = nf90_get_var(ibcin, icbc_ivar(1), xread(:,:,1), & 
-                           istart(1:3), icount(1:3))
+    istatus = nf90_get_var(ibcin,icbc_ivar(1),ps,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
-    ps = dble(transpose(xread(:,:,1)))
-    istatus = nf90_get_var(ibcin, icbc_ivar(2), xread(:,:,1), & 
-                           istart(1:3), icount(1:3))
+    istatus = nf90_get_var(ibcin,icbc_ivar(2),ts,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
-    ts = dble(transpose(xread(:,:,1)))
     istart(4) = ibcrec
     istart(3) = 1
     istart(2) = 1
@@ -919,42 +906,14 @@ contains
     icount(3) = kz
     icount(2) = iy
     icount(1) = jx
-    istatus = nf90_get_var(ibcin, icbc_ivar(3), xread, istart, icount)
+    istatus = nf90_get_var(ibcin,icbc_ivar(3),u,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
-    do k = 1 , kz
-      do j = 1 , jx
-        do i = 1 , iy
-          u(i,k,j) = dble(xread(j,i,k))
-        end do
-      end do
-    end do
-    istatus = nf90_get_var(ibcin, icbc_ivar(4), xread, istart, icount)
+    istatus = nf90_get_var(ibcin,icbc_ivar(4),v,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
-    do k = 1 , kz
-      do j = 1 , jx
-        do i = 1 , iy
-          v(i,k,j) = dble(xread(j,i,k))
-        end do
-      end do
-    end do
-    istatus = nf90_get_var(ibcin, icbc_ivar(5), xread, istart, icount)
+    istatus = nf90_get_var(ibcin,icbc_ivar(5),t,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
-    do k = 1 , kz
-      do j = 1 , jx
-        do i = 1 , iy
-          t(i,k,j) = dble(xread(j,i,k))
-        end do
-      end do
-    end do
-    istatus = nf90_get_var(ibcin, icbc_ivar(6), xread, istart, icount)
+    istatus = nf90_get_var(ibcin,icbc_ivar(6),qv,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable qv read error', 'ICBC FILE')
-    do k = 1 , kz
-      do j = 1 , jx
-        do i = 1 , iy
-          qv(i,k,j) = dble(xread(j,i,k))
-        end do
-      end do
-    end do
   end subroutine read_icbc
 
   subroutine close_icbc
@@ -992,13 +951,13 @@ contains
     character(16) :: fterr
     character(256) :: ofname , history
     integer , dimension(8) :: tvals
-    real(8) :: hptop
-    real(8) :: rdum1
-    real(4) , dimension(2) :: trlat
-    real(8) , dimension(2) :: rdum2
-    real(8) , dimension(iysg) :: yiy
-    real(8) , dimension(jxsg) :: xjx
-    real(4) , dimension(ndpmax) :: depth
+    real(dp) :: hptop
+    real(dp) :: rdum1
+    real(sp) , dimension(2) :: trlat
+    real(dp) , dimension(2) :: rdum2
+    real(dp) , dimension(iysg) :: yiy
+    real(dp) , dimension(jxsg) :: xjx
+    real(sp) , dimension(ndpmax) :: depth
     integer :: ncid
     integer , dimension(3) :: izvar
     integer , dimension(2) :: ivvar
@@ -1614,8 +1573,6 @@ contains
       call addvara(ncid,ctype,tyx,.true.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
-      call addvara(ncid,ctype,tyx,.false.,17)
-      call addvara(ncid,ctype,tyx,.false.,18)
     else if (ctype == 'RAD') then
       iradvar = -1
       iradvar(1) = itvar
@@ -1966,11 +1923,11 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , ny , numbat
-    real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(2) :: nctime
+    real(dp) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2053,17 +2010,17 @@ contains
     istsrec = istsrec + 1
   end subroutine writerec_sts
 
-  subroutine writerec_srf(nx, ny, numbat, fbat, mask , idate)
+  subroutine writerec_srf(nx, ny, fbat, mask , idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , numbat
-    real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
-    integer , dimension(iym1,jxm1) , intent(in) :: mask
+    integer , intent(in) :: nx , ny
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
+    integer , pointer , dimension(:,:) , intent(in) :: mask
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(2) :: nctime
+    real(dp) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     logical :: lskip
     character(len=36) :: ctime
@@ -2156,7 +2113,7 @@ contains
     end do
 
     if ( iseaice == 1 .or. lakemod == 1 ) then
-      dumio(:,:,1) = real(transpose(mask(o_is:o_ie,o_js:o_je)))
+      dumio(:,:,1) = real(mask(o_js:o_je,o_is:o_ie))
       istart(3) = isrfrec
       istart(2) = 1
       istart(1) = 1
@@ -2182,11 +2139,11 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , ny , ns , nsub
-    real(4) , dimension(ns*ns,nx/ns,ny/ns,nsub) , intent(in) :: fsub
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
     integer :: ivar
     integer :: n , nxb , nyb
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
     logical :: lskip
@@ -2217,7 +2174,7 @@ contains
         cycle
       end if
       if ( sub_variables(ivar)%enabled ) then
-        call reorder(fsub,subio,nxb,nyb,nsg,nsub,n)
+        call reorder(fsub,subio,nxb,nyb,nsg,n)
         if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
             ivar == ivarname_lookup('SUB', 'v10m')   .or. &
             ivar == ivarname_lookup('SUB', 't2m')    .or. &
@@ -2248,7 +2205,7 @@ contains
                         'Error writing '//sub_variables(ivar)%vname// &
                         ' at '//ctime, 'SUB FILE')
           istart(3) = 2
-          call reorder(fsub,subio,nxb,nyb,nsg,nsub,n+1)
+          call reorder(fsub,subio,nxb,nyb,nsg,n+1)
           istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                         'Error writing '//sub_variables(ivar)%vname// &
@@ -2279,12 +2236,12 @@ contains
     isubrec = isubrec + 1
   end subroutine writerec_sub
 
-  subroutine reorder(fdp,fsp,nx,ny,nz,nn,n)
+  subroutine reorder(fdp,fsp,nx,ny,nz,n)
     implicit none
-    integer :: ny , nx , nz , nn , n
-    real(4) , dimension(nz*nz,nx,ny,nn) :: fdp
-    real(4) , dimension(nx*nz,ny*nz) :: fsp
-    intent (in) fdp , ny , nx , nz , nn , n
+    integer :: ny , nx , nz , n
+    real(sp) , pointer , dimension(:,:,:,:) :: fdp
+    real(sp) , pointer , dimension(:,:) :: fsp
+    intent (in) fdp , ny , nx , nz , n
     intent (out) fsp
 
     integer :: i , ii , j , jj , k
@@ -2298,7 +2255,7 @@ contains
         k = (jj-1)*nz + ii
         jj = (j+nz-1)/nz
         ii = (i+nz-1)/nz
-        fsp(j,i) = fdp(k,jj,ii,n)
+        fsp(j,i) = fdp(k,jj+1,ii+1,n)
       end do
     end do
   end subroutine reorder
@@ -2308,13 +2265,13 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , ny , nz , nrad3d , nrad2d
-    real(4) , dimension(nx,ny,nz,nrad3d) , intent(in) :: frad3d
-    real(4) , dimension(nx,ny,nrad2d) , intent(in) :: frad2d
-    real(4) , dimension(nx,ny) , intent(in) :: ps
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: frad3d
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: frad2d
+    real(sp) , pointer , dimension(:,:) , intent(in) :: ps
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2393,24 +2350,24 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , nnx, nny , ny , ns , nz
-    real(8) , dimension(ny,nz,nx) , intent(in) :: u
-    real(8) , dimension(ny,nz,nx) , intent(in) :: v
-    real(8) , dimension(ny,nz,nx) , intent(in) :: omega
-    real(8) , dimension(ny,nz,nx) , intent(in) :: t
-    real(8) , dimension(ny,nz,nx) , intent(in) :: qv
-    real(8) , dimension(ny,nz,nx) , intent(in) :: qc
-    real(8) , dimension(ny,nz+1,nx) , intent(in) :: tke
-    real(8) , dimension(ny,nz+1,nx) , intent(in) :: kth
-    real(8) , dimension(ny,nz+1,nx) , intent(in) :: kzm
-    real(8) , dimension(ny,nx) , intent(in) :: ps
-    real(8) , dimension(ny,nx) , intent(in) :: rc
-    real(8) , dimension(ny,nx) , intent(in) :: rnc
-    real(8) , dimension(ns,nny,nnx) , intent(in) :: tgb
-    real(8) , dimension(ns,nny,nnx) , intent(in) :: swt
-    integer , dimension(ns,nny,nnx) , intent(in) :: mask
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: u
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: v
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: t
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: qv
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: qc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tke
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: kth
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: kzm
+    real(dp) , pointer , dimension(:,:) , intent(in) :: ps
+    real(dp) , pointer , dimension(:,:) , intent(in) :: rc
+    real(dp) , pointer , dimension(:,:) , intent(in) :: rnc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tgb
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: swt
+    integer , pointer , dimension(:,:,:) , intent(in) :: mask
     integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2427,7 +2384,7 @@ contains
 
     if (.not. lmaskfill) then
       do n = 1 , ns
-        atmsrfmask(n,:,:) = real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
+        atmsrfmask(n,:,:) = real(mask(n,o_js:o_je,o_is:o_ie))
       end do
       where ( atmsrfmask > 0.5 )
         atmsrfmask = 1.0
@@ -2445,7 +2402,7 @@ contains
     istatus = nf90_put_var(ncatm, iatmvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'ATM FILE')
 
-    dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + ptop)*d_10)
+    dumio(:,:,1) = real((ps(o_js:o_je,o_is:o_ie) + ptop)*d_10)
     istart(3) = iatmrec
     istart(2) = 1
     istart(1) = 1
@@ -2479,9 +2436,9 @@ contains
               jp2 = j+1
               if (j == o_nj) jp2 = 1
             end if
-            dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                                  u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / &
-                                  ps(ip1,jp1))
+            dumio(j,i,k) = real(((u(jp1,ip1,k)+u(jp2,ip1,k) + &
+                                  u(jp1,ip2,k)+u(jp2,ip2,k))*d_rfour) / &
+                                  ps(jp1,ip1))
           end do
         end do
       end do
@@ -2505,9 +2462,9 @@ contains
               jp2 = j+1
               if (j == o_nj) jp2 = 1
             end if
-            dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                                  v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / &
-                                  ps(ip1,jp1))
+            dumio(j,i,k) = real(((v(jp1,ip1,k)+v(jp2,ip1,k) + &
+                                  v(jp1,ip2,k)+v(jp2,ip2,k))*d_rfour) / &
+                                  ps(jp1,ip1))
           end do
         end do
       end do
@@ -2527,7 +2484,7 @@ contains
             else
               jp1 = j
             end if
-            dumio(j,i,k) = real(omega(ip1,k,jp1)*d_10)
+            dumio(j,i,k) = real(omega(jp1,ip1,k)*d_10)
           end do
         end do
       end do
@@ -2547,7 +2504,7 @@ contains
             else
               jp1 = j
             end if
-            dumio(j,i,k) = real(t(ip1,k,jp1)/ps(ip1,jp1))
+            dumio(j,i,k) = real(t(jp1,ip1,k)/ps(jp1,ip1))
           end do
         end do
       end do
@@ -2568,8 +2525,8 @@ contains
             else
               jp1 = j
             end if
-            if (qv(ip1,k,jp1) > dlowval) then
-              dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
+            if (qv(jp1,ip1,k) > dlowval) then
+              dumio(j,i,k) = real(qv(jp1,ip1,k)/ps(jp1,ip1))
             end if
           end do
         end do
@@ -2591,8 +2548,8 @@ contains
             else
               jp1 = j
             end if
-            if (qc(ip1,k,jp1) > dlowval) then
-              dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))
+            if (qc(jp1,ip1,k) > dlowval) then
+              dumio(j,i,k) = real(qc(jp1,ip1,k)/ps(jp1,ip1))
             end if
           end do
         end do
@@ -2615,8 +2572,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(ip1,k,jp1) > dlowval) then
-                dumio(j,i,k) = real(tke(ip1,k,jp1)/ps(ip1,jp1))
+              if (qc(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(tke(jp1,ip1,k)/ps(jp1,ip1))
               end if
             end do
           end do
@@ -2637,8 +2594,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(ip1,k,jp1) > dlowval) then
-                dumio(j,i,k) = real(kth(ip1,k,jp1)/ps(ip1,jp1))
+              if (qc(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(kth(jp1,ip1,k)/ps(jp1,ip1))
               end if
             end do
           end do
@@ -2659,8 +2616,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(ip1,k,jp1) > dlowval) then
-                dumio(j,i,k) = real(kzm(ip1,k,jp1)/ps(ip1,jp1))
+              if (qc(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(kzm(jp1,ip1,k)/ps(jp1,ip1))
               end if
             end do
           end do
@@ -2681,11 +2638,11 @@ contains
 
     if ( atm_variables(12)%enabled ) then
       dumio(:,:,1) = 0.0
-      where (transpose(rc(o_is:o_ie,o_js:o_je)) > dlowval)
-        dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
+      where (rc(o_js:o_je,o_is:o_ie) > dlowval)
+        dumio(:,:,1) = real(rc(o_js:o_je,o_is:o_ie))
       end where
-      where (transpose(rnc(o_is:o_ie,o_js:o_je)) > dlowval)
-        dumio(:,:,1) = dumio(:,:,1) + real(transpose(rnc(o_is:o_ie,o_js:o_je)))
+      where (rnc(o_js:o_je,o_is:o_ie) > dlowval)
+        dumio(:,:,1) = dumio(:,:,1) + real(rnc(o_js:o_je,o_is:o_ie))
       end where
       dumio(:,:,1) = dumio(:,:,1)*real(tpd)
       istatus = nf90_put_var(ncatm, iatmvar(12), &
@@ -2696,7 +2653,7 @@ contains
     end if
 
     if ( atm_variables(13)%enabled ) then
-      dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
+      dumio(:,:,1) = real(sum(tgb(:,o_js:o_je,o_is:o_ie), dim=1)*xns2d)
       istatus = nf90_put_var(ncatm, iatmvar(13), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__,&
@@ -2708,14 +2665,13 @@ contains
       dumio(:,:,1) = 0.0
       do n = 1 , ns
         where (atmsrfmask(n,:,:) > 0)
-          dumio(:,:,1) = dumio(:,:,1) + &
-                           real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = dumio(:,:,1) + real(swt(n,o_js:o_je,o_is:o_ie))
         end where
       end do
       where (atmsrfsum > 0)
         dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
       elsewhere
-        dumio(:,:,1) = -1.E34
+        dumio(:,:,1) = 1.E20
       end where
       istatus = nf90_put_var(ncatm, iatmvar(14), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
@@ -2731,7 +2687,7 @@ contains
     iatmrec = iatmrec + 1
   end subroutine writerec_atm
 
-  subroutine writerec_che(nx, ny, nnx, nny, nz, nt, chia, aerext, &
+  subroutine writerec_che(nx, ny, nz, nt, chia, aerext,           &
                           aerssa, aerasp, dtrace, wdlsc, wdcvc,   &
                           ddsfc, wxsg, wxaq, cemtrac, aertarf,    &
                           aersrrf, aertalwrf, aersrlwrf, ps,      &
@@ -2739,26 +2695,26 @@ contains
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , nnx , nny , nz , nt
-    real(8) , dimension(iy,kz,jx,nt) , intent(in) :: chia
-    real(8) , dimension(nny,nz,nnx) , intent(in) :: aerext
-    real(8) , dimension(nny,nz,nnx) , intent(in) :: aerssa
-    real(8) , dimension(nny,nz,nnx) , intent(in) :: aerasp
-    real(8) , dimension(iy,jx,nt) , intent(in) :: dtrace
-    real(8) , dimension(iy,jx,nt) , intent(in) :: wdlsc
-    real(8) , dimension(iy,jx,nt) , intent(in) :: wdcvc
-    real(8) , dimension(iy,jx,nt) , intent(in) :: ddsfc
-    real(8) , dimension(iy,jx,nt) , intent(in) :: wxsg
-    real(8) , dimension(iy,jx,nt) , intent(in) :: wxaq
-    real(8) , dimension(iy,jx,nt) , intent(in) :: cemtrac
-    real(8) , dimension(iy,jx) , intent(in) :: ps
-    real(8) , dimension(nny,nnx) , intent(in) :: aertarf
-    real(8) , dimension(nny,nnx) , intent(in) :: aersrrf
-    real(8) , dimension(nny,nnx) , intent(in) :: aertalwrf
-    real(8) , dimension(nny,nnx) , intent(in) :: aersrlwrf
+    integer , intent(in) :: nx , ny , nz , nt
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: aerext
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: aerssa
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: aerasp
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: dtrace
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdcvc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ddsfc
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: wxsg
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: wxaq
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: cemtrac
+    real(dp) , pointer , dimension(:,:) , intent(in) :: ps
+    real(dp) , pointer , dimension(:,:) , intent(in) :: aertarf
+    real(dp) , pointer , dimension(:,:) , intent(in) :: aersrrf
+    real(dp) , pointer , dimension(:,:) , intent(in) :: aertalwrf
+    real(dp) , pointer , dimension(:,:) , intent(in) :: aersrlwrf
     integer :: n , k
     integer , dimension(5) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2778,7 +2734,7 @@ contains
     istatus = nf90_put_var(ncche, ichevar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE')
 
-    dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+ptop)*d_10)
+    dumio(:,:,1) = real((ps(o_js:o_je,o_is:o_ie)+ptop)*d_10)
     istart(3) = icherec
     istart(2) = 1
     istart(1) = 1
@@ -2802,8 +2758,8 @@ contains
         icount(2) = o_ni
         icount(1) = o_nj
         do k = 1 , nz
-          dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
-                                     ps(o_is:o_ie,o_js:o_je)))
+          dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,k,n) / &
+                              ps(o_js:o_je,o_is:o_ie))
         end do
         istatus = nf90_put_var(ncche, ichevar(3), dumio, istart, icount)
         call check_ok(__FILE__,__LINE__, &
@@ -2823,7 +2779,7 @@ contains
 
     if ( che_variables(4)%enabled ) then
       do k = 1 , nz
-        dumio(:,:,k) = real(transpose(aerext(o_is:o_ie,k,o_js:o_je)))
+        dumio(:,:,k) = real(aerext(o_js:o_je,o_is:o_ie,k))
       end do
       istatus = nf90_put_var(ncche, ichevar(4), dumio, istart(1:4), icount(1:4))
       call check_ok(__FILE__,__LINE__, &
@@ -2833,7 +2789,7 @@ contains
 
     if ( che_variables(5)%enabled ) then
       do k = 1 , nz
-        dumio(:,:,k) = real(transpose(aerssa(o_is:o_ie,k,o_js:o_je)))
+        dumio(:,:,k) = real(aerssa(o_js:o_je,o_is:o_ie,k))
       end do
       istatus = nf90_put_var(ncche, ichevar(5), dumio, istart(1:4), icount(1:4))
       call check_ok(__FILE__,__LINE__, &
@@ -2843,7 +2799,7 @@ contains
 
     if ( che_variables(6)%enabled ) then
       do k = 1 , nz
-        dumio(:,:,k) = real(transpose(aerasp(o_is:o_ie,k,o_js:o_je)))
+        dumio(:,:,k) = real(aerasp(o_js:o_je,o_is:o_ie,k))
       end do
       istatus = nf90_put_var(ncche, ichevar(6), dumio, istart(1:4), icount(1:4))
       call check_ok(__FILE__,__LINE__, &
@@ -2861,7 +2817,7 @@ contains
       icount(2) = o_ni
       icount(1) = o_nj
       if ( che_variables(7)%enabled ) then
-        dumio(:,:,1) = real(transpose(dtrace(o_is:o_ie,o_js:o_je,n)))
+        dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n))
         istatus = nf90_put_var(ncche, ichevar(7), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2869,7 +2825,7 @@ contains
                       'CHE FILE')
       end if
       if ( che_variables(8)%enabled ) then
-        dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(8), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2877,7 +2833,7 @@ contains
                       'CHE FILE')
       end if
       if ( che_variables(9)%enabled ) then
-        dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(9), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2885,7 +2841,7 @@ contains
                       'CHE FILE')
       end if
       if ( che_variables(10)%enabled ) then
-        dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(ddsfc(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(10), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2893,7 +2849,7 @@ contains
                       ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(11)%enabled ) then
-        dumio(:,:,1) = real(transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(wxsg(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(11), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2901,7 +2857,7 @@ contains
                       ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(12)%enabled ) then
-        dumio(:,:,1) = real(transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(wxaq(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(12), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2909,7 +2865,7 @@ contains
                       ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(13)%enabled ) then
-        dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
+        dumio(:,:,1) = real(cemtrac(o_js:o_je,o_is:o_ie,n)*cfd)
         istatus = nf90_put_var(ncche, ichevar(13), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
         call check_ok(__FILE__,__LINE__, &
@@ -2926,7 +2882,7 @@ contains
     icount(1) = o_nj
 
     if ( che_variables(14)%enabled ) then
-      dumio(:,:,1) = real(transpose(aertarf(o_is:o_ie,o_js:o_je)))
+      dumio(:,:,1) = real(aertarf(o_js:o_je,o_is:o_ie))
       istatus = nf90_put_var(ncche, ichevar(14), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
@@ -2934,7 +2890,7 @@ contains
                     'CHE FILE')
     end if
     if ( che_variables(15)%enabled ) then
-      dumio(:,:,1) = real(transpose(aersrrf(o_is:o_ie,o_js:o_je)))
+      dumio(:,:,1) = real(aersrrf(o_js:o_je,o_is:o_ie))
       istatus = nf90_put_var(ncche, ichevar(15), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
@@ -2942,7 +2898,7 @@ contains
                     'CHE FILE')
     end if
     if ( che_variables(16)%enabled ) then
-      dumio(:,:,1) = real(transpose(aertalwrf(o_is:o_ie,o_js:o_je)))
+      dumio(:,:,1) = real(aertalwrf(o_js:o_je,o_is:o_ie))
       istatus = nf90_put_var(ncche, ichevar(16), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
@@ -2950,7 +2906,7 @@ contains
                     'CHE FILE')
     end if
     if ( che_variables(17)%enabled ) then
-      dumio(:,:,1) = real(transpose(aersrlwrf(o_is:o_ie,o_js:o_je)))
+      dumio(:,:,1) = real(aersrlwrf(o_js:o_je,o_is:o_ie))
       istatus = nf90_put_var(ncche, ichevar(17), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
@@ -2970,15 +2926,15 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , ny , numbat
-    real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
-    real(8) , dimension(nnsg,iym1,jx) , intent(in) :: evl
-    real(8) , dimension(nnsg,iym1,jx) , intent(in) :: aveice
-    real(8) , dimension(nnsg,iym1,jx) , intent(in) :: hsnow
-    real(8) , dimension(ndpmax,nnsg,iym1,jx) , intent(in) :: tlake
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: evl
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: aveice
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: hsnow
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: nctime
+    real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -3016,21 +2972,21 @@ contains
     end do
 
     ! Add lake model output
-    dumio(:,:,1) =  real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))*xns2d)
+    dumio(:,:,1) =  real(sum(evl(:,o_js:o_je,o_is:o_ie),1)*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
                   'Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
-    dumio(:,:,1) = real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))*xns2d)
+    dumio(:,:,1) = real(sum(aveice(:,o_js:o_je,o_is:o_ie),1)*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
                   'Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
-    dumio(:,:,1) = real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))*xns2d)
+    dumio(:,:,1) = real(sum(hsnow(:,o_js:o_je,o_is:o_ie),1)*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
              dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
@@ -3046,8 +3002,7 @@ contains
       icount(3) = 1
       icount(2) = o_ni
       icount(1) = o_nj
-      dumio(:,:,1) = real(transpose( &
-                  sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))*xns2d)
+      dumio(:,:,1) = real(sum(tlake(n,:,o_js:o_je,o_is:o_ie),1)*xns2d)
       where (iolnds == 14)
         dumio(:,:,1) = dumio(:,:,1) + real(tzero)
       end where

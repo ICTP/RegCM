@@ -39,7 +39,7 @@ module mod_rad_colmod3
   real(dp) , pointer , dimension(:) :: alb , albc , alat , ptrop ,    &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
-    sols , solsd , srfrad , ps , ts , emsvt1 , totcf , totcl , totci
+    sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci
   real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
@@ -75,7 +75,6 @@ module mod_rad_colmod3
       call getmem1d(totcf,1,jxp,'colmod3:totcf')
       call getmem1d(totcl,1,jxp,'colmod3:totcl')
       call getmem1d(totci,1,jxp,'colmod3:totci')
-      call getmem1d(srfrad,1,jxp,'colmod3:srfrad')
       call getmem1d(ps,1,jxp,'colmod3:ps')
       call getmem1d(ts,1,jxp,'colmod3:ts')
       call getmem1d(emsvt1,1,jxp,'colmod3:emsvt1')
@@ -276,7 +275,6 @@ module mod_rad_colmod3
       solld(:) = d_zero
       sols(:) = d_zero
       solsd(:) = d_zero
-      srfrad(:) = d_zero
       ts(:) = d_zero
       cld(:,:) = d_zero
       effcld(:,:) = d_zero
@@ -381,10 +379,11 @@ module mod_rad_colmod3
 !     Names of some output variables (in MKS) have been changed
 !     from those in the CCM2 radiation package.
 !
-      call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs, &
-                  flnt,flns,flntc,flnsc,qrl,flwds,srfrad,sols,soll,   &
-                  solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,   &
-                  totcf,totcl,totci,h2ommr,cld,clwp)
+     call radout(jstart,jend,i,lout,solin,fsnt,fsns,              &
+                 fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,qrl,flwds, &
+                 sols,soll,solsd,solld,alb,albc,fsds,      &
+                 fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
+                 cld,clwp)
     end do
 !
   end subroutine colmod3
@@ -706,10 +705,10 @@ module mod_rad_colmod3
 !   ground temperature
 !
     do j = jstart , jend
-!     tg(j)=tgb(i,j)
+!     tg(j)=tgb(j,i)
 !     when using bats calculate an equivalent ground (skin)
 !     temperature by averaging over vegetated and non-vegetated areas
-!jsp  tg(j)=((d_one-vgfrac(j))*tgb(i,j)**4.+vgfrac(j)*tlef2d(i,j)**4.)**0.25
+!jsp  tg(j)=((d_one-vgfrac(j))*tgb(j,i)**4.+vgfrac(j)*tlef2d(j,i)**4.)**0.25
       ts(j) = tground(j,i)
     end do
 !

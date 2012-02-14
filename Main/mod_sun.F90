@@ -52,13 +52,13 @@ module mod_sun
 
     implicit none
 !
-    real(8) :: decdeg
+    real(dp) :: decdeg
 #ifdef CLM
-    real(8) :: mvelp , obliq
+    real(dp) :: mvelp , obliq
     integer :: iyear_ad
     logical :: log_print
 #else
-    real(8) :: theta
+    real(dp) :: theta
 #endif
 !
 !----------------------------------------------------------------------
@@ -123,16 +123,16 @@ module mod_sun
     implicit none
 !
     integer, intent (in) :: jstart , jend , istart , iend
-    real(8) , pointer , intent (out), dimension(:,:) :: coszrs
+    real(dp) , pointer , intent (out), dimension(:,:) :: coszrs
 !
     integer :: i , j
 #ifdef CLM
-    real(8) :: cldy , declinp1 , xxlon
+    real(dp) :: cldy , declinp1 , xxlon
 #else
-    real(8) :: omga , tlocap , xt24
+    real(dp) :: omga , tlocap , xt24
 #endif
     character (len=64) :: subroutine_name='zenitm'
-    real(8) :: xxlat
+    real(dp) :: xxlat
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

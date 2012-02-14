@@ -40,23 +40,38 @@ module mod_bdycod
 !
   public :: allocate_mod_bdycon , bdyin , bdyval
 !
-#ifndef BAND
-  public :: uj1 , uj2 , ujlx , ujl
-  public :: vj1 , vj2 , vjlx , vjl
-#endif
-  public :: ui1 , ui2 , uilx , uil
-  public :: vi1 , vi2 , vilx , vil
+  !
+  ! West U External  = WUE
+  ! West U Internal  = WUI
+  ! East U External  = EUE
+  ! .....
+  ! North V Internal = NVI
+  !
+  public :: wue , wui , eue , eui
+  public :: wve , wvi , eve , evi
+  public :: sue , sui , nue , nui
+  public :: sve , svi , nve , nvi
   public :: ts0
   public :: ts1 ! FOR DCSST
+! fnudge : are the coefficients for the newtonian term.
+! gnydge : are the coefficients for the diffusion term.
+  public :: fnudge , gnudge
+  public :: anudg
 !
-  real(8) , pointer , dimension(:) :: trans1 , trans2
-  real(8) , pointer , dimension(:,:) :: ui1 , ui2 , uil , uilx , &
-                                        vi1 , vi2 , vil , vilx
-#ifndef BAND
-  real(8) , pointer , dimension(:,:) :: uj1 , uj2 , ujl , ujlx , &
-                                        vj1 , vj2 , vjl , vjlx
-#endif
-  real(8) , pointer , dimension(:,:) :: ts0 , ts1
+  real(dp) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
+                                         sve , svi , nve , nvi
+  real(dp) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
+                                         wve , wvi , eve , evi
+  real(dp) , pointer , dimension(:,:) :: ts0 , ts1
+  real(dp) , pointer , dimension(:) :: anudg
+  real(dp) , pointer , dimension(:) :: fcx , gcx
+  real(dp) , pointer , dimension(:) :: fcd , gcd
+  real(dp) , pointer , dimension(:) :: lfc , lgc
+  real(dp) , pointer , dimension(:,:) :: efc , egc
+  real(dp) , pointer , dimension(:) :: wgtd
+  real(dp) , pointer , dimension(:) :: wgtx
+  real(dp) :: fnudge , gnudge
+  integer :: nbdm
 !
   interface nudge
     module procedure nudge3d , nudge2d
@@ -66,73 +81,139 @@ module mod_bdycod
     module procedure sponge3d , sponge2d
   end interface sponge
 !
-  public :: sponge , nudge
+  public :: sponge , nudge , setup_bdycon
 !
   contains
 !
-  subroutine allocate_mod_bdycon
+  subroutine allocate_mod_bdycon(iboudy,lband)
     implicit none
+    integer , intent(in) :: iboudy
+    logical , intent(in) :: lband
     character (len=64) :: subroutine_name='allocate_mod_bdycon'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
-    call getmem1d(trans1,1,iy,'bdycon:trans1')
-    call getmem1d(trans2,1,iy,'bdycon:trans2')
+    if ( iboudy == 1 ) then
+      call getmem1d(fcx,1,nspgx,'bdycon:fcx')
+      call getmem1d(gcx,1,nspgx,'bdycon:gcx')
+      call getmem1d(fcd,1,nspgd,'bdycon:fcd')
+      call getmem1d(gcd,1,nspgd,'bdycon:gcd')
+    else if ( iboudy == 4 ) then
+      call getmem1d(wgtd,1,nspgd,'bdycon:wgtd')
+      call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
+    else if ( iboudy == 5 ) then
+      nbdm = max(nspgx,nspgd)
+      call getmem1d(anudg,1,kz,'bdycon:anudg')
+      call getmem2d(efc,1,nbdm,1,kz,'bdycon:fcx')
+      call getmem2d(egc,1,nbdm,1,kz,'bdycon:fcx')
+    end if
+
+    call getmem2d(ts0,1,jxp,icross1,icross2,'bdycon:ts0')
+    call getmem2d(ts1,1,jxp,icross1,icross2,'bdycon:ts1')
 !
-    call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
-    call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
+    call getmem2d(sue,0,jxp+1,1,kz,'bdycon:sue')
+    call getmem2d(sui,0,jxp+1,1,kz,'bdycon:sui')
+    call getmem2d(nue,0,jxp+1,1,kz,'bdycon:nue')
+    call getmem2d(nui,0,jxp+1,1,kz,'bdycon:nui')
+    call getmem2d(nve,0,jxp+1,1,kz,'bdycon:nve')
+    call getmem2d(nvi,0,jxp+1,1,kz,'bdycon:nvi')
+    call getmem2d(sve,0,jxp+1,1,kz,'bdycon:sve')
+    call getmem2d(svi,0,jxp+1,1,kz,'bdycon:svi')
 !
-    call getmem2d(ui1,1,kz,0,jxp+1,'bdycon:ui1')
-    call getmem2d(ui2,1,kz,0,jxp+1,'bdycon:ui2')
-    call getmem2d(uil,1,kz,0,jxp+1,'bdycon:uil')
-    call getmem2d(uilx,1,kz,0,jxp+1,'bdycon:uilx')
-    call getmem2d(vi1,1,kz,0,jxp+1,'bdycon:vi1')
-    call getmem2d(vi2,1,kz,0,jxp+1,'bdycon:vi2')
-    call getmem2d(vil,1,kz,0,jxp+1,'bdycon:vil')
-    call getmem2d(vilx,1,kz,0,jxp+1,'bdycon:vilx')
-!
-#ifndef BAND
-    call getmem2d(uj1,1,iy,1,kz,'bdycon:uj1')
-    call getmem2d(uj2,1,iy,1,kz,'bdycon:uj2')
-    call getmem2d(ujl,1,iy,1,kz,'bdycon:ujl')
-    call getmem2d(ujlx,1,iy,1,kz,'bdycon:ujlx')
-    call getmem2d(vj1,1,iy,1,kz,'bdycon:vj1')
-    call getmem2d(vj2,1,iy,1,kz,'bdycon:vj2')
-    call getmem2d(vjl,1,iy,1,kz,'bdycon:vjl')
-    call getmem2d(vjlx,1,iy,1,kz,'bdycon:vjlx')
-#endif
+    if ( .not. lband ) then
+      call getmem2d(wue,idot1,idot2,1,kz,'bdycon:wue')
+      call getmem2d(wui,idot1,idot2,1,kz,'bdycon:wui')
+      call getmem2d(eue,idot1,idot2,1,kz,'bdycon:eue')
+      call getmem2d(eui,idot1,idot2,1,kz,'bdycon:eui')
+      call getmem2d(wve,idot1,idot2,1,kz,'bdycon:wve')
+      call getmem2d(wvi,idot1,idot2,1,kz,'bdycon:wvi')
+      call getmem2d(eve,idot1,idot2,1,kz,'bdycon:eve')
+      call getmem2d(evi,idot1,idot2,1,kz,'bdycon:evi')
+    end if
     call time_end(subroutine_name,idindx)
+
   end subroutine allocate_mod_bdycon
 !
+  subroutine setup_bdycon(hlev)
+    implicit none
+    real(dp) , pointer , dimension(:) , intent(in) :: hlev
+    integer :: n , k
+    !
+    ! Specify the coefficients for nudging boundary conditions:
+    !
+    if ( iboudy == 1 .or. iboudy == 5 ) then
+      fnudge = 0.1D0/dt2
+      gnudge = (dxsq/dt)/50.0D0
+    end if
+    if ( iboudy == 1 ) then
+      do n = 1 , nspgx
+        fcx(n) = fnudge*xfun(n,.false.)
+        gcx(n) = gnudge*xfun(n,.false.)
+      end do
+      do n = 1 , nspgd
+        fcd(n) = fnudge*xfun(n,.true.)
+        gcd(n) = gnudge*xfun(n,.true.)
+      end do
+    else if ( iboudy == 4 ) then
+      wgtd(1) = 0.00D0
+      wgtd(2) = 0.20D0
+      wgtd(3) = 0.55D0
+      wgtd(4) = 0.80D0
+      wgtd(5) = 0.95D0
+      do k = 4 , nspgx
+        wgtd(k) = d_one
+      end do
+      wgtx(1) = 0.0D0
+      wgtx(2) = 0.4D0
+      wgtx(3) = 0.7D0
+      wgtx(4) = 0.9D0
+      do k = 5 , nspgx
+        wgtx(k) = 1.0D0
+      end do
+    else if ( iboudy == 5 ) then
+      do k = 1 , kz
+        if ( hlev(k) < 0.4D0 ) then
+          anudg(k) = high_nudge
+        else if ( hlev(k) < 0.8D0 ) then
+          anudg(k) = medium_nudge
+        else
+          anudg(k) = low_nudge
+        end if
+        do n = 1 , nbdm
+          efc(n,k) = fnudge*xfune(n,k)
+          egc(n,k) = gnudge*xfune(n,k)
+        end do
+      end do
+    end if
+  end subroutine setup_bdycon
+
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
 ! this subroutine reads in the boundary conditions.
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine bdyin
-!
-#ifndef IBM
-    use mpi
-#endif
+  subroutine bdyin(istart)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
 !
-    integer :: i , j , k , nn , nnb , mmrec
-    integer :: ierr , ndeb , ndwb , nxeb , nxwb
-#ifndef BAND
-    integer :: nkk
-#endif
+    integer , intent(in) :: istart
+    integer :: i , j , k , n , mmrec
+    integer :: ierr
     character(len=32) :: appdat
-    real(8) , dimension(jxp,iy) :: psdot , tdum
-    integer :: n
     character (len=64) :: subroutine_name='bdyin'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( istart /= 0 ) then
+      xub%b0(:,:,:) = xub%b1(:,:,:)
+      xvb%b0(:,:,:) = xvb%b1(:,:,:)
+      xtb%b0(:,:,:) = xtb%b1(:,:,:)
+      xqb%b0(:,:,:) = xqb%b1(:,:,:)
+      xpsb%b0(:,:) = xpsb%b1(:,:)
+      ts0(:,:) = ts1(:,:)
+    end if
 !
     if ( myid == 0 ) then
       bdydate2 = bdydate2 + intbdy
@@ -147,289 +228,120 @@ module mod_bdycod
         end if
       end if
       call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io)
-      ps1_io = ps1_io*d_r10
-      do j = 1 , jx
-        do k = 1 , kz
-          do i = 1 , iy
-            sav_0(i,k,j)      = ub1_io(i,k,j)
-            sav_0(i,kz+k,j)   = vb1_io(i,k,j)
-            sav_0(i,kz*2+k,j) = qb1_io(i,k,j)
-            sav_0(i,kz*3+k,j) = tb1_io(i,k,j)
-          end do
-        end do
-        do i = 1 , iy
-          sav_0(i,kz*4+1,j) = ps1_io(i,j)
-          sav_0(i,kz*4+2,j) = ts1_io(i,j)
-        end do
-      end do
+      !
+      ! Convert surface pressure to pstar
+      !
+      ps1_io(:,:) = (ps1_io(:,:)*d_r10)-ptop
     end if
 !
-    call date_bcast(bdydate2,0,mycomm,ierr)
+    call deco1_scatter(ub1_io,xub%b1,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(vb1_io,xvb%b1,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(tb1_io,xtb%b1,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
 !
-    call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                     sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                     0,mycomm,ierr)
-    do j = 1 , jendl
-      do k = 1 , kz
-        do i = 1 , iy
-          xub%b1(j,i,k) = sav0(i,k,j)
-          xvb%b1(j,i,k) = sav0(i,kz+k,j)
-          xqb%b1(j,i,k) = sav0(i,kz*2+k,j)
-          xtb%b1(j,i,k) = sav0(i,kz*3+k,j)
-        end do
-      end do
-      do i = 1 , iy
-        xpsb%b1(j,i) = sav0(i,kz*4+1,j)
-        ts1(i,j) = sav0(i,kz*4+2,j)
-      end do
-    end do
+!  this piece of code determines p(.) from p(x) by a 4-point
+!  interpolation. on the x-grid
 !
-!   Convert surface pressure to pstar
-!
-    do i = 1 , iy
-      do j = 1 , jendl
-        xpsb%b1(j,i) = xpsb%b1(j,i) - ptop
-      end do
-    end do
-!
-!  this routine determines p(.) from p(x) by a 4-point
-!  interpolation. on the x-grid, a p(x) point outside the grid
-!  domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
-!  and similarly for the i's.
-!
-    if ( ieast /= mpi_proc_null ) then
-      trans1 = xpsb%b1(jxp,:)
-    end if
-    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                      trans2,iy,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
-    if ( iwest /= mpi_proc_null ) then
-      xpsb%b1(0,:) = trans2
-    end if
-    do i = 2 , iym1
-      do j = jbegin , jendx
-        psdot(j,i) = d_rfour*(xpsb%b1(j,i)+xpsb%b1(j,i-1) + &
-                              xpsb%b1(j-1,i)+xpsb%b1(j-1,i-1))
-      end do
-    end do
-#ifdef BAND
-    do j = jbegin , jendx
-      psdot(j,1)  = d_half*(xpsb%b1(j,1)+xpsb%b1(j-1,1))
-      psdot(j,iy) = d_half*(xpsb%b1(j,iym1)+xpsb%b1(j-1,iym1))
-    end do
-#else
-!
-    do i = 2 , iym1
-      if ( myid == 0 ) then
-        psdot(1,i) = d_half*(xpsb%b1(1,i)+xpsb%b1(1,i-1))
-      end if
-      if ( myid == nproc-1 ) then
-        psdot(jendl,i) = d_half*(xpsb%b1(jendx,i)+xpsb%b1(jendx,i-1))
-      end if
-    end do
-!
-    do j = jbegin , jendx
-      psdot(j,1)  = d_half*(xpsb%b1(j,1)+xpsb%b1(j-1,1))
-      psdot(j,iy) = d_half*(xpsb%b1(j,iym1)+xpsb%b1(j-1,iym1))
-    end do
-!
-    if ( myid == 0 ) then
-      psdot(1,1)  = xpsb%b1(1,1)
-      psdot(1,iy) = xpsb%b1(1,iym1)
-    end if
-    if ( myid == nproc-1 ) then
-      psdot(jendl,1)  = xpsb%b1(jendx,1)
-      psdot(jendl,iy) = xpsb%b1(jendx,iym1)
-    end if
-#endif
+    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
+    call psc2psd(xpsb%b1,psdot)
 !
 !   Couple pressure u,v,t,q
 !
     do k = 1 , kz
-      do j = 1 , jendl
-        do i = 1 , iy
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           xub%b1(j,i,k) = xub%b1(j,i,k)*psdot(j,i)
           xvb%b1(j,i,k) = xvb%b1(j,i,k)*psdot(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xub%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%b1,1,ide1,ide2,1,kz)
+!
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           xtb%b1(j,i,k) = xtb%b1(j,i,k)*xpsb%b1(j,i)
           xqb%b1(j,i,k) = xqb%b1(j,i,k)*xpsb%b1(j,i)
         end do
       end do
     end do
+    call deco1_exchange_left(xtb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%b1,1,ice1,ice2,1,kz)
 !
-!   compute boundary conditions for p*:
-!
-#ifdef BAND
-    nxwb = 0
-    nxeb = 0
-#else
-    if ( nspgx <= jxp ) then
-      nxwb = nspgx
-    else
-      nkk = nspgx/jxp
-      if ( nspgx == nkk*jxp ) then
-        nxwb = jxp
-      else
-        nxwb = nspgx - nkk*jxp
-      end if
-    end if
-    if ( nxwb+myid*jxp > nspgx ) then
-      nxwb = 0
-    else if ( nxwb+myid*jxp < nspgx ) then
-      nxwb = jxp
-    end if
-!
-    if ( nspgx <= jxp-1 ) then
-      nxeb = nspgx
-    else
-      nkk = (nspgx-jxp+1)/jxp
-      if ( (nspgx-jxp+1) == nkk*jxp ) then
-        nxeb = jxp
-      else
-        nxeb = (nspgx-jxp+1) - nkk*jxp
-      end if
-    end if
-    if ( jxm1-(myid*jxp+jxp-nxeb) > nspgx ) then
-      nxeb = 0
-    else if ( jxm1-(myid*jxp+jxp-nxeb) < nspgx ) then
-      nxeb = min0(jendx,jxp)
-    end if
-    do nn = 1 , nxwb
-      do i = 1 , iym1
-        xpsb%wb(nn,i)  = xpsb%b0(nn,i)
-        xpsb%wbt(nn,i) = (xpsb%b1(nn,i)-xpsb%b0(nn,i))/dtbdys
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
       end do
     end do
-    do nn = 1 , nxeb
-      nnb = min0(jendx,jxp) - nn + 1
-      do i = 1 , iym1
-        xpsb%eb(nn,i) = xpsb%b0(nnb,i)
-        xpsb%ebt(nn,i) = (xpsb%b1(nnb,i)-xpsb%b0(nnb,i))/dtbdys
-      end do
-    end do
-#endif
-    do j = 1 , jendx
-      do nn = 1 , nspgx
-        nnb = iym1 - nn + 1
-        xpsb%nb(j,nn) = xpsb%b0(j,nnb)
-        xpsb%sb(j,nn) = xpsb%b0(j,nn)
-        xpsb%nbt(j,nn) = (xpsb%b1(j,nnb)-xpsb%b0(j,nnb))/dtbdys
-        xpsb%sbt(j,nn) = (xpsb%b1(j,nn)-xpsb%b0(j,nn))/dtbdys
-      end do
-    end do
-!
-!   compute boundary conditions for p*u and p*v:
-!
-#ifdef BAND
-    ndwb = 0
-    ndeb = 0
-#else
-    if ( nspgd <= jxp ) then
-      ndwb = nspgd
-    else
-      nkk = nspgd/jxp
-      if ( nspgd == nkk*jxp ) then
-        ndwb = jxp
-      else
-        ndwb = nspgd - nkk*jxp
-      end if
-    end if
-    if ( ndwb+myid*jxp > nspgd ) then
-      ndwb = 0
-    else if ( ndwb+myid*jxp < nspgd ) then
-      ndwb = jxp
-    end if
-!
-    if ( nspgd <= jendl ) then
-      ndeb = nspgd
-    else
-      nkk = nspgd/jxp
-      if ( nspgd == nkk*jxp ) then
-        ndeb = jxp
-      else
-        ndeb = nspgd - nkk*jxp
-      end if
-    end if
-    if ( jx-(myid*jxp+jxp-ndeb) > nspgd ) then
-      ndeb = 0
-    else if ( jx-(myid*jxp+jxp-ndeb) < nspgd ) then
-      ndeb = jxp
-    end if
-    do nn = 1 , ndwb
-      do k = 1 , kz
-        do i = 1 , iy
-          xub%wb(nn,i,k)  = xub%b0(nn,i,k)
-          xvb%wb(nn,i,k)  = xvb%b0(nn,i,k)
-          xub%wbt(nn,i,k) = (xub%b1(nn,i,k)-xub%b0(nn,i,k))/dtbdys
-          xvb%wbt(nn,i,k) = (xvb%b1(nn,i,k)-xvb%b0(nn,i,k))/dtbdys
-        end do
-      end do
-    end do
-    do nn = 1 , ndeb
-      nnb = min0(jendl,jxp) - nn + 1
-      do k = 1 , kz
-        do i = 1 , iy
-          xub%eb(nn,i,k)  = xub%b0(nnb,i,k)
-          xvb%eb(nn,i,k)  = xvb%b0(nnb,i,k)
-          xub%ebt(nn,i,k) = (xub%b1(nnb,i,k)-xub%b0(nnb,i,k))/dtbdys
-          xvb%ebt(nn,i,k) = (xvb%b1(nnb,i,k)-xvb%b0(nnb,i,k))/dtbdys
-        end do
-      end do
-    end do
-#endif
+    call deco1_exchange_left(xpsb%bt,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%bt,1,ice1,ice2)
     do k = 1 , kz
-      do nn = 1 , nspgd
-        nnb = iy - nn + 1
-        do j = 1 , jendl
-          xub%nb(j,nn,k)  = xub%b0(j,nnb,k)
-          xub%sb(j,nn,k)  = xub%b0(j,nn,k)
-          xvb%nb(j,nn,k)  = xvb%b0(j,nnb,k)
-          xvb%sb(j,nn,k)  = xvb%b0(j,nn,k)
-          xub%nbt(j,nn,k) = (xub%b1(j,nnb,k)-xub%b0(j,nnb,k))/dtbdys
-          xub%sbt(j,nn,k) = (xub%b1(j,nn,k)-xub%b0(j,nn,k))/dtbdys
-          xvb%nbt(j,nn,k) = (xvb%b1(j,nnb,k)-xvb%b0(j,nnb,k))/dtbdys
-          xvb%sbt(j,nn,k) = (xvb%b1(j,nn,k)-xvb%b0(j,nn,k))/dtbdys
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          xub%bt(j,i,k) = (xub%b1(j,i,k)-xub%b0(j,i,k))/dtbdys
+          xvb%bt(j,i,k) = (xvb%b1(j,i,k)-xvb%b0(j,i,k))/dtbdys
         end do
       end do
     end do
-!
-!   compute boundary conditions for p*t and p*qv:
-!
-#ifndef BAND
-    do nn = 1 , nxwb
-      do k = 1 , kz
-        do i = 1 , iym1
-          xtb%wb(nn,i,k)  = xtb%b0(nn,i,k)
-          xqb%wb(nn,i,k)  = xqb%b0(nn,i,k)
-          xtb%wbt(nn,i,k) = (xtb%b1(nn,i,k)-xtb%b0(nn,i,k))/dtbdys
-          xqb%wbt(nn,i,k) = (xqb%b1(nn,i,k)-xqb%b0(nn,i,k))/dtbdys
-        end do
-      end do
-    end do
-    do nn = 1 , nxeb
-      nnb = min0(jendx,jxp) - nn + 1
-      do k = 1 , kz
-        do i = 1 , iym1
-          xtb%eb(nn,i,k)  = xtb%b0(nnb,i,k)
-          xqb%eb(nn,i,k)  = xqb%b0(nnb,i,k)
-          xtb%ebt(nn,i,k) = (xtb%b1(nnb,i,k)-xtb%b0(nnb,i,k))/dtbdys
-          xqb%ebt(nn,i,k) = (xqb%b1(nnb,i,k)-xqb%b0(nnb,i,k))/dtbdys
-        end do
-      end do
-    end do
-#endif
+    call deco1_exchange_left(xub%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%bt,1,ide1,ide2,1,kz)
     do k = 1 , kz
-      do nn = 1 , nspgx
-        nnb = iym1 - nn + 1
-        do j = 1 , jendx
-          xtb%nb(j,nn,k)  = xtb%b0(j,nnb,k)
-          xtb%sb(j,nn,k)  = xtb%b0(j,nn,k)
-          xqb%nb(j,nn,k)  = xqb%b0(j,nnb,k)
-          xqb%sb(j,nn,k)  = xqb%b0(j,nn,k)
-          xtb%nbt(j,nn,k) = (xtb%b1(j,nnb,k)-xtb%b0(j,nnb,k))/dtbdys
-          xtb%sbt(j,nn,k) = (xtb%b1(j,nn,k)-xtb%b0(j,nn,k))/dtbdys
-          xqb%nbt(j,nn,k) = (xqb%b1(j,nnb,k)-xqb%b0(j,nnb,k))/dtbdys
-          xqb%sbt(j,nn,k) = (xqb%b1(j,nn,k)-xqb%b0(j,nn,k))/dtbdys
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xtb%bt(j,i,k) = (xtb%b1(j,i,k)-xtb%b0(j,i,k))/dtbdys
+          xqb%bt(j,i,k) = (xqb%b1(j,i,k)-xqb%b0(j,i,k))/dtbdys
         end do
+      end do
+    end do
+    call deco1_exchange_left(xtb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%bt,1,ice1,ice2,1,kz)
+!
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( iswater(mddom%lndcat(j,i)) ) then
+          if (idcsst == 1) then
+            sfs%tga(j,i) = ts1(j,i) + dtskin(j,i)
+            sfs%tgb(j,i) = ts1(j,i) + dtskin(j,i)
+          else
+            sfs%tga(j,i) = ts1(j,i)
+            sfs%tgb(j,i) = ts1(j,i)
+          end if
+        end if
+        if ( iseaice == 1 ) then
+          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+          if ( ts1(j,i) <= icetemp ) then
+            sfs%tga(j,i) = icetemp
+            sfs%tgb(j,i) = icetemp
+            ts1(j,i) = icetemp
+            ldmsk(j,i) = 2
+            do n = 1, nnsg
+              ocld(n,j,i) = 2
+              sfice(n,j,i) = d_1000
+              sncv(n,j,i) = d_zero
+            end do
+          else
+            sfs%tga(j,i) = ts1(j,i)
+            sfs%tgb(j,i) = ts1(j,i)
+            ldmsk(j,i) = 0
+            do n = 1, nnsg
+              ocld(n,j,i) = 0
+              sfice(n,j,i) = d_zero
+              sncv(n,j,i)  = d_zero
+            end do
+          end if
+        end if
       end do
     end do
 
@@ -438,353 +350,212 @@ module mod_bdycod
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
+    call date_bcast(bdydate2,0,mycomm,ierr)
     bdydate1 = bdydate2
     call date_bcast(bdydate1,0,mycomm,ierr)
 
-    do i = 1 , iym1
-      do j = 1 , jendx
-        tdum(j,i) = ts1(i,j)
-      end do
-    end do
-    do k = 1 , kz
-      do i = 1 , iy
-        do j = 1 , jendl
-          xub%b0(j,i,k) = xub%b1(j,i,k)
-          xvb%b0(j,i,k) = xvb%b1(j,i,k)
-          xqb%b0(j,i,k) = xqb%b1(j,i,k)
-          xtb%b0(j,i,k) = xtb%b1(j,i,k)
-        end do
-      end do
-    end do
-    do i = 1 , iy
-      do j = 1 , jendl
-        xpsb%b0(j,i) = xpsb%b1(j,i)
-        ts0(i,j) = ts1(i,j)
-      end do
-    end do
-   
-    if ( idatex < bdydate1 ) then
-      do i = 1 , iym1
-        do j = 1 , jendx
-          if ( iswater(mddom%lndcat(j,i)) ) then
-            if (idcsst == 1) then
-              sts1%tg(j,i) = tdum(j,i) + dtskin(i,j)
-              sts2%tg(j,i) = tdum(j,i) + dtskin(i,j)
-            else
-              sts1%tg(j,i) = tdum(j,i)
-              sts2%tg(j,i) = tdum(j,i)
-            end if
-            if ( iseaice == 1 ) then
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-!
-              if ( tdum(j,i) <= icetemp ) then
-                sts1%tg(j,i) = icetemp
-                sts2%tg(j,i) = icetemp
-                tdum(j,i) = icetemp
-                ldmsk(j,i) = 2
-                do n = 1, nnsg
-                  ocld2d(n,j,i) = 2
-                  sfice(n,j,i) = d_1000
-                  sncv(n,j,i) = d_zero
-                end do
-              else
-                sts1%tg(j,i) = tdum(j,i)
-                sts2%tg(j,i) = tdum(j,i)
-                ldmsk(j,i) = 0
-                do n = 1, nnsg
-                  ocld2d(n,j,i) = 0
-                  sfice(n,j,i) = d_zero
-                  sncv(n,j,i)  = d_zero
-                end do
-              end if
-            end if
-          end if
-        end do
-      end do
-    end if
     call time_end(subroutine_name,idindx)
+
   end subroutine bdyin
 !
 ! This subroutine sets the boundary values of u and v according
 ! to the boundary conditions specified.
 !
-!     ib = 0 : fixed
-!        = 1 : relaxation, linear technique
-!        = 2 : time dependent
-!        = 3 : time dependent and inflow/outflow dependent
-!        = 4 : sponge
-!        = 5 : relaxation, exponential technique
+!     iboudy = 0 : fixed
+!            = 1 : relaxation, linear technique
+!            = 2 : time dependent
+!            = 3 : time dependent and inflow/outflow dependent
+!            = 4 : sponge
+!            = 5 : relaxation, exponential technique
 !
-!     dtb    : elapsed time from the initial boundary values.
+!     dtb        : elapsed time from the initial boundary values.
 !
-  subroutine bdyuv(ib,dtb)
+  subroutine bdyuv(iboudy,dtb)
 !
-#ifndef IBM
-    use mpi
-#endif
-    implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
-!
-    real(8) :: dtb
-    integer :: ib
-    intent (in) dtb , ib
+    real(dp) , intent(in) :: dtb
+    integer , intent(in) :: iboudy
 !
     integer :: i , j , k
-    integer :: ierr
     character (len=64) :: subroutine_name='bdyuv'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!   compute the p* at dot points:
-!
-    if ( ieast /= mpi_proc_null ) then
-      trans1 = sps1%ps(jxp,:)
-    end if
-    call mpi_sendrecv(trans1,iy,mpi_real8,ieast,1, &
-                      trans2,iy,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
-    if ( iwest /= mpi_proc_null ) then
-      sps1%ps(0,:) = trans2
-    end if
-!
-!   interior points:
-!
-    do i = 2 , iym1
-      do j = jbegin , jendx
-        sps1%pdot(j,i) = d_rfour*(sps1%ps(j,i)  +sps1%ps(j,i-1) + &
-                                  sps1%ps(j-1,i)+sps1%ps(j-1,i-1))
-      end do
-    end do
-!
-!   east and west boundaries:
-!
-#ifndef BAND
-    do i = 2 , iym1
-      if ( myid == 0 ) then
-        sps1%pdot(1,i) = d_half*(sps1%ps(1,i)+sps1%ps(1,i-1))
-      end if
-      if ( myid == nproc-1 ) then
-        sps1%pdot(jendl,i) = d_half*(sps1%ps(jendx,i)+sps1%ps(jendx,i-1))
-      end if
-    end do
-#endif
-!
-!   north and south boundaries:
-!
-    do j = jbegin , jendx
-      sps1%pdot(j,1)  = d_half*(sps1%ps(j,1)   +sps1%ps(j-1,1))
-      sps1%pdot(j,iy) = d_half*(sps1%ps(j,iym1)+sps1%ps(j-1,iym1))
-    end do
-!
-!   corner points:
-!
-#ifndef BAND
-    if ( myid == 0 ) then
-      sps1%pdot(1,1)  = sps1%ps(1,1)
-      sps1%pdot(1,iy) = sps1%ps(1,iym1)
-    end if
-    if ( myid == nproc-1 ) then
-      sps1%pdot(jendl,1)  = sps1%ps(jendx,1)
-      sps1%pdot(jendl,iy) = sps1%ps(jendx,iym1)
-    end if
-#endif
-!
-!   interior silces:
-!
-    do k = 1 , kz
-#ifndef BAND
-!
-      do i = 2 , iym1
-        if ( myid == 0 ) then
-          uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(2,i)
-          vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(2,i)
-        end if
-        if ( myid == nproc-1 ) then
-          ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(jendx,i)
-          vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(jendx,i)
-        end if
-      end do
-#endif
-!
-#ifdef BAND
-      do j = 1 , jendl
-#else
-      do j = jbegin , jendx
-#endif
-        ui2(k,j)  = atm1%u(2,k,j)/sps1%pdot(j,2)
-        vi2(k,j)  = atm1%v(2,k,j)/sps1%pdot(j,2)
-        uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(j,iym1)
-        vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(j,iym1)
-      end do
-    end do
-!
-!   boundary silces:
-!
-    if ( ib == 0 ) then
-!
-!     fixed boundary conditions:
-!
+    !
+    ! First compute the p* at dot points to decouple U,V:
+    !
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call psc2psd(sfs%psa,psdot)
+    !
+    ! Now compute last two points values in U and V
+    ! Internal points
+    !
+    if ( ma%hasleft ) then
       do k = 1 , kz
-#ifndef BAND
-!
-!       west (j = 1) and east (j = jx) boundaries:
-!
-        do i = 1 , iy
-          if ( myid == 0 ) then
-            uj1(i,k) = xub%wb(1,i,k)/sps1%pdot(1,i)
-            vj1(i,k) = xvb%wb(1,i,k)/sps1%pdot(1,i)
-          end if
-          if ( myid == nproc-1 ) then
-            ujl(i,k) = xub%eb(1,i,k)/sps1%pdot(jendl,i)
-            vjl(i,k) = xvb%eb(1,i,k)/sps1%pdot(jendl,i)
-          end if
-        end do
-#endif
-!
-!       south (i = 1) and north (i = iy) boundaries:
-!
-        do j = 1 , jendl
-          ui1(k,j) = xub%sb(j,1,k)/sps1%pdot(j,1)
-          vi1(k,j) = xvb%sb(j,1,k)/sps1%pdot(j,1)
-          uil(k,j) = xub%nb(j,1,k)/sps1%pdot(j,iy)
-          vil(k,j) = xvb%nb(j,1,k)/sps1%pdot(j,iy)
+        do i = idi1 , idi2
+          wui(i,k) = atm1%u(jdi1,i,k)/psdot(jdi1,i)
+          wvi(i,k) = atm1%v(jdi1,i,k)/psdot(jdi1,i)
         end do
       end do
-    else
-!
-!     time-dependent boundary conditions:
-!
+    end if
+    if ( ma%hasright ) then
       do k = 1 , kz
-#ifndef BAND
-!
-!       west (j = 1) and east (j = jx) boundaries:
-!
-        do i = 1 , iy
-          if ( myid == 0 ) then
-            uj1(i,k) = (xub%wb(1,i,k)+dtb*xub%wbt(1,i,k))/sps1%pdot(1,i)
-            vj1(i,k) = (xvb%wb(1,i,k)+dtb*xvb%wbt(1,i,k))/sps1%pdot(1,i)
-          end if
-          if ( myid == nproc-1 ) then
-            ujl(i,k) = (xub%eb(1,i,k)+dtb*xub%ebt(1,i,k))/sps1%pdot(jendl,i)
-            vjl(i,k) = (xvb%eb(1,i,k)+dtb*xvb%ebt(1,i,k))/sps1%pdot(jendl,i)
-          end if
-        end do
-#endif
-!
-!       south (i = 1) and north (i = iy) boundaries:
-!
-        do j = 1 , jendl
-          ui1(k,j) = (xub%sb(j,1,k)+dtb*xub%sbt(j,1,k))/sps1%pdot(j,1)
-          vi1(k,j) = (xvb%sb(j,1,k)+dtb*xvb%sbt(j,1,k))/sps1%pdot(j,1)
-          uil(k,j) = (xub%nb(j,1,k)+dtb*xub%nbt(j,1,k))/sps1%pdot(j,iy)
-          vil(k,j) = (xvb%nb(j,1,k)+dtb*xvb%nbt(j,1,k))/sps1%pdot(j,iy)
+        do i = idi1 , idi2
+          eui(i,k) = atm1%u(jdi2,i,k)/psdot(jdi2,i)
+          evi(i,k) = atm1%v(jdi2,i,k)/psdot(jdi2,i)
         end do
       end do
-!
     end if
-!
-!   fill up the interior silces:
-!
-#ifndef BAND
-    do k = 1 , kz
-      if ( myid == 0 ) then
-        uj2(1,k)  = ui1(k,2)
-        uj2(iy,k) = uil(k,2)
-        ui2(k,1)  = uj1(2,k)
-        uilx(k,1) = uj1(iym1,k)
-        vj2(1,k)  = vi1(k,2)
-        vj2(iy,k) = vil(k,2)
-        vi2(k,1)  = vj1(2,k)
-        vilx(k,1) = vj1(iym1,k)
+    if ( ma%hasbottom ) then
+      do k = 1 , kz
+        do j = jdi1 , jdi2
+          sui(j,k) = atm1%u(j,idi1,k)/psdot(j,idi1)
+          svi(j,k) = atm1%v(j,idi1,k)/psdot(j,idi1)
+        end do
+      end do
+    end if
+    if ( ma%hastop ) then
+      do k = 1 , kz
+        do j = jdi1 , jdi2
+          nui(j,k) = atm1%u(j,idi2,k)/psdot(j,idi2)
+          nvi(j,k) = atm1%v(j,idi2,k)/psdot(j,idi2)
+        end do
+      end do
+    end if
+    !
+    ! boundary slices:
+    !
+    if ( iboudy == 0 ) then
+      !
+      ! fixed boundary conditions:
+      !
+      ! west and east boundaries:
+      !
+      if ( ma%hasleft ) then
+        do k = 1 , kz
+          do i = ide1 , ide2
+            wue(i,k) = xub%b0(jde1,i,k)/psdot(jde1,i)
+            wve(i,k) = xvb%b0(jde1,i,k)/psdot(jde1,i)
+          end do
+        end do
       end if
-      if ( myid == nproc-1 ) then
-        ujlx(1,k)     = ui1(k,jendx)
-        ujlx(iy,k)    = uil(k,jendx)
-        ui2(k,jendl)  = ujl(2,k)
-        uilx(k,jendl) = ujl(iym1,k)
-        vjlx(1,k)     = vi1(k,jendx)
-        vjlx(iy,k)    = vil(k,jendx)
-        vi2(k,jendl)  = vjl(2,k)
-        vilx(k,jendl) = vjl(iym1,k)
+      if ( ma%hasright ) then
+        do k = 1 , kz
+          do i = ide1 , ide2
+            eue(i,k) = xub%b0(jde2,i,k)/psdot(jde2,i)
+            eve(i,k) = xvb%b0(jde2,i,k)/psdot(jde2,i)
+          end do
+        end do
       end if
-    end do
-#endif
-#ifndef BAND
-    if ( myid /= nproc-1 ) then
-#endif
-      do k = 1 , kz
-        var1snd(k,1) = ui1(k,jxp)
-        var1snd(k,2) = vi1(k,jxp)
-        var1snd(k,3) = ui2(k,jxp)
-        var1snd(k,4) = vi2(k,jxp)
-        var1snd(k,5) = uilx(k,jxp)
-        var1snd(k,6) = vilx(k,jxp)
-        var1snd(k,7) = uil(k,jxp)
-        var1snd(k,8) = vil(k,jxp)
-      end do
-#ifndef BAND
-    end if
-#endif
-    call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,1,    &
-                      var1rcv(1,1),kz*8,mpi_real8,iwest,1,    &
-                      mycomm,mpi_status_ignore,ierr)
-#ifndef BAND
-    if ( myid /= 0 ) then
-#endif
-      do k = 1 , kz
-        ui1(k,0)  = var1rcv(k,1)
-        vi1(k,0)  = var1rcv(k,2)
-        ui2(k,0)  = var1rcv(k,3)
-        vi2(k,0)  = var1rcv(k,4)
-        uilx(k,0) = var1rcv(k,5)
-        vilx(k,0) = var1rcv(k,6)
-        uil(k,0)  = var1rcv(k,7)
-        vil(k,0)  = var1rcv(k,8)
-      end do
-#ifndef BAND
-    end if
-#endif
+      !
+      ! south and north boundaries:
+      !
+      if ( ma%hasbottom ) then
+        do k = 1 , kz
+          do j = jde1 , jde2
+            sue(j,k) = xub%b0(j,ide1,k)/psdot(j,ide1)
+            sve(j,k) = xvb%b0(j,ide1,k)/psdot(j,ide1)
+          end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do k = 1 , kz
+          do j = jde1 , jde2
+            nue(j,k) = xub%b0(j,ide2,k)/psdot(j,ide2)
+            nve(j,k) = xvb%b0(j,ide2,k)/psdot(j,ide2)
+          end do
+        end do
+      end if
 !
-#ifndef BAND
-    if ( myid /= 0 ) then
-#endif
-      do k = 1 , kz
-        var1snd(k,1) = ui1(k,1)
-        var1snd(k,2) = vi1(k,1)
-        var1snd(k,3) = ui2(k,1)
-        var1snd(k,4) = vi2(k,1)
-        var1snd(k,5) = uilx(k,1)
-        var1snd(k,6) = vilx(k,1)
-        var1snd(k,7) = uil(k,1)
-        var1snd(k,8) = vil(k,1)
-      end do
-#ifndef BAND
+    else ! NOT Fixed
+!
+      !
+      !     time-dependent boundary conditions:
+      !
+      ! west (j = 1) and east (j = jx) boundaries:
+      !
+      if ( ma%hasleft ) then
+        do k = 1 , kz
+          do i = ide1 , ide2
+            wue(i,k) = (xub%b0(jde1,i,k)+dtb*xub%bt(jde1,i,k))/psdot(jde1,i)
+            wve(i,k) = (xvb%b0(jde1,i,k)+dtb*xvb%bt(jde1,i,k))/psdot(jde1,i)
+          end do
+        end do
+      end if
+      if ( ma%hasright ) then
+        do k = 1 , kz
+          do i = ide1 , ide2
+            eue(i,k) = (xub%b0(jde2,i,k)+dtb*xub%bt(jde2,i,k))/psdot(jde2,i)
+            eve(i,k) = (xvb%b0(jde2,i,k)+dtb*xvb%bt(jde2,i,k))/psdot(jde2,i)
+          end do
+        end do
+      end if
+      !
+      ! south and north boundaries:
+      !
+      if ( ma%hasbottom ) then
+        do k = 1 , kz
+          do j = jde1 , jde2
+            sue(j,k) = (xub%b0(j,ide1,k)+dtb*xub%bt(j,ide1,k))/psdot(j,ide1)
+            sve(j,k) = (xvb%b0(j,ide1,k)+dtb*xvb%bt(j,ide1,k))/psdot(j,ide1)
+          end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do k = 1 , kz
+          do j = jde1 , jde2
+            nue(j,k) = (xub%b0(j,ide2,k)+dtb*xub%bt(j,ide2,k))/psdot(j,ide2)
+            nve(j,k) = (xvb%b0(j,ide2,k)+dtb*xvb%bt(j,ide2,k))/psdot(j,ide2)
+          end do
+        end do
+      end if
     end if
-#endif
-    call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,2,     &
-                      var1rcv(1,1),kz*8,mpi_real8,ieast,2,     &
-                      mycomm,mpi_status_ignore,ierr)
-#ifndef BAND
-    if ( myid /= nproc-1 ) then
-#endif
+    !
+    ! fill up the interior silces:
+    !
+    if ( ma%hasleft ) then
       do k = 1 , kz
-        ui1(k,jxp+1)  = var1rcv(k,1)
-        vi1(k,jxp+1)  = var1rcv(k,2)
-        ui2(k,jxp+1)  = var1rcv(k,3)
-        vi2(k,jxp+1)  = var1rcv(k,4)
-        uilx(k,jxp+1) = var1rcv(k,5)
-        vilx(k,jxp+1) = var1rcv(k,6)
-        uil(k,jxp+1)  = var1rcv(k,7)
-        vil(k,jxp+1)  = var1rcv(k,8)
+        wui(ide1,k) = sue(jdi1,k)
+        wui(ide2,k) = nue(jdi1,k)
+        wvi(ide1,k) = sve(jdi1,k)
+        wvi(ide2,k) = nve(jdi1,k)
+        sui(jde1,k) = wue(idi1,k)
+        nui(jde1,k) = wue(idi2,k)
+        svi(jde1,k) = wve(idi1,k)
+        nvi(jde1,k) = wve(idi2,k)
       end do
-#ifndef BAND
     end if
-#endif
+    if ( ma%hasright ) then
+      do k = 1 , kz
+        eui(ide1,k) = sue(jdi2,k)
+        eui(ide2,k) = nue(jdi2,k)
+        evi(ide1,k) = sve(jdi2,k)
+        evi(ide2,k) = nve(jdi2,k)
+        sui(jde2,k) = eue(idi1,k)
+        nui(jde2,k) = eue(idi2,k)
+        svi(jde2,k) = eve(idi1,k)
+        nvi(jde2,k) = eve(idi2,k)
+      end do
+    end if
+
+    call deco1_exchange_left(sue,1,1,kz)
+    call deco1_exchange_right(sue,1,1,kz)
+    call deco1_exchange_left(sui,1,1,kz)
+    call deco1_exchange_right(sui,1,1,kz)
+    call deco1_exchange_left(nue,1,1,kz)
+    call deco1_exchange_right(nue,1,1,kz)
+    call deco1_exchange_left(nui,1,1,kz)
+    call deco1_exchange_right(nui,1,1,kz)
+    call deco1_exchange_left(sve,1,1,kz)
+    call deco1_exchange_right(sve,1,1,kz)
+    call deco1_exchange_left(svi,1,1,kz)
+    call deco1_exchange_right(svi,1,1,kz)
+    call deco1_exchange_left(nve,1,1,kz)
+    call deco1_exchange_right(nve,1,1,kz)
+    call deco1_exchange_left(nvi,1,1,kz)
+    call deco1_exchange_right(nvi,1,1,kz)
 
     call time_end(subroutine_name,idindx)
+
   end subroutine bdyuv
 !
 ! This subroutine sets the boundary values for p*, p*u, p*v,
@@ -808,506 +579,577 @@ module mod_bdycod
 !
     implicit none
 !
-    integer :: iexec
-    real(8) :: xt
-    intent (in) iexec , xt
+    integer , intent(in) :: iexec
+    real(dp) , intent(in) :: xt
 !
-    real(8) :: chix , chix1 , chix2 , dtb , qcx , qcx2 , qvx , qvx1 , qvx2 , vavg
-    integer :: itr , j , k
-#ifndef BAND
-    integer :: i
-    real(8) :: uavg
-#endif
+    real(dp) :: chix , chix1 , chix2 , dtb , qcx , qcint , &
+                qvx , qext , qint , vavg
+    integer :: itr , i , j , k
+    real(dp) :: uavg
     character (len=64) :: subroutine_name='bdyval'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
-!   Fill up the boundary value for xxb variables from xxa variables:
-!   if this subroutine is called for the first time, this part
-!   shall be skipped.
-!
-    if ( iexec /= 1 ) then
-!
-!     for p*:
-!
-#ifndef BAND
-      do i = 1 , iym1
-        if ( myid == 0 )       sps2%ps(1,i)     = sps1%ps(1,i)
-        if ( myid == nproc-1 ) sps2%ps(jendx,i) = sps1%ps(jendx,i)
-      end do
-#endif
-      do j = jbegin , jendm
-        sps2%ps(j,1)    = sps1%ps(j,1)
-        sps2%ps(j,iym1) = sps1%ps(j,iym1)
-      end do
-!
-!     for p*u and p*v:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iy
-          if ( myid == 0 ) then
-            atm2%u(i,k,1) = atm1%u(i,k,1)/mddom%msfd(1,i)
-            atm2%v(i,k,1) = atm1%v(i,k,1)/mddom%msfd(1,i)
-          end if
-          if ( myid == nproc-1 ) then
-            atm2%u(i,k,jendl) = atm1%u(i,k,jendl)/mddom%msfd(jendl,i)
-            atm2%v(i,k,jendl) = atm1%v(i,k,jendl)/mddom%msfd(jendl,i)
-          end if
-        end do
-#endif
-        do j = jbegin , jendx
-          atm2%u(1,k,j)  = atm1%u(1,k,j)/mddom%msfd(j,1)
-          atm2%u(iy,k,j) = atm1%u(iy,k,j)/mddom%msfd(j,iy)
-          atm2%v(1,k,j)  = atm1%v(1,k,j)/mddom%msfd(j,1)
-          atm2%v(iy,k,j) = atm1%v(iy,k,j)/mddom%msfd(j,iy)
-        end do
-      end do
-!
-!     for p*t:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       atm2%t(i,k,1)     = atm1%t(i,k,1)
-          if ( myid == nproc-1 ) atm2%t(i,k,jendx) = atm1%t(i,k,jendx)
-        end do
-#endif
-        do j = jbegin , jendm
-          atm2%t(1,k,j)    = atm1%t(1,k,j)
-          atm2%t(iym1,k,j) = atm1%t(iym1,k,j)
-        end do
-      end do
-!
-!     for p*qv:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       atm2%qv(i,k,1)     = atm1%qv(i,k,1)
-          if ( myid == nproc-1 ) atm2%qv(i,k,jendx) = atm1%qv(i,k,jendx)
-        end do
-#endif
-        do j = jbegin , jendm
-          atm2%qv(1,k,j)    = atm1%qv(1,k,j)
-          atm2%qv(iym1,k,j) = atm1%qv(iym1,k,j)
-        end do
-      end do
-!
-      if ( ichem == 1 ) then
-!
-!       for p*chi (tracers)
-!
-        do itr = 1 , ntr
-          do k = 1 , kz
-#ifndef BAND
-            do i = 1 , iym1
-              if ( myid == 0 )       chib(i,k,1,itr)     = chia(i,k,1,itr)
-              if ( myid == nproc-1 ) chib(i,k,jendx,itr) = chia(i,k,jendx,itr)
-            end do
-#endif
-            do j = jbegin , jendm
-              chib(1,k,j,itr)    = chia(1,k,j,itr)
-              chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
-            end do
-          end do
-        end do
-      end if
-!
-!     for p*qc:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       atm2%qc(i,k,1)     = atm1%qc(i,k,1)
-          if ( myid == nproc-1 ) atm2%qc(i,k,jendx) = atm1%qc(i,k,jendx)
-        end do
-#endif
-        do j = jbegin , jendm
-          atm2%qc(1,k,j)    = atm1%qc(1,k,j)
-          atm2%qc(iym1,k,j) = atm1%qc(iym1,k,j)
-        end do
-      end do
-!
-    end if  !end if (iexec /= 1) test
-!
-!   Compute the boundary values for xxa variables:
-!
-!   compute the time interval for boundary tendency:
-!
+    !
+    ! Compute the time interval for boundary tendency:
+    !
     dtb = xt
     if ( nbdytime == 0 .and. ktau > 0 ) then
       dtb = dtbdys
     end if
-!
-!   set boundary values for p*:
-!   set boundary conditions for p*u and p*v:
-!
-    if ( .not.(iexec == 1 .and. ifrest) ) then
+    !
+    ! Fill up the boundary value for xxb variables from xxa variables:
+    ! if this subroutine is called for the first time, this part
+    ! shall be skipped.
+    !
+    if ( iexec /= 1 ) then
+      !
+      ! West boundary
+      ! 
+      if ( ma%hasleft ) then
+        do i = ici1 , ici2
+          sfs%psb(jce1,i) = sfs%psa(jce1,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm2%u(jde1,i,k) = atm1%u(jde1,i,k)/mddom%msfd(jde1,i)
+            atm2%v(jde1,i,k) = atm1%v(jde1,i,k)/mddom%msfd(jde1,i)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
+            atm2%qv(jce1,i,k) = atm1%qv(jce1,i,k)
+            atm2%qc(jce1,i,k) = atm1%qc(jce1,i,k)
+          end do
+        end do
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = 1 , kz
+              do i = ici1 , ici2
+                chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
+              end do
+            end do
+          end do
+        end if
+      end if
+      !
+      ! East boundary
+      !
+      if ( ma%hasright ) then
+        do i = ici1 , ici2
+          sfs%psb(jce2,i) = sfs%psa(jce2,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm2%u(jde2,i,k) = atm1%u(jde2,i,k)/mddom%msfd(jde2,i)
+            atm2%v(jde2,i,k) = atm1%v(jde2,i,k)/mddom%msfd(jde2,i)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
+            atm2%qv(jce2,i,k) = atm1%qv(jce2,i,k)
+            atm2%qc(jce2,i,k) = atm1%qc(jce2,i,k)
+          end do
+        end do
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = 1 , kz
+              do i = ici1 , ici2
+                chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
+              end do
+            end do
+          end do
+        end if
+      end if
+      !
+      ! North and South boundaries
+      !
+      if ( ma%hasbottom ) then
+        do j = jce1 , jce2
+          sfs%psb(j,ice1) = sfs%psa(j,ice1)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm2%u(j,ice1,k) = atm1%u(j,ice1,k)/mddom%msfd(j,ice1)
+            atm2%v(j,ice1,k) = atm1%v(j,ice1,k)/mddom%msfd(j,ice1)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
+            atm2%qv(j,ice1,k) = atm1%qv(j,ice1,k)
+            atm2%qc(j,ice1,k) = atm1%qc(j,ice1,k)
+          end do
+        end do
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = 1 , kz
+              do j = jce1 , jce2
+                chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
+              end do
+            end do
+          end do
+        end if
+      end if
+      if ( ma%hastop ) then
+        do j = jce1 , jce2
+          sfs%psb(j,ice2) = sfs%psa(j,ice2)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm2%u(j,ide2,k) = atm1%u(j,ide2,k)/mddom%msfd(j,ide2)
+            atm2%v(j,ide2,k) = atm1%v(j,ide2,k)/mddom%msfd(j,ide2)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
+            atm2%qv(j,ice2,k) = atm1%qv(j,ice2,k)
+            atm2%qc(j,ice2,k) = atm1%qc(j,ice2,k)
+          end do
+        end do
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = 1 , kz
+              do j = jce1 , jce2
+                chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
+              end do
+            end do
+          end do
+        end if
+      end if
+    end if  !end if (iexec /= 1) test
+    !
+    ! Compute the boundary values for xxa variables:
+    !
+    ! Set boundary values for p*:
+    ! Set boundary conditions for p*u and p*v:
+    !
+    if ( .not. (iexec == 1 .and. ifrest) ) then
 !
       if ( iboudy == 0 ) then
-!
-!       fixed boundary conditions:
-!
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       sps1%ps(1,i)     = xpsb%wb(1,i)
-          if ( myid == nproc-1 ) sps1%ps(jendx,i) = xpsb%eb(1,i)
-        end do
-#endif
-        do j = jbegin , jendm
-          sps1%ps(j,1)    = xpsb%sb(j,1)
-          sps1%ps(j,iym1) = xpsb%nb(j,1)
-        end do
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iy
-            if ( myid == 0 ) then
-              atm1%u(i,k,1) = xub%wb(1,i,k)
-              atm1%v(i,k,1) = xvb%wb(1,i,k)
-            end if
-            if ( myid == nproc-1 ) then
-              atm1%u(i,k,jendl) = xub%eb(1,i,k)
-              atm1%v(i,k,jendl) = xvb%eb(1,i,k)
-            end if
+        !
+        ! fixed boundary conditions:
+        !
+        if ( ma%hasleft ) then
+          do i = ici1 , ici2
+            sfs%psa(jce1,i) = xpsb%b0(jce1,i)
           end do
-#endif
-          do j = jbegin , jendx
-            atm1%u(1,k,j)  = xub%sb(j,1,k)
-            atm1%u(iy,k,j) = xub%nb(j,1,k)
-            atm1%v(1,k,j)  = xvb%sb(j,1,k)
-            atm1%v(iy,k,j) = xvb%nb(j,1,k)
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
+              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%hasright ) then
+          do i = ici1 , ici2
+            sfs%psa(jce2,i) = xpsb%b0(jce2,i)
+          end do
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
+              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%hasbottom ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice1) = xpsb%b0(j,ice1)
+          end do
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
+              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k)
+            end do
+          end do
+        end if
+        if ( ma%hastop ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice2) = xpsb%b0(j,ice2)
+          end do
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
+              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k)
+            end do
+          end do
+        end if
+      else
+        !
+        ! time-dependent boundary conditions:
+        !
+        if ( ma%hasleft ) then
+          do i = ici1 , ici2
+            sfs%psa(jce1,i) = xpsb%b0(jce1,i) + dtb*xpsb%bt(jce1,i)
+          end do
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k)
+              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%hasright ) then
+          do i = ici1 , ici2
+            sfs%psa(jce2,i) = xpsb%b0(jce2,i) + dtb*xpsb%bt(jce2,i)
+          end do
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k)
+              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%hasbottom ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice1) = xpsb%b0(j,ice1) + dtb*xpsb%bt(j,ice1)
+          end do
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k)
+              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k)
+            end do
+          end do
+        end if
+        if ( ma%hastop ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice2) = xpsb%b0(j,ice2) + dtb*xpsb%bt(j,ice2)
+          end do
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k)
+              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k)
+            end do
+          end do
+        end if
+      end if
+    end if
+!
+    call bdyuv(iboudy,dtb)
+    !
+    ! Enough for first time in here
+    !
+    if ( iexec == 1 .and. ifrest ) return
+!
+    !
+    ! Set boundary values for p*t:
+    ! Set boundary values for p*qv:
+    !
+    if ( iboudy == 0 ) then
+      !
+      ! fixed boundary conditions:
+      !
+      if ( ma%hasleft ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k)
+            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k)
           end do
         end do
       end if
-!
-!     time-dependent boundary conditions:
-!
-#ifndef BAND
-      do i = 1 , iym1
-        if ( myid == 0 ) then
-          sps1%ps(1,i) = xpsb%wb(1,i) + dtb*xpsb%wbt(1,i)
-        end if
-        if ( myid == nproc-1 ) then
-          sps1%ps(jendx,i) = xpsb%eb(1,i) + dtb*xpsb%ebt(1,i)
-        end if
-      end do
-#endif
-      do j = jbegin , jendm
-        sps1%ps(j,1)    = xpsb%sb(j,1) + dtb*xpsb%sbt(j,1)
-        sps1%ps(j,iym1) = xpsb%nb(j,1) + dtb*xpsb%nbt(j,1)
-      end do
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iy
-          if ( myid == 0 ) then
-            atm1%u(i,k,1) = xub%wb(1,i,k) + dtb*xub%wbt(1,i,k)
-            atm1%v(i,k,1) = xvb%wb(1,i,k) + dtb*xvb%wbt(1,i,k)
-          end if
-          if ( myid == nproc-1 ) then
-            atm1%u(i,k,jendl) = xub%eb(1,i,k) + dtb*xub%ebt(1,i,k)
-            atm1%v(i,k,jendl) = xvb%eb(1,i,k) + dtb*xvb%ebt(1,i,k)
-          end if
+      if ( ma%hasright ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k)
+            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k)
+          end do
         end do
-#endif
-        do j = jbegin , jendx
-          atm1%u(1,k,j)  = xub%sb(j,1,k) + dtb*xub%sbt(j,1,k)
-          atm1%u(iy,k,j) = xub%nb(j,1,k) + dtb*xub%nbt(j,1,k)
-          atm1%v(1,k,j)  = xvb%sb(j,1,k) + dtb*xvb%sbt(j,1,k)
-          atm1%v(iy,k,j) = xvb%nb(j,1,k) + dtb*xvb%nbt(j,1,k)
+      end if
+      if ( ma%hasbottom ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k)
+            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k)
+          end do
         end do
-      end do
+      end if
+      if ( ma%hastop ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k)
+            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k)
+          end do
+        end do
+      end if
+    else
+      !
+      ! time-dependent boundary conditions:
+      !
+      if ( ma%hasleft ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k) + dtb*xtb%bt(jce1,i,k)
+            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k) + dtb*xqb%bt(jce1,i,k)
+          end do
+        end do
+      end if
+      if ( ma%hasright ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k) + dtb*xtb%bt(jce2,i,k)
+            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k) + dtb*xqb%bt(jce2,i,k)
+          end do
+        end do
+      end if
+      if ( ma%hasbottom ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k) + dtb*xtb%bt(j,ice1,k)
+            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k) + dtb*xqb%bt(j,ice1,k)
+          end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k) + dtb*xtb%bt(j,ice2,k)
+            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k) + dtb*xqb%bt(j,ice2,k)
+          end do
+        end do
+      end if
     end if
-!
-!   get boundary values of u and v:
-!
-    call bdyuv(iboudy,dtb)
-!
-    if ( iexec == 1 .and. ifrest ) return
-!
-!     set boundary values for p*t:
-!     set boundary values for p*qv:
-!
-    if ( iboudy == 0 ) then
-!
-!     fixed boundary conditions:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       atm1%t(i,k,1)     = xtb%wb(1,i,k)
-          if ( myid == nproc-1 ) atm1%t(i,k,jendx) = xtb%eb(1,i,k)
-        end do
-#endif
-        do j = jbegin , jendm
-          atm1%t(1,k,j)    = xtb%sb(j,1,k)
-          atm1%t(iym1,k,j) = xtb%nb(j,1,k)
-        end do
-      end do
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          if ( myid == 0 )       atm1%qv(i,k,1)     = xqb%wb(1,i,k)
-          if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = xqb%eb(1,i,k)
-        end do
-#endif
-        do j = jbegin , jendm
-          atm1%qv(1,k,j)    = xqb%sb(j,1,k)
-          atm1%qv(iym1,k,j) = xqb%nb(j,1,k)
-        end do
-      end do
-    end if
-!
-!   time-dependent boundary conditions:
-!
-    do k = 1 , kz
-#ifndef BAND
-      do i = 1 , iym1
-        if ( myid == 0 ) then
-          atm1%t(i,k,1) = xtb%wb(1,i,k) + dtb*xtb%wbt(1,i,k)
-        end if
-        if ( myid == nproc-1 ) then
-          atm1%t(i,k,jendx) = xtb%eb(1,i,k) + dtb*xtb%ebt(1,i,k)
-        end if
-      end do
-#endif
-      do j = jbegin , jendm
-        atm1%t(1,k,j)    = xtb%sb(j,1,k) + dtb*xtb%sbt(j,1,k)
-        atm1%t(iym1,k,j) = xtb%nb(j,1,k) + dtb*xtb%nbt(j,1,k)
-      end do
-    end do
-    do k = 1 , kz
-#ifndef BAND
-      do i = 1 , iym1
-        if ( myid == 0 ) then
-          atm1%qv(i,k,1) = xqb%wb(1,i,k) + dtb*xqb%wbt(1,i,k)
-        end if
-        if ( myid == nproc-1 ) then
-          atm1%qv(i,k,jendx) = xqb%eb(1,i,k) + dtb*xqb%ebt(1,i,k)
-        end if
-      end do
-#endif
-      do j = jbegin , jendm
-        atm1%qv(1,k,j)    = xqb%sb(j,1,k) + dtb*xqb%sbt(j,1,k)
-        atm1%qv(iym1,k,j) = xqb%nb(j,1,k) + dtb*xqb%nbt(j,1,k)
-      end do
-    end do
 !
     if ( iboudy == 3 .or. iboudy == 4 ) then
-!
-!     determine boundary values depends on inflow/outflow:
-!
-      do k = 1 , kz
-#ifndef BAND
-!
-!       west boundary:
-!
-        if ( myid == 0 ) then
-          do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,1)/sps1%ps(1,i)
-            qvx2 = atm1%qv(i,k,2)/sps1%ps(2,i)
-            uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+      !
+      ! determine QV boundary values depends on inflow/outflow:
+      !
+      ! west boundary:
+      !
+      if ( ma%hasleft ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            qext = atm1%qv(jce1,i,k)/sfs%psa(jce1,i)
+            qint = atm1%qv(jci1,i,k)/sfs%psa(jci1,i)
+            uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
             if ( uavg >= d_zero ) then
-              qvx = qvx1
+              qvx = qext
             else
-              qvx = qvx2
+              qvx = qint
             end if
-            atm1%qv(i,k,1) = qvx*sps1%ps(1,i)
+            atm1%qv(jce1,i,k) = qvx*sfs%psa(jce1,i)
           end do
-        end if
-!
-!       east boundary:
-!
-        if ( myid == nproc-1 ) then
-          do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,jendx)/sps1%ps(jendx,i)
-            qvx2 = atm1%qv(i,k,jendm)/sps1%ps(jendm,i)
-            uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+        end do
+      end if
+      !
+      ! east boundary:
+      !
+      if ( ma%hasright ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            qext = atm1%qv(jce2,i,k)/sfs%psa(jce2,i)
+            qint = atm1%qv(jci2,i,k)/sfs%psa(jci2,i)
+            uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
             if ( uavg < d_zero ) then
-              qvx = qvx1
+              qvx = qext
             else
-              qvx = qvx2
+              qvx = qint
             end if
-            atm1%qv(i,k,jendx) = qvx*sps1%ps(jendx,i)
+            atm1%qv(jce2,i,k) = qvx*sfs%psa(jce2,i)
           end do
-        end if
-#endif
-!
-!       south boundary:
-!
-        do j = jbegin , jendm
-          qvx1 = atm1%qv(1,k,j)/sps1%ps(j,1)
-          qvx2 = atm1%qv(2,k,j)/sps1%ps(j,2)
-          vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-          if ( vavg >= d_zero ) then
-            qvx = qvx1
-          else
-            qvx = qvx2
-          end if
-          atm1%qv(1,k,j) = qvx*sps1%ps(j,1)
         end do
-!
-!       north boundary:
-!
-        do j = jbegin , jendm
-          qvx1 = atm1%qv(iym1,k,j)/sps1%ps(j,iym1)
-          qvx2 = atm1%qv(iym2,k,j)/sps1%ps(j,iym2)
-          vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-          if ( vavg < d_zero ) then
-            qvx = qvx1
-          else
-            qvx = qvx2
-          end if
-          atm1%qv(iym1,k,j) = qvx*sps1%ps(j,iym1)
+      end if
+      !
+      ! south boundary:
+      !
+      if ( ma%hasbottom ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            qext = atm1%qv(j,ice1,k)/sfs%psa(j,ice1)
+            qint = atm1%qv(j,ici1,k)/sfs%psa(j,ici1)
+            vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+            if ( vavg >= d_zero ) then
+              qvx = qext
+            else
+              qvx = qint
+            end if
+            atm1%qv(j,ice1,k) = qvx*sfs%psa(j,ice1)
+          end do
         end do
+      end if
+      !
+      ! north boundary:
+      !
+      if ( ma%hastop ) then
+        do k = 1 , kz
+          do j = jce1 , jce2
+            qext = atm1%qv(j,ice2,k)/sfs%psa(j,ice2)
+            qint = atm1%qv(j,ici2,k)/sfs%psa(j,ici2)
+            vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+            if ( vavg < d_zero ) then
+              qvx = qext
+            else
+              qvx = qint
+            end if
+            atm1%qv(j,ice2,k) = qvx*sfs%psa(j,ice2)
+          end do
+        end do
+      end if
+    end if
 !
-      end do
-    end if !end if (iboudy == 3.or.4) test
-!
-!   set boundary values for p*qc and p*qr:
-!   *** note ***
-!   for large domain, we assume the boundary tendencies are not available.
-!
-!   if the boundary values and tendencies are not available,
-!   determine boundary values depends on inflow/outflow:
-!   inflow  : set it equal to zero.
-!   outflow : get from interior point.
-!
-    do k = 1 , kz
-#ifndef BAND
-!
-!     west boundary:
-!
-      if ( myid == 0 ) then
-        do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,2)/sps1%ps(2,i)
-          uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+    ! set boundary values for p*qc and p*qr:
+    ! *** note ***
+    ! for large domain, we assume the boundary tendencies are not available.
+    !
+    ! if the boundary values and tendencies are not available,
+    ! determine boundary values depends on inflow/outflow:
+    ! inflow  : set it equal to zero.
+    ! outflow : get from interior point.
+    !
+    ! west boundary:
+    !
+    if ( ma%hasleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          qcint = atm1%qc(jci1,i,k)/sfs%psa(jci1,i)
+          uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
           if ( uavg >= d_zero ) then
             qcx = d_zero
           else
-            qcx = qcx2
+            qcx = qcint
           end if
-          atm1%qc(i,k,1) = qcx*sps1%ps(1,i)
+          atm1%qc(jce1,i,k) = qcx*sfs%psa(jce1,i)
         end do
-      end if
-!
-!     east boundary:
-!
-      if ( myid == nproc-1 ) then
-        do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,jendm)/sps1%ps(jendm,i)
-          uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+      end do
+    end if
+    !
+    ! east boundary:
+    !
+    if ( ma%hasright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          qcint = atm1%qc(jci2,i,k)/sfs%psa(jci2,i)
+          uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
           if ( uavg < d_zero ) then
             qcx = d_zero
           else
-            qcx = qcx2
+            qcx = qcint
           end if
-          atm1%qc(i,k,jendx) = qcx*sps1%ps(jendx,i)
+          atm1%qc(jce2,i,k) = qcx*sfs%psa(jce2,i)
         end do
-      end if
-#endif
-!
-!     south boundary:
-!
-      do j = jbegin , jendm
-        qcx2 = atm1%qc(2,k,j)/sps1%ps(j,2)
-        vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-        if ( vavg >= d_zero ) then
-          qcx = d_zero
-        else
-          qcx = qcx2
-        end if
-        atm1%qc(1,k,j) = qcx*sps1%ps(j,1)
       end do
-!
-!     north boundary:
-!
-      do j = jbegin , jendm
-        qcx2 = atm1%qc(iym2,k,j)/sps1%ps(j,iym2)
-        vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-        if ( vavg < d_zero ) then
-          qcx = d_zero
-        else
-          qcx = qcx2
-        end if
-        atm1%qc(iym1,k,j) = qcx*sps1%ps(j,iym1)
+    end if
+    !
+    ! south boundary:
+    !
+    if ( ma%hasbottom ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          qcint = atm1%qc(j,ici1,k)/sfs%psa(j,ici1)
+          vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+          if ( vavg >= d_zero ) then
+            qcx = d_zero
+          else
+            qcx = qcint
+          end if
+          atm1%qc(j,ice1,k) = qcx*sfs%psa(j,ice1)
+        end do
       end do
-!
-    end do
+    end if
+    !
+    ! north boundary:
+    !
+    if ( ma%hastop ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          qcint = atm1%qc(j,ici2,k)/sfs%psa(j,ici2)
+          vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+          if ( vavg < d_zero ) then
+            qcx = d_zero
+          else
+            qcx = qcint
+          end if
+          atm1%qc(j,ice2,k) = qcx*sfs%psa(j,ice2)
+        end do
+      end do
+    end if
    
     if ( ichem == 1 ) then
-!   
-!     add tracer bc's
-!
-      do itr = 1 , ntr
-        do k = 1 , kz
-#ifndef BAND
-!
-!         west  boundary:
-!
-          if ( myid == 0 ) then
-            do i = 1 , iym1
-              chix1 = chia(i,k,1,itr)/sps1%ps(1,i)
-              chix2 = chia(i,k,2,itr)/sps1%ps(2,i)
-              uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+      !
+      ! add tracer bc's
+      !
+      ! west  boundary:
+      !
+      if ( ma%hasleft ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ici1 , ici2
+              chix1 = chia(jce1,i,k,itr)/sfs%psa(jce1,i)
+              chix2 = chia(jci1,i,k,itr)/sfs%psa(jci1,i)
+              uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( uavg >= d_zero ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,1,itr) = chix*sps1%ps(1,i)
+              chia(jce1,i,k,itr) = chix*sfs%psa(jce1,i)
             end do
-          end if
-!
-!         east  boundary:
-!
-          if ( myid == nproc-1 ) then
-            do i = 1 , iym1
-              chix1 = chia(i,k,jendx,itr)/sps1%ps(jendx,i)
-              chix2 = chia(i,k,jendm,itr)/sps1%ps(jendm,i)
-              uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg < d_zero ) then
+          end do
+        end do
+      end if
+      !
+      ! east  boundary:
+      !
+      if ( ma%hasright ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ici1 , ici2
+              chix1 = chia(jce2,i,k,itr)/sfs%psa(jce2,i)
+              chix2 = chia(jci2,i,k,itr)/sfs%psa(jci2,i)
+              uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+              if ( uavg <= d_zero ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,jendx,itr) = chix*sps1%ps(jendx,i)
+              chia(jce2,i,k,itr) = chix*sfs%psa(jce2,i)
             end do
-          end if
-#endif
-!
-!         south boundary:
-!
-          do j = jbegin , jendm
-            chix1 = chia(1,k,j,itr)/sps1%ps(j,1)
-            chix2 = chia(2,k,j,itr)/sps1%ps(j,2)
-            vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-            if ( vavg >= d_zero ) then
-              chix = chix1
-            else
-              chix = chix2
-            end if
-            chia(1,k,j,itr) = chix*sps1%ps(j,1)
-          end do
-!
-!         north boundary:
-!
-          do j = jbegin , jendm
-            chix1 = chia(iym1,k,j,itr)/sps1%ps(j,iym1)
-            chix2 = chia(iym2,k,j,itr)/sps1%ps(j,iym2)
-            vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-            if ( vavg < d_zero ) then
-              chix = chix1
-            else
-              chix = chix2
-            end if
-            chia(iym1,k,j,itr) = chix*sps1%ps(j,iym1)
           end do
         end do
-      end do
+      end if
+      !
+      ! south boundary:
+      !
+      if ( ma%hasbottom ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jci1 , jci2
+              chix1 = chia(j,ice1,k,itr)/sfs%psa(j,ice1)
+              chix2 = chia(j,ici1,k,itr)/sfs%psa(j,ici1)
+              vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+              if ( vavg >= d_zero ) then
+                chix = chix1
+              else
+                chix = chix2
+              end if
+              chia(j,ice1,k,itr) = chix*sfs%psa(j,ice1)
+            end do
+          end do
+        end do
+      end if
+      !
+      ! north boundary:
+      !
+      if ( ma%hastop ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jce1 , jce2
+              chix1 = chia(j,ice2,k,itr)/sfs%psa(j,ice2)
+              chix2 = chia(j,ici2,k,itr)/sfs%psa(j,ici2)
+              vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+              if ( vavg <= d_zero ) then
+                chix = chix1
+              else
+                chix = chix2
+              end if
+              chia(j,ice2,k,itr) = chix*sfs%psa(j,ice2)
+            end do
+          end do
+        end do
+      end if
     end if
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
@@ -1323,260 +1165,165 @@ module mod_bdycod
 ! this subroutine applies sponge boundary condition to the        c
 ! tendency term - ften.                                           c
 !                                                                 c
-! ldot  : logical dot (u,v) / cross (t,q,p) flag                  c
-!                                                                 c
-! ip    : is the number of slices affected by nudging.            c
-!                                                                 c
-! wg   : are the weightings.                                      c
-!                                                                 c
-! ften  : is the tendency calculated from the model.              c
-!                                                                 c
-! j     : is the j'th slice of the tendency to be adjusted.       c
-!                                                                 c
 ! nk    : is the number of vertical level to be adjusted.         c
+!                                                                 c
+! ba    : is the boundary index structure                         c
+!                                                                 c
+! wg    : are the weightings.                                     c
 !                                                                 c
 ! bnd   : Boundary condition data structure                       c
 !         2D or 3D (managed by interface declaration)             c
 !                                                                 c
+! ften  : is the tendency calculated from the model.              c
+!                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine sponge3d(ldot,ip,wg,ften,j,nk,bnd)
+  subroutine sponge3d(nk,ba,bnd,ften)
 !
     implicit none
 !
-    logical , intent(in) :: ldot
-    integer , intent(in) :: ip , j , nk
-    real(8) , intent(in) , dimension(ip) :: wg
+    integer , intent(in) :: nk
+    type(bound_area) , intent(in) :: ba
     type(v3dbound) , intent(in) :: bnd
-    real(8) , intent(inout) , dimension(iy,nk,jxp) :: ften
+    real(dp) , pointer , intent(inout) , dimension(:,:,:) :: ften
 !
-    integer :: i , ii , k , ido
-#ifndef BAND
-    integer :: ibeg , iend , jj , jsls
-#endif
-#ifndef BAND
-    integer :: jwb , jeb , jew
-#endif
+    integer :: i , j , k
+    integer :: ib , i1 , i2 , j1 , j2
+    real(dp) , pointer , dimension(:) :: wg
     character (len=64) :: subroutine_name='sponge3d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!----------------------------------------------------------------------
-!
-    ido = 0
-    if ( ldot ) then
-      ido = 1
-    end if
-#ifdef BAND
-!
-!-----interior j slices:
-    do i = 2 , ip
-       ii = iy - i + ido
-       do k = 1 , nk
-!.......south boundary:
-          ften(i,k,j) = wg(i)*ften(i,k,j) + (d_one-wg(i))*bnd%sbt(j,i,k)
-!.......north boundary:
-          ften(ii,k,j) = wg(i)*ften(ii,k,j) + (d_one-wg(i))*bnd%nbt(j,i,k)
-       end do
-    end do
-
-#else
-!----------------------------------------------------------------------
-!
-    jsls = j + myid*jxp
-    if ( ldot ) then
-      jj = jxp1 - jsls
-      if ( jj <= ip ) jsls = jj
-      jew = jsls
-      if ( jew > jxp ) jew = mod(jsls,jxp)
-      if ( jew == 0 ) jew = jxp
-      jwb = jew
-      jeb = jew
+    if ( ba%dotflag ) then
+      wg => wgtd
+      i1 = idi1
+      i2 = idi2
+      j1 = jdi1
+      j2 = jdi2
     else
-      jj = jx - jsls
-      if ( jj <= ip ) jsls = jj
-      jwb = jsls
-      if ( jwb > jxp ) jwb = mod(jwb,jxp)
-      if ( jwb == 0 ) jwb = jxp
-      if ( myid == nproc-1 ) then
-        jeb = jsls
-      else
-        jeb = jsls + 1
-      end if
-      if ( jeb > jxp ) jeb = mod(jeb,jxp)
-      if ( jeb == 0 ) jeb = jxp
+      wg => wgtx
+      i1 = ici1
+      i2 = ici2
+      j1 = jci1
+      j2 = jci2
     end if
 !
-    if ( jsls > ip ) then
-!-----interior j slices:
-      do i = 2 , ip
-        ii = iy - i + ido
-        do k = 1 , nk
-!.......south boundary:
-          ften(i,k,j) = wg(i)*ften(i,k,j) + (d_one-wg(i))*bnd%sbt(j,i,k)
-!.......north boundary:
-          ften(ii,k,j) = wg(i)*ften(ii,k,j) + (d_one-wg(i))*bnd%nbt(j,i,k)
+!----------------------------------------------------------------------
+!
+    if ( ba%ns /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bsouth(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            ften(j,i,k) = wg(ib)*ften(j,i,k) + (d_one-wg(ib))*bnd%bt(j,i,k)
+          end do
         end do
       end do
-!
-    else if ( jsls <= ip ) then
-      ibeg = 2
-      iend = iym1 - 1 + ido
-      if ( jsls > 2 ) then
-        do i = 2 , jsls - 1
-          ii = iy - i + ido
-          do k = 1 , nk
-!........south boundary:
-            ften(i,k,j) = wg(i)*ften(i,k,j) + (d_one-wg(i))*bnd%sbt(j,i,k)
-!........north boundary:
-            ften(ii,k,j) = wg(i)*ften(ii,k,j) + (d_one-wg(i))*bnd%nbt(j,i,k)
-          end do
-        end do
-        ibeg = jsls
-        iend = iy - jsls + ido
-      end if
-!
-      if ( jj > ip ) then
-!------west-boundary slice:
-        do k = 1 , nk
-          do i = ibeg , iend
-            if ( jsls <= ip ) then
-              ften(i,k,j) = wg(jsls)*ften(i,k,j) + &
-                            (d_one-wg(jsls))*bnd%wbt(jwb,i,k)
-            end if
-          end do
-        end do
-      else if ( jj <= ip ) then
-!------east-boundary slice:
-        do k = 1 , nk
-          do i = ibeg , iend
-            if ( jsls <= ip ) then
-              ften(i,k,j) = wg(jsls)*ften(i,k,j) + &
-                            (d_one-wg(jsls))*bnd%ebt(jeb,i,k)
-            end if
-          end do
-        end do
-      end if
-!
     end if
-#endif
-
+    if ( ba%nn /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bnorth(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            ften(j,i,k) = wg(ib)*ften(j,i,k) + (d_one-wg(ib))*bnd%bt(j,i,k)
+          end do
+        end do
+      end do
+    end if
+    if ( ba%nw /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bwest(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            ften(j,i,k) = wg(ib)*ften(j,i,k) + (d_one-wg(ib))*bnd%bt(j,i,k)
+          end do
+        end do
+      end do
+    end if
+    if ( ba%ne /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%beast(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            ften(j,i,k) = wg(ib)*ften(j,i,k) + (d_one-wg(ib))*bnd%bt(j,i,k)
+          end do
+        end do
+      end do
+    end if
     call time_end(subroutine_name,idindx)
   end subroutine sponge3d
 !
-  subroutine sponge2d(ldot,ip,wg,ften,j,nk,bnd)
+  subroutine sponge2d(ba,bnd,ften)
 !
     implicit none
 !
-    logical , intent(in) :: ldot
-    integer , intent(in) :: ip , j , nk
-    real(8) , intent(in) , dimension(ip) :: wg
+    type(bound_area) , intent(in) :: ba
     type(v2dbound) , intent(in) :: bnd
-    real(8) , pointer , intent(inout) , dimension(:,:) :: ften
+    real(dp) , pointer , intent(inout) , dimension(:,:) :: ften
 !
-    integer :: i , ii , k , ido
-#ifndef BAND
-    integer :: ibeg , iend , jj , jsls
-#endif
-#ifndef BAND
-    integer :: jwb , jeb , jew
-#endif
+    integer :: i , j , i1 , i2 , j1 , j2
+    integer :: ib
+    real(dp) , pointer , dimension(:) :: wg
     character (len=64) :: subroutine_name='sponge2d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!----------------------------------------------------------------------
-!
-    k = nk ! not to have warnings
-    ido = 0
-    if ( ldot ) then
-      ido = 1
-    end if
-#ifdef BAND
-!
-!-----interior j slices:
-    do i = 2 , ip
-       ii = iy - i + ido
-!.......south boundary:
-        ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(j,i)
-!.......north boundary:
-        ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(j,i)
-    end do
-
-#else
-!----------------------------------------------------------------------
-!
-    jsls = j + myid*jxp
-    if ( ldot ) then
-      jj = jxp1 - jsls
-      if ( jj <= ip ) jsls = jj
-      jew = jsls
-      if ( jew > jxp ) jew = mod(jsls,jxp)
-      if ( jew == 0 ) jew = jxp
-      jwb = jew
-      jeb = jew
+    if ( ba%dotflag ) then
+      wg => wgtd
+      i1 = idi1
+      i2 = idi2
+      j1 = jdi1
+      j2 = jdi2
     else
-      jj = jx - jsls
-      if ( jj <= ip ) jsls = jj
-      jwb = jsls
-      if ( jwb > jxp ) jwb = mod(jwb,jxp)
-      if ( jwb == 0 ) jwb = jxp
-      if ( myid == nproc-1 ) then
-        jeb = jsls
-      else
-        jeb = jsls + 1
-      end if
-      if ( jeb > jxp ) jeb = mod(jeb,jxp)
-      if ( jeb == 0 ) jeb = jxp
+      wg => wgtx
+      i1 = ici1
+      i2 = ici2
+      j1 = jci1
+      j2 = jci2
     end if
 !
-    if ( jsls > ip ) then
-!-----interior j slices:
-      do i = 2 , ip
-        ii = iy - i + ido
-!.......south boundary:
-        ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(j,i)
-!.......north boundary:
-        ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(j,i)
+    if ( ba%ns /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bsouth(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          ften(j,i) = wg(ib)*ften(j,i) + (d_one-wg(ib))*bnd%bt(j,i)
+        end do
       end do
-!
-    else if ( jsls <= ip ) then
-      ibeg = 2
-      iend = iym1 - 1 + ido
-      if ( jsls > 2 ) then
-        do i = 2 , jsls - 1
-          ii = iy - i + ido
-!........south boundary:
-          ften(j,i) = wg(i)*ften(j,i) + (d_one-wg(i))*bnd%sbt(j,i)
-!........north boundary:
-          ften(j,ii) = wg(i)*ften(j,ii) + (d_one-wg(i))*bnd%nbt(j,i)
-        end do
-        ibeg = jsls
-        iend = iy - jsls + ido
-      end if
-!
-      if ( jj > ip ) then
-!------west-boundary slice:
-        do i = ibeg , iend
-          if ( jsls <= ip ) then
-            ften(j,i) = wg(jsls)*ften(j,i)+(d_one-wg(jsls))*bnd%wbt(jwb,i)
-          end if
-        end do
-      else if ( jj <= ip ) then
-!------east-boundary slice:
-        do i = ibeg , iend
-          if ( jsls <= ip ) then
-            ften(j,i) = wg(jsls)*ften(j,i)+(d_one-wg(jsls))*bnd%ebt(jeb,i)
-          end if
-        end do
-      end if
-!
     end if
-#endif
-
+    if ( ba%nn /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bnorth(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          ften(j,i) = wg(ib)*ften(j,i) + (d_one-wg(ib))*bnd%bt(j,i)
+        end do
+      end do
+    end if
+    if ( ba%nw /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bwest(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          ften(j,i) = wg(ib)*ften(j,i) + (d_one-wg(ib))*bnd%bt(j,i)
+        end do
+      end do
+    end if
+    if ( ba%ne /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%beast(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          ften(j,i) = wg(ib)*ften(j,i) + (d_one-wg(ib))*bnd%bt(j,i)
+        end do
+      end do
+    end if
     call time_end(subroutine_name,idindx)
+
   end subroutine sponge2d
 !
 !
@@ -1585,7 +1332,7 @@ module mod_bdycod
 !
   function xfun(mm,ldot)
     implicit none
-    real(8) :: xfun
+    real(dp) :: xfun
     integer , intent(in) :: mm
     logical , intent(in) :: ldot
     if ( ldot ) then
@@ -1597,7 +1344,7 @@ module mod_bdycod
 !
   function xfune(mm,kk)
     implicit none
-    real(8) :: xfune
+    real(dp) :: xfune
     integer , intent(in) :: mm , kk
     xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
@@ -1613,10 +1360,6 @@ module mod_bdycod
 !                                                                 c
 ! xt    : is the time in seconds for variable f                   c
 !                                                                 c
-! fcoef : are the coefficients for the newtonian term.            c
-!                                                                 c
-! gcoef : are the coefficients for the diffusion term.            c
-!                                                                 c
 ! ften  : is the tendency calculated from the model.              c
 !                                                                 c
 ! j     : is the j'th slice of the tendency to be adjusted.       c
@@ -1631,619 +1374,267 @@ module mod_bdycod
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine nudge3d(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
+  subroutine nudge3d(nk,ba,xt,f,ibdy,bnd,ften)
 !
     implicit none
 !
-    logical , intent(in) :: ldot ! Dot flag
-    integer , intent(in) :: ibdy , nk , ip , j
-    real(8) , intent(in) :: fcoef , gcoef , xt
-    real(8) , intent(in) , dimension(iy,nk,-1:jxp+2) :: f
+    integer , intent(in) :: ibdy , nk
+    real(dp) , intent(in) :: xt
+    real(dp) , pointer , intent(in) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
-    real(8) , intent(inout) , dimension(iy,nk,jxp) :: ften
+    type(bound_area) , intent(in) :: ba
+    real(dp) , pointer , intent(inout) , dimension(:,:,:) :: ften
 !
-    real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-    integer :: i , ido , ii , k
-#ifndef BAND
-    integer :: ibeg , iend , jj , jsls , jwb , jeb , jew
-#endif
+    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer :: i , j , k , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge3d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
-!----------------------------------------------------------------------
-!
-    ido = 0
-    if ( ldot ) then
-      ido = 1
-    end if
-
-#ifdef BAND
-!
-!-----determine which relaxation method to use:linear/expon.
-!
-    if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-!------interior j slices:
-       do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfun(i,ldot)
-          gcx = gcoef*xfun(i,ldot)
-          do k = 1 , nk
-!.......south boundary:
-            fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-            fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-            fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-            fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-            fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-            ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-            fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k)) - f(ii,k,j)
-            fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-            fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-            fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-            fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-            ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-       end do
-
-    else if ( ibdy == 5 ) then
-   
-!----------use exponential method
-   
-!------interior j slices:
-       do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          do k = 1 , nk
-            fcx = fcoef*xfune(i,k)
-            gcx = gcoef*xfune(i,k)
-!........south boundary:
-            fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-            fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-            fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-            fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-            fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-            ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-            fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k,j)) - f(ii,k,j)
-            fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-            fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-            fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-            fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-            ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-       end do
-    end if
-#else
-!----------------------------------------------------------------------
-!
-    jsls = j + myid*jxp
-    if ( ldot ) then
-      jj = jxp1 - jsls
-      if ( jj <= ip ) jsls = jj
-      jew = jsls
-      if ( jew > jxp ) jew = mod(jsls,jxp)
-      if ( jew == 0 ) jew = jxp
-      jwb = jew
-      jeb = jew
+    if ( ba%dotflag ) then
+      lfc => fcd
+      lgc => gcd
+      i1 = idi1
+      i2 = idi2
+      j1 = jdi1
+      j2 = jdi2
     else
-      jj = jx - jsls
-      if ( jj <= ip ) jsls = jj
-      jwb = jsls
-      if ( jwb > jxp ) jwb = mod(jwb,jxp)
-      if ( jwb == 0 ) jwb = jxp
-      if ( myid == nproc-1 ) then
-        jeb = jsls
-      else
-        jeb = jsls + 1
-      end if
-      if ( jeb > jxp ) jeb = mod(jeb,jxp)
-      if ( jeb == 0 ) jeb = jxp
+      lfc => fcx
+      lgc => gcx
+      i1 = ici1
+      i2 = ici2
+      j1 = jci1
+      j2 = jci2
     end if
 !
-!-----determine which relaxation method to use:linear/expon.
-!
-    if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-      if ( jsls > ip ) then
-!------interior j slices:
-        do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfun(i,ldot)
-          gcx = gcoef*xfun(i,ldot)
-          do k = 1 , nk
-!.......south boundary:
-            fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-            fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-            fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-            fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-            fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-            ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-            fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k)) - f(ii,k,j)
-            fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-            fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-            fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-            fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-            ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+    if ( ba%ns /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bsouth(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            if ( ibdy == 1 ) then
+              xf = lfc(ib)
+              xg = lgc(ib)
+            else if ( ibdy == 5 ) then
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+            end if
+            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+            fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+            fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+            fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+            fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+            ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
-!
-      else if ( jsls <= ip ) then
-!------east or west boundary slices:
-        ibeg = 2
-        iend = iym1 + ido - 1
-        if ( jsls > 2 ) then
-          do i = 2 , jsls - 1
-            ii = iym1 + ido - i + 1
-            fcx = fcoef*xfun(i,ldot)
-            gcx = gcoef*xfun(i,ldot)
-            do k = 1 , nk
-!........south  boundary:
-              fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-              fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-              fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-              fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-              fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-              fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k)) - f(ii,k,j)
-              fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-              fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-              fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-              fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-              ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                         & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-          ibeg = jsls
-          iend = iym1 + ido - jsls + 1
-        end if
-!
-        if ( jj > ip ) then
-!-------west-boundary slice:
-          fcx = fcoef*xfun(jsls,ldot)
-          gcx = gcoef*xfun(jsls,ldot)
-          do k = 1 , nk
-            do i = ibeg , iend
-              fls0 = (bnd%wb(jwb,i,k)+xt*bnd%wbt(jwb,i,k)) - f(i,k,j)
-              fls1 = (bnd%wb(jwb,i-1,k)+xt*bnd%wbt(jwb,i-1,k)) - f(i-1,k,j)
-              fls2 = (bnd%wb(jwb,i+1,k)+xt*bnd%wbt(jwb,i+1,k)) - f(i+1,k,j)
-              fls3 = (bnd%wb(jwb-1,i,k)+xt*bnd%wbt(jwb-1,i,k)) - f(i,k,j-1)
-              fls4 = (bnd%wb(jwb+1,i,k)+xt*bnd%wbt(jwb+1,i,k)) - f(i,k,j+1)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        else if ( jj <= ip ) then
-!-------east-boundary slice:
-          fcx = fcoef*xfun(jsls,ldot)
-          gcx = gcoef*xfun(jsls,ldot)
-          do k = 1 , nk
-            do i = ibeg , iend
-              fls0 = (bnd%eb(jeb,i,k)+xt*bnd%ebt(jeb,i,k)) - f(i,k,j)
-              fls1 = (bnd%eb(jeb,i-1,k)+xt*bnd%ebt(jeb,i-1,k)) - f(i-1,k,j)
-              fls2 = (bnd%eb(jeb,i+1,k)+xt*bnd%ebt(jeb,i+1,k)) - f(i+1,k,j)
-              fls3 = (bnd%eb(jeb-1,i,k)+xt*bnd%ebt(jeb-1,i,k)) - f(i,k,j-1)
-              fls4 = (bnd%eb(jeb+1,i,k)+xt*bnd%ebt(jeb+1,i,k)) - f(i,k,j+1)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 -  &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end if
-      end if
-!
-    else if ( ibdy == 5 ) then
-   
-!----------use exponential method
-   
-      if ( jsls > ip ) then
-!------interior j slices:
-        do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          do k = 1 , nk
-            fcx = fcoef*xfune(i,k)
-            gcx = gcoef*xfune(i,k)
-!........south boundary:
-            fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-            fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-            fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-            fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-            fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-            ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-            fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k)) - f(ii,k,j)
-            fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-            fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-            fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-            fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-            ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+      end do
+    end if
+    if ( ba%nn /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bnorth(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            if ( ibdy == 1 ) then
+              xf = lfc(ib)
+              xg = lgc(ib)
+            else if ( ibdy == 5 ) then
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+            end if
+            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+            fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+            fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+            fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+            fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+            ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
-!
-      else if ( jsls <= ip ) then
-!------east or west boundary slices:
-        ibeg = 2
-        iend = iym1 + ido - 1
-        if ( jsls > 2 ) then
-          do i = 2 , jsls - 1
-            ii = iym1 + ido - i + 1
-            do k = 1 , nk
-              fcx = fcoef*xfune(i,k)
-              gcx = gcoef*xfune(i,k)
-!.........south boundary:
-              fls0 = (bnd%sb(j,i,k)+xt*bnd%sbt(j,i,k)) - f(i,k,j)
-              fls1 = (bnd%sb(j-1,i,k)+xt*bnd%sbt(j-1,i,k)) - f(i,k,j-1)
-              fls2 = (bnd%sb(j+1,i,k)+xt*bnd%sbt(j+1,i,k)) - f(i,k,j+1)
-              fls3 = (bnd%sb(j,i-1,k)+xt*bnd%sbt(j,i-1,k)) - f(i-1,k,j)
-              fls4 = (bnd%sb(j,i+1,k)+xt*bnd%sbt(j,i+1,k)) - f(i+1,k,j)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-              fls0 = (bnd%nb(j,i,k)+xt*bnd%nbt(j,i,k)) - f(ii,k,j)
-              fls1 = (bnd%nb(j-1,i,k)+xt*bnd%nbt(j-1,i,k)) - f(ii,k,j-1)
-              fls2 = (bnd%nb(j+1,i,k)+xt*bnd%nbt(j+1,i,k)) - f(ii,k,j+1)
-              fls3 = (bnd%nb(j,i-1,k)+xt*bnd%nbt(j,i-1,k)) - f(ii-1,k,j)
-              fls4 = (bnd%nb(j,i+1,k)+xt*bnd%nbt(j,i+1,k)) - f(ii+1,k,j)
-              ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
-                         & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
+      end do
+    end if
+    if ( ba%nw /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%bwest(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            if ( ibdy == 1 ) then
+              xf = lfc(ib)
+              xg = lgc(ib)
+            else if ( ibdy == 5 ) then
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+            end if
+            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+            fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+            fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+            fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+            fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+            ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
-          ibeg = jsls
-          iend = iym1 + ido - jsls + 1
-        end if
-!
-        if ( jj > ip ) then
-!-------west-boundary slice:
-          do k = 1 , nk
-            fcx = fcoef*xfune(jsls,k)
-            gcx = gcoef*xfune(jsls,k)
-            do i = ibeg , iend
-              fls0 = (bnd%wb(jwb,i,k)+xt*bnd%wbt(jwb,i,k)) - f(i,k,j)
-              fls1 = (bnd%wb(jwb,i-1,k)+xt*bnd%wbt(jwb,i-1,k)) - f(i-1,k,j)
-              fls2 = (bnd%wb(jwb,i+1,k)+xt*bnd%wbt(jwb,i+1,k)) - f(i+1,k,j)
-              fls3 = (bnd%wb(jwb-1,i,k)+xt*bnd%wbt(jwb-1,i,k)) - f(i,k,j-1)
-              fls4 = (bnd%wb(jwb+1,i,k)+xt*bnd%wbt(jwb+1,i,k)) - f(i,k,j+1)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
+        end do
+      end do
+    end if
+    if ( ba%ne /= 0 ) then
+      do k = 1 , nk
+        do i = i1 , i2
+          do j = j1 , j2
+            if ( .not. ba%beast(j,i) ) cycle
+            ib = ba%ibnd(j,i)
+            if ( ibdy == 1 ) then
+              xf = lfc(ib)
+              xg = lgc(ib)
+            else if ( ibdy == 5 ) then
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+            end if
+            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+            fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+            fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+            fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+            fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+            ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
+                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
-        else if ( jj <= ip ) then
-!-------east-boundary slice:
-          do k = 1 , nk
-            fcx = fcoef*xfune(jsls,k)
-            gcx = gcoef*xfune(jsls,k)
-            do i = ibeg , iend
-              fls0 = (bnd%eb(jeb,i,k)+xt*bnd%ebt(jeb,i,k)) - f(i,k,j)
-              fls1 = (bnd%eb(jeb,i-1,k)+xt*bnd%ebt(jeb,i-1,k)) - f(i-1,k,j)
-              fls2 = (bnd%eb(jeb,i+1,k)+xt*bnd%ebt(jeb,i+1,k)) - f(i+1,k,j)
-              fls3 = (bnd%eb(jeb-1,i,k)+xt*bnd%ebt(jeb-1,i,k)) - f(i,k,j-1)
-              fls4 = (bnd%eb(jeb+1,i,k)+xt*bnd%ebt(jeb+1,i,k)) - f(i,k,j+1)
-              ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
-                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end if
-      end if
-!
-      end if
-#endif
-      call time_end(subroutine_name,idindx)
+        end do
+      end do
+    end if
 
-    end subroutine nudge3d
+    call time_end(subroutine_name,idindx)
+  end subroutine nudge3d
 !
 ! ###################################################################
 !
-    subroutine nudge2d(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
+  subroutine nudge2d(ba,xt,f,ibdy,bnd,ften)
 !
-    use mod_runparams
-    use mod_service
-    use mod_atm_interface , only : v2dbound
     implicit none
 !
-    logical , intent(in) :: ldot ! Dot flag
-    integer , intent(in) :: ibdy , nk , ip , j
-    real(8) , intent(in) :: fcoef , gcoef , xt
-    real(8) , pointer , intent(in) , dimension(:,:) :: f
-    real(8) , pointer , intent(inout) , dimension(:,:) :: ften
+    integer , intent(in) :: ibdy
+    real(dp) , intent(in) :: xt
+    real(dp) , pointer , intent(in) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
+    type(bound_area) , intent(in) :: ba
+    real(dp) , pointer , intent(inout) , dimension(:,:) :: ften
 !
-    real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-    integer :: i , ido , ii , k
-#ifndef BAND
-    integer :: ibeg , iend , jj , jsls , jwb , jeb , jew
-#endif
-    character (len=64) :: subroutine_name='nudge2d'
+    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer :: i , j , ib , i1 , i2 , j1 , j2
+    character (len=64) :: subroutine_name='nudge3d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
-!----------------------------------------------------------------------
-!
-    k = nk ! not to have warnings
-    ido = 0
-    if ( ldot ) then
-      ido = 1
-    end if
-
-#ifdef BAND
-!
-!-----determine which relaxation method to use:linear/expon.
-!
-    if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-!------interior j slices:
-       do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfun(i,ldot)
-          gcx = gcoef*xfun(i,ldot)
-!.......south boundary:
-          fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-          fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-          fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-          fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-          fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-          ften(j,i) = ften(j,i) + fcx*fls0 - &
-                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-          fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-          fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-          fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-          fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-          fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-       end do
-
-    else if ( ibdy == 5 ) then
-   
-!----------use exponential method
-   
-!------interior j slices:
-       do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfune(i,kz)
-          gcx = gcoef*xfune(i,kz)
-!........south boundary:
-          fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-          fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-          fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-          fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-          fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-          ften(j,i) = ften(j,i) + fcx*fls0 - &
-                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-          fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-          fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-          fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-          fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-          fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-       end do
-    end if
-#else
-!----------------------------------------------------------------------
-!
-    jsls = j + myid*jxp
-    if ( ldot ) then
-      jj = jxp1 - jsls
-      if ( jj <= ip ) jsls = jj
-      jew = jsls
-      if ( jew > jxp ) jew = mod(jsls,jxp)
-      if ( jew == 0 ) jew = jxp
-      jwb = jew
-      jeb = jew
+    if ( ba%dotflag ) then
+      lfc => fcd
+      lgc => gcd
+      i1 = idi1
+      i2 = idi2
+      j1 = jdi1
+      j2 = jdi2
     else
-      jj = jx - jsls
-      if ( jj <= ip ) jsls = jj
-      jwb = jsls
-      if ( jwb > jxp ) jwb = mod(jwb,jxp)
-      if ( jwb == 0 ) jwb = jxp
-      if ( myid == nproc-1 ) then
-        jeb = jsls
-      else
-        jeb = jsls + 1
-      end if
-      if ( jeb > jxp ) jeb = mod(jeb,jxp)
-      if ( jeb == 0 ) jeb = jxp
+      lfc => fcx
+      lgc => gcx
+      i1 = ici1
+      i2 = ici2
+      j1 = jci1
+      j2 = jci2
     end if
-!
-!-----determine which relaxation method to use:linear/expon.
-!
-    if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-      if ( jsls > ip ) then
-!------interior j slices:
-        do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfun(i,ldot)
-          gcx = gcoef*xfun(i,ldot)
-!.......south boundary:
-          fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-          fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-          fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-          fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-          fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-          ften(j,i) = ften(j,i) + fcx*fls0 - &
-                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-          fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-          fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-          fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-          fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-          fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+
+    if ( ba%ns /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bsouth(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          if ( ibdy == 1 ) then
+            xf = lfc(ib)
+            xg = lgc(ib)
+          else if ( ibdy == 5 ) then
+            xf = efc(ib,kz)
+            xg = egc(ib,kz)
+          end if
+          fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
+          fls1 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
+          fls2 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
+          fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
+          fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
+          ften(j,i) = ften(j,i) + xf*fls0 - &
+                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
-!
-      else if ( jsls <= ip ) then
-!------east or west boundary slices:
-        ibeg = 2
-        iend = iym1 + ido - 1
-        if ( jsls > 2 ) then
-          do i = 2 , jsls - 1
-            ii = iym1 + ido - i + 1
-            fcx = fcoef*xfun(i,ldot)
-            gcx = gcoef*xfun(i,ldot)
-!........south  boundary:
-            fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-            fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-            fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-            fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-            fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-            ften(j,i) = ften(j,i) + fcx*fls0 - &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-            fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-            fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-            fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-            fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-            fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-            ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-          ibeg = jsls
-          iend = iym1 + ido - jsls + 1
-        end if
-!
-        if ( jj > ip ) then
-!-------west-boundary slice:
-          fcx = fcoef*xfun(jsls,ldot)
-          gcx = gcoef*xfun(jsls,ldot)
-          do i = ibeg , iend
-            fls0 = (bnd%wb(jwb,i)+xt*bnd%wbt(jwb,i)) - f(j,i)
-            fls1 = (bnd%wb(jwb,i-1)+xt*bnd%wbt(jwb,i-1)) - f(j,i-1)
-            fls2 = (bnd%wb(jwb,i+1)+xt*bnd%wbt(jwb,i+1)) - f(j,i+1)
-            fls3 = (bnd%wb(jwb-1,i)+xt*bnd%wbt(jwb-1,i)) - f(j-1,i)
-            fls4 = (bnd%wb(jwb+1,i)+xt*bnd%wbt(jwb+1,i)) - f(j+1,i)
-            ften(j,i) = ften(j,i) + fcx*fls0 - &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        else if ( jj <= ip ) then
-!-------east-boundary slice:
-          fcx = fcoef*xfun(jsls,ldot)
-          gcx = gcoef*xfun(jsls,ldot)
-          do i = ibeg , iend
-            fls0 = (bnd%eb(jeb,i)+xt*bnd%ebt(jeb,i)) - f(j,i)
-            fls1 = (bnd%eb(jeb,i-1)+xt*bnd%ebt(jeb,i-1)) - f(j,i-1)
-            fls2 = (bnd%eb(jeb,i+1)+xt*bnd%ebt(jeb,i+1)) - f(j,i+1)
-            fls3 = (bnd%eb(jeb-1,i)+xt*bnd%ebt(jeb-1,i)) - f(j-1,i)
-            fls4 = (bnd%eb(jeb+1,i)+xt*bnd%ebt(jeb+1,i)) - f(j+1,i)
-            ften(j,i) = ften(j,i) + fcx*fls0 -  &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end if
-      end if
-!
-    else if ( ibdy == 5 ) then
-   
-!----------use exponential method
-   
-      if ( jsls > ip ) then
-!------interior j slices:
-        do i = 2 , ip
-          ii = iym1 + ido - i + 1
-          fcx = fcoef*xfune(i,kz)
-          gcx = gcoef*xfune(i,kz)
-!........south boundary:
-          fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-          fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-          fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-          fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-          fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-          ften(j,i) = ften(j,i) + fcx*fls0 - &
-                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-          fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-          fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-          fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-          fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-          fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-          ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-!
-      else if ( jsls <= ip ) then
-!------east or west boundary slices:
-        ibeg = 2
-        iend = iym1 + ido - 1
-        if ( jsls > 2 ) then
-          do i = 2 , jsls - 1
-            ii = iym1 + ido - i + 1
-            fcx = fcoef*xfune(i,kz)
-            gcx = gcoef*xfune(i,kz)
-!.........south boundary:
-            fls0 = (bnd%sb(j,i)+xt*bnd%sbt(j,i)) - f(j,i)
-            fls1 = (bnd%sb(j-1,i)+xt*bnd%sbt(j-1,i)) - f(j-1,i)
-            fls2 = (bnd%sb(j+1,i)+xt*bnd%sbt(j+1,i)) - f(j+1,i)
-            fls3 = (bnd%sb(j,i-1)+xt*bnd%sbt(j,i-1)) - f(j,i-1)
-            fls4 = (bnd%sb(j,i+1)+xt*bnd%sbt(j,i+1)) - f(j,i+1)
-            ften(j,i) = ften(j,i) + fcx*fls0 - &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-            fls0 = (bnd%nb(j,i)+xt*bnd%nbt(j,i)) - f(j,ii)
-            fls1 = (bnd%nb(j-1,i)+xt*bnd%nbt(j-1,i)) - f(j-1,ii)
-            fls2 = (bnd%nb(j+1,i)+xt*bnd%nbt(j+1,i)) - f(j+1,ii)
-            fls3 = (bnd%nb(j,i-1)+xt*bnd%nbt(j,i-1)) - f(j,ii-1)
-            fls4 = (bnd%nb(j,i+1)+xt*bnd%nbt(j,i+1)) - f(j,ii+1)
-            ften(j,ii) = ften(j,ii) + fcx*fls0 - &
-                           gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-          ibeg = jsls
-          iend = iym1 + ido - jsls + 1
-        end if
-!
-        if ( jj > ip ) then
-!-------west-boundary slice:
-          fcx = fcoef*xfune(jsls,kz)
-          gcx = gcoef*xfune(jsls,kz)
-          do i = ibeg , iend
-            fls0 = (bnd%wb(jwb,i)+xt*bnd%wbt(jwb,i)) - f(j,i)
-            fls1 = (bnd%wb(jwb,i-1)+xt*bnd%wbt(jwb,i-1)) - f(j,i-1)
-            fls2 = (bnd%wb(jwb,i+1)+xt*bnd%wbt(jwb,i+1)) - f(j,i+1)
-            fls3 = (bnd%wb(jwb-1,i)+xt*bnd%wbt(jwb-1,i)) - f(j-1,i)
-            fls4 = (bnd%wb(jwb+1,i)+xt*bnd%wbt(jwb+1,i)) - f(j+1,i)
-            ften(j,i) = ften(j,i) + fcx*fls0 - &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        else if ( jj <= ip ) then
-!-------east-boundary slice:
-          fcx = fcoef*xfune(jsls,kz)
-          gcx = gcoef*xfune(jsls,kz)
-          do i = ibeg , iend
-            fls0 = (bnd%eb(jeb,i)+xt*bnd%ebt(jeb,i)) - f(j,i)
-            fls1 = (bnd%eb(jeb,i-1)+xt*bnd%ebt(jeb,i-1)) - f(j,i-1)
-            fls2 = (bnd%eb(jeb,i+1)+xt*bnd%ebt(jeb,i+1)) - f(j,i+1)
-            fls3 = (bnd%eb(jeb-1,i)+xt*bnd%ebt(jeb-1,i)) - f(j-1,i)
-            fls4 = (bnd%eb(jeb+1,i)+xt*bnd%ebt(jeb+1,i)) - f(j+1,i)
-            ften(j,i) = ften(j,i) + fcx*fls0 - &
-                          gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end if
-      end if
-!
+      end do
     end if
-#endif
+    if ( ba%nn /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bnorth(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          if ( ibdy == 1 ) then
+            xf = lfc(ib)
+            xg = lgc(ib)
+          else if ( ibdy == 5 ) then
+            xf = efc(ib,kz)
+            xg = egc(ib,kz)
+          end if
+          fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
+          fls1 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
+          fls2 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
+          fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
+          fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
+          ften(j,i) = ften(j,i) + xf*fls0 - &
+                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      end do
+    end if
+    if ( ba%nw /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%bwest(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          if ( ibdy == 1 ) then
+            xf = lfc(ib)
+            xg = lgc(ib)
+          else if ( ibdy == 5 ) then
+            xf = efc(ib,kz)
+            xg = egc(ib,kz)
+          end if
+          fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
+          fls1 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
+          fls2 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
+          fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
+          fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
+          ften(j,i) = ften(j,i) + xf*fls0 - &
+                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      end do
+    end if
+    if ( ba%ne /= 0 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          if ( .not. ba%beast(j,i) ) cycle
+          ib = ba%ibnd(j,i)
+          if ( ibdy == 1 ) then
+            xf = lfc(ib)
+            xg = lgc(ib)
+          else if ( ibdy == 5 ) then
+            xf = efc(ib,kz)
+            xg = egc(ib,kz)
+          end if
+          fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
+          fls1 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
+          fls2 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
+          fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
+          fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
+          ften(j,i) = ften(j,i) + xf*fls0 -  &
+                      xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      end do
+    end if
+
     call time_end(subroutine_name,idindx)
+
   end subroutine nudge2d
 !
 end module mod_bdycod

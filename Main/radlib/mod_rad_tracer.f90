@@ -21,13 +21,14 @@ module mod_rad_tracer
 
   use mod_constants
   use mod_dynparam
+  use mod_realkinds
 
   private
 !
   public :: trcmix , trcpth , trcab , trcabn , trcems , trcplk
   public :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
 !
-  real(8) :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
+  real(dp) :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
 !
   contains
 !
@@ -57,8 +58,8 @@ module mod_rad_tracer
   subroutine trcmix(jstart,jend,pmid,alat,ptrop,n2o,ch4,cfc11,cfc12)
     implicit none
     integer , intent(in) :: jstart , jend
-    real(8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , pmid
-    real(8) , pointer , dimension(:) :: alat , ptrop
+    real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , pmid
+    real(dp) , pointer , dimension(:) :: alat , ptrop
     intent (in) alat , pmid , ptrop
     intent (out) cfc11 , cfc12 , ch4 , n2o
 !
@@ -70,7 +71,7 @@ module mod_rad_tracer
 !   ptrop  - pressure level of tropopause
 !   pratio - pressure divided by ptrop
 !
-    real(8) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
+    real(dp) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
     integer :: j , k
 !
     xcfc11 = d_zero
@@ -157,10 +158,10 @@ module mod_rad_tracer
     implicit none
 !
     integer , intent(in) :: jstart , jend
-    real(8) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+    real(dp) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
                    ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
                    uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-    real(8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , qnm , tnm
+    real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , qnm , tnm
     intent (in) cfc11 , cfc12 , ch4 , n2o , pnm , qnm , tnm
     intent (inout) bch4 , bn2o0 , bn2o1 , ucfc11 , ucfc12 , uch4 ,    &
                    uco211 , uco212 , uco213 , uco221 , uco222 ,       &
@@ -174,7 +175,7 @@ module mod_rad_tracer
 !   pbar   - mean pressure
 !   dpnm   - difference in pressure
 !
-    real(8) :: diff , alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
+    real(dp) :: diff , alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
     integer :: j , k
     data diff/1.66D0/           ! diffusivity factor
 
@@ -291,10 +292,10 @@ module mod_rad_tracer
     implicit none
 !
     integer , intent(in) :: jstart , jend , k1 , k2
-    real(8) , pointer , dimension(:,:,:) :: abplnk1
-    real(8) , pointer , dimension(:) :: abstrc , dplh2o , dw , pnew , tco2 ,&
+    real(dp) , pointer , dimension(:,:,:) :: abplnk1
+    real(dp) , pointer , dimension(:) :: abstrc , dplh2o , dw , pnew , tco2 ,&
                                         th2o , to3 , to3co2
-    real(8) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+    real(dp) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
              s2c , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
              uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
     intent (in) abplnk1 , bch4 , bn2o0 , bn2o1 , dplh2o , dw ,      &
@@ -365,8 +366,8 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-    real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
-    real(8) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
+    real(dp) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(dp) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
                dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
                dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
@@ -523,11 +524,11 @@ module mod_rad_tracer
     implicit none
 !
     integer , intent(in) :: jstart , jend , k2 , kn
-    real(8) , pointer , dimension(:) :: abstrc , dw , pnew , tco2 , th2o ,  &
+    real(dp) , pointer , dimension(:) :: abstrc , dw , pnew , tco2 , th2o ,  &
                                         to3 , up2
-    real(8) , pointer , dimension(:,:,:) :: bplnk
-    real(8) , pointer , dimension(:,:) :: pinpl , tbar , uinpl , winpl
-    real(8) , pointer , dimension(:,:) :: s2c , ucfc11 , ucfc12 , uch4 , &
+    real(dp) , pointer , dimension(:,:,:) :: bplnk
+    real(dp) , pointer , dimension(:,:) :: pinpl , tbar , uinpl , winpl
+    real(dp) , pointer , dimension(:,:) :: s2c , ucfc11 , ucfc12 , uch4 , &
              uco211 , uco212 , uco213 , uco221 , uco222 , uco223 ,       &
              un2o0 , un2o1 , uptype
     intent (in) bplnk , dw , pinpl , pnew , s2c , tbar , tco2 , th2o ,    &
@@ -595,8 +596,8 @@ module mod_rad_tracer
 ! tlw    -  h2o transmission
 ! tch4   -  ch4 transmission
 !
-    real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
-    real(8) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
+    real(dp) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(dp) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
                dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
                dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
@@ -728,10 +729,10 @@ module mod_rad_tracer
     implicit none
 !
     integer , intent(in) :: jstart , jend
-    real(8) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
-    real(8) , pointer , dimension(:,:) :: emplnk
-    real(8) , pointer , dimension(:,:) :: tint , tlayr
-    real(8) , pointer , dimension(:) :: tplnke
+    real(dp) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
+    real(dp) , pointer , dimension(:,:) :: emplnk
+    real(dp) , pointer , dimension(:,:) :: tint , tlayr
+    real(dp) , pointer , dimension(:) :: tplnke
     intent (in) tint , tlayr , tplnke
     intent (out) abplnk1 , abplnk2 , emplnk
 !
@@ -740,7 +741,7 @@ module mod_rad_tracer
 ! f2    -       "
 ! f3    -       "
 !
-    real(8) , dimension(14) :: f1 , f2 , f3
+    real(dp) , dimension(14) :: f1 , f2 , f3
     integer :: j , k , wvl
 !
     data f1/5.85713D8 , 7.94950D8 , 1.47009D9 , 1.40031D9 , &
@@ -829,12 +830,12 @@ module mod_rad_tracer
     implicit none
 !
     integer , intent(in) :: jstart , jend , k
-    real(8) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , co2t , &
+    real(dp) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , co2t , &
              emstrc , pnm , s2c , ucfc11 , ucfc12 , uch4 , uco211 ,     &
              uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,       &
              un2o1 , uptype , w
-    real(8) , pointer , dimension(:,:) :: emplnk
-    real(8) , pointer , dimension(:) :: tco2 , th2o , to3 , up2
+    real(dp) , pointer , dimension(:,:) :: emplnk
+    real(dp) , pointer , dimension(:) :: tco2 , th2o , to3 , up2
     intent (in) bch4 , bn2o0 , bn2o1 , co2t , emplnk , pnm , s2c ,    &
                 tco2 , th2o , to3 , ucfc11 , ucfc12 , uch4 , uco211 , &
                 uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,  &
@@ -890,8 +891,8 @@ module mod_rad_tracer
 ! tlw    - h2o overlap factor
 ! tch4   - ch4 overlap factor
 !
-    real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
-    real(8) :: beta01 , beta02 , beta03 , beta11 , betac , sqti , tt , &
+    real(dp) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(dp) :: beta01 , beta02 , beta03 , beta11 , betac , sqti , tt , &
                betac1 , betac2 , ecfc1 , ecfc2 , ecfc3 , ecfc4 ,       &
                ecfc5 , ecfc6 , ecfc7 , ecfc8 , ech4 , eco21 , eco22 ,  &
                en2o1 , en2o2 , en2o3 , p1 , phi1 , psi1 , tcfc3 ,      &
@@ -992,8 +993,8 @@ module mod_rad_tracer
 !
   function func(u,b)
     implicit none
-    real(8) :: func
-    real(8) , intent(in) :: u , b
+    real(dp) :: func
+    real(dp) , intent(in) :: u , b
     func = u/dsqrt(d_four+u*(d_one+d_one/b))
   end function func
 !

@@ -129,6 +129,7 @@ mod_lm_interface.o: mod_lm_interface.F90 mod_atm_interface.o $(BATLIB) $(CLMLIB)
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_pbl_interface.o \
   mod_lm_interface.o mod_che_interface.o mod_atm_interface.o \
   mod_rad_interface.o mod_cu_interface.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_ncio.o: mod_ncio.F90 mod_che_interface.o mod_cu_interface.o \
   mod_lm_interface.o mod_runparams.o mod_rad_interface.o
 mod_output.o: mod_output.F90 mod_bdycod.o mod_cu_interface.o \
