@@ -318,7 +318,6 @@ module mod_output
                         jcross1,jcross2,icross1,icross2)
 
       call deco1_gather(fcc,fcc_io,jcross1,jcross2,icross1,icross2,1,kz)
-
       call deco1_gather(heatrt,heatrt_io,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(o3prof,o3prof_io,jcross1,jcross2,icross1,icross2,1,kzp1)
 
@@ -337,7 +336,7 @@ module mod_output
         call deco1_gather(cbmf2d,cbmf2d_io,jcross1,jcross2,icross1,icross2)
       end if
 
-      if(irrtm == 0) then
+      if ( irrtm == 0 ) then
         call deco1_gather(gasabsnxt,gasabsnxt_io, &
                           jcross1,jcross2,icross1,icross2,1,kz,1,4)
         call deco1_gather(gasabstot,gasabstot_io, &
@@ -346,18 +345,18 @@ module mod_output
                           jcross1,jcross2,icross1,icross2,1,kzp1)
       end if
 
-      call subgrid_deco1_gather(taf,taf_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(tlef,tlef_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(ssw,ssw_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(rsw,rsw_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_gather(tgrd,tgrd_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(tgbrd,tgbrd_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_gather(tsw,tsw_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(sncv,sncv_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(gwet,gwet_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_gather(tgrd,tgrd_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(snag,snag_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(sfice,sfice_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(ldew,ldew_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_gather(taf,taf_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_gather(tsw,tsw_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(emiss,emiss_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(ocld,ocld_io,jcross1,jcross2,icross1,icross2)
 
@@ -365,10 +364,10 @@ module mod_output
       call deco1_gather(solis,solis_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solvd,solvd_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solvs,solvs_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(sabveg,sabveg_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(flw,flw_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(flwd,flwd_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(fsw,fsw_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(sabveg,sabveg_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(sinc,sinc_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(pptnc,pptnc_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(pptc,pptc_io,jcross1,jcross2,icross1,icross2)

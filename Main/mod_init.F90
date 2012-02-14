@@ -373,8 +373,6 @@ module mod_init
     call deco1_scatter(heatrt_io,heatrt,jcross1,jcross2,icross1,icross2,1,kz)
     call deco1_scatter(o3prof_io,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
 
-    call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
-
     ! Scatter of the UW variables read in from the restart file
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call deco1_scatter(atm1_io%tke,atm1%tke, &
@@ -386,7 +384,6 @@ module mod_init
     if ( iocnflx == 2 ) then
       call deco1_scatter(zpbl_io,zpbl,jcross1,jcross2,icross1,icross2)
     end if
-
     if ( icup == 1 ) then
       call deco1_scatter(rsheat_io,rsheat,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_scatter(rswat_io,rswat,jcross1,jcross2,icross1,icross2,1,kz)
@@ -399,7 +396,7 @@ module mod_init
       call deco1_scatter(cbmf2d_io,cbmf2d,jcross1,jcross2,icross1,icross2)
     end if
 
-    if (irrtm == 0) then 
+    if ( irrtm == 0 ) then 
       call deco1_scatter(gasabsnxt_io,gasabsnxt, &
                          jcross1,jcross2,icross1,icross2,1,kz,1,4)
       call deco1_scatter(gasabstot_io,gasabstot, &
@@ -407,18 +404,6 @@ module mod_init
       call deco1_scatter(gasemstot_io,gasemstot, &
                          jcross1,jcross2,icross1,icross2,1,kzp1)
     end if ! irrtm test
-
-    call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solvd_io,solvd,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solvs_io,solvs,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sabveg_io,sabveg,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(flw_io,flw,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(pptc_io,pptc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
 
     call subgrid_deco1_scatter(tlef_io,tlef,jcross1,jcross2,icross1,icross2)
     call subgrid_deco1_scatter(ssw_io,ssw,jcross1,jcross2,icross1,icross2)
@@ -435,16 +420,51 @@ module mod_init
     call subgrid_deco1_scatter(emiss_io,emiss,jcross1,jcross2,icross1,icross2)
     call subgrid_deco1_scatter(ocld_io,ocld,jcross1,jcross2,icross1,icross2)
 
+    call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solvd_io,solvd,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solvs_io,solvs,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sabveg_io,sabveg,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(flw_io,flw,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(pptc_io,pptc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
+
     if ( iseaice == 1 .or. lakemod == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
           do n = 1 , nnsg
-            if ( ocld(j,i,n) == 2 ) iveg1(n,j,i) = 12
+            if ( ocld(n,j,i) == 2 ) iveg1(n,j,i) = 12
           end do
         end do
       end do
     end if
 
+#ifndef CLM
+    if ( lakemod == 1 ) then
+      call subgrid_deco1_scatter(eta_io,eta,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(hi_io,hi,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(aveice_io,aveice, &
+                                 jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(hsnow_io,hsnow,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_scatter(tlak_io,tlak, &
+                                 jcross1,jcross2,icross1,icross2,1,ndpmax)
+    endif
+#else
+    call deco1_scatter(sols2d_io,sols2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(soll2d_io,soll2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solsd2d_io,solsd2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(solld2d_io,solld2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldirs2d_io,aldirs2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldirl2d_io,aldirl2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldifs2d_io,aldifs2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(aldifl2d_io,aldifl2d,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(lndcat2d_io,lndcat2d,jcross1,jcross2,icross1,icross2)
+#endif
+!
     if ( ichem == 1 ) then
       call deco1_scatter(chia_io,chia, &
                          jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
@@ -469,28 +489,6 @@ module mod_init
     call deco1_scatter(fbat_io,fbat, &
                        jout1,jout2,iout1,iout2,numbat-numsts+1,numbat)
 
-#ifdef CLM
-    call deco1_scatter(sols2d_io,sols2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(soll2d_io,soll2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solsd2d_io,solsd2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solld2d_io,solld2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldirs2d_io,aldirs2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldirl2d_io,aldirl2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldifs2d_io,aldifs2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldifl2d_io,aldifl2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(lndcat2d_io,lndcat2d,jcross1,jcross2,icross1,icross2)
-#else
-    if ( lakemod == 1 ) then
-      call subgrid_deco1_scatter(eta,eta_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(hi,hi_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(aveice,aveice_io, &
-                                 jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(hsnow,hsnow_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(tlak,tlak_io, &
-                                 jcross1,jcross2,icross1,icross2,1,ndpmax)
-    endif
-#endif
-!
     call deco1_scatter(dstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
     call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
@@ -519,7 +517,6 @@ module mod_init
     call deco1_exchange_right(nve,1,1,kz)
     call deco1_exchange_left(nvi,1,1,kz)
     call deco1_exchange_right(nvi,1,1,kz)
-!
 #ifndef BAND
     call mpi_bcast(eui,nidot*kz,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(eue,nidot*kz,mpi_real8,0,mycomm,ierr)
