@@ -242,7 +242,7 @@ module mod_regcm_interface
     call init
 
     if ( ichem == 1 ) then
-      call start_chem(ifrest, bdydate1,bdydate2)
+      call start_chem(ifrest,bdydate1,bdydate2)
     end if
 !
 !**********************************************************************
@@ -251,7 +251,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call bdyin(0)
+    if ( .not. ifrest ) call bdyin(0)
     if ( ichem == 1 ) then
       call chem_bdyin(150D00, bdydate1, bdydate2)
     end if
@@ -322,6 +322,9 @@ module mod_regcm_interface
       extime = d_zero
       iexec  = 1
     end if
+    if ( ifrest ) then
+      iexec = 3
+    end if
 !
 !**********************************************************************
 !
@@ -333,20 +336,19 @@ module mod_regcm_interface
 !
 !     Read in boundary conditions if needed
 !
-      if ( nbdytime == 0 .and. &
-          (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
+      if ( nbdytime == 0 .and. (ktau > 0 .and. ktau < mtau) ) then
         call bdyin(1)
         if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
       end if
 !
 !     Refined start
 !
-      if ( .not.ifrest ) then
+      if ( .not. ifrest ) then
         if ( rfstrt ) then
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                               & dtsec , ktau , xyear
+                                 dtsec , ktau , xyear
             call say
           end if
         end if
@@ -362,7 +364,7 @@ module mod_regcm_interface
 !
 !     Write output for this timestep if requested
 !
-      if (ifrest) doing_restart = .false.
+      if ( ifrest ) doing_restart = .false.
       call output
 !
 !     Increment time

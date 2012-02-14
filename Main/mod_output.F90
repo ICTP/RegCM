@@ -277,12 +277,12 @@ module mod_output
 !
   if ( ifsave ) then
     if ( ldosav .or. ldotmp ) then
-      call deco1_gather(xub%b1,ub0_io,jdot1,jdot2,idot1,idot2,1,kz)
-      call deco1_gather(xvb%b1,vb0_io,jdot1,jdot2,idot1,idot2,1,kz)
-      call deco1_gather(xtb%b1,tb0_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(xqb%b1,qb0_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(xpsb%b1,ps0_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(ts1,ts0_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(xub%b1,ub1_io,jdot1,jdot2,idot1,idot2,1,kz)
+      call deco1_gather(xvb%b1,vb1_io,jdot1,jdot2,idot1,idot2,1,kz)
+      call deco1_gather(xtb%b1,tb1_io,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(xqb%b1,qb1_io,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(xpsb%b1,ps1_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(ts1,ts1_io,jcross1,jcross2,icross1,icross2)
 
       call deco1_gather(atm1%u,atm1_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%v,atm1_io%v,jdot1,jdot2,idot1,idot2,1,kz)

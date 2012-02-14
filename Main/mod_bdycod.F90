@@ -728,112 +728,106 @@ module mod_bdycod
     ! Set boundary values for p*:
     ! Set boundary conditions for p*u and p*v:
     !
-    if ( .not. (iexec == 1 .and. ifrest) ) then
 !
-      if ( iboudy == 0 ) then
-        !
-        ! fixed boundary conditions:
-        !
-        if ( ma%hasleft ) then
-          do i = ici1 , ici2
-            sfs%psa(jce1,i) = xpsb%b0(jce1,i)
+    if ( iboudy == 0 ) then
+      !
+      ! fixed boundary conditions:
+      !
+      if ( ma%hasleft ) then
+        do i = ici1 , ici2
+          sfs%psa(jce1,i) = xpsb%b0(jce1,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
+            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k)
           end do
-          do k = 1 , kz
-            do i = idi1 , idi2
-              atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
-              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k)
-            end do
+        end do
+      end if
+      if ( ma%hasright ) then
+        do i = ici1 , ici2
+          sfs%psa(jce2,i) = xpsb%b0(jce2,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
+            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k)
           end do
-        end if
-        if ( ma%hasright ) then
-          do i = ici1 , ici2
-            sfs%psa(jce2,i) = xpsb%b0(jce2,i)
+        end do
+      end if
+      if ( ma%hasbottom ) then
+        do j = jce1 , jce2
+          sfs%psa(j,ice1) = xpsb%b0(j,ice1)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
+            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k)
           end do
-          do k = 1 , kz
-            do i = idi1 , idi2
-              atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
-              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k)
-            end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do j = jce1 , jce2
+          sfs%psa(j,ice2) = xpsb%b0(j,ice2)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
+            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k)
           end do
-        end if
-        if ( ma%hasbottom ) then
-          do j = jce1 , jce2
-            sfs%psa(j,ice1) = xpsb%b0(j,ice1)
+        end do
+      end if
+    else
+      !
+      ! time-dependent boundary conditions:
+      !
+      if ( ma%hasleft ) then
+        do i = ici1 , ici2
+          sfs%psa(jce1,i) = xpsb%b0(jce1,i) + dtb*xpsb%bt(jce1,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k)
+            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k)
           end do
-          do k = 1 , kz
-            do j = jde1 , jde2
-              atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
-              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k)
-            end do
+        end do
+      end if
+      if ( ma%hasright ) then
+        do i = ici1 , ici2
+          sfs%psa(jce2,i) = xpsb%b0(jce2,i) + dtb*xpsb%bt(jce2,i)
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k)
+            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k)
           end do
-        end if
-        if ( ma%hastop ) then
-          do j = jce1 , jce2
-            sfs%psa(j,ice2) = xpsb%b0(j,ice2)
+        end do
+      end if
+      if ( ma%hasbottom ) then
+        do j = jce1 , jce2
+          sfs%psa(j,ice1) = xpsb%b0(j,ice1) + dtb*xpsb%bt(j,ice1)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k)
+            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k)
           end do
-          do k = 1 , kz
-            do j = jde1 , jde2
-              atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
-              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k)
-            end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do j = jce1 , jce2
+          sfs%psa(j,ice2) = xpsb%b0(j,ice2) + dtb*xpsb%bt(j,ice2)
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k)
+            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k)
           end do
-        end if
-      else
-        !
-        ! time-dependent boundary conditions:
-        !
-        if ( ma%hasleft ) then
-          do i = ici1 , ici2
-            sfs%psa(jce1,i) = xpsb%b0(jce1,i) + dtb*xpsb%bt(jce1,i)
-          end do
-          do k = 1 , kz
-            do i = idi1 , idi2
-              atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k)
-              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%hasright ) then
-          do i = ici1 , ici2
-            sfs%psa(jce2,i) = xpsb%b0(jce2,i) + dtb*xpsb%bt(jce2,i)
-          end do
-          do k = 1 , kz
-            do i = idi1 , idi2
-              atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k)
-              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k)
-            end do
-          end do
-        end if
-        if ( ma%hasbottom ) then
-          do j = jce1 , jce2
-            sfs%psa(j,ice1) = xpsb%b0(j,ice1) + dtb*xpsb%bt(j,ice1)
-          end do
-          do k = 1 , kz
-            do j = jde1 , jde2
-              atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k)
-              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k)
-            end do
-          end do
-        end if
-        if ( ma%hastop ) then
-          do j = jce1 , jce2
-            sfs%psa(j,ice2) = xpsb%b0(j,ice2) + dtb*xpsb%bt(j,ice2)
-          end do
-          do k = 1 , kz
-            do j = jde1 , jde2
-              atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k)
-              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k)
-            end do
-          end do
-        end if
+        end do
       end if
     end if
 !
     call bdyuv(iboudy,dtb)
-    !
-    ! Enough for first time in here
-    !
-    if ( iexec == 1 .and. ifrest ) return
 !
     !
     ! Set boundary values for p*t:

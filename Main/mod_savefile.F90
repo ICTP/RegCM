@@ -93,7 +93,7 @@ module mod_savefile
         write (aline,*) 'Done Recalculating ktau for the new dt'
         call say
       end if
-      read (iutrst) ub0_io , vb0_io , tb0_io , qb0_io , ps0_io , ts0_io
+      read (iutrst) ub1_io , vb1_io , tb1_io , qb1_io , ps1_io , ts1_io
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
       read (iutrst) atm1_io%t
@@ -232,7 +232,7 @@ module mod_savefile
       end if
 
       write (iutsav) ktau , dtsec , idatex , nbdytime
-      write (iutsav) ub0_io , vb0_io , tb0_io , qb0_io , ps0_io , ts0_io
+      write (iutsav) ub1_io , vb1_io , tb1_io , qb1_io , ps1_io , ts1_io
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t

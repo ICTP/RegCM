@@ -136,7 +136,7 @@ module mod_tendency
 !----------------------------------------------------------------------
 !   fill up the boundary slices:
 !
-    if ( .not. ifrest .and. iexec == 1 ) then
+    if ( iexec == 1 ) then
       call bdyval(xbctime,iexec)
       if ( ichem == 1 ) then
         call chem_bdyval(xbctime,iexec,nbdytime,dtbdys,ktau,ifrest)
