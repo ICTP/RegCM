@@ -148,6 +148,14 @@ module mod_pbl_interface
                  aten%qc(jtcmstart:jtcmend,itcmstart:itcmend,:) +   &
                  tcmtend%qc(jtcmstart:jtcmend,itcmstart:itcmend,:)
 
+      ! Put the tracer tendencies in chiuwten
+      ! TODO: may want to calcuate rmdr here following holtbl
+      if(lchem)then
+        chten(itcmstart:itcmend,:,jtcmstart:jtcmend,:) = &
+                  chten(itcmstart:itcmend,:,jtcmstart:jtcmend,:) +   &
+                  chiuwten(itcmstart:itcmend,:,jtcmstart:jtcmend,:)
+      end if
+
       if ( .not. bRegridWinds ) then
         !
         ! If the TCM calculations were done on the dot grid, then
@@ -395,4 +403,21 @@ module mod_pbl_interface
     end do
   end subroutine check_conserve_qt
 !
+  ! Set the net surface flux (wet/dry dep + emission) to send to the UW TCM
+  !  This routine is called in mod_tendency.F90 just prior to the call of
+  !  uwtcm()
+  subroutine set_tracer_surface_fluxes()
+  implicit none 
+  integer :: itr
+
+    !Set the variable chifxuw to be the net flux for each tracer
+    ! (dummy declaration below -- declared and allocated in mod_pbl_common.F90)
+    ! real(dp), pointer, dimension(iy,jxp,ntr) :: chifxuw
+    tracerfluxloop:  &
+    do itr = 1,ntr
+      !chifxuw(:,:,ntr) = ...
+    end do tracerfluxloop
+
+  end subroutine set_tracer_surface_fluxes
+
 end module mod_pbl_interface

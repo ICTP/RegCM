@@ -836,6 +836,9 @@ module mod_tendency
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
+      if(ichem == 1)then
+        call set_tracer_surface_fluxes
+      end if
       call uwtcm
       call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
       call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)

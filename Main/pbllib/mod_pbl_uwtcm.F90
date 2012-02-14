@@ -60,6 +60,8 @@
 !     * Implemented GB01/Bretherton 2010 length scale (optional)
 !   07/2011 Graziano Giuliani
 !     * Moved in RegCM core devel
+!   02/2012 TA O'Brien:
+!     * Added vertical aerosol mixing to UW TCM
 
 module mod_pbl_uwtcm
 
@@ -99,7 +101,7 @@ module mod_pbl_uwtcm
   real(dp) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
                  bouyan , rdza , dza , svs , presfl , exnerfl ,   &
-                 shear , rexnerfl , rcldb , epop , sm , sh
+                 shear , rexnerfl , rcldb , epop , sm , sh, kchi
 
   ! local variables on half levels
   real(dp) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
@@ -108,6 +110,7 @@ module mod_pbl_uwtcm
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2
+  real(dp) , pointer , dimension(:,:) :: chix, chixs
 
   integer , pointer , dimension(:) :: isice , ktop , kbot
 
@@ -116,6 +119,7 @@ module mod_pbl_uwtcm
               dvdz , rvls , thv0 , dthv , psbx , templ , temps ,     &
               cell , thgb , pblx , ustxsq , qfxx , hfxx , dth ,      &
               uvdragx , thvflx , kh0 , q0s
+  real(dp) , pointer , dimension(:) :: chifxx
 
   integer :: kpbl2dx  ! Top of PBL
   integer :: kmix2dx  ! Top of mixed layer (decoupled layer)
@@ -209,6 +213,13 @@ module mod_pbl_uwtcm
     call getmem1d(uimp2,1,kz,'mod_uwtcm:uimp2')
     call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
 
+    if(lchem)then
+      call getmem1d(kchi,1,kzp1,'mod_uwtcm:kchi')
+      call getmem2d(chix,1,ntr,1,kz,'mod_uwtcm:chix')
+      call getmem2d(chixs,1,ntr,1,kz,'mod_uwtcm:chixs')
+      call getmem1d(chifxx,1,ntr,'mod_uwtcm:chifxx')
+    end if
+
     call getmem1d(isice,1,kz,'mod_uwtcm:isice')
     call getmem1d(ktop,1,kz,'mod_uwtcm:ktop')
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
@@ -218,7 +229,7 @@ module mod_pbl_uwtcm
   subroutine uwtcm
     implicit none
 
-    integer ::  i , j , k
+    integer ::  i , j , k, itr
     integer :: ilay ! layer index
     integer :: iconv , iteration
 
@@ -240,6 +251,7 @@ module mod_pbl_uwtcm
         qfxx = qfx(j,i)
         hfxx = hfx(j,i)
         uvdragx = uvdrag(j,i)
+        if(lchem)chifxx(:) = chifxuw(i,j,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
@@ -259,6 +271,9 @@ module mod_pbl_uwtcm
           qcx(k) = qcatm(j,i,k)
           ux(k)  = uatm(j,i,k)
           vx(k)  = vatm(j,i,k)
+
+          if(lchem)chix(:,k) = chmx(i,k,j,:)
+
           ! if ( tx(k) > tzero ) then
 !         if ( tx(k) > tzero ) then
 !           isice(k) = 0
@@ -303,6 +318,9 @@ module mod_pbl_uwtcm
           thxs(k) = thx(k)
           qxs(k) = qx(k)
           qcxs(k) = qcx(k)
+
+          if(lchem)chixs(:,k) = chix(:,k)
+
           ! density at half levels
           rhoxhl(k)=preshl(k)*d_1000/(rgas*tvx(k))
           rrhoxhl(k) = d_one/rhoxhl(k)
@@ -549,6 +567,53 @@ module mod_pbl_uwtcm
 !       nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
 
+        !*************************************************************
+        !****** Implicit Diffusion of tracers ************************
+        !*************************************************************
+
+        if(lchem)then
+          kchi = kth
+
+          !Set the tridiagonal coefficients that apply to all of the tracers
+          diffchi: &
+          do k = 1 , kz
+            if ( k == 1 ) then
+              aimp(k) = d_zero
+            else
+              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
+                          kchi(k) * dtpbl *rdzq(k)*rdza(k)
+            end if
+            if ( k == kz ) then
+              cimp(k) = d_zero
+            else
+              cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
+                          kchi(k+1) * dtpbl *rdzq(k)*rdza(k+1)
+            end if
+            bimp(k) = d_one - aimp(k) - cimp(k)
+          end do diffchi
+
+          !Loop through all of the tracers
+          ! set the tridiagonal coefficients that are tracer-specific
+          ! and solve the tridiagonal matrix for each tracer to get
+          ! the tracer value implied for the next timestep
+          chiloop: &
+          do itr = 1,ntr
+            ! set the right side 
+            rimp1(:) = chix(itr,:)
+            ! at surface include surface momentum fluxes
+            rimp1(kz) = chix(itr,kz) + dtpbl *              &
+                       chifxx(itr) * rrhoxhl(kz) *rdzq(kz)
+            ! no flux out top, so no (k == 1)
+            rimp1(1) = d_zero
+
+            !Run the tridiagonal solver
+            call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+
+            !Get the chi value implied for the next timestep
+            chix(itr,:) = uimp1(:)
+          end do chiloop
+        end if !End tracer diffusion
+
 !*******************************************************************************
 !*******************************************************************************
 !************************* Integration of TKE Budget Equation ******************
@@ -647,6 +712,9 @@ module mod_pbl_uwtcm
           qvuwten(j,i,k) = psbx*(qx(k)-qxs(k))*rdtpbl
           ! Cloud water tendency
           qcuwten(j,i,k) = psbx*(qcx(k)-qcxs(k))*rdtpbl
+
+          ! Tracer tendency
+          if(lchem)chiuwten(i,k,j,:) = psbx*(chix(:,k) - chixs(:,k))*rdtpbl
 
           ! Momentum diffusivity
           uwstateb%kzm(j,i,k) = kzm(k)

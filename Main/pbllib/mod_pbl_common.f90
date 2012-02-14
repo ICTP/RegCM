@@ -97,6 +97,8 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
   real(dp) , pointer , dimension(:,:,:) :: qvuwten   ! uwten%qv
   real(dp) , pointer , dimension(:,:,:) :: qcuwten   ! uwten%qc
+  real(dp) , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
+  real(dp) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
   real(dp) , pointer , dimension(:,:,:) :: uatm      ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vatm      ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
@@ -154,21 +156,27 @@ module mod_pbl_common
     end if
   end subroutine allocate_tcm_state
 
-  subroutine allocate_mod_pbl_common(ibltyp)
+  subroutine allocate_mod_pbl_common(ibltyp,ichem)
     implicit none
     integer , intent(in) :: ibltyp
+    integer , intent(in) :: ichem
     call getmem3d(zq,1,jxp,1,iy,1,kzp1,'pbl_common:zq')
     call getmem3d(za,1,jxp,1,iy,1,kz,'pbl_common:za')
     call getmem3d(dzq,1,jxp,1,iy,1,kz,'pbl_common:dzq')
     call getmem2d(rhox2d,1,jxp,1,iy,'pbl_common:rhox2d')
     call getmem2d(kpbl,1,jxp,1,iy,'pbl_common:kpbl')
     call getmem2d(zpbl,1,jxp,1,iy,'pbl_common:zpbl')
+
     !
     ! Allocate the tcm state variables
     !
     if ( ibltyp == 2 .or. ibltyp == 99) then
       call allocate_tcm_state(uwstatea,.true.)
       call allocate_tcm_state(uwstateb,.true.)
+      if(ichem == 1)then
+        call getmem4d(chiuwten,1,iy,1,kz,1,jxp,1,ntr,'pbl_common:chiuwten')
+        call getmem3d(chifxuw,1,iy,1,jxp,1,ntr,'pbl_common:chifxuw')
+      end if
     end if
   end subroutine allocate_mod_pbl_common
 !

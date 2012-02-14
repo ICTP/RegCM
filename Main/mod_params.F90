@@ -721,7 +721,7 @@ module mod_params
   call allocate_mod_atm_interface(ibltyp)
   call allocate_mod_tend
   call allocate_mod_bdycon(iboudy,lband)
-  call allocate_mod_pbl_common(ibltyp)
+  call allocate_mod_pbl_common(ibltyp,ichem)
   call allocate_mod_cu_common
   call allocate_mod_precip
   call allocate_mod_split
