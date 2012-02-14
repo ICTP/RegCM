@@ -71,11 +71,11 @@ module mod_init
 #endif
   implicit none
 !
-  integer :: i , ist , j , k , n
+  integer :: i , j , k , n , ist
   type (rcm_time_and_date) :: icbc_date
   real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  integer :: mmrec , maxj , ierr
+  integer :: mmrec , ierr
 
   tgmx_o(:,:) = -1.E30
   tgmn_o(:,:) =  1.E30
@@ -99,12 +99,6 @@ module mod_init
     call open_icbc(icbc_date)
   end if
 !
-#ifdef BAND
-  maxj = jx
-#else
-  maxj = jxm1
-#endif
-
   !
   ! for initial run--not using restart
   !
@@ -369,7 +363,9 @@ module mod_init
     call deco1_exchange_left(sfs%psb,1,icross1,icross2)
     call deco1_exchange_right(sfs%psb,1,icross1,icross2)
 
-    call deco1_scatter(fcc_io,fcc,jcross1,jcross2,icross1,icross2,1,kz)
+    if ( ipptls == 1 ) then
+      call deco1_scatter(fcc_io,fcc,jcross1,jcross2,icross1,icross2,1,kz)
+    end if
     call deco1_scatter(heatrt_io,heatrt,jcross1,jcross2,icross1,icross2,1,kz)
     call deco1_scatter(o3prof_io,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
 
@@ -489,7 +485,7 @@ module mod_init
     call deco1_scatter(fbat_io,fbat, &
                        jout1,jout2,iout1,iout2,numbat-numsts+1,numbat)
 
-    call deco1_scatter(dstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
+    call deco1_scatter(dstor_io,dstor,jdot1,jdot2,idot1,idot2,1,nsplit)
     call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
     call deco1_scatter(sue_io,sue,jdot1,jdot2,1,kz)
@@ -527,8 +523,8 @@ module mod_init
 
     dt = dt2    ! First timestep successfully read in
     dtcum = dt2
-    dtpbl = dt2
     dtche = dt2
+    dtpbl = dt2
     rdtpbl = d_one/dt2
     dttke = dt2
 

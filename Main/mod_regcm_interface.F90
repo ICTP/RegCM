@@ -323,7 +323,7 @@ module mod_regcm_interface
       iexec  = 1
     end if
     if ( ifrest ) then
-      iexec = 3
+      iexec  = 3
     end if
 !
 !**********************************************************************

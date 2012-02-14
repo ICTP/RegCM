@@ -317,7 +317,9 @@ module mod_output
       call deco1_gather(sfs%uvdrag,sfs_io%uvdrag, &
                         jcross1,jcross2,icross1,icross2)
 
-      call deco1_gather(fcc,fcc_io,jcross1,jcross2,icross1,icross2,1,kz)
+      if ( ipptls == 1 ) then
+        call deco1_gather(fcc,fcc_io,jcross1,jcross2,icross1,icross2,1,kz)
+      end if
       call deco1_gather(heatrt,heatrt_io,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(o3prof,o3prof_io,jcross1,jcross2,icross1,icross2,1,kzp1)
 
