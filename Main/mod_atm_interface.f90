@@ -548,10 +548,8 @@ module mod_atm_interface
 
       call allocate_diffx(adf)
 
-      call getmem3d(dstor,0,jxp+1,idot1,idot2, &
-                    1,nsplit,'mod_atm_interface:dstor')
-      call getmem3d(hstor,0,jxp+1,idot1,idot2, &
-                    1,nsplit,'mod_atm_interface:hstor')
+      call getmem3d(dstor,1,jxp,idot1,idot2,1,nsplit,'mod_atm_interface:dstor')
+      call getmem3d(hstor,1,jxp,idot1,idot2,1,nsplit,'mod_atm_interface:hstor')
 !
       call getmem2d(hgfact,1,jxp,idot1,idot2,'mod_atm_interface:hgfact')
       call getmem2d(psdot,1,jxp,idot1,idot2,'mod_atm_interface:psdot')
