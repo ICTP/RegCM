@@ -1111,6 +1111,23 @@ module mod_date
           call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
         end if
         iunit = uhrs
+      else if (cunit(1:7) == 'seconds') then
+        ! Unit is seconds since reference
+        if (len_trim(cunit) >= 32) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 29) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 26) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = usec
       else if (cunit(1:4) == 'days') then
         ! Unit is days since reference
         if (len_trim(cunit) >= 30) then

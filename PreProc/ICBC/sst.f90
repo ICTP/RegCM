@@ -89,7 +89,8 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp == 'E_ICH' ) then
+  else if ( ssttyp == 'EC_RF' .or. ssttyp == 'EC_45' .or. &
+            ssttyp == 'EC_85' ) then
     call sst_gnmnc
   else if ( ssttyp == 'IP_RF' .or. ssttyp == 'IP_45' .or. &
             ssttyp == 'IP_85' ) then

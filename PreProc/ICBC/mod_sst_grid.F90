@@ -40,7 +40,7 @@ module mod_sst_grid
   real(sp) , pointer , dimension(:) :: yiy
   real(sp) , pointer , dimension(:) :: xjx
 
-  public :: init_grid , free_grid , read_domain , open_sstfile , &
+  public :: init_grid , read_domain , open_sstfile , &
             close_sstfile , writerec
 
   contains

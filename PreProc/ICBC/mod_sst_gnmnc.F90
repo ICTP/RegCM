@@ -114,6 +114,9 @@ module mod_sst_gnmnc
   else if ( ssttyp == "HA_85" ) then
     inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
     varname(2) = 'ts'
+  else if ( ssttyp == 'EC_RF' ) then
+    inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
+    varname(2) = 'sst'
   else if ( ssttyp == 'IP_RF' ) then
     inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_historical_r1i1p1_185001-200512.nc'
     varname(2) = 'tos'
