@@ -251,7 +251,7 @@ module mod_pbl_uwtcm
         qfxx = qfx(j,i)
         hfxx = hfx(j,i)
         uvdragx = uvdrag(j,i)
-        if(lchem)chifxx(:) = chifxuw(i,j,:)
+        if ( lchem ) chifxx(:) = chifxuw(j,i,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
@@ -271,8 +271,7 @@ module mod_pbl_uwtcm
           qcx(k) = qcatm(j,i,k)
           ux(k)  = uatm(j,i,k)
           vx(k)  = vatm(j,i,k)
-
-          if(lchem)chix(:,k) = chmx(i,k,j,:)
+          if ( lchem ) chix(:,k) = chmx(j,i,k,:)
 
           ! if ( tx(k) > tzero ) then
 !         if ( tx(k) > tzero ) then
@@ -319,7 +318,7 @@ module mod_pbl_uwtcm
           qxs(k) = qx(k)
           qcxs(k) = qcx(k)
 
-          if(lchem)chixs(:,k) = chix(:,k)
+          if ( lchem ) chixs(:,k) = chix(:,k)
 
           ! density at half levels
           rhoxhl(k)=preshl(k)*d_1000/(rgas*tvx(k))
@@ -714,7 +713,7 @@ module mod_pbl_uwtcm
           qcuwten(j,i,k) = psbx*(qcx(k)-qcxs(k))*rdtpbl
 
           ! Tracer tendency
-          if(lchem)chiuwten(i,k,j,:) = psbx*(chix(:,k) - chixs(:,k))*rdtpbl
+          if ( lchem ) chiuwten(j,i,k,:) = psbx*(chix(:,k) - chixs(:,k))*rdtpbl
 
           ! Momentum diffusivity
           uwstateb%kzm(j,i,k) = kzm(k)

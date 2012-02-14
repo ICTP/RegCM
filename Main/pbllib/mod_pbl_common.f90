@@ -81,6 +81,8 @@ module mod_pbl_common
   real(dp) :: rdtpbl ! 1/dt
   real(dp) :: dttke ! TKE time step
   real(dp) :: tkemin
+  real(dp) , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
+  real(dp) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
 
   !
   ! Specific instances of the model's state variables (at the b time step)
@@ -97,8 +99,6 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
   real(dp) , pointer , dimension(:,:,:) :: qvuwten   ! uwten%qv
   real(dp) , pointer , dimension(:,:,:) :: qcuwten   ! uwten%qc
-  real(dp) , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
-  real(dp) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
   real(dp) , pointer , dimension(:,:,:) :: uatm      ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vatm      ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
@@ -174,8 +174,8 @@ module mod_pbl_common
       call allocate_tcm_state(uwstatea,.true.)
       call allocate_tcm_state(uwstateb,.true.)
       if(ichem == 1)then
-        call getmem4d(chiuwten,1,iy,1,kz,1,jxp,1,ntr,'pbl_common:chiuwten')
-        call getmem3d(chifxuw,1,iy,1,jxp,1,ntr,'pbl_common:chifxuw')
+        call getmem4d(chiuwten,1,jxp,1,iy,1,kz,1,ntr,'pbl_common:chiuwten')
+        call getmem3d(chifxuw,1,jxp,1,iy,1,ntr,'pbl_common:chifxuw')
       end if
     end if
   end subroutine allocate_mod_pbl_common

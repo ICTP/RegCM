@@ -150,10 +150,10 @@ module mod_pbl_interface
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
-      if(lchem)then
-        chten(itcmstart:itcmend,:,jtcmstart:jtcmend,:) = &
-                  chten(itcmstart:itcmend,:,jtcmstart:jtcmend,:) +   &
-                  chiuwten(itcmstart:itcmend,:,jtcmstart:jtcmend,:)
+      if ( lchem ) then
+        chten(jtcmstart:jtcmend,itcmstart:itcmend,:,:) = &
+                  chten(jtcmstart:jtcmend,jtcmstart:jtcmend,:,:) +   &
+                  chiuwten(jtcmstart:jtcmend,itcmstart:itcmend,:,:)
       end if
 
       if ( .not. bRegridWinds ) then
