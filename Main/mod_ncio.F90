@@ -2572,8 +2572,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(jp1,ip1,k) > dlowval) then
-                dumio(j,i,k) = real(tke(jp1,ip1,k)/ps(jp1,ip1))
+              if (tke(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(tke(jp1,ip1,k))
               end if
             end do
           end do
@@ -2594,8 +2594,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(jp1,ip1,k) > dlowval) then
-                dumio(j,i,k) = real(kth(jp1,ip1,k)/ps(jp1,ip1))
+              if (kth(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(kth(jp1,ip1,k))
               end if
             end do
           end do
@@ -2616,8 +2616,8 @@ contains
               else
                 jp1 = j
               end if
-              if (qc(jp1,ip1,k) > dlowval) then
-                dumio(j,i,k) = real(kzm(jp1,ip1,k)/ps(jp1,ip1))
+              if (kzm(jp1,ip1,k) > dlowval) then
+                dumio(j,i,k) = real(kzm(jp1,ip1,k))
               end if
             end do
           end do
