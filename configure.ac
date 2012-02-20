@@ -58,57 +58,57 @@ AC_ARG_ENABLE(mpiserial,
   [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
 )
 
-USECPL="0"
-AC_ARG_WITH([esmf],
-  AC_HELP_STRING([--with-esmf=<yes|no|directory> (default=no)],
-            [Path to ESMF installation (default: ESMF_LIB environment)]),
-            [AS_CASE(["$with_esmf"],
-                     [no],[AC_MSG_CHECKING([for ESMF library])
-                           AC_MSG_RESULT([suppressed])],
-                     [yes],[AC_CHECK_FILE([$ESMF_LIB/esmf.mk],
-                           [AS_IF([test x"$PARALLEL" = x1],
-                                  [ESMF_PREFIX="${ESMF_LIB}"
-                                   USECPL="1"
-                                   AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
-                                  [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])])],
-                     [*],[ESMF_PREFIX=$with_esmf
-                          AS_IF([test -d "$ESMF_PREFIX"],
-                                [AS_IF([test x"$PARALLEL" = x1],
-                                       [USECPL="1" AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
-                                       [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])],
-                                [AC_MSG_NOTICE([$ESMF_PREFIX is not a directory! ESMF suppressed])])],
-            [AC_MSG_CHECKING([for ESMF library])
-             AC_MSG_RESULT([suppressed])]
-  )]
-)
-AM_CONDITIONAL([DO_COMPILE_LIBESMF], [test x"$USECPL" = x1])
-if eval "test x$USECPL = x1"; then
-  AC_MSG_WARN([Compiling CPL enabled code using ESMF library])
-  AC_SUBST(ESMF_PREFIX)
-fi
+#USECPL="0"
+#AC_ARG_WITH([esmf],
+#  AC_HELP_STRING([--with-esmf=<yes|no|directory> (default=no)],
+#            [Path to ESMF installation (default: ESMF_LIB environment)]),
+#            [AS_CASE(["$with_esmf"],
+#                     [no],[AC_MSG_CHECKING([for ESMF library])
+#                           AC_MSG_RESULT([suppressed])],
+#                     [yes],[AC_CHECK_FILE([$ESMF_LIB/esmf.mk],
+#                           [AS_IF([test x"$PARALLEL" = x1],
+#                                  [ESMF_PREFIX="${ESMF_LIB}"
+#                                   USECPL="1"
+#                                   AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
+#                                  [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])])],
+#                     [*],[ESMF_PREFIX=$with_esmf
+#                          AS_IF([test -d "$ESMF_PREFIX"],
+#                                [AS_IF([test x"$PARALLEL" = x1],
+#                                       [USECPL="1" AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
+#                                       [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])],
+#                                [AC_MSG_NOTICE([$ESMF_PREFIX is not a directory! ESMF suppressed])])],
+#            [AC_MSG_CHECKING([for ESMF library])
+#             AC_MSG_RESULT([suppressed])]
+#  )]
+#)
+#AM_CONDITIONAL([DO_COMPILE_LIBESMF], [test x"$USECPL" = x1])
+#if eval "test x$USECPL = x1"; then
+#  AC_MSG_WARN([Compiling CPL enabled code using ESMF library])
+#  AC_SUBST(ESMF_PREFIX)
+#fi
 
-AC_ARG_WITH([roms],
-  AC_HELP_STRING([--with-roms=<no|directory> (default=no)],
-            [Path to ROMS installation (default: none)]),
-            [AS_CASE(["$with_roms"],
-                     [no],[AC_MSG_CHECKING([for ROMS coupling])
-                           AC_MSG_RESULT([suppressed])],
-                     [yes],[AC_MSG_NOTICE([The ROMS installation directory must be given! ROMS coupling suppressed])],
-                     [*],[ROMS_PREFIX=$with_roms
-                          AS_IF([test -d "$ROMS_PREFIX"],
-                                [AS_IF([test x"$PARALLEL" = x1 & test x"$USECPL" = x1],
-                                       [USEROMS="1"],
-                                       [AC_MSG_NOTICE([ROMS coupling works only with MPI and ESMF version])])],
-                                [AC_MSG_NOTICE([$ROMS_PREFIX is not a directory! ROMS coupling suppressed])])],
-            [AC_MSG_CHECKING([for ROMS coupling])
-             AC_MSG_RESULT([suppressed])]
-  )]
-)
-AM_CONDITIONAL([DO_COMPILE_ROMS], [test x"$USEROMS" = x1])
-if eval "test x$USEROMS = x1"; then
-  AC_MSG_WARN([Compiling with ROMS model])
-  AC_SUBST(ROMS_PREFIX)
-fi
+#AC_ARG_WITH([roms],
+#  AC_HELP_STRING([--with-roms=<no|directory> (default=no)],
+#            [Path to ROMS installation (default: none)]),
+#            [AS_CASE(["$with_roms"],
+#                     [no],[AC_MSG_CHECKING([for ROMS coupling])
+#                           AC_MSG_RESULT([suppressed])],
+#                     [yes],[AC_MSG_NOTICE([The ROMS installation directory must be given! ROMS coupling suppressed])],
+#                     [*],[ROMS_PREFIX=$with_roms
+#                          AS_IF([test -d "$ROMS_PREFIX"],
+##                                [AS_IF([test x"$PARALLEL" = x1 & test x"$USECPL" = x1],
+#                                       [USEROMS="1"],
+#                                       [AC_MSG_NOTICE([ROMS coupling works only with MPI and ESMF version])])],
+#                                [AC_MSG_NOTICE([$ROMS_PREFIX is not a directory! ROMS coupling suppressed])])],
+#            [AC_MSG_CHECKING([for ROMS coupling])
+#             AC_MSG_RESULT([suppressed])]
+#  )]
+#)
+#AM_CONDITIONAL([DO_COMPILE_ROMS], [test x"$USEROMS" = x1])
+#if eval "test x$USEROMS = x1"; then
+#  AC_MSG_WARN([Compiling with ROMS model])
+#  AC_SUBST(ROMS_PREFIX)
+#fi
 
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
