@@ -43,7 +43,7 @@ module mod_header
       start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
                    timearr(5)*secph+ timearr(6)*secpm + &
                    dble(timearr(7)) + d_r1000*timearr(8)
-      write (nrite,"(/,2x,'This is RegCM branch regcm-core')")
+      write (nrite,"(/,2x,'This is RegCM trunk')")
       write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
     end if
 
