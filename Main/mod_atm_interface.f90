@@ -22,6 +22,7 @@ module mod_atm_interface
   use mod_dynparam
   use mod_constants , only : d_rfour
   use mod_runparams
+  use mod_mppparam
   use mod_memutil
   use mpi
 
@@ -102,37 +103,6 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:) :: bt
   end type v2dbound
 
-  ! D stands for DOT
-  integer :: ide1 , ide2 ! External i (included bdy) (latitude)
-  integer :: jde1 , jde2 ! External j (included bdy) (longitude)
-  integer :: idi1 , idi2 ! Internal (excluded first and last line) i
-  integer :: jdi1 , jdi2 ! Internal (excluded first and last column) j
-  integer :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
-  integer :: jdii1 , jdii2 ! Internal (excluded 2 lines and cols) j
-
-  ! C stands for CROSS
-  integer :: ice1 , ice2 ! External (included bdy) i (latitude)
-  integer :: jce1 , jce2 ! External (included bdy) j (longitude)
-  integer :: ici1 , ici2 ! Internal (excluded first and last line) i
-  integer :: jci1 , jci2 ! Internal (excluded first and last column) j
-  integer :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
-  integer :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
-
-  ! J index Dot points Full Domain  = jde 1 : begin , 2 : end
-  ! I index Cross points Internal Domain = ici 1 : begin , 2 : end
-
-  public :: ide1 , ide2 , jde1 , jde2
-  public :: idi1 , idi2 , jdi1 , jdi2
-  public :: idii1 , idii2 , jdii1 , jdii2
-  public :: ice1 , ice2 , jce1 , jce2
-  public :: ici1 , ici2 , jci1 , jci2
-  public :: icii1 , icii2 , jcii1 , jcii2
-
-  type model_area
-    logical :: bandflag
-    logical :: hasleft , hasright , hastop , hasbottom
-  end type model_area
-
   type bound_area
     logical :: dotflag
     logical :: havebound
@@ -157,7 +127,6 @@ module mod_atm_interface
   type(v3dbound) , public :: xtb , xqb , xub , xvb
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
-  type(model_area) , public :: ma
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
   public :: allocate_surfstate

@@ -22,6 +22,7 @@ module mod_split
 ! Split explicit time integration
 !
   use mod_dynparam
+  use mod_mppparam
   use mod_runparams
   use mod_atm_interface
   use mod_vmodes

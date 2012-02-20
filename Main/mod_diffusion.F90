@@ -23,6 +23,7 @@ module mod_diffusion
 !
   use mod_atm_interface
   use mod_runparams
+  use mod_mppparam
   use mod_service 
   private
 

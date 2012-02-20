@@ -39,7 +39,7 @@ mod_realkinds.o mod_realkinds.mod: mod_realkinds.f90
 mod_mpmessage.o mod_mpmessage.mod: mod_mpmessage.f90 mod_stdio.o mod_dynparam.o
 	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 mod_mppparam.o mod_mppparam.mod: mod_mppparam.F90 mod_dynparam.o mod_date.o \
-  mod_message.o mod_realkinds.o
+  mod_message.o mod_realkinds.o mod_memutil.o
 	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 mod_mppgrid.o mod_mppgrid.mod: mod_mppgrid.F90 mod_message.o mod_realkinds.o \
   mod_stdio.o mod_memutil.o

@@ -21,6 +21,7 @@ module mod_output
 
   use mod_runparams
   use mod_mpmessage
+  use mod_mppparam
   use mod_service
   use mod_atm_interface
   use mod_che_interface

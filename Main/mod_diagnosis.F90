@@ -26,6 +26,7 @@ module mod_diagnosis
   use mod_runparams
   use mod_atm_interface
   use mod_che_interface
+  use mod_mppparam
   use mod_mppio
   use mod_memutil
 !

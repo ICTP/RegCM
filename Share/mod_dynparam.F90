@@ -203,6 +203,25 @@ module mod_dynparam
   integer :: jout1 , iout1
   integer :: jout2 , iout2
 !
+  ! D stands for DOT
+  integer :: ide1 , ide2 ! External i (included bdy) (latitude)
+  integer :: jde1 , jde2 ! External j (included bdy) (longitude)
+  integer :: idi1 , idi2 ! Internal (excluded first and last line) i
+  integer :: jdi1 , jdi2 ! Internal (excluded first and last column) j
+  integer :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
+  integer :: jdii1 , jdii2 ! Internal (excluded 2 lines and cols) j
+
+  ! C stands for CROSS
+  integer :: ice1 , ice2 ! External (included bdy) i (latitude)
+  integer :: jce1 , jce2 ! External (included bdy) j (longitude)
+  integer :: ici1 , ici2 ! Internal (excluded first and last line) i
+  integer :: jci1 , jci2 ! Internal (excluded first and last column) j
+  integer :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
+  integer :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
+
+  ! J index Dot points Full Domain  = jde1 : begin , jde2 : end
+  ! I index Cross points Internal Domain = ici1 : begin , ici2 : end
+
 !####################### MPI parameters ################################
 
   integer :: mycomm
