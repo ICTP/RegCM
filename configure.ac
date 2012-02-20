@@ -86,6 +86,7 @@ AC_ARG_ENABLE(mpiserial,
 #  AC_MSG_WARN([Compiling CPL enabled code using ESMF library])
 #  AC_SUBST(ESMF_PREFIX)
 #fi
+AM_CONDITIONAL([DO_COMPILE_LIBESMF], [0])
 
 #AC_ARG_WITH([roms],
 #  AC_HELP_STRING([--with-roms=<no|directory> (default=no)],

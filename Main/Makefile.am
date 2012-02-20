@@ -76,14 +76,14 @@ regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
 
 FCLD = $(MPIFC)
 
-#if DO_COMPILE_LIBESMF
-#LIBS += $(ESMFLIBPTH) 
-#CPPFLAGS += $(ESMFINCPTH) -I$(ROMS_PREFIX)
-#regcm_SOURCES += mod_esmf_atm.F90 mod_esmf_ocn.F90 \
-#                 mod_esmf_cpl.F90 mod_couplerr.F90
-#skip_files  = $(ROMS_PREFIX)/master.o
-#regcm_LDADD = $(filter-out $(skip_files), $(wildcard $(ROMS_PREFIX)/*.o))
-#endif
+if DO_COMPILE_LIBESMF
+LIBS += $(ESMFLIBPTH) 
+CPPFLAGS += $(ESMFINCPTH) -I$(ROMS_PREFIX)
+regcm_SOURCES += mod_esmf_atm.F90 mod_esmf_ocn.F90 \
+                 mod_esmf_cpl.F90 mod_couplerr.F90
+skip_files  = $(ROMS_PREFIX)/master.o
+regcm_LDADD = $(filter-out $(skip_files), $(wildcard $(ROMS_PREFIX)/*.o))
+endif
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -165,12 +165,12 @@ mod_vmodes.o: mod_vmodes.F90 mod_runparams.o
 #
 # ESMF modules 
 #
-#if DO_COMPILE_LIBESMF
-#mod_couplerr.o: mod_couplerr.F90
-#mod_esmf_atm.o: mod_esmf_atm.F90 mod_regcm_interface.o mod_couplerr.o
-#mod_esmf_ocn.o: mod_esmf_ocn.F90 mod_regcm_interface.o mod_couplerr.o
-#mod_esmf_cpl.o: mod_esmf_cpl.F90 mod_regcm_interface.o mod_couplerr.o
-#endif
+if DO_COMPILE_LIBESMF
+mod_couplerr.o: mod_couplerr.F90
+mod_esmf_atm.o: mod_esmf_atm.F90 mod_regcm_interface.o mod_couplerr.o
+mod_esmf_ocn.o: mod_esmf_ocn.F90 mod_regcm_interface.o mod_couplerr.o
+mod_esmf_cpl.o: mod_esmf_cpl.F90 mod_regcm_interface.o mod_couplerr.o
+endif
 #
 # RegCM Main Program
 #
@@ -178,11 +178,11 @@ mod_regcm_interface.o: mod_regcm_interface.F90 mod_runparams.o mod_init.o \
   mod_ncio.o mod_output.o mod_split.o mod_header.o mod_params.o mod_tendency.o \
   mod_tstep.o mod_mppio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-#if DO_COMPILE_LIBESMF
-#regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90 \
-#         mod_couplerr.o mod_esmf_atm.o mod_esmf_ocn.o mod_esmf_cpl.o
-#	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-#else
+if DO_COMPILE_LIBESMF
+regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90 \
+         mod_couplerr.o mod_esmf_atm.o mod_esmf_ocn.o mod_esmf_cpl.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
+else
 regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-#endif
+endif
