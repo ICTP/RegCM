@@ -277,8 +277,6 @@ module mod_init
     zpbl(:,:) = 500.0D0  ! For Zeng Ocean Flux Scheme
     do i = ice1 , ice2
       do j = jce1 , jce2
-        sfs%tga(j,i) = atm1%t(j,i,kz)/sfs%psa(j,i)
-        sfs%tgb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
         sfs%tgbb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
       end do
     end do
@@ -295,9 +293,6 @@ module mod_init
     if (debug_level > 2) call initdiag
 #endif
 !
-    sfs%rainc(:,:)  = d_zero
-    sfs%rainnc(:,:) = d_zero
- 
     if ( icup==4 .or. icup==99 .or. icup==98) then
       cbmf2d(:,:) = d_zero
     end if
