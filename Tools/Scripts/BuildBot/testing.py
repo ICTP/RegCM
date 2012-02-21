@@ -23,7 +23,7 @@
 #
 
 # import system modules
-import os,sys,shutil,subprocess
+import os,sys,shutil,subprocess,time
 
 # import own modules
 import parsing_editing,nc_stuff
@@ -169,6 +169,11 @@ def main(argv):
                 os.sys.exit(exit_status)
         
             p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
+            while not p_terrain.poll():
+               if p_terrain.returncode is not None: break
+               print "   ...Terrain: still alive..."
+               time.sleep(10)
+
             if p_terrain.wait() != 0:
                 print "\nError: Terrain in",testname,"crashed!!\n"
                 exit_status = 1
@@ -180,6 +185,10 @@ def main(argv):
                 os.sys.exit(exit_status)
     
             p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
+            while not p_sst.poll():
+               if p_sst.returncode is not None: break
+               print "   ...SST: still alive..."
+               time.sleep(10)
             if p_sst.wait() != 0:
                 print "\nError: SST in",testname,"crashed!!\n"
                 exit_status = 1
@@ -191,6 +200,10 @@ def main(argv):
                 os.sys.exit(exit_status)
             
             p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
+            while not p_icbc.poll():
+               if p_icbc.returncode is not None: break
+               print "   ...ICBC: still alive..."
+               time.sleep(10)
             if p_icbc.wait() != 0:
                 print "\nError: ICBC in",testname,"crashed!!\n"
                 exit_status = 1
@@ -203,6 +216,10 @@ def main(argv):
                     os.sys.exit(exit_status)
                     
                 p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist,stdout=log,stderr=log,shell=True)
+                while not p_clmpre.poll():
+                    if p_clmpre.returncode is not None: break
+                    print "   ...CLMPRE: still alive..."
+                    time.sleep(10)
                 if p_clmpre.wait() != 0:
                     print "\nError: clm2rcm in",testname,"crashed!!\n"
                     exit_status = 1
@@ -242,7 +259,11 @@ def main(argv):
                 log.close()
                 os.sys.exit(exit_status)
             
-            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True) 
+            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True)
+            while not p_regcm.poll():
+               if p_regcm.returncode is not None: break
+               print "   ...RegCM: still alive..."
+               time.sleep(10)
             if p_regcm.wait() != 0:
                 print "\nError: RegCM",testname,"crashed!!\n"
                 exit_status = 1
