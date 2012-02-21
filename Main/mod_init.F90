@@ -108,7 +108,7 @@ module mod_init
     !
     atm1%qc(:,:,:) = d_zero
     atm2%qc(:,:,:) = d_zero
-!
+    !
     if ( ichem == 1 ) then
       !qhy tchie, tchitb(replace tchidp:deposition)
       !    initialize removal terms

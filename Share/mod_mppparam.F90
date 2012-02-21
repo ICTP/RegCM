@@ -91,6 +91,7 @@ module mod_mppparam
                      deco1_4d_real8_exchange_right
   end interface deco1_exchange_right
 
+  public :: model_area
   type(model_area) , public :: ma
 !
   real(dp) , pointer , dimension(:) :: r8vector1
