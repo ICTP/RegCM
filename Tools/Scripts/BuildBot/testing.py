@@ -138,11 +138,11 @@ def main(argv):
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
         if (run_clm == 1) :
-	    try :
-            	shutil.copy(datadir+"/CLM/pft-physiology.c070207",simdir+"/input") # hardcoded for now
-	    except IOError :
-		print "File",datadir+"/CLM/pft-physiology.c070207","not found. Stopping execution."
-		os.sys.exit(1)
+            try :
+                shutil.copy(datadir+"/CLM/pft-physiology.c070207",simdir+"/input") # hardcoded for now
+            except IOError :
+                print "File",datadir+"/CLM/pft-physiology.c070207","not found. Stopping execution."
+                os.sys.exit(1)
             
         # find idate0 and edit namelist for desired sim length
         idate0 = parsing_editing.parse_dates(namelist,simdays)
@@ -270,7 +270,7 @@ def main(argv):
                 srf_diff[var] = nc_stuff.compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
                 print var+" =",srf_diff[var]
 
-	sys.stdout.flush()
+    sys.stdout.flush()
 
     # end of the big loop
     if exit_status == 1:
