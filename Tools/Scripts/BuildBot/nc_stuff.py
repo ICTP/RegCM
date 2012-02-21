@@ -29,20 +29,32 @@ def compare_nc_file(filename,refname,varname):
     #print filename
     #print refname
     
-    try :
-        p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+    try:
+        p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        output, error = "", ""
+        for i in output:
+            print i,
+            output+="O: %s" % i
+        for i in error:
+            print i,
+            error+="E: %s" % i
     except OSError :
         print "Could not run ncdiff!"
-        output,error = p_1.communicate()
-        return output
+        return output+'\n'+error
 
     if p_1.wait() == 0 :
-        try :
+        try:
             p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        output, error = "", ""
+        for i in output:
+            print i,
+            output+="O: %s" % i
+        for i in error:
+            print i,
+            error+="E: %s" % i
         except OSError :
            print "Could not run ncwa!"
-           output,error = p_2.communicate()
-           return output  
+           return output+'\n'+error
     else :
         print "Step 1 failed!"
         output,error = p_1.communicate()
@@ -52,10 +64,15 @@ def compare_nc_file(filename,refname,varname):
         os.remove("temp.nc")
         try :
             p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            for i in output:
+                print i,
+                output+="O: %s" % i
+            for i in error:
+                print i,
+                error+="E: %s" % i
         except OSError :
             print "Could not run ncks!"
-            output,error = p_3.communicate()
-            return output
+            return output+'\n'+error
     else :
         print "Step 2 failed!"
         output,error = p_2.communicate()
