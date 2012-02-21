@@ -38,7 +38,7 @@ def compare_nc_file(filename,refname,varname):
 
     if p_1.wait() == 0 :
         try :
-            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
         except OSError :
            print "Could not run ncwa!"
            output,error = p_2.communicate()
