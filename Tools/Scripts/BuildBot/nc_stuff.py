@@ -45,13 +45,13 @@ def compare_nc_file(filename,refname,varname):
     if p_1.wait() == 0 :
         try:
             p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-        output, error = "", ""
-        for i in output:
-            print i,
-            output+="O: %s" % i
-        for i in error:
-            print i,
-            error+="E: %s" % i
+            output, error = "", ""
+            for i in output:
+                print i,
+                output+="O: %s" % i
+            for i in error:
+                print i,
+                error+="E: %s" % i
         except OSError :
            print "Could not run ncwa!"
            return output+'\n'+error
