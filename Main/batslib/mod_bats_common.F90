@@ -107,8 +107,6 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
   real(dp) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(dp) , pointer , dimension(:,:) :: ht            ! mddom%ht
-  real(dp) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
-  real(dp) , pointer , dimension(:,:) :: lndcatf       ! mddom_io%lndcat
   real(dp) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d

@@ -728,8 +728,8 @@ module mod_params
   call allocate_mod_mppio
 
   call allocate_mod_bats_common(ichem,idcsst,lakemod)
-  call allocate_mod_bats_mppio(lakemod)
 #ifndef CLM
+  call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_bats_romsocn
 #else
   call allocate_mod_clm(lband)
@@ -922,9 +922,9 @@ module mod_params
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
-  call getmem2d(landmask,1,jx,1,iy,'param:landmask')
+  allocate(landmask(jx,iy))
   call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
-                za,ts1,ts0_io,rhox2d,landmask)
+                za,ts1,ts0_io,rhox2d,zpbl,landmask)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
                  za,ts1,rhox2d,zpbl)

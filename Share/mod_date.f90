@@ -118,11 +118,11 @@ module mod_date
   public :: operator(>) , operator(<) , operator(>=) , &
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
-  public :: setcal , date_time_to_internal , internal_to_date_time
+  public :: setcal
   public :: tochar , toint10 , tohours
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
-  public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
+  public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
   public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
   public :: split_idate , julianday
   public :: getyear , getmonth , getday

@@ -143,6 +143,7 @@ module mod_clm
 
   real(dp) , pointer , dimension(:,:) :: xlon     ! mddom%xlon
   real(dp) , pointer , dimension(:,:) :: htf      ! mddom_io%ht
+  real(dp) , pointer , dimension(:,:) :: lndcatf  ! mddom_io%lndcat
 !
   contains
 !

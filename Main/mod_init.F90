@@ -551,9 +551,11 @@ module mod_init
   
   if ( ktau == 0 ) then
     call initb(jci1,jci2,ici1,ici2)
+#ifndef CLM
     if ( lakemod == 1 ) then
       call subgrid_deco1_gather(idep,idep_io,jcross1,jcross2,icross1,icross2)
     end if
+#endif
   end if
 
   if ( iemiss == 1 .and. ktau == 0 ) then

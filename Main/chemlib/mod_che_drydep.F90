@@ -643,7 +643,7 @@ module mod_che_drydep
                  wind10 , zeff, drydepvg)
 
 #ifdef CLM
-       use clm_drydep, only : c2rvdep
+!       use clm_drydep, only : c2rvdep
 #endif
 
        use mod_che_indices
@@ -770,24 +770,24 @@ module mod_che_drydep
 
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
-
-       jj = j + (jxp*myid)
-
-          do i=2,iym2
-          do n = 1, ntr
-
-! use clm dry deposition velocity
-            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
-             ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
-!update chiten
-             chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
-!drydep flux diagnostic (accumulated between two outputs time step) 
-             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
+  ! Need to solve this, cannot reach c2rvdep from here.
+!       jj = j + (jxp*myid)
 !
-!          drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
-          end do
-          end do
-          end if
+!          do i=2,iym2
+!          do n = 1, ntr
+!
+!! use clm dry deposition velocity
+!            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
+!             ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
+!!update chiten
+!             chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
+!!drydep flux diagnostic (accumulated between two outputs time step) 
+!             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
+!!
+!!          drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
+!          end do
+!          end do
+!          end if
 #endif
 
 

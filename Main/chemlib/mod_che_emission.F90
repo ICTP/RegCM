@@ -200,10 +200,9 @@ module mod_che_emission
 !
 #ifdef CLM
 #if (defined VOC)
-  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin, &
-                       c2r_voc,bvoc_trmask,dsigma)
+  subroutine emis_tend(ktau,j,lmonth,c2r_voc,bvoc_trmask)
 #else
-  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+  subroutine emis_tend(ktau,j,lmonth)
 #endif  
 #else
 !FAB: no dirunal evol for now:  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
