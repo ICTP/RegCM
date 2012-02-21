@@ -62,7 +62,6 @@
  &aerosolparam
  aertyp = 'AER11D1'
  ntr = 2,
- nbin = 4,
  /
  &restartparam
  ifrest  = .false. ,
