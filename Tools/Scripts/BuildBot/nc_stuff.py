@@ -58,7 +58,7 @@ def compare_nc_file(filename,refname,varname):
     else :
         print "Step 1 failed!"
         output,error = p_1.communicate()
-        return output
+        return output+'\n'+error
 
     if p_2.wait() == 0 :
         os.remove("temp.nc")
@@ -76,7 +76,7 @@ def compare_nc_file(filename,refname,varname):
     else :
         print "Step 2 failed!"
         output,error = p_2.communicate()
-        return output    
+        return output+'\n'+error    
     
     if p_3.wait() != 0:
         print "Step 3 failed!"
@@ -86,4 +86,4 @@ def compare_nc_file(filename,refname,varname):
         os.remove("rms.nc")
         output,error = p_3.communicate()
         
-    return output
+    return output+'\n'+error
