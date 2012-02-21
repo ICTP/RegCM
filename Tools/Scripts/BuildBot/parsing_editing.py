@@ -52,47 +52,47 @@ def parse_dates(namelist,simdays):
     infile = open(namelist,"r")
     file_content = infile.readlines()
     infile.close()
-        
+    mdate0 = mdate1 = mdate2 = None
     for line in file_content:
             #if line.find("globidate1") > -1 :
             #    linea=line.rsplit("=")
             #    globidate1=linea[1]
             #    globidate1=filter(lambda x:x.isdigit(),globidate1)
-            if line.find(" idate0 ") > -1 :
+            if line.find(" mdate0 ") > -1 :
                 linea=line.rsplit("=")
-                idate0=linea[1]
-                idate0=filter(lambda x:x.isdigit(),idate0)
+                mdate0=linea[1]
+                mdate0=filter(lambda x:x.isdigit(),mdate0)
             #if line.find(" idate1 ") > -1 :
             #   linea=line.rsplit("=")
             #   idate1=linea[1]
             #   idate1=filter(lambda x:x.isdigit(),idate1)
-            if line.find(" idate2 ") > -1 :
+            if line.find(" mdate2 ") > -1 :
                 linea=line.rsplit("=")
-                idate2=linea[1]
-                idate2=filter(lambda x:x.isdigit(),idate2)
+                mdate2=linea[1]
+                mdate2=filter(lambda x:x.isdigit(),mdate2)
                 
-    year = int(idate0[:4])
-    month = int(idate0[4:6])
-    day_start = int(idate0[6:8])
-    day_end = int(idate2[6:8])
+    year = int(mdate0[:4])
+    month = int(mdate0[4:6])
+    day_start = int(mdate0[6:8])
+    day_end = int(mdate2[6:8])
 
     maxdate = calendar.monthrange(year,month)[1]
 
     if (day_start + simdays) <= maxdate :
-    	day_end = day_start + simdays
+        day_end = day_start + simdays
     else :
-	day_end = maxdate
+		day_end = maxdate
 
-    #print idate2
+    #print mdate2
     #print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
         
     for line in fileinput.FileInput(namelist,inplace=1):
-        line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
+        line = line.replace(mdate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
         print line.rstrip()
 
     fileinput.close()
 
-    return idate0 # if others needed will put a list as output
+    return mdate0 # if others needed will put a list as output
 
 # parses config file and returns options; expects a list like
 #
