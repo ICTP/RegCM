@@ -467,9 +467,10 @@ module mod_cu_grell
 !
 !   determine level with highest moist static energy content.
 !
+    call maximi2(he,1,kbmax2d,k22,jstart,jend,istart,iend)
+
     do i = istart , iend
       do j = jstart , jend
-        call maximi(he,1,kbmax2d(j,i),k22,jstart,jend,istart,iend)
         if ( xac(j,i) >= d_zero ) then
           if ( k22(j,i) >= kbmax2d(j,i) ) then
             xac(j,i) = -d_one
@@ -555,7 +556,7 @@ module mod_cu_grell
 !   downdraft originating level
 !
     call minimi(he,kb,kz,kmin,jstart,jend,istart,iend)
-    call maximi(vsp,1,kz,kds,jstart,jend,istart,iend)
+    call maximi1(vsp,1,kz,kds,jstart,jend,istart,iend)
 !
 !   static control
 !
@@ -1178,7 +1179,7 @@ module mod_cu_grell
        call time_end(subroutine_name,idindx) 
      end subroutine minimi
 !
-     subroutine maximi(array,ks,ke,imax,jstart,jend,istart,iend)
+     subroutine maximi1(array,ks,ke,imax,jstart,jend,istart,iend)
 !
       implicit none
 !
@@ -1189,7 +1190,7 @@ module mod_cu_grell
       integer :: i , j , k
       real(dp) :: x , xar
 !
-      character (len=64) :: subroutine_name='maximi'
+      character (len=64) :: subroutine_name='maximi1'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1208,7 +1209,39 @@ module mod_cu_grell
       end do
 !
       call time_end(subroutine_name,idindx) 
-    end subroutine maximi
+    end subroutine maximi1
+
+     subroutine maximi2(array,ks,ke,imax,jstart,jend,istart,iend)
+!
+      implicit none
+!
+      integer , intent (in) :: jstart , jend , istart , iend , ks
+      real(dp) , intent(in) , dimension(:,:,:) :: array
+      integer , intent(out) , dimension(:,:) :: imax , ke
+!
+      integer :: i , j , k
+      real(dp) :: x , xar
+!
+      character (len=64) :: subroutine_name='maximi2'
+      integer :: idindx=0
+!
+      call time_begin(subroutine_name,idindx)
+      do i = istart , iend
+        do j = jstart , jend
+          imax(j,i) = ks
+          x = array(j,i,ks)
+          do k = ks , ke(j,i)
+            xar = array(j,i,k)
+            if ( xar >= x ) then
+              x = xar
+              imax(j,i) = k
+            end if
+          end do
+        end do
+      end do
+!
+      call time_end(subroutine_name,idindx) 
+    end subroutine maximi2
 
   end subroutine cup
 

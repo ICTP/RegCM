@@ -1517,7 +1517,7 @@ module mod_bdycod
 !
     real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer :: i , j , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge3d'
+    character (len=64) :: subroutine_name='nudge2d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

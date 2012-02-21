@@ -297,18 +297,17 @@ module mod_init
       cbmf2d(:,:) = d_zero
     end if
 !
-  else ! ifrest=.true.
-!
-!-----when ifrest=.true., read in the data saved from previous run
-!       for large domain
-!
+  else
+    !
+    ! when restarting, read in the data saved from previous run for large domain
+    !
     call read_savefile(bdydate1)
 !
     call mpi_bcast(ktau,1,mpi_integer8,0,mycomm,ierr)
     call mpi_bcast(mtau,1,mpi_integer8,0,mycomm,ierr)
     call mpi_bcast(nbdytime,1,mpi_integer8,0,mycomm,ierr)
     call date_bcast(idatex,0,mycomm,ierr)
-
+!
     mtau = mtau + ktau
     xbctime = dble(nbdytime)
 !
@@ -318,7 +317,7 @@ module mod_init
     call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
     call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
-
+!
     call deco1_exchange_left(xub%b1,1,idot1,idot2,1,kz)
     call deco1_exchange_right(xub%b1,1,idot1,idot2,1,kz)
     call deco1_exchange_left(xvb%b1,1,idot1,idot2,1,kz)
@@ -329,7 +328,7 @@ module mod_init
     call deco1_exchange_right(xqb%b1,1,icross1,icross2,1,kz)
     call deco1_exchange_left(xpsb%b1,1,icross1,icross2)
     call deco1_exchange_right(xpsb%b1,1,icross1,icross2)
-
+!
     call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%t,atm1%t,jcross1,jcross2,icross1,icross2,1,kz)
@@ -420,8 +419,8 @@ module mod_init
     call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(pptc_io,pptc,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
 
     if ( iseaice == 1 .or. lakemod == 1 ) then
@@ -557,7 +556,7 @@ module mod_init
     end if
   end if
 
-  if ( iemiss == 1 .and. .not. ifrest ) then
+  if ( iemiss == 1 .and. ktau == 0 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -619,7 +618,7 @@ module mod_init
 !-----set up output time:
 !
 #ifdef CLM
-  if ( ifrest ) then
+  if ( ktau /= 0 ) then
     ! CLM modifies landuse table. Get the modified one from
     ! restart file
     mddom%lndcat(:,:) = lndcat2d(:,:)

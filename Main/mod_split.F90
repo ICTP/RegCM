@@ -178,7 +178,10 @@ module mod_split
       end do
     end do
 !
-    if ( ifrest ) return
+    if ( ifrest ) then
+      call time_end(subroutine_name,idindx)
+      return
+    end if
 !
 !=======================================================================
 !
