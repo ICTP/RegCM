@@ -28,8 +28,6 @@ module mod_che_sox
   private
 
    real(dp)  ::  solso4
-   data  solsslt /0.9/ 
-
 
    public :: chemsox,solso4
 

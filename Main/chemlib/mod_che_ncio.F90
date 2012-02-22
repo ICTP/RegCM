@@ -678,6 +678,7 @@ end subroutine close_domain
   end subroutine read_emission
 
   subroutine rvar(ncid,istart,icount,ind,lmonth,echemsrc,cna,lh,cnb,cnc,cnd)
+    implicit none
     integer , intent(in) :: ncid
     integer , dimension(3) , intent(in) :: istart , icount
     integer , intent(in) :: lmonth
@@ -689,7 +690,7 @@ end subroutine close_domain
     character(len=*) , intent(in) , optional :: cnd
     integer :: ivarid 
     real(sp) , dimension(jx,iy) :: toto
-    integer :: i , j
+    integer :: i , j , ind
 
     istatus = nf90_inq_varid(ncid, cna, ivarid)     
     call check_ok(__FILE__,__LINE__, &
