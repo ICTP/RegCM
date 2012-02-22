@@ -148,10 +148,10 @@ else
 endif
 
 %.o: %.f90
-	$(FC) $(FPPFLAGS) $(FCFLAGS) -c $<
+	$(MPIFC) $(FPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(MPIFC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 %.o: %.c
 	$(CC) -o $@ $(CFLAGS) $(DEFFLAGS) -c $<
