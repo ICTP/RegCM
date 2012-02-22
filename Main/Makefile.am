@@ -53,10 +53,12 @@ LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 
 if COMPILER_SUN
   CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) -M$(CHELIBPTH) \
-              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH)
+              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) \
+							-M$(RRTMSWLIBPTH)
 else
   CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) -I$(CHELIBPTH) \
-              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH)
+              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) \
+							-I$(RRTMSWLIBPTH)
 endif
 
 LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LCUMLIB) \
@@ -109,7 +111,7 @@ mod_atm_interface.o: mod_atm_interface.f90 mod_runparams.o
 mod_bdycod.o: mod_bdycod.F90 mod_runparams.o mod_atm_interface.o \
   mod_lm_interface.o mod_che_interface.o mod_ncio.o mod_mppio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-mod_che_interface.o: mod_che_interface.F90 $(CHELIB)
+mod_che_interface.o: mod_che_interface.F90 $(CHELIB) mod_atm_interface.o
 mod_rad_interface.o: mod_rad_interface.f90 mod_lm_interface.o \
   mod_atm_interface.o mod_che_interface.o $(RADLIB)
 mod_cu_interface.o: mod_cu_interface.f90 mod_atm_interface.o $(CUMLIB)

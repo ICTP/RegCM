@@ -24,7 +24,6 @@ module mod_atm_interface
   use mod_runparams
   use mod_mppparam
   use mod_memutil
-  use mpi
 
   private
 

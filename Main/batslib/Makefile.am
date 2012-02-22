@@ -70,6 +70,6 @@ mod_bats_zengocn.o mod_bats_zengocn.mod : mod_bats_zengocn.F90 \
   mod_bats_common.o
 mod_bats_romsocn.o mod_bats_romsocn.mod : mod_bats_romsocn.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
-  mod_bats_common.o
+  mod_bats_common.o mod_bats_zengocn.o
 mod_bats_internal.o mod_bats_internal.mod: mod_bats_internal.f90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod
