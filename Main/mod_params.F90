@@ -922,9 +922,8 @@ module mod_params
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
-  allocate(landmask(jx,iy))
   call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
-                za,ts1,ts0_io,rhox2d,zpbl,landmask)
+                za,ts1,ts0_io,rhox2d,zpbl)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
                  za,ts1,rhox2d,zpbl)

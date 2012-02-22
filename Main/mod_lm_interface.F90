@@ -23,6 +23,7 @@ module mod_lm_interface
 !
   use mod_bats_common
   use mod_runparams, only : cpldt, dtsrf, dtsec
+  use mod_memutil
   use mod_atm_interface , only : slice , surfstate , domain
 #ifdef CLM
   use mod_mtrxclm
@@ -91,7 +92,7 @@ module mod_lm_interface
 !
 #ifdef CLM
   subroutine init_clm(dt,ksrf,ichem,iemiss,dom,dom1,atm,sfs,&
-                      za,ts1,ts0,rhox2d,zpbl,lm)
+                      za,ts1,ts0,rhox2d,zpbl)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -102,14 +103,12 @@ module mod_lm_interface
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: za
     real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d , &
             zpbl
-    integer , target , intent(in) , dimension(:,:) :: lm
 
     call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,za,ts1,rhox2d,zpbl)
     call assignpnt(ts0,tsf)
     call assignpnt(dom1%ht,htf)
     call assignpnt(dom1%lndcat,lndcatf)
     call assignpnt(dom%xlon,xlon)
-    call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif
 !

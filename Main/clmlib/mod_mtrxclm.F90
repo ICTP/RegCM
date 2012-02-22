@@ -199,9 +199,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !     Set elevation and BATS landuse type (abt added)
   if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
   if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
-  if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
   if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(iy,jx))
   if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
+  if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
+  if ( .not.allocated(landmask) ) allocate(landmask(jx,iy))
   if ( myid==0 ) then
     do j = 1 , jx
       do i = 1 , iy
