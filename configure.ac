@@ -435,6 +435,8 @@ else
   AC_SUBST(CPPFLAGS)
 fi
 LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
+SYSLIBS="$LIBS"
+AC_SUBST(SYSLIBS)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
