@@ -1217,7 +1217,8 @@ module mod_cu_grell
 !
       integer , intent (in) :: jstart , jend , istart , iend , ks
       real(dp) , intent(in) , dimension(:,:,:) :: array
-      integer , intent(out) , dimension(:,:) :: imax , ke
+      integer , intent(in) , dimension(:,:) :: ke
+      integer , intent(out) , dimension(:,:) :: imax
 !
       integer :: i , j , k
       real(dp) :: x , xar
