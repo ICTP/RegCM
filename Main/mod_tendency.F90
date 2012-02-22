@@ -461,6 +461,7 @@ module mod_tendency
     end do
 
     if ( ichem == 1 ) then
+#ifndef BAND
       call deco1_exchange_left(chieb,1,icross1,icross2,1,kz,1,ntr)
       call deco1_exchange_right(chieb,1,icross1,icross2,1,kz,1,ntr)
       call deco1_exchange_left(chiebt,1,icross1,icross2,1,kz,1,ntr)
@@ -469,6 +470,7 @@ module mod_tendency
       call deco1_exchange_right(chiwb,1,icross1,icross2,1,kz,1,ntr)
       call deco1_exchange_left(chiwbt,1,icross1,icross2,1,kz,1,ntr)
       call deco1_exchange_right(chiwbt,1,icross1,icross2,1,kz,1,ntr)
+#endif
       call deco1_exchange_left(chinb,1,1,nspgx,1,kz,1,ntr)
       call deco1_exchange_right(chinb,1,1,nspgx,1,kz,1,ntr)
       call deco1_exchange_left(chinbt,1,1,nspgx,1,kz,1,ntr)
