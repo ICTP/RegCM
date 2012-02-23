@@ -435,8 +435,8 @@ module mod_atm_interface
       if (lpar) then
         call getmem2d(sfs%psa,0,jxp+1,icross1,icross2,'surf:psa')
         call getmem2d(sfs%psb,0,jxp+1,icross1,icross2,'surf:psb')
-        call getmem2d(sfs%tga,1,jxp+1,icross1,icross2,'surf:tga')
-        call getmem2d(sfs%tgb,1,jxp+1,icross1,icross2,'surf:tgb')
+        call getmem2d(sfs%tga,1,jxp,icross1,icross2,'surf:tga')
+        call getmem2d(sfs%tgb,1,jxp,icross1,icross2,'surf:tgb')
         call getmem2d(sfs%hfx,1,jxp,icross1,icross2,'surf:hfx')
         call getmem2d(sfs%qfx,1,jxp,icross1,icross2,'surf:qfx')
         call getmem2d(sfs%rainc,1,jxp,icross1,icross2,'surf:rainc')

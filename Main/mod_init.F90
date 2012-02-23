@@ -76,7 +76,13 @@ module mod_init
   real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
   integer :: mmrec , ierr
-
+  character (len=64) :: subroutine_name='init'
+  integer :: idindx = 0
+!
+  call time_begin(subroutine_name,idindx)
+  !
+  ! Reset the accumulation arrays
+  !
   tgmx_o(:,:) = -1.E30
   tgmn_o(:,:) =  1.E30
   t2mx_o(:,:) = -1.E30
@@ -87,7 +93,9 @@ module mod_init
   pcpa_o(:,:) = 0.0
   sund_o(:,:) = 0.0
   psmn_o (:,:)=  1.E30
-
+  !
+  ! Open the ICBC file
+  !
   bdydate1 = idate1
   bdydate2 = idate1
   if ( myid == 0 ) then
@@ -98,62 +106,42 @@ module mod_init
     end if
     call open_icbc(icbc_date)
   end if
-!
   !
-  ! for initial run--not using restart
+  ! For an initial run -- not a restart
   !
   if ( .not. ifrest ) then
     !
-    ! set rainwater and cloud water equal to zero initially.
-    !
-    atm1%qc(:,:,:) = d_zero
-    atm2%qc(:,:,:) = d_zero
-    !
-    if ( ichem == 1 ) then
-      !qhy tchie, tchitb(replace tchidp:deposition)
-      !    initialize removal terms
-      remlsc = d_zero
-      remcvc = d_zero
-      rxsg   = d_zero
-      rxsaq1 = d_zero
-      rxsaq2 = d_zero
-      remdrd = d_zero
-      wdlsc  = d_zero
-    end if
-    !
-    ! set the variables related to blackadar pbl equal to 0 initially.
-    !
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      atm1%tke(:,:,:) = tkemin
-      atm2%tke(:,:,:) = tkemin
-    end if
-    !
-    if ( icup == 1 ) then
-      rsheat(:,:,:) = d_zero
-      rswat(:,:,:)  = d_zero
-    end if
-    !
     ! Read in the initial conditions for large domain:
-    ! the initial conditions are the output from PREPROC/ICBC.
+    ! the initial conditions are the output from PreProc/ICBC.
+    ! Only one of the processors is doing I/O
     !
-#ifdef CLM
-    if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
-#endif
     if ( myid == 0 ) then
+      !
+      ! Search initial date
+      !
       mmrec = icbc_search(bdydate1)
       if (mmrec < 0) then
+        !
+        ! Cannot run without initial conditions
+        !
         appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
+      !
+      ! Read initial conditions
+      !
       call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
+      !
       appdat = tochar(bdydate1)
       write (6,*) 'READY IC DATA for ', appdat
       !
-      ! Convert surface pressure to pstar
+      ! Convert surface pressure to pstar in centibars
       !
-      ps0_io(:,:) = ps0_io(:,:)*d_r10 - ptop
+      ps0_io(:,:) = ps0_io(:,:)*d_r10-ptop
     end if
-!
+    !
+    ! Send each processor its computing slice
+    !
     call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
@@ -161,16 +149,11 @@ module mod_init
     call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
     !
-    ! this piece of code determines p(.) from p(x) by a 4-point
-    ! interpolation. on the x-grid, a p(x) point outside the grid
-    ! domain is assumed to satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1);
-    ! and similarly for the i's.
+    ! Calculate surface pressure on DOT points
     !
-    call deco1_exchange_left(xpsb%b0,1,icross1,icross2)
-    call deco1_exchange_right(xpsb%b0,1,icross1,icross2)
     call psc2psd(xpsb%b0,psdot)
     !
-    ! Couple pressure u,v,t,q
+    ! Couple U,V,T,Q with pressure (DOT on U,V)
     !
     do k = 1 , kz
       do i = ide1 , ide2
@@ -180,10 +163,6 @@ module mod_init
         end do
       end do
     end do
-    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -192,6 +171,14 @@ module mod_init
         end do
       end do
     end do
+    !
+    ! We need this for iboudy 1 or 5, but we do it anyway
+    !
+    call deco1_exchange_right(xpsb%b0,1,icross1,icross2)
+    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
     call deco1_exchange_left(xtb%b0,1,ice1,ice2,1,kz)
     call deco1_exchange_right(xtb%b0,1,ice1,ice2,1,kz)
     call deco1_exchange_left(xqb%b0,1,ice1,ice2,1,kz)
@@ -213,8 +200,8 @@ module mod_init
       do i = ice1 , ice2
         do j = jce1 , jce2
           atm1%t(j,i,k) = xtb%b0(j,i,k)
-          atm2%t(j,i,k) = xtb%b0(j,i,k)
           atm1%qv(j,i,k) = xqb%b0(j,i,k)
+          atm2%t(j,i,k) = xtb%b0(j,i,k)
           atm2%qv(j,i,k) = xqb%b0(j,i,k)
         end do
       end do
@@ -227,6 +214,17 @@ module mod_init
         sfs%tgb(j,i) = ts0(j,i)
       end do
     end do
+    !
+    ! If we have activated SeaIce scheme, on ocean point we consider
+    ! the temperature as the signal to cover with ice the sea, changing
+    ! the tipe of soil to permanent ice. The landmask is:
+    !
+    !    0 -> Ocean
+    !    1 -> Land
+    !    2 -> Sea Ice
+    !
+    ! We have the grid (ldmsk) and subgrid (ocld) versions of this
+    !
     if ( iseaice == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -244,6 +242,9 @@ module mod_init
         end do
       end do
     end if
+    !
+    ! Repeat the above for lake points if lake model is activated
+    !
 #ifndef CLM
     if ( lakemod == 1 ) then
       do i = ice1 , ice2
@@ -263,46 +264,71 @@ module mod_init
       end do
     end if
 #endif
+    !
+    ! Initialize the tbase for BM cumulus scheme
+    !
     if (icup == 3) then
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tbase(j,i,k) = ts00 + &
-                      tlp*dlog((sfs%psa(j,i)*a(k)+ptop)*d_r100)
+            tbase(j,i,k) = ts00 + tlp*dlog((sfs%psa(j,i)*a(k)+ptop)*d_r100)
           end do
         end do
       end do
     end if
-!
-    zpbl(:,:) = 500.0D0  ! For Zeng Ocean Flux Scheme
+    !
+    ! Initialize PBL Hgt
+    !
+    zpbl(:,:) = 500.0D0
+    !
+    ! Inizialize the surface atmospheric temperature
+    !
     do i = ice1 , ice2
       do j = jce1 , jce2
         sfs%tgbb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
       end do
     end do
+    !
+    ! Initialize surface parameters for aerosol scheme
+    !
     if ( ichem == 1 ) then
-      ssw2da(:,:)    = d_zero
-      sdeltk2d(:,:)  = d_zero
-      sdelqk2d(:,:)  = d_zero
       sfracv2d(:,:)  = d_half
       sfracb2d(:,:)  = d_half
-      sfracs2d(:,:)  = d_zero
-      svegfrac2d(:,:) = d_zero
+    end if
+    !
+    ! Set the TKE variables for UW PBL to a default value
+    !
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      atm1%tke(:,:,:) = tkemin
+      atm2%tke(:,:,:) = tkemin
+    end if
+    !
+    ! Inizialize Ozone profiles
+    !
+    call o3data(jci1,jci2,ici1,ici2)
+    if ( myid == 0 ) then
+      write (6,*) 'ozone profiles'
+      do k = 1 , kzp1
+        write (6,'(1x,7E12.4)') o3prof(3,3,k)
+      end do
     end if
 #ifndef BAND
+    !
+    ! Diagnostic init
+    !
     if (debug_level > 2) call initdiag
 #endif
-!
-    if ( icup==4 .or. icup==99 .or. icup==98) then
-      cbmf2d(:,:) = d_zero
-    end if
-!
+    !
+    ! End of initial run case
+    !
   else
     !
-    ! when restarting, read in the data saved from previous run for large domain
+    ! When restarting, read in the data saved from previous run
     !
     call read_savefile(bdydate1)
-!
+    !
+    ! Comunicate the data to other processors
+    !
     call mpi_bcast(ktau,1,mpi_integer8,0,mycomm,ierr)
     call mpi_bcast(mtau,1,mpi_integer8,0,mycomm,ierr)
     call mpi_bcast(nbdytime,1,mpi_integer8,0,mycomm,ierr)
@@ -362,6 +388,12 @@ module mod_init
     end if
     call deco1_scatter(heatrt_io,heatrt,jcross1,jcross2,icross1,icross2,1,kz)
     call deco1_scatter(o3prof_io,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
+    if ( myid == 0 ) then
+      print * , 'ozone profiles restart'
+      do k = 1 , kzp1
+        write (6,'(1x,7E12.4)') o3prof(3,3,k)
+      end do
+    end if
 
     ! Scatter of the UW variables read in from the restart file
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
@@ -423,16 +455,6 @@ module mod_init
     call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
 
-    if ( iseaice == 1 .or. lakemod == 1 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          do n = 1 , nnsg
-            if ( ocld(n,j,i) == 2 ) iveg1(n,j,i) = 12
-          end do
-        end do
-      end do
-    end if
-
 #ifndef CLM
     if ( lakemod == 1 ) then
       call subgrid_deco1_scatter(eta_io,eta,jcross1,jcross2,icross1,icross2)
@@ -453,6 +475,13 @@ module mod_init
     call deco1_scatter(aldifs2d_io,aldifs2d,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(aldifl2d_io,aldifl2d,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(lndcat2d_io,lndcat2d,jcross1,jcross2,icross1,icross2)
+    !
+    ! CLM modifies landuse table. Get the modified one from restart file
+    !
+    mddom%lndcat(:,:) = lndcat2d(:,:)
+    do n = 1 , nnsg
+      lndcat1(n,:,:) = lndcat2d(:,:)
+    end do
 #endif
 !
     if ( ichem == 1 ) then
@@ -514,50 +543,61 @@ module mod_init
     call mpi_bcast(eve,nidot*kz,mpi_real8,0,mycomm,ierr)
     if (debug_level > 2) call mpidiag
 #endif
-
-    dt = dt2    ! First timestep successfully read in
+    !
+    ! Setup all timeseps for a restart
+    !
+    dt = dt2
     dtcum = dt2
     dtche = dt2
     dtpbl = dt2
     rdtpbl = d_one/dt2
     dttke = dt2
-
+    !
+    ! Report success
+    !
     if ( myid == 0 ) then
-      print * , 'ozone profiles restart'
-      do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
-      end do
       appdat = tochar(idatex)
       print 99001 , nbdytime, ktau, appdat
     end if
-!
-!-----end of initial/restart if test
-!
+    !
+    ! End of restart phase
+    !
   end if
-! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!     ****** initialize and define constants for vector bats
-
   !
   ! The following allows to change landuse on restart.
   !
   do i = ice1 , ice2
     do j = jce1 , jce2
-      iveg(j,i) = idnint(lndcat(j,i)+0.1D0)
+      iveg(j,i) = idnint(lndcat(j,i))
       do n = 1 , nnsg
-        iveg1(n,j,i) = idnint(lndcat1(n,j,i)+0.1D0)
+        iveg1(n,j,i) = idnint(lndcat1(n,j,i))
       end do
     end do
   end do
-  
+  if ( iseaice == 1 .or. lakemod == 1 ) then
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        do n = 1 , nnsg
+          if ( ocld(n,j,i) == 2 ) iveg1(n,j,i) = 12
+        end do
+      end do
+    end do
+  end if
+  !
+  ! Initialize the BATS variable (Used also by CLM)
+  !
   if ( ktau == 0 ) then
     call initb(jci1,jci2,ici1,ici2)
+    !
 #ifndef CLM
     if ( lakemod == 1 ) then
       call subgrid_deco1_gather(idep,idep_io,jcross1,jcross2,icross1,icross2)
     end if
 #endif
   end if
-
+  !
+  ! Calculate emission coefficients
+  !
   if ( iemiss == 1 .and. ktau == 0 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -572,40 +612,31 @@ module mod_init
           else if ( ist == 12 ) then
             emiss(n,j,i) = 0.97D0
           else
-            emiss(n,j,i) = 0.99D0 - &
-                    (albvgs(ist)+albvgl(ist))*0.1D0
+            emiss(n,j,i) = 0.99D0-(albvgs(ist)+albvgl(ist))*0.1D0
           end if
-!         emiss(n,j,i) = d_one
         end do
       end do
     end do
   end if
-! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-!-----read in the boundary conditions for large domain:
-!
-!-----compute the solar declination angle:
-!
+  !
+  ! Compute the solar declination angle
+  !
 #ifdef CLM
   numdays = dayspy
+  init_grid = .true.
 #endif
   if (myid == 0) then
     write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
   end if
   call solar1
-#ifdef CLM
-  init_grid = .true.
-#endif
-  call inirad
   !
-  ! calculating topographical correction to diffusion coefficient
+  ! Calculate topographical correction to diffusion coefficient
   !
   do i = ide1 , ide2
     do j = jde1 , jde2
       hgfact(j,i) = d_one
     end do
   end do
-
   do i = idi1 , idi2
     do j = jdi1 , jdi2
       hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
@@ -616,48 +647,21 @@ module mod_init
       hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**d_two)
     end do
   end do
-!
-!-----set up output time:
-!
-#ifdef CLM
-  if ( ktau /= 0 ) then
-    ! CLM modifies landuse table. Get the modified one from
-    ! restart file
-    mddom%lndcat(:,:) = lndcat2d(:,:)
-    do n = 1 , nnsg
-      lndcat1(n,:,:) = lndcat2d(:,:)
-    end do
+  !
+  ! RRTM_SW gas / abs constant initialisation
+  !
+  if ( irrtm == 1 ) then
+    call rrtmg_sw_ini(cpd)
+    call rrtmg_lw_ini(cpd)
   end if
-#endif
-
+!
+  call time_end(subroutine_name,idindx)
+!
+! Formats for printout
+!
 99001 format (' ***** restart file for large domain at time = ', i8,   &
           ' seconds, ktau = ',i7,' date = ',a,' read in')
 !
   end subroutine init
-!
-!     compute ozone mixing ratio distribution
-!
-  subroutine inirad
-  implicit none
-  integer :: k
-!
-  if ( ktau == 0 ) then
-    heatrt(:,:,:) = d_zero
-    o3prof(:,:,:) = d_zero
-    call o3data(jci1,jci2,ici1,ici2)
-    if ( myid == 0 ) then
-      write (6,*) 'ozone profiles'
-      do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof(3,3,k)
-      end do
-    end if
-    ! RRTM_SW gas / abs constant initialisation
-    if ( irrtm == 1 ) then
-      call rrtmg_sw_ini(cpd)
-      call rrtmg_lw_ini(cpd)
-    end if
-  end if
- 
-  end subroutine inirad
 !
 end module mod_init

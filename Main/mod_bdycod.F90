@@ -244,8 +244,6 @@ module mod_bdycod
 !  this piece of code determines p(.) from p(x) by a 4-point
 !  interpolation. on the x-grid
 !
-    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)
 !
 !   Couple pressure u,v,t,q
@@ -383,7 +381,6 @@ module mod_bdycod
     !
     ! First compute the p* at dot points to decouple U,V:
     !
-    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
     ! Now compute last two points values in U and V

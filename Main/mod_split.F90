@@ -281,7 +281,6 @@ module mod_split
 !   on the x-grid, a p(x) point outside the grid domain is assumed to
 !   satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1); and similarly for the i's.
 !
-    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
 !
 !=======================================================================
