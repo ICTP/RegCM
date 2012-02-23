@@ -112,6 +112,7 @@ module mod_che_interface
     call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   
+
 !!$
 ! Peform chemistry initialisation
 

@@ -36,8 +36,15 @@ module mod_che_dust
   
 ! 
   real(dp), dimension (nbin, 2 ) ::  dustbsiz
-  ! Fix the actual dust aerosol bin size
+  ! Fix the actual dust aerosol bin size: diameter in microm
   data  dustbsiz /0.01, 1.00, 2.50, 5.00, 1.00, 2.50, 5.00,20.00 /
+
+  real(dp), dimension (nbin) :: dustbed !dust effective diameter
+!has to be calculated from an assumed sub-bin distribution 
+!
+ data dustbed /0.82 , 1.8 , 3.7 , 8 /   
+
+!a revoir en fonction d optique
 
 ! solubility of od dust aer for param of giorgi and chameides
   real(dp), dimension (nbin) ::  soldust
@@ -507,7 +514,7 @@ module mod_che_dust
       ieff = ieff + 1
       do n = 1 , nbin
         rsfrow(i,n) = xrsfrow(ieff,n)
-        chiten(i,kz,jloop,idust(n)) = chiten(i,kz,jloop,idust(n)) + rsfrow(i,n)    &
+        chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + rsfrow(i,n)    &
                                & *egrav/(cdsigma(kz)*1.E3)
 !           diagnostic source (accumulated)
             cemtr(i,jloop,idust(n)) = cemtr(i,jloop,idust(n)) + rsfrow(i,n)   &

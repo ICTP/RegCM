@@ -34,7 +34,7 @@ module mod_cu_interface
 !
   contains
 
-  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,  &
+  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
                            sfs,za,qdot,pptc,ldmsk,sigma,a,dsigma, &
                            qcon,cldfra,cldlwc)
     implicit none
@@ -44,6 +44,9 @@ module mod_cu_interface
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
+    real(8) , pointer , intent(in) , dimension(:,:,:,:) :: chiten
+
+
     type(surfstate) , intent(in) :: sfs
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: za , qdot
     real(dp) , pointer , intent(in) , dimension(:,:) :: pptc
@@ -69,11 +72,13 @@ module mod_cu_interface
     call assignpnt(atms%qsb3d,qsas)
     call assignpnt(atms%qcb3d,qcas)
     call assignpnt(atms%qvb3d,qvas)
+    call assignpnt(atms%chib3d,chias)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%u,uten)
     call assignpnt(aten%v,vten)
     call assignpnt(aten%qv,qvten)
     call assignpnt(aten%qc,qcten)
+    call assignpnt(chiten,tchiten)
     call assignpnt(sfs%psa,psfcps)
     call assignpnt(sfs%psb,sfcps)
     call assignpnt(sfs%rainc,rainc)

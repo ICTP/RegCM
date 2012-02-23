@@ -838,7 +838,9 @@ module mod_pbl_holtbl
           !
           !         provisoire test de la routine chdrydep pour les dust
           ! 
-          if ( chname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
+!FAB: insert the interactive vdep 
+!          if ( chname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
+          vdep(j,i,itr) = d_zero
         end do
       end do
     end do
@@ -894,7 +896,6 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = istart , iend
           do j = jstart , jend
-!CGAFFE     TEST diffusion/10
             chten(j,i,k,itr) = chten(j,i,k,itr) +  &
                         (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(j,i)
           end do
@@ -902,10 +903,11 @@ module mod_pbl_holtbl
       end do
       do i = istart , iend
         do j = jstart , jend
-          if ( chname(itr) /= 'DUST' ) &
-            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
-                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
-                hydf(kz)/sfcps(j,i)
+!          if ( chname(itr) /= 'DUST' ) &
+! shut down thid diag temporarly
+!            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
+!                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
+!                hydf(kz)/sfcps(j,i)
  
         end do
       end do

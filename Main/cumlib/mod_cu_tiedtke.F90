@@ -145,8 +145,20 @@ module mod_cu_tiedtke
       cevapcu(:) = cevapu
 
 !   tracers to be added here:
-      pxtm1(:,:,:) = d_zero ! tracers input profiles
-      pxtte(:,:,:) = d_zero ! tracer tendencies
+!   fab add tracer interface here 
+!    if (lchem) then    
+!     do k = 1 , kz
+!     do i = istart , iend
+!     ii = i - 1
+!    pxtm1(ii,k,:) = chias(j,i,k,:) ! tracers input profile : implicit loop on tracer
+!    pxtte(ii,k,:) = tchiten(i,k,j,:)/sfcps(j,i) ! tracer tendencies : for grazziano :chiten is till i, k, j here !
+!     end do 
+!     end do
+!    else
+!     pxtm1(:,:,:) = d_zero ! tracers input profiles
+!     pxtte(:,:,:) = d_zero ! tracer tendencies
+!    end if
+
 
       do i = istart , iend
         ii = i - 1
@@ -242,6 +254,14 @@ module mod_cu_tiedtke
           end if
         end if
       end do
+
+! FAB: tracer tendency : need to cvalculate a  detrained tendency  ??
+  ! check the zxtude  
+!
+
+
+
+
     end do
 
   end subroutine tiedtkedrv

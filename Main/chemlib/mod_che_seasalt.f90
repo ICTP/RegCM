@@ -28,8 +28,13 @@ module mod_che_seasalt
 
   ! sea-salt density
   real(dp) , parameter  :: rhosslt = 1000.
-  real(dp), dimension (sbin, 2 ) ::  ssltbsiz
+  real(dp), dimension (sbin,2) ::  ssltbsiz
+
   data   ssltbsiz / 0.05D0 ,1.0D0,  1.0D0, 10.0D0/
+!
+ real(dp), dimension (sbin) ::  ssltbed
+
+ data   ssltbed / 0.6,  6./
 
  ! solubility of od dust aer for param of giorgi and chameides
    real(dp), dimension (sbin) ::  solsslt
@@ -37,7 +42,7 @@ module mod_che_seasalt
 
 
 
-  public :: sea_salt , rhosslt, ssltbsiz, solsslt
+  public :: sea_salt , rhosslt, ssltbsiz, solsslt,ssltbed
 
   contains
 !
@@ -156,7 +161,7 @@ module mod_che_seasalt
       do i = 2 , iym2
         ! chemsrc(i,j,lmonth,isslt(ib)) = seasalt_flx(i,ib)
 
-        chiten(i,kz,j,isslt(ib)) = chiten(i,kz,j,isslt(ib)) + &
+        chiten(j,i,kz,isslt(ib)) = chiten(j,i,kz,isslt(ib)) + &
                 seasalt_flx(i,ib)*egrav/(cdsigma(kz)*1.D3)
         ! diagnostic source
         cemtr(i,j,isslt(ib)) = cemtr(i,j,isslt(ib)) + &

@@ -33,7 +33,7 @@ module mod_pbl_interface
   contains
 
   subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
-                      remdrd,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,  &
+                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,  &
                       ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
     integer , intent(in) :: ichem , ichdrydepo
@@ -44,6 +44,7 @@ module mod_pbl_interface
     type (surfstate) , intent(in) :: sfs
     real(dp) , pointer , dimension(:,:,:) :: heatrt
     real(dp) , pointer , dimension(:,:,:,:) :: chiten
+    real(dp) , pointer , dimension(:,:,:) :: cchifxuw
     real(dp) , pointer , dimension(:,:,:) :: remdrd
     integer , pointer , dimension(:,:) :: ldmsk
     real(dp) , pointer , dimension(:,:) :: psdot
@@ -120,6 +121,8 @@ module mod_pbl_interface
     call assignpnt(dsigma,dlev)
     call assignpnt(chtrdpv,depvel)
     if ( associated(chtrname) ) chname => chtrname
+    call assignpnt(cchifxuw,chifxuw)
+
 
   end subroutine init_pbl
 

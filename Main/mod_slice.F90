@@ -46,7 +46,7 @@ module mod_slice
         atms%qcb3d(j,i,k) = atm2%qc(j,i,k)/sfs%psb(j,i)
         if ( ichem == 1 ) then
           do n = 1 , ntr
-            atms%chib3d(j,i,k,n) = chib(i,k,j,n)/sfs%psb(j,i)
+            atms%chib3d(j,i,k,n) = chib(j,i,k,n)/sfs%psb(j,i)
           end do
         end if
       end do

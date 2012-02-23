@@ -93,6 +93,8 @@ module mod_che_emission
           end do
         end do
       end do
+      print*,'chme srcio ',chemsrc_io(:,:,lmonth,iso2)
+     
     end if
 
     call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,  &
@@ -112,89 +114,6 @@ module mod_che_emission
     call time_end(subroutine_name,idindx) 
   end subroutine chem_emission
 !
-! this routine is the standard emission reading routine 
-!
-  subroutine chsrfem
-#ifndef IBM
-    use mpi
-#endif
-    implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif 
-!
-    integer :: i , j , m
-    integer :: itr , ierr
-!
-    character (len=64) :: subroutine_name ='chsrfem'
-    integer :: idindx = 0
-!
-    call time_begin(subroutine_name,idindx)
-
-    if ( idust(1) > 0 ) then
-      ! fisrt activate dust initialization
-      write (aline, *) 'Calling inidust'
-      call say
-      call inidust
-    end if
-
-    ! read the monthly aerosol emission files
-    if ( myid == 0 ) then
-      chemsrc_io = d_zero
-      if (aertyp(4:5).ne.'00') then
-        call read_aerosol(chtrname,chemsrc_io)
-      end if
-      do j = 1 , jx
-        do itr = 1 , ntr
-          do m = 1 , mpy
-            do i = 1 , iy
-              src_0(i,m,itr,j) = chemsrc_io(i,j,m,itr)
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8, &
-                     src0, iy*mpy*ntr*jxp,mpi_real8, &
-                     0,mpi_comm_world,ierr)
-    do j = 1 , jxp
-      do itr = 1 , ntr
-        do m = 1 , mpy
-          do i = 1 , iy
-            chemsrc(i,j,m,itr) = src0(i,m,itr,j)
-          end do
-        end do
-      end do
-    end do
-
-    ! sulfates sources
-
-    do m = 1 , mpy
-      do j = 1 , jxp
-        do i = 1 , iy
-          if ( iso4 > 0 ) then
-            chemsrc(i,j,m,iso4) = 0.02D0*chemsrc(i,j,m,iso2)
-          end if
-          if ( iso2 > 0 ) then
-            chemsrc(i,j,m,iso2) = 0.98D0*chemsrc(i,j,m,iso2)
-          end if
-          ! partition hydrophilic hydrophonic ( cooke et al.1999)
-          ! BC
-          if ( ibchb > 0 .and. ibchl > 0 ) then
-            chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
-            chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
-          end if
-          ! OC
-          if ( iochb > 0 .and. iochl > 0 ) then
-            chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
-            chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
-          end if
-        end do
-      end do
-    end do
-
-    call time_end(subroutine_name,idindx) 
-  end subroutine chsrfem
 !
 ! Calculation of emission tendency
 !
@@ -239,8 +158,8 @@ subroutine emis_tend(ktau,j,lmonth)
     ! 1 General case. In the future: add injection heights.
     do itr = 1 , ntr
       do i = 2 , iym2
-        if ( chtrname(itr).ne.'DUST' .or. &
-             chtrname(itr).ne.'SSALT' ) then 
+        if ( chtrname(itr)(1:4).ne.'DUST' .or. &
+             chtrname(itr)(1:4).ne.'SSALT' ) then 
 !!$          daylen = d_two*acos(-tan(declin)*tan(xlat(i,j)*degrad))*raddeg
 !!$          daylen = daylen*24.0D0/360.0D0
 !!$          ! Maximum sun elevation
@@ -272,8 +191,17 @@ subroutine emis_tend(ktau,j,lmonth)
 !!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(i,j,lmonth,itr) * &
 !!$                           sin(mathpi*fact)*dtche/d_two
 !!$           else
-             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
+ 
+  
+         if ( ichdrdepo == 1) then  
+             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                            chemsrc(i,j,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
+         elseif ( ichdrdepo ==2) then
+!then emission is injected in the PBL scheme
+              cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(i,j,lmonth,itr)
+         end if
+
+
              ! diagnostic for source, cumul
              cemtr(i,j,itr) = cemtr(i,j,itr) + &
                            chemsrc(i,j,lmonth,itr)*dtche/d_two

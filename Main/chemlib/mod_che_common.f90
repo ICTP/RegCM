@@ -71,6 +71,9 @@ module mod_che_common
 
   real(dp) , pointer , dimension(:,:) :: chtrsize
   real(dp) , pointer , dimension(:) :: chtrsol
+
+  real(dp), pointer , dimension(:,:,:) :: cchifxuw
+
 !!
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
@@ -88,7 +91,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: ctb3d,cqvb3d,cubx3d,cvbx3d,crhob3d,cqcb3d,cfcc,cza,cdzq,ccldfra,crembc,cremrat
   real(dp) , pointer , dimension(:,:) ::  cpsb,ctg,clndcat,cht,cssw2da, &
                                           cvegfrac,csol2d,csdeltk2d,csdelqk2d,ctwt,cuvdrag
- 
+
   real(dp) , pointer , dimension(:) :: hlev, cdsigma,canudg
   real(dp) , pointer , dimension(:,:) :: czen
   real(dp) :: chptop
@@ -122,14 +125,16 @@ contains
       call getmem1d(icarb,1,5,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
-      call getmem4d(chemall,1,iy,1,kz,1,jxp,1,totsp,'mod_che_common:chemall')
-      call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_common:chi')
-      call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chic')
-      call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chiten')
-      call getmem4d(chemten,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chiten')
+      call getmem4d(chemall,1,jxp,1,iy,1,kz,1,totsp,'mod_che_common:chemall')
+
+      call getmem4d(chi,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_common:chi')
+      call getmem4d(chic,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chic')
+      call getmem4d(chiten,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chiten')
+      call getmem4d(chemten,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chiten')
       call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
-      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chia')
-      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chib')
+      call getmem4d(chia,-1,jxp+2,1,iy,1,kz,1,ntr,'mod_che_common:chia')
+      call getmem4d(chib,-1,jxp+2,1,iy,1,kz,1,ntr,'mod_che_common:chib')
+
       call getmem3d(taucld,1,iy,1,kz,1,jxp,'mod_che_common:taucld')
       call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
       call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_common:ddsfc')
@@ -141,6 +146,11 @@ contains
       call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_common:wxsg')
       call getmem3d(chevap,1,jxp,1,iy,1,kz,'mod_che_common:chevap')
       call getmem3d(checum,1,jxp,1,iy,1,kz,'mod_che_common:checum')
+
+
+      call getmem3d(cchifxuw,1,jxp,1,iy,1,kz,'mod_che_common:cchifxuw')
+
+
     end if
 
   end subroutine allocate_mod_che_common
@@ -153,7 +163,7 @@ contains
 
 
     igaschem =0
-    iaerosol =1
+    iaerosol =0
 
 
     if (chemsimtype(1:4) == 'DUST') then
@@ -198,13 +208,13 @@ contains
        call say
 
     elseif(chemsimtype(1:4) == 'AERO') then 
-       ntr = 6
+       ntr = 12 
        allocate(chtrname(ntr))
        iaerosol=1
        chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL','BC_HB', &
                                 'OC_HB','OC_HL','DUST1','DUST2', &
                                 'DUST3','DUST4','SSLT1','SSLT2' /)
-       write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
+       write (aline,*) 'AERO simulation , used tracers: ', chtrname(:)
        call say
 
     elseif(chemsimtype(1:4) == 'CBMZ') then 

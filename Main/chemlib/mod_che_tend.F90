@@ -120,14 +120,11 @@
 !       large scale : fracloud, calculated from fcc coming from pcp.f
 !       cumulus scale : fracum, calculated from the total cloud fraction
 !       (as defined for the radiation scheme in cldfrac.f routine)
+   
         do i = istart , iend
-          do k = 1 , kz
-            fracloud(j,i,k) = cfcc(i,k,j)
-            fracum(j,i,k) = d_zero
-          end do
-          if ( kcumtop(j,i) > 0 ) then
+           if ( kcumtop(j,i) > 0 ) then
             do kk = kcumtop(j,i) , kz
-              fracum(j,i,kk) = ccldfra(j,i,kk) - fracloud(j,i,kk)
+              fracum(j,i,kk) = ccldfra(j,i,kk) - cfcc(j,i,kk)
             end do
           end if
         end do
@@ -255,6 +252,10 @@
           end do
         end if
 
+!  before emission and deposition routine set the surfecae netflux used by BL schems to zero
+         cchifxuw = d_zero
+!
+
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
         if ( idust(1) > 0 ) then
         
@@ -272,6 +273,8 @@
         end if
 !
 !       update emission tendencies from inventories
+
+
         do j= jstart,jend
         call emis_tend(ktau,j,lmonth)
         end do
@@ -285,7 +288,7 @@
         if ( idust(1) > 0 ) then
         do j=jstart,jend
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
-                            temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbsiz,      &
+                            temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbed,      &
                             pdepv(j,:,:,:),ddepa(j,:,:))
         end do
         end if
@@ -293,7 +296,7 @@
        if ( isslt(1) >0 ) then
        do j=jstart,jend
          call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
-                          temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),ssltbsiz,      &
+                          temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),ssltbed,      &
                           pdepv(j,:,:,:),ddepa(j,:,:))
        end do
        end if 
@@ -303,7 +306,7 @@
           do j=jstart,jend
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev, &
                            psurf(j,:),temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),         &
-                           carbsiz(1:ibin,:),pdepv(j,:,:,:),ddepa(j,:,:))
+                           carbed(1:ibin),pdepv(j,:,:,:),ddepa(j,:,:))
          end do
         end if 
 !!$
@@ -312,8 +315,8 @@
 !!$
         if ( igaschem == 1 ) then
           do j=jstart,jend
-          call drydep_gas(j,calday, ivegcov(j,:),rh10(j,:),srad(j,:),tsurf(j,:),prec(j,:,kz),temp10(j,:),  &
-                          wid10(j,:),zeff(j,:),drydepvg(j,:,:))
+!          call drydep_gas(j,calday, ivegcov(j,:),rh10(j,:),srad(j,:),tsurf(j,:),prec(j,:,kz),temp10(j,:),  &
+!                          wid10(j,:),zeff(j,:),drydepvg(j,:,:))
           end do
         end if
 !!$
@@ -321,21 +324,21 @@
 !!$
         if ( idust(1) > 0 ) then
          do j=jstart,jend
-          call wetdepa(j,nbin,idust,dustbsiz,rhodust,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
+          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                        fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:),prec(j,:,:),pdepv(j,:,:,:))  
          end do
         end if
 
        if ( isslt(1) > 0 )  then   
          do j=jstart,jend
-         call wetdepa(j,sbin,isslt,ssltbsiz,rhosslt,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
+         call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                       fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) )  
          end do
        end if
        if ( icarb(1) > 0 )  then   
          ibin = count( icarb > 0 ) 
           do j=jstart,jend
-         call wetdepa(j,ibin,icarb(1:ibin),carbsiz(1:ibin,:),rhobchl, &
+         call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl, &
                      ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                      fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) ) 
          end do
@@ -349,7 +352,7 @@
         chevap = d_zero
          do j=jstart,jend        
           call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
-                      chevap(j,:,:),dtche,rho(j,:,:),chib(:,:,j,:),iym3,cpsb(j,2:iym2))
+                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,2:iym2))
          end do
         end if
     
@@ -369,7 +372,7 @@
        end do
        end if
 ! add tendency due to chemistry reaction (every dtche)      
-       chiten(:,:,jstart:jend,:) =  chiten(:,:,jstart:jend,:) +   chemten(:,:,jstart:jend,:)
+       chiten(jstart:jend,:,:,:) =  chiten(jstart:jend,:,:,:) +   chemten(jstart:jend,:,:,:)
 
       end if
  
@@ -402,7 +405,7 @@
         do j = 1 , jendx
           do i = 1 , iym1
             do k = 1 , kz
-              dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
+              dtrace(i,j,itr) = dtrace(i,j,itr) + chia(j,i,k,itr)       &
                               & *cdsigma(k)
               wdlsc(i,j,itr) = wdlsc(i,j,itr) + remlsc(i,k,j,itr)       &
                              & *cdsigma(k)

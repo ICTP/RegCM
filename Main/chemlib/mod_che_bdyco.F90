@@ -28,7 +28,7 @@ module mod_che_bdyco
 use mod_realkinds
   use mod_dynparam
 use mod_memutil
-
+ use mod_mppparam  
   use mod_service
   use mod_mpmessage
   use mod_che_common
@@ -69,18 +69,18 @@ use mod_memutil
 !
 !    call time_begin(subroutine_name,idindx)
 
-    call getmem4d(chib0,1,iy,1,kz,1,jxp,1,ntr,'mod_che_bdyco:chib0')
-    call getmem4d(chib1,1,iy,1,kz,1,jxp,1,ntr,'mod_che_bdyco:chib1')
+    call getmem4d(chib0,1,jxp,1,iy,1,kz,1,ntr,'mod_che_bdyco:chib0')
+    call getmem4d(chib1,1,jxp,1,iy,1,kz,1,ntr,'mod_che_bdyco:chib1')
 #ifndef BAND
-    call getmem4d(chieb,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chieb')
-    call getmem4d(chiebt,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chiebt')
-    call getmem4d(chiwb,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chiwb')
-    call getmem4d(chiwbt,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chiwbt')
+    call getmem4d(chieb,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_bdyco:chieb')
+    call getmem4d(chiebt,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_bdyco:chiebt')
+    call getmem4d(chiwb,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_bdyco:chiwb')
+    call getmem4d(chiwbt,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_bdyco:chiwbt')
 #endif
-    call getmem4d(chinb,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chinb')
-    call getmem4d(chinbt,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chinbt')
-    call getmem4d(chisb,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chisb')
-    call getmem4d(chisbt,1,nspgx,1,kz,0,jxp+1,1,ntr,'mod_che_bdyco:chinst')
+    call getmem4d(chinb,0,jxp+1,1,nspgx,1,kz,1,ntr,'mod_che_bdyco:chinb')
+    call getmem4d(chinbt,0,jxp+1,1,nspgx,1,kz,1,ntr,'mod_che_bdyco:chinbt')
+    call getmem4d(chisb,0,jxp+1,1,nspgx,1,kz,1,ntr,'mod_che_bdyco:chisb')
+    call getmem4d(chisbt,0,jxp+1,1,nspgx,1,kz,1,ntr,'mod_che_bdyco:chinst')
 
     call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
 
@@ -190,130 +190,20 @@ implicit none
     write(*,*)'CH_BDYIN -----',mmrec,bdydate2
     if (mmrec < 0) then
             call open_chbc(bdydate2)
+ 
     end if
-    
      call read_chbc(chebdy_io)  
 
-   do n = 1, 25
-      do j = 1 , jx
-        do k = 1 , kz
-           do i = 1 , iy
-             savch_0(i,kz*(n-1) + k       ,j)  = chebdy_io(i,k,j,n)
-!!$             savch_0(i,k       ,j)  = o3b1_io(i,k,j)
-!!$             savch_0(i,kz    +k,j)  = nob1_io(i,k,j)
-!!$             savch_0(i,kz*2  +k,j)  = no2b1_io(i,k,j)
-!!$             savch_0(i,kz*3  +k,j)  = hno3b1_io(i,k,j)
-!!$             savch_0(i,kz*4  +k,j)  = n2o5b1_io(i,k,j)
-!!$             savch_0(i,kz*5  +k,j)  = h2o2b1_io(i,k,j)
-!!$             savch_0(i,kz*6  +k,j)  = ch4b1_io(i,k,j)
-!!$             savch_0(i,kz*7  +k,j)  = cob1_io(i,k,j)
-!!$             savch_0(i,kz*8  +k,j)  = hchob1_io(i,k,j)
-!!$             savch_0(i,kz*9  +k,j)  = ch3ohb1_io(i,k,j)
-!!$             savch_0(i,kz*10  +k,j) = c2h5ohb1_io(i,k,j)
-!!$             savch_0(i,kz*11  +k,j) = c2h4b1_io(i,k,j)
-!!$             savch_0(i,kz*12  +k,j) = c2h6b1_io(i,k,j)
-!!$             savch_0(i,kz*13  +k,j) = ch3chob1_io(i,k,j)
-!!$             savch_0(i,kz*14  +k,j) = c3h6b1_io(i,k,j)
-!!$             savch_0(i,kz*15  +k,j) = c3h8b1_io(i,k,j)
-!!$             savch_0(i,kz*16  +k,j) = ch3coch3b1_io(i,k,j)
-!!$             savch_0(i,kz*17  +k,j) = bigeneb1_io(i,k,j)
-!!$             savch_0(i,kz*18  +k,j) = bigalkb1_io(i,k,j)
-!!$             savch_0(i,kz*19  +k,j) = isopb1_io(i,k,j)
-!!$             savch_0(i,kz*20  +k,j) = tolueb1_io(i,k,j)
-!!$             savch_0(i,kz*21  +k,j) = panb1_io(i,k,j)
-!!$             savch_0(i,kz*22  +k,j) = so2b1_io(i,k,j)
-!!$             savch_0(i,kz*23  +k,j) = dmsb1_io(i,k,j)
-!!$             savch_0(i,kz*24  +k,j) = so4b1_io(i,k,j)
-          end do
-       end do
-    end do
-    end do
-!!$
-     end if
-    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
-                     savch0, iy*kz*25*jxp,mpi_real8,      &
-                     0,mpi_comm_world,ierr)
-!!$
-!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jxp,jbegin,jendx,jxp
-!!$
+    end if
+ 
+    call deco1_scatter(chebdy_io,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
 
-    do n=1,25 
-    do j = 1 , jxp
-    do k = 1 , kz
-      do i = 1 , iy
-
-        
-             chebdy(i,k,j,n)        = savch0(i, kz*(n-1) + k,j)
-!!$             nob1(i,k,j)        = savch0(i,kz    +k,j)
-!!$             no2b1(i,k,j)       = savch0(i,kz*2  +k,j)
-!!$             hno3b1(i,k,j)      = savch0(i,kz*3  +k,j)
-!!$             n2o5b1(i,k,j)      = savch0(i,kz*4  +k,j)
-!!$             h2o2b1(i,k,j)      = savch0(i,kz*5  +k,j)
-!!$             ch4b1(i,k,j)       = savch0(i,kz*6  +k,j)
-!!$             cob1(i,k,j)        = savch0(i,kz*7  +k,j)
-!!$             hchob1(i,k,j)      = savch0(i,kz*8  +k,j)
-!!$             ch3ohb1(i,k,j)     = savch0(i,kz*9  +k,j)
-!!$             c2h5ohb1(i,k,j)    = savch0(i,kz*10  +k,j)
-!!$             c2h4b1(i,k,j)      = savch0(i,kz*11  +k,j)
-!!$             c2h6b1(i,k,j)      = savch0(i,kz*12  +k,j)
-!!$             ch3chob1(i,k,j)    = savch0(i,kz*13  +k,j)
-!!$             c3h6b1(i,k,j)      = savch0(i,kz*14  +k,j)
-!!$             c3h8b1(i,k,j)      = savch0(i,kz*15  +k,j)
-!!$             ch3coch3b1(i,k,j)  = savch0(i,kz*16  +k,j)
-!!$             bigeneb1(i,k,j)    = savch0(i,kz*17  +k,j)
-!!$             bigalkb1(i,k,j)    = savch0(i,kz*18  +k,j)
-!!$             isopb1(i,k,j)      = savch0(i,kz*19  +k,j)
-!!$             tolueb1(i,k,j)     = savch0(i,kz*20  +k,j)
-!!$             panb1(i,k,j)       = savch0(i,kz*21  +k,j)
-!!$             so2b1(i,k,j)       = savch0(i,kz*22  +k,j)
-!!$             dmsb1(i,k,j)       = savch0(i,kz*23  +k,j)
-!!$             so4b1(i,k,j)       = savch0(i,kz*24  +k,j)
-          end do
-       end do
-    end do
-
-!     print*, 'apres transfert', myid, n,maxval(chebdy(:,:,:,n)) 
-
-    end do
-
-
-!!$    do j = jbegin , jendx
-!!$       do i = 2 , iym1
-!!$           psdot(i,j) = 0.25*(ps1(i,j)   + ps1(i-1,j) +  &
-!!$                        ps1(i,j-1) + ps1(i-1,j-1))
-!!$       end do
-!!$    end do
-!!$    do i = 2 , iym1
-!!$       if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
-!!$       if ( myid.eq.nproc-1 )                             &
-!!$           psdot(i,jxp) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
-!!$    end do
-!!$    do j = jbegin , jendx
-!!$       psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-!!$       psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
-!!$    end do
-!!$
-!!$    if ( myid.eq.0 ) then
-!!$         psdot(1,1) = ps1(1,1)
-!!$         psdot(iy,1) = ps1(iym1,1)
-!!$    end if
-!!$
-!!$    if ( myid.eq.nproc-1 ) then
-!!$       psdot(1,jxp) = ps1(1,jendx)
-!!$       psdot(iy,jxp) = ps1(iym1,jendx)
-!!$    end if
-!!$    write(*,*)' BDYIN---ZZZ--',maxval(o3b1(:,1,:)),maxval(psdot(:,:)),myid
-!!$!=======================================================================
-!!$!       Couple pressure u,v,t,q
-!!$
-!!$! fab modif
-!!$! intialise the chib1 tracer : correspondance betwwen bdy tables and chib
-!!$
+ !FAB exchange between proc ?
    do n=1,25
     do k = 1 , kz
-       do j = 1 , jxp
-          do i = 1 , iy
-              if(ichbdy2trac(n) > 0) chib1(i,k,j,ichbdy2trac(n)) = chebdy(i,k,j,n)*cpsb(j,i)
+          do i = ice1 , ice2
+           do j = jce1 , jce2
+              if(ichbdy2trac(n) > 0) chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
           end do
        end do
     end do
@@ -371,8 +261,8 @@ implicit none
       do k = 1 , kz
         do i = 1 , iym1
 
-          chiwb(i,k,nn,:) = chib0(i,k,nn,:)
-          chiwbt(i,k,nn,:) = (chib1(i,k,nn,:)-chib0(i,k,nn,:))/dtbdys
+          chiwb(nn,i,k,:) = chib0(nn,i,k,:)
+          chiwbt(nn,i,k,:) = (chib1(nn,i,k,:)-chib0(nn,i,k,:))/dtbdys
 
         end do
       end do
@@ -381,8 +271,8 @@ implicit none
       nnb = min(jendx,jxp) - nn + 1
       do k = 1 , kz
         do i = 1 , iym1
-          chieb(i,k,nn,:) = chib0(i,k,nnb,:)
-          chiebt(i,k,nn,:) = (chib1(i,k,nnb,:)-chib0(i,k,nnb,:))/dtbdys
+          chieb(nn,i,k,:) = chib0(nnb,i,k,:)
+          chiebt(nn,i,k,:) = (chib1(nnb,i,k,:)-chib0(nnb,i,k,:))/dtbdys
 
         end do
       end do
@@ -392,10 +282,10 @@ implicit none
       nnb = iym1 - nn + 1
       do k = 1 , kz
         do j = 1 , jendx
-          chinb(nn,k,j,:) = chib0(nnb,k,j,:)
-          chisb(nn,k,j,:) = chib0(nn,k,j,:)
-          chinbt(nn,k,j,:) = (chib1(nnb,k,j,:)-chib0(nnb,k,j,:))/dtbdys
-          chisbt(nn,k,j,:) = (chib1(nn,k,j,:)-chib0(nn,k,j,:))/dtbdys
+          chinb(j,nn,k,:) = chib0(j,nnb,k,:)
+          chisb(j,nn,k,:) = chib0(j,nn,k,:)
+          chinbt(j,nn,k,:) = (chib1(j,nnb,k,:)-chib0(j,nnb,k,:))/dtbdys
+          chisbt(j,nn,k,:) = (chib1(j,nn,k,:)-chib0(j,nn,k,:))/dtbdys
         end do
       end do
     end do
@@ -403,7 +293,7 @@ implicit none
     do k = 1 , kz
       do j = 1 , jxp
         do i = 1 , iy
-          chib0(i,k,j,:) = chib1(i,k,j,:)
+          chib0(j,i,k,:) = chib1(j,i,k,:)
         end do
       end do
     end do
@@ -446,14 +336,14 @@ implicit none
           do k = 1 , kz
 #ifndef BAND
             do i = 1 , iym1
-              if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
-              if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
-                 & = chia(i,k,jendx,itr)
+              if ( myid.eq.0 ) chib(1,i,k,itr) = chia(1,i,k,itr)
+              if ( myid.eq.nproc-1 ) chib(jendx,i,k,itr)              &
+                 & = chia(jendx,i,k,itr)
             end do
 #endif
             do j = jbegin , jendm
-              chib(1,k,j,itr) = chia(1,k,j,itr)
-              chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
+              chib(j,1,k,itr) = chia(j,1,k,itr)
+              chib(j,iym1,k,itr) = chia(j,iym1,k,itr)
             end do
           end do
         end do
@@ -495,14 +385,14 @@ implicit none
 
 #ifndef BAND
       do i = 1 , iym1
-        if ( myid.eq.0 ) chia(i,k,1,:) = chiwb(i,k,1,:) + dtb*chiwbt(i,k,1,:)
-        if ( myid.eq.nproc-1 ) chia(i,k,jendx,:) = chieb(i,k,1,:)        &
-           & + dtb*chiebt(i,k,1,:)
+        if ( myid.eq.0 ) chia(1,i,k,:) = chiwb(1,i,k,:) + dtb*chiwbt(1,i,k,:)
+        if ( myid.eq.nproc-1 ) chia(jendx,i,k,:) = chieb(1,i,k,:)        &
+           & + dtb*chiebt(1,i,k,:)
       end do
 #endif
       do j = jbegin , jendm
-        chia(1,k,j,:) = chisb(1,k,j,:) + dtb*chisbt(1,k,j,:)
-        chia(iym1,k,j,:) = chinb(1,k,j,:) + dtb*chinbt(1,k,j,:)
+        chia(j,1,k,:) = chisb(j,1,k,:) + dtb*chisbt(j,1,k,:)
+        chia(j,iym1,k,:) = chinb(j,1,k,:) + dtb*chinbt(j,1,k,:)
       end do
     end do
 
@@ -675,19 +565,19 @@ implicit none
              fcx = fcoef*xfune(i,k)
              gcx = gcoef*xfune(i,k)
              !........south boundary:
-             fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
-             fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:)) -chib(i,k,j-1,:)
-             fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:)) -chib(i,k,j+1,:)
-             fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:)) -chib(i-1,k,j,:)
-             fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:)) -chib(i+1,k,j,:)
+             fls0(:) = (chisb(j,i,k,:)+dtb*chisbt(j,i,k,:)) -chib(j,i,k,:)
+             fls1(:) = (chisb(j-1,i,k,:)+dtb*chisbt(j-1,i,k,:)) -chib(j-1,i,k,:)
+             fls2(:) = (chisb(j+1,i,k,:)+dtb*chisbt(j+1,i,k,:)) -chib(j+1,i,k,:)
+             fls3(:) = (chisb(j,i-1,k,:)+dtb*chisbt(j,i-1,k,:)) -chib(j,i-1,k,:)
+             fls4(:) = (chisb(j,i+1,k,:)+dtb*chisbt(j,i+1,k,:)) -chib(j,i+1,k,:)
              ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                        &
                   & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
              !........north boundary:
-             fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
-             fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:))-chib(ii,k,j-1,:)
-             fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:))-chib(ii,k,j+1,:)
-             fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:))-chib(ii-1,k,j,:)
-             fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:))-chib(ii+1,k,j,:)
+             fls0(:) = (chinb(j,i,k,:)+dtb*chinbt(j,i,k,:)) -chib(ii,k,j,:)
+             fls1(:) = (chinb(j-1,i,k,:)+dtb*chinbt(j-1,i,k,:))-chib(ii-1,i,k,:)
+             fls2(:) = (chinb(j+1,i,k,:)+dtb*chinbt(j+1,i,k,:))-chib(ii+1,i,k,:)
+             fls3(:) = (chinb(j,i-1,k,:)+dtb*chinbt(j,i-1,k,:))-chib(ii,i-1,k,:)
+             fls4(:) = (chinb(j,i+1,k,:)+dtb*chinbt(j,i+1,k,:))-chib(ii,i+1,k,:)
              ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                      &
                   & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
           end do
@@ -734,19 +624,19 @@ implicit none
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
 !!$                !........south boundary:
-                fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
-                fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:)) -chib(i,k,j-1,:)
-                fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:)) -chib(i,k,j+1,:)
-                fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:)) -chib(i-1,k,j,:)
-                fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:)) -chib(i+1,k,j,:)
+                fls0(:) = (chisb(j,i,k,:)+dtb*chisbt(j,i,k,:)) -chib(j,i,k,:)
+                fls1(:) = (chisb(j-1,i,k,:)+dtb*chisbt(j-1,i,k,:)) -chib(j-1,i,k,:)
+                fls2(:) = (chisb(j+1,i,k,:)+dtb*chisbt(j+1,i,k,:)) -chib(j+1,i,k,:)
+                fls3(:) = (chisb(j,i-1,k,:)+dtb*chisbt(j,i-1,k,:)) -chib(j,i-1,k,:)
+                fls4(:) = (chisb(j,i+1,k,:)+dtb*chisbt(j,i+1,k,:)) -chib(j,i+1,k,:)
                 ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                        &
                      & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
                 !........north boundary:
-                fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
-                fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:))-chib(ii,k,j-1,:)
-                fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:))-chib(ii,k,j+1,:)
-                fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:))-chib(ii-1,k,j,:)
-                fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:))-chib(ii+1,k,j,:)
+                fls0(:) = (chinb(j,i,k,:)+dtb*chinbt(j,i,k,:)) -chib(j,ii,k,:)
+                fls1(:) = (chinb(j-1,i,k,:)+dtb*chinbt(j-1,i,k,:))-chib(j-1,ii,k,:)
+                fls2(:) = (chinb(j+1,i,k,:)+dtb*chinbt(j+1,i,k,:))-chib(j+1,ii,k,:)
+                fls3(:) = (chinb(j,i-1,k,:)+dtb*chinbt(j,i-1,k,:))-chib(j,ii-1,k,:)
+                fls4(:) = (chinb(j,i+1,k,:)+dtb*chinbt(j,i+1,k,:))-chib(j,ii+1,k,:)
                 ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                      &
                      & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
 
@@ -764,23 +654,23 @@ implicit none
                    fcx = fcoef*xfune(i,k)
                    gcx = gcoef*xfune(i,k)
                    !.........south boundary:
-                   fls0(:) = (chisb(i,k,j,:)+dtb*chisbt(i,k,j,:)) -chib(i,k,j,:)
-                   fls1(:) = (chisb(i,k,j-1,:)+dtb*chisbt(i,k,j-1,:))-chib(i,k,j-1,:)
-                   fls2(:) = (chisb(i,k,j+1,:)+dtb*chisbt(i,k,j+1,:))-chib(i,k,j+1,:)
-                   fls3(:) = (chisb(i-1,k,j,:)+dtb*chisbt(i-1,k,j,:))-chib(i-1,k,j,:)
-                   fls4(:) = (chisb(i+1,k,j,:)+dtb*chisbt(i+1,k,j,:))-chib(i+1,k,j,:)
+                   fls0(:) = (chisb(j,i,k,:)+dtb*chisbt(j,i,k,:)) -chib(j,i,k,:)
+                   fls1(:) = (chisb(j-1,i,k,:)+dtb*chisbt(j-1,i,k,:))-chib(j-1,i,k,:)
+                   fls2(:) = (chisb(j+1,i,k,:)+dtb*chisbt(j+1,i,k,:))-chib(j+1,i,k,:)
+                   fls3(:) = (chisb(j,i-1,k,:)+dtb*chisbt(j,i-1,k,:))-chib(j,i-1,k,:)
+                   fls4(:) = (chisb(j,i+1,k,:)+dtb*chisbt(j,i+1,k,:))-chib(j,i+1,k,:)
                    ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
                         & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
                    !.........north boundary:
-                   fls0(:) = (chinb(i,k,j,:)+dtb*chinbt(i,k,j,:)) -chib(ii,k,j,:)
-                   fls1(:) = (chinb(i,k,j-1,:)+dtb*chinbt(i,k,j-1,:)) - &
-                        chib(ii,k,j-1,:)
-                   fls2(:) = (chinb(i,k,j+1,:)+dtb*chinbt(i,k,j+1,:)) - &
-                        chib(ii,k,j+1,:)
-                   fls3(:) = (chinb(i-1,k,j,:)+dtb*chinbt(i-1,k,j,:)) - &
-                        chib(ii-1,k,j,:)
-                   fls4(:) = (chinb(i+1,k,j,:)+dtb*chinbt(i+1,k,j,:)) - &
-                        chib(ii+1,k,j,:)
+                   fls0(:) = (chinb(j,i,k,:)+dtb*chinbt(j,i,k,:)) -chib(j,ii,k,:)
+                   fls1(:) = (chinb(j-1,i,k,:)+dtb*chinbt(j-1,i,k,:)) - &
+                        chib(j-1,ii,k,:)
+                   fls2(:) = (chinb(j+1,i,k,:)+dtb*chinbt(j+1,i,k,:)) - &
+                        chib(j+1,ii,k,:)
+                   fls3(:) = (chinb(j,i-1,k,:)+dtb*chinbt(j,i-1,k,:)) - &
+                        chib(j,ii-1,k,:)
+                   fls4(:) = (chinb(j,i+1,k,:)+dtb*chinbt(j,i+1,k,:)) - &
+                        chib(j,ii+1,k,:)
                    ften(ii,k,:) = ften(ii,k,:) + fcx*fls0(:) -                    &
                         & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
                 end do
@@ -796,15 +686,15 @@ implicit none
                 gcx = gcoef*xfune(jsls,k)
                 do i = ibeg , iend
 
-                   fls0(:) = (chiwb(i,k,jwb,:)+dtb*chiwbt(i,k,jwb,:)) -chib(i,k,j,:)
-                   fls1(:) = (chiwb(i-1,k,jwb,:)+dtb*chiwbt(i-1,k,jwb,:))             &
-                        & -chib(i-1,k,j,:)
-                   fls2(:) = (chiwb(i+1,k,jwb,:)+dtb*chiwbt(i+1,k,jwb,:))             &
-                        & -chib(i+1,k,j,:)
-                   fls3(:) = (chiwb(i,k,jwb-1,:)+dtb*chiwbt(i,k,jwb-1,:))             &
-                        & -chib(i,k,j-1,:)
-                   fls4(:) = (chiwb(i,k,jwb+1,:)+dtb*chiwbt(i,k,jwb+1,:))             &
-                        & -chib(i,k,j+1,:)
+                   fls0(:) = (chiwb(jwb,i,k,:)+dtb*chiwbt(jwb,i,k,:)) -chib(j,i,k,:)
+                   fls1(:) = (chiwb(jwb,i-1,k,:)+dtb*chiwbt(jwb,i-1,k,:))             &
+                        & -chib(j,i-1,k,:)
+                   fls2(:) = (chiwb(jwb,i+1,k,:)+dtb*chiwbt(jwb,i+1,k,:))             &
+                        & -chib(j,i+1,k,:)
+                   fls3(:) = (chiwb(jwb-1,i,k,:)+dtb*chiwbt(jwb-1,i,k,:))             &
+                        & -chib(j-1,i,k,:)
+                   fls4(:) = (chiwb(jwb+1,i,k,:)+dtb*chiwbt(jwb+1,i,k,:))             &
+                        & -chib(j+1,i,k,:)
 
                    ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
                         & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))
@@ -817,15 +707,15 @@ implicit none
                 gcx = gcoef*xfune(jsls,k)
                 do i = ibeg , iend
 
-                   fls0(:) = (chieb(i,k,jeb,:)+dtb*chiebt(i,k,jeb,:)) -chib(i,k,j,:)
-                   fls1(:) = (chieb(i-1,k,jeb,:)+dtb*chiebt(i-1,k,jeb,:))             &
-                        & -chib(i-1,k,j,:)
-                   fls2(:) = (chieb(i+1,k,jeb,:)+dtb*chiebt(i+1,k,jeb,:))             &
-                        & -chib(i+1,k,j,:)
-                   fls3(:) = (chieb(i,k,jeb-1,:)+dtb*chiebt(i,k,jeb-1,:))             &
-                        & -chib(i,k,j-1,:)
-                   fls4(:) = (chieb(i,k,jeb+1,:)+dtb*chiebt(i,k,jeb+1,:))             &
-                        & -chib(i,k,j+1,:)
+                   fls0(:) = (chieb(jeb,i,k,:)+dtb*chiebt(jeb,i,k,:)) -chib(j,i,k,:)
+                   fls1(:) = (chieb(jeb,i-1,k,:)+dtb*chiebt(jeb,i-1,k,:))             &
+                        & -chib(j,i-1,k,:)
+                   fls2(:) = (chieb(jeb,i+1,k,:)+dtb*chiebt(jeb,i+1,k,:))             &
+                        & -chib(j,i+1,k,:)
+                   fls3(:) = (chieb(jeb-1,i,k,:)+dtb*chiebt(jeb-1,i,k,:))             &
+                        & -chib(j-1,i,k,:)
+                   fls4(:) = (chieb(jeb+1,i,k,:)+dtb*chiebt(jeb+1,i,k,:))             &
+                        & -chib(j+1,i,k,:)
 
                    ften(i,k,:) = ften(i,k,:) + fcx*fls0(:) -                      &
                         & gcx*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-4.*fls0(:))

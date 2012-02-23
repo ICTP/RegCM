@@ -732,8 +732,8 @@ module mod_tendency
         ! Here assignpnt does not work with gfortran with a sliced array.
         ! Doing explicit work on bounds.
         spchiten                      => chiten(:,:,:,itr)
-        spchi(1:,1:,lbound(chi,3):)   => chi(:,:,:,itr)
-        spchia(1:,1:,lbound(chia,3):) => chia(:,:,:,itr)
+        spchi(lbound(chi,1):,1:,1:)   => chi(:,:,:,itr)
+        spchia(lbound(chia,1):,1:,1:) => chia(:,:,:,itr)
         spchib3d(lbound(chib3d,1):,1:,1:) => chib3d(:,:,:,itr)
 
 
@@ -948,7 +948,7 @@ module mod_tendency
         xtm1 = xbctime - dtsec
         if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
         do j = jci1 , jci2
-          call nudge_chi(nspgx-1,fnudge,gnudge,xtm1,chiten(:,:,j,:),j,iboudy)
+          call nudge_chi(nspgx-1,fnudge,gnudge,xtm1,chiten(j,:,:,:),j,iboudy)
         end do
       end if
     end if

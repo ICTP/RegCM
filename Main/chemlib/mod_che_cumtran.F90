@@ -32,7 +32,9 @@ module mod_che_cumtran
 !     add the well-mixing fraction in dt step (5%) - only updraft
 !hy   cumfrc = 0.3
 !
-  real(8) , parameter :: cumfrc = 0.015D0
+!  real(8) , parameter :: cumfrc = 0.15D0
+!    real(8)   :: cumfrc
+
 !
   contains
 !
@@ -41,7 +43,7 @@ module mod_che_cumtran
   implicit none
 !
   real(8) :: chiabar , chibbar , deltas
-  integer :: i , j , k , kctop , n
+  integer :: i , j , k , kctop , n,cumfrc
 !
   do n = 1 , ntr
     do j = jbegin , jendx
@@ -52,13 +54,14 @@ module mod_che_cumtran
           chibbar = d_zero
           kctop = max0(kcumtop(j,i),4)
           do k = kctop , kz
-            deltas = deltas + chlevs(k)
-            chiabar = chiabar + chia(i,k,j,n)*chlevs(k)
-            chibbar = chibbar + chib(i,k,j,n)*chlevs(k)
+            deltas = deltas + cdsigma(k)
+            chiabar = chiabar + chia(j,i,k,n)*cdsigma(k)
+            chibbar = chibbar + chib(j,i,k,n)*cdsigma(k)
           end do
           do k = kctop , kz
-            chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc) + cumfrc*chiabar/deltas
-            chib(i,k,j,n) = chib(i,k,j,n)*(d_one-cumfrc) + cumfrc*chibbar/deltas
+            cumfrc =  ccldfra(j,i,k) - cfcc(j,i,k)
+            chia(j,i,k,n) = chia(j,i,k,n)*(d_one-cumfrc) + cumfrc*chiabar/deltas
+            chib(j,i,k,n) = chib(j,i,k,n)*(d_one-cumfrc) + cumfrc*chibbar/deltas
           end do
         end if
       end do

@@ -39,7 +39,7 @@ module mod_che_output
             do n = 1 , ntr
               do k = 1 , kz
                 do i = 1 , iy
-                  chem0(i,(n-1)*kz+k,j) = chia(i,k,j,n)
+                  chem0(i,(n-1)*kz+k,j) = chia(j,i,k,n)
                 end do
               end do
             end do

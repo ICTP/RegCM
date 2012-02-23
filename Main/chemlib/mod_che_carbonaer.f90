@@ -54,13 +54,13 @@ real(dp) , public , parameter :: rhooc   = 1200.0D0
   real(dp), parameter :: solbchl = 0.8
   real(dp), parameter :: soloc = 0.05
   real(dp), parameter :: solochl = 0.8
- 
+  public :: aging_carb, solbc, solbchl, soloc, solochl
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(dp) , public , dimension(5,2) :: carbsiz
+  real(dp) , public , dimension(5) :: carbed
 
-  public :: aging_carb, solbc, solbchl, soloc, solochl
+  
 
   contains
 
@@ -79,10 +79,10 @@ real(dp) , public , parameter :: rhooc   = 1200.0D0
     if ( ibchb > 0 .and. ibchl > 0 ) then
       do k = 1 , kz
         do i = 2 , iym2
-          agingtend1 = -chib(i,k,j,ibchb)*(d_one-dexp(-dtche/chagct))/dtche
+          agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dtche/chagct))/dtche
           agingtend2 = -agingtend1
-          chiten(i,k,j,ibchb) = chiten(i,k,j,ibchb) + agingtend1
-          chiten(i,k,j,ibchl) = chiten(i,k,j,ibchl) + agingtend2
+          chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
+          chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
         end do
       end do
     end if
@@ -90,10 +90,10 @@ real(dp) , public , parameter :: rhooc   = 1200.0D0
     if ( iochb > 0  .and. iochl > 0 ) then
       do k = 1 , kz
         do i = 2 , iym2
-          agingtend1 = -chib(i,k,j,iochb)*(d_one-dexp(-dtche/chagct))/dtche
+          agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dtche/chagct))/dtche
           agingtend2 = -agingtend1
-          chiten(i,k,j,iochb) = chiten(i,k,j,iochb) + agingtend1
-          chiten(i,k,j,iochl) = chiten(i,k,j,iochl) + agingtend2
+          chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
+          chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
         end do
       end do
     end if

@@ -341,7 +341,7 @@ module mod_che_drydep
 
       subroutine drydep_aero (j,mbin,indsp,rhop,ivegcov,throw,      &
                         & roarow,shj,pressg,temp2,sutemp,srad,rh10,     &
-                        & wind10,zeff,trsize,pdepv,ddepv)
+                        & wind10,zeff,beffdiam,pdepv,ddepv)
 !
       implicit none
 !
@@ -354,7 +354,7 @@ module mod_che_drydep
                                 & temp2 , wind10 , zeff
       real(8) , dimension(iy,kz) :: roarow , throw
       real(8) , dimension(kz) :: shj
-      real(8) , dimension(mbin,2) :: trsize
+      real(8) , dimension(mbin) :: beffdiam
       real(8)  :: rhop 
 
 ! output table to be passed out. Care dimension is ntr  
@@ -364,7 +364,7 @@ module mod_che_drydep
 
       intent (in) j, indsp, ivegcov , mbin ,       &
                 & pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
-                & throw , trsize , wind10 , zeff, rhop
+                & throw ,beffdiam  , wind10 , zeff, rhop
       intent (inout) pdepv
 !
       real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
@@ -375,31 +375,33 @@ module mod_che_drydep
                & y , z , z0water , zdl , zl
       real(8) , dimension(iy,kz) :: amu
       real(8) , dimension(iy) :: anu , schm , zz0
-      real(8) , dimension(iy,kz,isize) :: cfac , pdepvsub ,   pdiff ,  &
+      real(8) , dimension(iy,kz,mbin) :: cfac , pdepvsub ,   pdiff ,  &
            & rhsize , taurel
 
       integer :: i , jc , k , kcov , l , lev , n , tot,ib
       real(8) , dimension(iy,luc) :: ra , ustar , vegcover
-      real(8) , dimension(iy,luc,isize) :: rs
+      real(8) , dimension(iy,luc,mbin) :: rs
        real(8), dimension(iy,kz) :: wk, settend
       real(8) , parameter :: z10 = 10.0
-      real(8) , dimension(isize) :: avesize
+      real(8) , dimension(mbin) :: avesize
       character (len=64) :: subroutine_name='chdrydep'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
 
     
-      do n = 1 , isize
-        avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
+      do n = 1 , mbin
+ !here avesize is a RADIUS of the particle bin in m :
+ !calculated here from bin effective diameter in micrometer
+       avesize(n) = beffdiam(n)* 1.D-06 * d_half
       end do
       
 !======================================================================
 !     ********************************************************
-!     *   aerosize - dry radius                           ****
+!     *   aerosize - dry radius                    !!     ****
 !     *   rhop  - density for each aerosol type           ****
 !     ********************************************************
-      do n = 1 , isize
+      do n = 1 , mbin
         do l = 1 , kz
           do i = 2 , iym2
  
@@ -456,7 +458,7 @@ module mod_che_drydep
 !     * brownian diffusivity ===> sc=v/d               ****
 !     *****************************************************
  
-      do n = 1 , isize
+      do n = 1 , mbin
         do l = 1 , kz
           do i = 2 , iym2
  
@@ -467,7 +469,7 @@ module mod_che_drydep
 !           *****************************************************
  
             frx1 = 1.0
-            rhsize(i,l,n) = avesize(n)*frx1
+            rhsize(i,l,n) = avesize(n)*frx1 ! still a radius 
             anu(i) = amu(i,l)/roarow(i,l)
             amob = 6.*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
             pdiff(i,l,n) = boltzk*throw(i,l)/amob
@@ -566,32 +568,48 @@ module mod_che_drydep
 !
   
       do ib = 1 , mbin
-        tot = 0
+
+! there isw no sub-bin anymore / we consider directly effective radius 
          pdepv(:,:,indsp(ib)) = 0.
          ddepv(:,indsp(ib))  =0.
-        do n = 1 , isize
-          if ( avesize(n)*1.E6.ge.trsize(ib,1) .and. avesize(n)          &
-             & *1.E6.lt.trsize(ib,2) ) then
- 
+
               do i = 2 , iym2
-                pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib)) + pdepvsub(i,:,n)
+                pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
 ! agregate the dry deposition velocity, remember one cover per grid cell for now
 ! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
 ! simple form now add the vs
-                ddepv(i,indsp(ib)) =  ddepv(i,indsp(ib)) + ( 1.0/(ra(i,1)+rs(i,1,n)) +  pdepvsub(i,kz,n))
+                ddepv(i,indsp(ib)) =  1.0/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
 
-              end do          
-            tot = tot + 1
-          end if
-        end do
-        if ( tot.gt.0 ) then
-        
-            do i = 2 , iym2
-              pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib))/tot
-              ddepv(i,indsp(ib)) = ddepv(i,indsp(ib))/tot 
-           end do       
-        end if
-      end do
+              end do  
+!!$
+
+             end do
+
+
+
+!!$        do n = 1 , isize
+!!$          if ( avesize(n)*1.E6.ge.trsize(ib,1) .and. avesize(n)          &
+!!$             & *1.E6.lt.trsize(ib,2) ) then
+!!$ 
+!!$              do i = 2 , iym2
+!!$                pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib)) + pdepvsub(i,:,n)
+!!$! agregate the dry deposition velocity, remember one cover per grid cell for now
+!!$! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
+!!$! simple form now add the vs
+!!$                ddepv(i,indsp(ib)) =  ddepv(i,indsp(ib)) + ( 1.0/(ra(i,1)+rs(i,1,n)) +  pdepvsub(i,kz,n))
+!!$
+!!$              end do          
+!!$            tot = tot + 1
+!!$          end if
+!!$        end do
+!!$        if ( tot.gt.0 ) then
+!!$        
+!!$            do i = 2 , iym2
+!!$              pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib))/tot
+!!$              ddepv(i,indsp(ib)) = ddepv(i,indsp(ib))/tot 
+!!$           end do       
+!!$        end if
+  
 ! 
 ! Finally update the emission and settling tendencies for dust and sea salt 
 !
@@ -601,8 +619,8 @@ module mod_che_drydep
           do k = 2 , kz
             do i = 2 , iym2
               wk(i,k) = (1./cpsb(j,i))*          &
-                      & (ctwt(k,1)*chib(i,k,j,indsp(ib))+ &
-                      &  ctwt(k,2)*chib(i,k-1,j,indsp(ib)))
+                      & (ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
+                      &  ctwt(k,2)*chib(j,i,k-1,indsp(ib)))
             end do
           end do
 
@@ -613,21 +631,39 @@ module mod_che_drydep
                               wk(i,k)*pdepv(i,k,indsp(ib)))*     &
                               egrav*1.E-3/cdsigma(k)
 
-              chiten(i,k,j,indsp(ib)) = chiten(i,k,j,indsp(ib)) - settend(i,k)
+              chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             end do
 !
+! option 1 : calculate the tend as flux divergence 
 ! at first level include surface drydep velocity to calculte the divergence
-            settend(i,kz) =   (chib(i,kz,j,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))   &  
+!
+! option 2 : the dry deposition is accounted for in the BL scheme
+! we just pass the surface flux to the pbl interface( actually the net surface flux, cf also emission module) 
+ 
+          if ( ichdrdepo == 1 ) then 
+
+            settend(i,kz) =   (chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))   &  
                               -wk(i,kz)*pdepv(i,kz,indsp(ib)) ) &
                               *egrav*1.E-3/cdsigma(kz)
 
-            chiten(i,kz,j,indsp(ib)) = chiten(i,kz,j,indsp(ib)) - settend(i,kz)
+            chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
  
 !           dignoctic for dry deposition
             remdrd(i,j,indsp(ib) ) = remdrd(i,j,indsp(ib)) + settend(i,kz)*dtche/2.
 
-!dry dep velocity diagnostic in m.s-1  (sum setlling  + drydep v. , accumulated between two outputs time step) 
-            drydepv(i,j,indsp(ib)) =  drydepv(i,j,indsp(ib)) +  ddepv(i,indsp(ib)) + pdepv(i,kz,indsp(ib))
+! no net flux is passed to BL schemes in this case
+            cchifxuw(j,i, indsp(ib)) = d_zero
+
+           elseif (ichdrdepo == 2) then
+!
+! add the dry deposition term to the net emision/deposition flux for the BL scheme !
+! flux 
+           cchifxuw(j,i, indsp(ib)) = cchifxuw(j,i, indsp(ib)) - chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
+           
+           end if
+
+!dry dep velocity diagnostic in m.s-1  ( + drydep v. include also settling , accumulated between two outputs time step) 
+            drydepv(i,j,indsp(ib)) =  drydepv(i,j,indsp(ib)) +  ddepv(i,indsp(ib))
 
           end do
           end do
@@ -737,7 +773,6 @@ module mod_che_drydep
        drydepvg = 0.
 
        drydepvg(:,iso2)  =  vdg(1,:,1)
-       drydepvg(:,iso4)  =  vdg(2,:,1)
        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
        drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
@@ -750,28 +785,50 @@ module mod_che_drydep
 
 
 ! Finally : gas phase dry dep tendency calculation 
-
+     if ( ichdrdepo == 1) then  
           do i=2,iym2
           do n = 1, ntr
             Kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
-             ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
+             ddrem(i)  =  chib(j,i,k,n) * (1 -   dexp(-Kd * dtche)) / dtche ! dry dep removal tendency (+)
 !update chiten
-             chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
+             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
 !drydep flux diagnostic (accumulated between two outputs time step) ! the fluc form is calulated in tracbud
              remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
 !dry dep velocity diagnostic in m.s-1  (accumulated between two outputs time step) 
-             drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
-          end do
-          end do
+            drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n)     
+           end do 
+           end do
+      
+      elseif ( ichdrdepo ==2) then 
 
+          do i=2,iym2
+          do n = 1, ntr
+           cchifxuw(j,i,n) = cchifxuw(j,i,n) - chib(j,i,k,n)/ cpsb(j,i) * drydepvg(i,n)
+!dry dep velocity diagnostic in m.s-1  (accumulated between two outputs time step) 
+           drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
+           
+          end do
+          end do
+        end if 
 
 #endif
 
 
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
-  ! Need to solve this, cannot reach c2rvdep from here.
-!       jj = j + (jxp*myid)
+
+       jj = j + (jxp*myid)
+
+          do i=2,iym2
+          do n = 1, ntr
+
+! use clm dry deposition velocity
+            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
+             ddrem(i)  =  chib(j,i,kz,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
+!update chiten
+             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
+!drydep flux diagnostic (accumulated between two outputs time step) 
+             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
 !
 !          do i=2,iym2
 !          do n = 1, ntr

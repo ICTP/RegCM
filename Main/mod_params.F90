@@ -928,7 +928,7 @@ module mod_params
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
                  za,ts1,rhox2d,zpbl)
 #endif
-  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
+  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
                      sfs,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
@@ -1585,7 +1585,7 @@ end if
     call init_mod_pbl_uwtcm
   end if
 
-  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd, &
+  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,cchifxuw, &
                 psdot,sfs,mddom,ldmsk,a,sigma,dsigma,ptop,chtrdpv,   &
                 chtrname,ichem,ichdrdepo,dt)
  

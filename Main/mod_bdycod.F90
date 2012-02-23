@@ -624,15 +624,15 @@ module mod_bdycod
             atm2%qc(jce1,i,k) = atm1%qc(jce1,i,k)
           end do
         end do
-        if ( ichem == 1 ) then
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do i = ici1 , ici2
-                chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
-              end do
-            end do
-          end do
-        end if
+!!$        if ( ichem == 1 ) then
+!!$          do itr = 1 , ntr
+!!$            do k = 1 , kz
+!!$              do i = ici1 , ici2
+!!$                chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
+!!$              end do
+!!$            end do
+!!$          end do
+!!$        end if
       end if
       !
       ! East boundary
@@ -654,15 +654,15 @@ module mod_bdycod
             atm2%qc(jce2,i,k) = atm1%qc(jce2,i,k)
           end do
         end do
-        if ( ichem == 1 ) then
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do i = ici1 , ici2
-                chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
-              end do
-            end do
-          end do
-        end if
+!!$        if ( ichem == 1 ) then
+!!$          do itr = 1 , ntr
+!!$            do k = 1 , kz
+!!$              do i = ici1 , ici2
+!!$                chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
+!!$              end do
+!!$            end do
+!!$          end do
+!!$        end if
       end if
       !
       ! North and South boundaries
@@ -684,15 +684,15 @@ module mod_bdycod
             atm2%qc(j,ice1,k) = atm1%qc(j,ice1,k)
           end do
         end do
-        if ( ichem == 1 ) then
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do j = jce1 , jce2
-                chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
-              end do
-            end do
-          end do
-        end if
+!!$        if ( ichem == 1 ) then
+!!$          do itr = 1 , ntr
+!!$            do k = 1 , kz
+!!$              do j = jce1 , jce2
+!!$                chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
+!!$              end do
+!!$            end do
+!!$          end do
+!!$        end if
       end if
       if ( ma%hastop ) then
         do j = jce1 , jce2
@@ -711,16 +711,16 @@ module mod_bdycod
             atm2%qc(j,ice2,k) = atm1%qc(j,ice2,k)
           end do
         end do
-        if ( ichem == 1 ) then
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do j = jce1 , jce2
-                chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
-              end do
-            end do
-          end do
-        end if
-      end if
+!!$        if ( ichem == 1 ) then
+!!$          do itr = 1 , ntr
+!!$            do k = 1 , kz
+!!$              do j = jce1 , jce2
+!!$                chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
+!!$              end do
+!!$            end do
+!!$          end do
+!!$        end if
+     end if
     end if  !end if (iexec /= 1) test
     !
     ! Compute the boundary values for xxa variables:
@@ -1061,90 +1061,90 @@ module mod_bdycod
       end do
     end if
    
-    if ( ichem == 1 ) then
-      !
-      ! add tracer bc's
-      !
-      ! west  boundary:
-      !
-      if ( ma%hasleft ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ici1 , ici2
-              chix1 = chia(jce1,i,k,itr)/sfs%psa(jce1,i)
-              chix2 = chia(jci1,i,k,itr)/sfs%psa(jci1,i)
-              uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-              if ( uavg >= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(jce1,i,k,itr) = chix*sfs%psa(jce1,i)
-            end do
-          end do
-        end do
-      end if
-      !
-      ! east  boundary:
-      !
-      if ( ma%hasright ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ici1 , ici2
-              chix1 = chia(jce2,i,k,itr)/sfs%psa(jce2,i)
-              chix2 = chia(jci2,i,k,itr)/sfs%psa(jci2,i)
-              uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-              if ( uavg <= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(jce2,i,k,itr) = chix*sfs%psa(jce2,i)
-            end do
-          end do
-        end do
-      end if
-      !
-      ! south boundary:
-      !
-      if ( ma%hasbottom ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
-              chix1 = chia(j,ice1,k,itr)/sfs%psa(j,ice1)
-              chix2 = chia(j,ici1,k,itr)/sfs%psa(j,ici1)
-              vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-              if ( vavg >= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(j,ice1,k,itr) = chix*sfs%psa(j,ice1)
-            end do
-          end do
-        end do
-      end if
-      !
-      ! north boundary:
-      !
-      if ( ma%hastop ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jce1 , jce2
-              chix1 = chia(j,ice2,k,itr)/sfs%psa(j,ice2)
-              chix2 = chia(j,ici2,k,itr)/sfs%psa(j,ici2)
-              vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-              if ( vavg <= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(j,ice2,k,itr) = chix*sfs%psa(j,ice2)
-            end do
-          end do
-        end do
-      end if
-    end if
+!!$    if ( ichem == 1 ) then
+!!$      !
+!!$      ! add tracer bc's
+!!$      !
+!!$      ! west  boundary:
+!!$      !
+!!$      if ( ma%hasleft ) then
+!!$        do itr = 1 , ntr
+!!$          do k = 1 , kz
+!!$            do i = ici1 , ici2
+!!$              chix1 = chia(jce1,i,k,itr)/sfs%psa(jce1,i)
+!!$              chix2 = chia(jci1,i,k,itr)/sfs%psa(jci1,i)
+!!$              uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+!!$              if ( uavg >= d_zero ) then
+!!$                chix = chix1
+!!$              else
+!!$                chix = chix2
+!!$              end if
+!!$              chia(jce1,i,k,itr) = chix*sfs%psa(jce1,i)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end if
+!!$      !
+!!$      ! east  boundary:
+!!$      !
+!!$      if ( ma%hasright ) then
+!!$        do itr = 1 , ntr
+!!$          do k = 1 , kz
+!!$            do i = ici1 , ici2
+!!$              chix1 = chia(jce2,i,k,itr)/sfs%psa(jce2,i)
+!!$              chix2 = chia(jci2,i,k,itr)/sfs%psa(jci2,i)
+!!$              uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+!!$              if ( uavg <= d_zero ) then
+!!$                chix = chix1
+!!$              else
+!!$                chix = chix2
+!!$              end if
+!!$              chia(jce2,i,k,itr) = chix*sfs%psa(jce2,i)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end if
+!!$      !
+!!$      ! south boundary:
+!!$      !
+!!$      if ( ma%hasbottom ) then
+!!$        do itr = 1 , ntr
+!!$          do k = 1 , kz
+!!$            do j = jci1 , jci2
+!!$              chix1 = chia(j,ice1,k,itr)/sfs%psa(j,ice1)
+!!$              chix2 = chia(j,ici1,k,itr)/sfs%psa(j,ici1)
+!!$              vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+!!$              if ( vavg >= d_zero ) then
+!!$                chix = chix1
+!!$              else
+!!$                chix = chix2
+!!$              end if
+!!$              chia(j,ice1,k,itr) = chix*sfs%psa(j,ice1)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end if
+!!$      !
+!!$      ! north boundary:
+!!$      !
+!!$      if ( ma%hastop ) then
+!!$        do itr = 1 , ntr
+!!$          do k = 1 , kz
+!!$            do j = jce1 , jce2
+!!$              chix1 = chia(j,ice2,k,itr)/sfs%psa(j,ice2)
+!!$              chix2 = chia(j,ici2,k,itr)/sfs%psa(j,ici2)
+!!$              vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+!!$              if ( vavg <= d_zero ) then
+!!$                chix = chix1
+!!$              else
+!!$                chix = chix2
+!!$              end if
+!!$              chia(j,ice2,k,itr) = chix*sfs%psa(j,ice2)
+!!$            end do
+!!$          end do
+!!$        end do
+!!$      end if
+!!$    end if
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call set_tke_bc(atm1,atm2)

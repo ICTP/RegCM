@@ -525,7 +525,7 @@ module mod_che_wetdep
           chtrname(itr).ne.'DMS'   .or. chtrname(itr).ne.'OC_HB' .or. &
           chtrname(itr).ne.'OC_HL' ) then
         temp_dep(:) = (d_one-dexp( -het_rates(:,k,itr)*delt))*qin(:,k,itr)
-        chiten(2:iym2,k,j,itr) = chiten(2:iym2,k,j,itr) - temp_dep(:)/delt 
+        chiten(j,2:iym2,k,itr) = chiten(j,2:iym2,k,itr) - temp_dep(:)/delt 
         remcvc(2:iym2,k,j,itr) = remcvc(2:iym2,k,j,itr) + temp_dep(:)/d_two
         remlsc(2:iym2,k,j,itr) = remlsc(2:iym2,k,j,itr) + temp_dep(:)/d_two
       end if
@@ -533,7 +533,7 @@ module mod_che_wetdep
   end do level_loop2
   end subroutine sethet
 
-  subroutine wetdepa(j,mbin,indp,bsize,rhoaer,t,wl,fracloud,fracum, &
+  subroutine wetdepa(j,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
                      pressg,shj,rho,totppt,pdepv)
 !
   implicit none
@@ -544,7 +544,7 @@ module mod_che_wetdep
   real(dp) , dimension(kz) :: shj
   real(dp) , dimension(iy) :: pressg
   real(dp) , dimension(iy,kz,ntr) , intent (in) :: pdepv
-  real(dp) , dimension(mbin,2) , intent(in) :: bsize ! size of the aerosol bin
+  real(dp) , dimension(mbin) , intent(in) :: beffdiam ! size of the aerosol bin
   ! index of the correponding aerosol in the chi table
   integer , dimension(mbin) , intent(in) :: indp
   real(dp) , intent(in) :: rhoaer ! specific aerosol density
@@ -579,9 +579,9 @@ module mod_che_wetdep
             wetrem(indp(n)) = d_zero
             if ( cremrat(j,i,k) > d_zero ) then
               wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
-                 chib(i,k,j,indp(n))* &
+                 chib(j,i,k,indp(n))* &
                  (dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
-              chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &
+              chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                  wetrem(indp(n))/dtche
               remlsc(i,k,j,indp(n)) = remlsc(i,k,j,indp(n)) - &
                  wetrem(indp(n))/d_two
@@ -599,8 +599,8 @@ module mod_che_wetdep
         if ( kcumtop(j,i) >  0 ) then
           do k = kcumtop(j,i) , kz
             wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
-                 chib(i,k,j,indp(n))*(dexp(-remcum*dtche)-d_one)
-            chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &
+                 chib(j,i,k,indp(n))*(dexp(-remcum*dtche)-d_one)
+            chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                  wetrem_cvc(indp(n))/dtche
             remcvc(i,k,j,indp(n)) = remcvc(i,k,j,indp(n)) - &
                  wetrem_cvc(indp(n))/d_two
@@ -613,14 +613,14 @@ module mod_che_wetdep
   ! below cloud scavenging for aerosol:
   ! calculate now the below cloud (washout scavenging rate) for
   ! aerosol  WETDEP (in s-1)
-  ! calculate the effective diameter from bsize, correction for
+  ! calculate the effective diameter from beffdiam, correction for
   ! humidity not done yet.
   ! take particule effective diameter as the average bin
   ! kept as dry diameter . multiply by 0.5 since the radius is
   ! used in collection efficiency calculation.
   do i = 2 , iym2
     do k = 1 , kz
-      rhsize(i,k,1:mbin) = d_half * 1.D-06 * sum(bsize(1:mbin,:),2)/d_two
+      rhsize(i,k,1:mbin) = d_half * 1.D-06 * beffdiam(1:mbin)
     end do
   end do
   ! dry density for now
@@ -634,8 +634,8 @@ module mod_che_wetdep
   do n = 1 , mbin
     do k = 1 , kz
       do i = 2 , iym2
-        wtend = chib(i,k,j,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dtche))/dtche
-        chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) - wtend 
+        wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dtche))/dtche
+        chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
         ! wet deposition diagnostic, adding to rainout contribution ! 
         ! nod differenciation between conv and large scale yet
         remcvc(i,k,j,indp(n)) = remcvc(i,k,j,indp(n)) + wtend *dtche/d_two

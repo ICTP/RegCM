@@ -35,12 +35,9 @@ module mod_che_mppio
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc_io
   real(dp) , pointer , dimension(:,:,:,:) :: remlsc_io
   real(dp) , pointer , dimension(:,:,:) :: remdrd_io
-
-
   real(dp) , pointer , dimension(:,:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
                                            wdcvc_io , wdlsc_io, drydepv_io
-
 
   real(8) , pointer , dimension(:,:,:) :: aerasp_io ,           &
                               aerext_io , aerssa_io
@@ -67,11 +64,11 @@ module mod_che_mppio
 ! Boundary conditions arrays
 !
   real(dp)  , pointer , dimension(:,:,:,:) :: chebdy_io
-
-
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
   real(dp), pointer, dimension (:,:) :: cpsa_io
+
+
 !---------- DATA init section--------------------------------------------
 
   contains 
@@ -94,17 +91,18 @@ module mod_che_mppio
       call getmem4d(src0,1,iy,1,mpy,1,ntr,1,jxp,'che_mppio:src0')
       call getmem3d(src1,1,iy,1,nats,1,jxp,'che_mppio:src1')
       call getmem3d(savch0,1,iy,1,kz*25,1,jxp,'che_mppio:savch0')
-      call getmem4d(chebdy,1,iy,1,kz,1,jxp,1,50, 'mod_che_mppio:chebdy')
-      if (myid == 0) then
 
+      call getmem4d(chebdy,1,jxp,1,iy,1,kz,1,50, 'mod_che_mppio:chebdy')
+      if (myid == 0) then
+!          call getmem4d(chebdy_io,1,jx,1,iy,1,kz,1,50,'che_mppio:chebdy_io') 
+        call getmem4d(chebdy_io,jdot1,jdot2,idot1,idot2,1,kz,1,50, 'mod_che_mppio:chebdy_io')
 
         call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
         call getmem4d(src_0,1,iy,1,mpy,1,ntr,1,jx,'che_mppio:src_0')
         call getmem3d(src_1,1,iy,1,nats,1,jx,'che_mppio:src_1')
         call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
 
-        call getmem4d(chebdy_io,1,iy,1,kz,1,jx,1,50,'che_mppio:chebdy_io')
-
+      
 
         call getmem2d(cpsa_io,1,iy,1,jx,'che_mppio:cpsa_io')
         call getmem2d(ssw2da_io,1,iym1,1,mmj,'che_mppio:ssw2da_io')
@@ -148,5 +146,18 @@ module mod_che_mppio
     end if
 
   end subroutine allocate_mod_che_mppio
+
+!
+!
+
+
+
+
+
+
+
+
+
+
 !
 end module mod_che_mppio

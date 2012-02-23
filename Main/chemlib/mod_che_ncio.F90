@@ -543,9 +543,9 @@ end subroutine close_domain
 
     aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
 
-    print*, 'Opening ch. emission file : RETURN !!!!', aername
+    print*, 'Opening ch. emission file ', aername
     !CARE FAB shut down the emission reading temporarily 
-    return
+ !   return
 
     istatus = nf90_open(aername, nf90_nowrite, ncid)
     call check_ok(__FILE__,__LINE__, &
@@ -568,6 +568,9 @@ end subroutine close_domain
 
 !FAB VERY IMPORTANT : THIS REAQDING SECTION SHOULD BE FIXED WITH HOMOGENEOUS PREPROC
 
+   ! FAB pour esource amma
+   IF (igaschem == 1) THEN  
+
     ! NO emission                  
     if ( ino /= 0 ) then
       call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
@@ -576,12 +579,12 @@ end subroutine close_domain
     ! CO emission
     if ( ico /= 0 ) then
       call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
-                'a_CO',.false.,'b_CO','o_co')
+                'a_CO',.false.,'b_CO')
     print*, 'FAB emis testco','ico', maxval(echemsrc)
     end if
     ! HCHO emission                  
     if ( ihcho /= 0 ) then
-      call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
+ !     call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
     end if
     ! ACET emission                  
     if ( iacet /= 0 ) then
@@ -596,32 +599,32 @@ end subroutine close_domain
     ! CH4
     if ( ich4 /= 0 ) then
       call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
-                'a_ch4',.false.,'b_ch4')
+                'a_ch4',.false.,'b_CH4')
 !!$    print*, ' ATTENTION SKIP CH4 EM'
     end if
     ! Ethane
     if ( ic2h6 /= 0 ) then
       call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
-                'a_ETHANE',.false.,'b_ETHANE','o_c2h6')
+                'a_ETHANE',.false.,'b_ETHANE')
     end if
     ! PAR
     if ( ipar /= 0 ) then
-      call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
-                'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
+!      call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
+!                'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
     end if
     ! Ethene
     if ( iethe /= 0 ) then
       call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
-                'a_ETHENE',.false.,'bio_c2h4','o_c2h4')
+                'a_ETHENE',.false.,'b_ETHENE')
     end if
     ! Termenal Alkene
     if ( iolt /= 0 ) then
       call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
-                'a_PROPENE',.false.,'bio_c3h6')
+                'a_PROPENE',.false.,'b_PROPENE')
     end if
     ! Internal Alkene
     if ( ioli /= 0 ) then
-      call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
+  !    call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
     end if
     ! Isoprene
     if ( iisop /= 0 ) then
@@ -648,27 +651,47 @@ end subroutine close_domain
     end if
     ! Acetaldehyde
     if ( iald2 /= 0 ) then
-      call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
+ !     call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
     end if
     ! Methanol + Ethanol
     if ( imoh /= 0 ) then
       call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
-                'a_MOH',.false.,'b_ch3oh','bio_ch3oh')
+                'a_ch3oh',.false.,'b_ch3oh','bio_ch3oh')
     end if           
     ! DMS
     if ( idms /= 0 ) then
-      call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
+  !    call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
     end if
     ! OC and BC anthropogenic + biomass burning
     if ( ibchb /= 0 ) then
       call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
-                'b_BC',.false.,'a_BC')
+                'a_bc',.false.)
     end if
     if ( iochb /= 0 ) then
       call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
-                'b_OC',.false.,'a_OC')
+                'a_oc',.false.)
     end if
 
+ ELSE 
+! uniquement les sources BB AMMA
+   ! OC and BC anthropogenic + biomass burning
+    if ( ibchb /= 0 ) then
+      call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+                'b_BC',.false.)
+    end if
+    if ( iochb /= 0 ) then
+      call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
+                'b_OC',.false.)
+    end if
+
+     if ( iso2 /= 0 ) then
+      call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
+                'b_SO2',.false.)
+    end if
+ 
+    print*,' AFTER rvar', maxval(echemsrc)
+
+END IF
  
     istatus = nf90_close(ncid)
     call check_ok(__FILE__,__LINE__, &
@@ -1500,6 +1523,17 @@ jbin = 0
 
         else if(n == noutf) then 
 
+
+            istart(4) = icherec
+            istart(3) = 1
+            istart(2) = 1
+            istart(1) = 1
+            icount(5) = 1
+            icount(4) = 1
+            icount(3) = o_nz
+            icount(2) = o_ni
+            icount(1) = o_nj
+
  
            !*** extinction
             do k = 1 , nz
@@ -1757,22 +1791,10 @@ jbin = 0
 
           use netcdf
           implicit none
-
-!          integer , intent(in) :: idate
           real(dp) , dimension (:,:,:,:), intent(out) :: chebdio 
           integer , dimension(4) :: istart , icount
           real(4) , dimension(jx,iy,kz) :: xread
           integer :: i , j , k, n
-
-!!$          if (idate > chbc_idate(ibcnrec) .or. idate < chbc_idate(1)) then
-!!$            write (6,*) 'Cannot find ', idate, ' in CHBC file'
-!!$            write (6,*) 'Range is : ', chbc_idate(1) , '-', &
-!!$                       & chbc_idate(ibcnrec)
-!!$            call fatal(__FILE__,__LINE__,'CHBC READ ERROR')
-!!$          end if 
-
-!deja calcule
-!          ibcrec = (idatediff(idate, chbc_idate(1)) / ibdyfrq) + 1
 
           istart(4) = ibcrec
           istart(3) = 1
@@ -1793,254 +1815,13 @@ jbin = 0
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-!                o3b0_io(i,k,j) = xread(j,i,k)
-                 chebdio(i,k,j,n) = xread(j,i,k)
+                 chebdio(j,i,k,n) = xread(j,i,k)
               end do
             end do
           end do
 
         end do
-!!$
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(3), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable NO read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                nob0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(4), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable NO2 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                no2b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(5), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable HNO3 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                hno3b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(6), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable N2O5 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                n2o5b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(7), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable H2O2 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                h2o2b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(8), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable CH4 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                ch4b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(9), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable CO read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                cob0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(10), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable HCHO read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                hchob0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(11), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable CH3OH read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                ch3ohb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(12), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable C2H5OH read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                c2h5ohb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(13), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable C2H4 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                c2h4b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(14), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable C2H6 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                c2h6b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(15), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable CH3CHO read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                ch3chob0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(16), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable CH3COCH3 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                ch3coch3b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(17), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable BIGENE read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                bigeneb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(18), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable BIGALK read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                bigalkb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(19), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable C3H6 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                c3h6b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(20), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable C3H8 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                c3h8b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(21), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable ISOP read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                isopb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(22), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable TOLUE read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                tolueb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(23), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable PAN read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                panb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(24), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable SO2 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                so2b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(25), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable SO4 read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                so4b0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$          istatus = nf90_get_var(ichin, chbc_ivar(26), xread, &
-!!$                    &            istart, icount)
-!!$          call check_okc('variable DMS read error', 'CHBC FILE ERROR')
-!!$          do k = 1 , kz
-!!$            do j = 1 , jx
-!!$              do i = 1 , iy
-!!$                dmsb0_io(i,k,j) = xread(j,i,k)
-!!$              end do
-!!$            end do
-!!$          end do
+
 
         end subroutine read_chbc
 

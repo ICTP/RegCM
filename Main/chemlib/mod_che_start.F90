@@ -33,7 +33,8 @@
     use mod_che_dust
     use mod_che_sox
     use mod_che_seasalt
-  
+    use mod_mppparam  
+
    implicit none
 
     public  :: start_chem
@@ -42,11 +43,12 @@
 
 !----------------------------------------------------------------------------------------------------
 
-subroutine start_chem (ifrest,bdydate1, bdydate2)
+subroutine start_chem (ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
 !  use mpi
   implicit none
  
   logical , intent(in) :: ifrest
+  integer , intent(in) :: ice1,ice2,jce1,jce2
   character(256)       :: namelistfile,prgname
   integer              :: ierr,err
   integer              :: itr,i,k,j,ibin,jbin,kbin
@@ -153,41 +155,36 @@ kbin=0
                 kbin = kbin + 1
                 iso4 = itr
                 icarb(kbin) = itr
-                carbsiz(kbin,1) = reffochl - 0.1
-                carbsiz(kbin,2) = reffochl + 0.1
+                carbed(kbin) = reffochl
                 chtrsol(iso4) = solso4
            end if
            if ( chtrname(itr).eq.'BC_HL' ) then 
                 kbin = kbin + 1
                 ibchl = itr
                 icarb(kbin) = itr
-                carbsiz(kbin,1) = reffbchl - 0.06
-                carbsiz(kbin,2) = reffbchl + 0.06
+                carbed(kbin) = reffbchl
                 chtrsol(itr) = solbchl
            end if
            if ( chtrname(itr).eq.'BC_HB' ) then 
                   kbin = kbin + 1
                   ibchb = itr
                   icarb(kbin) = itr
-                  carbsiz(kbin,1) = reffbc - 0.01
-                  carbsiz(kbin,2) = reffbc + 0.01
+                  carbed(kbin) = reffbc
                   chtrsol(itr) = solbc   
            end if
            if ( chtrname(itr).eq.'OC_HL' ) then
                    kbin = kbin + 1
                    iochl = itr
                    icarb(kbin) = itr
-                   carbsiz(kbin,1) = reffochl - 0.1
-                   carbsiz(kbin,2) = reffochl + 0.1
-           chtrsol(itr) = soloc             
+                   carbed(kbin) = reffochl 
+                   chtrsol(itr) = soloc             
            end if
            if ( chtrname(itr).eq.'OC_HB' ) then
                    kbin = kbin + 1
                    iochb = itr
                    icarb(kbin) = itr 
-                   carbsiz(kbin,1) = reffoc - 0.07
-                   carbsiz(kbin,2) = reffoc + 0.07
-             chtrsol(itr) = solochl  
+                   carbed(kbin) = reffoc 
+                   chtrsol(itr) = solochl  
            end if
 
 
@@ -336,7 +333,7 @@ kbin=0
   
 
 
-!if igasphase
+ if (igaschem==1) then
   open( 26,file='TUVGRID2', status='old')
   open( 25,file='REACTION.DAT_CBMZ', status='old')  
 ! FAB Traiter le prbleme du restart apres
@@ -344,12 +341,12 @@ kbin=0
   call chemread
   call hvread
   call cheminit 
-
+end if 
 
   lband = .false. !! provisoire!
   call init_mod_che_ncio(lband) 
 
-  call chem_initial_state(ifrest,bdydate1, bdydate2)
+  call chem_initial_state(ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
 
 
 
@@ -363,7 +360,7 @@ kbin=0
 !----------------------------------------------------------------
 
 
-    subroutine chem_initial_state(ifrest,bdydate1, bdydate2 )
+    subroutine chem_initial_state(ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2 )
 
 #ifndef IBM
     use mpi
@@ -377,6 +374,7 @@ kbin=0
     implicit none
 
     logical , intent(in) :: ifrest
+    integer, intent (in) :: ice1,ice2,jce1,jce2
     integer    :: i,j,k,n,ierr
    type (rcm_time_and_date) :: icbc_date
     type (rcm_time_and_date), intent(in) :: bdydate1, bdydate2
@@ -391,51 +389,54 @@ kbin=0
     call open_chbc(icbc_date)
  
     call read_chbc(chebdy_io)
+  print*, myid,'avant', maxval(chebdy_io)
+    end if
 
+   
+  
 
-   do n = 1, 25
-      do j = 1 , jx
-        do k = 1 , kz
-           do i = 1 , iy
-             savch_0(i,kz*(n-1) + k       ,j)  = chebdy_io(i,k,j,n)
+    call deco1_scatter(chebdy_io,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
 
-          end do
-       end do
-    end do
-    end do
-!!$
-     end if
-    call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,      &
-                     savch0, iy*kz*25*jxp,mpi_real8,      &
-                     0,mpi_comm_world,ierr)
-!!$
-!!$       print*,' CIAO ,',myid, size(no2b1,3), size(savch0,3),jxp,jbegin,jendx,jxp
-!!$
-
-    do n=1,25 
-    do j = 1 , jxp
-    do k = 1 , kz
-      do i = 1 , iy
-
-             chebdy(i,k,j,n) = savch0(i, kz*(n-1) + k,j)
-
-          end do
-       end do
-    end do
-    end do
+    print*, myid,'apres', maxval(chebdy)
+!
+! FAB :ICI il faut peut etre echanger proc les tableau chebdy et /ou chib0 pour etre coherent avec mod_init 
+!
 
 !!$! intialise the chib0 tracer
 !!$
   do n=1,25 
- 
-   do k = 1 , kz
-       do j = 1 , jxp
-          do i = 1 , iy
-              if(ichbdy2trac(n) > 0) chib0(i,k,j,ichbdy2trac(n))   =  chebdy(i,k,j,n)*cpsb(j,i)
+    do k = 1 , kz
+       do i = ice1,ice2 
+          do j = jce1,jce2 
+              if(ichbdy2trac(n) > 0) chib0(j,i,k,ichbdy2trac(n))   =  chebdy(j,i,k,n)*cpsb(j,i)
           end do
        end do
     end do
   end do
+
+
+if (.not.ifrest ) then
+    do k = 1 , kz
+       do i = ice1,ice2 
+          do j = jce1,jce2        
+              chia(j,i,k,:) =   chib0(j,i,k,:) 
+              chib(j,i,k,:) =   chib0(j,i,k,:)
+         end do
+         end do
+         end do
+
+end if
+
+
+
+
+
+
+
+
+
+
+
 !!$
 !!$ open and read oxydant fields and initial /boundary conditions are set to zero) 
 !!$
@@ -490,19 +491,6 @@ kbin=0
 !!$
 !!$
 
-
-
-if (.not.ifrest ) then
-         do j=1,jxp
-         do i=1,iy
-         do k=1,kz
-              chia(i,k,j,:) =   chib0(i,k,j,:) 
-              chib(i,k,j,:) =   chib0(i,k,j,:)
-         end do
-         end do
-         end do
-
-end if
 
 
 

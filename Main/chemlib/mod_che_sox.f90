@@ -28,6 +28,7 @@ module mod_che_sox
   private
 
    real(dp)  ::  solso4
+   data  solso4 /0.9/ 
 
    public :: chemsox,solso4
 
@@ -81,11 +82,10 @@ module mod_che_sox
            oh1int = oxbc0%bc(i,k,j,iox_oh)
          else
            oh1int = 15.0D5
+           if ( czen(j,i) < 0.001D0 ) then
+           oh1int = oh1int*0.01D0
+          end if
          end if
-
-!        if ( coszrs(i) < 0.001D0 ) then
-!          oh1int = oh1int*0.01D0
-!        end if
 
 
          ! Sink & Tendencies 
@@ -103,10 +103,10 @@ module mod_che_sox
          !---------------------------------------------      
 
          so2_rate = rk_com(i,k,12) * oh1int
-         so2_snk(i,k) = chib(i,k,j,iso2)*(d_one-dexp(-so2_rate*dtche))/dtche
+         so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dtche))/dtche
 
-         chiten(i,k,j,iso2) = chiten(i,k,j,iso2) - so2_snk(i,k) * cldno
-         chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + 1.5D0*so2_snk(i,k)*cldno 
+         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
+         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5D0*so2_snk(i,k)*cldno 
 
          !  gazeous conversion diagnostic 
 
@@ -122,7 +122,7 @@ module mod_che_sox
      ! Aqueous conversion from so2 to so4 : control by h2o2
      do k = 1 , kz
        do i = 2 , iym2
-         chimol = 28.9D0/64.0D0*chib(i,k,j,iso2)/cpsb(j,i) ! kg/kg to mole
+         chimol = 28.9D0/64.0D0*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
 
          if ( ichaer == 1 ) then 
            h2o2mol =  oxbc0%bc(i,k,j,iox_h2o2)
@@ -159,7 +159,7 @@ module mod_che_sox
            ! ( large scale cloud fraction) to get the incloud removal rate
            !
            if ( cremrat(j,i,k) > d_zero ) then
-             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4) - &
+             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
                       rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
            end if
  
@@ -177,9 +177,9 @@ module mod_che_sox
          end if
  
          ! Tendancies large scale cloud
-         chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs1/dtche + &
+         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dtche + &
                               wetrem(iso2)/dtche
-         chiten(i,k,j,iso4) = chiten(i,k,j,iso4) - rxs11/dtche + &
+         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dtche + &
                               wetrem(iso4)/dtche
  
          ! and wetdep diagnostics
@@ -211,13 +211,13 @@ module mod_che_sox
  
            ! removal (including theremoval on the rxs21 term)
            ! contratily to LS clouds, remcum is already an in cloud removal rate
-           wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(i,k,j,iso4) - &
+           wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
                               rxs21)*(dexp(-remcum*dtche)-d_one)
 
            ! tendancies due to convective removal processes
-           chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs2/dtche
+           chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs2/dtche
 
-           chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + &
+           chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &
                                 wetrem_cvc(iso4)/dtche - rxs21/dtche
  
            ! diagnostic of wet deposition

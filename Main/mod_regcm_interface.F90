@@ -242,7 +242,7 @@ module mod_regcm_interface
     call init
 
     if ( ichem == 1 ) then
-      call start_chem(ifrest,bdydate1,bdydate2)
+      call start_chem(ice1,ice2,jce1,jce2,ifrest,bdydate1,bdydate2)
     end if
 !
 !**********************************************************************
@@ -258,7 +258,7 @@ module mod_regcm_interface
 !
     call spinit
 !
-    if ( ichem == 1 ) call chem_emission(7)
+    if ( ichem == 1 ) call chem_emission(xmonth)
 !
 !
 !**********************************************************************
