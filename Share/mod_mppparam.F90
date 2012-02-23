@@ -2603,10 +2603,16 @@ module mod_mppparam
 !
   subroutine psc2psd(pc,pd)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in)  :: pc
+    real(dp) , pointer , dimension(:,:) , intent(inout)  :: pc
     real(dp) , pointer , dimension(:,:) , intent(out) :: pd
     integer :: i , j
-
+    !
+    ! We need the -1 point in the algo
+    !
+    call deco1_exchange_left(pc,1,icross1,icross2)
+    !
+    ! Internal points
+    !
     do i = idi1 , idi2
       do j = jdi1 , jdi2
         pd(j,i) = (pc(j,i)+pc(j,i-1)+pc(j-1,i)+pc(j-1,i-1))*d_rfour
