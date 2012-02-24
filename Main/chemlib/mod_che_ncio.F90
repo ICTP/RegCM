@@ -689,7 +689,6 @@ end subroutine close_domain
                 'b_SO2',.false.)
     end if
  
-    print*,' AFTER rvar', maxval(echemsrc)
 
 END IF
  

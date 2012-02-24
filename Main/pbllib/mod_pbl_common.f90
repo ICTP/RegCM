@@ -174,6 +174,7 @@ module mod_pbl_common
       call allocate_tcm_state(uwstatea,.true.)
       call allocate_tcm_state(uwstateb,.true.)
       if(ichem == 1)then
+        lchem = .true. 
         call getmem4d(chiuwten,1,jxp,1,iy,1,kz,1,ntr,'pbl_common:chiuwten')
 !        call getmem3d(chifxuw,1,jxp,1,iy,1,ntr,'pbl_common:chifxuw')
       end if

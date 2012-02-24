@@ -148,7 +148,7 @@ contains
       call getmem3d(checum,1,jxp,1,iy,1,kz,'mod_che_common:checum')
 
 
-      call getmem3d(cchifxuw,1,jxp,1,iy,1,kz,'mod_che_common:cchifxuw')
+      call getmem3d(cchifxuw,1,jxp,1,iy,1,ntr,'mod_che_common:cchifxuw')
 
 
     end if

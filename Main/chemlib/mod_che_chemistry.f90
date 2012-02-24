@@ -290,8 +290,8 @@ module mod_che_chemistry
       integer :: idatein , tstart
       integer :: itr , i , k , nn
 
-      chemin(:,:,j,:) = d_zero
-      chemox(:,:,j,:) = d_zero
+      chemin(j,:,:,:) = d_zero
+      chemox(j,:,:,:) = d_zero
      
       do k = 1 , kz
         do i = 2 , iym2

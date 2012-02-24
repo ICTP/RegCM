@@ -93,8 +93,6 @@ module mod_che_emission
           end do
         end do
       end do
-      print*,'chme srcio ',chemsrc_io(:,:,lmonth,iso2)
-     
     end if
 
     call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,  &

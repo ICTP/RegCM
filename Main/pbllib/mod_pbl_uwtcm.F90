@@ -213,7 +213,7 @@ module mod_pbl_uwtcm
     call getmem1d(uimp2,1,kz,'mod_uwtcm:uimp2')
     call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
 
-    if(lchem)then
+    if(lchem) then
       call getmem1d(kchi,1,kzp1,'mod_uwtcm:kchi')
       call getmem2d(chix,1,ntr,1,kz,'mod_uwtcm:chix')
       call getmem2d(chixs,1,ntr,1,kz,'mod_uwtcm:chixs')

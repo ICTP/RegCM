@@ -738,7 +738,20 @@ module mod_tendency
 
 
         call hadv(cross,spchiten,spchi,kz,2)
+!FAB        call vadv(cross,spchiten,spchia,kz,5)
+
+   if ( icup /= 1 ) then
+      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(cross,spchiten,spchia,kz,5)
+      else
+        if ( iuwvadv == 1 ) then
+          call vadv(cross,spchiten,spchia,kz,6)
+        else
+          call vadv(cross,spchiten,spchia,kz,5)
+        end if
+      end if
+    end if
+    !
 
         ! horizontal diffusion: initialize scratch vars to 0.
         ! need to compute tracer tendencies due to diffusion
@@ -839,9 +852,6 @@ module mod_tendency
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
-      if(ichem == 1)then
-        call set_tracer_surface_fluxes
-      end if
       call uwtcm
       call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
       call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)

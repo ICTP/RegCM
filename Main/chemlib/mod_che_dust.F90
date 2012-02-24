@@ -514,9 +514,15 @@ module mod_che_dust
       ieff = ieff + 1
       do n = 1 , nbin
         rsfrow(i,n) = xrsfrow(ieff,n)
-        chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + rsfrow(i,n)    &
+     if (ichdrdepo == 1) then  
+       chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + rsfrow(i,n)    &
                                & *egrav/(cdsigma(kz)*1.E3)
-!           diagnostic source (accumulated)
+!         
+     elseif ( ichdrdepo ==2) then  
+!pass the flux to BL scheme 
+       cchifxuw(jloop,i,idust(n)) = cchifxuw(jloop,i,idust(n))  +   rsfrow(i,n)
+     end if
+!  diagnostic source (accumulated)
             cemtr(i,jloop,idust(n)) = cemtr(i,jloop,idust(n)) + rsfrow(i,n)   &
                            & *dtche/2.
       end do
