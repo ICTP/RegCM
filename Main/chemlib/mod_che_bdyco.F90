@@ -301,16 +301,15 @@ implicit none
 
 
 
-  subroutine chem_bdyval(xt,iexec,nbdytime,dtbdys,ktau,ifrest)
+  subroutine chem_bdyval(xt,nbdytime,dtbdys,ktau,ifrest)
     use mod_che_indices
 !
     implicit none
 !
-    integer :: iexec
     integer(8)::nbdytime, ktau
     real(8) :: xt, dtbdys
     logical :: ifrest
-    intent (in) iexec , xt, nbdytime,dtbdys,ktau,ifrest
+    intent (in) xt, nbdytime,dtbdys,ktau,ifrest
 !
     real(8) :: chix , chix1 , chix2 , dtb , vavg
     integer :: itr , j , k
@@ -328,7 +327,7 @@ implicit none
 !     if this subroutine is called for the first time, this part
 !     shall be skipped.
 !
-    if ( iexec.ne.1 ) then
+    if ( ktau > 1 ) then
 !
 !      if ( ichem.eq.1 ) then
 !-----for p*chi (tracers)
@@ -351,7 +350,7 @@ implicit none
 !chem2_
 !
 !
-    end if      !end if(iexec.ne.1) test
+    end if      !end if(ktau > 1) test
 !**********************************************************************
 !*****compute the boundary values for xxa variables:
 !
@@ -363,20 +362,6 @@ implicit none
     end if
 
 !
-!
-!-----set boundary values for p*t:
-!-----set boundary values for p*qv:
-!
-
-    if (iexec.eq.1 .and. ifrest)  return
-
-
-!    if ( iboudy.eq.0 ) then
-!.....fixed boundary conditions:
-!    end if
-!
-
-
 !.....time-dependent boundary conditions:
 ! for chemistry relaxation towrds
 ! time dependant boundary conditions is considered

@@ -2607,10 +2607,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(out) :: pd
     integer :: i , j
     !
-    ! We need the -1 point in the algo
-    !
-    call deco1_exchange_left(pc,1,icross1,icross2)
-    !
     ! Internal points
     !
     do i = idi1 , idi2

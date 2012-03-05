@@ -218,6 +218,12 @@ module mod_regcm_interface
 !
     call header(myid,nproc)
 !
+!   this below enable debugging
+!
+#ifdef DEBUG 
+    call start_debug()
+#endif 
+!
 !**********************************************************************
 !
 !     Parameter Setup
@@ -229,45 +235,53 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     Read initial data
+!   Read initial data and boundary conditions
 !
 !**********************************************************************
 !
-!   this below enable debugging
+    call init_bdy
 !
-#ifdef DEBUG 
-    call start_debug()
-#endif 
+!**********************************************************************
+!
+!   Initialize data (from IC or restart)
+!
+!**********************************************************************
 !
     call init
-
+!
     if ( ichem == 1 ) then
       call start_chem(ice1,ice2,jce1,jce2,ifrest,bdydate1,bdydate2)
     end if
 !
-!**********************************************************************
-!
-!     Read Boundary conditions
-!
-!**********************************************************************
-!
-    if ( .not. ifrest ) call bdyin(0)
-    if ( ichem == 1 ) then
-      call chem_bdyin(150D00, bdydate1, bdydate2)
+    if ( .not. ifrest ) then
+      if ( ichem == 1 ) then
+        call chem_bdyin(150D00, bdydate1, bdydate2)
+      end if
     end if
 !
     call spinit
 !
     if ( ichem == 1 ) call chem_emission(xmonth)
 !
-!
 !**********************************************************************
 !
-!     Write initial state to output
+!   Write initial state to output
 !
 !**********************************************************************
 !
     call output
+!
+!
+!**********************************************************************
+!
+!   Set the boundary conditions for this timestep
+!
+!**********************************************************************
+!
+    call bdyval(xbctime)
+    if ( ichem == 1 ) then
+      call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
+    end if
 !
 !**********************************************************************
 !
@@ -310,39 +324,22 @@ module mod_regcm_interface
 !**********************************************************************
 !
     character(len=32) :: appdat
-    integer , save :: iexec
 !
 !**********************************************************************
 !
-!     Initialization of parameters 
-!
-!**********************************************************************
-!
+    !
+    ! Things to do the first time in the run
+    !
     if ( first ) then
       extime = d_zero
-      iexec  = 1
     end if
-    if ( ifrest ) then
-      iexec  = 3
-    end if
-!
-!**********************************************************************
-!
-!     Model run 
 !
 !**********************************************************************
 !     
     do while ( extime >= timestr .and. extime < timeend)
-!
-!     Read in boundary conditions if needed
-!
-      if ( nbdytime == 0 .and. (ktau > 0 .and. ktau < mtau) ) then
-        call bdyin(1)
-        if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
-      end if
-!
-!     Refined start
-!
+      !
+      ! Refined start
+      !
       if ( .not. ifrest ) then
         if ( rfstrt ) then
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
@@ -353,22 +350,29 @@ module mod_regcm_interface
           end if
         end if
       end if
-!
-!     Compute tendencies
-!
-      call tend(iexec)
-!
-!     Split modes
-!
+      !
+      ! Compute tendencies
+      !
+      call tend
+      !
+      ! Split modes
+      !
       call splitf
-!
-!     Write output for this timestep if requested
-!
+      !
+      ! Write output for this timestep if requested
+      !
       if ( ifrest ) doing_restart = .false.
       call output
-!
-!     Increment time
-!
+      !
+      ! Read in boundary conditions if needed
+      !
+      if ( nbdytime == 0 .and. ktau < mtau ) then
+        call bdyin
+        if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
+      end if
+      !
+      ! Increment execution time
+      !
       extime = extime + dtinc
       if (debug_level > 3) then
         if (myid == 0) then
@@ -376,7 +380,6 @@ module mod_regcm_interface
           write(6,'(a,a,f12.2)') 'Simulation time: ', appdat, extime
         end if
       end if
-!
     end do
 
 !this below close down debug 

@@ -82,7 +82,7 @@ module mod_tendency
     end if
   end subroutine allocate_mod_tend
 
-  subroutine tend(iexec)
+  subroutine tend
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -102,10 +102,6 @@ module mod_tendency
 !                                                                     c
 !     all the constants stored in common block /param1/.              c
 !                                                                     c
-!     iexec  : = 1 ; represents this subroutine is called for the     c
-!                    first time in this forecast run.                 c
-!              > 1 ; represents subsequent calls to this subroutine.  c
-!                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
 #ifndef IBM
@@ -114,9 +110,6 @@ module mod_tendency
     include 'mpif.h'
 #endif
     implicit none
-!
-    integer :: iexec
-    intent (inout) iexec
 !
     real(dp) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
                psasum , pt2bar , pt2tot , ptnbar , maxv ,          &
@@ -133,21 +126,9 @@ module mod_tendency
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!----------------------------------------------------------------------
-!   fill up the boundary slices:
-!
-    if ( iexec == 1 ) then
-      call bdyval(xbctime,iexec)
-      if ( ichem == 1 ) then
-        call chem_bdyval(xbctime,iexec,nbdytime,dtbdys,ktau,ifrest)
-      end if
-    else
-      iexec = 2
-    end if
-!
-!     Calculate eccentricity factor for radiation calculations
-!
+    !
+    ! Calculate eccentricity factor for radiation calculations
+    !
 #ifdef CLM
     eccf  = r2ceccf
 #else
@@ -367,6 +348,8 @@ module mod_tendency
 !
 !   Calculate pdot
 !
+    call deco1_exchange_left(sfs%psb,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psb,1,ice1,ice2)
     call psc2psd(sfs%psb,psdot)
 !
 !=======================================================================
@@ -858,6 +841,9 @@ module mod_tendency
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
+      call deco1_exchange_left(sfs%psb,1,ice1,ice2)
+      call deco1_exchange_right(sfs%psb,1,ice1,ice2)
+      call psc2psd(sfs%psb,psdot)
       call deco1_exchange_left(sfs%uvdrag,1,icross1,icross2)
       call holtbl(jci1,jci2,ici1,ici2)
     end if
@@ -1404,8 +1390,6 @@ module mod_tendency
       end do
     end do
 !
-!----------------------------------------------------------------------
-!
 !   increment elapsed forecast time:
 !
     ktau = ktau + 1
@@ -1421,58 +1405,48 @@ module mod_tendency
       xbctime = d_zero
     end if
 
-    if ( iexec == 2 ) then
+    if ( ktau == 2 ) then
       dt = dt2
-      dtcum = dt2
-      dtche = dt2
-      dtpbl = dt2
+      dtcum  = dt2
+      dtche  = dt2
+      dtpbl  = dt2
       rdtpbl = d_one/dt2
-      dttke = dt2
-      iexec = 3
+      dttke  = dt2
     end if
-!
-!     compute the amounts advected through the lateral boundaries:
-!     *** note *** we must calculate the amounts advected through
-!     the lateral boundaries before updating the values
-!     at boundary slices.
-!
+    !
+    ! compute the amounts advected through the lateral boundaries:
+    ! *** note *** we must calculate the amounts advected through
+    ! the lateral boundaries before updating the values
+    ! at boundary slices.
+    !
 #ifndef BAND
     if (debug_level > 2) then
       call conadv
       if ( ichem == 1 ) call tracdiag(xkc)
     end if
 #endif
-! 
-!   fill up the boundary values for xxb and xxa variables:
-!
-    call bdyval(xbctime,iexec)
-    if ( ichem == 1 ) then
-      call chem_bdyval(xbctime,iexec,nbdytime,dtbdys,ktau,ifrest)
-    end if
-!
-!   compute the nonconvective precipitation:
-!
-!   do cumulus transport of tracers
-!
+    !
+    ! do cumulus transport of tracers
+    !
     if ( ichem == 1 .and. ichcumtra == 1 ) call cumtran
-! 
-!   trace the mass conservation of dry air and water substance:
-!
 #ifndef BAND
+    ! 
+    ! trace the mass conservation of dry air and water substance:
+    !
     if (debug_level > 2) call conmas
 #endif
-!
-!   budgets for tracers
-!
+    !
+    ! budgets for tracers
+    !
     if ( ichem == 1 ) then
       call tracbud
 #ifndef BAND
       if (debug_level > 2) call contrac
 #endif
     end if
-!
-!   print out noise parameter:
-!
+    !
+    ! Print out noise parameter
+    !
     if ( ktau > 1 ) then
       ptnbar = ptntot/dble(iptn)
       pt2bar = pt2tot/dble(iptn)
@@ -1516,12 +1490,21 @@ module mod_tendency
 99001 format (a23,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
              ',  no. of points w/convection = ',i7)
     end if
-!
-!----------------------------------------------------------------------
-!
-!   recalculate solar declination angle if forecast time larger than
-!   24 hours:
-!
+    !
+    ! fill up the boundary values for xxb and xxa variables:
+    !
+    if ( ktau /= mtau ) then
+      call bdyval(xbctime)
+      if ( ichem == 1 ) then
+        call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
+      end if
+    end if
+    !
+    ! Update the counter of routine visit
+    !
+    !   recalculate solar declination angle if forecast time larger than
+    !   24 hours:
+    !
     if ( nbdytime == 0 ) then
       if (myid == 0) then
         write (6,*) 'Recalculate solar declination angle at ',toint10(idatex)

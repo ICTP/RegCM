@@ -93,7 +93,6 @@ module mod_savefile
         write (aline,*) 'Done Recalculating ktau for the new dt'
         call say
       end if
-      read (iutrst) ub1_io , vb1_io , tb1_io , qb1_io , ps1_io , ts1_io
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
       read (iutrst) atm1_io%t
@@ -164,7 +163,6 @@ module mod_savefile
       read (iutrst) taf_io
       read (iutrst) ocld_io
       read (iutrst) emiss_io
-      read (iutrst) fbat_io(jout1:jout2,iout1:iout2,numbat-numsts+1:)
       read (iutrst) pptnc_io, pptc_io
       if ( iocnflx == 2 ) read (iutrst) zpbl_io
       if ( ichem == 1 ) then
@@ -193,12 +191,6 @@ module mod_savefile
 #endif
       read (iutrst) dstor_io
       read (iutrst) hstor_io
-#ifndef BAND
-      read (iutrst) eue , eui , wue , wui
-      read (iutrst) eve , evi , wve , wvi
-#endif
-      read (iutrst) nue_io , nui_io , sue_io , sui_io
-      read (iutrst) nve_io , nvi_io , sve_io , svi_io
       close(iutrst)
     end if
   end subroutine read_savefile
@@ -232,7 +224,6 @@ module mod_savefile
       end if
 
       write (iutsav) ktau , dtsec , idatex , nbdytime
-      write (iutsav) ub1_io , vb1_io , tb1_io , qb1_io , ps1_io , ts1_io
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t
@@ -303,7 +294,6 @@ module mod_savefile
       write (iutsav) taf_io
       write (iutsav) ocld_io
       write (iutsav) emiss_io
-      write (iutsav) fbat_io(jout1:jout2,iout1:iout2,numbat-numsts+1:)
       write (iutsav) pptnc_io , pptc_io
       if ( iocnflx == 2 ) write (iutsav) zpbl_io
       if ( ichem == 1 ) then
@@ -332,12 +322,6 @@ module mod_savefile
 #endif
       write (iutsav) dstor_io
       write (iutsav) hstor_io
-#ifndef BAND
-      write (iutsav) eue , eui , wue , wui
-      write (iutsav) eve , evi , wve , wvi
-#endif
-      write (iutsav) nue_io , nui_io , sue_io , sui_io
-      write (iutsav) nve_io , nvi_io , sve_io , svi_io
       close(iutsav)
     end if
 

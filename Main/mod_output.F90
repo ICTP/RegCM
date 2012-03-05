@@ -64,7 +64,6 @@ module mod_output
   use mpi
   implicit none
 !
-  integer :: ierr
   integer :: j2c , i2c , j2o
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
@@ -278,13 +277,6 @@ module mod_output
 !
   if ( ifsave ) then
     if ( ldosav .or. ldotmp ) then
-      call deco1_gather(xub%b1,ub1_io,jdot1,jdot2,idot1,idot2,1,kz)
-      call deco1_gather(xvb%b1,vb1_io,jdot1,jdot2,idot1,idot2,1,kz)
-      call deco1_gather(xtb%b1,tb1_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(xqb%b1,qb1_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(xpsb%b1,ps1_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(ts1,ts1_io,jcross1,jcross2,icross1,icross2)
-
       call deco1_gather(atm1%u,atm1_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%v,atm1_io%v,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%t,atm1_io%t,jcross1,jcross2,icross1,icross2,1,kz)
@@ -425,26 +417,9 @@ module mod_output
                           jcross1,jcross2,icross1,icross2)
       end if
 
-      call deco1_gather(fbat,fbat_io,jout1,jout2,iout1,iout2, &
-                        numbat-numsts+1,numbat)
-
       call deco1_gather(dstor,dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit)
       call deco1_gather(hstor,hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit)
 
-      call deco1_gather(sue,sue_io,jdot1,jdot2,1,kz)
-      call deco1_gather(sui,sui_io,jdot1,jdot2,1,kz)
-      call deco1_gather(nue,nue_io,jdot1,jdot2,1,kz)
-      call deco1_gather(nui,nui_io,jdot1,jdot2,1,kz)
-      call deco1_gather(sve,sve_io,jdot1,jdot2,1,kz)
-      call deco1_gather(svi,svi_io,jdot1,jdot2,1,kz)
-      call deco1_gather(nve,nve_io,jdot1,jdot2,1,kz)
-      call deco1_gather(nvi,nvi_io,jdot1,jdot2,1,kz)
-#ifndef BAND
-      call mpi_bcast(eui,nidot*kz,mpi_real8,nproc-1,mycomm,ierr)
-      call mpi_bcast(eue,nidot*kz,mpi_real8,nproc-1,mycomm,ierr)
-      call mpi_bcast(evi,nidot*kz,mpi_real8,nproc-1,mycomm,ierr)
-      call mpi_bcast(eve,nidot*kz,mpi_real8,nproc-1,mycomm,ierr)
-#endif
       if ( ldosav ) then
         call write_savefile(idatex, .false.)
       else

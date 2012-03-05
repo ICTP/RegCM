@@ -100,15 +100,6 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:,:) :: vb0_io
   real(dp) , pointer , dimension(:,:,:) :: vb1_io
 
-  real(dp) , pointer , dimension(:,:) :: sue_io
-  real(dp) , pointer , dimension(:,:) :: sui_io
-  real(dp) , pointer , dimension(:,:) :: nui_io
-  real(dp) , pointer , dimension(:,:) :: nue_io
-  real(dp) , pointer , dimension(:,:) :: sve_io
-  real(dp) , pointer , dimension(:,:) :: svi_io
-  real(dp) , pointer , dimension(:,:) :: nve_io
-  real(dp) , pointer , dimension(:,:) :: nvi_io
-
   real(dp) , pointer , dimension(:,:) :: pptc_io
   real(dp) , pointer , dimension(:,:) :: pptnc_io
 
@@ -221,15 +212,6 @@ module mod_mppio
       call getmem3d(ub1_io,jdot1,jdot2,idot1,idot2,1,kz,'ub1_io')
       call getmem3d(vb0_io,jdot1,jdot2,idot1,idot2,1,kz,'vb0_io')
       call getmem3d(vb1_io,jdot1,jdot2,idot1,idot2,1,kz,'vb1_io')
-
-      call getmem2d(sui_io,jdot1,jdot2,1,kz,'sue_io')
-      call getmem2d(sue_io,jdot1,jdot2,1,kz,'sui_io')
-      call getmem2d(nui_io,jdot1,jdot2,1,kz,'nui_io')
-      call getmem2d(nue_io,jdot1,jdot2,1,kz,'nue_io')
-      call getmem2d(sve_io,jdot1,jdot2,1,kz,'sve_io')
-      call getmem2d(svi_io,jdot1,jdot2,1,kz,'svi_io')
-      call getmem2d(nve_io,jdot1,jdot2,1,kz,'nve_io')
-      call getmem2d(nvi_io,jdot1,jdot2,1,kz,'nvi_io')
 
       call getmem2d(pptc_io,jcross1,jcross2,icross1,icross2,'pptc_io')
       call getmem2d(pptnc_io,jcross1,jcross2,icross1,icross2,'pptnc_io')

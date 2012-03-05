@@ -76,6 +76,7 @@ module mod_params
   integer :: kbmax
   real(dp) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
+  integer :: hspan
   character(len=5) , dimension(maxntr) :: inpchtrname
   real(dp) , dimension(maxntr) :: inpchtrsol
   real(dp) , dimension(maxntr,2) :: inpchtrdpv
@@ -97,6 +98,8 @@ module mod_params
 #ifndef CLM
   real(dp) :: clmfrq
 #endif
+  character (len=64) :: subroutine_name='param'
+  integer :: idindx=0
 !
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
@@ -152,6 +155,8 @@ module mod_params
 
   namelist /cplparam/ cpldt, cplexvars, cplinterp, &
     cplbdysmooth, cpldbglevel 
+!
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !-----specify the parameters used in the model:
@@ -487,6 +492,12 @@ module mod_params
     call setcal(idate0,ical)
     call setcal(idate1,ical)
     call setcal(idate2,ical)
+    bdif = idate2 - idate1
+    hspan = idnint(tohours(bdif))
+    if ( mod(hspan,24) /= 0 ) then
+      call fatal(__FILE__,__LINE__,  &
+                 'Runtime increments must be modulus 24 hours')
+    end if
 
     read (ipunit, timeparam)
     print * , 'TIMEPARAM namelist READ IN'
@@ -540,6 +551,7 @@ module mod_params
 !  communicate to all processors 
 !
   call mpi_bcast(ifrest,1,mpi_logical,0,mycomm,ierr)
+  call mpi_bcast(hspan,1,mpi_integer,0,mycomm,ierr)
   call date_bcast(idate0,0,mycomm,ierr)
   call date_bcast(idate1,0,mycomm,ierr)
   call date_bcast(idate2,0,mycomm,ierr)
@@ -893,8 +905,7 @@ module mod_params
   ksav = nsavfrq/idnint(dtsec)
   fdaysrf = real(secpd/dtsrf)
 
-  bdif = idate2 - idate1
-  mtau = idnint((tohours(bdif)*secph)/dt)
+  mtau = idnint((hspan*secph)/dt)
 
   nbdytime = 0
   xbctime = d_zero
@@ -960,7 +971,7 @@ module mod_params
   write (aline,*) '  final date of this '//'simulation: ' , appdat
   call say
   write (aline,'(a,i10,a)')  &
-       'total simulation lenght ' , idnint(tohours(bdif)), ' hours'
+       'total simulation lenght ' , hspan, ' hours'
   call say
   write (aline,'(a,f9.4)')  &
        'dtsec (timestep in seconds)' , dtsec
@@ -1011,33 +1022,24 @@ module mod_params
   write (aline,*) 'if true(T) create SAV files for '// &
                   'restart: ifsave = ' , ifsave  
   call say 
-  write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , &
-                  savfrq
+  write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , savfrq
   call say 
-  write (aline,*) 'if true (T) Output ATM files:  ifatm = ' , &
-                   ifatm 
+  write (aline,*) 'if true (T) Output ATM files:  ifatm = ' , ifatm 
   call say 
-  write (aline,*) 'Frequency in hours to write  ATM: atmfrq = ' , &
-                  atmfrq 
+  write (aline,*) 'Frequency in hours to write  ATM: atmfrq = ' , atmfrq 
   call say  
-  write (aline,*) 'Frequency in hours to write  RAD: radfrq = ' , &
-                  radfrq 
+  write (aline,*) 'Frequency in hours to write  RAD: radfrq = ' , radfrq 
   call say
-  write (aline,*) 'Frequency in hours to write  SRF: srffrq = ' , &
-                  srffrq  
+  write (aline,*) 'Frequency in hours to write  SRF: srffrq = ' , srffrq  
   call say
   if ( lakemod == 1 ) then
-    write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
-                    lakfrq
+    write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , lakfrq
   end if
-  write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
-                  ifchem 
+  write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , ifchem 
   call say 
-  write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , &
-                  chemfrq
+  write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , chemfrq
   call say  
-  write (aline,*) 'Frequency in hours to write CLM: clmfrq = ', &
-                  clmfrq
+  write (aline,*) 'Frequency in hours to write CLM: clmfrq = ', clmfrq
   call say
   write (aline,*) ' '
   call say
@@ -1046,10 +1048,9 @@ module mod_params
   write (aline,'(a,i2)') ' Lateral Boundary conditions '// &
                           'scheme: iboudy = ' , iboudy
   call say  
-  write (aline,'(a,i2)') ' Cumulus convection scheme: icup = ' , &
-                         icup
+  write (aline,'(a,i2)') ' Cumulus convection scheme: icup = ' , icup
   call say
-  write  (aline,'(a,i2)') ' Grell Scheme Cumulus closure '// &
+  write  (aline,'(a,i2)') ' Grell Scheme Cumulus closure '//  &
                           'scheme: igcc =' , igcc 
   call say
   write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
@@ -1060,7 +1061,7 @@ module mod_params
     write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
     call say
   end if
-  write  (aline,'(a,i2)') ' Coupling with ROMS ocean model: iocncpl = ' , iocncpl
+  write  (aline,'(a,i2)') ' Coupling with ROMS ocean model: iocncpl = ', iocncpl
   call say
   write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
   call say
@@ -1086,14 +1087,11 @@ module mod_params
                      'for large-scale '// &
                      'clouds (0=no,1=yes):  iconvlwp =' , iconvlwp 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value high range   =', &
-                            high_nudge 
+  write  (aline,'(a,f9.6)') ' Nudge value high range   =', high_nudge 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value medium range =', &
-                            medium_nudge 
+  write  (aline,'(a,f9.6)') ' Nudge value medium range =', medium_nudge 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value low range    =', &
-                            low_nudge 
+  write  (aline,'(a,f9.6)') ' Nudge value low range    =', low_nudge 
   call say
 #ifdef CLM 
    write  (aline,'(a,i2)' ) '  imask=' , imask 
@@ -1123,13 +1121,11 @@ module mod_params
   write (aline, *) ' '
   call say
 
- if (ichem==1) then
+  if (ichem==1) then
     do n = 1 , ntr
       call mpi_bcast(chtrname(n),5,mpi_character,0,mycomm,ierr)
     end do
-end if
-
-
+  end if
 
   write (aline, *) 'Reading in DOMAIN data'
   call say
@@ -1714,6 +1710,8 @@ end if
   call deco1_allocate_v3dbound(xvb,kz,dot)
 
   call mpi_barrier(mycomm,ierr) 
+!
+  call time_end(subroutine_name,idindx)
 !
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                            &

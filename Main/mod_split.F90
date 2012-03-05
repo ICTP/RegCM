@@ -90,53 +90,50 @@ module mod_split
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!   compute m.
-!
+    !
+    ! Compute m.
+    !
     do ns = 1 , nsplit
-      aam(ns) = dnint(dt/dtau(ns))
-      if ( ktau /= 0 ) then
-        aam(ns) = dnint((dt*d_half)/dtau(ns))
-      end if
+      aam(ns) = dnint(dtsec/dtau(ns))
     end do
     if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
-!
-!   compute xps and tbarh for use in vmodes.
-!
+    !
+    ! lstand = .true. if standard atmosphere t to be used (ignore input
+    ! tbarh and xps in that case). otherwise, xps and tbarh must
+    ! be defined on input.
+    !
     call allocate_mod_vmodes
-!
-    xps = d_zero
-    ijlx = (jce2-jce1+1)*(ice2-ice1+1)
-    do k = 1 , kz
-      tbarh(k) = d_zero
-    end do
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        xps = xps + sfs%psa(j,i)/ijlx
+    !
+    lstand = .true.
+    if ( .not. lstand ) then
+      !
+      ! compute xps and tbarh for use in vmodes.
+      !
+      xps = d_zero
+      ijlx = (jce2-jce1+1)*(ice2-ice1+1)
+      do k = 1 , kz
+        tbarh(k) = d_zero
       end do
-    end do
-
-    do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tbarh(k) = tbarh(k) + atm1%t(j,i,k)/(sfs%psa(j,i)*ijlx)
+          xps = xps + sfs%psa(j,i)/ijlx
         end do
       end do
-    end do
-!
-!   compute vertical modes.
-!   lstand = .true. if standard atmosphere t to be used (ignore input
-!   tbarh and xps in that case). otherwise, xps and tbarh must
-!   be defined on input.
-!   dtau = time steps(in sec)for modes in split explicit is
-!   specified in namelist as array dtsplit
-!
-    lstand = .true.
-    if ( ktau /= 0 ) lstand = .true.
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tbarh(k) = tbarh(k) + atm1%t(j,i,k)/(sfs%psa(j,i)*ijlx)
+          end do
+        end do
+      end do
+    end if
+    !
+    ! Compute vertical modes.
+    !
     call vmodes(lstand)
-!
-!   compute am and an.
-!
+    !
+    ! Compute am and an.
+    !
     do n = 1 , nsplit
       an(n) = d_zero
       do l = 1 , kz
@@ -152,7 +149,6 @@ module mod_split
           tau(n,k) = tau(n,k) + rgas*zmatxr(n,l)*hydros(l,k)
         end do
       end do
-!
       do k = 1 , kzp1
         varpa1(n,k) = d_zero
       end do
@@ -162,40 +158,32 @@ module mod_split
         end do
       end do
     end do
-!
-!   multiply am, an and zmatx by factor.
-!
+    !
+    ! Multiply am, an and zmatx by factor.
+    !
     do l = 1 , nsplit
-      fac = d_two*dt/(d_two*aam(l)+d_one)
-      if ( ktau /= 0 ) then
-        fac = dt/(d_two*aam(l)+d_one)
-      end if
-      if ( myid == 0 ) print * , 'aam, fac = ' , aam(l) , fac
+      fac = d_two*dtsec/(d_two*aam(l)+d_one)
       an(l) = an(l)*fac
       do k = 1 , kz
         zmatx(k,l) = zmatx(k,l)*fac
         am(k,l) = am(k,l)*fac
       end do
+      if ( myid == 0 ) print * , 'aam, fac = ' , aam(l) , fac
     end do
-!
+    !
+    ! If a restart run, do not recalculate the hstor/dstor
+    !
     if ( ifrest ) then
       call time_end(subroutine_name,idindx)
       return
     end if
-!
-!=======================================================================
-!
-!   zero new arrays
-!
-    dstor(:,:,:) = d_zero
-    hstor(:,:,:) = d_zero
-!
-!   Divergence manipulations (0)
-!
-!   compute divergence z from u and v
-!   ( u must be pstar * u ; similarly for v )
-!   ( note: map scale factors have been inverted in model (init) )
-!
+    !
+    ! Divergence manipulations (0)
+    !
+    ! compute divergence z from u and v
+    ! ( u must be pstar * u ; similarly for v )
+    ! ( note: map scale factors have been inverted in model (init) )
+    !
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -207,8 +195,6 @@ module mod_split
 !
     call deco1_exchange_right(uuu,1,ide1,ide2,1,kz)
     call deco1_exchange_right(vvv,1,ide1,ide2,1,kz)
-!
-    dstor(:,:,:) = d_zero
 !
     do l = 1 , nsplit
       do k = 1 , kz
@@ -222,11 +208,9 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
-!     Geopotential manipulations
-!
+    !
+    ! Geopotential manipulations
+    !
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
@@ -281,6 +265,8 @@ module mod_split
 !   on the x-grid, a p(x) point outside the grid domain is assumed to
 !   satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1); and similarly for the i's.
 !
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
 !
 !=======================================================================

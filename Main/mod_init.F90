@@ -72,10 +72,9 @@ module mod_init
   implicit none
 !
   integer :: i , j , k , n , ist
-  type (rcm_time_and_date) :: icbc_date
   real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  integer :: mmrec , ierr
+  integer :: ierr
   character (len=64) :: subroutine_name='init'
   integer :: idindx = 0
 !
@@ -94,97 +93,12 @@ module mod_init
   sund_o(:,:) = 0.0
   psmn_o (:,:)=  1.E30
   !
-  ! Open the ICBC file
-  !
-  bdydate1 = idate1
-  bdydate2 = idate1
-  if ( myid == 0 ) then
-    if ( bdydate1 == globidate1 ) then
-      icbc_date = bdydate1
-    else
-      icbc_date = monfirst(bdydate1)
-    end if
-    call open_icbc(icbc_date)
-  end if
-  !
   ! For an initial run -- not a restart
   !
   if ( .not. ifrest ) then
     !
-    ! Read in the initial conditions for large domain:
-    ! the initial conditions are the output from PreProc/ICBC.
-    ! Only one of the processors is doing I/O
-    !
-    if ( myid == 0 ) then
-      !
-      ! Search initial date
-      !
-      mmrec = icbc_search(bdydate1)
-      if (mmrec < 0) then
-        !
-        ! Cannot run without initial conditions
-        !
-        appdat = tochar(bdydate2)
-        call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
-      end if
-      !
-      ! Read initial conditions
-      !
-      call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
-      !
-      appdat = tochar(bdydate1)
-      write (6,*) 'READY IC DATA for ', appdat
-      !
-      ! Convert surface pressure to pstar in centibars
-      !
-      ps0_io(:,:) = ps0_io(:,:)*d_r10-ptop
-    end if
-    !
-    ! Send each processor its computing slice
-    !
-    call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(qb0_io,xqb%b0,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
-    !
-    ! Calculate surface pressure on DOT points
-    !
-    call psc2psd(xpsb%b0,psdot)
-    !
-    ! Couple U,V,T,Q with pressure (DOT on U,V)
-    !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(j,i)
-          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(j,i)
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%b0(j,i,k) = xtb%b0(j,i,k)*xpsb%b0(j,i)
-          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
-        end do
-      end do
-    end do
-    !
-    ! We need this for iboudy 1 or 5, but we do it anyway
-    !
-    call deco1_exchange_right(xpsb%b0,1,icross1,icross2)
-    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xtb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%b0,1,ice1,ice2,1,kz)
-    !
     ! Initialize model atmospheric status variables
+    ! Data are from the ICBC input at first timestep.
     !
     do k = 1 , kz
       do i = ide1 , ide2
@@ -325,7 +239,7 @@ module mod_init
     !
     ! When restarting, read in the data saved from previous run
     !
-    call read_savefile(bdydate1)
+    call read_savefile(idate1)
     !
     ! Comunicate the data to other processors
     !
@@ -336,24 +250,6 @@ module mod_init
 !
     mtau = mtau + ktau
     xbctime = dble(nbdytime)
-!
-    call deco1_scatter(ub1_io,xub%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(vb1_io,xvb%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(tb1_io,xtb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
-!
-    call deco1_exchange_left(xub%b1,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(xub%b1,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(xvb%b1,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(xvb%b1,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(xtb%b1,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(xtb%b1,1,icross1,icross2,1,kz)
-    call deco1_exchange_left(xqb%b1,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(xqb%b1,1,icross1,icross2,1,kz)
-    call deco1_exchange_left(xpsb%b1,1,icross1,icross2)
-    call deco1_exchange_right(xpsb%b1,1,icross1,icross2)
 !
     call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
@@ -505,42 +401,10 @@ module mod_init
                          jcross1,jcross2,icross1,icross2)
     end if
 
-    call deco1_scatter(fbat_io,fbat, &
-                       jout1,jout2,iout1,iout2,numbat-numsts+1,numbat)
-
     call deco1_scatter(dstor_io,dstor,jdot1,jdot2,idot1,idot2,1,nsplit)
     call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
-    call deco1_scatter(sue_io,sue,jdot1,jdot2,1,kz)
-    call deco1_scatter(sui_io,sui,jdot1,jdot2,1,kz)
-    call deco1_scatter(nue_io,nue,jdot1,jdot2,1,kz)
-    call deco1_scatter(nui_io,nui,jdot1,jdot2,1,kz)
-    call deco1_scatter(sve_io,sve,jdot1,jdot2,1,kz)
-    call deco1_scatter(svi_io,svi,jdot1,jdot2,1,kz)
-    call deco1_scatter(nve_io,nve,jdot1,jdot2,1,kz)
-    call deco1_scatter(nvi_io,nvi,jdot1,jdot2,1,kz)
-!
-    call deco1_exchange_left(sue,1,1,kz)
-    call deco1_exchange_right(sue,1,1,kz)
-    call deco1_exchange_left(sui,1,1,kz)
-    call deco1_exchange_right(sui,1,1,kz)
-    call deco1_exchange_left(nue,1,1,kz)
-    call deco1_exchange_right(nue,1,1,kz)
-    call deco1_exchange_left(nui,1,1,kz)
-    call deco1_exchange_right(nui,1,1,kz)
-    call deco1_exchange_left(sve,1,1,kz)
-    call deco1_exchange_right(sve,1,1,kz)
-    call deco1_exchange_left(svi,1,1,kz)
-    call deco1_exchange_right(svi,1,1,kz)
-    call deco1_exchange_left(nve,1,1,kz)
-    call deco1_exchange_right(nve,1,1,kz)
-    call deco1_exchange_left(nvi,1,1,kz)
-    call deco1_exchange_right(nvi,1,1,kz)
 #ifndef BAND
-    call mpi_bcast(eui,nidot*kz,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(eue,nidot*kz,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(evi,nidot*kz,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(eve,nidot*kz,mpi_real8,0,mycomm,ierr)
     if (debug_level > 2) call mpidiag
 #endif
     !

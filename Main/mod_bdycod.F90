@@ -28,7 +28,6 @@ module mod_bdycod
   use mod_mppparam
   use mod_memutil
   use mod_atm_interface
-  use mod_che_interface
   use mod_pbl_interface , only : set_tke_bc
   use mod_lm_interface
   use mod_mpmessage 
@@ -38,7 +37,7 @@ module mod_bdycod
 !
   private
 !
-  public :: allocate_mod_bdycon , bdyin , bdyval
+  public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
 !
   !
   ! West U External  = WUE
@@ -139,6 +138,10 @@ module mod_bdycod
     implicit none
     real(dp) , pointer , dimension(:) , intent(in) :: hlev
     integer :: n , k
+    character (len=64) :: subroutine_name='setup_bdycon'
+    integer :: idindx=0
+!
+    call time_begin(subroutine_name,idindx)
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
@@ -186,7 +189,193 @@ module mod_bdycod
         end do
       end do
     end if
+    call time_end(subroutine_name,idindx)
   end subroutine setup_bdycon
+
+  subroutine init_bdy
+    implicit none
+    integer :: datefound , i , j , k , ierr
+    character(len=32) :: appdat
+    type (rcm_time_and_date) :: icbc_date
+    character (len=64) :: subroutine_name='init_bdy'
+    integer :: idindx=0
+!
+    call time_begin(subroutine_name,idindx)
+
+    bdydate1 = idate1
+    bdydate2 = idate1
+
+    if ( myid == 0 ) then
+      if ( bdydate1 == globidate1 ) then
+        icbc_date = bdydate1
+      else
+        icbc_date = monfirst(bdydate1)
+      end if
+
+      call open_icbc(icbc_date)
+
+      datefound = icbc_search(bdydate1)
+      if (datefound < 0) then
+        !
+        ! Cannot run without initial conditions
+        !
+        appdat = tochar(bdydate2)
+        call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+      end if
+
+      call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
+
+      appdat = tochar(bdydate1)
+      if ( .not. ifrest ) then
+        write (6,*) 'READY IC DATA for ', appdat
+      else
+        write (6,*) 'READY BC DATA for ', appdat
+      end if
+
+      bdydate2 = bdydate2 + intbdy
+      write (6,*) 'SEARCH BC data for ', toint10(bdydate2)
+      datefound = icbc_search(bdydate2)
+      if (datefound < 0) then
+        call open_icbc(monfirst(bdydate2))
+        datefound = icbc_search(bdydate2)
+        if (datefound < 0) then
+          appdat = tochar(bdydate2)
+          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+        end if
+      end if
+      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io)
+
+      ps0_io(:,:) = (ps0_io(:,:)*d_r10)-ptop
+      ps1_io(:,:) = (ps1_io(:,:)*d_r10)-ptop
+
+      write (6,*) 'READY  BC from     ' , &
+            toint10(bdydate1) , ' to ' , toint10(bdydate2)
+
+    end if
+
+    call date_bcast(bdydate2,0,mycomm,ierr)
+    bdydate1 = bdydate2
+    !
+    ! Send each processor its computing slice
+    !
+    call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(qb0_io,xqb%b0,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ub1_io,xub%b1,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(vb1_io,xvb%b1,jdot1,jdot2,idot1,idot2,1,kz)
+    call deco1_scatter(tb1_io,xtb%b1,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
+    call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
+    !
+    ! Calculate P* on dot points
+    !
+    call deco1_exchange_left(xpsb%b0,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%b0,1,ice1,ice2)
+    call psc2psd(xpsb%b0,psdot)
+    !
+    ! Couple pressure u,v,t,q
+    !
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(j,i)
+          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
+!
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xtb%b0(j,i,k) = xtb%b0(j,i,k)*xpsb%b0(j,i)
+          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xtb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%b0,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%b0,1,ice1,ice2,1,kz)
+    !
+    ! Repeat for T2
+    !
+    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
+    call psc2psd(xpsb%b1,psdot)
+    !
+    ! Couple pressure u,v,t,q
+    !
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          xub%b1(j,i,k) = xub%b1(j,i,k)*psdot(j,i)
+          xvb%b1(j,i,k) = xvb%b1(j,i,k)*psdot(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xub%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%b1,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%b1,1,ide1,ide2,1,kz)
+!
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xtb%b1(j,i,k) = xtb%b1(j,i,k)*xpsb%b1(j,i)
+          xqb%b1(j,i,k) = xqb%b1(j,i,k)*xpsb%b1(j,i)
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xtb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%b1,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%b1,1,ice1,ice2,1,kz)
+    !
+    ! Calculate time varying component
+    !
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
+      end do
+    end do
+    call deco1_exchange_left(xpsb%bt,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%bt,1,ice1,ice2)
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          xub%bt(j,i,k) = (xub%b1(j,i,k)-xub%b0(j,i,k))/dtbdys
+          xvb%bt(j,i,k) = (xvb%b1(j,i,k)-xvb%b0(j,i,k))/dtbdys
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xub%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xub%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(xvb%bt,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(xvb%bt,1,ide1,ide2,1,kz)
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xtb%bt(j,i,k) = (xtb%b1(j,i,k)-xtb%b0(j,i,k))/dtbdys
+          xqb%bt(j,i,k) = (xqb%b1(j,i,k)-xqb%b0(j,i,k))/dtbdys
+        end do
+      end do
+    end do
+    call deco1_exchange_left(xtb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xtb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(xqb%bt,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(xqb%bt,1,ice1,ice2,1,kz)
+!
+    call time_end(subroutine_name,idindx)
+
+  end subroutine init_bdy
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -194,10 +383,9 @@ module mod_bdycod
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine bdyin(istart)
+  subroutine bdyin
     implicit none
 !
-    integer , intent(in) :: istart
     integer :: i , j , k , n , mmrec
     integer :: ierr
     character(len=32) :: appdat
@@ -206,14 +394,12 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 !
-    if ( istart /= 0 ) then
-      xub%b0(:,:,:) = xub%b1(:,:,:)
-      xvb%b0(:,:,:) = xvb%b1(:,:,:)
-      xtb%b0(:,:,:) = xtb%b1(:,:,:)
-      xqb%b0(:,:,:) = xqb%b1(:,:,:)
-      xpsb%b0(:,:) = xpsb%b1(:,:)
-      ts0(:,:) = ts1(:,:)
-    end if
+    xub%b0(:,:,:) = xub%b1(:,:,:)
+    xvb%b0(:,:,:) = xvb%b1(:,:,:)
+    xtb%b0(:,:,:) = xtb%b1(:,:,:)
+    xqb%b0(:,:,:) = xqb%b1(:,:,:)
+    xpsb%b0(:,:) = xpsb%b1(:,:)
+    ts0(:,:) = ts1(:,:)
 !
     if ( myid == 0 ) then
       bdydate2 = bdydate2 + intbdy
@@ -241,9 +427,8 @@ module mod_bdycod
     call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
 !
-!  this piece of code determines p(.) from p(x) by a 4-point
-!  interpolation. on the x-grid
-!
+    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
+    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)
 !
 !   Couple pressure u,v,t,q
@@ -306,6 +491,9 @@ module mod_bdycod
     call deco1_exchange_left(xqb%bt,1,ice1,ice2,1,kz)
     call deco1_exchange_right(xqb%bt,1,ice1,ice2,1,kz)
 !
+    !
+    ! Update ground temperature on Ocean/Lakes
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
@@ -350,7 +538,6 @@ module mod_bdycod
 
     call date_bcast(bdydate2,0,mycomm,ierr)
     bdydate1 = bdydate2
-    call date_bcast(bdydate1,0,mycomm,ierr)
 
     call time_end(subroutine_name,idindx)
 
@@ -381,6 +568,8 @@ module mod_bdycod
     !
     ! First compute the p* at dot points to decouple U,V:
     !
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
     ! Now compute last two points values in U and V
@@ -568,26 +757,19 @@ module mod_bdycod
 !
 !     xt     : is the time in seconds the variables xxa represent.
 !
-!     iexec  : = 1 ; represents this subroutine is called for the
-!                    first time in this forecast run.
-!              > 1 ; represents subsequent calls to this subroutine.
-!
-  subroutine bdyval(xt,iexec)
+  subroutine bdyval(xt)
 !
     implicit none
 !
-    integer , intent(in) :: iexec
     real(dp) , intent(in) :: xt
 !
-    real(dp) :: chix , chix1 , chix2 , dtb , qcx , qcint , &
-                qvx , qext , qint , vavg
-    integer :: itr , i , j , k
+    real(dp) :: dtb , qcx , qcint , qvx , qext , qint , vavg
+    integer :: i , j , k
     real(dp) :: uavg
     character (len=64) :: subroutine_name='bdyval'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
     !
     ! Compute the time interval for boundary tendency:
     !
@@ -600,10 +782,10 @@ module mod_bdycod
     ! if this subroutine is called for the first time, this part
     ! shall be skipped.
     !
-    if ( iexec /= 1 ) then
+    if ( ktau > 1 ) then
       !
       ! West boundary
-      ! 
+      !
       if ( ma%hasleft ) then
         do i = ici1 , ici2
           sfs%psb(jce1,i) = sfs%psa(jce1,i)
@@ -621,15 +803,6 @@ module mod_bdycod
             atm2%qc(jce1,i,k) = atm1%qc(jce1,i,k)
           end do
         end do
-!!$        if ( ichem == 1 ) then
-!!$          do itr = 1 , ntr
-!!$            do k = 1 , kz
-!!$              do i = ici1 , ici2
-!!$                chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$        end if
       end if
       !
       ! East boundary
@@ -651,15 +824,6 @@ module mod_bdycod
             atm2%qc(jce2,i,k) = atm1%qc(jce2,i,k)
           end do
         end do
-!!$        if ( ichem == 1 ) then
-!!$          do itr = 1 , ntr
-!!$            do k = 1 , kz
-!!$              do i = ici1 , ici2
-!!$                chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$        end if
       end if
       !
       ! North and South boundaries
@@ -681,15 +845,6 @@ module mod_bdycod
             atm2%qc(j,ice1,k) = atm1%qc(j,ice1,k)
           end do
         end do
-!!$        if ( ichem == 1 ) then
-!!$          do itr = 1 , ntr
-!!$            do k = 1 , kz
-!!$              do j = jce1 , jce2
-!!$                chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$        end if
       end if
       if ( ma%hastop ) then
         do j = jce1 , jce2
@@ -708,24 +863,14 @@ module mod_bdycod
             atm2%qc(j,ice2,k) = atm1%qc(j,ice2,k)
           end do
         end do
-!!$        if ( ichem == 1 ) then
-!!$          do itr = 1 , ntr
-!!$            do k = 1 , kz
-!!$              do j = jce1 , jce2
-!!$                chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
-!!$              end do
-!!$            end do
-!!$          end do
-!!$        end if
-     end if
-    end if  !end if (iexec /= 1) test
+      end if
+    end if
     !
     ! Compute the boundary values for xxa variables:
     !
     ! Set boundary values for p*:
     ! Set boundary conditions for p*u and p*v:
     !
-!
     if ( iboudy == 0 ) then
       !
       ! fixed boundary conditions:
@@ -1058,91 +1203,6 @@ module mod_bdycod
       end do
     end if
    
-!!$    if ( ichem == 1 ) then
-!!$      !
-!!$      ! add tracer bc's
-!!$      !
-!!$      ! west  boundary:
-!!$      !
-!!$      if ( ma%hasleft ) then
-!!$        do itr = 1 , ntr
-!!$          do k = 1 , kz
-!!$            do i = ici1 , ici2
-!!$              chix1 = chia(jce1,i,k,itr)/sfs%psa(jce1,i)
-!!$              chix2 = chia(jci1,i,k,itr)/sfs%psa(jci1,i)
-!!$              uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-!!$              if ( uavg >= d_zero ) then
-!!$                chix = chix1
-!!$              else
-!!$                chix = chix2
-!!$              end if
-!!$              chia(jce1,i,k,itr) = chix*sfs%psa(jce1,i)
-!!$            end do
-!!$          end do
-!!$        end do
-!!$      end if
-!!$      !
-!!$      ! east  boundary:
-!!$      !
-!!$      if ( ma%hasright ) then
-!!$        do itr = 1 , ntr
-!!$          do k = 1 , kz
-!!$            do i = ici1 , ici2
-!!$              chix1 = chia(jce2,i,k,itr)/sfs%psa(jce2,i)
-!!$              chix2 = chia(jci2,i,k,itr)/sfs%psa(jci2,i)
-!!$              uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-!!$              if ( uavg <= d_zero ) then
-!!$                chix = chix1
-!!$              else
-!!$                chix = chix2
-!!$              end if
-!!$              chia(jce2,i,k,itr) = chix*sfs%psa(jce2,i)
-!!$            end do
-!!$          end do
-!!$        end do
-!!$      end if
-!!$      !
-!!$      ! south boundary:
-!!$      !
-!!$      if ( ma%hasbottom ) then
-!!$        do itr = 1 , ntr
-!!$          do k = 1 , kz
-!!$            do j = jci1 , jci2
-!!$              chix1 = chia(j,ice1,k,itr)/sfs%psa(j,ice1)
-!!$              chix2 = chia(j,ici1,k,itr)/sfs%psa(j,ici1)
-!!$              vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-!!$              if ( vavg >= d_zero ) then
-!!$                chix = chix1
-!!$              else
-!!$                chix = chix2
-!!$              end if
-!!$              chia(j,ice1,k,itr) = chix*sfs%psa(j,ice1)
-!!$            end do
-!!$          end do
-!!$        end do
-!!$      end if
-!!$      !
-!!$      ! north boundary:
-!!$      !
-!!$      if ( ma%hastop ) then
-!!$        do itr = 1 , ntr
-!!$          do k = 1 , kz
-!!$            do j = jce1 , jce2
-!!$              chix1 = chia(j,ice2,k,itr)/sfs%psa(j,ice2)
-!!$              chix2 = chia(j,ici2,k,itr)/sfs%psa(j,ici2)
-!!$              vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-!!$              if ( vavg <= d_zero ) then
-!!$                chix = chix1
-!!$              else
-!!$                chix = chix2
-!!$              end if
-!!$              chia(j,ice2,k,itr) = chix*sfs%psa(j,ice2)
-!!$            end do
-!!$          end do
-!!$        end do
-!!$      end if
-!!$    end if
-!
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call set_tke_bc(atm1,atm2)
     end if
