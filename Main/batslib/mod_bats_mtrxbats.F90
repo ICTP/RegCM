@@ -528,7 +528,7 @@ module mod_bats_mtrxbats
           psmn_o(j,i) = amin1(psmn_o(j,i),real_4)
           pptc(j,i) = d_zero
           pptnc(j,i) = d_zero
-          if ( coszrs(j,i) > dlowval ) then
+          if ( fsw(j,i) > 120.0D0 ) then
             sund_o(j,i) = sund_o(j,i) + real(dtbat)
             sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
           end if

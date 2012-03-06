@@ -20,12 +20,6 @@
 
 module mod_regcm_interface
 
-!**********************************************************************
-!
-!     Used module declarations 
-!
-!**********************************************************************
-!
   use mod_memutil
   use mod_mppgrid
   use mod_service
@@ -46,6 +40,7 @@ module mod_regcm_interface
   use mod_service
   use mod_mppio
   use mpi
+  use mod_sun
 #ifdef CLM
   use perf_mod
   use spmdMod, only: mpicom
@@ -63,29 +58,15 @@ module mod_regcm_interface
   contains
  
   subroutine RCM_initialize(mpiCommunicator)
-!
-!**********************************************************************
-!
-!     Imported variable declarations 
-!
-!**********************************************************************
-!
+    implicit none
     integer, intent(in), optional :: mpiCommunicator
-!
-!**********************************************************************
-!
-!     Local variable declarations 
-!
-!**********************************************************************
 !
     integer :: ncpu, ierr
     character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
 !
-!**********************************************************************
-!
-!     MPI Initialization
+!   MPI Initialization
 !
 !**********************************************************************
 !
@@ -105,7 +86,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     Read input global namelist
+!   Read input global namelist
 !
 !**********************************************************************
 !
@@ -126,7 +107,6 @@ module mod_regcm_interface
     call broadcast_params
 
     call memory_init
-!    call setup_domain(jx,iy,i_band,mycomm)
 !
     if ( myid == 0 ) then
 #ifdef BAND
@@ -139,7 +119,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     MPI Initialization for model
+!   MPI Initialization for model
 !
 !**********************************************************************
 !
@@ -212,13 +192,11 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     RegCM V4 printout header
+!   RegCM V4 printout header
 !
 !**********************************************************************
 !
     call header(myid,nproc)
-!
-!   this below enable debugging
 !
 #ifdef DEBUG 
     call start_debug()
@@ -226,7 +204,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     Parameter Setup
+!   Parameter Setup
 !
 !**********************************************************************
 !
@@ -259,18 +237,29 @@ module mod_regcm_interface
       end if
     end if
 !
+!**********************************************************************
+!
+!   Initialize split explicit scheme
+!
+!**********************************************************************
+!
     call spinit
+!
+!**********************************************************************
+!
+!   Initialize emission dataset
+!
+!**********************************************************************
 !
     if ( ichem == 1 ) call chem_emission(xmonth)
 !
 !**********************************************************************
 !
-!   Write initial state to output
+!   Setup the output files
 !
 !**********************************************************************
 !
     call output
-!
 !
 !**********************************************************************
 !
@@ -285,7 +274,15 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!     Clean up and logging
+!   Calculate Zenital Angle
+!
+!**********************************************************************
+!
+    call zenitm(coszrs,jci1,jci2,ici1,ici2)
+!
+!**********************************************************************
+!
+!   Clean up and logging
 !
 !**********************************************************************
 !
@@ -306,36 +303,15 @@ module mod_regcm_interface
 !
   subroutine RCM_run(timestr, timeend, first)
     implicit none
-!
-!**********************************************************************
-!
-!     Imported variable declarations 
-!
-!**********************************************************************
-!
     real(dp) , intent(in) :: timestr   ! starting time-step
     real(dp) , intent(in) :: timeend   ! ending   time-step
     logical , intent(in) :: first
-!
-!**********************************************************************
-!
-!     Local variable declarations 
-!
-!**********************************************************************
-!
     character(len=32) :: appdat
 !
-!**********************************************************************
-!
-    !
-    ! Things to do the first time in the run
-    !
     if ( first ) then
       extime = d_zero
     end if
 !
-!**********************************************************************
-!     
     do while ( extime >= timestr .and. extime < timeend)
       !
       ! Refined start
@@ -382,17 +358,10 @@ module mod_regcm_interface
       end if
     end do
 
-!this below close down debug 
 #ifdef DEBUG
     call stop_debug()
 #endif 
     call time_print(6,'evolution phase')
-!
-!**********************************************************************
-!
-!     Formats
-!
-!**********************************************************************
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
         & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
@@ -402,55 +371,19 @@ module mod_regcm_interface
 
   subroutine RCM_finalize
     implicit none
-!
-!**********************************************************************
-!
-!     Local variable declarations 
-!
-!**********************************************************************
-!
     character(len=32) :: appdat
-    type(rcm_time_interval) :: tdif
-!
-!**********************************************************************
-!
-!     Simulation completed
-!
-!**********************************************************************
 !
     call release_mod_ncio
 !
-    write (aline, 99002) xbctime , ktau , xyear
-    call say
-!
-!**********************************************************************
-!
-!     Set length of next run (auto-restart option)
-!
-!**********************************************************************
-!
-    tdif = idate2 - idate1
-    idate1 = idate2
-    idate2 = idate1 + tdif
     appdat = tochar(idate2)
-    write (aline, *) ' *** new max DATE will be ' , appdat
+    write (aline, 99002) appdat
     call say
 !
-!**********************************************************************
-!
-!     Finalize the components 
-!
-!**********************************************************************
-!
-    if ( myid == 0 ) then
-      call for_next
-    end if
 #ifdef CLM
     call t_prf('timing_all',mpicom)
     call t_finalizef()
 #endif
 !
-!    call delete_domain
     call memory_destroy
     call finaltime(myid)
 !
@@ -458,64 +391,7 @@ module mod_regcm_interface
       print *, 'RegCM V4 simulation successfully reached end'
     end if
 !
-!**********************************************************************
-!
-!     Formats
-!
-!**********************************************************************
-!
-99002 format (                                                          &
-     & ' ***** restart file for next run is written at time     = ',&
-     & f10.2,' minutes, ktau = ',i7,' in year ',i4)
-
-    contains
-!
-!**********************************************************************
-!
-!    Subroutine to write file restparam.nl with an hint 
-!    for restarting the model
-!
-!**********************************************************************
-!
-    subroutine for_next
-      implicit none
-! 
-!**********************************************************************
-!
-!     Open file and write data
-!
-!**********************************************************************
-!
-      open(99, file='restparam.nl')
-      write (99,99001) '&restartparam'
-      if ( idate1 < globidate2 ) then
-        write (99,99001) 'ifrest  = .true. '
-      else
-        write (99,99001) 'ifrest  = .false.'
-      end if
-      write (99,99002) 'idate0  = ' , toint10(idate0)
-      write (99,99002) 'idate1  = ' , toint10(idate1)
-      write (99,99002) 'idate2  = ' , toint10(globidate2)
-      write (99,99002) '/'
-! 
-!**********************************************************************
-!
-!     Close file
-!
-!**********************************************************************
-!
-      close (99)
-!
-!**********************************************************************
-!
-!     Formats
-!
-!**********************************************************************
-!
-99001 format (1x,a)
-99002 format (1x,a,i10,',')
-!
-    end subroutine for_next
+99002 format ('Restart file for next run is written at time = ',a)
 !
   end subroutine RCM_finalize
 !

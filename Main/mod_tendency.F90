@@ -543,7 +543,7 @@ module mod_tendency
 !
 !   calculate solar zenith angle
 !
-    if ( ktau == 0 .or. ichem == 1 .or. doing_restart .or. &
+    if ( ktau == 0 .or. ichem == 1 .or. &
       mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       call zenitm(coszrs,jci1,jci2,ici1,ici2)
     end if
