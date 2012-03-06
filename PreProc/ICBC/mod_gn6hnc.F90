@@ -143,7 +143,7 @@ module mod_gn6hnc
 !
     implicit none
 !
-    integer :: istatus , ivar1 , inet1 , jdim, j
+    integer :: istatus , ivar1 , inet1 , jdim , j , k
     character(256) :: pathaddname
     real(8) :: dp0
 !
@@ -172,8 +172,8 @@ module mod_gn6hnc
             'r1i1p1_195001010300-195912312100.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
-    else if ( dattyp == 'E_ICH' ) then
-      pathaddname = trim(inpglob)//'/EC_EARTH/fixed/ecearth.nc'
+    else if ( dattyp(1:3) == 'EC_' ) then
+      pathaddname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
     else
       call die('Unknown dattyp in generic 6h NetCDF driver.')
     end if
@@ -202,7 +202,7 @@ module mod_gn6hnc
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
-    if ( dattyp /= 'GFS11' .and. dattyp /= 'E_ICH' ) then
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
       call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
       call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
       call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
@@ -215,10 +215,10 @@ module mod_gn6hnc
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
     else
-      call getmem3d(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
-      call getmem3d(d2,1,nlon,1,nlat,1,klev*2,'mod_gn6hnc:d2')
       call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
       call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+      call getmem3d(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
+      call getmem3d(d2,1,nlon,1,nlat,1,klev*2,'mod_gn6hnc:d2')
       uvar => d2(:,:,1:klev)
       vvar => d2(:,:,klev+1:2*klev)
       tvar => b2(:,:,1:klev)
@@ -229,6 +229,8 @@ module mod_gn6hnc
         call checkncerr(istatus,__FILE__,__LINE__,'Error find rhlev dim')
         istatus = nf90_inquire_dimension(inet1,jdim,len=nrhlev)
         call checkncerr(istatus,__FILE__,__LINE__,'Error inquire rhlev dim')
+      else
+        call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       end if
     end if
  
@@ -346,7 +348,7 @@ module mod_gn6hnc
       end do
       glat(:) = gltemp(:)
       call relmem1d(gltemp)
-    else if ( dattyp == 'E_ICH' ) then
+    else if ( dattyp(1:3) == 'EC_' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
@@ -371,11 +373,11 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file '//trim(pathaddname))
 !
-    call getmem1d(sigmar,1,npl,'mod_gn6hnc:pplev')
+    call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
     call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
 
-    if ( dattyp /= 'GFS11' ) then
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
       call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
       call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
       up => d2(:,:,1:npl)
@@ -408,11 +410,19 @@ module mod_gn6hnc
       ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
+    else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' ) then
+      call setcal(itimes(1), gregorian)
     else
       call setcal(itimes(1), noleap)
     end if
 
-    sigmar(:) = pplev(:)*0.001
+    if ( dattyp(1:3) == 'EC_' ) then
+      do k = 1 , klev
+        sigmar(k) = pplev(klev-k+1)*0.00001
+      end do
+    else
+      sigmar(:) = pplev(:)*0.001
+    end if
 
     write (stdout,*) 'Read in Static fields OK'
 
@@ -432,8 +442,8 @@ module mod_gn6hnc
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
  
-    ! GFS grid is already on pressure levels.
-    if ( dattyp /= 'GFS11' ) then
+    ! GFS and EC-EARTH grids are already on pressure levels.
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
 
       ! All processing assumes dataset in top -> bottom
       ! HadGEM is read bottom -> top
@@ -474,17 +484,19 @@ module mod_gn6hnc
     call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat,iproj)
  
     ! Go to bottom->top
-    call top2btm(t3,jx,iy,npl)
-    call top2btm(q3,jx,iy,npl)
-    call top2btm(h3,jx,iy,npl)
-    call top2btm(u3,jx,iy,npl)
-    call top2btm(v3,jx,iy,npl)
+    if ( dattyp(1:3) /= 'EC_' ) then
+      call top2btm(t3,jx,iy,npl)
+      call top2btm(q3,jx,iy,npl)
+      call top2btm(h3,jx,iy,npl)
+      call top2btm(u3,jx,iy,npl)
+      call top2btm(v3,jx,iy,npl)
+    end if
  
     ! Recalculate pressure on RegCM orography
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
  
-    if(i_band.eq.1) then
+    if ( i_band == 1 ) then
        call p1p2_band(b3pd,ps4,jx,iy)
     else
        call p1p2(b3pd,ps4,jx,iy)
@@ -586,60 +598,99 @@ module mod_gn6hnc
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
 
-    ! More difficult. Each data type has its own quirks.
-    else if ( dattyp == 'E_ICH' ) then
+    ! More difficult. Multiple files per variable and per year
+    else if ( dattyp(1:3) == 'EC_' ) then
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
         do kkrec = 1 , 5
-          istatus = nf90_close(inet(kkrec))
-          call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          if ( inet(kkrec) > 0 ) then
+            istatus = nf90_close(inet(kkrec))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          end if
         end do
-        varname => gfsvars
+        varname => echvars
         do kkrec = 1 , 5
-          write (inname,99006) year, pthsep, 'ich1_', trim(varname(kkrec)), &
-                               year, month, '.nc'
-          pathaddname = trim(inpglob)//'/EC_EARTH/'//inname
+          if ( dattyp(4:4) == 'R' ) then
+            write (inname,99006) 'RF', pthsep, year, pthsep, 'ich1_', &
+                  trim(varname(kkrec))//'_', year, '.nc'
+          else
+            write (inname,99006) ('RCP'//dattyp(4:5)), pthsep, 'ich1_', &
+                  trim(varname(kkrec))//'_', year, '.nc'
+          end if
+          pathaddname = trim(inpglob)//'/EC-EARTH/'//inname
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
-          write (stdout,*) inet(kkrec), trim(pathaddname)
           istatus = nf90_inq_varid(inet(kkrec),trim(varname(kkrec)),ivar(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find var '//trim(varname(kkrec)))
+          write (stdout,*) inet(kkrec), trim(pathaddname)
+        end do
+        istatus = nf90_inq_dimid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        istatus = nf90_inq_varid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        istatus = nf90_get_att(inet(1),timid,'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
+        istatus = nf90_get_var(inet(1),timid,xtimes)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        do it = 1 , timlen
+          itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
       end if
-      istatus = nf90_get_var(inet(1),ivar(1),vwork)
+      tdif = idate - itimes(1)
+      it = idnint(tohours(tdif))/6 + 1
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = klev
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(1),ivar(1),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
       do j = 1 , nlat
         tvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-      istatus = nf90_get_var(inet(1),ivar(2),vwork)
+      istatus = nf90_get_var(inet(2),ivar(2),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
       do j = 1 , nlat
-        hvar(:,nlat-j+1,:) = vwork(:,j,:)/real(egrav)
+        hvar(:,nlat-j+1,:) = vwork(:,j,:)/real(egrav) ! Get to m
       end do
-      vwork = 0.0
-      istatus = nf90_get_var(inet(1),ivar(3),vwork(:,:,klev-nrhlev+1:klev))
+      where ( hvar < 0.0 )
+        hvar = 0.0 ! We do not want negative hgt, don't we?
+      end where
+      ! This is specific humidity
+      istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
       do j = 1 , nlat
-        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01
+        qvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-      istatus = nf90_get_var(inet(1),ivar(4),vwork)
+      istatus = nf90_get_var(inet(4),ivar(4),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
       do j = 1 , nlat
         uvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-      istatus = nf90_get_var(inet(1),ivar(5),vwork)
+      istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-
-    ! More difficult. Each data type has its own quirks.
-
+      do k = 1, klev
+        pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
+      end do
+      ! Replace with relative humidity for internal calculation
+      call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
     else
-
+      ! Even more difficult. Each data type has its own quirks.
       tdif = rcm_time_interval(180,uhrs)
-
       ! HadGEM dataset has PS files with different times.
       if ( dattyp(1:3) == 'HA_' ) then
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
@@ -657,10 +708,17 @@ module mod_gn6hnc
                  trim(havars(6)), trim(hapbase1)//trim(habase3), &
                  iyear1-1, '12010600-', iyear1, '12010000.nc'
           else
-            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-              trim(havars(6)), pthsep, trim(havars(6)), &
-              trim(hapbase2)//dattyp(4:5)//trim(habase3), &
-              iyear1-1, '12010600-', iyear1, '12010000.nc'
+            if (year*1000000+month*10000+day*100+hour == 2005120100) then 
+              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                trim(havars(6)), pthsep, trim(havars(6)), &
+                trim(hapbase2)//dattyp(4:5)//trim(habase3), &
+                iyear1, '12010000-', iyear1+1, '12010000.nc'
+            else
+              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                trim(havars(6)), pthsep, trim(havars(6)), &
+                trim(hapbase2)//dattyp(4:5)//trim(habase3), &
+                iyear1-1, '12010600-', iyear1, '12010000.nc'
+            end if
           end if
           pathaddname = trim(inpglob)//'/HadGEM2/'//inname
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
@@ -777,10 +835,21 @@ module mod_gn6hnc
                   trim(havars(i)), trim(habase1)//trim(habase3), &
                   iyear1, imon1 , '010600-', iyear2, imon2, '010000.nc'
               else
-                write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(havars(i)), pthsep, trim(havars(i)), &
-                  trim(habase2)//dattyp(4:5)//trim(habase3), &
-                  iyear1, imon1, '010600-', iyear2, imon2, '010000.nc'
+                if (iyear1*1000000+imon1*10000 == 2005090000) then 
+                  iyear1 = 2005
+                  imon1 = 12
+                  iyear2 = 2006
+                  imon2 = 3 
+                  write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
+                    trim(havars(i)), pthsep, trim(havars(i)), &
+                    trim(habase2)//dattyp(4:5)//trim(habase3), &
+                    iyear1, imon1, '010000-', iyear2, imon2, '010000.nc'
+                else
+                  write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
+                    trim(havars(i)), pthsep, trim(havars(i)), &
+                    trim(habase2)//dattyp(4:5)//trim(habase3), &
+                    iyear1, imon1, '010600-', iyear2, imon2, '010000.nc'
+                end if
               end if
               pathaddname = trim(inpglob)//'/HadGEM2/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -988,7 +1057,7 @@ module mod_gn6hnc
 99003   format (i0.4,'/','ccsm.',a,a,'.',i0.4,'.nc')
 99004   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99005   format (a,a,a,a,a,a,i0.4,a,i0.4,a)
-99006   format (i0.4,a,a,a,i0.4,i0.2,a)
+99006   format (a,a,i0.4,a,a,a,i0.4,a)
 
   end subroutine readgn6hnc
 !

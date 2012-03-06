@@ -77,9 +77,11 @@ module mod_sst_gnmnc
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
+  integer :: year, month, day, hour
   real(sp) :: ufac
 !
-
+  call split_idate(globidate2, year, month, day, hour)  
+!
   ufac = 0.0
   if ( ssttyp == "CAM4N" ) then
     inpfile = trim(inpglob)//'/SST/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
@@ -102,19 +104,28 @@ module mod_sst_gnmnc
     inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp85_r1i1p1_200601-210012.nc'
     varname(2) = 'ts'
   else if ( ssttyp == "HA_RF" ) then
-    inpfile = trim(inpglob)// &
-         '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200511.nc'
+    if (year*1000000+month*10000+day*100+hour > 2005110100) then
+!     use modified file (r45 first time step is added to hist last time step)
+      inpfile = trim(inpglob)// &
+           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200512.nc'
+    else
+      inpfile = trim(inpglob)// &
+           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200511.nc'
+    end if
+!    inpfile = trim(inpglob)// &
+!          '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_195912-200512.nc'
     varname(2) = 'ts'
+!    varname(2) = 'tos'
   else if ( ssttyp == "HA_26" ) then
     inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp26_r1i1p1_200512-209911.nc'
     varname(2) = 'ts'
   else if ( ssttyp == "HA_45" ) then
-    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp45_r1i1p1_200512-209911.nc'
+    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp45_r1i1p1_200511-209911.nc'
     varname(2) = 'ts'
   else if ( ssttyp == "HA_85" ) then
     inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
     varname(2) = 'ts'
-  else if ( ssttyp == 'EC_RF' ) then
+  else if ( ssttyp == "EC_RF" ) then
     inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
     varname(2) = 'sst'
   else if ( ssttyp == 'IP_RF' ) then
@@ -233,6 +244,8 @@ module mod_sst_gnmnc
     else
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
     end if
+    !call bilinx2(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
+    !call bilinx2(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
     do j = 2 , jx-1
       do i = 2 , iy-1
