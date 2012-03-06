@@ -734,7 +734,6 @@ module mod_bats_mtrxbats
         end do
       end do
     end do
-
     !
     ! In depth, wt is frac of grid square covered by snow;
     ! depends on average snow depth, vegetation, etc.

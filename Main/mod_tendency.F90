@@ -402,9 +402,9 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
-                         atm1%u(j,i+1,k)-atm1%u(j,i,k))+    &
+                         atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                         (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
-                         atm1%v(j+1,i,k)-atm1%v(j,i,k))
+                         atm1%v(j+1,i,k)  -atm1%v(j,i,k))
           pten(j,i) = pten(j,i) - divl(j,i,k)*dsigma(k) / &
                       (dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
         end do
@@ -432,10 +432,10 @@ module mod_tendency
         do j = jci1 , jci2
           omega(j,i,k) = d_half*sfs%psa(j,i)* &
                      (qdot(j,i,k+1)+qdot(j,i,k))+a(k)*(pten(j,i)+   &
-                     ((atmx%u(j,i,k)+atmx%u(j,i+1,k)+               &
+                     ((atmx%u(j,i,k)    +atmx%u(j,i+1,k)+           &
                        atmx%u(j+1,i+1,k)+atmx%u(j+1,i,k))*          &
                      (sfs%psa(j+1,i)-sfs%psa(j-1,i))+               &
-                     (atmx%v(j,i,k)+atmx%v(j,i+1,k)+                &
+                     (atmx%v(j,i,k)    +atmx%v(j,i+1,k)+            &
                       atmx%v(j+1,i+1,k)+atmx%v(j+1,i,k))*           &
                      (sfs%psa(j,i+1)-sfs%psa(j,i-1)))/              &
                      (dx8*mddom%msfx(j,i)))
@@ -719,29 +719,26 @@ module mod_tendency
         spchia(lbound(chia,1):,1:,1:) => chia(:,:,:,itr)
         spchib3d(lbound(chib3d,1):,1:,1:) => chib3d(:,:,:,itr)
 
-
         call hadv(cross,spchiten,spchi,kz,2)
-!FAB        call vadv(cross,spchiten,spchia,kz,5)
 
-   if ( icup /= 1 ) then
-      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(cross,spchiten,spchia,kz,5)
-      else
-        if ( iuwvadv == 1 ) then
-          call vadv(cross,spchiten,spchia,kz,6)
-        else
-          call vadv(cross,spchiten,spchia,kz,5)
+        if ( icup /= 1 ) then
+          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+            call vadv(cross,spchiten,spchia,kz,5)
+          else
+            if ( iuwvadv == 1 ) then
+              call vadv(cross,spchiten,spchia,kz,6)
+            else
+              call vadv(cross,spchiten,spchia,kz,5)
+            end if
+          end if
         end if
-      end if
-    end if
-    !
 
         ! horizontal diffusion: initialize scratch vars to 0.
         ! need to compute tracer tendencies due to diffusion
 
         call diffu_x(spchiten,spchib3d,sfs%psb,xkc,kz)
 
-       end do ! end tracer loop
+      end do ! end tracer loop
       !
       ! Compute chemistry tendencies (other yhan transport)
       !
@@ -767,7 +764,6 @@ module mod_tendency
       call albedov(xmonth,jci1,jci2,ici1,ici2)
 #endif
     end if
-
 !
 !   call radiative transfer package
 !
@@ -827,8 +823,8 @@ module mod_tendency
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1,jci1,jci2,ici1,ici2)
     end if
 #ifndef BAND
-      ! diagnostic on total evaporation
-      if (debug_level > 2) call conqeva
+    ! diagnostic on total evaporation
+    if (debug_level > 2) call conqeva
 #endif
 !
 !   Call medium resolution PBL
@@ -887,8 +883,8 @@ module mod_tendency
         end do
       end do
 !
-!   compute the condensation and precipitation terms for explicit
-!   moisture scheme:
+!     compute the condensation and precipitation terms for explicit
+!     moisture scheme:
 !
       call condtq(jci1,jci2,ici1,ici2,psc)
     end if
@@ -1078,8 +1074,8 @@ module mod_tendency
 !----------------------------------------------------------------------
 !   compute the u and v tendencies:
 !
-!     compute the diffusion terms:
-!     put diffusion and pbl tendencies of u and v in difuu and difuv.
+!   compute the diffusion terms:
+!   put diffusion and pbl tendencies of u and v in difuu and difuv.
 !
     do k = 1 , kz
       do i = idi1 , idi2
@@ -1101,7 +1097,7 @@ module mod_tendency
     call hadv(dot,aten%u,atmx%u,kz,3)
     call hadv(dot,aten%v,atmx%v,kz,3)
 !
-!     compute coriolis terms:
+!   compute coriolis terms:
 !
     do k = 1 , kz
       do i = idi1 , idi2
@@ -1278,7 +1274,8 @@ module mod_tendency
       end do
     end do
 !
-    ! Couple TKE to ps for use in vertical advection
+!   Couple TKE to ps for use in vertical advection
+!
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       do k = 1 , kz
         do i = ice1 , ice2
@@ -1305,10 +1302,6 @@ module mod_tendency
       end do
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if
-!
-!**********************************************************************
-!
-!---------------------------------------------------------------------
 !
 !   store the xxa variables in xxb and xxc in xxa:
 !   perform time smoothing operations.
@@ -1500,10 +1493,7 @@ module mod_tendency
       end if
     end if
     !
-    ! Update the counter of routine visit
-    !
-    !   recalculate solar declination angle if forecast time larger than
-    !   24 hours:
+    ! recalculate solar declination angle if reading bdy
     !
     if ( nbdytime == 0 ) then
       if (myid == 0) then
@@ -1513,6 +1503,7 @@ module mod_tendency
     end if
 !
     call time_end(subroutine_name,idindx)
+!
   end subroutine tend
 !
 end module mod_tendency

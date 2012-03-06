@@ -316,7 +316,6 @@ module mod_split
         end do
       end do
     end do
-
 !
 !=======================================================================
 ! 
@@ -446,14 +445,14 @@ module mod_split
 !
 !   put deld(0), delh(0) into storage
 !
-   do n = 1 , nsplit
-     do i = ide1 , ide2
-       do j = jde1 , jde2
-         dstor(j,i,n) = deld(j,i,n,2)
-         hstor(j,i,n) = delh(j,i,n,2)
-       end do
-     end do
-   end do
+    do n = 1 , nsplit
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          dstor(j,i,n) = deld(j,i,n,2)
+          hstor(j,i,n) = delh(j,i,n,2)
+        end do
+      end do
+    end do
 !
 !   split explicit time integration
 !
@@ -544,7 +543,6 @@ module mod_split
 !
       do i = ice1 , ice2
         do j = jce1 , jce2
-!         deld, delh: 1,ilx on cross grid
           ddsum(j,i,ns) = deld(j,i,ns,n0)
           dhsum(j,i,ns) = delh(j,i,ns,n0)
         end do
@@ -573,7 +571,6 @@ module mod_split
       do nw = 1 , 2
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-!           work: 2,ilx on dot grid
             work(j,i,nw) = work(j,i,nw)*psdot(j,i)
           end do
         end do
@@ -615,6 +612,7 @@ module mod_split
       end do
  
 !     not in Madala (1987)
+
       fac = (aam(ns)-d_one)/aam(ns)
       if ( ma%hasleft ) then
         do i = ici1 , ici2

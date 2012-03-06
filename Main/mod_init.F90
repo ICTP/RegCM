@@ -421,7 +421,7 @@ module mod_init
     !
     if ( myid == 0 ) then
       appdat = tochar(idatex)
-      print 99001 , nbdytime, ktau, appdat
+      print 99001 , appdat
     end if
     !
     ! End of restart phase
@@ -441,6 +441,7 @@ module mod_init
   if ( iseaice == 1 .or. lakemod == 1 ) then
     do i = ice1 , ice2
       do j = jce1 , jce2
+        if ( ldmsk(j,i) == 2 ) iveg(j,i) = 12
         do n = 1 , nnsg
           if ( ocld(n,j,i) == 2 ) iveg1(n,j,i) = 12
         end do
@@ -523,8 +524,7 @@ module mod_init
 !
 ! Formats for printout
 !
-99001 format (' ***** restart file for large domain at time = ', i8,   &
-          ' seconds, ktau = ',i7,' date = ',a,' read in')
+99001 format ('Successfully read restart file at time = ', a)
 !
   end subroutine init
 !

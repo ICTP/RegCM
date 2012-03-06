@@ -2361,7 +2361,7 @@ module mod_rad_radiation
     real(dp) :: alp , amg , apg , arg , extins , ftot ,   &
                gam , gs , gtot , lm , ne , rdenom , rdirexp , &
                tautot , tdnmexp , ts , ue , ws , wtot
-    integer :: j , jj , k , nn , nval
+    integer :: j , k , nn
 !
     character (len=64) :: subroutine_name='radclw'
     integer :: indx = 0
@@ -2446,14 +2446,13 @@ module mod_rad_radiation
         end do
       end do
 !
-!     Compute next layer delta-Eddington solution only if total
-!     transmission of radiation to the interface just above the layer
-!     exceeds trmin.
-      call whenfgt(tottrn(:,k),jstart,jend,1,trmin,jjndx,nval)
-      if ( nval > 0 ) then
-!CDIR$  IVDEP
-        do jj = 1 , nval
-          j = jjndx(jj)
+      do j = jstart , jend
+!
+!       Compute next layer delta-Eddington solution only if total
+!       transmission of radiation to the interface just above the layer
+!       exceeds trmin.
+!
+        if ( tottrn(j,k) > trmin ) then
 !
 !         Remember, no ozone absorption in this layer:
 !
@@ -2505,8 +2504,8 @@ module mod_rad_radiation
           rdif(j,k) = dmax1(rdif(j,k),d_zero)
           tdif(j,k) = dmax1(tdif(j,k),d_zero)
 !
-        end do
-      end if
+        end if
+      end do
 !
     end do
 !
@@ -2617,7 +2616,7 @@ module mod_rad_radiation
                gam , gs , gtot , lm , ne , rdenom , rdirexp , &
                taucsc , tautot , tdnmexp , ts , ue , ws ,     &
                wt , wtau , wtot
-    integer :: j , jj , k , nn , nval
+    integer :: j , k , nn
 !
     character (len=64) :: subroutine_name='radded'
     integer :: indx = 0
@@ -2628,7 +2627,7 @@ module mod_rad_radiation
 !   Initialize all total transmission values to 0, so that nighttime
 !   values from previous computations are not used:
 !
-    tottrn = d_zero
+    tottrn(:,:) = d_zero
 !
 !   Compute total direct beam transmission, total transmission, and
 !   reflectivity for diffuse mod_radiation (from below) for all layers
@@ -2748,16 +2747,13 @@ module mod_rad_radiation
         end do
       end do
 !
-!     Compute next layer delta-eddington solution only if total
-!     transmission of radiation to the interface just above the layer
-!     exceeds trmin.
-
-      call whenfgt(tottrn(:,k),jstart,jend,1,trmin,jjndx,nval)
-
-      if ( nval > 0 ) then
-!CDIR$  IVDEP
-        do jj = 1 , nval
-          j = jjndx(jj)
+      do j = jstart , jend
+!
+!       Compute next layer delta-eddington solution only if total
+!       transmission of radiation to the interface just above the layer
+!       exceeds trmin.
+!
+        if ( tottrn(j,k) > trmin ) then
 !
           tauray(j) = trayoslp*(pflx(j,k+1)-pflx(j,k))
           taugab(j) = abh2o(ns)*uh2o(j,k) + abo3(ns)*uo3(j,k) +  &
@@ -2820,8 +2816,8 @@ module mod_rad_radiation
           tdir(j,k) = dmax1(tdir(j,k),d_zero)
           rdif(j,k) = dmax1(rdif(j,k),d_zero)
           tdif(j,k) = dmax1(tdif(j,k),d_zero)
-        end do
-      end if
+        end if
+      end do
 !
     end do
 !
@@ -4282,9 +4278,11 @@ module mod_rad_radiation
     real(dp) , dimension(:) :: array
     integer :: isrchfgt
     intent (in) array , inc , rtarg
-!
     integer :: i , n
+    character (len=64) :: subroutine_name='isrchfgt'
+    integer :: indx = 0
 !
+    call time_begin(subroutine_name,indx)
     n = ie-is+1
     if ( n <= 0 ) then
       isrchfgt = ie + inc
@@ -4297,6 +4295,7 @@ module mod_rad_radiation
       end if
     end do
     isrchfgt = isrchfgt + inc
+    call time_end(subroutine_name,indx)
   end function isrchfgt
  
   function isrchfle(array,is,ie,inc,rtarg)
@@ -4309,6 +4308,10 @@ module mod_rad_radiation
     intent (in) array , inc , rtarg
 !
     integer :: i , n
+    character (len=64) :: subroutine_name='isrchfle'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     n = ie-is+1
     if ( n <= 0 ) then
@@ -4322,19 +4325,22 @@ module mod_rad_radiation
       end if
     end do
     isrchfle = isrchfle + inc
+    call time_end(subroutine_name,indx)
   end function isrchfle
 !
-  subroutine wheneq(iarray,is,ie,inc,itarg,indx,nval)
- 
+  subroutine wheneq(iarray,is,ie,inc,itarg,iind,nval)
     implicit none
 !
     integer :: inc , itarg , nval , is , ie
-    integer , dimension(:) :: iarray , indx
+    integer , dimension(:) :: iarray , iind
     intent (in) iarray , inc , itarg
-    intent (out) indx
+    intent (out) iind
     intent (inout) nval
-!
     integer :: i , n
+    character (len=64) :: subroutine_name='wheneq'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     n = ie-is+1
     if ( n < 0 ) return
@@ -4342,23 +4348,25 @@ module mod_rad_radiation
     do i = is , ie , inc
       if ( iarray(i) == itarg ) then
         nval = nval + 1
-        indx(nval) = i
+        iind(nval) = i
       end if
     end do
- 
+    call time_end(subroutine_name,indx)
   end subroutine wheneq
 !
-  subroutine whenne(iarray,is,ie,inc,itarg,indx,nval)
- 
+  subroutine whenne(iarray,is,ie,inc,itarg,iind,nval)
     implicit none
 !
     integer :: inc , itarg , nval , is , ie
-    integer , dimension(:) :: iarray , indx
+    integer , dimension(:) :: iarray , iind
     intent (in) iarray , inc , itarg
-    intent (out) indx
+    intent (out) iind
     intent (inout) nval
-!
     integer :: i , n
+    character (len=64) :: subroutine_name='whenne'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     n = ie-is+1
     if ( n < 0 ) return
@@ -4366,71 +4374,51 @@ module mod_rad_radiation
     do i = is , ie , inc
       if ( iarray(i) /= itarg ) then
         nval = nval + 1
-        indx(nval) = i
+        iind(nval) = i
       end if
     end do
+    call time_end(subroutine_name,indx)
   end subroutine whenne
 !
-  subroutine whenfgt(array,is,ie,inc,rtarg,indx,nval)
-! 
+  subroutine whenflt(array,is,ie,inc,rtarg,iind,nval)
     implicit none
 !
     integer :: inc , nval , is , ie
     real(dp) :: rtarg
     real(dp) , dimension(:) :: array
-    integer , dimension(:) :: indx
+    integer , dimension(:) :: iind
     intent (in) array , inc , rtarg
-    intent (out) indx
-    intent (inout) nval
-!
+    intent (out) iind , nval
     integer :: i , n
+    character (len=64) :: subroutine_name='whenflt'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     n = ie-is+1
-    if ( n < 0 ) return
     nval = 0
-    do i = is , ie , inc
-      if ( array(i) > rtarg ) then
-        nval = nval + 1
-        indx(nval) = i
-      end if
-    end do
- 
-  end subroutine whenfgt
-!
-  subroutine whenflt(array,is,ie,inc,rtarg,indx,nval)
-! 
-    implicit none
-!
-    integer :: inc , nval , is , ie
-    real(dp) :: rtarg
-    real(dp) , dimension(:) :: array
-    integer , dimension(:) :: indx
-    intent (in) array , inc , rtarg
-    intent (out) indx , nval
-!
-    integer :: i , n
-!
-    n = ie-is+1
     if ( n < 0 ) return
-    nval = 0
     do i = is , ie , inc
       if ( array(i) < rtarg ) then
         nval = nval + 1
-        indx(nval) = i
+        iind(nval) = i
       end if
     end do
+    call time_end(subroutine_name,indx)
   end subroutine whenflt
 !
   function intmax(imax,inc)
-!
     implicit none
 !
     integer :: inc
     integer :: intmax
     integer , dimension(:) :: imax
     intent (in) inc , imax
-!
     integer :: i , n , mx
+    character (len=64) :: subroutine_name='intmax'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     n = size(imax,1)
     mx = imax(1)
@@ -4441,6 +4429,7 @@ module mod_rad_radiation
         intmax = i
       end if
     end do
+    call time_end(subroutine_name,indx)
   end function intmax
 !
   function xalpha(w,uu,g,e)

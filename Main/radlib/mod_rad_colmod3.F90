@@ -21,6 +21,7 @@ module mod_rad_colmod3
 !
   use mod_realkinds
   use mod_dynparam
+  use mod_service
   use mod_rad_radiation
   use mod_rad_common
   use mod_rad_outrad
@@ -180,6 +181,10 @@ module mod_rad_colmod3
     real(dp) , intent(in) :: eccf
 !
     integer :: i , j , k , n , jj0 , jj1 , jj2
+    character (len=64) :: subroutine_name='colmod3'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
 !   Fields specified by the user in getdat()
 !
@@ -331,12 +336,6 @@ module mod_rad_colmod3
 !
       call getdat(jstart,jend,i)
 !
-!     NB:
-!     land and ocean albedos are calculated
-!     not in albland() and albocean() located below
-!     but in albedov() called from subroutine vecbats()
-!     therefore, the following subroutines are not called here
-!
 !     Cloud particle size and fraction of ice
 !
       call cldefr(jstart,jend)
@@ -379,31 +378,18 @@ module mod_rad_colmod3
 !     Names of some output variables (in MKS) have been changed
 !     from those in the CCM2 radiation package.
 !
-     call radout(jstart,jend,i,lout,solin,fsnt,fsns,              &
-                 fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,qrl,flwds, &
-                 sols,soll,solsd,solld,alb,albc,fsds,      &
-                 fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
-                 cld,clwp)
+     call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,   &
+                 qrs,flnt,flns,flntc,flnsc,qrl,flwds,sols,soll,    &
+                 solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq, &
+                 totcf,totcl,totci,h2ommr,cld,clwp)
     end do
 !
+    call time_end(subroutine_name,indx)
   end subroutine colmod3
 !
 !-----------------------------------------------------------------------
 !
 ! Compute cloud drop size
-!
-!---------------------------Code history--------------------------------
-!
-! Original version:  J. Kiehl, January 1993
-!
-!------------------------------Arguments--------------------------------
-!
-!     Input arguments
-!
-! ioro   - idnint(oro(j))
-! t      - Temperature
-! ps     - surface pressure
-! pmid   - midpoint pressures
 !
 !     Output arguments
 !
@@ -433,6 +419,10 @@ module mod_rad_colmod3
 !   Temperatures in K (263.16 , 243.16)
     real(dp) , parameter :: minus10 = wattp-d_10
     real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
+    character (len=64) :: subroutine_name='cldefr'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     totci(:) = d_zero
     do k = 1 , kz
@@ -489,26 +479,13 @@ module mod_rad_colmod3
 !
       end do
     end do
+    call time_end(subroutine_name,indx)
 !
   end subroutine cldefr
 !
 !-----------------------------------------------------------------------
 !
 ! Compute cloud emissivity using cloud liquid water path (g/m**2)
-!
-!---------------------------Code history--------------------------------
-!
-! Original version:  J. Kiehl
-! Standardized:      J. Rosinski, June 1992
-! Reviewed:          J. Hack, J. Kiehl, August 1992
-!
-!------------------------------Arguments--------------------------------
-!
-!     Input arguments
-!
-! clwp    - cloud liquid water path (g/m**2)
-! rei     - ice effective drop size (microns)
-! fice    - fractional ice content within cloud
 !
 !     Output arguments
 !
@@ -525,6 +502,10 @@ module mod_rad_colmod3
 !
     integer :: j , k
     real(dp) :: kabs , kabsi
+    character (len=64) :: subroutine_name='cldems'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     do k = 1 , kz
       do j = jstart , jend
@@ -534,6 +515,7 @@ module mod_rad_colmod3
       end do
     end do
 !
+    call time_end(subroutine_name,indx)
   end subroutine cldems
 !
 !-----------------------------------------------------------------------
@@ -578,6 +560,10 @@ module mod_rad_colmod3
 !
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
+    character (len=64) :: subroutine_name='getdat'
+    integer :: indx = 0
+!
+    call time_begin(subroutine_name,indx)
 !
     if ( iemiss == 1 ) then
       do j = jstart , jend
@@ -705,31 +691,25 @@ module mod_rad_colmod3
 !   ground temperature
 !
     do j = jstart , jend
-!     tg(j)=tgb(j,i)
-!     when using bats calculate an equivalent ground (skin)
-!     temperature by averaging over vegetated and non-vegetated areas
-!jsp  tg(j)=((d_one-vgfrac(j))*tgb(j,i)**4.+vgfrac(j)*tlef2d(j,i)**4.)**0.25
       ts(j) = tground(j,i)
     end do
 !
-!   cloud cover at surface interface always zero
+!   cloud cover (at surface interface always zero)
 !
     do j = jstart , jend
       cld(j,kzp1) = d_zero
     end do
-!
-!----------------------------------------------------------------------
-!
     do j = jstart , jend
-!
       do k = 1 , kz
         if ( cld(j,k) > 0.999D0 ) cld(j,k) = 0.999D0
       end do
+    end do
 !
+!   pressure of tropopause
+!
+    do j = jstart , jend
       alat(j) = xlat(j,i)*degrad
-      ! pressure of tropopause
       ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
-!
     end do
 !
 !   Convert ozone mass mixing ratio to ozone volume mixing ratio:
@@ -741,6 +721,7 @@ module mod_rad_colmod3
       end do
     end do
 !
+    call time_end(subroutine_name,indx)
   end subroutine getdat
 !
 end module mod_rad_colmod3
