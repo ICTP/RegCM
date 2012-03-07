@@ -429,7 +429,6 @@ module mod_bats_zengocn
     call time_end(subroutine_name,idindx)  
 
     contains
-
 !
 !   stability function for rb < 0
 !
@@ -450,7 +449,6 @@ module mod_bats_zengocn
         psi = d_two*dlog((d_one+chik*chik)*d_half)
       end if
     end function psi
-
 !
 !   Tetens' formula for saturation vp Buck(1981) JAM 20, 1527-1532
 !   p in mb, t in C, and qsat in mb
@@ -464,33 +462,32 @@ module mod_bats_zengocn
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
 !
     end function qsat
-
+!
+!   our formulation for zo,zot,zoq
+!
+    subroutine ocnrough(zo,zot,zoq,ustar,visa)
+!
+      implicit none
+!
+      real(dp) , intent (in) :: ustar , visa
+      real(dp) , intent (out) :: zoq , zot
+      real(dp) , intent (inout) :: zo
+!
+      real(dp) :: re , xtq
+!
+      if ( iocnrough == 2 ) then
+        zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
+      else
+        zo = (0.0065D0*ustar*ustar)*regrav
+!       zo = (0.013D0*ustar*ustar)*regrav
+      end if
+      re = (ustar*zo)/visa
+      xtq = 2.67D0*(re**d_rfour) - 2.57D0
+      zoq = zo/dexp(xtq)
+      zot = zoq
+!
+    end subroutine ocnrough
+!
   end subroutine zengocn
-!
-! our formulation for zo,zot,zoq
-!
-  subroutine ocnrough(zo,zot,zoq,ustar,visa)
-!
-    implicit none
-!
-    real(dp) , intent (in) :: ustar , visa
-    real(dp) , intent (out) :: zoq , zot
-    real(dp) , intent (inout) :: zo
-!
-    real(dp) :: re , xtq
-!
-!   Graziano: make this selectable on iocnrough flag
-    if ( iocnrough == 2 ) then
-      zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
-    else
-      zo = (0.0065D0*ustar*ustar)*regrav
-!     zo = (0.013D0*ustar*ustar)*regrav
-    end if
-    re = (ustar*zo)/visa
-    xtq = 2.67D0*(re**d_rfour) - 2.57D0
-    zoq = zo/dexp(xtq)
-    zot = zoq
-!
-  end subroutine ocnrough
 !
 end module mod_bats_zengocn
