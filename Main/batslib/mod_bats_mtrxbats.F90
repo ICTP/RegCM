@@ -243,12 +243,12 @@ module mod_bats_mtrxbats
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
 
-          if ( ocld(n,j,i) == 2 ) then
+          if ( ldmsk1(n,j,i) == 2 ) then
             if ( lseaice .or. llake ) then
               sfice(n,j,i) = d_1000
             end if
             nlveg = 12
-          else if ( ocld(n,j,i) == 1 ) then
+          else if ( ldmsk1(n,j,i) == 1 ) then
             sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
             nlveg = iveg1(n,j,i)
           else
@@ -322,7 +322,7 @@ module mod_bats_mtrxbats
             sent(n,j,i) = hfx(j,i)
             evpr(n,j,i) = qfx(j,i)
             lveg(n,j,i) = iveg1(n,j,i)
-            if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
+            if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
             amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
@@ -396,14 +396,14 @@ module mod_bats_mtrxbats
               svegfrac2d(j,i) = svegfrac2d(j,i) + lncl(n,j,i)
             end if
             if ( iocnflx == 1 .or. &
-                (iocnflx == 2 .and. ocld(n,j,i) /= 0 ) ) then
+                (iocnflx == 2 .and. ldmsk1(n,j,i) /= 0 ) ) then
               tgbb(j,i) = tgbb(j,i) +                 &
                          ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four +  &
                          lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
             else
               tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
-            if ( ocld(n,j,i) == 0 ) then
+            if ( ldmsk1(n,j,i) == 0 ) then
               ssw(n,j,i)   = dmissval
               rsw(n,j,i)   = dmissval
               tsw(n,j,i)   = dmissval
@@ -463,7 +463,7 @@ module mod_bats_mtrxbats
           aldirs_o(j,i) = 0.0
           aldifs_o(j,i) = 0.0
           do n = 1 , nnsg
-            if ( ocld(n,j,i) /= 0 ) then
+            if ( ldmsk1(n,j,i) /= 0 ) then
               fracv = sigf(n,j,i)
               fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
               fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
@@ -549,7 +549,7 @@ module mod_bats_mtrxbats
             evpa_o(j,i) = 0.0
             sena_o(j,i) = 0.0
             do n = 1 , nnsg
-              if ( ocld(n,j,i) /= 0 ) then
+              if ( ldmsk1(n,j,i) /= 0 ) then
                 fracv = sigf(n,j,i)
                 fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
                 fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
@@ -592,7 +592,7 @@ module mod_bats_mtrxbats
             scv_o(j,i) = 0.0
             nnn = 0
             do n = 1 , nnsg
-              if ( ocld(n,j,i) /= 0 ) then
+              if ( ldmsk1(n,j,i) /= 0 ) then
                 tlef_o(j,i) = tlef_o(j,i) + real(tlef(n,j,i))
                 ssw_o(j,i) = ssw_o(j,i) + real(ssw(n,j,i))
                 rsw_o(j,i) = rsw_o(j,i) + real(rsw(n,j,i))
@@ -697,7 +697,7 @@ module mod_bats_mtrxbats
       do j = jstart , jend
         do n = 1 , nnsg
           lveg(n,j,i) = iveg1(n,j,i)
-          if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
+          if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
         end do
       end do
     end do
@@ -764,7 +764,7 @@ module mod_bats_mtrxbats
           !       2.   get albedo over land
           !================================================================
           !
-          if ( ocld(n,j,i) == 2 ) then
+          if ( ldmsk1(n,j,i) == 2 ) then
             tdiffs = sts(n,j,i) - tzero
             tdiff = dmax1(tdiffs,d_zero)
             tdiffs = dmin1(tdiff,20.0D0)
@@ -773,7 +773,7 @@ module mod_bats_mtrxbats
             albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
             albgld = albgl
-          else if ( ocld(n,j,i) == 1 ) then
+          else if ( ldmsk1(n,j,i) == 1 ) then
             sfac = d_one - fseas(tgbrd(n,j,i))
             !
             ! ccm tests here on land mask for veg and soils data
@@ -872,7 +872,7 @@ module mod_bats_mtrxbats
           !       5.  albedo over open ocean
           !=====================================================================
 
-          if ( ocld(n,j,i) == 0 ) then
+          if ( ldmsk1(n,j,i) == 0 ) then
             ! ocean albedo depends on zenith angle
             if ( czeta >= d_zero ) then
               ! albedo independent of wavelength
@@ -963,7 +963,7 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ocld(n,j,i) /= 0 ) then
+          if ( ldmsk1(n,j,i) /= 0 ) then
             ! lveg is set in subr. interf
             freza(lveg(n,j,i)) = 0.15D0*deprv(lveg(n,j,i))
             frezu(lveg(n,j,i)) = 0.15D0*depuv(lveg(n,j,i))

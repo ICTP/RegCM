@@ -693,7 +693,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
 
-!     Initialize ocld now that clm has determined the land sea mask
+!     Initialize ldmsk1 now that clm has determined the land sea mask
 !     Initialize accumulation variables at zero
  
   if ( .not.ifrest ) then
@@ -701,7 +701,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       jj = myid*jxp + j
       do i = 1 , iym1
         do n = 1 , nnsg
-          ocld(n,j,i) = landmask(jj,i)
+          ldmsk1(n,j,i) = landmask(jj,i)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
@@ -747,7 +747,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         end if
         do n = 1 , nnsg
           if ( ( iveg1(n,j,i) == 14 .or. iveg1(n,j,i) == 15 ) .and. &
-               ocld(n,j,i) /= 0 ) then
+               ldmsk1(n,j,i) /= 0 ) then
             iveg1(n,j,i)   =  2
             lndcat1(n,j,i) =  d_two
           end if
@@ -784,7 +784,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   do i = istart , iend
     do j = jstart , jend
       jj = j+(jxp*myid)
-      if (ocld(1,j,i) /= 0 .and. &
+      if (ldmsk1(1,j,i) /= 0 .and. &
           (d_one-aldirs(j,i)) > 1.0D-10) then
         aldirs(j,i) = aldirs(j,i)*landfrac(jj,i) + &
                     aldirs(j,i)*(d_one-landfrac(jj,i))
@@ -1147,7 +1147,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             end if
  
             if ( iocnflx==1 .or.                                    &
-                 (iocnflx==2 .and. ocld(n,j,i) /= 0) ) then
+                 (iocnflx==2 .and. ldmsk1(n,j,i) /= 0) ) then
               tgbb(j,i) = tgbb(j,i)                     &
                           + ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+   &
                           lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
@@ -1227,7 +1227,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             end if
  
             if ( iocnflx==1 .or.                                    &
-                 (iocnflx==2 .and. ocld(n,j,i) /= 0) ) then
+                 (iocnflx==2 .and. ldmsk1(n,j,i) /= 0) ) then
               tgbb(j,i) = tgbb(j,i) + &
                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four+ &
                             lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
@@ -1303,7 +1303,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           t2m_o(j,i) = 0.0
  
           do n = 1 , nnsg
-            if ( ocld(n,j,i) /= 0 ) then
+            if ( ldmsk1(n,j,i) /= 0 ) then
               u10m_s(n,j,i) = real(uatm(j,i,kz))
               v10m_s(n,j,i) = real(vatm(j,i,kz))
               tg_s(n,j,i) = real(tgrd(n,j,i))
@@ -1312,7 +1312,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               v10m_o(j,i) = v10m_o(j,i) + real(vatm(j,i,kz))
               t2m_o(j,i) = t2m_o(j,i) + real(taf(n,j,i))
               tg_o(j,i) = tg_o(j,i) + real(tgrd(n,j,i))
-            else if ( ocld(n,j,i) == 0 ) then
+            else if ( ldmsk1(n,j,i) == 0 ) then
               tg_s(n,j,i) = real(tgrd(n,j,i))
               u10m_s(n,j,i) = real(u10m(n,j,i))
               v10m_s(n,j,i) = real(v10m(n,j,i))
@@ -1348,7 +1348,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           evpa_o(j,i) = 0.0
           sena_o(j,i) = 0.0
           do n = 1 , nnsg
-            if ( ocld(n,j,i) /= 0 ) then
+            if ( ldmsk1(n,j,i) /= 0 ) then
               q2m_s(n,j,i) = real(q2d(j,i))
               drag_s(n,j,i) = real(uvdrag(j,i))
               evpa_s(n,j,i) = real(evpa(n,j,ci)*mmpd)
@@ -1361,7 +1361,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               drag_o(j,i) = drag_o(j,i) + real(uvdrag(j,i))
               evpa_o(j,i) = evpa_o(j,i) + real(evpa(n,j,ci))
               sena_o(j,i) = sena_o(j,i) + real(sena(n,j,ci))
-            else if ( ocld(n,j,i) == 0 ) then
+            else if ( ldmsk1(n,j,i) == 0 ) then
               q2m_s(n,j,i) = real(q2m(n,j,i))
               drag_s(n,j,i) = real(drag(n,j,i))
               evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
@@ -1394,7 +1394,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           scv_o(j,i) = 0.0
           nnn = 0
           do n = 1 , nnsg
-            if ( ocld(n,j,ci) /= 0 .and. landmask(jj,ci)/=3 ) then
+            if ( ldmsk1(n,j,ci) /= 0 .and. landmask(jj,ci)/=3 ) then
               tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,ci))
               ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,ci))
               rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,ci))

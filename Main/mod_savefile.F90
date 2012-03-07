@@ -161,7 +161,7 @@ module mod_savefile
       read (iutrst) tsw_io
       read (iutrst) sinc_io
       read (iutrst) taf_io
-      read (iutrst) ocld_io
+      read (iutrst) ldmsk1_io
       read (iutrst) emiss_io
       read (iutrst) pptnc_io, pptc_io
       if ( iocnflx == 2 ) read (iutrst) zpbl_io
@@ -292,7 +292,7 @@ module mod_savefile
       write (iutsav) tsw_io
       write (iutsav) sinc_io
       write (iutsav) taf_io
-      write (iutsav) ocld_io
+      write (iutsav) ldmsk1_io
       write (iutsav) emiss_io
       write (iutsav) pptnc_io , pptc_io
       if ( iocnflx == 2 ) write (iutsav) zpbl_io

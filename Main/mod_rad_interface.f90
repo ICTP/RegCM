@@ -37,7 +37,7 @@ module mod_rad_interface
 !
   subroutine init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg, &
                       solis,coszrs,aldirs,aldifs,aldirl,aldifl,albvs, &
-                      albvl,emiss,sinc,solvs,solvd,fsw,flw,flwd,ocld, &
+                      albvl,emiss,sinc,solvs,solvd,fsw,flw,flwd,ldmsk1, &
                       chia,chtrname)
     implicit none
     integer , intent(in) :: ichem
@@ -63,7 +63,7 @@ module mod_rad_interface
     real(dp) , pointer , intent(in) , dimension(:,:) :: fsw
     real(dp) , pointer , intent(in) , dimension(:,:) :: flw
     real(dp) , pointer , intent(in) , dimension(:,:) :: flwd
-    integer , pointer , intent(in) , dimension(:,:,:) :: ocld
+    integer , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
     real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: chia
     character(len=5) , pointer , intent(in) , dimension(:) :: chtrname
 
@@ -95,7 +95,7 @@ module mod_rad_interface
     call assignpnt(fsw,srfabswflx)
     call assignpnt(flw,srflwflxup)
     call assignpnt(flwd,srflwflxdw)
-    call assignpnt(ocld,lndocnicemsk)
+    call assignpnt(ldmsk1,lndocnicemsk)
     call assignpnt(chia,chspmix)
     if ( associated(chtrname) ) tracname => chtrname
   end subroutine init_rad

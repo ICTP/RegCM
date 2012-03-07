@@ -137,7 +137,7 @@ module mod_init
     !    1 -> Land
     !    2 -> Sea Ice
     !
-    ! We have the grid (ldmsk) and subgrid (ocld) versions of this
+    ! We have the grid (ldmsk) and subgrid (ldmsk1) versions of this
     !
     if ( iseaice == 1 ) then
       do i = ice1 , ice2
@@ -149,7 +149,7 @@ module mod_init
               ts0(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
-                ocld(n,j,i) = 2
+                ldmsk1(n,j,i) = 2
               end do
             end if
           end if
@@ -170,7 +170,7 @@ module mod_init
               ts0(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
-                ocld(n,j,i) = 2
+                ldmsk1(n,j,i) = 2
               end do
             end if
           end if
@@ -336,7 +336,7 @@ module mod_init
     call subgrid_deco1_scatter(taf_io,taf,jcross1,jcross2,icross1,icross2)
     call subgrid_deco1_scatter(tsw_io,tsw,jcross1,jcross2,icross1,icross2)
     call subgrid_deco1_scatter(emiss_io,emiss,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(ocld_io,ocld,jcross1,jcross2,icross1,icross2)
+    call subgrid_deco1_scatter(ldmsk1_io,ldmsk1,jcross1,jcross2,icross1,icross2)
 
     call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)

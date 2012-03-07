@@ -172,7 +172,7 @@ module mod_output
                         jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(tgbrd,tgbrd_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(tsw,tsw_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_gather(ocld,ocld_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_gather(ldmsk1,ldmsk1_io,jcross1,jcross2,icross1,icross2)
 !
 !=======================================================================
 !     gather UW Scheme variables
@@ -353,7 +353,7 @@ module mod_output
       call subgrid_deco1_gather(taf,taf_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(tsw,tsw_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(emiss,emiss_io,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_gather(ocld,ocld_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_deco1_gather(ldmsk1,ldmsk1_io,jcross1,jcross2,icross1,icross2)
 
       call deco1_gather(kpbl,kpbl_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solis,solis_io,jcross1,jcross2,icross1,icross2)
@@ -503,7 +503,7 @@ module mod_output
   call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,     &
           omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1_io%tke,    &
           tcmstate_io%kth,tcmstate_io%kzm,sfs_io%psa,sfs_io%rainc, &
-          sfs_io%rainnc,tgbrd_io,tsw_io,ocld_io,idatex)
+          sfs_io%rainnc,tgbrd_io,tsw_io,ldmsk1_io,idatex)
  
   print *, 'ATM variables written at ' , tochar(idatex)
  

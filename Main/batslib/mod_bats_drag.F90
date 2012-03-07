@@ -66,7 +66,7 @@ module mod_bats_drag
         ! 2.  compute stability as bulk rich. no. = rin/rid =
         !     ri(numerator)/ri(denominator)
         !=======================================================================
-        if ( ocld(n,j,i) /= 0 ) then
+        if ( ldmsk1(n,j,i) /= 0 ) then
           zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
                     zh(n,j,i)*(d_one-sigf(n,j,i))
         else
@@ -123,7 +123,7 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ocld(n,j,i) == 2 ) then       !  check each point
+        if ( ldmsk1(n,j,i) == 2 ) then       !  check each point
           cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**d_two
           ! 4.1  drag coefficient over leads
           ribl(n,j,i) = (d_one-271.5D0/sts(n,j,i))* &
@@ -177,11 +177,11 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ocld(n,j,i) == 2 ) then
+        if ( ldmsk1(n,j,i) == 2 ) then
           ! drag coeff over seaice
           sigf(n,j,i) = d_zero
           cdrn(n,j,i) = ( vonkar / zlglnd(n,j,i) )**d_two
-        else if ( ocld(n,j,i) == 1 ) then
+        else if ( ldmsk1(n,j,i) == 1 ) then
           ! drag coeff over land
           frav = sigf(n,j,i)
           asigf = lncl(n,j,i)
@@ -231,13 +231,13 @@ module mod_bats_drag
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ocld(n,j,i) /= 0 ) then
+        if ( ldmsk1(n,j,i) /= 0 ) then
           age = (d_one-d_one/(d_one+snag(n,j,i)))
           rhosw(n,j,i) = 0.10D0*(d_one+d_three*age)
           densi(n,j,i) = 0.01D0/(d_one+d_three*age)
           scrat(n,j,i) = sncv(n,j,i)*densi(n,j,i)
           wt(n,j,i) = d_one
-          if ( ocld(n,j,i) /= 2 ) then
+          if ( ldmsk1(n,j,i) /= 2 ) then
             wt(n,j,i) = 0.1D0*scrat(n,j,i)/rough(lveg(n,j,i))
             wt(n,j,i) = wt(n,j,i)/(d_one+wt(n,j,i))
           end if

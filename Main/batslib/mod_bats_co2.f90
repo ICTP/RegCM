@@ -71,7 +71,7 @@ module mod_bats_co2
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ocld(n,j,i) /= 0 ) then
+          if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               rsp = lftrs(n,j,i)*1.7D0
               rap = lftra(n,j,i)*1.5D0
@@ -89,7 +89,7 @@ module mod_bats_co2
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ocld(n,j,i) /= 0 ) then
+          if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               if ( apbm(n,j,i) < 0 ) apbm(n,j,i) = d_zero
               resps = 0.7D-7*resp(n,j,i)*dexp(0.1D0*(tgrd(n,j,i)-300.0D0)) * &

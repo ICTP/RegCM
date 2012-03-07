@@ -74,7 +74,7 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:) :: srflwflxdw ! flwd
 
   ! Land Ocean Ice (1,0,2) mask
-  integer , pointer , dimension(:,:,:) :: lndocnicemsk ! ocld2d
+  integer , pointer , dimension(:,:,:) :: lndocnicemsk ! ldmsk12d
 
   real(dp) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
 

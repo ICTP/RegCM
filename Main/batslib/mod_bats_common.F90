@@ -63,7 +63,7 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
-  integer , pointer , dimension(:,:,:) :: ocld , iveg1
+  integer , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
   integer , pointer , dimension(:,:) :: iveg , ldmsk
 !
   real(dp) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
@@ -155,7 +155,7 @@ module mod_bats_common
       call getmem2d(sfracs2d,1,jxp,1,iym1,'bats:sfracs2d')
       call getmem2d(svegfrac2d,1,jxp,1,iym1,'bats:svegfrac2d')
     end if
-    call getmem3d(ocld,1,nnsg,1,jxp,1,iym1,'bats:ocld')
+    call getmem3d(ldmsk1,1,nnsg,1,jxp,1,iym1,'bats:ldmsk1')
     call getmem3d(iveg1,1,nnsg,1,jxp,1,iym1,'bats:iveg1')
     call getmem3d(emiss,1,nnsg,1,jxp,1,iym1,'bats:emiss')
     call getmem3d(gwet,1,nnsg,1,jxp,1,iym1,'bats:gwet')

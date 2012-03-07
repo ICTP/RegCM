@@ -73,7 +73,7 @@ module mod_bats_lake
                dhlake1(n,j,i) > d_one) then
             idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
                                   dble(ndpmax)))/dz)
-            if ( ocld(n,j,i) == 2 ) then
+            if ( ldmsk1(n,j,i) == 2 ) then
               tlak(n,j,i,1) = 1.78D0
               tlak(n,j,i,2) = 1.78D0
               aveice(n,j,i) = d_1000
@@ -145,15 +145,15 @@ module mod_bats_lake
             tgbrd(n,j,i) = tgl
 
             if ( aveice(n,j,i) <= iceminh ) then
-              ocld(n,j,i) = 0 
-              ocld(n,j,i) = 0
+              ldmsk1(n,j,i) = 0 
+              ldmsk1(n,j,i) = 0
               lveg(n,j,i) = 14
               sfice(n,j,i) = d_zero
               sncv(n,j,i) = d_zero
               snag(n,j,i) = d_zero
             else
-              ocld(n,j,i) = 2 
-              ocld(n,j,i) = 2
+              ldmsk1(n,j,i) = 2 
+              ldmsk1(n,j,i) = 2
               lveg(n,j,i) = 12
               sfice(n,j,i) = aveice(n,j,i)  !  units of ice = mm
               sncv(n,j,i)  = hsnow(n,j,i)   !  units of snw = mm

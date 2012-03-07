@@ -950,7 +950,7 @@ module mod_params
  end if
   call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &
-                sinc,solvs,solvd,fsw,flw,flwd,ocld,chia,chtrname)
+                sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
@@ -1221,12 +1221,12 @@ module mod_params
             mddom%lndcat(j,i) < 15.5D0 ) then
          ldmsk(j,i) = 0
          do n = 1, nnsg
-           ocld(n,j,i) = 0
+           ldmsk1(n,j,i) = 0
          end do
        else
          ldmsk(j,i) = 1
          do n = 1, nnsg
-           ocld(n,j,i) = 1
+           ldmsk1(n,j,i) = 1
          end do
        end if
      end do

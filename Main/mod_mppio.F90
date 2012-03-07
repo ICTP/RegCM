@@ -29,7 +29,7 @@ module mod_mppio
   use mod_memutil
   use mod_mpmessage
 !
-  integer , pointer , dimension(:,:,:) :: ocld_io
+  integer , pointer , dimension(:,:,:) :: ldmsk1_io
   integer , pointer , dimension(:,:,:) :: iveg1_io
   integer , pointer , dimension(:,:) :: iveg_io
   integer , pointer , dimension(:,:) :: ldmsk_io
@@ -161,7 +161,7 @@ module mod_mppio
       call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
       call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
       call getmem3d(emiss_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emiss_io')
-      call getmem3d(ocld_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ocld_io')
+      call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1_io')
       call getmem3d(iveg1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'iveg1_io')
       call getmem2d(iveg_io,jcross1,jcross2,icross1,icross2,'iveg_io')
       call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')

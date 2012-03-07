@@ -93,9 +93,9 @@ module mod_bats_zengocn
       do j = jstart , jend
         do n = 1 , nnsg
 #ifdef CLM
-          if ( ocld(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
+          if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
 #else
-          if ( ocld(n,j,i) == 0 ) then
+          if ( ldmsk1(n,j,i) == 0 ) then
 #endif
             uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
             tsurf = tground2(j,i) - tzero

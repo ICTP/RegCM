@@ -513,7 +513,7 @@ module mod_bdycod
             ts1(j,i) = icetemp
             ldmsk(j,i) = 2
             do n = 1, nnsg
-              ocld(n,j,i) = 2
+              ldmsk1(n,j,i) = 2
               sfice(n,j,i) = d_1000
               sncv(n,j,i) = d_zero
             end do
@@ -522,7 +522,7 @@ module mod_bdycod
             sfs%tgb(j,i) = ts1(j,i)
             ldmsk(j,i) = 0
             do n = 1, nnsg
-              ocld(n,j,i) = 0
+              ldmsk1(n,j,i) = 0
               sfice(n,j,i) = d_zero
               sncv(n,j,i)  = d_zero
             end do
