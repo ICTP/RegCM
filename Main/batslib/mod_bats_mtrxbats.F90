@@ -322,7 +322,6 @@ module mod_bats_mtrxbats
             sent(n,j,i) = hfx(j,i)
             evpr(n,j,i) = qfx(j,i)
             lveg(n,j,i) = iveg1(n,j,i)
-            oveg(n,j,i) = lveg(n,j,i)
             if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
             amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)

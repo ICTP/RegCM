@@ -387,7 +387,7 @@ module mod_bats_bndry
       do j = jstart , jend
         do n = 1 , nnsg
           ! lake model handles this case
-          if ( llake .and. oveg(n,j,i) == 14 ) exit
+          if ( llake .and. iveg1(n,j,i) == 14 ) exit
    
           if ( ocld(n,j,i) == 2 ) then
             ! rhosw = density of snow relative to water
