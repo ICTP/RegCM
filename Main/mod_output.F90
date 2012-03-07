@@ -85,10 +85,14 @@ module mod_output
 !----------------------------------------------------------------------
 !
   lstartup = .false.
-  if ( myid == 0 ) then
-    if ( ktau == 0 .or. doing_restart ) then
+  if ( ktau == 0 .or. doing_restart ) then
+    if ( myid == 0 ) then
       call mkfile
-      lstartup = .true.
+    end if
+    lstartup = .true.
+    if ( doing_restart ) then
+      call time_end(subroutine_name,idindx) 
+      return
     end if
   end if
 !
@@ -99,32 +103,27 @@ module mod_output
   ldosav = .false.
   ldotmp = .false.
 
-  if ( mod(ktau,ksav) == 0 .and. ktau > 0 ) then
-    ldotmp = .true.
-  end if
-  if ( ktau > 0 .and. ( idatex == idate2 .or. &
-      (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
-    ldosav = .true.
-    ldotmp = .false.
-  end if
-  if ( ktau == 0 .or. mod(ktau,katm) == 0 ) then
-    ldoatm = .true.
-  end if
-  if ( ktau == 0 .or. mod(ktau,ksrf) == 0 ) then
-    ldosrf = .true.
-  end if
-  if ( ktau == 0 .or. mod(ktau,krad) == 0 ) then
-    ldorad = .true.
-  end if
-  if ( ktau == 0 .or. mod(ktau,kche) == 0 ) then
-    ldoche = .true.
-  end if
-
-  if ( doing_restart ) then
-    ldoatm = .false.
-    ldosrf = .false.
-    ldorad = .false.
-    ldoche = .false.
+  if ( ktau > 0 ) then
+    if ( mod(ktau,ksav) == 0 ) then
+      ldotmp = .true.
+    end if
+    if ( ( idatex == idate2 .or. &
+         (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
+      ldosav = .true.
+      ldotmp = .false.
+    end if
+    if ( mod(ktau,katm) == 0 ) then
+      ldoatm = .true.
+    end if
+    if ( mod(ktau,ksrf) == 0 ) then
+      ldosrf = .true.
+    end if
+    if ( mod(ktau,krad) == 0 ) then
+      ldorad = .true.
+    end if
+    if ( mod(ktau,kche) == 0 ) then
+      ldoche = .true.
+    end if
   end if
 
   if ( lskipsrf ) then
@@ -141,10 +140,8 @@ module mod_output
   end if
 !
   if ( ktau == 0 ) then
-    ldosrf = .false.
-    ldorad = .false.
-    ldoche = .false.
     if ( debug_level > 2 ) then
+      ldoatm = .true.
       lskipsrf = .true.
       lskiprad = .true.
       lskipche = .true.
