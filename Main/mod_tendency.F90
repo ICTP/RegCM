@@ -761,7 +761,7 @@ module mod_tendency
 #ifdef CLM
       call albedoclm(xmonth,jci1,jci2,ici1,ici2)
 #else
-      call albedov(xmonth,jci1,jci2,ici1,ici2)
+      call albedobats(xmonth,jci1,jci2,ici1,ici2)
 #endif
     end if
 !

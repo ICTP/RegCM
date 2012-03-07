@@ -774,7 +774,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   integer , intent(in) :: imon
   integer :: i , j , jj
 !
-  call albedov(imon,jstart,jend,istart,iend)
+  call albedobats(imon,jstart,jend,istart,iend)
 ! 
 !     ****** Section Below added for albedo to be corrected by CLM
 !     ****** calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo

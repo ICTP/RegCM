@@ -35,7 +35,7 @@ module mod_bats_mtrxbats
 
   private
 
-  public :: interf , initb , mtrxbats , albedov , slice1D
+  public :: interf , initb , mtrxbats , albedobats , slice1D
 
   contains
 
@@ -135,7 +135,7 @@ module mod_bats_mtrxbats
 !
 !   initb
 !   mtrxbats ==> soilbc
-!               albedov
+ !               albedobats
 !                bndry   ==>   drag  ==> dragdn  ==> depth
 !                             satur
 !                            vcover
@@ -672,7 +672,7 @@ module mod_bats_mtrxbats
 ! (depuv/10.0)= the ratio of upper soil layer to total root depth
 ! Used to compute "wet" for soil albedo
 !
-  subroutine albedov(imon,jstart,jend,istart,iend)
+  subroutine albedobats(imon,jstart,jend,istart,iend)
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
     integer , intent (in) :: imon
@@ -681,11 +681,11 @@ module mod_bats_mtrxbats
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                dralbs , fsol1 , fsol2 , sfac , sical0 , sical1 , sl , &
-               sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet
+               sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet , amxtem
     real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer :: kolour , n , i , j
-    character (len=64) :: subroutine_name='albedov'
+    character (len=64) :: subroutine_name='albedobats'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -693,6 +693,15 @@ module mod_bats_mtrxbats
     ! =================================================================
     ! 1. set initial parameters
     ! =================================================================
+    !
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          lveg(n,j,i) = iveg1(n,j,i)
+          if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
+        end do
+      end do
+    end do
     !
     ! 1.1 constants
     !
@@ -736,6 +745,10 @@ module mod_bats_mtrxbats
       do j = jstart , jend
         czeta = coszrs(j,i)
         do n = 1 , nnsg
+          amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
+          sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
+          lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
+          sts(n,j,i) = thatm(j,i,kz)-lrate*regrav*(ht1(n,j,i)-ht(j,i))
           albgs = d_zero
           albgl = d_zero
           albgsd = d_zero
@@ -920,7 +933,7 @@ module mod_bats_mtrxbats
         fseas = dmax1(d_zero,(d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two))
       end function fseas
 
-  end subroutine albedov
+  end subroutine albedobats
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -988,31 +1001,5 @@ module mod_bats_mtrxbats
  
     call time_end(subroutine_name,idindx)
   end subroutine soilbc
-!
-! For albedov
-! This is taken from subroutine interf so that radiation can be
-! called in tend (not mtrxbats).
-!
-  subroutine slice1D(jstart,jend,istart,iend)
-    implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
-!
-    real(dp) :: amxtem , sfac
-    integer :: n , i , j
-    do i = istart , iend
-      do j = jstart , jend
-        do n = 1 , nnsg
-          lveg(n,j,i) = iveg1(n,j,i)
-          oveg(n,j,i) = lveg(n,j,i)
-          if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
-          amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
-          sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-          lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
-          sts(n,j,i) = thatm(j,i,kz)-6.5D-3*regrav*(ht1(n,j,i)-ht(j,i))
-        end do
-      end do
-    end do
-!
-  end subroutine slice1D
 !
 end module mod_bats_mtrxbats
