@@ -23,6 +23,7 @@ module mod_pbl_holtbl
 ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
 !
   use mod_dynparam
+  use mod_service
   use mod_mpmessage
   use mod_pbl_common
 !
@@ -138,6 +139,10 @@ module mod_pbl_holtbl
              vflxsfx
   integer :: i , j , k , itr
   integer :: ierr , ii
+  character (len=64) :: subroutine_name='holtbl'
+  integer :: idindx=0
+!
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !
@@ -913,6 +918,7 @@ module mod_pbl_holtbl
       end do
     end do
   end if
+  call time_end(subroutine_name,idindx)
  
   end subroutine holtbl
 !
@@ -957,6 +963,10 @@ module mod_pbl_holtbl
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
              zl , zm , zp , zzh , zzhnew , zzhnew2
   integer :: i , j , k , k2
+  character (len=64) :: subroutine_name='blhnew'
+  integer :: idindx=0
+!
+  call time_begin(subroutine_name,idindx)
 !
   ! note: kmxpbl, max no. of pbl levels, calculated in param
   ! compute richardson number
@@ -1179,6 +1189,7 @@ module mod_pbl_holtbl
       end do
     end do
   end if
+  call time_end(subroutine_name,idindx)
 !
   end subroutine blhnew
 !
