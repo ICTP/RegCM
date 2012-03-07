@@ -146,14 +146,14 @@ module mod_bats_lake
 
             if ( aveice(n,j,i) <= iceminh ) then
               ocld(n,j,i) = 0 
-              ldimsk(n,j,i) = 0
+              ocld(n,j,i) = 0
               lveg(n,j,i) = 14
               sfice(n,j,i) = d_zero
               sncv(n,j,i) = d_zero
               snag(n,j,i) = d_zero
             else
               ocld(n,j,i) = 2 
-              ldimsk(n,j,i) = 2
+              ocld(n,j,i) = 2
               lveg(n,j,i) = 12
               sfice(n,j,i) = aveice(n,j,i)  !  units of ice = mm
               sncv(n,j,i)  = hsnow(n,j,i)   !  units of snw = mm

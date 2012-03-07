@@ -105,7 +105,7 @@ module mod_bats_leaftemp
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldimsk(n,j,i) /= 0 ) then
+        if ( ocld(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             vpdc(n,j,i) = d_10
             if ( lemiss ) then
@@ -158,7 +158,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               lftra(n,j,i) = d_one/(cf(n,j,i)*uaf(n,j,i))
               cn1(n,j,i) = wtlh(n,j,i)*rhs(n,j,i)
@@ -188,7 +188,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               efpot(n,j,i) = cn1(n,j,i)*(wtgaq(n,j,i)*qsatl(n,j,i) - &
                            wtgq0(n,j,i)*qgrd(n,j,i) - wtaq0(n,j,i)*qs(n,j,i))
@@ -238,7 +238,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               dcn = dcd(n,j,i)*tlef(n,j,i)
               ! 1.2  radiative forcing for leaf temperature calculation
@@ -279,7 +279,7 @@ module mod_bats_leaftemp
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldimsk(n,j,i) /= 0 ) then
+        if ( ocld(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             !==================================================================
             ! 4.   update dew accumulation (kg/m**2/s)
@@ -397,7 +397,7 @@ module mod_bats_leaftemp
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldimsk(n,j,i) /= 0 ) then
+        if ( ocld(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             ! zenith angle set in zenitm
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
@@ -418,7 +418,7 @@ module mod_bats_leaftemp
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldimsk(n,j,i) /= 0 ) then
+        if ( ocld(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             if ( coszrs(j,i)/rilmax > 0.001D0 ) then
               rad(1) = (d_one-trup(n,j,i))*fsol0(n,j,i)*rilmax/rlai(n,j,i)
@@ -444,7 +444,7 @@ module mod_bats_leaftemp
   do i = istart , iend
     do j = jstart , jend
       do n = 1 , nnsg
-        if ( ldimsk(n,j,i) /= 0 ) then
+        if ( ocld(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
               vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,j,i)*0.025D0)
@@ -495,7 +495,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               fwet(n,j,i) = d_zero
               if ( ldew(n,j,i) > d_zero ) then
@@ -546,7 +546,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               ! trsmx = trsmx0*sigf(n,j,i)*seasb(n,j,i)
               trsmx = trsmx0*sigf(n,j,i)
@@ -623,7 +623,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               tkb = wta0(n,j,i)*sts(n,j,i) + wtl0(n,j,i)*tlef(n,j,i) + &
                     wtg0(n,j,i)*tgrd(n,j,i)
@@ -699,7 +699,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               uaf(n,j,i) = vspda(n,j,i)*dsqrt(cdr(n,j,i))
               cf(n,j,i) = 0.01D0*sqrtdi(lveg(n,j,i))/dsqrt(uaf(n,j,i))
@@ -746,7 +746,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               rgr(n,j,i) = gwet(n,j,i)
               wtlq(n,j,i) = wtlh(n,j,i)*rpp(n,j,i)
@@ -785,7 +785,7 @@ module mod_bats_leaftemp
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               dne = d_one/(tlef(n,j,i)-lftb(n,j,i))
               qsatld(n,j,i) = qsatl(n,j,i)*lfta(n,j,i) * &

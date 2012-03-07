@@ -321,10 +321,9 @@ module mod_bats_mtrxbats
             !
             sent(n,j,i) = hfx(j,i)
             evpr(n,j,i) = qfx(j,i)
-            ldimsk(n,j,i) = ocld(n,j,i)
             lveg(n,j,i) = iveg1(n,j,i)
             oveg(n,j,i) = lveg(n,j,i)
-            if ( ldimsk(n,j,i) == 2 ) lveg(n,j,i) = 12
+            if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
             amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
@@ -398,14 +397,14 @@ module mod_bats_mtrxbats
               svegfrac2d(j,i) = svegfrac2d(j,i) + lncl(n,j,i)
             end if
             if ( iocnflx == 1 .or. &
-                (iocnflx == 2 .and. ldimsk(n,j,i) /= 0 ) ) then
+                (iocnflx == 2 .and. ocld(n,j,i) /= 0 ) ) then
               tgbb(j,i) = tgbb(j,i) +                 &
                          ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four +  &
                          lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
             else
               tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if
-            if ( ldimsk(n,j,i) == 0 ) then
+            if ( ocld(n,j,i) == 0 ) then
               ssw(n,j,i)   = dmissval
               rsw(n,j,i)   = dmissval
               tsw(n,j,i)   = dmissval
@@ -431,7 +430,6 @@ module mod_bats_mtrxbats
             svegfrac2d(j,i) = svegfrac2d(j,i)*rdnnsg
           end if
           do n = 1 , nnsg
-            ocld(n,j,i) = ldimsk(n,j,i)
             evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
             sena(n,j,i) = sena(n,j,i) + dtbat*sent(n,j,i)
             if ( dabs(srnof(n,j,i)) > 1.0D-10 ) then
@@ -466,7 +464,7 @@ module mod_bats_mtrxbats
           aldirs_o(j,i) = 0.0
           aldifs_o(j,i) = 0.0
           do n = 1 , nnsg
-            if ( ldimsk(n,j,i) /= 0 ) then
+            if ( ocld(n,j,i) /= 0 ) then
               fracv = sigf(n,j,i)
               fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
               fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
@@ -552,7 +550,7 @@ module mod_bats_mtrxbats
             evpa_o(j,i) = 0.0
             sena_o(j,i) = 0.0
             do n = 1 , nnsg
-              if ( ldimsk(n,j,i) /= 0 ) then
+              if ( ocld(n,j,i) /= 0 ) then
                 fracv = sigf(n,j,i)
                 fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
                 fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
@@ -595,7 +593,7 @@ module mod_bats_mtrxbats
             scv_o(j,i) = 0.0
             nnn = 0
             do n = 1 , nnsg
-              if ( ldimsk(n,j,i) /= 0 ) then
+              if ( ocld(n,j,i) /= 0 ) then
                 tlef_o(j,i) = tlef_o(j,i) + real(tlef(n,j,i))
                 ssw_o(j,i) = ssw_o(j,i) + real(ssw(n,j,i))
                 rsw_o(j,i) = rsw_o(j,i) + real(rsw(n,j,i))
@@ -726,14 +724,6 @@ module mod_bats_mtrxbats
         solour(1) = 0.15D0
       endif
     end if
-
-    do i = istart , iend
-      do j = jstart , jend
-        do n = 1 , nnsg
-          lveg(n,j,i) = iveg1(n,j,i)
-        end do
-      end do
-    end do
     !
     ! In depth, wt is frac of grid square covered by snow;
     ! depends on average snow depth, vegetation, etc.
@@ -762,7 +752,7 @@ module mod_bats_mtrxbats
           !       2.   get albedo over land
           !================================================================
           !
-          if ( ldimsk(n,j,i) == 2 ) then
+          if ( ocld(n,j,i) == 2 ) then
             tdiffs = sts(n,j,i) - tzero
             tdiff = dmax1(tdiffs,d_zero)
             tdiffs = dmin1(tdiff,20.0D0)
@@ -771,22 +761,22 @@ module mod_bats_mtrxbats
             albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
             albgld = albgl
-          else if ( ldimsk(n,j,i) == 1 ) then
+          else if ( ocld(n,j,i) == 1 ) then
             sfac = d_one - fseas(tgbrd(n,j,i))
             !
             ! ccm tests here on land mask for veg and soils data
             ! reduces albedo at low temps !!!!!
             ! should respond to moisture too (commented out) (pat, 27 oct 86)
-            ! lncl(i) = lncl(lveg(i)) - seasf(lveg(i)) * sfac
+            ! lncl(i) = lncl(iveg1(i)) - seasf(iveg1(i)) * sfac
             !
-            albs = albvgs(lveg(n,j,i))
-            albl = albvgl(lveg(n,j,i))
+            albs = albvgs(iveg1(n,j,i))
+            albl = albvgl(iveg1(n,j,i))
             !---------------------------------------------------------------
-            if ( (lveg(n,j,i) < 12) .or. (lveg(n,j,i) > 15) ) then
+            if ( (iveg1(n,j,i) < 12) .or. (iveg1(n,j,i) > 15) ) then
               ! 2.1  bare soil albedos
               !      (soil albedo depends on moisture)
-              kolour = kolsol(lveg(n,j,i))
-              wet = ssw(n,j,i)/depuv(lveg(n,j,i))
+              kolour = kolsol(iveg1(n,j,i))
+              wet = ssw(n,j,i)/depuv(iveg1(n,j,i))
               alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
               alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
@@ -803,14 +793,14 @@ module mod_bats_mtrxbats
               ! Dec. 15, 2008
               !
               ! leafless hardwood canopy: no or inverse zen dep
-              if ( lveg(n,j,i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
+              if ( iveg1(n,j,i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
               ! multiply by zenith angle correction
               albs = albs*albzn
               albl = albl*albzn
               ! albedo over vegetation after zenith angle corr
               albvs_s(n) = albs
               albvl_s(n) = albl
-            else if ( lveg(n,j,i) == 12 ) then
+            else if ( iveg1(n,j,i) == 12 ) then
               ! 2.2   permanent ice sheet
               albgs = 0.8D0
               albgsd = 0.8D0
@@ -870,7 +860,7 @@ module mod_bats_mtrxbats
           !       5.  albedo over open ocean
           !=====================================================================
 
-          if ( ldimsk(n,j,i) == 0 ) then
+          if ( ocld(n,j,i) == 0 ) then
             ! ocean albedo depends on zenith angle
             if ( czeta >= d_zero ) then
               ! albedo independent of wavelength
@@ -961,7 +951,7 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             ! lveg is set in subr. interf
             freza(lveg(n,j,i)) = 0.15D0*deprv(lveg(n,j,i))
             frezu(lveg(n,j,i)) = 0.15D0*depuv(lveg(n,j,i))
@@ -1012,10 +1002,9 @@ module mod_bats_mtrxbats
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          ldimsk(n,j,i) = ocld(n,j,i)
           lveg(n,j,i) = iveg1(n,j,i)
           oveg(n,j,i) = lveg(n,j,i)
-          if ( ldimsk(n,j,i) == 2 ) lveg(n,j,i) = 12
+          if ( ocld(n,j,i) == 2 ) lveg(n,j,i) = 12
           amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
           lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac

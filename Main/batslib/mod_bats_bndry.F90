@@ -101,7 +101,7 @@ module mod_bats_bndry
         do n = 1 , nnsg
    
           htvp(n,j,i) = wlhv
-          if ( ( tgrd(n,j,i) < tzero .and. ldimsk(n,j,i) /= 0 ) .or. &
+          if ( ( tgrd(n,j,i) < tzero .and. ocld(n,j,i) /= 0 ) .or. &
                 sncv(n,j,i) > d_zero ) then
             htvp(n,j,i) = wlhs
           end if
@@ -119,7 +119,7 @@ module mod_bats_bndry
           ! soil moisture ratio (to max) as used in subrouts tgrund,
           ! water, and root (called by lftemp): watu=upper, watr=root,
           ! watt=total
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             watu(n,j,i) = ssw(n,j,i)/gwmx0(n,j,i)
             watr(n,j,i) = rsw(n,j,i)/gwmx1(n,j,i)
             watt(n,j,i) = tsw(n,j,i)/gwmx2(n,j,i)
@@ -149,8 +149,8 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
-            if ( sigf(n,j,i) <= minsigf .and. ldimsk(n,j,i) /= 2 ) then
+          if ( ocld(n,j,i) /= 0 ) then
+            if ( sigf(n,j,i) <= minsigf .and. ocld(n,j,i) /= 2 ) then
               qsatd = qgrd(n,j,i)*gwet(n,j,i) * &
                       lfta(n,j,i)*(tzero-lftb(n,j,i)) * &
                       (d_one/(tgrd(n,j,i)-lftb(n,j,i)))**d_two
@@ -181,7 +181,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then   !  check each point
               !================================================================
               ! 4.   vegetation
@@ -222,7 +222,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 0 ) then
+          if ( ocld(n,j,i) == 0 ) then
             sncv(n,j,i) = d_zero
             snag(n,j,i) = d_zero
           end if
@@ -237,7 +237,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 0 .or. &
+          if ( ocld(n,j,i) == 0 .or. &
                lveg(n,j,i) == 14 .or. lveg(n,j,i) == 15 ) then
             gwet(n,j,i) = d_one
           end if
@@ -245,7 +245,7 @@ module mod_bats_bndry
           drag(n,j,i) = -cdrx(n,j,i)*vspda(n,j,i)*rhs(n,j,i)
           drag(n,j,i) = -drag(n,j,i)        ! for coupling with regcm
           ! 6.3  latent and heat fluxes over ocean, plus a dummy taf
-          if ( ldimsk(n,j,i) == 0 ) then
+          if ( ocld(n,j,i) == 0 ) then
             tlef(n,j,i) = sts(n,j,i)
             fact = -rhs(n,j,i)*cdrx(n,j,i)*vspda(n,j,i)
             delq(n,j,i) = (qs(n,j,i)-qgrd(n,j,i))*gwet(n,j,i)
@@ -287,7 +287,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
               seasb(n,j,i) = dmax1(d_zero,d_one-0.0016D0 * &
                            dmax1(298.0D0-tgbrd(n,j,i),d_zero)**d_two)
@@ -300,7 +300,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
               xlai(n,j,i) = xla(lveg(n,j,i))
               xlai(n,j,i) = xlai(n,j,i) + &
@@ -335,7 +335,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
               ! xrun = leaf drip ; sdrop = snow drop off foliage
               etrrun(n,j,i) = d_zero
@@ -389,7 +389,7 @@ module mod_bats_bndry
           ! lake model handles this case
           if ( llake .and. oveg(n,j,i) == 14 ) exit
    
-          if ( ldimsk(n,j,i) == 2 ) then
+          if ( ocld(n,j,i) == 2 ) then
             ! rhosw = density of snow relative to water
             rhosw3 = rhosw(n,j,i)**d_three
             ! cice = specific heat of sea-ice per unit volume
@@ -411,7 +411,7 @@ module mod_bats_bndry
             ! set sea ice parameter for melting and return
             if ( sfice(n,j,i) <= d_zero ) then
               sfice(n,j,i) = d_zero
-              ldimsk(n,j,i) = 0
+              ocld(n,j,i) = 0
               lveg(n,j,i) = 15
               exit
             end if
@@ -459,7 +459,7 @@ module mod_bats_bndry
               ! set sea ice parameter for melting and return
               if ( sfice(n,j,i) <= d_zero ) then
                 sfice(n,j,i) = d_zero
-                ldimsk(n,j,i) = 0
+                ocld(n,j,i) = 0
                 lveg(n,j,i) = 15
                 exit
               end if
@@ -525,7 +525,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             !
             ! 1.1  reduce infiltration for frozen ground
             !
@@ -591,7 +591,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             gwatr(n,j,i) = pw(n,j,i) - evapw(n,j,i) + &
                            sm(n,j,i) + etrrun(n,j,i)/dtbat
             !
@@ -667,7 +667,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             !
             !=================================================================
             !  4.   check whether soil water exceeds maximum capacity or
@@ -731,7 +731,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             xxkb = dmin1(rough(lveg(n,j,i)),d_one)
             vakb = (d_one-sigf(n,j,i))*vspda(n,j,i) + sigf(n,j,i) * &
                    (xxkb*uaf(n,j,i)+(d_one-xxkb)*vspda(n,j,i))
@@ -795,10 +795,10 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             evapw(n,j,i) = fevpg(n,j,i)
             evaps(n,j,i) = scvk(n,j,i)*evapw(n,j,i)
-            if ( ldimsk(n,j,i) == 2 ) then
+            if ( ocld(n,j,i) == 2 ) then
               evaps(n,j,i) = fevpg(n,j,i)
             end if
             evapw(n,j,i) = (d_one-scvk(n,j,i))*evapw(n,j,i)
@@ -823,7 +823,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) /= 0 ) then
+          if ( ocld(n,j,i) /= 0 ) then
             sold(n,j,i) = sncv(n,j,i)
             sncv(n,j,i) = sncv(n,j,i) + &
                          dtbat*(ps(n,j,i)-evaps(n,j,i)-sm(n,j,i)) + sdrop(n,j,i)
@@ -924,7 +924,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             ! 1.1  frozen ground values using 44 m2/yr for frozen ground
             !      thermal diffusion coefficient, based on the values of
             !      50 and 38 quoted by osterkamp; ice contribution to
@@ -1032,7 +1032,7 @@ module mod_bats_bndry
     do i = istart , iend
       do j = jstart , jend
         do n = 1 , nnsg
-          if ( ldimsk(n,j,i) == 1 ) then
+          if ( ocld(n,j,i) == 1 ) then
             tbef = tgrd(n,j,i)
             cder = bcoef(n,j,i)*cgrnd(n,j,i)
             tg = (bb(n,j,i)+(cc(n,j,i)-xdt2+cder)*tgrd(n,j,i)) / &

@@ -66,7 +66,7 @@ module mod_bats_internal
   real(dp) , pointer , dimension(:,:,:) :: ribl , ribn
   real(dp) , pointer , dimension(:,:) :: usw , vsw , flwa , flwda , fswa , &
          sina , svga
-  integer , pointer , dimension(:,:,:) :: ldimsk , lveg , oveg
+  integer , pointer , dimension(:,:,:) :: lveg , oveg
 !
   public :: gwatr , rnof , rsubsr , rsubss , rsubst , rsur , sold ,     &
             wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr  , bb ,    &
@@ -90,7 +90,7 @@ module mod_bats_internal
             wtgl , wtglq ,  wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 ,   &
             wtshi , wtsqi , df , ribl , ribn , usw , vsw , flwa , flwda , &
             fswa , sina , svga
-  public :: ldimsk , lveg , oveg
+  public :: lveg , oveg
 
   public :: allocate_mod_bats_internal
 
@@ -253,7 +253,6 @@ module mod_bats_internal
     call getmem3d(ribl,1,nnsg,1,jxp,1,iym1,'bats_internal:ribl')
     call getmem3d(ribn,1,nnsg,1,jxp,1,iym1,'bats_internal:ribn')
 
-    call getmem3d(ldimsk,1,nnsg,1,jxp,1,iym1,'bats_internal:ldimsk')
     call getmem3d(lveg,1,nnsg,1,jxp,1,iym1,'bats_internal:lveg')
     call getmem3d(oveg,1,nnsg,1,jxp,1,iym1,'bats_internal:oveg')
 
