@@ -817,18 +817,20 @@ module mod_che_drydep
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
 
-       jj = j + (jxp*myid)
+!NEED TO BE FIXED ! CANNOT REACH CLM VARS FROM HERE!
 
-          do i=2,iym2
-          do n = 1, ntr
+!       jj = j + (jxp*myid)
+
+!          do i=2,iym2
+!          do n = 1, ntr
 
 ! use clm dry deposition velocity
-            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
-             ddrem(i)  =  chib(j,i,kz,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
+!            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
+!             ddrem(i)  =  chib(j,i,kz,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
 !update chiten
-             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
+!             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
 !drydep flux diagnostic (accumulated between two outputs time step) 
-             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
+!             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
 !
 !          do i=2,iym2
 !          do n = 1, ntr
@@ -847,9 +849,6 @@ module mod_che_drydep
 !          end if
 #endif
 
-
-
-      
       end subroutine drydep_gas
 
 !
