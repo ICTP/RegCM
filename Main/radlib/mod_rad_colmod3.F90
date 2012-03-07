@@ -45,6 +45,7 @@ module mod_rad_colmod3
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
     deltaz , tm1
+  logical , pointer , dimension(:,:) :: coszgt0
   integer , pointer , dimension(:) :: ioro
 !
   contains
@@ -102,6 +103,9 @@ module mod_rad_colmod3
       call getmem2d(deltaz,1,jxp,1,kz,'colmod3:deltaz')
 
       call getmem1d(ioro,1,jxp,'colmod3:ioro')
+
+      call getmem2d(coszgt0,1,jxp,1,iy,'colmod3:coszgt0')
+
     end subroutine allocate_mod_rad_colmod3
 !
 !-----------------------------NOTICE------------------------------------
@@ -254,6 +258,12 @@ module mod_rad_colmod3
 ! Near-IR flux absorbed at toa >= 0.7 microns
 ! Flux Shortwave Downwelling Surface
 !
+  where ( coszen > d_zero )
+    coszgt0 = .true.
+  elsewhere
+    coszgt0 = .false.
+  end where
+
   do i = istart , iend
 !
 !     Reset all arrays
@@ -367,7 +377,7 @@ module mod_rad_colmod3
                   pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,  &
                   rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
                   flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,       &
-                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,labsem)
+                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,coszgt0,labsem)
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm radiation package
