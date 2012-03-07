@@ -438,16 +438,6 @@ module mod_init
       end do
     end do
   end do
-  if ( iseaice == 1 .or. lakemod == 1 ) then
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        if ( ldmsk(j,i) == 2 ) iveg(j,i) = 12
-        do n = 1 , nnsg
-          if ( ocld(n,j,i) == 2 ) iveg1(n,j,i) = 12
-        end do
-      end do
-    end do
-  end if
   !
   ! Initialize the BATS variable (Used also by CLM)
   !
