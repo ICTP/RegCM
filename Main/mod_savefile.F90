@@ -111,8 +111,8 @@ module mod_savefile
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         read (iutrst) atm1_io%tke
         read (iutrst) atm2_io%tke
+        read (iutrst) kpbl_io
       end if
-      read (iutrst) kpbl_io
       if ( icup == 1 ) then
         read (iutrst) rsheat_io , rswat_io
       end if
@@ -163,7 +163,6 @@ module mod_savefile
       read (iutrst) taf_io
       read (iutrst) ldmsk1_io
       read (iutrst) emiss_io
-      read (iutrst) pptnc_io, pptc_io
       if ( iocnflx == 2 ) read (iutrst) zpbl_io
       if ( ichem == 1 ) then
         read (iutrst) chia_io
@@ -242,8 +241,8 @@ module mod_savefile
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         write (iutsav) atm1_io%tke
         write (iutsav) atm2_io%tke
+        write (iutsav) kpbl_io
       end if
-      write (iutsav) kpbl_io
       if ( icup == 1 ) then
         write (iutsav) rsheat_io , rswat_io
       end if
@@ -294,7 +293,6 @@ module mod_savefile
       write (iutsav) taf_io
       write (iutsav) ldmsk1_io
       write (iutsav) emiss_io
-      write (iutsav) pptnc_io , pptc_io
       if ( iocnflx == 2 ) write (iutsav) zpbl_io
       if ( ichem == 1 ) then
         write (iutsav) chia_io

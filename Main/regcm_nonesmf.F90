@@ -34,7 +34,6 @@ program regcm
   real(dp) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer :: ierr
-  logical :: first
 !
 !**********************************************************************
 !
@@ -51,12 +50,11 @@ program regcm
 !
 !**********************************************************************
 !
-  first = .true.
   timestr = d_zero
   tdif = idate2 - idate1
   timeend = tohours(tdif) * secph
 
-  call RCM_run(timestr, timeend, first)
+  call RCM_run(timestr, timeend)
 !
 !**********************************************************************
 !

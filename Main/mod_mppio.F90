@@ -43,7 +43,6 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:,:) :: ssw_io
   real(dp) , pointer , dimension(:,:,:) :: tsw_io
   real(dp) , pointer , dimension(:,:,:) :: taf_io
-  real(dp) , pointer , dimension(:,:,:) :: text2d_io
   real(dp) , pointer , dimension(:,:,:) :: tgrd_io
   real(dp) , pointer , dimension(:,:,:) :: tgbrd_io
   real(dp) , pointer , dimension(:,:,:) :: tlef_io
@@ -64,6 +63,7 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:) :: solvs_io
 
   integer , pointer , dimension(:,:) :: kpbl_io
+  real(dp) , pointer , dimension(:,:) :: zpbl_io
 !
   real(sp) , pointer , dimension(:,:,:) :: fbat_io
   real(sp) , pointer , dimension(:,:,:,:) :: fsub_io
@@ -100,13 +100,7 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:,:) :: vb0_io
   real(dp) , pointer , dimension(:,:,:) :: vb1_io
 
-  real(dp) , pointer , dimension(:,:) :: pptc_io
-  real(dp) , pointer , dimension(:,:) :: pptnc_io
-
   real(dp) , pointer , dimension(:,:) :: cldefi_io
-  real(dp) , pointer , dimension(:,:) :: hfx_io
-                  
-  real(dp) , pointer , dimension(:,:) :: zpbl_io
 
   real(dp) , pointer , dimension(:,:,:) :: omega_io
   real(dp) , pointer , dimension(:,:,:) :: tbase_io
@@ -173,7 +167,9 @@ module mod_mppio
       call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
       call getmem2d(solvd_io,jcross1,jcross2,icross1,icross2,'solvd_io')
       call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
-      call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      end if
 
       call getmem3d(ht1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'ht1_io')
       call getmem3d(lndcat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'lndcat1_io')
@@ -213,8 +209,6 @@ module mod_mppio
       call getmem3d(vb0_io,jdot1,jdot2,idot1,idot2,1,kz,'vb0_io')
       call getmem3d(vb1_io,jdot1,jdot2,idot1,idot2,1,kz,'vb1_io')
 
-      call getmem2d(pptc_io,jcross1,jcross2,icross1,icross2,'pptc_io')
-      call getmem2d(pptnc_io,jcross1,jcross2,icross1,icross2,'pptnc_io')
       call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
       call getmem3d(omega_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,'omega_io')

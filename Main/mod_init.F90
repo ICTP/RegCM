@@ -91,6 +91,7 @@ module mod_init
   w10x_o(:,:) = -1.E30
   pcpa_o(:,:) = 0.0
   sund_o(:,:) = 0.0
+  sunt_o(:,:) = 0.0
   psmn_o (:,:)=  1.E30
   !
   ! For an initial run -- not a restart
@@ -297,7 +298,8 @@ module mod_init
                          jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_scatter(atm2_io%tke,atm2%tke, &
                          jcross1,jcross2,icross1,icross2,1,kz)
-    end if ! ibltyp == 2 .or. ibltyp == 99
+      call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
+    end if
 !
     if ( iocnflx == 2 ) then
       call deco1_scatter(zpbl_io,zpbl,jcross1,jcross2,icross1,icross2)
@@ -338,7 +340,6 @@ module mod_init
     call subgrid_deco1_scatter(emiss_io,emiss,jcross1,jcross2,icross1,icross2)
     call subgrid_deco1_scatter(ldmsk1_io,ldmsk1,jcross1,jcross2,icross1,icross2)
 
-    call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(solvd_io,solvd,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(solvs_io,solvs,jcross1,jcross2,icross1,icross2)
@@ -347,8 +348,6 @@ module mod_init
     call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(pptc_io,pptc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(pptnc_io,pptnc,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
 
 #ifndef CLM
@@ -473,17 +472,11 @@ module mod_init
       end do
     end do
   end if
-  !
-  ! Compute the solar declination angle
-  !
+!  
 #ifdef CLM
   numdays = dayspy
   init_grid = .true.
 #endif
-  if (myid == 0) then
-    write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
-  end if
-  call solar1
   !
   ! Calculate topographical correction to diffusion coefficient
   !

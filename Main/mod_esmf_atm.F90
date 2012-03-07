@@ -117,7 +117,6 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      logical :: first
       integer :: localPet, petCount, comm, ierr
 !
       type(ESMF_TimeInterval) :: dtrun     
@@ -158,8 +157,7 @@
 !     output from BATS to feed ocean model
 !-----------------------------------------------------------------------
 !
-      first = .true.
-      call RCM_run(d_zero, dtsec, first)
+      call RCM_run(d_zero, dtsec)
 !
 !-----------------------------------------------------------------------
 !     Update model clock 
@@ -210,7 +208,6 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      logical :: first
       integer :: localPet, petCount, comm
       real*8 :: timestr1, timestr2, timeend, timepass
 !
@@ -325,8 +322,7 @@
               timestr1, timeend, timepass, timestr2
       end if
 !
-      first = .false.
-      call RCM_run(timestr1, timeend, first)
+      call RCM_run(timestr1, timeend)
 !
 !-----------------------------------------------------------------------
 !     Update model clock 

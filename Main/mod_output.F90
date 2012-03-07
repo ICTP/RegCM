@@ -91,6 +91,7 @@ module mod_output
     end if
     lstartup = .true.
     if ( doing_restart ) then
+      doing_restart = .false.
       call time_end(subroutine_name,idindx) 
       return
     end if
@@ -215,6 +216,7 @@ module mod_output
       if ( myid == 0 ) then
         call outsrf
       end if
+      sunt_o(:,:) = 0.0
       if ( ifsts .and. mod(ktau+kstsoff,ksts) == 0 .and. &
            ktau > kstsoff+2 ) then
         tgmx_o(:,:) = -1.E30
@@ -279,19 +281,19 @@ module mod_output
       call deco1_gather(atm1%t,atm1_io%t,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        call deco1_gather(atm1%tke,atm1_io%tke, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
-      end if
 
       call deco1_gather(atm2%u,atm2_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm2%v,atm2_io%v,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm2%t,atm2_io%t,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(atm2%qv,atm2_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(atm2%qc,atm2_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
+
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        call deco1_gather(atm1%tke,atm1_io%tke, &
+                          jcross1,jcross2,icross1,icross2,1,kz)
         call deco1_gather(atm2%tke,atm2_io%tke, &
                           jcross1,jcross2,icross1,icross2,1,kz)
+        call deco1_gather(kpbl,kpbl_io,jcross1,jcross2,icross1,icross2)
       end if
 
       call deco1_gather(sfs%psa,sfs_io%psa,jcross1,jcross2,icross1,icross2)
@@ -352,7 +354,6 @@ module mod_output
       call subgrid_deco1_gather(emiss,emiss_io,jcross1,jcross2,icross1,icross2)
       call subgrid_deco1_gather(ldmsk1,ldmsk1_io,jcross1,jcross2,icross1,icross2)
 
-      call deco1_gather(kpbl,kpbl_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solis,solis_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solvd,solvd_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(solvs,solvs_io,jcross1,jcross2,icross1,icross2)
@@ -361,8 +362,6 @@ module mod_output
       call deco1_gather(flwd,flwd_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(fsw,fsw_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(sinc,sinc_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(pptnc,pptnc_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(pptc,pptc_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(ldmsk,ldmsk_io,jcross1,jcross2,icross1,icross2)
 #ifndef CLM
       if ( lakemod == 1 ) then

@@ -763,20 +763,13 @@ module mod_bdycod
 !
     real(dp) , intent(in) :: xt
 !
-    real(dp) :: dtb , qcx , qcint , qvx , qext , qint , vavg
+    real(dp) :: qcx , qcint , qvx , qext , qint , vavg
     integer :: i , j , k
     real(dp) :: uavg
     character (len=64) :: subroutine_name='bdyval'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-    !
-    ! Compute the time interval for boundary tendency:
-    !
-    dtb = xt
-    if ( nbdytime == 0 .and. ktau > 0 ) then
-      dtb = dtbdys
-    end if
     !
     ! Fill up the boundary value for xxb variables from xxa variables:
     ! if this subroutine is called for the first time, this part
@@ -925,51 +918,51 @@ module mod_bdycod
       !
       if ( ma%hasleft ) then
         do i = ici1 , ici2
-          sfs%psa(jce1,i) = xpsb%b0(jce1,i) + dtb*xpsb%bt(jce1,i)
+          sfs%psa(jce1,i) = xpsb%b0(jce1,i) + xt*xpsb%bt(jce1,i)
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k)
-            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k)
+            atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
+            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k)
           end do
         end do
       end if
       if ( ma%hasright ) then
         do i = ici1 , ici2
-          sfs%psa(jce2,i) = xpsb%b0(jce2,i) + dtb*xpsb%bt(jce2,i)
+          sfs%psa(jce2,i) = xpsb%b0(jce2,i) + xt*xpsb%bt(jce2,i)
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k)
-            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k)
+            atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
+            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k)
           end do
         end do
       end if
       if ( ma%hasbottom ) then
         do j = jce1 , jce2
-          sfs%psa(j,ice1) = xpsb%b0(j,ice1) + dtb*xpsb%bt(j,ice1)
+          sfs%psa(j,ice1) = xpsb%b0(j,ice1) + xt*xpsb%bt(j,ice1)
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k)
-            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k)
+            atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k)
+            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
           end do
         end do
       end if
       if ( ma%hastop ) then
         do j = jce1 , jce2
-          sfs%psa(j,ice2) = xpsb%b0(j,ice2) + dtb*xpsb%bt(j,ice2)
+          sfs%psa(j,ice2) = xpsb%b0(j,ice2) + xt*xpsb%bt(j,ice2)
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k)
-            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k)
+            atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k)
+            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
           end do
         end do
       end if
     end if
 !
-    call bdyuv(iboudy,dtb)
+    call bdyuv(iboudy,xt)
 !
     !
     ! Set boundary values for p*t:
@@ -1018,32 +1011,32 @@ module mod_bdycod
       if ( ma%hasleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k) + dtb*xtb%bt(jce1,i,k)
-            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k) + dtb*xqb%bt(jce1,i,k)
+            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
         end do
       end if
       if ( ma%hasright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k) + dtb*xtb%bt(jce2,i,k)
-            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k) + dtb*xqb%bt(jce2,i,k)
+            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
         end do
       end if
       if ( ma%hasbottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k) + dtb*xtb%bt(j,ice1,k)
-            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k) + dtb*xqb%bt(j,ice1,k)
+            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
         end do
       end if
       if ( ma%hastop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k) + dtb*xtb%bt(j,ice2,k)
-            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k) + dtb*xqb%bt(j,ice2,k)
+            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
         end do
       end if

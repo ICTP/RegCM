@@ -33,8 +33,8 @@ module mod_tendency
   use mod_bdycod
   use mod_che_bdyco
   use mod_precip
-  use mod_sun
   use mod_slice
+  use mod_sun
   use mod_diagnosis
   use mod_advection
   use mod_diffusion
@@ -1482,24 +1482,6 @@ module mod_tendency
 
 99001 format (a23,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
              ',  no. of points w/convection = ',i7)
-    end if
-    !
-    ! fill up the boundary values for xxb and xxa variables:
-    !
-    if ( ktau /= mtau ) then
-      call bdyval(xbctime)
-      if ( ichem == 1 ) then
-        call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
-      end if
-    end if
-    !
-    ! recalculate solar declination angle if reading bdy
-    !
-    if ( nbdytime == 0 ) then
-      if (myid == 0) then
-        write (6,*) 'Recalculate solar declination angle at ',toint10(idatex)
-      end if
-      call solar1
     end if
 !
     call time_end(subroutine_name,idindx)

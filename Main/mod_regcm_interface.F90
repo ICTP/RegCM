@@ -55,6 +55,7 @@ module mod_regcm_interface
   real(dp) :: dtinc
   real(dp) :: extime
 
+  data extime /d_zero/
   contains
  
   subroutine RCM_initialize(mpiCommunicator)
@@ -217,6 +218,13 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
+    !
+    ! Calculate solar declination angle at startup
+    !
+    if (myid == 0) then
+      write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
+    end if
+    call solar1
     call init_bdy
 !
 !**********************************************************************
@@ -267,9 +275,9 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call bdyval(xbctime)
+    call bdyval(d_zero)
     if ( ichem == 1 ) then
-      call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
+      call chem_bdyval(d_zero,nbdytime,dtbdys,ktau,ifrest)
     end if
 !
 !**********************************************************************
@@ -301,16 +309,11 @@ module mod_regcm_interface
 !                                                                      !
 !=======================================================================
 !
-  subroutine RCM_run(timestr, timeend, first)
+  subroutine RCM_run(timestr, timeend)
     implicit none
     real(dp) , intent(in) :: timestr   ! starting time-step
     real(dp) , intent(in) :: timeend   ! ending   time-step
-    logical , intent(in) :: first
     character(len=32) :: appdat
-!
-    if ( first ) then
-      extime = d_zero
-    end if
 !
     do while ( extime >= timestr .and. extime < timeend)
       !
@@ -335,17 +338,35 @@ module mod_regcm_interface
       !
       call splitf
       !
+      ! Boundary code (do not execute at the end of run)
+      !
+      if ( ktau /= mtau ) then
+        if ( nbdytime == 0 ) then
+          !
+          ! recalculate solar declination angle if reading bdy
+          !
+          if (myid == 0) then
+            write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
+          end if
+          call solar1
+          !
+          ! Read in new boundary conditions
+          !
+          call bdyin
+          if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
+        end if
+        !
+        ! fill up the boundary values for xxb and xxa variables:
+        !
+        call bdyval(xbctime)
+        if ( ichem == 1 ) then
+          call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
+        end if
+      end if
+      !
       ! Write output for this timestep if requested
       !
-      if ( ifrest ) doing_restart = .false.
       call output
-      !
-      ! Read in boundary conditions if needed
-      !
-      if ( nbdytime == 0 .and. ktau < mtau ) then
-        call bdyin
-        if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
-      end if
       !
       ! Increment execution time
       !
