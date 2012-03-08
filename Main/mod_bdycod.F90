@@ -504,28 +504,28 @@ module mod_bdycod
             sfs%tga(j,i) = ts1(j,i)
             sfs%tgb(j,i) = ts1(j,i)
           end if
-        end if
-        if ( iseaice == 1 ) then
-          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-          if ( ts1(j,i) <= icetemp ) then
-            sfs%tga(j,i) = icetemp
-            sfs%tgb(j,i) = icetemp
-            ts1(j,i) = icetemp
-            ldmsk(j,i) = 2
-            do n = 1, nnsg
-              ldmsk1(n,j,i) = 2
-              sfice(n,j,i) = d_1000
-              sncv(n,j,i) = d_zero
-            end do
-          else
-            sfs%tga(j,i) = ts1(j,i)
-            sfs%tgb(j,i) = ts1(j,i)
-            ldmsk(j,i) = 0
-            do n = 1, nnsg
-              ldmsk1(n,j,i) = 0
-              sfice(n,j,i) = d_zero
-              sncv(n,j,i)  = d_zero
-            end do
+          if ( iseaice == 1 ) then
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( ts1(j,i) <= icetemp ) then
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
+              ts1(j,i) = icetemp
+              ldmsk(j,i) = 2
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 2
+                sfice(n,j,i) = d_1000
+                sncv(n,j,i) = d_zero
+              end do
+            else
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
+              ldmsk(j,i) = 0
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 0
+                sfice(n,j,i) = d_zero
+                sncv(n,j,i)  = d_zero
+              end do
+            end if
           end if
         end if
       end do

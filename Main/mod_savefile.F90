@@ -79,7 +79,7 @@ module mod_savefile
         open (iutrst,file=ffin,form='unformatted',status='old')
       end if
 
-      read (iutrst) ktau, odtsec, idatex, nbdytime
+      read (iutrst) ktau, odtsec, idatex
       idt1 = idnint(odtsec)
       idt2 = idnint(dtsec)
       if ( idt1 /= idt2 ) then
@@ -231,7 +231,7 @@ module mod_savefile
         call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
       end if
 
-      write (iutsav) ktau , dtsec , idatex , nbdytime
+      write (iutsav) ktau , dtsec , idatex
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t

@@ -244,13 +244,12 @@ module mod_init
     !
     ! Comunicate the data to other processors
     !
+    xbctime = d_zero
+    nbdytime = 0
     call mpi_bcast(ktau,1,mpi_integer8,0,mycomm,ierr)
-    call mpi_bcast(mtau,1,mpi_integer8,0,mycomm,ierr)
-    call mpi_bcast(nbdytime,1,mpi_integer8,0,mycomm,ierr)
     call date_bcast(idatex,0,mycomm,ierr)
 !
     mtau = mtau + ktau
-    xbctime = dble(nbdytime)
 !
     call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
@@ -419,28 +418,28 @@ module mod_init
             sfs%tga(j,i) = ts0(j,i)
             sfs%tgb(j,i) = ts0(j,i)
           end if
-        end if
-        if ( iseaice == 1 ) then
-          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-          if ( ts0(j,i) <= icetemp ) then
-            sfs%tga(j,i) = icetemp
-            sfs%tgb(j,i) = icetemp
-            ts0(j,i) = icetemp
-            ldmsk(j,i) = 2
-            do n = 1, nnsg
-              ldmsk1(n,j,i) = 2
-              sfice(n,j,i) = d_1000
-              sncv(n,j,i) = d_zero
-            end do
-          else
-            sfs%tga(j,i) = ts0(j,i)
-            sfs%tgb(j,i) = ts0(j,i)
-            ldmsk(j,i) = 0
-            do n = 1, nnsg
-              ldmsk1(n,j,i) = 0
-              sfice(n,j,i) = d_zero
-              sncv(n,j,i)  = d_zero
-            end do
+          if ( iseaice == 1 ) then
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( ts0(j,i) <= icetemp ) then
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
+              ts0(j,i) = icetemp
+              ldmsk(j,i) = 2
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 2
+                sfice(n,j,i) = d_1000
+                sncv(n,j,i) = d_zero
+              end do
+            else
+              sfs%tga(j,i) = ts0(j,i)
+              sfs%tgb(j,i) = ts0(j,i)
+              ldmsk(j,i) = 0
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 0
+                sfice(n,j,i) = d_zero
+                sncv(n,j,i)  = d_zero
+              end do
+            end if
           end if
         end if
       end do
