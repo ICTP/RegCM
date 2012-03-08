@@ -413,6 +413,12 @@ module mod_output
                           jcross1,jcross2,icross1,icross2)
       end if
 
+      if ( idcsst == 1 ) then
+        call deco1_gather(dtskin,dtskin_io,jcross1,jcross2,icross1,icross2)
+        call deco1_gather(deltas,deltas_io,jcross1,jcross2,icross1,icross2)
+        call deco1_gather(tdeltas,tdeltas_io,jcross1,jcross2,icross1,icross2)
+      end if
+
       call deco1_gather(dstor,dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit)
       call deco1_gather(hstor,hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit)
 

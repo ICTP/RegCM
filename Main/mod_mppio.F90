@@ -62,6 +62,10 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:) :: solvd_io
   real(dp) , pointer , dimension(:,:) :: solvs_io
 
+  real(dp) , pointer , dimension(:,:) :: dtskin_io
+  real(dp) , pointer , dimension(:,:) :: tdeltas_io
+  real(dp) , pointer , dimension(:,:) :: deltas_io
+
   integer , pointer , dimension(:,:) :: kpbl_io
   real(dp) , pointer , dimension(:,:) :: zpbl_io
 !
@@ -155,7 +159,7 @@ module mod_mppio
       call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
       call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
       call getmem3d(emiss_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emiss_io')
-      call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1_io')
+      call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
       call getmem3d(iveg1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'iveg1_io')
       call getmem2d(iveg_io,jcross1,jcross2,icross1,icross2,'iveg_io')
       call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
@@ -169,6 +173,11 @@ module mod_mppio
       call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      end if
+      if ( idcsst == 1 ) then
+        call getmem2d(dtskin_io,jcross1,jcross2,icross1,icross2,'dtskin_io')
+        call getmem2d(deltas_io,jcross1,jcross2,icross1,icross2,'deltas_io')
+        call getmem2d(tdeltas_io,jcross1,jcross2,icross1,icross2,'tdeltas_io')
       end if
 
       call getmem3d(ht1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'ht1_io')
@@ -209,7 +218,9 @@ module mod_mppio
       call getmem3d(vb0_io,jdot1,jdot2,idot1,idot2,1,kz,'vb0_io')
       call getmem3d(vb1_io,jdot1,jdot2,idot1,idot2,1,kz,'vb1_io')
 
-      call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+      if ( iocnflx == 2 ) then
+        call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+      end if
       call getmem3d(omega_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,'omega_io')
       if (icup == 3) then

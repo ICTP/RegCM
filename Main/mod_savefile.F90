@@ -122,11 +122,18 @@ module mod_savefile
       if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         read (iutrst) cbmf2d_io
       end if
+      if ( idcsst == 1 ) then
+        read (iutrst) dtskin_io
+        read (iutrst) deltas_io
+        read (iutrst) tdeltas_io
+      end if
 #ifndef BAND
       call restdiag(iutrst)
 #endif
       read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
-      if ( ipptls == 1 ) read (iutrst) fcc_io
+      if ( ipptls == 1 ) then
+        read (iutrst) fcc_io
+      end if
 #ifdef CLM
       read (iutrst) sols2d_io
       read (iutrst) soll2d_io
@@ -163,7 +170,9 @@ module mod_savefile
       read (iutrst) taf_io
       read (iutrst) ldmsk1_io
       read (iutrst) emiss_io
-      if ( iocnflx == 2 ) read (iutrst) zpbl_io
+      if ( iocnflx == 2 ) then
+        read (iutrst) zpbl_io
+      end if
       if ( ichem == 1 ) then
         read (iutrst) chia_io
         read (iutrst) chib_io
@@ -252,11 +261,18 @@ module mod_savefile
       if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         write (iutsav) cbmf2d_io
       end if
+      if ( idcsst == 1 ) then
+        write (iutsav) dtskin_io
+        write (iutsav) deltas_io
+        write (iutsav) tdeltas_io
+      end if
 #ifndef BAND
       call savediag(iutsav)
 #endif
       write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
-      if ( ipptls == 1 ) write (iutsav) fcc_io
+      if ( ipptls == 1 ) then
+        write (iutsav) fcc_io
+      end if
 #ifdef CLM
       write (iutsav) sols2d_io
       write (iutsav) soll2d_io
@@ -293,7 +309,9 @@ module mod_savefile
       write (iutsav) taf_io
       write (iutsav) ldmsk1_io
       write (iutsav) emiss_io
-      if ( iocnflx == 2 ) write (iutsav) zpbl_io
+      if ( iocnflx == 2 ) then
+        write (iutsav) zpbl_io
+      end if
       if ( ichem == 1 ) then
         write (iutsav) chia_io
         write (iutsav) chib_io

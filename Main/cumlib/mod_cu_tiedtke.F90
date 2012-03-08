@@ -141,24 +141,22 @@ module mod_cu_tiedtke
     do j = jstart , jend
       ilab(:,:) = 2
 
-!   evaporation coefficient for kuo0 
+!     evaporation coefficient for kuo0 
       cevapcu(:) = cevapu
 
-!   tracers to be added here:
-!   fab add tracer interface here 
-!    if (lchem) then    
-!     do k = 1 , kz
-!     do i = istart , iend
-!     ii = i - 1
-!    pxtm1(ii,k,:) = chias(j,i,k,:) ! tracers input profile : implicit loop on tracer
-!    pxtte(ii,k,:) = tchiten(i,k,j,:)/sfcps(j,i) ! tracer tendencies : for grazziano :chiten is till i, k, j here !
-!     end do 
-!     end do
-!    else
-!     pxtm1(:,:,:) = d_zero ! tracers input profiles
-!     pxtte(:,:,:) = d_zero ! tracer tendencies
-!    end if
-
+      if (lchem) then    
+        do k = 1 , kz
+          do i = istart , iend
+            ii = i - 1
+            ! tracers input profile : implicit loop on tracer
+            pxtm1(ii,k,:) = chias(j,i,k,:)
+            pxtte(ii,k,:) = tchiten(i,k,j,:)/sfcps(j,i)
+          end do 
+        end do
+      else
+        pxtm1(:,:,:) = d_zero ! tracers input profiles
+        pxtte(:,:,:) = d_zero ! tracer tendencies
+      end if
 
       do i = istart , iend
         ii = i - 1
@@ -234,33 +232,46 @@ module mod_cu_tiedtke
             total_precip_points = total_precip_points + 1
             ! total precip cumulative 
             rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
+
+            ! rainfall for bats
             if ( ktau == 0 .and. debug_level > 2 ) then
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
             else
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv
             end if
-            do k = 1 , kz
-              ! NOTE: there is an iconsistency here for the latent heating,
-              ! as heat of fusion used inside the conv. scheme - please correct!
-              qcten(j,i,k) = qcten(j,i,k)+pxtec(ii,k)*sfcps(j,i)
-              qvten(j,i,k) = qvten(j,i,k)+pqtec(ii,k)*sfcps(j,i)
-            end do
-            kclth = kcbot(ii) - kctop(ii) + 1
-            akclth = d_one/dble(kclth)
-            do k = kctop(ii) , kcbot(ii)
-              rcldlwc(j,i,k) = cllwcv
-              rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
-            end do
           end if
         end if
       end do
 
-! FAB: tracer tendency : need to cvalculate a  detrained tendency  ??
-  ! check the zxtude  
-!
+      ! update tendencies - note that rate were ADDED in cudtdq
+      !                     thus here we must reset the rates. 
+      do k = 1 , kz
+        do i = istart , iend
+          ii = i - 1
+          if (ktype(ii) > 0) then
+            tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
+            uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
+            vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
+            qvten(j,i,k) = pqte(ii,k)  * sfcps(j,i)
+            qcten(j,i,k) = pxlte(ii,k) * sfcps(j,i)
+            if ( lchem ) then
+              tchiten(i,k,j,:) = pxtte(ii,k,:) * sfcps(j,i)
+            end if
+          end if
+        end do
+      end do
 
-
-
+      do i = istart , iend
+        ii = i - 1
+        if (ktype(ii) > 0) then
+          kclth = kcbot(ii) - kctop(ii) + 1
+          akclth = d_one/dble(kclth)
+          do k = kctop(ii) , kcbot(ii)
+            rcldlwc(j,i,k) = cllwcv
+            rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
+          end do
+        end if
+      end do
 
     end do
 

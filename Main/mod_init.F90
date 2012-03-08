@@ -400,6 +400,52 @@ module mod_init
                          jcross1,jcross2,icross1,icross2)
     end if
 
+    if ( idcsst == 1 ) then
+      call deco1_scatter(dtskin_io,dtskin,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(deltas_io,deltas,jcross1,jcross2,icross1,icross2)
+      call deco1_scatter(tdeltas_io,tdeltas,jcross1,jcross2,icross1,icross2)
+      firstcall(:,:) = .true.
+    end if
+    !
+    ! Update ground temperature on Ocean/Lakes
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( iswater(mddom%lndcat(j,i)) ) then
+          if (idcsst == 1) then
+            sfs%tga(j,i) = ts0(j,i) + dtskin(j,i)
+            sfs%tgb(j,i) = ts0(j,i) + dtskin(j,i)
+          else
+            sfs%tga(j,i) = ts0(j,i)
+            sfs%tgb(j,i) = ts0(j,i)
+          end if
+        end if
+        if ( iseaice == 1 ) then
+          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+          if ( ts0(j,i) <= icetemp ) then
+            sfs%tga(j,i) = icetemp
+            sfs%tgb(j,i) = icetemp
+            ts0(j,i) = icetemp
+            ldmsk(j,i) = 2
+            do n = 1, nnsg
+              ldmsk1(n,j,i) = 2
+              sfice(n,j,i) = d_1000
+              sncv(n,j,i) = d_zero
+            end do
+          else
+            sfs%tga(j,i) = ts0(j,i)
+            sfs%tgb(j,i) = ts0(j,i)
+            ldmsk(j,i) = 0
+            do n = 1, nnsg
+              ldmsk1(n,j,i) = 0
+              sfice(n,j,i) = d_zero
+              sncv(n,j,i)  = d_zero
+            end do
+          end if
+        end if
+      end do
+    end do
+
     call deco1_scatter(dstor_io,dstor,jdot1,jdot2,idot1,idot2,1,nsplit)
     call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
