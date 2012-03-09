@@ -45,7 +45,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) :: val
     real(dp) , pointer , dimension(:,:) :: iobuf
     integer :: nx , ny
-    integer :: irec
+    integer :: irec = -1
   end type deco1d_nc_var2d
 
   type deco1d_nc_var3d
@@ -56,7 +56,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) :: val
     real(dp) , pointer , dimension(:,:,:) :: iobuf
     integer :: nx , ny , nz
-    integer :: irec
+    integer :: irec = -1
   end type deco1d_nc_var3d
 
   type deco1d_nc_var4d
@@ -67,7 +67,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) :: val
     real(dp) , pointer , dimension(:,:,:,:) :: iobuf
     integer :: nx , ny , nz , nl
-    integer :: irec
+    integer :: irec = -1
   end type deco1d_nc_var4d
 
   public :: deco1d_nc_var2d , deco1d_nc_var3d , deco1d_nc_var4d
@@ -2285,6 +2285,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , i , j , ib
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
@@ -2332,6 +2333,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , j , i , ib
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
@@ -2379,6 +2381,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     hsize = isize*ksize
@@ -2432,6 +2435,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     hsize = isize*ksize
@@ -2486,6 +2490,7 @@ module mod_mppparam
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
@@ -2546,6 +2551,7 @@ module mod_mppparam
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
     integer :: ierr
+    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
@@ -2769,7 +2775,7 @@ module mod_mppparam
     type (deco1d_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: istart , icount
-    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
       return
     end if
     if ( myid == 0 ) then
@@ -2777,14 +2783,14 @@ module mod_mppparam
         call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
       end if
     end if
-    istart(3) = xvar%irec
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = xvar%ny
-    icount(1) = xvar%nx
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny)
     if ( myid == 0 ) then
+      istart(3) = xvar%irec
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = xvar%ny
+      icount(1) = xvar%nx
       istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
@@ -2811,6 +2817,7 @@ module mod_mppparam
       end if
     end if
     xvar%ncid = -1
+    xvar%irec = -1
     nullify(xvar%val)
   end subroutine deco1d_nc_destroy_var2d
 
@@ -2879,7 +2886,7 @@ module mod_mppparam
     type (deco1d_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: istart , icount
-    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
       return
     end if
     if ( myid == 0 ) then
@@ -2887,16 +2894,16 @@ module mod_mppparam
         call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
       end if
     end if
-    istart(4) = xvar%irec
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = xvar%nz
-    icount(2) = xvar%ny
-    icount(1) = xvar%nx
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz)
     if ( myid == 0 ) then
+      istart(4) = xvar%irec
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = xvar%nz
+      icount(2) = xvar%ny
+      icount(1) = xvar%nx
       istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
@@ -2923,6 +2930,7 @@ module mod_mppparam
       end if
     end if
     xvar%ncid = -1
+    xvar%irec = -1
     nullify(xvar%val)
   end subroutine deco1d_nc_destroy_var3d
 
@@ -2997,7 +3005,7 @@ module mod_mppparam
     type (deco1d_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: istart , icount
-    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
       return
     end if
     if ( myid == 0 ) then
@@ -3006,19 +3014,19 @@ module mod_mppparam
                       1,xvar%nl,'var3d:iobuf')
       end if
     end if
-    istart(5) = xvar%irec
-    istart(4) = 1
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(5) = 1
-    icount(4) = xvar%nl
-    icount(3) = xvar%nz
-    icount(2) = xvar%ny
-    icount(1) = xvar%nx
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny, &
                                           1,xvar%nz,1,xvar%nl)
     if ( myid == 0 ) then
+      istart(5) = xvar%irec
+      istart(4) = 1
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(5) = 1
+      icount(4) = xvar%nl
+      icount(3) = xvar%nz
+      icount(2) = xvar%ny
+      icount(1) = xvar%nx
       istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
@@ -3045,6 +3053,7 @@ module mod_mppparam
       end if
     end if
     xvar%ncid = -1
+    xvar%irec = -1
     nullify(xvar%val)
   end subroutine deco1d_nc_destroy_var4d
 
