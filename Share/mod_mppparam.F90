@@ -2803,10 +2803,12 @@ module mod_mppparam
     implicit none
     type (deco1d_nc_var2d) , intent(inout) :: xvar
     integer :: istat
-    istat = nf90_close(xvar%ncid)
-    if ( istat /= nf90_noerr ) then
-      write(stderr, *) nf90_strerror(istat)
-      return
+    if ( myid == 0 ) then
+      istat = nf90_close(xvar%ncid)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
     end if
     xvar%ncid = -1
     nullify(xvar%val)
@@ -2913,10 +2915,12 @@ module mod_mppparam
     implicit none
     type (deco1d_nc_var3d) , intent(inout) :: xvar
     integer :: istat
-    istat = nf90_close(xvar%ncid)
-    if ( istat /= nf90_noerr ) then
-      write(stderr, *) nf90_strerror(istat)
-      return
+    if ( myid == 0 ) then
+      istat = nf90_close(xvar%ncid)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
     end if
     xvar%ncid = -1
     nullify(xvar%val)
@@ -3033,10 +3037,12 @@ module mod_mppparam
     implicit none
     type (deco1d_nc_var4d) , intent(inout) :: xvar
     integer :: istat
-    istat = nf90_close(xvar%ncid)
-    if ( istat /= nf90_noerr ) then
-      write(stderr, *) nf90_strerror(istat)
-      return
+    if ( myid == 0 ) then
+      istat = nf90_close(xvar%ncid)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
     end if
     xvar%ncid = -1
     nullify(xvar%val)
