@@ -40,7 +40,7 @@ module mod_mppparam
   type deco1d_nc_var2d
     character(len=64) :: varname
     logical :: ldot
-    integer :: ncid
+    integer :: ncid = -1
     integer :: varid
     real(dp) , pointer , dimension(:,:) :: val
     real(dp) , pointer , dimension(:,:) :: iobuf
@@ -51,7 +51,7 @@ module mod_mppparam
   type deco1d_nc_var3d
     character(len=64) :: varname
     logical :: ldot
-    integer :: ncid
+    integer :: ncid = -1
     integer :: varid
     real(dp) , pointer , dimension(:,:,:) :: val
     real(dp) , pointer , dimension(:,:,:) :: iobuf
@@ -62,7 +62,7 @@ module mod_mppparam
   type deco1d_nc_var4d
     character(len=64) :: varname
     logical :: ldot
-    integer :: ncid
+    integer :: ncid = -1
     integer :: varid
     real(dp) , pointer , dimension(:,:,:,:) :: val
     real(dp) , pointer , dimension(:,:,:,:) :: iobuf
@@ -2710,11 +2710,19 @@ module mod_mppparam
     end if
   end subroutine psc2psd
 
-  subroutine deco1d_nc_create_var2d(xvar)
+  subroutine deco1d_nc_create_var2d(varname,ldot,val,xvar)
     implicit none
+    character(len=*) , intent(in) :: varname
+    logical , intent(in) :: ldot
+    real(dp) , pointer , dimension(:,:) , intent(in) :: val
     type (deco1d_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: idims
+
+    xvar%ldot = ldot
+    xvar%varname = varname
+    call assignpnt(val,xvar%val)
+
     if ( xvar%ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
@@ -2761,7 +2769,7 @@ module mod_mppparam
     type (deco1d_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
       return
     end if
     if ( myid == 0 ) then
@@ -2778,6 +2786,11 @@ module mod_mppparam
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny)
     if ( myid == 0 ) then
       istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
+      istat = nf90_sync(xvar%ncid)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
         return
@@ -2799,11 +2812,19 @@ module mod_mppparam
     nullify(xvar%val)
   end subroutine deco1d_nc_destroy_var2d
 
-  subroutine deco1d_nc_create_var3d(xvar)
+  subroutine deco1d_nc_create_var3d(varname,ldot,val,xvar)
     implicit none
+    character(len=*) , intent(in) :: varname
+    logical , intent(in) :: ldot
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: val
     type (deco1d_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: idims
+
+    xvar%ldot = ldot
+    xvar%varname = varname
+    call assignpnt(val,xvar%val)
+
     if ( xvar%ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
@@ -2856,7 +2877,7 @@ module mod_mppparam
     type (deco1d_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
       return
     end if
     if ( myid == 0 ) then
@@ -2879,6 +2900,11 @@ module mod_mppparam
         write(stderr, *) nf90_strerror(istat)
         return
       end if
+      istat = nf90_sync(xvar%ncid)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
     end if
     xvar%irec = xvar%irec + 1
   end subroutine deco1d_nc_write_var3d
@@ -2896,11 +2922,19 @@ module mod_mppparam
     nullify(xvar%val)
   end subroutine deco1d_nc_destroy_var3d
 
-  subroutine deco1d_nc_create_var4d(xvar)
+  subroutine deco1d_nc_create_var4d(varname,ldot,val,xvar)
     implicit none
+    character(len=*) , intent(in) :: varname
+    logical , intent(in) :: ldot
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: val
     type (deco1d_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: idims
+
+    xvar%ldot = ldot
+    xvar%varname = varname
+    call assignpnt(val,xvar%val)
+
     if ( xvar%ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
@@ -2959,7 +2993,7 @@ module mod_mppparam
     type (deco1d_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+    if ( .not. associated(xvar%val) .or. (myid == 0 .and. xvar%ncid < 0) ) then
       return
     end if
     if ( myid == 0 ) then
@@ -2982,6 +3016,11 @@ module mod_mppparam
                                           1,xvar%nz,1,xvar%nl)
     if ( myid == 0 ) then
       istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
+      istat = nf90_sync(xvar%ncid)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
         return
