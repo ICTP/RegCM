@@ -19,10 +19,10 @@
 
 module mod_stdio
 !
-  public
+  private
 
-  integer , parameter :: stdin = 5
-  integer , parameter :: stdout = 6
-  integer, parameter :: stderr = 0
+  integer , public , parameter :: stdin = 5
+  integer , public , parameter :: stdout = 6
+  integer , public , parameter :: stderr = 0
 
 end module mod_stdio

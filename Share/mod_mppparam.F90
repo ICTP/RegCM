@@ -25,6 +25,8 @@ module mod_mppparam
   use mod_message
   use mod_memutil
   use mod_date
+  use mod_stdio
+  use netcdf
 
   private
 
@@ -34,6 +36,61 @@ module mod_mppparam
     logical :: bandflag
     logical :: hasleft , hasright , hastop , hasbottom
   end type model_area
+
+  type deco1d_nc_var2d
+    character(len=64) :: varname
+    logical :: ldot
+    integer :: ncid
+    integer :: varid
+    real(dp) , pointer , dimension(:,:) :: val
+    real(dp) , pointer , dimension(:,:) :: iobuf
+    integer :: nx , ny
+    integer :: irec
+  end type deco1d_nc_var2d
+
+  type deco1d_nc_var3d
+    character(len=64) :: varname
+    logical :: ldot
+    integer :: ncid
+    integer :: varid
+    real(dp) , pointer , dimension(:,:,:) :: val
+    real(dp) , pointer , dimension(:,:,:) :: iobuf
+    integer :: nx , ny , nz
+    integer :: irec
+  end type deco1d_nc_var3d
+
+  type deco1d_nc_var4d
+    character(len=64) :: varname
+    logical :: ldot
+    integer :: ncid
+    integer :: varid
+    real(dp) , pointer , dimension(:,:,:,:) :: val
+    real(dp) , pointer , dimension(:,:,:,:) :: iobuf
+    integer :: nx , ny , nz , nl
+    integer :: irec
+  end type deco1d_nc_var4d
+
+  public :: deco1d_nc_var2d , deco1d_nc_var3d , deco1d_nc_var4d
+
+  interface deco1d_nc_create
+    module procedure deco1d_nc_create_var2d , &
+                     deco1d_nc_create_var3d , &
+                     deco1d_nc_create_var4d
+  end interface deco1d_nc_create
+
+  interface deco1d_nc_write
+    module procedure deco1d_nc_write_var2d , &
+                     deco1d_nc_write_var3d , &
+                     deco1d_nc_write_var4d
+  end interface deco1d_nc_write
+
+  interface deco1d_nc_destroy
+    module procedure deco1d_nc_destroy_var2d , &
+                     deco1d_nc_destroy_var3d , &
+                     deco1d_nc_destroy_var4d
+  end interface deco1d_nc_destroy
+
+  public :: deco1d_nc_create , deco1d_nc_write , deco1d_nc_destroy
 
   interface deco1_scatter
     module procedure deco1_1d_real8_scatter ,   &
@@ -2652,5 +2709,298 @@ module mod_mppparam
       end if
     end if
   end subroutine psc2psd
+
+  subroutine deco1d_nc_create_var2d(xvar)
+    implicit none
+    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(3) :: idims
+    if ( xvar%ldot ) then
+      xvar%nx = njdot
+      xvar%ny = nidot
+    else
+      xvar%nx = njcross
+      xvar%ny = nicross
+    end if
+    xvar%irec = 1
+    if ( myid /= 0 ) return
+    istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'JX', xvar%nx, idims(1))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'IY', xvar%ny, idims(2))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'KTAU', nf90_unlimited, idims(3))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_var(xvar%ncid,xvar%varname,nf90_double,idims,xvar%varid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_enddef(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+  end subroutine deco1d_nc_create_var2d
+
+  subroutine deco1d_nc_write_var2d(xvar)
+    implicit none
+    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(3) :: istart , icount
+    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+      return
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(xvar%iobuf) ) then
+        call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
+      end if
+    end if
+    istart(3) = xvar%irec
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = xvar%ny
+    icount(1) = xvar%nx
+    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny)
+    if ( myid == 0 ) then
+      istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
+    end if
+    xvar%irec = xvar%irec + 1
+  end subroutine deco1d_nc_write_var2d
+
+  subroutine deco1d_nc_destroy_var2d(xvar)
+    implicit none
+    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    integer :: istat
+    istat = nf90_close(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    xvar%ncid = -1
+    nullify(xvar%val)
+  end subroutine deco1d_nc_destroy_var2d
+
+  subroutine deco1d_nc_create_var3d(xvar)
+    implicit none
+    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(4) :: idims
+    if ( xvar%ldot ) then
+      xvar%nx = njdot
+      xvar%ny = nidot
+    else
+      xvar%nx = njcross
+      xvar%ny = nicross
+    end if
+    xvar%nz = size(xvar%val,3)
+    xvar%irec = 1
+    if ( myid /= 0 ) return
+    istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'JX', xvar%nx, idims(1))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'IY', xvar%ny, idims(2))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'KZ', xvar%nz, idims(3))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'KTAU', nf90_unlimited, idims(4))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_var(xvar%ncid,xvar%varname,nf90_double,idims,xvar%varid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_enddef(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+  end subroutine deco1d_nc_create_var3d
+
+  subroutine deco1d_nc_write_var3d(xvar)
+    implicit none
+    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(4) :: istart , icount
+    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+      return
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(xvar%iobuf) ) then
+        call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
+      end if
+    end if
+    istart(4) = xvar%irec
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = xvar%nz
+    icount(2) = xvar%ny
+    icount(1) = xvar%nx
+    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz)
+    if ( myid == 0 ) then
+      istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
+    end if
+    xvar%irec = xvar%irec + 1
+  end subroutine deco1d_nc_write_var3d
+
+  subroutine deco1d_nc_destroy_var3d(xvar)
+    implicit none
+    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    integer :: istat
+    istat = nf90_close(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    xvar%ncid = -1
+    nullify(xvar%val)
+  end subroutine deco1d_nc_destroy_var3d
+
+  subroutine deco1d_nc_create_var4d(xvar)
+    implicit none
+    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(5) :: idims
+    if ( xvar%ldot ) then
+      xvar%nx = njdot
+      xvar%ny = nidot
+    else
+      xvar%nx = njcross
+      xvar%ny = nicross
+    end if
+    xvar%nz = size(xvar%val,3)
+    xvar%nl = size(xvar%val,4)
+    xvar%irec = 1
+    if ( myid /= 0 ) return
+    istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'JX', xvar%nx, idims(1))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'IY', xvar%ny, idims(2))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'KZ', xvar%nz, idims(3))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'LL', xvar%nz, idims(4))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_dim(xvar%ncid, 'KTAU', nf90_unlimited, idims(5))
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_def_var(xvar%ncid,xvar%varname,nf90_double,idims,xvar%varid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    istat = nf90_enddef(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+  end subroutine deco1d_nc_create_var4d
+
+  subroutine deco1d_nc_write_var4d(xvar)
+    implicit none
+    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    integer :: istat
+    integer , dimension(5) :: istart , icount
+    if ( .not. associated(xvar%val) .or. xvar%ncid < 0 ) then
+      return
+    end if
+    if ( myid == 0 ) then
+      if ( .not. associated(xvar%iobuf) ) then
+        call getmem4d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
+                      1,xvar%nl,'var3d:iobuf')
+      end if
+    end if
+    istart(5) = xvar%irec
+    istart(4) = 1
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(5) = 1
+    icount(4) = xvar%nl
+    icount(3) = xvar%nz
+    icount(2) = xvar%ny
+    icount(1) = xvar%nx
+    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny, &
+                                          1,xvar%nz,1,xvar%nl)
+    if ( myid == 0 ) then
+      istat = nf90_put_var(xvar%ncid,xvar%varid,xvar%iobuf,istart,icount)
+      if ( istat /= nf90_noerr ) then
+        write(stderr, *) nf90_strerror(istat)
+        return
+      end if
+    end if
+    xvar%irec = xvar%irec + 1
+  end subroutine deco1d_nc_write_var4d
+
+  subroutine deco1d_nc_destroy_var4d(xvar)
+    implicit none
+    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    integer :: istat
+    istat = nf90_close(xvar%ncid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr, *) nf90_strerror(istat)
+      return
+    end if
+    xvar%ncid = -1
+    nullify(xvar%val)
+  end subroutine deco1d_nc_destroy_var4d
 
 end module mod_mppparam
