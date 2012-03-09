@@ -1918,11 +1918,10 @@ contains
     end if
   end subroutine addvara
 
-  subroutine writerec_sts(nx, ny, numbat, fbat, idate)
+  subroutine writerec_sts(fbat, idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , numbat
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
     integer :: ivar
     integer :: n
@@ -1931,12 +1930,6 @@ contains
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
-    if (nx /= o_nj .or. ny /= o_ni) then
-      write (6,*) 'Error writing record on STS file'
-      write (6,*) 'Expecting layers ', o_nj, 'x', o_ni
-      write (6,*) 'Got layers       ', nx, 'x', ny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
     ctime = tochar(idate)
 
     istart(2) = istsrec
@@ -2010,11 +2003,10 @@ contains
     istsrec = istsrec + 1
   end subroutine writerec_sts
 
-  subroutine writerec_srf(nx, ny, fbat, mask , idate)
+  subroutine writerec_srf(fbat, mask , idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
     integer , pointer , dimension(:,:) , intent(in) :: mask
     integer :: ivar
@@ -2025,12 +2017,6 @@ contains
     logical :: lskip
     character(len=36) :: ctime
 
-    if (nx /= o_nj .or. ny /= o_ni) then
-      write (6,*) 'Error writing record on SRF file'
-      write (6,*) 'Expecting layers ', o_nj, 'x', o_ni
-      write (6,*) 'Got layers       ', nx, 'x', ny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
     ctime = tochar(idate)
 
     istart(2) = isrfrec
@@ -2134,11 +2120,10 @@ contains
     isrfrec = isrfrec + 1
   end subroutine writerec_srf
 
-  subroutine writerec_sub(nx, ny, ns, nsub, fsub, idate)
+  subroutine writerec_sub(fsub, idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , ns , nsub
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
     integer :: ivar
     integer :: n , nxb , nyb
@@ -2151,13 +2136,6 @@ contains
     nxb = o_njg / nsg
     nyb = o_nig / nsg
 
-    if (nx /= o_njg .or. ny /= o_nig .or. ns /= nsg) then
-      write (6,*) 'Error writing record on SUB file'
-      write (6,*) 'Expecting layers ', nsg, 'x', o_njg, 'x', o_nig
-      write (6,*) 'Got layers       ', ns, 'x', nx, 'x', ny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
-
     ctime = tochar(idate)
 
     istart(1) = isubrec
@@ -2168,7 +2146,7 @@ contains
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SUB FILE')
     ivar = 2
     lskip = .false.
-    do n = 1 , nsub
+    do n = 1 , numsub
       if (lskip) then
         lskip = .false.
         cycle
@@ -2260,27 +2238,20 @@ contains
     end do
   end subroutine reorder
 
-  subroutine writerec_rad(nx,ny,nz,nrad3d,nrad2d,frad3d,frad2d,ps,idate)
+  subroutine writerec_rad(nrad3d,nrad2d,frad3d,frad2d,ps,idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , nz , nrad3d , nrad2d
+    integer , intent(in) :: nrad3d , nrad2d
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: frad3d
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: frad2d
-    real(sp) , pointer , dimension(:,:) , intent(in) :: ps
+    real(dp) , pointer , dimension(:,:) , intent(in) :: ps
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
     real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
-
-    if (nx /= o_nj .or. ny /= o_ni .or. nz /= o_nz) then
-      write (6,*) 'Error writing record on RAD file'
-      write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
-      write (6,*) 'Got layers       ', nz, 'x', nx, 'x', ny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
 
     ctime = tochar(idate)
 
@@ -2297,7 +2268,8 @@ contains
     icount(3) = 1
     icount(2) = o_ni
     icount(1) = o_nj
-    istatus = nf90_put_var(ncrad, iradvar(2), ps, istart(1:3), icount(1:3))
+    dumio(:,:,1) = real((ps(o_js:o_je,o_is:o_ie)+ptop)*d_10)
+    istatus = nf90_put_var(ncrad, iradvar(2), dumio, istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'RAD FILE')
 
     ivar = 3
@@ -2343,13 +2315,11 @@ contains
     iradrec = iradrec + 1
   end subroutine writerec_rad
 
-  subroutine writerec_atm(nx, ny, nnx, nny, nz, ns, u, v, omega,    &
-                          t, qv, qc, tke , kth , kzm , ps, rc, rnc, &
-                          tgb, swt, mask, idate)
+  subroutine writerec_atm(u,v,omega,t,qv,qc,tke,kth,kzm,ps,rc,rnc, &
+                          tgb,swt,mask,idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , nnx, nny , ny , ns , nz
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: u
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: v
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega
@@ -2371,19 +2341,10 @@ contains
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
-    if (nx < o_nj .or. ny < o_ni .or. nz > o_nz .or. &
-        nnx < o_nj .or. nny < o_ni) then
-      write (6,*) 'Error writing record on ATM file'
-      write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
-      write (6,*) 'Got layers 0     ', nz, 'x', nx, 'x', ny
-      write (6,*) 'Got layers 1     ', nz, 'x', nnx, 'x', nny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
-
     ctime = tochar(idate)
 
     if (.not. lmaskfill) then
-      do n = 1 , ns
+      do n = 1 , nnsg
         atmsrfmask(n,:,:) = real(mask(n,o_js:o_je,o_is:o_ie))
       end do
       where ( atmsrfmask > 0.5 )
@@ -2663,7 +2624,7 @@ contains
 
     if ( atm_variables(14)%enabled ) then
       dumio(:,:,1) = 0.0
-      do n = 1 , ns
+      do n = 1 , nnsg
         where (atmsrfmask(n,:,:) > 0)
           dumio(:,:,1) = dumio(:,:,1) + real(swt(n,o_js:o_je,o_is:o_ie))
         end where
@@ -2921,11 +2882,10 @@ contains
     icherec = icherec + 1
   end subroutine writerec_che
 
-  subroutine writerec_lak(nx,ny,numbat,fbat,evl,aveice,hsnow,tlake,idate)
+  subroutine writerec_lak(fbat,evl,aveice,hsnow,tlake,idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nx , ny , numbat
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: evl
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: aveice
@@ -2937,13 +2897,6 @@ contains
     real(dp) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
-
-    if (nx /= o_nj .or. ny /= o_ni) then
-      write (6,*) 'Error writing record on LAK file'
-      write (6,*) 'Expecting layers ', o_nj, 'x', o_ni
-      write (6,*) 'Got layers       ', nx, 'x', ny
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
 
     ctime = tochar(idate)
 

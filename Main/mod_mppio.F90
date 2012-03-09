@@ -73,7 +73,6 @@ module mod_mppio
   real(sp) , pointer , dimension(:,:,:,:) :: fsub_io
   real(sp) , pointer , dimension(:,:,:) :: frad2d_io
   real(sp) , pointer , dimension(:,:,:,:) :: frad3d_io
-  real(sp) , pointer , dimension(:,:) :: radpsa_io
 
   real(dp) , pointer , dimension(:,:) :: cbmf2d_io
   real(dp) , pointer , dimension(:,:,:) :: fcc_io
@@ -245,7 +244,6 @@ module mod_mppio
       call getmem4d(fsub_io,1,nnsg,jout1,jout2,iout1,iout2,1,numsub,'fsub_io')
       call getmem3d(frad2d_io,jout1,jout2,iout1,iout2,1,nrad2d,'frad2d_io')
       call getmem4d(frad3d_io,jout1,jout2,iout1,iout2,1,kz,1,nrad3d,'frad3d_io')
-      call getmem2d(radpsa_io,jout1,jout2,iout1,iout2,'radpsa_io')
     endif
 
   end subroutine allocate_mod_mppio

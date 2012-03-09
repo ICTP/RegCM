@@ -20,6 +20,7 @@
 module mod_atm_interface
 !
   use mod_dynparam
+  use mod_stdio
   use mod_constants , only : d_rfour
   use mod_runparams
   use mod_mppparam
@@ -144,6 +145,12 @@ module mod_atm_interface
     subroutine deco1_model(lband)
       implicit none
       logical , intent(in) :: lband
+#ifdef DEBUG
+      write(ndebug+myid,*) 'TOP = ', inorth
+      write(ndebug+myid,*) 'BTM = ', isouth
+      write(ndebug+myid,*) 'RGT = ', ieast
+      write(ndebug+myid,*) 'LFT = ', iwest
+#endif
       ma%bandflag = lband
       ma%hasleft  = .false.
       ma%hasright = .false.
@@ -173,6 +180,11 @@ module mod_atm_interface
           ma%hasright = .true.
         end if
       end if
+#ifdef DEBUG
+      write(ndebug+myid,*) 'DOTPEXT1 : ', jde1 , jde2
+      write(ndebug+myid,*) 'DOTPINT1 : ', jdi1 , jdi2
+      write(ndebug+myid,*) 'DOTPINT2 : ', jdii1 , jdii2
+#endif
       jce1  = 1
       jci1  = 1
       jcii1 = 1
@@ -197,9 +209,20 @@ module mod_atm_interface
           jcii2 = jxp-3
         end if
       end if
+#ifdef DEBUG
+      write(ndebug+myid,*) 'CRXPEXT1 : ', jce1 , jce2
+      write(ndebug+myid,*) 'CRXPINT1 : ', jci1 , jci2
+      write(ndebug+myid,*) 'CRXPINT2 : ', jcii1 , jcii2
+#endif
       ! In 1D deco, each processor ALWAYS HAS top and bottom.
       ma%hastop    = .true.
       ma%hasbottom = .true.
+#ifdef DEBUG
+      write(ndebug+myid,*) 'TOPBDY   : ', ma%hastop
+      write(ndebug+myid,*) 'BTMBDY   : ', ma%hasbottom
+      write(ndebug+myid,*) 'RGTBDY   : ', ma%hasright
+      write(ndebug+myid,*) 'LFTBDY   : ', ma%hasleft
+#endif
     end subroutine deco1_model
 
     subroutine deco1_bound(ldot,lband,ba)
@@ -217,7 +240,7 @@ module mod_atm_interface
       call getmem2d(ba%bnorth,1,jxp,idot1,idot2,'deco1_bound:bnorth')
       call getmem2d(ba%beast,1,jxp,idot1,idot2,'deco1_bound:beast')
       call getmem2d(ba%bwest,1,jxp,idot1,idot2,'deco1_bound:bwest')
-      if (ldot ) then
+      if ( ldot ) then
         ic = 0
         ba%nsp = nspgd
       else
@@ -338,6 +361,30 @@ module mod_atm_interface
       end if
       ba%havebound = (ba%ns /= 0 .or. ba%nn /= 0 .or. &
                       ba%nw /= 0 .or. ba%ne /= 0)
+#ifdef DEBUG
+      write(ndebug+myid,*) 'DOT  : ', ldot
+      write(ndebug+myid,*) 'BDYS : ', ba%ns
+      write(ndebug+myid,*) 'BDYN : ', ba%nn
+      write(ndebug+myid,*) 'BDYW : ', ba%nw
+      write(ndebug+myid,*) 'BDYE : ', ba%ne
+
+      do i = iy , 1 , -1
+        do j = 1 , jxp
+          if ( ba%bsouth(j,i) ) then
+            write(ndebug+myid,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
+          else if ( ba%bnorth(j,i) ) then
+            write(ndebug+myid,'(1a,i0.4)',advance='no') 'N' , ba%ibnd(j,i)
+          else if ( ba%bwest(j,i) ) then
+            write(ndebug+myid,'(1a,i0.4)',advance='no') 'W' , ba%ibnd(j,i)
+          else if ( ba%beast(j,i) ) then
+            write(ndebug+myid,'(1a,i0.4)',advance='no') 'E' , ba%ibnd(j,i)
+          else
+            write(ndebug+myid,'(1a,i0.4)',advance='no') 'X', 0
+          end if
+        end do
+        write(ndebug+myid,*) ' '
+      end do
+#endif
     end subroutine deco1_bound
 
     subroutine deco1_allocate_v3dbound(xb,ke,ldot)
@@ -522,7 +569,7 @@ module mod_atm_interface
       call getmem2d(hgfact,1,jxp,idot1,idot2,'mod_atm_interface:hgfact')
       call getmem2d(psdot,1,jxp,idot1,idot2,'mod_atm_interface:psdot')
       call getmem3d(omega,1,jxp,icross1,icross2,1,kz,'mod_atm_interface:omega')
-      call getmem3d(qdot,0,jxp+1,idot1,idot2,1,kzp1,'mod_atm_interface:qdot')
+      call getmem3d(qdot,1,jxp,idot1,idot2,1,kzp1,'mod_atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
 !

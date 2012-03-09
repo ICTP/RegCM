@@ -106,7 +106,7 @@ clean-local:
 # Modules
 #
 mod_advection.o: mod_advection.F90 mod_atm_interface.o mod_runparams.o
-mod_atm_interface.o: mod_atm_interface.f90 mod_runparams.o
+mod_atm_interface.o: mod_atm_interface.F90 mod_runparams.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_bdycod.o: mod_bdycod.F90 mod_runparams.o mod_atm_interface.o \
   mod_lm_interface.o mod_ncio.o mod_mppio.o

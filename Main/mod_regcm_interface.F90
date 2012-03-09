@@ -275,9 +275,9 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call bdyval(d_zero)
+    call bdyval(xbctime)
     if ( ichem == 1 ) then
-      call chem_bdyval(d_zero,nbdytime,dtbdys,ktau,ifrest)
+      call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
     end if
 !
 !**********************************************************************
@@ -315,6 +315,27 @@ module mod_regcm_interface
     real(dp) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 !
+#ifdef DEBUG
+!    type(deco1d_nc_var2d) :: psa , psb
+!    type(deco1d_nc_var3d) :: ua , va , ta , qa
+
+!    call deco1d_nc_create('psa',cross,sfs%psa,psa)
+!    call deco1d_nc_create('psb',cross,sfs%psb,psb)
+!    call deco1d_nc_create('ua',dot,atm1%u,ua)
+!    call deco1d_nc_create('va',dot,atm1%v,va)
+!    call deco1d_nc_create('ta',cross,atm1%t,ta)
+!    call deco1d_nc_create('qa',cross,atm1%qv,qa)
+
+    if ( ifrest ) then
+!      call deco1d_nc_write(psa)
+!      call deco1d_nc_write(psb)
+!      call deco1d_nc_write(ua)
+!      call deco1d_nc_write(va)
+!      call deco1d_nc_write(ta)
+!      call deco1d_nc_write(qa)
+    end if
+#endif
+
     do while ( extime >= timestr .and. extime < timeend)
       !
       ! Refined start
@@ -380,8 +401,22 @@ module mod_regcm_interface
     end do
 
 #ifdef DEBUG
+    if ( .not. ifrest ) then
+!      call deco1d_nc_write(psa)
+!      call deco1d_nc_write(psb)
+!      call deco1d_nc_write(ua)
+!      call deco1d_nc_write(va)
+!      call deco1d_nc_write(ta)
+!      call deco1d_nc_write(qa)
+    end if
     call stop_debug()
-#endif 
+!    call deco1d_nc_destroy(psa)
+!    call deco1d_nc_destroy(psb)
+!    call deco1d_nc_destroy(ua)
+!    call deco1d_nc_destroy(va)
+!    call deco1d_nc_destroy(ta)
+!    call deco1d_nc_destroy(qa)
+#endif
     call time_print(6,'evolution phase')
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
