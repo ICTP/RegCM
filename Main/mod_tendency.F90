@@ -53,7 +53,7 @@ module mod_tendency
   real(dp) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi
   real(dp) , pointer , dimension(:,:,:) :: ps4
   real(dp) , pointer , dimension(:,:,:) :: ps_4 
-  real(dp) , pointer , dimension(:,:) :: psc , psd , pten , psabar
+  real(dp) , pointer , dimension(:,:) :: psc , psd , pten
   real(dp) , pointer , dimension(:,:,:) :: wrkkuo1
   real(dp) , pointer , dimension(:,:,:) :: wrkkuo2
 
@@ -73,7 +73,6 @@ module mod_tendency
     call getmem3d(ps_4,1,jx,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(td,1,jxp,icross1,icross2,1,kz,'tendency:td')
     call getmem2d(psc,1,jxp,icross1,icross2,'tendency:psc')
-    call getmem2d(psabar,1,jxp,icross1,icross2,'tendency:psabar')
     call getmem2d(psd,0,jxp+1,icross1,icross2,'tendency:psd')
     call getmem2d(pten,1,jxp,icross1,icross2,'tendency:pten')
     if ( icup == 1 ) then
@@ -151,17 +150,9 @@ module mod_tendency
       end do
     end do
 
-    call deco1_exchange_left(sfs%psa,1,icross1,icross2)
-    call deco1_exchange_right(sfs%psa,1,icross1,icross2)
-    !
-    ! Calculate PS on dot internal points.
-    !
-    do i = idii1 , idii2
-      do j = jdii1 , jdii2
-        psabar(j,i) = (sfs%psa(j,i)  +sfs%psa(j-1,i)+ &
-                       sfs%psa(j,i-1)+sfs%psa(j-1,i-1))*d_rfour
-      end do
-    end do
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
+    call psc2psd(sfs%psb,psdot)
     !
     ! Internal U,V points
     !
@@ -169,8 +160,8 @@ module mod_tendency
       do i = idii1 , idii2
         do j = jdii1 , jdii2
           xmsf = mddom%msfd(j,i)
-          atmx%u(j,i,k) = atm1%u(j,i,k)/(psabar(j,i)*xmsf)
-          atmx%v(j,i,k) = atm1%v(j,i,k)/(psabar(j,i)*xmsf)
+          atmx%u(j,i,k) = atm1%u(j,i,k)/(psdot(j,i)*xmsf)
+          atmx%v(j,i,k) = atm1%v(j,i,k)/(psdot(j,i)*xmsf)
         end do
       end do
     end do
@@ -306,44 +297,44 @@ module mod_tendency
 !
 !=======================================================================
 !
-    call deco1_exchange_left(sfs%psb,1,icross1,icross2)
-    call deco1_exchange_right(sfs%psb,1,icross1,icross2)
+    call deco1_exchange_left(sfs%psb,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psb,1,ice1,ice2)
 !
-    call deco1_exchange_left(atm1%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atm1%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(atm1%v,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atm1%v,1,idot1,idot2,1,kz)
+    call deco1_exchange_left(atm1%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atm1%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(atm1%v,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atm1%v,1,ide1,ide2,1,kz)
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm1%tke,1,icross1,icross2,1,kz)
-      call deco1_exchange_right(atm1%tke,1,icross1,icross2,1,kz)
+      call deco1_exchange_left(atm1%tke,1,ice1,ice2,1,kz)
+      call deco1_exchange_right(atm1%tke,1,ice1,ice2,1,kz)
     end if
 !
-    call deco1_exchange_left(atm2%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atm2%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(atm2%v,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atm2%v,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(atm2%t,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(atm2%t,1,icross1,icross2,1,kz)
-    call deco1_exchange_left(atm2%qv,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(atm2%qv,1,icross1,icross2,1,kz)
+    call deco1_exchange_left(atm2%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atm2%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(atm2%v,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atm2%v,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(atm2%t,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atm2%t,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(atm2%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atm2%qv,1,ice1,ice2,1,kz)
 !
-    call deco1_exchange_left(atmx%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atmx%u,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(atmx%v,1,idot1,idot2,1,kz)
-    call deco1_exchange_right(atmx%v,1,idot1,idot2,1,kz)
-    call deco1_exchange_left(atmx%t,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(atmx%t,1,icross1,icross2,1,kz)
-    call deco1_exchange_left(atmx%qv,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(atmx%qv,1,icross1,icross2,1,kz)
-    call deco1_exchange_left(atmx%qc,1,icross1,icross2,1,kz)
-    call deco1_exchange_right(atmx%qc,1,icross1,icross2,1,kz)
+    call deco1_exchange_left(atmx%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atmx%u,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(atmx%v,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(atmx%v,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(atmx%t,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atmx%t,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(atmx%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atmx%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(atmx%qc,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atmx%qc,1,ice1,ice2,1,kz)
 !
     if ( ichem == 1 ) then
-      call deco1_exchange_left(chi,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chi,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_left(chib,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chib,1,icross1,icross2,1,kz,1,ntr)
+      call deco1_exchange_left(chi,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chi,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_left(chib,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chib,1,ice1,ice2,1,kz,1,ntr)
     end if
 !
 !   Calculate pdot
@@ -365,29 +356,29 @@ module mod_tendency
 !
 !=======================================================================
 !
-    call deco1_exchange_left(atms%ubd3d,2,idot1,idot2,1,kz)
-    call deco1_exchange_right(atms%ubd3d,2,idot1,idot2,1,kz)
-    call deco1_exchange_left(atms%vbd3d,2,idot1,idot2,1,kz)
-    call deco1_exchange_right(atms%vbd3d,2,idot1,idot2,1,kz)
-    call deco1_exchange_left(atms%tb3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_right(atms%tb3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_left(atms%ubx3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_right(atms%ubx3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_left(atms%vbx3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_right(atms%vbx3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_left(atms%qvb3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_right(atms%qvb3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_left(atms%qcb3d,2,icross1,icross2,1,kz)
-    call deco1_exchange_right(atms%qcb3d,2,icross1,icross2,1,kz)
+    call deco1_exchange_left(atms%ubd3d,2,ide1,ide2,1,kz)
+    call deco1_exchange_right(atms%ubd3d,2,ide1,ide2,1,kz)
+    call deco1_exchange_left(atms%vbd3d,2,ide1,ide2,1,kz)
+    call deco1_exchange_right(atms%vbd3d,2,ide1,ide2,1,kz)
+    call deco1_exchange_left(atms%tb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%tb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_left(atms%ubx3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%ubx3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_left(atms%vbx3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%vbx3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_left(atms%qvb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%qvb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_left(atms%qcb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%qcb3d,2,ice1,ice2,1,kz)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm2%tke,2,icross1,icross2,1,kz)
-      call deco1_exchange_right(atm2%tke,2,icross1,icross2,1,kz)
+      call deco1_exchange_left(atm2%tke,2,ice1,ice2,1,kz)
+      call deco1_exchange_right(atm2%tke,2,ice1,ice2,1,kz)
     end if
 
     if ( ichem == 1 ) then
-      call deco1_exchange_left(atms%chib3d,2,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(atms%chib3d,2,icross1,icross2,1,kz,1,ntr)
+      call deco1_exchange_left(atms%chib3d,2,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(atms%chib3d,2,ice1,ice2,1,kz,1,ntr)
     end if
 !
 !**********************************************************************
@@ -442,14 +433,14 @@ module mod_tendency
 
     if ( ichem == 1 ) then
 #ifndef BAND
-      call deco1_exchange_left(chieb,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chieb,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_left(chiebt,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chiebt,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_left(chiwb,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chiwb,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_left(chiwbt,1,icross1,icross2,1,kz,1,ntr)
-      call deco1_exchange_right(chiwbt,1,icross1,icross2,1,kz,1,ntr)
+      call deco1_exchange_left(chieb,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chieb,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_left(chiebt,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chiebt,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_left(chiwb,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chiwb,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_left(chiwbt,1,ice1,ice2,1,kz,1,ntr)
+      call deco1_exchange_right(chiwbt,1,ice1,ice2,1,kz,1,ntr)
 #endif
       call deco1_exchange_left(chinb,1,1,nspgx,1,kz,1,ntr)
       call deco1_exchange_right(chinb,1,1,nspgx,1,kz,1,ntr)
@@ -813,10 +804,10 @@ module mod_tendency
     if ( icup == 1 ) then
       wrkkuo1(1:jxp,:,:) = rsheat(:,:,:)
       wrkkuo2(1:jxp,:,:) = rswat(:,:,:)
-      call deco1_exchange_left(wrkkuo1,1,icross1,icross2,1,kz)
-      call deco1_exchange_right(wrkkuo1,1,icross1,icross2,1,kz)
-      call deco1_exchange_left(wrkkuo2,1,icross1,icross2,1,kz)
-      call deco1_exchange_right(wrkkuo2,1,icross1,icross2,1,kz)
+      call deco1_exchange_left(wrkkuo1,1,ice1,ice2,1,kz)
+      call deco1_exchange_right(wrkkuo1,1,ice1,ice2,1,kz)
+      call deco1_exchange_left(wrkkuo2,1,ice1,ice2,1,kz)
+      call deco1_exchange_right(wrkkuo2,1,ice1,ice2,1,kz)
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1,jci1,jci2,ici1,ici2)
     end if
 #ifndef BAND
@@ -837,7 +828,7 @@ module mod_tendency
       call deco1_exchange_left(sfs%psb,1,ice1,ice2)
       call deco1_exchange_right(sfs%psb,1,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
-      call deco1_exchange_left(sfs%uvdrag,1,icross1,icross2)
+      call deco1_exchange_left(sfs%uvdrag,1,ice1,ice2)
       call holtbl(jci1,jci2,ici1,ici2)
     end if
 
@@ -1209,7 +1200,7 @@ module mod_tendency
       end do
     end if
 !
-    call deco1_exchange_left(phi,1,idot1,idot2,1,kz)
+    call deco1_exchange_left(phi,1,ide1,ide2,1,kz)
 !
 !   compute the geopotential gradient terms:
 !

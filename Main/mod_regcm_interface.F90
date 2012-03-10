@@ -316,24 +316,24 @@ module mod_regcm_interface
     character(len=32) :: appdat
 !
 #ifdef DEBUG
-!    type(deco1d_nc_var2d) :: psa , psb
-!    type(deco1d_nc_var3d) :: ua , va , ta , qa
+    type(deco1d_nc_var2d) :: psa , psb
+    type(deco1d_nc_var3d) :: ua , va , ta , qa
 
-!    call deco1d_nc_create('psa',cross,sfs%psa,psa)
-!    call deco1d_nc_create('psb',cross,sfs%psb,psb)
-!    call deco1d_nc_create('ua',dot,atm1%u,ua)
-!    call deco1d_nc_create('va',dot,atm1%v,va)
-!    call deco1d_nc_create('ta',cross,atm1%t,ta)
-!    call deco1d_nc_create('qa',cross,atm1%qv,qa)
+    call deco1d_nc_create('psa',cross,sfs%psa,psa)
+    call deco1d_nc_create('psb',cross,sfs%psb,psb)
+    call deco1d_nc_create('ua',dot,atm1%u,ua)
+    call deco1d_nc_create('va',dot,atm1%v,va)
+    call deco1d_nc_create('ta',cross,atm1%t,ta)
+    call deco1d_nc_create('qa',cross,atm1%qv,qa)
 
-    if ( ifrest ) then
-!      call deco1d_nc_write(psa)
-!      call deco1d_nc_write(psb)
-!      call deco1d_nc_write(ua)
-!      call deco1d_nc_write(va)
-!      call deco1d_nc_write(ta)
-!      call deco1d_nc_write(qa)
-    end if
+!    if ( ifrest ) then
+      call deco1d_nc_write(psa)
+      call deco1d_nc_write(psb)
+      call deco1d_nc_write(ua)
+      call deco1d_nc_write(va)
+      call deco1d_nc_write(ta)
+      call deco1d_nc_write(qa)
+!    end if
 #endif
 
     do while ( extime >= timestr .and. extime < timeend)
@@ -398,6 +398,12 @@ module mod_regcm_interface
           write(6,'(a,a,f12.2)') 'Simulation time: ', appdat, extime
         end if
       end if
+      call deco1d_nc_write(psa)
+      call deco1d_nc_write(psb)
+      call deco1d_nc_write(ua)
+      call deco1d_nc_write(va)
+      call deco1d_nc_write(ta)
+      call deco1d_nc_write(qa)
     end do
 
 #ifdef DEBUG
@@ -410,12 +416,12 @@ module mod_regcm_interface
 !      call deco1d_nc_write(qa)
     end if
     call stop_debug()
-!    call deco1d_nc_destroy(psa)
-!    call deco1d_nc_destroy(psb)
-!    call deco1d_nc_destroy(ua)
-!    call deco1d_nc_destroy(va)
-!    call deco1d_nc_destroy(ta)
-!    call deco1d_nc_destroy(qa)
+    call deco1d_nc_destroy(psa)
+    call deco1d_nc_destroy(psb)
+    call deco1d_nc_destroy(ua)
+    call deco1d_nc_destroy(va)
+    call deco1d_nc_destroy(ta)
+    call deco1d_nc_destroy(qa)
 #endif
     call time_print(6,'evolution phase')
 !

@@ -39,35 +39,38 @@ module mod_mppparam
 
   type deco1d_nc_var2d
     character(len=64) :: varname
-    logical :: ldot
-    integer :: ncid = -1
-    integer :: varid
-    real(dp) , pointer , dimension(:,:) :: val
-    real(dp) , pointer , dimension(:,:) :: iobuf
-    integer :: nx , ny
     integer :: irec = -1
+    integer :: ncid = -1
+    integer :: varid = 1
+    integer :: nx = 0
+    integer :: ny = 0
+    real(dp) , pointer , dimension(:,:) :: val => null()
+    real(dp) , pointer , dimension(:,:) :: iobuf => null()
   end type deco1d_nc_var2d
 
   type deco1d_nc_var3d
     character(len=64) :: varname
-    logical :: ldot
-    integer :: ncid = -1
-    integer :: varid
-    real(dp) , pointer , dimension(:,:,:) :: val
-    real(dp) , pointer , dimension(:,:,:) :: iobuf
-    integer :: nx , ny , nz
     integer :: irec = -1
+    integer :: ncid = -1
+    integer :: varid = 1
+    integer :: nx = 0
+    integer :: ny = 0
+    integer :: nz = 0
+    real(dp) , pointer , dimension(:,:,:) :: val => null()
+    real(dp) , pointer , dimension(:,:,:) :: iobuf => null()
   end type deco1d_nc_var3d
 
   type deco1d_nc_var4d
     character(len=64) :: varname
-    logical :: ldot
-    integer :: ncid = -1
-    integer :: varid
-    real(dp) , pointer , dimension(:,:,:,:) :: val
-    real(dp) , pointer , dimension(:,:,:,:) :: iobuf
-    integer :: nx , ny , nz , nl
     integer :: irec = -1
+    integer :: ncid = -1
+    integer :: varid = 1
+    integer :: nx = 0
+    integer :: ny = 0
+    integer :: nz = 0
+    integer :: nl = 0
+    real(dp) , pointer , dimension(:,:,:,:) :: val => null()
+    real(dp) , pointer , dimension(:,:,:,:) :: iobuf => null()
   end type deco1d_nc_var4d
 
   public :: deco1d_nc_var2d , deco1d_nc_var3d , deco1d_nc_var4d
@@ -2678,19 +2681,33 @@ module mod_mppparam
       end do
     end do
     if ( .not. ma%bandflag ) then
+      !
+      ! Corner points
+      !
+      if ( ma%hasleft .and. ma%hasbottom ) then
+        pd(jde1,ide1) = pc(jce1,ice1)
+      end if
+      if ( ma%hasleft .and. ma%hastop ) then
+        pd(jde1,ide2) = pc(jce1,ice2)
+      end if
+      if ( ma%hasright .and. ma%hasbottom ) then
+        pd(jde2,ide1) = pc(jce2,ice1)
+      end if
+      if ( ma%hasright .and. ma%hastop ) then
+        pd(jde2,ide2) = pc(jce2,ice2)
+      end if
+      !
+      ! Boundaries
+      !
       if ( ma%hasleft ) then
         do i = idi1 , idi2
           pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
         end do
-        pd(jde1,ide1) = pc(jce1,ice1)
-        pd(jde1,ide2) = pc(jce1,ice2)
       end if
       if ( ma%hasright ) then
         do i = idi1 , idi2
           pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
         end do
-        pd(jde2,ide1) = pc(jce2,ice1)
-        pd(jde2,ide2) = pc(jce2,ice2)
       end if
       if ( ma%hasbottom ) then
         do j = jdi1 , jdi2
@@ -2703,13 +2720,16 @@ module mod_mppparam
         end do
       end if
     else
+      !
+      ! Band (no east and west)
+      !
       if ( ma%hasbottom ) then
-        do j = jde1 , jde2
+        do j = jce1 , jce2
           pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
         end do
       end if
       if ( ma%hastop ) then
-        do j = jde1 , jde2
+        do j = jce1 , jce2
           pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
         end do
       end if
@@ -2725,11 +2745,10 @@ module mod_mppparam
     integer :: istat
     integer , dimension(3) :: idims
 
-    xvar%ldot = ldot
     xvar%varname = varname
     call assignpnt(val,xvar%val)
 
-    if ( xvar%ldot ) then
+    if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
     else
@@ -2768,6 +2787,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
+    call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
   end subroutine deco1d_nc_create_var2d
 
   subroutine deco1d_nc_write_var2d(xvar)
@@ -2775,13 +2795,8 @@ module mod_mppparam
     type (deco1d_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
-    end if
-    if ( myid == 0 ) then
-      if ( .not. associated(xvar%iobuf) ) then
-        call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
-      end if
     end if
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny)
     if ( myid == 0 ) then
@@ -2819,6 +2834,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
+    call relmem2d(xvar%iobuf)
   end subroutine deco1d_nc_destroy_var2d
 
   subroutine deco1d_nc_create_var3d(varname,ldot,val,xvar)
@@ -2830,11 +2846,10 @@ module mod_mppparam
     integer :: istat
     integer , dimension(4) :: idims
 
-    xvar%ldot = ldot
     xvar%varname = varname
     call assignpnt(val,xvar%val)
 
-    if ( xvar%ldot ) then
+    if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
     else
@@ -2879,6 +2894,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
+    call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
   end subroutine deco1d_nc_create_var3d
 
   subroutine deco1d_nc_write_var3d(xvar)
@@ -2886,13 +2902,8 @@ module mod_mppparam
     type (deco1d_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
-    end if
-    if ( myid == 0 ) then
-      if ( .not. associated(xvar%iobuf) ) then
-        call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
-      end if
     end if
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz)
     if ( myid == 0 ) then
@@ -2932,6 +2943,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
+    call relmem3d(xvar%iobuf)
   end subroutine deco1d_nc_destroy_var3d
 
   subroutine deco1d_nc_create_var4d(varname,ldot,val,xvar)
@@ -2943,11 +2955,10 @@ module mod_mppparam
     integer :: istat
     integer , dimension(5) :: idims
 
-    xvar%ldot = ldot
     xvar%varname = varname
     call assignpnt(val,xvar%val)
 
-    if ( xvar%ldot ) then
+    if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
     else
@@ -2998,6 +3009,8 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
+    call getmem4d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
+                  1,xvar%nl,'var3d:iobuf')
   end subroutine deco1d_nc_create_var4d
 
   subroutine deco1d_nc_write_var4d(xvar)
@@ -3005,14 +3018,8 @@ module mod_mppparam
     type (deco1d_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: istart , icount
-    if ( .not. associated(xvar%val) .or. xvar%irec < 0 ) then
+    if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
-    end if
-    if ( myid == 0 ) then
-      if ( .not. associated(xvar%iobuf) ) then
-        call getmem4d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
-                      1,xvar%nl,'var3d:iobuf')
-      end if
     end if
     call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny, &
                                           1,xvar%nz,1,xvar%nl)
@@ -3055,6 +3062,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
+    call relmem4d(xvar%iobuf)
   end subroutine deco1d_nc_destroy_var4d
 
 end module mod_mppparam

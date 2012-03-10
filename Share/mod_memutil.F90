@@ -498,7 +498,7 @@ module mod_memutil
     call getspc1d(c1ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1ds%a%space
-    a(:) = -1
+    a(:) = -1_2
     allocate(c1ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1ds%next')
     l1ds => c1ds%next
@@ -677,7 +677,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_i(n)
     implicit none
     type(pool1d_i) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -690,7 +690,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_s(n)
     implicit none
     type(pool1d_s) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -703,7 +703,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_l(n)
     implicit none
     type(pool1d_l) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -716,7 +716,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_r(n)
     implicit none
     type(pool1d_r) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -729,7 +729,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_d(n)
     implicit none
     type(pool1d_d) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -742,7 +742,7 @@ module mod_memutil
   recursive subroutine finalize_pool1d_t(n)
     implicit none
     type(pool1d_t) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -813,7 +813,7 @@ module mod_memutil
     call getspc2d(c2ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2ds%a%space
-    a(:,:) = -1
+    a(:,:) = -1_2
     allocate(c2ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c2ds%next')
     l2ds => c2ds%next
@@ -995,7 +995,7 @@ module mod_memutil
   recursive subroutine finalize_pool2d_i(n)
     implicit none
     type(pool2d_i) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1008,7 +1008,7 @@ module mod_memutil
   recursive subroutine finalize_pool2d_s(n)
     implicit none
     type(pool2d_s) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1021,7 +1021,7 @@ module mod_memutil
   recursive subroutine finalize_pool2d_l(n)
     implicit none
     type(pool2d_l) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1034,7 +1034,7 @@ module mod_memutil
   recursive subroutine finalize_pool2d_r(n)
     implicit none
     type(pool2d_r) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1047,7 +1047,7 @@ module mod_memutil
   recursive subroutine finalize_pool2d_d(n)
     implicit none
     type(pool2d_d) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1120,7 +1120,7 @@ module mod_memutil
     call getspc3d(c3ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3ds%a%space
-    a(:,:,:) = -1
+    a(:,:,:) = -1_2
     allocate(c3ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3ds%next')
     l3ds => c3ds%next
@@ -1305,7 +1305,7 @@ module mod_memutil
   recursive subroutine finalize_pool3d_s(n)
     implicit none
     type(pool3d_s) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1318,7 +1318,7 @@ module mod_memutil
   recursive subroutine finalize_pool3d_i(n)
     implicit none
     type(pool3d_i) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1331,7 +1331,7 @@ module mod_memutil
   recursive subroutine finalize_pool3d_l(n)
     implicit none
     type(pool3d_l) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1344,7 +1344,7 @@ module mod_memutil
   recursive subroutine finalize_pool3d_r(n)
     implicit none
     type(pool3d_r) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1357,7 +1357,7 @@ module mod_memutil
   recursive subroutine finalize_pool3d_d(n)
     implicit none
     type(pool3d_d) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1432,7 +1432,7 @@ module mod_memutil
     call getspc4d(c4ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4ds%a%space
-    a(:,:,:,:) = -1
+    a(:,:,:,:) = -1_2
     allocate(c4ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4ds%next')
     l4ds => c4ds%next
@@ -1620,7 +1620,7 @@ module mod_memutil
   recursive subroutine finalize_pool4d_s(n)
     implicit none
     type(pool4d_s) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1633,7 +1633,7 @@ module mod_memutil
   recursive subroutine finalize_pool4d_i(n)
     implicit none
     type(pool4d_i) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1646,7 +1646,7 @@ module mod_memutil
   recursive subroutine finalize_pool4d_l(n)
     implicit none
     type(pool4d_l) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1659,7 +1659,7 @@ module mod_memutil
   recursive subroutine finalize_pool4d_r(n)
     implicit none
     type(pool4d_r) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1672,7 +1672,7 @@ module mod_memutil
   recursive subroutine finalize_pool4d_d(n)
     implicit none
     type(pool4d_d) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1749,7 +1749,7 @@ module mod_memutil
     call getspc5d(c5ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5ds%a%space
-    a(:,:,:,:,:) = -1
+    a(:,:,:,:,:) = -1_2
     allocate(c5ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5ds%next')
     l5ds => c5ds%next
@@ -1940,7 +1940,7 @@ module mod_memutil
   recursive subroutine finalize_pool5d_s(n)
     implicit none
     type(pool5d_s) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1953,7 +1953,7 @@ module mod_memutil
   recursive subroutine finalize_pool5d_i(n)
     implicit none
     type(pool5d_i) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1966,7 +1966,7 @@ module mod_memutil
   recursive subroutine finalize_pool5d_l(n)
     implicit none
     type(pool5d_l) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1979,7 +1979,7 @@ module mod_memutil
   recursive subroutine finalize_pool5d_r(n)
     implicit none
     type(pool5d_r) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
@@ -1992,7 +1992,7 @@ module mod_memutil
   recursive subroutine finalize_pool5d_d(n)
     implicit none
     type(pool5d_d) , intent(inout) , pointer :: n
-    if ( allocated(n%a%space) ) then
+    if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then

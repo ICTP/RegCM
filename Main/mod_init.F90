@@ -274,10 +274,10 @@ module mod_init
     call deco1_scatter(sfs_io%uvdrag,sfs%uvdrag,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(sfs_io%tgbb,sfs%tgbb,jcross1,jcross2,icross1,icross2)
 
-    call deco1_exchange_left(sfs%psa,1,icross1,icross2)
-    call deco1_exchange_right(sfs%psa,1,icross1,icross2)
-    call deco1_exchange_left(sfs%psb,1,icross1,icross2)
-    call deco1_exchange_right(sfs%psb,1,icross1,icross2)
+    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
+    call deco1_exchange_left(sfs%psb,1,ice1,ice2)
+    call deco1_exchange_right(sfs%psb,1,ice1,ice2)
 
     if ( ipptls == 1 ) then
       call deco1_scatter(fcc_io,fcc,jcross1,jcross2,icross1,icross2,1,kz)
