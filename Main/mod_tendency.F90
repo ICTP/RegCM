@@ -412,6 +412,8 @@ module mod_tendency
          end do
       end do
     end do
+    call deco1_exchange_left(qdot,1,ide1,ide2,1,kz)
+    call deco1_exchange_right(qdot,1,ide1,ide2,1,kz)
 !
 !   compute omega
 !

@@ -569,7 +569,7 @@ module mod_atm_interface
       call getmem2d(hgfact,1,jxp,idot1,idot2,'mod_atm_interface:hgfact')
       call getmem2d(psdot,1,jxp,idot1,idot2,'mod_atm_interface:psdot')
       call getmem3d(omega,1,jxp,icross1,icross2,1,kz,'mod_atm_interface:omega')
-      call getmem3d(qdot,1,jxp,idot1,idot2,1,kzp1,'mod_atm_interface:qdot')
+      call getmem3d(qdot,0,jxp+1,idot1,idot2,1,kzp1,'mod_atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
 !
