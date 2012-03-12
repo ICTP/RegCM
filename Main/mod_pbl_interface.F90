@@ -23,6 +23,7 @@ module mod_pbl_interface
   use mod_service
   use mod_constants
   use mod_dynparam
+  use mod_mppparam
   use mod_atm_interface
   use mod_pbl_common
   use mod_pbl_holtbl
@@ -348,19 +349,22 @@ module mod_pbl_interface
     !
     ! Set tke boundary conditions
     !
-    if ( myid == 0 ) then
-      atm1%tke(0:1,:,:) = tkemin ! East boundary
-      atm2%tke(-1:1,:,:) = tkemin ! East boundary
+    if ( ma%hasleft ) then
+      atm1%tke(jce1,:,:) = tkemin ! East boundary
+      atm2%tke(jce1,:,:) = tkemin ! East boundary
     end if
-    if ( myid == nproc-1 ) then
-      atm1%tke(jxp:jxp+1,:,:) = tkemin ! West boundary
-      atm2%tke(jxp:jxp+2,:,:) = tkemin ! West boundary
+    if ( ma%hasright ) then
+      atm1%tke(jce2,:,:) = tkemin ! West boundary
+      atm2%tke(jce2,:,:) = tkemin ! West boundary
     end if
-
-    atm1%tke(:,1,:) = tkemin  !North boundary
-    atm2%tke(:,1,:) = tkemin  !North boundary
-    atm1%tke(:,iy,:) = tkemin  !South boundary
-    atm2%tke(:,iy,:) = tkemin  !South boundary
+    if ( ma%hastop ) then
+      atm1%tke(:,ice2,:) = tkemin  ! South boundary
+      atm2%tke(:,ice2,:) = tkemin  ! South boundary
+    end if
+    if ( ma%hasbottom ) then
+      atm1%tke(:,ice1,:) = tkemin  ! North boundary
+      atm2%tke(:,ice1,:) = tkemin  ! North boundary
+    end if
     !
     ! End set tke boundary conditions
     !
