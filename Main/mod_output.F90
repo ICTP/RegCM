@@ -539,8 +539,6 @@ module mod_output
 !
   implicit none
 !
-  integer :: i , j , imax , jmax , jmin
- 
 !   character (len=64) :: subroutine_name='outrad'
 !   integer :: idindx=0
 ! 

@@ -2141,7 +2141,7 @@ module mod_rad_radiation
 !   Flux emitted by other layers
 !   Note: Vertical indexing here proceeds from bottom to top
 !
-    khighest = khiv(intmax(khiv,1))
+    khighest = khiv(intmax(khiv))
     do km = 3 , khighest
       km1 = kzp1 - km
       km2 = kzp2 - km
@@ -2276,6 +2276,25 @@ module mod_rad_radiation
     end do
 !
     call time_end(subroutine_name,indx)
+
+    contains
+
+      integer function intmax(imax)
+        implicit none
+        integer , dimension(:) , intent(in) :: imax
+        integer :: i , n , mx
+        intmax = 1
+        n = size(imax,1)
+        if ( n == 1 ) return
+        mx = imax(1)
+        do i = 2 , n
+          if ( imax(i) > mx ) then
+            mx = imax(i)
+            intmax = i
+          end if
+        end do
+      end function intmax
+
   end subroutine radclw
 !
 !-----------------------------------------------------------------------
@@ -4244,30 +4263,6 @@ module mod_rad_radiation
     call time_end(subroutine_name,indx)
   end subroutine radinp
 !
-  function intmax(imax,inc)
-    implicit none
-!
-    integer :: inc
-    integer :: intmax
-    integer , dimension(:) :: imax
-    intent (in) inc , imax
-    integer :: i , n , mx
-    character (len=64) :: subroutine_name='intmax'
-    integer :: indx = 0
-!
-    call time_begin(subroutine_name,indx)
-!
-    n = size(imax,1)
-    mx = imax(1)
-    intmax = 1
-    do i = 1 + inc , n , inc
-      if ( imax(i) > mx ) then
-        mx = imax(i)
-        intmax = i
-      end if
-    end do
-    call time_end(subroutine_name,indx)
-  end function intmax
 !
   function xalpha(w,uu,g,e)
     implicit none

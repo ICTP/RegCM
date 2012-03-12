@@ -565,7 +565,7 @@ module mod_rad_colmod3
 !
     integer , intent(in) :: jstart , jend , i
 !
-    integer :: j , k , kj , ncldm1
+    integer :: j , k , krev , ncldm1
     real(dp) :: ccvtem , clwtem , vmmr
 !
     real(dp) , parameter :: amd = 28.9644D0
@@ -584,18 +584,14 @@ module mod_rad_colmod3
 !   surface pressure and scaled pressure, from which level are computed
 !
     do j = jstart , jend
-      ps(j) = (sfps(j,i)+ptp)*d_10
-      do k = 1 , kz
-        pmidm1(j,k) = (sfps(j,i)*hlev(k)+ptp)*d_10
-      end do
+      ps(j) = (sfps(j,i)+ptp)*d_1000
     end do
 !
 !   convert pressures from mb to pascals and define interface pressures:
 !
-    do j = jstart , jend
-      ps(j) = ps(j)*d_100
-      do k = 1 , kz
-        pmidm1(j,k) = pmidm1(j,k)*d_100
+    do k = 1 , kz
+      do j = jstart , jend
+        pmidm1(j,k) = (sfps(j,i)*hlev(k)+ptp)*d_1000
         pmlnm1(j,k) = dlog(pmidm1(j,k))
       end do
     end do
@@ -627,8 +623,8 @@ module mod_rad_colmod3
 !
     do k = 1 , kz
       do j = jstart , jend
-        kj = kzp1 - k
-        o3mmr(j,k) = o3prof(j,i,kj)
+        krev = kzp1 - k
+        o3mmr(j,k) = o3prof(j,i,krev)
       end do
     end do
 !
