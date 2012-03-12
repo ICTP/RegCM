@@ -150,11 +150,11 @@ module mod_bdycod
       gnudge = (dxsq/dt)/50.0D0
     end if
     if ( iboudy == 1 ) then
-      do n = 1 , nspgx
+      do n = 2 , nspgx-1
         fcx(n) = fnudge*xfun(n,.false.)
         gcx(n) = gnudge*xfun(n,.false.)
       end do
-      do n = 1 , nspgd
+      do n = 2 , nspgd-1
         fcd(n) = fnudge*xfun(n,.true.)
         gcd(n) = gnudge*xfun(n,.true.)
       end do
@@ -183,7 +183,7 @@ module mod_bdycod
         else
           anudg(k) = low_nudge
         end if
-        do n = 1 , nbdm
+        do n = 2 , nbdm-1
           efc(n,k) = fnudge*xfune(n,k)
           egc(n,k) = gnudge*xfune(n,k)
         end do
@@ -1461,7 +1461,7 @@ module mod_bdycod
             if ( ibdy == 1 ) then
               xf = lfc(ib)
               xg = lgc(ib)
-            else if ( ibdy == 5 ) then
+            else
               xf = efc(ib,k)
               xg = egc(ib,k)
             end if
@@ -1485,7 +1485,7 @@ module mod_bdycod
             if ( ibdy == 1 ) then
               xf = lfc(ib)
               xg = lgc(ib)
-            else if ( ibdy == 5 ) then
+            else
               xf = efc(ib,k)
               xg = egc(ib,k)
             end if
@@ -1509,7 +1509,7 @@ module mod_bdycod
             if ( ibdy == 1 ) then
               xf = lfc(ib)
               xg = lgc(ib)
-            else if ( ibdy == 5 ) then
+            else
               xf = efc(ib,k)
               xg = egc(ib,k)
             end if
@@ -1533,7 +1533,7 @@ module mod_bdycod
             if ( ibdy == 1 ) then
               xf = lfc(ib)
               xg = lgc(ib)
-            else if ( ibdy == 5 ) then
+            else
               xf = efc(ib,k)
               xg = egc(ib,k)
             end if
@@ -1596,7 +1596,7 @@ module mod_bdycod
           if ( ibdy == 1 ) then
             xf = lfc(ib)
             xg = lgc(ib)
-          else if ( ibdy == 5 ) then
+          else
             xf = efc(ib,kz)
             xg = egc(ib,kz)
           end if
@@ -1618,7 +1618,7 @@ module mod_bdycod
           if ( ibdy == 1 ) then
             xf = lfc(ib)
             xg = lgc(ib)
-          else if ( ibdy == 5 ) then
+          else
             xf = efc(ib,kz)
             xg = egc(ib,kz)
           end if
@@ -1640,7 +1640,7 @@ module mod_bdycod
           if ( ibdy == 1 ) then
             xf = lfc(ib)
             xg = lgc(ib)
-          else if ( ibdy == 5 ) then
+          else
             xf = efc(ib,kz)
             xg = egc(ib,kz)
           end if
@@ -1662,7 +1662,7 @@ module mod_bdycod
           if ( ibdy == 1 ) then
             xf = lfc(ib)
             xg = lgc(ib)
-          else if ( ibdy == 5 ) then
+          else
             xf = efc(ib,kz)
             xg = egc(ib,kz)
           end if

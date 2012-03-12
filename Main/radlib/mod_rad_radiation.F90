@@ -142,8 +142,8 @@ module mod_rad_radiation
 ! klov    - Cloud lowest level index
 ! khiv    - Cloud highest level index
 ! khivm   - khiv(j) - 1
-  integer , pointer , dimension(:) :: jjndx , khiv , khivm , klov
-  logical , pointer , dimension(:) :: done , start
+  integer , pointer , dimension(:) :: khiv , khivm , klov
+  logical , pointer , dimension(:) :: seldo , done , start
 !
 !     These arrays are defined for kz model layers; 0 refers to the
 !     extra layer on top:
@@ -533,7 +533,7 @@ module mod_rad_radiation
     call getmem1d(ux,1,jxp,'radiation:ux')
     call getmem1d(taugab,1,jxp,'radiation:taugab')
     call getmem1d(tauray,1,jxp,'radiation:tauray')
-    call getmem1d(jjndx,1,jxp,'radiation:jjndx')
+    call getmem1d(seldo,1,jxp,'radiation:seldo')
     call getmem1d(khiv,1,jxp,'radiation:khiv')
     call getmem1d(khivm,1,jxp,'radiation:khivm')
     call getmem1d(klov,1,jxp,'radiation:klov')
@@ -1856,8 +1856,8 @@ module mod_rad_radiation
 !---------------------------Local variables-----------------------------
 !
     real(dp) :: absbt , bk1 , bk2 , tmp1
-    integer :: j , jj , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
-               km3 , km4 , jjind , irad , n , nradaer
+    integer :: j , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
+               km3 , km4 , irad , n , nradaer
 !
     character (len=64) :: subroutine_name='radclw'
     integer :: indx = 0
@@ -1923,14 +1923,18 @@ module mod_rad_radiation
         end if
       end do
     end do
-    call whenne(klov,jstart,jend,1,0,jjndx,jjind)
+    where ( klov > 0 )
+      seldo = .true.
+    else where
+      seldo = .false.
+    end where
     do j = jstart , jend
       khiv(j) = klov(j)
       done(j) = .false.
     end do
     do k = kz , 1 , -1
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( .not.done(j) .and. cld(j,kzp2-k) > d_zero ) then
           done(j) = .true.
           khiv(j) = k
@@ -1943,8 +1947,8 @@ module mod_rad_radiation
 !
 !   Note: Vertical indexing here proceeds from bottom to top
 !
-    do jj = 1 , jjind
-      j = jjndx(jj)
+    do j = jstart , jend
+      if ( .not. seldo(j) ) cycle
       do k = klov(j) , khiv(j)
         fclt4(j,kzp1-k) = stebol*tint4(j,kzp2-k)
         fclb4(j,kzp1-k) = stebol*tint4(j,kzp3-k)
@@ -2117,12 +2121,16 @@ module mod_rad_radiation
 !   those locations where there are clouds
 !   (total cloud fraction <= 1.e-3 treated as clear)
 !
-    call whenflt(tclrsf(:,kzp1),jstart,jend,1,verynearone,jjndx,jjind)
+    where ( tclrsf(:,kzp1) < verynearone )
+      seldo = .true.
+    else where
+      seldo = .false.
+    end where
 !
 !   Compute downflux at level 1 for cloudy sky
 !
-    do jj = 1 , jjind
-      j = jjndx(jj)
+    do j = jstart , jend
+      if ( .not. seldo(j) ) cycle
 !
 !     First clear sky flux plus flux from cloud at level 1
 !
@@ -2138,8 +2146,8 @@ module mod_rad_radiation
       km1 = kzp1 - km
       km2 = kzp2 - km
       km4 = kzp4 - km
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( km <= khiv(j) ) then
           tmp1 = cld(j,km2)*tclrsf(j,kz)*rtclrsf(j,km2)
           fdl(j,kzp1) = fdl(j,kzp1) + (fclb4(j,km1)-s(j,kzp1,km4))*tmp1
@@ -2153,8 +2161,8 @@ module mod_rad_radiation
       k1 = kzp1 - k
       k2 = kzp2 - k
       k3 = kzp3 - k
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( k >= klov(j) .and. k <= khivm(j) ) then
           ful(j,k2) = fsul(j,k2)*(tclrsf(j,kzp1)*rtclrsf(j,k1))
         end if
@@ -2163,8 +2171,8 @@ module mod_rad_radiation
         km1 = kzp1 - km
         km2 = kzp2 - km
         km3 = kzp3 - km
-        do jj = 1 , jjind
-          j = jjndx(jj)
+        do j = jstart , jend
+          if ( .not. seldo(j) ) cycle
 !
           if ( k <= khivm(j) .and. km >= klov(j) .and. km <= khivm(j)) then
             ful(j,k2) = ful(j,k2) + (fclt4(j,km1)+s(j,k2,k3)-s(j,k2,km3)) * &
@@ -2180,8 +2188,8 @@ module mod_rad_radiation
       do j = jstart , jend
         start(j) = .false.
       end do
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( k >= khiv(j) ) then
           start(j) = .true.
           ful(j,k2) = fsul(j,k2)*tclrsf(j,kzp1)*rtclrsf(j,kzp1-khiv(j))
@@ -2191,8 +2199,8 @@ module mod_rad_radiation
         km1 = kzp1 - km
         km2 = kzp2 - km
         km3 = kzp3 - km
-        do jj = 1 , jjind
-          j = jjndx(jj)
+        do j = jstart , jend
+          if ( .not. seldo(j) ) cycle
           if ( start(j) .and. km >= klov(j) .and. km <= khiv(j) ) then
             ful(j,k2) = ful(j,k2) + (cld(j,km2)*tclrsf(j,km1)* &
                   rtclrsf(j,kzp1-khiv(j)))*(fclt4(j,km1)+s(j,k2,k3)-s(j,k2,km3))
@@ -2207,16 +2215,16 @@ module mod_rad_radiation
       k1 = kzp1 - k
       k2 = kzp2 - k
       k3 = kzp3 - k
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( k <= khivm(j) ) fdl(j,k2) = d_zero
       end do
       do km = k + 1 , khighest
         km1 = kzp1 - km
         km2 = kzp2 - km
         km4 = kzp4 - km
-        do jj = 1 , jjind
-          j = jjndx(jj)
+        do j = jstart , jend
+          if ( .not. seldo(j) ) cycle
 !
           if ( k <= khiv(j) .and. &
                km >= max0(k+1,klov(j)) .and. km <= khiv(j) ) then
@@ -2225,8 +2233,8 @@ module mod_rad_radiation
           end if
         end do
       end do ! km = k+1 , khighest
-      do jj = 1 , jjind
-        j = jjndx(jj)
+      do j = jstart , jend
+        if ( .not. seldo(j) ) cycle
         if ( k <= khivm(j) ) then
           fdl(j,k2) = fdl(j,k2) + &
                   fsdl(j,k2)*(tclrsf(j,k1)*rtclrsf(j,kzp1-khiv(j)))
@@ -4236,85 +4244,6 @@ module mod_rad_radiation
     call time_end(subroutine_name,indx)
   end subroutine radinp
 !
-  subroutine wheneq(iarray,is,ie,inc,itarg,iind,nval)
-    implicit none
-!
-    integer :: inc , itarg , nval , is , ie
-    integer , dimension(:) :: iarray , iind
-    intent (in) iarray , inc , itarg
-    intent (out) iind
-    intent (inout) nval
-    integer :: i , n
-    character (len=64) :: subroutine_name='wheneq'
-    integer :: indx = 0
-!
-    call time_begin(subroutine_name,indx)
-!
-    n = ie-is+1
-    if ( n < 0 ) return
-    nval = 0
-    do i = is , ie , inc
-      if ( iarray(i) == itarg ) then
-        nval = nval + 1
-        iind(nval) = i
-      end if
-    end do
-    call time_end(subroutine_name,indx)
-  end subroutine wheneq
-!
-  subroutine whenne(iarray,is,ie,inc,itarg,iind,nval)
-    implicit none
-!
-    integer :: inc , itarg , nval , is , ie
-    integer , dimension(:) :: iarray , iind
-    intent (in) iarray , inc , itarg
-    intent (out) iind
-    intent (inout) nval
-    integer :: i , n
-    character (len=64) :: subroutine_name='whenne'
-    integer :: indx = 0
-!
-    call time_begin(subroutine_name,indx)
-!
-    n = ie-is+1
-    if ( n < 0 ) return
-    nval = 0
-    do i = is , ie , inc
-      if ( iarray(i) /= itarg ) then
-        nval = nval + 1
-        iind(nval) = i
-      end if
-    end do
-    call time_end(subroutine_name,indx)
-  end subroutine whenne
-!
-  subroutine whenflt(array,is,ie,inc,rtarg,iind,nval)
-    implicit none
-!
-    integer :: inc , nval , is , ie
-    real(dp) :: rtarg
-    real(dp) , dimension(:) :: array
-    integer , dimension(:) :: iind
-    intent (in) array , inc , rtarg
-    intent (out) iind , nval
-    integer :: i , n
-    character (len=64) :: subroutine_name='whenflt'
-    integer :: indx = 0
-!
-    call time_begin(subroutine_name,indx)
-!
-    n = ie-is+1
-    nval = 0
-    if ( n < 0 ) return
-    do i = is , ie , inc
-      if ( array(i) < rtarg ) then
-        nval = nval + 1
-        iind(nval) = i
-      end if
-    end do
-    call time_end(subroutine_name,indx)
-  end subroutine whenflt
-!
   function intmax(imax,inc)
     implicit none
 !
@@ -4331,7 +4260,7 @@ module mod_rad_radiation
     n = size(imax,1)
     mx = imax(1)
     intmax = 1
-    do i = 1 + inc , inc*n , inc
+    do i = 1 + inc , n , inc
       if ( imax(i) > mx ) then
         mx = imax(i)
         intmax = i

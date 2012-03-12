@@ -323,11 +323,8 @@ module mod_regcm_interface
     call deco1d_nc_create('ta',cross,atm1%t,tax)
     call deco1d_nc_create('qa',cross,atm1%qv,qax)
 
-    call deco1d_nc_create('uten',dot,aten%u,uaten)
-    call deco1d_nc_create('vten',dot,aten%v,vaten)
     call deco1d_nc_create('tten',cross,aten%t,taten)
-    call deco1d_nc_create('qvten',cross,aten%qv,qvaten)
-    call deco1d_nc_create('qcten',cross,aten%qc,qcaten)
+    call deco1d_nc_create('heatrt',cross,heatrt,aheat)
 
     call deco1d_nc_write(psa)
     call deco1d_nc_write(psb)
@@ -415,11 +412,7 @@ module mod_regcm_interface
     call deco1d_nc_destroy(vax)
     call deco1d_nc_destroy(tax)
     call deco1d_nc_destroy(qax)
-    call deco1d_nc_destroy(uaten)
-    call deco1d_nc_destroy(vaten)
     call deco1d_nc_destroy(taten)
-    call deco1d_nc_destroy(qvaten)
-    call deco1d_nc_destroy(qcaten)
 #endif
     call time_print(6,'evolution phase')
 !

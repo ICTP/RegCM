@@ -96,7 +96,8 @@ module mod_runparams
 #ifdef DEBUG
   type(deco1d_nc_var2d) :: psa , psb
   type(deco1d_nc_var3d) :: uax , vax , tax , qax
-  type(deco1d_nc_var3d) :: uaten , vaten , taten , qvaten , qcaten
+  type(deco1d_nc_var3d) :: aheat
+  type(deco1d_nc_var3d) :: taten
 #endif
 
   type output_variable
