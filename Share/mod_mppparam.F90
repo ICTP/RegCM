@@ -160,6 +160,7 @@ module mod_mppparam
   real(sp) , pointer , dimension(:) :: r4vector2
   integer , pointer , dimension(:) :: i4vector1
   integer , pointer , dimension(:) :: i4vector2
+  integer :: mpierr
 !
   public :: deco1_scatter , deco1_gather
   public :: subgrid_deco1_scatter , subgrid_deco1_gather
@@ -178,51 +179,50 @@ module mod_mppparam
 
   subroutine broadcast_params
     implicit none
-    integer :: ierr
 
-    call mpi_barrier(mycomm,ierr)
+    call mpi_barrier(mycomm,mpierr)
 
-    call mpi_bcast(iy,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(jx,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(kz,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(nsg,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(nveg,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(iy,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(jx,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(kz,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nsg,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nveg,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(iproj,6,mpi_character,0,mycomm,ierr)
-    call mpi_bcast(ds,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(ptop,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(clat,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(clon,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(plat,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(plon,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(truelatl,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(truelath,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(i_band,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(iproj,6,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(ds,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(ptop,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(clat,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(clon,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(plat,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(plon,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(truelatl,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(truelath,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(i_band,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(domname,64,mpi_character,0,mycomm,ierr)
+    call mpi_bcast(domname,64,mpi_character,0,mycomm,mpierr)
 
-    call mpi_bcast(ibyte,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(ibyte,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(debug_level,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(dbgfrq,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(debug_level,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(dbgfrq,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(nspgx,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(nspgd,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(high_nudge,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(medium_nudge,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(low_nudge,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(nspgx,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nspgd,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(high_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(medium_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(low_nudge,1,mpi_real8,0,mycomm,mpierr)
 
-    call mpi_bcast(calendar,12,mpi_character,0,mycomm,ierr)
-    call mpi_bcast(ical,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(dayspy,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(dpd,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(calendar,12,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(ical,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(dayspy,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(dpd,1,mpi_real8,0,mycomm,mpierr)
 
-    call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(aertyp,7,mpi_character,0,mycomm,ierr)
-    call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(aertyp,7,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(ntr,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,mpierr)
 
     ! Setup all convenience dimensions
 
@@ -274,22 +274,22 @@ module mod_mppparam
       niout = iout2-iout1+1
     end if
 
-    call mpi_barrier(mycomm,ierr)
+    call mpi_barrier(mycomm,mpierr)
 
   end subroutine broadcast_params
 
-  subroutine date_bcast(x,from,comm,ierr)
+  subroutine date_bcast(x,from,comm,mpierr)
     type (rcm_time_and_date) , intent(inout) :: x
     integer , intent(in) :: from , comm
-    integer , intent(out) :: ierr
+    integer , intent(out) :: mpierr
     integer :: lerr
-    ierr = 0
+    mpierr = 0
     call mpi_bcast(x%calendar,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
+    mpierr = mpierr+lerr
     call mpi_bcast(x%days_from_reference,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
+    mpierr = mpierr+lerr
     call mpi_bcast(x%second_of_day,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
+    mpierr = mpierr+lerr
   end subroutine date_bcast
 !
   subroutine deco1_1d_real8_scatter(mg,ml)
@@ -302,8 +302,7 @@ module mod_mppparam
 #endif
     real(dp) , pointer , dimension(:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:) , intent(out) :: ml ! model local
-    integer :: ierr
-    call mpi_scatter(mg,jxp,mpi_real8,ml,jxp,mpi_real8,0,mycomm,ierr)
+    call mpi_scatter(mg,jxp,mpi_real8,ml,jxp,mpi_real8,0,mycomm,mpierr)
   end subroutine deco1_1d_real8_scatter
 !
   subroutine deco1_1d_real8_gather(ml,mg)
@@ -316,8 +315,7 @@ module mod_mppparam
 #endif
     real(dp) , pointer , dimension(:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:) , intent(out) :: mg ! model global
-    integer :: ierr
-    call mpi_gather(ml,jxp,mpi_real8,mg,jxp,mpi_real8,0,mycomm,ierr)
+    call mpi_gather(ml,jxp,mpi_real8,mg,jxp,mpi_real8,0,mycomm,mpierr)
   end subroutine deco1_1d_real8_gather
 !
   subroutine deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
@@ -331,7 +329,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -356,7 +354,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r8vector1,lsize,mpi_real8, &
                      r8vector2,lsize,mpi_real8, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -389,7 +387,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -426,7 +424,7 @@ module mod_mppparam
     end if
     call mpi_gather(r8vector2,lsize,mpi_real8, &
                     r8vector1,lsize,mpi_real8, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize+1
       do j = j1 , j2
@@ -449,7 +447,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -478,7 +476,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r8vector1,lsize,mpi_real8, &
                      r8vector2,lsize,mpi_real8, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -513,7 +511,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -554,7 +552,7 @@ module mod_mppparam
     end if
     call mpi_gather(r8vector2,lsize,mpi_real8, &
                     r8vector1,lsize,mpi_real8, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize+1
       do j = j1 , j2
@@ -579,7 +577,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -611,7 +609,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r8vector1,lsize,mpi_real8, &
                      r8vector2,lsize,mpi_real8, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -648,7 +646,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -692,7 +690,7 @@ module mod_mppparam
     end if
     call mpi_gather(r8vector2,lsize,mpi_real8, &
                     r8vector1,lsize,mpi_real8, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nsize+1
       do j = j1 , j2
@@ -719,7 +717,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -744,7 +742,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r4vector1,lsize,mpi_real4, &
                      r4vector2,lsize,mpi_real4, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -777,7 +775,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -814,7 +812,7 @@ module mod_mppparam
     end if
     call mpi_gather(r4vector2,lsize,mpi_real4, &
                     r4vector1,lsize,mpi_real4, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize+1
       do j = j1 , j2
@@ -837,7 +835,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -866,7 +864,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r4vector1,lsize,mpi_real4, &
                      r4vector2,lsize,mpi_real4, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -901,7 +899,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -942,7 +940,7 @@ module mod_mppparam
     end if
     call mpi_gather(r4vector2,lsize,mpi_real4, &
                     r4vector1,lsize,mpi_real4, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize+1
       do j = j1 , j2
@@ -967,7 +965,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -999,7 +997,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r4vector1,lsize,mpi_real4, &
                      r4vector2,lsize,mpi_real4, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1036,7 +1034,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1080,7 +1078,7 @@ module mod_mppparam
     end if
     call mpi_gather(r4vector2,lsize,mpi_real4, &
                     r4vector1,lsize,mpi_real4, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nsize+1
       do j = j1 , j2
@@ -1107,7 +1105,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -1132,7 +1130,7 @@ module mod_mppparam
     end if
     call mpi_scatter(i4vector1,lsize,mpi_integer, &
                      i4vector2,lsize,mpi_integer, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1165,7 +1163,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , isize , gsize , lsize , js , je
+    integer :: ib , i , j , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx
     lsize = isize*jxp
@@ -1202,7 +1200,7 @@ module mod_mppparam
     end if
     call mpi_gather(i4vector2,lsize,mpi_integer, &
                     i4vector1,lsize,mpi_integer, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize+1
       do j = j1 , j2
@@ -1225,7 +1223,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1254,7 +1252,7 @@ module mod_mppparam
     end if
     call mpi_scatter(i4vector1,lsize,mpi_integer, &
                      i4vector2,lsize,mpi_integer, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1289,7 +1287,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , js , je
+    integer :: ib , i , j , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1330,7 +1328,7 @@ module mod_mppparam
     end if
     call mpi_gather(i4vector2,lsize,mpi_integer, &
                     i4vector1,lsize,mpi_integer, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize+1
       do j = j1 , j2
@@ -1355,7 +1353,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1387,7 +1385,7 @@ module mod_mppparam
     end if
     call mpi_scatter(i4vector1,lsize,mpi_integer, &
                      i4vector2,lsize,mpi_integer, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1424,7 +1422,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ierr , ib , i , j , k , n , js , je
+    integer :: ib , i , j , k , n , js , je
     integer :: isize , ksize , nsize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1468,7 +1466,7 @@ module mod_mppparam
     end if
     call mpi_gather(i4vector2,lsize,mpi_integer, &
                     i4vector1,lsize,mpi_integer, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nsize+1
       do j = j1 , j2
@@ -1495,7 +1493,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*nnsg*jx
     lsize = isize*nnsg*jxp
@@ -1522,7 +1520,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r8vector1,lsize,mpi_real8, &
                      r8vector2,lsize,mpi_real8, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1557,7 +1555,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*nnsg*jx
     lsize = isize*nnsg*jxp
@@ -1596,7 +1594,7 @@ module mod_mppparam
     end if
     call mpi_gather(r8vector2,lsize,mpi_real8, &
                     r8vector1,lsize,mpi_real8, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*nnsg+1
       do j = j1 , j2
@@ -1621,7 +1619,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: ib , i , j , nn , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1652,7 +1650,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r8vector1,lsize,mpi_real8, &
                      r8vector2,lsize,mpi_real8, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1689,7 +1687,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , nn , js , je
+    integer :: ib , i , j , k , nn , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1732,7 +1730,7 @@ module mod_mppparam
     end if
     call mpi_gather(r8vector2,lsize,mpi_real8, &
                     r8vector1,lsize,mpi_real8, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nnsg+1
       do j = j1 , j2
@@ -1759,7 +1757,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx*nnsg
     lsize = isize*jxp*nnsg
@@ -1786,7 +1784,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r4vector1,lsize,mpi_real4, &
                      r4vector2,lsize,mpi_real4, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1821,7 +1819,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx*nnsg
     lsize = isize*jxp*nnsg
@@ -1860,7 +1858,7 @@ module mod_mppparam
     end if
     call mpi_gather(r4vector2,lsize,mpi_real4, &
                     r4vector1,lsize,mpi_real4, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*nnsg+1
       do j = j1 , j2
@@ -1885,7 +1883,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: ib , i , j , nn , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1916,7 +1914,7 @@ module mod_mppparam
     end if
     call mpi_scatter(r4vector1,lsize,mpi_real4, &
                      r4vector2,lsize,mpi_real4, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -1953,7 +1951,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , k , nn , js , je
+    integer :: ib , i , j , k , nn , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -1996,7 +1994,7 @@ module mod_mppparam
     end if
     call mpi_gather(r4vector2,lsize,mpi_real4, &
                     r4vector1,lsize,mpi_real4, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nnsg+1
       do j = j1 , j2
@@ -2023,7 +2021,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx*nnsg
     lsize = isize*jxp*nnsg
@@ -2050,7 +2048,7 @@ module mod_mppparam
     end if
     call mpi_scatter(i4vector1,lsize,mpi_integer, &
                      i4vector2,lsize,mpi_integer, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -2085,7 +2083,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ierr , ib , i , j , nn , isize , gsize , lsize , js , je
+    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
     isize = i2-i1+1
     gsize = isize*jx*nnsg
     lsize = isize*jxp*nnsg
@@ -2124,7 +2122,7 @@ module mod_mppparam
     end if
     call mpi_gather(i4vector2,lsize,mpi_integer, &
                     i4vector1,lsize,mpi_integer, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*nnsg+1
       do j = j1 , j2
@@ -2149,7 +2147,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: ib , i , j , nn , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2180,7 +2178,7 @@ module mod_mppparam
     end if
     call mpi_scatter(i4vector1,lsize,mpi_integer, &
                      i4vector2,lsize,mpi_integer, &
-                     0,mycomm,ierr)
+                     0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
       je = jxp
@@ -2217,7 +2215,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ierr , ib , i , j , nn , k , js , je
+    integer :: ib , i , j , nn , k , js , je
     integer :: isize , ksize , gsize , lsize
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2260,7 +2258,7 @@ module mod_mppparam
     end if
     call mpi_gather(i4vector2,lsize,mpi_integer, &
                     i4vector1,lsize,mpi_integer, &
-                    0,mycomm,ierr)
+                    0,mycomm,mpierr)
     if ( myid == 0 ) then
       ib = (j1-1)*isize*ksize*nnsg+1
       do j = j1 , j2
@@ -2287,7 +2285,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , i , j , ib
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
@@ -2312,7 +2309,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
                       r8vector2,ssize,mpi_real8,ieast,2, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( ieast /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
@@ -2335,7 +2332,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , j , i , ib
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
@@ -2360,7 +2356,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
                       r8vector2,ssize,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( iwest /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
@@ -2383,7 +2379,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2412,7 +2407,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
                       r8vector2,ssize,mpi_real8,ieast,2, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( ieast /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
@@ -2437,7 +2432,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2466,7 +2460,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
                       r8vector2,ssize,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( iwest /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
@@ -2492,7 +2486,6 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2525,7 +2518,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
                       r8vector2,ssize,mpi_real8,ieast,2, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( ieast /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
@@ -2553,7 +2546,6 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
-    integer :: ierr
     if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -2586,7 +2578,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
                       r8vector2,ssize,mpi_real8,iwest,1, &
-                      mycomm,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,mpierr)
     if ( iwest /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
