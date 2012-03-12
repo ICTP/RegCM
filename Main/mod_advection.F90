@@ -31,8 +31,8 @@ module mod_advection
    
   public :: init_advection, hadv , vadv
 
-  real(dp) , pointer , dimension(:,:,:) :: u    ! U wind * ps
-  real(dp) , pointer , dimension(:,:,:) :: v    ! V wind * ps
+  real(dp) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
+  real(dp) , pointer , dimension(:,:,:) :: va   ! V wind * ps
   real(dp) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(dp) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(dp) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
@@ -64,8 +64,8 @@ module mod_advection
       real(dp) , pointer , dimension(:,:,:) :: vertvel
       integer , pointer , dimension(:,:) :: kpbltop
 
-      call assignpnt(atm%u,u)
-      call assignpnt(atm%v,v)
+      call assignpnt(atm%u,ua)
+      call assignpnt(atm%v,va)
       call assignpnt(sfs%psa,ps)
       call assignpnt(dom%msfx,mapfx)
       call assignpnt(dom%msfd,mapfd)
@@ -124,16 +124,16 @@ module mod_advection
           do k = 1 , nk
             do i = idi1 , idi2
               do j = jdi1 , jdi2
-                ucmona = u(j,i+1,k)+d_two*u(j,i,k)+u(j,i-1,k)
-                vcmona = v(j+1,i,k)+d_two*v(j,i,k)+v(j-1,i,k)
-                ucmonb = u(j+1,i+1,k) + d_two*u(j+1,i,k) + &
-                         u(j+1,i-1,k) + ucmona
-                vcmonb = v(j+1,i+1,k) + d_two*v(j,i+1,k) + &
-                         v(j-1,i+1,k) + vcmona
-                ucmonc = u(j-1,i+1,k) + d_two*u(j-1,i,k) + &
-                         u(j-1,i-1,k) + ucmona
-                vcmonc = v(j+1,i-1,k) + d_two*v(j,i-1,k) + &
-                         v(j-1,i-1,k) + vcmona
+                ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+                vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                         ua(j+1,i-1,k) + ucmona
+                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                         va(j-1,i+1,k) + vcmona
+                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                         ua(j-1,i-1,k) + ucmona
+                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                         va(j-1,i-1,k) + vcmona
                 ften(j,i,k) = ften(j,i,k) -                  &
                             ((f(j+1,i,k)+f(j,i,k))*ucmonb -  &
                              (f(j,i,k)+f(j-1,i,k))*ucmonc +  &
@@ -156,10 +156,10 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k) = ften(j,i,k) -                             &
-                    ((u(j+1,i+1,k)+u(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
-                     (u(j,i+1,k)+u(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
-                     (v(j+1,i+1,k)+v(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
-                     (v(j+1,i,k)+v(j,i,k)) *   (f(j,i-1,k)+f(j,i,k))) / &
+                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
+                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
+                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
+                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k))) / &
                      (dx4*mapfx(j,i)*mapfx(j,i))
               end do
             end do
@@ -172,8 +172,8 @@ module mod_advection
           do k = 1 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ucmonb = d_half*(u(j+1,i+1,k)+u(j+1,i,k))
-                ucmona = d_half*(u(j,i+1,k)+u(j,i,k))
+                ucmonb = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
+                ucmona = d_half*(ua(j,i+1,k)+ua(j,i,k))
                 if ( ucmonb >= d_zero ) then
                   fx2 = fact1*f(j,i,k) + fact2*f(j+1,i,k)
                 else
@@ -184,8 +184,8 @@ module mod_advection
                 else
                   fx1 = fact1*f(j,i,k) + fact2*f(j-1,i,k)
                 end if
-                vcmonb = d_half*(v(j+1,i+1,k)+v(j,i+1,k))
-                vcmona = d_half*(v(j+1,i,k)+v(j,i,k))
+                vcmonb = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
+                vcmona = d_half*(va(j+1,i,k)+va(j,i,k))
                 if ( vcmonb >= d_zero ) then
                   fy2 = fact1*f(j,i,k) + fact2*f(j,i+1,k)
                 else

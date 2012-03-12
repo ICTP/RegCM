@@ -120,8 +120,8 @@ module mod_precip
 !
     integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(dp) :: dpovg , es , afc , p , pptacc , pptkm1 , pptmax ,   &
-               pptnew , q , qcincld , qcleft , qcw , qs , rdevap , &
+    real(dp) :: dpovg , es , afc , ppa , pptacc , pptkm1 , pptmax ,   &
+               pptnew , qcincld , qcleft , qcw , qs , rdevap , &
                rh , rhcs , rho , tcel , thog , tk , prainx
     integer :: i , j , k , kk
 !
@@ -151,11 +151,10 @@ module mod_precip
         if ( afc > 0.01D0 ) then !   if there is a cloud
 !       1aa. Compute temperature and humidities with the adjustments
 !            due to convection.
-          q = qv3(j,i,1)                                     ![kg/kg][avg]
           tk = t3(j,i,1)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = p3(j,i,1)*d_1000                               ![Pa][avg]
-          rho = p/(rgas*tk)                                  ![kg/m3][avg]
+          ppa = p3(j,i,1)*d_1000                             ![Pa][avg]
+          rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qc3(j,i,1)                                   ![kg/kg][avg]
 !         1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
@@ -212,11 +211,10 @@ module mod_precip
      
 !         1ba. Compute temperature and humidities with the adjustments
 !              due to convection.
-          q = qv3(j,i,k)                                     ![kg/kg][avg]
           tk = t3(j,i,k)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = p3(j,i,k)*d_1000                               ![Pa][avg]
-          rho = p/(rgas*tk)                                  ![kg/m3][avg]
+          ppa = p3(j,i,k)*d_1000                             ![Pa][avg]
+          rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qc3(j,i,k)                                   ![kg/kg][avg]
           afc = fcc(j,i,k)                                   ![frac][avg]
           if ( tcel > d_zero ) then
@@ -224,8 +222,8 @@ module mod_precip
           else
             es = svp4*d_1000*dexp(svp5-svp6/tk)              ![Pa][avg]
           end if
-          qs = ep2*es/(p-es)                                 ![kg/kg][avg]
-          rh = dmin1(dmax1(q/qs,d_zero),rhmax)               ![frac][avg]
+          qs = ep2*es/(ppa-es)                               ![kg/kg][avg]
+          rh = dmin1(dmax1(qv3(j,i,k)/qs,d_zero),rhmax)      ![frac][avg]
      
 !         1bb. Convert accumlated precipitation to kg/kg/s.
 !              Used for raindrop evaporation and accretion.
@@ -244,7 +242,7 @@ module mod_precip
 !           2bcb. Raindrop evaporation [kg/kg/s]
             rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
                                                              ![kg/kg/s][avg]
-            rdevap = dmin1((qs-q)/dt,rdevap)                 ![kg/kg/s][avg]
+            rdevap = dmin1((qs-qv3(j,i,k))/dt,rdevap)        ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
 !           2bcc. Update the precipitation accounting for the raindrop
 !                 evaporation [kg/m2/s]

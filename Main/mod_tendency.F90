@@ -152,7 +152,7 @@ module mod_tendency
 
     call deco1_exchange_left(sfs%psa,1,ice1,ice2)
     call deco1_exchange_right(sfs%psa,1,ice1,ice2)
-    call psc2psd(sfs%psb,psdot)
+    call psc2psd(sfs%psa,psdot)
     !
     ! Internal U,V points
     !
@@ -589,6 +589,7 @@ module mod_tendency
 !   compute the horizontal advection term:
 !
     call hadv(cross,aten%t,atmx%t,kz,1)
+    call deco1d_nc_write(taten)
 !
 !   compute the vertical advection term:
 !
@@ -601,6 +602,7 @@ module mod_tendency
         call vadv(cross,aten%t,atm1%t,kz,1)
       end if
     end if
+    call deco1d_nc_write(taten)
 !
 !   compute the adiabatic term:
 !
@@ -614,6 +616,7 @@ module mod_tendency
         end do
       end do
     end do
+    call deco1d_nc_write(taten)
 !
 !   compute the diffusion term for t and store in difft:
 !
@@ -633,6 +636,7 @@ module mod_tendency
 !   icup = 98: emanuel over land, grell over ocean
 !
     call hadv(cross,aten%qv,atmx%qv,kz,1)
+    call deco1d_nc_write(qvaten)
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(cross,aten%qv,atm1%qv,kz,2)
@@ -644,6 +648,7 @@ module mod_tendency
         end if
       end if
     end if
+    call deco1d_nc_write(qvaten)
     !
     ! Zero out radiative clouds
     !
@@ -665,9 +670,15 @@ module mod_tendency
     if ( icup == 5 ) then
       call tiedtkedrv(jci1,jci2,ici1,ici2,ktau)
     end if
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
+    call deco1d_nc_write(taten)
+    call deco1d_nc_write(qvaten)
+    call deco1d_nc_write(qcaten)
 
     if ( ipptls == 1 ) then
       call hadv(cross,aten%qc,atmx%qc,kz,2)
+      call deco1d_nc_write(qcaten)
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(cross,aten%qc,atm1%qc,kz,5)
       else
@@ -677,8 +688,14 @@ module mod_tendency
           call vadv(cross,aten%qc,atm1%qc,kz,5)
         end if
       end if
+      call deco1d_nc_write(qcaten)
       call pcp(jci1,jci2,ici1,ici2)
       call cldfrac(jci1,jci2,ici1,ici2)
+      call deco1d_nc_write(uaten)
+      call deco1d_nc_write(vaten)
+      call deco1d_nc_write(taten)
+      call deco1d_nc_write(qvaten)
+      call deco1d_nc_write(qcaten)
 !
 !     need also to set diffq to 0 here before calling diffut
 !
@@ -691,6 +708,7 @@ module mod_tendency
 !
       call diffu_x(adf%diffq,atms%qvb3d,sfs%psb,xkc,kz)
       call diffu_x(aten%qc,atms%qcb3d,sfs%psb,xkc,kz)
+      call deco1d_nc_write(qcaten)
     end if
 !
     if ( ichem == 1 ) then
@@ -833,6 +851,8 @@ module mod_tendency
       call deco1_exchange_left(sfs%uvdrag,1,ice1,ice2)
       call holtbl(jci1,jci2,ici1,ici2)
     end if
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 
     if ( ibltyp == 99 ) then
       call check_conserve_qt(holtten%qv,holtten%qc,uwten,uwstateb,kz)
@@ -851,6 +871,7 @@ module mod_tendency
         end do
       end do
     end do
+    call deco1d_nc_write(taten)
 !
 !   add horizontal diffusion and pbl tendencies for t and qv to aten%t
 !   and aten%qv for calculating condensational term in subroutine
@@ -878,6 +899,8 @@ module mod_tendency
 !
       call condtq(jci1,jci2,ici1,ici2,psc)
     end if
+    call deco1d_nc_write(taten)
+    call deco1d_nc_write(qvaten)
 !
 !   subtract horizontal diffusion and pbl tendencies from aten%t and
 !   aten%qv for appling the sponge boundary conditions on t and qv:
@@ -923,6 +946,8 @@ module mod_tendency
       call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
       call nudge(kz,ba_cr,xtm1,atm2%qv,iboudy,xqb,aten%qv)
     end if
+    call deco1d_nc_write(taten)
+    call deco1d_nc_write(qvaten)
 
     if ( ichem == 1 ) then
       ! keep nudge_chi for now 
@@ -1086,6 +1111,8 @@ module mod_tendency
 !
     call hadv(dot,aten%u,atmx%u,kz,3)
     call hadv(dot,aten%v,atmx%v,kz,3)
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   compute coriolis terms:
 !
@@ -1099,6 +1126,8 @@ module mod_tendency
         end do
       end do
     end do
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   compute pressure gradient terms:
 !
@@ -1149,6 +1178,8 @@ module mod_tendency
         end do
       end do
     end if
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   compute geopotential height at half-k levels, cross points:
 !
@@ -1220,11 +1251,15 @@ module mod_tendency
         end do
       end do
     end do
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   compute the vertical advection terms:
 !
     call vadv(dot,aten%u,atm1%u,kz,4)
     call vadv(dot,aten%v,atm1%v,kz,4)
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   apply the sponge boundary condition on u and v:
 !
@@ -1241,6 +1276,8 @@ module mod_tendency
       call nudge(kz,ba_dt,xtm1,atm2%u,iboudy,xub,aten%u)
       call nudge(kz,ba_dt,xtm1,atm2%v,iboudy,xvb,aten%v)
     end if
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   add the diffusion and pbl tendencies to aten%u and aten%v:
 !
@@ -1252,6 +1289,8 @@ module mod_tendency
         end do
       end do
     end do
+    call deco1d_nc_write(uaten)
+    call deco1d_nc_write(vaten)
 !
 !   forecast p*u and p*v at tau+1:
 !
