@@ -35,6 +35,23 @@ module mod_bats_mtrxbats
 
   private
 
+  !
+  ! Solar flux partitioned at wavelength of 0.7micr
+  !
+  real(dp) , parameter :: fsol1 = 0.5D0
+  real(dp) , parameter :: fsol2 = 0.5D0
+  !
+  ! Short and long wave albedo for new snow
+  !
+  real(dp) , parameter :: snal0 = 0.95D0
+  real(dp) , parameter :: snal1 = 0.65D0
+  !
+  ! Short and long wave albedo for sea ice
+  !
+  real(dp) , parameter :: sical0 = 0.6D0
+  real(dp) , parameter :: sical1 = 0.4D0
+  !
+
   public :: interf , initb , mtrxbats , albedobats
 
   contains
@@ -242,7 +259,6 @@ module mod_bats_mtrxbats
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
-
           if ( ldmsk1(n,j,i) == 2 ) then
             if ( lseaice .or. llake ) then
               sfice(n,j,i) = d_1000
@@ -255,7 +271,7 @@ module mod_bats_mtrxbats
             nlveg = iveg1(n,j,i)
           end if
 !         Initialize soil moisture in the 3 layers
-          is = idint(lndcat1(n,j,i))
+          is = iveg1(n,j,i)
           itex = iexsol(nlveg)
           tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(is)
           rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(is)
@@ -679,8 +695,7 @@ module mod_bats_mtrxbats
     real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-               dralbs , fsol1 , fsol2 , sfac , sical0 , sical1 , sl , &
-               sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet , amxtem
+               dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet , amxtem
     real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer :: kolour , n , i , j
@@ -701,18 +716,6 @@ module mod_bats_mtrxbats
         end do
       end do
     end do
-    !
-    ! 1.1 constants
-    !
-    ! Solar flux partitioned at wavelength of 0.7micr
-    fsol1 = 0.5D0
-    fsol2 = 0.5D0
-    ! Short and long wave albedo for new snow
-    snal0 = 0.95D0
-    snal1 = 0.65D0
-    ! Short and long wave albedo for sea ice
-    sical0 = 0.6D0
-    sical1 = 0.4D0
     !
     ! Desert seasonal albedo
     ! Works for Sahara desert and generally northern emisphere
@@ -769,6 +772,12 @@ module mod_bats_mtrxbats
             if ( czeta >= d_zero ) then
               ! albedo independent of wavelength
               albg = 0.05D0/(czeta+0.15D0)
+              albgs = albg
+              albgl = albg
+              albgsd = 0.08D0
+              albgld = 0.08D0
+            else
+              albg = 0.05D0
               albgs = albg
               albgl = albg
               albgsd = 0.08D0

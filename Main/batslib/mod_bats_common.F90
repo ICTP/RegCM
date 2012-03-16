@@ -208,7 +208,7 @@ module mod_bats_common
     call getmem2d(fsw,1,jxp,1,iym1,'bats_internal:fsw')
     call getmem2d(fracd,1,jxp,1,iym1,'bats_internal:fracd')
     call getmem2d(solis,1,jxp,1,iym1,'bats_internal:solis')
-    call getmem2d(coszrs,1,jxp,1,iy,'bats:coszrs')
+    call getmem2d(coszrs,1,jxp,1,iym1,'bats:coszrs')
     call getmem2d(sabveg,1,jxp,1,iym1,'bats:sabveg')
     call getmem2d(albvl,1,jxp,1,iym1,'bats:albvl')
     call getmem2d(albvs,1,jxp,1,iym1,'bats:albvs')

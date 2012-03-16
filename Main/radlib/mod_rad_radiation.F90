@@ -330,8 +330,8 @@ module mod_rad_radiation
 ! fbari    - f coefficient for asymmetry parameter
 !
   real(dp) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
-                            cbarl , dbari , dbarl , ebari , ebarl , &
-                            fbari , fbarl
+                             cbarl , dbari , dbarl , ebari , ebarl , &
+                             fbari , fbarl
 !
 ! Next series depends on spectral interval
 !
@@ -349,8 +349,8 @@ module mod_rad_radiation
 ! nirwgt   - Weight for intervals to simulate satellite filter
 !
   real(dp) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
-                               frcsol , nirwgt , pco2 , ph2o , &
-                               po2 , raytau , wavmax , wavmin
+                                frcsol , nirwgt , pco2 , ph2o , &
+                                po2 , raytau , wavmax , wavmin
 !
 ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
 !
@@ -896,7 +896,7 @@ module mod_rad_radiation
 !   Solar radiation computation
 !
     if ( dosw ) then
-!
+
       czen(:) = coszen(:,i)
       czengt0(:) = coszgt0(:,i)
 !
@@ -913,6 +913,7 @@ module mod_rad_radiation
 !     Convert units of shortwave fields needed by rest of model from CGS to MKS
 !
       do j = jstart , jend
+
         solin(j) = solin(j)*1.0D-3
         fsnt(j) = fsnt(j)*1.0D-3
         fsns(j) = fsns(j)*1.0D-3
@@ -1231,13 +1232,6 @@ module mod_rad_radiation
 !
     qrs(:,:) = d_zero
 !
-    do k = 1 , kz
-      do j = jstart , jend
-        pdel = pint(j,k+1) - pint(j,k)
-        path = pdel*regravgts
-      end do
-    end do
-!
 !   Define solar incident radiation and interface pressures:
 !
     do j = jstart , jend
@@ -1496,7 +1490,6 @@ module mod_rad_radiation
 !     below by adding succesive layers starting from the surface and
 !     working upwards:
 !
-
       do j = jstart , jend
         if ( czengt0(j) ) then
           rupdir(j,kzp1) = diralb(j,i)

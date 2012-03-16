@@ -104,7 +104,7 @@ module mod_rad_colmod3
 
       call getmem1d(ioro,1,jxp,'colmod3:ioro')
 
-      call getmem2d(coszgt0,1,jxp,1,iy,'colmod3:coszgt0')
+      call getmem2d(coszgt0,1,jxp,1,iym1,'colmod3:coszgt0')
 
     end subroutine allocate_mod_rad_colmod3
 !
@@ -309,7 +309,7 @@ module mod_rad_colmod3
       rei(:,:) = d_zero
       rel(:,:) = d_zero
       tm1(:,:) = d_zero
-      ioro(:) = 0
+      ioro(:) = -1
 !
 !     Set parameters dosw , dolw , doabsems
 !
@@ -566,10 +566,11 @@ module mod_rad_colmod3
     integer , intent(in) :: jstart , jend , i
 !
     integer :: j , k , krev , ncldm1
-    real(dp) :: ccvtem , clwtem , vmmr
+    real(dp) :: ccvtem , clwtem
 !
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
+    real(dp) , parameter :: vmmr = amo/amd
     character (len=64) :: subroutine_name='getdat'
     integer :: indx = 0
 !
@@ -616,15 +617,6 @@ module mod_rad_colmod3
       do j = jstart , jend
         h2ommr(j,k) = dmax1(1.0D-7,qvatms(j,i,k))
         qm1(j,k) = h2ommr(j,k)
-      end do
-    end do
-!
-!   o3 mass mixing ratio
-!
-    do k = 1 , kz
-      do j = jstart , jend
-        krev = kzp1 - k
-        o3mmr(j,k) = o3prof(j,i,krev)
       end do
     end do
 !
@@ -677,11 +669,10 @@ module mod_rad_colmod3
 !   end do
 !
 !   set cloud fractional cover at top model level = 0
+!
     do j = jstart , jend
-      cld(j,1) = d_zero
-      cld(j,2) = d_zero       !yhuang, 8/97 two-level
-      clwp(j,1) = d_zero
-      clwp(j,2) = d_zero
+      cld(j,1:2) = d_zero
+      clwp(j,1:2) = d_zero
     end do
 !
 !   set cloud fractional cover at bottom (ncld) model levels = 0
@@ -692,12 +683,6 @@ module mod_rad_colmod3
         cld(j,k) = d_zero
         clwp(j,k) = d_zero
       end do
-    end do
-!
-!   ground temperature
-!
-    do j = jstart , jend
-      ts(j) = tground(j,i)
     end do
 !
 !   cloud cover (at surface interface always zero)
@@ -711,6 +696,12 @@ module mod_rad_colmod3
       end do
     end do
 !
+!   ground temperature
+!
+    do j = jstart , jend
+      ts(j) = tground(j,i)
+    end do
+!
 !   pressure of tropopause
 !
     do j = jstart , jend
@@ -718,11 +709,12 @@ module mod_rad_colmod3
       ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
     end do
 !
-!   Convert ozone mass mixing ratio to ozone volume mixing ratio:
+!   o3 mass and volume mixing ratios
 !
-    vmmr = amo/amd
     do k = 1 , kz
       do j = jstart , jend
+        krev = kzp1 - k
+        o3mmr(j,k) = o3prof(j,i,krev)
         o3vmr(j,k) = o3mmr(j,k)/vmmr
       end do
     end do

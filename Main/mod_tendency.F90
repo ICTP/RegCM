@@ -732,10 +732,10 @@ module mod_tendency
 !
 !     calculate albedo
 !
-#ifdef CLM
-      call albedoclm(xmonth,jci1,jci2,ici1,ici2)
-#else
+#ifndef CLM
       call albedobats(xmonth,jci1,jci2,ici1,ici2)
+#else
+      call albedoclm(xmonth,jci1,jci2,ici1,ici2)
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( irrtm == 1 ) then
@@ -758,9 +758,7 @@ module mod_tendency
       if ( ktau == 0 ) dtbat = dt
       call mtrxbats(jci1,jci2,ici1,ici2,ktau)
     end if
-#endif
- 
-#ifdef CLM
+#else
 !
 !   call mtrxclm for surface physics calculations
 !

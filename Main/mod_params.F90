@@ -1143,8 +1143,8 @@ module mod_params
 #ifndef CLM
       if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
 #endif
-      do j = 1 , jx
-        do i = 1 , iy
+      do i = idot1 , idot2
+        do j = jdot1 , jdot2
           ht1_io(1,j,i) = mddom_io%ht(j,i)*egrav
           lndcat1_io(1,j,i) = mddom_io%lndcat(j,i)
           xlat1_io(1,j,i) = mddom_io%xlat(j,i)
@@ -1156,8 +1156,8 @@ module mod_params
 !
 !------invert mapscale factors and convert hgt to geopotential
 !
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = idot1 , idot2
+      do j = jdot1 , jdot2
         mddom_io%ht(j,i)   = mddom_io%ht(j,i)*egrav
         mddom_io%msfd(j,i) = d_one/mddom_io%msfd(j,i)
         mddom_io%msfx(j,i) = d_one/mddom_io%msfx(j,i)
@@ -1187,36 +1187,36 @@ module mod_params
 
   end if  ! end if (myid == 0)
 
-  call deco1_scatter(mddom_io%ht,mddom%ht,1,jx,1,iy)
-  call deco1_scatter(mddom_io%lndcat,mddom%lndcat,1,jx,1,iy)
-  call deco1_scatter(mddom_io%xlat,mddom%xlat,1,jx,1,iy)
-  call deco1_scatter(mddom_io%xlon,mddom%xlon,1,jx,1,iy)
-  call deco1_scatter(mddom_io%msfx,mddom%msfx,1,jx,1,iy)
-  call deco1_scatter(mddom_io%msfd,mddom%msfd,1,jx,1,iy)
-  call deco1_scatter(mddom_io%coriol,mddom%coriol,1,jx,1,iy)
+  call deco1_scatter(mddom_io%ht,mddom%ht,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%lndcat,mddom%lndcat,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%xlat,mddom%xlat,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%xlon,mddom%xlon,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%msfx,mddom%msfx,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%msfd,mddom%msfd,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%coriol,mddom%coriol,jdot1,jdot2,idot1,idot2)
 
-  call subgrid_deco1_scatter(ht1_io,ht1,1,jx,1,iy)
-  call subgrid_deco1_scatter(lndcat1_io,lndcat1,1,jx,1,iy)
-  call subgrid_deco1_scatter(xlat1_io,xlat1,1,jx,1,iy)
-  call subgrid_deco1_scatter(xlon1_io,xlon1,1,jx,1,iy)
+  call subgrid_deco1_scatter(ht1_io,ht1,jdot1,jdot2,idot1,idot2)
+  call subgrid_deco1_scatter(lndcat1_io,lndcat1,jdot1,jdot2,idot1,idot2)
+  call subgrid_deco1_scatter(xlat1_io,xlat1,jdot1,jdot2,idot1,idot2)
+  call subgrid_deco1_scatter(xlon1_io,xlon1,jdot1,jdot2,idot1,idot2)
 
 #ifndef CLM
   if ( lakemod == 1 ) then
-    call subgrid_deco1_scatter(dhlake1_io,dhlake1,1,jx,1,iy)
+    call subgrid_deco1_scatter(dhlake1_io,dhlake1,jdot1,jdot2,idot1,idot2)
   endif
 #endif
 ! 
-  call deco1_exchange_left(mddom%ht,1,1,iy)
-  call deco1_exchange_right(mddom%ht,1,1,iy)
-  call deco1_exchange_left(mddom%msfx,2,1,iy)
-  call deco1_exchange_right(mddom%msfx,2,1,iy)
-  call deco1_exchange_left(mddom%msfd,2,1,iy)
-  call deco1_exchange_right(mddom%msfd,2,1,iy)
+  call deco1_exchange_left(mddom%ht,1,idi1,idi2)
+  call deco1_exchange_right(mddom%ht,1,idi1,idi2)
+  call deco1_exchange_left(mddom%msfx,2,idi1,idi2)
+  call deco1_exchange_right(mddom%msfx,2,idi1,idi2)
+  call deco1_exchange_left(mddom%msfd,2,idi1,idi2)
+  call deco1_exchange_right(mddom%msfd,2,idi1,idi2)
 !
 !-----compute land/water mask on subgrid space
 !
-   do j = jce1 , jce2
-     do i = ice1 , ice2
+   do i = ice1 , ice2
+     do j = jce1 , jce2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
             mddom%lndcat(j,i) < 15.5D0 ) then
          ldmsk(j,i) = 0

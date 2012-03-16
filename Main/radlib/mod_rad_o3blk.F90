@@ -95,9 +95,9 @@ module mod_rad_o3blk
     o3wrk(k) = o3ann(k)
     ppwrk(k) = ppann(k)
   end do
-!
-!     calculate half pressure levels for model and data levels
-!
+  !
+  ! calculate half pressure levels for model and data levels
+  !
   do i = istart , iend
     do j = jstart , jend
       do k = kzp1 , 1 , -1
