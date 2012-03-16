@@ -385,34 +385,6 @@ module mod_output
       call deco1_gather(aldifl2d,aldifl2d_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(lndcat2d,lndcat2d_io,jcross1,jcross2,icross1,icross2)
 #endif
- 
-!      if ( ichem == 1 ) then
-!        call deco1_gather(chia,chia_io, &
-!                          jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-!        call deco1_gather(chib,chib_io, &
-!                          jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-!        call deco1_gather(remlsc,remlsc_io, &
-!                          jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-!        call deco1_gather(remcvc,remcvc_io, &
-!                          jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-!        call deco1_gather(remdrd,remdrd_io, &
-!                          jcross1,jcross2,icross1,icross2,1,ntr)
-!        call deco1_gather(ssw2da,ssw2da_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(sdeltk2d,sdeltk2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(sdelqk2d,sdelqk2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(sfracv2d,sfracv2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(sfracb2d,sfracb2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(sfracs2d,sfracs2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!        call deco1_gather(svegfrac2d,svegfrac2d_io, &
-!                          jcross1,jcross2,icross1,icross2)
-!      end if
-
       if ( idcsst == 1 ) then
         call deco1_gather(dtskin,dtskin_io,jcross1,jcross2,icross1,icross2)
         call deco1_gather(deltas,deltas_io,jcross1,jcross2,icross1,icross2)

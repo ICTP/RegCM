@@ -711,7 +711,7 @@ module mod_tendency
 
       end do ! end tracer loop
       !
-      ! Compute chemistry tendencies (other yhan transport)
+      ! Compute chemistry tendencies (other than transport)
       !
       sod = dble(idatex%second_of_day)
  !     call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
@@ -903,12 +903,12 @@ module mod_tendency
       call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
       call nudge(kz,ba_cr,xtm1,atm2%qv,iboudy,xqb,aten%qv)
     end if
-
+!
     if ( ichem == 1 ) then
       ! keep nudge_chi for now 
       if ( iboudy == 1 .or. iboudy == 5 ) then
         xtm1 = xbctime - dtsec
-          call nudge_chi(kz,xtm1,cba_cr,chib,iboudy,chiten)
+        call nudge_chi(kz,xtm1,cba_cr,chib,iboudy,chiten)
       end if
     end if
 !
