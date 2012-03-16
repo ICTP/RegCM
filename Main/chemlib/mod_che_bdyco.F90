@@ -336,9 +336,9 @@ implicit none
     !-----set boundary values for p*qv:
     !
     
-    if (ktau==0 .and. ifrest)  return
+ !   if (ktau==0 .and. ifrest)  return
 
-    if ( ktau > 0 ) then
+    if ( ktau > 1 ) then
        !
        ! West boundary
        !
@@ -397,7 +397,7 @@ implicit none
           end do
        end if
 
-    end if  !end if (ktau > 0) test
+    end if  !end if (ktau > 1) test
 
 
 
