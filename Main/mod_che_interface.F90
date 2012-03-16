@@ -20,7 +20,7 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , domain, surfstate
+  use mod_atm_interface , only : slice , domain, surfstate,bound_area
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -40,7 +40,7 @@ module mod_che_interface
   contains 
 !
   subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms, &
-                       mddom,sfs,fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
+                       mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
                        twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,icutop,icubot)
 
@@ -61,7 +61,7 @@ module mod_che_interface
     type(slice) , intent(in) :: atms
     type(domain), intent(in):: mddom
     type (surfstate) , intent(in) :: sfs
-
+    type(bound_area) , intent(in) :: ba_cr
     real(dp) , pointer , dimension(:) :: a , anudg
     real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
@@ -113,7 +113,24 @@ module mod_che_interface
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   
 
+!!$!
+  cba_cr%dotflag = ba_cr%dotflag
+  cba_cr%havebound = ba_cr%havebound
+ call assignpnt(ba_cr%bsouth, cba_cr%bsouth)   
+ call assignpnt(ba_cr%bnorth, cba_cr%bnorth)   
+ call assignpnt(ba_cr%beast, cba_cr%beast)   
+ call assignpnt(ba_cr%bwest, cba_cr%bwest)   
+ call assignpnt(ba_cr%ibnd, cba_cr%ibnd)   
+
+ cba_cr%ns = ba_cr%ns
+ cba_cr%nn = ba_cr%nn
+ cba_cr%ne = ba_cr%ne
+ cba_cr%nw = ba_cr%nw
+ cba_cr%nsp = ba_cr%nsp
 !!$
+
+
+!$
 ! Peform chemistry initialisation
 
 !   call start_chem(ifrest)

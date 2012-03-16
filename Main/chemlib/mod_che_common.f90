@@ -82,9 +82,9 @@ module mod_che_common
                                              rxsaq1 , rxsaq2 , rxsg
 
 
-!***************************************************************************
-!INTERFACE VARIABLES  for chemistry / regcm 
-!**************************************************************************
+!*************************************************************************************************
+!INTERFACE VARIABLES  for chemistry / regcm : the pointer targets are defined in mod_che_interface
+!***************************************************************************************************
 
   real(dp) :: ccalday, crdxsq
   real(dp) , pointer , dimension(:,:,:,:) ::chib3d
@@ -96,6 +96,19 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:) :: czen
   real(dp) :: chptop
 
+ type cbound_area
+    logical :: dotflag
+    logical :: havebound
+    logical , pointer , dimension(:,:) :: bsouth
+    logical , pointer , dimension(:,:) :: bnorth
+    logical , pointer , dimension(:,:) :: beast
+    logical , pointer , dimension(:,:) :: bwest
+    integer :: ns , nn , ne , nw
+    integer :: nsp
+    integer , pointer , dimension(:,:) :: ibnd
+  end type cbound_area
+
+    type(cbound_area) :: cba_cr
 
 contains
 
@@ -103,10 +116,50 @@ contains
     implicit none
 
     integer , intent(in) :: ichem
+    integer :: ib,jb
+    integer :: is,ie,js,je
+
+     
+
 
     if ( ichem == 1 ) lch = .true.
 
     if ( lch ) then
+
+! tracer variables 
+        ib=0
+        jb=2
+        is = idot1-ib
+        ie = idot2+ib
+        js = 1-jb
+        je = jxp+jb
+      call getmem4d(chia,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chia')
+      call getmem4d(chib,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chib')
+
+        ib=0
+        jb=1
+        is = idot1-ib
+        ie = idot2+ib
+        js = 1-jb
+        je = jxp+jb
+      call getmem4d(chi,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chi')
+
+        ib=0
+        jb=0
+        is = idot1-ib
+        ie = idot2+ib
+        js = 1-jb
+        je = jxp+jb
+
+      call getmem4d(chic,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chic')
+      call getmem4d(chiten,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chiten')
+
+! FAB rewrite more elegantly above 
+
+      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
+      
+
+
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
       call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'mod_che_common:cemtrac')
       call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'mod_che_common:remdrd')
@@ -127,14 +180,7 @@ contains
 
       call getmem4d(chemall,1,jxp,1,iy,1,kz,1,totsp,'mod_che_common:chemall')
 
-      call getmem4d(chi,0,jxp+1,1,iy,1,kz,1,ntr,'mod_che_common:chi')
-      call getmem4d(chic,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chic')
-      call getmem4d(chiten,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chiten')
-      call getmem4d(chemten,1,jxp,1,iy,1,kz,1,ntr,'mod_che_common:chiten')
-      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
-      call getmem4d(chia,-1,jxp+2,1,iy,1,kz,1,ntr,'mod_che_common:chia')
-      call getmem4d(chib,-1,jxp+2,1,iy,1,kz,1,ntr,'mod_che_common:chib')
-
+     
       call getmem3d(taucld,1,iy,1,kz,1,jxp,'mod_che_common:taucld')
       call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
       call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_common:ddsfc')
@@ -152,6 +198,11 @@ contains
 
 
     end if
+
+
+    
+
+
 
   end subroutine allocate_mod_che_common
 !

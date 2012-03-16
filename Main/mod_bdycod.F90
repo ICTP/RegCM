@@ -531,6 +531,9 @@ module mod_bdycod
       end do
     end do
 
+
+    if (ichem ==1) call chem_bdyin(dtbdys,intbdy ) 
+
     if ( myid == 0 ) then
       write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
@@ -1200,6 +1203,9 @@ module mod_bdycod
       call set_tke_bc(atm1,atm2)
     end if
 !
+    if (ichem==1) call chem_bdyval(xt,nbdytime,dtbdys,ktau,ifrest)
+
+
     call time_end(subroutine_name,idindx)
 !
   end subroutine bdyval

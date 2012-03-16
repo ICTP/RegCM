@@ -435,27 +435,6 @@ module mod_tendency
         end do
       end do
     end do
-
-    if ( ichem == 1 ) then
-#ifndef BAND
-      call deco1_exchange_left(chieb,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chieb,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_left(chiebt,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chiebt,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_left(chiwb,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chiwb,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_left(chiwbt,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chiwbt,1,ice1,ice2,1,kz,1,ntr)
-#endif
-      call deco1_exchange_left(chinb,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_right(chinb,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_left(chinbt,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_right(chinbt,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_left(chisb,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_right(chisb,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_left(chisbt,1,1,nspgx,1,kz,1,ntr)
-      call deco1_exchange_right(chisbt,1,1,nspgx,1,kz,1,ntr)
-    end if
 !
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
@@ -735,7 +714,7 @@ module mod_tendency
       ! Compute chemistry tendencies (other yhan transport)
       !
       sod = dble(idatex%second_of_day)
-      call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
+ !     call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
       !
     end if ! ichem
 !
@@ -931,9 +910,7 @@ module mod_tendency
       ! keep nudge_chi for now 
       if ( iboudy == 1 .or. iboudy == 5 ) then
         xtm1 = xbctime - dtsec
-        do j = jci1 , jci2
-          call nudge_chi(nspgx-1,fnudge,gnudge,xtm1,chiten(j,:,:,:),j,iboudy)
-        end do
+          call nudge_chi(kz,xtm1,cba_cr,chib,iboudy,chiten)
       end if
     end if
 !

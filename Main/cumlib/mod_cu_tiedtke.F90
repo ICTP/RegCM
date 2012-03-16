@@ -150,7 +150,7 @@ module mod_cu_tiedtke
             ii = i - 1
             ! tracers input profile : implicit loop on tracer
             pxtm1(ii,k,:) = chias(j,i,k,:)
-            pxtte(ii,k,:) = tchiten(i,k,j,:)/sfcps(j,i)
+            pxtte(ii,k,:) = tchiten(j,i,k,:)/sfcps(j,i)
           end do 
         end do
       else
@@ -255,7 +255,7 @@ module mod_cu_tiedtke
             qvten(j,i,k) = pqte(ii,k)  * sfcps(j,i)
             qcten(j,i,k) = pxlte(ii,k) * sfcps(j,i)
             if ( lchem ) then
-              tchiten(i,k,j,:) = pxtte(ii,k,:) * sfcps(j,i)
+              tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
             end if
           end if
         end do

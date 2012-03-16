@@ -78,7 +78,7 @@ module mod_che_output
             end do
           end do
           do j = 1 , jxp
-            do i = 1 , iy
+            do i = 1 , iym1
               chem0(i,(ntr+3)*kz+ntr*8+5,j) = cpsb(j,i)
             end do
           end do

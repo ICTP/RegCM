@@ -944,7 +944,7 @@ module mod_params
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
     call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms, &
-                   mddom,sfs,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,   &
+                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,   &
                    twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
                    sdelqk2d,ssw2da,icumtop,icumbot)
  end if

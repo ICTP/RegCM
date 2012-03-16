@@ -22,6 +22,7 @@
     use mod_dynparam
     use mod_che_common
 !    use mod_mpmessage
+ 
     use mod_che_indices
     use mod_che_bdyco
     use mod_che_wetdep
@@ -43,7 +44,7 @@
 
 !----------------------------------------------------------------------------------------------------
 
-subroutine start_chem (ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
+subroutine start_chem (ice1,ice2,jce1,jce2,ifrest,idate1,intbdy,dtbdys )
 !  use mpi
   implicit none
  
@@ -53,7 +54,9 @@ subroutine start_chem (ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
   integer              :: ierr,err
   integer              :: itr,i,k,j,ibin,jbin,kbin
 
-   type (rcm_time_and_date) :: bdydate1, bdydate2
+  type (rcm_time_and_date) :: idate1
+   type(rcm_time_interval)::  intbdy
+   real (dp) :: dtbdys
 !fab provisoir
   logical :: lband
 
@@ -344,10 +347,13 @@ kbin=0
 end if 
 
   lband = .false. !! provisoire!
+  call setup_che_bdycon(hlev)
+
   call init_mod_che_ncio(lband) 
 
-  call chem_initial_state(ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
-
+!  call chem_initial_state(ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2)
+  
+   call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
 
 
  print*, 'aprese chem_initial'
@@ -357,149 +363,5 @@ end if
 
 
  end subroutine start_chem
-!----------------------------------------------------------------
-
-
-    subroutine chem_initial_state(ice1,ice2,jce1,jce2,ifrest,bdydate1, bdydate2 )
-
-#ifndef IBM
-    use mpi
-#else
-   include 'mpif.h'
-#endif
-
-
-       use mod_che_indices
-
-    implicit none
-
-    logical , intent(in) :: ifrest
-    integer, intent (in) :: ice1,ice2,jce1,jce2
-    integer    :: i,j,k,n,ierr
-   type (rcm_time_and_date) :: icbc_date
-    type (rcm_time_and_date), intent(in) :: bdydate1, bdydate2
-
-
-  if ( myid == 0 ) then
-    if ( bdydate1 == globidate1 ) then
-      icbc_date = bdydate1
-    else
-      icbc_date = monfirst(bdydate1)
-    end if
-    call open_chbc(icbc_date)
- 
-    call read_chbc(chebdy_io)
-  print*, myid,'avant', maxval(chebdy_io)
-    end if
-
-   
-  
-
-    call deco1_scatter(chebdy_io,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
-
-    print*, myid,'apres', maxval(chebdy)
-!
-! FAB :ICI il faut peut etre echanger proc les tableau chebdy et /ou chib0 pour etre coherent avec mod_init 
-!
-
-!!$! intialise the chib0 tracer
-!!$
-  do n=1,25 
-    do k = 1 , kz
-       do i = ice1,ice2 
-          do j = jce1,jce2 
-              if(ichbdy2trac(n) > 0) chib0(j,i,k,ichbdy2trac(n))   =  chebdy(j,i,k,n)*cpsb(j,i)
-          end do
-       end do
-    end do
-  end do
-
-
-if (.not.ifrest ) then
-    do k = 1 , kz
-       do i = ice1,ice2 
-          do j = jce1,jce2        
-              chia(j,i,k,:) =   chib0(j,i,k,:) 
-              chib(j,i,k,:) =   chib0(j,i,k,:)
-         end do
-         end do
-         end do
-
-end if
-
-
-
-
-
-
-
-
-
-
-
-!!$
-!!$ open and read oxydant fields and initial /boundary conditions are set to zero) 
-!!$
-!!$     if (igaschem==0) then !*** abt added: only for simple sulfate chemistry
-!!$
-!!$      if (myid ==0 ) then
-!!$
-!!$     call open_oxcl(icbc_date)
-!!$      
-!!$     call read_oxcl(ndate0,                            &
-!!$           ohc0_io,ho2c0_io,o3c0_io,no3c0_io, h2o2c0_io) 
-!!$
-!!$
-!!$      do j = 1 , jx
-!!$         do k = 1 , kz
-!!$            do i = 1 , iy
-!!$               savch_0(i,k       ,j)  = ohc0_io(i,k,j)
-!!$               savch_0(i,kz    +k,j)  = ho2c0_io(i,k,j)
-!!$               savch_0(i,kz*2  +k,j)  = o3c0_io(i,k,j)
-!!$               savch_0(i,kz*3  +k,j)  = no3c0_io(i,k,j)
-!!$               savch_0(i,kz*4  +k,j)  = h2o2c0_io(i,k,j)
-!!$            end do
-!!$         end do
-!!$      end do
-!!$
-!!$      end if
-!!$
-!!$!       Start transmission of data to other processors
-!!$! nb here use already existing savch* arrays (dimensionned to 25), even if 5 variables are relevant( maybe more in the future)
-!!$      call mpi_scatter(savch_0,iy*kz*25*jxp,mpi_real8,         &
-!!$                       savch0, iy*kz*25*jxp,mpi_real8,         &
-!!$                       0,mpi_comm_world,ierr)
-!!$
-!!$
-!!$      do j = 1 , jxp
-!!$         do k = 1 , kz
-!!$            do i = 1 , iy
-!!$               ohc0(i,k,j)        = savch0(i,      k,j)
-!!$               ho2c0(i,k,j)        = savch0(i,kz  +k,j)
-!!$               o3c0(i,k,j)       = savch0(i,kz*2  +k,j)
-!!$               no3c0(i,k,j)      = savch0(i,kz*3  +k,j)
-!!$               h2o2c0(i,k,j)      = savch0(i,kz*4 +k,j)
-!!$            end do
-!!$         end do
-!!$      end do
-!!$           
-!!$     end if !end of igaschem condition
-!!$
-!!$
-!!$
-!!$
-!!$
-!!$
-
-
-
-
-
-
-
-   end subroutine chem_initial_state
-
-
-
 
   end module mod_che_start

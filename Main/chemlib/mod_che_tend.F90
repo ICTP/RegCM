@@ -362,7 +362,7 @@
 
       chemten(:,:,:,:) = d_zero
      
-      if ( igaschem == 1 ) then   
+      if ( igaschem == 1 .AND. 1==2 ) then   
       kchsolv = idnint(dtchsolv / dtche)
       kchsolv = 6 ! for the moment
    

@@ -397,6 +397,8 @@ module mod_init
       call deco1_scatter(sfracs2d_io,sfracs2d,jcross1,jcross2,icross1,icross2)
       call deco1_scatter(svegfrac2d_io,svegfrac2d, &
                          jcross1,jcross2,icross1,icross2)
+
+
     end if
 
     if ( idcsst == 1 ) then
@@ -548,6 +550,12 @@ module mod_init
     call rrtmg_lw_ini(cpd)
   end if
 !
+! chemistry initialisation
+   if (ichem==1) call start_chem(ice1,ice2,jce1,jce2,ifrest,idate1,intbdy,dtbdys)
+
+
+
+
   call time_end(subroutine_name,idindx)
 !
 ! Formats for printout

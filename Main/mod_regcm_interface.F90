@@ -235,15 +235,6 @@ module mod_regcm_interface
 !
     call init
 !
-    if ( ichem == 1 ) then
-      call start_chem(ice1,ice2,jce1,jce2,ifrest,bdydate1,bdydate2)
-    end if
-!
-    if ( .not. ifrest ) then
-      if ( ichem == 1 ) then
-        call chem_bdyin(150D00, bdydate1, bdydate2)
-      end if
-    end if
 !
 !**********************************************************************
 !
@@ -276,9 +267,6 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call bdyval(xbctime)
-    if ( ichem == 1 ) then
-      call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
-    end if
 !
 !**********************************************************************
 !
@@ -372,15 +360,13 @@ module mod_regcm_interface
           ! Read in new boundary conditions
           !
           call bdyin
-          if ( ichem == 1 ) call chem_bdyin(150D00, bdydate1, bdydate2)
+
         end if
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
         call bdyval(xbctime)
-        if ( ichem == 1 ) then
-          call chem_bdyval(xbctime,nbdytime,dtbdys,ktau,ifrest)
-        end if
+
       end if
       !
       ! Write output for this timestep if requested
