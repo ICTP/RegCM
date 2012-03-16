@@ -747,19 +747,17 @@ module mod_tendency
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
 !
-!   calculate albedo
+!   call radiative transfer package
 !
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+!
+!     calculate albedo
+!
 #ifdef CLM
       call albedoclm(xmonth,jci1,jci2,ici1,ici2)
 #else
       call albedobats(xmonth,jci1,jci2,ici1,ici2)
 #endif
-    end if
-!
-!   call radiative transfer package
-!
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( irrtm == 1 ) then
         call rrtmg_driver(jci1,jci2,ici1,ici2,xyear,eccf,loutrad)

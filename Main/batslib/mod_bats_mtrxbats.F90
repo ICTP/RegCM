@@ -761,10 +761,21 @@ module mod_bats_mtrxbats
           albvl_s(n) = d_zero
           ! 
           !================================================================
-          !       2.   get albedo over land
+          !       2.   get albedo
           !================================================================
           !
-          if ( ldmsk1(n,j,i) == 2 ) then
+          if ( ldmsk1(n,j,i) == 0 ) then
+            ! ocean albedo depends on zenith angle
+            if ( czeta >= d_zero ) then
+              ! albedo independent of wavelength
+              albg = 0.05D0/(czeta+0.15D0)
+              albgs = albg
+              albgl = albg
+              albgsd = 0.08D0
+              albgld = 0.08D0
+            end if
+          else if ( ldmsk1(n,j,i) == 2 ) then
+            ! Ice over ocean or lake
             tdiffs = sts(n,j,i) - tzero
             tdiff = dmax1(tdiffs,d_zero)
             tdiffs = dmin1(tdiff,20.0D0)
@@ -774,6 +785,7 @@ module mod_bats_mtrxbats
             albgsd = albgs
             albgld = albgl
           else if ( ldmsk1(n,j,i) == 1 ) then
+            ! Land
             sfac = d_one - fseas(tgbrd(n,j,i))
             !
             ! ccm tests here on land mask for veg and soils data
@@ -827,60 +839,47 @@ module mod_bats_mtrxbats
               albgld = albg
             end if
           end if
-          ! ===================================================================
+          ! ==============================================================
           ! 4.  correct for snow cover
-          ! ===================================================================
-          if ( sncv(n,j,i) > d_zero ) then
-            ! Snow albedo depends on snow-age, zenith angle, and thickness
-            ! of snow. snow albedoes for visible and ir solar rad visible
-            ! albedo depends on snow age
-            ! age gives reduction of visible rad snow albedo due to age
-            cons = 0.2D0
-            conn = 0.5D0
-            age = (d_one-d_one/(d_one+snag(n,j,i)))
-            ! sl helps control albedo zenith dependence
-            sl = d_two
-            sli = d_one/sl
-            sl2 = d_two*sl
-            ! snal0= new snow albedo for vis rad, sol zen le 6
-            ! snal1= new snow albedo for long-wave rad
-            dfalbs = snal0*(d_one-cons*age)
-            ! czf corrects albedo of new snow for solar zenith
-            cf1 = ((d_one+sli)/(d_one+sl2*coszrs(j,i))-sli)
-            cff = dmax1(cf1,d_zero)
-            czf = 0.4D0*cff*(d_one-dfalbs)
-            dralbs = dfalbs + czf
-            dfalbl = snal1*(d_one-conn*age)
-            czf = 0.4D0*cff*(d_one-dfalbl)
-            dralbl = dfalbl + czf
-            if ( lncl(n,j,i) > 0.001D0 ) then
-              ! effective albedo over vegetation with snow
-              albl = (d_one-wt(n,j,i))*albl + dralbl*wt(n,j,i)
-              albld = (d_one-wt(n,j,i))*albld + dfalbl*wt(n,j,i)
-              albs = (d_one-wt(n,j,i))*albs + dralbs*wt(n,j,i)
-              albsd = (d_one-wt(n,j,i))*albsd + dfalbs*wt(n,j,i)
-            end if
-            !----------------------------------------------------------------
-            !         4.1  compute albedo for snow on bare ground
-            !----------------------------------------------------------------
-            albgs = (d_one-scvk(n,j,i))*albgs + dralbs*scvk(n,j,i)
-            albgl = (d_one-scvk(n,j,i))*albgl + dralbl*scvk(n,j,i)
-            albgsd = (d_one-scvk(n,j,i))*albgsd + dfalbs*scvk(n,j,i)
-            albgld = (d_one-scvk(n,j,i))*albgld + dfalbl*scvk(n,j,i)
-          end if
-          !=====================================================================
-          !       5.  albedo over open ocean
-          !=====================================================================
-
-          if ( ldmsk1(n,j,i) == 0 ) then
-            ! ocean albedo depends on zenith angle
-            if ( czeta >= d_zero ) then
-              ! albedo independent of wavelength
-              albg = 0.05D0/(czeta+0.15D0)
-              albgs = albg
-              albgl = albg
-              albgsd = 0.08D0
-              albgld = 0.08D0
+          ! ==============================================================
+          if ( ldmsk1(n,j,i) > 0 ) then
+            if ( sncv(n,j,i) > d_zero ) then
+              ! Snow albedo depends on snow-age, zenith angle, and thickness
+              ! of snow. snow albedoes for visible and ir solar rad visible
+              ! albedo depends on snow age
+              ! age gives reduction of visible rad snow albedo due to age
+              cons = 0.2D0
+              conn = 0.5D0
+              age = (d_one-d_one/(d_one+snag(n,j,i)))
+              ! sl helps control albedo zenith dependence
+              sl = d_two
+              sli = d_one/sl
+              sl2 = d_two*sl
+              ! snal0= new snow albedo for vis rad, sol zen le 6
+              ! snal1= new snow albedo for long-wave rad
+              dfalbs = snal0*(d_one-cons*age)
+              ! czf corrects albedo of new snow for solar zenith
+              cf1 = ((d_one+sli)/(d_one+sl2*coszrs(j,i))-sli)
+              cff = dmax1(cf1,d_zero)
+              czf = 0.4D0*cff*(d_one-dfalbs)
+              dralbs = dfalbs + czf
+              dfalbl = snal1*(d_one-conn*age)
+              czf = 0.4D0*cff*(d_one-dfalbl)
+              dralbl = dfalbl + czf
+              if ( lncl(n,j,i) > 0.001D0 ) then
+                ! effective albedo over vegetation with snow
+                albl = (d_one-wt(n,j,i))*albl + dralbl*wt(n,j,i)
+                albld = (d_one-wt(n,j,i))*albld + dfalbl*wt(n,j,i)
+                albs = (d_one-wt(n,j,i))*albs + dralbs*wt(n,j,i)
+                albsd = (d_one-wt(n,j,i))*albsd + dfalbs*wt(n,j,i)
+              end if
+              !----------------------------------------------------------------
+              !         4.1  compute albedo for snow on bare ground
+              !----------------------------------------------------------------
+              albgs = (d_one-scvk(n,j,i))*albgs + dralbs*scvk(n,j,i)
+              albgl = (d_one-scvk(n,j,i))*albgl + dralbl*scvk(n,j,i)
+              albgsd = (d_one-scvk(n,j,i))*albgsd + dfalbs*scvk(n,j,i)
+              albgld = (d_one-scvk(n,j,i))*albgld + dfalbl*scvk(n,j,i)
             end if
           end if
           !
@@ -891,36 +890,19 @@ module mod_bats_mtrxbats
           aldifs_s(n) = (d_one-lncl(n,j,i))*albgsd + lncl(n,j,i)*albsd
           aldifl_s(n) = (d_one-lncl(n,j,i))*albgld + lncl(n,j,i)*albld
         end do
-        albvs(j,i) = albvs_s(1)
-        albvl(j,i) = albvl_s(1)
-        aldirs(j,i) = aldirs_s(1)
-        aldirl(j,i) = aldirl_s(1)
-        aldifs(j,i) = aldifs_s(1)
-        aldifl(j,i) = aldifl_s(1)
-        albdirs(1,j,i) = aldirs_s(1)
-        albdifs(1,j,i) = aldifs_s(1)
-        aemiss(j,i) = emiss(1,j,i)
-        do n = 2 , nnsg
-          albvs(j,i) = albvs(j,i) + albvs_s(n)
-          albvl(j,i) = albvl(j,i) + albvl_s(n)
-          aldirs(j,i) = aldirs(j,i) + aldirs_s(n)
-          aldirl(j,i) = aldirl(j,i) + aldirl_s(n)
-          aldifs(j,i) = aldifs(j,i) + aldifs_s(n)
-          aldifl(j,i) = aldifl(j,i) + aldifl_s(n)
+        albvs(j,i) = sum(albvs_s)*rdnnsg
+        albvl(j,i) = sum(albvl_s)*rdnnsg
+        aldirs(j,i) = sum(aldirs_s)*rdnnsg
+        aldirl(j,i) = sum(aldirl_s)*rdnnsg
+        aldifs(j,i) = sum(aldifs_s)*rdnnsg
+        aldifl(j,i) = sum(aldifl_s)*rdnnsg
+        do n = 1 , nnsg
           albdirs(n,j,i) = aldirs_s(n)
           albdifs(n,j,i) = aldifs_s(n)
-          aemiss(j,i) = aemiss(j,i) + emiss(n,j,i)
         end do
-        albvs(j,i) = albvs(j,i)*rdnnsg
-        albvl(j,i) = albvl(j,i)*rdnnsg
-        aldirs(j,i) = aldirs(j,i)*rdnnsg
-        aldirl(j,i) = aldirl(j,i)*rdnnsg
-        aldifs(j,i) = aldifs(j,i)*rdnnsg
-        aldifl(j,i) = aldifl(j,i)*rdnnsg
-        aemiss(j,i) = aemiss(j,i)*rdnnsg
       end do
     end do
- 
+    aemiss = sum(emiss,1)*rdnnsg
     call time_end(subroutine_name,idindx)
 
     contains
