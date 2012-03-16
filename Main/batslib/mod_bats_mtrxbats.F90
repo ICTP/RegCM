@@ -35,7 +35,7 @@ module mod_bats_mtrxbats
 
   private
 
-  public :: interf , initb , mtrxbats , albedobats , slice1D
+  public :: interf , initb , mtrxbats , albedobats
 
   contains
 
