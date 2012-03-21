@@ -1238,7 +1238,6 @@ module mod_params
     dsigma(k) = sigma(k+1) - sigma(k)
     a(k) = (sigma(k+1)+sigma(k))*d_half
   end do
- 
 !
 !
 !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
@@ -1247,7 +1246,7 @@ module mod_params
 !-----2. find first model sigma level above sigtbl.
 !
   sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
-  kmxpbl = 1
+  kmxpbl = kz
   do k = kz , 1 , -1
     delsig = a(k) - sigtbl
     if ( delsig <= d_zero ) then

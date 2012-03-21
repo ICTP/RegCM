@@ -314,8 +314,8 @@ module mod_bats_mtrxbats
  
     if ( ivers == 1 ) then ! regcm --> bats
 
-      do i = istart, iend
-        do j = jstart, jend
+      do i = istart , iend
+        do j = jstart , jend
           p0 = (sfps(j,i)+ptop)*d_1000
           qs0 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
           ts0 = thatm(j,i,kz)
@@ -516,16 +516,14 @@ module mod_bats_mtrxbats
             t2m_o(j,i) = t2m_o(j,i) + real(t2m(n,j,i))
             q2m_o(j,i) = real(q2m_o(j,i) + q2m(n,j,i))
             tg_o(j,i) = tg_o(j,i) + real(tgrd(n,j,i))
-            aldirs_o(j,i) = aldirs_o(j,i) + real(albdirs(n,j,i))
-            aldifs_o(j,i) = aldifs_o(j,i) + real(albdifs(n,j,i))
           end do
           u10m_o(j,i) = u10m_o(j,i)*rrnnsg
           v10m_o(j,i) = v10m_o(j,i)*rrnnsg
           t2m_o(j,i) = t2m_o(j,i)*rrnnsg
           q2m_o(j,i) = q2m_o(j,i)*rrnnsg
           tg_o(j,i) = tg_o(j,i)*rrnnsg
-          aldirs_o(j,i) = aldirs_o(j,i)*rrnnsg
-          aldifs_o(j,i) = aldifs_o(j,i)*rrnnsg
+          aldirs_o(j,i) = real(aldirs(j,i))
+          aldifs_o(j,i) = real(aldifs(j,i))
  
           tgmx_o(j,i) = amax1(tgmx_o(j,i),tg_o(j,i))
           tgmn_o(j,i) = amin1(tgmn_o(j,i),tg_o(j,i))
@@ -899,16 +897,12 @@ module mod_bats_mtrxbats
           aldifs_s(n) = (d_one-lncl(n,j,i))*albgsd + lncl(n,j,i)*albsd
           aldifl_s(n) = (d_one-lncl(n,j,i))*albgld + lncl(n,j,i)*albld
         end do
-        albvs(j,i) = sum(albvs_s)*rdnnsg
-        albvl(j,i) = sum(albvl_s)*rdnnsg
+        albvs(j,i)  = sum(albvs_s)*rdnnsg
+        albvl(j,i)  = sum(albvl_s)*rdnnsg
         aldirs(j,i) = sum(aldirs_s)*rdnnsg
         aldirl(j,i) = sum(aldirl_s)*rdnnsg
         aldifs(j,i) = sum(aldifs_s)*rdnnsg
         aldifl(j,i) = sum(aldifl_s)*rdnnsg
-        do n = 1 , nnsg
-          albdirs(n,j,i) = aldirs_s(n)
-          albdifs(n,j,i) = aldifs_s(n)
-        end do
       end do
     end do
     aemiss = sum(emiss,1)*rdnnsg

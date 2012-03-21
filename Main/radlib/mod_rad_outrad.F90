@@ -88,8 +88,8 @@ module mod_rad_outrad
     integer , intent(in) :: jstart , jend , i
     logical , intent(in) :: lout ! Preapre data for outfile
     real(dp) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
-                clrss , clrst , firtp , frla , frsa , fsds , fsnirt , &
-                fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,     &
+                clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
+                fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,      &
                 solld , sols , solsd , totcf , totcl , totci
     real(dp) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
     intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&

@@ -1966,7 +1966,7 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if ( lchem .and. idirect > 0 .and. irad==2 ) then
+      if ( lchem .and. idirect > 0 .and. irad == 2 ) then
         abstot(:,i,:,:) = d_one-(d_one-abstot(:,i,:,:))*aertrlw(:,:,:)
         emstot(:,i,:) = d_one-(d_one-emstot(:,i,:))*aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -2072,7 +2072,7 @@ module mod_rad_radiation
 
 !     FAB radiative forcing sur fsul
 
-      if ( lchem .and. idirect > 0 .and. irad==1 ) then
+      if ( lchem .and. idirect > 0 .and. irad == 1 ) then
         fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
         fsdl0(:,:) = fsdl(:,:)!
         ful0(:,:) = ful(:,:)
@@ -2095,7 +2095,7 @@ module mod_rad_radiation
                     (fsul(:,kzp1) - fsdl(:,kzp1))
        
 !     return to no aerosol LW effect  situation if idirect ==1
-      if ( idirect==1 ) then
+      if ( idirect == 1 ) then
         fsul(:,:) = fsul0(:,:)
         fsdl(:,:) = fsdl0(:,:)
         ful(:,:) = ful0(:,:)
@@ -3955,9 +3955,10 @@ module mod_rad_radiation
 !
 !     Calculate trace gas emissivities
 !
-      call trcems(jstart,jend,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1, &
-                  bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
-                  uco222,uco223,uptype,w,s2c,ux,emplnk,th2o,tco2,to3,emstrc)
+      call trcems(jstart,jend,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1,  &
+                  bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,  &
+                  uco222,uco223,uptype,w,s2c,ux,emplnk,th2o,tco2,to3, &
+                  emstrc)
 !
 !     Total emissivity:
 !

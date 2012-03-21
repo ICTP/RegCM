@@ -490,15 +490,15 @@ module mod_tendency
       end do
     end do
 
-    call deco1_gather(ps4,ps_4,jci1,jci2,ici1,ici2,1,4)
+    call deco1_gather(ps4,ps_4,jcross1,jcross2,icross1,icross2,1,4)
 
     if ( ktau /= 0 ) then
       iptn = 0
       ptntot = d_zero
       pt2tot = d_zero
       if ( myid == 0 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = icross1 , icross2
+          do j = jcross1 , jcross2
             iptn = iptn + 1
             ptntot = ptntot + dabs(ps_4(j,i,1))
             pt2tot = pt2tot +                       &
@@ -828,10 +828,6 @@ module mod_tendency
         end do
       end do
     end do
-#ifdef DEBUG
-    call deco1d_nc_write(aheat)
-    call deco1d_nc_write(taten)
-#endif
 !
 !   add horizontal diffusion and pbl tendencies for t and qv to aten%t
 !   and aten%qv for calculating condensational term in subroutine
