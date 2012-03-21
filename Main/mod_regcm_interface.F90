@@ -235,7 +235,6 @@ module mod_regcm_interface
 !
     call init
 !
-!
 !**********************************************************************
 !
 !   Initialize split explicit scheme
@@ -303,22 +302,6 @@ module mod_regcm_interface
     real(dp) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 !
-#ifdef DEBUG
-    call deco1d_nc_create('psa',cross,sfs%psa,psa)
-    call deco1d_nc_create('psb',cross,sfs%psb,psb)
-    call deco1d_nc_create('ua',dot,atm1%u,uax)
-    call deco1d_nc_create('va',dot,atm1%v,vax)
-    call deco1d_nc_create('ta',cross,atm1%t,tax)
-    call deco1d_nc_create('qa',cross,atm1%qv,qax)
-
-    call deco1d_nc_write(psa)
-    call deco1d_nc_write(psb)
-    call deco1d_nc_write(uax)
-    call deco1d_nc_write(vax)
-    call deco1d_nc_write(tax)
-    call deco1d_nc_write(qax)
-#endif
-
     do while ( extime >= timestr .and. extime < timeend)
       !
       ! Refined start
@@ -383,18 +366,6 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
-    call deco1d_nc_write(psa)
-    call deco1d_nc_write(psb)
-    call deco1d_nc_write(uax)
-    call deco1d_nc_write(vax)
-    call deco1d_nc_write(tax)
-    call deco1d_nc_write(qax)
-    call deco1d_nc_destroy(psa)
-    call deco1d_nc_destroy(psb)
-    call deco1d_nc_destroy(uax)
-    call deco1d_nc_destroy(vax)
-    call deco1d_nc_destroy(tax)
-    call deco1d_nc_destroy(qax)
 #endif
     call time_print(6,'evolution phase')
 !

@@ -531,11 +531,9 @@ module mod_bdycod
       end do
     end do
 
-
     if ( ichem == 1 ) then
       call chem_bdyin(dtbdys,intbdy) 
     end if
-
 
     if ( myid == 0 ) then
       write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &

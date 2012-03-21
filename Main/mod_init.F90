@@ -412,18 +412,18 @@ module mod_init
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
           if (idcsst == 1) then
-            sfs%tga(j,i) = ts0(j,i) + dtskin(j,i)
-            sfs%tgb(j,i) = ts0(j,i) + dtskin(j,i)
+            sfs%tga(j,i) = ts1(j,i) + dtskin(j,i)
+            sfs%tgb(j,i) = ts1(j,i) + dtskin(j,i)
           else
-            sfs%tga(j,i) = ts0(j,i)
-            sfs%tgb(j,i) = ts0(j,i)
+            sfs%tga(j,i) = ts1(j,i)
+            sfs%tgb(j,i) = ts1(j,i)
           end if
           if ( iseaice == 1 ) then
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            if ( ts0(j,i) <= icetemp ) then
+            if ( ts1(j,i) <= icetemp ) then
               sfs%tga(j,i) = icetemp
               sfs%tgb(j,i) = icetemp
-              ts0(j,i) = icetemp
+              ts1(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
@@ -431,8 +431,8 @@ module mod_init
                 sncv(n,j,i) = d_zero
               end do
             else
-              sfs%tga(j,i) = ts0(j,i)
-              sfs%tgb(j,i) = ts0(j,i)
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
               ldmsk(j,i) = 0
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 0
