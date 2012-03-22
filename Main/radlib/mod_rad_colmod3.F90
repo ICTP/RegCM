@@ -104,7 +104,7 @@ module mod_rad_colmod3
 
       call getmem1d(ioro,1,jxp,'colmod3:ioro')
 
-      call getmem2d(coszgt0,1,jxp,1,iym1,'colmod3:coszgt0')
+      call getmem2d(coszgt0,jci1,jci2,ici1,ici2,'colmod3:coszgt0')
 
     end subroutine allocate_mod_rad_colmod3
 !

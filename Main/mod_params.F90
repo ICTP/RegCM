@@ -1202,7 +1202,8 @@ module mod_params
 
 #ifndef CLM
   if ( lakemod == 1 ) then
-    call subgrid_deco1_scatter(dhlake1_io,dhlake1,jdot1,jdot2,idot1,idot2)
+    call subgrid_deco1_scatter(dhlake1_io, &
+                        dhlake1,jcross1,jcross2,icross1,icross2)
   endif
 #endif
 ! 

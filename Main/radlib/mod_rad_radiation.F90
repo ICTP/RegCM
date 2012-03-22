@@ -646,9 +646,9 @@ module mod_rad_radiation
     call getmem1d(uto3,1,jxp,'radiation:uto3')
     call getmem1d(x0fsnsc,1,jxp,'radiation:x0fsnsc')
     call getmem1d(x0fsntc,1,jxp,'radiation:x0fsntc')
-    call getmem1d(zenfac,1,jxp,'radiation:zenfac')
-    call getmem1d(czen,1,jxp,'radiation:czen')
-    call getmem1d(czengt0,1,jxp,'radiation:czengt0')
+    call getmem1d(zenfac,jci1,jci2,'radiation:zenfac')
+    call getmem1d(czen,jci1,jci2,'radiation:czen')
+    call getmem1d(czengt0,jci1,jci2,'radiation:czengt0')
 
     call getmem1d(fslwdcs,1,jxp,'radiation:fslwdcs')
     call getmem1d(aeradfo,1,jxp,'radiation:aeradfo')

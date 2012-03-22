@@ -39,7 +39,7 @@ module mod_bats_romsocn
 
   subroutine allocate_mod_bats_romsocn()
     implicit none
-    call getmem2d(sst2d,1,jxp,1,iy,'roms:sst2d') 
+    call getmem2d(sst2d,jci1,jci2,ici1,ici2,'roms:sst2d') 
     sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 

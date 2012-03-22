@@ -41,15 +41,22 @@ module mod_bats_mppio
       integer , intent(in) :: lakemod
       if ( lakemod == 1 ) then
         if ( myid == 0 ) then
-          call getmem3d(dhlake1_io,1,nnsg,1,jx,1,iy,'bats_mppio:dhlake1_io')
-          call getmem3d(idep_io,1,nnsg,1,jx,1,iym1,'bats_mppio:idep_io')
-          call getmem3d(eta_io,1,nnsg,1,jx,1,iym1,'bats_mppio:eta_io')
-          call getmem3d(hi_io,1,nnsg,1,jx,1,iym1,'bats_mppio:hi_io')
-          call getmem3d(aveice_io,1,nnsg,1,jx,1,iym1,'bats_mppio:aveice_io')
-          call getmem3d(hsnow_io,1,nnsg,1,jx,1,iym1,'bats_mppio:hsnow_io')
-          call getmem3d(evl_io,1,nnsg,1,jx,1,iym1,'bats_mppio:evl_io')
-          call getmem4d(tlak_io,1,nnsg,1,jx,1,iym1,1,ndpmax, &
-                        'bats_mppio:tlak_io')
+          call getmem3d(dhlake1_io,1,nnsg,jdot1,jdot2,idot1,idot2, &
+                        'bats_mppio:dhlake1_io')
+          call getmem3d(idep_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:idep_io')
+          call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:eta_io')
+          call getmem3d(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:hi_io')
+          call getmem3d(aveice_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:aveice_io')
+          call getmem3d(hsnow_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:hsnow_io')
+          call getmem3d(evl_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        'bats_mppio:evl_io')
+          call getmem4d(tlak_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                        1,ndpmax,'bats_mppio:tlak_io')
         end if
       end if
     end subroutine allocate_mod_bats_mppio

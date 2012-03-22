@@ -474,8 +474,8 @@ module mod_init
   !
   ! The following allows to change landuse on restart.
   !
-  do i = ice1 , ice2
-    do j = jce1 , jce2
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       iveg(j,i) = idnint(lndcat(j,i))
       do n = 1 , nnsg
         iveg1(n,j,i) = idnint(lndcat1(n,j,i))
