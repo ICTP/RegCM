@@ -42,7 +42,7 @@ module mod_bats_common
 
   integer :: iocnrough , iocnflx, iocncpl
 
-  real(dp) , pointer , dimension(:,:,:) :: delq , delt ,  &
+  real(dp) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
          drag , evpr , gwet , ldew , q2m , sfcp , trnof , &
          srnof , rsw , snag , sncv , sent , sfice , ssw , &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl
@@ -200,6 +200,8 @@ module mod_bats_common
     call getmem3d(u10m,1,nnsg,1,jxp,1,iym1,'bats:u10m')
     call getmem3d(v10m,1,nnsg,1,jxp,1,iym1,'bats:v10m')
     call getmem3d(lncl,1,nnsg,1,jxp,1,iym1,'bats:lncl')
+
+    call getmem3d(taf,1,nnsg,jce1,jce2,ice1,ice2,'bats:taf')
 
     call getmem2d(aemiss,1,jxp,1,iym1,'bats_internal:aemiss')
     call getmem2d(flw,1,jxp,1,iym1,'bats_internal:flw')

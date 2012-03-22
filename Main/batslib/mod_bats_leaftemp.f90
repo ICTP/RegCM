@@ -583,7 +583,7 @@ module mod_bats_leaftemp
   subroutine satur(jstart,jend,istart,iend,qsat,t,p)
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
-    real(dp) , dimension(:,:,:) :: p , qsat , t
+    real(dp) , pointer , dimension(:,:,:) :: p , qsat , t
     intent (in) p , t
     intent (out) qsat
     integer :: n , i , j
