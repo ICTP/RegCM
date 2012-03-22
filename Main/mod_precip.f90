@@ -51,19 +51,26 @@ module mod_precip
   ! Flag for using convective liquid water path as the large-scale
   ! liquid water path (iconvlwp=1)
   integer , public :: iconvlwp
+  logical :: lchem = .false.
 !
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 !
   contains
 !
-    subroutine allocate_mod_precip
+    subroutine allocate_mod_precip(ichem)
       implicit none
-      call getmem3d(fcc,1,jxp,1,iy,1,kz,'pcp:fcc')
-      call getmem2d(qck1,1,jxp,1,iy,'pcp:qck1')
-      call getmem2d(cgul,1,jxp,1,iy,'pcp:cgul')
-      call getmem2d(rh0,1,jxp,1,iy,'pcp:rh0')
-      call getmem3d(remrat,1,jxp,1,iy,1,kz,'pcp:remrat')
-      call getmem3d(rembc,1,jxp,1,iy,1,kz,'pcp:rembc')
+      integer , intent(in) :: ichem
+      ! This needs to be saved in SAV file
+      call getmem3d(fcc,jce1,jce2,ice1,ice2,1,kz,'pcp:fcc')
+      ! Those not. Note the external, internal change.
+      call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
+      call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
+      call getmem2d(rh0,jci1,jci2,ici1,ici2,'pcp:rh0')
+      if ( ichem == 1 ) then
+        lchem = .true.
+        call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'pcp:rembc')
+        call getmem3d(remrat,jci1,jci2,ici1,ici2,1,kz,'pcp:remrat')
+      end if
     end subroutine allocate_mod_precip
 !
     subroutine init_precip(atmslice,atm,aten,sfs,pptnc,radcldf,radlqwc)
@@ -94,7 +101,7 @@ module mod_precip
       call assignpnt(radcldf,cldfra)
       call assignpnt(radlqwc,cldlwc)
 
-      call getmem2d(pptsum,1,jxp,2,iym2,'pcp:pptsum')
+      call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
 
       aprdiv = d_one/dble(ntsrf)
     end subroutine init_precip
@@ -140,7 +147,7 @@ module mod_precip
     thog = d_1000*regrav
 !   precipation accumulated from above
     pptsum(:,:) = d_zero
-    remrat(jstart:jend,istart:iend,1:kz) = d_zero
+    if ( lchem ) remrat(:,:,:) = d_zero
 
     do j = jstart , jend
 !
@@ -176,7 +183,7 @@ module mod_precip
 
           if ( pptnew > d_zero ) then !   New precipitation
 !           1af. Compute the cloud removal rate (for chemistry) [1/s]
-            remrat(j,i,1) = pptnew/qcw
+            if (lchem) remrat(j,i,1) = pptnew/qcw
 !           1ag. Compute the amount of cloud water removed by raindrop
 !                accretion [kg/kg/s].  In the layer where the precipitation
 !                is formed, only half of the precipitation is assumed to
@@ -272,7 +279,7 @@ module mod_precip
             pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
             if ( pptnew < dlowval ) pptnew = d_zero
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( pptnew > d_zero ) remrat(j,i,k) = pptnew/qcw
+            if ( lchem .and. pptnew > d_zero ) remrat(j,i,k) = pptnew/qcw
      
 !           1bf. Compute the amount of cloud water removed by raindrop
 !                accretion [kg/kg/s].  In the layer where the precipitation

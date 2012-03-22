@@ -735,7 +735,7 @@ module mod_params
   call allocate_mod_bdycon(iboudy,lband)
   call allocate_mod_pbl_common(ibltyp,ichem)
   call allocate_mod_cu_common
-  call allocate_mod_precip
+  call allocate_mod_precip(ichem)
   call allocate_mod_split
   call allocate_mod_mppio
 
@@ -1647,8 +1647,8 @@ module mod_params
 ! they are no more in the restart file.
 !
   if ( ipptls == 1 ) then
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0) then
           qck1(j,i) = qck1oce  ! OCEAN
