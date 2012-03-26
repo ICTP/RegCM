@@ -84,11 +84,11 @@ module mod_cu_common
   subroutine allocate_mod_cu_common
     implicit none
     if ( icup == 99 .or. icup == 98) then
-      call getmem2d(cucontrol,1,jxp,1,iy,'mod_cu_common:cucontrol')
+      call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
     end if
-    call getmem2d(icumbot,1,jxp,1,iy,'mod_cu_common:icumbot')
-    call getmem2d(icumtop,1,jxp,1,iy,'mod_cu_common:icumtop')
-    call getmem2d(icumdwd,1,jxp,1,iy,'mod_cu_common:icumtop')
+    call getmem2d(icumbot,jci1,jci2,ici1,ici2,'mod_cu_common:icumbot')
+    call getmem2d(icumtop,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
+    call getmem2d(icumdwd,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
   end subroutine allocate_mod_cu_common
 !
 end module mod_cu_common

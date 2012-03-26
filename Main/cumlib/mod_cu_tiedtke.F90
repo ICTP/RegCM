@@ -79,45 +79,47 @@ module mod_cu_tiedtke
         pxlte , pverv , xpg
   integer , pointer , dimension(:) :: kctop , kcbot
 
+  integer :: nipoi
+
   contains
 !
 ! This subroutines allocates space
 !
   subroutine allocate_mod_cu_tiedtke
     implicit none
-
+    nipoi = ici2 - ici1 + 1
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
-    call getmem2d(ptte,1,iym3,1,kz,'mod_cu_tiedtke:ptte')
-    call getmem2d(pvom,1,iym3,1,kz,'mod_cu_tiedtke:pvom')
-    call getmem2d(pvol,1,iym3,1,kz,'mod_cu_tiedtke:pvol')
-    call getmem2d(pqte,1,iym3,1,kz,'mod_cu_tiedtke:pqte')
-    call getmem2d(pxlte,1,iym3,1,kz,'mod_cu_tiedtke:pxlte')
-    call getmem2d(pverv,1,iym3,1,kz,'mod_cu_tiedtke:pverv')
-    call getmem2d(xpg,1,iym3,1,kz,'mod_cu_tiedtke:xpg')
-    call getmem3d(pxtm1,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
-    call getmem3d(pxtte,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
-    call getmem2d(ilab,1,iym3,1,kz,'mod_cu_tiedtke:ilab')
-    call getmem1d(ktype,1,iym3,'mod_cu_tiedtke:ktype')
-    call getmem2d(ptm1,1,iym3,1,kz,'mod_cu_tiedtke:ptm1')
-    call getmem2d(pqm1,1,iym3,1,kz,'mod_cu_tiedtke:pqm1')
-    call getmem2d(pum1,1,iym3,1,kz,'mod_cu_tiedtke:pum1')
-    call getmem2d(pvm1,1,iym3,1,kz,'mod_cu_tiedtke:pvm1')
-    call getmem2d(pxlm1,1,iym3,1,kz,'mod_cu_tiedtke:pxlm1')
-    call getmem2d(pxim1,1,iym3,1,kz,'mod_cu_tiedtke:pxim1')
-    call getmem2d(pxite,1,iym3,1,kz,'mod_cu_tiedtke:pxite')
-    call getmem2d(papp1,1,iym3,1,kz,'mod_cu_tiedtke:papp1')
-    call getmem2d(pxtec,1,iym3,1,kz,'mod_cu_tiedtke:pxtec')
-    call getmem2d(pqtec,1,iym3,1,kz,'mod_cu_tiedtke:pqtec')
-    call getmem1d(kctop,1,iym3,'mod_cu_tiedtke:kctop')
-    call getmem1d(kcbot,1,iym3,'mod_cu_tiedtke:kcbot')
-    call getmem2d(paphp1,1,iym3,1,kzp1,'mod_cu_tiedtke:paphp1')
-    call getmem1d(prsfc,1,iym3,'mod_cu_tiedtke:prsfc')
-    call getmem1d(pssfc,1,iym3,'mod_cu_tiedtke:pssfc')
-    call getmem1d(paprc,1,iym3,'mod_cu_tiedtke:paprc')
-    call getmem1d(paprs,1,iym3,'mod_cu_tiedtke:paprs')
-    call getmem1d(ptopmax,1,iym3,'mod_cu_tiedtke:ptopmax')
-    call getmem1d(xphfx,1,iym3,'mod_cu_tiedtke:xphfx')
-    call getmem1d(ldland,1,iym3,'mod_cu_tiedtke:ldland')
+    call getmem2d(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
+    call getmem2d(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
+    call getmem2d(pvol,1,nipoi,1,kz,'mod_cu_tiedtke:pvol')
+    call getmem2d(pqte,1,nipoi,1,kz,'mod_cu_tiedtke:pqte')
+    call getmem2d(pxlte,1,nipoi,1,kz,'mod_cu_tiedtke:pxlte')
+    call getmem2d(pverv,1,nipoi,1,kz,'mod_cu_tiedtke:pverv')
+    call getmem2d(xpg,1,nipoi,1,kz,'mod_cu_tiedtke:xpg')
+    call getmem3d(pxtm1,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
+    call getmem3d(pxtte,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
+    call getmem2d(ilab,1,nipoi,1,kz,'mod_cu_tiedtke:ilab')
+    call getmem1d(ktype,1,nipoi,'mod_cu_tiedtke:ktype')
+    call getmem2d(ptm1,1,nipoi,1,kz,'mod_cu_tiedtke:ptm1')
+    call getmem2d(pqm1,1,nipoi,1,kz,'mod_cu_tiedtke:pqm1')
+    call getmem2d(pum1,1,nipoi,1,kz,'mod_cu_tiedtke:pum1')
+    call getmem2d(pvm1,1,nipoi,1,kz,'mod_cu_tiedtke:pvm1')
+    call getmem2d(pxlm1,1,nipoi,1,kz,'mod_cu_tiedtke:pxlm1')
+    call getmem2d(pxim1,1,nipoi,1,kz,'mod_cu_tiedtke:pxim1')
+    call getmem2d(pxite,1,nipoi,1,kz,'mod_cu_tiedtke:pxite')
+    call getmem2d(papp1,1,nipoi,1,kz,'mod_cu_tiedtke:papp1')
+    call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
+    call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
+    call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
+    call getmem1d(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
+    call getmem2d(paphp1,1,nipoi,1,kzp1,'mod_cu_tiedtke:paphp1')
+    call getmem1d(prsfc,1,nipoi,'mod_cu_tiedtke:prsfc')
+    call getmem1d(pssfc,1,nipoi,'mod_cu_tiedtke:pssfc')
+    call getmem1d(paprc,1,nipoi,'mod_cu_tiedtke:paprc')
+    call getmem1d(paprs,1,nipoi,'mod_cu_tiedtke:paprs')
+    call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
+    call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
+    call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
 
   end subroutine allocate_mod_cu_tiedtke
 !
@@ -218,7 +220,7 @@ module mod_cu_tiedtke
       kctop(:) = 0
       kcbot(:) = 0
 
-      call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
+      call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
                   pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                   pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
                   pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)

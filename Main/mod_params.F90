@@ -1443,8 +1443,8 @@ module mod_params
 
     write (aline, *) '*********************************'
     call say
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0) then
           shrmax2d(j,i) = shrmax_ocn

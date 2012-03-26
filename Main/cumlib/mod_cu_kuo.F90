@@ -52,8 +52,8 @@ module mod_cu_kuo
 !
   subroutine allocate_mod_cu_kuo
     implicit none
-    call getmem3d(rsheat,1,jxp,1,iy,1,kz,'cu_kuo:rsheat')
-    call getmem3d(rswat,1,jxp,1,iy,1,kz,'cu_kuo:rswat')
+    call getmem3d(rsheat,jce1,jce2,ice1,ice2,1,kz,'cu_kuo:rsheat')
+    call getmem3d(rswat,jce1,jce2,ice1,ice2,1,kz,'cu_kuo:rswat')
     call getmem1d(qwght,1,kz,'cu_kuo:qwght')
     call getmem3d(twght,1,kz,5,kz,1,kz-3,'cu_kuo:twght')
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')

@@ -784,8 +784,8 @@ module mod_tendency
 #endif
 
     if ( icup == 1 ) then
-      wrkkuo1(1:jxp,:,:) = rsheat(:,:,:)
-      wrkkuo2(1:jxp,:,:) = rswat(:,:,:)
+      wrkkuo1(jce1:jce2,:,:) = rsheat(:,:,:)
+      wrkkuo2(jce1:jce2,:,:) = rswat(:,:,:)
       call deco1_exchange_left(wrkkuo1,1,ice1,ice2,1,kz)
       call deco1_exchange_right(wrkkuo1,1,ice1,ice2,1,kz)
       call deco1_exchange_left(wrkkuo2,1,ice1,ice2,1,kz)
