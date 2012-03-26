@@ -1258,13 +1258,11 @@ module mod_tendency
     end if
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      do j = jci1 , jci2
-        ! Calculate the horizontal advective tendency for TKE
-        call hadvtke(uwstatea,atm1,twt,dx4,j)
-        ! Calculate the vertical advective tendency for TKE
-        call vadvtke(uwstatea,qdot,j,2)
-        ! Calculate the horizontal, diffusive tendency for TKE
-      end do
+      ! Calculate the horizontal advective tendency for TKE
+      call hadvtke(uwstatea,atm1,twt,dx4)
+      ! Calculate the vertical advective tendency for TKE
+      call vadvtke(uwstatea,qdot,2)
+      ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if
 !

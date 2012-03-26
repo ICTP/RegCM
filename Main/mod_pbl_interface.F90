@@ -23,6 +23,7 @@ module mod_pbl_interface
   use mod_service
   use mod_constants
   use mod_dynparam
+  use mod_memutil
   use mod_mppparam
   use mod_atm_interface
   use mod_pbl_common
@@ -59,20 +60,6 @@ module mod_pbl_interface
     ptp = ptop
     if ( ichem == 1 )      lchem = .true.
     if ( ichdrydepo == 1 ) lchdrydepo = .true.
-
-    itcmstart = 2
-    itcmend = iym1 
-    if ( myid == 0 ) then
-      jtcmstart = 2
-    else
-      jtcmstart = 1
-    end if
-
-    if ( myid == nproc-1 ) then
-      jtcmend = jxp-1
-    else
-      jtcmend = jxp
-    end if
 
     dttke = dt
     dtpbl = dt
@@ -140,24 +127,24 @@ module mod_pbl_interface
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      diffq(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
-                  diffq(jtcmstart:jtcmend,itcmstart:itcmend,:) +  &
-                  tcmtend%qv(jtcmstart:jtcmend,itcmstart:itcmend,:)
-      difft(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
-                  difft(jtcmstart:jtcmend,itcmstart:itcmend,:) +  &
-                  tcmtend%t(jtcmstart:jtcmend,itcmstart:itcmend,:)
+      diffq(jci1:jci2,ici1:ici2,:) =  &
+                  diffq(jci1:jci2,ici1:ici2,:) +  &
+                  tcmtend%qv(jci1:jci2,ici1:ici2,:)
+      difft(jci1:jci2,ici1:ici2,:) =  &
+                  difft(jci1:jci2,ici1:ici2,:) +  &
+                  tcmtend%t(jci1:jci2,ici1:ici2,:)
 
       ! Put the cloud water tendency in aten
-      aten%qc(jtcmstart:jtcmend,itcmstart:itcmend,:) =  &
-                 aten%qc(jtcmstart:jtcmend,itcmstart:itcmend,:) +   &
-                 tcmtend%qc(jtcmstart:jtcmend,itcmstart:itcmend,:)
+      aten%qc(jci1:jci2,ici1:ici2,:) =  &
+                 aten%qc(jci1:jci2,ici1:ici2,:) +   &
+                 tcmtend%qc(jci1:jci2,ici1:ici2,:)
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
       if ( lchem ) then
-        chten(jtcmstart:jtcmend,itcmstart:itcmend,:,:) = &
-                  chten(jtcmstart:jtcmend,jtcmstart:jtcmend,:,:) +   &
-                  chiuwten(jtcmstart:jtcmend,itcmstart:itcmend,:,:)
+        chten(jci1:jci2,ici1:ici2,:,:) = &
+                  chten(jci1:jci2,jci1:jci2,:,:) +   &
+                  chiuwten(jci1:jci2,ici1:ici2,:,:)
       end if
 
       if ( .not. bRegridWinds ) then
@@ -165,16 +152,16 @@ module mod_pbl_interface
         ! If the TCM calculations were done on the dot grid, then
         ! the u and v tendencies need not to be regridded to the dot grid
         !
-        aten%u(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
-                 aten%u(jtcmstart:jtcmend,itcmstart:itcmend,:) +    &
-                 tcmtend%u(jtcmstart:jtcmend,itcmstart:itcmend,:)
-        aten%v(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
-                 aten%v(jtcmstart:jtcmend,itcmstart:itcmend,:) +    &
-                 tcmtend%v(jtcmstart:jtcmend,itcmstart:itcmend,:)
+        aten%u(jci1:jci2,ici1:ici2,:) = &
+                 aten%u(jci1:jci2,ici1:ici2,:) +    &
+                 tcmtend%u(jci1:jci2,ici1:ici2,:)
+        aten%v(jci1:jci2,ici1:ici2,:) = &
+                 aten%v(jci1:jci2,ici1:ici2,:) +    &
+                 tcmtend%v(jci1:jci2,ici1:ici2,:)
       end if
 
-      zpbl(jtcmstart:jtcmend,itcmstart:itcmend) = &
-                tcmstate%zpbl(jtcmstart:jtcmend,itcmstart:itcmend)
+      zpbl(jci1:jci2,ici1:ici2) = &
+                tcmstate%zpbl(jci1:jci2,ici1:ici2)
     end if
 
 !   !
@@ -197,15 +184,15 @@ module mod_pbl_interface
 !     end do
 !   end if
 
-    aten%tke(jtcmstart:jtcmend,itcmstart:itcmend,:) = &
-                tcmtend%tke(jtcmstart:jtcmend,itcmstart:itcmend,:)
+    aten%tke(jci1:jci2,ici1:ici2,:) = &
+                tcmtend%tke(jci1:jci2,ici1:ici2,:)
     !
     ! Set the surface tke (diagnosed)
     !
-    atm1%tke(jtcmstart:jtcmend,itcmstart:itcmend,kzp1) =  &
-               tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend)
-    atm2%tke(jtcmstart:jtcmend,itcmstart:itcmend,kzp1) =  &
-               tcmstate%srftke(jtcmstart:jtcmend,itcmstart:itcmend)
+    atm1%tke(jci1:jci2,ici1:ici2,kzp1) =  &
+               tcmstate%srftke(jci1:jci2,ici1:ici2)
+    atm2%tke(jci1:jci2,ici1:ici2,kzp1) =  &
+               tcmstate%srftke(jci1:jci2,ici1:ici2)
 
 !   tcmtend%qc = 0.0d0
 !   tcmtend%qv = 0.0d0
@@ -227,47 +214,43 @@ module mod_pbl_interface
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  subroutine hadvtke(tcmstate,atm,twt,dxx,j)
+  subroutine hadvtke(tcmstate,atm,twt,dxx)
     implicit none
-    integer , intent(in) :: j
     real(dp) , intent(in) :: dxx
     type(atmstate) , intent(in) :: atm
     type(tcm_state) , intent(inout) :: tcmstate
     real(dp) , pointer , dimension(:,:) :: twt
     character (len=64) :: subroutine_name='hadvtke'
     integer :: idindx = 0
-    integer :: i , k , jm1 , jp1
+    integer :: i , k , j
 !
     call time_begin(subroutine_name,idindx)
 
-    jm1 = j - 1
-    jp1 = j + 1
-
     do k = 2 , kz
-      do i = 2 , iym1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
 
         !
         ! Interpoalte the winds to the full sigma levels
         ! while the advection term is calculated
         !
-        tcmstate%advtke(j,i,k)= tcmstate%advtke(j,i,k)  &
-           -(((atm%u(jp1,i+1,k-1)+atm%u(jp1,i,k-1))*twt(k,2)  &
-             +(atm%u(jp1,i+1,k)  +atm%u(jp1,i,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(jp1,i,k))  &
+          tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k)  &
+           -(((atm%u(j+1,i+1,k-1)+atm%u(j+1,i,k-1))*twt(k,2)  &
+             +(atm%u(j+1,i+1,k)  +atm%u(j+1,i,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(j+1,i,k))  &
             -((atm%u(j,i+1,k-1)+atm%u(j,i,k-1))*twt(k,2)  &
              +(atm%u(j,i+1,k)  +atm%u(j,i,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(jm1,i,k))  &
-            +((atm%v(j,i+1,k-1)+atm%v(jp1,i+1,k-1))*twt(k,2)  &
-             +(atm%v(j,i+1,k)  +atm%v(jp1,i+1,k))*twt(k,1)) &
+             *( atm%tke(j,i,k)+atm%tke(j-1,i,k))  &
+            +((atm%v(j,i+1,k-1)+atm%v(j+1,i+1,k-1))*twt(k,2)  &
+             +(atm%v(j,i+1,k)  +atm%v(j+1,i+1,k))*twt(k,1)) &
              *( atm%tke(j,i,k)+atm%tke(j,i+1,k))  &
-            -((atm%v(j,i,k-1)+atm%v(jp1,i,k-1))*twt(k,2)  &
-             +(atm%v(j,i,k)  +atm%v(jp1,i,k))*twt(k,1)) &
+            -((atm%v(j,i,k-1)+atm%v(j+1,i,k-1))*twt(k,2)  &
+             +(atm%v(j,i,k)  +atm%v(j+1,i,k))*twt(k,1)) &
              *( atm%tke(j,i,k)+atm%tke(j,i-1,k))) &
              /(dxx*mapfcx(j,i)*mapfcx(j,i))
-
 !TAO Debug:
-!       tcmstate%advtke(j,i,k)= tcmstate%advtke(j,i,k) + 1d-8*atm%tke(jp1,i,k)
-
+!         tcmstate%advtke(j,i,k)= tcmstate%advtke(j,i,k) + 1d-8*atm%tke(j+1,i,k)
+        end do
       end do
     end do
 
@@ -286,16 +269,15 @@ module mod_pbl_interface
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  subroutine vadvtke(tcmstate,qdot,j,ind)
+  subroutine vadvtke(tcmstate,qdot,ind)
     implicit none
-    integer , intent(in) :: j , ind
+    integer , intent(in) :: ind
     type(tcm_state) :: tcmstate
-    real(dp) , dimension(:,:,:) , intent(in) :: qdot
-    real(dp) , dimension(iy,kz) :: dotqdot , ftmp
+    real(dp) , dimension(:,:,:) , pointer , intent(in) :: qdot
     character (len=64) :: subroutine_name='vadvtke'
     integer :: idindx = 0
 !
-    integer :: i , k
+    integer :: i , j , k
 
     call time_begin(subroutine_name,idindx)
         
@@ -304,38 +286,48 @@ module mod_pbl_interface
     !
     if ( ind == 1 ) then
       do k = 1 , kz
-        do i = 2 , iym1
-          dotqdot(i,k) = (qdot(j,i,k) + qdot(j,i,k+1))
-          ftmp(i,k) = 0.5D0*(tcmstate%tkeps(j,i,k) + tcmstate%tkeps(j,i,k+1))
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            dotqdot(j,i,k) = (qdot(j,i,k)+qdot(j,i,k+1))
+            ftmp(j,i,k) = 0.5D0*(tcmstate%tkeps(j,i,k)+tcmstate%tkeps(j,i,k+1))
+          end do
         end do
       end do
 
       do k = 2 , kz
-        do i = 2 , iym1
-          tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) - &
-                                    (dotqdot(i,k)*ftmp(i,k) -  &
-                                     dotqdot(i,k-1)*ftmp(i,k-1))/ &
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) - &
+                                    (dotqdot(j,i,k)*ftmp(j,i,k) -  &
+                                     dotqdot(j,i,k-1)*ftmp(j,i,k-1))/ &
                                     (dlev(k)+dlev(k-1))
+          end do
         end do
       end do
     !
     ! Use an alternative method (this came from where?)
     !
     else
-      do i = 2 , iym1
-        tcmstate%advtke(j,i,1)=tcmstate%advtke(j,i,1)-  &
-                              qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dlev(1)
-      end do
-      do k = 2 , kzm1
-        do i = 2 , iym1
-          tcmstate%advtke(j,i,k)=tcmstate%advtke(j,i,k) &
-                              -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
-                                -qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dlev(k)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tcmstate%advtke(j,i,1) = tcmstate%advtke(j,i,1)-  &
+                                   qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dlev(1)
         end do
       end do
-      do i = 2 , iym1
-        tcmstate%advtke(j,i,kz)=tcmstate%advtke(j,i,kz)+  &
-                              qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dlev(kz)
+      do k = 2 , kzm1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) &
+                                   -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
+                                   - qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dlev(k)
+          end do
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tcmstate%advtke(j,i,kz) = tcmstate%advtke(j,i,kz)+  &
+                                    qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dlev(kz)
+        end do
       end do
     end if
 

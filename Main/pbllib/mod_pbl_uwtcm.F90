@@ -235,9 +235,9 @@ module mod_pbl_uwtcm
 
     !Main do loop
     iloop: &
-    do i = itcmstart , itcmend
+    do i = ici1 , ici2
       jloop: &
-      do j = jtcmstart , jtcmend
+      do j = jci1 , jci2
 
 !*******************************************************************************
 !*******************************************************************************
@@ -596,7 +596,7 @@ module mod_pbl_uwtcm
           ! and solve the tridiagonal matrix for each tracer to get
           ! the tracer value implied for the next timestep
           chiloop: &
-          do itr = 1,ntr
+          do itr = 1 , ntr
             ! set the right side 
             rimp1(:) = chix(itr,:)
             ! at surface include surface momentum fluxes
