@@ -71,45 +71,45 @@ module mod_diagnosis
         call getmem2d(trxsaq2,1,ntr,1,2,'diagnosis:trxsaq2')
         call getmem2d(trxsg,1,ntr,1,2,'diagnosis:trxsg')
         call getmem2d(ttrace,1,ntr,1,2,'diagnosis:ttrace')
-        call getmem1d(psa02,1,jxp,'diagnosis:psa02')
-        call getmem1d(psaill,1,jxp,'diagnosis:psaill')
-        call getmem1d(psaill1,1,jxp,'diagnosis:psaill1')
-        call getmem1d(psa02_g,1,jx,'diagnosis:psa02_g')
-        call getmem1d(psaill_g,1,jx,'diagnosis:psaill_g')
-        call getmem1d(psaill1_g,1,jx,'diagnosis:psaill1_g')
-        call getmem2d(va02,1,jxp,1,kz,'diagnosis:va02')
-        call getmem2d(vaill,1,jxp,1,kz,'diagnosis:vaill')
-        call getmem2d(xkc02,1,jxp,1,kz,'diagnosis:xkc02')
-        call getmem2d(xkcill1,1,jxp,1,kz,'diagnosis:xkcill1')
-        call getmem2d(va02_g,1,jx,1,kz,'diagnosis:va02_g')
-        call getmem2d(vaill_g,1,jx,1,kz,'diagnosis:vaill_g')
-        call getmem2d(xkc02_g,1,jx,1,kz,'diagnosis:xkc02_g')
-        call getmem2d(xkcill1_g,1,jx,1,kz,'diagnosis:xkcill1_g')
-        call getmem3d(chia01,1,jxp,1,kz,1,ntr,'diagnosis:chia01')
-        call getmem3d(chia02,1,jxp,1,kz,1,ntr,'diagnosis:chia02')
-        call getmem3d(chiaill,1,jxp,1,kz,1,ntr,'diagnosis:chiaill')
-        call getmem3d(chiaill1,1,jxp,1,kz,1,ntr,'diagnosis:chiaill1')
-        call getmem3d(chia01_g,1,jx,1,kz,1,ntr,'diagnosis:chia01_g')
-        call getmem3d(chia02_g,1,jx,1,kz,1,ntr,'diagnosis:chia02_g')
-        call getmem3d(chiaill_g,1,jx,1,kz,1,ntr,'diagnosis:chiaill_g')
-        call getmem3d(chiaill1_g,1,jx,1,kz,1,ntr,'diagnosis:chiaill1_g')
+        call getmem1d(psa02,jce1,jce2,'diagnosis:psa02')
+        call getmem1d(psaill,jce1,jce2,'diagnosis:psaill')
+        call getmem1d(psaill1,jce1,jce2,'diagnosis:psaill1')
+        call getmem1d(psa02_g,jcross1,jcross2,'diagnosis:psa02_g')
+        call getmem1d(psaill_g,jcross1,jcross2,'diagnosis:psaill_g')
+        call getmem1d(psaill1_g,jcross1,jcross2,'diagnosis:psaill1_g')
+        call getmem2d(va02,jce1,jce2,1,kz,'diagnosis:va02')
+        call getmem2d(vaill,jce1,jce2,1,kz,'diagnosis:vaill')
+        call getmem2d(xkc02,jce1,jce2,1,kz,'diagnosis:xkc02')
+        call getmem2d(xkcill1,jce1,jce2,1,kz,'diagnosis:xkcill1')
+        call getmem2d(va02_g,jcross1,jcross2,1,kz,'diagnosis:va02_g')
+        call getmem2d(vaill_g,jcross1,jcross2,1,kz,'diagnosis:vaill_g')
+        call getmem2d(xkc02_g,jcross1,jcross2,1,kz,'diagnosis:xkc02_g')
+        call getmem2d(xkcill1_g,jcross1,jcross2,1,kz,'diagnosis:xkcill1_g')
+        call getmem3d(chia01,jce1,jce2,1,kz,1,ntr,'diagnosis:chia01')
+        call getmem3d(chia02,jce1,jce2,1,kz,1,ntr,'diagnosis:chia02')
+        call getmem3d(chiaill,jce1,jce2,1,kz,1,ntr,'diagnosis:chiaill')
+        call getmem3d(chiaill1,jce1,jce2,1,kz,1,ntr,'diagnosis:chiaill1')
+        call getmem3d(chia01_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chia01_g')
+        call getmem3d(chia02_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chia02_g')
+        call getmem3d(chiaill_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chiaill_g')
+        call getmem3d(chiaill1_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chiaill1_g')
       end if
-      call getmem1d(psa01,1,jxp,'diagnosis:psa01')
-      call getmem1d(psailx,1,jxp,'diagnosis:psailx')
-      call getmem1d(psa01_g,1,jx,'diagnosis:psa01_g')
-      call getmem1d(psailx_g,1,jx,'diagnosis:psailx_g')
-      call getmem2d(qca01,1,jxp,1,kz,'diagnosis:qca01')
-      call getmem2d(qcailx,1,jxp,1,kz,'diagnosis:qcailx')
-      call getmem2d(qva01,1,jxp,1,kz,'diagnosis:qva01')
-      call getmem2d(qvailx,1,jxp,1,kz,'diagnosis:qvailx')
-      call getmem2d(va01,1,jxp,1,kz,'diagnosis:va01')
-      call getmem2d(vaix,1,jxp,1,kz,'diagnosis:vaix')
-      call getmem2d(qca01_g,1,jx,1,kz,'diagnosis:qca01_g')
-      call getmem2d(qcailx_g,1,jx,1,kz,'diagnosis:qcailx_g')
-      call getmem2d(qva01_g,1,jx,1,kz,'diagnosis:qva01_g')
-      call getmem2d(qvailx_g,1,jx,1,kz,'diagnosis:qvailx_g')
-      call getmem2d(va01_g,1,jx,1,kz,'diagnosis:va01_g')
-      call getmem2d(vaix_g,1,jx,1,kz,'diagnosis:vaix_g')
+      call getmem1d(psa01,jce1,jce2,'diagnosis:psa01')
+      call getmem1d(psailx,jce1,jce2,'diagnosis:psailx')
+      call getmem1d(psa01_g,jcross1,jcross2,'diagnosis:psa01_g')
+      call getmem1d(psailx_g,jcross1,jcross2,'diagnosis:psailx_g')
+      call getmem2d(qca01,jce1,jce2,1,kz,'diagnosis:qca01')
+      call getmem2d(qcailx,jce1,jce2,1,kz,'diagnosis:qcailx')
+      call getmem2d(qva01,jce1,jce2,1,kz,'diagnosis:qva01')
+      call getmem2d(qvailx,jce1,jce2,1,kz,'diagnosis:qvailx')
+      call getmem2d(va01,jde1,jde2,1,kz,'diagnosis:va01')
+      call getmem2d(vaix,jde1,jde2,1,kz,'diagnosis:vaix')
+      call getmem2d(qca01_g,jcross1,jcross2,1,kz,'diagnosis:qca01_g')
+      call getmem2d(qcailx_g,jcross1,jcross2,1,kz,'diagnosis:qcailx_g')
+      call getmem2d(qva01_g,jcross1,jcross2,1,kz,'diagnosis:qva01_g')
+      call getmem2d(qvailx_g,jcross1,jcross2,1,kz,'diagnosis:qvailx_g')
+      call getmem2d(va01_g,jdot1,jdot2,1,kz,'diagnosis:va01_g')
+      call getmem2d(vaix_g,jdot1,jdot2,1,kz,'diagnosis:vaix_g')
     end if
   end subroutine allocate_mod_diagnosis
 !
@@ -318,8 +318,8 @@ module mod_diagnosis
         va01(j,k) = atm1%v(j,ide1,k)
       end do
     end do
-    call deco1_gather(vaix,vaix_g,1,jx,1,kz)
-    call deco1_gather(va01,va01_g,1,jx,1,kz)
+    call deco1_gather(vaix,vaix_g,jdot1,jdot2,1,kz)
+    call deco1_gather(va01,va01_g,jdot1,jdot2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = jce1 , jce2
@@ -377,8 +377,8 @@ module mod_diagnosis
       psailx(j) = sfs%psa(j,ice2)
       psa01(j) = sfs%psa(j,ice1)
     end do
-    call deco1_gather(qvailx,qvailx_g,1,jx,1,kz)
-    call deco1_gather(qva01,qva01_g,1,jx,1,kz)
+    call deco1_gather(qvailx,qvailx_g,jcross1,jcross2,1,kz)
+    call deco1_gather(qva01,qva01_g,jcross1,jcross2,1,kz)
     call deco1_gather(psailx,psailx_g)
     call deco1_gather(psa01,psa01_g)
     if ( myid == 0 ) then
@@ -432,8 +432,8 @@ module mod_diagnosis
         qca01(j,k)  = atm1%qc(j,ice1,k)
       end do
     end do
-    call deco1_gather(qcailx,qcailx_g,1,jx,1,kz)
-    call deco1_gather(qca01,qca01_g,1,jx,1,kz)
+    call deco1_gather(qcailx,qcailx_g,jcross1,jcross2,1,kz)
+    call deco1_gather(qca01,qca01_g,jcross1,jcross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = jce1 , jce2
@@ -689,14 +689,14 @@ module mod_diagnosis
       psa01(j) = sfs%psa(j,ice1)
       psa02(j) = sfs%psa(j,ici1)
     end do
-    call deco1_gather(vaill,vaill_g,1,jx,1,kz)
-    call deco1_gather(va02,va02_g,1,jx,1,kz)
-    call deco1_gather(xkcill1,xkcill1_g,1,jx,1,kz)
-    call deco1_gather(xkc02,xkc02_g,1,jx,1,kz)
-    call deco1_gather(chiaill,chiaill_g,1,jx,1,kz,1,ntr)
-    call deco1_gather(chiaill1,chiaill1_g,1,jx,1,kz,1,ntr)
-    call deco1_gather(chia01,chia01_g,1,jx,1,kz,1,ntr)
-    call deco1_gather(chia02,chia02_g,1,jx,1,kz,1,ntr)
+    call deco1_gather(vaill,vaill_g,jcross1,jcross2,1,kz)
+    call deco1_gather(va02,va02_g,jcross1,jcross2,1,kz)
+    call deco1_gather(xkcill1,xkcill1_g,jcross1,jcross2,1,kz)
+    call deco1_gather(xkc02,xkc02_g,jcross1,jcross2,1,kz)
+    call deco1_gather(chiaill,chiaill_g,jcross1,jcross2,1,kz,1,ntr)
+    call deco1_gather(chiaill1,chiaill1_g,jcross1,jcross2,1,kz,1,ntr)
+    call deco1_gather(chia01,chia01_g,jcross1,jcross2,1,kz,1,ntr)
+    call deco1_gather(chia02,chia02_g,jcross1,jcross2,1,kz,1,ntr)
     call deco1_gather(psaill,psaill_g)
     call deco1_gather(psaill1,psaill1_g)
     call deco1_gather(psa01,psa01_g)
@@ -704,7 +704,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do n = 1 , ntr
         do k = 1 , kz
-          do i = 2 , iym2
+          do i = iout1 , iout2
             tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx * &
                         (worka(i,k,n)-workb(i,k,n))*regrav
           end do
@@ -713,19 +713,19 @@ module mod_diagnosis
 !       advection through north-south boundaries:
 !
         do k = 1 , kz
-          do j = 2 , jxm2
+          do j = jout1 , jout2
 !hy         inflow/outflow
             vavg2 = (vaill_g(j+1,k)+vaill_g(j,k))*d_half
             if ( vavg2 < d_zero ) then
               fx2 = -vavg2*(fact1*chiaill_g(j,k,n)/psaill_g(j) /      &
-                     (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)) +  &
+                     (mddom_io%msfx(j,icross2)*mddom_io%msfx(j,icross2)) +  &
                      fact2*chiaill1_g(j,k,n)/psaill1_g(j) /           &
-                     (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)))
+                     (mddom_io%msfx(j,iout2)*mddom_io%msfx(j,iout2)))
             else
               fx2 = -vavg2*(fact1*chiaill1_g(j,k,n)/psaill1_g(j) /    &
-                     (mddom_io%msfx(j,iym2)*mddom_io%msfx(j,iym2)) +  &
+                     (mddom_io%msfx(j,iout2)*mddom_io%msfx(j,iout2)) +  &
                      fact2*chiaill_g(j,k,n)/psaill_g(j) /             &
-                     (mddom_io%msfx(j,iym1)*mddom_io%msfx(j,iym1)))
+                     (mddom_io%msfx(j,icross2)*mddom_io%msfx(j,icross2)))
             end if
    
             vavg1 = (va02_g(j+1,k)+va02_g(j,k))*d_half
@@ -751,7 +751,7 @@ module mod_diagnosis
 !
     do n = 1 , ntr
       do k = 1 , kz
-        do i = 2 , iym2
+        do i = iout1 , iout2
           if ( myid == nproc-1 )  &
             worka(i,k,n) = xkc(jci2,i,k)*sfs%psa(jci2,i) * &
                (chia(jci2,i,k,n)/sfs%psa(jci2,i) - &
@@ -767,7 +767,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do n = 1 , ntr
         do k = 1 , kz
-          do i = 2 , iym2
+          do i = iout1 , iout2
             tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k) * &
                         (workb(i,k,n)+worka(i,k,n))*regrav
           end do
@@ -776,7 +776,7 @@ module mod_diagnosis
 !       diffusion through north-south boundaries:
    
         do k = 1 , kz
-          do j = 2 , jxm2
+          do j = jout1 , jout2
             chid1 = xkcill1_g(j,k)*psaill1_g(j)                       &
                     *(chiaill1_g(j,k,n)/psaill1_g(j)-chiaill_g(j,k,n) &
                     /psaill_g(j))
@@ -844,43 +844,43 @@ module mod_diagnosis
       do itr = 1 , ntr
         do k = 1 , kz
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + chia_io(j,i,k,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + remlsc_io(j,i,k,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + remcvc_io(j,i,k,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + rxsg_io(j,i,k,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + rxsaq1_io(j,i,k,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
           tttmp = d_zero
-          do j = 2 , jxm2
-            do i = 2 , iym2
+          do j = jout1 , jout2
+            do i = iout1 , iout2
               tttmp = tttmp + rxsaq2_io(j,i,k,itr)
             end do
           end do
@@ -899,8 +899,8 @@ module mod_diagnosis
    
       do itr = 1 , ntr
         tttmp = d_zero
-        do j = 2 , jxm2
-          do i = 2 , iym2
+        do j = jout1 , jout2
+          do i = iout1 , iout2
             tttmp = tttmp + remdrd_io(j,i,itr)
           end do
         end do
@@ -908,8 +908,8 @@ module mod_diagnosis
    
 !       emissions
         tttmp = d_zero
-        do j = 2 , jxm2
-          do i = 2 , iym2
+        do j = jout1 , jout2
+          do i = iout1 , iout2
             tttmp = tttmp + chemsrc_io(j,i,xmonth,itr)*dtsec*dx*dx
           end do
         end do
@@ -994,8 +994,8 @@ module mod_diagnosis
 !
     call deco1_gather(sfs%qfx,sfs_io%qfx,jcross1,jcross2,icross1,icross2)
     if ( myid == 0 ) then
-      do j = 2 , jxm2
-        do i = 2 , iym2
+      do j = jout1 , jout2
+        do i = iout1 , iout2
           tqeva = tqeva + sfs_io%qfx(j,i)*dx*dx*dtsec
         end do
       end do

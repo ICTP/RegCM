@@ -136,34 +136,6 @@ module mod_regcm_interface
 !      print * , "process" , myid , "of" , nproc
     call mpi_barrier(mycomm,ierr)
 !     starttime= MPI_WTIME()
-    if ( nproc == 1 ) then
-#ifdef BAND
-      iwest = myid
-      ieast = myid
-#else
-      ieast = mpi_proc_null
-      iwest = mpi_proc_null
-#endif
-    else
-      if ( myid == 0 ) then
-#ifdef BAND
-        iwest = nproc-1
-#else
-        iwest = mpi_proc_null
-#endif
-        ieast = myid+1
-      else if ( myid == nproc-1 ) then
-#ifdef BAND
-        ieast = 0
-#else
-        ieast = mpi_proc_null
-#endif
-        iwest = myid-1
-      else
-        ieast = myid+1
-        iwest = myid-1
-      end if
-    end if
     if ( jxp < 3 ) then
       write (aline,*) 'The number of jxp must be greater than 2'
       call say

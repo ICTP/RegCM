@@ -71,7 +71,7 @@ module mod_advection
       call assignpnt(dom%msfd,mapfd)
       call assignpnt(vertvel,vsv)
       call assignpnt(kpbltop,kpbl)
-      call getmem3d(fg,1,jxp,idot1,idot2,1,kz,'mod_advection:fg')
+      call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

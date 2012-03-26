@@ -229,7 +229,6 @@ module mod_dynparam
   integer :: myid
   integer :: jxp
   integer :: jxpsg
-  integer :: iwest , ieast , isouth , inorth
   integer :: jbegin , jendx , jendm
 
 !####################### MPI parameters ################################

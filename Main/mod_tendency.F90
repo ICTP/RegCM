@@ -65,20 +65,23 @@ module mod_tendency
   subroutine allocate_mod_tend
     implicit none
 
-    call getmem3d(divl,1,jxp,icross1,icross2,1,kz,'tendency:divl')
-    call getmem3d(ttld,1,jxp,icross1,icross2,1,kz,'tend:ttld')
-    call getmem3d(phi,0,jxp,idot1,idot2,1,kz,'tendency:phi')
-    call getmem3d(xkc,1,jxp,idot1,idot2,1,kz,'tendency:xkc')
-    call getmem3d(xkcf,1,jxp,idot1,idot2,1,kzp1,'tendency:xkcf')
-    call getmem3d(ps4,1,jxp,icross1,icross2,1,4,'tendency:ps4')
-    call getmem3d(ps_4,1,jx,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(td,1,jxp,icross1,icross2,1,kz,'tendency:td')
-    call getmem2d(psc,1,jxp,icross1,icross2,'tendency:psc')
-    call getmem2d(psd,0,jxp+1,icross1,icross2,'tendency:psd')
-    call getmem2d(pten,1,jxp,icross1,icross2,'tendency:pten')
+    call getmem3d(divl,jce1,jce2,ice1,ice2,1,kz,'tendency:divl')
+    call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
+    call getmem3d(phi,jde1-ma%jbl1,jde2,ide1-ma%ibb1,ide2,1,kz,'tendency:phi')
+    call getmem3d(xkc,jde1,jde2,ide1,ide2,1,kz,'tendency:xkc')
+    call getmem3d(xkcf,jde1,jde2,ide1,ide2,1,kzp1,'tendency:xkcf')
+    call getmem3d(ps4,jce1,jce2,ice1,ice2,1,4,'tendency:ps4')
+    call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
+    call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
+    call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
+    call getmem2d(psd,jce1-ma%jbl1,jce2+ma%jbr1, &
+                      ice1-ma%ibb1,ice2+ma%ibt1,'tendency:psd')
+    call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     if ( icup == 1 ) then
-      call getmem3d(wrkkuo1,0,jxp+1,icross1,icross2,1,kz,'tendency:wrkkuo1')
-      call getmem3d(wrkkuo2,0,jxp+1,icross1,icross2,1,kz,'tendency:wrkkuo2')
+      call getmem3d(wrkkuo1,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo1')
+      call getmem3d(wrkkuo2,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
     end if
   end subroutine allocate_mod_tend
 

@@ -137,8 +137,8 @@ module mod_mppio
 
     if (myid == 0) then
       call allocate_domain(mddom_io,.false.)
-      call allocate_atmstate(atm1_io,ibltyp,.false.,0,0)
-      call allocate_atmstate(atm2_io,ibltyp,.false.,0,0)
+      call allocate_atmstate(atm1_io,ibltyp,.false.,zero_exchange_point)
+      call allocate_atmstate(atm2_io,ibltyp,.false.,zero_exchange_point)
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call allocate_tcm_state(tcmstate_io,.false.)
       end if

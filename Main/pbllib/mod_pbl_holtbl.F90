@@ -23,6 +23,7 @@ module mod_pbl_holtbl
 ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
 !
   use mod_dynparam
+  use mod_mppparam
   use mod_service
   use mod_mpmessage
   use mod_pbl_common
@@ -343,8 +344,8 @@ module mod_pbl_holtbl
       wksend(ii) = akzz2(jxp,i,k)
     end do
   end do
-  call mpi_sendrecv(wksend,(iend-1)*kz*2,mpi_real8,ieast,1, &
-                    wkrecv,(iend-1)*kz*2,mpi_real8,iwest,1, &
+  call mpi_sendrecv(wksend,(iend-1)*kz*2,mpi_real8,ma%right,1, &
+                    wkrecv,(iend-1)*kz*2,mpi_real8,ma%left,1, &
                     mycomm,mpi_status_ignore,ierr)
   ii = 0
   do k = 1 , kz

@@ -140,16 +140,85 @@ module mod_atm_interface
 !
   real(dp) , public , pointer , dimension(:,:,:) :: qdot , omega
 !
+  integer , public , parameter :: zero_exchange_point = 0
+  integer , public , parameter :: one_exchange_point = 1
+  integer , public , parameter :: two_exchange_point = 2
+
   contains 
 !
     subroutine deco1_model(lband)
+#ifndef IBM
+      use mpi
+#endif
       implicit none
+#ifdef IBM
+      include 'mpif.h'
+#endif
       logical , intent(in) :: lband
+
+      ma%top    = mpi_proc_null
+      ma%bottom = mpi_proc_null
+      ma%ibt1 = 0
+      ma%ibt2 = 0
+      ma%ibb1 = 0
+      ma%ibb2 = 0
+      if ( nproc == 1 ) then
+        if ( lband ) then
+          ma%right = myid
+          ma%left  = myid
+          ma%jbr1 = 1
+          ma%jbl1 = 1
+          ma%jbr2 = 2
+          ma%jbl2 = 2
+        else
+          ma%right = mpi_proc_null
+          ma%left  = mpi_proc_null
+          ma%jbr1 = 0
+          ma%jbr2 = 0
+          ma%jbl1 = 0
+          ma%jbl2 = 0
+        end if
+      else
+        if ( myid == 0 ) then
+          if ( lband ) then
+            ma%left = nproc-1
+            ma%jbl1 = 1
+            ma%jbl2 = 2
+          else
+            ma%left = mpi_proc_null
+            ma%jbl1 = 0
+            ma%jbl2 = 0
+          endif
+          ma%right = myid+1
+          ma%jbr1 = 1
+          ma%jbr2 = 2
+        else if ( myid == nproc-1 ) then
+          if ( lband ) then
+            ma%right = 0
+            ma%jbr1 = 1
+            ma%jbr2 = 2
+          else
+            ma%right = mpi_proc_null
+            ma%jbr1 = 0
+            ma%jbr2 = 0
+          end if
+          ma%left = myid-1
+          ma%jbl1 = 1
+          ma%jbl2 = 2
+        else
+          ma%right = myid+1
+          ma%left  = myid-1
+          ma%jbr1 = 1
+          ma%jbr2 = 2
+          ma%jbl1 = 1
+          ma%jbl2 = 2
+        end if
+      end if
 #ifdef DEBUG
-      write(ndebug+myid,*) 'TOP = ', inorth
-      write(ndebug+myid,*) 'BTM = ', isouth
-      write(ndebug+myid,*) 'RGT = ', ieast
-      write(ndebug+myid,*) 'LFT = ', iwest
+      write(ndebug+myid,*) 'TOP = ', ma%top
+      write(ndebug+myid,*) 'BTM = ', ma%bottom
+      write(ndebug+myid,*) 'RGT = ', ma%right
+      write(ndebug+myid,*) 'LFT = ', ma%left
 #endif
       ma%bandflag = lband
       ma%hasleft  = .false.
@@ -222,6 +291,7 @@ module mod_atm_interface
       write(ndebug+myid,*) 'BTMBDY   : ', ma%hasbottom
       write(ndebug+myid,*) 'RGTBDY   : ', ma%hasright
       write(ndebug+myid,*) 'LFTBDY   : ', ma%hasleft
+      flush(ndebug+myid)
 #endif
     end subroutine deco1_model
 
@@ -393,13 +463,19 @@ module mod_atm_interface
       integer , intent(in) :: ke
       logical , intent(in) :: ldot
       if ( ldot ) then
-        call getmem3d(xb%b0,jde1-1,jde2+1,ide1,ide2,1,ke,'v3dbound:b0')
-        call getmem3d(xb%b1,jde1-1,jde2+1,ide1,ide2,1,ke,'v3dbound:b1')
-        call getmem3d(xb%bt,jde1-1,jde2+1,ide1,ide2,1,ke,'v3dbound:bt')
+        call getmem3d(xb%b0,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,1,ke,'v3dbound:b0')
+        call getmem3d(xb%b1,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,1,ke,'v3dbound:b1')
+        call getmem3d(xb%bt,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,1,ke,'v3dbound:bt')
       else
-        call getmem3d(xb%b0,jce1-1,jce2+1,ice1,ice2,1,ke,'v3dbound:b0')
-        call getmem3d(xb%b1,jce1-1,jce2+1,ice1,ice2,1,ke,'v3dbound:b1')
-        call getmem3d(xb%bt,jce1-1,jce2+1,ice1,ice2,1,ke,'v3dbound:bt')
+        call getmem3d(xb%b0,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,1,ke,'v3dbound:b0')
+        call getmem3d(xb%b1,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,1,ke,'v3dbound:b1')
+        call getmem3d(xb%bt,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,1,ke,'v3dbound:bt')
       end if
     end subroutine deco1_allocate_v3dbound
 !
@@ -408,30 +484,56 @@ module mod_atm_interface
       type(v2dbound) , intent(out) :: xb
       logical , intent(in) :: ldot
       if ( ldot ) then
-        call getmem2d(xb%b0,jde1-1,jde2+1,ide1,ide2,'v2dbound:b0')
-        call getmem2d(xb%b1,jde1-1,jde2+1,ide1,ide2,'v2dbound:b1')
-        call getmem2d(xb%bt,jde1-1,jde2+1,ide1,ide2,'v2dbound:bt')
+        call getmem2d(xb%b0,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,'v2dbound:b0')
+        call getmem2d(xb%b1,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,'v2dbound:b1')
+        call getmem2d(xb%bt,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,'v2dbound:bt')
       else
-        call getmem2d(xb%b0,jce1-1,jce2+1,ice1,ice2,'v2dbound:b0')
-        call getmem2d(xb%b1,jce1-1,jce2+1,ice1,ice2,'v2dbound:b1')
-        call getmem2d(xb%bt,jce1-1,jce2+1,ice1,ice2,'v2dbound:bt')
+        call getmem2d(xb%b0,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,'v2dbound:b0')
+        call getmem2d(xb%b1,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,'v2dbound:b1')
+        call getmem2d(xb%bt,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,'v2dbound:bt')
       end if
     end subroutine deco1_allocate_v2dbound
 !
-    subroutine allocate_atmstate(atm,ibltyp,lpar,ib,jb)
+    subroutine allocate_atmstate(atm,ibltyp,lpar,exchange_points)
       implicit none
       logical , intent(in) :: lpar
       integer , intent(in) :: ibltyp
-      integer , intent(in) :: ib , jb
+      integer , intent(in) :: exchange_points
       type(atmstate) , intent(out) :: atm
+      integer :: ib , it , jr , jl
+      if ( exchange_points == zero_exchange_point ) then
+        ib = 0
+        it = 0
+        jl = 0
+        jr = 0
+      else if ( exchange_points == one_exchange_point ) then
+        ib = ma%ibb1
+        it = ma%ibt1
+        jl = ma%jbl1
+        jr = ma%jbr1
+      else if ( exchange_points == two_exchange_point ) then
+        ib = ma%ibb2
+        it = ma%ibt2
+        jl = ma%jbl2
+        jr = ma%jbr2
+      else
+        call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
+      end if
+
       if (lpar) then
-        call getmem3d(atm%u,jde1-jb,jde2+jb,ide1-ib,ide2+ib,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jde1-jb,jde2+jb,ide1-ib,ide2+ib,1,kz,'atmstate:v')
-        call getmem3d(atm%t,jce1-jb,jce2+jb,ice1-ib,ice2+ib,1,kz,'atmstate:t')
-        call getmem3d(atm%qv,jce1-jb,jce2+jb,ice1-ib,ice2+ib,1,kz,'atmstate:qv')
-        call getmem3d(atm%qc,jce1-jb,jce2+jb,ice1-ib,ice2+ib,1,kz,'atmstate:qc')
+        call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
+        call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
+        call getmem3d(atm%qv,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:qv')
+        call getmem3d(atm%qc,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:qc')
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call getmem3d(atm%tke,jce1-jb,jce2+jb,ice1-ib,ice2+ib, &
+          call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                         1,kzp1,'atmstate:tke')
         end if
       else
@@ -453,12 +555,15 @@ module mod_atm_interface
       type(domain) , intent(out) :: dom
 
       if (lpar) then
-        call getmem2d(dom%ht,jde1-1,jde2+1,ide1,ide2,'atm_interface:ht')
+        call getmem2d(dom%ht,jde1-ma%jbl1,jde2+ma%jbr1, &
+                             ide1-ma%ibb1,ide2+ma%ibt1,'atm_interface:ht')
         call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
-        call getmem2d(dom%msfx,jde1-2,jde2+2,ide1,ide2,'atm_interface:msfx')
-        call getmem2d(dom%msfd,jde1-2,jde2+2,ide1,ide2,'atm_interface:msfd')
+        call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
+                               ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfx')
+        call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
+                               ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'atm_interface:f')
       else
         call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'atm_interface:ht')
@@ -476,8 +581,10 @@ module mod_atm_interface
       type(surfstate) , intent(out) :: sfs
       logical , intent(in) :: lpar
       if (lpar) then
-        call getmem2d(sfs%psa,jce1-1,jce2+1,ice1,ice2,'surf:psa')
-        call getmem2d(sfs%psb,jce1-1,jce2+1,ice1,ice2,'surf:psb')
+        call getmem2d(sfs%psa,jce1-ma%jbl1,jce2+ma%jbr1, &
+                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
+        call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
+                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
         call getmem2d(sfs%tga,jce1,jce2,ice1,ice2,'surf:tga')
         call getmem2d(sfs%tgb,jce1,jce2,ice1,ice2,'surf:tgb')
         call getmem2d(sfs%hfx,jce1,jce2,ice1,ice2,'surf:hfx')
@@ -485,7 +592,8 @@ module mod_atm_interface
         call getmem2d(sfs%rainc,jce1,jce2,ice1,ice2,'surf:rainc')
         call getmem2d(sfs%rainnc,jce1,jce2,ice1,ice2,'surf:rainnc')
         call getmem2d(sfs%tgbb,jce1,jce2,ice1,ice2,'surf:tgbb')
-        call getmem2d(sfs%uvdrag,jce1-1,jce2,ice1,ice2,'surf:uvdrag')
+        call getmem2d(sfs%uvdrag,jce1-ma%jbl1,jce2, &
+                                 ice1-ma%ibb1,ice2,'surf:uvdrag')
       else
         call getmem2d(sfs%psa,jcross1,jcross2,icross1,icross2,'surf:psa')
         call getmem2d(sfs%psb,jcross1,jcross2,icross1,icross2,'surf:psb')
@@ -509,19 +617,28 @@ module mod_atm_interface
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
       call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
       call getmem3d(ax%thx3d,jce1,jce2,ice1,ice2,1,kz,'slice:thx3d')
-      call getmem3d(ax%ubx3d,jce1-2,jce2+2,ice1,ice2,1,kz,'slice:ubx3d')
-      call getmem3d(ax%vbx3d,jce1-2,jce2+2,ice1,ice2,1,kz,'slice:vbx3d')
-      call getmem3d(ax%qcb3d,jce1-2,jce2+2,ice1,ice2,1,kz,'slice:qcb3d')
-      call getmem3d(ax%qvb3d,jce1-2,jce2+2,ice1,ice2,1,kz,'slice:qvb3d')
-      call getmem3d(ax%tb3d,jce1-2,jce2+2,ice1,ice2,1,kz,'slice:tb3d')
-      call getmem3d(ax%ubd3d,jde1-2,jde2+2,ide1,ide2,1,kz,'slice:ubd3d')
-      call getmem3d(ax%vbd3d,jde1-2,jde2+2,ide1,ide2,1,kz,'slice:vbd3d')
+      call getmem3d(ax%ubx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:ubx3d')
+      call getmem3d(ax%vbx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:vbx3d')
+      call getmem3d(ax%qcb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:qcb3d')
+      call getmem3d(ax%qvb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:qvb3d')
+      call getmem3d(ax%tb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                            ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:tb3d')
+      call getmem3d(ax%ubd3d,jde1-ma%jbl2,jde2+ma%jbr2, &
+                             ide1-ma%ibb2,ide2+ma%ibt2,1,kz,'slice:ubd3d')
+      call getmem3d(ax%vbd3d,jde1-ma%jbl2,jde2+ma%jbr2, &
+                             ide1-ma%ibb2,ide2+ma%ibt2,1,kz,'slice:vbd3d')
       if ( ichem == 1 ) then
-        call getmem4d(ax%chib3d,jce1-2,jce2+2,ice1,ice2, &
-                      1,kz,1,ntr,'slice:chib3d')
+        call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                                ice1-ma%ibb2,ice2+ma%ibt2, &
+                                1,kz,1,ntr,'slice:chib3d')
       end if
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        call getmem3d(ax%tkeb3d,jce1-2,jce2+2,ice1,ice2,1,kzp1,'slice:tkeb3d')
+        call getmem3d(ax%tkeb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                                ice1-ma%ibb2,ice2+ma%ibt2,1,kzp1,'slice:tkeb3d')
       end if
     end subroutine allocate_slice
 !
@@ -541,16 +658,16 @@ module mod_atm_interface
 !
       call allocate_domain(mddom,.true.)
 
-      call allocate_atmstate(atm1,ibltyp,.true.,0,2)
-      call allocate_atmstate(atm2,ibltyp,.true.,0,2)
-      call allocate_atmstate(atmx,ibltyp,.true.,0,1)
-      call allocate_atmstate(atmc,ibltyp,.true.,0,0)
-      call allocate_atmstate(aten,ibltyp,.true.,0,0)
+      call allocate_atmstate(atm1,ibltyp,.true.,two_exchange_point)
+      call allocate_atmstate(atm2,ibltyp,.true.,two_exchange_point)
+      call allocate_atmstate(atmx,ibltyp,.true.,one_exchange_point)
+      call allocate_atmstate(atmc,ibltyp,.true.,zero_exchange_point)
+      call allocate_atmstate(aten,ibltyp,.true.,zero_exchange_point)
       if ( ibltyp == 99 ) then
-        call allocate_atmstate(holtten,ibltyp,.true.,0,0)
+        call allocate_atmstate(holtten,ibltyp,.true.,zero_exchange_point)
       end if
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        call allocate_atmstate(uwten,ibltyp,.true.,0,1)
+        call allocate_atmstate(uwten,ibltyp,.true.,one_exchange_point)
       end if
 
       call allocate_surfstate(sfs,.true.)
@@ -565,7 +682,8 @@ module mod_atm_interface
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'atm_interface:hgfact')
       call getmem2d(psdot,jde1,jde2,ide1,ide2,'atm_interface:psdot')
       call getmem3d(omega,jce1,jce2,ice1,ice2,1,kz,'atm_interface:omega')
-      call getmem3d(qdot,jde1-1,jde2+1,ide1,ide2,1,kzp1,'atm_interface:qdot')
+      call getmem3d(qdot,jde1-ma%jbl1,jde2+ma%jbr1, &
+                         ide1-ma%ibb1,ide2+ma%ibt1,1,kzp1,'atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
 !

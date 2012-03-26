@@ -35,6 +35,9 @@ module mod_mppparam
   type model_area
     logical :: bandflag
     logical :: hasleft , hasright , hastop , hasbottom
+    integer :: left , right , top , bottom
+    integer :: ibt1 , ibt2 , ibb1 , ibb2
+    integer :: jbl1 , jbl2 , jbr1 , jbr2
   end type model_area
 
   type deco1d_nc_var2d
@@ -2285,7 +2288,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , i , j , ib
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
@@ -2298,7 +2301,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_right')
     end if
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do i = i1 , i2
@@ -2307,10 +2310,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
-                      r8vector2,ssize,mpi_real8,ieast,2, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
+                      r8vector2,ssize,mpi_real8,ma%right,2, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do i = i1 , i2
@@ -2332,7 +2335,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , j , i , ib
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
@@ -2345,7 +2348,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_left')
     end if
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1 
       do j = 1 , nex
         do i = i1 , i2
@@ -2354,10 +2357,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
-                      r8vector2,ssize,mpi_real8,iwest,1, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
+                      r8vector2,ssize,mpi_real8,ma%left,1, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do i = i1 , i2
@@ -2379,7 +2382,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     hsize = isize*ksize
@@ -2394,7 +2397,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_right')
     end if
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do k = k1 , k2
@@ -2405,10 +2408,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
-                      r8vector2,ssize,mpi_real8,ieast,2, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
+                      r8vector2,ssize,mpi_real8,ma%right,2, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do k = k1 , k2
@@ -2432,7 +2435,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     hsize = isize*ksize
@@ -2447,7 +2450,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_left')
     end if
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do k = k1 , k2
@@ -2458,10 +2461,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
-                      r8vector2,ssize,mpi_real8,iwest,1, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
+                      r8vector2,ssize,mpi_real8,ma%left,1, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do k = k1 , k2
@@ -2486,7 +2489,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
@@ -2503,7 +2506,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_right')
     end if
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do n = n1 , n2
@@ -2516,10 +2519,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,iwest,2, &
-                      r8vector2,ssize,mpi_real8,ieast,2, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
+                      r8vector2,ssize,mpi_real8,ma%right,2, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do n = n1 , n2
@@ -2546,7 +2549,7 @@ module mod_mppparam
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
-    if ( iwest == mpi_proc_null .and. ieast == mpi_proc_null) return
+    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
     isize = i2-i1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
@@ -2563,7 +2566,7 @@ module mod_mppparam
     else if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_left')
     end if
-    if ( ieast /= mpi_proc_null ) then
+    if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do n = n1 , n2
@@ -2576,10 +2579,10 @@ module mod_mppparam
         end do
       end do
     end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ieast,1, &
-                      r8vector2,ssize,mpi_real8,iwest,1, &
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
+                      r8vector2,ssize,mpi_real8,ma%left,1, &
                       mycomm,mpi_status_ignore,mpierr)
-    if ( iwest /= mpi_proc_null ) then
+    if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do j = 1 , nex
         do n = n1 , n2
