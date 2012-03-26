@@ -43,8 +43,6 @@ module mod_rad_tracer
 !------------------------------input------------------------------------
 !
 ! pmid   - model pressures
-! alat   - current latitude in radians
-! prtop  - pressure level of tropopause
 !
 !------------------------------output-----------------------------------
 !
@@ -55,12 +53,12 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcmix(jstart,jend,pmid,alat,ptrop,n2o,ch4,cfc11,cfc12)
+  subroutine trcmix(jstart,jend,i,xlat,ptrop,pmid,n2o,ch4,cfc11,cfc12)
     implicit none
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: jstart , jend , i
     real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , pmid
-    real(dp) , pointer , dimension(:) :: alat , ptrop
-    intent (in) alat , pmid , ptrop
+    real(dp) , pointer , dimension(:,:) :: xlat , ptrop
+    intent (in) pmid , xlat , ptrop
     intent (out) cfc11 , cfc12 , ch4 , n2o
 !
 !   dlat   - latitude in degrees
@@ -80,7 +78,7 @@ module mod_rad_tracer
     xn2o = d_zero
     do j = jstart , jend
 !     set stratospheric scale height factor for gases
-      dlat = dabs(raddeg*alat(j))
+      dlat = dabs(xlat(j,i))
       if ( dlat <= 45.0D0 ) then
         xn2o = 0.3478D0 + 0.00116D0*dlat
         xch4 = 0.2353D0
@@ -94,13 +92,13 @@ module mod_rad_tracer
       end if
 !
       do k = 1 , kz
-        if ( pmid(j,k) >= ptrop(j) ) then
+        if ( pmid(j,k) >= ptrop(j,i) ) then
           ch4(j,k) = ch40
           n2o(j,k) = n2o0
           cfc11(j,k) = cfc110
           cfc12(j,k) = cfc120
         else
-          pratio = pmid(j,k)/ptrop(j)
+          pratio = pmid(j,k)/ptrop(j,i)
           ch4(j,k) = ch40*(pratio)**xch4
           n2o(j,k) = n2o0*(pratio)**xn2o
           cfc11(j,k) = cfc110*(pratio)**xcfc11

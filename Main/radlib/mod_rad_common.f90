@@ -86,6 +86,8 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:,:) :: heatrt
   real(dp) , pointer , dimension(:,:,:) :: o3prof
 
+  real(dp) , pointer , dimension(:,:) :: ptrop
+
   integer :: idirect , iemiss
   logical :: doabsems , dolw , dosw
   integer :: ichso4 , ichbc , ichoc
@@ -100,10 +102,11 @@ module mod_rad_common
 
   subroutine allocate_mod_rad_common
     implicit none
-    call getmem3d(cldfra,1,jxp,1,iym1,1,kz,'mod_rad:cldfra')
-    call getmem3d(cldlwc,1,jxp,1,iym1,1,kz,'mod_rad:cldlwc')
-    call getmem3d(heatrt,1,jxp,1,iym1,1,kz,'mod_rad:heatrt')
-    call getmem3d(o3prof,1,jxp,1,iym1,1,kzp1,'mod_rad:o3prof')
+    call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldfra')
+    call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldlwc')
+    call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'mod_rad:heatrt')
+    call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'mod_rad:o3prof')
+    call getmem2d(ptrop,jci1,jci2,ici1,ici2,'colmod3:ptrop')
   end subroutine  allocate_mod_rad_common
 
 end module mod_rad_common

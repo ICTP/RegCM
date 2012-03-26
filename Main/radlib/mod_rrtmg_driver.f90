@@ -43,7 +43,7 @@ module mod_rrtmg_driver
   real(dp) , pointer , dimension(:) :: solin , frsa , sabtp , clrst , &
          clrss , firtp , frla , clrlt , clrls , empty1 , &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
-         asdif , aldir , aldif , czen , alat , ptrop
+         asdif , aldir , aldif , czen
 
   real(dp) , pointer , dimension(:,:) :: qrs , qrl , clwp_int ,     &
          cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr , &
@@ -115,8 +115,6 @@ module mod_rrtmg_driver
     call getmem1d(aldir,1,npj,'rrtmg:aldir')
     call getmem1d(aldif,1,npj,'rrtmg:aldif')
     call getmem1d(czen,1,npj,'rrtmg:czen')
-    call getmem1d(alat,1,npj,'rrtmg:alat')
-    call getmem1d(ptrop,1,npj,'rrtmg:ptrop')
     call getmem1d(ioro,1,npj,'rrtmg:ioro')
 
     call getmem2d(qrs,jstart,jend,1,kz,'rrtmg:qrs')
@@ -482,12 +480,6 @@ module mod_rrtmg_driver
     !
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
 
-    do j = jstart , jend
-      jj = j - jstart + 1
-      alat(jj) = xlat(j,i)*degrad
-      ptrop(jj) = 250.0D2 - 150.0D2*dcos(alat(jj))**d_two
-    end do
-
     ! CONVENTION : RRTMG driver takes layering form botom to TOA. 
     ! regcm consider Top to bottom
 
@@ -574,7 +566,7 @@ module mod_rrtmg_driver
     !
     ! other gas (n2o,ch4)
     !
-    call trcmix(1,npj,play,alat,ptrop,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+    call trcmix(1,npj,i,xlat,ptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kz
       do j = 1 , npj

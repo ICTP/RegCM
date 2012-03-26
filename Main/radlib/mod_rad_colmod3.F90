@@ -37,7 +37,7 @@ module mod_rad_colmod3
 !
   real(dp) , parameter :: kabsl = 0.090361D0
 !
-  real(dp) , pointer , dimension(:) :: alb , albc , alat , ptrop ,    &
+  real(dp) , pointer , dimension(:) :: alb , albc , &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
     sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci
@@ -52,60 +52,57 @@ module mod_rad_colmod3
 !
     subroutine allocate_mod_rad_colmod3
       implicit none
-      call getmem1d(alb,1,jxp,'colmod3:alb')
-      call getmem1d(albc,1,jxp,'colmod3:albc')
-      call getmem1d(alat,1,jxp,'colmod3:alat')
-      call getmem1d(ptrop,1,jxp,'colmod3:ptrop')
-      call getmem1d(flns,1,jxp,'colmod3:flns')
-      call getmem1d(flnsc,1,jxp,'colmod3:flnsc')
-      call getmem1d(flnt,1,jxp,'colmod3:flnt')
-      call getmem1d(flntc,1,jxp,'colmod3:flntc')
-      call getmem1d(flwds,1,jxp,'colmod3:flwds')
-      call getmem1d(fsds,1,jxp,'colmod3:fsds')
-      call getmem1d(fsnirt,1,jxp,'colmod3:fsnirt')
-      call getmem1d(fsnirtsq,1,jxp,'colmod3:fsnirtsq')
-      call getmem1d(fsnrtc,1,jxp,'colmod3:fsnrtc')
-      call getmem1d(fsns,1,jxp,'colmod3:fsns')
-      call getmem1d(fsnsc,1,jxp,'colmod3:fsnsc')
-      call getmem1d(fsnt,1,jxp,'colmod3:fsnt')
-      call getmem1d(fsntc,1,jxp,'colmod3:fsntc')
-      call getmem1d(solin,1,jxp,'colmod3:solin')
-      call getmem1d(soll,1,jxp,'colmod3:soll')
-      call getmem1d(solld,1,jxp,'colmod3:solld')
-      call getmem1d(sols,1,jxp,'colmod3:sols')
-      call getmem1d(solsd,1,jxp,'colmod3:solsd')
-      call getmem1d(totcf,1,jxp,'colmod3:totcf')
-      call getmem1d(totcl,1,jxp,'colmod3:totcl')
-      call getmem1d(totci,1,jxp,'colmod3:totci')
-      call getmem1d(ps,1,jxp,'colmod3:ps')
-      call getmem1d(ts,1,jxp,'colmod3:ts')
-      call getmem1d(emsvt1,1,jxp,'colmod3:emsvt1')
+      call getmem1d(alb,jci1,jci2,'colmod3:alb')
+      call getmem1d(albc,jci1,jci2,'colmod3:albc')
+      call getmem1d(flns,jci1,jci2,'colmod3:flns')
+      call getmem1d(flnsc,jci1,jci2,'colmod3:flnsc')
+      call getmem1d(flnt,jci1,jci2,'colmod3:flnt')
+      call getmem1d(flntc,jci1,jci2,'colmod3:flntc')
+      call getmem1d(flwds,jci1,jci2,'colmod3:flwds')
+      call getmem1d(fsds,jci1,jci2,'colmod3:fsds')
+      call getmem1d(fsnirt,jci1,jci2,'colmod3:fsnirt')
+      call getmem1d(fsnirtsq,jci1,jci2,'colmod3:fsnirtsq')
+      call getmem1d(fsnrtc,jci1,jci2,'colmod3:fsnrtc')
+      call getmem1d(fsns,jci1,jci2,'colmod3:fsns')
+      call getmem1d(fsnsc,jci1,jci2,'colmod3:fsnsc')
+      call getmem1d(fsnt,jci1,jci2,'colmod3:fsnt')
+      call getmem1d(fsntc,jci1,jci2,'colmod3:fsntc')
+      call getmem1d(solin,jci1,jci2,'colmod3:solin')
+      call getmem1d(soll,jci1,jci2,'colmod3:soll')
+      call getmem1d(solld,jci1,jci2,'colmod3:solld')
+      call getmem1d(sols,jci1,jci2,'colmod3:sols')
+      call getmem1d(solsd,jci1,jci2,'colmod3:solsd')
+      call getmem1d(totcf,jci1,jci2,'colmod3:totcf')
+      call getmem1d(totcl,jci1,jci2,'colmod3:totcl')
+      call getmem1d(totci,jci1,jci2,'colmod3:totci')
+      call getmem1d(ps,jci1,jci2,'colmod3:ps')
+      call getmem1d(ts,jci1,jci2,'colmod3:ts')
+      call getmem1d(emsvt1,jci1,jci2,'colmod3:emsvt1')
 
-      call getmem2d(cld,1,jxp,1,kzp1,'colmod3:cld')
-      call getmem2d(effcld,1,jxp,1,kzp1,'colmod3:effcld')
-      call getmem2d(pilnm1,1,jxp,1,kzp1,'colmod3:pilnm1')
-      call getmem2d(pintm1,1,jxp,1,kzp1,'colmod3:pintm1')
+      call getmem2d(cld,jci1,jci2,1,kzp1,'colmod3:cld')
+      call getmem2d(effcld,jci1,jci2,1,kzp1,'colmod3:effcld')
+      call getmem2d(pilnm1,jci1,jci2,1,kzp1,'colmod3:pilnm1')
+      call getmem2d(pintm1,jci1,jci2,1,kzp1,'colmod3:pintm1')
 
-      call getmem2d(clwp,1,jxp,1,kz,'colmod3:clwp')
-      call getmem2d(emis,1,jxp,1,kz,'colmod3:emis')
-      call getmem2d(fice,1,jxp,1,kz,'colmod3:fice')
-      call getmem2d(h2ommr,1,jxp,1,kz,'colmod3:h2ommr')
-      call getmem2d(o3mmr,1,jxp,1,kz,'colmod3:o3mmr')
-      call getmem2d(o3vmr,1,jxp,1,kz,'colmod3:o3vmr')
-      call getmem2d(pmidm1,1,jxp,1,kz,'colmod3:pmidm1')
-      call getmem2d(pmlnm1,1,jxp,1,kz,'colmod3:pmlnm1')
-      call getmem2d(qm1,1,jxp,1,kz,'colmod3:qm1')
-      call getmem2d(qrl,1,jxp,1,kz,'colmod3:qrl')
-      call getmem2d(qrs,1,jxp,1,kz,'colmod3:qrs')
-      call getmem2d(rei,1,jxp,1,kz,'colmod3:rei')
-      call getmem2d(rel,1,jxp,1,kz,'colmod3:rel')
-      call getmem2d(tm1,1,jxp,1,kz,'colmod3:tm1')
-      call getmem2d(deltaz,1,jxp,1,kz,'colmod3:deltaz')
+      call getmem2d(clwp,jci1,jci2,1,kz,'colmod3:clwp')
+      call getmem2d(emis,jci1,jci2,1,kz,'colmod3:emis')
+      call getmem2d(fice,jci1,jci2,1,kz,'colmod3:fice')
+      call getmem2d(h2ommr,jci1,jci2,1,kz,'colmod3:h2ommr')
+      call getmem2d(o3mmr,jci1,jci2,1,kz,'colmod3:o3mmr')
+      call getmem2d(o3vmr,jci1,jci2,1,kz,'colmod3:o3vmr')
+      call getmem2d(pmidm1,jci1,jci2,1,kz,'colmod3:pmidm1')
+      call getmem2d(pmlnm1,jci1,jci2,1,kz,'colmod3:pmlnm1')
+      call getmem2d(qm1,jci1,jci2,1,kz,'colmod3:qm1')
+      call getmem2d(qrl,jci1,jci2,1,kz,'colmod3:qrl')
+      call getmem2d(qrs,jci1,jci2,1,kz,'colmod3:qrs')
+      call getmem2d(rei,jci1,jci2,1,kz,'colmod3:rei')
+      call getmem2d(rel,jci1,jci2,1,kz,'colmod3:rel')
+      call getmem2d(tm1,jci1,jci2,1,kz,'colmod3:tm1')
+      call getmem2d(deltaz,jci1,jci2,1,kz,'colmod3:deltaz')
 
-      call getmem1d(ioro,1,jxp,'colmod3:ioro')
+      call getmem1d(ioro,jci1,jci2,'colmod3:ioro')
 
       call getmem2d(coszgt0,jci1,jci2,ici1,ici2,'colmod3:coszgt0')
-
     end subroutine allocate_mod_rad_colmod3
 !
 !-----------------------------NOTICE------------------------------------
@@ -270,8 +267,6 @@ module mod_rad_colmod3
 !
       alb(:) = d_zero
       albc(:) = d_zero
-      alat(:) = d_zero
-      ptrop(:) = d_zero
       flns(:) = d_zero
       flnsc(:) = d_zero
       flnt(:) = d_zero
@@ -373,7 +368,7 @@ module mod_rad_colmod3
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
 !
-      call radctl(jstart,jend,i,alat,ptrop,ts,pmidm1,pintm1,pmlnm1,       &
+      call radctl(jstart,jend,i,ts,pmidm1,pintm1,pmlnm1,                  &
                   pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,  &
                   rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
                   flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,       &
@@ -700,13 +695,6 @@ module mod_rad_colmod3
 !
     do j = jstart , jend
       ts(j) = tground(j,i)
-    end do
-!
-!   pressure of tropopause
-!
-    do j = jstart , jend
-      alat(j) = xlat(j,i)*degrad
-      ptrop(j) = 250.0D2 - 150.0D2*dcos(alat(j))**d_two
     end do
 !
 !   o3 mass and volume mixing ratios

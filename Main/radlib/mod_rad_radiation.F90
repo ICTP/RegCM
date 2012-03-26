@@ -507,167 +507,167 @@ module mod_rad_radiation
   subroutine allocate_mod_rad_radiation 
     implicit none        
 !
-    call getmem4d(absnxt,1,jxp,1,iym1,1,kz,1,4,'radiation:absnxt')
-    call getmem4d(abstot,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:abstot')
-    call getmem3d(emstot,1,jxp,1,iym1,1,kzp1,'radiation:emstot')
-    call getmem4d(gasabsnxt,1,jxp,1,iym1,1,kz,1,4,'radiation:gasabsnxt')
-    call getmem4d(gasabstot,1,jxp,1,iym1,1,kzp1,1,kzp1,'radiation:gasabstot')
-    call getmem3d(gasemstot,1,jxp,1,iym1,1,kzp1,'radiation:gasemstot')
+    call getmem4d(absnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:absnxt')
+    call getmem4d(abstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:abstot')
+    call getmem3d(emstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:emstot')
+    call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
+    call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
+    call getmem3d(gasemstot,jce1,jce2,ice1,ice2,1,kzp1,'rad:gasemstot')
 
-    call getmem4d(xuinpl,1,jxp,1,iym1,1,kzp1,1,4,'radiation:xuinpl')
+    call getmem4d(xuinpl,jci1,jci2,ici1,ici2,1,kzp1,1,4,'rad:xuinpl')
 
-    call getmem2d(diralb,1,jxp,1,iym1,'radiation:diralb')
-    call getmem2d(difalb,1,jxp,1,iym1,'radiation:difalb')
+    call getmem2d(diralb,jci1,jci2,ici1,ici2,'rad:diralb')
+    call getmem2d(difalb,jci1,jci2,ici1,ici2,'rad:difalb')
 
-    call getmem1d(co2plk,1,jxp,'radiation:co2plk')
-    call getmem1d(dtx,1,jxp,'radiation:dtx')
-    call getmem1d(dty,1,jxp,'radiation:dty')
-    call getmem1d(tco2,1,jxp,'radiation:tco2')
-    call getmem1d(th2o,1,jxp,'radiation:th2o')
-    call getmem1d(to3,1,jxp,'radiation:to3')
-    call getmem1d(xsum,1,jxp,'radiation:xsum')
-    call getmem1d(abstrc,1,jxp,'radiation:abstrc')
-    call getmem1d(dw,1,jxp,'radiation:dw')
-    call getmem1d(pnew,1,jxp,'radiation:pnew')
-    call getmem1d(to3co2,1,jxp,'radiation:to3co2')
-    call getmem1d(ux,1,jxp,'radiation:ux')
-    call getmem1d(taugab,1,jxp,'radiation:taugab')
-    call getmem1d(tauray,1,jxp,'radiation:tauray')
-    call getmem1d(seldo,1,jxp,'radiation:seldo')
-    call getmem1d(khiv,1,jxp,'radiation:khiv')
-    call getmem1d(khivm,1,jxp,'radiation:khivm')
-    call getmem1d(klov,1,jxp,'radiation:klov')
-    call getmem1d(delt,1,jxp,'radiation:delt')
-    call getmem1d(delt1,1,jxp,'radiation:delt1')
-    call getmem1d(tmp,1,jxp,'radiation:tmp')
-    call getmem1d(tplnke,1,jxp,'radiation:tplnke')
-    call getmem1d(done,1,jxp,'radiation:done')
-    call getmem1d(start,1,jxp,'radiation:start')
+    call getmem1d(co2plk,jci1,jci2,'rad:co2plk')
+    call getmem1d(dtx,jci1,jci2,'rad:dtx')
+    call getmem1d(dty,jci1,jci2,'rad:dty')
+    call getmem1d(tco2,jci1,jci2,'rad:tco2')
+    call getmem1d(th2o,jci1,jci2,'rad:th2o')
+    call getmem1d(to3,jci1,jci2,'rad:to3')
+    call getmem1d(xsum,jci1,jci2,'rad:xsum')
+    call getmem1d(abstrc,jci1,jci2,'rad:abstrc')
+    call getmem1d(dw,jci1,jci2,'rad:dw')
+    call getmem1d(pnew,jci1,jci2,'rad:pnew')
+    call getmem1d(to3co2,jci1,jci2,'rad:to3co2')
+    call getmem1d(ux,jci1,jci2,'rad:ux')
+    call getmem1d(taugab,jci1,jci2,'rad:taugab')
+    call getmem1d(tauray,jci1,jci2,'rad:tauray')
+    call getmem1d(seldo,jci1,jci2,'rad:seldo')
+    call getmem1d(khiv,jci1,jci2,'rad:khiv')
+    call getmem1d(khivm,jci1,jci2,'rad:khivm')
+    call getmem1d(klov,jci1,jci2,'rad:klov')
+    call getmem1d(delt,jci1,jci2,'rad:delt')
+    call getmem1d(delt1,jci1,jci2,'rad:delt1')
+    call getmem1d(tmp,jci1,jci2,'rad:tmp')
+    call getmem1d(tplnke,jci1,jci2,'rad:tplnke')
+    call getmem1d(done,jci1,jci2,'rad:done')
+    call getmem1d(start,jci1,jci2,'rad:start')
 
-    call getmem2d(co2ems,1,jxp,1,kzp1,'radiation:co2ems')
-    call getmem2d(emstrc,1,jxp,1,kzp1,'radiation:emstrc')
-    call getmem2d(h2oems,1,jxp,1,kzp1,'radiation:h2oems')
-    call getmem2d(o3ems,1,jxp,1,kzp1,'radiation:o3ems')
-    call getmem2d(dbvtit,1,jxp,1,kzp1,'radiation:dbvtit')
-    call getmem2d(pnmsq,1,jxp,1,kzp1,'radiation:pnmsq')
-    call getmem2d(term6,1,jxp,1,kzp1,'radiation:term6')
-    call getmem2d(term9,1,jxp,1,kzp1,'radiation:term9')
-    call getmem2d(bch4,1,jxp,1,kzp1,'radiation:bch4')
-    call getmem2d(bn2o0,1,jxp,1,kzp1,'radiation:bn2o0')
-    call getmem2d(bn2o1,1,jxp,1,kzp1,'radiation:bn2o1')
-    call getmem2d(co2em,1,jxp,1,kzp1,'radiation:co2em')
-    call getmem2d(co2t,1,jxp,1,kzp1,'radiation:co2t')
-    call getmem2d(h2otr,1,jxp,1,kzp1,'radiation:h2otr')
-    call getmem2d(ucfc11,1,jxp,1,kzp1,'radiation:ucfc11')
-    call getmem2d(ucfc12,1,jxp,1,kzp1,'radiation:ucfc12')
-    call getmem2d(un2o0,1,jxp,1,kzp1,'radiation:un2o0')
-    call getmem2d(un2o1,1,jxp,1,kzp1,'radiation:un2o1')
-    call getmem2d(uch4,1,jxp,1,kzp1,'radiation:uch4')
-    call getmem2d(uco211,1,jxp,1,kzp1,'radiation:uco211')
-    call getmem2d(uco212,1,jxp,1,kzp1,'radiation:uco212')
-    call getmem2d(uco213,1,jxp,1,kzp1,'radiation:uco213')
-    call getmem2d(uco221,1,jxp,1,kzp1,'radiation:uco221')
-    call getmem2d(uco222,1,jxp,1,kzp1,'radiation:uco222')
-    call getmem2d(uco223,1,jxp,1,kzp1,'radiation:uco223')
-    call getmem2d(uptype,1,jxp,1,kzp1,'radiation:uptype')
-    call getmem2d(plol,1,jxp,1,kzp1,'radiation:plol')
-    call getmem2d(plos,1,jxp,1,kzp1,'radiation:plos')
-    call getmem2d(tplnka,1,jxp,1,kzp1,'radiation:tplnka')
-    call getmem2d(tint,1,jxp,1,kzp1,'radiation:tint')
-    call getmem2d(tint4,1,jxp,1,kzp1,'radiation:tint4')
-    call getmem2d(tlayr,1,jxp,1,kzp1,'radiation:tlayr')
-    call getmem2d(tlayr4,1,jxp,1,kzp1,'radiation:tlayr4')
-    call getmem2d(w,1,jxp,1,kzp1,'radiation:w')
-    call getmem2d(s2c,1,jxp,1,kzp1,'radiation:s2c')
-    call getmem2d(s2t,1,jxp,1,kzp1,'radiation:s2t')
-    call getmem2d(co2eml,1,jxp,1,kzp1,'radiation:co2eml')
-    call getmem2d(fdl,1,jxp,1,kzp1,'radiation:fdl')
-    call getmem2d(fsdl,1,jxp,1,kzp1,'radiation:fsdl')
-    call getmem2d(ful,1,jxp,1,kzp1,'radiation:ful')
-    call getmem2d(fsul,1,jxp,1,kzp1,'radiation:fsul')
-    call getmem2d(fdl0,1,jxp,1,kzp1,'radiation:fdl0')
-    call getmem2d(fsdl0,1,jxp,1,kzp1,'radiation:fsdl0')
-    call getmem2d(ful0,1,jxp,1,kzp1,'radiation:ful0')
-    call getmem2d(fsul0,1,jxp,1,kzp1,'radiation:fsul0')
-    call getmem2d(rtclrsf,1,jxp,1,kzp1,'radiation:rtclrsf')
+    call getmem2d(co2ems,jci1,jci2,1,kzp1,'rad:co2ems')
+    call getmem2d(emstrc,jci1,jci2,1,kzp1,'rad:emstrc')
+    call getmem2d(h2oems,jci1,jci2,1,kzp1,'rad:h2oems')
+    call getmem2d(o3ems,jci1,jci2,1,kzp1,'rad:o3ems')
+    call getmem2d(dbvtit,jci1,jci2,1,kzp1,'rad:dbvtit')
+    call getmem2d(pnmsq,jci1,jci2,1,kzp1,'rad:pnmsq')
+    call getmem2d(term6,jci1,jci2,1,kzp1,'rad:term6')
+    call getmem2d(term9,jci1,jci2,1,kzp1,'rad:term9')
+    call getmem2d(bch4,jci1,jci2,1,kzp1,'rad:bch4')
+    call getmem2d(bn2o0,jci1,jci2,1,kzp1,'rad:bn2o0')
+    call getmem2d(bn2o1,jci1,jci2,1,kzp1,'rad:bn2o1')
+    call getmem2d(co2em,jci1,jci2,1,kzp1,'rad:co2em')
+    call getmem2d(co2t,jci1,jci2,1,kzp1,'rad:co2t')
+    call getmem2d(h2otr,jci1,jci2,1,kzp1,'rad:h2otr')
+    call getmem2d(ucfc11,jci1,jci2,1,kzp1,'rad:ucfc11')
+    call getmem2d(ucfc12,jci1,jci2,1,kzp1,'rad:ucfc12')
+    call getmem2d(un2o0,jci1,jci2,1,kzp1,'rad:un2o0')
+    call getmem2d(un2o1,jci1,jci2,1,kzp1,'rad:un2o1')
+    call getmem2d(uch4,jci1,jci2,1,kzp1,'rad:uch4')
+    call getmem2d(uco211,jci1,jci2,1,kzp1,'rad:uco211')
+    call getmem2d(uco212,jci1,jci2,1,kzp1,'rad:uco212')
+    call getmem2d(uco213,jci1,jci2,1,kzp1,'rad:uco213')
+    call getmem2d(uco221,jci1,jci2,1,kzp1,'rad:uco221')
+    call getmem2d(uco222,jci1,jci2,1,kzp1,'rad:uco222')
+    call getmem2d(uco223,jci1,jci2,1,kzp1,'rad:uco223')
+    call getmem2d(uptype,jci1,jci2,1,kzp1,'rad:uptype')
+    call getmem2d(plol,jci1,jci2,1,kzp1,'rad:plol')
+    call getmem2d(plos,jci1,jci2,1,kzp1,'rad:plos')
+    call getmem2d(tplnka,jci1,jci2,1,kzp1,'rad:tplnka')
+    call getmem2d(tint,jci1,jci2,1,kzp1,'rad:tint')
+    call getmem2d(tint4,jci1,jci2,1,kzp1,'rad:tint4')
+    call getmem2d(tlayr,jci1,jci2,1,kzp1,'rad:tlayr')
+    call getmem2d(tlayr4,jci1,jci2,1,kzp1,'rad:tlayr4')
+    call getmem2d(w,jci1,jci2,1,kzp1,'rad:w')
+    call getmem2d(s2c,jci1,jci2,1,kzp1,'rad:s2c')
+    call getmem2d(s2t,jci1,jci2,1,kzp1,'rad:s2t')
+    call getmem2d(co2eml,jci1,jci2,1,kzp1,'rad:co2eml')
+    call getmem2d(fdl,jci1,jci2,1,kzp1,'rad:fdl')
+    call getmem2d(fsdl,jci1,jci2,1,kzp1,'rad:fsdl')
+    call getmem2d(ful,jci1,jci2,1,kzp1,'rad:ful')
+    call getmem2d(fsul,jci1,jci2,1,kzp1,'rad:fsul')
+    call getmem2d(fdl0,jci1,jci2,1,kzp1,'rad:fdl0')
+    call getmem2d(fsdl0,jci1,jci2,1,kzp1,'rad:fsdl0')
+    call getmem2d(ful0,jci1,jci2,1,kzp1,'rad:ful0')
+    call getmem2d(fsul0,jci1,jci2,1,kzp1,'rad:fsul0')
+    call getmem2d(rtclrsf,jci1,jci2,1,kzp1,'rad:rtclrsf')
 
-    call getmem2d(dbvtly,1,jxp,1,kz,'radiation:dbvtly')
-    call getmem2d(fclb4,1,jxp,1,kz,'radiation:fclb4')
-    call getmem2d(fclt4,1,jxp,1,kz,'radiation:fclt4')
+    call getmem2d(dbvtly,jci1,jci2,1,kz,'rad:dbvtly')
+    call getmem2d(fclb4,jci1,jci2,1,kz,'rad:fclb4')
+    call getmem2d(fclt4,jci1,jci2,1,kz,'rad:fclt4')
 
-    call getmem2d(emplnk,1,14,1,jxp,'radiation:emplnk')
-    call getmem3d(bplnk,1,14,1,jxp,1,4,'radiation:bplnk')
+    call getmem2d(emplnk,1,14,jci1,jci2,'rad:emplnk')
+    call getmem3d(bplnk,1,14,jci1,jci2,1,4,'rad:bplnk')
 
-    call getmem3d(abplnk1,1,14,1,jxp,1,kzp1,'radiation:abplnk1')
-    call getmem3d(abplnk2,1,14,1,jxp,1,kzp1,'radiation:abplnk2')
+    call getmem3d(abplnk1,1,14,jci1,jci2,1,kzp1,'rad:abplnk1')
+    call getmem3d(abplnk2,1,14,jci1,jci2,1,kzp1,'rad:abplnk2')
 
-    call getmem2d(exptdn,1,jxp,0,kzp1,'radiation:exptdn')
-    call getmem2d(fluxdn,1,jxp,0,kzp1,'radiation:fluxdn')
-    call getmem2d(fluxup,1,jxp,0,kzp1,'radiation:fluxup')
-    call getmem2d(rdndif,1,jxp,0,kzp1,'radiation:rdndif')
-    call getmem2d(rupdif,1,jxp,0,kzp1,'radiation:rupdif')
-    call getmem2d(rupdir,1,jxp,0,kzp1,'radiation:rupdir')
-    call getmem2d(tottrn,1,jxp,0,kzp1,'radiation:tottrn')
-    call getmem2d(pflx,1,jxp,0,kzp1,'radiation:pflx')
-    call getmem2d(fswup,1,jxp,0,kzp1,'radiation:fswup')
-    call getmem2d(fswdn,1,jxp,0,kzp1,'radiation:fswdn')
+    call getmem2d(exptdn,jci1,jci2,0,kzp1,'rad:exptdn')
+    call getmem2d(fluxdn,jci1,jci2,0,kzp1,'rad:fluxdn')
+    call getmem2d(fluxup,jci1,jci2,0,kzp1,'rad:fluxup')
+    call getmem2d(rdndif,jci1,jci2,0,kzp1,'rad:rdndif')
+    call getmem2d(rupdif,jci1,jci2,0,kzp1,'rad:rupdif')
+    call getmem2d(rupdir,jci1,jci2,0,kzp1,'rad:rupdir')
+    call getmem2d(tottrn,jci1,jci2,0,kzp1,'rad:tottrn')
+    call getmem2d(pflx,jci1,jci2,0,kzp1,'rad:pflx')
+    call getmem2d(fswup,jci1,jci2,0,kzp1,'rad:fswup')
+    call getmem2d(fswdn,jci1,jci2,0,kzp1,'rad:fswdn')
 
-    call getmem2d(rdir,1,jxp,0,kz,'radiation:rdir')
-    call getmem2d(rdif,1,jxp,0,kz,'radiation:rdif')
-    call getmem2d(tdir,1,jxp,0,kz,'radiation:tdir')
-    call getmem2d(tdif,1,jxp,0,kz,'radiation:tdif')
-    call getmem2d(explay,1,jxp,0,kz,'radiation:explay')
-    call getmem2d(flxdiv,1,jxp,0,kz,'radiation:flxdiv')
-    call getmem2d(totfld,1,jxp,0,kz,'radiation:totfld')
-    call getmem2d(tauxcl,1,jxp,0,kz,'radiation:tauxcl')
-    call getmem2d(tauxci,1,jxp,0,kz,'radiation:tauxci')
-    call getmem2d(wcl,1,jxp,0,kz,'radiation:wcl')
-    call getmem2d(gcl,1,jxp,0,kz,'radiation:gcl')
-    call getmem2d(fcl,1,jxp,0,kz,'radiation:fcl')
-    call getmem2d(wci,1,jxp,0,kz,'radiation:wci')
-    call getmem2d(gci,1,jxp,0,kz,'radiation:gci')
-    call getmem2d(fci,1,jxp,0,kz,'radiation:fci')
-    call getmem2d(uh2o,1,jxp,0,kz,'radiation:uh2o')
-    call getmem2d(uo3,1,jxp,0,kz,'radiation:uo3')
-    call getmem2d(uco2,1,jxp,0,kz,'radiation:uco2')
-    call getmem2d(uo2,1,jxp,0,kz,'radiation:uo2')
+    call getmem2d(rdir,jci1,jci2,0,kz,'rad:rdir')
+    call getmem2d(rdif,jci1,jci2,0,kz,'rad:rdif')
+    call getmem2d(tdir,jci1,jci2,0,kz,'rad:tdir')
+    call getmem2d(tdif,jci1,jci2,0,kz,'rad:tdif')
+    call getmem2d(explay,jci1,jci2,0,kz,'rad:explay')
+    call getmem2d(flxdiv,jci1,jci2,0,kz,'rad:flxdiv')
+    call getmem2d(totfld,jci1,jci2,0,kz,'rad:totfld')
+    call getmem2d(tauxcl,jci1,jci2,0,kz,'rad:tauxcl')
+    call getmem2d(tauxci,jci1,jci2,0,kz,'rad:tauxci')
+    call getmem2d(wcl,jci1,jci2,0,kz,'rad:wcl')
+    call getmem2d(gcl,jci1,jci2,0,kz,'rad:gcl')
+    call getmem2d(fcl,jci1,jci2,0,kz,'rad:fcl')
+    call getmem2d(wci,jci1,jci2,0,kz,'rad:wci')
+    call getmem2d(gci,jci1,jci2,0,kz,'rad:gci')
+    call getmem2d(fci,jci1,jci2,0,kz,'rad:fci')
+    call getmem2d(uh2o,jci1,jci2,0,kz,'rad:uh2o')
+    call getmem2d(uo3,jci1,jci2,0,kz,'rad:uo3')
+    call getmem2d(uco2,jci1,jci2,0,kz,'rad:uco2')
+    call getmem2d(uo2,jci1,jci2,0,kz,'rad:uo2')
 
-    call getmem3d(s,1,jxp,1,kzp1,1,kzp1,'radiation:s')
-    call getmem3d(s0,1,jxp,1,kzp1,1,kzp1,'radiation:s0')
-    call getmem2d(pinpl,1,jxp,1,4,'radiation:pinpl')
-    call getmem2d(uinpl,1,jxp,1,4,'radiation:uinpl')
-    call getmem2d(winpl,1,jxp,1,4,'radiation:winpl')
-    call getmem2d(tbar,1,jxp,1,4,'radiation:tbar')
+    call getmem3d(s,jci1,jci2,1,kzp1,1,kzp1,'rad:s')
+    call getmem3d(s0,jci1,jci2,1,kzp1,1,kzp1,'rad:s0')
+    call getmem2d(pinpl,jci1,jci2,1,4,'rad:pinpl')
+    call getmem2d(uinpl,jci1,jci2,1,4,'rad:uinpl')
+    call getmem2d(winpl,jci1,jci2,1,4,'rad:winpl')
+    call getmem2d(tbar,jci1,jci2,1,4,'rad:tbar')
 
-    call getmem1d(solflx,1,jxp,'radiation:solflx')
-    call getmem1d(utco2,1,jxp,'radiation:utco2')
-    call getmem1d(uth2o,1,jxp,'radiation:uth2o')
-    call getmem1d(uto2,1,jxp,'radiation:uto2')
-    call getmem1d(uto3,1,jxp,'radiation:uto3')
-    call getmem1d(x0fsnsc,1,jxp,'radiation:x0fsnsc')
-    call getmem1d(x0fsntc,1,jxp,'radiation:x0fsntc')
-    call getmem1d(zenfac,jci1,jci2,'radiation:zenfac')
-    call getmem1d(czen,jci1,jci2,'radiation:czen')
-    call getmem1d(czengt0,jci1,jci2,'radiation:czengt0')
+    call getmem1d(solflx,jci1,jci2,'rad:solflx')
+    call getmem1d(utco2,jci1,jci2,'rad:utco2')
+    call getmem1d(uth2o,jci1,jci2,'rad:uth2o')
+    call getmem1d(uto2,jci1,jci2,'rad:uto2')
+    call getmem1d(uto3,jci1,jci2,'rad:uto3')
+    call getmem1d(x0fsnsc,jci1,jci2,'rad:x0fsnsc')
+    call getmem1d(x0fsntc,jci1,jci2,'rad:x0fsntc')
+    call getmem1d(zenfac,jci1,jci2,'rad:zenfac')
+    call getmem1d(czen,jci1,jci2,'rad:czen')
+    call getmem1d(czengt0,jci1,jci2,'rad:czengt0')
 
-    call getmem1d(fslwdcs,1,jxp,'radiation:fslwdcs')
-    call getmem1d(aeradfo,1,jxp,'radiation:aeradfo')
-    call getmem1d(aeradfos,1,jxp,'radiation:aeradfos')
-    call getmem1d(aerlwfo,1,jxp,'radiation:aerlwfo')
-    call getmem1d(aerlwfos,1,jxp,'radiation:aerlwfos')
+    call getmem1d(fslwdcs,jci1,jci2,'rad:fslwdcs')
+    call getmem1d(aeradfo,jci1,jci2,'rad:aeradfo')
+    call getmem1d(aeradfos,jci1,jci2,'rad:aeradfos')
+    call getmem1d(aerlwfo,jci1,jci2,'rad:aerlwfo')
+    call getmem1d(aerlwfos,jci1,jci2,'rad:aerlwfos')
 
-    call getmem2d(cfc11,1,jxp,1,kz,'radiation:cfc11')
-    call getmem2d(cfc12,1,jxp,1,kz,'radiation:cfc12')
-    call getmem2d(ch4,1,jxp,1,kz,'radiation:ch4')
-    call getmem2d(n2o,1,jxp,1,kz,'radiation:n2o')
-    call getmem2d(o3mmr,1,jxp,1,kz,'radiation:o3mmr')
-    call getmem2d(pbr,1,jxp,1,kz,'radiation:pbr')
-    call getmem2d(rh,1,jxp,1,kz,'radiation:rh')
+    call getmem2d(cfc11,jci1,jci2,1,kz,'rad:cfc11')
+    call getmem2d(cfc12,jci1,jci2,1,kz,'rad:cfc12')
+    call getmem2d(ch4,jci1,jci2,1,kz,'rad:ch4')
+    call getmem2d(n2o,jci1,jci2,1,kz,'rad:n2o')
+    call getmem2d(o3mmr,jci1,jci2,1,kz,'rad:o3mmr')
+    call getmem2d(pbr,jci1,jci2,1,kz,'rad:pbr')
+    call getmem2d(rh,jci1,jci2,1,kz,'rad:rh')
 
-    call getmem2d(plco2,1,jxp,1,kzp1,'radiation:plco2')
-    call getmem2d(plh2o,1,jxp,1,kzp1,'radiation:plh2o')
-    call getmem2d(pnm,1,jxp,1,kzp1,'radiation:pnm')
-    call getmem2d(tclrsf,1,jxp,1,kzp1,'radiation:tclrsf')
+    call getmem2d(plco2,jci1,jci2,1,kzp1,'rad:plco2')
+    call getmem2d(plh2o,jci1,jci2,1,kzp1,'rad:plh2o')
+    call getmem2d(pnm,jci1,jci2,1,kzp1,'rad:pnm')
+    call getmem2d(tclrsf,jci1,jci2,1,kzp1,'rad:tclrsf')
 !
   end subroutine allocate_mod_rad_radiation 
 !
@@ -802,7 +802,7 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jstart,jend,i,alat,ptrop,ts,pmid,pint, &
+  subroutine radctl(jstart,jend,i,ts,pmid,pint, &
                     pmln,piln,t,h2ommr,cld,effcld,clwp,fsns,qrs,qrl,   &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,  &
@@ -826,7 +826,6 @@ module mod_rad_radiation
 !   cld     - Fractional cloud cover
 !   effcld  - Effective fractional cloud cover
 !   clwp    - Cloud liquid water path
-!   alat    - current latitude(radians)
 !
 !     Output solar arguments
 !
@@ -846,10 +845,10 @@ module mod_rad_radiation
     logical , intent(in) :: labsem
     logical , pointer , dimension(:,:) , intent(in) :: coszgt0
     real(dp) , intent(in) :: eccf
-    real(dp) , pointer , dimension(:) :: alb , albc , alat , emsvt , &
+    real(dp) , pointer , dimension(:) :: alb , albc , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
-            sols , solsd , ts , ptrop , totcf
+            sols , solsd , ts , totcf
     real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t
@@ -975,7 +974,7 @@ module mod_rad_radiation
 !
 !     Specify trace gas mixing ratios
 !
-      call trcmix(jstart,jend,pmid,alat,ptrop,n2o,ch4,cfc11,cfc12)
+      call trcmix(jstart,jend,i,xlat,ptrop,pmid,n2o,ch4,cfc11,cfc12)
 !
       call radclw(jstart,jend,i,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
@@ -1960,9 +1959,9 @@ module mod_rad_radiation
       nradaer = 1
     end if
 
-    abstot(:,i,:,:) = gasabstot(:,i,:,:)
-    absnxt(:,i,:,:) = gasabsnxt(:,i,:,:)
-    emstot(:,i,:)   = gasemstot(:,i,:)
+    abstot(:,i,:,:) = gasabstot(jci1:jci2,i,:,:)
+    absnxt(:,i,:,:) = gasabsnxt(jci1:jci2,i,:,:)
+    emstot(:,i,:)   = gasemstot(jci1:jci2,i,:)
 
     do irad = 1 , nradaer
 
@@ -2274,13 +2273,15 @@ module mod_rad_radiation
 
       integer function intmax(imax)
         implicit none
-        integer , dimension(:) , intent(in) :: imax
-        integer :: i , n , mx
-        intmax = 1
-        n = size(imax,1)
+        integer , pointer , dimension(:) , intent(in) :: imax
+        integer :: i , n , is , ie , mx
+        is = lbound(imax,1)
+        ie = ubound(imax,1)
+        intmax = is
+        n = ie-is+1
         if ( n == 1 ) return
-        mx = imax(1)
-        do i = 2 , n
+        mx = imax(is)
+        do i = is+1 , ie
           if ( imax(i) > mx ) then
             mx = imax(i)
             intmax = i

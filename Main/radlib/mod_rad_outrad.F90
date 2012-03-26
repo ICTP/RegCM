@@ -38,8 +38,8 @@ module mod_rad_outrad
 
   subroutine allocate_mod_rad_outrad
     implicit none
-    call getmem3d(frad2d,1,jxp,2,iym2,1,nrad2d,'mod_outrad:frad2d')
-    call getmem4d(frad3d,1,jxp,2,iym2,1,kz,1,nrad3d,'mod_outrad:frad3d')
+    call getmem3d(frad2d,jci1,jci2,ici1,ici2,1,nrad2d,'mod_outrad:frad2d')
+    call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
   subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,           &

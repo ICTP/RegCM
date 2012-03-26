@@ -541,6 +541,14 @@ module mod_init
     end do
   end do
   !
+  ! pressure of tropopause
+  !
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**d_two
+    end do
+  end do
+  !
   ! RRTM_SW gas / abs constant initialisation
   !
   if ( irrtm == 1 ) then
