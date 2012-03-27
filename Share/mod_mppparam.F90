@@ -2608,7 +2608,7 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
     real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    integer :: ib , ie , jb , je , i , j
+    integer :: i , j
 
     ! TODO:  It might make sense to encapsulate the following code
     ! in to a standard routine, since this boundary sending code is
@@ -2620,15 +2620,8 @@ module mod_mppparam
     ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
     ! chunk next door)
 
-    call deco1_exchange_left(ux,1,1,iy,1,kz)
-    call deco1_exchange_left(vx,1,1,iy,1,kz)
-
-    ! Set j-loop boundaries
-    jb = jbegin
-    je = jendx
-    ! Set i-loop boundaries
-    ib = 2
-    ie = iym1
+    call deco1_exchange_left(ux,1,ide1,ide2,1,kz)
+    call deco1_exchange_left(vx,1,ide1,ide2,1,kz)
 
     !
     !     x     x     x     x     x     x
@@ -2650,8 +2643,8 @@ module mod_mppparam
     ! Perform the bilinear interpolation necessary
     ! to put the u and v variables on the dot grid.
 
-    do i = ib , ie
-      do j = jb , je
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
         ud(j,i,:) =  ud(j,i,:) +             &
           d_rfour*(ux(j,i,:) + ux(j-1,i,:) +   &
                    ux(j,i-1,:) + ux(j-1,i-1,:))

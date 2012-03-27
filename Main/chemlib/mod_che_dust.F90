@@ -247,9 +247,9 @@ module mod_che_dust
   silt2row2 = d_zero
   srel2d    = d_zero
 
-  do j = jbegin , jendm
-   do i = 2 , iym2
-     do nt=1,nats
+  do j = jci1 , jci2
+   do i = ici1 , ici2
+     do nt = 1 , nats
         clay2row2(i,nt,j) = bcly(nt)*d_100
         sand2row2(i,nt,j) = bsnd(nt)*d_100
         silt2row2(i,nt,j) = bslt(nt)*d_100
@@ -269,9 +269,9 @@ module mod_che_dust
     deldp = dp_array(ns) - dp_array(ns-1)
   end do
  
-  do j = jbegin , jendm
+  do j = jci1 , jci2
     srel(:,:,:) = d_zero
-    do i = 2 , iym2
+    do i = ici1 , ici2
       do nt = 1 , nats
         ss(:) =d_zero
         stotal = d_zero

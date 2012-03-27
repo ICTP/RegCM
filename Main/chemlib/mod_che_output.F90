@@ -44,9 +44,9 @@ module mod_che_output
               end do
             end do
           end do
-          do j = 1 , jendx
+          do j = jce1 , jce2
             do k = 1 , kz
-              do i = 1 , iym1
+              do i = ice1 , ice2
                 chem0(i,ntr*kz+k,j) = aerext(j,i,k)
                 chem0(i,ntr*kz+kz+k,j) = aerssa(j,i,k)
                 chem0(i,ntr*kz+kz*2+k,j) = aerasp(j,i,k)
@@ -68,8 +68,8 @@ module mod_che_output
               end do
             end do
           end do
-          do j = 1 , jendx
-            do i = 1 , iym1
+          do j = jce1 , jce2
+            do i = ice1 , ice2
               chem0(i,(ntr+3)*kz+ntr*8+1,j) = aertarf(j,i)
               chem0(i,(ntr+3)*kz+ntr*8+2,j) = aersrrf(j,i)
               chem0(i,(ntr+3)*kz+ntr*8+3,j) = aertalwrf(j,i)
@@ -99,21 +99,12 @@ module mod_che_output
                 end do
               end do
             end do
-#ifdef BAND
-            do j = 1 , jx
+            do j = jcross1 , jcross2
               do k = 1 , kz
-                do i = 1 , iym1
+                do i = icross1 , icross2
                   aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
                   aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
                   aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
-#else
-            do j = 1 , jxm1
-              do k = 1 , kz
-                do i = 1 , iym1
-                  aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
-                  aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
-                  aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
-#endif
                 end do
               end do
             end do
@@ -132,24 +123,14 @@ module mod_che_output
                 end do
               end do
             end do
-#ifdef BAND
-            do j = 1 , jx
-              do i = 1 , iym1
+            do j = jcross1 , jcross2
+              do i = icross1 , icross2
                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+1,j)
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+2,j)
                 aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+3,j)
                 aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+4,j)
-#else
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+1,j+1)
-                aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+2,j+1)
-                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+3,j+1)
-                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+4,j+1)
-#endif
               end do
             end do
-
 
             do j = 1 , jx
               do i = 1 , iy
@@ -225,105 +206,36 @@ module mod_che_output
 !================================================================
 
   subroutine outche2(idatex)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model chem                           c
-!                                                                     c
-!     iutl : is the output unit number for large-domain variables.    c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
-!
       integer :: ni , itr , nj , nk , is , ie , js , je
 
+       if ( lcband ) then
+         ni = iym2
+         nj = jx
+         nk = kz
+         is = 2
+         js = 1
+         ie = iym1
+         je = jx
+       else
+         ni = iym2
+         nj = jxm2
+         nk = kz
+         is = 2
+         js = 2
+         ie = iym1
+         je = jxm1
+       end if
 
-!      character (len=50) :: subroutine_name='outche'
-!      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-#ifdef BAND
-      ni = iym2
-      nj = jx
-      nk = kz
-      is = 2
-      js = 1
-      ie = iym1
-      je = jx
-#else
-      ni = iym2
-      nj = jxm2
-      nk = kz
-      is = 2
-      js = 2
-      ie = iym1
-      je = jxm1
-#endif
-
-!!$
- call writerec_che2(nj, ni, je, ie, nk, ntr, chia_io,     &
+       call writerec_che2(nj, ni, je, ie, nk, ntr, chia_io,     &
                 wdlsc_io, wdcvc_io, ddsfc_io, cemtrac_io,    &
-                drydepv_io,  aerext_io, aerssa_io, aerasp_io,aertarf_io, aersrrf_io, &
+                drydepv_io,  aerext_io, aerssa_io, aerasp_io, &
+                aertarf_io, aersrrf_io, &
                 aertalwrf_io, aersrlwrf_io, cpsa_io, idatex)
 
-      write (*,*) 'CHE variables written at ' , idatex 
-      if (iaerosol > 0)  write (*,*) 'OPT variables written at ' , idatex 
-
-
+        write (*,*) 'CHE variables written at ' , idatex 
+        if (iaerosol > 0)  write (*,*) 'OPT variables written at ' , idatex 
       end subroutine outche2
 
-
-
-!!$
-!!$      subroutine outopt(idatex)
-!!$
-!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!!$!                                                                     c
-!!$!     this subroutine writes the model chem (standard aerosol )       c
-!!$!                                                                     c
-!!$!     iutl : is the output unit number for large-domain variables.    c
-!!$!                                                                     c
-!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!!$
-!!$      implicit none
-!!$!
-!!$     type(rcm_time_and_date) , intent(in) :: idatex  
-!!$      integer :: ni , itr , nj , nk , is , ie , js , je
-!!$
-!!$!      character (len=50) :: subroutine_name='outche'
-!!$!      integer :: idindx=0
-!!$!
-!!$!      call time_begin(subroutine_name,idindx)
-!!$#ifdef BAND
-!!$      ni = iym2
-!!$      nj = jx
-!!$      nk = kz
-!!$      itr = ntr
-!!$      is = 2
-!!$      js = 1
-!!$      ie = iym1
-!!$      je = jx
-!!$#else
-!!$      ni = iym2
-!!$      nj = jxm2
-!!$      nk = kz
-!!$      itr = ntr
-!!$      is = 2
-!!$      js = 2
-!!$      ie = iym1
-!!$      je = jxm1
-!!$#endif
-!!$
-
-!!$     call writerec_opt(nj, ni, je, ie, nk,       &
-!!$                aerext_io, aerssa_io, aerasp_io,aertarf_io, aersrrf_io, &
-!!$                aertalwrf_io, aersrlwrf_io, cpsa_io, idatex)
-                               
-!!$
-!!$      write (*,*) 'OPT variables written at ' , idatex 
-!!$
-!!$      end subroutine outopt
- 
      end module mod_che_output

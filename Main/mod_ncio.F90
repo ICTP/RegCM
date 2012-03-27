@@ -2632,7 +2632,7 @@ contains
       where (atmsrfsum > 0)
         dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
       elsewhere
-        dumio(:,:,1) = 1.E20
+        dumio(:,:,1) = smissval
       end where
       istatus = nf90_put_var(ncatm, iatmvar(14), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))

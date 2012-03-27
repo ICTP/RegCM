@@ -24,6 +24,7 @@ module mod_che_mppio
   use mod_memutil
   use mod_mpmessage
   use mod_che_param
+  use mod_che_common
   use mod_che_species
 !
   public
@@ -74,12 +75,14 @@ module mod_che_mppio
 !
 ! This routines allocate all the arrays contained in the module
 !
-  subroutine allocate_mod_che_mppio(lband)
+  subroutine allocate_mod_che_mppio(ilcband)
     implicit none
-    logical , intent(in) :: lband
+    logical , intent(in) :: ilcband
     integer :: mmj
 
-    if ( lband ) then
+    lcband = ilcband
+
+    if ( lcband ) then
       mmj = jx
     else
       mmj = jxm1

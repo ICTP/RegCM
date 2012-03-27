@@ -91,13 +91,12 @@ module mod_che_ncio
   contains
 
 
- subroutine init_mod_che_ncio(lband)
+ subroutine init_mod_che_ncio
           implicit none
-          logical , intent(in) :: lband
           character(3) :: sbstring
  
           dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-          if (lband) then
+          if (lcband) then
             o_is = 2
             o_ie = iy-1
             o_js = 1

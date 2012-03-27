@@ -21,8 +21,6 @@ module mod_diagnosis
 !
 ! Diagnostic printout subroutines
 !
-#ifndef BAND
-
   use mod_runparams
   use mod_atm_interface
   use mod_che_interface
@@ -1002,7 +1000,5 @@ module mod_diagnosis
     end if
     call mpi_bcast(tqeva,1,mpi_real8,0,mycomm,ierr)
   end subroutine conqeva
-!
-#endif
 !
 end module mod_diagnosis

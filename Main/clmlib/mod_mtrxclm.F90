@@ -36,6 +36,10 @@ module mod_mtrxclm
   public :: interfclm
   public :: albedoclm
 
+  interface fill_frame
+    module procedure fill_frame2d , fill_frame3d
+  end interface fill_frame
+
   contains
 !
 !=======================================================================
@@ -246,66 +250,28 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     aldifl(:,:) = 0.32D0
   end if
  
-  do j = 1 , jxp
- 
-!       clm3 currently works on all iy,jx instead of 2-ilx and 2-jlx so
-!       copy neighboring values for now
+  call fill_frame(xlat,r2cxlatd)
+  call fill_frame(xlon,r2cxlond)
+  r2cxlat = r2cxlatd*degrad
+  r2cxlon = r2cxlond*degrad
+  if ( .not.ifrest ) then
+    call fill_frame(tatm,r2ctb)
+    call fill_frame(qvatm,r2cqb)
+    r2cqb = r2cqb/(d_one+r2cqb)
+    call fill_frame(hgt,r2czga)
+    call fill_frame(uatm,r2cuxb)
+    call fill_frame(vatm,r2cvxb)
+    call fill_frame(sfps,r2cpsb)
+    r2cpsb = (r2cpsb+ptop)*d_1000
+    call fill_frame(pptc,r2crnc)
+    call fill_frame(pptnc,r2crnnc)
+    call fill_frame(sols2d,r2csols)
+    call fill_frame(soll2d,r2csoll)
+    call fill_frame(solsd2d,r2csolsd)
+    call fill_frame(solld2d,r2csolld)
+    call fill_frame(flwd,r2cflwd)
+  end if
 
-    do i = 1 , iy
- 
-!         10/05 treat all variables identically. Copy i=2 to i=1 and
-!         i=ilx to i=iy. For myid = 0, copy j=2 to j=1. For myid =
-!         nproc-1, copy j=jendx to j=jxp.
-
-#ifdef BAND
-      cj = j
-#else
-      if ( myid==0 .and. j==1 ) then
-        cj = 2
-      else if ( myid==(nproc-1) .and. j==jxp ) then
-        cj = jxp - 1
-      else
-        cj = j
-      end if
-#endif
-      if ( i==1 ) then
-        ci = 2
-      else if ( i==iy ) then
-        ci = iy - 1
-      else
-        ci = i
-      end if
- 
-!         xlat,xlon in degrees
-      r2cxlatd(j,i) = xlat(cj,ci)
-      r2cxlond(j,i) = xlon(cj,ci)
-!         xlat,xlon in radians
-      r2cxlat(j,i) = xlat(cj,ci)*degrad
-      r2cxlon(j,i) = xlon(cj,ci)*degrad
- 
-      if ( .not.ifrest ) then
-!           T(K) at bottom layer
-        r2ctb(j,i) = tatm(cj,ci,kz)
-!           Specific Humidity
-        r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
-!           Reference Height (m)
-        r2czga(j,i) = hgt(cj,ci,kz)
-!           Surface winds
-        r2cuxb(j,i) = uatm(cj,ci,kz)
-        r2cvxb(j,i) = vatm(cj,ci,kz)
-!           Surface Pressure in Pa from hPa
-        r2cpsb(j,i)   = (sfps(cj,ci)+ptop)*d_1000
-        r2crnc(j,i)   = pptc(cj,ci)
-        r2crnnc(j,i)  = pptnc(cj,ci)
-        r2csols(j,i)  = sols2d(cj,ci)
-        r2csoll(j,i)  = soll2d(cj,ci)
-        r2csolsd(j,i) = solsd2d(cj,ci)
-        r2csolld(j,i) = solld2d(cj,ci)
-        r2cflwd(j,i)  = flwd(cj,ci)
-      end if
-    end do
-  end do
- 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
 !c    1. Copy 2d (jxp,iy) arrays to 1d work_in (jx*iy) array.
@@ -842,56 +808,21 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
   if ( ivers==1 ) then
  
-!       clm3 currently works on all iy,jx instead of 2-ilx and 2-jlx so
-!       copy neighboring values for now
-    do j = 1 , jxp
-      do i = 1 , iy
- 
-!jlb        10/05 treat all variables identically. Copy i=2 to i=1 and
-!           i=ilx to i=iy. For myid = 0, copy j=2 to j=1. For myid =
-!           nproc-1, copy j=jendx to j=jxp.
-#ifdef BAND
-        cj = j
-#else
-        if ( myid==0 .and. j==1 ) then
-          cj = 2
-        else if ( myid==(nproc-1) .and. j==jxp ) then
-          cj = jxp - 1
-        else
-          cj = j
-        end if
-#endif
-        if ( i==1 ) then
-          ci = 2
-        else if ( i==iy ) then
-          ci = iy - 1
-        else
-          ci = i
-        end if
- 
-!           T(K) at bottom layer
-        r2ctb(j,i) = tatm(cj,ci,kz)
-!           Specific Humidity ?
-        r2cqb(j,i) = qvatm(cj,ci,kz)/(d_one+qvatm(cj,ci,kz))
-!           Reference Height (m)
-        r2czga(j,i) = hgt(cj,ci,kz)
-!           Surface winds
-        r2cuxb(j,i) = uatm(cj,ci,kz)
-        r2cvxb(j,i) = vatm(cj,ci,kz)
-!           Surface Pressure in Pa from cbar
-        r2cpsb(j,i) = (sfps(cj,ci)+ptop)*d_1000
-!           Rainfall
-        r2crnc(j,i) = pptc(cj,ci)
-        r2crnnc(j,i) = pptnc(cj,ci)
-!           Incident Solar Radiation
-        r2csols(j,i) = sols2d(cj,ci)
-        r2csoll(j,i) = soll2d(cj,ci)
-        r2csolsd(j,i) = solsd2d(cj,ci)
-        r2csolld(j,i) = solld2d(cj,ci)
-        r2cflwd(j,i) = flwd(cj,ci)
- 
-      end do
-    end do
+    call fill_frame(tatm,r2ctb)
+    call fill_frame(qvatm,r2cqb)
+    r2cqb = r2cqb/(d_one+r2cqb)
+    call fill_frame(hgt,r2czga)
+    call fill_frame(uatm,r2cuxb)
+    call fill_frame(vatm,r2cvxb)
+    call fill_frame(sfps,r2cpsb)
+    r2cpsb = (r2cpsb+ptop)*d_1000
+    call fill_frame(pptc,r2crnc)
+    call fill_frame(pptnc,r2crnnc)
+    call fill_frame(sols2d,r2csols)
+    call fill_frame(soll2d,r2csoll)
+    call fill_frame(solsd2d,r2csolsd)
+    call fill_frame(solld2d,r2csolld)
+    call fill_frame(flwd,r2cflwd)
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c      cc
@@ -1448,6 +1379,68 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
   end subroutine interfclm
 !
+  subroutine fill_frame2d(a,b)
+    implicit none
+    real(dp) , pointer , intent(in) , dimension(:,:) :: a
+    real(dp) , pointer , intent(out) , dimension(:,:) :: b
+    b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
+    if ( ma%hasleft ) then
+      b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
+    end if
+    if ( ma%hasright ) then
+      b(jce2,ici1:ici2) = a(jci2,ici1:ici2)
+    end if
+    if ( ma%hasbottom ) then
+      b(jci1:jci2,ice1) = a(jci1:jci2,ici1)
+    end if
+    if ( ma%hastop ) then
+      b(jci1:jci2,ice2) = a(jci1:jci2,ici2)
+    end if
+    if ( ma%hasleft .and. ma%hasbottom ) then
+      b(jce1,ice1) = a(jci1,ici1)
+    end if
+    if ( ma%hasleft .and. ma%hastop ) then
+      b(jce1,ice2) = a(jci1,ici2)
+    end if
+    if ( ma%hasright .and. ma%hasbottom ) then
+      b(jce2,ice1) = a(jci2,ici1)
+    end if
+    if ( ma%hasright .and. ma%hastop ) then
+      b(jce2,ice2) = a(jci2,ici2)
+    end if
+  end subroutine fill_frame2d
+
+  subroutine fill_frame3d(a,b)
+    implicit none
+    real(dp) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(dp) , pointer , intent(out) , dimension(:,:) :: b
+    b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
+    if ( ma%hasleft ) then
+      b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
+    end if
+    if ( ma%hasright ) then
+      b(jce2,ici1:ici2) = a(jci2,ici1:ici2,kz)
+    end if
+    if ( ma%hasbottom ) then
+      b(jci1:jci2,ice1) = a(jci1:jci2,ici1,kz)
+    end if
+    if ( ma%hastop ) then
+      b(jci1:jci2,ice2) = a(jci1:jci2,ici2,kz)
+    end if
+    if ( ma%hasleft .and. ma%hasbottom ) then
+      b(jce1,ice1) = a(jci1,ici1,kz)
+    end if
+    if ( ma%hasleft .and. ma%hastop ) then
+      b(jce1,ice2) = a(jci1,ici2,kz)
+    end if
+    if ( ma%hasright .and. ma%hasbottom ) then
+      b(jce2,ice1) = a(jci2,ici1,kz)
+    end if
+    if ( ma%hasright .and. ma%hastop ) then
+      b(jce2,ice2) = a(jci2,ici2,kz)
+    end if
+  end subroutine fill_frame3d
+
 end module mod_mtrxclm
 
 #endif

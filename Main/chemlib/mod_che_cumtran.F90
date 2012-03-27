@@ -46,8 +46,8 @@ module mod_che_cumtran
   integer :: i , j , k , kctop , n,cumfrc
 !
   do n = 1 , ntr
-    do j = jbegin , jendx
-      do i = 2 , iym1
+    do j = jci1 , jci2
+      do i = ici1 , ici2
         if ( kcumtop(j,i) > 0 ) then
           deltas = d_zero
           chiabar = d_zero

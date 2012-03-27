@@ -305,26 +305,14 @@
   do k = 2 , kz
     do i = istart , iend
       do j = jstart , jend
-#ifndef BAND
-        if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jend)) then
-#endif
-          akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
-#ifndef BAND
-        end if
-#endif
+        akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
       end do
     end do
   end do
   do k = 1 , kz
     do i = istart , iend
       do j = jstart , jend
-#ifndef BAND
-        if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jend)) then
-#endif
-           akzz2(j,i,k) = hydf(k)/sfcps(j,i)
-#ifndef BAND
-        end if
-#endif
+        akzz2(j,i,k) = hydf(k)/sfcps(j,i)
       end do
     end do
   end do
@@ -335,58 +323,22 @@
   !
   !   calculate coefficients at dot points for u and v wind
   !
-#ifndef BAND
-  if ( myid == 0 .and. j == 2 ) then
-    do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          betak(j,i,k) = d_half*(akzz1(j,i,k)+akzz1(j,i-1,k))
-        end do
+  do k = 2 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
+                        akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
       end do
     end do
-    do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          alphak(j,i,k) = d_half*(akzz2(j,i,k)+akzz2(j,i-1,k))
-        end do
+  end do
+  do k = 1 , kz
+    do i = istart , iend
+      do j = jstart , jend
+        alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
+                         akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
       end do
     end do
-  else if ( myid == nproc-1 .and. j == jend ) then
-    do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          betak(j,i,k) = d_half*(akzz1(j-1,i,k)+akzz1(j-1,i-1,k))
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          alphak(j,i,k) = d_half*(akzz2(j-1,i,k)+akzz2(j-1,i-1,k))
-        end do
-      end do
-    end do
-  else
-#endif
-    do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
-                          akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
-          alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
-                           akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
-        end do
-      end do
-    end do
-#ifndef BAND
-  end if
-#endif
+  end do
 !
 ! **********************************************************************
 !
@@ -436,13 +388,8 @@
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-#ifdef BAND
       drgdot = (uvdrag(j-1,i-1)+uvdrag(j,i-1) + &
                 uvdrag(j-1,i)  +uvdrag(j,i))*d_rfour
-#else
-      drgdot = (uvdrag(j-1,i-1)+uvdrag(j,i-1)+  &
-                uvdrag(j-1,i)+uvdrag(j,i))*d_rfour
-#endif
       uflxsf = drgdot*udatm(j,i,kz)
       vflxsf = drgdot*vdatm(j,i,kz)
       coefe(j,i,kz) = d_zero

@@ -388,8 +388,8 @@
       integer :: i , itr , j , k
 !
       do itr = 1 , ntr
-        do j = 1 , jendx
-          do i = 1 , iym1
+        do j = jce1 , jce2
+          do i = ice1 , ice2
             dtrace(i,j,itr) = 0.0
             wdlsc(i,j,itr) = 0.0
             wdcvc(i,j,itr) = 0.0
@@ -402,8 +402,8 @@
  
 !-----tracers (unit = kg):
       do itr = 1 , ntr
-        do j = 1 , jendx
-          do i = 1 , iym1
+        do j = jce1 , jce2
+          do i = ice1 , ice2
             do k = 1 , kz
               dtrace(i,j,itr) = dtrace(i,j,itr) + chia(j,i,k,itr)       &
                               & *cdsigma(k)
@@ -425,8 +425,8 @@
       end do
 
       do itr = 1 , ntr
-        do j = 1 , jendx
-          do i = 1 , iym1
+        do j = jce1 , jce2
+          do i = ice1 , ice2
             dtrace(i,j,itr) = 1.D6*dtrace(i,j,itr)*d_1000*regrav
                                                         ! unit: mg/m2
             wdlsc(i,j,itr) = 1.D6*wdlsc(i,j,itr)*d_1000*regrav

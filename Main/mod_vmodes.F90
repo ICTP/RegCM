@@ -739,9 +739,11 @@ module mod_vmodes
     character(8) :: nam
     real(dp) , dimension(n) :: a
     intent (in) a , n , nam
- 
-    print 99001 , nam , a
-99001 format ('0',a8,1x,1p,11G11.3,1x,/,9x,1p,11G11.3)
+    integer :: k
+    print * , nam
+    do k = 1 , n
+      print *, a(k)
+    end do
   end subroutine vprntv
 !
   subroutine vprntm(a,n1,n2,nam)
@@ -751,15 +753,11 @@ module mod_vmodes
     character(8) :: nam
     real(dp) , dimension(n1,n2) :: a
     intent (in) a , n1 , n2 , nam
-!
     integer :: k , l
- 
-    print 99001 , nam
+    print * , nam
     do k = 1 , n1
-      print 99002 , k , (a(k,l),l=1,n2)
+      print * , k , (a(k,l),l=1,n2)
     end do
-99001 format ('1',a8,/)
-99002 format (1x,i3,5x,1p,11G11.3,1x,/,9x,1p,11G11.3)
   end subroutine vprntm
 !
 end module mod_vmodes

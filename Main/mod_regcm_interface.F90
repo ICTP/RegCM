@@ -110,11 +110,11 @@ module mod_regcm_interface
     call memory_init
 !
     if ( myid == 0 ) then
-#ifdef BAND
-      call init_mod_ncio(.true.)
-#else
-      call init_mod_ncio(.false.)
-#endif
+      if ( i_band == 1 ) then
+        call init_mod_ncio(.true.)
+      else
+        call init_mod_ncio(.false.)
+      end if
     end if
 
 !
@@ -152,16 +152,6 @@ module mod_regcm_interface
                & 'Domain dimension not multiple of' //                &
                & ' processor number')
     end if
-    jbegin = 1
-    jendx = jxp
-    jendm = jxp
-#ifndef BAND
-    if ( myid == 0 ) jbegin = 2
-    if ( myid == nproc-1 ) then
-      jendx = jxp - 1
-      jendm = jxp - 2
-    end if
-#endif
 !
 !**********************************************************************
 !

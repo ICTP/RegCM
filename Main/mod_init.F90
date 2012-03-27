@@ -227,12 +227,12 @@ module mod_init
         write (6,'(1x,7E12.4)') o3prof(3,3,k)
       end do
     end if
-#ifndef BAND
     !
     ! Diagnostic init
     !
-    if (debug_level > 2) call initdiag
-#endif
+    if ( .not. lband .and. debug_level > 2 ) then
+      call initdiag
+    end if
     !
     ! End of initial run case
     !
@@ -448,9 +448,9 @@ module mod_init
     call deco1_scatter(dstor_io,dstor,jdot1,jdot2,idot1,idot2,1,nsplit)
     call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
-#ifndef BAND
-    if (debug_level > 2) call mpidiag
-#endif
+    if ( .not. lband .and. debug_level > 2 ) then
+      call mpidiag
+    end if
     !
     ! Setup all timeseps for a restart
     !

@@ -792,10 +792,10 @@ module mod_tendency
       call deco1_exchange_right(wrkkuo2,1,ice1,ice2,1,kz)
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1,jci1,jci2,ici1,ici2)
     end if
-#ifndef BAND
     ! diagnostic on total evaporation
-    if (debug_level > 2) call conqeva
-#endif
+    if ( .not. lband .and. debug_level > 2 ) then
+      call conqeva
+    end if
 !
 !   Call medium resolution PBL
 !
@@ -1375,30 +1375,28 @@ module mod_tendency
     ! the lateral boundaries before updating the values
     ! at boundary slices.
     !
-#ifndef BAND
-    if (debug_level > 2) then
+    if ( .not. lband .and. debug_level > 2 ) then
       call conadv
       if ( ichem == 1 ) call tracdiag(xkc)
     end if
-#endif
     !
     ! do cumulus transport of tracers
     !
     if ( ichem == 1 .and. ichcumtra == 1 ) call cumtran
-#ifndef BAND
     ! 
     ! trace the mass conservation of dry air and water substance:
     !
-    if (debug_level > 2) call conmas
-#endif
+    if ( .not. lband .and. debug_level > 2 ) then
+      call conmas
+    end if
     !
     ! budgets for tracers
     !
     if ( ichem == 1 ) then
       call tracbud
-#ifndef BAND
-      if (debug_level > 2) call contrac
-#endif
+      if ( .not. lband .and. debug_level > 2 ) then
+        call contrac
+      end if
     end if
     !
     ! Print out noise parameter

@@ -91,7 +91,6 @@ module mod_params
   integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(8) :: nbdyfrq
   integer :: n , len_path
-  logical :: lband
   integer :: ierr
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
@@ -428,13 +427,6 @@ module mod_params
 !c------CLM Specific
   imask = 1
 #endif
-
-#ifdef BAND
-  lband = .true.
-#else
-  lband = .false.
-#endif
-
 !------namelist cplparam ;
 ! cplexvars:
 ! 1 = atm -> ocn : tair, pair, qair, uwind, vwind, rain, swrad, lwrad_down
@@ -462,12 +454,10 @@ module mod_params
 
 !---------------------------------------------------------------------
 !
-  if ( (lband .and. i_band /= 1) .or. &
-       (.not. lband .and. i_band /= 0) ) then
-    write (6,*) 'Model is compiled for BAND, ' , &
-                'but input is NOT for BAND or viceversa.'
-    call fatal(__FILE__,__LINE__,  &
-               'BAND Compile / i_band namelist mismatch')
+  if ( i_band == 1 ) then
+    lband = .true.
+  else
+    lband = .false.
   end if
 !
 #ifdef CLM
@@ -589,6 +579,32 @@ module mod_params
   call mpi_bcast(lakemod,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ichem,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
+
+  ! Force the correct scenario from dattyp in CMIP5
+  if ( myid == 0 ) then
+    if ( dattyp(4:5) == '26' ) then
+      if ( scenario /= 'RCP3PD' .or. scenario /= 'RCP2.6' ) then
+        print *, 'Forcing scenario from dattyp to RCP2.6'
+        scenario = 'RCP3PD'
+      end if
+    else if ( dattyp(4:5) == '45' ) then
+      if ( scenario /= 'RCP4.5') then
+        print *, 'Forcing scenario from dattyp to RCP4.5'
+        scenario = 'RCP4.5'
+      end if
+    else if ( dattyp(4:5) == '60') then
+      if ( scenario /= 'RCP6' .or.  scenario /= 'RCP60' .or.  &
+           scenario /= 'RCP60') then
+        print *, 'Forcing scenario from dattyp to RCP6.0'
+        scenario = 'RCP6'
+      end if
+    else if ( dattyp(4:5) == '85') then
+      if ( scenario /= 'RCP8.5') then
+        print *, 'Forcing scenario from dattyp to RCP8.5'
+        scenario = 'RCP8.5'
+      end if
+    end if
+  end if
   call mpi_bcast(scenario,8,mpi_character,0,mycomm,ierr)
   call mpi_bcast(idcsst,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
@@ -758,9 +774,9 @@ module mod_params
     call allocate_mod_rad_colmod3 
   end if
 
-#ifndef BAND
-  call allocate_mod_diagnosis
-#endif
+  if ( .not. lband .and. debug_level > 2 ) then
+    call allocate_mod_diagnosis
+  end if
 
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)

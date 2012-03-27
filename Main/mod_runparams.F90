@@ -70,6 +70,7 @@ module mod_runparams
   integer :: iboudy , ichem , ipgf , ipptls , cplexvars , cplinterp
 
   logical :: ifrest , rfstrt , doing_restart , cplbdysmooth
+  logical :: lband
 
   integer :: kchi , kclo , kcmd , cpldbglevel
 !
@@ -166,7 +167,7 @@ module mod_runparams
     output_variable('q2m','specific_humidity',                                &
           '2 meters Specific humidity','1','point',.true.),                   &
     output_variable('smw','soil_moisture_content',                            &
-          'Moisture content','kg kg-1','point',.true.),                       &
+          'Moisture content','kg m-2','point',.true.),                        &
     output_variable('tpr','precipitation_flux',                               &
           'Total precipitation','kg m-2 day-1','mean',.true.),                &
     output_variable('evp','water_evaporation_flux',                           &

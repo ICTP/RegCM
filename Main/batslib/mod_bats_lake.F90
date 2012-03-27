@@ -623,17 +623,9 @@ module mod_bats_lake
 !
     integer :: i , j , k , n
 !
-#ifdef BAND
-    write (iutl) (((idep_io(n,j,i),n=1,nnsg),j=1,jx),i=2,iym1)
-#else
-    write (iutl) (((idep_io(n,j,i),n=1,nnsg),j=1,jxm1),i=2,iym1)
-#endif
-    do i = 2 , iym1
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
+    write (iutl) idep_io
+    do i = icross1 , icross2
+      do j = jcross1 , jcross2
         do n = 1 , nnsg
           if ( idep_io(n,j,i) > 1 ) then
             write(iutl) eta_io(n,j,i), hi_io(n,j,i), &
@@ -661,17 +653,9 @@ module mod_bats_lake
     eta_io    = d_half
     tlak_io   = 6.0D0
 !
-#ifdef BAND
-    read (iutl) (((idep_io(n,j,i),n=1,nnsg),j=1,jx),i=2,iym1)
-#else
-    read (iutl) (((idep_io(n,j,i),n=1,nnsg),j=1,jxm1),i=2,iym1)
-#endif
-    do i = 2 , iym1
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
+    read (iutl) idep_io
+    do i = icross1 , icross2
+      do j = jcross1 , jcross2
         do n = 1 , nnsg
           if ( idep_io(n,j,i) > 1 ) then
             read(iutl) eta_io(n,j,i), hi_io(n,j,i), &
@@ -682,12 +666,8 @@ module mod_bats_lake
       end do
     end do
 
-    do i = 2 , iym1
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1 
-#endif
+    do i = icross1 , icross2
+      do j = jcross1 , jcross2
         do n = 1 , nnsg
           if (idep_io(n,j,i) == 0) then
             hi_io(n,j,i)     = dmissval

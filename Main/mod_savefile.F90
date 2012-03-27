@@ -28,9 +28,7 @@ module mod_savefile
   use mod_cu_interface
   use mod_pbl_interface
   use mod_bdycod
-#ifndef BAND
   use mod_diagnosis
-#endif
   use mod_mppio
 #ifdef CLM
   use mod_clm
@@ -127,9 +125,9 @@ module mod_savefile
         read (iutrst) deltas_io
         read (iutrst) tdeltas_io
       end if
-#ifndef BAND
-      call restdiag(iutrst)
-#endif
+      if ( .not. lband .and. debug_level > 2 ) then
+        call restdiag(iutrst)
+      end if
       read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
       if ( ipptls == 1 ) then
         read (iutrst) fcc_io
@@ -188,9 +186,9 @@ module mod_savefile
         read (iutrst) sfracb2d_io
         read (iutrst) sfracs2d_io
         read (iutrst) svegfrac2d_io
-#ifndef BAND
-        call restchemdiag(iutrst)
-#endif
+        if ( .not. lband .and. debug_level > 2 ) then
+          call restchemdiag(iutrst)
+        end if
       end if
 #ifndef CLM
       if ( lakemod == 1 ) then
@@ -266,9 +264,9 @@ module mod_savefile
         write (iutsav) deltas_io
         write (iutsav) tdeltas_io
       end if
-#ifndef BAND
-      call savediag(iutsav)
-#endif
+      if ( .not. lband .and. debug_level > 2 ) then
+        call savediag(iutsav)
+      end if
       write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
       if ( ipptls == 1 ) then
         write (iutsav) fcc_io
@@ -327,9 +325,9 @@ module mod_savefile
         write (iutsav) sfracb2d_io
         write (iutsav) sfracs2d_io
         write (iutsav) svegfrac2d_io
-#ifndef BAND
-        call savechemdiag(iutsav)
-#endif
+        if ( .not. lband .and. debug_level > 2 ) then
+          call savechemdiag(iutsav)
+        end if
       end if
 #ifndef CLM
       if ( lakemod == 1 ) then

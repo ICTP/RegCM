@@ -64,25 +64,12 @@ module mod_output
   use mpi
   implicit none
 !
-  integer :: j2c , i2c , j2o
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
   character (len=64) :: subroutine_name='output'
   integer :: idindx=0
 !
-!
   call time_begin(subroutine_name,idindx)
-!
-#ifdef BAND
-  j2c = jx
-  j2o  = jx
-#else
-  j2c = jxm1
-  j2o  = jxm2
-#endif
-  i2c = iym1
-!
-!----------------------------------------------------------------------
 !
   lstartup = .false.
   if ( ktau == 0 .or. doing_restart ) then
@@ -523,41 +510,28 @@ module mod_output
 !
   subroutine outche
 
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model chem                           c
-!                                                                     c
-!     iutl : is the output unit number for large-domain variables.    c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-  implicit none
+    implicit none
 !
-  integer :: ni , itr , nj , nk
+    integer :: ni , itr , nj , nk
 
-!      character (len=64) :: subroutine_name='outche'
-!      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-#ifdef BAND
-  ni = iym3
-  nj = jx
-  nk = kz
-  itr = ntr
-#else
-  ni = iym3
-  nj = jxm3
-  nk = kz
-  itr = ntr
-#endif
+    if ( lband ) then
+      ni = iym3
+      nj = jx
+      nk = kz
+      itr = ntr
+    else
+      ni = iym3
+      nj = jxm3
+      nk = kz
+      itr = ntr
+    end if
+    call writerec_che(nj, ni, nk, itr, chia_io,         &
+           aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
+           wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
+           wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
+           aertalwrf_io, aersrlwrf_io, sfs_io%psa, idatex)
 
-     call writerec_che(nj, ni, nk, itr, chia_io, &
-            aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
-            wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
-            wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
-            aertalwrf_io, aersrlwrf_io, sfs_io%psa, idatex)
-
-  print *, 'CHE variables written at ' , tochar(idatex)
+    print *, 'CHE variables written at ' , tochar(idatex)
 
   end subroutine outche
 !

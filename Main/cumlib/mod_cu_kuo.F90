@@ -339,58 +339,24 @@ module mod_cu_kuo
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr1
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr2
 !
-    integer :: i , j , k , im1 , ip1 , jm1 , jp1
+    integer :: i , j , k
 !
     do k = 1 , kz
-      do j = jstart , jend
-#ifdef BAND
-        jm1 = j - 1
-        jp1 = j + 1
-#else
-        if ( myid == 0 ) then
-          jm1 = max0(j-1,jstart)
-        else
-          jm1 = j - 1
-        end if
-        if ( myid == nproc-1 ) then
-          jp1 = min0(j+1,jend)
-        else
-          jp1 = j + 1
-        end if
-#endif
-        do i = istart , iend
-          im1 = max0(i-1,istart)
-          ip1 = min0(i+1,iend)
+      do i = istart , iend
+        do j = jstart , jend
           rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtmdl/dxsq * &
-                   (wr1(j,im1,k)+wr1(j,ip1,k) + &
-                    wr1(jm1,i,k)+wr1(jp1,i,k)-d_four*wr1(j,i,k))
+                   (wr1(j,i-1,k)+wr1(j,i+1,k) + &
+                    wr1(j-1,i,k)+wr1(j+1,i,k)-d_four*wr1(j,i,k))
         end do
       end do
     end do
 !
     do k = 1 , kz
-      do j = jstart , jend
-#ifdef BAND
-        jm1 = j - 1
-        jp1 = j + 1
-#else
-        if ( myid == 0 ) then
-          jm1 = max0(j-1,jstart)
-        else
-          jm1 = j - 1
-        end if
-        if ( myid == nproc-1 ) then
-          jp1 = min0(j+1,jend)
-        else
-          jp1 = j + 1
-        end if
-#endif
-        do i = istart , iend
-          im1 = max0(i-1,istart)
-          ip1 = min0(i+1,iend)
+      do i = istart , iend
+        do j = jstart , jend
           rswat(j,i,k) = rswat(j,i,k)+akht1*dtmdl/dxsq * &
-                (wr2(j,im1,k)+wr2(j,ip1,k) + &
-                 wr2(jm1,i,k)+wr2(jp1,i,k)-d_four*wr2(j,i,k))
+                (wr2(j,i-1,k)+wr2(j,i+1,k) + &
+                 wr2(j-1,i,k)+wr2(j+1,i,k)-d_four*wr2(j,i,k))
         end do
       end do
     end do

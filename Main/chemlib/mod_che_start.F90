@@ -57,11 +57,6 @@ contains
     type (rcm_time_and_date) :: idate1
     type(rcm_time_interval)::  intbdy
     real (dp) :: dtbdys
-    !fab provisoir
-    logical :: lband
-
-
-
 
     !A : Intialise chemistry tracer indices         
 
@@ -346,10 +341,9 @@ contains
        call cheminit 
     end if
 
-    lband = .false. !! provisoire!
     call setup_che_bdycon(hlev)
 
-    call init_mod_che_ncio(lband) 
+    call init_mod_che_ncio
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
 
@@ -367,12 +361,6 @@ contains
           end do
        end do
     end if
-
-
-
-
-
-
 
   end subroutine start_chem
 
