@@ -148,7 +148,6 @@ module mod_era40
   real(dp) , dimension(5,4) , save :: xoff , xscl
   integer , dimension(5,4) , save :: inet6
   integer , dimension(5,4) , save :: ivar6
-  character(5) , dimension(5) :: filename
   character(5) , dimension(5) :: varname
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -161,7 +160,6 @@ module mod_era40
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-  data filename/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
   data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
