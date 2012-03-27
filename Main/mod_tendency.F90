@@ -922,8 +922,8 @@ module mod_tendency
       end do
     end do
     do k = 1 , kz
-      do i = icii1 , icii2
-        do j = jcii1 , jcii2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           atmc%qc(j,i,k) = atm2%qc(j,i,k) + dt*aten%qc(j,i,k)
         end do
       end do

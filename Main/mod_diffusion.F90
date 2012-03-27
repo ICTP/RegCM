@@ -221,7 +221,7 @@ module mod_diffusion
       j = jci2
       do k = 1 , kmax
         do i = ici1 , ici2
-          ften(j,i,k) = ften(j+1,i,k) + xkc(j,i,k) *  &
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *  &
                         rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                                f(j,i+1,k)+f(j,i-1,k) - &
                         d_four*f(j,i,k))*press(j,i)

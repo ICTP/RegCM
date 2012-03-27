@@ -95,9 +95,7 @@ module mod_runparams
   real(dp) , private :: total_allocation_size
 
 #ifdef DEBUG
-  type(deco1d_nc_var2d) :: psa , psb
-  type(deco1d_nc_var3d) :: uax , vax , tax , qax
-  type(deco1d_nc_var3d) :: taten
+  type(deco1d_nc_var3d) :: aqcten
 #endif
 
   type output_variable

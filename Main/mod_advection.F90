@@ -173,28 +173,28 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ucmonb = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-                ucmona = d_half*(ua(j,i+1,k)+ua(j,i,k))
+                ucmona = d_half*(ua(j,  i+1,k)+ua(j,  i,k))
                 if ( ucmonb >= d_zero ) then
-                  fx2 = fact1*f(j,i,k) + fact2*f(j+1,i,k)
+                  fx2 = fact1*f(j,  i,k) + fact2*f(j+1,i,k)
                 else
-                  fx2 = fact1*f(j+1,i,k) + fact2*f(j,i,k)
+                  fx2 = fact1*f(j+1,i,k) + fact2*f(j,  i,k)
                 end if
                 if ( ucmona >= d_zero ) then
-                  fx1 = fact1*f(j-1,i,k) + fact2*f(j,i,k)
+                  fx1 = fact1*f(j-1,i,k) + fact2*f(j,  i,k)
                 else
-                  fx1 = fact1*f(j,i,k) + fact2*f(j-1,i,k)
+                  fx1 = fact1*f(j,  i,k) + fact2*f(j-1,i,k)
                 end if
                 vcmonb = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-                vcmona = d_half*(va(j+1,i,k)+va(j,i,k))
+                vcmona = d_half*(va(j+1,i,  k)+va(j,i,  k))
                 if ( vcmonb >= d_zero ) then
-                  fy2 = fact1*f(j,i,k) + fact2*f(j,i+1,k)
+                  fy2 = fact1*f(j,i,  k) + fact2*f(j,i+1,k)
                 else
-                  fy2 = fact1*f(j,i+1,k) + fact2*f(j,i,k)
+                  fy2 = fact1*f(j,i+1,k) + fact2*f(j,i,  k)
                 end if
                 if ( vcmona >= d_zero ) then
-                  fy1 = fact1*f(j,i+1,k) + fact2*f(j,i,k)
+                  fy1 = fact1*f(j,i+1,k) + fact2*f(j,  i,k)
                 else
-                  fy1 = fact1*f(j,i,k) + fact2*f(j,i-1,k)
+                  fy1 = fact1*f(j,i,  k) + fact2*f(j,i-1,k)
                 end if
                 ften(j,i,k) = ften(j,i,k) -                          &
                      (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
@@ -425,6 +425,11 @@ module mod_advection
         end do
 !
       else if ( ind == 5 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            fg(j,i,1) = d_zero
+          end do
+        end do
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -452,6 +457,11 @@ module mod_advection
         end do
 !
       else if ( ind == 6 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            fg(j,i,1) = d_zero
+          end do
+        end do
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
