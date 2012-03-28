@@ -218,6 +218,13 @@ module mod_init
       atm2%tke(:,:,:) = tkemin
     end if
     !
+    ! Init the diurnal cycle SST scheme
+    !
+    if ( idcsst == 1 ) then
+      tdeltas(:,:) = tground2(:,:) - 0.001D0
+      deltas(:,:) = 0.001D0
+    end if
+    !
     ! Inizialize Ozone profiles
     !
     call o3data(jci1,jci2,ici1,ici2)
@@ -403,7 +410,6 @@ module mod_init
       call deco1_scatter(dtskin_io,dtskin,jcross1,jcross2,icross1,icross2)
       call deco1_scatter(deltas_io,deltas,jcross1,jcross2,icross1,icross2)
       call deco1_scatter(tdeltas_io,tdeltas,jcross1,jcross2,icross1,icross2)
-      firstcall(:,:) = .true.
     end if
     !
     ! Update ground temperature on Ocean/Lakes
