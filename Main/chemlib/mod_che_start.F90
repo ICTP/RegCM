@@ -50,8 +50,6 @@ contains
 
     logical , intent(in) :: ifrest
     integer , intent(in) :: ice1,ice2,jce1,jce2
-    character(256)       :: namelistfile,prgname
-    integer              :: ierr,err
     integer              :: itr,i,k,j,ibin,jbin,kbin
 
     type (rcm_time_and_date) :: idate1
@@ -341,7 +339,7 @@ contains
        call cheminit 
     end if
 
-    call setup_che_bdycon(hlev)
+    call setup_che_bdycon
 
     call init_mod_che_ncio
 

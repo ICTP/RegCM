@@ -25,66 +25,55 @@
 
 module mod_che_bdyco
 
-use mod_realkinds
+  use mod_realkinds
   use mod_dynparam
-use mod_memutil
- use mod_mppparam  
+  use mod_memutil
+  use mod_mppparam  
   use mod_service
   use mod_mpmessage
   use mod_che_common
   use mod_che_mppio
   use mod_che_ncio 
   use mod_che_species
-   use mod_mppparam  
+  use mod_che_indices
+  use mod_mppparam  
+
   private
 
-  public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval, nudge_chi, setup_che_bdycon
+  public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval
+  public :: nudge_chi , setup_che_bdycon
+  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , chebdy
 
-  public :: che_init_bdy, chib0 , chib1, chibt, ichbdy2trac,chebdy
+  type(rcm_time_and_date) :: chbdydate1 , chbdydate2
 
-  type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
-
-
-  real(dp) ,  pointer, dimension(:,:,:,:) :: chib0 , chib1,chibt, chebdy
-!
+  real(dp) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , chebdy
   real(dp) , pointer , dimension(:,:) :: cefc , cegc
-
-
-  integer, pointer, dimension(:) ::ichbdy2trac
+  integer , pointer , dimension(:) :: ichbdy2trac
    
- integer :: cnbdm
+  integer :: cnbdm
+
   contains
 
 !
   subroutine allocate_mod_che_bdyco
     implicit none
-
-    character (len=64) :: subroutine_name='allocate_mod_che_bdyco'
-    integer :: idindx=0
-
- !
-!    call time_begin(subroutine_name,idindx)
-
-    call getmem4d(chib0,0,jxp+1,icross1,icross2,1,kz,1,ntr,'mod_che_bdyco:chib0')
-    call getmem4d(chib1,0,jxp+1,icross1,icross2,1,kz,1,ntr,'mod_che_bdyco:chib1')
-    call getmem4d(chibt,0,jxp+1,icross1,icross2,1,kz,1,ntr,'mod_che_bdyco:chibt')
-
-    call getmem4d(chebdy,0,jxp+1,icross1,icross2,1,kz,1,50,'mod_che_bdyco:chebdy')
-
+    cnbdm = max(nspgx,nspgd)
+    call getmem4d(chib0,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1, &
+                        1,kz,1,ntr,'mod_che_bdyco:chib0')
+    call getmem4d(chib1,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1, &
+                        1,kz,1,ntr,'mod_che_bdyco:chib1')
+    call getmem4d(chibt,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1, &
+                        1,kz,1,ntr,'mod_che_bdyco:chibt')
+    call getmem4d(chebdy,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1, &
+                        1,kz,1,ntr,'mod_che_bdyco:chebdy')
     call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
-
-      cnbdm = max(nspgx,nspgd)
- 
-      call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
-      call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
-
-     
+    call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
+    call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
   end subroutine allocate_mod_che_bdyco
-!!$!
-!!$!ccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-
-
 
   subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     implicit none
@@ -132,7 +121,7 @@ use mod_memutil
 
       chbdydate2 = chbdydate2 + intbdy
  
-     write (6,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+      write (6,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
       datefound = chbc_search(chbdydate2)
       if (datefound < 0) then
         call open_chbc(monfirst(chbdydate2))
@@ -154,104 +143,71 @@ use mod_memutil
     !
     ! Send each processor its computing slice
     !
-
-   call deco1_scatter(chebdy_io0,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
-   do n=1,25
-    do k = 1 , kz
+    call deco1_scatter(chebdy_io0,chebdy, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
+    do n = 1 , 25
+      if ( ichbdy2trac(n) > 0 ) then
+        do k = 1 , kz
           do i = ice1 , ice2
-           do j = jce1 , jce2
-              if(ichbdy2trac(n) > 0) chib0(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            do j = jce1 , jce2
+              chib0(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            end do
           end do
-       end do
+        end do
+      end if
     end do
-   end do
-
-   call deco1_scatter(chebdy_io1,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
-   do n=1,25
-    do k = 1 , kz
+    call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
+    call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
+    !
+    ! Repeat fot T2
+    !
+    call deco1_scatter(chebdy_io1,chebdy, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
+    do n = 1 , 25
+      if ( ichbdy2trac(n) > 0 ) then
+        do k = 1 , kz
           do i = ice1 , ice2
-           do j = jce1 , jce2
-              if(ichbdy2trac(n) > 0) chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            do j = jce1 , jce2
+              chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            end do
           end do
-       end do
+        end do
+      end if
     end do
-   end do
-   
-   call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
-   call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
-
+    call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
+    call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
     !
-    ! Repeat for T2
-    !
-   call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
-   call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
-
     ! Calculate time varying component
     !
-  do k=1,kz
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+        end do
       end do
     end do
-   end do
-
     call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
 
-
     call time_end(subroutine_name,idindx)
-
   end subroutine che_init_bdy
 
-
-
-
-
-!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!!$!                                                                     c
-!!$!     this subroutine reads in the boundary conditions.               c
-!!$!                                                                     c
-!!$!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  subroutine chem_bdyin (dtbdys,intbdy )
-
-
-#ifndef IBM
-    use mpi
-#endif
-#ifdef IBM
-    include 'mpif.h'
-#endif
-
-implicit none
-
-
-!    integer, intent(in) :: istart
+  subroutine chem_bdyin(dtbdys,intbdy)
+    implicit none
     type(rcm_time_interval) :: intbdy
-    real(dp), intent(in) :: dtbdys
-    integer :: i , j , k ,n, nn , nnb , mmrec, itr
-    integer ::  nxeb , nxwb, ierr
+    real(dp) , intent(in) :: dtbdys
+    integer :: i , j , k , n , mmrec
     character(len=32) :: appdat
 
-    real(8) , dimension(iy,jxp) :: psdot , tdum
     character (len=64) :: subroutine_name='chem_bdyin'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
   
-
     chib0(:,:,:,:) = chib1(:,:,:,:)
 
-!!$    if(myid .eq. 0 ) then
-!!$    mmrec = chbc_search(chbdydate2)
-!!$    write(*,*)'CH_BDYIN -----',mmrec,chbdydate2
-!!$    if (mmrec < 0) then
-!!$            call open_chbc(chbdydate2)
-!!$ 
-!!$    end if
-
     if ( myid == 0 ) then
-     chbdydate2 = chbdydate2 + intbdy
+      chbdydate2 = chbdydate2 + intbdy
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then
@@ -262,144 +218,96 @@ implicit none
           call fatal(__FILE__,__LINE__,'chBC for '//appdat//' not found')
         end if
       end if
-
-     call read_chbc(chebdy_io1)  
-
+      call read_chbc(chebdy_io1)  
     end if
  
-    call deco1_scatter(chebdy_io1,chebdy,jcross1,jcross2,icross1,icross2,1,kz,1,50)
+    call deco1_scatter(chebdy_io1,chebdy, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
 
-
-   do n=1,25
-    do k = 1 , kz
+    do n = 1 , 25
+      if ( ichbdy2trac(n) > 0 ) then
+        do k = 1 , kz
           do i = ice1 , ice2
-           do j = jce1 , jce2
-              if(ichbdy2trac(n) > 0) chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            do j = jce1 , jce2
+              chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+            end do
           end do
-       end do
+        end do
+      end if
     end do
-   end do
+    call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
+    call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
 
-   call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
-   call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
-
-   do k=1,kz
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+    do k=1,kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+        end do
       end do
     end do
-   end do
-
     call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
-
-
+    call time_end(subroutine_name,idindx)
   end subroutine chem_bdyin
 
-
-
-  subroutine chem_bdyval(xt,nbdytime,dtbdys,ktau,ifrest)
-    use mod_che_indices
-!
+  subroutine chem_bdyval(xt,ktau)
     implicit none
+    integer(8) , intent(in) :: ktau
+    real(dp) , intent(in) :: xt
 !
-    integer(8)::nbdytime, ktau
-    real(8) :: xt, dtbdys
-    logical :: ifrest
-    intent (in) xt, nbdytime,dtbdys,ktau,ifrest
-!
-    real(8) :: chix , chix1 , chix2 , dtb , vavg
-    integer :: itr , j , k, i
-    character (len=50) :: subroutine_name='chem_bdyval'
+    integer :: itr , j , k , i
+    character (len=64) :: subroutine_name='chem_bdyval'
     integer :: idindx=0
 !
-!    call time_begin(subroutine_name,idindx)
+    call time_begin(subroutine_name,idindx)
 !
-!*********************************************************************
-!*****fill up the boundary value for xxb variables from xxa variables:
-!     if this subroutine is called for the first time, this part
-!     shall be skipped.
-!**********************************************************************
-!*****compute the boundary values for xxa variables:
-!
-!-----compute the time interval for boundary tendency:
-!
-    dtb = xt
-    if ( nbdytime == 0 .and. ktau > 0 ) then
-      dtb = dtbdys
-    end if
-    
-    !
-    !
-    !-----set boundary values for p*t:
-    !-----set boundary values for p*qv:
-    !
-    
- !   if (ktau==0 .and. ifrest)  return
-
     if ( ktau > 1 ) then
-       !
-       ! West boundary
-       !
-
-       if ( ma%hasleft ) then
-!!$
-          do itr = 1 , ntr
-             do k = 1 , kz
-                do i = ici1 , ici2
-                   chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
-                end do
-             end do
+      !
+      ! West boundary
+      !
+      if ( ma%hasleft ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ici1 , ici2
+              chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
+            end do
           end do
-
-       end if
-       !
-       ! East boundary
-       !
-       if ( ma%hasright ) then
-
-          do itr = 1 , ntr
-             do k = 1 , kz
-                do i = ici1 , ici2
-                   chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
-                end do
-             end do
+        end do
+      end if
+      !
+      ! East boundary
+      !
+      if ( ma%hasright ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ici1 , ici2
+              chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
+            end do
           end do
-
-       end if
-
-       !
-       ! North and South boundaries
-       !
-       if ( ma%hasbottom ) then
-!!$
-
-          do itr = 1 , ntr
-             do k = 1 , kz
-                do j = jce1 , jce2
-                   chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
-                end do
-             end do
+        end do
+      end if
+      !
+      ! North and South boundaries
+      !
+      if ( ma%hasbottom ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jce1 , jce2
+              chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
+            end do
           end do
-
-       end if
-
-
-       if ( ma%hastop ) then
-
-          do itr = 1 , ntr
-             do k = 1 , kz
-                do j = jce1 , jce2
-                   chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
-                end do
-             end do
+        end do
+      end if
+      if ( ma%hastop ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jce1 , jce2
+              chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
+            end do
           end do
-       end if
-
+        end do
+      end if
     end if  !end if (ktau > 1) test
-
-
 
 !.....time-dependent boundary conditions:
 ! for chemistry relaxation towrds
@@ -412,42 +320,37 @@ implicit none
 ! for chemistry relaxation towrds
 ! time dependant boundary conditions is considered
 
-      if ( ma%hasleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            chia(jce1,i,k,:) = chib0(jce1,i,k,:) + dtb*chibt(jce1,i,k,:)
-          end do
+    if ( ma%hasleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          chia(jce1,i,k,:) = chib0(jce1,i,k,:) + xt*chibt(jce1,i,k,:)
         end do
-      end if
-      if ( ma%hasright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            chia(jce2,i,k,:) = chib0(jce2,i,k,:) + dtb*chibt(jce2,i,k,:)
-          end do
+      end do
+    end if
+    if ( ma%hasright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          chia(jce2,i,k,:) = chib0(jce2,i,k,:) + xt*chibt(jce2,i,k,:)
         end do
-      end if
-      if ( ma%hasbottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            chia(j,ice1,k,:) = chib0(j,ice1,k,:) + dtb*chibt(j,ice1,k,:)
-          end do
+      end do
+    end if
+    if ( ma%hasbottom ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          chia(j,ice1,k,:) = chib0(j,ice1,k,:) + xt*chibt(j,ice1,k,:)
         end do
-      end if
-      if ( ma%hastop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            chia(j,ice2,k,:) = chib0(j,ice2,k,:) + dtb*chibt(j,ice2,k,:)
-          end do
-         end do
-        end if
-
-
-!!$!
-!    call time_end(subroutine_name,idindx)
-
+      end do
+    end if
+    if ( ma%hastop ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          chia(j,ice2,k,:) = chib0(j,ice2,k,:) + xt*chibt(j,ice2,k,:)
+        end do
+      end do
+    end if
+    call time_end(subroutine_name,idindx)
 
   end subroutine chem_bdyval
-!!$!
 
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                     c
@@ -481,28 +384,16 @@ implicit none
   !                                                                     c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-
-
-  subroutine nudge_chi(nk,xt,cba,f,ibdy,ften)
-!
+  subroutine nudge_chi(nk,cba,xt,f,ften)
     implicit none
-!
-    integer , intent(in) :: ibdy , nk
+    integer , intent(in) :: nk
     real(dp) , intent(in) :: xt
     real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: f
-   
- 
-
     type(cbound_area), intent(in) :: cba   
-
-    real(dp) , pointer , dimension(:) :: lfc , lgc
-  
     real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
     real(dp) :: xf , xg
     real(dp), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
-
- 
 
     integer :: i , j , k , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge3d'
@@ -511,13 +402,11 @@ implicit none
     call time_begin(subroutine_name,idindx)
 !
     if ( cba%dotflag ) then
-
       i1 = idi1
       i2 = idi2
       j1 = jdi1
       j2 = jdi2
     else
-
       i1 = ici1
       i2 = ici2
       j1 = jci1
@@ -530,17 +419,15 @@ implicit none
           do j = j1 , j2
             if ( .not. cba%bsouth(j,i) ) cycle
             ib = cba%ibnd(j,i)
-
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-
+            xf = cefc(ib,k)
+            xg = cegc(ib,k)
             fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
             fls1(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls2(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                          xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                    xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -551,16 +438,15 @@ implicit none
           do j = j1 , j2
             if ( .not. cba%bnorth(j,i) ) cycle
             ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-
+            xf = cefc(ib,k)
+            xg = cegc(ib,k)
             fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
             fls1(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls2(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                          xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -571,17 +457,15 @@ implicit none
           do j = j1 , j2
             if ( .not. cba%bwest(j,i) ) cycle
             ib = cba%ibnd(j,i)
-
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-
+            xf = cefc(ib,k)
+            xg = cegc(ib,k)
             fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
             fls1(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls2(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                          xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -592,16 +476,15 @@ implicit none
           do j = j1 , j2
             if ( .not. cba%beast(j,i) ) cycle
             ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-
+            xf = cefc(ib,k)
+            xg = cegc(ib,k)
             fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
             fls1(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls2(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) -  &
-                        xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -610,43 +493,22 @@ implicit none
     call time_end(subroutine_name,idindx)
   end subroutine nudge_chi
 !
-
-  subroutine setup_che_bdycon(hlev)
+  subroutine setup_che_bdycon
     implicit none
-    real(dp) , pointer , dimension(:) , intent(in) :: hlev
     integer :: n , k
-    real(dp) :: fnudge,gnudge
-    !fnudge
+    real(dp) :: fnudge , gnudge
+    !
     ! Specify the coefficients for nudging boundary conditions:
     !
-
-      fnudge = 0.1D0/dtche
-      gnudge = (1.0D0/crdxsq/dtche)/50.0D0
-
-
-      do k = 1 , kz
-        do n = 1 , cnbdm
-          cefc(n,k) = fnudge*xfune(n,k)
-          cegc(n,k) = gnudge*xfune(n,k)
-        end do
+    fnudge = 0.1D0/dtche
+    gnudge = (1.0D0/crdxsq/dtche)/50.0D0
+    do k = 1 , kz
+      do n = 1 , cnbdm
+        cefc(n,k) = fnudge*xfune(n,k)
+        cegc(n,k) = gnudge*xfune(n,k)
       end do
-
+    end do
   end subroutine setup_che_bdycon
-
-
-
-
- function xfun(mm,ldot)
-    implicit none
-    real(dp) :: xfun
-    integer , intent(in) :: mm
-    logical , intent(in) :: ldot
-    if ( ldot ) then
-      xfun = dble(nspgd-mm)/dble(nspgd-2)
-    else
-      xfun = dble(nspgx-mm)/dble(nspgx-2)
-    end if
-  end function xfun
 !
   function xfune(mm,kk)
     implicit none
@@ -655,5 +517,4 @@ implicit none
     xfune = dexp(-dble(mm-2)/canudg(kk))
   end function xfune
 !
-
 end module mod_che_bdyco

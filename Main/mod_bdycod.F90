@@ -1205,7 +1205,7 @@ module mod_bdycod
     end if
 !
     if ( ichem == 1 ) then
-      call chem_bdyval(xt,nbdytime,dtbdys,ktau,ifrest)
+      call chem_bdyval(xt,ktau)
     end if
 !
     call time_end(subroutine_name,idindx)
