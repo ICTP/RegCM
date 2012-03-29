@@ -49,6 +49,9 @@ module mod_ch_icbc
   real(sp) :: prcm , pmpi , pmpj
   integer :: ncid , istatus
 
+!  integer , parameter :: nchsp = 25
+
+
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
   contains
@@ -57,8 +60,8 @@ module mod_ch_icbc
     implicit none
     integer :: ivarid , idimid , is , istatus
 
-    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_icbc:poxid_3')
-    call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
+
+
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'mz4_avg_2000-2007_aug.nc', nf90_nowrite, ncid)
@@ -76,6 +79,11 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilev)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lev')
+
+
+    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_icbc:poxid_3')
+    call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
+
 
     call getmem1d(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
     call getmem1d(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
