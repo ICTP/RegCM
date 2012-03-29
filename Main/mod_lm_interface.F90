@@ -49,7 +49,7 @@ module mod_lm_interface
   contains
 
   subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs, &
-                       za,ts1,rhox2d,zpbl)
+                       ts1,rhox2d,zpbl)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -57,7 +57,6 @@ module mod_lm_interface
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: za
     real(dp) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d , zpbl
     xdtsec = dt
     kbats = ksrf
@@ -77,6 +76,7 @@ module mod_lm_interface
     call assignpnt(atm%tb3d,tatm)
     call assignpnt(atm%qvb3d,qvatm)
     call assignpnt(atm%thx3d,thatm)
+    call assignpnt(atm%za,hgt)
     call assignpnt(sfs%hfx,hfx)
     call assignpnt(sfs%qfx,qfx)
     call assignpnt(sfs%uvdrag,uvdrag)
@@ -84,7 +84,6 @@ module mod_lm_interface
     call assignpnt(sfs%psb,sfps)
     call assignpnt(sfs%tga,tground1)
     call assignpnt(sfs%tgb,tground2)
-    call assignpnt(za,hgt)
     call assignpnt(ts1,ts)
     call assignpnt(rhox2d,rho)
     call assignpnt(zpbl,hpbl)
@@ -92,7 +91,7 @@ module mod_lm_interface
 !
 #ifdef CLM
   subroutine init_clm(dt,ksrf,ichem,iemiss,dom,dom1,atm,sfs,&
-                      za,ts1,ts0,rhox2d,zpbl)
+                      ts1,ts0,rhox2d,zpbl)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -100,11 +99,10 @@ module mod_lm_interface
     type(domain) , intent(in) :: dom , dom1
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: za
     real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d , &
             zpbl
 
-    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,za,ts1,rhox2d,zpbl)
+    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,ts1,rhox2d,zpbl)
     call assignpnt(ts0,tsf)
     call assignpnt(dom1%ht,htf)
     call assignpnt(dom1%lndcat,lndcatf)

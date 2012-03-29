@@ -541,7 +541,7 @@ contains
 
   end subroutine open_domain
 
-  subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f)
+  subroutine read_domain(ht,lnd,xlat,xlon,dlat,dlon,xmap,dmap,f)
     use netcdf
     implicit none
 
@@ -549,6 +549,8 @@ contains
     real(dp) , pointer , dimension(:,:) , intent(out) :: lnd
     real(dp) , pointer , dimension(:,:) , intent(out) :: xlat
     real(dp) , pointer , dimension(:,:) , intent(out) :: xlon
+    real(dp) , pointer , dimension(:,:) , intent(out) :: dlat
+    real(dp) , pointer , dimension(:,:) , intent(out) :: dlon
     real(dp) , pointer , dimension(:,:) , intent(out) :: xmap
     real(dp) , pointer , dimension(:,:) , intent(out) :: dmap
     real(dp) , pointer , dimension(:,:) , intent(out) :: f
@@ -580,6 +582,14 @@ contains
     istatus = nf90_get_var(idmin, ivarid, xlon)
     call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
     ioxlon = real(xlon(o_js:o_je,o_is:o_ie))
+    istatus = nf90_inq_varid(idmin, 'dlat', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable dlat miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, dlat)
+    call check_ok(__FILE__,__LINE__,'Variable dlat read error', 'DOMAIN FILE')
+    istatus = nf90_inq_varid(idmin, 'dlon', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable dlon miss', 'DOMAIN FILE')
+    istatus = nf90_get_var(idmin, ivarid, dlon)
+    call check_ok(__FILE__,__LINE__,'Variable dlon read error', 'DOMAIN FILE')
     istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, xmap)

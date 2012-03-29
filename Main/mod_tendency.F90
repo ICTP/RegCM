@@ -40,6 +40,7 @@ module mod_tendency
   use mod_advection
   use mod_diffusion
   use mod_mppio
+  use mod_cloud_s1
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -663,6 +664,10 @@ module mod_tendency
       end if
       call pcp(jci1,jci2,ici1,ici2)
       call cldfrac(jci1,jci2,ici1,ici2)
+      if ( .false. ) then
+        call microphys(jci1,jci2,ici1,ici2)
+        call deco1d_nc_write(qqxp)
+      end if
 !
 !     need also to set diffq to 0 here before calling diffut
 !

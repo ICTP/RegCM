@@ -95,7 +95,7 @@ module mod_runparams
   real(dp) , private :: total_allocation_size
 
 #ifdef DEBUG
-  type(deco1d_nc_var3d) :: aqcten
+  type(deco1d_nc_var4d) :: qqxp
 #endif
 
   type output_variable

@@ -28,9 +28,6 @@ module mod_pbl_common
 !
   private
 
-  real(dp) , public , pointer , dimension(:,:,:) :: zq
-  real(dp) , public , pointer , dimension(:,:,:) :: za
-  real(dp) , public , pointer , dimension(:,:,:) :: dzq
   real(dp) , public , pointer ,  dimension(:,:) :: rhox2d
 !
   integer , public , pointer , dimension(:,:) :: kpbl
@@ -105,6 +102,9 @@ module mod_pbl_common
   real(dp) , public , pointer , dimension(:,:,:) :: qcatm     ! atms%qc
   real(dp) , public , pointer , dimension(:,:,:) :: tkests    ! atms%tke
   real(dp) , public , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
+  real(dp) , public , pointer , dimension(:,:,:) :: zq        ! atms%zq
+  real(dp) , public , pointer , dimension(:,:,:) :: za        ! atms%za
+  real(dp) , public , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
   real(dp) , public , pointer , dimension(:,:,:) :: difft     ! adf%difft
   real(dp) , public , pointer , dimension(:,:,:) :: diffq     ! adf%diffq
   real(dp) , public , pointer , dimension(:,:,:) :: radheatrt ! heatrt
@@ -164,9 +164,6 @@ module mod_pbl_common
     implicit none
     integer , intent(in) :: ibltyp
     integer , intent(in) :: ichem
-    call getmem3d(zq,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:zq')
-    call getmem3d(za,jce1,jce2,ice1,ice2,1,kz,'pbl_common:za')
-    call getmem3d(dzq,jce1,jce2,ice1,ice2,1,kz,'pbl_common:dzq')
     call getmem2d(rhox2d,jce1,jce2,ice1,ice2,'pbl_common:rhox2d')
     call getmem2d(kpbl,jce1,jce2,ice1,ice2,'pbl_common:kpbl')
     call getmem2d(zpbl,jce1,jce2,ice1,ice2,'pbl_common:zpbl')

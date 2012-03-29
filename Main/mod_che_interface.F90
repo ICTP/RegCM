@@ -40,7 +40,7 @@ module mod_che_interface
   contains 
 !
   subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms, &
-                       mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,za,dzq, &
+                       mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,   &
                        twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,icutop,icubot)
 
@@ -53,7 +53,7 @@ module mod_che_interface
     real(dp) , intent(in) :: dt , chemfrq , dtrad, rdxsq
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
-    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc , za , dzq
+    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
     real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
                                          sdelqk2d , ssw2da , twt
     real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
@@ -105,10 +105,10 @@ module mod_che_interface
 !call assignpnt(iexsol,ciexsol) 
 !call assignpnt(xmopor,cxmopor) 
 !call assignpnt(depuv,cdepuv) 
-    call assignpnt(za,cza)
+    call assignpnt(atms%za,cza)
+    call assignpnt(atms%dzq,cdzq)
     call assignpnt(a,hlev)
     call assignpnt(anudg,canudg)
-    call assignpnt(dzq,cdzq)
     call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   

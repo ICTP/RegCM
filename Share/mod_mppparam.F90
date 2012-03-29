@@ -2977,7 +2977,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
-    istat = nf90_def_dim(xvar%ncid, 'LL', xvar%nz, idims(4))
+    istat = nf90_def_dim(xvar%ncid, 'LL', xvar%nl, idims(4))
     if ( istat /= nf90_noerr ) then
       write(stderr, *) nf90_strerror(istat)
       return

@@ -74,7 +74,7 @@ regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
                 mod_params.F90 mod_runparams.F90 mod_savefile.F90 \
                 mod_slice.F90 mod_sun.F90 mod_tendency.F90 mod_tstep.f90 \
                 mod_regcm_interface.F90 mod_vmodes.F90 mod_split.F90  \
-                mod_lm_interface.F90 regcm.F90
+                mod_lm_interface.F90 mod_cloud_s1.F90 regcm.F90
 
 FCLD = $(MPIFC)
 
@@ -140,11 +140,12 @@ mod_output.o: mod_output.F90 mod_bdycod.o mod_cu_interface.o \
   mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o $(CHELIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_params.o: mod_params.F90 mod_lm_interface.o mod_cu_interface.o \
-  mod_atm_interface.o mod_runparams.o mod_mppio.o mod_precip.o \
+  mod_atm_interface.o mod_runparams.o mod_mppio.o mod_precip.o mod_cloud_s1.o \
   mod_che_interface.o mod_split.o mod_pbl_interface.o mod_ncio.o \
   mod_rad_interface.o mod_bdycod.o mod_tendency.o mod_che_interface.o mod_ncio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_precip.o: mod_precip.f90 mod_slice.o mod_atm_interface.o mod_runparams.o
+mod_cloud_s1.o: mod_cloud_s1.F90 mod_slice.o mod_atm_interface.o mod_runparams.o
 mod_runparams.o: mod_runparams.F90
 mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_che_interface.o \
   mod_atm_interface.o mod_bdycod.o mod_diagnosis.o mod_mppio.o \
@@ -160,7 +161,7 @@ mod_tendency.o: mod_tendency.F90 mod_bdycod.o mod_cu_interface.o \
   mod_atm_interface.o mod_precip.o mod_runparams.o mod_rad_interface.o \
   mod_slice.o mod_sun.o mod_precip.o mod_pbl_interface.o \
   mod_diagnosis.o mod_diffusion.o mod_advection.o mod_che_interface.o \
-  mod_lm_interface.o
+  mod_lm_interface.o mod_cloud_s1.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_tstep.o: mod_tstep.f90 mod_runparams.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o

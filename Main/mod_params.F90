@@ -29,6 +29,7 @@ module mod_params
   use mod_rad_interface
   use mod_pbl_interface
   use mod_precip
+  use mod_cloud_s1
   use mod_split
   use mod_slice
   use mod_bdycod
@@ -763,6 +764,7 @@ module mod_params
   call allocate_mod_clm(lband)
 #endif
 
+  call allocate_mod_cloud_s1
   call allocate_mod_rad_common
   call allocate_mod_rad_aerosol(ichem)
   call allocate_mod_rad_o3blk
@@ -948,19 +950,19 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
+  call init_cloud_s1(atms)
 #ifdef CLM
   call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
-                za,ts1,ts0_io,rhox2d,zpbl)
+                ts1,ts0_io,rhox2d,zpbl)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
-                 za,ts1,rhox2d,zpbl)
+                 ts1,rhox2d,zpbl)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                     sfs,za,qdot,pptc,ldmsk,sigma,a, &
-                     dsigma,qcon,cldfra,cldlwc)
+                     sfs,qdot,pptc,ldmsk,sigma,a,dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
     call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms, &
-                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,za,dzq,   &
+                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,      &
                    twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
                    sdelqk2d,ssw2da,icumtop,icumbot)
  end if
@@ -1148,8 +1150,10 @@ module mod_params
 
   if ( myid == 0 ) then
     call read_domain(mddom_io%ht,mddom_io%lndcat, &
-                     mddom_io%xlat,mddom_io%xlon,mddom_io%msfx,&
-                     mddom_io%msfd,mddom_io%coriol)
+                     mddom_io%xlat,mddom_io%xlon, &
+                     mddom_io%dlat,mddom_io%dlon, &
+                     mddom_io%msfx,mddom_io%msfd, &
+                     mddom_io%coriol)
     if ( nsg > 1 ) then
       call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
 #ifndef CLM
@@ -1597,9 +1601,9 @@ module mod_params
     call init_mod_pbl_uwtcm
   end if
 
-  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,cchifxuw, &
-                psdot,sfs,mddom,ldmsk,a,sigma,dsigma,ptop,chtrdpv,   &
-                chtrname,ichem,ichdrdepo,dt)
+  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd, &
+                cchifxuw,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,ptop,    &
+                chtrdpv,chtrname,ichem,ichdrdepo,dt)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg

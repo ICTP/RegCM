@@ -40,6 +40,8 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:) :: lndcat
     real(dp) , pointer , dimension(:,:) :: xlat
     real(dp) , pointer , dimension(:,:) :: xlon
+    real(dp) , pointer , dimension(:,:) :: dlat
+    real(dp) , pointer , dimension(:,:) :: dlon
     real(dp) , pointer , dimension(:,:) :: msfx
     real(dp) , pointer , dimension(:,:) :: msfd
     real(dp) , pointer , dimension(:,:) :: coriol
@@ -80,6 +82,9 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:,:) :: qvb3d
     real(dp) , pointer , dimension(:,:,:) :: qsb3d
     real(dp) , pointer , dimension(:,:,:) :: qcb3d
+    real(dp) , pointer , dimension(:,:,:) :: zq
+    real(dp) , pointer , dimension(:,:,:) :: za
+    real(dp) , pointer , dimension(:,:,:) :: dzq
     real(dp) , pointer , dimension(:,:,:) :: tkeb3d
     real(dp) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
@@ -560,6 +565,8 @@ module mod_atm_interface
         call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
+        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'atm_interface:dlat')
+        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
                                ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfx')
         call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
@@ -570,6 +577,8 @@ module mod_atm_interface
         call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'atm_interface:xlon')
+        call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'atm_interface:dlat')
+        call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'atm_interface:msfx')
         call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'atm_interface:f')
@@ -631,6 +640,9 @@ module mod_atm_interface
                              ide1-ma%ibb2,ide2+ma%ibt2,1,kz,'slice:ubd3d')
       call getmem3d(ax%vbd3d,jde1-ma%jbl2,jde2+ma%jbr2, &
                              ide1-ma%ibb2,ide2+ma%ibt2,1,kz,'slice:vbd3d')
+      call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
+      call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
+      call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                                 ice1-ma%ibb2,ice2+ma%ibt2, &

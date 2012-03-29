@@ -39,6 +39,7 @@ module mod_regcm_interface
   use mod_tstep
   use mod_service
   use mod_mppio
+  use mod_cloud_s1
   use mpi
   use mod_sun
 #ifdef CLM
@@ -264,6 +265,9 @@ module mod_regcm_interface
     real(dp) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 !
+#ifdef DEBUG
+    if ( .false. ) call deco1d_nc_create('clouds1',cross,zqxn,qqxp)
+#endif
     do while ( extime >= timestr .and. extime < timeend)
       !
       ! Refined start
@@ -328,6 +332,7 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
+    if ( .false. ) call deco1d_nc_destroy(qqxp)
 #endif
     call time_print(6,'evolution phase')
 !

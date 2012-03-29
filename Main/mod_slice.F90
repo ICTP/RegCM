@@ -89,14 +89,14 @@ module mod_slice
     !
     do i = ice1 , ice2
       do j = jce1 , jce2
-        zq(j,i,kzp1) = d_zero
+        atms%zq(j,i,kzp1) = d_zero
       end do
     end do
     do k = kz , 1 , -1
       do i = ice1 , ice2
         do j = jce1 , jce2
           cell = ptop/sfs%psb(j,i)
-          zq(j,i,k) = zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
+          atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
                     dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
       end do
@@ -105,8 +105,8 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          za(j,i,k) = d_half*(zq(j,i,k)+zq(j,i,k+1))
-          dzq(j,i,k) = zq(j,i,k) - zq(j,i,k+1)
+          atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
+          atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
         end do
       end do
     end do
