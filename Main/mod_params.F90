@@ -1211,6 +1211,8 @@ module mod_params
   call deco1_scatter(mddom_io%lndcat,mddom%lndcat,jdot1,jdot2,idot1,idot2)
   call deco1_scatter(mddom_io%xlat,mddom%xlat,jdot1,jdot2,idot1,idot2)
   call deco1_scatter(mddom_io%xlon,mddom%xlon,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%dlat,mddom%dlat,jdot1,jdot2,idot1,idot2)
+  call deco1_scatter(mddom_io%dlon,mddom%dlon,jdot1,jdot2,idot1,idot2)
   call deco1_scatter(mddom_io%msfx,mddom%msfx,jdot1,jdot2,idot1,idot2)
   call deco1_scatter(mddom_io%msfd,mddom%msfd,jdot1,jdot2,idot1,idot2)
   call deco1_scatter(mddom_io%coriol,mddom%coriol,jdot1,jdot2,idot1,idot2)
