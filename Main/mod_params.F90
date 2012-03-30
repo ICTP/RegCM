@@ -952,11 +952,9 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
   call init_cloud_s1(atms)
 #ifdef CLM
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
-                ts1,ts0_io,rhox2d,zpbl)
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs,ts1,ts0_io,zpbl)
 #else
-  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs, &
-                 ts1,rhox2d,zpbl)
+  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,ts1,zpbl)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
                      sfs,qdot,pptc,ldmsk,sigma,a,dsigma,qcon,cldfra,cldlwc)

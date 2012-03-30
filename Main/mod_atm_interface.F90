@@ -85,6 +85,7 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:,:) :: zq
     real(dp) , pointer , dimension(:,:,:) :: za
     real(dp) , pointer , dimension(:,:,:) :: dzq
+    real(dp) , pointer , dimension(:,:) :: rhox2d
     real(dp) , pointer , dimension(:,:,:) :: tkeb3d
     real(dp) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
@@ -643,6 +644,7 @@ module mod_atm_interface
       call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
       call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
       call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+      call getmem2d(ax%rhox2d,jce1,jce2,ice1,ice2,'slice:rhox2d')
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                                 ice1-ma%ibb2,ice2+ma%ibt2, &

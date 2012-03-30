@@ -229,7 +229,7 @@ module mod_mppparam
 
     ! Setup all convenience dimensions
 
-    if ( myid/= 0) then
+    if ( myid /= 0) then
       iym1 = iy - 1
       iym2 = iy - 2
       iym3 = iy - 3

@@ -164,7 +164,6 @@ module mod_pbl_common
     implicit none
     integer , intent(in) :: ibltyp
     integer , intent(in) :: ichem
-    call getmem2d(rhox2d,jce1,jce2,ice1,ice2,'pbl_common:rhox2d')
     call getmem2d(kpbl,jce1,jce2,ice1,ice2,'pbl_common:kpbl')
     call getmem2d(zpbl,jce1,jce2,ice1,ice2,'pbl_common:zpbl')
     !

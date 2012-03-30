@@ -64,7 +64,7 @@ module mod_slice
         end do
       end do
     end do
-   
+ 
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -73,7 +73,7 @@ module mod_slice
         end do
       end do
     end do
-   
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -116,7 +116,7 @@ module mod_slice
     do i = ice1 , ice2
       do j = jce1 , jce2
         pres = (sfs%psb(j,i)+ptop)*d_1000
-        rhox2d(j,i) = pres/(rgas*atms%tb3d(j,i,kz))
+        atms%rhox2d(j,i) = pres/(rgas*atms%tb3d(j,i,kz))
       end do
     end do
     do k = 1 , kz

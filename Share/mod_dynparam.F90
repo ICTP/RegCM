@@ -370,6 +370,10 @@ module mod_dynparam
 
     read(ipunit, dimparam, err=101)
 
+    i_band = 0
+
+    read(ipunit, geoparam, err=102)
+
 !   Setup all convenience dimensions
 
     iym1 = iy - 1
@@ -420,10 +424,6 @@ module mod_dynparam
 
     nnsg = nsg*nsg
     nveg = 22
-
-    i_band = 0
-
-    read(ipunit, geoparam, err=102)
 
     if ( i_band.eq.1 ) then
       ds = (2.0D0*mathpi*erkm)/dble(jx)
