@@ -664,10 +664,12 @@ module mod_tendency
       end if
       call pcp(jci1,jci2,ici1,ici2)
       call cldfrac(jci1,jci2,ici1,ici2)
+#ifdef DEBUG
       if ( .false. ) then
         call microphys(jci1,jci2,ici1,ici2)
         call deco1d_nc_write(qqxp)
       end if
+#endif
 !
 !     need also to set diffq to 0 here before calling diffut
 !
