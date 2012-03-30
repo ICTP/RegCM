@@ -28,13 +28,6 @@ module mod_sun
   use mod_mpmessage
   use mod_service
 !
-#ifdef CLM
-  use mod_clm
-  use clm_time_manager , only : get_curr_calday
-  use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
-                           shr_orb_params
-#endif
-!
   private
 !
   public :: solar1 , zenitm
@@ -53,13 +46,7 @@ module mod_sun
     implicit none
 !
     real(dp) :: decdeg
-#ifdef CLM
-    real(dp) :: mvelp , obliq
-    integer :: iyear_ad
-    logical :: log_print
-#else
     real(dp) :: theta
-#endif
 !
 !----------------------------------------------------------------------
 !
@@ -67,24 +54,7 @@ module mod_sun
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
     calday = yeardayfrac(idatex)
-!
-#ifdef CLM
-    log_print = .false.
-    iyear_ad = xyear
-
-!   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
-    call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
-                      & r2clambm0,r2cmvelpp,log_print)
-!
-!   Get declin,eccf
-    call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
-                    & declin,r2ceccf)
-
-!   convert declin to degrees
-    decdeg = declin/degrad
-#else
     theta = twopi*calday/dayspy
 !
 !   Solar declination in radians:
@@ -95,10 +65,8 @@ module mod_sun
              0.000907D0*dsin(2.0D0*theta) -        &
              0.002697D0*dcos(3.0D0*theta) +        &
              0.001480D0*dsin(3.0D0*theta)
-!
     decdeg = declin/degrad
 !
-#endif
     write (aline, 99001) calday, decdeg
     call say
 99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
@@ -126,11 +94,7 @@ module mod_sun
     real(dp) , pointer , intent (out), dimension(:,:) :: coszrs
 !
     integer :: i , j
-#ifdef CLM
-    real(dp) :: cldy , declinp1 , xxlon
-#else
     real(dp) :: omga , tlocap , xt24
-#endif
     character (len=64) :: subroutine_name='zenitm'
     real(dp) :: xxlat
     integer :: idindx=0
@@ -139,20 +103,6 @@ module mod_sun
 !
 !***********************************************************************
 !
-#ifdef CLM
-    cldy = get_curr_calday()
-    call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
-         &            r2cobliqr,declinp1,r2ceccf)
-    do i = istart , iend
-      do j = jstart , jend
-        xxlat = mddom%xlat(j,i)*degrad
-        xxlon = mddom%xlon(j,i)*degrad
-        coszrs(j,i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-        coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
-        coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
-      end do
-    end do
-#else
     xt24 = dble(idatex%second_of_day)/secph
     do i = istart , iend
       do j = jstart , jend
@@ -167,8 +117,6 @@ module mod_sun
         coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
       end do
     end do
-#endif
-!
     call time_end(subroutine_name,idindx)
   end subroutine zenitm
 !

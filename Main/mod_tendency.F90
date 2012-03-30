@@ -133,11 +133,11 @@ module mod_tendency
     !
     ! Calculate eccentricity factor for radiation calculations
     !
+    theta = twopi*calday/dayspy
 #ifdef CLM
     eccf  = r2ceccf
 #else
     calday = yeardayfrac(idatex)
-    theta = twopi*calday/dayspy
     eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
            0.001280D0 * dsin(theta) + &
            0.000719D0 * dcos(d_two*theta) + &
@@ -351,15 +351,6 @@ module mod_tendency
     call deco1_exchange_right(sfs%psb,1,ice1,ice2)
     call psc2psd(sfs%psb,psdot)
     call mkslice
-!
-!=======================================================================
-!
-#ifdef CLM
-    if ( init_grid ) then
-      call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
-      init_grid = .false.
-    end if
-#endif
 !
 !=======================================================================
 !

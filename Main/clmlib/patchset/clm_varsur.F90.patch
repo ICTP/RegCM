@@ -8,7 +8,7 @@
 +  real(r8) ,allocatable :: pctspec(:)        ! percent of spec lunits wrt gcell
 +
 +! abt below
-+  integer,  target , allocatable :: landmask(:,:)     ! land mask: 1 = land. 0 = ocean. 3 = land/ocean
++  integer,  pointer :: landmask(:,:)     ! land mask: 1 = land. 0 = ocean. 3 = land/ocean
 +  real(r8), allocatable :: landfrac(:,:)     ! fractional land
 +  real(r8), allocatable :: ht_rcm(:,:)       ! elevation from regcm
 +  real(r8), allocatable :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization

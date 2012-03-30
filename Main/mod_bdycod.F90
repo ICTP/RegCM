@@ -1205,7 +1205,6 @@ module mod_bdycod
     end if
 !
     if ( ichem == 1 ) then
-      print*, 'FAB cal che_bdyval xt',xt 
       call chem_bdyval(xt,ktau)
     end if
 !

@@ -23,6 +23,7 @@ module mod_mtrxclm
 
   use mod_dynparam
   use mod_mpmessage
+  use mod_mppparam
   use mod_clm
   use mod_bats_common
   use mod_bats_mtrxbats
@@ -137,13 +138,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   type(rcm_time_and_date) , intent(in) :: idate1 , idate2
   real(8) , intent(in) :: dtrad , dtsrf , dx
 !
-  integer :: ci , cj , i , ii , j , jj , n , ierr
-  real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,         &
-              r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
-              r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &
-              r2cxlatd , r2cxlon , r2cxlond , r2czga
-  real(r8) , dimension(jxp*iy) :: work_in
-  real(r8) , dimension(jx*iy) :: work_out
+  integer :: i , ii , j , jj , n , ierr
   integer :: year , month , day , hour
 !
 !----------------------------------------------------------------------
@@ -201,12 +196,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !     Set landmask method
   r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
-  if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
-  if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
-  if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(iy,jx))
-  if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
+  if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(jx,iy))
+  if ( .not.allocated(init_tgb) ) allocate(init_tgb(jx,iy))
+  if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(jx,iy))
+  if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(jx,iy))
   if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
-  if ( .not.allocated(landmask) ) allocate(landmask(jx,iy))
   if ( myid==0 ) then
     do j = 1 , jx
       do i = 1 , iy
@@ -292,8 +286,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -310,8 +303,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -328,8 +320,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -346,8 +337,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -592,14 +582,13 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       ii = ii + 1
     end do
   end do
- 
-!     Set grid edges
+  !
+  ! Set grid edges
+  !
   r2cedgen = r2cxlatd_all(1,1)
   r2cedges = r2cxlatd_all(1,1)
   r2cedgee = r2cxlond_all(1,1)
   r2cedgew = r2cxlond_all(1,1)
- 
-!     clm vars are (lon x lat), regcm (lat x lon)
   do j = 1 , jx
     do i = 1 , iy
       r2cedgen = dmax1(r2cxlatd_all(j,i),r2cedgen)
@@ -643,7 +632,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( myid == 0 ) &
     write (6,*) 'Successfully make atmospheric grid'
  
-!     Initialize radiation and atmosphere variables
+! Initialize radiation and atmosphere variables
 
   if ( .not. ifrest ) then
     call rcmdrv()
@@ -663,10 +652,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !     Initialize accumulation variables at zero
  
   if ( .not.ifrest ) then
-    do j = 1 , jxp
-      jj = myid*jxp + j
-      do i = 1 , iym1
-        do n = 1 , nnsg
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          jj = myid*jxp + j
           ldmsk1(n,j,i) = landmask(jj,i)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
@@ -681,6 +670,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           srfrna(n,j,i) = d_zero
           runoff(n,j,i) = d_zero
         end do
+      end do
+    end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        jj = myid*jxp + j
         fsw(j,i)   = d_zero
         flw(j,i)   = d_zero
         sabveg(j,i)  = d_zero
@@ -721,7 +715,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     ! Save CLM modified landuse for restart
-    lndcat2d(:,:) = lndcat(:,:)
+    lndcat2d(jci1:jci2,ici1:ici2) = lndcat(jci1:jci2,ici1:ici2)
   end if !end ifrest test
 
 !     deallocate some variables used in CLM initialization only
@@ -790,14 +784,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   integer(8) , intent(in) :: ktau
 !
   real(8) :: mmpd , wpm2
-  integer :: ci , cj , counter , i , ii , iii , j , jj , kk ,       &
-              n , nn1 , nnn , nout
-  real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,    &
-              r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
-              r2csolsd , r2ctb , r2cuxb , r2cvxb , r2czga
+  integer :: ci , i , ii , iii , j , jj , kk , n , nn1 , nnn , nout
   real(4) :: real_4
-  real(8) , dimension(jxp*iy*13) :: workin
-  real(8) , dimension(jx*iy*13) :: workout
   integer :: ierr
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -839,52 +827,232 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     ii = 1
     do j = 1 , jxp
       do i = 1 , iy
-        workin(ii) = r2ctb(j,i)
-        workin(ii+(jxp*iy)) = r2cqb(j,i)
-        workin(ii+(2*jxp*iy)) = r2czga(j,i)
-        workin(ii+(3*jxp*iy)) = r2cpsb(j,i)
-        workin(ii+(4*jxp*iy)) = r2cuxb(j,i)
-        workin(ii+(5*jxp*iy)) = r2cvxb(j,i)
-        workin(ii+(6*jxp*iy)) = r2crnc(j,i)
-        workin(ii+(7*jxp*iy)) = r2crnnc(j,i)
-        workin(ii+(8*jxp*iy)) = r2csols(j,i)
-        workin(ii+(9*jxp*iy)) = r2csoll(j,i)
-        workin(ii+(10*jxp*iy)) = r2csolsd(j,i)
-        workin(ii+(11*jxp*iy)) = r2csolld(j,i)
-        workin(ii+(12*jxp*iy)) = r2cflwd(j,i)
+        work_in(ii) = r2ctb(j,i)
         ii = ii + 1
       end do
     end do
-    call mpi_allgather(workin,13*jxp*iy,mpi_double_precision,       &
-                       workout,13*jxp*iy,mpi_double_precision,      &
-                       mycomm,ierr)
- 
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
     ii = 1
-    kk = 1
-    counter = 1
     do j = 1 , jx
       do i = 1 , iy
-        r2ctb_all(j,i) = workout(ii)
-        r2cqb_all(j,i) = workout(ii+(jxp*iy))
-        r2czga_all(j,i) = workout(ii+(2*jxp*iy))
-        r2cpsb_all(j,i) = workout(ii+(3*jxp*iy))
-        r2cuxb_all(j,i) = workout(ii+(4*jxp*iy))
-        r2cvxb_all(j,i) = workout(ii+(5*jxp*iy))
-        r2crnc_all(j,i) = workout(ii+(6*jxp*iy))
-        r2crnnc_all(j,i) = workout(ii+(7*jxp*iy))
-        r2csols_all(j,i) = workout(ii+(8*jxp*iy))
-        r2csoll_all(j,i) = workout(ii+(9*jxp*iy))
-        r2csolsd_all(j,i) = workout(ii+(10*jxp*iy))
-        r2csolld_all(j,i) = workout(ii+(11*jxp*iy))
-        r2cflwd_all(j,i) = workout(ii+(12*jxp*iy))
+        r2ctb_all(j,i) = work_out(ii)
         ii = ii + 1
-        counter = counter + 1
       end do
-      if ( counter>jxp*iy ) then
-        kk = kk + 1
-        counter = 1
-        ii = jxp*(kk-1)*13*iy + 1
-      end if
+    end do
+!       QB
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2cqb(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2cqb_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       ZGA
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2czga(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2czga_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       PSB
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2cpsb(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2cpsb_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       UXB
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2cuxb(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2cuxb_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       VXB
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2cvxb(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2cvxb_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+ 
+!       RNC
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2crnc(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2crnc_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       RNNC
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2crnnc(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2crnnc_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       SOLS
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2csols(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2csols_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       SOLL
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2csoll(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2csoll_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       SOLSD
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2csolsd(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2csolsd_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       SOLLD
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2csolld(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2csolld_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
+    end do
+!       LONGWAVE RAD.
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        work_in(ii) = r2cflwd(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                       jxp*iy,mpi_double_precision,mycomm,  &
+                       ierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        r2cflwd_all(j,i) = work_out(ii)
+        ii = ii + 1
+      end do
     end do
 
   else if ( ivers==2 ) then ! end of ivers = 1
@@ -975,15 +1143,15 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       wpm2 = d_one/(srffrq*secph)
     end if
  
-    call interf(1,jbegin,jendx,2,iym1,ktau)
+    call interf(1,jci1,jci2,ici1,ici2,ktau)
 
     if ( iocnflx==2 ) then
-      call zengocndrv(jbegin,jendx,2,iym1,ktau)
+      call zengocndrv(jci1,jci2,ici1,ici2,ktau)
     end if
  
-    do j = jbegin , jendx
+    do j = jci1 , jci2
       jj = (jxp*myid) + j
-      do i = 2 , iym1
+      do i = ici1 , ici2
         ci = i
         uvdrag(j,i) = d_zero
         hfx(j,i) = d_zero
@@ -1225,7 +1393,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
       if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
  
-        do i = 2 , iym1
+        do i = ici1 , ici2
           ci = i
  
           u10m_o(j,i) = 0.0
@@ -1389,12 +1557,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasright ) then
       b(jce2,ici1:ici2) = a(jci2,ici1:ici2)
+      b(jde2,ici1:ici2) = a(jci2,ici1:ici2)
     end if
     if ( ma%hasbottom ) then
       b(jci1:jci2,ice1) = a(jci1:jci2,ici1)
     end if
     if ( ma%hastop ) then
       b(jci1:jci2,ice2) = a(jci1:jci2,ici2)
+      b(jci1:jci2,ide2) = a(jci1:jci2,ici2)
     end if
     if ( ma%hasleft .and. ma%hasbottom ) then
       b(jce1,ice1) = a(jci1,ici1)
@@ -1404,9 +1574,15 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasright .and. ma%hasbottom ) then
       b(jce2,ice1) = a(jci2,ici1)
+      b(jde2,ice1) = a(jci2,ici1)
+      b(jce2,ide1) = a(jci2,ici1)
+      b(jde2,ide1) = a(jci2,ici1)
     end if
     if ( ma%hasright .and. ma%hastop ) then
       b(jce2,ice2) = a(jci2,ici2)
+      b(jde2,ice2) = a(jci2,ici2)
+      b(jce2,ide2) = a(jci2,ici2)
+      b(jde2,ide2) = a(jci2,ici2)
     end if
   end subroutine fill_frame2d
 
@@ -1420,12 +1596,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasright ) then
       b(jce2,ici1:ici2) = a(jci2,ici1:ici2,kz)
+      b(jde2,ici1:ici2) = a(jci2,ici1:ici2,kz)
     end if
     if ( ma%hasbottom ) then
       b(jci1:jci2,ice1) = a(jci1:jci2,ici1,kz)
     end if
     if ( ma%hastop ) then
       b(jci1:jci2,ice2) = a(jci1:jci2,ici2,kz)
+      b(jci1:jci2,ide2) = a(jci1:jci2,ici2,kz)
     end if
     if ( ma%hasleft .and. ma%hasbottom ) then
       b(jce1,ice1) = a(jci1,ici1,kz)
@@ -1435,9 +1613,15 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasright .and. ma%hasbottom ) then
       b(jce2,ice1) = a(jci2,ici1,kz)
+      b(jce2,ide1) = a(jci2,ici1,kz)
+      b(jde2,ice1) = a(jci2,ici1,kz)
+      b(jde2,ide1) = a(jci2,ici1,kz)
     end if
     if ( ma%hasright .and. ma%hastop ) then
       b(jce2,ice2) = a(jci2,ici2,kz)
+      b(jce2,ide2) = a(jci2,ici2,kz)
+      b(jde2,ice2) = a(jci2,ici2,kz)
+      b(jde2,ide2) = a(jci2,ici2,kz)
     end if
   end subroutine fill_frame3d
 

@@ -143,8 +143,8 @@ module mod_params
     cmtcape , zdlev , cprcon , nmctop , lmfpen , lmfscv ,        &
     lmfmid , lmfdd , lmfdudv
 
-  namelist /chemparam/ chemsimtype, ichremlsc , ichremcvc , ichdrdepo ,          &
-    ichcumtra ,ichsolver, idirect , inpchtrname , inpchtrsol ,      &
+  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
+    ichcumtra , ichsolver , idirect , inpchtrname , inpchtrsol ,          &
     inpchtrdpv , inpdustbsiz
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
@@ -995,7 +995,9 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
   call init_cloud_s1(atms)
 #ifdef CLM
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs,ts1,ts0_io,zpbl)
+  allocate(landmask(jx,iy))
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs, &
+                ts1,ts0_io,zpbl,landmask)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,ts1,zpbl)
 #endif
@@ -1725,11 +1727,6 @@ module mod_params
     print 99018 , xkhz
     print 99019 , xkhmax
   end if
-
-!!$  ! Calculate boundary areas per processor
-!!$
-!!$  call deco1_bound(cross,lband,ba_cr)
-!!$  call deco1_bound(dot,lband,ba_dt)
 
   call deco1_allocate_v2dbound(xpsb,cross)
   call deco1_allocate_v3dbound(xtb,kz,cross)

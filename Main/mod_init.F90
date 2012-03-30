@@ -40,6 +40,7 @@ module mod_init
   use mod_savefile
   use mod_diagnosis
   use mod_mppio
+  use mod_slice
   use mod_constants
 #ifdef CLM
   use mod_clm
@@ -500,6 +501,11 @@ module mod_init
     end if
 #endif
   end if
+#ifdef CLM
+  numdays = dayspy
+  call mkslice
+  call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
+#endif
   !
   ! Calculate emission coefficients
   !
@@ -523,12 +529,7 @@ module mod_init
       end do
     end do
   end if
-!  
-#ifdef CLM
-  numdays = dayspy
-  init_grid = .true.
-#endif
-  !
+  !  
   ! Calculate topographical correction to diffusion coefficient
   !
   do i = ide1 , ide2

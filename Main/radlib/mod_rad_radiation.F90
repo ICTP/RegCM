@@ -1008,10 +1008,6 @@ module mod_rad_radiation
       end do
     end if
 
-    if ( lchem ) then
-!      call aerout(aeradfo,aeradfos,aerlwfo,aerlwfos,jstart,jend,i)
-    end if   
-
     call time_end(subroutine_name,indx)
   end subroutine radctl
 !

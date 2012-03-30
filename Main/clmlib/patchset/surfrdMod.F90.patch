@@ -388,7 +388,7 @@
  ! !LOCAL VARIABLES:
 -    integer :: n                   ! indices
 -    integer :: ni,nj,ns            ! size of grid on file
-+    integer :: ni,nj,nns,nnj,nni   ! size of grid on file
++    integer :: ni,nj,nns,nni,nnj   ! size of grid on file
      integer :: ncid,dimid,varid    ! netCDF id's
 -    integer :: ier                 ! error status
 -    real(r8):: eps = 1.0e-12_r8    ! lat/lon error tolerance
@@ -443,7 +443,7 @@
 +    call mpi_bcast (nj, 1, MPI_INTEGER, 0, mpicom, ier)
 +
 +    call domain_init(domain,ni,nj)
-+    if(.not.allocated(landmask)) allocate(landmask(ni,nj))  !abt
++    if(.not.associated(landmask)) allocate(landmask(ni,nj))  !abt
 +    if(.not.allocated(landfrac)) allocate(landfrac(ni,nj))  !abt
 +
 +
@@ -507,10 +507,10 @@
 +       do nnj = 1,nj
 +       do nni = 1,ni
 +         nns = (nnj-1)*ni + nni
-+         domain%lonc(nns) = r2cxlond_all(nnj,nni)
-+         domain%latc(nns) = r2cxlatd_all(nnj,nni)
-+         glonc(nns)       = r2cxlond_all(nnj,nni)
-+         glatc(nns)       = r2cxlatd_all(nnj,nni)
++         domain%lonc(nns) = r2cxlond_all(nni,nnj)
++         domain%latc(nns) = r2cxlatd_all(nni,nnj)
++         glonc(nns)       = r2cxlond_all(nni,nnj)
++         glatc(nns)       = r2cxlatd_all(nni,nnj)
 +       enddo 
 +       enddo
 +         
@@ -543,25 +543,25 @@
 +          nns = (nnj-1)*ni + nni
 +
 +          if(r2cimask == 2) then               !using weighted landfraction method
-+            landfrac(nnj,nni) = rcmfrac(nns)
++            landfrac(nni,nnj) = rcmfrac(nns)
 +            if(rcmfrac(nns) < 0.1) then    
 +              domain%mask(nns)  = 0.
-+              landmask(nnj,nni) = 0
-+              landfrac(nnj,nni) = 0.
++              landmask(nni,nnj) = 0
++              landfrac(nni,nnj) = 0.
 +            else
 +              domain%mask(nns)  = 1.
-+              landmask(nnj,nni) = 1
++              landmask(nni,nnj) = 1
 +            endif
 +
 +          elseif(r2cimask == 1) then           !using DOMAIN.INFO landmask
-+            if(satbrt_clm(nnj,nni) > 13.9 .and. satbrt_clm(nnj,nni) < 15.1) then 
++            if(satbrt_clm(nni,nnj) > 13.9 .and. satbrt_clm(nni,nnj) < 15.1) then 
 +              domain%mask(nns)  = 0.
-+              landmask(nnj,nni) = 0
-+              landfrac(nnj,nni) = 0.
++              landmask(nni,nnj) = 0
++              landfrac(nni,nnj) = 0.
 +            else
 +              domain%mask(nns)  = 1.
-+              landmask(nnj,nni) = 1
-+              landfrac(nnj,nni) = 1.
++              landmask(nni,nnj) = 1
++              landfrac(nni,nnj) = 1.
 +            endif
 +
 +          endif
@@ -912,7 +912,7 @@
 +                endif
 +
 +              elseif(r2cimask == 1) then           !using DOMAIN.INFO landmask
-+                if(satbrt_clm(nnj,nni) > 13.9 .and. satbrt_clm(nnj,nni) < 15.1) then
++                if(satbrt_clm(nni,nnj) > 13.9 .and. satbrt_clm(nni,nnj) < 15.1) then
 +                  mask(nns)  = 0.
 +                else
 +                  mask(nns)  = 1.
@@ -1098,8 +1098,8 @@
 +       do nnj = 1,nj
 +       do nni = 1,ni
 +         nns = (nnj-1)*ni + nni
-+         lonc(nns) = r2cxlond_all(nnj,nni)
-+         latc(nns) = r2cxlatd_all(nnj,nni)
++         lonc(nns) = r2cxlond_all(nni,nnj)
++         latc(nns) = r2cxlatd_all(nni,nnj)
 +       enddo 
 +       enddo
 +!rcm above         
@@ -1130,7 +1130,7 @@
 +            endif
 +
 +          elseif(r2cimask == 1) then           !using DOMAIN.INFO landmask
-+            if(satbrt_clm(nnj,nni) > 13.9 .and. satbrt_clm(nnj,nni) < 15.1) then
++            if(satbrt_clm(nni,nnj) > 13.9 .and. satbrt_clm(nni,nnj) < 15.1) then
 +              domain%mask(nns)  = 0.
 +            else
 +              domain%mask(nns)  = 1.
@@ -1268,8 +1268,8 @@
 +       do nnj = 1,nj
 +       do nni = 1,ni
 +         nns = (nnj-1)*ni + nni
-+         lonc(nns) = r2cxlond_all(nnj,nni)
-+         latc(nns) = r2cxlatd_all(nnj,nni)
++         lonc(nns) = r2cxlond_all(nni,nnj)
++         latc(nns) = r2cxlatd_all(nni,nnj)
 +       enddo 
 +       enddo
 +!rcm above
@@ -1290,7 +1290,7 @@
 +       do nnj = 1,nj
 +       do nni = 1,ni
 +         nns = (nnj-1)*ni + nni
-+         domain%topo(nns) = ht_rcm(nnj,nni)/grav     !convert from geopotential ht to ht
++         domain%topo(nns) = ht_rcm(nni,nnj)/grav     !convert from geopotential ht to ht
 +       enddo
 +       enddo
 +
@@ -1425,10 +1425,10 @@
 +
 +      pctspecB = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
 +
-+      if(landfrac(nnj,nni) .eq. 0) then
-+         write(*,*)"landfrac =  ",landfrac(nnj,nni)," at ",nl 
++      if(landfrac(nni,nnj) .eq. 0) then
++         write(*,*)"landfrac =  ",landfrac(nni,nnj)," at ",nl 
 +         call endrun()
-+      elseif((landfrac(nnj,nni)*100._r8).lt.pctspecB) then
++      elseif((landfrac(nni,nnj)*100._r8).lt.pctspecB) then
 +         pcturb(nl) = 0._r8
 +         pctgla(nl) = 0._r8
 +         pctlak(nl) = 0._r8
@@ -1436,10 +1436,10 @@
 +         pctwet(nl) = 100._r8   !set to 100% for the land portion of the grid
 +         write(*,*)"****** wetland is 100% *********"  !buggin
 +      else
-+         pctlak(nl) = pctlak(nl)/(landfrac(nnj,nni)*100._r8)
-+         pctwet(nl) = pctwet(nl)/(landfrac(nnj,nni)*100._r8)
-+         pctgla(nl) = pctgla(nl)/(landfrac(nnj,nni)*100._r8)
-+         pcturb(nl) = pcturb(nl)/(landfrac(nnj,nni)*100._r8)
++         pctlak(nl) = pctlak(nl)/(landfrac(nni,nnj)*100._r8)
++         pctwet(nl) = pctwet(nl)/(landfrac(nni,nnj)*100._r8)
++         pctgla(nl) = pctgla(nl)/(landfrac(nni,nnj)*100._r8)
++         pcturb(nl) = pcturb(nl)/(landfrac(nni,nnj)*100._r8)
 +      endif       
 +    
 +    enddo
@@ -2244,13 +2244,13 @@
 +          
 +           nni = adecomp%gdc2i(nns)
 +           nnj = adecomp%gdc2j(nns)
-+           if(satbrt_clm(nnj,nni).lt.0.9 .or. satbrt_clm(nnj,nni).gt.20.1) then
++           if(satbrt_clm(nni,nnj).lt.0.9 .or. satbrt_clm(nni,nnj).gt.20.1) then
 +              write(*,*)"BATS landuse correction is not set properly :::: at nl = ",nns
-+              write(*,*)"SATBRT   = ",satbrt_clm(nnj,nni)
-+              write(*,*)"lat/lat  = ",nnj,nni
++              write(*,*)"SATBRT   = ",satbrt_clm(nni,nnj)
++              write(*,*)"lat/lat  = ",nni,nnj
 +              call endrun()
 +           else
-+              bats_lu = satbrt_clm(nnj,nni)
++              bats_lu = satbrt_clm(nni,nnj)
 +           endif
 +              
 +            ! Desert/Tundra/semidesert from BATS equals no veg for CLM
@@ -2558,9 +2558,9 @@
 +
 +
 +       ! Make sure only land points are counted
-+        if(landmask(nnj,nni).lt.0.0001) then
-+           clm2bats_veg(nnj,nni) = 0
-+           clm_fracveg(nnj,nni)  = 0
++        if(landmask(nni,nnj).lt.0.0001) then
++           clm2bats_veg(nni,nnj) = 0
++           clm_fracveg(nni,nnj)  = 0
 +
 +        else
 +           purb  = pcturb(nns)
@@ -2571,8 +2571,8 @@
 +           pctveg = 100._r8 - (purb + pwet + plake + pgla)
 +           pctpft(:) = perpft(nns,:) 
 +
-+           clm_fracveg(nnj,nni) = (((100._r8 - pctpft(0))/100._r8)*pctveg)/100._r8
-+           clm2bats_veg(nnj,nni) = satbrt_clm(nnj,nni)   
++           clm_fracveg(nni,nnj) = (((100._r8 - pctpft(0))/100._r8)*pctveg)/100._r8
++           clm2bats_veg(nni,nnj) = satbrt_clm(nni,nnj)   
 +
 + 
 +         ! clm2bats_veg is initialized to all ocean and the respective 
@@ -2584,7 +2584,7 @@
 +           if( purb.gt.pctveg .and. purb.gt.pwet .and. purb.gt.plake &
 +               .and. purb.gt.pgla) then
 +               
-+               clm2bats_veg(nnj,nni) = 10
++               clm2bats_veg(nni,nnj) = 10
 +           end if            
 +
 +
@@ -2593,7 +2593,7 @@
 +           if( pwet.gt.pctveg .and. pwet.gt.purb .and. pwet.gt.plake &
 +               .and. pwet.gt.pgla) then
 +               
-+               clm2bats_veg(nnj,nni) = 13
++               clm2bats_veg(nni,nnj) = 13
 +           end if            
 +
 +
@@ -2602,7 +2602,7 @@
 +           if( pgla.gt.pctveg .and. pgla.gt.purb .and. pgla.gt.plake &
 +               .and. pgla.gt.pwet) then
 +               
-+               clm2bats_veg(nnj,nni) = 12
++               clm2bats_veg(nni,nnj) = 12
 +           end if            
 +
 +
@@ -2611,7 +2611,7 @@
 +           if( plake.gt.pctveg .and. plake.gt.purb .and. plake.gt.pwet &
 +               .and. plake.gt.pgla) then
 +               
-+               clm2bats_veg(nnj,nni) = 14
++               clm2bats_veg(nni,nnj) = 14
 +           end if            
 +
 +
@@ -2626,7 +2626,7 @@
 +               summ = pctpft(15) + pctpft(16)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 1
++                 clm2bats_veg(nni,nnj)  = 1
 +               end if
 +
 +
@@ -2634,7 +2634,7 @@
 +               summ = pctpft(13)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 2
++                 clm2bats_veg(nni,nnj)  = 2
 +               end if
 +
 +
@@ -2643,7 +2643,7 @@
 +               summ = pctpft(1) + pctpft(2)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 3
++                 clm2bats_veg(nni,nnj)  = 3
 +               end if
 +
 +
@@ -2652,7 +2652,7 @@
 +               summ = pctpft(3)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 4
++                 clm2bats_veg(nni,nnj)  = 4
 +               end if
 +
 +
@@ -2661,7 +2661,7 @@
 +               summ = pctpft(6) + pctpft(7) + pctpft(8)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 5
++                 clm2bats_veg(nni,nnj)  = 5
 +               end if
 +
 +              ! Evergreen Broadleaf from CLM equates to BATS
@@ -2669,7 +2669,7 @@
 +               summ = pctpft(4) + pctpft(5)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 6
++                 clm2bats_veg(nni,nnj)  = 6
 +               end if
 +
 +
@@ -2678,7 +2678,7 @@
 +               summ = pctpft(15)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 7
++                 clm2bats_veg(nni,nnj)  = 7
 +               end if
 +
 +
@@ -2687,7 +2687,7 @@
 +               summ = pctpft(0)
 +               sum2 = pgla + plake + pwet + purb
 +               if(summ.ge.98 .and. sum2.lt.95) then
-+                 clm2bats_veg(nnj,nni)  = 8
++                 clm2bats_veg(nni,nnj)  = 8
 +               end if
 +
 +
@@ -2696,7 +2696,7 @@
 +               summ = pctpft(12)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 9
++                 clm2bats_veg(nni,nnj)  = 9
 +               end if
 +
 +
@@ -2705,7 +2705,7 @@
 +               summ = pctpft(0)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ.gt.90 .and. summ.lt.98 ) then
-+                 clm2bats_veg(nnj,nni)  = 11
++                 clm2bats_veg(nni,nnj)  = 11
 +               end if
 +
 +
@@ -2714,7 +2714,7 @@
 +               summ = pctpft(9)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 16
++                 clm2bats_veg(nni,nnj)  = 16
 +               end if
 +
 +
@@ -2723,7 +2723,7 @@
 +               summ = pctpft(10) + pctpft(11)
 +               sum2 = sum(pctpft(:)) - summ
 +               if(summ .gt. sum2) then
-+                 clm2bats_veg(nnj,nni)  = 17
++                 clm2bats_veg(nni,nnj)  = 17
 +               end if
 +               
 +           end if      ! vegetation dominant gridcell if statement
@@ -2783,7 +2783,7 @@
 +!EOP
 +!
 +! !LOCAL VARIABLES:
-+    integer  :: nnj,nni,ns,n,ni,nj
++    integer  :: nni,nnj,ns,n,ni,nj
 +    integer  :: nlat,nlon
 +    integer  :: varid,ncid
 +    integer  :: start(4),count(4)

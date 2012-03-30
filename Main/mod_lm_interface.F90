@@ -90,7 +90,7 @@ module mod_lm_interface
 !
 #ifdef CLM
   subroutine init_clm(dt,ksrf,ichem,iemiss,dom,dom1,atm,sfs,&
-                      ts1,ts0,zpbl)
+                      ts1,ts0,zpbl,lm)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -99,12 +99,14 @@ module mod_lm_interface
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , zpbl
+    integer , pointer , intent(in) , dimension(:,:) :: lm
 
     call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,ts1,zpbl)
     call assignpnt(ts0,tsf)
     call assignpnt(dom1%ht,htf)
     call assignpnt(dom1%lndcat,lndcatf)
     call assignpnt(dom%xlon,xlon)
+    call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif
 !
