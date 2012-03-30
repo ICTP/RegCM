@@ -35,10 +35,6 @@ if DO_COMPILE_LIBCLM
 rcaddsuffix = _clm
 endif
 
-if DO_COMPILE_BAND
-rcaddsuffix = _band
-endif
-
 program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
 LBATLIB = -L$(BATLIBPTH) -lbats

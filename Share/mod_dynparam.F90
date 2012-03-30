@@ -396,15 +396,15 @@ module mod_dynparam
     jdot1 = 1
     jdot2 = jx
     jcross1 = 1
-#ifdef BAND
-    jcross2 = jx
-    jout1 = 1
-    jout2 = jx
-#else
-    jout1 = 2
-    jcross2 = jxm1
-    jout2 = jxm2
-#endif
+    if ( i_band == 1 ) then
+      jcross2 = jx
+      jout1 = 1
+      jout2 = jx
+    else
+      jcross2 = jxm1
+      jout1 = 2
+      jout2 = jxm2
+    end if
     idot1 = 1
     idot2 = iy
     icross1 = 1

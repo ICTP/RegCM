@@ -123,18 +123,6 @@ AC_ARG_ENABLE(sequence,
   [SRKDEF="SEQUENCE"],
 )
 
-USEBAND="0"
-AC_ARG_ENABLE(band,
-  AC_HELP_STRING([--enable-band],
-                 [Supply this option if you plan on using tropical band option.]),
-  [USEBAND="1"],
-)
-AM_CONDITIONAL(DO_COMPILE_BAND, [test x"$USEBAND" = x1])
-if eval "test x$USEBAND = x1"; then
-  AM_CPPFLAGS="-DBAND $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
-
 USECLM="0"
 AC_ARG_ENABLE(clm,
   AC_HELP_STRING([--enable-clm],
