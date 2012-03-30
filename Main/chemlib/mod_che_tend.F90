@@ -351,8 +351,8 @@
         checum = d_zero !  fix the interface for this variable ! no effect of cumulus scavenging now
         chevap = d_zero
          do j=jstart,jend        
-          call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
-                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,2:iym2))
+!          call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
+!                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,2:iym2))
          end do
         end if
     
@@ -362,7 +362,7 @@
 
       chemten(:,:,:,:) = d_zero
      
-      if ( igaschem == 1 .AND. 1==2 ) then   
+      if ( igaschem == 1 .and. ichsolver > 0) then   
       kchsolv = idnint(dtchsolv / dtche)
       kchsolv = 6 ! for the moment
    

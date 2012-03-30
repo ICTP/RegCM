@@ -43,7 +43,7 @@ module mod_che_common
   integer , parameter :: maxnssl = 2
 
 !chemistry nameliste option
-  integer , public ::  ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
+  integer , public ::  ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc, ichsolver
 
 !usefull flags
   integer       :: iaerosol, igaschem
@@ -155,6 +155,7 @@ contains
 
       call getmem4d(chic,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chic')
       call getmem4d(chiten,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chiten')
+      call getmem4d(chemten,js,je,is,ie,1,kz,1,ntr,'mod_che_common:chemten')
 
 ! FAB rewrite more elegantly above 
 

@@ -667,7 +667,7 @@ module mod_tendency
 #ifdef DEBUG
       if ( .false. ) then
         call microphys(jci1,jci2,ici1,ici2)
-        call deco1d_nc_write(qqxp)
+!        call deco1d_nc_write(qqxp)
       end if
 #endif
 !
@@ -724,7 +724,7 @@ module mod_tendency
       ! Compute chemistry tendencies (other than transport)
       !
       sod = dble(idatex%second_of_day)
- !     call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
+      call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
       !
     end if ! ichem
 !

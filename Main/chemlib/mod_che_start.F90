@@ -348,6 +348,7 @@ contains
     ! Finally initialise chia and chib to chib0 over the whole domain
 
     if ( .not. ifrest) then 
+
        do k = 1 , kz
           do i = ice1 , ice2
              do j = jce1 , jce2

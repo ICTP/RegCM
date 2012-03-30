@@ -63,7 +63,7 @@ module mod_che_mppio
 !
 ! Boundary conditions arrays
 !
-  real(dp)  , pointer , dimension(:,:,:,:) :: chebdy_io0,chebdy_io1
+  real(dp)  , pointer , dimension(:,:,:,:) ::chebdy_in, chebdy_io0,chebdy_io1
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
   real(dp), pointer, dimension (:,:) :: cpsa_io
@@ -96,9 +96,10 @@ module mod_che_mppio
 
       if (myid == 0) then
 !          call getmem4d(chebdy_io,1,jx,1,iy,1,kz,1,50,'che_mppio:chebdy_io') 
-        call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2,1,kz,1,50, 'mod_che_mppio:chebdy_io')
-        call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2,1,kz,1,50, 'mod_che_mppio:chebdy_io')
-
+        call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2,1,kz,1,ntr, 'che_mppio:chebdy_io')
+        call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2,1,kz,1,ntr, 'che_mppio:chebdy_io')
+        call getmem4d(chebdy_in,jdot1,jdot2,idot1,idot2,1,kz,1,50, 'che_mppio:chebdy_in')
+  
 
         call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
         call getmem4d(src_0,1,iy,1,mpy,1,ntr,1,jx,'che_mppio:src_0')

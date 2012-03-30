@@ -39,7 +39,7 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(ifrest, idirect,dt,rdxsq,chemfrq,dtrad,dsigma,atms, &
+  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms, &
                        mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,   &
                        twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,icutop,icubot)
@@ -50,7 +50,7 @@ module mod_che_interface
     implicit none
     logical, intent(in) :: ifrest
     integer , intent(in) :: idirect
-    real(dp) , intent(in) :: dt , chemfrq , dtrad, rdxsq
+    real(dp) , intent(in) :: dt , chemfrq , dtrad,dx 
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
@@ -71,7 +71,7 @@ module mod_che_interface
     chfrq = chemfrq
     rafrq = dtrad
     dtche = dt
-    crdxsq = rdxsq    
+    crdxsq = d_one/(dx*dx)    
     chptop = ptop
 
     call assignpnt(dsigma,cdsigma)

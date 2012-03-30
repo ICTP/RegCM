@@ -1009,7 +1009,7 @@ module mod_rad_radiation
     end if
 
     if ( lchem ) then
-      call aerout(aeradfo,aeradfos,aerlwfo,aerlwfos,jstart,jend,i)
+!      call aerout(aeradfo,aeradfos,aerlwfo,aerlwfos,jstart,jend,i)
     end if   
 
     call time_end(subroutine_name,indx)

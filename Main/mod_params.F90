@@ -144,7 +144,7 @@ module mod_params
     lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype, ichremlsc , ichremcvc , ichdrdepo ,          &
-    ichcumtra , idirect , inpchtrname , inpchtrsol ,      &
+    ichcumtra ,ichsolver, idirect , inpchtrname , inpchtrsol ,      &
     inpchtrdpv , inpdustbsiz
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
@@ -946,56 +946,7 @@ module mod_params
   dtlake = dtsrf
 !sb   end lake model mods
 !
-  call set_scenario(scenario)
 
-  call init_advection(mddom,sfs,atm1,qdot,kpbl)
-  call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_cloud_s1(atms)
-#ifdef CLM
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs,ts1,ts0_io,zpbl)
-#else
-  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,ts1,zpbl)
-#endif
-  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                     sfs,qdot,pptc,ldmsk,sigma,a,dsigma,qcon,cldfra,cldlwc)
-  if ( ichem == 1 ) then
-    call init_chem(ifrest,idirect,dtsec,rdxsq,chemfrq,dtrad,dsigma,atms, &
-                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,      &
-                   twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
-                   sdelqk2d,ssw2da,icumtop,icumbot)
- end if
-  call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
-                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &
-                sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)
-#ifdef CLM
-  call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
-#endif
-!
-  if (myid == 0) then
-    if ( ifrest .and. idate0 == idate1 ) then
-      write (6,*) 'Error in parameter set.'
-      write (6,*) 'Cannot set idate0 == idate1 on restart run'
-      write (6,*) 'Correct idate0.'
-      call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
-    end if
-  end if
-!
-  appdat = tochar(idate1)
-  write (aline,*) 'initial date of this '//'simulation: ' , appdat
-  call say
-  appdat = tochar(idate2)
-  write (aline,*) '  final date of this '//'simulation: ' , appdat
-  call say
-  write (aline,'(a,i10,a)')  &
-       'total simulation lenght ' , hspan, ' hours'
-  call say
-  write (aline,'(a,f9.4)')  &
-       'dtsec (timestep in seconds)' , dtsec
-  call say
-  idatex = idate1
-  call split_idate(idatex,xyear,xmonth,xday,xhour)
-  kstsoff = khour*xhour
-!
   if ( myid == 0 ) then
     call open_domain(dx,sigma)
   end if
@@ -1032,6 +983,63 @@ module mod_params
   akht2 = dxsq/tauht
 !
   conf = d_one
+
+  ! Calculate boundary areas per processor
+
+  call deco1_bound(cross,lband,ba_cr)
+  call deco1_bound(dot,lband,ba_dt)
+
+  call set_scenario(scenario)
+
+  call init_advection(mddom,sfs,atm1,qdot,kpbl)
+  call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
+  call init_cloud_s1(atms)
+#ifdef CLM
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfs,ts1,ts0_io,zpbl)
+#else
+  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,ts1,zpbl)
+#endif
+  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
+                     sfs,qdot,pptc,ldmsk,sigma,a,dsigma,qcon,cldfra,cldlwc)
+  if ( ichem == 1 ) then
+    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms, &
+                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,      &
+                   twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
+                   sdelqk2d,ssw2da,icumtop,icumbot)
+ end if
+  call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
+                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &
+                sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)
+#ifdef CLM
+  call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
+#endif
+!
+  if (myid == 0) then
+    if ( ifrest .and. idate0 == idate1 ) then
+      write (6,*) 'Error in parameter set.'
+      write (6,*) 'Cannot set idate0 == idate1 on restart run'
+      write (6,*) 'Correct idate0.'
+      call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+    end if
+  end if
+!
+  appdat = tochar(idate1)
+  write (aline,*) 'initial date of this '//'simulation: ' , appdat
+  call say
+  appdat = tochar(idate2)
+  write (aline,*) '  final date of this '//'simulation: ' , appdat
+  call say
+  write (aline,'(a,i10,a)')  &
+       'total simulation lenght ' , hspan, ' hours'
+  call say
+  write (aline,'(a,f9.4)')  &
+       'dtsec (timestep in seconds)' , dtsec
+  call say
+  idatex = idate1
+  call split_idate(idatex,xyear,xmonth,xday,xhour)
+  kstsoff = khour*xhour
+!
+
  
   write (aline, *) 'input/output parameters '
   call say
@@ -1718,10 +1726,10 @@ module mod_params
     print 99019 , xkhmax
   end if
 
-  ! Calculate boundary areas per processor
-
-  call deco1_bound(cross,lband,ba_cr)
-  call deco1_bound(dot,lband,ba_dt)
+!!$  ! Calculate boundary areas per processor
+!!$
+!!$  call deco1_bound(cross,lband,ba_cr)
+!!$  call deco1_bound(dot,lband,ba_dt)
 
   call deco1_allocate_v2dbound(xpsb,cross)
   call deco1_allocate_v3dbound(xtb,kz,cross)

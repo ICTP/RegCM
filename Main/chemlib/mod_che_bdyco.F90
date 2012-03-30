@@ -110,7 +110,11 @@ module mod_che_bdyco
         call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
       end if
 
-      call read_chbc(chebdy_io0)
+      call read_chbc(chebdy_in)
+      chebdy_io0 =d_zero
+      do n=1,size(ichbdy2trac)
+             if(ichbdy2trac(n) > 0) chebdy_io0(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      end do
 
       appdat = tochar(chbdydate1)
       if ( .not. ifrest ) then
@@ -131,7 +135,12 @@ module mod_che_bdyco
           call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
         end if
       end if
-      call read_chbc(chebdy_io1 )
+      call read_chbc(chebdy_in )
+      chebdy_io1 = d_zero
+      do n=1,size(ichbdy2trac)
+             if(ichbdy2trac(n) > 0) chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      end do
+
 
       write (6,*) 'READY  CHBC from     ' , &
             toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
@@ -144,35 +153,39 @@ module mod_che_bdyco
     ! Send each processor its computing slice
     !
     call deco1_scatter(chebdy_io0,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
-    do n = 1 , 25
-      if ( ichbdy2trac(n) > 0 ) then
+                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+  
+
+    do n = 1 , ntr
+  
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib0(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+              chib0(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
             end do
           end do
         end do
-      end if
+  
     end do
     call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
+  
+
     !
     ! Repeat fot T2
     !
     call deco1_scatter(chebdy_io1,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
-    do n = 1 , 25
-      if ( ichbdy2trac(n) > 0 ) then
+                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    do n = 1 , ntr
+
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+              chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
             end do
           end do
         end do
-      end if
+
     end do
     call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
@@ -218,22 +231,27 @@ module mod_che_bdyco
           call fatal(__FILE__,__LINE__,'chBC for '//appdat//' not found')
         end if
       end if
-      call read_chbc(chebdy_io1)  
+      call read_chbc(chebdy_in)
+      chebdy_io1 = d_zero
+      do n=1,size(ichbdy2trac)
+             if(ichbdy2trac(n) > 0) chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      end do
+ 
     end if
  
     call deco1_scatter(chebdy_io1,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,50)
+                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
 
-    do n = 1 , 25
-      if ( ichbdy2trac(n) > 0 ) then
+    do n = 1 , ntr
+
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)*cpsb(j,i)
+              chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
             end do
           end do
         end do
-      end if
+
     end do
     call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
@@ -500,10 +518,10 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1D0/dtche
+    fnudge = 0.1D0/ ( 2 * dtche)
     gnudge = (1.0D0/crdxsq/dtche)/50.0D0
     do k = 1 , kz
-      do n = 1 , cnbdm
+      do n = 2 , cnbdm-1
         cefc(n,k) = fnudge*xfune(n,k)
         cegc(n,k) = gnudge*xfune(n,k)
       end do
