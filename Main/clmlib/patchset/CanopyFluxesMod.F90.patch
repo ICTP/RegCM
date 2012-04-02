@@ -1,5 +1,5 @@
---- orig/CanopyFluxesMod.F90	2010-03-10 16:34:21.000000000 +0100
-+++ patchd/CanopyFluxesMod.F90	2010-03-10 16:21:11.638595868 +0100
+--- orig/CanopyFluxesMod.F90	2012-03-27 09:18:14.118619500 +0200
++++ patchd/CanopyFluxesMod.F90	2012-04-02 11:00:47.829365670 +0200
 @@ -210,6 +210,9 @@
     real(r8), pointer :: fpsn(:)            ! photosynthesis (umol CO2 /m**2 /s)
     real(r8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
@@ -38,7 +38,32 @@
     do f = 1, fn
        p = filterp(f)
        c = pcolumn(p)
-@@ -870,6 +880,10 @@
+@@ -727,6 +737,7 @@
+ 
+          efsh   = dc1*(wtga*t_veg(p)-wtg0*t_grnd(c)-wta0(p)*thm(c))
+          efe(p) = dc2*(wtgaq*qsatl(p)-wtgq0*qg(c)-wtaq0(p)*forc_q(g))
++         if ( dabs(efe(p)) < 1D-20 ) efe(p) = 0._r8
+ 
+          ! Evaporation flux from foliage
+ 
+@@ -760,6 +771,7 @@
+          efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) &
+             -wtgq0*qg(c)-wtaq0(p)*forc_q(g))
+          qflx_evap_veg(p) = rpp*efpot
++         if ( dabs(qflx_evap_veg(p)) < 1.0D-20 ) qflx_evap_veg(p) = 0._r8
+          
+          ! Calculation of evaporative potentials (efpot) and
+          ! interception losses; flux in kg m**-2 s-1.  ecidif
+@@ -768,7 +780,7 @@
+          ! sensible heat flux.
+ 
+          ecidif = 0._r8
+-         if (efpot > 0._r8 .and. btran(p) > btran0) then
++         if (dabs(efpot) > 1D-20 .and. btran(p) > btran0) then
+             qflx_tran_veg(p) = efpot*rppdry
+          else
+             qflx_tran_veg(p) = 0._r8
+@@ -870,6 +882,10 @@
        eflx_sh_grnd(p) = cpair*forc_rho(g)*wtg(p)*delt
        qflx_evap_soi(p) = forc_rho(g)*wtgq(p)*delq(p)
  

@@ -154,6 +154,10 @@ module mod_mppparam
                      deco1_4d_real8_exchange_right
   end interface deco1_exchange_right
 
+  interface deco1_allgat
+    module procedure deco1d_2d_real8_allgat
+  end interface deco1_allgat
+
   public :: model_area
   type(model_area) , public :: ma
 !
@@ -168,6 +172,7 @@ module mod_mppparam
   public :: deco1_scatter , deco1_gather
   public :: subgrid_deco1_scatter , subgrid_deco1_gather
   public :: deco1_exchange_left , deco1_exchange_right
+  public :: deco1_allgat
   public :: uvcross2dot , psc2psd
 !
   contains
@@ -2596,6 +2601,47 @@ module mod_mppparam
       end do
     end if
   end subroutine deco1_4d_real8_exchange_left
+
+  subroutine deco1d_2d_real8_allgat(a,b)
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
+    real(dp) , pointer , dimension(:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:) , intent(out) :: b
+    integer :: ii , i , j , ssize , gsize
+    ssize = jxp*iy
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'deco1d_real8_allgat')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'deco1d_real8_allgat')
+    end if
+    gsize = jx*iy
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,gsize,'deco1d_real8_allgat')
+    else if ( size(r8vector2) < gsize ) then
+      call getmem1d(r8vector2,1,gsize,'deco1d_real8_allgat')
+    end if
+    ii = 1
+    do j = 1 , jxp
+      do i = 1 , iy
+        r8vector1(ii) = a(j,i)
+        ii = ii + 1
+      end do
+    end do
+    call mpi_allgather(r8vector1,jxp*iy,mpi_real8, &
+                       r8vector2,jxp*iy,mpi_real8,mycomm,mpierr)
+    ii = 1
+    do j = 1 , jx
+      do i = 1 , iy
+        b(j,i) = r8vector2(ii)
+        ii = ii + 1
+      end do
+    end do
+  end subroutine deco1d_2d_real8_allgat
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.

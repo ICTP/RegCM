@@ -136,8 +136,6 @@ module mod_clm
   real(dp) , pointer , dimension(:,:) :: c2rro_sub
   real(dp) , pointer , dimension(:,:) :: c2rfracsno      
   real(dp) , pointer , dimension(:,:) :: c2rfvegnosno 
-  real(dp) , pointer , dimension(:) :: work_in 
-  real(dp) , pointer , dimension(:) :: work_out 
   integer , pointer , dimension(:,:) :: c2rprocmap
   integer , pointer , dimension(:) :: c2rngc
   integer , pointer , dimension(:) :: c2rdisps
@@ -237,8 +235,6 @@ module mod_clm
     call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
-    call getmem1d(work_in,1,jxp*iy,'clm:work_in')
-    call getmem1d(work_out,1,jx*iy,'clm:work_out')
 
     call getmem2d(sols2d,jce1,jce2,ice1,ice2,'clm:sols2d')
     call getmem2d(soll2d,jce1,jce2,ice1,ice2,'clm:soll2d')

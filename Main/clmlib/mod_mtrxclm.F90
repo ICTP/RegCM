@@ -130,7 +130,6 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   use clm_comp 
   use clmtype
   use perf_mod
-  use mpi
 ! 
   implicit none
 !
@@ -138,64 +137,56 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   type(rcm_time_and_date) , intent(in) :: idate1 , idate2
   real(8) , intent(in) :: dtrad , dtsrf , dx
 !
-  integer :: i , ii , j , jj , n , ierr
+  integer :: i , j , jj , n
   integer :: year , month , day , hour
-!
-!----------------------------------------------------------------------
-!     About the dimension ordering:
-!     regcm: ix=lat,jx=lon, arrays are lat by lon
-!     clm: i=lon, j=lat, arrays are lon by lat
-!----------------------------------------------------------------------
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     Initialize run control variables for clm
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-  if ( ifrest ) then         !abt added all these indices
+  !
+  ! Initialize run control variables for clm
+  !
+  if ( ifrest ) then
     r2cnsrest = 1
   else
     r2cnsrest = 0
   end if
-!     land surface timestep
+  ! land surface timestep
   r2cdtime = idint(dtsrf)
-!     start date and time
+  ! start date and time
   call split_idate(idate1,year,month,day,hour)
   r2cstart_ymd = year*10000+month*100+day
   r2cstart_tod = idate1%second_of_day
-!     stop date and time
+  ! stop date and time
   call split_idate(idate2,year,month,day,hour)
   r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
-!     calendar type (GREGORIAN not available in regcm)
-!  if ( ical == noleap ) then
+  ! calendar type (GREGORIAN not available in CLM 3.5)
+  ! if ( ical == noleap ) then
     r2cclndr = 'NO_LEAP'
-!  else if ( ical == gregorian ) then
-!    r2cclndr = 'GREGORIAN'
-!  else
-!    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
-!  end if
-!     don't write to NCAR Mass Store
+  ! else if ( ical == gregorian ) then
+  !   r2cclndr = 'GREGORIAN'
+  ! else
+  !   call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
+  ! end if
+  ! don't write to NCAR Mass Storage
   r2cmss_irt = 0
-!     clm output frequency
+  ! clm output frequency
   r2coutfrq = idint(clmfrq)
-!     radiation calculation frequency
-!     regcm: dtrad is in minutes
-!     clm: irad is (+) iterations or (-) hours
-!     clm: hours gets converted to seconds then divided by dtime
+  ! radiation calculation frequency
+  ! regcm: dtrad is in minutes
+  ! clm: irad is (+) iterations or (-) hours
+  ! clm: hours gets converted to seconds then divided by dtime
   r2cirad = idint(dtrad*minph/r2cdtime)
-!     write output
+  ! write output
   if ( ifsrf ) then
     r2cwrtdia = .true.
   else
     r2cwrtdia = .false.
   end if
-!     Set grid spacing resolution
+  ! Set grid spacing resolution
   r2cdx = dx
-!     Set gridcell area
+  ! Set gridcell area
   r2carea = (dx*d_r1000)*(dx*d_r1000)
-!     Set landmask method
+  ! Set landmask method
   r2cimask = imask
-!     Set elevation and BATS landuse type (abt added)
+  ! Set elevation and BATS landuse type (abt added)
   if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(jx,iy))
   if ( .not.allocated(init_tgb) ) allocate(init_tgb(jx,iy))
   if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(jx,iy))
@@ -211,33 +202,25 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
   end if
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     End of clm run control variable initialization
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     Initialize clm input variables:
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-!     Assign regcm values to the passed variables
-!     Flip lat and lon for clm
-!     regcm writes uneven # of j values to arrays. for now fix by
-!     copying neighboring values
- 
-!     Some vars have not been init'd yet
+  !
+  ! End of clm run control variable initialization
+  !
+  ! Assign regcm values to the passed variables
+  ! regcm writes uneven # of j values to arrays. for now fix by
+  ! copying neighboring values
+  !
   if ( .not. ifrest ) then
-!       Rainfall
+    ! Rainfall
     pptc(:,:)  = d_zero
     pptnc(:,:) = d_zero
-!       Radiation
+    ! Radiation
     sols2d(:,:)  = d_zero
     soll2d(:,:)  = d_zero
     solsd2d(:,:) = d_zero
     solld2d(:,:) = d_zero
     flwd(:,:)  = d_zero
-!       Albedo
-!       Set initial albedos to clm dry soil values for mid-colored soils
+    ! Albedo
+    ! Set initial albedos to clm dry soil values for mid-colored soils
     aldirs(:,:) = 0.16D0
     aldifs(:,:) = 0.16D0
     aldirl(:,:) = 0.32D0
@@ -266,322 +249,32 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     call fill_frame(flwd,r2cflwd)
   end if
 
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!c
-!c    1. Copy 2d (jxp,iy) arrays to 1d work_in (jx*iy) array.
-!c    2. Gather jxp values of each nproc work_in array and fill
-!c    work_out(jx*iy) array.
-!c    3. Copy 1d work_out array to 2d (jx,iy) array for passing
-!c    to clm.
-!c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
+  !
+  !    Gather jxp values of each nproc work_in array and fill
+  !    work_out(jx*iy) array.
+  !    3. Copy 1d work_out array to 2d (jx,iy) array for passing
+  !    to clm.
+  !
   if ( .not.ifrest ) then
-!       TGB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2ctb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2ctb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       QB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cqb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cqb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       ZGA
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2czga(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2czga_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       PSB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cpsb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cpsb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       UXB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cuxb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cuxb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       VXB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cvxb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cvxb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
- 
-!       RNC
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2crnc(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2crnc_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       RNNC
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2crnnc(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2crnnc_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLS
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csols(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csols_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLL
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csoll(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csoll_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLSD
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csolsd(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csolsd_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLLD
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csolld(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csolld_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       LONGWAVE RAD.
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cflwd(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cflwd_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
+    call deco1_allgat(r2ctb,r2ctb_all)
+    call deco1_allgat(r2cqb,r2cqb_all)
+    call deco1_allgat(r2czga,r2czga_all)
+    call deco1_allgat(r2cpsb,r2cpsb_all)
+    call deco1_allgat(r2cuxb,r2cuxb_all)
+    call deco1_allgat(r2cvxb,r2cvxb_all)
+    call deco1_allgat(r2crnc,r2crnc_all)
+    call deco1_allgat(r2crnnc,r2crnnc_all)
+    call deco1_allgat(r2csols,r2csols_all)
+    call deco1_allgat(r2csoll,r2csoll_all)
+    call deco1_allgat(r2csolsd,r2csolsd_all)
+    call deco1_allgat(r2csolld,r2csolld_all)
+    call deco1_allgat(r2cflwd,r2cflwd_all)
   end if  ! if not restart
 
-!     XLAT in radians
-  ii = 1
-  do j = 1 , jxp
-    do i = 1 , iy
-      work_in(ii) = r2cxlat(j,i)
-      ii = ii + 1
-    end do
-  end do
-  call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mycomm,    &
-                     ierr)
-  ii = 1
-  do j = 1 , jx
-    do i = 1 , iy
-      r2cxlat_all(j,i) = work_out(ii)
-      ii = ii + 1
-    end do
-  end do
-!     XLON in radians
-  ii = 1
-  do j = 1 , jxp
-    do i = 1 , iy
-      work_in(ii) = r2cxlon(j,i)
-      ii = ii + 1
-    end do
-  end do
-  call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mycomm,    &
-                     ierr)
-  ii = 1
-  do j = 1 , jx
-    do i = 1 , iy
-      r2cxlon_all(j,i) = work_out(ii)
-      ii = ii + 1
-    end do
-  end do
-!     XLAT in degrees
-  ii = 1
-  do j = 1 , jxp
-    do i = 1 , iy
-      work_in(ii) = r2cxlatd(j,i)
-      ii = ii + 1
-    end do
-  end do
-  call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mycomm,    &
-                     ierr)
-  ii = 1
-  do j = 1 , jx
-    do i = 1 , iy
-      r2cxlatd_all(j,i) = work_out(ii)
-      ii = ii + 1
-    end do
-  end do
-!     XLON in degrees
-  ii = 1
-  do j = 1 , jxp
-    do i = 1 , iy
-      work_in(ii) = r2cxlond(j,i)
-      ii = ii + 1
-    end do
-  end do
-  call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mycomm,    &
-                     ierr)
-  ii = 1
-  do j = 1 , jx
-    do i = 1 , iy
-      r2cxlond_all(j,i) = work_out(ii)
-      ii = ii + 1
-    end do
-  end do
+  call deco1_allgat(r2cxlat,r2cxlat_all)
+  call deco1_allgat(r2cxlon,r2cxlon_all)
+  call deco1_allgat(r2cxlatd,r2cxlatd_all)
+  call deco1_allgat(r2cxlond,r2cxlond_all)
   !
   ! Set grid edges
   !
@@ -632,13 +325,12 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( myid == 0 ) &
     write (6,*) 'Successfully make atmospheric grid'
  
-! Initialize radiation and atmosphere variables
-
+  ! Initialize radiation and atmosphere variables
   if ( .not. ifrest ) then
     call rcmdrv()
   end if !end ifrest test
  
-!     Correct landmask
+  ! Correct landmask
   do j = 1 , jx
     do i = 1 , iy
       if ( dabs(landfrac(j,i)-d_one) >= 0.1D0 .and. &
@@ -648,8 +340,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
 
-!     Initialize ldmsk1 now that clm has determined the land sea mask
-!     Initialize accumulation variables at zero
+  ! Initialize ldmsk1 now that clm has determined the land sea mask
+  ! Initialize accumulation variables at zero
  
   if ( .not.ifrest ) then
     do n = 1 , nnsg
@@ -718,7 +410,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     lndcat2d(jci1:jci2,ici1:ici2) = lndcat(jci1:jci2,ici1:ici2)
   end if !end ifrest test
 
-!     deallocate some variables used in CLM initialization only
+  ! deallocate some variables used in CLM initialization only
   if ( allocated(ht_rcm) )       deallocate(ht_rcm)
   if ( allocated(init_tgb) )     deallocate(init_tgb)
   if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
@@ -777,24 +469,16 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   use clmtype
   use clm_varsur , only : landmask, landfrac
   use clm_varsur , only : c2r_allout,omap_i,omap_j
-  use mpi
   implicit none
 !
   integer , intent(in) :: ivers
   integer(8) , intent(in) :: ktau
 !
   real(8) :: mmpd , wpm2
-  integer :: ci , i , ii , iii , j , jj , kk , n , nn1 , nnn , nout
+  integer :: i , ii , iii , j , jj , kk , n , nn1 , nnn , nout
   real(4) :: real_4
-  integer :: ierr
 !
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     About the dimension ordering:
-!     regcm: ix=lat,jx=lon, arrays are lat by lon
-!     clm: i=lon, j=lat, arrays are lon by lat
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-  if ( ivers==1 ) then
+  if ( ivers == 1 ) then
  
     call fill_frame(tatm,r2ctb)
     call fill_frame(qvatm,r2cqb)
@@ -812,276 +496,21 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     call fill_frame(solld2d,r2csolld)
     call fill_frame(flwd,r2cflwd)
  
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!c      cc
-!c      1. Copy 2d (jxp,iy) arrays to 1d work_in (jx*iy) array.      cc
-!c      2. Gather jxp values of each nproc work_in array and fill     cc
-!c      work_out(jx*iy) array.                                   cc
-!c      3. Copy 1d work_out array to 2d (jx,iy) array for passing    cc
-!c      to clm.                                                   cc
-!c      abt updated below 1/09                                        cc
-!c      UPDATE:  copy all r2c vars to one large array; this allows    cc
-!c      for one MPI_ALLGATHER call instead of several        cc
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2ctb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2ctb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       QB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cqb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cqb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       ZGA
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2czga(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2czga_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       PSB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cpsb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cpsb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       UXB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cuxb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cuxb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       VXB
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cvxb(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cvxb_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
- 
-!       RNC
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2crnc(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2crnc_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       RNNC
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2crnnc(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2crnnc_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLS
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csols(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csols_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLL
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csoll(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csoll_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLSD
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csolsd(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csolsd_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       SOLLD
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2csolld(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2csolld_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
-!       LONGWAVE RAD.
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        work_in(ii) = r2cflwd(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mycomm,  &
-                       ierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        r2cflwd_all(j,i) = work_out(ii)
-        ii = ii + 1
-      end do
-    end do
+    call deco1_allgat(r2ctb,r2ctb_all)
+    call deco1_allgat(r2cqb,r2cqb_all)
+    call deco1_allgat(r2czga,r2czga_all)
+    call deco1_allgat(r2cpsb,r2cpsb_all)
+    call deco1_allgat(r2cuxb,r2cuxb_all)
+    call deco1_allgat(r2cvxb,r2cvxb_all)
+    call deco1_allgat(r2crnc,r2crnc_all)
+    call deco1_allgat(r2crnnc,r2crnnc_all)
+    call deco1_allgat(r2csols,r2csols_all)
+    call deco1_allgat(r2csoll,r2csoll_all)
+    call deco1_allgat(r2csolsd,r2csolsd_all)
+    call deco1_allgat(r2csolld,r2csolld_all)
+    call deco1_allgat(r2cflwd,r2cflwd_all)
 
-  else if ( ivers==2 ) then ! end of ivers = 1
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!c
-!c 1. Copy the parts of 2d (jx,iy) clm arrays that contain
-!c     data to 1d work_in (jx*iy) array.
-!c 2. Gather jxp values of each nproc work_in array and fill
-!c     work_out (jx*iy) array.
-!c 3. Copy 1d work_out array to 2d (jx,iy) array for passing
-!c     to nproc 2d (jxp,iy) arrays.
-!c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-!JLB    3/06: NEED TO CREATE MASK/FILTER FOR EACH CPU. CLM DOES NOT
-!       ASSIGN GRID CELLS IN QUITE THE ROUND ROBIN FASHION INDICATED.
-!       TGB
-!       3/06 -> New routine utilizing c2rprocmap in case of non-round
-!       robin cpu assignment in clm.
-!abt    updated below
-!       1/09 -> update use MPI_ALLGATHER call located in clm_atmlnd.F90
-!       module This module saves each land surface variable regcm needs
-!       into a large array (c2r_all).  gathers that array (c2r_allout)
-!       and the corresponding grid point on the i/j grid to omap_i/j
-!       Finally, below c2r_allout vars are placed into the proper place
-!       on the grid for each c2r variable
-!       NOTE: CLM refers to i = lon while REGCM refers to j = lon
-!
+  else if ( ivers == 2 ) then ! end of ivers = 1
     iii = 0
     jj = 1
     if ( aertyp/='AER00D0' ) then
@@ -1126,13 +555,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
     deallocate(c2r_allout)
  
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!c      cc
-!c      Fill nproc 2d (jxp,iy) arrays from full 2d (jx,iy) clm data. cc
-!c      cc
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-    if ( ktau==0 .and. debug_level == 2 ) then
+    if ( ktau == 0 .and. debug_level == 2 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
     else if ( ktau+1 == kbats .and. debug_level == 2 ) then
@@ -1149,10 +572,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       call zengocndrv(jci1,jci2,ici1,ici2,ktau)
     end if
  
-    do j = jci1 , jci2
-      jj = (jxp*myid) + j
-      do i = ici1 , ici2
-        ci = i
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        jj = (jxp*myid) + j
         uvdrag(j,i) = d_zero
         hfx(j,i) = d_zero
         qfx(j,i) = d_zero
@@ -1169,53 +591,50 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sfracs2d(j,i) = d_zero
         end if
 
-        if ( landmask(jj,ci)==1 ) then
-          tground2(j,i) = c2rtgb(jj,ci)
-          tground1(j,i) = c2rtgb(jj,ci)
-          hfx(j,i) = c2rsenht(jj,ci)
-          qfx(j,i) = c2rlatht(jj,ci)
-          uvdrag(j,i) = c2ruvdrag(jj,ci)
-          tgbb(j,i) = c2rtgbb(jj,ci)
+        if ( landmask(jj,i)==1 ) then
+          tground2(j,i) = c2rtgb(jj,i)
+          tground1(j,i) = c2rtgb(jj,i)
+          hfx(j,i) = c2rsenht(jj,i)
+          qfx(j,i) = c2rlatht(jj,i)
+          uvdrag(j,i) = c2ruvdrag(jj,i)
+          tgbb(j,i) = c2rtgbb(jj,i)
  
           if ( i<=iym1 ) then
-            aldirs(j,i) = c2ralbdirs(jj,ci)
-            aldirl(j,i) = c2ralbdirl(jj,ci)
-            aldifs(j,i) = c2ralbdifs(jj,ci)
-            aldifl(j,i) = c2ralbdifl(jj,ci)
+            aldirs(j,i) = c2ralbdirs(jj,i)
+            aldirl(j,i) = c2ralbdirl(jj,i)
+            aldifs(j,i) = c2ralbdifs(jj,i)
+            aldifl(j,i) = c2ralbdifl(jj,i)
           end if
  
           do n = 1 , nnsg
-            tgrd(n,j,i) = c2rtgb(jj,ci)
-            tgbrd(n,j,i) = c2rtgb(jj,ci)
+            tgrd(n,j,i) = c2rtgb(jj,i)
+            tgbrd(n,j,i) = c2rtgb(jj,i)
             !supposed to be lower soil layer temp not tgrnd
-            taf(n,j,i) = c2r2mt(jj,ci)
-            tlef(n,j,i) = c2rtlef(jj,ci)
-            tsw(n,j,i) = c2rsmtot(jj,ci)
-            rsw(n,j,i) = c2rsm1m(jj,ci)
-            ssw(n,j,i) = c2rsm10cm(jj,ci)
+            taf(n,j,i) = c2r2mt(jj,i)
+            tlef(n,j,i) = c2rtlef(jj,i)
+            tsw(n,j,i) = c2rsmtot(jj,i)
+            rsw(n,j,i) = c2rsm1m(jj,i)
+            ssw(n,j,i) = c2rsm10cm(jj,i)
             ldew(n,j,i) = ldew(n,j,i)
-            sncv(n,j,i) = c2rsnowc(jj,ci)
+            sncv(n,j,i) = c2rsnowc(jj,i)
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
             sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
-            srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
-            runoff(n,j,i) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
+            srfrna(n,j,i) = c2rro_sur(jj,i)*dtbat
+            runoff(n,j,i) = (c2rro_sub(jj,i)+c2rro_sur(jj,i))*dtbat
  
             if ( lchem ) then
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ci)
+              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,i)
               sfracb2d(j,i) = sfracb2d(j,i) + d_one -               &
-                             (c2rfvegnosno(jj,ci)+c2rfracsno(jj,ci))
-              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,ci)
+                             (c2rfvegnosno(jj,i)+c2rfracsno(jj,i))
+              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,i)
             end if
           end do
  
           !abt added for 2m humidity when landmask = 1 or 3
-          q2d(j,i) = c2r2mq(jj,ci)
-!
-!             quantities stored on 2d surface array for bats use only
-!
+          q2d(j,i) = c2r2mq(jj,i)
           prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
           prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
@@ -1225,7 +644,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
-        else if ( landmask(jj,ci)==0 ) then !ocean
+        else if ( landmask(jj,i)==0 ) then !ocean
  
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
@@ -1276,9 +695,6 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
                       (trnof(n,j,i)-srnof(n,j,i))/secpd*dtbat
             end if
           end do
-!
-!             quantities stored on 2d surface array for bats use only
-!
           prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
           prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
@@ -1289,9 +705,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
  
-        else if ( landmask(jj,ci)==3 ) then
-        !gridcell with some % land and ocean
- 
+        else if ( landmask(jj,i)==3 ) then
+          !gridcell with some % land and ocean
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
             hfx(j,i) = hfx(j,i) + sent(n,j,i)
@@ -1303,24 +718,24 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ci)
+              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,i)
               sfracb2d(j,i) = sfracb2d(j,i)                         &
-                              + d_one - (c2rfvegnosno(jj,ci)+       &
-                              c2rfracsno(jj,ci))
-              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,ci)
-              ssw2da(j,i) = ssw2da(j,i)*landfrac(jj,ci)             &
-                            + (d_one-landfrac(jj,ci))*ssw(n,j,i)
-              sdeltk2d(j,i) = sdeltk2d(j,i)*landfrac(jj,ci)         &
-                              + (d_one-landfrac(jj,ci))*delt(n,j,i)
-              sdelqk2d(j,i) = sdelqk2d(j,i)*landfrac(jj,ci)         &
-                              + (d_one-landfrac(jj,ci))*delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jj,ci)         &
-                              + (d_one-landfrac(jj,ci))*sigf(n,j,i)
-              sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jj,ci)         &
-                              + (d_one-landfrac(jj,ci))*            &
+                              + d_one - (c2rfvegnosno(jj,i)+       &
+                              c2rfracsno(jj,i))
+              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,i)
+              ssw2da(j,i) = ssw2da(j,i)*landfrac(jj,i)             &
+                            + (d_one-landfrac(jj,i))*ssw(n,j,i)
+              sdeltk2d(j,i) = sdeltk2d(j,i)*landfrac(jj,i)         &
+                              + (d_one-landfrac(jj,i))*delt(n,j,i)
+              sdelqk2d(j,i) = sdelqk2d(j,i)*landfrac(jj,i)         &
+                              + (d_one-landfrac(jj,i))*delq(n,j,i)
+              sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jj,i)         &
+                              + (d_one-landfrac(jj,i))*sigf(n,j,i)
+              sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jj,i)         &
+                              + (d_one-landfrac(jj,i))*            &
                               (d_one-sigf(n,j,i))*(d_one-scvk(n,j,i))
-              sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jj,ci)         &
-                              + (d_one-landfrac(jj,ci))             &
+              sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jj,i)         &
+                              + (d_one-landfrac(jj,i))             &
                               *(sigf(n,j,i)*wt(n,j,i)+(d_one-sigf(n,j,i)) &
                               *scvk(n,j,i))
             end if
@@ -1336,49 +751,46 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           end do
  
           uvdrag(j,i) = uvdrag(j,i)* &
-                        (d_one-landfrac(jj,ci))+ &
-                        c2ruvdrag(jj,ci)*landfrac(jj,ci)
-          hfx(j,i) = hfx(j,i)*(d_one-landfrac(jj,ci)) + &
-                           c2rsenht(jj,ci)*landfrac(jj,ci)
-          qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,ci)) + &
-                           c2rlatht(jj,ci)*landfrac(jj,ci)
-          tground2(j,i) = tground2(j,i)*(d_one-landfrac(jj,ci)) +     &
-                         c2rtgb(jj,ci)*landfrac(jj,ci)
-          tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,ci)) +   &
-                            c2rtgbb(jj,ci)*landfrac(jj,ci)
-          tground1(j,i) = tground1(j,i)*(d_one-landfrac(jj,ci)) +     &
-                         c2rtgb(jj,ci)*landfrac(jj,ci)
+                        (d_one-landfrac(jj,i))+ &
+                        c2ruvdrag(jj,i)*landfrac(jj,i)
+          hfx(j,i) = hfx(j,i)*(d_one-landfrac(jj,i)) + &
+                           c2rsenht(jj,i)*landfrac(jj,i)
+          qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,i)) + &
+                           c2rlatht(jj,i)*landfrac(jj,i)
+          tground2(j,i) = tground2(j,i)*(d_one-landfrac(jj,i)) +     &
+                         c2rtgb(jj,i)*landfrac(jj,i)
+          tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,i)) +   &
+                            c2rtgbb(jj,i)*landfrac(jj,i)
+          tground1(j,i) = tground1(j,i)*(d_one-landfrac(jj,i)) +     &
+                         c2rtgb(jj,i)*landfrac(jj,i)
  
           do n = 1 , nnsg
-!abt            added below for the landfraction method
-            sncv(n,j,i) = c2rsnowc(jj,ci)*landfrac(jj,ci)          &
-                           + sncv(n,j,i)*(d_one-landfrac(jj,ci))
-            tgrd(n,j,i) = c2rtgb(jj,ci)*landfrac(jj,ci) + tgrd(n,j,i) &
-                          *(d_one-landfrac(jj,ci))
-            tgbrd(n,j,i) = c2rtgb(jj,ci)*landfrac(jj,ci)            &
-                           + tgbrd(n,j,i)*(d_one-landfrac(jj,ci))
-            taf(n,j,i) = c2r2mt(jj,ci)*landfrac(jj,ci)            &
-                           + t2m(n,j,i)*(d_one-landfrac(jj,ci))
+            !abt added below for the landfraction method
+            sncv(n,j,i) = c2rsnowc(jj,i)*landfrac(jj,i)          &
+                           + sncv(n,j,i)*(d_one-landfrac(jj,i))
+            tgrd(n,j,i) = c2rtgb(jj,i)*landfrac(jj,i) + tgrd(n,j,i) &
+                          *(d_one-landfrac(jj,i))
+            tgbrd(n,j,i) = c2rtgb(jj,i)*landfrac(jj,i)            &
+                           + tgbrd(n,j,i)*(d_one-landfrac(jj,i))
+            taf(n,j,i) = c2r2mt(jj,i)*landfrac(jj,i)            &
+                           + t2m(n,j,i)*(d_one-landfrac(jj,i))
             !note taf is 2m temp not temp in foilage
-            tlef(n,j,i) = c2rtlef(jj,ci)*landfrac(jj,ci)          &
-                            + tlef(n,j,i)*(d_one-landfrac(jj,ci))
-            tsw(n,j,i) = c2rsmtot(jj,ci)*landfrac(jj,ci)          &
-                           + tsw(n,j,i)*(d_one-landfrac(jj,ci))
-            rsw(n,j,i) = c2rsm1m(jj,ci)*landfrac(jj,ci)           &
-                           + rsw(n,j,i)*(d_one-landfrac(jj,ci))
-            ssw(n,j,i) = c2rsm10cm(jj,ci)*landfrac(jj,ci)         &
-                           + ssw(n,j,i)*(d_one-landfrac(jj,ci))
-            q2d(j,i) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m(n,j,i)  &
-                       *(d_one-landfrac(jj,ci))
+            tlef(n,j,i) = c2rtlef(jj,i)*landfrac(jj,i)          &
+                            + tlef(n,j,i)*(d_one-landfrac(jj,i))
+            tsw(n,j,i) = c2rsmtot(jj,i)*landfrac(jj,i)          &
+                           + tsw(n,j,i)*(d_one-landfrac(jj,i))
+            rsw(n,j,i) = c2rsm1m(jj,i)*landfrac(jj,i)           &
+                           + rsw(n,j,i)*(d_one-landfrac(jj,i))
+            ssw(n,j,i) = c2rsm10cm(jj,i)*landfrac(jj,i)         &
+                           + ssw(n,j,i)*(d_one-landfrac(jj,i))
+            q2d(j,i) = c2r2mq(jj,i)*landfrac(jj,i) + q2m(n,j,i)  &
+                       *(d_one-landfrac(jj,i))
  
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
             sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
-            srfrna(n,j,i) = c2rro_sur(jj,ci)*dtbat
-            runoff(n,j,i) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)*dtbat
+            srfrna(n,j,i) = c2rro_sur(jj,i)*dtbat
+            runoff(n,j,i) = c2rro_sub(jj,i)*dtbat + c2rro_sur(jj,i)*dtbat
           end do
-!
-!             quantities stored on 2d surface array for bats use only
-!
           prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
           prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
@@ -1387,15 +799,18 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
         end if
-      end do !i loop
+      end do
+    end do
  
-!         Fill output arrays if needed
+      ! Fill output arrays if needed
  
-      if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
+    if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
  
-        do i = ici1 , ici2
-          ci = i
- 
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+
+          jj = (jxp*myid) + j
+
           u10m_o(j,i) = 0.0
           v10m_o(j,i) = 0.0
           tg_o(j,i) = 0.0
@@ -1450,16 +865,16 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             if ( ldmsk1(n,j,i) /= 0 ) then
               q2m_s(n,j,i) = real(q2d(j,i))
               drag_s(n,j,i) = real(uvdrag(j,i))
-              evpa_s(n,j,i) = real(evpa(n,j,ci)*mmpd)
-              sena_s(n,j,i) = real(sena(n,j,ci)*wpm2)
-              tpr_s(n,j,i) = real((prnca(j,ci)+prca(j,ci))*mmpd)
-              prcv_s(n,j,i) = real(prca(j,ci)*mmpd)
+              evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
+              sena_s(n,j,i) = real(sena(n,j,i)*wpm2)
+              tpr_s(n,j,i) = real((prnca(j,i)+prca(j,i))*mmpd)
+              prcv_s(n,j,i) = real(prca(j,i)*mmpd)
               ps_s(n,j,i) = real(sfcp(n,j,i)*0.01D0)
  
               q2m_o(j,i) = q2m_o(j,i) + real(q2d(j,i))
               drag_o(j,i) = drag_o(j,i) + real(uvdrag(j,i))
-              evpa_o(j,i) = evpa_o(j,i) + real(evpa(n,j,ci))
-              sena_o(j,i) = sena_o(j,i) + real(sena(n,j,ci))
+              evpa_o(j,i) = evpa_o(j,i) + real(evpa(n,j,i))
+              sena_o(j,i) = sena_o(j,i) + real(sena(n,j,i))
             else if ( ldmsk1(n,j,i) == 0 ) then
               q2m_s(n,j,i) = real(q2m(n,j,i))
               drag_s(n,j,i) = real(drag(n,j,i))
@@ -1475,14 +890,14 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               sena_o(j,i) = sena_o(j,i) + real(sena(n,j,i))
             end if
           end do
-          tpr_o(j,i) = real((prnca(j,ci)+prca(j,ci))*mmpd)
+          tpr_o(j,i) = real((prnca(j,i)+prca(j,i))*mmpd)
           evpa_o(j,i) = evpa_o(j,i)*real(mmpd)
           sena_o(j,i) = sena_o(j,i)*real(wpm2)
-          flwa_o(j,i) = real(flwa(j,ci)*wpm2)
-          fswa_o(j,i) = real(fswa(j,ci)*wpm2)
-          flwd_o(j,i) = real(flwda(j,ci)*wpm2)
-          sina_o(j,i) = real(sina(j,ci)*wpm2)
-          prcv_o(j,i) = real(prca(j,ci)*mmpd)
+          flwa_o(j,i) = real(flwa(j,i)*wpm2)
+          fswa_o(j,i) = real(fswa(j,i)*wpm2)
+          flwd_o(j,i) = real(flwda(j,i)*wpm2)
+          sina_o(j,i) = real(sina(j,i)*wpm2)
+          prcv_o(j,i) = real(prca(j,i)*mmpd)
           ps_o(j,i) = real((sfps(j,i)+ptop)*d_10)
           zpbl_o(j,i) = real(hpbl(j,i))
  
@@ -1493,17 +908,17 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           scv_o(j,i) = 0.0
           nnn = 0
           do n = 1 , nnsg
-            if ( ldmsk1(n,j,ci) /= 0 .and. landmask(jj,ci)/=3 ) then
-              tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,ci))
-              ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,ci))
-              rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,ci))
-              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,ci))
-              scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,ci))
-              tlef_s(n,j,i) = real(c2rtlef(jj,ci))
-              ssw_s(n,j,i) = real(c2rsm10cm(jj,ci))
-              rsw_s(n,j,i) = real(c2rsm1m(jj,ci))
-              rnos_s(n,j,i) = real(srfrna(n,j,ci)*mmpd)
-              scv_s(n,j,i) = real(c2rsnowc(jj,ci))
+            if ( ldmsk1(n,j,i) /= 0 .and. landmask(jj,i)/=3 ) then
+              tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,i))
+              ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,i))
+              rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,i))
+              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i))
+              scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,i))
+              tlef_s(n,j,i) = real(c2rtlef(jj,i))
+              ssw_s(n,j,i) = real(c2rsm10cm(jj,i))
+              rsw_s(n,j,i) = real(c2rsm1m(jj,i))
+              rnos_s(n,j,i) = real(srfrna(n,j,i)*mmpd)
+              scv_s(n,j,i) = real(c2rsnowc(jj,i))
               nnn = nnn + 1
             else
               tlef_s(n,j,i) = smissval
@@ -1526,24 +941,24 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
             rnos_o(j,i) = smissval
             scv_o(j,i) = smissval
           end if
-!               ******    reset accumulation arrays to zero
+          ! reset accumulation arrays to zero
           do n = 1 , nnsg
-            evpa(n,j,ci) = d_zero
-            srfrna(n,j,ci) = d_zero
-            sena(n,j,ci) = d_zero
+            evpa(n,j,i) = d_zero
+            srfrna(n,j,i) = d_zero
+            sena(n,j,i) = d_zero
           end do
-          prnca(j,ci) = d_zero
-          prca(j,ci) = d_zero
-          flwa(j,ci) = d_zero
-          flwda(j,ci) = d_zero
-          fswa(j,ci) = d_zero
-          svga(j,ci) = d_zero
-          sina(j,ci) = d_zero
+          prnca(j,i) = d_zero
+          prca(j,i) = d_zero
+          flwa(j,i) = d_zero
+          flwda(j,i) = d_zero
+          fswa(j,i) = d_zero
+          svga(j,i) = d_zero
+          sina(j,i) = d_zero
  
-        end do  ! end of i loop
-      end if
-    end do      ! end of j loop
-  end if        ! end if ivers = 2
+        end do
+      end do
+    end if
+  end if  ! end if ivers = 2
  
   end subroutine interfclm
 !
@@ -1571,6 +986,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasleft .and. ma%hastop ) then
       b(jce1,ice2) = a(jci1,ici2)
+      b(jce1,ide2) = a(jci1,ici2)
     end if
     if ( ma%hasright .and. ma%hasbottom ) then
       b(jce2,ice1) = a(jci2,ici1)
@@ -1610,6 +1026,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
     if ( ma%hasleft .and. ma%hastop ) then
       b(jce1,ice2) = a(jci1,ici2,kz)
+      b(jce1,ide2) = a(jci1,ici2,kz)
     end if
     if ( ma%hasright .and. ma%hasbottom ) then
       b(jce2,ice1) = a(jci2,ici1,kz)
