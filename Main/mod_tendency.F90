@@ -311,8 +311,8 @@ module mod_tendency
     call deco1_exchange_right(atm1%v,1,ide1,ide2,1,kz)
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm1%tke,1,ice1,ice2,1,kz)
-      call deco1_exchange_right(atm1%tke,1,ice1,ice2,1,kz)
+      call deco1_exchange_left(atm1%tke,1,ice1,ice2,1,kzp1)
+      call deco1_exchange_right(atm1%tke,1,ice1,ice2,1,kzp1)
     end if
 !
     call deco1_exchange_left(atm2%u,1,ide1,ide2,1,kz)
@@ -370,8 +370,8 @@ module mod_tendency
     call deco1_exchange_right(atms%qcb3d,2,ice1,ice2,1,kz)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm2%tke,2,ice1,ice2,1,kz)
-      call deco1_exchange_right(atm2%tke,2,ice1,ice2,1,kz)
+      call deco1_exchange_left(atm2%tke,2,ice1,ice2,1,kzp1)
+      call deco1_exchange_right(atm2%tke,2,ice1,ice2,1,kzp1)
     end if
 
     if ( ichem == 1 ) then

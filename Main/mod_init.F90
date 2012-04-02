@@ -302,9 +302,9 @@ module mod_init
     ! Scatter of the UW variables read in from the restart file
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call deco1_scatter(atm1_io%tke,atm1%tke, &
-                         jcross1,jcross2,icross1,icross2,1,kz)
+                         jcross1,jcross2,icross1,icross2,1,kzp1)
       call deco1_scatter(atm2_io%tke,atm2%tke, &
-                         jcross1,jcross2,icross1,icross2,1,kz)
+                         jcross1,jcross2,icross1,icross2,1,kzp1)
       call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
     end if
 !

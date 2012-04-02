@@ -114,8 +114,6 @@ module mod_pbl_interface
     call assignpnt(chtrdpv,depvel)
     if ( associated(chtrname) ) chname => chtrname
     call assignpnt(cchifxuw,chifxuw)
-
-
   end subroutine init_pbl
 
   subroutine get_data_from_tcm(tcmstate,tcmtend,aten,atm1,atm2,bRegridWinds)

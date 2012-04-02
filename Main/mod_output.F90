@@ -165,11 +165,11 @@ module mod_output
 !
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call deco1_gather(atm1%tke,atm1_io%tke, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
+                          jcross1,jcross2,icross1,icross2,1,kzp1)
         call deco1_gather(uwstateb%kth,tcmstate_io%kth, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
+                          jcross1,jcross2,icross1,icross2,1,kzp1)
         call deco1_gather(uwstateb%kzm,tcmstate_io%kzm, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
+                          jcross1,jcross2,icross1,icross2,1,kzp1)
       end if
 !
       if ( myid == 0 ) then
@@ -277,9 +277,9 @@ module mod_output
 
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call deco1_gather(atm1%tke,atm1_io%tke, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
+                          jcross1,jcross2,icross1,icross2,1,kzp1)
         call deco1_gather(atm2%tke,atm2_io%tke, &
-                          jcross1,jcross2,icross1,icross2,1,kz)
+                          jcross1,jcross2,icross1,icross2,1,kzp1)
         call deco1_gather(kpbl,kpbl_io,jcross1,jcross2,icross1,icross2)
       end if
 
