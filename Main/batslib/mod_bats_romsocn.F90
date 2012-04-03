@@ -43,10 +43,9 @@ module mod_bats_romsocn
     sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 
-  subroutine romsocndrv(jstart,jend,istart,iend,ktau)
+  subroutine romsocndrv(jstart,jend,istart,iend)
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
-    integer(8) , intent(in) :: ktau
 !
     real(dp) :: uv995, tsurf, t995, q995, z995, zi, psurf
     real(dp) :: qs, uv10, tau, lh, sh, dth, dqh, ustar, zo

@@ -123,7 +123,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, comm, ierr, tile, n 
+      integer :: localPet, petCount, comm, ierr, subs, tile, n 
       integer :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
@@ -150,7 +150,10 @@
 !
       flag = .TRUE.
       call MPI_Comm_dup(comm, models(Iocean)%comm, ierr)
-      call ROMS_initialize(flag, MyCOMM=models(Iocean)%comm)
+      ! 3.4
+      !call ROMS_initialize(flag, MyCOMM=models(Iocean)%comm)
+      ! 3.6
+      call ROMS_initialize(flag, mpiCOMM=models(Iocean)%comm)
 !
 !-----------------------------------------------------------------------
 !     Allocate exchange arrays 
@@ -162,8 +165,8 @@
         UBi = BOUNDS(n)%UBi(tile)
         LBj = BOUNDS(n)%LBj(tile)
         UBj = BOUNDS(n)%UBj(tile)
-        call allocate_atm2ocn (n, LBi, UBi, LBj, UBj)      
-        call initialize_atm2ocn (n, tile)
+        call allocate_atm2ocn(n, LBi, UBi, LBj, UBj)      
+        call initialize_atm2ocn(n, tile)
       end do
 !
 !-----------------------------------------------------------------------
@@ -219,8 +222,8 @@
 !-----------------------------------------------------------------------
 !
       logical, save :: first = .true.
-      integer, save :: tstr(Ngrids)
-      integer, save :: tend(Ngrids)
+      integer :: tstr(Ngrids)
+      integer :: tend(Ngrids)
       integer :: localPet, petCount, comm, nsteps, ng, rc2
 !
       type(ESMF_Time) :: currTime
@@ -318,12 +321,17 @@
 !     Run ROMS
 !-----------------------------------------------------------------------
 !
-      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        write(*, fmt="(A28,3I10)") '[debug] -- Run OCN component',      &
-              tstr, tend, nsteps
-      end if
+!      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+!        write(*, fmt="(A28,3I10)") '[debug] -- Run OCN component',    &
+!              tstr, tend, nsteps
 !
-      call ROMS_run (tstr, tend)
+!        call ROMS_run (tstr, tend)
+!      end if
+!
+      if (localPet == 0) then
+        print*, "** turuncu ** cpl_dtsec = ", cpl_dtsec
+      end if 
+      call ROMS_run (DBLE(cpl_dtsec))
 !
 !-----------------------------------------------------------------------
 !     Put export data

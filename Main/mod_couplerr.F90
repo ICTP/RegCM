@@ -68,6 +68,7 @@
         integer :: mid 
         integer :: comm
         type(ESMF_VM) :: vm 
+        integer :: nproc
         integer, allocatable :: petList(:) 
         type(ESMF_GridComp) :: comp
         type(ESM_Mesh), allocatable :: mesh(:,:)        
@@ -124,6 +125,7 @@
 !     RegCM           ROMS (c = rho, d = psi)
 !-----------------------------------------------------------------------
 !
+      character(len=6) :: GRIDDES(4) = (/ "CROSS", "DOT", "U", "V" /)
       integer :: Icross  = 1
       integer :: Idot    = 2
       integer :: Iupoint = 3
@@ -241,6 +243,8 @@
           if (.not. allocated(models(i)%petList)) then
             allocate(models(i)%petList(nPets))
           end if
+          ! set number of processor
+          models(i)%nproc = nPets
 
           ! assign pets to model (each component has its own pet) 
           ! For example; two models and seven cpu (or pet)
@@ -279,9 +283,9 @@
 !
       do i = 1, nModels
         if (i == Iatmos) then
-          k = 1 ! (2) cross and dot points (dot is not used actually)
-        else if (i == Iocean) then
-          k = 1 ! (3) cross, u and v points
+          k = 2 ! cross and dot (B Grid)
+        else if (i == Iocean) then 
+          k = 1 ! only cross is used for variable SST (C Grid)
         end if
 !
         if (.not. allocated(models(i)%mesh)) then
@@ -316,23 +320,23 @@
             models(i)%mesh(1,j)%mask%units = '1'
 !
 !           dot (or cell corners) points (u and v)
-!            models(i)%mesh(2,j)%gid = 2
-!            models(i)%mesh(2,j)%gtype = Idot
+            models(i)%mesh(2,j)%gid = 2
+            models(i)%mesh(2,j)%gtype = Idot
 !
-!            models(i)%mesh(2,j)%lon%gtype = Idot
-!            models(i)%mesh(2,j)%lon%name = 'dlon'
-!            models(i)%mesh(2,j)%lon%long_name = 'longitude at dot'
-!            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+            models(i)%mesh(2,j)%lon%gtype = Idot
+            models(i)%mesh(2,j)%lon%name = 'dlon'
+            models(i)%mesh(2,j)%lon%long_name = 'longitude at dot'
+            models(i)%mesh(2,j)%lon%units = 'degrees_east'
 !
-!            models(i)%mesh(2,j)%lat%gtype = Idot
-!            models(i)%mesh(2,j)%lat%name = 'dlat'
-!            models(i)%mesh(2,j)%lat%long_name = 'latitude at dot'
-!            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+            models(i)%mesh(2,j)%lat%gtype = Idot
+            models(i)%mesh(2,j)%lat%name = 'dlat'
+            models(i)%mesh(2,j)%lat%long_name = 'latitude at dot'
+            models(i)%mesh(2,j)%lat%units = 'degrees_north'
 !
-!            models(i)%mesh(2,j)%mask%gtype = Idot
-!            models(i)%mesh(2,j)%mask%name = 'mask'
-!            models(i)%mesh(2,j)%mask%long_name = 'land sea mask'
-!            models(i)%mesh(2,j)%mask%units = '1'
+            models(i)%mesh(2,j)%mask%gtype = Idot
+            models(i)%mesh(2,j)%mask%name = 'mask'
+            models(i)%mesh(2,j)%mask%long_name = 'land sea mask'
+            models(i)%mesh(2,j)%mask%units = '1'
           end do
         else if (i == Iocean) then
           do j = 1, nNest(i)
@@ -473,14 +477,14 @@
             models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
 !
             models(i)%dataExport(7,j)%fid = 7
-            models(i)%dataExport(7,j)%gtype = Icross
+            models(i)%dataExport(7,j)%gtype = Idot
             models(i)%dataExport(7,j)%name = 'Uwind'
             models(i)%dataExport(7,j)%long_name = &
             'surface u-wind component'
             models(i)%dataExport(7,j)%units = 'meter second-1'
 !
             models(i)%dataExport(8,j)%fid = 8
-            models(i)%dataExport(8,j)%gtype = Icross
+            models(i)%dataExport(8,j)%gtype = Idot
             models(i)%dataExport(8,j)%name = 'Vwind'
             models(i)%dataExport(8,j)%long_name = &
             'surface v-wind component'

@@ -626,7 +626,7 @@
 !
       models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (                &
                                         minIndex=(/ 1, 1 /),            &
-                                        maxIndex=(/ jx, iy /),          &
+                                        maxIndex=(/ jxm1, iym1 /),      &
                                         regDecomp=(/nproc,1/),          &
                                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -719,17 +719,43 @@
           call ESMF_Finalize(endflag=ESMF_END_ABORT)       
         end if
 !
-        if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
-          if (cpl_dbglevel > 1) then
-            write(*,30) localPet, j, "PTR",                             &
-              lbound(ptrX, dim=1), ubound(ptrX, dim=1),                 &
-              lbound(ptrX, dim=2), ubound(ptrX, dim=2)
-            write(*,30) localPet, j, "ATM",                             &
-              lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),     &
-              lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
+!-----------------------------------------------------------------------
+!     Debug: write size of pointers    
+!-----------------------------------------------------------------------
+!
+        write(*,30) localPet, j, "PTR-"//                               &
+                    trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype)),      &
+                    lbound(ptrX, dim=1), ubound(ptrX, dim=1),           &
+                    lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+!
+!-----------------------------------------------------------------------
+!     Fill the pointers    
+!-----------------------------------------------------------------------
+!
+        if (models(Iatmos)%mesh(i,n)%gtype == Idot) then
+          write(*,30) localPet, j, "ATM-DOT",                           &
+            lbound(mddom%dlon, dim=1), ubound(mddom%dlon, dim=1),       &
+            lbound(mddom%dlon, dim=2), ubound(mddom%dlon, dim=2)
+          ptrX = mddom%dlon
+          ptrY = mddom%dlat
+        else if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
+          if (localPet .eq. models(Iatmos)%nproc-1) then 
+          write(*,30) localPet, j, "ATM-CROSS",                         &
+            lbound(mddom%xlon(1:jxp-1,1:iym1), dim=1),                  &
+            ubound(mddom%xlon(1:jxp-1,1:iym1), dim=1),                  &
+            lbound(mddom%xlon(1:jxp-1,1:iym1), dim=2),                  &
+            ubound(mddom%xlon(1:jxp-1,1:iym1), dim=2)
+            ptrX = mddom%xlon(1:jxp-1,1:iym1)
+            ptrY = mddom%xlat(1:jxp-1,1:iym1)
+          else
+          write(*,30) localPet, j, "ATM-CROSS",                         &
+            lbound(mddom%xlon(:,1:iym1), dim=1),                        &
+            ubound(mddom%xlon(:,1:iym1), dim=1),                        &
+            lbound(mddom%xlon(:,1:iym1), dim=2),                        &
+            ubound(mddom%xlon(:,1:iym1), dim=2)
+            ptrX = mddom%xlon(:,1:iym1)
+            ptrY = mddom%xlat(:,1:iym1)
           end if
-          ptrX = mddom%xlon
-          ptrY = mddom%xlat
         end if
 !
 !-----------------------------------------------------------------------
@@ -745,16 +771,27 @@
       end do
 !
 !-----------------------------------------------------------------------
+!     Validate Grid 
+!-----------------------------------------------------------------------
+!
+      call ESMF_GridValidate(models(Iatmos)%mesh(i,n)%grid, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Write ESMF Grid in VTK format (debug) 
 !-----------------------------------------------------------------------
 !
       if (cpldbglevel .gt. 1) then
+      print*, '[debug] -- write grid information to file '//            &
+      '>atmos_'//trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,             &
-                             filename="atmos_src",                      &
-                             rc=rc)
+                         filename="atmos_"//                            &
+                         trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//&
+                         "point",                                       &
+                         staggerLoc=staggerLoc,                         &
+                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
-!
       end do
       end do
 !
@@ -762,7 +799,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 30   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
+ 30   format(" PET(",I3,") - DE(",I2,") - ", A10, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1008,7 +1045,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common
-      use mod_dynparam, only : kz
+      use mod_dynparam, only : kz, ici1, ici2, jci1 , jci2
 !
       implicit none
 !
@@ -1022,7 +1059,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, k, l, id, n, rc, localDECount
+      integer :: i, j, ii, jj, id, n, rc, localDECount
       integer, dimension(2) :: dims
       logical :: flag
       character (len=40) :: name
@@ -1051,125 +1088,247 @@
       name = models(Iatmos)%dataExport(i,n)%name
 !
 !-----------------------------------------------------------------------
-!     Adjust variables to surface (995 -> 2m and 10m)
+!     Adjust variables to surface (interact with atm + 995 -> 2m and 10m)
 !-----------------------------------------------------------------------
 !
-      if (i == 1) then
+!      if (i == 1) then
 !
 !-----------------------------------------------------------------------
 !     Allocate variables 
 !-----------------------------------------------------------------------
 !
-      if (.not. allocated(z995)) then
-        dims(1) = (ubound(hgt, dim=1)-lbound(hgt, dim=1))+1
-        dims(2) = (ubound(hgt, dim=2)-lbound(hgt, dim=2))+1
+!      if (.not. allocated(z995)) then
+!        dims(1) = (ubound(hgt, dim=1)-lbound(hgt, dim=1))+1
+!        dims(2) = (ubound(hgt, dim=2)-lbound(hgt, dim=2))+1
 !
-        allocate(z995(dims(1),dims(2)))
-        allocate(t995(dims(1),dims(2)))
-        allocate(q995(dims(1),dims(2)))
-        allocate(u995(dims(1),dims(2)))
-        allocate(v995(dims(1),dims(2)))
-        allocate(psurf(dims(1),dims(2)))
-        allocate(tsurf(dims(1),dims(2)))
-        allocate(t2(dims(1),dims(2)))
-        allocate(q2(dims(1),dims(2)))
-        allocate(u10(dims(1),dims(2)))
-        allocate(v10(dims(1),dims(2)))
-        allocate(zi(dims(1),dims(2)))
-        allocate(taux(dims(1),dims(2)))
-        allocate(tauy(dims(1),dims(2)))
-      end if
+!        allocate(z995(dims(1),dims(2)))
+!        allocate(t995(dims(1),dims(2)))
+!        allocate(q995(dims(1),dims(2)))
+!        allocate(u995(dims(1),dims(2)))
+!        allocate(v995(dims(1),dims(2)))
+!        allocate(psurf(dims(1),dims(2)))
+!        allocate(tsurf(dims(1),dims(2)))
+!        allocate(t2(dims(1),dims(2)))
+!        allocate(q2(dims(1),dims(2)))
+!        allocate(zi(dims(1),dims(2)))
+!
+!        dims(1) = (ubound(uatm, dim=1)-lbound(uatm, dim=1))+1
+!        dims(2) = (ubound(uatm, dim=2)-lbound(uatm, dim=2))+1
+!
+!        allocate(u10(dims(1),dims(2)))
+!        allocate(v10(dims(1),dims(2)))
+!        allocate(taux(dims(1),dims(2)))
+!        allocate(tauy(dims(1),dims(2)))
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Initialize variables
 !-----------------------------------------------------------------------
 !
-      z995 = 0.0d0
-      t995 = 0.0d0
-      q995 = 0.0d0
-      u995 = 0.0d0
-      v995 = 0.0d0
-      psurf = 0.0d0
-      tsurf = 0.0d0
-      t2 = 0.0d0
-      q2 = 0.0d0
-      u10 = 0.0d0
-      v10 = 0.0d0
-      zi = 0.0d0
-      taux = 0.0d0
-      tauy = 0.0d0
+!      z995 = 0.0d0
+!      t995 = 0.0d0
+!      q995 = 0.0d0
+!      u995 = 0.0d0
+!      v995 = 0.0d0
+!      psurf = 0.0d0
+!      tsurf = 0.0d0
+!      t2 = 0.0d0
+!      q2 = 0.0d0
+!      u10 = 0.0d0
+!      v10 = 0.0d0
+!      zi = 0.0d0
+!      taux = 0.0d0
+!      tauy = 0.0d0
 !
 !-----------------------------------------------------------------------
 !     Fill variables 
 !-----------------------------------------------------------------------
 !
-      do k = 1, jxp
-        do l = 1, iy 
-          z995(k,l) = hgt(k,l,kz)
-          t995(k,l) = tatm(k,l,kz)-tzero
-          q995(k,l) = qvatm(k,l,kz)/(d_one+qvatm(k,l,kz))
-          u995(k,l) = uatm(k,l,kz)
-          v995(k,l) = vatm(k,l,kz)
-          zi(k,l) = hpbl(k,l)
-          psurf(k,l) = (sfps(k,l)+ptop)*d_10
-          tsurf(k,l) = tground2(k,l)-tzero
-        end do
-      end do
+!      do ii = ici1 , ici2
+!        do jj = jci1 , jci2
+!          zi(jj,ii)    = hpbl(jj,ii)
+!          z995(jj,ii)  = hgt(jj,ii,kz)
+!          t995(jj,ii)  = tatm(jj,ii,kz)-tzero
+!          q995(jj,ii)  = qvatm(jj,ii,kz)/(d_one+qvatm(jj,ii,kz))
+!          u995(jj,ii)  = uatm(jj,ii,kz)
+!          v995(jj,ii)  = vatm(jj,ii,kz)
+!          psurf(jj,ii) = (sfps(jj,ii)+ptop)*d_10
+!          tsurf(jj,ii) = tground2(jj,ii)-tzero
+!        end do
+!      end do
 !
 !-----------------------------------------------------------------------
 !     Adjust variables to surface level
 !-----------------------------------------------------------------------
 !
-      call adjustvars(z995, t995, q995, u995, v995,                     &
-                      zi, psurf, tsurf, t2, q2,                         &
-                      u10, v10, taux, tauy)
+!      call adjustvars(z995, t995, q995, u995, v995,                     &
+!                      zi, psurf, tsurf, t2, q2,                         &
+!                      u10, v10, taux, tauy)
 !
 !-----------------------------------------------------------------------
 !     Debug: write field to stdout    
 !-----------------------------------------------------------------------
 !
-      if (localPet == 0 .and. cpldbglevel > 3) then
-        call print_matrix_r8(z995, 1, 1, localPet, 6, "Z995")
-        call print_matrix_r8(t995, 1, 1, localPet, 6, "T995")
-        call print_matrix_r8(q995, 1, 1, localPet, 6, "Q995")
-        call print_matrix_r8(u995, 1, 1, localPet, 6, "U995")
-        call print_matrix_r8(v995, 1, 1, localPet, 6, "V995")
+!      if (localPet == 0 .and. cpldbglevel > 3) then
+!        call print_matrix_r8(z995, 1, 1, localPet, 6, "Z995")
+!        call print_matrix_r8(t995, 1, 1, localPet, 6, "T995")
+!        call print_matrix_r8(q995, 1, 1, localPet, 6, "Q995")
+!        call print_matrix_r8(u995, 1, 1, localPet, 6, "U995")
+!        call print_matrix_r8(v995, 1, 1, localPet, 6, "V995")
 !
-        call print_matrix_r8(t2, 1, 1, localPet, 6, "T2")
-        call print_matrix_r8(q2, 1, 1, localPet, 6, "Q2")
-        call print_matrix_r8(u10, 1, 1, localPet, 6, "U10")
-        call print_matrix_r8(v10, 1, 1, localPet, 6, "V10")
-        call print_matrix_r8(taux, 1, 1, localPet, 6, "TAUX")
-        call print_matrix_r8(tauy, 1, 1, localPet, 6, "TAUY")
-      end if
+!        call print_matrix_r8(t2, 1, 1, localPet, 6, "T2")
+!        call print_matrix_r8(q2, 1, 1, localPet, 6, "Q2")
+!        call print_matrix_r8(u10, 1, 1, localPet, 6, "U10")
+!        call print_matrix_r8(v10, 1, 1, localPet, 6, "V10")
+!        call print_matrix_r8(taux, 1, 1, localPet, 6, "TAUX")
+!        call print_matrix_r8(tauy, 1, 1, localPet, 6, "TAUY")
+!      end if
+!      end if
+!
+!-----------------------------------------------------------------------
+!     Debug: write size of pointers    
+!-----------------------------------------------------------------------
+!
+      if (cpl_dbglevel > 1) then
+        write(*,40) localPet, "PTR-"//trim(adjustl(name)),              &
+                    lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1),  &
+                    ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1),  &
+                    lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2),  &
+                    ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
       end if
 !
 !-----------------------------------------------------------------------
-!     Index 
+!     Fill pointers with data 
 !-----------------------------------------------------------------------
 !
       if (trim(adjustl(name)) == "Pair") then ! mb
-        models(Iatmos)%dataExport(i,n)%ptr = psurf
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound((sfps+ptop)*d_10, dim=1),                  &
+                      ubound((sfps+ptop)*d_10, dim=1),                  &
+                      lbound((sfps+ptop)*d_10, dim=2),                  &
+                      ubound((sfps+ptop)*d_10, dim=2)
+        end if
+        models(Iatmos)%dataExport(i,n)%ptr = (sfps+ptop)*d_10
       else if (trim(adjustl(name)) == "Tair") then ! Kelvin 
-        models(Iatmos)%dataExport(i,n)%ptr = t2
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(t2m, dim=2), ubound(t2m, dim=2), &
+                      lbound(t2m, dim=3), ubound(t2m, dim=3)
+        end if
+        if (localPet .eq. 0) then
+          models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = t2m(1,:,:) 
+        else if (localPet .eq. models(Iatmos)%nproc-1) then
+          models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = t2m(1,:,:)
+        else
+          models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = t2m(1,:,:)
+        end if
       else if (trim(adjustl(name)) == "Qair") then ! kg/kg
-        models(Iatmos)%dataExport(i,n)%ptr = q2 
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(q2m, dim=2), ubound(q2m, dim=2),           &
+                      lbound(q2m, dim=3), ubound(q2m, dim=3)
+        end if
+        if (localPet .eq. 0) then
+          models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = q2m(1,:,:)/   &
+                                                   (d_one+q2m(1,:,:))
+        else if (localPet .eq. models(Iatmos)%nproc-1) then
+          models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = q2m(1,:,:)/&
+                                                   (d_one+q2m(1,:,:)) 
+        else
+          models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = q2m(1,:,:)/    &
+                                                   (d_one+q2m(1,:,:)) 
+        end if
       else if (trim(adjustl(name)) == "swrad") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = fsw
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = fsw(:,iym1)
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(fsw, dim=1), ubound(fsw, dim=1),           &
+                      lbound(fsw, dim=2), ubound(fsw, dim=2)
+        end if
+        models(Iatmos)%dataExport(i,n)%ptr = fsw
       else if (trim(adjustl(name)) == "lwrad_down") then ! W/m2
-        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = flwd
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flwd(:,iym1)
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(flwd, dim=1), ubound(flwd, dim=1),         &
+                      lbound(flwd, dim=2), ubound(flwd, dim=2)
+        end if
+        models(Iatmos)%dataExport(i,n)%ptr = flwd
       else if (trim(adjustl(name)) == "lwrad") then ! W/m2
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(flw, dim=1), ubound(flw, dim=1),           &
+                      lbound(flw, dim=2), ubound(flw, dim=2)
+        end if
         models(Iatmos)%dataExport(i,n)%ptr = flw
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = flw(:,iym1)
       else if (trim(adjustl(name)) == "rain") then ! mm/day
-        models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) = totpr 
-        models(Iatmos)%dataExport(i,n)%ptr(:,iy) = totpr(:,iym1)
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(totpr, dim=1), ubound(totpr, dim=1),       &
+                      lbound(totpr, dim=2), ubound(totpr, dim=2)
+        end if
+        if (localPet .eq. 0) then
+          models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = totpr 
+        else if (localPet .eq. models(Iatmos)%nproc-1) then
+          models(Iatmos)%dataExport(i,n)%ptr(:jxm1,2:iym2) = totpr 
+        else
+          models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = totpr
+        end if
       else if (trim(adjustl(name)) == "Uwind") then ! m/s
-        models(Iatmos)%dataExport(i,n)%ptr = u10
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(u10m, dim=2), ubound(u10m, dim=2),         &
+                      lbound(u10m, dim=3), ubound(u10m, dim=3)
+        end if
+        if (localPet .eq. 0) then
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &                     
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), & 
+                     ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = u10m(1,:,:)
+        else if (localPet .eq. models(Iatmos)%nproc-1) then
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = u10m(1,:,:)
+        else
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = u10m(1,:,:)
+        end if
       else if (trim(adjustl(name)) == "Vwind") then ! m/s
-        models(Iatmos)%dataExport(i,n)%ptr = v10
+        if (cpl_dbglevel > 1) then
+          write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
+                      lbound(v10m, dim=2), ubound(v10m, dim=2),         &
+                      lbound(v10m, dim=3), ubound(v10m, dim=3)
+        end if
+        if (localPet .eq. 0) then
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = v10m(1,:,:)
+        else if (localPet .eq. models(Iatmos)%nproc-1) then
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = v10m(1,:,:)
+        else
+          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
+                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
+          models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = v10m(1,:,:)
+        end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -1216,6 +1375,12 @@
 !
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 40   format(" PET(",I3,") - ", A14, " : ", 4I8) 
 !
       end subroutine RCM_PutExportData
 !

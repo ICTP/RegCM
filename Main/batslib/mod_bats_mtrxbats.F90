@@ -210,7 +210,8 @@ module mod_bats_mtrxbats
         if (myid == 0) then 
           print*, "[debug] -- updating fields with ROMS SST ..."
         end if
-        call romsocndrv(jstart,jend,istart,iend,ktau)
+!       update SST
+        call romsocndrv(jstart,jend,istart,iend)
       end if
     end if
 
