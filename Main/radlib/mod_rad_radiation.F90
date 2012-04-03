@@ -53,13 +53,14 @@ module mod_rad_radiation
   real(dp) , pointer , dimension(:,:,:,:):: xuinpl
 !
   real(dp) , pointer , dimension(:) :: co2plk , dtx , dty
+  real(dp) , pointer , dimension(:) :: xptrop , dlat
   real(dp) , pointer , dimension(:) :: tco2 , th2o , to3 , xsum
   real(dp) , pointer , dimension(:,:) :: co2ems , emstrc , h2oems , o3ems
   real(dp) , pointer , dimension(:,:) :: dbvtit , pnmsq , term6 , term9
   real(dp) , pointer , dimension(:) :: abstrc , dw , pnew , to3co2 , ux
   real(dp) , pointer , dimension(:,:) :: emplnk , pinpl , uinpl , winpl , tbar
   real(dp) , pointer , dimension(:,:,:) :: bplnk
-  real(dp) , pointer , dimension(:,:) :: diralb , difalb
+  real(dp) , pointer , dimension(:) :: diralb , difalb
 !
 ! Trace gas variables
 !
@@ -223,8 +224,7 @@ module mod_rad_radiation
 !   ch4      - methane mass mixing ratio
 !   n2o      - nitrous oxide mass mixing ratio
 !
-  real(dp) , pointer , dimension(:) :: fslwdcs , aeradfo , aeradfos , &
-          aerlwfo , aerlwfos
+  real(dp) , pointer , dimension(:) :: fslwdcs
   real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr , rh
   real(dp) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
@@ -516,9 +516,8 @@ module mod_rad_radiation
 
     call getmem4d(xuinpl,jci1,jci2,ici1,ici2,1,kzp1,1,4,'rad:xuinpl')
 
-    call getmem2d(diralb,jci1,jci2,ici1,ici2,'rad:diralb')
-    call getmem2d(difalb,jci1,jci2,ici1,ici2,'rad:difalb')
-
+    call getmem1d(diralb,jci1,jci2,'rad:diralb')
+    call getmem1d(difalb,jci1,jci2,'rad:difalb')
     call getmem1d(co2plk,jci1,jci2,'rad:co2plk')
     call getmem1d(dtx,jci1,jci2,'rad:dtx')
     call getmem1d(dty,jci1,jci2,'rad:dty')
@@ -651,18 +650,12 @@ module mod_rad_radiation
     call getmem1d(czengt0,jci1,jci2,'rad:czengt0')
 
     call getmem1d(fslwdcs,jci1,jci2,'rad:fslwdcs')
-    call getmem1d(aeradfo,jci1,jci2,'rad:aeradfo')
-    call getmem1d(aeradfos,jci1,jci2,'rad:aeradfos')
-    call getmem1d(aerlwfo,jci1,jci2,'rad:aerlwfo')
-    call getmem1d(aerlwfos,jci1,jci2,'rad:aerlwfos')
-
     call getmem2d(cfc11,jci1,jci2,1,kz,'rad:cfc11')
     call getmem2d(cfc12,jci1,jci2,1,kz,'rad:cfc12')
     call getmem2d(ch4,jci1,jci2,1,kz,'rad:ch4')
     call getmem2d(n2o,jci1,jci2,1,kz,'rad:n2o')
     call getmem2d(o3mmr,jci1,jci2,1,kz,'rad:o3mmr')
     call getmem2d(pbr,jci1,jci2,1,kz,'rad:pbr')
-    call getmem2d(rh,jci1,jci2,1,kz,'rad:rh')
 
     call getmem2d(plco2,jci1,jci2,1,kzp1,'rad:plco2')
     call getmem2d(plh2o,jci1,jci2,1,kzp1,'rad:plh2o')
@@ -802,12 +795,12 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jstart,jend,i,ts,pmid,pint, &
-                    pmln,piln,t,h2ommr,cld,effcld,clwp,fsns,qrs,qrl,   &
-                    flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
-                    fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,  &
-                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr, &
-                    coszgt0,labsem)
+  subroutine radctl(jstart,jend,i,dlat,xptrop,ts,pmid,pint,pmln,piln, &
+                    t,h2ommr,rh,cld,effcld,clwp,aermmr,fsns,qrs,qrl,  &
+                    flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,   &
+                    fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb, &
+                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
+                    coszgt0,aeradfo,aeradfos,aerlwfo,aerlwfos,labsem)
 !
     implicit none
 !
@@ -848,10 +841,12 @@ module mod_rad_radiation
     real(dp) , pointer , dimension(:) :: alb , albc , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
-            sols , solsd , ts , totcf
+            sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
+            aerlwfos , dlat , xptrop
     real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
-            pmln , qrl , qrs , rei , rel , t
+            pmln , qrl , qrs , rei , rel , t , rh
+    real(dp) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , pointer , dimension(:,:) :: o3vmr
     intent (out) alb , albc
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
@@ -901,9 +896,9 @@ module mod_rad_radiation
 !
 !     Specify aerosol mass mixing ratio
 !
-      call aermix(pnm,rh,jstart,jend,i)
+      call aermix(pnm,jstart,jend)
  
-      call aeroppt(rh,pint,jstart,jend)
+      call aeroppt(rh,aermmr,pint,jstart,jend)
 !
       call radcsw(jstart,jend,i,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
@@ -974,7 +969,7 @@ module mod_rad_radiation
 !
 !     Specify trace gas mixing ratios
 !
-      call trcmix(jstart,jend,i,xlat,ptrop,pmid,n2o,ch4,cfc11,cfc12)
+      call trcmix(jstart,jend,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
 !
       call radclw(jstart,jend,i,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
@@ -1448,8 +1443,8 @@ module mod_rad_radiation
       if ( wavmid < 0.7D0 ) then
         do j = jstart , jend
           if ( czengt0(j) ) then
-            diralb(j,i) = swdiralb(j,i)
-            difalb(j,i) = swdifalb(j,i)
+            diralb(j) = swdiralb(j,i)
+            difalb(j) = swdifalb(j,i)
           end if
         end do
 !
@@ -1458,8 +1453,8 @@ module mod_rad_radiation
       else
         do j = jstart , jend
           if ( czengt0(j) ) then
-            diralb(j,i) = lwdiralb(j,i)
-            difalb(j,i) = lwdifalb(j,i)
+            diralb(j) = lwdiralb(j,i)
+            difalb(j) = lwdifalb(j,i)
           end if
         end do
       end if
@@ -1487,8 +1482,8 @@ module mod_rad_radiation
 !
       do j = jstart , jend
         if ( czengt0(j) ) then
-          rupdir(j,kzp1) = diralb(j,i)
-          rupdif(j,kzp1) = difalb(j,i)
+          rupdir(j,kzp1) = diralb(j)
+          rupdif(j,kzp1) = difalb(j)
         end if
       end do
       do k = kz , 0 , -1
@@ -1560,7 +1555,7 @@ module mod_rad_radiation
 !KN         added below
             abveg(j,i) = abveg(j,i) + (solflx(j) *            &
                        (fluxdn(j,kzp1)-fluxup(j,kz + 1)))*  &
-                       (d_one-swalb(j,i))/(d_one-diralb(j,i))*d_r1000
+                       (d_one-swalb(j,i))/(d_one-diralb(j))*d_r1000
 !KN         added above
           else
             soll(j) = soll(j) + exptdn(j,kzp1)*solflx(j)*d_r1000
@@ -1570,7 +1565,7 @@ module mod_rad_radiation
 !KN         added below
             abveg(j,i) = abveg(j,i) + &
                        (solflx(j)*(fluxdn(j,kzp1)-fluxup(j,kz + 1)))* &
-                        (d_one-lwalb(j,i))/(d_one-diralb(j,i))*d_r1000
+                        (d_one-lwalb(j,i))/(d_one-diralb(j))*d_r1000
 !KN         added above
           end if
           fsnirt(j) = fsnirt(j) + wgtint*solflx(j) * (fluxdn(j,0)-fluxup(j,0))
@@ -1623,8 +1618,8 @@ module mod_rad_radiation
 !       the surface:
         do j = jstart , jend
           if ( czengt0(j) ) then
-            rupdir(j,2) = diralb(j,i)
-            rupdif(j,2) = difalb(j,i)
+            rupdir(j,2) = diralb(j)
+            rupdif(j,2) = difalb(j)
           end if
         end do
 !
@@ -1689,8 +1684,8 @@ module mod_rad_radiation
 !
       do j = jstart , jend
         if ( czengt0(j) ) then
-          rupdir(j,2) = diralb(j,i)
-          rupdif(j,2) = difalb(j,i)
+          rupdir(j,2) = diralb(j)
+          rupdif(j,2) = difalb(j)
         end if
       end do
 !

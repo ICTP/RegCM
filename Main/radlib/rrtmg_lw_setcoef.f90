@@ -151,14 +151,14 @@
 
       stpfac = 296._rb/1013._rb
 
-      indbound = tbound - 159._rb
+      indbound = idnint(tbound - 159._rb)
       if (indbound .lt. 1) then
          indbound = 1
       elseif (indbound .gt. 180) then
          indbound = 180
       endif
       tbndfrac = tbound - 159._rb - float(indbound)
-      indlev0 = tz(0) - 159._rb
+      indlev0 = idnint(tz(0) - 159._rb)
       if (indlev0 .lt. 1) then
          indlev0 = 1
       elseif (indlev0 .gt. 180) then
@@ -171,14 +171,14 @@
 !  Calculate the integrated Planck functions for each band at the
 !  surface, level, and layer temperatures.
       do lay = 1, nlayers
-         indlay = tavel(lay) - 159._rb
+         indlay = idnint(tavel(lay) - 159._rb)
          if (indlay .lt. 1) then
             indlay = 1
          elseif (indlay .gt. 180) then
             indlay = 180
          endif
          tlayfrac = tavel(lay) - 159._rb - float(indlay)
-         indlev = tz(lay) - 159._rb
+         indlev = idnint(tz(lay)-159._rb)
          if (indlev .lt. 1) then
             indlev = 1
          elseif (indlev .gt. 180) then

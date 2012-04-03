@@ -53,12 +53,12 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcmix(jstart,jend,i,xlat,ptrop,pmid,n2o,ch4,cfc11,cfc12)
+  subroutine trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
     implicit none
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , pmid
-    real(dp) , pointer , dimension(:,:) :: xlat , ptrop
-    intent (in) pmid , xlat , ptrop
+    real(dp) , pointer , dimension(:) :: dlat , xptrop
+    intent (in) pmid , dlat , xptrop
     intent (out) cfc11 , cfc12 , ch4 , n2o
 !
 !   dlat   - latitude in degrees
@@ -69,36 +69,35 @@ module mod_rad_tracer
 !   ptrop  - pressure level of tropopause
 !   pratio - pressure divided by ptrop
 !
-    real(dp) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
+    real(dp) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o
     integer :: j , k
 !
     xcfc11 = d_zero
     xcfc12 = d_zero
     xch4 = d_zero
     xn2o = d_zero
-    do j = jstart , jend
+    do j = n1 , n2
 !     set stratospheric scale height factor for gases
-      dlat = dabs(xlat(j,i))
-      if ( dlat <= 45.0D0 ) then
-        xn2o = 0.3478D0 + 0.00116D0*dlat
+      if ( dlat(j) <= 45.0D0 ) then
+        xn2o = 0.3478D0 + 0.00116D0*dlat(j)
         xch4 = 0.2353D0
-        xcfc11 = 0.7273D0 + 0.00606D0*dlat
-        xcfc12 = 0.4000D0 + 0.00222D0*dlat
+        xcfc11 = 0.7273D0 + 0.00606D0*dlat(j)
+        xcfc12 = 0.4000D0 + 0.00222D0*dlat(j)
       else
-        xn2o = 0.4000D0 + 0.013333D0*(dlat-45.0D0)
-        xch4 = 0.2353D0 + 0.0225489D0*(dlat-45.0D0)
-        xcfc11 = 1.00D0 + 0.013333D0*(dlat-45.0D0)
-        xcfc12 = 0.50D0 + 0.024444D0*(dlat-45.0D0)
+        xn2o = 0.4000D0 + 0.013333D0*(dlat(j)-45.0D0)
+        xch4 = 0.2353D0 + 0.0225489D0*(dlat(j)-45.0D0)
+        xcfc11 = 1.00D0 + 0.013333D0*(dlat(j)-45.0D0)
+        xcfc12 = 0.50D0 + 0.024444D0*(dlat(j)-45.0D0)
       end if
 !
       do k = 1 , kz
-        if ( pmid(j,k) >= ptrop(j,i) ) then
+        if ( pmid(j,k) >= xptrop(j) ) then
           ch4(j,k) = ch40
           n2o(j,k) = n2o0
           cfc11(j,k) = cfc110
           cfc12(j,k) = cfc120
         else
-          pratio = pmid(j,k)/ptrop(j,i)
+          pratio = pmid(j,k)/xptrop(j)
           ch4(j,k) = ch40*(pratio)**xch4
           n2o(j,k) = n2o0*(pratio)**xn2o
           cfc11(j,k) = cfc110*(pratio)**xcfc11
@@ -147,13 +146,13 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcpth(jstart,jend,tnm,pnm,cfc11,cfc12,n2o,ch4,qnm,  &
+  subroutine trcpth(n1,n2,tnm,pnm,cfc11,cfc12,n2o,ch4,qnm,  &
                     ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
                     uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4, &
                     uptype)
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
                    ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
                    uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
@@ -178,7 +177,7 @@ module mod_rad_tracer
 !-----------------------------------------------------------------------
 !   Calculate path lengths for the trace gases
 !-----------------------------------------------------------------------
-    do j = jstart , jend
+    do j = n1 , n2
       ucfc11(j,1) = 1.8D0*cfc11(j,1)*pnm(j,1)*regravgts
       ucfc12(j,1) = 1.8D0*cfc12(j,1)*pnm(j,1)*regravgts
       un2o0(j,1) = diff*1.02346D5*n2o(j,1)*pnm(j,1)*regravgts/dsqrt(tnm(j,1))
@@ -203,7 +202,7 @@ module mod_rad_tracer
                    (d_one/tnm(j,1)-d_one/296.0D0))*regravgts/sslp
     end do
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         rt = d_one/tnm(j,k)
         rsqrt = dsqrt(rt)
         pbar = ((pnm(j,k+1)+pnm(j,k))*d_half)/sslp
@@ -282,13 +281,13 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcab(jstart,jend,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4, &
+  subroutine trcab(n1,n2,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4, &
                    uco211,uco212,uco213,uco221,uco222,uco223,bn2o0,  &
                    bn2o1,bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o,  &
                    abplnk1,tco2,th2o,to3,abstrc)
     implicit none
 !
-    integer , intent(in) :: jstart , jend , k1 , k2
+    integer , intent(in) :: n1 , n2 , k1 , k2
     real(dp) , pointer , dimension(:,:,:) :: abplnk1
     real(dp) , pointer , dimension(:) :: abstrc , dplh2o , dw , pnew , tco2 ,&
                                         th2o , to3 , to3co2
@@ -391,7 +390,7 @@ module mod_rad_tracer
               -1.0115D-4 , -8.8061D-5/
 !------------------------------------------------------------------
 !
-    do j = jstart , jend
+    do j = n1 , n2
       sqti = dsqrt(to3co2(j))
 !     h2o transmission
       tt = dabs(to3co2(j)-250.0D0)
@@ -513,14 +512,14 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcabn(jstart,jend,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4,  &
+  subroutine trcabn(n1,n2,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4,  &
                     uco211,uco212,uco213,uco221,uco222,uco223,tbar,    &
                     bplnk,winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,up2, &
                     pnew,abstrc,uinpl)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , k2 , kn
+    integer , intent(in) :: n1 , n2 , k2 , kn
     real(dp) , pointer , dimension(:) :: abstrc , dw , pnew , tco2 , th2o ,  &
                                         to3 , up2
     real(dp) , pointer , dimension(:,:,:) :: bplnk
@@ -621,7 +620,7 @@ module mod_rad_tracer
               -1.0115D-4 , -8.8061D-5/
 !------------------------------------------------------------------
 !
-    do j = jstart , jend
+    do j = n1 , n2
       sqti = dsqrt(tbar(j,kn))
       rsqti = d_one/sqti
 !     h2o transmission
@@ -722,10 +721,10 @@ module mod_rad_tracer
 ! abplnk1 - non-nearest layer Plack factor
 ! abplnk2 - nearest layer factor
 !
-  subroutine trcplk(jstart,jend,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+  subroutine trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
     real(dp) , pointer , dimension(:,:) :: emplnk
     real(dp) , pointer , dimension(:,:) :: tint , tlayr
@@ -756,7 +755,7 @@ module mod_rad_tracer
 !   Calculate emissivity Planck factor
 !
     do wvl = 1 , 14
-      do j = jstart , jend
+      do j = n1 , n2
         emplnk(wvl,j) = f1(wvl)/(tplnke(j)**d_four * &
                       (dexp(f3(wvl)/tplnke(j))-d_one))
       end do
@@ -766,7 +765,7 @@ module mod_rad_tracer
 !
     do wvl = 1 , 14
       do k = 1 , kzp1
-        do j = jstart , jend
+        do j = n1 , n2
 !           non-nearlest layer function
           abplnk1(wvl,j,k) = (f2(wvl)*dexp(f3(wvl)/tint(j,k)))        &
                            & /(tint(j,k)**5.0D0*                      &
@@ -819,14 +818,14 @@ module mod_rad_tracer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine trcems(jstart,jend,k,co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
+  subroutine trcems(n1,n2,k,co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
                     uco222,uco223,uptype,w,s2c,up2,emplnk,th2o,tco2,   &
                     to3,emstrc)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , k
+    integer , intent(in) :: n1 , n2 , k
     real(dp) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , co2t , &
              emstrc , pnm , s2c , ucfc11 , ucfc12 , uch4 , uco211 ,     &
              uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,       &
@@ -914,7 +913,7 @@ module mod_rad_tracer
     data bbp/ -1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 ,    &
               -1.0115D-4 , -8.8061D-5/
 !
-    do j = jstart , jend
+    do j = n1 , n2
       sqti = dsqrt(co2t(j,k))
 !     Transmission for h2o
       tt = dabs(co2t(j,k)-250.0D0)

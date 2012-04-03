@@ -765,15 +765,15 @@ module mod_params
 #endif
 
   call allocate_mod_cloud_s1
-  call allocate_mod_rad_common
+  call allocate_mod_rad_common(ichem)
   call allocate_mod_rad_aerosol(ichem)
   call allocate_mod_rad_o3blk
   call allocate_mod_rad_outrad
   if ( irrtm == 1 ) then
-    call allocate_mod_rad_rrtmg(jce1,jce2)
+    call allocate_mod_rad_rrtmg
   else
     call allocate_mod_rad_radiation 
-    call allocate_mod_rad_colmod3 
+    call allocate_mod_rad_colmod3(ichem)
   end if
 
   if ( .not. lband .and. debug_level > 2 ) then

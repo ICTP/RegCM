@@ -85,6 +85,9 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
   real(dp) , pointer , dimension(:,:,:) :: heatrt
   real(dp) , pointer , dimension(:,:,:) :: o3prof
+  real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
+  real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
+  real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
 
   real(dp) , pointer , dimension(:,:) :: ptrop
 
@@ -100,13 +103,23 @@ module mod_rad_common
 
   contains 
 
-  subroutine allocate_mod_rad_common
+  subroutine allocate_mod_rad_common(ichem)
     implicit none
+    integer , intent(in) :: ichem
     call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldfra')
     call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldlwc')
     call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'mod_rad:heatrt')
     call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'mod_rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'colmod3:ptrop')
+    if ( ichem == 1 ) then
+      call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerasp')
+      call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerext')
+      call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerssa')
+      call getmem2d(aersrrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrrf')
+      call getmem2d(aertalwrf,jci1,jci2,ici1,ici2,'mod_che_common:aertalwrf')
+      call getmem2d(aersrlwrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrlwrf')
+      call getmem2d(aertarf,jci1,jci2,ici1,ici2,'mod_che_common:aertarf')
+    end if
   end subroutine  allocate_mod_rad_common
 
 end module mod_rad_common

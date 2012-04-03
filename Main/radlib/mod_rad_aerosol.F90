@@ -30,8 +30,7 @@ module mod_rad_aerosol
 !
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
   public :: tauxar , tauasc , gtota , ftota
-  public :: aersrrf , aertarf , aertrlw , aertalwrf , aersrlwrf
-  public :: aerasp , aerext , aerssa
+  public :: aertrlw
   public :: allocate_mod_rad_aerosol , aermix , aeroppt , aerout
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
@@ -42,7 +41,6 @@ module mod_rad_aerosol
 !
   real(dp) , parameter :: d10e5  = 1.0D+05
   real(dp) , parameter :: d10e4  = 1.0D+04
-  real(dp) , parameter :: nearone  = 0.99D+00
   real(dp) , parameter :: minimum_aerosol = 1.0D-14
   real(dp) , parameter :: minimum_utaer   = 1.0D-10
   real(dp) , parameter :: minimum_waer   = 1.0D-30
@@ -69,9 +67,6 @@ module mod_rad_aerosol
   real(dp) , dimension(nspi,4) :: gsdust , ksdust , wsdust
   real(dp) , dimension(nspi,2) :: gssslt , kssslt , wssslt
   !
-  real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
-  real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
-  real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
   real(dp) , dimension(8) :: rhp
 !
 ! Aerosol mass mixing ratio
@@ -81,10 +76,6 @@ module mod_rad_aerosol
 ! Background aerosol mass mixing ratio
 !
   real(dp) , pointer , dimension(:,:) :: aermmb
-!
-! Radiation level aerosol mass mixing ratio
-!
-  real(dp) , pointer , dimension(:,:,:) :: aermmr
 !
 ! Aerosol optical properties (for the mixing) 
 !
@@ -513,7 +504,6 @@ module mod_rad_aerosol
   subroutine allocate_mod_rad_aerosol(ichem)
     implicit none
     integer , intent(in) :: ichem
-    call getmem3d(aermm,jci1,jci2,ici1,ici2,1,kz,'aerosol:aermm')
     call getmem2d(aermmb,jci1,jci2,1,kz,'aerosol:aermmb')
     call getmem3d(ftota3d,jci1,jci2,0,kz,1,nspi,'aerosol:ftota3d')
     call getmem3d(gtota3d,jci1,jci2,0,kz,1,nspi,'aerosol:gtota3d')
@@ -526,15 +516,7 @@ module mod_rad_aerosol
     call getmem2d(aermtot,jci1,jci2,1,kz,'aerosol:aermtot')
     call getmem2d(aervtot,jci1,jci2,1,kz,'aerosol:aervtot')
     call getmem3d(aertrlw,jci1,jci2,1,kzp1,1,kzp1,'aerosol:aertrlw')
-    call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerasp')
-    call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerext')
-    call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerssa')
-    call getmem2d(aersrrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrrf')
-    call getmem2d(aertalwrf,jci1,jci2,ici1,ici2,'mod_che_common:aertalwrf')
-    call getmem2d(aersrlwrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrlwrf')
-    call getmem2d(aertarf,jci1,jci2,ici1,ici2,'mod_che_common:aertarf')
     if ( ichem == 1 ) then
-      call getmem3d(aermmr,jci1,jci2,1,kz,1,ntr,'aerosol:aermmr')
       call getmem3d(fa,jci1,jci2,0,kz,1,ntr,'aerosol:fa')
       call getmem3d(ga,jci1,jci2,0,kz,1,ntr,'aerosol:ga')
       call getmem3d(tx,jci1,jci2,0,kz,1,ntr,'aerosol:tx')
@@ -578,15 +560,13 @@ module mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 !
-  subroutine aermix(pint,rh,jstart,jend,i)
+  subroutine aermix(pint,jstart,jend)
 ! 
     implicit none
 !
-    integer , intent(in) :: i , jstart , jend
+    integer , intent(in) :: jstart , jend
 !   Radiation level interface pressures (dynes/cm2)
     real(dp) , intent(in) , pointer , dimension(:,:) :: pint
-!   Radiation level relative humidity (fraction)
-    real(dp) , intent(out) , pointer , dimension(:,:) :: rh
 !
 !-----------------------------------------------------------------------
 !
@@ -599,7 +579,7 @@ module mod_rad_aerosol
 !-----------------------------------------------------------------------
 ! 
     real(dp) :: gvis , kaervs , omgvis , rhfac , tauvis
-    integer :: j , itr , k , mxaerl
+    integer :: j , k , mxaerl
 !
     data kaervs /5.3012D0/        ! multiplication factor for kaer
     data omgvis /0.999999D0/
@@ -617,11 +597,6 @@ module mod_rad_aerosol
 !
     do k = 1 , kz
       do j = jstart , jend
- 
-!       July 13, 2000: needed for aerosols in radiation
-        rh(j,k) = dmin1(rhatms(j,i,k),nearone)
-!EES:   do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
-!       divided by RH.  rh is limited to .99 to avoid dividing by zero added
 !
 !       Define background aerosol
 !       Find constant aerosol mass mixing ratio for specified levels
@@ -631,14 +606,9 @@ module mod_rad_aerosol
         if ( k >= kz + 1 - mxaerl ) then
           aermmb(j,k) = egravgts * tauvis / &
                        (d10e4*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
-                       (pint(j,kzp1)-pint(j,kz + 1 - mxaerl)))
+                       (pint(j,kzp1)-pint(j,kzp1-mxaerl)))
         else
           aermmb(j,k) = d_zero
-        end if
-        if ( lchem ) then
-          do itr = 1 , ntr
-            aermmr(j,k,itr) = chspmix(j,i,k,itr)/psfps(j,i)
-          end do
         end if
       end do
     end do
@@ -647,7 +617,7 @@ module mod_rad_aerosol
 !
 ! SUBROUTINE AEROPPT
 !
-  subroutine aeroppt(rh,pint,jstart,jend)
+  subroutine aeroppt(rh,aermmr,pint,jstart,jend)
 !
     implicit none
 !
@@ -655,6 +625,7 @@ module mod_rad_aerosol
 !
     integer , intent(in) :: jstart , jend
     real(dp) , intent(in) , pointer , dimension(:,:) :: pint
+    real(dp) , intent(in) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , intent(in) , pointer , dimension(:,:) :: rh
 !
     integer :: j , l , ibin , jbin , itr , k , k1, k2 , ns
@@ -803,15 +774,19 @@ module mod_rad_aerosol
 !
 !     optical properties for the clear sky diagnostic
 !
-      do j = jstart , jend
-        do itr = 1 , ntr
-          do k = 1 , kz
+      do itr = 1 , ntr
+        do k = 1 , kz
+          do j = jstart , jend
             utaer(j,itr) = utaer(j,itr) + uaer(j,k,itr)
             tauaer(j,itr) = tauaer(j,itr) + tx(j,k,itr)
             waer(j,itr) = waer(j,itr) + wa(j,k,itr)*uaer(j,k,itr)
             gaer(j,itr) = gaer(j,itr) + ga(j,k,itr)*uaer(j,k,itr)
             faer(j,itr) = faer(j,itr) + fa(j,k,itr)*uaer(j,k,itr)
           end do
+        end do
+      end do
+      do itr = 1 , ntr
+        do j = jstart , jend
           if ( utaer(j,itr) <= minimum_utaer ) utaer(j,itr) = minimum_utaer
           waer(j,itr) = waer(j,itr)/utaer(j,itr)
           gaer(j,itr) = gaer(j,itr)/utaer(j,itr)
@@ -822,10 +797,10 @@ module mod_rad_aerosol
 !     Calculate the EXTERNAL Mixing of aerosols
 !     melange externe
 !
-      do j = jstart , jend
-        do itr = 1 , ntr
-!         only for climatic feedback allowed
-          do k = 0 , kz
+!     only for climatic feedback allowed
+      do itr = 1 , ntr
+        do k = 0 , kz
+          do j = jstart , jend
             tauxar3d(j,k,ns) = tauxar3d(j,k,ns) + tx(j,k,itr)
             tauasc3d(j,k,ns) = tauasc3d(j,k,ns) + tx(j,k,itr)*wa(j,k,itr)
             gtota3d(j,k,ns) = gtota3d(j,k,ns) + ga(j,k,itr) * &
@@ -833,10 +808,14 @@ module mod_rad_aerosol
             ftota3d(j,k,ns) = ftota3d(j,k,ns) + fa(j,k,itr) * &
                                 tx(j,k,itr)*wa(j,k,itr)
           end do
+        end do
+      end do
 !
-!         Clear sky (always calcuated if ichdir >=1 for
-!         diagnostic radiative forcing)
+!     Clear sky (always calcuated if ichdir >=1 for
+!     diagnostic radiative forcing)
 !
+      do itr = 1 , ntr
+        do j = jstart , jend
           tauxar(j,ns) = tauxar(j,ns) + tauaer(j,itr)
           if (waer(j,itr) > minimum_waer) then
             tauasc(j,ns) = tauasc(j,ns) + tauaer(j,itr)*waer(j,itr)
@@ -884,44 +863,5 @@ module mod_rad_aerosol
     end do
 !     
   end subroutine aeroppt
-!
-! SUBROUTINE AEROUT
-!
-  subroutine aerout(aeradfo,aeradfos,aerlwfo,aerlwfos,jstart,jend,i)
-!
-    implicit none
-!
-    integer , intent(in) :: i , jstart , jend
-    real(dp) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
-    intent (in) aeradfo , aeradfos, aerlwfo , aerlwfos
-!
-    real(dp) :: rntim
-    integer :: j , k
-! 
-    do k = 1 , kz
-      do j = jstart , jend
-        aerext(j,i,k) = tauxar3d(j,k,8)
-        aerssa(j,i,k) = tauasc3d(j,k,8)
-        aerasp(j,i,k) = gtota3d(j,k,8)
-      end do
-    end do
-!
-!   CARE :Average the radiative forcing between chem output time
-!   steps (in hour) according to radfrq (in min), aertarf is reset to
-!   0 at each chem output (cf output.f)
-!   (care cgs to mks after radiation scheme !)
-!
-    rntim = d_one/(d_1000*minph*chfrovrradfr)
-!
-!   aersol radative forcing
-!
-    do j = jstart , jend
-      aertarf(j,i)   = aertarf(j,i)   + aeradfo(j)  * rntim
-      aersrrf(j,i)   = aersrrf(j,i)   + aeradfos(j) * rntim
-      aertalwrf(j,i) = aertalwrf(j,i) + aerlwfo(j)  * rntim
-      aersrlwrf(j,i) = aersrlwrf(j,i) + aerlwfos(j) * rntim
-    end do
-! 
-  end subroutine aerout
 !
 end module mod_rad_aerosol

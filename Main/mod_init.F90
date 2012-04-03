@@ -228,7 +228,7 @@ module mod_init
     !
     ! Inizialize Ozone profiles
     !
-    call o3data(jci1,jci2,ici1,ici2)
+    call o3data
     if ( myid == 0 ) then
       write (6,*) 'ozone profiles'
       do k = 1 , kzp1

@@ -72,9 +72,8 @@ module mod_rad_o3blk
 !
 !----------------------------------------------------------------------
 !
-  subroutine o3data(jstart,jend,istart,iend)
+  subroutine o3data
   implicit none
-  integer , intent(in) :: istart , iend , jstart , jend
 !
   integer :: i , j , jj , k , kj
   real(dp) :: pb1 , pb2 , pt1 , pt2
@@ -98,8 +97,8 @@ module mod_rad_o3blk
   !
   ! calculate half pressure levels for model and data levels
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do k = kzp1 , 1 , -1
         kj = kzp1 - k + 1
         prlevh(kj) = (flev(k)*sfps(j,i)+ptp)*d_10

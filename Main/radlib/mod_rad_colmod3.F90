@@ -26,6 +26,7 @@ module mod_rad_colmod3
   use mod_rad_common
   use mod_rad_outrad
   use mod_rrtmg_driver
+  use mod_rad_aerosol
 !
   private
 !
@@ -36,22 +37,28 @@ module mod_rad_colmod3
 !   longwave absorption coeff (m**2/g)
 !
   real(dp) , parameter :: kabsl = 0.090361D0
+  real(dp) , parameter :: nearone  = 0.99D+00
 !
   real(dp) , pointer , dimension(:) :: alb , albc , &
-    flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
-    fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
-    sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci
+    flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
+    fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
+    sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci , xptrop , &
+    dlat
+  real(dp) , pointer , dimension(:) :: aeradfo , aeradfos
+  real(dp) , pointer , dimension(:) :: aerlwfo , aerlwfos
   real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
-    deltaz , tm1
+    deltaz , tm1 , rh1
+  real(dp) , pointer , dimension(:,:,:) :: aermmr
   logical , pointer , dimension(:,:) :: coszgt0
   integer , pointer , dimension(:) :: ioro
 !
   contains
 !
-    subroutine allocate_mod_rad_colmod3
+    subroutine allocate_mod_rad_colmod3(ichem)
       implicit none
+      integer , intent(in) :: ichem
       call getmem1d(alb,jci1,jci2,'colmod3:alb')
       call getmem1d(albc,jci1,jci2,'colmod3:albc')
       call getmem1d(flns,jci1,jci2,'colmod3:flns')
@@ -78,12 +85,15 @@ module mod_rad_colmod3
       call getmem1d(ps,jci1,jci2,'colmod3:ps')
       call getmem1d(ts,jci1,jci2,'colmod3:ts')
       call getmem1d(emsvt1,jci1,jci2,'colmod3:emsvt1')
+      call getmem1d(xptrop,jci1,jci2,'rad:xptrop')
+      call getmem1d(dlat,jci1,jci2,'rad:dlat')
 
       call getmem2d(cld,jci1,jci2,1,kzp1,'colmod3:cld')
       call getmem2d(effcld,jci1,jci2,1,kzp1,'colmod3:effcld')
       call getmem2d(pilnm1,jci1,jci2,1,kzp1,'colmod3:pilnm1')
       call getmem2d(pintm1,jci1,jci2,1,kzp1,'colmod3:pintm1')
 
+      call getmem2d(rh1,jci1,jci2,1,kz,'colmod3:rh1')
       call getmem2d(clwp,jci1,jci2,1,kz,'colmod3:clwp')
       call getmem2d(emis,jci1,jci2,1,kz,'colmod3:emis')
       call getmem2d(fice,jci1,jci2,1,kz,'colmod3:fice')
@@ -99,10 +109,18 @@ module mod_rad_colmod3
       call getmem2d(rel,jci1,jci2,1,kz,'colmod3:rel')
       call getmem2d(tm1,jci1,jci2,1,kz,'colmod3:tm1')
       call getmem2d(deltaz,jci1,jci2,1,kz,'colmod3:deltaz')
+      call getmem1d(aeradfo,jci1,jci2,'colmod3:aeradfo')
+      call getmem1d(aeradfos,jci1,jci2,'colmod3:aeradfos')
+      call getmem1d(aerlwfo,jci1,jci2,'colmod3:aerlwfo')
+      call getmem1d(aerlwfos,jci1,jci2,'colmod3:aerlwfos')
 
       call getmem1d(ioro,jci1,jci2,'colmod3:ioro')
-
       call getmem2d(coszgt0,jci1,jci2,ici1,ici2,'colmod3:coszgt0')
+
+      if ( ichem == 1 ) then
+        call getmem3d(aermmr,jci1,jci2,1,kz,1,ntr,'colmod3:aermmr')
+      end if
+
     end subroutine allocate_mod_rad_colmod3
 !
 !-----------------------------NOTICE------------------------------------
@@ -368,11 +386,12 @@ module mod_rad_colmod3
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
 !
-      call radctl(jstart,jend,i,ts,pmidm1,pintm1,pmlnm1,                  &
-                  pilnm1,tm1,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,  &
-                  rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,fsnsc, &
-                  flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,       &
-                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,coszgt0,labsem)
+      call radctl(jstart,jend,i,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1, &
+                  tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,    &
+                  rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,     &
+                  fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,   &
+                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,coszgt0,aeradfo,         &
+                  aeradfos,aerlwfo,aerlwfos,labsem)
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm radiation package
@@ -386,7 +405,8 @@ module mod_rad_colmod3
      call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,   &
                  qrs,flnt,flns,flntc,flnsc,qrl,flwds,sols,soll,    &
                  solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq, &
-                 totcf,totcl,totci,h2ommr,cld,clwp)
+                 totcf,totcl,totci,h2ommr,cld,clwp,aeradfo,        &
+                 aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
     end do
 !
     call time_end(subroutine_name,indx)
@@ -560,7 +580,7 @@ module mod_rad_colmod3
 !
     integer , intent(in) :: jstart , jend , i
 !
-    integer :: j , k , krev , ncldm1
+    integer :: j , k , itr , krev , ncldm1
     real(dp) :: ccvtem , clwtem
 !
     real(dp) , parameter :: amd = 28.9644D0
@@ -576,6 +596,13 @@ module mod_rad_colmod3
         emsvt1(j) = emsvt(j,i)
       end do
     end if
+!
+!   Static informations
+!
+    do j = jstart , jend
+      xptrop(j) = ptrop(j,i)
+      dlat(j) = dabs(xlat(j,i))
+    end do
 !
 !   surface pressure and scaled pressure, from which level are computed
 !
@@ -603,6 +630,7 @@ module mod_rad_colmod3
     do k = 1 , kz
       do j = jstart , jend
         tm1(j,k) = tatms(j,i,k)
+        rh1(j,k) = dmax1(dmin1(rhatms(j,i,k),nearone),d_zero)
       end do
     end do
 !
@@ -707,6 +735,16 @@ module mod_rad_colmod3
       end do
     end do
 !
+    if ( lchem ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
+          do j = jstart , jend
+            aermmr(j,k,itr) = chspmix(j,i,k,itr)/psfps(j,i)
+          end do
+        end do
+      end do
+    end if
+
     call time_end(subroutine_name,indx)
   end subroutine getdat
 !

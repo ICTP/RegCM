@@ -135,8 +135,10 @@
          ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
                     (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
                      ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
+         if ( ztdn(ikp) < 1.D-100 ) ztdn(ikp) = 0.0D0
          prdnd(ikp) = prefd(jk) + ptrad(jk) * ptrad(jk) * &
                       prdnd(jk) * zreflect
+         if ( prdnd(ikp) < 1.D-100 ) prdnd(ikp) = 0.0D0
       enddo
     
 ! Up and down-welling fluxes at levels

@@ -42,11 +42,12 @@ module mod_rad_outrad
     call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
-  subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,           &
-                    clrst,clrss,qrs,firtp,frla,clrlt,clrls,qrl,    &
-                    slwd,sols,soll,solsd,solld,alb,albc,    &
-                    fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci, &
-                    h2ommr,cld,clwp)
+  subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,            &
+                    clrst,clrss,qrs,firtp,frla,clrlt,clrls,qrl,     &
+                    slwd,sols,soll,solsd,solld,alb,albc,            &
+                    fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,  &
+                    h2ommr,cld,clwp,aeradfo,aeradfos,aerlwfo,       &
+                    aerlwfos,tauxar3d,tauasc3d,gtota3d)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -92,13 +93,17 @@ module mod_rad_outrad
                 fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,      &
                 solld , sols , solsd , totcf , totcl , totci
     real(dp) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
+    real(dp) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
+    real(dp) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
     intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&
                 clwp , firtp , frla , frsa , fsds , fsnirt ,      &
                 fsnirtsq , fsnrtc , h2ommr , qrl , qrs , sabtp ,  &
                 slwd , solin , soll , solld , sols , solsd ,      &
-                totcf , totcl , totci
+                totcf , totcl , totci , aeradfo , aeradfos,       &
+                aerlwfo , aerlwfos
 !
     integer :: j , k
+    real(dp) :: rntim
 !
 !   total heating rate in deg/s
 !
@@ -139,6 +144,22 @@ module mod_rad_outrad
       sollwdif(j,i) = solld(j)
 #endif
     end do
+    if ( lchem ) then
+      do k = 1 , kz
+        do j = jstart , jend
+          aerext(j,i,k) = tauxar3d(j,k,8)
+          aerssa(j,i,k) = tauasc3d(j,k,8)
+          aerasp(j,i,k) = gtota3d(j,k,8)
+        end do
+      end do
+      rntim = d_one/(d_1000*minph*chfrovrradfr)
+      do j = jstart , jend
+        aertarf(j,i)   = aertarf(j,i)   + aeradfo(j)  * rntim
+        aersrrf(j,i)   = aersrrf(j,i)   + aeradfos(j) * rntim
+        aertalwrf(j,i) = aertalwrf(j,i) + aerlwfo(j)  * rntim
+        aersrlwrf(j,i) = aersrlwrf(j,i) + aerlwfos(j) * rntim
+      end do
+    end if
 !
     if ( ifrad ) then
       if ( lout ) then

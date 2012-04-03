@@ -1,4 +1,3 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_spcvmc.f90,v $
 !     author:    $Author: mike $
 !     revision:  $Revision: 1.5 $
 !     created:   $Date: 2009/05/22 22:22:22 $
@@ -532,6 +531,7 @@
 
                zdbtc(jk) = zdbtmc
                ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
+               if (ztdbtc(jk+1) < 1.D-100) ztdbtc(jk+1) = 0.0D0
 
 ! Clear + Cloud
 !                zdbtmo = exp(-ztauo(jk) / prmu0)
@@ -549,6 +549,7 @@
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
                ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+               if (ztdbt(jk+1) < 1.D-100) ztdbt(jk+1) = 0.0D0
         
             enddo           
                  
