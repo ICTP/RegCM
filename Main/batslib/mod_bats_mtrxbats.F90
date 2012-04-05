@@ -203,10 +203,14 @@ module mod_bats_mtrxbats
 !   Zeng ocean flux model
     if ( iocnflx == 2 ) call zengocndrv(jstart,jend,istart,iend,ktau)
 
+!   Hostetler lake model for every BATS timestep at lake points
+    if ( llake ) then
+      call lakedrv(jstart,jend,istart,iend)
+    endif
+
 !   ROMS ocean model
     if ( iocncpl == 1 ) then
-!     update ground temperature in each coupling time step
-      if ((mod(ktau+1,ntcpl) == ntsrf2) .and. (ktau > ntcpl)) then 
+      if (ktau > ntcpl) then 
         if (myid == 0) then 
           print*, "[debug] -- updating fields with ROMS SST ..."
         end if
@@ -214,11 +218,6 @@ module mod_bats_mtrxbats
         call romsocndrv(jstart,jend,istart,iend)
       end if
     end if
-
-!   Hostetler lake model for every BATS timestep at lake points
-    if ( llake ) then
-      call lakedrv(jstart,jend,istart,iend)
-    endif
 
 !   Accumulate quantities for energy and moisture budgets
 

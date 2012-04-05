@@ -328,9 +328,6 @@
 !        call ROMS_run (tstr, tend)
 !      end if
 !
-      if (localPet == 0) then
-        print*, "** turuncu ** cpl_dtsec = ", cpl_dtsec
-      end if 
       call ROMS_run (DBLE(cpl_dtsec))
 !
 !-----------------------------------------------------------------------
