@@ -25,6 +25,17 @@ module mod_date
 
   private
 
+  integer(16) , parameter :: i16spw = 604800_16
+  integer(16) , parameter :: i16spd = 86400_16
+  integer(16) , parameter :: i16mpd = 1440_16
+  integer(16) , parameter :: i16hpd = 24_16
+  integer(16) , parameter :: i16sph = 3600_16
+  integer(16) , parameter :: i16spm = 60_16
+  integer(16) , parameter :: i16mph = 60_16
+  integer(16) , parameter :: i16mpy = 12_16
+  integer(16) , parameter :: i16mpc = 1200_16
+  integer(16) , parameter :: i16ypc = 100_16
+
   integer , public , parameter :: gregorian = 1
   integer , public , parameter :: noleap    = 2
   integer , public , parameter :: y360      = 3
@@ -51,7 +62,7 @@ module mod_date
   end type rcm_time_and_date
 
   type rcm_time_interval
-    integer(8) :: ival = 0
+    integer(16) :: ival = 0
     integer :: iunit = usec
   end type rcm_time_interval
 
@@ -471,7 +482,7 @@ module mod_date
   subroutine print_rcm_time_interval(x)
     implicit none
     type (rcm_time_interval) , intent(in) :: x
-    write (stdout,'(i10," ",a)') x%ival, trim(cintstr(x%iunit))
+    write (stdout,'(i16," ",a)') x%ival, trim(cintstr(x%iunit))
   end subroutine print_rcm_time_interval
 
   logical function isequaldt(x, y)
@@ -503,48 +514,48 @@ module mod_date
           case (usec)
             isequalit = ( x%ival == y%ival )
           case (umin)
-            isequalit = ( x%ival == y%ival*60 )
+            isequalit = ( x%ival == y%ival*i16spm )
           case (uhrs)
-            isequalit = ( x%ival == y%ival*3600 )
+            isequalit = ( x%ival == y%ival*i16sph )
           case (uday)
-            isequalit = ( x%ival == y%ival*86400 )
+            isequalit = ( x%ival == y%ival*i16spd )
           case default
             isequalit = .false.
         end select
       case (umin)
         select case (y%iunit)
           case (usec)
-            isequalit = ( x%ival == y%ival/60 )
+            isequalit = ( x%ival == y%ival/i16spm )
           case (umin)
             isequalit = ( x%ival == y%ival )
           case (uhrs)
-            isequalit = ( x%ival == y%ival*60 )
+            isequalit = ( x%ival == y%ival*i16mph )
           case (uday)
-            isequalit = ( x%ival == y%ival*1440 )
+            isequalit = ( x%ival == y%ival*i16mpd )
           case default
             isequalit = .false.
         end select
       case (uhrs)
         select case (y%iunit)
           case (usec)
-            isequalit = ( x%ival == y%ival/3600 )
+            isequalit = ( x%ival == y%ival/i16sph )
           case (umin)
-            isequalit = ( x%ival == y%ival/60 )
+            isequalit = ( x%ival == y%ival/i16mph )
           case (uhrs)
             isequalit = ( x%ival == y%ival )
           case (uday)
-            isequalit = ( x%ival == y%ival*24 )
+            isequalit = ( x%ival == y%ival*i16hpd )
           case default
             isequalit = .false.
         end select
       case (uday)
         select case (y%iunit)
           case (usec)
-            isequalit = ( x%ival == y%ival/86400 )
+            isequalit = ( x%ival == y%ival/i16spd )
           case (umin)
-            isequalit = ( x%ival == y%ival/1440 )
+            isequalit = ( x%ival == y%ival/i16mpd )
           case (uhrs)
-            isequalit = ( x%ival == y%ival*24 )
+            isequalit = ( x%ival == y%ival*i16hpd )
           case (uday)
             isequalit = ( x%ival == y%ival )
           case default
@@ -555,29 +566,29 @@ module mod_date
           case (umnt)
             isequalit = ( x%ival == y%ival )
           case (uyrs)
-            isequalit = ( x%ival == y%ival*12 )
+            isequalit = ( x%ival == y%ival*i16mpy )
           case (ucnt)
-            isequalit = ( x%ival == y%ival*1200 )
+            isequalit = ( x%ival == y%ival*i16mpc )
           case default
             isequalit = .false.
         end select
       case (uyrs)
         select case (y%iunit)
           case (umnt)
-            isequalit = ( x%ival == y%ival*12 )
+            isequalit = ( x%ival == y%ival*i16mpy )
           case (uyrs)
             isequalit = ( x%ival == y%ival )
           case (ucnt)
-            isequalit = ( x%ival == y%ival*100 )
+            isequalit = ( x%ival == y%ival*i16ypc )
           case default
             isequalit = .false.
         end select
       case (ucnt)
         select case (y%iunit)
           case (umnt)
-            isequalit = ( x%ival == y%ival*1200 )
+            isequalit = ( x%ival == y%ival*i16mpc )
           case (uyrs)
-            isequalit = ( x%ival == y%ival*100 )
+            isequalit = ( x%ival == y%ival*i16ypc )
           case (ucnt)
             isequalit = ( x%ival == y%ival )
           case default
@@ -784,8 +795,8 @@ module mod_date
     type (rcm_time_interval) :: z
     call check_cal(x,y)
     z%iunit = usec
-    z%ival = (x%second_of_day-y%second_of_day) +  &
-             (x%days_from_reference-y%days_from_reference)*86400
+    z%ival = (x%second_of_day-y%second_of_day) + &
+             (x%days_from_reference-y%days_from_reference)*i16spd
   end function diffdate
 
   function sub_interval(x,y) result (z)
@@ -959,7 +970,7 @@ module mod_date
     type (rcm_time_interval) :: z
     call check_cal(x,y)
     z = x - y
-    iwk = int(z%ival/604800) + 1
+    iwk = int(z%ival/i16spw) + 1
   end function iwkdiff
 
   function monfirst(x) result(mf)
@@ -1068,6 +1079,7 @@ module mod_date
     type (rcm_time_and_date) :: dd
     type (rcm_time_interval) :: z , zz
     character(64) , save :: csave
+    character(16) :: safeccal
     integer , save :: iunit
     type (rcm_time_and_date) , save :: dref
     character(12) :: cdum
@@ -1079,6 +1091,8 @@ module mod_date
     t%hour = 0
     t%minute = 0
     t%second = 0
+
+    safeccal = ccal
 
     if (csave == cunit) then
       z = idint(xval)
@@ -1152,11 +1166,12 @@ module mod_date
         end if
         iunit = uday
       end if
-      if ( ccal(1:6) == 'noleap' .or.   &
-           ccal(1:8) == 'days_365' .or. &
-           ccal(1:7) == '365_day' ) then
+
+      if ( safeccal(1:6) == 'noleap' .or.   &
+           safeccal(1:8) == 'days_365' .or. &
+           safeccal(1:7) == '365_day' ) then
         d%calendar = noleap
-      else if (ccal(1:7) == '360_day') then
+      else if (safeccal(1:7) == '360_day') then
         d%calendar = y360
       else
         d%calendar = gregorian
@@ -1184,48 +1199,48 @@ module mod_date
           case (usec)
             interval_greater = ( x%ival > y%ival )
           case (umin)
-            interval_greater = ( x%ival > y%ival*60 )
+            interval_greater = ( x%ival > y%ival*i16spm )
           case (uhrs)
-            interval_greater = ( x%ival > y%ival*3600 )
+            interval_greater = ( x%ival > y%ival*i16sph )
           case (uday)
-            interval_greater = ( x%ival > y%ival*86400 )
+            interval_greater = ( x%ival > y%ival*i16spd )
           case default
             interval_greater = .false.
         end select
       case (umin)
         select case (y%iunit)
           case (usec)
-            interval_greater = (y%ival > 60) .and. ( x%ival > y%ival/60 )
+            interval_greater = (y%ival > i16sph) .and. ( x%ival > y%ival/i16sph )
           case (umin)
             interval_greater = ( x%ival > y%ival )
           case (uhrs)
-            interval_greater = ( x%ival > y%ival*60 )
+            interval_greater = ( x%ival > y%ival*i16mph )
           case (uday)
-            interval_greater = ( x%ival > y%ival*1440 )
+            interval_greater = ( x%ival > y%ival*i16mpd )
           case default
             interval_greater = .false.
         end select
       case (uhrs)
         select case (y%iunit)
           case (usec)
-            interval_greater = (y%ival > 3600) .and. ( x%ival > y%ival/3600 )
+            interval_greater = (y%ival > i16sph) .and. ( x%ival > y%ival/i16sph )
           case (umin)
-            interval_greater = (y%ival > 60) .and. ( x%ival > y%ival/60 )
+            interval_greater = (y%ival > i16mph) .and. ( x%ival > y%ival/i16mph )
           case (uhrs)
             interval_greater = ( x%ival > y%ival )
           case (uday)
-            interval_greater = ( x%ival > y%ival*24 )
+            interval_greater = ( x%ival > y%ival*i16hpd )
           case default
             interval_greater = .false.
         end select
       case (uday)
         select case (y%iunit)
           case (usec)
-            interval_greater = (y%ival > 86400) .and. ( x%ival > y%ival/86400 )
+            interval_greater = (y%ival > i16spd) .and. ( x%ival > y%ival/i16spd )
           case (umin)
-            interval_greater = (y%ival > 1440) .and. ( x%ival > y%ival/1440 )
+            interval_greater = (y%ival > i16mpd) .and. ( x%ival > y%ival/i16mpd )
           case (uhrs)
-            interval_greater = (y%ival > 24) .and. ( x%ival > y%ival/24 )
+            interval_greater = (y%ival > i16hpd) .and. ( x%ival > y%ival/i16hpd )
           case (uday)
             interval_greater = ( x%ival > y%ival )
           case default
@@ -1236,29 +1251,29 @@ module mod_date
           case (umnt)
             interval_greater = ( x%ival > y%ival )
           case (uyrs)
-            interval_greater = ( x%ival > y%ival*12 )
+            interval_greater = ( x%ival > y%ival*i16mpy )
           case (ucnt)
-            interval_greater = ( x%ival > y%ival*1200 )
+            interval_greater = ( x%ival > y%ival*i16mpc )
           case default
             interval_greater = .false.
         end select
       case (uyrs)
         select case (y%iunit)
           case (umnt)
-            interval_greater = ( x%ival > y%ival*12 )
+            interval_greater = ( x%ival > y%ival*i16mpy )
           case (uyrs)
             interval_greater = ( x%ival > y%ival )
           case (ucnt)
-            interval_greater = ( x%ival > y%ival*100 )
+            interval_greater = ( x%ival > y%ival*i16ypc )
           case default
             interval_greater = .false.
         end select
       case (ucnt)
         select case (y%iunit)
           case (umnt)
-            interval_greater = ( x%ival > y%ival*1200 )
+            interval_greater = ( x%ival > y%ival*i16mpc )
           case (uyrs)
-            interval_greater = ( x%ival > y%ival*100 )
+            interval_greater = ( x%ival > y%ival*i16ypc )
           case (ucnt)
             interval_greater = ( x%ival == y%ival )
           case default
@@ -1279,48 +1294,48 @@ module mod_date
           case (usec)
             interval_less = ( x%ival < y%ival )
           case (umin)
-            interval_less = ( x%ival < y%ival*60 )
+            interval_less = ( x%ival < y%ival*i16spm )
           case (uhrs)
-            interval_less = ( x%ival < y%ival*3600 )
+            interval_less = ( x%ival < y%ival*i16sph )
           case (uday)
-            interval_less = ( x%ival < y%ival*86400 )
+            interval_less = ( x%ival < y%ival*i16spd )
           case default
             interval_less = .false.
         end select
       case (umin)
         select case (y%iunit)
           case (usec)
-            interval_less = (y%ival > 60) .and. ( x%ival < y%ival/60 )
+            interval_less = (y%ival > i16spm) .and. ( x%ival < y%ival/i16spm )
           case (umin)
             interval_less = ( x%ival < y%ival )
           case (uhrs)
-            interval_less = ( x%ival < y%ival*60 )
+            interval_less = ( x%ival < y%ival*i16mph )
           case (uday)
-            interval_less = ( x%ival < y%ival*1440 )
+            interval_less = ( x%ival < y%ival*i16mpd )
           case default
             interval_less = .false.
         end select
       case (uhrs)
         select case (y%iunit)
           case (usec)
-            interval_less = (y%ival > 3600) .and. ( x%ival < y%ival/3600 )
+            interval_less = (y%ival > i16sph) .and. ( x%ival < y%ival/i16sph )
           case (umin)
-            interval_less = (y%ival > 60) .and. ( x%ival < y%ival/60 )
+            interval_less = (y%ival > i16mph) .and. ( x%ival < y%ival/i16mph )
           case (uhrs)
             interval_less = ( x%ival < y%ival )
           case (uday)
-            interval_less = ( x%ival < y%ival*24 )
+            interval_less = ( x%ival < y%ival*i16hpd )
           case default
             interval_less = .false.
         end select
       case (uday)
         select case (y%iunit)
           case (usec)
-            interval_less = (y%ival > 86400) .and. ( x%ival < y%ival/86400 )
+            interval_less = (y%ival > i16spd) .and. ( x%ival < y%ival/i16spd )
           case (umin)
-            interval_less = (y%ival > 1440) .and. ( x%ival < y%ival/1440 )
+            interval_less = (y%ival > i16mpd) .and. ( x%ival < y%ival/i16mpd )
           case (uhrs)
-            interval_less = (y%ival > 24) .and. ( x%ival < y%ival/24 )
+            interval_less = (y%ival > i16hpd) .and. ( x%ival < y%ival/i16hpd )
           case (uday)
             interval_less = ( x%ival < y%ival )
           case default
@@ -1331,29 +1346,29 @@ module mod_date
           case (umnt)
             interval_less = ( x%ival < y%ival )
           case (uyrs)
-            interval_less = ( x%ival < y%ival*12 )
+            interval_less = ( x%ival < y%ival*i16mpy )
           case (ucnt)
-            interval_less = ( x%ival < y%ival*1200 )
+            interval_less = ( x%ival < y%ival*i16mpc )
           case default
             interval_less = .false.
         end select
       case (uyrs)
         select case (y%iunit)
           case (umnt)
-            interval_less = ( x%ival < y%ival*12 )
+            interval_less = ( x%ival < y%ival*i16mpy )
           case (uyrs)
             interval_less = ( x%ival < y%ival )
           case (ucnt)
-            interval_less = ( x%ival < y%ival*100 )
+            interval_less = ( x%ival < y%ival*i16ypc )
           case default
             interval_less = .false.
         end select
       case (ucnt)
         select case (y%iunit)
           case (umnt)
-            interval_less = ( x%ival < y%ival*1200 )
+            interval_less = ( x%ival < y%ival*i16mpc )
           case (uyrs)
-            interval_less = ( x%ival < y%ival*100 )
+            interval_less = ( x%ival < y%ival*i16ypc )
           case (ucnt)
             interval_less = ( x%ival == y%ival )
           case default
