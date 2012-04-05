@@ -19,7 +19,9 @@
 
 AC_INIT([RegCM], [5.0], [regcm-developer@eforge.escience-lab.org])
 
-AC_SUBST([PACKAGE_URL], ["https://eforge.escience-lab.org/gf/project/regcm"])
+AC_SUBST([PACKAGE_URL], ["https://gforge.ictp.it/gf/project/regcm"])
+
+AC_PREREQ([2.68])
 
 LT_INIT
 
@@ -335,7 +337,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xgfortran"; then
-    FCFLAGS="-O3 $FCFLAGS"
+    FCFLAGS="-O3 -mtune=native $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xifort"; then
