@@ -42,7 +42,7 @@ module mod_rrtmg_driver
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
   real(dp) , pointer , dimension(:) :: solin , frsa , sabtp , clrst , &
-         clrss , firtp , frla , clrlt , clrls , empty1 , &
+         clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,  &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
          asdif , aldir , aldif , czen , dlat , xptrop
 
@@ -114,10 +114,12 @@ module mod_rrtmg_driver
     call getmem2d(clwp_int,jci1,jci2,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,jci1,jci2,1,kz,'rrtmg:cld_int')
     call getmem2d(empty2,jci1,jci2,1,kz,'rrtmg:empty2')
-    call getmem1d(aeradfo,jci1,jci2,'colmod3:aeradfo')
-    call getmem1d(aeradfos,jci1,jci2,'colmod3:aeradfos')
-    call getmem1d(aerlwfo,jci1,jci2,'colmod3:aerlwfo')
-    call getmem1d(aerlwfos,jci1,jci2,'colmod3:aerlwfos')
+    call getmem1d(aeradfo,jci1,jci2,'rrtmg:aeradfo')
+    call getmem1d(aeradfos,jci1,jci2,'rrtmg:aeradfos')
+    call getmem1d(aerlwfo,jci1,jci2,'rrtmg:aerlwfo')
+    call getmem1d(aerlwfos,jci1,jci2,'rrtmg:aerlwfos')
+    call getmem1d(abv,jci1,jci2,'rrtmg:abv')
+    call getmem1d(sol,jci1,jci2,'rrtmg:sol')
 
     call getmem1d(tsfc,1,npj,'rrtmg:tsfc')
     call getmem1d(psfc,1,npj,'rrtmg:psfc')
@@ -368,9 +370,9 @@ module mod_rrtmg_driver
       ! coupling with BATS
       !  abveg set to frsa (as in standard version : potential inconsistency
       !  if soil fraction is large)
-      abveg(jstart:jend,i) = frsa(:) 
+      abv(jstart:jend) = frsa(:) 
       ! solar is normally the visible band only total incident surface flux
-      solar(jstart:jend,i) = swdvisflx(:,1)
+      sol(jstart:jend) = swdvisflx(:,1)
       ! surface SW incident
       sols(jstart:jend) =  swddiruviflx(:,1)
       solsd(jstart:jend) =  swddifuviflx(:,1)
@@ -398,7 +400,7 @@ module mod_rrtmg_driver
                   clrst,clrss,qrs,firtp,frla,clrlt,clrls,qrl,slwd, &
                   sols,soll,solsd,solld,empty1,empty1,empty1, &
                   empty1,empty1,empty1,empty1,empty1,empty1,empty2, &
-                  cld_int,clwp_int,aeradfo,aeradfos,aerlwfo, &
+                  cld_int,clwp_int,abv,sol,aeradfo,aeradfos,aerlwfo, &
                   aerlwfos,tauxar3d,tauasc3d,gtota3d)
       !
     end do

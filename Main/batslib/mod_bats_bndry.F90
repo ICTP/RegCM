@@ -80,9 +80,8 @@ module mod_bats_bndry
 !
 !  ** note: water and soil parameters are in mm
 !
-  subroutine bndry(jstart,jend,istart,iend)
+  subroutine bndry
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: fact , qsatd , rai
     integer :: n , i , j
@@ -96,8 +95,8 @@ module mod_bats_bndry
     !   1.   initialize
     !=======================================================================
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
    
           htvp(n,j,i) = wlhv
@@ -137,17 +136,17 @@ module mod_bats_bndry
     !   2.  calculate transfer coefficients at layer 1
     !=======================================================================
     ! 2.1  sigf corrected in drag: remove snow-covered veg
-    call dragc(jstart,jend,istart,iend)
+    call dragc
     ! 2.2  get saturation vapor pressure of soil surface
-    call satur(jstart,jend,istart,iend,qgrd,tgrd,sfcp)
+    call satur(qgrd,tgrd,sfcp)
    
 !=======================================================================
 !   3.   bare land
 !=======================================================================
 !   3.1  get derivative of fluxes with repect to tg
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) <= minsigf .and. ldmsk1(n,j,i) /= 2 ) then
@@ -178,8 +177,8 @@ module mod_bats_bndry
       end do
     end do
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then   !  check each point
@@ -196,31 +195,31 @@ module mod_bats_bndry
     end do
 !
 !   4.2  distribute excess leaf water to soil
-    call vcover(jstart,jend,istart,iend)
-    call drip(jstart,jend,istart,iend)
+    call vcover
+    call drip
 !
 !   4.3  calculate canopy temperature, soil and total fluxes,
 !   and leaf water change by evapotranspiration
-    call lftemp(jstart,jend,istart,iend)
+    call lftemp
 !
 !   4.4  calculate carbon sources and sinks
-!   call co2(jstart,jend,istart,iend)
+!   call co2
 !=======================================================================
 !   5.   back to any surface but ocean
 !=======================================================================
 !
 !   5.1  over sea ice
-    call tseaice(jstart,jend,istart,iend)
+    call tseaice
 !
 !   5.2  over land, calculate soil temp and surface hydrology
-    call tgrund(jstart,jend,istart,iend)
-    call snow(jstart,jend,istart,iend)
-    call water(jstart,jend,istart,iend)
+    call tgrund
+    call snow
+    call water
     !
     ! 5.3  over ocean
 !   set snow cover to zero in case it was previously sea ice
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 0 ) then
             sncv(n,j,i) = d_zero
@@ -234,8 +233,8 @@ module mod_bats_bndry
     !   6.   linkage to meteorological model
     !=======================================================================
  
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 0 .or. &
                lveg(n,j,i) == 14 .or. lveg(n,j,i) == 15 ) then
@@ -275,17 +274,16 @@ module mod_bats_bndry
 !     depends on climate through subsoil temperatures.
 !=======================================================================
 !
-  subroutine vcover(jstart,jend,istart,iend)
+  subroutine vcover
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer :: n , i , j
     character (len=64) :: subroutine_name='vcover'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
@@ -297,8 +295,8 @@ module mod_bats_bndry
       end do
     end do
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
@@ -323,17 +321,16 @@ module mod_bats_bndry
 !     leaf water is reset to its maximum value.
 !=======================================================================
 !
-  subroutine drip(jstart,jend,istart,iend)
+  subroutine drip
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer :: n , i , j
     character (len=64) :: subroutine_name='drip'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
@@ -371,9 +368,8 @@ module mod_bats_bndry
 !
 !=======================================================================
 !
-  subroutine tseaice(jstart,jend,istart,iend)
+  subroutine tseaice
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
                 rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss , wtt
@@ -383,8 +379,8 @@ module mod_bats_bndry
 !
     call time_begin(subroutine_name,idindx)
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           ! lake model handles this case
           if ( llake .and. iveg1(n,j,i) == 14 ) exit
@@ -506,9 +502,8 @@ module mod_bats_bndry
 !          negative runoff keeps this land saturated.
 !=======================================================================
 !
-  subroutine water(jstart,jend,istart,iend)
+  subroutine water
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                evmxt , rap , vakb , wtg2c , xxkb
@@ -522,8 +517,8 @@ module mod_bats_bndry
     !   1.   define soil water fluxes
     !=======================================================================
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             !
@@ -588,8 +583,8 @@ module mod_bats_bndry
     !
     ! 1.5  net flux at air interface
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             gwatr(n,j,i) = pw(n,j,i) - evapw(n,j,i) + &
@@ -664,8 +659,8 @@ module mod_bats_bndry
       end do
     end do
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             !
@@ -728,8 +723,8 @@ module mod_bats_bndry
     !        wetness factor, allowing for snow being saturated
     !=======================================================================
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             xxkb = dmin1(rough(lveg(n,j,i)),d_one)
@@ -774,9 +769,8 @@ module mod_bats_bndry
 !
 !=======================================================================
 !
-  subroutine snow(jstart,jend,istart,iend)
+  subroutine snow
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
     integer :: n , i , j
@@ -792,8 +786,8 @@ module mod_bats_bndry
     !   1.   partition soil evaporation and precipitation
     !        between water and snow
     !=======================================================================
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             evapw(n,j,i) = fevpg(n,j,i)
@@ -820,8 +814,8 @@ module mod_bats_bndry
     !   2.   update snow cover
     !=======================================================================
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             sold(n,j,i) = sncv(n,j,i)
@@ -892,9 +886,8 @@ module mod_bats_bndry
 !     skd,ska= diurnal and annual thermal diffusivities
 !=======================================================================
 !
-  subroutine tgrund(jstart,jend,istart,iend)
+  subroutine tgrund
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
              depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,  &
              tbef , tg , tinc , wtas , wtax , wtd , wtds
@@ -921,8 +914,8 @@ module mod_bats_bndry
     dtimea = dtbat*xnua
     xdt2 = d_half*xdtime
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             ! 1.1  frozen ground values using 44 m2/yr for frozen ground
@@ -1029,8 +1022,8 @@ module mod_bats_bndry
     !   3.   update soil temperatures
     !=======================================================================
     !   3.1  update surface soil temperature
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
             tbef = tgrd(n,j,i)

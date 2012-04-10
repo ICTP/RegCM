@@ -493,7 +493,7 @@ module mod_init
   ! Initialize the BATS variable (Used also by CLM)
   !
   if ( ktau == 0 ) then
-    call initb(jci1,jci2,ici1,ici2)
+    call initb
     !
 #ifndef CLM
     if ( lakemod == 1 ) then

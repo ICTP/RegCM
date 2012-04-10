@@ -178,13 +178,12 @@ module mod_cu_grell
     ae(2) = be(2)*rtzero + alsixt
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan(jstart,jend,istart,iend,ktau)
+  subroutine cuparan(ktau)
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: pkdcut , pkk , prainx , us , vs
@@ -292,8 +291,8 @@ module mod_cu_grell
     xqkb(:,:) = d_zero
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           kk = kz - k + 1
           jp1 = j + 1
           us = (puatm(j,i,kk)/sfcps(j,i)+       &
@@ -328,13 +327,13 @@ module mod_cu_grell
 !
 !   call cumulus parameterization
 !
-    call cup(jstart,jend,istart,iend)
+    call cup
 !
 !   return cumulus parameterization
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( pret(j,i) > d_zero ) then
             kk = kz - k + 1
             tten(j,i,kk) = sfcps(j,i)*outt(j,i,k) + tten(j,i,kk)
@@ -347,8 +346,8 @@ module mod_cu_grell
 !   rain in cm.
 !
     total_precip_points = 0
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         prainx = pret(j,i)*dtmdl
         if ( prainx > dlowval ) then
           rainc(j,i) = rainc(j,i) + prainx
@@ -367,13 +366,11 @@ module mod_cu_grell
 !
 !   GRELL CUMULUS SCHEME
 !
-  subroutine cup(jstart,jend,istart,iend)
+  subroutine cup
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     implicit none
-!
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
@@ -395,8 +392,8 @@ module mod_cu_grell
 !   environmental conditions, first heights
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           iph = 1
           ipho = 1
           if ( t(j,i,k) <= tcrit ) iph = 2
@@ -415,8 +412,8 @@ module mod_cu_grell
       end do
     end do
 
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( qcrit(j,i) <= d_zero ) then
           xac(j,i) = -d_one
         end if
@@ -433,8 +430,8 @@ module mod_cu_grell
     end do
 
     do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           tvbar = d_half*(tv(j,i,k)+tv(j,i,k-1))
           z(j,i,k) = z(j,i,k-1) - &
                (dlog(p(j,i,k))-dlog(p(j,i,k-1)))*rgas*tvbar*regrav
@@ -448,8 +445,8 @@ module mod_cu_grell
 !   moist static energy
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           he(j,i,k) = egrav*z(j,i,k) + cpd*t(j,i,k) + wlhv*q(j,i,k)
           hes(j,i,k) = egrav*z(j,i,k) + cpd*t(j,i,k) + wlhv*qes(j,i,k)
           if ( he(j,i,k) >= hes(j,i,k) ) he(j,i,k) = hes(j,i,k)
@@ -467,10 +464,10 @@ module mod_cu_grell
 !
 !   determine level with highest moist static energy content.
 !
-    call maximi2(he,1,kbmax2d,k22,jstart,jend,istart,iend)
+    call maximi2(he,1,kbmax2d,k22)
 
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( k22(j,i) >= kbmax2d(j,i) ) then
             xac(j,i) = -d_one
@@ -488,8 +485,8 @@ module mod_cu_grell
 !
 !   decide for convective cloud base
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           do k = 1 , kdet(j,i)
             kk = kdet(j,i) - k + 1
@@ -555,15 +552,15 @@ module mod_cu_grell
 !
 !   downdraft originating level
 !
-    call minimi(he,kb,kz,kmin,jstart,jend,istart,iend)
-    call maximi1(vsp,1,kz,kds,jstart,jend,istart,iend)
+    call minimi(he,kb,kz,kmin)
+    call maximi1(vsp,1,kz,kds)
 !
 !   static control
 !
 !   determine cloud top
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= 0 ) then
           if ( kmin(j,i) <= 3 ) then
             xac(j,i) = -d_one
@@ -577,8 +574,8 @@ module mod_cu_grell
       end do
     end do
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             dby(j,i,k) = hkb(j,i) - d_half*(hes(j,i,k)+hes(j,i,k+1))
             dbyo(j,i,k) = hkbo(j,i) - d_half*(heso(j,i,k)+heso(j,i,k+1))
@@ -586,8 +583,8 @@ module mod_cu_grell
         end do
       end do
     end do
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           do k = 2 , kz - kbcon(j,i) - 1
             kk = kz - k + 1
@@ -611,8 +608,8 @@ module mod_cu_grell
 !   moisture and cloud work functions
 !
     do k = 2 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             if ( k > kbcon(j,i) ) then
               if ( k < ktop(j,i) ) then
@@ -652,8 +649,8 @@ module mod_cu_grell
       end do
     end do
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           k = ktop(j,i)
           dz = d_half*(z(j,i,k)-z(j,i,k-1))
@@ -678,8 +675,8 @@ module mod_cu_grell
 !   determine downdraft strength in terms of windshear
 !
     do kk = 1 , kz/2
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             vshear(j,i) = vshear(j,i) + &
                  dabs((vsp(j,i,kk+1)-vsp(j,i,kk))/(z(j,i,kk+1)-z(j,i,kk)))
@@ -687,8 +684,8 @@ module mod_cu_grell
         end do
       end do
     end do
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           vshear(j,i) = d_1000*vshear(j,i)/dble(kz/2)
           edt(j,i) = d_one - &
@@ -712,8 +709,8 @@ module mod_cu_grell
       end do
     end do
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             if ( k < kmin(j,i) ) then
               kk = kmin(j,i) - k
@@ -746,8 +743,8 @@ module mod_cu_grell
       end do
     end do
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           if ( bu(j,i) >= d_zero .or. buo(j,i) >= d_zero .or. &
             pwcev(j,i) >= d_zero .or. pwcevo(j,i) >= d_zero ) then
@@ -765,8 +762,8 @@ module mod_cu_grell
 !
 !   what would the change be?
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           k = 1
           dz = d_half*(z(j,i,2)-z(j,i,1))
@@ -785,8 +782,8 @@ module mod_cu_grell
     end do
 !
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             if ( k /= 1 .and. k < ktop(j,i) ) then
               dv1 = d_half*(he(j,i,k)+he(j,i,k+1))
@@ -830,8 +827,8 @@ module mod_cu_grell
 !
 !   cloud top
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           lpt = ktop(j,i)
           dp_s = d_100*(p(j,i,lpt-1)-p(j,i,lpt))
@@ -855,8 +852,8 @@ module mod_cu_grell
 !   environmental conditions, first heights
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             iph = 1
             if ( xt(j,i,k) <= tcrit ) iph = 2
@@ -871,8 +868,8 @@ module mod_cu_grell
     end do
 !   bug fix
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             xqrcd(j,i,k) = d_half*(xqes(j,i,k)+xqes(j,i,k+1))
           end if
@@ -880,8 +877,8 @@ module mod_cu_grell
       end do
     end do
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           xz(j,i,1) = ter11(j,i) - &
               (dlog(p(j,i,1))-dlog(psur(j,i)))*rgas*xtv(j,i,1)*regrav
@@ -889,8 +886,8 @@ module mod_cu_grell
        end do
     end do
     do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             tvbar = d_half*(xtv(j,i,k)+xtv(j,i,k-1))
             xz(j,i,k) = xz(j,i,k-1) - &
@@ -903,8 +900,8 @@ module mod_cu_grell
 !   moist static energy
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) > xacact ) then
             xhes(j,i,k) = egrav*xz(j,i,k) + cpd*xt(j,i,k) + wlhv*xqes(j,i,k)
             if ( xhe(j,i,k) >= xhes(j,i,k) ) xhe(j,i,k) = xhes(j,i,k)
@@ -915,8 +912,8 @@ module mod_cu_grell
 !
 !   static control
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
           xqck(j,i) = xqkb(j,i)
           xdby(j,i,kz) = xhkb(j,i) - xhes(j,i,kz)
@@ -927,8 +924,8 @@ module mod_cu_grell
 !   moisture and cloud work functions
 !
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) >= d_zero ) then
             xdby(j,i,k) = xhkb(j,i) - d_half*(xhes(j,i,k)+xhes(j,i,k+1))
             if ( k > kbcon(j,i) .and. k < ktop(j,i) ) then
@@ -951,8 +948,8 @@ module mod_cu_grell
         end do
       end do
     end do
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           k = ktop(j,i)
           dz = d_half*(xz(j,i,k)-xz(j,i,k-1))
@@ -975,8 +972,8 @@ module mod_cu_grell
 !   downdraft moisture properties
 !
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) >= d_zero ) then
             if ( k < kmin(j,i) ) then
               kk = kmin(j,i) - k
@@ -996,8 +993,8 @@ module mod_cu_grell
         end do
       end do
     end do
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( bu(j,i) >= d_zero ) then
             xac(j,i) = -d_one
@@ -1019,8 +1016,8 @@ module mod_cu_grell
 !   downdraft cloudwork functions
 !
     do k = 1 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) >= d_zero ) then
             if ( k < kmin(j,i) ) then
               kk = kmin(j,i) - k
@@ -1071,8 +1068,8 @@ module mod_cu_grell
 !
 !   large scale forcing
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( igcc == 1 ) then
             f = (xao(j,i)-xac(j,i))/dtcum ! Arakawa-Schubert closure
@@ -1091,8 +1088,8 @@ module mod_cu_grell
 !   feedback
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( xac(j,i) >= d_zero ) then
             if ( k <= ktop(j,i) ) then
               outtes = dellat(j,i,k)*xmb(j,i)*secpd
@@ -1113,8 +1110,8 @@ module mod_cu_grell
 !
 !   calculate cloud fraction and water content
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         icumtop(j,i) = 0
         icumbot(j,i) = 0
         icumdwd(j,i) = 0
@@ -1148,11 +1145,11 @@ module mod_cu_grell
 
     contains
 !
-     subroutine minimi(array,ks,ke,kt,jstart,jend,istart,iend)
+     subroutine minimi(array,ks,ke,kt)
 !
        implicit none
 !
-      integer , intent (in) :: jstart , jend , istart , iend , ke
+       integer , intent (in) :: ke
        real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
        integer , intent(in) , pointer , dimension(:,:) :: ks
        integer , intent(out) , pointer , dimension(:,:) :: kt
@@ -1164,8 +1161,8 @@ module mod_cu_grell
 !
        call time_begin(subroutine_name,idindx)
 !
-       do i = istart , iend
-         do j = jstart , jend
+       do i = ici1 , ici2
+         do j = jci1 , jci2
            kt(j,i) = ks(j,i)
            x = array(j,i,ks(j,i))
            do k = ks(j,i) + 1 , ke
@@ -1179,11 +1176,11 @@ module mod_cu_grell
        call time_end(subroutine_name,idindx) 
      end subroutine minimi
 !
-     subroutine maximi1(array,ks,ke,imax,jstart,jend,istart,iend)
+     subroutine maximi1(array,ks,ke,imax)
 !
       implicit none
 !
-      integer , intent (in) :: jstart , jend , istart , iend , ks , ke
+      integer , intent (in) :: ks , ke
       real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
       integer , intent(out) , pointer , dimension(:,:) :: imax
 !
@@ -1194,8 +1191,8 @@ module mod_cu_grell
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           imax(j,i) = ks
           x = array(j,i,ks)
           do k = ks , ke
@@ -1211,11 +1208,11 @@ module mod_cu_grell
       call time_end(subroutine_name,idindx) 
     end subroutine maximi1
 
-     subroutine maximi2(array,ks,ke,imax,jstart,jend,istart,iend)
+     subroutine maximi2(array,ks,ke,imax)
 !
       implicit none
 !
-      integer , intent (in) :: jstart , jend , istart , iend , ks
+      integer , intent (in) :: ks
       real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
       integer , intent(in) , pointer , dimension(:,:) :: ke
       integer , intent(out) , pointer , dimension(:,:) :: imax
@@ -1227,8 +1224,8 @@ module mod_cu_grell
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           imax(j,i) = ks
           x = array(j,i,ks)
           do k = ks , ke(j,i)

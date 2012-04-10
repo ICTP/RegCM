@@ -560,11 +560,11 @@ module mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 !
-  subroutine aermix(pint,jstart,jend)
+  subroutine aermix(pint,n1,n2)
 ! 
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
 !   Radiation level interface pressures (dynes/cm2)
     real(dp) , intent(in) , pointer , dimension(:,:) :: pint
 !
@@ -579,7 +579,7 @@ module mod_rad_aerosol
 !-----------------------------------------------------------------------
 ! 
     real(dp) :: gvis , kaervs , omgvis , rhfac , tauvis
-    integer :: j , k , mxaerl
+    integer :: n , k , mxaerl
 !
     data kaervs /5.3012D0/        ! multiplication factor for kaer
     data omgvis /0.999999D0/
@@ -596,7 +596,7 @@ module mod_rad_aerosol
 !   Set relative humidity and factor; then aerosol amount:
 !
     do k = 1 , kz
-      do j = jstart , jend
+      do n = n1 , n2
 !
 !       Define background aerosol
 !       Find constant aerosol mass mixing ratio for specified levels
@@ -604,11 +604,11 @@ module mod_rad_aerosol
 !       for the moment no more used
 !
         if ( k >= kz + 1 - mxaerl ) then
-          aermmb(j,k) = egravgts * tauvis / &
+          aermmb(n,k) = egravgts * tauvis / &
                        (d10e4*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
-                       (pint(j,kzp1)-pint(j,kzp1-mxaerl)))
+                       (pint(n,kzp1)-pint(n,kzp1-mxaerl)))
         else
-          aermmb(j,k) = d_zero
+          aermmb(n,k) = d_zero
         end if
       end do
     end do
@@ -617,18 +617,18 @@ module mod_rad_aerosol
 !
 ! SUBROUTINE AEROPPT
 !
-  subroutine aeroppt(rh,aermmr,pint,jstart,jend)
+  subroutine aeroppt(rh,aermmr,pint,n1,n2)
 !
     implicit none
 !
 !   Interface pressure, relative humidity
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , intent(in) , pointer , dimension(:,:) :: pint
     real(dp) , intent(in) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , intent(in) , pointer , dimension(:,:) :: rh
 !
-    integer :: j , l , ibin , jbin , itr , k , k1, k2 , ns
+    integer :: n , l , ibin , jbin , itr , k , k1, k2 , ns
     real(dp) :: path , uaerdust , qabslw , rh0
 !
     if ( .not. lchem ) then
@@ -687,41 +687,41 @@ module mod_rad_aerosol
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
       do k = 1 , kz
-        do j = jstart , jend
-          path = (pint(j,k+1)-pint(j,k))*regravgts
+        do n = n1 , n2
+          path = (pint(n,k+1)-pint(n,k))*regravgts
           ibin = 0
           jbin = 0
           do itr = 1 , ntr
-            uaer(j,k,itr) = d_zero
-            if ( rh(j,k) < d_zero .or. rh(j,k) > d_one ) then
-              print * , j , k , rh(j,k) , '  RH WARNING !!!!!'
+            uaer(n,k,itr) = d_zero
+            if ( rh(n,k) < d_zero .or. rh(n,k) > d_one ) then
+              print * , n , k , rh(n,k) , '  RH WARNING !!!!!'
             end if
             if ( tracname(itr) == 'XXXXX') then
               continue
             end if
             if ( tracname(itr)(1:4) == 'DUST' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
               ibin = ibin + 1
               if ( ibin > 4 ) then
                 call fatal(__FILE__,__LINE__,'DUST BINS MAX is 4')
               end if
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksdust(ns,ibin)
-              wa(j,k,itr) = wsdust(ns,ibin)
-              ga(j,k,itr) = gsdust(ns,ibin)
-              fa(j,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust(ns,ibin)
+              wa(n,k,itr) = wsdust(ns,ibin)
+              ga(n,k,itr) = gsdust(ns,ibin)
+              fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
             else if ( tracname(itr) == 'SO4' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksbase(ns) *               &
-                   dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(j,k)+kscoef(ns,3)) + &
-                   kscoef(ns,4)/(rh(j,k)+kscoef(ns,5)))
-              wa(j,k,itr) = d_one - wsbase(ns) * &
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbase(ns) *               &
+                   dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(n,k)+kscoef(ns,3)) + &
+                   kscoef(ns,4)/(rh(n,k)+kscoef(ns,5)))
+              wa(n,k,itr) = d_one - wsbase(ns) * &
                    dexp(wscoef(ns,1)+wscoef(ns,2) / &
-                   (rh(j,k)+wscoef(ns,3))+wscoef(ns,4)/(rh(j,k)+wscoef(ns,5)))
-              ga(j,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
-                   (rh(j,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(j,k)+gscoef(ns,5)))
-              fa(j,k,itr) = ga(j,k,itr)*ga(j,k,itr)
+                   (rh(n,k)+wscoef(ns,3))+wscoef(ns,4)/(rh(n,k)+wscoef(ns,5)))
+              ga(n,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
+                   (rh(n,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(n,k)+gscoef(ns,5)))
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             else if ( tracname(itr)(1:4) == 'SSLT' ) then
-              rh0 = dmin1(0.99D0,dmax1(d_zero,rh(j,k)))
+              rh0 = dmin1(0.99D0,dmax1(d_zero,rh(n,k)))
               jbin = jbin+1
               if ( jbin > 2 ) then
                 call fatal(__FILE__,__LINE__,'SEA SALT BINS MAX is 2')
@@ -733,40 +733,40 @@ module mod_rad_aerosol
                   wssslt(ns,jbin) = wsslt(ns,jbin,l)
                 end if
               end do
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*kssslt(ns,jbin)
-              wa(j,k,itr) = wssslt(ns,jbin)
-              ga(j,k,itr) = gssslt(ns,jbin)
-              fa(j,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssslt(ns,jbin)
+              wa(n,k,itr) = wssslt(ns,jbin)
+              ga(n,k,itr) = gssslt(ns,jbin)
+              fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
             else if ( tracname(itr) == 'OC_HL' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Humidity effect !
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksoc_hl(ns) * &
-                            (d_one-rh(j,k))**(-0.2D0)
-              wa(j,k,itr) = wsoc_hl(ns)
-              ga(j,k,itr) = gsoc_hl(ns)
-              fa(j,k,itr) = ga(j,k,itr)*ga(j,k,itr)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hl(ns) * &
+                            (d_one-rh(n,k))**(-0.2D0)
+              wa(n,k,itr) = wsoc_hl(ns)
+              ga(n,k,itr) = gsoc_hl(ns)
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             else if ( tracname(itr) == 'BC_HL' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Humidity effect !
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksbc_hl(ns) * &
-                            (d_one-rh(j,k))**(-0.25D0)
-              wa(j,k,itr) = wsbc_hl(ns)
-              ga(j,k,itr) = gsbc_hl(ns)
-              fa(j,k,itr) = ga(j,k,itr)*ga(j,k,itr)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hl(ns) * &
+                            (d_one-rh(n,k))**(-0.25D0)
+              wa(n,k,itr) = wsbc_hl(ns)
+              ga(n,k,itr) = gsbc_hl(ns)
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             else if ( tracname(itr) == 'OC_HB' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksoc_hb(ns)
-              wa(j,k,itr) = wsoc_hb(ns)
-              ga(j,k,itr) = gsoc_hb(ns)
-              fa(j,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hb(ns)
+              wa(n,k,itr) = wsoc_hb(ns)
+              ga(n,k,itr) = gsoc_hb(ns)
+              fa(n,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
             else if ( tracname(itr) == 'BC_HB' ) then
-              uaer(j,k,itr) = aermmr(j,k,itr)*path
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Absorbing aerosols (soot type)
-              tx(j,k,itr) = d10e5*uaer(j,k,itr)*ksbc_hb(ns)
-              wa(j,k,itr) = wsbc_hb(ns)
-              ga(j,k,itr) = gsbc_hb(ns)
-              fa(j,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hb(ns)
+              wa(n,k,itr) = wsbc_hb(ns)
+              ga(n,k,itr) = gsbc_hb(ns)
+              fa(n,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
             end if
           end do  ! end tracer loop
         end do
@@ -776,21 +776,21 @@ module mod_rad_aerosol
 !
       do itr = 1 , ntr
         do k = 1 , kz
-          do j = jstart , jend
-            utaer(j,itr) = utaer(j,itr) + uaer(j,k,itr)
-            tauaer(j,itr) = tauaer(j,itr) + tx(j,k,itr)
-            waer(j,itr) = waer(j,itr) + wa(j,k,itr)*uaer(j,k,itr)
-            gaer(j,itr) = gaer(j,itr) + ga(j,k,itr)*uaer(j,k,itr)
-            faer(j,itr) = faer(j,itr) + fa(j,k,itr)*uaer(j,k,itr)
+          do n = n1 , n2
+            utaer(n,itr) = utaer(n,itr) + uaer(n,k,itr)
+            tauaer(n,itr) = tauaer(n,itr) + tx(n,k,itr)
+            waer(n,itr) = waer(n,itr) + wa(n,k,itr)*uaer(n,k,itr)
+            gaer(n,itr) = gaer(n,itr) + ga(n,k,itr)*uaer(n,k,itr)
+            faer(n,itr) = faer(n,itr) + fa(n,k,itr)*uaer(n,k,itr)
           end do
         end do
       end do
       do itr = 1 , ntr
-        do j = jstart , jend
-          if ( utaer(j,itr) <= minimum_utaer ) utaer(j,itr) = minimum_utaer
-          waer(j,itr) = waer(j,itr)/utaer(j,itr)
-          gaer(j,itr) = gaer(j,itr)/utaer(j,itr)
-          faer(j,itr) = faer(j,itr)/utaer(j,itr)
+        do n = n1 , n2
+          if ( utaer(n,itr) <= minimum_utaer ) utaer(n,itr) = minimum_utaer
+          waer(n,itr) = waer(n,itr)/utaer(n,itr)
+          gaer(n,itr) = gaer(n,itr)/utaer(n,itr)
+          faer(n,itr) = faer(n,itr)/utaer(n,itr)
         end do
       end do
 !
@@ -800,13 +800,13 @@ module mod_rad_aerosol
 !     only for climatic feedback allowed
       do itr = 1 , ntr
         do k = 0 , kz
-          do j = jstart , jend
-            tauxar3d(j,k,ns) = tauxar3d(j,k,ns) + tx(j,k,itr)
-            tauasc3d(j,k,ns) = tauasc3d(j,k,ns) + tx(j,k,itr)*wa(j,k,itr)
-            gtota3d(j,k,ns) = gtota3d(j,k,ns) + ga(j,k,itr) * &
-                                tx(j,k,itr)*wa(j,k,itr)
-            ftota3d(j,k,ns) = ftota3d(j,k,ns) + fa(j,k,itr) * &
-                                tx(j,k,itr)*wa(j,k,itr)
+          do n = n1 , n2
+            tauxar3d(n,k,ns) = tauxar3d(n,k,ns) + tx(n,k,itr)
+            tauasc3d(n,k,ns) = tauasc3d(n,k,ns) + tx(n,k,itr)*wa(n,k,itr)
+            gtota3d(n,k,ns) = gtota3d(n,k,ns) + ga(n,k,itr) * &
+                                tx(n,k,itr)*wa(n,k,itr)
+            ftota3d(n,k,ns) = ftota3d(n,k,ns) + fa(n,k,itr) * &
+                                tx(n,k,itr)*wa(n,k,itr)
           end do
         end do
       end do
@@ -815,17 +815,17 @@ module mod_rad_aerosol
 !     diagnostic radiative forcing)
 !
       do itr = 1 , ntr
-        do j = jstart , jend
-          tauxar(j,ns) = tauxar(j,ns) + tauaer(j,itr)
-          if (waer(j,itr) > minimum_waer) then
-            tauasc(j,ns) = tauasc(j,ns) + tauaer(j,itr)*waer(j,itr)
+        do n = n1 , n2
+          tauxar(n,ns) = tauxar(n,ns) + tauaer(n,itr)
+          if (waer(n,itr) > minimum_waer) then
+            tauasc(n,ns) = tauasc(n,ns) + tauaer(n,itr)*waer(n,itr)
           end if
-          if (gaer(j,itr) > minimum_gaer .and.  &
-              waer(j,itr) > minimum_gaer) then
-            gtota(j,ns) = gtota(j,ns) + gaer(j,itr) * &
-                              tauaer(j,itr)*waer(j,itr)
-            ftota(j,ns) = ftota(j,ns) + faer(j,itr) * &
-                              tauaer(j,itr)*waer(j,itr)
+          if (gaer(n,itr) > minimum_gaer .and.  &
+              waer(n,itr) > minimum_gaer) then
+            gtota(n,ns) = gtota(n,ns) + gaer(n,itr) * &
+                              tauaer(n,itr)*waer(n,itr)
+            ftota(n,ns) = ftota(n,ns) + faer(n,itr) * &
+                              tauaer(n,itr)*waer(n,itr)
           end if
         end do
       end do
@@ -841,8 +841,8 @@ module mod_rad_aerosol
 !
     do k1 = 1 , kzp1
       do k2 = 1 , kzp1
-        do j = jstart , jend
-          if ( k1==k2 ) aertrlw(j,k1,k2) = d_one
+        do n = n1 , n2
+          if ( k1==k2 ) aertrlw(n,k1,k2) = d_one
 !         aerosol path btw k1 and k2 flux level
           ibin = 0
           uaerdust = d_zero
@@ -850,11 +850,11 @@ module mod_rad_aerosol
             if ( tracname(itr) == 'DUST' ) then
               ibin = ibin+1
               if ( k1<k2 ) then
-                uaerdust =  uaerdust + d10e5 * (sum(uaer(j,k1:k2-1,itr)))
-                aertrlw(j,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
+                uaerdust =  uaerdust + d10e5 * (sum(uaer(n,k1:k2-1,itr)))
+                aertrlw(n,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
               else if ( k1>k2 ) then
-                uaerdust =  uaerdust + d10e5 * (sum(uaer(j,k2:k1-1,itr)))
-                aertrlw(j,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
+                uaerdust =  uaerdust + d10e5 * (sum(uaer(n,k2:k1-1,itr)))
+                aertrlw(n,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
               end if
             end if
           end do

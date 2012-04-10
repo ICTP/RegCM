@@ -45,11 +45,10 @@ module mod_bats_drag
 !
 !=======================================================================
 !
-  subroutine dragc(jstart,jend,istart,iend)
+  subroutine dragc
 ! 
   implicit none
 !
-  integer , intent(in) :: jstart , jend , istart , iend
   real(dp) :: dthdz , u1 , u2 , zatild
   integer :: n , i , j
   !
@@ -57,10 +56,10 @@ module mod_bats_drag
   !     1.   get neutral drag coefficient
   !=======================================================================
   !
-  call dragdn(jstart,jend,istart,iend)
+  call dragdn
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         !=======================================================================
         ! 2.  compute stability as bulk rich. no. = rin/rid =
@@ -120,8 +119,8 @@ module mod_bats_drag
   !=======================================================================
  
   ! 4.1  neutral cd over lead water
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) == 2 ) then       !  check each point
           cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**d_two
@@ -164,18 +163,17 @@ module mod_bats_drag
 !
 !=======================================================================
 !
-  subroutine dragdn(jstart,jend,istart,iend)
+  subroutine dragdn
 !
   implicit none
 !
-  integer , intent(in) :: istart , iend , jstart , jend
   real(dp) :: asigf , cdb , cds , cdv , frab , fras , frav
   integer :: n , i , j
 !
-  call depth(jstart,jend,istart,iend)
+  call depth
 !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) == 2 ) then
           ! drag coeff over seaice
@@ -220,16 +218,15 @@ module mod_bats_drag
 !
 !=======================================================================
 !
-  subroutine depth(jstart,jend,istart,iend)
+  subroutine depth
 !
   implicit none
 !
-  integer , intent(in) :: jstart , jend , istart , iend
   real(dp) :: age
   integer :: n , i , j
 ! 
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           age = (d_one-d_one/(d_one+snag(n,j,i)))

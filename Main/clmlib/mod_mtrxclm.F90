@@ -418,23 +418,22 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
   end subroutine initclm
 !
-  subroutine albedoclm(imon,jstart,jend,istart,iend)
+  subroutine albedoclm(imon)
  
   use clm_varsur , only : landfrac
   implicit none
-  integer , intent(in) :: jstart , jend , istart , iend
   integer , intent(in) :: imon
   integer :: i , j , jj
 !
-  call albedobats(imon,jstart,jend,istart,iend)
+  call albedobats(imon)
 ! 
 !     ****** Section Below added for albedo to be corrected by CLM
 !     ****** calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
 !     ****** to be equal to 1 which can cause a FPE.  To avoid this
 !     ****** use albedo calculated with BATS method when albedo=1
 !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       jj = j+(jxp*myid)
       if (ldmsk1(1,j,i) /= 0 .and. &
           (d_one-aldirs(j,i)) > 1.0D-10) then

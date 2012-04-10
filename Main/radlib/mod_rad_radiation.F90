@@ -34,24 +34,10 @@ module mod_rad_radiation
   private
 
 ! Maximum total cloud fraction for radiation model
-  real(dp) :: cftotmax
+  real(dp) , public :: cftotmax
 
   public :: allocate_mod_rad_radiation , radini , radctl
-  public :: gasabsnxt , gasabstot , gasemstot
-  public :: cftotmax
 
-! absnxt  - Nearest layer absorptivities
-! abstot  - Non-adjacent layer absorptivites
-! emstot  - Total emissivity
-
-  real(dp) , pointer , dimension(:,:,:,:)  :: absnxt
-  real(dp) , pointer , dimension(:,:,:,:)  :: abstot
-  real(dp) , pointer , dimension(:,:,:) :: emstot
-  real(dp) , pointer , dimension(:,:,:,:)  :: gasabsnxt
-  real(dp) , pointer , dimension(:,:,:,:)  :: gasabstot
-  real(dp) , pointer , dimension(:,:,:) :: gasemstot
-  real(dp) , pointer , dimension(:,:,:,:):: xuinpl
-!
   real(dp) , pointer , dimension(:) :: co2plk , dtx , dty
   real(dp) , pointer , dimension(:) :: xptrop , dlat
   real(dp) , pointer , dimension(:) :: tco2 , th2o , to3 , xsum
@@ -61,6 +47,8 @@ module mod_rad_radiation
   real(dp) , pointer , dimension(:,:) :: emplnk , pinpl , uinpl , winpl , tbar
   real(dp) , pointer , dimension(:,:,:) :: bplnk
   real(dp) , pointer , dimension(:) :: diralb , difalb
+  real(dp) , pointer , dimension(:,:,:) :: absnxt , abstot , xuinpl
+  real(dp) , pointer , dimension(:,:) :: emstot
 !
 ! Trace gas variables
 !
@@ -209,8 +197,7 @@ module mod_rad_radiation
 ! uto2     - Total column  absorber amount of  o2
 !
   real(dp) , pointer , dimension(:) :: solflx , utco2 , uth2o ,   &
-         uto2 , uto3 , x0fsnsc ,  x0fsntc , zenfac , czen
-  logical , pointer , dimension(:) :: czengt0
+         uto2 , uto3 , x0fsnsc ,  x0fsntc , zenfac
 !
 !   o3mmr    - Ozone mass mixing ratio
 !   pbr      - Model mid-level pressures (dynes/cm2)
@@ -507,15 +494,10 @@ module mod_rad_radiation
   subroutine allocate_mod_rad_radiation 
     implicit none        
 !
-    call getmem4d(absnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:absnxt')
-    call getmem4d(abstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:abstot')
-    call getmem3d(emstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:emstot')
-    call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
-    call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
-    call getmem3d(gasemstot,jce1,jce2,ice1,ice2,1,kzp1,'rad:gasemstot')
-
-    call getmem4d(xuinpl,jci1,jci2,ici1,ici2,1,kzp1,1,4,'rad:xuinpl')
-
+    call getmem3d(absnxt,jci1,jci2,1,kz,1,4,'rad:absnxt')
+    call getmem3d(xuinpl,jci1,jci2,1,kz,1,4,'rad:xuinpl')
+    call getmem3d(abstot,jci1,jci2,1,kzp1,1,kzp1,'rad:abstot')
+    call getmem2d(emstot,jci1,jci2,1,kzp1,'rad:emstot')
     call getmem1d(diralb,jci1,jci2,'rad:diralb')
     call getmem1d(difalb,jci1,jci2,'rad:difalb')
     call getmem1d(co2plk,jci1,jci2,'rad:co2plk')
@@ -646,8 +628,6 @@ module mod_rad_radiation
     call getmem1d(x0fsnsc,jci1,jci2,'rad:x0fsnsc')
     call getmem1d(x0fsntc,jci1,jci2,'rad:x0fsntc')
     call getmem1d(zenfac,jci1,jci2,'rad:zenfac')
-    call getmem1d(czen,jci1,jci2,'rad:czen')
-    call getmem1d(czengt0,jci1,jci2,'rad:czengt0')
 
     call getmem1d(fslwdcs,jci1,jci2,'rad:fslwdcs')
     call getmem2d(cfc11,jci1,jci2,1,kz,'rad:cfc11')
@@ -795,12 +775,14 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jstart,jend,i,dlat,xptrop,ts,pmid,pint,pmln,piln, &
+  subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,   &
                     t,h2ommr,rh,cld,effcld,clwp,aermmr,fsns,qrs,qrl,  &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,   &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb, &
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
-                    coszgt0,aeradfo,aeradfos,aerlwfo,aerlwfos,labsem)
+                    czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
+                    abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,        &
+                    absgasnxt,absgastot,emsgastot,labsem)
 !
     implicit none
 !
@@ -834,21 +816,25 @@ module mod_rad_radiation
 !   qrl     - Longwave cooling rate
 !   flwds   - Surface down longwave flux
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
-    logical , pointer , dimension(:,:) , intent(in) :: coszgt0
     real(dp) , intent(in) :: eccf
     real(dp) , pointer , dimension(:) :: alb , albc , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
             sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
-            aerlwfos , dlat , xptrop
+            aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , adiflw ,   &
+            asw , alw , abv , sol , czen
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
+    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
+    real(dp) , pointer , dimension(:,:) , intent(inout) :: emsgastot
+    logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
     real(dp) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , pointer , dimension(:,:) :: o3vmr
-    intent (out) alb , albc
+    intent (out) alb , albc , abv , sol
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , totcf
@@ -884,29 +870,27 @@ module mod_rad_radiation
 !
 !   Set latitude dependent radiation input
 !
-    call radinp(jstart,jend,pmid,pint,h2ommr,cld,o3vmr,pbr,pnm, &
+    call radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pbr,pnm, &
                 plco2,plh2o,tclrsf,o3mmr)
 !
 !   Solar radiation computation
 !
     if ( dosw ) then
-
-      czen(:) = coszen(:,i)
-      czengt0(:) = coszgt0(:,i)
 !
 !     Specify aerosol mass mixing ratio
 !
-      call aermix(pnm,jstart,jend)
+      call aermix(pnm,n1,n2)
  
-      call aeroppt(rh,aermmr,pint,jstart,jend)
+      call aeroppt(rh,aermmr,pint,n1,n2)
 !
-      call radcsw(jstart,jend,i,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
+      call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
-                  fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
+                  fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,adirlw,adiflw,asw,alw, &
+                  abv,sol,czen,czengt0,aeradfo,aeradfos)
 !
 !     Convert units of shortwave fields needed by rest of model from CGS to MKS
 !
-      do j = jstart , jend
+      do j = n1 , n2
 
         solin(j) = solin(j)*1.0D-3
         fsnt(j) = fsnt(j)*1.0D-3
@@ -946,7 +930,7 @@ module mod_rad_radiation
 !
 !     Calculate/outfld albedo and clear sky albedo
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( solin(j) > d_zero ) then
           alb(j) = (solin(j)-fsnt(j))/solin(j)
         else
@@ -954,7 +938,7 @@ module mod_rad_radiation
         end if
       end do
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( solin(j) > d_zero ) then
           albc(j) = (solin(j)-fsntc(j))/solin(j)
         else
@@ -969,16 +953,16 @@ module mod_rad_radiation
 !
 !     Specify trace gas mixing ratios
 !
-      call trcmix(jstart,jend,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
+      call trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
 !
-      call radclw(jstart,jend,i,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
+      call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
                   flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,      &
-                  aerlwfos,labsem)
+                  aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
 !
 !     Convert units of longwave fields needed by rest of model from CGS to MKS
 !
-      do j = jstart , jend
+      do j = n1 , n2
         flnt(j) = flnt(j)*1.0D-3
         flns(j) = flns(j)*1.0D-3
         flntc(j) = flntc(j)*1.0D-3
@@ -1087,23 +1071,27 @@ module mod_rad_radiation
 ! fsnrtc   - Clear sky near-IR flux absorbed at toa
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 !
-  subroutine radcsw(jstart,jend,i,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice, &
-                    eccf,solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,   &
-                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
+  subroutine radcsw(n1,n2,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,  &
+                    eccf,solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,  &
+                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,     &
+                    adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,aeradfo,   &
+                    aeradfos)
 ! 
     implicit none
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     real(dp) :: eccf
     real(dp) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
-                                        fsnirtsq , fsnrtc , fsns , fsnsc ,   &
-                                        fsnt , fsntc , solin , soll ,        &
-                                        solld , sols , solsd
+             fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , &
+             solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
+             alw , abv , sol , czen
+    logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) , pointer , dimension(:,:) :: cld , pint
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
-                                          qrs , rei , rel
-    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel
-    intent (out) aeradfo , aeradfos , fsds , qrs
+             qrs , rei , rel
+    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
+           adirsw , adifsw , adirlw , adiflw , asw , alw
+    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , soll , solld , sols , solsd
 !
@@ -1212,8 +1200,8 @@ module mod_rad_radiation
     soll(:) = d_zero
     solsd(:) = d_zero
     solld(:) = d_zero
-    abveg(:,i) = d_zero
-    solar(:,i) = d_zero
+    abv(:) = d_zero
+    sol(:) = d_zero
 !
     aeradfo(:) = d_zero
     aeradfos(:) = d_zero
@@ -1224,14 +1212,14 @@ module mod_rad_radiation
 !
 !   Define solar incident radiation and interface pressures:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         solin(j) = scon*eccf*czen(j)
         pflx(j,0) = d_zero
       end if
     end do
     do k = 1 , kzp1
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           pflx(j,k) = pint(j,k)
         end if
@@ -1245,7 +1233,7 @@ module mod_rad_radiation
 !   co2mmr = co2vmr*(mmwco2/mmwair)
    
     sqrco2 = dsqrt(co2mmr)
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         xptop = pflx(j,1)
         ptho2 = o2mmr*xptop*regravgts
@@ -1263,7 +1251,7 @@ module mod_rad_radiation
 !
     tmp2 = delta*regravgts
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           pdel = pflx(j,k+1) - pflx(j,k)
           path = pdel*regravgts
@@ -1283,7 +1271,7 @@ module mod_rad_radiation
 !
 !   Compute column absorber amounts for the clear sky computation:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         uth2o(j) = d_zero
         uto3(j) = d_zero
@@ -1292,7 +1280,7 @@ module mod_rad_radiation
       end if
     end do
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           uth2o(j) = uth2o(j) + uh2o(j,k)
           uto3(j) = uto3(j) + uo3(j,k)
@@ -1305,13 +1293,13 @@ module mod_rad_radiation
 !   Initialize spectrally integrated totals:
 !
     do k = 0 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         totfld(j,k) = d_zero
         fswup(j,k) = d_zero
         fswdn(j,k) = d_zero
       end do
     end do
-    do j = jstart , jend
+    do j = n1 , n2
       fswup(j,kzp1) = d_zero
       fswdn(j,kzp1) = d_zero
     end do
@@ -1320,7 +1308,7 @@ module mod_rad_radiation
 !   there is no cloud above top of model; the other cloud properties
 !   are arbitrary:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         tauxcl(j,0) = d_zero
         wcl(j,0) = verynearone
@@ -1379,7 +1367,7 @@ module mod_rad_radiation
       fbarii = fbari(indxsl)
 !
       do k = 1 , kz
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
 !
 !           liquid
@@ -1441,20 +1429,20 @@ module mod_rad_radiation
 !     Wavelength less  than 0.7 micro-meter
 !
       if ( wavmid < 0.7D0 ) then
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
-            diralb(j) = swdiralb(j,i)
-            difalb(j) = swdifalb(j,i)
+            diralb(j) = adirsw(j)
+            difalb(j) = adifsw(j)
           end if
         end do
 !
 !       Wavelength greater than 0.7 micro-meter
 !
       else
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
-            diralb(j) = lwdiralb(j,i)
-            difalb(j) = lwdifalb(j,i)
+            diralb(j) = adirlw(j)
+            difalb(j) = adiflw(j)
           end if
         end do
       end if
@@ -1474,20 +1462,20 @@ module mod_rad_radiation
         end if
       end if
    
-      call radded(jstart,jend,trayoslp,ns,lzero)
+      call radded(n1,n2,trayoslp,czen,czengt0,ns,lzero)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for layers
 !     below by adding succesive layers starting from the surface and
 !     working upwards:
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           rupdir(j,kzp1) = diralb(j)
           rupdif(j,kzp1) = difalb(j)
         end if
       end do
       do k = kz , 0 , -1
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             rdenom = d_one/(d_one-rdif(j,k)*rupdif(j,k+1))
             rupdir(j,k) = rdir(j,k) + tdif(j,k) *                    &
@@ -1502,7 +1490,7 @@ module mod_rad_radiation
 !     atmospheric layer properties at each interface:
 !
       do k = 0 , kzp1
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             rdenom = d_one/(d_one-rdndif(j,k)*rupdif(j,k))
             fluxup(j,k) = (exptdn(j,k)*rupdir(j,k)+                   &
@@ -1518,7 +1506,7 @@ module mod_rad_radiation
 !     and down fluxes:
 !
       do k = 0 , kz
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             flxdiv(j,k) = (fluxdn(j,k)-fluxdn(j,k+1)) + &
                           (fluxup(j,k+1)-fluxup(j,k))
@@ -1535,7 +1523,7 @@ module mod_rad_radiation
       if ( dabs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
       if ( dabs(po2(ns)) > dlowval ) psf = psf*po2(ns)
       sfltot = d_zero
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           solflx(j) = solin(j)*frcsol(ns)*psf
           fsnt(j) = fsnt(j) + solflx(j)*(fluxdn(j,1)-fluxup(j,1))
@@ -1553,9 +1541,9 @@ module mod_rad_radiation
             solsd(j) = solsd(j) + &
                    (fluxdn(j,kzp1)-exptdn(j,kz + 1))*solflx(j)*d_r1000
 !KN         added below
-            abveg(j,i) = abveg(j,i) + (solflx(j) *            &
+            abv(j) = abv(j) + (solflx(j) *            &
                        (fluxdn(j,kzp1)-fluxup(j,kz + 1)))*  &
-                       (d_one-swalb(j,i))/(d_one-diralb(j))*d_r1000
+                       (d_one-asw(j))/(d_one-diralb(j))*d_r1000
 !KN         added above
           else
             soll(j) = soll(j) + exptdn(j,kzp1)*solflx(j)*d_r1000
@@ -1563,9 +1551,9 @@ module mod_rad_radiation
                    (fluxdn(j,kzp1)-exptdn(j,kz + 1))*solflx(j)*d_r1000
             fsnirtsq(j) = fsnirtsq(j) + solflx(j)*(fluxdn(j,0)-fluxup(j,0))
 !KN         added below
-            abveg(j,i) = abveg(j,i) + &
+            abv(j) = abv(j) + &
                        (solflx(j)*(fluxdn(j,kzp1)-fluxup(j,kz + 1)))* &
-                        (d_one-lwalb(j,i))/(d_one-diralb(j))*d_r1000
+                        (d_one-alw(j))/(d_one-diralb(j))*d_r1000
 !KN         added above
           end if
           fsnirt(j) = fsnirt(j) + wgtint*solflx(j) * (fluxdn(j,0)-fluxup(j,0))
@@ -1573,7 +1561,7 @@ module mod_rad_radiation
         end if
       end do
       do k = 0 , kz
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             totfld(j,k) = totfld(j,k) + solflx(j)*flxdiv(j,k)
             fswup(j,k+1) = fswup(j,k+1) + solflx(j)*fluxup(j,k+1)
@@ -1584,9 +1572,9 @@ module mod_rad_radiation
    
 !     solar is incident visible solar radiation
       if ( ns == 8 ) then
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
-            solar(j,i) = solflx(j)*d_r1000*fluxdn(j,kzp1)
+            sol(j) = solflx(j)*d_r1000*fluxdn(j,kzp1)
           end if
         end do
       end if
@@ -1609,14 +1597,14 @@ module mod_rad_radiation
 !       0 for interface quantities refers to top of atmos- phere,
 !       while 1 refers to the surface:
 !
-        call radclr(jstart,jend,trayoslp,ns,.true.)
+        call radclr(n1,n2,trayoslp,czen,czengt0,ns,.true.)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for
 !       entire column; 0,1 on layer quantities refers to two
 !       effective layers overlying surface; 0 on interface quantities
 !       refers to top of column; 2 on interface quantities refers to
 !       the surface:
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             rupdir(j,2) = diralb(j)
             rupdif(j,2) = difalb(j)
@@ -1624,7 +1612,7 @@ module mod_rad_radiation
         end do
 !
         do k = 1 , 0 , -1
-          do j = jstart , jend
+          do j = n1 , n2
             if ( czengt0(j) ) then
               rdenom = d_one/(d_one-rdif(j,k)*rupdif(j,k+1))
               rupdir(j,k) = rdir(j,k) + tdif(j,k) *                    &
@@ -1639,7 +1627,7 @@ module mod_rad_radiation
 !       atmospheric layer properties at each interface:
 !
         do k = 0 , 2
-          do j = jstart , jend
+          do j = n1 , n2
             if ( czengt0(j) ) then
               rdenom = d_one/(d_one-rdndif(j,k)*rupdif(j,k))
               fluxup(j,k) = (exptdn(j,k)*rupdir(j,k)+(tottrn(j,k) - &
@@ -1652,7 +1640,7 @@ module mod_rad_radiation
         end do
 !
         x0fsnrtc = d_zero  
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
 !           SAVE the ref net TOA flux ( and put back the cumul variables to 0.)
             x0fsntc(j) = x0fsntc(j) + solflx(j)*(fluxdn(j,0)-fluxup(j,0))
@@ -1675,14 +1663,14 @@ module mod_rad_radiation
 !     quantities refers to top of atmos- phere, while 1 refers to the
 !     surface:
 !
-      call radclr(jstart,jend,trayoslp,ns,.false.)
+      call radclr(n1,n2,trayoslp,czen,czengt0,ns,.false.)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for entire
 !     column; 0,1 on layer quantities refers to two effective layers
 !     overlying surface; 0 on interface quantities refers to top of
 !     column; 2 on interface quantities refers to the surface:
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           rupdir(j,2) = diralb(j)
           rupdif(j,2) = difalb(j)
@@ -1690,7 +1678,7 @@ module mod_rad_radiation
       end do
 !
       do k = 1 , 0 , -1
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             rdenom = d_one/(d_one-rdif(j,k)*rupdif(j,k+1))
             rupdir(j,k) = rdir(j,k) + tdif(j,k) *     &
@@ -1705,7 +1693,7 @@ module mod_rad_radiation
 !     atmospheric layer properties at each interface:
 !
       do k = 0 , 2
-        do j = jstart , jend
+        do j = n1 , n2
           if ( czengt0(j) ) then
             rdenom = d_one/(d_one-rdndif(j,k)*rupdif(j,k))
             fluxup(j,k) = (exptdn(j,k)*rupdir(j,k)+(tottrn(j,k) - &
@@ -1717,7 +1705,7 @@ module mod_rad_radiation
         end do
       end do
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           fsntc(j) = fsntc(j) + solflx(j)*(fluxdn(j,0)-fluxup(j,0))
           fsnsc(j) = fsnsc(j) + solflx(j)*(fluxdn(j,2)-fluxup(j,2))
@@ -1731,7 +1719,7 @@ module mod_rad_radiation
    
 !   FAB calculation of TOA aerosol radiative forcing
     if ( lchem .and. idirect >= 1 ) then
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           aeradfo(j) = -(x0fsntc(j)-fsntc(j))
           aeradfos(j) = -(x0fsnsc(j)-fsnsc(j))
@@ -1742,7 +1730,7 @@ module mod_rad_radiation
 !   Compute solar heating rate (k/s)
 !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
           qrs(j,k) = -gocp*totfld(j,k)/(pint(j,k)-pint(j,k+1))
         end if
@@ -1751,7 +1739,7 @@ module mod_rad_radiation
 !
 !   Set the downwelling flux at the surface
 !
-    do j = jstart , jend
+    do j = n1 , n2
       fsds(j) = fswdn(j,kzp1)
     end do
 !
@@ -1817,18 +1805,20 @@ module mod_rad_radiation
 ! flntc   - Net clear sky outgoing flux
 ! flwds   - Down longwave flux at surface
 !
-  subroutine radclw(jstart,jend,i,ts,tnm,qnm,o3vmr,pmid,pint,pmln,     &
+  subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,     &
                     piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt, &
                     flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos,  &
-                    labsem)
+                    absgasnxt,absgastot,emsgastot,labsem)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
                o3vmr , pmid , pmln , qnm , qrl , tnm
     real(dp) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
+    real(dp) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
+    real(dp) , pointer , dimension(:,:) :: emsgastot
     real(dp) , pointer , dimension(:) :: emsvt , flns , flnsc , flnt , &
                flntc , flwds , fslwdcs , ts
     real(dp), pointer , dimension(:) :: aerlwfo , aerlwfos
@@ -1840,19 +1830,19 @@ module mod_rad_radiation
 !
     real(dp) :: absbt , bk1 , bk2 , tmp1
     integer :: j , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
-               km3 , km4 , irad , n , nradaer
+               km3 , km4 , ns , irad , nradaer
 !
     character (len=64) :: subroutine_name='radclw'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
-    do j = jstart , jend
+    do j = n1 , n2
       rtclrsf(j,1) = d_one/tclrsf(j,1)
     end do
 !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         fclb4(j,k) = d_zero
         fclt4(j,k) = d_zero
         tclrsf(j,k+1) = tclrsf(j,k)*(d_one-cld(j,k+1))
@@ -1863,7 +1853,7 @@ module mod_rad_radiation
 !   Calculate some temperatures needed to derive absorptivity and
 !   emissivity, as well as some h2o path lengths
 !
-    call radtpl(jstart,jend,ts,tnm,pmln,qnm,piln,pint)
+    call radtpl(n1,n2,ts,tnm,pmln,qnm,piln,pint)
    
 !   do emissivity and absorptivity calculations
 !   only if abs/ems computation
@@ -1872,34 +1862,34 @@ module mod_rad_radiation
 !
 !     Compute ozone path lengths at frequency of a/e calculation.
 !
-      call radoz2(jstart,jend,o3vmr,pint)
+      call radoz2(n1,n2,o3vmr,pint)
 !
 !     Compute trace gas path lengths
 !
-      call trcpth(jstart,jend,tnm,pint,cfc11,cfc12,n2o,ch4,qnm, &
+      call trcpth(n1,n2,tnm,pint,cfc11,cfc12,n2o,ch4,qnm, &
                   ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
                   uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,uptype)
 !
 !
 !     Compute total emissivity:
 !
-      call radems(jstart,jend,i,pint)
+      call radems(n1,n2,pint,emsgastot)
 !
 !     Compute total absorptivity:
 !
-      call radabs(jstart,jend,i,pint,pmid,piln,pmln)
+      call radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
 
     end if
 !
 !   Find the lowest and highest level cloud for each grid point
 !   Note: Vertical indexing here proceeds from bottom to top
 !
-    do j = jstart , jend
+    do j = n1 , n2
       klov(j) = 0
       done(j) = .false.
     end do
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not.done(j) .and. cld(j,kzp2-k) > d_zero ) then
           done(j) = .true.
           klov(j) = k
@@ -1911,12 +1901,12 @@ module mod_rad_radiation
     else where
       seldo = .false.
     end where
-    do j = jstart , jend
+    do j = n1 , n2
       khiv(j) = klov(j)
       done(j) = .false.
     end do
     do k = kz , 1 , -1
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( .not.done(j) .and. cld(j,kzp2-k) > d_zero ) then
           done(j) = .true.
@@ -1924,13 +1914,13 @@ module mod_rad_radiation
         end if
       end do
     end do
-    do j = jstart , jend
+    do j = n1 , n2
       khivm(j) = khiv(j) - 1
     end do
 !
 !   Note: Vertical indexing here proceeds from bottom to top
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( .not. seldo(j) ) cycle
       do k = klov(j) , khiv(j)
         fclt4(j,kzp1-k) = stebol*tint4(j,kzp2-k)
@@ -1950,19 +1940,19 @@ module mod_rad_radiation
       nradaer = 1
     end if
 
-    abstot(:,i,:,:) = gasabstot(jci1:jci2,i,:,:)
-    absnxt(:,i,:,:) = gasabsnxt(jci1:jci2,i,:,:)
-    emstot(:,i,:)   = gasemstot(jci1:jci2,i,:)
+    abstot(:,:,:) = absgastot(:,:,:)
+    absnxt(:,:,:) = absgasnxt(:,:,:)
+    emstot(:,:)   = emsgastot(:,:)
 
     do irad = 1 , nradaer
 
       if ( lchem .and. idirect > 0 .and. irad == 2 ) then
-        abstot(:,i,:,:) = d_one-(d_one-abstot(:,i,:,:))*aertrlw(:,:,:)
-        emstot(:,i,:) = d_one-(d_one-emstot(:,i,:))*aertrlw(:,:,1)
+        abstot(:,:,:) = d_one-(d_one-abstot(:,:,:))*aertrlw(:,:,:)
+        emstot(:,:) = d_one-(d_one-emstot(:,:))*aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
-          do n = 1 , 4
-            absnxt(:,i,k,n) = d_one-(d_one-absnxt(:,i,k,n)) *   &
-                              (aertrlw(:,k,k+1)**xuinpl(:,i,k,n))
+          do ns = 1 , 4
+            absnxt(:,k,ns) = d_one-(d_one-absnxt(:,k,ns)) *   &
+                              (aertrlw(:,k,k+1)**xuinpl(:,k,ns))
           end do
         end do
       end if
@@ -1976,17 +1966,17 @@ module mod_rad_radiation
 !     delt=t**4 in layer above current sigma level km.
 !     delt1=t**4 in layer below current sigma level km.
 !
-      do j = jstart , jend
+      do j = n1 , n2
         delt(j) = tint4(j,kz) - tlayr4(j,kzp1)
         delt1(j) = tlayr4(j,kzp1) - tint4(j,kzp1)
-        s(j,kzp1,kzp1) = stebol*(delt1(j)*absnxt(j,i,kz,1) + &
-                         delt(j)*absnxt(j,i,kz,4))
-        s(j,kz,kzp1) = stebol*(delt(j)*absnxt(j,i,kz,2) + &
-                         delt1(j)*absnxt(j,i,kz,3))
+        s(j,kzp1,kzp1) = stebol*(delt1(j)*absnxt(j,kz,1) + &
+                         delt(j)*absnxt(j,kz,4))
+        s(j,kz,kzp1) = stebol*(delt(j)*absnxt(j,kz,2) + &
+                         delt1(j)*absnxt(j,kz,3))
       end do
       do k = 1 , kz - 1
-        do j = jstart , jend
-          bk2 = (abstot(j,i,k,kz)+abstot(j,i,k,kzp1))*d_half
+        do j = n1 , n2
+          bk2 = (abstot(j,k,kz)+abstot(j,k,kzp1))*d_half
           bk1 = bk2
           s(j,k,kzp1) = stebol*(bk2*delt(j)+bk1*delt1(j))
         end do
@@ -1995,21 +1985,21 @@ module mod_rad_radiation
 !     All k, km>1
 !
       do km = kz , 2 , -1
-        do j = jstart , jend
+        do j = n1 , n2
           delt(j) = tint4(j,km-1) - tlayr4(j,km)
           delt1(j) = tlayr4(j,km) - tint4(j,km)
         end do
         do k = kzp1 , 1 , -1
-          do j = jstart , jend
+          do j = n1 , n2
             if ( k == km ) then
-              bk2 = absnxt(j,i,km-1,4)
-              bk1 = absnxt(j,i,km-1,1)
+              bk2 = absnxt(j,km-1,4)
+              bk1 = absnxt(j,km-1,1)
             else if ( k == km-1 ) then
-              bk2 = absnxt(j,i,km-1,2)
-              bk1 = absnxt(j,i,km-1,3)
+              bk2 = absnxt(j,km-1,2)
+              bk1 = absnxt(j,km-1,3)
             else
-              bk2 = (abstot(j,i,k,km-1)+ &
-                     abstot(j,i,k,km))*d_half
+              bk2 = (abstot(j,k,km-1)+ &
+                     abstot(j,k,km))*d_half
               bk1 = bk2
             end if
             s(j,k,km) = s(j,k,km+1)+stebol*(bk2*delt(j)+bk1*delt1(j))
@@ -2019,7 +2009,7 @@ module mod_rad_radiation
 !
 !     Computation of clear sky fluxes always set first level of fsul
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( iemiss == 1 ) then
           fsul(j,kzp1) = emsvt(j)*(stebol*(ts(j)**d_four))
         else
@@ -2030,10 +2020,10 @@ module mod_rad_radiation
 !     Downward clear sky fluxes store intermediate quantities in down
 !     flux Initialize fluxes to clear sky values.
 !
-      do j = jstart , jend
+      do j = n1 , n2
         tmp(j) = fsul(j,kzp1) - stebol*tint4(j,kzp1)
-        fsul(j,1) = fsul(j,kzp1) - abstot(j,i,1,kzp1)*tmp(j)+s(j,1,2)
-        fsdl(j,1) = stebol*(tplnke(j)**d_four)*emstot(j,i,1)
+        fsul(j,1) = fsul(j,kzp1) - abstot(j,1,kzp1)*tmp(j)+s(j,1,2)
+        fsdl(j,1) = stebol*(tplnke(j)**d_four)*emstot(j,1)
         ful(j,1) = fsul(j,1)
         fdl(j,1) = fsdl(j,1)
       end do
@@ -2041,10 +2031,10 @@ module mod_rad_radiation
 !     fsdl(j,kzp1) assumes isothermal layer
 !
       do k = 2 , kz
-        do j = jstart , jend
-          fsul(j,k) = fsul(j,kzp1) - abstot(j,i,k,kzp1)*tmp(j)+s(j,k,k+1)
+        do j = n1 , n2
+          fsul(j,k) = fsul(j,kzp1) - abstot(j,k,kzp1)*tmp(j)+s(j,k,k+1)
           ful(j,k) = fsul(j,k)
-          fsdl(j,k) = stebol*(tplnke(j)**d_four)*emstot(j,i,k) - &
+          fsdl(j,k) = stebol*(tplnke(j)**d_four)*emstot(j,k) - &
                               (s(j,k,2)-s(j,k,k+1))
           fdl(j,k) = fsdl(j,k)
         end do
@@ -2053,9 +2043,9 @@ module mod_rad_radiation
 !     Store the downward emission from level 1 = total gas emission *
 !     sigma t**4.  fsdl does not yet include all terms
 !
-      do j = jstart , jend
+      do j = n1 , n2
         ful(j,kzp1) = fsul(j,kzp1)
-        absbt = stebol*(tplnke(j)**d_four)*emstot(j,i,kzp1)
+        absbt = stebol*(tplnke(j)**d_four)*emstot(j,kzp1)
         fsdl(j,kzp1) = absbt - s(j,kzp1,2)
         fdl(j,kzp1) = fsdl(j,kzp1)
       end do
@@ -2112,7 +2102,7 @@ module mod_rad_radiation
 !
 !   Compute downflux at level 1 for cloudy sky
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( .not. seldo(j) ) cycle
 !
 !     First clear sky flux plus flux from cloud at level 1
@@ -2129,7 +2119,7 @@ module mod_rad_radiation
       km1 = kzp1 - km
       km2 = kzp2 - km
       km4 = kzp4 - km
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( km <= khiv(j) ) then
           tmp1 = cld(j,km2)*tclrsf(j,kz)*rtclrsf(j,km2)
@@ -2144,7 +2134,7 @@ module mod_rad_radiation
       k1 = kzp1 - k
       k2 = kzp2 - k
       k3 = kzp3 - k
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( k >= klov(j) .and. k <= khivm(j) ) then
           ful(j,k2) = fsul(j,k2)*(tclrsf(j,kzp1)*rtclrsf(j,k1))
@@ -2154,7 +2144,7 @@ module mod_rad_radiation
         km1 = kzp1 - km
         km2 = kzp2 - km
         km3 = kzp3 - km
-        do j = jstart , jend
+        do j = n1 , n2
           if ( .not. seldo(j) ) cycle
 !
           if ( k <= khivm(j) .and. km >= klov(j) .and. km <= khivm(j)) then
@@ -2168,10 +2158,10 @@ module mod_rad_radiation
     do k = 1 , kzp1
       k2 = kzp2 - k
       k3 = kzp3 - k
-      do j = jstart , jend
+      do j = n1 , n2
         start(j) = .false.
       end do
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( k >= khiv(j) ) then
           start(j) = .true.
@@ -2182,7 +2172,7 @@ module mod_rad_radiation
         km1 = kzp1 - km
         km2 = kzp2 - km
         km3 = kzp3 - km
-        do j = jstart , jend
+        do j = n1 , n2
           if ( .not. seldo(j) ) cycle
           if ( start(j) .and. km >= klov(j) .and. km <= khiv(j) ) then
             ful(j,k2) = ful(j,k2) + (cld(j,km2)*tclrsf(j,km1)* &
@@ -2198,7 +2188,7 @@ module mod_rad_radiation
       k1 = kzp1 - k
       k2 = kzp2 - k
       k3 = kzp3 - k
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( k <= khivm(j) ) fdl(j,k2) = d_zero
       end do
@@ -2206,7 +2196,7 @@ module mod_rad_radiation
         km1 = kzp1 - km
         km2 = kzp2 - km
         km4 = kzp4 - km
-        do j = jstart , jend
+        do j = n1 , n2
           if ( .not. seldo(j) ) cycle
 !
           if ( k <= khiv(j) .and. &
@@ -2216,7 +2206,7 @@ module mod_rad_radiation
           end if
         end do
       end do ! km = k+1 , khighest
-      do j = jstart , jend
+      do j = n1 , n2
         if ( .not. seldo(j) ) cycle
         if ( k <= khivm(j) ) then
           fdl(j,k2) = fdl(j,k2) + &
@@ -2229,7 +2219,7 @@ module mod_rad_radiation
 !
 !   All longitudes: store history tape quantities
 !
-    do j = jstart , jend
+    do j = n1 , n2
 !
 !     Downward longwave flux
 !
@@ -2252,7 +2242,7 @@ module mod_rad_radiation
 !   Computation of longwave heating (k per sec)
 !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         qrl(j,k) = (ful(j,k)-fdl(j,k)-ful(j,k+1)+fdl(j,k+1))*gocp / &
                     ((pint(j,k)-pint(j,k+1)))
       end do
@@ -2308,15 +2298,16 @@ module mod_rad_radiation
 !
 ! trayoslp - Tray/sslp
 !
-  subroutine radclr(jstart,jend,trayoslp,ns,lzero)
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns,lzero)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend
-    real(dp) :: trayoslp
-    integer :: ns
+    integer , intent(in) :: n1 , n2
+    real(dp) , intent(in) :: trayoslp
+    real(dp) , pointer , dimension(:) , intent(in) :: czen
+    logical , pointer , dimension(:) , intent(in) :: czengt0
+    integer , intent(in) :: ns
     logical , intent(in) :: lzero
-    intent (in) trayoslp , ns
 !
 !---------------------------Local variables-----------------------------
 !
@@ -2361,7 +2352,7 @@ module mod_rad_radiation
 !   The top layer is assumed to be a purely absorbing ozone layer, and
 !   that the mean diffusivity for diffuse mod_transmission is 1.66:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
 !
         taugab(j) = abo3(ns)*uto3(j)
@@ -2401,7 +2392,7 @@ module mod_rad_radiation
 !     transmission to the top interface of the current layer exceeds
 !     the minimum, will these values be computed below:
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
 !
           rdir(j,k) = d_zero
@@ -2426,7 +2417,7 @@ module mod_rad_radiation
         end if
       end do
 !
-      do j = jstart , jend
+      do j = n1 , n2
 !
 !       Compute next layer delta-Eddington solution only if total
 !       transmission of radiation to the interface just above the layer
@@ -2494,7 +2485,7 @@ module mod_rad_radiation
 !   above the surface:
 !
     k = 2
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         exptdn(j,k) = exptdn(j,k-1)*explay(j,k-1)
         rdenom = d_one/(d_one-rdif(j,k-1)*rdndif(j,k-1))
@@ -2532,12 +2523,14 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radded(jstart,jend,trayoslp,ns,lzero)
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,ns,lzero)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     logical , intent(in) :: lzero
+    real(dp) , pointer , dimension(:) , intent(in) :: czen
+    logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) :: trayoslp
     integer :: ns
     intent (in) trayoslp , ns
@@ -2612,7 +2605,7 @@ module mod_rad_radiation
 !   above each interface by starting from the top and adding layers down:
 !   For the extra layer above model top:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
 !
         tauray(j) = trayoslp*(pflx(j,1)-pflx(j,0))
@@ -2697,7 +2690,7 @@ module mod_rad_radiation
 !     transmission to the top interface of the current layer exceeds
 !     the minimum, will these values be computed below:
 !
-      do j = jstart , jend
+      do j = n1 , n2
         if ( czengt0(j) ) then
 !
           rdir(j,k) = d_zero
@@ -2725,7 +2718,7 @@ module mod_rad_radiation
         end if
       end do
 !
-      do j = jstart , jend
+      do j = n1 , n2
 !
 !       Compute next layer delta-eddington solution only if total
 !       transmission of radiation to the interface just above the layer
@@ -2804,7 +2797,7 @@ module mod_rad_radiation
 !   above the surface:
 !
     k = kzp1
-    do j = jstart , jend
+    do j = n1 , n2
       if ( czengt0(j) ) then
         exptdn(j,k) = exptdn(j,k-1)*explay(j,k-1)
 !KN     modified below (for computational stability)
@@ -2887,13 +2880,15 @@ module mod_rad_radiation
 ! Non-adjacent layer absorptivites
 ! Total emissivity
 !
-  subroutine radabs(jstart,jend,i,pint,pmid,piln,pmln)
+  subroutine radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
       piln , pmln
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3055,12 +3050,12 @@ module mod_rad_radiation
 !   Initialize
 !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         dbvtly(j,k) = dbvt(tlayr(j,k+1))
         dbvtit(j,k) = dbvt(tint(j,k))
       end do
     end do
-    do j = jstart , jend
+    do j = n1 , n2
       dbvtit(j,kzp1) = dbvt(tint(j,kz + 1))
     end do
 !
@@ -3078,7 +3073,7 @@ module mod_rad_radiation
 !   abso(6)   co2 15  micrometer band system
 !
     do k = 1 , kzp1
-      do j = jstart , jend
+      do j = n1 , n2
         pnmsq(j,k) = pint(j,k)**d_two
         dtx(j) = tplnka(j,k) - 250.0D0
         term6(j,k) = coeff(1,2) + coeff(2,2)*dtx(j) *          &
@@ -3095,7 +3090,7 @@ module mod_rad_radiation
     do k1 = kzp1 , 1 , -1
       do k2 = kzp1 , 1 , -1
         if ( k1 /= k2 ) then
-          do j = jstart , jend
+          do j = n1 , n2
             dplh2o = plh2o(j,k1) - plh2o(j,k2)
             ux(j) = dabs(dplh2o)
             sqrtu = dsqrt(ux(j))
@@ -3261,21 +3256,21 @@ module mod_rad_radiation
             abso(6) = trab2*co2em(j,k2)*absbnd
             tco2(j) = d_one/(d_one+d_10*(u7/dsqrt(d_four+u7*(d_one+rbeta7))))
 !           trab3(j)  = 1. - bndfct*absbnd
-            gasabstot(j,i,k1,k2) = abso(1) + abso(2) + abso(3) + &
-                                   abso(4) + abso(5) + abso(6)
+            absgastot(j,k1,k2) = abso(1) + abso(2) + abso(3) + &
+                                 abso(4) + abso(5) + abso(6)
           end do
 !
 !         Calculate absorptivity due to trace gases
 !
-          call trcab(jstart,jend,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
+          call trcab(n1,n2,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
                      uco211,uco212,uco213,uco221,uco222,uco223,bn2o0,     &
                      bn2o1,bch4,to3co2,pint,dw,pnew,s2c,uptype,ux,abplnk1, &
                      tco2,th2o,to3,abstrc)
 !
 !         Sum total absorptivity
 !
-          do j = jstart , jend
-            gasabstot(j,i,k1,k2) = gasabstot(j,i,k1,k2) + abstrc(j)
+          do j = n1 , n2
+            absgastot(j,k1,k2) = absgastot(j,k1,k2) + abstrc(j)
           end do
         end if
       end do
@@ -3293,7 +3288,7 @@ module mod_rad_radiation
 !   Nearest layer level loop
 !
     do k2 = kz , 1 , -1
-      do j = jstart , jend
+      do j = n1 , n2
         tbar(j,1) = (tint(j,k2+1)+tlayr(j,k2+1))*d_half
         emm(1) = (co2em(j,k2+1)+co2eml(j,k2))*d_half
         tbar(j,2) = (tlayr(j,k2+1)+tint(j,k2))*d_half
@@ -3346,7 +3341,11 @@ module mod_rad_radiation
         pinpl(j,4) = (p2+pint(j,k2+1))*d_half
 
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        xuinpl (j,i,k2,:) =  uinpl(j,:)
+        if ( lchem .and. idirect > 0 ) then
+          do kn = 1 , 4
+            xuinpl (j,k2,kn) =  uinpl(j,kn)
+          end do
+        end if
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
 
         do kn = 1 , 4
@@ -3511,23 +3510,23 @@ module mod_rad_radiation
           abso(6) = trab2*emm(kn)*absbnd
           tco2(j) = d_one/(d_one+d_10*u7/dsqrt(d_four+u7*(d_one+rbeta7)))
 !         trab3(j) = 1. - bndfct*absbnd
-          gasabsnxt(j,i,k2,kn) = abso(1) + abso(2) + abso(3) + &
-                                 abso(4) + abso(5) + abso(6) 
+          absgasnxt(j,k2,kn) = abso(1) + abso(2) + abso(3) + &
+                               abso(4) + abso(5) + abso(6) 
         end do
       end do
 !
 !       Calculate trace gas absorptivity for nearest layer
 !
       do kn = 1 , 4
-        call trcabn(jstart,jend,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4, &
+        call trcabn(n1,n2,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4, &
                     uco211,uco212,uco213,uco221,uco222,uco223,tbar,   &
                     bplnk,winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,ux, &
                     pnew,abstrc,uinpl)
 !
 !       Total next layer absorptivity:
 !
-        do j = jstart , jend
-          gasabsnxt(j,i,k2,kn) = gasabsnxt(j,i,k2,kn) + abstrc(j)
+        do j = n1 , n2
+          absgasnxt(j,k2,kn) = absgasnxt(j,k2,kn) + abstrc(j)
         end do
       end do
     end do  !  end of nearest layer level loop
@@ -3577,12 +3576,13 @@ module mod_rad_radiation
 ! emplnk  - emissivity Planck factor
 ! emstrc  - total trace gas emissivity
 !
-  subroutine radems(jstart,jend,i,pint)
+  subroutine radems(n1,n2,pint,emsgastot)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) , intent(in) :: pint
+    real(dp) , pointer , dimension(:,:) , intent(out) :: emsgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3736,7 +3736,7 @@ module mod_rad_radiation
 !
 !   Planck function for co2
 !
-    do j = jstart , jend
+    do j = n1 , n2
       ex = dexp(960.0D0/tplnke(j))
       co2plk(j) = 5.0D8/((tplnke(j)**d_four)*(ex-d_one))
       co2t(j,1) = tplnke(j)
@@ -3745,7 +3745,7 @@ module mod_rad_radiation
     kk = 1
     do k = kzp1 , 2 , -1
       kk = kk + 1
-      do j = jstart , jend
+      do j = n1 , n2
         xsum(j) = xsum(j) + tlayr(j,kk)*(pint(j,kk)-pint(j,kk-1))
         ex = dexp(960.0D0/tlayr(j,kk))
         tlayr5 = tlayr(j,kk)*tlayr4(j,kk)
@@ -3758,12 +3758,12 @@ module mod_rad_radiation
 !
 !   Calculate trace gas Planck functions
 !
-    call trcplk(jstart,jend,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+    call trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
 !
 !   Interface loop
 !
     do k = 1 , kzp1
-      do j = jstart , jend
+      do j = n1 , n2
 !
 !       H2O emissivity
 !
@@ -3947,15 +3947,15 @@ module mod_rad_radiation
 !
 !     Calculate trace gas emissivities
 !
-      call trcems(jstart,jend,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1,  &
+      call trcems(n1,n2,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1,  &
                   bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,  &
                   uco222,uco223,uptype,w,s2c,ux,emplnk,th2o,tco2,to3, &
                   emstrc)
 !
 !     Total emissivity:
 !
-      do j = jstart , jend
-        gasemstot(j,i,k) = h2oems(j,k)+co2ems(j,k)+o3ems(j,k)+emstrc(j,k)
+      do j = n1 , n2
+        emsgastot(j,k) = h2oems(j,k)+co2ems(j,k)+o3ems(j,k)+emstrc(j,k)
       end do
     end do  ! End of interface loop
 !
@@ -3984,10 +3984,10 @@ module mod_rad_radiation
 !----------------------------Output arguments---------------------------
 !
 !
-  subroutine radoz2(jstart,jend,o3vmr,pint)
+  subroutine radoz2(n1,n2,o3vmr,pint)
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) :: o3vmr
     real(dp) , pointer , dimension(:,:) :: pint
     intent (in) o3vmr , pint
@@ -4005,12 +4005,12 @@ module mod_rad_radiation
 !
 !   Bug fix, 24 May 1996:  the 0.5 and 0.25 factors removed.
 !
-    do j = jstart , jend
+    do j = n1 , n2
       plos(j,1) = 0.1D0*cplos*o3vmr(j,1)*pint(j,1)
       plol(j,1) = 0.01D0*cplol*o3vmr(j,1)*pint(j,1)*pint(j,1)
     end do
     do k = 2 , kzp1
-      do j = jstart , jend
+      do j = n1 , n2
         plos(j,k) = plos(j,k-1) + &
              0.1D0*cplos*o3vmr(j,k-1)*(pint(j,k)-pint(j,k-1))
         plol(j,k) = plol(j,k-1) + 0.01D0*cplol*o3vmr(j,k-1) * &
@@ -4032,11 +4032,11 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radtpl(jstart,jend,ts,tnm,pmln,qnm,piln,pint)
+  subroutine radtpl(n1,n2,ts,tnm,pmln,qnm,piln,pint)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:) , intent(in) :: ts
     real(dp) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
       qnm , piln , pint
@@ -4065,7 +4065,7 @@ module mod_rad_radiation
 !   Tint is lower interface temperature
 !   (not available for bottom layer, so use ground temperature)
 !
-    do j = jstart , jend
+    do j = n1 , n2
       tint(j,kzp1) = ts(j)
       tint4(j,kzp1) = tint(j,kz + 1)**d_four
       tplnka(j,1) = tnm(j,1)
@@ -4078,7 +4078,7 @@ module mod_rad_radiation
 !   at the full level below less dy*delta t,between the full level
 !
     do k = 2 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         dy = (piln(j,k)-pmln(j,k))/(pmln(j,k-1)-pmln(j,k))
         tint(j,k) = tnm(j,k) - dy*(tnm(j,k)-tnm(j,k-1))
         tint4(j,k) = tint(j,k)**d_four
@@ -4091,7 +4091,7 @@ module mod_rad_radiation
 !   equal to the full level temperatures.
 !
     do k = 2 , kzp1
-      do j = jstart , jend
+      do j = n1 , n2
         tlayr(j,k) = tnm(j,k-1)
         tlayr4(j,k) = tlayr(j,k)**d_four
         tplnka(j,k) = (tint(j,k)+tint(j,k-1))*d_half
@@ -4101,14 +4101,14 @@ module mod_rad_radiation
 !   Calculate tplank for emissivity calculation.
 !   Assume isothermal tplnke i.e. all levels=ttop.
 !
-    do j = jstart , jend
+    do j = n1 , n2
       tplnke(j) = tplnka(j,1)
       tlayr(j,1) = tint(j,1)
     end do
 !
 !   Now compute h2o path fields:
 !
-    do j = jstart , jend
+    do j = n1 , n2
       s2t(j,1) = plh2o(j,1)*tnm(j,1)
 !     ccm3.2
 !     w(j,1)   = (plh2o(j,1)*2.) / pint(j,1)
@@ -4120,7 +4120,7 @@ module mod_rad_radiation
       s2c(j,1) = plh2o(j,1)*dexp(1800.0D0*(rtnm-r296))*qnm(j,1)*repsil
     end do
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         dpnm = pint(j,k+1) - pint(j,k)
         dpnmsq = pint(j,k+1)**d_two - pint(j,k)**d_two
         rtnm = d_one/tnm(j,k)
@@ -4151,11 +4151,11 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radinp(jstart,jend,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
                     pintrd,plco2,plh2o,tclrsf,o3mmr)
     implicit none
 !
-    integer , intent(in) :: jstart , jend
+    integer , intent(in) :: n1 , n2
     real(dp) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
            plh2o , tclrsf
     real(dp) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
@@ -4211,12 +4211,12 @@ module mod_rad_radiation
     ! Convert pressure from pascals to dynes/cm2
     !
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         pmidrd(j,k) = pmid(j,k)*d_10
         pintrd(j,k) = pint(j,k)*d_10
       end do
     end do
-    do j = jstart , jend
+    do j = n1 , n2
       pintrd(j,kzp1) = pint(j,kzp1)*d_10
     end do
     !
@@ -4224,13 +4224,13 @@ module mod_rad_radiation
     !
     vmmr = amco2/amd
     cpwpl = vmmr*d_half/(egravgts*sslp)
-    do j = jstart , jend
+    do j = n1 , n2
       plh2o(j,1) = rgsslp*h2ommr(j,1)*pintrd(j,1)*pintrd(j,1)
       plco2(j,1) = co2vmr*cpwpl*pintrd(j,1)*pintrd(j,1)
       tclrsf(j,1) = d_one
     end do
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         plh2o(j,k+1) = plh2o(j,k) + rgsslp*(pintrd(j,k+1)**d_two - &
                        pintrd(j,k)**d_two) * h2ommr(j,k)
         plco2(j,k+1) = co2vmr*cpwpl*pintrd(j,k+1)**d_two
@@ -4242,7 +4242,7 @@ module mod_rad_radiation
     !
     vmmr = amo/amd
     do k = 1 , kz
-      do j = jstart , jend
+      do j = n1 , n2
         o3mmr(j,k) = vmmr*o3vmr(j,k)
       end do
     end do

@@ -60,16 +60,15 @@ module mod_bats_co2
 !
 !=======================================================================
 !
-  subroutine co2(jstart,jend,istart,iend)
+  subroutine co2
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     integer :: n , i , j
     real(dp) :: rap , resps , rsp , rt , rcar
     real(dp) , parameter :: rmp = 800.0D0
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -86,8 +85,8 @@ module mod_bats_co2
       end do
     end do
    
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then

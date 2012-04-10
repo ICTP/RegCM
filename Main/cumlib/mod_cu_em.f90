@@ -55,11 +55,10 @@ module mod_cu_em
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
 !
-  subroutine cupemandrv(jstart,jend,istart,iend,ktau)
+  subroutine cupemandrv(ktau)
 ! 
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     integer , parameter :: ntra = 0
@@ -72,8 +71,8 @@ module mod_cu_em
     real(dp) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( icup /= 4 ) then
           if ( cucontrol(j,i) /= 4 ) cycle
         end if

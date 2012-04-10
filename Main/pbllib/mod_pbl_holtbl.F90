@@ -123,7 +123,7 @@
     end if
   end  subroutine allocate_mod_pbl_holtbl
 !
-  subroutine holtbl(jstart,jend,istart,iend)
+  subroutine holtbl
 !
 #ifndef IBM
   use mpi
@@ -132,7 +132,6 @@
 #ifdef IBM
   include 'mpif.h'
 #endif 
-  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(dp) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
@@ -157,8 +156,8 @@
     hydf(k) = gpcf/dlev(k)
   end do
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         thvx(j,i,k) = thxatm(j,i,k)*(d_one+ep1*qvatm(j,i,k))
       end do
     end do
@@ -167,8 +166,8 @@
   ! density at surface is stored in rhox2d(j,i), at half levels in rhohf(j,i,k).
   !
   do k = 1 , kzm1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         dza(j,i,k) = za(j,i,k) - za(j,i,k+1)
         xps = (hlev(k)*sfcps(j,i)+ptp)*d_1000
         ps2 = (hlev(k+1)*sfcps(j,i)+ptp)*d_1000
@@ -176,8 +175,8 @@
       end do
     end do
   end do
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       govrth(j,i) = egrav/thxatm(j,i,kz)
     end do
   end do
@@ -188,8 +187,8 @@
   !   compute the vertical diffusion term:
   !
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         rc(j,i,k) = 0.257D0*dzq(j,i,k)**0.175D0
       end do
     end do
@@ -199,8 +198,8 @@
   !   blackadar scheme above boundary layer top
   !
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         kzmax = 0.8D0*dza(j,i,k-1)*dzq(j,i,k)*rdtpbl
         vv(j,i,k) = uatm(j,i,k)*uatm(j,i,k) + vatm(j,i,k)*vatm(j,i,k)
         ss = ((uatm(j,i,k-1)-uatm(j,i,k))*   &
@@ -227,8 +226,8 @@
   !   with free atmosphere values and make specific humidity
   !
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         ! eddy diffusivities for momentum, heat and moisture
         kvm(j,i,k) = kzm(j,i,k)
         kvh(j,i,k) = kzm(j,i,k)
@@ -242,8 +241,8 @@
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       ! compute friction velocity
       uflxsfx = uvdrag(j,i)*uatm(j,i,kz)
       vflxsfx = uvdrag(j,i)*vatm(j,i,kz)
@@ -263,8 +262,8 @@
   !   calculate mixing ratio at 10m by assuming a constant
   !   value from the surface to the lowest model level.
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
 !     th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
 !     th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
 !                 dlog(za(j,i,kz)*d_r10)
@@ -300,18 +299,18 @@
   !
   ! compute diffusivities and counter gradient terms
   !
-  call blhnew(jstart,jend,istart,iend)
+  call blhnew
 
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
       end do
     end do
   end do
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         akzz2(j,i,k) = hydf(k)/sfcps(j,i)
       end do
     end do
@@ -324,16 +323,16 @@
   !   calculate coefficients at dot points for u and v wind
   !
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
                         akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
       end do
     end do
   end do
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
                          akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
       end do
@@ -355,8 +354,8 @@
   ! first compute coefficients of the tridiagonal matrix
   !
   ! Atmosphere top
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
@@ -368,8 +367,8 @@
 
   ! top to bottom
   do k = 2 , kz - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
@@ -383,8 +382,8 @@
   end do
 
   ! Nearest to surface
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
@@ -405,16 +404,16 @@
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       tpred1(j,i,kz) = coeff1(j,i,kz)
       tpred2(j,i,kz) = coeff2(j,i,kz)
     end do
   end do
  
   do k = kz - 1 , 1 , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
       end do
@@ -425,8 +424,8 @@
   !   predicted field
   !
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         uten(j,i,k) = uten(j,i,k) + &
                       (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(j,i)
         vten(j,i,k) = vten(j,i,k) + &
@@ -438,8 +437,8 @@
   !   Common coefficients.
   !
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         alphak(j,i,k) = hydf(k)/sfcps(j,i)
       end do
     end do
@@ -449,15 +448,15 @@
   !   calculate coefficients at cross points for temperature
   ! 
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         betak(j,i,k) = rhohf(j,i,k-1)*kvh(j,i,k)/dza(j,i,k-1)
       end do
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
@@ -467,8 +466,8 @@
   end do
 
   do k = 2 , kz - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
@@ -479,8 +478,8 @@
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
@@ -494,15 +493,15 @@
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
   end do
  
   do k = kz - 1 , 1 , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
@@ -512,8 +511,8 @@
   !   predicted field
   !
   do k = 1 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         sf = (tatm(j,i,k)*sfcps(j,i))/thxatm(j,i,k)
         difft(j,i,k) = difft(j,i,k) + &
                        (tpred1(j,i,k)-thxatm(j,i,k))*rdtpbl*sf
@@ -524,15 +523,15 @@
   !   water vapor calculate coefficients at cross points for water vapor
   ! 
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
       end do
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
@@ -542,8 +541,8 @@
   end do
  
   do k = 2 , kz - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
@@ -554,8 +553,8 @@
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
@@ -570,15 +569,15 @@
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
   ! 
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
   end do
  
   do k = kz - 1 , 1 , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
@@ -589,16 +588,16 @@
   !
   if ( ibltyp == 99 ) then
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           diagqv(j,i,k) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
   else
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           diffq(j,i,k) = diffq(j,i,k) + &
                          (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
@@ -609,14 +608,14 @@
   !   calculate coefficients at cross points for cloud vater
   !
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
       end do
     end do
   end do
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
@@ -625,8 +624,8 @@
     end do
   end do
   do k = 2 , kz - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
@@ -636,8 +635,8 @@
       end do
     end do
   end do
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
@@ -650,14 +649,14 @@
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
   end do
   do k = kz - 1 , 1 , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
@@ -668,16 +667,16 @@
   !
   if ( ibltyp == 99 ) then
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           diagqc(j,i,k) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
   else
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           qcten(j,i,k) = qcten(j,i,k) + &
                       (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
         end do
@@ -689,14 +688,14 @@
 !
   !  now add countergradient term to temperature and water vapor equation
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       ttnp(j,i,1) = d_zero
     end do
   end do
   do k = 2 , kz
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         sf = tatm(j,i,k)/thxatm(j,i,k)
         ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
       end do
@@ -705,14 +704,14 @@
   !
   !   compute the tendencies:
   !
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       difft(j,i,kz) = difft(j,i,kz) - hydf(kz)*ttnp(j,i,kz)/cpd
     end do
   end do
   do k = 1 , kzm1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         difft(j,i,k) = difft(j,i,k) + hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))/cpd
       end do
     end do
@@ -724,23 +723,23 @@
     !     recalculation of coef1,2,3  with tracer diffusivity kvc
     ! 
     do k = 2 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           betak(j,i,k) = rhohf(j,i,k-1)*kvc(j,i,k)/dza(j,i,k-1)
         end do
       end do
     end do
     do k = 2 , kz - 1
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         end do
       end do
     end do
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
@@ -753,8 +752,8 @@
     !     set the Vd for in case of prescribed deposition velocities
     !
     do itr = 1 , ntr
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( landmsk(j,i) == 0 ) then
             vdep(j,i,itr) = depvel(itr,2)
           else
@@ -770,15 +769,15 @@
       end do
     end do
     do itr = 1 , ntr
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
           coeff1(j,i,1) = chmx(j,i,1,itr)/coef2(j,i,1)
         end do
       end do
       do k = 2 , kz - 1
-        do i = istart , iend
-          do j = jstart , jend
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
                            coef3(j,i,k)*coefe(j,i,k-1))
             coeff1(j,i,k) = (chmx(j,i,k,itr)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
@@ -787,8 +786,8 @@
         end do
       end do
  
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
           coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dtpbl*alphak(j,i,kz) * &
@@ -801,14 +800,14 @@
       !       all coefficients have been computed, predict field and put
       !       it in temporary work space tpred1
       !
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           tpred1(j,i,kz) = coeff1(j,i,kz)
         end do
       end do
       do k = kz - 1 , 1 , -1
-        do i = istart , iend
-          do j = jstart , jend
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           end do
         end do
@@ -819,15 +818,15 @@
       !       Dry deposition option 1 is included
       !
       do k = 1 , kz
-        do i = istart , iend
-          do j = jstart , jend
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             chten(j,i,k,itr) = chten(j,i,k,itr) +  &
                         (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(j,i)
           end do
         end do
       end do
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
 !          if ( chname(itr) /= 'DUST' ) &
 ! shut down thid diag temporarly
 !            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
@@ -875,9 +874,8 @@
 !                   zpbl     boundary layer height
 ! ------------------------------------------------------------
 !
-  subroutine blhnew(jstart,jend,istart,iend)
+  subroutine blhnew
   implicit none
-  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(dp) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
@@ -891,16 +889,16 @@
   ! note: kmxpbl, max no. of pbl levels, calculated in param
   ! compute richardson number
   do k = kz , kmxpbl , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         ri(j,i,k) = egrav*(thvx(j,i,k)-th10(j,i))*za(j,i,k) / &
                           (th10(j,i)*vv(j,i,k))
       end do
     end do
   end do
   ! first, set bl height to height of lowest model level
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       zpbl(j,i) = za(j,i,kz)
       kpbl(j,i) = kz
     end do
@@ -908,8 +906,8 @@
   ! looking for bl top
   do k = kz , kmxpbl + 1 , -1
     k2 = k - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
         if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
@@ -920,8 +918,8 @@
       end do
     end do
   end do
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       ! set bl top to highest allowable model layer
       if ( ri(j,i,kmxpbl) < ricr ) then
         zpbl(j,i) = za(j,i,kmxpbl)
@@ -930,8 +928,8 @@
     end do
   end do
   ! recompute richardson no. at lowest model level
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       if ( hfxv(j,i) > d_zero ) then
         ! estimate of convective velocity scale
         xfmt = (d_one-(binm*zpbl(j,i)/obklen(j,i)))**onet
@@ -946,8 +944,8 @@
   end do
   ! recompute richardson no. at other model levels
   do k = kz - 1 , kmxpbl , -1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
           tkv = thxatm(j,i,k)*(d_one+mult*(qvatm(j,i,k)/(qvatm(j,i,k)+d_one)))
@@ -960,8 +958,8 @@
   ! using convective temperature excess (therm)
   do k = kz , kmxpbl + 1 , -1
     k2 = k - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( hfxv(j,i) > d_zero ) then
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
@@ -974,8 +972,8 @@
       end do
     end do
   end do
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       if ( hfxv(j,i) > d_zero ) then
         ! set bl top to highest allowable model layer
         if ( ri(j,i,kmxpbl) < ricr ) then
@@ -985,8 +983,8 @@
     end do
   end do
   ! limit bl height to be at least mech. mixing depth
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       ! compute mechanical mixing depth, set to lowest model level if lower
       phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
       phpblm = dmax1(phpblm,za(j,i,kz))
@@ -997,8 +995,8 @@
  
   do k = kz , kmxpbl + 1 , -1
     k2 = k - 1
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         pblk = d_zero
         zm = za(j,i,k)
         zp = za(j,i,k2)
@@ -1098,8 +1096,8 @@
   end do
  
   if ( ibltyp == 99 ) then
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do k = 1 , kz
           kvm(j,i,k) = uwstateb%kzm(j,i,k)
           kvh(j,i,k) = uwstateb%kth(j,i,k)

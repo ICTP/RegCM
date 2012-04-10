@@ -86,10 +86,9 @@ module mod_bats_leaftemp
 !
 !=======================================================================
 !
-  subroutine lftemp(jstart,jend,istart,iend)
+  subroutine lftemp
 !
   implicit none
-  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(dp) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
            & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
@@ -102,8 +101,8 @@ module mod_bats_leaftemp
   !
   ! 1.1  get stress-free stomatal resistance
   !      (1st guess at vapor pressure deficit)
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
@@ -120,20 +119,20 @@ module mod_bats_leaftemp
     end do
   end do
 
-  call stomat(jstart,jend,istart,iend)
+  call stomat
   !
   ! 1.3  determine fraction of total and green canopy surface
   !      covered by water
-  call frawat(jstart,jend,istart,iend)
+  call frawat
   !
   ! 1.4  establish root function in terms of etrc = maximum
   !      sustainable transpiration rate
   ! (routine also returns efpr, used in subr. water to define upper soil
   !  layer transpiration)
   !
-  call root(jstart,jend,istart,iend)
+  call root
   ! 1.5  saturation specific humidity of leaf
-  call satur(jstart,jend,istart,iend,qsatl,tlef,sfcp)
+  call satur(qsatl,tlef,sfcp)
  
 !=======================================================================
 !l    2.   begin iteration for leaf temperature calculation
@@ -150,13 +149,13 @@ module mod_bats_leaftemp
     !
     ! 2.1  recalc stability dependent canopy & leaf drag coeffs
     !
-    if ( iter == 0 ) call condch(jstart,jend,istart,iend)
+    if ( iter == 0 ) call condch
 
-    call lfdrag(jstart,jend,istart,iend)
-    call condch(jstart,jend,istart,iend)
+    call lfdrag
+    call condch
  
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -182,11 +181,11 @@ module mod_bats_leaftemp
     end do
  
     ! 2.4  canopy evapotranspiration
-    if ( iter == 0 ) call condcq(jstart,jend,istart,iend)
+    if ( iter == 0 ) call condcq
  
     epss = 1.0D-10
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -226,17 +225,17 @@ module mod_bats_leaftemp
     !      3.   solve for leaf temperature
     !=======================================================================
     !  3.1  update conductances for changes in rpp and cdr
-    call condcq(jstart,jend,istart,iend)
+    call condcq
     !
     !  3.2  derivatives of energy fluxes with respect to leaf
     !       temperature for newton-raphson calculation of leaf temperature.
     !  subr.  ii: rs,ra,cdrd,rppq,efe.
     !  subr. output: qsatld,dcd.
-    if ( iter <= itfull ) call deriv(jstart,jend,istart,iend)
+    if ( iter <= itfull ) call deriv
     !
     !  3.3  compute dcn from dcd, output from subr. deriv
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -272,12 +271,12 @@ module mod_bats_leaftemp
         end do
       end do
     end do
-    call stomat(jstart,jend,istart,iend)
+    call stomat
     ! 3.8  end iteration
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
@@ -371,10 +370,9 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine stomat(jstart,jend,istart,iend)
+  subroutine stomat
 !
   implicit none
-  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(dp) :: difzen , g , radfi , seas , vpdf , rilmax
   integer :: il , ilmax , n , i , j
@@ -394,8 +392,8 @@ module mod_bats_leaftemp
   ilmax = 4
   rilmax = d_four
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
@@ -415,8 +413,8 @@ module mod_bats_leaftemp
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
@@ -441,8 +439,8 @@ module mod_bats_leaftemp
     end do
   end do
  
-  do i = istart , iend
-    do j = jstart , jend
+  do i = ici1 , ici2
+    do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
@@ -487,13 +485,12 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine frawat(jstart,jend,istart,iend)
+  subroutine frawat
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer :: n , i , j
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -537,14 +534,13 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine root(jstart,jend,istart,iend)
+  subroutine root
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) :: bneg , rotf , trsmx , wlttb , wltub , wmli
     integer :: n , i , j
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -580,16 +576,15 @@ module mod_bats_leaftemp
 !                                                 equation 1)
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine satur(jstart,jend,istart,iend,qsat,t,p)
+  subroutine satur(qsat,t,p)
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , pointer , dimension(:,:,:) :: p , qsat , t
     intent (in) p , t
     intent (out) qsat
     integer :: n , i , j
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( t(n,j,i) <= tzero ) then
             lfta(n,j,i) = c3ies
@@ -613,15 +608,14 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine lfdrag(jstart,jend,istart,iend)
+  subroutine lfdrag
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
     integer :: n , i , j
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -680,9 +674,8 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine condch(jstart,jend,istart,iend)
+  subroutine condch
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer :: n , i , j
     !
     !     csoilc = constant drag coefficient for soil under canopy
@@ -696,8 +689,8 @@ module mod_bats_leaftemp
     !     0 : normalized (sums to one)
     !     g : ground
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -728,9 +721,8 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine condcq(jstart,jend,istart,iend)
+  subroutine condcq
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer :: n , i , j
     !
     !     symbols used for weights are:   wt : weight
@@ -743,8 +735,8 @@ module mod_bats_leaftemp
     !     0 : normalized (sums to one)
     !     g : ground
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
@@ -776,14 +768,13 @@ module mod_bats_leaftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine deriv(jstart,jend,istart,iend)
+  subroutine deriv
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) :: dne , hfl , xkb
     integer :: n , i , j
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then

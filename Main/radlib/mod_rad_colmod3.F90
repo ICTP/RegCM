@@ -43,15 +43,21 @@ module mod_rad_colmod3
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
     sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci , xptrop , &
-    dlat
+    dlat , czen
   real(dp) , pointer , dimension(:) :: aeradfo , aeradfos
   real(dp) , pointer , dimension(:) :: aerlwfo , aerlwfos
+  real(dp) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
+  real(dp) , pointer , dimension(:) :: asw , alw
+  real(dp) , pointer , dimension(:) :: abv , sol
   real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
     deltaz , tm1 , rh1
   real(dp) , pointer , dimension(:,:,:) :: aermmr
-  logical , pointer , dimension(:,:) :: coszgt0
+  real(dp) , pointer , dimension(:,:,:) :: absgasnxt
+  real(dp) , pointer , dimension(:,:,:) :: absgastot
+  real(dp) , pointer , dimension(:,:) :: emsgastot
+  logical , pointer , dimension(:) :: czengt0
   integer , pointer , dimension(:) :: ioro
 !
   contains
@@ -87,6 +93,14 @@ module mod_rad_colmod3
       call getmem1d(emsvt1,jci1,jci2,'colmod3:emsvt1')
       call getmem1d(xptrop,jci1,jci2,'rad:xptrop')
       call getmem1d(dlat,jci1,jci2,'rad:dlat')
+      call getmem1d(adirsw,jci1,jci2,'rad:adirsw')
+      call getmem1d(adifsw,jci1,jci2,'rad:adifsw')
+      call getmem1d(adirlw,jci1,jci2,'rad:adirlw')
+      call getmem1d(adiflw,jci1,jci2,'rad:adiflw')
+      call getmem1d(asw,jci1,jci2,'rad:asw')
+      call getmem1d(alw,jci1,jci2,'rad:alw')
+      call getmem1d(abv,jci1,jci2,'rad:abv')
+      call getmem1d(sol,jci1,jci2,'rad:sol')
 
       call getmem2d(cld,jci1,jci2,1,kzp1,'colmod3:cld')
       call getmem2d(effcld,jci1,jci2,1,kzp1,'colmod3:effcld')
@@ -113,9 +127,13 @@ module mod_rad_colmod3
       call getmem1d(aeradfos,jci1,jci2,'colmod3:aeradfos')
       call getmem1d(aerlwfo,jci1,jci2,'colmod3:aerlwfo')
       call getmem1d(aerlwfos,jci1,jci2,'colmod3:aerlwfos')
+      call getmem1d(czen,jci1,jci2,'colmod3:czen')
+      call getmem1d(czengt0,jci1,jci2,'colmod3:czengt0')
+      call getmem3d(absgasnxt,jci1,jci2,1,kz,1,4,'colmod3:absgasnxt')
+      call getmem3d(absgastot,jci1,jci2,1,kzp1,1,kzp1,'colmod3:absgastot')
+      call getmem2d(emsgastot,jci1,jci2,1,kzp1,'colmod3:emsgastot')
 
       call getmem1d(ioro,jci1,jci2,'colmod3:ioro')
-      call getmem2d(coszgt0,jci1,jci2,ici1,ici2,'colmod3:coszgt0')
 
       if ( ichem == 1 ) then
         call getmem3d(aermmr,jci1,jci2,1,kz,1,ntr,'colmod3:aermmr')
@@ -273,16 +291,12 @@ module mod_rad_colmod3
 ! Near-IR flux absorbed at toa >= 0.7 microns
 ! Flux Shortwave Downwelling Surface
 !
-  where ( coszen > d_zero )
-    coszgt0 = .true.
-  elsewhere
-    coszgt0 = .false.
-  end where
-
   do i = istart , iend
 !
 !     Reset all arrays
 !
+      czen(:) = d_zero
+      czengt0(:) = .false.
       alb(:) = d_zero
       albc(:) = d_zero
       flns(:) = d_zero
@@ -386,12 +400,23 @@ module mod_rad_colmod3
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
 !
-      call radctl(jstart,jend,i,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1, &
-                  tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,    &
-                  rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,     &
-                  fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,   &
-                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,coszgt0,aeradfo,         &
-                  aeradfos,aerlwfo,aerlwfos,labsem)
+      call radctl(jstart,jend,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1, &
+                  tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
+                  rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,   &
+                  fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
+                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
+                  adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
+                  aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
+!
+!     Save gas emission/absorbtion
+!
+      if ( labsem ) then
+        do j = jstart , jend
+          gasabsnxt(j,i,:,:) = absgasnxt(j,:,:)
+          gasabstot(j,i,:,:) = absgastot(j,:,:)
+          gasemstot(j,i,:) = emsgastot(j,:)
+        end do
+      end if
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm radiation package
@@ -402,10 +427,10 @@ module mod_rad_colmod3
 !     Names of some output variables (in MKS) have been changed
 !     from those in the CCM2 radiation package.
 !
-     call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,   &
-                 qrs,flnt,flns,flntc,flnsc,qrl,flwds,sols,soll,    &
-                 solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq, &
-                 totcf,totcl,totci,h2ommr,cld,clwp,aeradfo,        &
+     call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,    &
+                 qrs,flnt,flns,flntc,flnsc,qrl,flwds,sols,soll,     &
+                 solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,  &
+                 totcf,totcl,totci,h2ommr,cld,clwp,abv,sol,aeradfo, &
                  aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
     end do
 !
@@ -602,7 +627,24 @@ module mod_rad_colmod3
     do j = jstart , jend
       xptrop(j) = ptrop(j,i)
       dlat(j) = dabs(xlat(j,i))
+      adirsw(j) = swdiralb(j,i)
+      adifsw(j) = swdifalb(j,i)
+      adirlw(j) = lwdiralb(j,i)
+      adiflw(j) = lwdifalb(j,i)
+      asw(j) = swalb(j,i)
+      alw(j) = lwalb(j,i)
+      czen(j) = coszen(j,i)
     end do
+
+    do j = jstart , jend
+      absgasnxt(j,:,:) = gasabsnxt(j,i,:,:)
+      absgastot(j,:,:) = gasabstot(j,i,:,:)
+      emsgastot(j,:) = gasemstot(j,i,:)
+    end do
+
+    where ( czen > d_zero )
+      czengt0 = .true.
+    end where
 !
 !   surface pressure and scaled pressure, from which level are computed
 !

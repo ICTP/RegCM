@@ -88,6 +88,12 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
   real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
   real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
+! absnxt  - Nearest layer absorptivities
+! abstot  - Non-adjacent layer absorptivites
+! emstot  - Total emissivity
+  real(dp) , pointer , dimension(:,:,:,:)  :: gasabsnxt
+  real(dp) , pointer , dimension(:,:,:,:)  :: gasabstot
+  real(dp) , pointer , dimension(:,:,:) :: gasemstot
 
   real(dp) , pointer , dimension(:,:) :: ptrop
 
@@ -111,6 +117,12 @@ module mod_rad_common
     call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'mod_rad:heatrt')
     call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'mod_rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'colmod3:ptrop')
+    if ( irrtm == 0 ) then
+      call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
+      call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
+      call getmem3d(gasemstot,jce1,jce2,ice1,ice2,1,kzp1,'rad:gasemstot')
+    end if
+
     if ( ichem == 1 ) then
       call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerasp')
       call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerext')

@@ -64,11 +64,10 @@ module mod_bats_zengocn
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
 !
-  subroutine zengocndrv(jstart,jend,istart,iend,ktau)
+  subroutine zengocndrv(ktau)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
@@ -92,8 +91,8 @@ module mod_bats_zengocn
 #ifdef CLM
     jj = (jxp*myid) + j
 #endif
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then

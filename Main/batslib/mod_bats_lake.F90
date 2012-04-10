@@ -50,9 +50,8 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine initlake(jstart,jend,istart,iend)
+  subroutine initlake
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 ! 
     integer :: i, j, n
 !
@@ -63,8 +62,8 @@ module mod_bats_lake
     tlak   = 6.0D0
     idep   = 0
 
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
@@ -106,16 +105,15 @@ module mod_bats_lake
     end do
   end subroutine initlake
 !
-  subroutine lakedrv(jstart,jend,istart,iend)
+  subroutine lakedrv
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
                 xl , evp , toth
     integer :: i , j , n
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( idep(n,j,i) > 1 ) then
             tl = sts(n,j,i)

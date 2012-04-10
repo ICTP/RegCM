@@ -60,6 +60,7 @@ module mod_tendency
   real(dp) , pointer , dimension(:,:,:) :: wrkkuo2
 
   integer(8) , parameter :: irep = 50
+  integer :: iptn ! Total number of internal points
 
   contains
 
@@ -84,6 +85,7 @@ module mod_tendency
       call getmem3d(wrkkuo2,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
     end if
+    iptn = (jcross2-jcross1+1)*(icross2-icross1+1)
   end subroutine allocate_mod_tend
 
   subroutine tend
@@ -122,7 +124,7 @@ module mod_tendency
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
     real(dp) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
                                             spchib3d
-    integer :: i , iptn , itr , j , k , lev , n , ii , jj , kk
+    integer :: i , itr , j , k , lev , n , ii , jj , kk
     integer :: ierr , icons_mpi
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -488,13 +490,11 @@ module mod_tendency
     call deco1_gather(ps4,ps_4,jcross1,jcross2,icross1,icross2,1,4)
 
     if ( ktau /= 0 ) then
-      iptn = 0
-      ptntot = d_zero
-      pt2tot = d_zero
       if ( myid == 0 ) then
+        ptntot = d_zero
+        pt2tot = d_zero
         do i = icross1 , icross2
           do j = jcross1 , jcross2
-            iptn = iptn + 1
             ptntot = ptntot + dabs(ps_4(j,i,1))
             pt2tot = pt2tot +                       &
                      dabs((ps_4(j,i,2)+ps_4(j,i,3)- &
@@ -502,7 +502,6 @@ module mod_tendency
           end do
         end do
       end if
-      call mpi_bcast(iptn,1,mpi_integer,0,mycomm,ierr)
       call mpi_bcast(ptntot,1,mpi_real8,0,mycomm,ierr)
       call mpi_bcast(pt2tot,1,mpi_real8,0,mycomm,ierr)
     end if
@@ -627,19 +626,19 @@ module mod_tendency
     cldlwc(:,:,:) = d_zero
 
     if ( icup == 1 ) then
-      call cupara(jci1,jci2,ici1,ici2,ktau)
+      call cupara(ktau)
     end if
     if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-      call cuparan(jci1,jci2,ici1,ici2,ktau)
+      call cuparan(ktau)
     end if
     if ( icup == 3 ) then
-      call bmpara(jci1,jci2,ici1,ici2,ktau)
+      call bmpara(ktau)
     end if
     if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-      call cupemandrv(jci1,jci2,ici1,ici2,ktau)
+      call cupemandrv(ktau)
     end if
     if ( icup == 5 ) then
-      call tiedtkedrv(jci1,jci2,ici1,ici2,ktau)
+      call tiedtkedrv(ktau)
     end if
 
     if ( ipptls == 1 ) then
@@ -653,8 +652,8 @@ module mod_tendency
           call vadv(cross,aten%qc,atm1%qc,kz,5)
         end if
       end if
-      call pcp(jci1,jci2,ici1,ici2)
-      call cldfrac(jci1,jci2,ici1,ici2)
+      call pcp
+      call cldfrac
 #ifdef DEBUG
       if ( .false. ) then
         call microphys(jci1,jci2,ici1,ici2)
@@ -734,9 +733,9 @@ module mod_tendency
 !     calculate albedo
 !
 #ifndef CLM
-      call albedobats(xmonth,jci1,jci2,ici1,ici2)
+      call albedobats(xmonth)
 #else
-      call albedoclm(xmonth,jci1,jci2,ici1,ici2)
+      call albedoclm(xmonth)
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( irrtm == 1 ) then
@@ -757,7 +756,7 @@ module mod_tendency
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       dtbat = dt*d_half*dble(ntsrf)
       if ( ktau == 0 ) dtbat = dt
-      call mtrxbats(jci1,jci2,ici1,ici2,ktau)
+      call mtrxbats(ktau)
     end if
 #else
 !
@@ -788,7 +787,7 @@ module mod_tendency
       call deco1_exchange_right(wrkkuo1,1,ice1,ice2,1,kz)
       call deco1_exchange_left(wrkkuo2,1,ice1,ice2,1,kz)
       call deco1_exchange_right(wrkkuo2,1,ice1,ice2,1,kz)
-      call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1,jci1,jci2,ici1,ici2)
+      call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1)
     end if
     ! diagnostic on total evaporation
     if ( .not. lband .and. debug_level > 2 ) then
@@ -809,7 +808,7 @@ module mod_tendency
       call deco1_exchange_right(sfs%psb,1,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
       call deco1_exchange_left(sfs%uvdrag,1,ice1,ice2)
-      call holtbl(jci1,jci2,ici1,ici2)
+      call holtbl
     end if
 
     if ( ibltyp == 99 ) then
@@ -854,7 +853,7 @@ module mod_tendency
 !     compute the condensation and precipitation terms for explicit
 !     moisture scheme:
 !
-      call condtq(jci1,jci2,ici1,ici2,psc)
+      call condtq(psc)
     end if
 !
 !   subtract horizontal diffusion and pbl tendencies from aten%t and

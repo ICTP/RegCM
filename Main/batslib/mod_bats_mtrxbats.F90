@@ -175,11 +175,10 @@ module mod_bats_mtrxbats
 !                            in mm/s.
 !=======================================================================
 ! 
-  subroutine mtrxbats(jstart,jend,istart,iend,ktau)
+  subroutine mtrxbats(ktau)
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
     character (len=64) :: subroutine_name='mtrxbats'
     integer :: idindx=0
@@ -190,22 +189,22 @@ module mod_bats_mtrxbats
 !
 !   Excange from model to BATS
 
-    call interf(1,jstart,jend,istart,iend,ktau)
+    call interf(1,ktau)
 
 !   Calculate surface fluxes and hydrology budgets
 
-    call soilbc(jstart,jend,istart,iend)
+    call soilbc
 
 !   Albedo is calculated in mod_tendency
 
-    call bndry(jstart,jend,istart,iend)
+    call bndry
 
 !   Zeng ocean flux model
-    if ( iocnflx == 2 ) call zengocndrv(jstart,jend,istart,iend,ktau)
+    if ( iocnflx == 2 ) call zengocndrv(ktau)
 
 !   Hostetler lake model for every BATS timestep at lake points
     if ( llake ) then
-      call lakedrv(jstart,jend,istart,iend)
+      call lakedrv
     endif
 
 !   ROMS ocean model
@@ -215,13 +214,13 @@ module mod_bats_mtrxbats
           print*, "[debug] -- updating fields with ROMS SST ..."
         end if
 !       update SST
-        call romsocndrv(jstart,jend,istart,iend)
+        call romsocndrv
       end if
     end if
 
 !   Accumulate quantities for energy and moisture budgets
 
-    call interf(2,jstart,jend,istart,iend,ktau)
+    call interf(2,ktau)
 ! 
     call time_end(subroutine_name,idindx)
 !
@@ -237,9 +236,8 @@ module mod_bats_mtrxbats
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine initb(jstart,jend,istart,iend)
+  subroutine initb
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 ! 
     integer :: i , is , itex , j , n , nlveg
 !
@@ -250,10 +248,10 @@ module mod_bats_mtrxbats
 !
 !   initialize hostetler lake model
 !
-    if ( llake ) call initlake(jstart,jend,istart,iend)
+    if ( llake ) call initlake
  
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           tgrd(n,j,i) = tground2(j,i)
           tgbrd(n,j,i) = tground2(j,i)
@@ -294,11 +292,11 @@ module mod_bats_mtrxbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine interf(ivers,jstart,jend,istart,iend,ktau)
+  subroutine interf(ivers,ktau)
 !
     implicit none
 !
-    integer , intent (in) :: ivers , jstart , jend , istart , iend
+    integer , intent (in) :: ivers
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
@@ -314,8 +312,8 @@ module mod_bats_mtrxbats
  
     if ( ivers == 1 ) then ! regcm --> bats
 
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           p0 = (sfps(j,i)+ptop)*d_1000
           qs0 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
           ts0 = thatm(j,i,kz)
@@ -376,8 +374,8 @@ module mod_bats_mtrxbats
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
-      do i = istart, iend
-        do j = jstart, jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           uvdrag(j,i) = d_zero
           hfx(j,i) = d_zero
           qfx(j,i) = d_zero
@@ -469,8 +467,8 @@ module mod_bats_mtrxbats
         end do
       end do
 
-      do i = istart, iend
-        do j = jstart, jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           u10m_o(j,i) = 0.0
           v10m_o(j,i) = 0.0
           tg_o(j,i) = 0.0
@@ -557,8 +555,8 @@ module mod_bats_mtrxbats
           mmpd = houpd/srffrq
           wpm2 = d_one/(srffrq*secph)
         end if
-        do i = istart, iend
-          do j = jstart, jend
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             drag_o(j,i) = 0.0
             evpa_o(j,i) = 0.0
             sena_o(j,i) = 0.0
@@ -685,9 +683,8 @@ module mod_bats_mtrxbats
 ! (depuv/10.0)= the ratio of upper soil layer to total root depth
 ! Used to compute "wet" for soil albedo
 !
-  subroutine albedobats(imon,jstart,jend,istart,iend)
+  subroutine albedobats(imon)
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     integer , intent (in) :: imon
 !
     real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
@@ -706,8 +703,8 @@ module mod_bats_mtrxbats
     ! 1. set initial parameters
     ! =================================================================
     !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           lveg(n,j,i) = iveg1(n,j,i)
           if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
@@ -737,12 +734,12 @@ module mod_bats_mtrxbats
     ! In depth, wt is frac of grid square covered by snow;
     ! depends on average snow depth, vegetation, etc.
     !
-    call depth(jstart,jend,istart,iend)
+    call depth
     !
     ! 1.2  set default vegetation and albedo
     ! 
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         czeta = coszrs(j,i)
         do n = 1 , nnsg
           amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
@@ -926,9 +923,8 @@ module mod_bats_mtrxbats
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine soilbc(jstart,jend,istart,iend)
+  subroutine soilbc
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) :: ck , dmax , dmin , dmnor , phi0 , tweak1
     integer :: itex , n , i , j
 !
@@ -945,8 +941,8 @@ module mod_bats_mtrxbats
 !
     call time_begin(subroutine_name,idindx)
  
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             ! lveg is set in subr. interf

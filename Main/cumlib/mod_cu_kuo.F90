@@ -59,14 +59,13 @@ module mod_cu_kuo
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
   end subroutine allocate_mod_cu_kuo
 !
-  subroutine cupara(jstart,jend,istart,iend,ktau)
+  subroutine cupara(ktau)
 !
 !   All the other arguments are passed from subroutine "tend" and
 !   explained in "tend".
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: akclth , apcnt , arh , c301 , dalr ,    &
@@ -91,8 +90,8 @@ module mod_cu_kuo
 !     icumtop = top level of cumulus clouds
 !     icumbot = bottom level of cumulus clouds
 !     (calculated in cupara and stored for tractend)
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           icumtop(j,i) = 0
           icumbot(j,i) = 0
         end do
@@ -104,8 +103,8 @@ module mod_cu_kuo
 !   sca: is the amount of total moisture convergence
 !
     total_precip_points = 0
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
 !
         sca = d_zero
         do k = 1 , kz
@@ -311,8 +310,8 @@ module mod_cu_kuo
     end do
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           rsheat(j,i,k) = dmax1(rsheat(j,i,k),d_zero)
           rswat(j,i,k) = dmax1(rswat(j,i,k),d_zero)
           rsht = rsheat(j,i,k)/tauht
@@ -331,10 +330,9 @@ module mod_cu_kuo
 !
   end subroutine cupara
 !
-  subroutine htdiff(wr1,wr2,dxsq,akht1,jstart,jend,istart,iend)
+  subroutine htdiff(wr1,wr2,dxsq,akht1)
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , intent(in) :: akht1 , dxsq
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr1
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr2
@@ -342,8 +340,8 @@ module mod_cu_kuo
     integer :: i , j , k
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtmdl/dxsq * &
                    (wr1(j,i-1,k)+wr1(j,i+1,k) + &
                     wr1(j-1,i,k)+wr1(j+1,i,k)-d_four*wr1(j,i,k))
@@ -352,8 +350,8 @@ module mod_cu_kuo
     end do
 !
     do k = 1 , kz
-      do i = istart , iend
-        do j = jstart , jend
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           rswat(j,i,k) = rswat(j,i,k)+akht1*dtmdl/dxsq * &
                 (wr2(j,i-1,k)+wr2(j,i+1,k) + &
                  wr2(j-1,i,k)+wr2(j+1,i,k)-d_four*wr2(j,i,k))

@@ -43,9 +43,8 @@ module mod_bats_romsocn
     sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 
-  subroutine romsocndrv(jstart,jend,istart,iend)
+  subroutine romsocndrv
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: uv995, tsurf, t995, q995, z995, zi, psurf
     real(dp) :: qs, uv10, tau, lh, sh, dth, dqh, ustar, zo
@@ -57,8 +56,8 @@ module mod_bats_romsocn
 !
     call time_begin(subroutine_name,idindx)
 !
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         do n = 1 , nnsg
           ! feedback from ocn -> atm
           if (sst2d(j,i) .lt. MISSING_R8) then  

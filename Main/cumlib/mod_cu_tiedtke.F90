@@ -125,10 +125,9 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv(jstart,jend,istart,iend,ktau)
+  subroutine tiedtkedrv(ktau)
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 
 !   local variables
@@ -140,7 +139,7 @@ module mod_cu_tiedtke
     ztmx = dtmdl
 
     total_precip_points = 0
-    do j = jstart , jend
+    do j = jci1 , jci2
       ilab(:,:) = 2
 
 !     evaporation coefficient for kuo0 
@@ -148,7 +147,7 @@ module mod_cu_tiedtke
 
       if (lchem) then    
         do k = 1 , kz
-          do i = istart , iend
+          do i = ici1 , ici2
             ii = i - 1
             ! tracers input profile : implicit loop on tracer
             pxtm1(ii,k,:) = chias(j,i,k,:)
@@ -160,7 +159,7 @@ module mod_cu_tiedtke
         pxtte(:,:,:) = d_zero ! tracer tendencies
       end if
 
-      do i = istart , iend
+      do i = ici1 , ici2
         ii = i - 1
 !     AMT NOTE: This is used in the switch between deep and shallow convectio
 !     The simpler switch on pressure difference still used in ECMWF 
@@ -172,7 +171,7 @@ module mod_cu_tiedtke
       end do
 
       do k = 1 , kz
-        do i = istart , iend
+        do i = ici1 , ici2
           ii = i - 1
           ! Pascal
           papp1(ii,k) = (hlev(k)*sfcps(j,i)+ptop)*d_1000
@@ -203,7 +202,7 @@ module mod_cu_tiedtke
         end do
       end do
       do k = 1 , kzp1
-        do i = istart , iend
+        do i = ici1 , ici2
           ii = i - 1
           ! 1st guess pressure at full levels
           paphp1(ii,k) = (flev(k)*sfcps(j,i)+ptop)*d_1000
@@ -227,7 +226,7 @@ module mod_cu_tiedtke
       !
       ! postprocess some fields including precipitation fluxes
       !
-      do i = istart , iend
+      do i = ici1 , ici2
         ii = i - 1
         if (ktype(ii) > 0) then
           if ( paprc(ii)+paprs(ii) > dlowval ) then
@@ -248,7 +247,7 @@ module mod_cu_tiedtke
       ! update tendencies - note that rate were ADDED in cudtdq
       !                     thus here we must reset the rates. 
       do k = 1 , kz
-        do i = istart , iend
+        do i = ici1 , ici2
           ii = i - 1
           if (ktype(ii) > 0) then
             tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
@@ -263,7 +262,7 @@ module mod_cu_tiedtke
         end do
       end do
 
-      do i = istart , iend
+      do i = ici1 , ici2
         ii = i - 1
         if (ktype(ii) > 0) then
           kclth = kcbot(ii) - kctop(ii) + 1

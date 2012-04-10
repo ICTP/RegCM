@@ -42,12 +42,11 @@ module mod_rad_outrad
     call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
-  subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,            &
-                    clrst,clrss,qrs,firtp,frla,clrlt,clrls,qrl,     &
-                    slwd,sols,soll,solsd,solld,alb,albc,            &
-                    fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,  &
-                    h2ommr,cld,clwp,aeradfo,aeradfos,aerlwfo,       &
-                    aerlwfos,tauxar3d,tauasc3d,gtota3d)
+  subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss,    &
+                    qrs,firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,      &
+                    solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,   &
+                    totcf,totcl,totci,h2ommr,cld,clwp,abv,sol,aeradfo,  &
+                    aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -91,7 +90,7 @@ module mod_rad_outrad
     real(dp) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
                 fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,      &
-                solld , sols , solsd , totcf , totcl , totci
+                solld , sols , solsd , totcf , totcl , totci , abv , sol
     real(dp) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
     real(dp) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(dp) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
@@ -117,6 +116,8 @@ module mod_rad_outrad
 !
     do j = jstart , jend
       srfabswflx(j,i) = frsa(j)
+      abveg(j,i) = abv(j)
+      solar(j,i) = sol(j)
     end do
 !
 !   net up longwave flux at the surface
