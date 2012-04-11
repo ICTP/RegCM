@@ -265,6 +265,10 @@ module mod_sst_grid
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding time calendar')
     istatus = nf90_def_var(ncid, 'sst', nf90_float, idims(1:3), ivar(2))
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding variable sst')
+#ifdef NETCDF4_HDF5
+    istatus = nf90_def_var_deflate(ncid, ivar(2), 1, 1, 9)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error setting deflate on sst')
+#endif
     istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
                            'sea_surface_temperature')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding sst standard_name')

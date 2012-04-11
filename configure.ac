@@ -341,7 +341,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xifort"; then
-    FCFLAGS="-O1 -fp-model fast=2 -xHost -ip $FCFLAGS"
+    FCFLAGS="-O3 -fp-model fast=2 -xHost -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xxlf90"; then
