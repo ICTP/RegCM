@@ -164,7 +164,7 @@ module mod_interp
   end do
 !     Set point to land if less than fixed percent of water
   wtp = (dble(sum(bincnt,mask=lndwt(ibnty,:)))/dble(totpoints))*d_100
-  if (wtp > d_zero .and. wtp < 1.0D0-h2opct) then
+  if (wtp > d_zero .and. wtp < 100.0D0-h2opct) then
     if (ibnty == 1) then
       bincnt(14) = 0
       bincnt(15) = 0
