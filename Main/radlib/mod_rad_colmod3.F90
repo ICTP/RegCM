@@ -60,84 +60,91 @@ module mod_rad_colmod3
   logical , pointer , dimension(:) :: czengt0
   integer , pointer , dimension(:) :: ioro
 !
+  integer :: npr
+
   contains
 !
     subroutine allocate_mod_rad_colmod3(ichem)
       implicit none
       integer , intent(in) :: ichem
-      call getmem1d(alb,jci1,jci2,'colmod3:alb')
-      call getmem1d(albc,jci1,jci2,'colmod3:albc')
-      call getmem1d(flns,jci1,jci2,'colmod3:flns')
-      call getmem1d(flnsc,jci1,jci2,'colmod3:flnsc')
-      call getmem1d(flnt,jci1,jci2,'colmod3:flnt')
-      call getmem1d(flntc,jci1,jci2,'colmod3:flntc')
-      call getmem1d(flwds,jci1,jci2,'colmod3:flwds')
-      call getmem1d(fsds,jci1,jci2,'colmod3:fsds')
-      call getmem1d(fsnirt,jci1,jci2,'colmod3:fsnirt')
-      call getmem1d(fsnirtsq,jci1,jci2,'colmod3:fsnirtsq')
-      call getmem1d(fsnrtc,jci1,jci2,'colmod3:fsnrtc')
-      call getmem1d(fsns,jci1,jci2,'colmod3:fsns')
-      call getmem1d(fsnsc,jci1,jci2,'colmod3:fsnsc')
-      call getmem1d(fsnt,jci1,jci2,'colmod3:fsnt')
-      call getmem1d(fsntc,jci1,jci2,'colmod3:fsntc')
-      call getmem1d(solin,jci1,jci2,'colmod3:solin')
-      call getmem1d(soll,jci1,jci2,'colmod3:soll')
-      call getmem1d(solld,jci1,jci2,'colmod3:solld')
-      call getmem1d(sols,jci1,jci2,'colmod3:sols')
-      call getmem1d(solsd,jci1,jci2,'colmod3:solsd')
-      call getmem1d(totcf,jci1,jci2,'colmod3:totcf')
-      call getmem1d(totcl,jci1,jci2,'colmod3:totcl')
-      call getmem1d(totci,jci1,jci2,'colmod3:totci')
-      call getmem1d(ps,jci1,jci2,'colmod3:ps')
-      call getmem1d(ts,jci1,jci2,'colmod3:ts')
-      call getmem1d(emsvt1,jci1,jci2,'colmod3:emsvt1')
-      call getmem1d(xptrop,jci1,jci2,'rad:xptrop')
-      call getmem1d(dlat,jci1,jci2,'rad:dlat')
-      call getmem1d(adirsw,jci1,jci2,'rad:adirsw')
-      call getmem1d(adifsw,jci1,jci2,'rad:adifsw')
-      call getmem1d(adirlw,jci1,jci2,'rad:adirlw')
-      call getmem1d(adiflw,jci1,jci2,'rad:adiflw')
-      call getmem1d(asw,jci1,jci2,'rad:asw')
-      call getmem1d(alw,jci1,jci2,'rad:alw')
-      call getmem1d(abv,jci1,jci2,'rad:abv')
-      call getmem1d(sol,jci1,jci2,'rad:sol')
+      npr = (jci2-jci1+1)*(ici2-ici1+1)
+      call getmem1d(alb,1,npr,'colmod3:alb')
+      call getmem1d(albc,1,npr,'colmod3:albc')
+      call getmem1d(flns,1,npr,'colmod3:flns')
+      call getmem1d(flnsc,1,npr,'colmod3:flnsc')
+      call getmem1d(flnt,1,npr,'colmod3:flnt')
+      call getmem1d(flntc,1,npr,'colmod3:flntc')
+      call getmem1d(flwds,1,npr,'colmod3:flwds')
+      call getmem1d(fsds,1,npr,'colmod3:fsds')
+      call getmem1d(fsnirt,1,npr,'colmod3:fsnirt')
+      call getmem1d(fsnirtsq,1,npr,'colmod3:fsnirtsq')
+      call getmem1d(fsnrtc,1,npr,'colmod3:fsnrtc')
+      call getmem1d(fsns,1,npr,'colmod3:fsns')
+      call getmem1d(fsnsc,1,npr,'colmod3:fsnsc')
+      call getmem1d(fsnt,1,npr,'colmod3:fsnt')
+      call getmem1d(fsntc,1,npr,'colmod3:fsntc')
+      call getmem1d(solin,1,npr,'colmod3:solin')
+      call getmem1d(soll,1,npr,'colmod3:soll')
+      call getmem1d(solld,1,npr,'colmod3:solld')
+      call getmem1d(sols,1,npr,'colmod3:sols')
+      call getmem1d(solsd,1,npr,'colmod3:solsd')
+      call getmem1d(totcf,1,npr,'colmod3:totcf')
+      call getmem1d(totcl,1,npr,'colmod3:totcl')
+      call getmem1d(totci,1,npr,'colmod3:totci')
+      call getmem1d(ps,1,npr,'colmod3:ps')
+      call getmem1d(ts,1,npr,'colmod3:ts')
+      call getmem1d(emsvt1,1,npr,'colmod3:emsvt1')
+      call getmem1d(xptrop,1,npr,'rad:xptrop')
+      call getmem1d(dlat,1,npr,'rad:dlat')
+      call getmem1d(adirsw,1,npr,'rad:adirsw')
+      call getmem1d(adifsw,1,npr,'rad:adifsw')
+      call getmem1d(adirlw,1,npr,'rad:adirlw')
+      call getmem1d(adiflw,1,npr,'rad:adiflw')
+      call getmem1d(asw,1,npr,'rad:asw')
+      call getmem1d(alw,1,npr,'rad:alw')
+      call getmem1d(abv,1,npr,'rad:abv')
+      call getmem1d(sol,1,npr,'rad:sol')
 
-      call getmem2d(cld,jci1,jci2,1,kzp1,'colmod3:cld')
-      call getmem2d(effcld,jci1,jci2,1,kzp1,'colmod3:effcld')
-      call getmem2d(pilnm1,jci1,jci2,1,kzp1,'colmod3:pilnm1')
-      call getmem2d(pintm1,jci1,jci2,1,kzp1,'colmod3:pintm1')
+      call getmem2d(cld,1,npr,1,kzp1,'colmod3:cld')
+      call getmem2d(effcld,1,npr,1,kzp1,'colmod3:effcld')
+      call getmem2d(pilnm1,1,npr,1,kzp1,'colmod3:pilnm1')
+      call getmem2d(pintm1,1,npr,1,kzp1,'colmod3:pintm1')
 
-      call getmem2d(rh1,jci1,jci2,1,kz,'colmod3:rh1')
-      call getmem2d(clwp,jci1,jci2,1,kz,'colmod3:clwp')
-      call getmem2d(emis,jci1,jci2,1,kz,'colmod3:emis')
-      call getmem2d(fice,jci1,jci2,1,kz,'colmod3:fice')
-      call getmem2d(h2ommr,jci1,jci2,1,kz,'colmod3:h2ommr')
-      call getmem2d(o3mmr,jci1,jci2,1,kz,'colmod3:o3mmr')
-      call getmem2d(o3vmr,jci1,jci2,1,kz,'colmod3:o3vmr')
-      call getmem2d(pmidm1,jci1,jci2,1,kz,'colmod3:pmidm1')
-      call getmem2d(pmlnm1,jci1,jci2,1,kz,'colmod3:pmlnm1')
-      call getmem2d(qm1,jci1,jci2,1,kz,'colmod3:qm1')
-      call getmem2d(qrl,jci1,jci2,1,kz,'colmod3:qrl')
-      call getmem2d(qrs,jci1,jci2,1,kz,'colmod3:qrs')
-      call getmem2d(rei,jci1,jci2,1,kz,'colmod3:rei')
-      call getmem2d(rel,jci1,jci2,1,kz,'colmod3:rel')
-      call getmem2d(tm1,jci1,jci2,1,kz,'colmod3:tm1')
-      call getmem2d(deltaz,jci1,jci2,1,kz,'colmod3:deltaz')
-      call getmem1d(aeradfo,jci1,jci2,'colmod3:aeradfo')
-      call getmem1d(aeradfos,jci1,jci2,'colmod3:aeradfos')
-      call getmem1d(aerlwfo,jci1,jci2,'colmod3:aerlwfo')
-      call getmem1d(aerlwfos,jci1,jci2,'colmod3:aerlwfos')
-      call getmem1d(czen,jci1,jci2,'colmod3:czen')
-      call getmem1d(czengt0,jci1,jci2,'colmod3:czengt0')
-      call getmem3d(absgasnxt,jci1,jci2,1,kz,1,4,'colmod3:absgasnxt')
-      call getmem3d(absgastot,jci1,jci2,1,kzp1,1,kzp1,'colmod3:absgastot')
-      call getmem2d(emsgastot,jci1,jci2,1,kzp1,'colmod3:emsgastot')
+      call getmem2d(rh1,1,npr,1,kz,'colmod3:rh1')
+      call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
+      call getmem2d(emis,1,npr,1,kz,'colmod3:emis')
+      call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
+      call getmem2d(h2ommr,1,npr,1,kz,'colmod3:h2ommr')
+      call getmem2d(o3mmr,1,npr,1,kz,'colmod3:o3mmr')
+      call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
+      call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
+      call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
+      call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
+      call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
+      call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
+      call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
+      call getmem2d(rel,1,npr,1,kz,'colmod3:rel')
+      call getmem2d(tm1,1,npr,1,kz,'colmod3:tm1')
+      call getmem2d(deltaz,1,npr,1,kz,'colmod3:deltaz')
+      call getmem1d(aeradfo,1,npr,'colmod3:aeradfo')
+      call getmem1d(aeradfos,1,npr,'colmod3:aeradfos')
+      call getmem1d(aerlwfo,1,npr,'colmod3:aerlwfo')
+      call getmem1d(aerlwfos,1,npr,'colmod3:aerlwfos')
+      call getmem1d(czen,1,npr,'colmod3:czen')
+      call getmem1d(czengt0,1,npr,'colmod3:czengt0')
+      call getmem3d(absgasnxt,1,npr,1,kz,1,4,'colmod3:absgasnxt')
+      call getmem3d(absgastot,1,npr,1,kzp1,1,kzp1,'colmod3:absgastot')
+      call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
 
-      call getmem1d(ioro,jci1,jci2,'colmod3:ioro')
+      call getmem1d(ioro,1,npr,'colmod3:ioro')
 
       if ( ichem == 1 ) then
-        call getmem3d(aermmr,jci1,jci2,1,kz,1,ntr,'colmod3:aermmr')
+        call getmem3d(aermmr,1,npr,1,kz,1,ntr,'colmod3:aermmr')
       end if
+
+      dosw = .true.
+      dolw = .true.
+      doabsems = .true.
 
     end subroutine allocate_mod_rad_colmod3
 !
@@ -208,16 +215,15 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine colmod3(jstart,jend,istart,iend,iyear,eccf,lout,labsem)
+  subroutine colmod3(iyear,eccf,lout,labsem)
 !
     implicit none
 !
     integer , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
-    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , intent(in) :: eccf
 !
-    integer :: i , j , k , n , jj0 , jj1 , jj2
+    integer :: i , j , n , jj0 , jj1 , jj2
     character (len=64) :: subroutine_name='colmod3'
     integer :: indx = 0
 !
@@ -291,69 +297,63 @@ module mod_rad_colmod3
 ! Near-IR flux absorbed at toa >= 0.7 microns
 ! Flux Shortwave Downwelling Surface
 !
-  do i = istart , iend
+!   Reset all arrays
 !
-!     Reset all arrays
+    czen(:) = d_zero
+    czengt0(:) = .false.
+    alb(:) = d_zero
+    albc(:) = d_zero
+    flns(:) = d_zero
+    flnsc(:) = d_zero
+    flnt(:) = d_zero
+    flntc(:) = d_zero
+    flwds(:) = d_zero
+    fsds(:) = d_zero
+    fsnirt(:) = d_zero
+    fsnirtsq(:) = d_zero
+    fsnrtc(:) = d_zero
+    fsns(:) = d_zero
+    fsnsc(:) = d_zero
+    fsnt(:) = d_zero
+    fsntc(:) = d_zero
+    solin(:) = d_zero
+    soll(:) = d_zero
+    solld(:) = d_zero
+    sols(:) = d_zero
+    solsd(:) = d_zero
+    ts(:) = d_zero
+    cld(:,:) = d_zero
+    effcld(:,:) = d_zero
+    pilnm1(:,:) = d_zero
+    pintm1(:,:) = d_zero
+    clwp(:,:) = d_zero
+    emis(:,:) = d_zero
+    fice(:,:) = d_zero
+    h2ommr(:,:) = d_zero
+    o3mmr(:,:) = d_zero
+    o3vmr(:,:) = d_zero
+    pmidm1(:,:) = d_zero
+    pmlnm1(:,:) = d_zero
+    qm1(:,:) = d_zero
+    qrl(:,:) = d_zero
+    qrs(:,:) = d_zero
+    rei(:,:) = d_zero
+    rel(:,:) = d_zero
+    tm1(:,:) = d_zero
+    ioro(:) = -1
 !
-      czen(:) = d_zero
-      czengt0(:) = .false.
-      alb(:) = d_zero
-      albc(:) = d_zero
-      flns(:) = d_zero
-      flnsc(:) = d_zero
-      flnt(:) = d_zero
-      flntc(:) = d_zero
-      flwds(:) = d_zero
-      fsds(:) = d_zero
-      fsnirt(:) = d_zero
-      fsnirtsq(:) = d_zero
-      fsnrtc(:) = d_zero
-      fsns(:) = d_zero
-      fsnsc(:) = d_zero
-      fsnt(:) = d_zero
-      fsntc(:) = d_zero
-      solin(:) = d_zero
-      soll(:) = d_zero
-      solld(:) = d_zero
-      sols(:) = d_zero
-      solsd(:) = d_zero
-      ts(:) = d_zero
-      cld(:,:) = d_zero
-      effcld(:,:) = d_zero
-      pilnm1(:,:) = d_zero
-      pintm1(:,:) = d_zero
-      clwp(:,:) = d_zero
-      emis(:,:) = d_zero
-      fice(:,:) = d_zero
-      h2ommr(:,:) = d_zero
-      o3mmr(:,:) = d_zero
-      o3vmr(:,:) = d_zero
-      pmidm1(:,:) = d_zero
-      pmlnm1(:,:) = d_zero
-      qm1(:,:) = d_zero
-      qrl(:,:) = d_zero
-      qrs(:,:) = d_zero
-      rei(:,:) = d_zero
-      rel(:,:) = d_zero
-      tm1(:,:) = d_zero
-      ioro(:) = -1
+!   radini sets many radiation parameters
+!   radini() must be called before getdat(), because
+!   the co2 mixing ratio set (by the user) in getdat() should
+!   overwrite the default CCM3 co2 mixing ratio set by radini().
 !
-!     Set parameters dosw , dolw , doabsems
+    call radini(iyear)
 !
-      dosw = .true.
-      dolw = .true.
-      doabsems = .true.
+!   NB: orography types are specified in the following
 !
-!     radini sets many radiation parameters
-!     radini() must be called before getdat(), because
-!     the co2 mixing ratio set (by the user) in getdat() should
-!     overwrite the default CCM3 co2 mixing ratio set by radini().
-!
-      call radini(iyear)
-!
-!     NB: orography types are specified in the following
-!
-      do j = jstart , jend
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         jj0 = 0
         jj1 = 0
         jj2 = 0
@@ -366,73 +366,70 @@ module mod_rad_colmod3
             jj0 = jj0 + 1
           end if
         end do
-        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(j) = 0
-        if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(j) = 1
-        if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(j) = 2
+        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(n) = 0
+        if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(n) = 1
+        if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(n) = 2
+        n = n + 1
       end do
+    end do
 !
-      call getdat(jstart,jend,i)
+    call getdat
 !
-!     Cloud particle size and fraction of ice
+!   Cloud particle size and fraction of ice
 !
-      call cldefr(jstart,jend)
+    call cldefr
 !
-!     Cloud emissivity
+!   Cloud emissivity
 !
-      call cldems(jstart,jend)
+    call cldems
 !
-!     Effective cloud cover
+!   Effective cloud cover
 !
-      do k = 1 , kz
-        do j = jstart , jend
-          effcld(j,k) = cld(j,k)*emis(j,k)
-        end do
+    effcld(:,1:kz) = cld(:,1:kz)*emis(:,1:kz)
+!
+!   Cloud cover at surface interface always zero (for safety's sake)
+!
+    effcld(:,kzp1) = d_zero
+    cld(:,kzp1) = d_zero
+!
+!   Main radiation driving routine.
+!   NB: All fluxes returned from radctl() have already been converted
+!   to MKS.
+!
+    call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
+                tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
+                rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,   &
+                fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
+                fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
+                adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
+                aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
+!
+!   Save gas emission/absorbtion
+!
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        gasabsnxt(j,i,:,:) = absgasnxt(n,:,:)
+        gasabstot(j,i,:,:) = absgastot(n,:,:)
+        gasemstot(j,i,:) = emsgastot(n,:)
+        n = n + 1
       end do
+    end do
 !
-!     Cloud cover at surface interface always zero (for safety's sake)
+!   subroutine radout() is not included in the ccm3 crm itself
+!   but introduced from the former regcm radiation package
+!   for the output of results from radiation calculations
+!   this subroutine is used also for the coupling with bats
 !
-      do j = jstart , jend
-        effcld(j,kzp1) = d_zero
-        cld(j,kzp1) = d_zero
-      end do
-!
-!     Main radiation driving routine.
-!     NB: All fluxes returned from radctl() have already been converted
-!     to MKS.
-!
-      call radctl(jstart,jend,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1, &
-                  tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
-                  rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,   &
-                  fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
-                  fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
-                  adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
-                  aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
-!
-!     Save gas emission/absorbtion
-!
-      if ( labsem ) then
-        do j = jstart , jend
-          gasabsnxt(j,i,:,:) = absgasnxt(j,:,:)
-          gasabstot(j,i,:,:) = absgastot(j,:,:)
-          gasemstot(j,i,:) = emsgastot(j,:)
-        end do
-      end if
-!
-!     subroutine radout() is not included in the ccm3 crm itself
-!     but introduced from the former regcm radiation package
-!     for the output of results from radiation calculations
-!     this subroutine is used also for the coupling with bats
-!
-!     NB:
+!   NB:
 !     Names of some output variables (in MKS) have been changed
 !     from those in the CCM2 radiation package.
 !
-     call radout(jstart,jend,i,lout,solin,fsnt,fsns,fsntc,fsnsc,    &
-                 qrs,flnt,flns,flntc,flnsc,qrl,flwds,sols,soll,     &
-                 solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,  &
-                 totcf,totcl,totci,h2ommr,cld,clwp,abv,sol,aeradfo, &
-                 aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
-    end do
+    call radout(1,npr,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns, &
+                flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,alb,albc, &
+                fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
+                cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,   &
+                tauxar3d,tauasc3d,gtota3d)
 !
     call time_end(subroutine_name,indx)
   end subroutine colmod3
@@ -451,11 +448,10 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine cldefr(jstart,jend)
+  subroutine cldefr
     implicit none
-    integer , intent(in) :: jstart , jend
 !
-    integer :: j , k
+    integer :: n , k
     real(dp) :: pnrml , rliq , weight
 !
 !   reimax - maximum ice effective radius
@@ -476,11 +472,11 @@ module mod_rad_colmod3
 !
     totci(:) = d_zero
     do k = 1 , kz
-      do j = jstart , jend
+      do n = 1 , npr
 !
 !       Define liquid drop size
 !
-        if ( ioro(j) /= 1 ) then
+        if ( ioro(n) /= 1 ) then
 !
 !         Effective liquid radius over ocean and sea ice
 !
@@ -490,42 +486,42 @@ module mod_rad_colmod3
 !         Effective liquid radius over land
 !
           rliq = d_five+d_five* & 
-                  dmin1(d_one,dmax1(d_zero,(minus10-tm1(j,k))*0.05D0))
+                  dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
         end if
 !
-        rel(j,k) = rliq
+        rel(n,k) = rliq
 !fil
 !       test radius = d_10
-!       rel(j,k) = d_10
+!       rel(n,k) = d_10
 !fil
-!+      rei(j,k) = 30.0
+!+      rei(n,k) = 30.0
 !
 !       Determine rei as function of normalized pressure
 !
-        pnrml = pmidm1(j,k)/ps(j)
+        pnrml = pmidm1(n,k)/ps(n)
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
-        rei(j,k) = reimax - rirnge*weight
+        rei(n,k) = reimax - rirnge*weight
 !
 !       Define fractional amount of cloud that is ice
 !
 !       if warmer than -10 degrees C then water phase
 !
-        if ( tm1(j,k) > minus10 ) fice(j,k) = d_zero
+        if ( tm1(n,k) > minus10 ) fice(n,k) = d_zero
 !
 !       if colder than -10 degrees C but warmer than -30 C mixed phase
 !
-        if ( tm1(j,k) <= minus10 .and. tm1(j,k) >= minus30 ) &
-          fice(j,k) = (minus10-tm1(j,k))/20.0D0
+        if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) &
+          fice(n,k) = (minus10-tm1(n,k))/20.0D0
 !
 !       if colder than -30 degrees C then ice phase
 !
-        if ( tm1(j,k) < minus30 ) fice(j,k) = d_one
+        if ( tm1(n,k) < minus30 ) fice(n,k) = d_one
 !
 !       Turn off ice radiative properties by setting fice = 0.0
 !
 !fil    no-ice test
-!       fice(j,k) = d_zero
-        totci(j) = totci(j) + clwp(j,k)*fice(j,k)*d_r1000
+!       fice(n,k) = d_zero
+        totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
 !
       end do
     end do
@@ -543,14 +539,13 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine cldems(jstart,jend)
+  subroutine cldems
     implicit none
-    integer , intent(in) :: jstart , jend
 !
 !   kabs    - longwave absorption coeff (m**2/g)
 !   kabsi   - ice absorption coefficient
 !
-    integer :: j , k
+    integer :: n , k
     real(dp) :: kabs , kabsi
     character (len=64) :: subroutine_name='cldems'
     integer :: indx = 0
@@ -558,10 +553,10 @@ module mod_rad_colmod3
     call time_begin(subroutine_name,indx)
 !
     do k = 1 , kz
-      do j = jstart , jend
-        kabsi = 0.005D0 + d_one/rei(j,k)
-        kabs = kabsl*(d_one-fice(j,k)) + kabsi*fice(j,k)
-        emis(j,k) = d_one - dexp(-1.66D0*kabs*clwp(j,k))
+      do n = 1 , npr
+        kabsi = 0.005D0 + d_one/rei(n,k)
+        kabs = kabsl*(d_one-fice(n,k)) + kabsi*fice(n,k)
+        emis(n,k) = d_one - dexp(-1.66D0*kabs*clwp(n,k))
       end do
     end do
 !
@@ -599,189 +594,206 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine getdat(jstart,jend,i)
+  subroutine getdat
 !
     implicit none
 !
-    integer , intent(in) :: jstart , jend , i
-!
-    integer :: j , k , itr , krev , ncldm1
+    integer :: n , i , j , k , k2 , itr , krev , ncldm1
     real(dp) :: ccvtem , clwtem
 !
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
     real(dp) , parameter :: vmmr = amo/amd
+    logical , save :: ifirst
+!
     character (len=64) :: subroutine_name='getdat'
     integer :: indx = 0
 !
-    call time_begin(subroutine_name,indx)
+    data ifirst /.true./
 !
-    if ( iemiss == 1 ) then
-      do j = jstart , jend
-        emsvt1(j) = emsvt(j,i)
-      end do
-    end if
+    call time_begin(subroutine_name,indx)
 !
 !   Static informations
 !
-    do j = jstart , jend
-      xptrop(j) = ptrop(j,i)
-      dlat(j) = dabs(xlat(j,i))
-      adirsw(j) = swdiralb(j,i)
-      adifsw(j) = swdifalb(j,i)
-      adirlw(j) = lwdiralb(j,i)
-      adiflw(j) = lwdifalb(j,i)
-      asw(j) = swalb(j,i)
-      alw(j) = lwalb(j,i)
-      czen(j) = coszen(j,i)
-    end do
-
-    do j = jstart , jend
-      absgasnxt(j,:,:) = gasabsnxt(j,i,:,:)
-      absgastot(j,:,:) = gasabstot(j,i,:,:)
-      emsgastot(j,:) = gasemstot(j,i,:)
-    end do
-
+    if ( ifirst ) then
+      dlat = reshape(dabs(xlat(jci1:jci2,ici1:ici2)),(/npr/))
+      xptrop = reshape(ptrop(jci1:jci2,ici1:ici2),(/npr/))
+      ifirst = .false.
+    end if
+!
+    if ( iemiss == 1 ) then
+      emsvt1 = reshape(emsvt(jci1:jci2,ici1:ici2),(/npr/))
+    end if
+!
+!   Albedoes
+!
+    adirsw = reshape(swdiralb(jci1:jci2,ici1:ici2),(/npr/))
+    adifsw = reshape(swdifalb(jci1:jci2,ici1:ici2),(/npr/))
+    adirlw = reshape(lwdiralb(jci1:jci2,ici1:ici2),(/npr/))
+    adiflw = reshape(lwdifalb(jci1:jci2,ici1:ici2),(/npr/))
+    asw = reshape(swalb(jci1:jci2,ici1:ici2),(/npr/))
+    alw = reshape(lwalb(jci1:jci2,ici1:ici2),(/npr/))
+!
+!   Sun elevation
+!
+    czen = reshape(coszen(jci1:jci2,ici1:ici2),(/npr/))
     where ( czen > d_zero )
       czengt0 = .true.
     end where
+
+    do n = 1 , 4
+      do k = 1 , kz
+        absgasnxt(:,k,n) = reshape(gasabsnxt(jci1:jci2,ici1:ici2,k,n),(/npr/))
+      end do
+    end do
+    do k = 1 , kzp1
+      do k2 = 1 , kzp1
+        absgastot(:,k2,k) = reshape(gasabstot(jci1:jci2,ici1:ici2,k2,k),(/npr/))
+      end do
+    end do
+    do k = 1 , kzp1
+      emsgastot(:,k) = reshape(gasemstot(jci1:jci2,ici1:ici2,k),(/npr/))
+    end do
 !
 !   surface pressure and scaled pressure, from which level are computed
 !
-    do j = jstart , jend
-      ps(j) = (sfps(j,i)+ptp)*d_1000
-    end do
+    ps = reshape(((sfps(jci1:jci2,ici1:ici2)+ptp)*d_1000),(/npr/))
 !
 !   convert pressures from mb to pascals and define interface pressures:
 !
     do k = 1 , kz
-      do j = jstart , jend
-        pmidm1(j,k) = (sfps(j,i)*hlev(k)+ptp)*d_1000
-        pmlnm1(j,k) = dlog(pmidm1(j,k))
-      end do
+      pmidm1(:,k) = reshape(((sfps(jci1:jci2,ici1:ici2)*hlev(k)+ptp)*d_1000), &
+                            (/npr/))
     end do
+    pmlnm1(:,:) = dlog(pmidm1(:,:))
+
     do k = 1 , kzp1
-      do j = jstart , jend
-        pintm1(j,k) = (sfps(j,i)*flev(k)+ptp)*d_1000
-        pilnm1(j,k) = dlog(pintm1(j,k))
-      end do
+      pintm1(:,k) = reshape(((sfps(jci1:jci2,ici1:ici2)*flev(k)+ptp)*d_1000), &
+                            (/npr/))
     end do
+    pilnm1(:,:) = dlog(pintm1(:,:))
 !
-!   air temperatures
+!   air temperature and relative humidity
 !
     do k = 1 , kz
-      do j = jstart , jend
-        tm1(j,k) = tatms(j,i,k)
-        rh1(j,k) = dmax1(dmin1(rhatms(j,i,k),nearone),d_zero)
-      end do
+      tm1(:,k) = reshape(tatms(jci1:jci2,ici1:ici2,k),(/npr/))
+      rh1(:,k) = reshape( &
+         dmax1(dmin1(rhatms(jci1:jci2,ici1:ici2,k),nearone),d_zero),(/npr/))
     end do
 !
 !   h2o mass mixing ratio
 !
     do k = 1 , kz
-      do j = jstart , jend
-        h2ommr(j,k) = dmax1(1.0D-7,qvatms(j,i,k))
-        qm1(j,k) = h2ommr(j,k)
-      end do
+      h2ommr(:,k) = reshape(dmax1(1.0D-8,qvatms(jci1:jci2,ici1:ici2,k)),(/npr/))
     end do
+    qm1(:,:) = h2ommr(:,:)
 !
 !   fractional cloud cover (dependent on relative humidity)
 !
     totcl(:) = d_zero
     do k = 1 , kz
-      do j = jstart , jend
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
    
-        ccvtem = d_zero   !cqc mod
-        cld(j,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-        cld(j,k) = dmin1(cld(j,k),0.9999999D0)
+          ccvtem = d_zero   !cqc mod
+          cld(n,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
+          cld(n,k) = dmin1(cld(n,k),0.9999999D0)
 !
-!qc     gary's mods for clouds/radiation tie-in to exmois
-!qc     implement here the new formula then multiply by 10e6
-!qc     if (tm1(j,k) > t0max) clwtem=clwmax
-!qc     if (tm1(j,k) >= t0st .and. tm1(j,k) <= t0max) then
-!qc       clwtem=clw0st+((tm1(j,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
-!qc     end if
-!qc     if (tm1(j,k) >= t0min .and. tm1(j,k) < t0st)
-!qc       clwtem=clw0st+(tm1(j,k)-t0st)/(t0min-t0st)*(clwmin-clw0st)
-!qc     end if
-!qc     if (tm1(j,k) < t0min) clwtem=clwmin
-!qc     clwtem=clwtem*1.e6
+!qc       gary's mods for clouds/radiation tie-in to exmois
+!qc       implement here the new formula then multiply by 10e6
+!qc       if (tm1(n,k) > t0max) clwtem=clwmax
+!qc       if (tm1(n,k) >= t0st .and. tm1(n,k) <= t0max) then
+!qc         clwtem=clw0st+((tm1(n,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
+!qc       end if
+!qc       if (tm1(n,k) >= t0min .and. tm1(n,k) < t0st)
+!qc         clwtem=clw0st+(tm1(n,k)-t0st)/(t0min-t0st)*(clwmin-clw0st)
+!qc       end if
+!qc       if (tm1(n,k) < t0min) clwtem=clwmin
+!qc       clwtem=clwtem*1.e6
 !
-!       convert liquid water content into liquid water path, i.e.
-!       multiply b deltaz
+!         convert liquid water content into liquid water path, i.e.
+!         multiply b deltaz
 !
-        clwtem = cldlwc(j,i,k) !cqc mod
-        deltaz(j,k) = rgas*tm1(j,k)*(pintm1(j,k+1) - &
-                        pintm1(j,k))/(egrav*pmidm1(j,k))
-        clwp(j,k) = clwtem*deltaz(j,k)
-        if ( dabs(cld(j,k)) < lowcld ) then
-          cld(j,k) = d_zero
-          clwp(j,k) = d_zero
-        end if
-        totcl(j) = totcl(j)+clwp(j,k)*d_r1000
+          clwtem = cldlwc(j,i,k) !cqc mod
+          deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
+                          pintm1(n,k))/(egrav*pmidm1(n,k))
+          clwp(n,k) = clwtem*deltaz(n,k)
+          if ( dabs(cld(n,k)) < lowcld ) then
+            cld(n,k) = d_zero
+            clwp(n,k) = d_zero
+          end if
+          totcl(n) = totcl(n)+clwp(n,k)*d_r1000
+          n = n + 1
+        end do
       end do
     end do
 !   
 !   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !   do k = 1 , kz
-!     do j = jstart , jend
-!       if ( pintm1(j,k+1) < 40000.0D0 ) then
-!         cld(j,k) = dmin1(cld(j,k),0.25d0)
+!     do n = 1 , npr
+!       if ( pintm1(n,k+1) < 40000.0D0 ) then
+!         cld(n,k) = dmin1(cld(n,k),0.25d0)
 !       else
-!         cld(j,k)=dmin1(cld(j,k),0.7d0)
+!         cld(n,k)=dmin1(cld(n,k),0.7d0)
 !       end if
 !     end do
 !   end do
 !
 !   set cloud fractional cover at top model level = 0
 !
-    do j = jstart , jend
-      cld(j,1:2) = d_zero
-      clwp(j,1:2) = d_zero
-    end do
+    cld(:,1:2) = d_zero
+    clwp(:,1:2) = d_zero
 !
 !   set cloud fractional cover at bottom (ncld) model levels = 0
 !
     ncldm1 = ncld - 1
     do k = kz - ncldm1 , kz
-      do j = jstart , jend
-        cld(j,k) = d_zero
-        clwp(j,k) = d_zero
+      do n = 1 , npr
+        cld(n,k) = d_zero
+        clwp(n,k) = d_zero
       end do
     end do
 !
 !   cloud cover (at surface interface always zero)
 !
-    do j = jstart , jend
-      cld(j,kzp1) = d_zero
-    end do
-    do j = jstart , jend
-      do k = 1 , kz
-        if ( cld(j,k) > 0.999D0 ) cld(j,k) = 0.999D0
+    cld(:,kzp1) = d_zero
+!
+!   Give correct range if out of range
+!
+    do k = 1 , kz
+      do n = 1 , npr
+        if ( cld(n,k) > 0.999D0 ) cld(n,k) = 0.999D0
       end do
     end do
 !
 !   ground temperature
 !
-    do j = jstart , jend
-      ts(j) = tground(j,i)
-    end do
+    ts = reshape(tground(jci1:jci2,ici1:ici2),(/npr/))
 !
 !   o3 mass and volume mixing ratios
 !
     do k = 1 , kz
-      do j = jstart , jend
-        krev = kzp1 - k
-        o3mmr(j,k) = o3prof(j,i,krev)
-        o3vmr(j,k) = o3mmr(j,k)/vmmr
+      krev = kzp1 - k
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          o3mmr(n,k) = o3prof(j,i,krev)
+          n = n + 1
+        end do
       end do
     end do
+    o3vmr(:,:) = o3mmr(:,:)/vmmr
 !
     if ( lchem ) then
       do itr = 1 , ntr
         do k = 1 , kz
-          do j = jstart , jend
-            aermmr(j,k,itr) = chspmix(j,i,k,itr)/psfps(j,i)
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aermmr(n,k,itr) = chspmix(j,i,k,itr)/psfps(j,i)
+              n = n + 1
+            end do
           end do
         end do
       end do

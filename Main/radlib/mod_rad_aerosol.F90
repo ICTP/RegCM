@@ -102,6 +102,7 @@ module mod_rad_aerosol
   real(dp) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
   real(dp) , dimension(4) :: prop
   integer :: ll , mm , nn
+  integer :: npoints
 !
 ! Aersol LW optical properties
 !
@@ -504,29 +505,30 @@ module mod_rad_aerosol
   subroutine allocate_mod_rad_aerosol(ichem)
     implicit none
     integer , intent(in) :: ichem
-    call getmem2d(aermmb,jci1,jci2,1,kz,'aerosol:aermmb')
-    call getmem3d(ftota3d,jci1,jci2,0,kz,1,nspi,'aerosol:ftota3d')
-    call getmem3d(gtota3d,jci1,jci2,0,kz,1,nspi,'aerosol:gtota3d')
-    call getmem3d(tauasc3d,jci1,jci2,0,kz,1,nspi,'aerosol:tauasc3d')
-    call getmem3d(tauxar3d,jci1,jci2,0,kz,1,nspi,'aerosol:tauxar3d')
-    call getmem2d(ftota,jci1,jci2,1,nspi,'aerosol:ftota')
-    call getmem2d(gtota,jci1,jci2,1,nspi,'aerosol:gtota')
-    call getmem2d(tauasc,jci1,jci2,1,nspi,'aerosol:tauasc')
-    call getmem2d(tauxar,jci1,jci2,1,nspi,'aerosol:tauxar')
-    call getmem2d(aermtot,jci1,jci2,1,kz,'aerosol:aermtot')
-    call getmem2d(aervtot,jci1,jci2,1,kz,'aerosol:aervtot')
-    call getmem3d(aertrlw,jci1,jci2,1,kzp1,1,kzp1,'aerosol:aertrlw')
+    npoints = (jci2-jci1+1)*(ici2-ici1+1)
+    call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
+    call getmem3d(ftota3d,1,npoints,0,kz,1,nspi,'aerosol:ftota3d')
+    call getmem3d(gtota3d,1,npoints,0,kz,1,nspi,'aerosol:gtota3d')
+    call getmem3d(tauasc3d,1,npoints,0,kz,1,nspi,'aerosol:tauasc3d')
+    call getmem3d(tauxar3d,1,npoints,0,kz,1,nspi,'aerosol:tauxar3d')
+    call getmem2d(ftota,1,npoints,1,nspi,'aerosol:ftota')
+    call getmem2d(gtota,1,npoints,1,nspi,'aerosol:gtota')
+    call getmem2d(tauasc,1,npoints,1,nspi,'aerosol:tauasc')
+    call getmem2d(tauxar,1,npoints,1,nspi,'aerosol:tauxar')
+    call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
+    call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
+    call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
     if ( ichem == 1 ) then
-      call getmem3d(fa,jci1,jci2,0,kz,1,ntr,'aerosol:fa')
-      call getmem3d(ga,jci1,jci2,0,kz,1,ntr,'aerosol:ga')
-      call getmem3d(tx,jci1,jci2,0,kz,1,ntr,'aerosol:tx')
-      call getmem3d(uaer,jci1,jci2,0,kz,1,ntr,'aerosol:uaer')
-      call getmem3d(wa,jci1,jci2,0,kz,1,ntr,'aerosol:wa')
-      call getmem2d(faer,jci1,jci2,1,ntr,'aerosol:faer')
-      call getmem2d(gaer,jci1,jci2,1,ntr,'aerosol:gaer')
-      call getmem2d(tauaer,jci1,jci2,1,ntr,'aerosol:tauaer')
-      call getmem2d(utaer,jci1,jci2,1,ntr,'aerosol:utaer')
-      call getmem2d(waer,jci1,jci2,1,ntr,'aerosol:waer')
+      call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
+      call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
+      call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
+      call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
+      call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
+      call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
+      call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
+      call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
+      call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
+      call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
     end if
   end subroutine allocate_mod_rad_aerosol
 !

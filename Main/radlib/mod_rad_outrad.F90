@@ -20,6 +20,7 @@
 module mod_rad_outrad
 
   use mod_dynparam
+  use mod_mpmessage
   use mod_rad_common
 
   private
@@ -42,11 +43,11 @@ module mod_rad_outrad
     call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
-  subroutine radout(jstart,jend,i,lout,solin,sabtp,frsa,clrst,clrss,    &
-                    qrs,firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,      &
-                    solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,   &
-                    totcf,totcl,totci,h2ommr,cld,clwp,abv,sol,aeradfo,  &
-                    aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
+  subroutine radout(n1,n2,lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,   &
+                    frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,alb, &
+                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,  &
+                    h2ommr,cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,    &
+                    aerlwfos,tauxar3d,tauasc3d,gtota3d)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -85,7 +86,7 @@ module mod_rad_outrad
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 ! fsds     - Flux Shortwave Downwelling Surface
 !
-    integer , intent(in) :: jstart , jend , i
+    integer , intent(in) :: n1 , n2
     logical , intent(in) :: lout ! Preapre data for outfile
     real(dp) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
@@ -101,30 +102,38 @@ module mod_rad_outrad
                 totcf , totcl , totci , aeradfo , aeradfos,       &
                 aerlwfo , aerlwfos
 !
-    integer :: j , k
+    integer :: i , j , k , n
     real(dp) :: rntim
+
+    if ( n2-n1+1 /= (jci2-jci1+1)*(ici2-ici1+1) ) then
+      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH IN OUTRAD')
+    end if
 !
 !   total heating rate in deg/s
 !
     do k = 1 , kz
-      do j = jstart , jend
-        heatrt(j,i,k) = qrs(j,k) + qrl(j,k)
+      n = n1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
+          n = n + 1
+        end do
       end do
     end do
 !
 !   surface absorbed solar flux in watts/m2
-!
-    do j = jstart , jend
-      srfabswflx(j,i) = frsa(j)
-      abveg(j,i) = abv(j)
-      solar(j,i) = sol(j)
-    end do
-!
 !   net up longwave flux at the surface
 !
-    do j = jstart , jend
-      srflwflxup(j,i) = frla(j)
-      srflwflxdw(j,i) = slwd(j)  ! BATS Output
+    n = n1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        srfabswflx(j,i) = frsa(n)
+        abveg(j,i) = abv(n)
+        solar(j,i) = sol(n)
+        srflwflxup(j,i) = frla(n)
+        srflwflxdw(j,i) = slwd(n)  ! BATS Output
+        n = n + 1
+      end do
     end do
 !
 !   for coupling with bats
@@ -134,91 +143,112 @@ module mod_rad_outrad
 !   over sparsely vegetated areas in which vegetation and ground
 !   albedo are significantly different
 !
-    do j = jstart , jend
-      totsol(j,i) = soll(j) + sols(j) + solsd(j) + solld(j)
-      soldir(j,i) = sols(j)
-      soldif(j,i) = solsd(j)
+    n = n1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        totsol(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        soldir(j,i) = sols(n)
+        soldif(j,i) = solsd(n)
 #ifdef CLM
-      solswdir(j,i) = sols(j)
-      sollwdir(j,i) = soll(j)
-      solswdif(j,i) = solsd(j)
-      sollwdif(j,i) = solld(j)
+        solswdir(j,i) = sols(n)
+        sollwdir(j,i) = soll(n)
+        solswdif(j,i) = solsd(n)
+        sollwdif(j,i) = solld(n)
 #endif
+        n = n + 1
+      end do
     end do
+
     if ( lchem ) then
+      rntim = d_one/(d_1000*minph*chfrovrradfr)
       do k = 1 , kz
-        do j = jstart , jend
-          aerext(j,i,k) = tauxar3d(j,k,8)
-          aerssa(j,i,k) = tauasc3d(j,k,8)
-          aerasp(j,i,k) = gtota3d(j,k,8)
+        n = n1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aerext(j,i,k) = tauxar3d(n,k,8)
+            aerssa(j,i,k) = tauasc3d(n,k,8)
+            aerasp(j,i,k) = gtota3d(n,k,8)
+            n = n + 1
+          end do
         end do
       end do
-      rntim = d_one/(d_1000*minph*chfrovrradfr)
-      do j = jstart , jend
-        aertarf(j,i)   = aertarf(j,i)   + aeradfo(j)  * rntim
-        aersrrf(j,i)   = aersrrf(j,i)   + aeradfos(j) * rntim
-        aertalwrf(j,i) = aertalwrf(j,i) + aerlwfo(j)  * rntim
-        aersrlwrf(j,i) = aersrlwrf(j,i) + aerlwfos(j) * rntim
+      n = n1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aertarf(j,i)   = aertarf(j,i)   + aeradfo(n)  * rntim
+          aersrrf(j,i)   = aersrrf(j,i)   + aeradfos(n) * rntim
+          aertalwrf(j,i) = aertalwrf(j,i) + aerlwfo(n)  * rntim
+          aersrlwrf(j,i) = aersrlwrf(j,i) + aerlwfos(n) * rntim
+          n = n + 1
+        end do
       end do
     end if
 !
     if ( ifrad ) then
       if ( lout ) then
         do k = 1 , kz
-          do j = jstart , jend
-            frad3d(j,i,k,1) = real(cld(j,k))    ! write
-            if (clwp(j,k) > dlowval) then
-              frad3d(j,i,k,2) = real(clwp(j,k)) ! write
-            else
-              frad3d(j,i,k,2) = slowval
-            end if
-            frad3d(j,i,k,3) = real(qrs(j,k))    ! write
-            frad3d(j,i,k,4) = real(qrl(j,k))    ! write
-            frad3d(j,i,k,5) = real(h2ommr(j,k)) ! skip
+          n = n1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              frad3d(j,i,k,1) = real(cld(n,k))    ! write
+              if (clwp(j,k) > dlowval) then
+                frad3d(j,i,k,2) = real(clwp(n,k)) ! write
+              else
+                frad3d(j,i,k,2) = slowval
+              end if
+              frad3d(j,i,k,3) = real(qrs(n,k))    ! write
+              frad3d(j,i,k,4) = real(qrl(n,k))    ! write
+              frad3d(j,i,k,5) = real(h2ommr(n,k)) ! skip
+              n = n + 1
+            end do
           end do
         end do
-   
-        do j = jstart , jend
-          frad2d(j,i,1) = real(frsa(j))      ! write
-          frad2d(j,i,2) = real(frla(j))      ! write
-          frad2d(j,i,3) = real(clrst(j))     ! write
-          frad2d(j,i,4) = real(clrss(j))     ! write
-          frad2d(j,i,5) = real(clrlt(j))     ! write
-          frad2d(j,i,6) = real(clrls(j))     ! write
-          frad2d(j,i,7) = real(solin(j))     ! write
-          frad2d(j,i,8) = real(sabtp(j))     ! write
-          frad2d(j,i,9) = real(totcf(j))     ! write
-          frad2d(j,i,10) = real(totcl(j))    ! write
-          frad2d(j,i,11) = real(totci(j))    ! write
-          frad2d(j,i,12) = real(firtp(j))    ! write
-          frad2d(j,i,13) = real(alb(j))      ! skip
-          frad2d(j,i,14) = real(albc(j))     ! skip
-          frad2d(j,i,15) = real(fsds(j))     ! skip
-          frad2d(j,i,16) = real(fsnirt(j))   ! skip
-          frad2d(j,i,17) = real(fsnrtc(j))   ! skip
-          frad2d(j,i,18) = real(fsnirtsq(j)) ! skip
-          if ( soll(j) < dlowval ) then
-            frad2d(j,i,19) = 0.0
-          else
-            frad2d(j,i,19) = real(soll(j))   ! skip
-          end if
-          if ( sols(j) < dlowval ) then
-            frad2d(j,i,20) = 0.0
-          else
-            frad2d(j,i,20) = real(sols(j))   ! skip
-          end if
-          if ( solsd(j) < dlowval ) then
-            frad2d(j,i,21) = 0.0
-          else
-            frad2d(j,i,21) = real(solsd(j))  ! skip
-          end if
-          if ( solld(j) < dlowval ) then
-            frad2d(j,i,22) = 0.0
-          else
-            frad2d(j,i,22) = real(solld(j))  ! skip
-          end if
-          frad2d(j,i,23) = real(solar(j,i))    ! skip
-          frad2d(j,i,24) = real(abveg(j,i))   ! skip
+
+        n = n1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            frad2d(j,i,1) = real(frsa(n))      ! write
+            frad2d(j,i,2) = real(frla(n))      ! write
+            frad2d(j,i,3) = real(clrst(n))     ! write
+            frad2d(j,i,4) = real(clrss(n))     ! write
+            frad2d(j,i,5) = real(clrlt(n))     ! write
+            frad2d(j,i,6) = real(clrls(n))     ! write
+            frad2d(j,i,7) = real(solin(n))     ! write
+            frad2d(j,i,8) = real(sabtp(n))     ! write
+            frad2d(j,i,9) = real(totcf(n))     ! write
+            frad2d(j,i,10) = real(totcl(n))    ! write
+            frad2d(j,i,11) = real(totci(n))    ! write
+            frad2d(j,i,12) = real(firtp(n))    ! write
+            frad2d(j,i,13) = real(alb(n))      ! skip
+            frad2d(j,i,14) = real(albc(n))     ! skip
+            frad2d(j,i,15) = real(fsds(n))     ! skip
+            frad2d(j,i,16) = real(fsnirt(n))   ! skip
+            frad2d(j,i,17) = real(fsnrtc(n))   ! skip
+            frad2d(j,i,18) = real(fsnirtsq(n)) ! skip
+            if ( soll(n) < dlowval ) then
+              frad2d(j,i,19) = 0.0
+            else
+              frad2d(j,i,19) = real(soll(n))   ! skip
+            end if
+            if ( sols(n) < dlowval ) then
+              frad2d(j,i,20) = 0.0
+            else
+              frad2d(j,i,20) = real(sols(n))   ! skip
+            end if
+            if ( solsd(n) < dlowval ) then
+              frad2d(j,i,21) = 0.0
+            else
+              frad2d(j,i,21) = real(solsd(n))  ! skip
+            end if
+            if ( solld(n) < dlowval ) then
+              frad2d(j,i,22) = 0.0
+            else
+              frad2d(j,i,22) = real(solld(n))  ! skip
+            end if
+            frad2d(j,i,23) = real(solar(j,i))  ! skip
+            frad2d(j,i,24) = real(abveg(j,i))  ! skip
+            n = n + 1
+          end do
         end do
       end if
     end if

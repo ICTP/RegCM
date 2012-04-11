@@ -739,13 +739,13 @@ module mod_tendency
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( irrtm == 1 ) then
-        call rrtmg_driver(jci1,jci2,ici1,ici2,xyear,eccf,loutrad)
+        call rrtmg_driver(xyear,eccf,loutrad)
       else
         labsem = (ktau == 0 .or. mod(ktau+1,ntabem) == 0)
         if ( labsem .and. myid == 0 ) then
           write(stdout,*) 'Doing emission/absorbtion calculation...'
         end if
-        call colmod3(jci1,jci2,ici1,ici2,xyear,eccf,loutrad,labsem)
+        call colmod3(xyear,eccf,loutrad,labsem)
       end if
     end if
  
