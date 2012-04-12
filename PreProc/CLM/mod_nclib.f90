@@ -517,7 +517,7 @@ module mod_nclib
   real(dp) , dimension(2) :: dvrange
   character(64) , dimension(maxdim) :: long_name
   character(64) , dimension(maxdim) :: units
-  integer(2) , parameter :: shfill = -32767
+  integer(2) , parameter :: shfill = -32767_2
 
   data rdim /'lon','lat','level','time'/
   data long_name /'Longitude','Latitude','Height_Index','Time'/

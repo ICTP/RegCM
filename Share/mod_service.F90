@@ -137,9 +137,7 @@ CONTAINS
     INTEGER, optional :: LEVEL
     CHARACTER(len=3) ::  np='   '
     CHARACTER(len=9) ::  string
-    CHARACTER (len=100) :: record
     CHARACTER (len=64) :: sub='activate_debug'
-    LOGICAL :: safe=.TRUE.
     INTEGER :: ierr1,idum
     INTEGER,EXTERNAL :: intstr
 
@@ -269,7 +267,6 @@ CONTAINS
   !!<
   SUBROUTINE time_begin(name,indx)
     IMPLICIT NONE
-    INTEGER :: i
     INTEGER, INTENT(INOUT) :: indx
     CHARACTER (len=64) :: name
     CHARACTER (len=64) :: stringa='                                      '
@@ -304,9 +301,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: indx
     INTEGER, OPTIONAL :: isize
     REAL (Kind=8)  :: time_CALL
-    CHARACTER (len=64) :: name
     CHARACTER (len=64)  :: stringa=' '
-
 
     ! check for indx: should not be less than zero
     IF (indx<0) THEN 
@@ -366,12 +361,12 @@ CONTAINS
     REAL (kind=8)  :: avg,xmin,xmax
     REAL (kind=8)  , ALLOCATABLE :: array_tmp(:)
     INTEGER , ALLOCATABLE :: array_entries(:)
-    LOGICAL :: called=.TRUE.,FLAG_ENTRY=.FALSE.,L_TIMES_on_PE=.FALSE.
+    LOGICAL :: L_TIMES_on_PE=.FALSE.
     LOGICAL :: L_ENTRY=.TRUE.
-    INTEGER :: nwords,ierr,nword_send,nword_receive,ierr1
-    REAL    :: total_comm_time=0.0
+    INTEGER :: ierr1
+    REAL(dp):: total_comm_time=0.0D0
     REAL    :: avg_value
-    CHARACTER (len=64) :: name
+    CHARACTER (len=128) :: name
     CHARACTER (len=64) :: sub='time_print'
 
     CALL MPI_BARRIER(mycomm,ierr1)
@@ -545,8 +540,7 @@ CONTAINS
     REAL (kind=8), DIMENSION(:)  :: f_collect 
     REAL (kind=8) :: f_sub
 
-    LOGICAL :: called
-    INTEGER :: nwords,ierr,nword_send,nword_receive
+    INTEGER :: ierr,nword_send,nword_receive
     Nword_send=1
     Nword_receive=Nword_send
     CALL MPI_Allgather(f_sub,Nword_send,MPI_DOUBLE_PRECISION,f_collect, &
@@ -573,8 +567,7 @@ CONTAINS
     ! assumed shaped array... 
     INTEGER , DIMENSION(:)  :: f_collect 
     INTEGER  :: f_sub
-    LOGICAL :: called
-    INTEGER :: nwords,ierr,nword_send,nword_receive
+    INTEGER :: ierr,nword_send,nword_receive
 
     Nword_send=1
     Nword_receive=Nword_send
@@ -778,14 +771,14 @@ CONTAINS
     CHARACTER(len=7) :: sline
     CHARACTER(len=36) :: string
 
-    INTEGER i_addr
+    INTEGER(8) i_addr
     string='    '
     subro= '    '
     varia= '    '
     string='    '
     sline ='    '
 
-    !!i_addr=loc(variable)
+    i_addr=loc(variable)
 
     WRITE(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
     IF (PRESENT(name_of_variable)) varia=name_of_variable 
@@ -814,14 +807,14 @@ CONTAINS
     CHARACTER(len=7) :: sline
     CHARACTER(len=36) :: string
 
-    INTEGER i_addr
+    INTEGER(8) i_addr
     string='    '
     subro= '    '
     varia= '    '
     string='    '
     sline ='    '
 
-    !! i_addr=loc(variable)
+    i_addr=loc(variable)
 
     WRITE(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
     IF (PRESENT(name_of_variable)) varia=name_of_variable 
