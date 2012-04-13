@@ -120,35 +120,14 @@ module mod_cbmz_rates1
     subroutine chemrates
 !
       implicit none
-  ! Chem index
-  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
-  ! Chem local index
-  integer :: is , iss , iscs , isc2
-  ! Chem index
-  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
-  ! chem index - pair and multi
-  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
-  ! aquasolve ion counter
-  integer :: ionsum
-  ! Aquasolve chem index
-  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
-  ! Aqueous counters
-  integer :: neq
-  ! Chem species counters
-  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
-  ! Reaction counters
-  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
-  ! indices used for species categories
-  integer :: icat1 , icat2 , icatp , icatp2
-  ! Vectorization counters
-  integer :: kk , kw
-  ! General counters
-  integer :: i , j , k , ii , ij , iii , n
-
-  real(dp) :: calpha(c_kvec) ! General vector variable
-  real(dp) :: cbeta(c_kvec)  ! General vector variable
-  real(dp) :: cgamma(c_kvec) ! General vector variable
-
+      ! Reaction counters
+      integer :: nr1
+      ! Vectorization counters
+      integer :: kk
+      ! General counters
+      integer :: j
+      real(dp) :: cbeta(c_kvec)  ! General vector variable
+      real(dp) :: cgamma(c_kvec) ! General vector variable
       ! temperature K
       real(dp) :: tempx
       ! density, molec/cm3
@@ -435,30 +414,10 @@ module mod_cbmz_rates1
     subroutine hvrates
 !
       implicit none
-  ! Chem index
-  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
-  ! Chem local index
-  integer :: is , iss , iscs , isc2
-  ! Chem index
-  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
-  ! chem index - pair and multi
-  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
-  ! aquasolve ion counter
-  integer :: ionsum
-  ! Aquasolve chem index
-  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
-  ! Aqueous counters
-  integer :: neq
-  ! Chem species counters
-  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
-  ! Reaction counters
-  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
-  ! indices used for species categories
-  integer :: icat1 , icat2 , icatp , icatp2
-  ! Vectorization counters
-  integer :: kk , kw
-  ! General counters
-  integer :: i , j , k , ii , ij , iii , n
+      ! Vectorization counters
+      integer :: kk
+      ! General counters
+      integer :: j , ij
 !
 !   hvrate(kk, 56)    Interpolated hv rates averaged over time interval.
 !                                      (sec-1)
@@ -604,30 +563,6 @@ module mod_cbmz_rates1
     real(dp) function bod(u,b,c,d,e,tempx,denx)
 !
       implicit none
-  ! Chem index
-  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
-  ! Chem local index
-  integer :: is , iss , iscs , isc2
-  ! Chem index
-  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
-  ! chem index - pair and multi
-  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
-  ! aquasolve ion counter
-  integer :: ionsum
-  ! Aquasolve chem index
-  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
-  ! Aqueous counters
-  integer :: neq
-  ! Chem species counters
-  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
-  ! Reaction counters
-  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
-  ! indices used for species categories
-  integer :: icat1 , icat2 , icatp , icatp2
-  ! Vectorization counters
-  integer :: kk , kw
-  ! General counters
-  integer :: i , j , k , ii , ij , iii , n
 !
       ! ko(300) = Low pressure limit at 300 K.
       real(dp) , intent(in) :: b
@@ -686,31 +621,6 @@ module mod_cbmz_rates1
     real(dp) function ytn(c,tempx,denx)
 !
       implicit none
-  ! Chem index
-  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
-  ! Chem local index
-  integer :: is , iss , iscs , isc2
-  ! Chem index
-  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
-  ! chem index - pair and multi
-  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
-  ! aquasolve ion counter
-  integer :: ionsum
-  ! Aquasolve chem index
-  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
-  ! Aqueous counters
-  integer :: neq
-  ! Chem species counters
-  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
-  ! Reaction counters
-  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
-  ! indices used for species categories
-  integer :: icat1 , icat2 , icatp , icatp2
-  ! Vectorization counters
-  integer :: kk , kw
-  ! General counters
-  integer :: i , j , k , ii , ij , iii , n
-!
       ! Number of carbon atoms in RO2
       real(dp) , intent(in) :: c
       ! temperature K

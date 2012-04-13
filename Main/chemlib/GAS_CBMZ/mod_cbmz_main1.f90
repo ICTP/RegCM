@@ -119,15 +119,7 @@ module mod_cbmz_main1
     subroutine chemmain
 !
       implicit none
-  integer :: ihour , ihour2 , ix1 , ix0 , ix21 , ix20  ! bsetr hour integers
-  integer :: ind , j1 , jj2 , ij2 , ixn , n            ! brplac indices
-  integer :: ni , ic1 , ic2 , ip                       ! bsplac indices
-  integer :: j2 , nx2 , iw , i , j                     ! bprint indices
-!!$
-!!$
-  integer :: kk , ic                                   ! Standard counters
-
-!
+      integer :: kk , ic ! Standard counters
       !
       ! Index for vector arrays, =1 unless vector loop entered
       !
