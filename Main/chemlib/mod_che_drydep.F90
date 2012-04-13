@@ -32,263 +32,269 @@ module mod_che_drydep
   use mod_che_mppio
   use mod_che_indices
 
-
-      private
+  private
 !
-      public :: drydep_aero, drydep_gas, a1,a2,a3,c1,c2,c3,c4,aa1,aa2,aa3
+  public :: drydep_aero , drydep_gas
+  public :: a1 , a2 , a3 , c1 , c2 , c3 , c4 , aa1 , aa2 , aa3
 !
-!     Dynamic Viscosity Parameters
+! Dynamic Viscosity Parameters
 !
-      real(8) , parameter :: a1 = 145.8
-      real(8) , parameter :: a2 = 1.5
-      real(8) , parameter :: a3 = 110.4
+  real(dp) , parameter :: a1 = 145.8D0
+  real(dp) , parameter :: a2 = 1.5D0
+  real(dp) , parameter :: a3 = 110.4D0
 !
-!     Molecular Free Path calculation parameters
+! Molecular Free Path calculation parameters
 !
-      real(8) , parameter :: c1 = 6.54E-8
-      real(8) , parameter :: c2 = 1.818E-5
-      real(8) , parameter :: c3 = 1.013E5
-      real(8) , parameter :: c4 = 293.15
+  real(dp) , parameter :: c1 = 6.54D-8
+  real(dp) , parameter :: c2 = 1.818D-5
+  real(dp) , parameter :: c3 = 1.013D5
+  real(dp) , parameter :: c4 = 293.15D0
 !
-!     Cunningham slip correction factor parameters
+! Cunningham slip correction factor parameters
 !
-      real(8) , parameter :: aa1 = 1.257
-      real(8) , parameter :: aa2 = 0.4
-      real(8) , parameter :: aa3 = 1.1
-
-
+  real(dp) , parameter :: aa1 = 1.257D0
+  real(dp) , parameter :: aa2 = 0.4D0
+  real(dp) , parameter :: aa3 = 1.1D0
 !
 ! Only one cover type per grid cell for now 
-
-      integer, parameter :: luc = 1
-!    
-      integer, parameter :: ngasd = 31  ! number of gas taken into account by drydep scheme
-
-      real(8), parameter :: rainthr = 0.1 ! threshold of rainfall intensity to activate water covered canopy option
-
-
-
-!DATA section for the Zhang drydep scheme
 !
-!the Zhang scheme uses its own LAI . first index is consistent with BATS LU type, 15 is for the number of month 12 + 3 for interp.
-!the tables are supposed to be consistant with BATS types determined by ivegcov (be careffull with ethe ocean option) 
-!Rq: It would be better to have intercative directly :LAI and roughness from BATS and CLM 
-!Rq2: Since ivegcov is defined even when clm is activated, the dry dep schem could in principle be used with CLM . 
-!BUT , there is also the option of activating CLM PFT level dydep scheme.  
+  integer, parameter :: luc = 1
+!    
+! Number of gas taken into account by drydep scheme
+!
+  integer, parameter :: ngasd = 31 
+!
+! threshold of rainfall intensity to activate water covered canopy option
+!
+  real(dp), parameter :: rainthr = 0.1D0
+!
+! DATA section for the Zhang drydep scheme
+!
+! The Zhang scheme uses its own LAI. First index is consistent with BATS
+! LU type, 15 is for the number of month 12 + 3 for interp.
+! The tables are supposed to be consistant with BATS types determined by
+! ivegcov (be careffull with ethe ocean option) 
+! Rq: It would be better to have intercative directly : LAI and roughness
+! from BATS and CLM 
+! Rq2: Since ivegcov is defined even when clm is activated, the dry dep
+! scheme could in principle be used with CLM. 
+! BUT , there is also the option of activating CLM PFT level dydep scheme.  
+!
+!NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
+!
+! NOTE : Now BATS, albeit not directly in the GLCC dataset but using the
+!        FUDGE, allows for 22 classes: urban and suburban (21 and 22) have
+!        been added. Here the scheme is inconsistent (20 classes only) and
+!        will generate segfault if those classes are used with chem.
+!        Be aware of this.
+!
+!NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
+!
+  real(dp) lai(20,15)
+  real(dp) z01(20) , z02(20)
 
+  data (lai(1,kk), kk = 1, 15)/                    &
+           0.1D0 , 0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , &
+           2.0D0 , 3.0D0 , 3.5D0 , 4.0D0 , 0.1D0 , &
+           0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 , 4.0D0 /
 
-       real(8) lai(20,15)
+  data (lai(2,kk), kk = 1, 15)/                    &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 /
 
-       real(8) z01(20),z02(20)
+  data (lai(3,kk), kk = 1, 15)/                    &
+           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , &
+           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , &
+           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 /
 
-       data (lai(1,kk), kk = 1, 15)/            &
-           0.1  , 0.1  , 0.1  , 0.5  , 1.0  ,    &
-           2.0  , 3.0  , 3.5  , 4.0  , 0.1  , &
-           0.1  , 0.1  , 0.1  , 0.1  , 4.0  /
+  data (lai(4,kk), kk = 1, 15)/                    &
+           0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , 2.0D0 , &
+           4.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 2.0D0 , &
+           1.0D0 , 0.1D0 , 0.1D0 , 0.1D0 , 5.0D0 /
 
-      data (lai(2,kk), kk = 1, 15)/ &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  , &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  , &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  /
+  data (lai(5,kk), kk = 1, 15)/                    &
+           0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , 2.0D0 , &
+           4.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 2.0D0 , &
+           1.0D0 , 0.1D0 , 0.1D0 , 0.1D0 , 5.0D0 /
 
-      data (lai(3,kk), kk = 1, 15)/ &
-           5.0  , 5.0  , 5.0  , 5.0  , 5.0  , &
-           5.0  , 5.0  , 5.0  , 5.0  , 5.0  , &
-           5.0  , 5.0  , 5.0  , 5.0  , 5.0  /
+  data (lai(6,kk), kk = 1, 15)/                    &
+           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
+           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
+           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 /
 
-       data (lai(4,kk), kk = 1, 15)/         &
-            0.1  , 0.1  , 0.5  , 1.0  , 2.0  , &
-            4.0  , 5.0  , 5.0  , 4.0  , 2.0  , &
-            1.0  , 0.1  , 0.1  , 0.1  , 5.0  /
-
-       data (lai(5,kk), kk = 1, 15)/ &
-            0.1  , 0.1  , 0.5  , 1.0  , 2.0  , &
-            4.0  , 5.0  , 5.0  , 4.0  , 2.0  , &
-            1.0  , 0.1  , 0.1  , 0.1  , 5.0  /
-
-       data (lai(6,kk), kk = 1, 15)/ &
-           6.0  , 6.0  , 6.0  , 6.0  , 6.0  , &
-           6.0  , 6.0  , 6.0  , 6.0  , 6.0  , &
-           6.0  , 6.0  , 6.0  , 6.0  , 6.0  /
-
-       data (lai(7,kk), kk = 1, 15)/ &
-            0.5  , 0.5  , 0.5  , 0.5  , 0.5  , &
-            0.5  , 1.0  , 2.0  , 2.0  , 1.5  , &
-            1.0  , 1.0  , 0.5  , 0.5  , 2.0  /
+  data (lai(7,kk), kk = 1, 15)/                    &
+           0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 , &
+           0.5D0 , 1.0D0 , 2.0D0 , 2.0D0 , 1.5D0 , &
+           1.0D0 , 1.0D0 , 0.5D0 , 0.5D0 , 2.0D0  /
  
-       data (lai(8,kk), kk = 1, 15)/ &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
+  data (lai(8,kk), kk = 1, 15)/                    &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
     
+  data (lai(9,kk), kk = 1, 15)/                    &
+           1.0D0 , 1.0D0 , 0.5D0 , 0.1D0 , 0.1D0 , &
+           0.1D0 , 0.1D0 , 1.0D0 , 2.0D0 , 1.5D0 , &
+           1.5D0 , 1.0D0 , 1.0D0 , 0.1D0 , 2.0D0 /
 
-       data (lai(9,kk), kk = 1, 15)/ &
-            1.0  , 1.0  , 0.5  , 0.1  , 0.1  , &
-            0.1  , 0.1  , 1.0  , 2.0  , 1.5  , &
-            1.5  , 1.0  , 1.0  , 0.1  , 2.0  /
+  data (lai(10,kk), kk = 1, 15)/                   &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 /
 
-       data (lai(10,kk), kk = 1, 15)/ &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  , &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  , &
-           1.0  , 1.0  , 1.0  , 1.0  , 1.0  /
+  data (lai(11,kk), kk = 1, 15)/                   &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
 
-
-       data (lai(11,kk), kk = 1, 15)/ &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
-
-       data (lai(12,kk), kk = 1, 15)/ &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
+  data (lai(12,kk), kk = 1, 15)/                   &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
    
-       data (lai(13,kk), kk = 1, 15)/ &
-           4.0  , 4.0  , 4.0  , 4.0  , 4.0  , &
-           4.0  , 4.0  , 4.0  , 4.0  , 4.0  , &
-           4.0  , 4.0  , 4.0  , 4.0  , 4.0  /
+  data (lai(13,kk), kk = 1, 15)/                   &
+           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , &
+           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , &
+           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 /
 
-       data (lai(14,kk), kk = 1, 15)/ &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
+  data (lai(14,kk), kk = 1, 15)/                   &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
 
-       data (lai(15,kk), kk = 1, 15)/ &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  , &
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
+  data (lai(15,kk), kk = 1, 15)/                   &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
 
-       data (lai(16,kk), kk = 1, 15)/ &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  , &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  , &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  /
+  data (lai(16,kk), kk = 1, 15)/                   &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 /
 
-       data (lai(17,kk), kk = 1, 15)/ &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  , &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  , &
-           3.0  , 3.0  , 3.0  , 3.0  , 3.0  /
+  data (lai(17,kk), kk = 1, 15)/                   &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 /
 
+  data (lai(18,kk), kk = 1, 15)/                  &
+           3.0D0 , 3.0D0 , 3.0D0 , 4.0D0 , 4.5D0 ,&
+           5.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 3.0D0 ,&
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 5.0D0 /
 
-      data (lai(18,kk), kk = 1, 15)/ &
-           3.0  , 3.0  , 3.0  , 4.0  , 4.5  ,&
-           5.0  , 5.0  , 5.0  , 4.0  , 3.0  ,&
-           3.0  , 3.0  , 3.0  , 3.0  , 5.0  /
+  data (lai(19,kk), kk = 1, 15)/                  &
+           3.0D0 , 3.0D0 , 3.0D0 , 4.0D0 , 4.5D0 ,&
+           5.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 3.0D0 ,&
+           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 5.0D0 /
 
-      data (lai(19,kk), kk = 1, 15)/&
-           3.0  , 3.0  , 3.0  , 4.0  , 4.5  ,&
-           5.0  , 5.0  , 5.0  , 4.0  , 3.0  ,&
-           3.0  , 3.0  , 3.0  , 3.0  , 5.0  /
+  data (lai(20,kk), kk = 1, 15)/                  &
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 ,&
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 ,&
+           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
 
-      data (lai(20,kk), kk = 1, 15)/&
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  ,&
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  ,&
-           0.0  , 0.0  , 0.0  , 0.0  , 0.0  /
+  data  z01/0.02D0, 0.04D0, 0.90D0, 0.40D0, 0.40D0, 2.00D0,&
+            0.02D0, 0.04D0, 0.03D0, 0.05D0, 0.04D0, 0.01D0,&
+            0.10D0, 0.00D0, 0.00D0, 0.20D0, 0.20D0, 0.60D0,&
+            0.60D0, 0.00D0 /
 
-      data  z01/0.02, 0.04, 0.90, 0.40, 0.40, 2.00,&
-               0.02, 0.04, 0.03, 0.05, 0.04, 0.01,&
-               0.10, 0.00, 0.00, 0.20, 0.20, 0.60,&
-               0.60, 0.00 /
-
-      data  z02/0.10, 0.04, 0.90, 0.90, 1.00, 2.00,&
-               0.10, 0.04, 0.03, 0.05, 0.04, 0.01,&
-               0.10, 0.00, 0.00, 0.20, 0.20, 0.90,&
-               0.90, 0.00 /
-       
-
+  data  z02/0.10D0, 0.04D0, 0.90D0, 0.90D0, 1.00D0, 2.00D0,&
+            0.10D0, 0.04D0, 0.03D0, 0.05D0, 0.04D0, 0.01D0,&
+            0.10D0, 0.00D0, 0.00D0, 0.20D0, 0.20D0, 0.90D0,&
+            0.90D0, 0.00D0 /
+!
 ! Zhang stomatal resistance parameters
+!
+  real(dp) :: tmin(20) , tmax(20)
+  real(dp) :: rsminz(20) , brs(20)
+  real(dp) :: topt(20) , bvpd(20)
+  real(dp) :: psi1(20) , psi2(20)
+  real(dp) :: rac1(20) , rac2(20)
+  real(dp) :: rgo(20) , rcutdO(20)
+  real(dp) :: rcutwO(20) , rcutdS(20)
+  real(dp) :: rgs(20) , sdmax(20)  
+  real(dp) :: mw(31) , rm(31)
+  real(dp) :: alphaz(31) , betaz(31) 
 
-       real(8)::tmin(20),tmax(20)
-       real(8)::rsminz(20),brs(20)
-       real(8)::topt(20),bvpd(20)
-       real(8)::psi1(20),psi2(20)
-       real(8)::rac1(20),rac2(20)
-       real(8)::rgo(20),rcutdO(20)
-       real(8)::rcutwO(20),rcutdS(20)
-       real(8)::rgs(20),sdmax(20)  
-       real(8)::mw(31),rm(31)
-       real(8)::alphaz(31),betaz(31) 
+  data tmin /  5.0D0,    5.0D0,   -5.0D0,   -5.0D0,    0.0D0, &
+               0.0D0,    5.0D0, -999.0D0,   -5.0D0,    5.0D0, &
+            -999.0D0, -999.0D0,    0.0D0, -999.0D0, -999.0D0, &
+               0.0D0,    0.0D0,   -3.0D0,    0.0D0, -999.0D0 /
 
+  data tmax / 45.0D0,   40.0D0,   40.0D0,   40.0D0,   45.0D0, &
+              45.0D0,   45.0D0, -999.0D0,   40.0D0,   45.0D0, & 
+            -999.0D0, -999.0D0,   45.0D0, -999.0D0, -999.0D0, &
+              45.0D0,   45.0D0,   42.0D0,   45.0D0, -999.0D0 /
 
-       data tmin/5.0, 5.0,  -5.0, -5.0, 0.0,    &
-                0.0, 5.0,-999.0, -5.0, 5.0,     &
-             -999.0,-999.0, 0.0,-999.0,-999.0,  &
-                0.0,   0.0,-3.0,   0.0,-999.0 /
+  data rsminz / 120.0D0, 150.0D0, 250.0D0, 250.0D0, 150.0D0, &
+                150.0D0, 100.0D0,-999.0D0, 150.0D0, 150.0D0, &
+               -999.0D0,-999.0D0, 150.0D0,-999.0D0,-999.0D0, &
+                150.0D0, 250.0D0, 150.0D0, 150.0D0,-999.0D0 /
 
-       data tmax/45.0, 40.0,  40.0, 40.0, 45.0, &
-                45.0, 45.0,-999.0, 40.0, 45.0, & 
-              -999.0,-999.0, 45.0,-999.0,-999.0,&
-                45.0, 45.0,  42.0,  45.0,-999.0 /
+  data brs / 40.0D0,  50.0D0,  44.0D0,  44.0D0,  43.0D0, &
+             40.0D0,  20.0D0,-999.0D0,  25.0D0,  40.0D0, &
+           -999.0D0,-999.0D0,  40.0D0,-999.0D0,-999.0D0, &
+             40.0D0,  44.0D0,  44.0D0,  43.0D0,-999.0D0 /
 
-       data rsminz/120.0, 150.0, 250.0, 250.0, 150.0,&
-                 150.0, 100.0,-999.0, 150.0, 150.0, &
-                -999.0,-999.0, 150.0,-999.0,-999.0, &
-                 150.0, 250.0, 150.0, 150.0,-999.0 /
+  data topt / 27.0D0,  30.0D0,  15.0D0,  15.0D0,  27.0D0, &
+              30.0D0,  25.0D0,-999.0D0,  20.0D0,  25.0D0, &
+            -999.0D0,-999.0D0,  20.0D0,-999.0D0,-999.0D0, &
+              30.0D0,  25.0D0,  21.0D0,  25.0D0,-999.0D0 /
 
-       data brs/40.0,  50.0,  44.0, 44.0, 43.0,   &
-               40.0,  20.0,-999.0, 25.0, 40.0,    &
-             -999.0,-999.0, 40.0,-999.0,-999.0,   &
-               40.0,  44.0, 44.0,  43.0,-999.0 /
+  data bvpd /  0.00D0,   0.00D0,   0.31D0,   0.31D0,   0.36D0, &
+               0.27D0,   0.00D0,-999.00D0,   0.24D0,   0.09D0, &    
+            -999.00D0,-999.00D0,   0.27D0,-999.00D0,-999.00D0, &
+               0.27D0,   0.27D0,   0.34D0,   0.31D0,-999.00D0 /
 
-       data topt/27.0, 30.0,  15.0, 15.0, 27.0,  &
-                 30.0, 25.0,-999.0, 20.0, 25.0,  &
-              -999.0,-999.0, 20.0,-999.0,-999.0, &
-                30.0, 25.0,  21.0,  25.0,-999.0 /
+  data psi1 / -1.5D0,  -1.5D0,  -2.0D0,  -2.0D0,  -1.9D0, &
+              -1.0D0,  -1.5D0,-999.0D0,   0.0D0,  -1.5D0, &
+            -999.0D0,-999.0D0,  -1.5D0,-999.0D0,-999.0D0, &
+              -2.0D0,  -2.0D0,  -2.0D0,  -2.0D0,-999.0D0 /
 
-      data bvpd/0.00, 0.0,  0.31, 0.31, 0.36,    &
-                0.27, 0.0,-999.0, 0.24,  0.0,    &    
-              -999.0,-999.0,0.27,-999.0,-999.0,  &
-                0.27, 0.27, 0.34, 0.31,-999.0 /
+  data psi2 / -2.5D0,  -2.5D0,  -2.5D0,  -2.5D0,  -2.5D0, &
+              -5.0D0,  -2.5D0,-999.0D0,  -1.5D0,  -2.5D0, &
+            -999.0D0,-999.0D0,  -2.5D0,-999.0D0,-999.0D0, &
+              -4.0D0,  -3.5D0,  -2.5D0,  -3.0D0,-999.0D0 /
 
-       data psi1/ -1.5,  -1.5,  -2.0,  -2.0,  -1.9, &
-                 -1.0,  -1.5,-999.0,   0.0,  -1.5, &
-               -999.0,-999.0,  -1.5,-999.0,-999.0, &
-                 -2.0,  -2.0,  -2.0,  -2.0,-999.0 /
+  data rac1 / 10.0D0, 20.0D0,100.0D0, 60.0D0, 40.0D0, &
+             250.0D0, 10.0D0,  0.0D0, 40.0D0, 20.0D0, &
+               0.0D0,  0.0D0, 20.0D0,  0.0D0,  0.0D0, &
+              60.0D0, 40.0D0,100.0D0,100.0D0,  0.0D0 /
 
-       data psi2/-2.5,  -2.5,  -2.5,  -2.5,  -2.5, &
-                -5.0,  -2.5,-999.0,  -1.5,  -2.5, &
-              -999.0,-999.0,  -2.5,-999.0,-999.0, &
-                -4.0, -3.5,   -2.5,  -3.0,-999.0 /
+  data rac2 / 40.0D0, 20.0D0,100.0D0,100.0D0, 40.0D0, &
+             250.0D0, 40.0D0,  0.0D0, 40.0D0, 20.0D0, &
+               0.0D0,  0.0D0, 20.0D0,  0.0D0,  0.0D0, &
+              60.0D0, 40.0D0,100.0D0,100.0D0,  0.0D0 /
 
-      data rac1/10.00, 20.0, 100.0, 60.00, 40.0,&
-               250.0, 10.0, 0.000, 40.00, 20.0, &
-               0.000, 0.00, 20.00, 00.00, 0.00, &
-               60.00, 40.0, 100.0, 100.0, 0.00 /
+  data rcutdO / 4000.0D0, 4000.0D0, 4000.0D0, 4000.0D0, 6000.0D0, &
+                6000.0D0, 4000.0D0, -999.0D0, 8000.0D0, 4000.0D0, &
+                -999.0D0, -999.0D0, 5000.0D0, -999.0D0, -999.0D0, &
+                6000.0D0, 5000.0D0, 4000.0D0, 4000.0D0, -999.0D0 /
 
-      data rac2/40.00, 20.0, 100.0, 100.0, 40.0, &
-               250.0, 40.0, 0.000, 40.00, 20.0, &
-               0.000, 0.00, 20.00, 0.000, 0.00, &
-               60.00, 40.0, 100.0, 100.0, 0.00 /
+  data rcutwO / 200.0D0, 200.0D0, 200.0D0, 200.0D0, 400.0D0, &
+                400.0D0, 200.0D0,-999.0D0, 400.0D0, 200.0D0, &
+               -999.0D0,-999.0D0, 300.0D0,-999.0D0,-999.0D0, &
+                400.0D0, 300.0D0, 200.0D0, 200.0D0,-999.0D0 /
 
-       data rcutdO /4000.0, 4000.0, 4000.0, 4000.0, 6000.0, &
-                   6000.0, 4000.0, -999.0, 8000.0, 4000.0,  &
-                   -999.0, -999.0, 5000.0, -999.0, -999.0,&
-                   6000.0, 5000.0, 4000.0, 4000.0, -999.0 /
+  data rgO / 200.0D0,  200.0D0,  200.0D0,  200.0D0,  200.0D0, &
+             200.0D0,  200.0D0,  500.0D0,  500.0D0,  500.0D0, &
+             500.0D0, 2000.0D0,  500.0D0, 2000.0D0, 2000.0D0, &
+             200.0D0,  200.0D0,  200.0D0,  200.0D0, 2000.0D0 /
 
-       data rcutwO /200.00, 200.00, 200.00, 200.00, 400.00, &
-                   400.00, 200.00, -999.0, 400.00, 200.00, &
-                   -999.0, -999.0, 300.00, -999.0, -999.0, &
-                   400.00, 300.00, 200.00, 200.00, -999.0 /
+  data rcutds / 1500.0D0, 1000.0D0, 2000.0D0, 2000.0D0, 2500.0D0, &
+                2500.0D0, 1000.0D0, -999.0D0, 2000.0D0, 2000.0D0, &
+                -999.0D0, -999.0D0, 1500.0D0, -999.0D0, -999.0D0, &
+                2000.0D0, 2000.0D0, 2500.0D0, 2500.0D0, -999.0D0 /
 
-       data rgO    /200.00, 200.00, 200.00, 200.00, 200.00, &
-                   200.00, 200.00, 500.00, 500.00, 500.00, &
-                   500.00, 2000.0, 500.00, 2000.0, 2000.0, &
-                   200.00, 200.00, 200.00, 200.00, 2000.0 /
+  data rgs / 200.0D0, 200.0D0, 200.0D0, 200.0D0, 200.0D0, &
+             100.0D0, 200.0D0, 700.0D0, 300.0D0,  50.0D0, &
+             700.0D0,  70.0D0,  50.0D0,  20.0D0,  20.0D0, &
+             200.0D0, 200.0D0, 200.0D0, 200.0D0,  20.0D0 /
 
-
-       data rcutds /1500.0, 1000.0, 2000.0, 2000.0, 2500.0, &
-                   2500.0, 1000.0, -999.0, 2000.0, 2000.0, &
-                   -999.0, -999.0, 1500.0, -999.0, -999.0, &
-                   2000.0, 2000.0, 2500.0, 2500.0, -999.0 /
-
-       data rgs    /200.0, 200.0, 200.0, 200.0, 200.0, &
-                   100.0, 200.0, 700.0, 300.0,  50.0, &
-                   700.0,  70.0,  50.0,  20.0,  20.0, &
-                   200.0, 200.0, 200.0, 200.0,  20.0 /
-
-       data sdmax/10.0,  5.0, 200.0,   1.1, 200.0, &
-                400.0, 20.0,   2.0,   2.0,  10.0, &
-                  2.0,  1.0,  10.0,-999.0,-999.0, &
-                 50.0, 50.0, 200.0, 200.0,-999.0 /
+  data sdmax /  10.0D0,  5.0D0, 200.0D0,   1.1D0, 200.0D0, &
+               400.0D0, 20.0D0,   2.0D0,   2.0D0,  10.0D0, &
+                 2.0D0,  1.0D0,  10.0D0,-999.0D0,-999.0D0, &
+                50.0D0, 50.0D0, 200.0D0, 200.0D0,-999.0D0 /
     
 !   *****************************************************************
 !   * Gas Properties (Total 31 species)                          ****
@@ -304,44 +310,44 @@ module mod_che_drydep
 !                 CRES          FORM      ACAC           ROOH   
 !                 ONIT          INIT 
 
-       data   rm / 0.   , 0.   , 0.   ,  0.  ,  0.  , &
-                 0.   , 0.   , 0.   ,  0.  ,  0.  ,  &
-                 0.   , 0.   , 0.   ,  0.  ,  100.,&
-                 100. , 100. , 100. ,  100.,  0.  , &
-                 100. , 0.   , 0.   ,  0.  ,  0.  , &
-                 0.   , 0.   , 0.   ,  0.  ,  100., &
-                 100.     /
+  data rm / 0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &
+            0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &
+            0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,  100.0D0 , &
+          100.0D0 , 100.0D0 , 100.0D0 , 100.0D0 ,    0.0D0 , &
+          100.0D0 ,   0.0D0   , 0.0D0 ,   0.0D0 ,    0.0D0 , &
+            0.0D0 ,   0.0D0   , 0.0D0 ,   0.0D0 ,  100.0D0 , &
+          100.0D0 /
 
-       data  alphaz /  1.   , 1.   , 0.   ,  0.  ,  1.  , &
-                     10.  , 2.   , 5.   ,  1.  ,  0.  , &
-                      0.   , 0.   , 0.   ,  0.8 ,  0.  ,  &
-                      0.   , 0.   , 0.   ,  0.  ,  0.  , &
-                      0.   , 0.01 , 0.6  ,  0.6 ,  0.4 ,  &
-                      0.01 , 2.   , 1.5  ,  0.1 ,  0.  , &
-                      0.       /
- 
-       data   betaz /  0.   , 1.   , 0.8  ,  1.  ,  1.  , &
-                    10.  , 2.   , 5.   ,  0.0 ,  0.6 , &
-                    0.6  , 0.8  , 0.3  ,  0.2 ,  0.05, &
-                    0.05 , 0.05 , 0.05 ,  0.05,  0.05, &
-                    0.05 , 0.   , 0.1  ,  0.  ,  0.  , &
-                    0.   , 0.   , 0.   ,  0.8 ,  0.5 , &
-                    0.5      /
+  data alphaz /  1.00D0 , 1.00D0 , 0.00D0 , 0.00D0 , 1.00D0 , &
+                10.00D0 , 2.00D0 , 5.00D0 , 1.00D0 , 0.00D0 , &
+                 0.00D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.00D0 , &
+                 0.00D0 , 0.00D0 , 0.00D0 , 0.00D0 , 0.00D0 , &
+                 0.00D0 , 0.01D0 , 0.60D0 , 0.60D0 , 0.40D0 , &
+                 0.01D0 , 2.00D0 , 1.50D0 , 0.10D0 , 0.00D0 , &
+                 0.00D0 /
+
+  data betaz /  0.00D0 , 1.00D0 , 0.80D0 , 1.00D0 , 1.00D0 , &
+               10.00D0 , 2.00D0 , 5.00D0 , 0.00D0 , 0.60D0 , &
+                0.60D0 , 0.80D0 , 0.30D0 , 0.20D0 , 0.05D0 , &
+                0.05D0 , 0.05D0 , 0.05D0 , 0.05D0 , 0.05D0 , &
+                0.05D0 , 0.00D0 , 0.10D0 , 0.00D0 , 0.00D0 , &
+                0.00D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.50D0 , &
+                0.50D0 /
 
 
-       data  mw / 64.0  , 98.0  , 46.0  ,  48.0 ,  34.0 , &
-                 63.0  , 47.0  , 79.0  ,  17.0 ,  121.0, &
-                 135.0 , 183.0 , 147.0 ,  30.0 ,  44.0 , &
-                 58.0  , 72.0  , 128.0 ,  106.0,  70.0 , &
-                 70.0  , 72.0  , 32.0  ,  46.0 ,  60.0 , &
-                 104.0 , 46.0  , 60.0  ,  48.0 ,  77.0 , &
-                 147.0     /
+  data mw / 64.0D0 ,  98.0D0 ,  46.0D0 ,  48.0D0 ,  34.0D0 , &
+            63.0D0 ,  47.0D0 ,  79.0D0 ,  17.0D0 , 121.0D0 , &
+           135.0D0 , 183.0D0 , 147.0D0 ,  30.0D0 ,  44.0D0 , &
+            58.0D0 ,  72.0D0 , 128.0D0 , 106.0D0 ,  70.0D0 , &
+            70.0D0 ,  72.0D0 ,  32.0D0 ,  46.0D0 ,  60.0D0 , &
+           104.0D0 ,  46.0D0 ,  60.0D0 ,  48.0D0 ,  77.0D0 , &
+           147.0D0 /
               
-     contains
+  contains
 
-      subroutine drydep_aero (j,mbin,indsp,rhop,ivegcov,throw,      &
-                        & roarow,shj,pressg,temp2,sutemp,srad,rh10,     &
-                        & wind10,zeff,beffdiam,pdepv,ddepv)
+    subroutine drydep_aero (j,mbin,indsp,rhop,ivegcov,throw,roarow, &
+                            shj,pressg,temp2,sutemp,srad,rh10,      &
+                            wind10,zeff,beffdiam,pdepv,ddepv)
 !
       implicit none
 !
@@ -350,50 +356,49 @@ module mod_che_drydep
       integer , dimension(mbin) :: indsp
       integer , dimension(iy) :: ivegcov
 
-      real(8) , dimension(iy) :: pressg , rh10 , srad , sutemp ,       &
-                                & temp2 , wind10 , zeff
-      real(8) , dimension(iy,kz) :: roarow , throw
-      real(8) , dimension(kz) :: shj
-      real(8) , dimension(mbin) :: beffdiam
-      real(8)  :: rhop 
+      real(dp) , dimension(iy) :: pressg , rh10 , srad , sutemp ,       &
+                                  temp2 , wind10 , zeff
+      real(dp) , dimension(iy,kz) :: roarow , throw
+      real(dp) , dimension(kz) :: shj
+      real(dp) , dimension(mbin) :: beffdiam
+      real(dp)  :: rhop 
 
 ! output table to be passed out. Care dimension is ntr  
 
-      real(8) , dimension(iy,kz,ntr) :: pdepv
-      real(8) , dimension(iy,ntr) :: ddepv
+      real(dp) , dimension(iy,kz,ntr) :: pdepv
+      real(dp) , dimension(iy,ntr) :: ddepv
 
       intent (in) j, indsp, ivegcov , mbin ,       &
-                & pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
-                & throw ,beffdiam  , wind10 , zeff, rhop
+                  pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
+                  throw ,beffdiam  , wind10 , zeff, rhop
       intent (inout) pdepv
 !
-      real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
-               & eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
-               & mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
-               & r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
-               & tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
-               & y , z , z0water , zdl , zl
-      real(8) , dimension(iy,kz) :: amu
-      real(8) , dimension(iy) :: anu , schm , zz0
-      real(8) , dimension(iy,kz,mbin) :: cfac , pdepvsub ,   pdiff ,  &
-           & rhsize , taurel
+      real(dp) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
+                 eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
+                 mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
+                 r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
+                 tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
+                 y , z , z0water , zdl , zl
+      real(dp) , dimension(iy,kz) :: amu
+      real(dp) , dimension(iy) :: anu , schm , zz0
+      real(dp) , dimension(iy,kz,mbin) :: cfac , pdepvsub ,   pdiff ,  &
+             rhsize , taurel
 
       integer :: i , jc , k , kcov , l , lev , n , tot,ib
-      real(8) , dimension(iy,luc) :: ra , ustar , vegcover
-      real(8) , dimension(iy,luc,mbin) :: rs
-       real(8), dimension(iy,kz) :: wk, settend
-      real(8) , parameter :: z10 = 10.0
-      real(8) , dimension(mbin) :: avesize
+      real(dp) , dimension(iy,luc) :: ra , ustar , vegcover
+      real(dp) , dimension(iy,luc,mbin) :: rs
+       real(dp), dimension(iy,kz) :: wk, settend
+      real(dp) , parameter :: z10 = 10.0
+      real(dp) , dimension(mbin) :: avesize
       character (len=64) :: subroutine_name='chdrydep'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
 
-    
+      ! here avesize is a RADIUS of the particle bin in m :
+      ! calculated here from bin effective diameter in micrometer
       do n = 1 , mbin
- !here avesize is a RADIUS of the particle bin in m :
- !calculated here from bin effective diameter in micrometer
-       avesize(n) = beffdiam(n)* 1.D-06 * d_half
+        avesize(n) = beffdiam(n)* 1.D-06 * d_half
       end do
       
 !======================================================================
@@ -403,7 +408,7 @@ module mod_che_drydep
 !     ********************************************************
       do n = 1 , mbin
         do l = 1 , kz
-          do i = 2 , iym2
+          do i = ici1 , ici2
  
 !           ********************************************************
 !           *  aerosol gravitational settling velocity          ****
@@ -447,10 +452,7 @@ module mod_che_drydep
 
 ! find aerodynamic resistance
 
-       call aerodyresis(zeff,wind10,temp2      &
-     &   , sutemp,rh10,srad,ivegcov,ustar,ra )
-
-
+       call aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
  
 !     *****************************************************
 !     * the schmidt number is the ratio of the         ****
@@ -460,7 +462,7 @@ module mod_che_drydep
  
       do n = 1 , mbin
         do l = 1 , kz
-          do i = 2 , iym2
+          do i = ici1 , ici2
  
 !           *****************************************************
 !           * for now we will not consider the humidity      ****
@@ -487,7 +489,7 @@ module mod_che_drydep
           end do
           if ( l.eq.kz ) then
             do k = 1 , luc ! luc  = 1 for the moment
-              do i = 2 , iym2
+              do i = ici1 , ici2
 
 !======================================================================
 !     find the right table index for the cell cover ( ocean and lake
@@ -573,7 +575,7 @@ module mod_che_drydep
          pdepv(:,:,indsp(ib)) = 0.
          ddepv(:,indsp(ib))  =0.
 
-              do i = 2 , iym2
+              do i = ici1 , ici2
                 pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
 ! agregate the dry deposition velocity, remember one cover per grid cell for now
 ! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
@@ -591,7 +593,7 @@ module mod_che_drydep
 !!$          if ( avesize(n)*1.E6.ge.trsize(ib,1) .and. avesize(n)          &
 !!$             & *1.E6.lt.trsize(ib,2) ) then
 !!$ 
-!!$              do i = 2 , iym2
+!!$              do i = ici1 , ici2
 !!$                pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib)) + pdepvsub(i,:,n)
 !!$! agregate the dry deposition velocity, remember one cover per grid cell for now
 !!$! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
@@ -604,7 +606,7 @@ module mod_che_drydep
 !!$        end do
 !!$        if ( tot.gt.0 ) then
 !!$        
-!!$            do i = 2 , iym2
+!!$            do i = ici1 , ici2
 !!$              pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib))/tot
 !!$              ddepv(i,indsp(ib)) = ddepv(i,indsp(ib))/tot 
 !!$           end do       
@@ -617,14 +619,14 @@ module mod_che_drydep
           do ib = 1,mbin
 !         deposition
           do k = 2 , kz
-            do i = 2 , iym2
+            do i = ici1 , ici2
               wk(i,k) = (1./cpsb(j,i))*          &
                       & (ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
                       &  ctwt(k,2)*chib(j,i,k-1,indsp(ib)))
             end do
           end do
 
-          do i = 2 , iym2
+          do i = ici1 , ici2
             do k = 2 , kz - 1
                         ! do not apply to the first level
               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
@@ -689,13 +691,13 @@ module mod_che_drydep
 !
 
       integer :: j   
-      real(8) :: ccalday
+      real(dp) :: ccalday
       integer , dimension(iy) :: ivegcov
    
-      real(8) , dimension(iy) :: rh10 , srad , tsurf ,  prec,     &
+      real(dp) , dimension(iy) :: rh10 , srad , tsurf ,  prec,     &
                                 & temp10 , wind10 , zeff
 
-      real(8), dimension(iy,ntr) :: drydepvg
+      real(dp), dimension(iy,ntr) :: drydepvg
 
       intent (in) j, ivegcov ,     &
                  rh10, srad , tsurf , temp10 , &
@@ -708,9 +710,9 @@ module mod_che_drydep
       real (8), dimension(iy,luc) :: ustar, resa
       real (8), dimension(ngasd, iy, luc) :: resb, resc
       real (8), dimension(ngasd, iy, luc) :: vdg
-      real(8), dimension(iy) :: ddrem
-      real(8) , dimension(iy)::lai_f,laimin,laimax, snow
-      real(8) ::Kd
+      real(dp), dimension(iy) :: ddrem
+      real(dp) , dimension(iy)::lai_f,laimin,laimax, snow
+      real(dp) ::Kd
 
 #ifndef CLM
 
@@ -864,30 +866,30 @@ module mod_che_drydep
          
        integer ::ivegcov(iy)
        
-       real(8) :: temp2(iy),wind10(iy),rh10(iy)
-       real(8) :: sutemp(iy),srad(iy)
-       real(8) :: zeff(iy)
+       real(dp) :: temp2(iy),wind10(iy),rh10(iy)
+       real(dp) :: sutemp(iy),srad(iy)
+       real(dp) :: zeff(iy)
        
        intent (in) zeff,wind10,temp2,         &
                    sutemp,rh10,srad,ivegcov
 
-       real(8) :: ustar(iy,luc),ra(iy,luc)
+       real(dp) :: ustar(iy,luc),ra(iy,luc)
        intent (out) ustar, ra
 
 ! local variables
        integer i,j       
-       real(8) :: delz,vp,tsv
-       real(8) :: z,zl,ww
-       real(8) :: ptemp2,es,qs
-       real(8) :: wvpm,vptemp,tsw,mol
-       real(8) :: z0water,dthv,cun,zdl
-       real(8) :: psiu,psit,x,y
-       real(8) :: thstar,rib,dtemp,tbar
-       real(8) :: ustarsq,utstar,kui
-       real(8) :: ratioz,logratio,asq
-       real(8) :: aa,cm,ch,fm,fh    
-       real(8) :: zz0(iy)
-       real(8) , parameter :: z10 = 10.0
+       real(dp) :: delz,vp,tsv
+       real(dp) :: z,zl,ww
+       real(dp) :: ptemp2,es,qs
+       real(dp) :: wvpm,vptemp,tsw,mol
+       real(dp) :: z0water,dthv,cun,zdl
+       real(dp) :: psiu,psit,x,y
+       real(dp) :: thstar,rib,dtemp,tbar
+       real(dp) :: ustarsq,utstar,kui
+       real(dp) :: ratioz,logratio,asq
+       real(dp) :: aa,cm,ch,fm,fh    
+       real(dp) :: zz0(iy)
+       real(dp) , parameter :: z10 = 10.0
   
 !======================================================================
 !     ****************************************************
@@ -907,7 +909,7 @@ module mod_che_drydep
 !     * stdpmb - sea level pressure (mb)               ****
 !     ****************************************************
       do j = 1 , luc
-        do i = 2 , iym2
+        do i = ici1 , ici2
           ww = dmax1(wind10(i),1.0D0)
           zz0(i) = zeff(i)
  
@@ -1088,32 +1090,32 @@ module mod_che_drydep
        integer ivegcov(iy),veg(iy)
        
 
-       real(8), dimension (iy) :: lai_f , laimin, laimax, coszen, srad,  &
+       real(dp), dimension (iy) :: lai_f , laimin, laimax, coszen, srad,  &
                                    ts,rh,prec, sd, t2
 
-       real(8), dimension (iy,luc) ::  ustar
+       real(dp), dimension (iy,luc) ::  ustar
 
-       real(8) :: rb(igas,iy,luc),rc(igas,iy,luc)
+       real(dp) :: rb(igas,iy,luc),rc(igas,iy,luc)
 
-       real(8) :: rst,wst,rac,rgs_f
-       real(8) :: rdu,rdv,rgo_f
-       real(8) :: rcuto_f,rcuts_f 
-       real(8) :: ww1,ww2,ww3
-       real(8) :: rdm,rdn,rv,rn
-       real(8) :: ratio,sv,fv,fvv
-       real(8) :: pardir, pardif 
-       real(8) :: tmaxk , tmink
-       real(8) :: pshad,psun,rshad,rsun
-       real(8) :: gshad,gsun,fsun,fshad
-       real(8) :: gspar, temps !C
-       real(8) :: bt,gt,gw,ryx
-       real(8) :: es,d0,gd,psi
-       real(8) :: coedew,dq,usmin
-       real(8) :: fsnow,rsnows
+       real(dp) :: rst,wst,rac,rgs_f
+       real(dp) :: rdu,rdv,rgo_f
+       real(dp) :: rcuto_f,rcuts_f 
+       real(dp) :: ww1,ww2,ww3
+       real(dp) :: rdm,rdn,rv,rn
+       real(dp) :: ratio,sv,fv,fvv
+       real(dp) :: pardir, pardif 
+       real(dp) :: tmaxk , tmink
+       real(dp) :: pshad,psun,rshad,rsun
+       real(dp) :: gshad,gsun,fsun,fshad
+       real(dp) :: gspar, temps !C
+       real(dp) :: bt,gt,gw,ryx
+       real(dp) :: es,d0,gd,psi
+       real(dp) :: coedew,dq,usmin
+       real(dp) :: fsnow,rsnows
 
-       real(8) :: dgas,di,vi
-       real(8) :: dair,dh2o,dvh2o,rstom
-       real(8) :: rcut,rg
+       real(dp) :: dgas,di,vi
+       real(dp) :: dair,dh2o,dvh2o,rstom
+       real(dp) :: rcut,rg
 
        logical :: is_dew, is_rain
        
@@ -1528,5 +1530,4 @@ module mod_che_drydep
       
       end subroutine stomtresis
 
-
-end module mod_che_drydep	
+end module mod_che_drydep

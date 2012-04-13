@@ -28,111 +28,103 @@ module mod_che_ncio
 !
   private
 !
-  public :: read_texture , read_aerosol , read_emission, recc
-  public :: prepare_chem_out, init_mod_che_ncio, writerec_che2
-  public ::  open_chbc,close_chbc,chbc_search,read_chbc
+  public :: read_texture , read_aerosol , read_emission , recc
+  public :: prepare_chem_out , init_mod_che_ncio , writerec_che2
+  public :: open_chbc , close_chbc , chbc_search , read_chbc
 
   public :: chbc_ivar
 
-!read_chbc
   integer :: istatus
   integer :: recc
 
-   integer , parameter :: n_chevar = 18
-   integer, parameter :: n_optvar = 9
-    integer :: ichin 
-    integer :: ioxcl     
+  integer , parameter :: n_chevar = 18
+  integer , parameter :: n_optvar = 9
+  integer , parameter :: n_chbcvar = 25
+  integer :: ichin 
+  integer :: ioxcl     
 
-   integer, dimension(:), allocatable :: ncche     
-   integer , dimension(n_chevar) :: ichevar
-   integer, dimension(n_optvar) ::ioptvar 
+  integer , dimension(:) , allocatable :: ncche     
+  integer , dimension(n_chevar) :: ichevar
+  integer , dimension(n_optvar) ::ioptvar 
 
-   integer , dimension(25) :: chbc_ivar
- 
-
-
+  character(len=8) , dimension(n_chbcvar) :: chbcname
+  integer , dimension(n_chbcvar) :: chbc_ivar
   
- type(rcm_time_and_date) , dimension(:) , allocatable :: oxcl_idate, chbc_idate
- integer, dimension(9) :: idims 
- integer ::idmin, icherec, ioptrec
- integer :: ibcrec , ibcnrec
- type(rcm_time_and_date) , save :: icherefdate
-        real(8) :: tpd, cfd
-        real(8) :: rpt
+  type(rcm_time_and_date) , dimension(:) , allocatable :: oxcl_idate
+  type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
+  type(rcm_time_and_date) , save :: icherefdate
+  integer , dimension(9) :: idims 
+  integer ::idmin , icherec , ioptrec
+  integer :: ibcrec , ibcnrec
+  real(dp) :: tpd, cfd
+  real(dp) :: rpt
 
-        integer :: o_is
-        integer :: o_ie
-        integer :: o_js
-        integer :: o_je
-        integer :: o_ni
-        integer :: o_nj
-         integer :: o_nz
-        logical :: lwrap  
- character(256) :: dname , icbcname
-        real(4) , dimension(:) , pointer :: hsigma
-        real(4) , dimension(:,:) , pointer :: ioxlat
-        real(4) , dimension(:,:) , pointer :: ioxlon
-        real(4) , dimension(:,:) , pointer :: iotopo
-  real(4) , dimension(:,:) , pointer :: iomask
-        real(4) , dimension(:,:,:) , pointer :: dumio
-        
-        real(4) , dimension(:,:) , pointer :: sp2d
-        real(4) , dimension(:,:) , pointer :: iolnds
-        real(4) , dimension(2) :: latrange
-        real(4) , dimension(2) :: lonrange
+  integer :: o_is
+  integer :: o_ie
+  integer :: o_js
+  integer :: o_je
+  integer :: o_ni
+  integer :: o_nj
+  integer :: o_nz
+  logical :: lwrap  
+  character(256) :: dname , icbcname
+  real(sp) , dimension(:) , pointer :: hsigma
+  real(sp) , dimension(:,:) , pointer :: ioxlat
+  real(sp) , dimension(:,:) , pointer :: ioxlon
+  real(sp) , dimension(:,:) , pointer :: iotopo
+  real(sp) , dimension(:,:) , pointer :: iomask
+  real(sp) , dimension(:,:,:) , pointer :: dumio
 
+  real(sp) , dimension(:,:) , pointer :: sp2d
+  real(sp) , dimension(:,:) , pointer :: iolnds
 
+  data ichin   /-1/
+  data ioxcl   /-1/
+  data ibcrec  / 1/
+  data ibcnrec / 0/
 
-        data ichin   /-1/
-        data ioxcl  /-1/
-        data ibcrec  / 1/
-        data ibcnrec / 0/
+  data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
+                 'N2O5    ','H2O2    ','CH4     ','CO      ', &
+                 'CH2O    ','CH3OH   ','C2H5OH  ','C2H4    ', &
+                 'C2H6    ','CH3CHO  ','CH3COCH3','BIGENE  ', &
+                 'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
+                 'TOLUE   ','PAN     ','SO2     ','SO4     ', &
+                 'DMS     '/
 
   contains
 
+    subroutine init_mod_che_ncio
+      implicit none
+      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      if (lcband) then
+        o_is = 2
+        o_ie = iy-1
+        o_js = 1
+        o_je = jx
+        o_ni = iy-2
+        o_nj = jx
+        o_nz = kz
+        lwrap = .true.
+      else
+        o_is = 2
+        o_ie = iy-1
+        o_js = 2
+        o_je = jx-1
+        o_ni = iy-2
+        o_nj = jx-2
+        o_nz = kz
+        lwrap = .false.
+      end if
 
- subroutine init_mod_che_ncio
-          implicit none
-          character(3) :: sbstring
- 
-          dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-          if (lcband) then
-            o_is = 2
-            o_ie = iy-1
-            o_js = 1
-            o_je = jx
-            o_ni = iy-2
-            o_nj = jx
-            o_nz = kz
-            lwrap = .true.
-          else
-            o_is = 2
-            o_ie = iy-1
-            o_js = 2
-            o_je = jx-1
-            o_ni = iy-2
-            o_nj = jx-2
-            o_nz = kz
-            lwrap = .false.
-          end if
-
-         call getmem1d(hsigma,1,o_nz,'ncio:hsigma')
-         call getmem2d(ioxlat,1,o_nj,1,o_ni,'ncio:ioxlat')
-         call getmem2d(ioxlon,1,o_nj,1,o_ni,'ncio:ioxlon')
-         call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
-         call getmem2d(iomask,1,o_nj,1,o_ni,'ncio:iomask')
-         call getmem3d(dumio,1,o_nj,1,o_ni,1,o_nz,'ncio:dumio')
-         call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
-         call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
-
-! Initialisation grid variable for mod_che_ncio outputs : Read again the domain file
-! ( I know argument could be passed or interface defined .also  evrything could be in mod_ncio !) 
-! does not include sub-grid possibilities  
-       ! call open_domain
-       ! call read_domain
-       ! call close_domain
-
-        end subroutine init_mod_che_ncio
+      call getmem1d(hsigma,1,o_nz,'ncio:hsigma')
+      call getmem2d(ioxlat,1,o_nj,1,o_ni,'ncio:ioxlat')
+      call getmem2d(ioxlon,1,o_nj,1,o_ni,'ncio:ioxlon')
+      call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
+      call getmem2d(iomask,1,o_nj,1,o_ni,'ncio:iomask')
+      call getmem3d(dumio,1,o_nj,1,o_ni,1,o_nz,'ncio:dumio')
+      call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
+      call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
+    end subroutine init_mod_che_ncio
 
 
 ! IMPORTANT : note the 2 following routine have to be duplicated in the che_ncio_module 
@@ -141,14 +133,14 @@ module mod_che_ncio
     use netcdf
     implicit none
 
-    real(8)                   :: dx
-    real(8) , dimension(kzp1) :: sigma
+    real(dp)                   :: dx
+    real(dp) , dimension(kzp1) :: sigma
 
     integer :: ivarid , idimid
     integer :: iyy , jxx , kzz , k
     character(6) :: proj
-    real(4) :: dsx , iclat , iclon , ptsp
-    real(4) , dimension(kzp1) :: rsdum
+    real(sp) :: dsx , iclat , iclon , ptsp
+    real(sp) , dimension(kzp1) :: rsdum
 
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
     call say
@@ -253,15 +245,15 @@ module mod_che_ncio
 
    use netcdf
     implicit none
- !real(8) , dimension(jx,iy), intent(out)  :: ht
+ !real(dp) , dimension(jx,iy), intent(out)  :: ht
  !....
-    real(8) , dimension(jx,iy)  :: ht
-    real(8) , dimension(jx,iy)  :: lnd
-    real(8) , dimension(jx,iy)  :: xlat
-    real(8) , dimension(jx,iy)  :: xlon
-    real(8) , dimension(jx,iy)  :: xmap
-    real(8) , dimension(jx,iy)  :: dmap
-    real(8) , dimension(jx,iy)  :: f
+    real(dp) , dimension(jx,iy)  :: ht
+    real(dp) , dimension(jx,iy)  :: lnd
+    real(dp) , dimension(jx,iy)  :: xlat
+    real(dp) , dimension(jx,iy)  :: xlon
+    real(dp) , dimension(jx,iy)  :: xmap
+    real(dp) , dimension(jx,iy)  :: dmap
+    real(dp) , dimension(jx,iy)  :: f
 
     integer :: ivarid
 
@@ -316,649 +308,599 @@ module mod_che_ncio
     iomask = sp2d(o_js:o_je,o_is:o_ie)
   end subroutine read_domain
 
-  subroutine close_domain
-    use netcdf
-    implicit none
+    subroutine close_domain
+      implicit none
+      if (idmin >= 0) then
+        istatus = nf90_close(idmin)
+        call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
+        idmin = -1
+      end if
+    end subroutine close_domain
 
-    if (idmin >= 0) then
+    subroutine read_texture(nats,texture)
+      implicit none
+      integer , intent(in) :: nats
+      real(dp) , dimension(iy,jx,nats) , intent(out) :: texture
+
+      integer :: ivarid
+      integer :: i , j , n
+      integer :: idmin
+      integer , dimension(3) :: istart , icount
+      character(256) :: dname
+      real(sp), dimension(jx,iy) ::  toto
+
+      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      istatus = nf90_open(dname, nf90_nowrite, idmin)
+      call check_ok(__FILE__,__LINE__, &
+                  'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
+      istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
+      call check_ok(__FILE__,__LINE__,'Variable texture_fraction miss', &
+                  'DOMAIN FILE')
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = iy
+      icount(1) = jx
+      do n = 1 , nats
+        istart(3) = n
+        istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
+        call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
+                      'DOMAIN FILE')
+        do j = 1 , jx
+          do i = 1 , iy
+            texture(i,j,n) = dble(toto(j,i))*0.01D0
+            if (texture(i,j,n)<d_zero) texture(i,j,n)=d_zero
+          end do
+        end do
+      end do
       istatus = nf90_close(idmin)
       call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
-      idmin = -1
-    end if
-!!$    if ( nsg>1 .and. isdmin >=0 ) then
-!!$      istatus = nf90_close(isdmin)
-!!$      call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
-!!$                   'SUBDOMAIN FILE')
-!!$      isdmin = -1
-!!$    end if
+    end subroutine read_texture
 
+    subroutine read_aerosol(chtrname,chemsrc)
+      implicit none
+      character(256) :: aername
+      character(5) , dimension(ntr) , intent(in) :: chtrname
+      real(dp) , dimension(iy,jx,12,ntr) , intent(out) :: chemsrc
 
-end subroutine close_domain
+      integer :: ncid , ivarid
+      real(sp) , dimension(jx,iy) :: toto
+      character(5) :: aerctl
+      integer , dimension(3) :: istart , icount
+      integer :: itr , i , j , m
 
+      aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+      istatus = nf90_open(aername, nf90_nowrite, ncid)
+      call check_ok(__FILE__,__LINE__, &
+           'Error Opening Aerosol file '//trim(aername),'AEROSOL FILE OPEN')
 
-  subroutine read_texture(nats,texture)
-    implicit none
-
-    integer , intent(in) :: nats
-    real(dp) , dimension(iy,jx,nats) , intent(out) :: texture
-
-    integer :: ivarid
-    integer :: i , j , n
-    integer :: idmin
-    integer , dimension(3) :: istart , icount
-    character(256) :: dname
-    real(sp), dimension(jx,iy) ::  toto
-
-    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-    istatus = nf90_open(dname, nf90_nowrite, idmin)
-    call check_ok(__FILE__,__LINE__, &
-                  'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
-    istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable texture_fraction miss', &
-                  'DOMAIN FILE')
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = iy
-    icount(1) = jx
-    do n = 1 , nats
-      istart(3) = n
-      istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
-      call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
-                    'DOMAIN FILE')
-      do j = 1 , jx
-        do i = 1 , iy
-          texture(i,j,n) = dble(toto(j,i))*0.01D0
-          if (texture(i,j,n)<d_zero) texture(i,j,n)=d_zero
-        end do
-      end do
-    end do
-    istatus = nf90_close(idmin)
-    call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
-  end subroutine read_texture
-
-  subroutine read_aerosol(chtrname,chemsrc)
-    implicit none
-
-    character(256) :: aername
-    character(5) , dimension(ntr) , intent(in) :: chtrname
-    real(dp) , dimension(iy,jx,12,ntr) , intent(out) :: chemsrc
-
-    integer :: ncid , ivarid
-    real(sp) , dimension(jx,iy) :: toto
-    character(5) :: aerctl
-    integer , dimension(3) :: istart , icount
-    integer :: itr , i , j , m
-
-    aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
-    istatus = nf90_open(aername, nf90_nowrite, ncid)
-    call check_ok(__FILE__,__LINE__, &
-         'Error Opening Aerosol file '//trim(aername),'AEROSOL FILE OPEN')
-
-    do itr = 1 , ntr
-      aerctl = chtrname(itr)
-      write (aline, *) itr , aerctl
-      call say
-      if ( aerctl(1:4) /= 'DUST') then
-        if ( aerctl(1:3) == 'SO2' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'so2', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2 miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2 read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+      do itr = 1 , ntr
+        aerctl = chtrname(itr)
+        write (aline, *) itr , aerctl
+        call say
+        if ( aerctl(1:4) /= 'DUST') then
+          if ( aerctl(1:3) == 'SO2' ) then
+            if ( aertyp(4:4) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'so2', ivarid)
               call check_ok(__FILE__,__LINE__, &
-                            'Variable so2_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-        else if ( aerctl(1:2) == 'BC' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'bc', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                            'Variable so2 miss','AEROSOL FILE')
+              istatus = nf90_get_var(ncid, ivarid, toto)
               call check_ok(__FILE__,__LINE__, &
-                            'Variable bc_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                            'Variable so2 read error','AEROSOL FILE')
+              do m = 1 , 12
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                  end do
                 end do
               end do
-            end do
-          end if
-        else if ( aerctl(1:2) == 'OC' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'oc', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+            end if
+            if ( aertyp(5:5) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
               call check_ok(__FILE__,__LINE__, &
-                            'Variable oc_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                            'Variable so2_mon miss','AEROSOL FILE')
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
+              do m = 1 , 12
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                call check_ok(__FILE__,__LINE__, &
+                              'Variable so2_mon read err','AEROSOL FILE')
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                  end do
                 end do
               end do
-            end do
+            end if
+          else if ( aerctl(1:2) == 'BC' ) then
+            if ( aertyp(4:4) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'bc', ivarid)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable bc miss','AEROSOL FILE')
+              istatus = nf90_get_var(ncid, ivarid, toto)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable bc read error','AEROSOL FILE')
+              do m = 1 , 12
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                  end do
+                end do
+              end do
+            end if
+            if ( aertyp(5:5) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable bc_mon miss','AEROSOL FILE')
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
+              do m = 1 , 12
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                call check_ok(__FILE__,__LINE__, &
+                              'Variable bc_mon read err','AEROSOL FILE')
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                  end do
+                end do
+              end do
+            end if
+          else if ( aerctl(1:2) == 'OC' ) then
+            if ( aertyp(4:4) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'oc', ivarid)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable oc miss','AEROSOL FILE')
+              istatus = nf90_get_var(ncid, ivarid, toto)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable oc read error','AEROSOL FILE')
+              do m = 1 , 12
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                  end do
+                end do
+              end do
+            end if
+            if ( aertyp(5:5) == '1' ) then
+              istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable oc_mon miss','AEROSOL FILE')
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
+              do m = 1 , 12
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                call check_ok(__FILE__,__LINE__, &
+                              'Variable oc_mon read err','AEROSOL FILE')
+                do j = 1 , jx
+                  do i = 1 , iy
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                  end do
+                end do
+              end do
+            end if
           end if
         end if
+      end do
+
+      istatus = nf90_close(ncid)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error Close Aerosol file '//trim(aername), &
+                    'AEROSOL FILE CLOSE')
+
+    end subroutine read_aerosol
+
+    subroutine read_emission(lmonth,echemsrc)
+      implicit none
+      integer , intent(in) :: lmonth
+      real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
+      character(256) :: aername
+      integer :: ncid 
+      integer , dimension(3) :: istart , icount
+      integer :: ivarid
+ 
+! FAB: remember for now, we have 1 emission file containing all monthly
+! emission for the whole simulation period
+! change that in the future. Also lmonth is not really necessary here,
+! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+! all aggregations / lumping should in the future be done in emission preproc 
+
+      aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
+      print *, 'Opening ch. emission file ', aername
+
+      istatus = nf90_open(aername, nf90_nowrite, ncid)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error Opening chem emissiom file '//trim(aername), &
+                    'CHE EMISS FILE OPEN ERROR')
+
+      !*** intialized in start_chem
+      !*** Advice record counter
+      recc = recc + 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = recc
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = 1
+
+!FAB VERY IMPORTANT : THIS READING SECTION SHOULD BE FIXED WITH
+!                     HOMOGENEOUS PREPROC
+
+      ! FAB pour esource amma
+      if ( igaschem == 1 ) then  
+        ! NO emission                  
+        if ( ino /= 0 ) then
+          call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
+                    'a_NOX',.false.,'b_NOX')
+        end if
+        ! CO emission
+        if ( ico /= 0 ) then
+          call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
+                    'a_CO',.false.,'b_CO')
+          print*, 'FAB emis testco','ico', maxval(echemsrc)
+        end if
+        ! HCHO emission                  
+        if ( ihcho /= 0 ) then
+          ! call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
+        end if
+        ! ACET emission                  
+        if ( iacet /= 0 ) then
+          call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
+                    'a_acet',.false.,'b_acet')
+        end if
+        ! SO2 emission
+        if ( iso2 /= 0 ) then
+          call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
+                    'a_so2',.false.)
+        end if
+        ! CH4
+        if ( ich4 /= 0 ) then
+          call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
+                    'a_ch4',.false.,'b_CH4')
+        end if
+        ! Ethane
+        if ( ic2h6 /= 0 ) then
+          call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
+                    'a_ETHANE',.false.,'b_ETHANE')
+        end if
+        ! PAR
+        if ( ipar /= 0 ) then
+          ! call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
+          !           'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
+        end if
+        ! Ethene
+        if ( iethe /= 0 ) then
+          call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
+                    'a_ETHENE',.false.,'b_ETHENE')
+        end if
+        ! Termenal Alkene
+        if ( iolt /= 0 ) then
+          call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
+                    'a_PROPENE',.false.,'b_PROPENE')
+        end if
+        ! Internal Alkene
+        if ( ioli /= 0 ) then
+          ! call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
+        end if
+        ! Isoprene
+        if ( iisop /= 0 ) then
+          call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
+        end if
+        ! Toluene
+        if ( itolue /= 0 ) then
+          istatus = nf90_inq_varid(ncid, 'a_XYLENE', ivarid)
+          if ( istatus == nf90_noerr ) then
+            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
+                      'a_TOLUENE',.true.,'b_TOLUENE')
+          end if
+        end if
+        ! Xylene
+        if ( ixyl /= 0 ) then
+          istatus = nf90_inq_varid(ncid, 'a_TOLUENE', ivarid)
+          if ( istatus == nf90_noerr ) then
+            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+                      'a_XYLENE',.true.)
+          else
+            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+                      'a_TOLUENE',.true.,'b_XYLENE')
+          end if
+        end if
+        ! Acetaldehyde
+        if ( iald2 /= 0 ) then
+          ! call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
+        end if
+        ! Methanol + Ethanol
+        if ( imoh /= 0 ) then
+          call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
+                    'a_ch3oh',.false.,'b_ch3oh','bio_ch3oh')
+        end if           
+        ! DMS
+        if ( idms /= 0 ) then
+          ! call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
+        end if
+        ! OC and BC anthropogenic + biomass burning
+        if ( ibchb /= 0 ) then
+          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+                    'a_bc',.false.)
+        end if
+        if ( iochb /= 0 ) then
+          call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
+                    'a_oc',.false.)
+        end if
+      else 
+        ! uniquement les sources BB AMMA
+        ! OC and BC anthropogenic + biomass burning
+        if ( ibchb /= 0 ) then
+          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+                    'b_BC',.false.)
+        end if
+        if ( iochb /= 0 ) then
+          call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
+                    'b_OC',.false.)
+        end if
+        if ( iso2 /= 0 ) then
+          call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
+                    'b_SO2',.false.)
+        end if
       end if
-    end do
+      istatus = nf90_close(ncid)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error Closing Chem emission file '//trim(aername), &
+                    'CH EMISS FILE CLOSE ERROR')
+    end subroutine read_emission
 
-    istatus = nf90_close(ncid)
-    call check_ok(__FILE__,__LINE__, &
-                  'Error Close Aerosol file '//trim(aername), &
-                  'AEROSOL FILE CLOSE')
+    subroutine rvar(ncid,istart,icount,ind,lmonth,echemsrc,cna,lh,cnb,cnc,cnd)
+      implicit none
+      integer , intent(in) :: ncid
+      integer , dimension(3) , intent(in) :: istart , icount
+      integer , intent(in) :: lmonth
+      real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
+      logical , intent(in) :: lh
+      character(len=*) , intent(in) :: cna
+      character(len=*) , intent(in) , optional :: cnb
+      character(len=*) , intent(in) , optional :: cnc
+      character(len=*) , intent(in) , optional :: cnd
+      integer :: ivarid 
+      real(sp) , dimension(jx,iy) :: toto
+      integer :: i , j , ind
 
-  end subroutine read_aerosol
-
-  subroutine read_emission(lmonth,echemsrc)
-    implicit none
-
-    integer , intent(in) :: lmonth
-
-    real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
-
-    character(256) :: aername
- 
-    integer :: ncid 
-    integer , dimension(3) :: istart , icount
-    integer :: itr , ivarid
- 
-! FAB: remember for now, we have 1 emission file containing all monthly emission for the whole simulation period
-! change that in the future. Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
-!all aggregations / lumping should in the future be done in emission preproc 
-
-
-    aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
-
-    print*, 'Opening ch. emission file ', aername
-    !CARE FAB shut down the emission reading temporarily 
- !   return
-
-    istatus = nf90_open(aername, nf90_nowrite, ncid)
-    call check_ok(__FILE__,__LINE__, &
-                  'Error Opening chem emissiom file '//trim(aername), &
-                  'CHE EMISS FILE OPEN ERROR')
-
-    !*** intialized in start_chem
-    !*** Advice record counter
-    recc = recc + 1
- 
-
-
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = recc
-    icount(1) = jx
-    icount(2) = iy
-    icount(3) = 1
-
-
-!FAB VERY IMPORTANT : THIS REAQDING SECTION SHOULD BE FIXED WITH HOMOGENEOUS PREPROC
-
-   ! FAB pour esource amma
-   IF (igaschem == 1) THEN  
-
-    ! NO emission                  
-    if ( ino /= 0 ) then
-      call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
-                'a_NOX',.false.,'b_NOX')
-    end if
-    ! CO emission
-    if ( ico /= 0 ) then
-      call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
-                'a_CO',.false.,'b_CO')
-    print*, 'FAB emis testco','ico', maxval(echemsrc)
-    end if
-    ! HCHO emission                  
-    if ( ihcho /= 0 ) then
- !     call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
-    end if
-    ! ACET emission                  
-    if ( iacet /= 0 ) then
-      call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
-                'a_acet',.false.,'b_acet')
-    end if
-    ! SO2 emission
-    if ( iso2 /= 0 ) then
-      call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
-                'a_so2',.false.)
-    end if
-    ! CH4
-    if ( ich4 /= 0 ) then
-      call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
-                'a_ch4',.false.,'b_CH4')
-!!$    print*, ' ATTENTION SKIP CH4 EM'
-    end if
-    ! Ethane
-    if ( ic2h6 /= 0 ) then
-      call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
-                'a_ETHANE',.false.,'b_ETHANE')
-    end if
-    ! PAR
-    if ( ipar /= 0 ) then
-!      call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
-!                'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
-    end if
-    ! Ethene
-    if ( iethe /= 0 ) then
-      call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
-                'a_ETHENE',.false.,'b_ETHENE')
-    end if
-    ! Termenal Alkene
-    if ( iolt /= 0 ) then
-      call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
-                'a_PROPENE',.false.,'b_PROPENE')
-    end if
-    ! Internal Alkene
-    if ( ioli /= 0 ) then
-  !    call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
-    end if
-    ! Isoprene
-    if ( iisop /= 0 ) then
-      call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
-    end if
-    ! Toluene
-    if ( itolue /= 0 ) then
-      istatus = nf90_inq_varid(ncid, 'a_XYLENE', ivarid)
-      if ( istatus == nf90_noerr ) then
-        call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
-                  'a_TOLUENE',.true.,'b_TOLUENE')
-      end if
-    end if
-    ! Xylene
-    if ( ixyl /= 0 ) then
-      istatus = nf90_inq_varid(ncid, 'a_TOLUENE', ivarid)
-      if ( istatus == nf90_noerr ) then
-        call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-                  'a_XYLENE',.true.)
+      istatus = nf90_inq_varid(ncid, cna, ivarid)     
+      call check_ok(__FILE__,__LINE__, &
+                    'Variable '//cna//' miss','CHEM_EMISS FILE')
+      istatus = nf90_get_var(ncid,ivarid,toto)
+      call check_ok(__FILE__,__LINE__, &
+                    'Variable '//cna//' read err','CHEM_EMISS FILE')
+      if ( lh ) then  ! half of lumped Aromatics
+        do j = 1 , jx
+          do i = 1 , iy
+            echemsrc(i,j,lmonth,ind) = d_half*toto(j,i)
+          end do
+        end do
       else
-        call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-                  'a_TOLUENE',.true.,'b_XYLENE')
+        do j = 1 , jx
+          do i = 1 , iy
+            echemsrc(i,j,lmonth,ind) = toto(j,i)
+          end do
+        end do
       end if
-    end if
-    ! Acetaldehyde
-    if ( iald2 /= 0 ) then
- !     call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
-    end if
-    ! Methanol + Ethanol
-    if ( imoh /= 0 ) then
-      call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
-                'a_ch3oh',.false.,'b_ch3oh','bio_ch3oh')
-    end if           
-    ! DMS
-    if ( idms /= 0 ) then
-  !    call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
-    end if
-    ! OC and BC anthropogenic + biomass burning
-    if ( ibchb /= 0 ) then
-      call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
-                'a_bc',.false.)
-    end if
-    if ( iochb /= 0 ) then
-      call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
-                'a_oc',.false.)
-    end if
-
- ELSE 
-! uniquement les sources BB AMMA
-   ! OC and BC anthropogenic + biomass burning
-    if ( ibchb /= 0 ) then
-      call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
-                'b_BC',.false.)
-    end if
-    if ( iochb /= 0 ) then
-      call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
-                'b_OC',.false.)
-    end if
-
-     if ( iso2 /= 0 ) then
-      call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
-                'b_SO2',.false.)
-    end if
- 
-
-END IF
- 
-    istatus = nf90_close(ncid)
-    call check_ok(__FILE__,__LINE__, &
-                  'Error Closing Chem emission file '//trim(aername), &
-                  'CH EMISS FILE CLOSE ERROR')
-
-  end subroutine read_emission
-
-  subroutine rvar(ncid,istart,icount,ind,lmonth,echemsrc,cna,lh,cnb,cnc,cnd)
-    implicit none
-    integer , intent(in) :: ncid
-    integer , dimension(3) , intent(in) :: istart , icount
-    integer , intent(in) :: lmonth
-    real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
-    logical , intent(in) :: lh
-    character(len=*) , intent(in) :: cna
-    character(len=*) , intent(in) , optional :: cnb
-    character(len=*) , intent(in) , optional :: cnc
-    character(len=*) , intent(in) , optional :: cnd
-    integer :: ivarid 
-    real(sp) , dimension(jx,iy) :: toto
-    integer :: i , j , ind
-
-    istatus = nf90_inq_varid(ncid, cna, ivarid)     
-    call check_ok(__FILE__,__LINE__, &
-                  'Variable '//cna//' miss','CHEM_EMISS FILE')
-    istatus = nf90_get_var(ncid,ivarid,toto)
-    call check_ok(__FILE__,__LINE__, &
-                  'Variable '//cna//' read err','CHEM_EMISS FILE')
-    if ( lh ) then  ! half of lumped Aromatics
-      do j = 1 , jx
-        do i = 1 , iy
-          echemsrc(i,j,lmonth,ind) = d_half*toto(j,i)
+      if ( present(cnb) ) then
+        istatus = nf90_inq_varid(ncid, cnb, ivarid)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnb//' miss','CHEM_EMISS FILE')
+        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnb//' read err','CHEM_EMISS FILE')
+        do j = 1 , jx
+          do i = 1 , iy
+            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+          end do
         end do
-      end do
-    else
-      do j = 1 , jx
-        do i = 1 , iy
-          echemsrc(i,j,lmonth,ind) = toto(j,i)
+      end if
+      if ( present(cnc) ) then
+        istatus = nf90_inq_varid(ncid, cnc, ivarid)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnc//' miss','CHEM_EMISS FILE')
+        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnc//' read err','CHEM_EMISS FILE')
+        do j = 1 , jx
+          do i = 1 , iy
+            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+          end do
         end do
-      end do
-    end if
-    if ( present(cnb) ) then
-      istatus = nf90_inq_varid(ncid, cnb, ivarid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnb//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnb//' read err','CHEM_EMISS FILE')
-      do j = 1 , jx
-        do i = 1 , iy
-          echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+      end if
+      if ( present(cnd) ) then
+        istatus = nf90_inq_varid(ncid, cnd, ivarid)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnd//' miss','CHEM_EMISS FILE')
+        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        call check_ok(__FILE__,__LINE__, &
+                      'Variable '//cnd//' read err','CHEM_EMISS FILE')
+        do j = 1 , jx
+          do i = 1 , iy
+            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+          end do
         end do
-      end do
-    end if
-    if ( present(cnc) ) then
-      istatus = nf90_inq_varid(ncid, cnc, ivarid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnc//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnc//' read err','CHEM_EMISS FILE')
-      do j = 1 , jx
-        do i = 1 , iy
-          echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
-        end do
-      end do
-    end if
-    if ( present(cnd) ) then
-      istatus = nf90_inq_varid(ncid, cnd, ivarid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnd//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cnd//' read err','CHEM_EMISS FILE')
-      do j = 1 , jx
-        do i = 1 , iy
-          echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
-        end do
-      end do
-    end if
-  end subroutine rvar
-
+      end if
+    end subroutine rvar
 
 !------------------------------------------------------------------------------      
 !       IROUTINE: prepare_chem_out
 !       SUBROUTINE INTERFACE:
 
-        subroutine prepare_chem_out(idate, ifrest)
+    subroutine prepare_chem_out(idate, ifrest)
     
-          use netcdf
-!     !DESCRIPTION:
-!     prepare the dimensions variables, write global attributes
-!     define the chemistry variables
+!   !DESCRIPTION:
+!   prepare the dimensions variables, write global attributes
+!   define the chemistry variables
 
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    logical, intent(in) :: ifrest
+    integer  :: itr
+    character(128)::cdum
+    character(8) ::chevarnam
+    character(64) :: title
+    character(32) :: fbname
+    character(16) :: fterr
+    character(256) :: ofname , history
+    integer , dimension(8) :: tvals
+    real(sp) :: hptop
+    real(sp) , dimension(2) :: trlat
+    real(sp) , dimension(iysg) :: yiy
+    real(sp) , dimension(jxsg) :: xjx
+    integer :: ncid
+    integer , dimension(3) :: izvar
+    integer , dimension(2) :: ivvar
+    integer , dimension(5) :: illtpvar
+    integer :: itvar , i , j
+    integer :: ibin , jbin , noutf
 
-          implicit none
-           type(rcm_time_and_date) , intent(in) :: idate
-          logical, intent(in) :: ifrest
-
-          integer  :: itr
-          character(128)::cdum
-          character(8) ::chevarnam
-          character(64) :: title
-          character(32) :: fbname , csdate
-          character(64) :: cmethodmax , cmethodmin
-          character(16) :: fterr
-          character(256) :: ofname , history
-          integer , dimension(8) :: tvals
-          real(4) :: hptop , rdum1
-          real(4) , dimension(2) :: trlat , rdum2
-          real(4) , dimension(iysg) :: yiy
-          real(4) , dimension(jxsg) :: xjx
-          integer :: ncid,ivarid
-          integer , dimension(3) :: izvar
-          integer , dimension(2) :: ivvar
-          integer , dimension(4) :: isrvvar
-          integer , dimension(5) :: illtpvar
-          integer :: itvar , iyy , im , id , ih , i , j,k
-          integer :: l1,l2,ibin,jbin, noutf
-
-          integer , dimension(9) :: tyx
-          integer , dimension(9) :: tzyx
+    integer , dimension(9) :: tyx
+    integer , dimension(9) :: tzyx
           
-          character(len=36) :: ctime
-          real(4) , dimension(jx,iy) :: sp2d
-          real(4) , dimension(iy,jx) :: xlat,xlon,topo
-          real(4) , dimension(kz)    :: ppp
+    character(len=36) :: ctime
 
-          ctime = tochar(idate)
-
+    ctime = tochar(idate)
 
 ! total number of output  = ntr + 1 for optical properties file
-          noutf = ntr
-          if (iaerosol == 1 ) noutf = ntr + 1 
+    noutf = ntr
+    if (iaerosol == 1 ) noutf = ntr + 1 
 
+    if ( .not. allocated(ncche) ) then
+      allocate(ncche(noutf))
+    end if
+    ibin = 0
+    jbin = 0
+!   tracer loop , since we are generating one output per
+!   tracer + 1 output for OPT
+    do itr = 1, noutf
+      if ( itr < noutf ) then  
+        ncid = ncche(itr)     
+        chevarnam =  chtrname(itr)
 
-          if (.not.allocated(ncche)) then
-                  allocate( ncche(noutf))
-!                  ncche(:) = -1
-          end if
+        if ( chtrname(itr) == 'DUST' )  then
+          ibin = ibin+1
+          write( chevarnam(5:6),'(I1)') ibin
+        end if
+        if ( chtrname(itr) == 'SSLT')  then
+          jbin = jbin+1
+          write( chevarnam(5:6),'(I1)') jbin
+        end if
+      else if ( itr == noutf) then
+        chevarnam = 'OPT'
+      end if 
+      title = 'ICTP Regional Climatic model V4  '//chevarnam//' output'
+      icherefdate = idate
+      icherec = 1
 
-ibin = 0
-jbin = 0
-! tracer loop , since we are generating one output per tracer + 1 output for OPT
-          do itr = 1, noutf
-!           
-            if (itr < noutf ) then  
-            ncid = ncche(itr)     
-            chevarnam =  chtrname(itr)
+!     call close_chem(ncid,itr)
 
-            if( chtrname (itr)== 'DUST')  then
-             ibin = ibin+1
-             write( chevarnam(5:6),'(I1)') ibin
-            end if
-            if( chtrname(itr) == 'SSLT')  then
-             jbin = jbin+1
-             write( chevarnam(5:6),'(I1)') jbin
-            end if
- 
-            else if (itr == noutf) then
-            chevarnam = 'OPT'
-            end if 
-           
-     
-            title = 'ICTP Regional Climatic model V4  '  &
-                     //chevarnam//' output'
-            icherefdate = idate
-            icherec = 1
+      write (fterr, '(a3,a)') chevarnam, ' FILE'
+      write (fbname,'(a,a,i10)') trim(chevarnam), '.', toint10(idate)
+      ofname = trim(dirout)//pthsep//trim(domname)// &
+                 '_'//trim(fbname)//'.nc'
 
-!          call close_chem(ncid,itr)
-
-    write (fterr, '(a3,a)') chevarnam, ' FILE'
-    write (fbname,'(a,a,i10)') trim(chevarnam), '.', toint10(idate)
-    ofname = trim(dirout)//pthsep//trim(domname)// &
-             '_'//trim(fbname)//'.nc'
-
-    write (aline, *) 'Opening new output file ', trim(ofname)
-    call say
+      write (aline, *) 'Opening new output file ', trim(ofname)
+      call say
 
 #ifdef NETCDF4_HDF5
-    istatus = nf90_create(ofname, &
-              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
+      istatus = nf90_create(ofname, &
+                   ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
 #else
-    istatus = nf90_create(ofname, nf90_clobber, ncid)
+      istatus = nf90_create(ofname, nf90_clobber, ncid)
 #endif
+      ncche(itr) = ncid
 
-
-            ncche(itr) = ncid
-
-
-!Start Global Attributes
-    istatus = nf90_put_att(ncid, nf90_global, 'title', title)
-    call check_ok(__FILE__,__LINE__,'Error add title', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
-    call check_ok(__FILE__,__LINE__,'Error add institution', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'source', &
-               'RegCM Model '//'SVN_REV'//' simulation output')
-    call check_ok(__FILE__,__LINE__,'Error add source', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
-    call check_ok(__FILE__,__LINE__,'Error add Conventions', fterr)
-    call date_and_time(values=tvals)
-    write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
-         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,       &
-         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,             &
-         ' : Created by RegCM model'
-    istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-    call check_ok(__FILE__,__LINE__,'Error add history', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'references', &
+      ! Start Global Attributes
+      istatus = nf90_put_att(ncid, nf90_global, 'title', title)
+      call check_ok(__FILE__,__LINE__,'Error add title', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
+      call check_ok(__FILE__,__LINE__,'Error add institution', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'source', &
+                  'RegCM Model '//'SVN_REV'//' simulation output')
+      call check_ok(__FILE__,__LINE__,'Error add source', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
+      call check_ok(__FILE__,__LINE__,'Error add Conventions', fterr)
+      call date_and_time(values=tvals)
+      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
+             tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,       &
+             tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,             &
+             ' : Created by RegCM model'
+      istatus = nf90_put_att(ncid, nf90_global, 'history', history)
+      call check_ok(__FILE__,__LINE__,'Error add history', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'references', &
                'http://eforge.escience-lab.org/gf/project/regcm')
-    call check_ok(__FILE__,__LINE__,'Error add references', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
-    call check_ok(__FILE__,__LINE__,'Error add experiment', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-    call check_ok(__FILE__,__LINE__,'Error add projection', fterr)
-    if (iproj == 'LAMCON') then
+      call check_ok(__FILE__,__LINE__,'Error add references', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
+      call check_ok(__FILE__,__LINE__,'Error add experiment', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
+      call check_ok(__FILE__,__LINE__,'Error add projection', fterr)
+      if (iproj == 'LAMCON') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                        'grid_mapping_name', 'lambert_conformal_conic')
+        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
+      else if (iproj == 'POLSTR') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                        'grid_mapping_name', 'stereographic')
+        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
+      else if (iproj == 'NORMER') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                        'grid_mapping_name', 'mercator')
+        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
+      else if (iproj == 'ROTMER') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                        'grid_mapping_name', 'rotated_latitude_longitude')
+        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*d_1000)
+      call check_ok(__FILE__,__LINE__,'Error add gridsize', fterr)
       istatus = nf90_put_att(ncid, nf90_global, &
-                   'grid_mapping_name', 'lambert_conformal_conic')
-      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-    else if (iproj == 'POLSTR') then
-      istatus = nf90_put_att(ncid, nf90_global, &
-                   'grid_mapping_name', 'stereographic')
-      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-    else if (iproj == 'NORMER') then
-      istatus = nf90_put_att(ncid, nf90_global, &
-                   'grid_mapping_name', 'mercator')
-      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-    else if (iproj == 'ROTMER') then
-      istatus = nf90_put_att(ncid, nf90_global, &
-            'grid_mapping_name', 'rotated_latitude_longitude')
-      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-    end if
-    istatus = nf90_put_att(ncid, nf90_global, 'grid_size_in_meters', ds*d_1000)
-    call check_ok(__FILE__,__LINE__,'Error add gridsize', fterr)
-    istatus = nf90_put_att(ncid, nf90_global, &
-                           'latitude_of_projection_origin', clat)
-    call check_ok(__FILE__,__LINE__,'Error add clat', fterr)
-    istatus = nf90_put_att(ncid, nf90_global,   &
-                 'longitude_of_projection_origin', clon)
-    call check_ok(__FILE__,__LINE__,'Error add clon', fterr)
-    istatus = nf90_put_att(ncid, nf90_global,   &
-                 'longitude_of_central_meridian', clon)
-    call check_ok(__FILE__,__LINE__,'Error add gmtllon', fterr)
-    if (iproj == 'ROTMER') then
-      istatus = nf90_put_att(ncid, nf90_global, &
-                   'grid_north_pole_latitude', plat)
-      call check_ok(__FILE__,__LINE__,'Error add plat', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, &
-                   'grid_north_pole_longitude', plon)
-      call check_ok(__FILE__,__LINE__,'Error add plon', fterr)
-    else if (iproj == 'LAMCON') then
-      trlat(1) = real(truelatl)
-      trlat(2) = real(truelath)
-      istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', trlat)
-      call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
-    else if (iproj == 'NORMER') then
-      istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', clat)
-      call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
-    else if (iproj == 'POLSTR') then
-      trlat(1) = 1.0
-      istatus = nf90_put_att(ncid, nf90_global, &
-                 'scale_factor_at_projection_origin', trlat(1:1))
-      call check_ok(__FILE__,__LINE__,'Error add scfac', fterr)
-    end if
+                       'latitude_of_projection_origin', clat)
+      call check_ok(__FILE__,__LINE__,'Error add clat', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,   &
+                       'longitude_of_projection_origin', clon)
+      call check_ok(__FILE__,__LINE__,'Error add clon', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,   &
+                       'longitude_of_central_meridian', clon)
+      call check_ok(__FILE__,__LINE__,'Error add gmtllon', fterr)
+      if (iproj == 'ROTMER') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                       'grid_north_pole_latitude', plat)
+        call check_ok(__FILE__,__LINE__,'Error add plat', fterr)
+        istatus = nf90_put_att(ncid, nf90_global, &
+                       'grid_north_pole_longitude', plon)
+        call check_ok(__FILE__,__LINE__,'Error add plon', fterr)
+      else if (iproj == 'LAMCON') then
+        trlat(1) = real(truelatl)
+        trlat(2) = real(truelath)
+        istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', trlat)
+        call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
+      else if (iproj == 'NORMER') then
+        istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', clat)
+        call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
+      else if (iproj == 'POLSTR') then
+        trlat(1) = 1.0
+        istatus = nf90_put_att(ncid, nf90_global, &
+                   'scale_factor_at_projection_origin', trlat(1:1))
+        call check_ok(__FILE__,__LINE__,'Error add scfac', fterr)
+      end if
 !
-!         ADD RUN PARAMETERS
+!     ADD RUN PARAMETERS
 !
-!FAB    istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
-!    call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
+!FAB  istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
+!            call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
 
 !!$                        !!!Je skip ce bloc pour l'instant !!!
 !!$    call cdumlbcs
@@ -1017,11 +959,9 @@ jbin = 0
 !!$
 !!$    call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
 
-
-
-    istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_initial_start' , tochar(globidate1))
-    call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+               'model_simulation_initial_start' , tochar(globidate1))
+      call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
 
 !!$    istatus = nf90_put_att(ncid, nf90_global,  &
 !!$            'model_simulation_start' , tochar(idate1))
@@ -1312,542 +1252,428 @@ jbin = 0
 !==========================================================================
 
 
-
-
-
 !=====================================================================
-        subroutine ch_addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss, &
-                           ivar)
-          use netcdf
-          implicit none
-          integer , intent(in) :: ncid
-          character(3) , intent(in) :: ctype
-          character(len=*) , intent(in) :: vname
-          character(len=*) , intent(in) :: vst , vln , vuni
-          integer , dimension(5) , intent(in) :: idims
-          logical , intent(in) :: lmiss
-          integer , intent(out) :: ivar
-          character(64) :: cdum
-          real(4) , parameter :: fillv = +1E+20
-          integer :: i , ndims
+    subroutine ch_addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss,ivar)
+      implicit none
+      integer , intent(in) :: ncid
+      character(3) , intent(in) :: ctype
+      character(len=*) , intent(in) :: vname
+      character(len=*) , intent(in) :: vst , vln , vuni
+      integer , dimension(5) , intent(in) :: idims
+      logical , intent(in) :: lmiss
+      integer , intent(out) :: ivar
+      character(64) :: cdum
+      real(sp) , parameter :: fillv = +1E+20
+      integer :: i , ndims
        
-          ndims = 0
-          do i = 1 , 5
-            if (idims(i) > 0) ndims = ndims+1
-          end do
+      ndims = 0
+      do i = 1 , 5
+        if ( idims(i) > 0 ) ndims = ndims+1
+      end do
 
-          cdum = vname
-          istatus = nf90_def_var(ncid, cdum, nf90_float, &
-                             &   idims(1:ndims), ivar)
-          call check_ok(__FILE__,__LINE__,'Error adding variable '//vname, &
-                        ctype//' FILE ERROR')
+      cdum = vname
+      istatus = nf90_def_var(ncid, cdum, nf90_float, &
+                             idims(1:ndims), ivar)
+      call check_ok(__FILE__,__LINE__,'Error adding variable '//vname, &
+                    ctype//' FILE ERROR')
 #ifdef NETCDF4_HDF5
-          istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
-        call  check_ok(__FILE__,__LINE__,'Error setting deflate on variable '//vname, &
-                        ctype//' FILE ERROR')
+      istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
+      call check_ok(__FILE__,__LINE__, &
+           'Error setting deflate on variable '//vname,ctype//' FILE ERROR')
 #endif
-          cdum = vst
-          istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
-        call  check_ok(__FILE__,__LINE__,'Error adding '//vname//' standard_name', &
-                        ctype//' FILE ERROR')
-          cdum = vln
-          istatus = nf90_put_att(ncid, ivar, 'long_name', cdum)
-       call  check_ok(__FILE__,__LINE__,'Error adding '//vname//' long_name', &
-                        ctype//' FILE ERROR')
-          cdum = vuni
-          istatus = nf90_put_att(ncid, ivar, 'units', cdum)
-       call  check_ok(__FILE__,__LINE__,'Error adding '//vname//' units', &
-                        ctype//' FILE ERROR')
-          istatus = nf90_put_att(ncid, ivar, 'coordinates', &
-                            &  'xlat xlon')
-       call  check_ok(__FILE__,__LINE__,'Error adding '//vname//' coordinates', &
-                        ctype//' FILE ERROR')
-          istatus = nf90_put_att(ncid, ivar, 'grid_mapping', &
-                            &  'rcm_map')
-      call   check_ok(__FILE__,__LINE__,'Error adding '//vname//' grid_mapping', &
-                        ctype//' FILE ERROR')
-          if (lmiss) then
-            istatus = nf90_put_att(ncid, ivar, '_FillValue', &
-                              &  fillv)
-         call  check_ok(__FILE__,__LINE__,'Error adding '//vname//' coordinates', &
-                          ctype//' FILE ERROR')
-          end if
-        end subroutine ch_addvara
+      cdum = vst
+      istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
+      call check_ok(__FILE__,__LINE__, &
+            'Error adding '//vname//' standard_name',ctype//' FILE ERROR')
+      cdum = vln
+      istatus = nf90_put_att(ncid, ivar, 'long_name', cdum)
+      call check_ok(__FILE__,__LINE__,'Error adding '//vname//' long_name', &
+                     ctype//' FILE ERROR')
+      cdum = vuni
+      istatus = nf90_put_att(ncid, ivar, 'units', cdum)
+      call check_ok(__FILE__,__LINE__,'Error adding '//vname//' units', &
+                     ctype//' FILE ERROR')
+      istatus = nf90_put_att(ncid, ivar, 'coordinates','xlat xlon')
+      call check_ok(__FILE__,__LINE__,'Error adding '//vname//' coordinates', &
+                     ctype//' FILE ERROR')
+      istatus = nf90_put_att(ncid, ivar, 'grid_mapping','rcm_map')
+      call check_ok(__FILE__,__LINE__,'Error adding '//vname//' grid_mapping', &
+                    ctype//' FILE ERROR')
+      if (lmiss) then
+        istatus = nf90_put_att(ncid, ivar, '_FillValue',fillv)
+        call check_ok(__FILE__,__LINE__,'Error adding '//vname//' coordinates',&
+                      ctype//' FILE ERROR')
+      end if
+    end subroutine ch_addvara
 
-!==================================================================================
-        subroutine writerec_che2(nx, ny, nnx, nny, nz, nt, chia, wdlsc, &
-                                 wdcvc, ddsfc, cemtrac, drydepv,ext,ssa,asp,tarf, &
-                                ssrf,talwrf,srlwrf, ps, idate)
+!============================================================================
 
-
-!     DESCRIPTION
-!     write the chemistry field to the corresbonding netcdf file                                
-          use netcdf
-
-          implicit none
+    subroutine writerec_che2(nx,ny,nnx,nny,nz,nt,chia,wdlsc,wdcvc, &
+                             ddsfc,cemtrac,drydepv,ext,ssa,asp,    &
+                             tarf,ssrf,talwrf,srlwrf,ps,idate)
+      implicit none
           
-          type(rcm_time_and_date) , intent(in) :: idate
-          integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
-          real(8) , dimension(iy,kz,jx,nt) , intent(in) :: chia
-          real(8) , dimension(iy,jx) , intent(in) :: ps
-          real(8) , dimension(iy,jx,nt), intent(in) :: wdlsc, wdcvc, ddsfc,  &
-                                             &         cemtrac, drydepv
-          real(8) , dimension(nny,nz,nnx) , intent(in) :: ext,ssa,asp 
-          real(8) , dimension(nny,nnx), intent(in) :: tarf, ssrf,talwrf,srlwrf
+      type(rcm_time_and_date) , intent(in) :: idate
+      integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
+      real(dp) , dimension(iy,kz,jx,nt) , intent(in) :: chia
+      real(dp) , dimension(iy,jx) , intent(in) :: ps
+      real(dp) , dimension(iy,jx,nt), intent(in) :: wdlsc, wdcvc, ddsfc,  &
+                                                    cemtrac, drydepv
+      real(dp) , dimension(nny,nz,nnx) , intent(in) :: ext,ssa,asp 
+      real(dp) , dimension(nny,nnx), intent(in) :: tarf, ssrf,talwrf,srlwrf
 
-
-          integer :: n , k, noutf
-          integer , dimension(5) :: istart , icount
+      integer :: n , k, noutf
+      integer , dimension(5) :: istart , icount
                     
-          real(8) , dimension(1) :: nctime
-          type(rcm_time_interval) :: tdif
-          character(len=36) :: ctime
-          real(8) :: cfd2
+      real(dp) , dimension(1) :: nctime
+      type(rcm_time_interval) :: tdif
+      character(len=36) :: ctime
+      real(dp) :: cfd2
 
-          if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
-            write (6,*) 'Error writing record on CHE file'
-            write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
-            write (6,*) 'Got layers       ', nz, 'x', nx, 'x', ny
-            call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-          end if
+      if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
+        write (6,*) 'Error writing record on CHE file'
+        write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
+        write (6,*) 'Got layers       ', nz, 'x', nx, 'x', ny
+        call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+      end if
 
-
-          noutf = ntr
-          if (iaerosol == 1 ) noutf = ntr + 1 
+      noutf = ntr
+      if (iaerosol == 1 ) noutf = ntr + 1 
  
-         do n=1,noutf        
+      do n = 1 , noutf        
+        istart(1) = icherec
+        icount(1) = 1
+        ctime = tochar(idate)
+        tdif = idate-icherefdate
+        nctime(1) = tohours(tdif)
+        istatus = nf90_put_var(ncche(n), ichevar(1), nctime, &
+                               istart(1:1), icount(1:1))
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing itime '//ctime, 'CHE FILE ERROR')
+        dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*10.0D0)
+        istart(3) = icherec
+        istart(2) = 1
+        istart(1) = 1
+        icount(3) = 1
+        icount(2) = o_ni
+        icount(1) = o_nj
+        istatus = nf90_put_var(ncche(n), ichevar(2), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing ps at '//ctime, 'CHE FILE ERROR')
 
-       !     write (ctime, '(i10)') idate
-       
-          istart(1) = icherec
-          icount(1) = 1
+        if ( n < noutf ) then 
+          istart(4) = icherec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(5) = 1
+          icount(4) = 1
+          icount(3) = o_nz
+          icount(2) = o_ni
+          icount(1) = o_nj
 
-          ctime = tochar(idate)
-          tdif = idate-icherefdate
-          nctime(1) = tohours(tdif)
+          !*** tracer concentration
+          do k = 1 , nz
+            dumio(:,:,k) = real(transpose(chia(o_is:o_ie,nz-k+1,o_js:o_je,n) / &
+                                          ps(o_is:o_ie,o_js:o_je)))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(3), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing '//chtrname(n)//' at '//ctime,'CHE FILE ERROR')
+          
+          !*** output 2-D gas chem fields
+          istart(4) = 1
+          istart(3) = icherec
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_ni
+          icount(1) = o_nj
 
+          ! accumulated quantities between two output steps are converted
+          ! to deposition/emission mean rate (mg /m2/per day)  
+          cfd = 24.0D0/chemfrq
+          cfd2 = dtche / (chemfrq *3600.0D0)
 
+          !*** wet deposition from large-scale precip
+          dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
+          istatus = nf90_put_var(ncche(n), ichevar(4), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
 
-          istatus = nf90_put_var(ncche(n), ichevar(1), nctime, &
-                                 istart(1:1), icount(1:1))
-         call  check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE ERROR')
+          !*** wet deposition from convective precip
+          dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
+          istatus = nf90_put_var(ncche(n), ichevar(5), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing wet dep CONV at '//ctime,'CHE FILE ERROR')
 
-          dumio(:,:,1) = transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*10.0
+          !*** dry deposition
+          dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
+          istatus = nf90_put_var(ncche(n), ichevar(6), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing dry dep '//ctime, 'CHE FILE ERROR')
+
+          !*** emission rates
+          dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
+          istatus = nf90_put_var(ncche(n), ichevar(7), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing emission rate '//ctime, 'CHE FILE ERROR')
+
+          !*** dry dep vel 
+          dumio(:,:,1) = real(transpose(drydepv(o_is:o_ie,o_js:o_je,n))*cfd2)
+          istatus = nf90_put_var(ncche(n), ichevar(8), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
+
+          istatus = nf90_sync(ncche(n))
+          call check_ok(__FILE__,__LINE__, &
+                        'Error sync at '//ctime, 'CHE FILE ERROR')
+
+        else if ( n == noutf ) then 
+
+          istart(4) = icherec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(5) = 1
+          icount(4) = 1
+          icount(3) = o_nz
+          icount(2) = o_ni
+          icount(1) = o_nj
+
+          !*** extinction
+          do k = 1 , nz
+            dumio(:,:,k) = real(transpose(ext(o_is:o_ie,nz-k+1,o_js:o_je)))
+          end do
+          istatus = nf90_put_var(ncche(n), ioptvar(3), &
+                                 dumio, istart(1:4), icount(1:4))
+          call check_ok(__FILE__,__LINE__,'Error writing EXT at '//ctime,&
+                         'CHE FILE ERROR')
+
+          !*** SSAE
+          do k = 1 , nz
+            dumio(:,:,k) = real(transpose(ssa(o_is:o_ie,nz-k+1,o_js:o_je)))
+          end do
+          istatus = nf90_put_var(ncche(n), ioptvar(4), &
+                                 dumio, istart(1:4), icount(1:4))
+          call check_ok(__FILE__,__LINE__,'Error writing SSAE at '//ctime,&
+                        'CHE FILE ERROR')
+
+          !*** ASP
+          do k = 1 , nz
+            dumio(:,:,k) = real(transpose(asp(o_is:o_ie,nz-k+1,o_js:o_je)))
+          end do
+          istatus = nf90_put_var(ncche(n), ioptvar(5), &
+                                 dumio, istart(1:4), icount(1:4))
+          call check_ok(__FILE__,__LINE__,'Error writing ASP at '//ctime,&
+                        'CHE FILE ERROR')
+
+          !*** output 2-D Aerosl Radiative forcing : NB these variables
+          ! are already accumulated and averagesd in aerout
+
           istart(3) = icherec
           istart(2) = 1
           istart(1) = 1
           icount(3) = 1
           icount(2) = o_ni
           icount(1) = o_nj
-          istatus = nf90_put_var(ncche(n), ichevar(2), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-         call  check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'CHE FILE ERROR')
 
-          if( n < noutf ) then 
- 
-
-           istart(4) = icherec
-            istart(3) = 1
-            istart(2) = 1
-            istart(1) = 1
-            icount(5) = 1
-            icount(4) = 1
-            icount(3) = o_nz
-            icount(2) = o_ni
-            icount(1) = o_nj
-
-           !*** tracer concentration
-            do k = 1 , nz
-              dumio(:,:,k) = transpose(chia(o_is:o_ie,nz-k+1,o_js:o_je,n) / &
-                                       ps(o_is:o_ie,o_js:o_je))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(3), &
-                                 dumio, istart, icount)
-
-           call  check_ok(__FILE__,__LINE__,'Error writing '//chtrname(n)//' at '//ctime,&
-                          'CHE FILE ERROR')
-
-
-          
-           !*** output 2-D gas chem fields
-            istart(4) = 1
-            istart(3) = icherec
-            istart(2) = 1
-            istart(1) = 1
-            icount(4) = 1
-            icount(3) = 1
-            icount(2) = o_ni
-            icount(1) = o_nj
-
-! accumulated quantities between two output steps are converted to deposition/emission mean rate (mg /m2/per day)  
-           cfd = 24./chemfrq
-           cfd2 = dtche / (chemfrq *3600.)
-
-          !*** wet deposition from large-scale precip
-            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd
-            istatus = nf90_put_var(ncche(n), ichevar(4), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-           call  check_ok(__FILE__,__LINE__,'Error writing wet dep LS at '//ctime,&
-                          'CHE FILE ERROR')
-
-          !*** wet deposition from convective precip
-            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd
-            istatus = nf90_put_var(ncche(n), ichevar(5), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-           call  check_ok(__FILE__,__LINE__,'Error writing wet dep CONV at '//ctime,&
-                          'CHE FILE ERROR')
-
-          !*** dry deposition
-            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd
-            istatus = nf90_put_var(ncche(n), ichevar(6), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-           call  check_ok(__FILE__,__LINE__,'Error writing dry dep '//ctime, 'CHE FILE ERROR')
-
-          !*** emission rates
-            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd
-            istatus = nf90_put_var(ncche(n), ichevar(7), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-           call  check_ok(__FILE__,__LINE__,'Error writing emission rate '//ctime, 'CHE FILE ERROR')
-
-          !*** dry dep vel 
-            dumio(:,:,1) = transpose(drydepv(o_is:o_ie,o_js:o_je,n))*cfd2
-            istatus = nf90_put_var(ncche(n), ichevar(8), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-           call  check_ok(__FILE__,__LINE__,'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
-
-            istatus = nf90_sync(ncche(n))
-            call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'CHE FILE ERROR')
-
-
-        else if(n == noutf) then 
-
-
-            istart(4) = icherec
-            istart(3) = 1
-            istart(2) = 1
-            istart(1) = 1
-            icount(5) = 1
-            icount(4) = 1
-            icount(3) = o_nz
-            icount(2) = o_ni
-            icount(1) = o_nj
-
- 
-           !*** extinction
-            do k = 1 , nz
-              dumio(:,:,k) = transpose(ext(o_is:o_ie,nz-k+1,o_js:o_je) )
-            end do
-            istatus = nf90_put_var(ncche(n), ioptvar(3), &
-                                 dumio, istart(1:4), icount(1:4))
-
-            call  check_ok(__FILE__,__LINE__,'Error writing EXT at '//ctime,&
-                          'CHE FILE ERROR')
-
-
-           !*** SSAE
-            do k = 1 , nz
-              dumio(:,:,k) = transpose(ssa(o_is:o_ie,nz-k+1,o_js:o_je) )
-            end do
-            istatus = nf90_put_var(ncche(n), ioptvar(4), &
-                                 dumio, istart(1:4), icount(1:4))
-
-            call  check_ok(__FILE__,__LINE__,'Error writing SSAE at '//ctime,&
-                          'CHE FILE ERROR')
-
-
-
-           !*** ASP
-            do k = 1 , nz
-              dumio(:,:,k) = transpose(asp(o_is:o_ie,nz-k+1,o_js:o_je) )
-            end do
-            istatus = nf90_put_var(ncche(n), ioptvar(5), &
-                                 dumio, istart(1:4), icount(1:4))
-
-            call  check_ok(__FILE__,__LINE__,'Error writing ASP at '//ctime,&
-                          'CHE FILE ERROR')
-
-          
-           !*** output 2-D Aerosl Radiative forcing : NB these variables are already accumulated and averagesd in aerout
- 
-            istart(3) = icherec
-            istart(2) = 1
-            istart(1) = 1
- 
-            icount(3) = 1
-            icount(2) = o_ni
-            icount(1) = o_nj
-
-          dumio(:,:,1) = transpose(tarf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = real(transpose(tarf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche(n), ioptvar(6) , &
-                               dumio(:,:,1), istart(1:3), icount(1:3))
-          call  check_ok(__FILE__,__LINE__,'Error writing aertarf  at '//ctime, &
-                        'OPT FILE ERROR')
-          dumio(:,:,1) = transpose(ssrf(o_is:o_ie,o_js:o_je))
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__,'Error writing aertarf at '//ctime, &
+                       'OPT FILE ERROR')
+          dumio(:,:,1) = real(transpose(ssrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche(n),  ioptvar(7), &
-                               dumio(:,:,1), istart(1:3), icount(1:3))
-          call  check_ok(__FILE__,__LINE__,'Error writing aersrrf  at '//ctime, &
-                        'OPT FILE ERROR')
-          dumio(:,:,1) = transpose(talwrf(o_is:o_ie,o_js:o_je))
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__,'Error writing aersrrf at '//ctime, &
+                       'OPT FILE ERROR')
+          dumio(:,:,1) = real(transpose(talwrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche(n),ioptvar(8), &
-                               dumio(:,:,1), istart(1:3), icount(1:3))
-          call  check_ok(__FILE__,__LINE__,'Error writing aertalwrf  at '//ctime, &
-                        'OPT FILE ERROR')
-          dumio(:,:,1) = transpose(srlwrf(o_is:o_ie,o_js:o_je))
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+                     'Error writing aertalwrf at '//ctime,'OPT FILE ERROR')
+          dumio(:,:,1) = real(transpose(srlwrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche(n), ioptvar(9), &
-                               dumio(:,:,1), istart(1:3), icount(1:3))
-          call  check_ok(__FILE__,__LINE__,'Error writing aersrlwrf   at '//ctime, &
-                        'OPT FILE ERROR')
-
-            istatus = nf90_sync(ncche(n))
-            call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'OPT FILE ERROR')
-
-
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+                     'Error writing aersrlwrf at '//ctime,'OPT FILE ERROR')
+          istatus = nf90_sync(ncche(n))
+          call check_ok(__FILE__,__LINE__, &
+                     'Error sync at '//ctime, 'OPT FILE ERROR')
         end if 
+      end do     !main species looop
+      icherec = icherec + 1
+    end subroutine writerec_che2
 
-
-
-
-
-         end do     !main species looop
-
-         icherec = icherec + 1
-
-
-   end subroutine writerec_che2
 !===========================================
 
+    integer function chbc_search(idate)
+      implicit none
+      type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_interval) :: tdif
+      character(len=32) :: appdat1, appdat2
+      if (idate > chbc_idate(ibcnrec) .or. idate < chbc_idate(1)) then
+        chbc_search = -1
+      else
+        tdif = idate - chbc_idate(1)
+        ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1 
+        if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
+          appdat1 = tochar(idate)
+          write (6,*) 'Record is not found in CHBC file for ',appdat1
+          appdat1 = tochar(chbc_idate(1))
+          appdat2 = tochar(chbc_idate(ibcnrec))
+          write (6,*) 'Range is : ', appdat1, '-', appdat2
+          call fatal(__FILE__,__LINE__,'CHBC READ')
+        end if
+        chbc_search = ibcrec
+      end if 
+    end function chbc_search
 
+!============================================
 
-  integer function chbc_search(idate)
-          implicit none
-           
-          type(rcm_time_and_date) , intent(in) :: idate
-          type(rcm_time_interval) :: tdif
-          character(len=32) :: appdat1, appdat2
-         if (idate > chbc_idate(ibcnrec) .or. idate < chbc_idate(1)) then
-            chbc_search = -1
-          else
-            tdif = idate - chbc_idate(1)
-            ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1 
-            if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
-             appdat1 = tochar(idate)
-             write (6,*) 'Record is not found in CHBC file for ',appdat1
-             appdat1 = tochar(chbc_idate(1))
-             appdat2 = tochar(chbc_idate(ibcnrec))
-             write (6,*) 'Range is : ', appdat1, '-', appdat2
-             call fatal(__FILE__,__LINE__,'CHBC READ')
-           end if
-           chbc_search = ibcrec
-          end if 
-        end function chbc_search
+    subroutine open_chbc(idate)
+      implicit none
+      type(rcm_time_and_date) , intent(in) :: idate
+      character(10) :: ctime
+      integer :: idimid , itvar , i , chkdiff
+      real(dp) , dimension(:) , allocatable :: icbc_nctime
+      character(64) :: icbc_timeunits , icbc_timecal
+      integer :: iyy , jxx , kzz
 
-
-!=============================================================
-
-        subroutine open_chbc(idate)
-
-
-          use netcdf
-    implicit none
-     type(rcm_time_and_date) , intent(in) :: idate
-    character(10) :: ctime
-    integer :: idimid , itvar , i , chkdiff
-    real(8) , dimension(:) , allocatable :: icbc_nctime
-    character(64) :: icbc_timeunits , icbc_timecal
-    integer :: iyy , jxx , kzz
-
-    call close_chbc
-    write (ctime, '(i10)') toint10(idate)
-    icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
-    istatus = nf90_open(icbcname, nf90_nowrite, ichin)
-    call check_ok(__FILE__,__LINE__, &
-        'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
-    ibcrec = 1
-    ibcnrec = 0
-    istatus = nf90_inq_dimid(ichin, 'iy', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ichin, idimid, len=iyy)
-    call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
-    istatus = nf90_inq_dimid(ichin, 'jx', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ichin, idimid, len=jxx)
-    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
-    istatus = nf90_inq_dimid(ichin, 'kz', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ichin, idimid, len=kzz)
-    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
-    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
-      write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
-      write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
-      call say
-      write (aline,*) 'ICBC file      : IY=', iyy, '  JX=',  jxx, '  KZ=', kzz
-      call say
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
-    istatus = nf90_inq_dimid(ichin, 'time', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ichin, idimid, len=ibcnrec)
-    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
-    if ( ibcnrec < 1 ) then
-      write (6,*) 'Time var in ICBC has zero dim.'
-      call fatal(__FILE__,__LINE__,'ICBC READ')
-    end if
-    istatus = nf90_inq_varid(ichin, 'time', itvar)
-    call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
-    istatus = nf90_get_att(ichin, itvar, 'units', icbc_timeunits)
-    call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
-!!$    istatus = nf90_get_att(ichin, itvar, 'calendar', icbc_timecal)
-!!$    call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
-
-    allocate(icbc_nctime(ibcnrec), stat=istatus)
-
-    if ( istatus /= 0 ) then
-      write(6,*) 'Memory allocation error in ICBC for time real values'
-      call fatal(__FILE__,__LINE__,'ICBC READ')
-    end if
-
-    allocate(chbc_idate(ibcnrec), stat=istatus)
-
-    if ( istatus /= 0 ) then
-      write(6,*) 'Memory allocation error in ICBC for time array'
-      call fatal(__FILE__,__LINE__,'ICBC READ')
-    end if
-    istatus = nf90_get_var(ichin, itvar, icbc_nctime)
-    call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
-    do i = 1 , ibcnrec
-      chbc_idate(i) = timeval2date(icbc_nctime(i), icbc_timeunits, icbc_timecal)
-    end do
-    if ( ibcnrec > 1 ) then
-      chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
-      if (chkdiff /= ibdyfrq) then
-        write (6,*) 'Time var in ICBC inconsistency.'
-        write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
-        write (6,*) 'Found     ibdyfrq = ', chkdiff
+      call close_chbc
+      write (ctime, '(i10)') toint10(idate)
+      icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
+      istatus = nf90_open(icbcname, nf90_nowrite, ichin)
+      call check_ok(__FILE__,__LINE__, &
+            'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
+      ibcrec = 1
+      ibcnrec = 0
+      istatus = nf90_inq_dimid(ichin, 'iy', idimid)
+      call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
+      istatus = nf90_inquire_dimension(ichin, idimid, len=iyy)
+      call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
+      istatus = nf90_inq_dimid(ichin, 'jx', idimid)
+      call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
+      istatus = nf90_inquire_dimension(ichin, idimid, len=jxx)
+      call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
+      istatus = nf90_inq_dimid(ichin, 'kz', idimid)
+      call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
+      istatus = nf90_inquire_dimension(ichin, idimid, len=kzz)
+      call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
+      if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
+        write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
+        write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
+        call say
+        write (aline,*) 'ICBC file      : IY=', iyy, '  JX=', jxx, '  KZ=', kzz
+        call say
+        call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+      end if
+      istatus = nf90_inq_dimid(ichin, 'time', idimid)
+      call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
+      istatus = nf90_inquire_dimension(ichin, idimid, len=ibcnrec)
+      call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
+      if ( ibcnrec < 1 ) then
+        write (6,*) 'Time var in ICBC has zero dim.'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
-    end if
-    deallocate(icbc_nctime)
+      istatus = nf90_inq_varid(ichin, 'time', itvar)
+      call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
+      istatus = nf90_get_att(ichin, itvar, 'units', icbc_timeunits)
+      call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
+!!$   istatus = nf90_get_att(ichin, itvar, 'calendar', icbc_timecal)
+!!$   call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
+      allocate(icbc_nctime(ibcnrec), stat=istatus)
+      if ( istatus /= 0 ) then
+        write(6,*) 'Memory allocation error in ICBC for time real values'
+        call fatal(__FILE__,__LINE__,'ICBC READ')
+      end if
+      allocate(chbc_idate(ibcnrec), stat=istatus)
+      if ( istatus /= 0 ) then
+        write(6,*) 'Memory allocation error in ICBC for time array'
+        call fatal(__FILE__,__LINE__,'ICBC READ')
+      end if
+      istatus = nf90_get_var(ichin, itvar, icbc_nctime)
+      call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+      do i = 1 , ibcnrec
+        chbc_idate(i) = timeval2date(icbc_nctime(i), &
+                                     icbc_timeunits,icbc_timecal)
+      end do
+      if ( ibcnrec > 1 ) then
+        chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
+        if (chkdiff /= ibdyfrq) then
+          write (6,*) 'Time var in ICBC inconsistency.'
+          write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
+          write (6,*) 'Found     ibdyfrq = ', chkdiff
+          call fatal(__FILE__,__LINE__,'ICBC READ')
+        end if
+      end if
+      deallocate(icbc_nctime)
+      do i = 1 , n_chbcvar
+        istatus = nf90_inq_varid(ichin, trim(chbcname(i)), chbc_ivar(i))
+        call check_ok(__FILE__,__LINE__, &
+             'variable '//trim(chbcname(i))//' missing','CHBC FILE ERROR')
+      end do
+    end subroutine open_chbc 
 
-         
-          istatus = nf90_inq_varid(ichin, 'O3', chbc_ivar(1))
+    subroutine read_chbc(chebdio)
+      implicit none
+      real(dp) , dimension (:,:,:,:), intent(out) :: chebdio 
+      integer , dimension(4) :: istart , icount
+      real(sp) , dimension(jx,iy,kz) :: xread
+      integer :: i , j , k, n
 
-          call check_ok(__FILE__,__LINE__,'variable O3 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'NO', chbc_ivar(2))
-          call check_ok(__FILE__,__LINE__,'variable NO missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'NO2', chbc_ivar(3))
-          call check_ok(__FILE__,__LINE__,'variable NO2 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'HNO3', chbc_ivar(4))
-          call check_ok(__FILE__,__LINE__,'variable HNO3 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'N2O5', chbc_ivar(5))
-          call check_ok(__FILE__,__LINE__,'variable N2O5 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'H2O2', chbc_ivar(6))
-          call check_ok(__FILE__,__LINE__,'variable H2O2 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CH4', chbc_ivar(7))
-          call check_ok(__FILE__,__LINE__,'variable CH4 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CO', chbc_ivar(8))
-          call check_ok(__FILE__,__LINE__,'variable CO missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CH2O', chbc_ivar(9))
-          call check_ok(__FILE__,__LINE__,'variable CH2O missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CH3OH', chbc_ivar(10))
-          call check_ok(__FILE__,__LINE__,'variable CH3OH missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'C2H5OH', chbc_ivar(11))
-          call check_ok(__FILE__,__LINE__,'variable C2H5OH missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'C2H4', chbc_ivar(12))
-          call check_ok(__FILE__,__LINE__,'variable C2H4 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'C2H6', chbc_ivar(13))
-          call check_ok(__FILE__,__LINE__,'variable C2H6 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CH3CHO', chbc_ivar(14))
-          call check_ok(__FILE__,__LINE__,'variable CH3CHO missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'CH3COCH3', chbc_ivar(15))
-          call check_ok(__FILE__,__LINE__,'variable CH3COCH3 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'BIGENE', chbc_ivar(16))
-          call check_ok(__FILE__,__LINE__,'variable BIGENE missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'BIGALK', chbc_ivar(17))
-          call check_ok(__FILE__,__LINE__,'variable BIGALK missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'C3H6', chbc_ivar(18))
-          call check_ok(__FILE__,__LINE__,'variable C3H6 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'C3H8', chbc_ivar(19))
-          call check_ok(__FILE__,__LINE__,'variable C3H8 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'ISOP', chbc_ivar(20))
-          call check_ok(__FILE__,__LINE__,'variable ISOP missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'TOLUE', chbc_ivar(21))
-          call check_ok(__FILE__,__LINE__,'variable TOLUE missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'PAN', chbc_ivar(22))
-          call check_ok(__FILE__,__LINE__,'variable PAN missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'SO2', chbc_ivar(23))
-          call check_ok(__FILE__,__LINE__,'variable SO2 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'SO4', chbc_ivar(24))
-          call check_ok(__FILE__,__LINE__,'variable SO4 missing', 'CHBC FILE ERROR')
-          istatus = nf90_inq_varid(ichin, 'DMS', chbc_ivar(25))
-          call check_ok(__FILE__,__LINE__,'variable DMS missing', 'CHBC FILE ERROR')
-
-
-        end subroutine open_chbc 
-
-
-        subroutine read_chbc(chebdio)
-
-          use netcdf
-          implicit none
-          real(dp) , dimension (:,:,:,:), intent(out) :: chebdio 
-          integer , dimension(4) :: istart , icount
-          real(4) , dimension(jx,iy,kz) :: xread
-          integer :: i , j , k, n
-
-          istart(4) = ibcrec
-          istart(3) = 1
-          istart(2) = 1
-          istart(1) = 1
-          icount(4) = 1
-          icount(3) = kz
-          icount(2) = iy
-          icount(1) = jx
-
-
-      do n = 1,25
-
-          istatus = nf90_get_var(ichin, chbc_ivar(n), xread, &
-                    &            istart, icount)
-          call check_ok(__FILE__,__LINE__,'variable CHBDY read error', 'CHBC FILE ERROR')
-
-          do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                 chebdio(j,i,k,n) = xread(j,i,k)
-              end do
+      istart(4) = ibcrec
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = kz
+      icount(2) = iy
+      icount(1) = jx
+      do n = 1 , n_chbcvar
+        istatus = nf90_get_var(ichin, chbc_ivar(n), xread, &
+                  &            istart, icount)
+        call check_ok(__FILE__,__LINE__, &
+             'variable '//trim(chbcname(i))//' read error','CHBC FILE ERROR')
+        do k = 1 , kz
+          do j = 1 , jx
+            do i = 1 , iy
+              chebdio(j,i,k,n) = xread(j,i,k)
             end do
           end do
-
         end do
-
-
-        end subroutine read_chbc
-
+      end do
+    end subroutine read_chbc
 
     subroutine close_chbc
-    use netcdf
-    implicit none
-    if (ichin >= 0) then
-      istatus = nf90_close(ichin)
-      call check_ok(__FILE__,__LINE__, &
-           'Error Close CHBC file '//trim(icbcname),'CHBC FILE')
-      if ( allocated(chbc_idate) ) deallocate(chbc_idate)
-      ichin = -1
-    end if
-  end subroutine close_chbc
+      implicit none
+      if ( ichin >= 0 ) then
+        istatus = nf90_close(ichin)
+        call check_ok(__FILE__,__LINE__, &
+              'Error Close CHBC file '//trim(icbcname),'CHBC FILE')
+        if ( allocated(chbc_idate) ) deallocate(chbc_idate)
+        ichin = -1
+      end if
+    end subroutine close_chbc
 
-
-
-
-  subroutine check_ok(f,l,m1,mf)
-    implicit none
-    character(*) , intent(in) :: f, m1 , mf
-    integer , intent(in) :: l
-    if (istatus /= nf90_noerr) then
-      write (6,*) trim(m1)
-      write (6,*) nf90_strerror(istatus)
-      call fatal(f,l,trim(mf))
-    end if
-  end subroutine check_ok
+    subroutine check_ok(f,l,m1,mf)
+      implicit none
+      character(*) , intent(in) :: f, m1 , mf
+      integer , intent(in) :: l
+      if (istatus /= nf90_noerr) then
+        write (6,*) trim(m1)
+        write (6,*) nf90_strerror(istatus)
+        call fatal(f,l,trim(mf))
+      end if
+    end subroutine check_ok
 
 end module mod_che_ncio
