@@ -840,11 +840,11 @@ module mod_pbl_uwtcm
       ! in Galperin (1988), eq 30
       gh = dmax1(dmin1(gh,0.0233D0),-0.28D0)
 
-      sm(k) = (d_one - d_three*c1 - d_six*a1ob1 - d_three*a2*gh*   &
-              ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
-                d_three*c1 * (b2 + d_six*a1))) /                   &
-              ((d_one - d_three*a2*gh * (d_six*a1 + b2)) *         &
-               (d_one - d_nine*a1*a2*gh))
+      sm(k) = a1 * (d_one - d_three*c1 - d_six*a1ob1 - d_three*a2*gh*   &
+                   ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
+                     d_three*c1 * (b2 + d_six*a1))) /                   &
+                   ((d_one - d_three*a2*gh * (d_six*a1 + b2)) *         &
+                    (d_one - d_nine*a1*a2*gh))
       sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
 
       ! kzm(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0D0)
