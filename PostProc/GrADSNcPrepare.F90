@@ -99,7 +99,7 @@ program ncprepare
   open(11, file=tmpctl, form='formatted', status='replace')
   write(11, '(a)') 'dset ^'//trim(ncfile(iid+1:))
   write(11, '(a)') 'dtype netcdf'
-  write(11, '(a)') 'undef -1e+34_FillValue'
+  write(11, '(a)') 'undef -1e+20_FillValue'
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')

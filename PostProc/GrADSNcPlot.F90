@@ -100,7 +100,7 @@ program ncplot
   open(12, file=tmpcoord, form='unformatted', status='replace')
   write(11, '(a)') 'dset '//trim(ncfile)
   write(11, '(a)') 'dtype netcdf'
-  write(11, '(a)') 'undef -1e+34_FillValue'
+  write(11, '(a)') 'undef -1e+20_FillValue'
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
