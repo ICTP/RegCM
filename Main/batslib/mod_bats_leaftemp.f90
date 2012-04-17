@@ -354,7 +354,7 @@ module mod_bats_leaftemp
 !        fc = light sensitivity for crops and grasses and has inverse
 !             radiation units (m**2/watt)
 !      rlai = sum of leaf and stem area indices
-!     rmax0 = 5000. s/m (maximum resistance)
+!     rmax0 = 20000. s/m (maximum resistance, in mod_constants)
 !     radu & radl = visible light intensity in upper & lower canopy
 !     ft & fb = the fractional intercepted photo-active radiation
 !             per unit (leaf & stem) area in the top (upper) and

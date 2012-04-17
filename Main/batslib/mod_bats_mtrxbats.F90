@@ -300,9 +300,9 @@ module mod_bats_mtrxbats
     integer , intent (in) :: ivers
     integer(8) , intent(in) :: ktau
 !
-    real(dp) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
-               fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
-               solvt , wpm2 , p0 , qs0 , ts0
+    real(dp) :: facb , facs , fact , factuv , facv , fracb ,  &
+                fracs , fracv , hl , mmpd , rh0 , satvp ,     &
+                solvt , wpm2 , p0 , qs0 , ts0
     integer :: i , j , n , nnn
     real(sp) :: real_4
 !
@@ -338,9 +338,8 @@ module mod_bats_mtrxbats
             evpr(n,j,i) = qfx(j,i)
             lveg(n,j,i) = iveg1(n,j,i)
             if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
-            amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
-            sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-            lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
+            lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
+                          seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
             zh(n,j,i) = hgt(j,i,kz)
             z1log(n,j,i)  = dlog(zh(n,j,i))
             z2fra(n,j,i)  = dlog(zh(n,j,i)*d_half)
@@ -691,7 +690,7 @@ module mod_bats_mtrxbats
     real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-               dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet , amxtem
+               dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet
     real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer :: kolour , n , i , j
@@ -743,9 +742,8 @@ module mod_bats_mtrxbats
       do j = jci1 , jci2
         czeta = coszrs(j,i)
         do n = 1 , nnsg
-          amxtem = dmax1(298.0D0-tgbrd(n,j,i),d_zero)
-          sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-          lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*sfac
+          lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
+                        seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
           sts(n,j,i) = thatm(j,i,kz)-lrate*regrav*(ht1(n,j,i)-ht(j,i))
           albgs = d_zero
           albgl = d_zero
