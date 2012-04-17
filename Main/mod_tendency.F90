@@ -1379,7 +1379,7 @@ module mod_tendency
     !
     ! do cumulus transport of tracers
     !
-    if ( ichem == 1 .and. ichcumtra == 1 ) call cumtran
+    if ( ichem == 1 .and. ichcumtra == 1 .and. icup .ne. 5) call cumtran
     ! 
     ! trace the mass conservation of dry air and water substance:
     !

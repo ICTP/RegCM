@@ -342,7 +342,7 @@ module mod_che_chemistry
      
       idatein = (lyear-1900)*10000+lmonth*100+lday
 
-      call chemistry(j,chemin(:,:,j,:),chemox(:,:,j,:),      &
+      call chemistry(j,chemin(j,:,:,:),chemox(j,:,:,:),      &
                      taa,psaa,zena,ktau,idatein,tod)
 
  

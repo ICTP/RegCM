@@ -723,7 +723,7 @@ module mod_params
     call mpi_bcast(ichdrdepo,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichcumtra,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(idirect,1,mpi_integer,0,mycomm,ierr)
-
+    call mpi_bcast(ichsolver,1,mpi_integer,0,mycomm,ierr)
     call chem_config
 
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
