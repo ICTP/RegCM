@@ -412,17 +412,15 @@ module mod_che_drydep
 !           * air's dynamic viscosity                           ****
 !           ********************************************************
  
-            amu(i,l) = a1*1.E-8*throw(i,l)**a2/(throw(i,l)+a3)
- 
+            amu(i,l) = a1*1.D-8*throw(i,l)**a2/(throw(i,l)+a3)
 !           . . . . mid layer pressure in [pascal].
             pre = pressg(i)*shj(l)
 !           ********************************************************
 !           * mean molecular free path.                         ****
 !           *     k.v. beard [1976], j atm. sci., 33            ****
 !           ********************************************************
- 
             amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(1./2.)
-            prii = 2./9.*egrav/amu(i,l)
+            prii = 2.0D0/9.0D0*egrav/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
  
 !           ********************************************************
@@ -430,10 +428,10 @@ module mod_che_drydep
 !           * relaxation time = vg/grav.                        ****
 !           ********************************************************
  
-            cfac(i,l,n) = 1. + amfp/avesize(n)                          &
-                        & *(aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)*regrav, &
-                          & 0.D0)
+            cfac(i,l,n) = 1.0D0 + amfp/avesize(n) * &
+                         (aa1+aa2*exp(-aa3*avesize(n)/amfp))
+            taurel(i,l,n) = dmax1(priiv*avesize(n)**2.0D0*cfac(i,l,n) * &
+                            regrav,0.D0)
  
 !           ********************************************************
 !           * stokes friction                                  *****
@@ -447,7 +445,7 @@ module mod_che_drydep
 
 ! find aerodynamic resistance
 
-       call aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
+      call aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
  
 !     *****************************************************
 !     * the schmidt number is the ratio of the         ****
@@ -465,10 +463,10 @@ module mod_che_drydep
 !           * i.e. only dry particles                        ****
 !           *****************************************************
  
-            frx1 = 1.0
+            frx1 = 1.0D0
             rhsize(i,l,n) = avesize(n)*frx1 ! still a radius 
             anu(i) = amu(i,l)/roarow(i,l)
-            amob = 6.*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
+            amob = 6.0D0*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
             pdiff(i,l,n) = boltzk*throw(i,l)/amob
             schm(i) = anu(i)/pdiff(i,l,n)
  
@@ -482,7 +480,7 @@ module mod_che_drydep
 !           * ****************************************************
  
           end do
-          if ( l.eq.kz ) then
+          if ( l == kz ) then
             do k = 1 , luc ! luc  = 1 for the moment
               do i = ici1 , ici2
 
@@ -490,15 +488,13 @@ module mod_che_drydep
 !     find the right table index for the cell cover ( ocean and lake
 !     are 0 in the ivegcov and 14-15 in the table )
 
-              if(ivegcov(i)==0) then
+                if ( ivegcov(i) == 0 ) then
                   kcov = 14
-              else if (ivegcov(i)>20) then
+                else if ( ivegcov(i) > 20 ) then
                   kcov = 20
-              else
+                else
                   kcov = ivegcov(i)
-              end if
-
- 
+                end if
 !               ******************************************************
 !               * the parameter governing impaction processes is *****
 !               * the stokes number,st, which has the form of    *****
@@ -510,21 +506,17 @@ module mod_che_drydep
 !               ******************************************************
  
                 st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
- 
-                eb = schm(i)**(-0.666667)
+                eb = schm(i)**(-0.666667D0)
 !               eim=(st/(st+aest(k)))**2
-                eim = (st/(st+aest(kcov)))**2
- 
- 
+                eim = (st/(st+aest(kcov)))**2.0D0
                 eim = dmin1(eim,0.6D0)
-                ein = 0.0
-!               if (arye(k) .gt. 0.0001) then
-!               ein = (1000.0*2.0*avesize(n)/arye(k))**1.5
+                ein = 0.0D0
+!               if (arye(k) > 0.0001D0) then
+!                 ein = (1000.0D0*2.0D0*avesize(n)/arye(k))**1.5D0
 !               end if
- 
-                if ( arye(kcov).gt.0.0001 )                             &
-                   & ein = (1000.0*2.0*avesize(n)/arye(kcov))**1.5
- 
+                if ( arye(kcov) > 0.0001D0 ) then
+                  ein = (1000.0D0*2.0D0*avesize(n)/arye(kcov))**1.5D0
+                end if
                 ein = dmin1(ein,0.5D0)
  
 !               *****************************************************
@@ -538,10 +530,10 @@ module mod_che_drydep
 !               *****************************************************
  
 !               r1 = exp (-st**0.5)
-                r1 = dmax1(0.5D0,exp(-st**0.5))
-!               if (k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
-                if ( kcov.ge.11 .and. r1.lt.0.5 ) r1 = 0.5
-                if ( r1.lt.0.4 ) r1 = 0.4
+                r1 = dmax1(0.5D0,exp(-st**0.5D0))
+!               if ( k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
+                if ( kcov >= 11 .and. r1 < 0.5D0 ) r1 = 0.5D0
+                if ( r1 < 0.4D0 ) r1 = 0.4D0
  
 !               ***************************************************
 !               * calculation of rs: the surface resistance   *****
@@ -551,7 +543,7 @@ module mod_che_drydep
 !               ***************************************************
  
 !               rs= 1.0/ustar(i,k)/(eb+eim+ein)/r1
-                rs(i,k,n) = 1.0/3.0/ustar(i,k)/(eb+eim+ein)/r1
+                rs(i,k,n) = 1.0D0/3.0D0/ustar(i,k)/(eb+eim+ein)/r1
               end do
             end do
           end if
@@ -560,76 +552,73 @@ module mod_che_drydep
 !======================================================================
  
 
-!     average settling and deposition velocities on bin
+!    average settling and deposition velocities on bin
 ! care we use pdepv and ddpv table that are dimensionned to ntr and not mbin ! 
 !
   
       do ib = 1 , mbin
 
 ! there isw no sub-bin anymore / we consider directly effective radius 
-         pdepv(:,:,indsp(ib)) = 0.
-         ddepv(:,indsp(ib))  =0.
+        pdepv(:,:,indsp(ib)) = 0.0D0
+        ddepv(:,indsp(ib))   = 0.0D0
 
-              do i = ici1 , ici2
-                pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
+        do i = ici1 , ici2
+          pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
 ! agregate the dry deposition velocity, remember one cover per grid cell for now
 ! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
 ! simple form now add the vs
-                ddepv(i,indsp(ib)) =  1.0/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
-
-              end do  
+          ddepv(i,indsp(ib)) = 1.0D0/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
+        end do  
 !!$
-
-             end do
-
+      end do
 
 
-!!$        do n = 1 , isize
-!!$          if ( avesize(n)*1.E6.ge.trsize(ib,1) .and. avesize(n)          &
-!!$             & *1.E6.lt.trsize(ib,2) ) then
+
+!!$   do n = 1 , isize
+!!$     if ( avesize(n)*1.E6.ge.trsize(ib,1) .and. avesize(n)          &
+!!$         & *1.E6.lt.trsize(ib,2) ) then
 !!$ 
-!!$              do i = ici1 , ici2
-!!$                pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib)) + pdepvsub(i,:,n)
+!!$       do i = ici1 , ici2
+!!$         pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib)) + pdepvsub(i,:,n)
 !!$! agregate the dry deposition velocity, remember one cover per grid cell for now
 !!$! the dry deposition deposition velocity must accound also for the settling vrlocity at kz
 !!$! simple form now add the vs
-!!$                ddepv(i,indsp(ib)) =  ddepv(i,indsp(ib)) + ( 1.0/(ra(i,1)+rs(i,1,n)) +  pdepvsub(i,kz,n))
+!!$         ddepv(i,indsp(ib)) =  ddepv(i,indsp(ib)) + ( 1.0/(ra(i,1)+rs(i,1,n)) +  pdepvsub(i,kz,n))
 !!$
-!!$              end do          
-!!$            tot = tot + 1
-!!$          end if
-!!$        end do
-!!$        if ( tot.gt.0 ) then
+!!$       end do          
+!!$       tot = tot + 1
+!!$     end if
+!!$   end do
+!!$   if ( tot.gt.0 ) then
 !!$        
-!!$            do i = ici1 , ici2
-!!$              pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib))/tot
-!!$              ddepv(i,indsp(ib)) = ddepv(i,indsp(ib))/tot 
-!!$           end do       
-!!$        end if
+!!$     do i = ici1 , ici2
+!!$       pdepv(i,:,indsp(ib)) = pdepv(i,:,indsp(ib))/tot
+!!$       ddepv(i,indsp(ib)) = ddepv(i,indsp(ib))/tot 
+!!$     end do       
+!!$   end if
   
 ! 
 ! Finally update the emission and settling tendencies for dust and sea salt 
 !
 
-          do ib = 1,mbin
-!         deposition
-          do k = 2 , kz
-            do i = ici1 , ici2
-              wk(i,k) = (1./cpsb(j,i))*          &
-                      & (ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
-                      &  ctwt(k,2)*chib(j,i,k-1,indsp(ib)))
-            end do
-          end do
-
+      do ib = 1 , mbin
+        ! deposition
+        do k = 2 , kz
           do i = ici1 , ici2
-            do k = 2 , kz - 1
-                        ! do not apply to the first level
-              settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
-                              wk(i,k)*pdepv(i,k,indsp(ib)))*     &
-                              egrav*1.E-3/cdsigma(k)
+            wk(i,k) = (1.0D0/cpsb(j,i)) * &
+                      (ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
+                       ctwt(k,2)*chib(j,i,k-1,indsp(ib)))
+          end do
+        end do
 
-              chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
-            end do
+        do i = ici1 , ici2
+          do k = 2 , kz - 1
+            ! do not apply to the first level
+            settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
+                            wk(i,k)*pdepv(i,k,indsp(ib)))*     &
+                            egrav*1.D-3/cdsigma(k)
+            chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
+          end do
 !
 ! option 1 : calculate the tend as flux divergence 
 ! at first level include surface drydep velocity to calculte the divergence
@@ -639,38 +628,38 @@ module mod_che_drydep
  
           if ( ichdrdepo == 1 ) then 
 
-            settend(i,kz) =   (chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))   &  
-                              -wk(i,kz)*pdepv(i,kz,indsp(ib)) ) &
-                              *egrav*1.E-3/cdsigma(kz)
-
+            settend(i,kz) =  (chib(j,i,k,indsp(ib))/cpsb(j,i) * &
+                    ddepv(i,indsp(ib))-wk(i,kz)*pdepv(i,kz,indsp(ib))) * &
+                    egrav*1.D-3/cdsigma(kz)
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
  
 !           dignoctic for dry deposition
-            remdrd(i,j,indsp(ib) ) = remdrd(i,j,indsp(ib)) + settend(i,kz)*dtche/2.
-
+            remdrd(i,j,indsp(ib)) = remdrd(i,j,indsp(ib)) + &
+                                    settend(i,kz)*dtche/2.0D0
 ! no net flux is passed to BL schemes in this case
-            cchifxuw(j,i, indsp(ib)) = d_zero
-
-           elseif (ichdrdepo == 2) then
+            cchifxuw(j,i,indsp(ib)) = d_zero
+          else if ( ichdrdepo == 2 ) then
 !
 ! add the dry deposition term to the net emision/deposition flux for the BL scheme !
 ! flux 
-           cchifxuw(j,i, indsp(ib)) = cchifxuw(j,i, indsp(ib)) - chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
+            cchifxuw(j,i,indsp(ib)) = cchifxuw(j,i,indsp(ib)) - &
+                chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
            
-           end if
+          end if
 
 !dry dep velocity diagnostic in m.s-1  ( + drydep v. include also settling , accumulated between two outputs time step) 
-            drydepv(i,j,indsp(ib)) =  drydepv(i,j,indsp(ib)) +  ddepv(i,indsp(ib))
+          drydepv(i,j,indsp(ib)) =  drydepv(i,j,indsp(ib))+ddepv(i,indsp(ib))
 
-          end do
-          end do
-
+        end do
+      end do
       call time_end(subroutine_name,idindx)
-      end subroutine drydep_aero
+    end subroutine drydep_aero
 !
 ! 
-!*************************************************************************************************************
-!*************************************************************************************************************
+!******************************************************************************
+!******************************************************************************
+!
+!
     subroutine drydep_gas (j, ccalday, ivegcov ,       &
                           rh10, srad , tsurf , prec, temp10 ,  &
                           wind10 , zeff, drydepvg)
