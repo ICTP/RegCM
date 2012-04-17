@@ -56,6 +56,7 @@ program ncplot
   integer :: i , j
   integer :: year , month , day , hour
   logical :: lvarsplit , lsigma , ldepth
+  logical :: is_model_output = .false.
 #ifdef __PGI
   integer , external :: iargc
 #endif
@@ -100,12 +101,16 @@ program ncplot
   open(12, file=tmpcoord, form='unformatted', status='replace')
   write(11, '(a)') 'dset '//trim(ncfile)
   write(11, '(a)') 'dtype netcdf'
-  write(11, '(a)') 'undef -1e+20_FillValue'
+  write(11, '(a)') 'undef 1e+20_FillValue'
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
-
   write(11, '(a)') 'title '//trim(charatt)
+
+  istatus = nf90_get_att(ncid, nf90_global, 'model_IPCC_scenario', charatt)
+  if ( istatus == nf90_noerr ) then
+    is_model_output = .true.
+  end if
 
   istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
   if (istatus /= nf90_noerr) then
@@ -197,19 +202,36 @@ program ncplot
     minlon = -180.0
     maxlon = 180.0
   else
-    if (xlon(1,1) < 0 .and. xlon(1,iy) > 0.0) then
-      minlon = rounder(xlon(1,iy),.false.)
-    else if (xlon(1,1) > 0 .and. xlon(1,iy) < 0.0) then
-      minlon = rounder(xlon(1,1),.false.)
-    else
-      minlon = rounder(minval(xlon(1,:)),.false.)
-    end if
-    if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
-      maxlon = rounder(xlon(jx,iy),.true.)
-    else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
-      maxlon = rounder(xlon(jx,1),.true.)
-    else
-      maxlon = rounder(maxval(xlon(jx,:)),.true.)
+    if ( clat >= 0.0 ) then
+      if (xlon(1,1) < 0.0 .and. xlon(1,iy) > 0.0) then
+        minlon = rounder(xlon(1,1),.false.)
+      else if (xlon(1,1) > 0.0 .and. xlon(1,iy) < 0.0) then
+        minlon = rounder(xlon(1,iy),.false.)
+      else
+        minlon = rounder(minval(xlon(1,:)),.false.)
+      end if
+      if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
+        maxlon = rounder(xlon(jx,1),.true.)
+      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
+        maxlon = rounder(xlon(jx,iy),.true.)
+      else
+        maxlon = rounder(maxval(xlon(jx,:)),.true.)
+      end if
+    else if ( clat < 0.0 ) then
+      if (xlon(1,1) < 0.0 .and. xlon(1,iy) > 0.0) then
+        minlon = rounder(xlon(1,iy),.false.)
+      else if (xlon(1,1) > 0.0 .and. xlon(1,iy) < 0.0) then
+        minlon = rounder(xlon(1,1),.false.)
+      else
+        minlon = rounder(minval(xlon(1,:)),.false.)
+      end if
+      if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
+        maxlon = rounder(xlon(jx,1),.true.)
+      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
+        maxlon = rounder(xlon(jx,iy),.true.)
+      else
+        maxlon = rounder(maxval(xlon(jx,:)),.true.)
+      end if
     end if
   end if
   rlatinc = rounder(real(ds/111000.0/2.0),.false.)
@@ -222,8 +244,13 @@ program ncplot
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
-  centeri = dble(iy)/2.0D0
-  centerj = dble(jx)/2.0D0
+  if ( is_model_output ) then
+    centeri = dble(iy)/2.0D0+0.5
+    centerj = dble(jx)/2.0D0+0.5
+  else
+    centeri = dble(iy)/2.0D0
+    centerj = dble(jx)/2.0D0
+  end if
   deallocate(xlat)
   deallocate(xlon)
 
