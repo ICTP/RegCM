@@ -373,22 +373,17 @@ module mod_che_drydep
                   throw ,beffdiam  , wind10 , zeff, rhop
       intent (inout) pdepv
 !
-      real(dp) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
-                 eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
-                 mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
-                 r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
-                 tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
-                 y , z , z0water , zdl , zl
+      real(dp) :: amfp , amob , eb , eim , ein , frx1 , &
+                  pre , prii , priiv , r1 , st
       real(dp) , dimension(iy,kz) :: amu
-      real(dp) , dimension(iy) :: anu , schm , zz0
+      real(dp) , dimension(iy) :: anu , schm
       real(dp) , dimension(iy,kz,mbin) :: cfac , pdepvsub ,   pdiff ,  &
              rhsize , taurel
 
-      integer :: i , jc , k , kcov , l , lev , n , tot,ib
-      real(dp) , dimension(iy,luc) :: ra , ustar , vegcover
+      integer :: i , k , kcov , l , n , ib
+      real(dp) , dimension(iy,luc) :: ra , ustar
       real(dp) , dimension(iy,luc,mbin) :: rs
-       real(dp), dimension(iy,kz) :: wk, settend
-      real(dp) , parameter :: z10 = 10.0
+      real(dp), dimension(iy,kz) :: wk, settend
       real(dp) , dimension(mbin) :: avesize
       character (len=64) :: subroutine_name='chdrydep'
       integer :: idindx=0
@@ -676,104 +671,78 @@ module mod_che_drydep
 ! 
 !*************************************************************************************************************
 !*************************************************************************************************************
-      subroutine drydep_gas (j, ccalday, ivegcov ,       &
-                 rh10, srad , tsurf , prec, temp10 ,  &
-                 wind10 , zeff, drydepvg)
+    subroutine drydep_gas (j, ccalday, ivegcov ,       &
+                          rh10, srad , tsurf , prec, temp10 ,  &
+                          wind10 , zeff, drydepvg)
 
 #ifdef CLM
 !       use clm_drydep, only : c2rvdep
 #endif
 
-       use mod_che_indices
-
-
+      use mod_che_indices
       implicit none
-!
-
       integer :: j   
       real(dp) :: ccalday
       integer , dimension(iy) :: ivegcov
-   
       real(dp) , dimension(iy) :: rh10 , srad , tsurf ,  prec,     &
-                                & temp10 , wind10 , zeff
-
+                                  temp10 , wind10 , zeff
       real(dp), dimension(iy,ntr) :: drydepvg
-
-      intent (in) j, ivegcov ,     &
-                 rh10, srad , tsurf , temp10 , &
-                 wind10 
+      intent (in) j, ivegcov , rh10, srad , tsurf , temp10 , wind10 
       intent(inout) zeff
       intent(out) drydepvg
-
-
-      integer :: n,i,k,im,iday_m,kcov
-      real (8), dimension(iy,luc) :: ustar, resa
-      real (8), dimension(ngasd, iy, luc) :: resb, resc
-      real (8), dimension(ngasd, iy, luc) :: vdg
-      real(dp), dimension(iy) :: ddrem
-      real(dp) , dimension(iy)::lai_f,laimin,laimax, snow
-      real(dp) ::Kd
+      integer :: n , i , im , iday_m , kcov
+      real(dp) , dimension(iy,luc) :: ustar, resa
+      real(dp) , dimension(ngasd,iy,luc) :: resb, resc
+      real(dp) , dimension(ngasd,iy,luc) :: vdg
+      real(dp) , dimension(iy) :: ddrem
+      real(dp) , dimension(iy) :: lai_f , laimin , laimax , snow
+      real(dp) :: kd
 
 #ifndef CLM
 
-! Different options for LAI and roughness 
-! for the moment read from 
-   
-        im = INT(ccalday / 30.5 ) + 1
-        iday_m =ccalday - INT((im-1)*30.5+0.5)
+      ! Different options for LAI and roughness 
+      ! for the moment read from 
+      im = idnint(ccalday/30.5D0) + 1
+      iday_m = idnint(ccalday - (dble(im-1)*30.5D0+0.5D0))
 
-      if (iday_m .eq. 0) THEN
-           im = im - 1
-           iday_m =ccalday - (im - 1)*30.5
+      if ( iday_m == 0 ) then
+        im = im - 1
+        iday_m = idnint(ccalday - dble(im-1)*30.5D0)
       end if 
      
-       do i = 2, iym2
- 
-      if(ivegcov(i)==0) then
-           kcov = 14
-       else if (ivegcov(i)>20) then
-           kcov = 20
-       else
-           kcov = ivegcov(i)
-       end if
+      do i = ici1 , ici2
+        if ( ivegcov(i) == 0 ) then
+          kcov = 14
+        else if ( ivegcov(i) > 20 ) then
+          kcov = 20
+        else
+          kcov = ivegcov(i)
+        end if
        
-       lai_f(i)  = lai(kcov ,im) &
-                    + iday_m / 30.5*(lai(kcov,im + 1 )-lai(kcov,im))    
-       
-       laimin(i) = lai(kcov,14)
-       laimax(i) = lai(kcov,15)
+        lai_f(i) = lai(kcov,im) + iday_m/30.5D0*(lai(kcov,im+1)-lai(kcov,im))
+        laimin(i) = lai(kcov,14)
+        laimax(i) = lai(kcov,15)
+      end do 
+      call aerodyresis(zeff,wind10,temp10,tsurf,rh10,srad,ivegcov,ustar,resa)
+!     call zenitm(coszrs,iy,j)
+      snow(:) = d_zero 
 
-       end do 
+      call stomtresis(lai_f,laimin,laimax,ivegcov,ngasd,ustar,prec,snow,srad, &
+                      tsurf,temp10,rh10,czen(j,:),resc,resb)
 
-
-       call aerodyresis(zeff,wind10,temp10      &
-     &   , tsurf,rh10,srad,ivegcov,ustar,resa )
-
-
- !      call zenitm(coszrs,iy,j)
-
-       snow(:) =0. 
-
-
-       call stomtresis(lai_f,laimin,laimax, ivegcov,ngasd,    &
-            ustar,prec,snow,srad,                               &  
-            tsurf,temp10,rh10,czen(j,:),resc,resb)
-
-
-! now calculate the dry deposition velocities and select it according to the gasphase mechanism
-!vdg in m.s-1
-       vdg(:,:,:)=0.      
-       do i=2,iym2
-       do n=1,ngasd
-       vdg(n,i,:) = 1./ (resa(i,:)+ resb(n,i,:)+ resc (n,i,:))
+      ! now calculate the dry deposition velocities and select it
+      ! according to the gasphase mechanism
+      ! vdg in m.s-1
+       vdg(:,:,:) = d_zero
+       do i = ici1 , ici2
+         do n = 1 , ngasd
+           vdg(n,i,:) = d_one/(resa(i,:)+resb(n,i,:)+resc(n,i,:))
+         end do
        end do
-       end do
-! this part depends on the chem mechanism
-! for CBMZ , we can certainly improve this.
+       ! this part depends on the chem mechanism
+       ! for CBMZ , we can certainly improve this.
 
-
-       drydepvg = 0.
-
+       drydepvg = d_zero
        drydepvg(:,iso2)  =  vdg(1,:,1)
        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
@@ -783,39 +752,35 @@ module mod_che_drydep
        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
        drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
-
-
-
-! Finally : gas phase dry dep tendency calculation 
-     if ( ichdrdepo == 1) then  
-          do i=2,iym2
-          do n = 1, ntr
-            Kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
-             ddrem(i)  =  chib(j,i,k,n) * (1 -   dexp(-Kd * dtche)) / dtche ! dry dep removal tendency (+)
-!update chiten
+       ! Finally : gas phase dry dep tendency calculation 
+       if ( ichdrdepo == 1 ) then  
+         do i = ici1 , ici2
+           do n = 1 , ntr
+             kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
+             ! dry dep removal tendency (+)
+             ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dtche))/dtche
+             ! update chiten
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
-!drydep flux diagnostic (accumulated between two outputs time step) ! the fluc form is calulated in tracbud
-             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
-!dry dep velocity diagnostic in m.s-1  (accumulated between two outputs time step) 
-            drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n)     
+             ! drydep flux diagnostic (accumulated between two outputs time
+             ! step) ! the fluc form is calulated in tracbud
+             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / d_two
+             ! dry dep velocity diagnostic in m.s-1
+             ! (accumulated between two outputs time step) 
+             drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n)     
            end do 
+         end do
+       else if ( ichdrdepo == 2 ) then 
+         do i = ici1 , ici2
+           do n = 1 , ntr
+             cchifxuw(j,i,n) = cchifxuw(j,i,n) - chib(j,i,kz,n) / &
+                               cpsb(j,i) * drydepvg(i,n)
+             ! dry dep velocity diagnostic in m.s-1
+             ! (accumulated between two outputs time step) 
+             drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
            end do
-      
-      elseif ( ichdrdepo ==2) then 
-
-          do i=2,iym2
-          do n = 1, ntr
-           cchifxuw(j,i,n) = cchifxuw(j,i,n) - chib(j,i,k,n)/ cpsb(j,i) * drydepvg(i,n)
-!dry dep velocity diagnostic in m.s-1  (accumulated between two outputs time step) 
-           drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
-           
-          end do
-          end do
-        end if 
-
+         end do
+       end if 
 #endif
-
-
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
 
@@ -851,683 +816,514 @@ module mod_che_drydep
 !          end if
 #endif
 
-      end subroutine drydep_gas
+    end subroutine drydep_gas
 
 !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-       subroutine aerodyresis(zeff,wind10,temp2,         &
-                             sutemp,rh10,srad,ivegcov,ustar,ra)
+    subroutine aerodyresis(zeff,wind10,temp2,         &
+                           sutemp,rh10,srad,ivegcov,ustar,ra)
 
-       implicit none
-     
-       
-         
-       integer ::ivegcov(iy)
-       
-       real(dp) :: temp2(iy),wind10(iy),rh10(iy)
-       real(dp) :: sutemp(iy),srad(iy)
-       real(dp) :: zeff(iy)
-       
-       intent (in) zeff,wind10,temp2,         &
-                   sutemp,rh10,srad,ivegcov
+      implicit none
+      integer ::ivegcov(iy)
+      real(dp) :: temp2(iy),wind10(iy),rh10(iy)
+      real(dp) :: sutemp(iy),srad(iy)
+      real(dp) :: zeff(iy)
+      intent (in) zeff,wind10,temp2,         &
+                  sutemp,rh10,srad,ivegcov
 
-       real(dp) :: ustar(iy,luc),ra(iy,luc)
-       intent (out) ustar, ra
-
-! local variables
-       integer i,j       
-       real(dp) :: delz,vp,tsv
-       real(dp) :: z,zl,ww
-       real(dp) :: ptemp2,es,qs
-       real(dp) :: wvpm,vptemp,tsw,mol
-       real(dp) :: z0water,dthv,cun,zdl
-       real(dp) :: psiu,psit,x,y
-       real(dp) :: thstar,rib,dtemp,tbar
-       real(dp) :: ustarsq,utstar,kui
-       real(dp) :: ratioz,logratio,asq
-       real(dp) :: aa,cm,ch,fm,fh    
-       real(dp) :: zz0(iy)
-       real(dp) , parameter :: z10 = 10.0
+      real(dp) :: ustar(iy,luc),ra(iy,luc)
+      intent (out) ustar, ra
+      integer i,j       
+      real(dp) :: vp,tsv
+      real(dp) :: z,zl,ww
+      real(dp) :: ptemp2,es,qs
+      real(dp) :: wvpm,vptemp,tsw,mol
+      real(dp) :: z0water,dthv,cun,zdl
+      real(dp) :: psiu,psit,x,y
+      real(dp) :: thstar,rib,dtemp,tbar
+      real(dp) :: ustarsq,utstar,kui
+      real(dp) :: ratioz,logratio,asq
+      real(dp) :: aa,cm,ch,fm,fh    
+      real(dp) :: zz0(iy)
+      real(dp) , parameter :: z10 = 10.0D0
   
-!======================================================================
-!     ****************************************************
-!     * ra : is the aerodynamic resistance above the  ****
-!     *      canopy and it is function in u* and      ****
-!     *      z0: roughness length and the stability   ****
-!     *      function                                 ****
-!     * mol  - monin obukhov length (m) - calculated  ****
-!     *           for each land use category          ****
-!     * ptemp2 -potential temperature at z2  (deg. k) ****
-!     * temp2 - temperature at 10m. (deg k)           ****
-!     * z10   - 10 m.                                 ****
-!     * sutemp -surface temperature (deg k)           ****
-!     * srad   -solar irradiance at the ground(w/m**2)****
-!     * rh10  - relative humidity of air at 10m.      ****
-!     *           (0.0-1.0)                           ****
-!     * stdpmb - sea level pressure (mb)               ****
-!     ****************************************************
+      !======================================================================
+      ! ****************************************************
+      ! * ra : is the aerodynamic resistance above the  ****
+      ! *      canopy and it is function in u* and      ****
+      ! *      z0: roughness length and the stability   ****
+      ! *      function                                 ****
+      ! * mol  - monin obukhov length (m) - calculated  ****
+      ! *           for each land use category          ****
+      ! * ptemp2 -potential temperature at z2  (deg. k) ****
+      ! * temp2 - temperature at 10m. (deg k)           ****
+      ! * z10   - 10 m.                                 ****
+      ! * sutemp -surface temperature (deg k)           ****
+      ! * srad   -solar irradiance at the ground(w/m**2)****
+      ! * rh10  - relative humidity of air at 10m.      ****
+      ! *           (0.0-1.0)                           ****
+      ! * stdpmb - sea level pressure (mb)              ****
+      ! ****************************************************
       do j = 1 , luc
         do i = ici1 , ici2
           ww = dmax1(wind10(i),1.0D0)
           zz0(i) = zeff(i)
- 
-! ***************************************************************
-!         *  potential temperature at z2  (deg. k)                 
-!         *****
- 
-! ***************************************************************
-          ptemp2 = temp2(i) + z10*0.0098
- 
-! ***************************************************************
-!         * for calculations over water compute values of critical 
-!         ***** * profile variables: l and ustar                       
-!         ***** *           ******begin for water***                   
-!         *****
- 
-! ***************************************************************
-          if ( ivegcov(i).eq.0 ) then
- 
-! **************************************************************
-!           *  vp  - vapour pressure at z2                          
-!           ***** *  wvpm- water vapour mixing ratio at  z2            
-!           ***** *  vptemp- virtual potential temperature at z2 (deg.
-!           k)  *****
-! **************************************************************
-            es = 6.108*exp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
+          ! ***************************************************************
+          ! * potential temperature at z2  (deg. k)                 
+          ! ***************************************************************
+          ptemp2 = temp2(i) + z10*0.0098D0
+          ! ***************************************************************
+          ! * for calculations over water compute values of critical 
+          ! * profile variables: l and ustar
+          ! *           ******begin for water***
+          ! ***************************************************************
+          if ( ivegcov(i) == 0 ) then
+            ! **************************************************************
+            ! * vp  - vapour pressure at z2                          
+            ! * wvpm- water vapour mixing ratio at  z2
+            ! * vptemp- virtual potential temperature at z2
+            ! **************************************************************
+            es = 6.108D0*exp(17.27D0*(temp2(i)-tzero)/(temp2(i)-35.86D0))
             vp = rh10(i)*es
             wvpm = ep2*vp/(stdpmb-vp)
-            vptemp = ptemp2*(1.0+0.61*wvpm)
- 
-! **************************************************************
-!           *  assume rh10 at water surface is 100%                 
-!           ***** *   vp = es(tsw-tzero) !sat. vap press at surface   
-!           ***** *   saturated vapour pressure at surface             
-!           ***** *   saturated mixing ratio at surface                
-!           ***** *   tsv - virtual potential temperature at surface   
-!           ***** *           (deg. k)                                 
-!           *****
- 
-! **************************************************************
+            vptemp = ptemp2*(1.0D0+0.61D0*wvpm)
+            ! **************************************************************
+            ! * assume rh10 at water surface is 100%                 
+            ! *   vp = es(tsw-tzero) !sat. vap press at surface
+            ! *   saturated vapour pressure at surface
+            ! *   saturated mixing ratio at surface
+            ! *   tsv - virtual potential temperature at surface (deg. k)
+            ! **************************************************************
             tsw = sutemp(i)
-            vp = 6.108*exp(17.27*(tsw-tzero)/(tsw-35.86))
+            vp = 6.108D0*exp(17.27D0*(tsw-tzero)/(tsw-35.86D0))
             qs = ep2*vp/(stdpmb-vp)
-            tsv = tsw*(1.+0.61*qs)
-            z0water = 1.0E-4
-! **************************************************************
-!           * scalet  :  not required if  z2 = 10m                  
-!           *****
-! **************************************************************
+            tsv = tsw*(1.0D0+0.61D0*qs)
+            z0water = 1.0D-4
+            ! **************************************************************
+            ! * scalet  :  not required if  z2 = 10m
+            ! **************************************************************
             dthv = (vptemp-tsv)
-! **************************************************************
-!           * calculate drag coefficient cun with neutral condition 
-!           ***** * assumption  garratt (1977)                         
-!           *****
- 
-! **************************************************************
-            cun = 7.5E-4 + 6.7E-5*ww
-            mol = 9999.0
- 
-            if ( abs(dthv).gt.1.0E-6 )                                  &
-               & mol = vptemp*cun**1.5*ww**2/(5.096E-3*dthv)
-            if ( mol.gt.0. .and. mol.lt.5.0 ) mol = 5.0
-            if ( mol.gt.-5.0 .and. mol.lt.0 ) mol = -5.0
+            ! **************************************************************
+            ! * calculate drag coefficient cun with neutral condition 
+            ! * assumption  garratt (1977)
+            ! **************************************************************
+            cun = 7.5D-4 + 6.7D-5*ww
+            mol = 9999.0D0
+            if ( abs(dthv) > 1.0D-6 ) then
+              mol = vptemp*cun**1.5D0*ww**2.0D0/(5.096D-3*dthv)
+            end if
+            if ( mol > 0.0D0  .and. mol < 5.0D0 ) mol =  5.0D0
+            if ( mol > -5.0D0 .and. mol < 0.0D0 ) mol = -5.0D0
             zdl = z10/mol
-!
-            if ( zdl.lt.0.0 ) then
- 
-! **************************************************************
-!             *                        wind speed                     
-!             *****
- 
-! **************************************************************
-              x = (1.0-15.0*zdl)**0.25
-              psiu = 2.*dlog(0.5*(1.0+x)) + dlog(0.5*(1.0+x*x))         &
-                   & - 2.0*atan(x) + 0.5*mathpi
- 
-! **************************************************************
-!             *                       pot temp                        
-!             *****
-! **************************************************************
-              y = sqrt(1.-9.*zdl)
-              psit = 2.*0.74*dlog((1+y)/2.0)
+            if ( zdl < 0.0D0 ) then
+              ! **************************************************************
+              ! * wind speed
+              ! **************************************************************
+              x = (1.0D0-15.0D0*zdl)**0.25D0
+              psiu = 2.0D0*dlog(0.5D0*(1.0D0+x))+dlog(0.5D0*(1.0D0+x*x)) - &
+                     2.0D0*atan(x) + 0.5D0*mathpi
+              ! **************************************************************
+              ! * pot temp
+              ! **************************************************************
+              y = sqrt(1.0D0-9.0D0*zdl)
+              psit = 2.0D0*0.74D0*dlog((1.0D0+y)/2.0D0)
             else
-              psiu = -4.7*zdl
+              psiu = -4.7D0*zdl
               psit = psiu
             end if
-            z0water = 0.000002*ww**2.5
-!
+            z0water = 0.000002D0*ww**2.5D0
             ustar(i,j) = vonkar*ww/(dlog(z10/z0water)-psiu)
-            thstar = vonkar*(ptemp2-sutemp(i))                          &
-                   & /(0.74*dlog(z10/z0water)-psit)
+            thstar = vonkar*(ptemp2-sutemp(i)) / &
+                     (0.74D0*dlog(z10/z0water)-psit)
             zz0(i) = z0water
-!
           else
- 
-! **************************************************************
-!           * compute ustar and l for land use categories other than 
-!           **** * water use louis method. !pkk 7/16/85, find bulk     
-!           **** * richardson number.                                  
-!           ****
- 
-! **************************************************************
-            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
- 
-! ***************************************************************
-!           * ensure that conditions over land are never stable when 
-!           ***** * there is incoming solar radiatiom                  
-!           *****
-! ***************************************************************
-            if ( srad(i).gt.0.0 .and. rib.gt.0.0 ) rib = 1.E-15
-!
+            ! **************************************************************
+            ! * compute ustar and l for land use categories other than
+            ! * water use louis method. !pkk 7/16/85, find bulk
+            ! * richardson number.
+            ! **************************************************************
+            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2.0D0)
+            ! ***************************************************************
+            ! * ensure that conditions over land are never stable when
+            ! * there is incoming solar radiation
+            ! ***************************************************************
+            if ( srad(i) > 0.0D0 .and. rib < 0.0D0 ) rib = 1.D-15
             dtemp = ptemp2 - sutemp(i)
-            if ( dabs(dtemp).lt.1.E-10 ) dtemp = dsign(1.D-10,dtemp)
-            tbar = 0.5*(ptemp2+sutemp(i))
-!
+            if ( dabs(dtemp) > 1.D-10 ) dtemp = dsign(1.D-10,dtemp)
+            tbar = 0.5D0*(ptemp2+sutemp(i))
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
-            asq = 0.16/(logratio**2)
-!
-            if ( rib.le.0.0 ) then
-              aa = asq*9.4*sqrt(ratioz)
-              cm = 7.4*aa
-              ch = 5.3*aa
-              fm = 1. - (9.4*rib/(1.+cm*sqrt(abs(rib))))
-              fh = 1. - (9.4*rib/(1.+ch*sqrt(abs(rib))))
+            asq = 0.16D0/(logratio**2.0D0)
+            if ( rib <= 0.0D0 ) then
+              aa = asq*9.4D0*dsqrt(ratioz)
+              cm = 7.4D0*aa
+              ch = 5.3D0*aa
+              fm = 1.0D0 - (9.4D0*rib/(1.0D0+cm*dsqrt(dabs(rib))))
+              fh = 1.0D0 - (9.4D0*rib/(1.0D0+ch*dsqrt(dabs(rib))))
             else
-              fm = 1./((1.+4.7*rib)**2)
+              fm = 1.0D0/((1.0D0+4.7D0*rib)**2.0D0)
               fh = fm
             end if
-!
-            ustarsq = asq*ww**2*fm
-            utstar = asq*ww*dtemp*fh/0.74
-            ustar(i,j) = sqrt(ustarsq)
+            ustarsq = asq*ww**2.0D0*fm
+            utstar = asq*ww*dtemp*fh/0.74D0
+            ustar(i,j) = dsqrt(ustarsq)
             thstar = utstar/ustar(i,j)
-!
             mol = tbar*ustarsq/(vonkar*egrav*thstar)
           end if
+
+          kui = 1.0D0/(vonkar*ustar(i,j))
  
-          kui = 1.0/(vonkar*ustar(i,j))
- 
-!         **************************************************************
-!         * compute the values of  ra                            *******
-!         **************************************************************
- 
+          ! **************************************************************
+          ! * compute the values of  ra                            *******
+          ! **************************************************************
           z = z10
           zl = z/mol
- 
-          if ( zl.ge.0. ) then
-            ra(i,j) = kui*(0.74*dlog(z/zz0(i))+4.7*zl)
+          if ( zl >= 0.0D0 ) then
+            ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
           else
-            ra(i,j) = kui*0.74*(dlog(z/zz0(i))-2.0*dlog((1+sqrt(1-9.*zl)&
-                    & )*0.5))
+            ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
+                      2.0D0*dlog((1.0D0+sqrt(1.0D0-9.0D0*zl))*0.5D0))
           end if
           ra(i,j) = dmax1(ra(i,j),0.99D0)
           ra(i,j) = dmin1(ra(i,j),999.9D0)
         end do
       end do
-
-      end subroutine aerodyresis
-
+    end subroutine aerodyresis
 
 !************************************************************************
 !***********************************************************************
 
-        subroutine stomtresis(lai_f,laimin,laimax, ivegcov,igas,       &
-                            ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb )
+    subroutine stomtresis(lai_f,laimin,laimax, ivegcov,igas,       &
+                          ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb )
 
+      implicit none
+      integer i , j
 
-       implicit none
+      integer kcov , igas , ig
+      integer ivegcov(iy)
 
+      real(dp) , dimension(iy) :: lai_f , laimin, laimax, coszen, srad,  &
+                                  ts,rh,prec, sd, t2
+      real(dp) , dimension (iy,luc) ::  ustar
+      real(dp) :: rb(igas,iy,luc),rc(igas,iy,luc)
 
-       integer i,l,k,kk,j
-       integer im,iday_m
-       integer jday
+      real(dp) :: rst,wst,rac,rgs_f
+      real(dp) :: rdu,rdv,rgo_f
+      real(dp) :: rcuto_f,rcuts_f 
+      real(dp) :: ww1,ww2,ww3
+      real(dp) :: rdm,rdn,rv,rn
+      real(dp) :: ratio,sv,fv,fvv
+      real(dp) :: pardir, pardif 
+      real(dp) :: tmaxk , tmink
+      real(dp) :: pshad,psun,rshad,rsun
+      real(dp) :: gshad,gsun,fsun,fshad
+      real(dp) :: gspar, temps !C
+      real(dp) :: bt,gt,gw,ryx
+      real(dp) :: es,d0,gd,psi
+      real(dp) :: coedew,dq,usmin
+      real(dp) :: fsnow,rsnows
 
-       integer kcov,n,igas,ig
-      
-       integer ivegcov(iy),veg(iy)
+      real(dp) :: dgas,di,vi
+      real(dp) :: dair,dh2o,dvh2o,rstom
+      real(dp) :: rcut,rg
+
+      logical :: is_dew, is_rain
        
+      dair = 0.369D0 * 29.0D0 + 6.29D0
+      dh2o = 0.369D0 * 18.0D0 + 6.29D0
+      is_rain = .false.
+      is_dew  = .false.
 
-       real(dp), dimension (iy) :: lai_f , laimin, laimax, coszen, srad,  &
-                                   ts,rh,prec, sd, t2
+      do j = 1 , luc
+        do i = ici1 , ici2
+          if ( ivegcov(i) == 0 ) then
+            kcov = 14
+          else
+            kcov = ivegcov(i)
+          end if
+!         print*,'srad ====', srad(i)
+!         print*,' ts  ====', ts(i)
+!         print*,' coszen == ', coszen(i)
 
-       real(dp), dimension (iy,luc) ::  ustar
-
-       real(dp) :: rb(igas,iy,luc),rc(igas,iy,luc)
-
-       real(dp) :: rst,wst,rac,rgs_f
-       real(dp) :: rdu,rdv,rgo_f
-       real(dp) :: rcuto_f,rcuts_f 
-       real(dp) :: ww1,ww2,ww3
-       real(dp) :: rdm,rdn,rv,rn
-       real(dp) :: ratio,sv,fv,fvv
-       real(dp) :: pardir, pardif 
-       real(dp) :: tmaxk , tmink
-       real(dp) :: pshad,psun,rshad,rsun
-       real(dp) :: gshad,gsun,fsun,fshad
-       real(dp) :: gspar, temps !C
-       real(dp) :: bt,gt,gw,ryx
-       real(dp) :: es,d0,gd,psi
-       real(dp) :: coedew,dq,usmin
-       real(dp) :: fsnow,rsnows
-
-       real(dp) :: dgas,di,vi
-       real(dp) :: dair,dh2o,dvh2o,rstom
-       real(dp) :: rcut,rg
-
-       logical :: is_dew, is_rain
-       
-            
-
-       dair= 0.369 * 29.0 + 6.29
-       dh2o=0.369*18.+6.29
-       is_rain = .false.
-       is_dew = .false.
-
-       do j=1,luc
-       do i=2,iym2
-
-       if (ivegcov(i) .eq. 0) then
-           kcov = 14
-       else
-           kcov = ivegcov(i)
-       end if
-
-
-
-!        print*,'srad ====', srad(i)
-!        print*,' ts  ====', ts(i)
-!        print*,' coszen == ', coszen(i)
-
-        tmaxk = tmax(kcov) + 273.15
-        tmink = tmin(kcov) + 273.15
-!             print*,' tmax, tmin ==== ', tmaxk, tmink      
-
+          tmaxk = tmax(kcov) + tzero
+          tmink = tmin(kcov) + tzero
+!         print *, ' tmax, tmin ==== ', tmaxk, tmink      
 !FAB
-! initialise rst as undef
-         rst= -999.
-        
-       if (srad(i)      .ge. 0.1      .and.    &
-          ts(i)        .lt. tmaxk    .and.    &
-          ts(i)        .gt. tmink    .and.    &
-          lai_f(i)  .gt. 0.001    .and.    &
-          coszen(i)    .gt. 0.001                     ) then
-
-
-      !================================================================
-      ! Calculate direct and diffuse PAR from solar radiation and
-      ! solar zenith angle
-      !================================================================
-
-         rdu  = 600.0 * dexp(-0.185/coszen(i))*coszen(i)
-         rdv  = 0.4 * (600.0 - rdu ) * coszen(i)
-         ww1   = -dlog(coszen(i))/2.302585
-
-!        print*,' ww1 = ', ww1
-
-         ww2   = -1.195 + 0.4459 * ww1 - 0.0345 * ww1**2
-         ww3   = 1320*10**ww2
-
-!         print*,'ww= ', ww
-         rdm  = (720.*dexp(-0.06/coszen(i))-ww3)*coszen(i)
-!         print*,'ww3= ', ww3, rdm
-
-         rdn  = 0.6 * (720.0 - rdm - ww3) * coszen(i)
-         rv   = dmax1(0.1d0,  rdu + rdv)
-         rn   = dmax1(0.01d0, rdm + rdn)
-         ratio= dmin1(0.9d0,srad(i)/( rv + rn))
-!         print*,'ratio= ', ratio, rdn, rv, rn
-         sv   = ratio * rv                            ! Total PAR
-         fv   = dmin1(0.99d0, (0.901 - ratio)/0.7)
-!         print*,'sv  fv  = ', sv, fv
-!         print*,'rv  xxxxx  = ', rv, (1.0 - fv**0.6667)
-
-         fvv  = dmax1(0.01d0,rdu/rv*(1.0 - fv**0.6667))
-!         print*,'fvv  = ', fvv  
-                             !fraction of PAR in the direct beam
-         pardir = fvv * sv
-                             ! PAR from direct radiation
-         pardif = sv - pardir
-                             ! PAR from diffuse radiation
-
-!         print*,'pardif========', pardif   
-
-      !================================================================
-      ! Calculate sunlit and shaded leaf area, PAR for sunlit and
-      ! shaded leaves
-      !===============================================================
-
-      if (lai_f(i) .gt. 2.5 .and. srad(i) .gt. 200.0) then
-
-         pshad=pardif * dexp(-0.5 * lai_f(i)**0.8)    &
-     &        + 0.07 * pardir * (1.1- 0.1*lai_f(i))* dexp(-coszen(i))
-         psun=pardir**0.8*0.5/coszen(i) + pshad
-
-      else
-         pshad = pardif * dexp(-0.5 * lai_f(i)**0.7)       &
-     &        + 0.07 * pardir *(1.1- 0.1*lai_f(i)) * dexp(-coszen(i))
-         psun = pardir * 0.5/coszen(i) + pshad
-      end if
-         
-!       print*,'pshad   psun   ', pshad , psun 
-
-         rshad= rsminz(kcov) + brs(kcov) * rsminz(kcov)/pshad
-         rsun = rsminz(kcov) + brs(kcov) * rsminz(kcov)/psun
-         gshad= 1.0/rshad
-         gsun = 1.0/rsun
-!       print*,'rshad  ----< ', rshad, rsun, ' >---------rsun'
-!       print*,'gshad  ----< ', gshad, gsun, ' >-------- gsun'
-
-      !================================================================
-      ! Fsun, Fshade are the total sunlit and shaded leaf area
-      ! index
-      !================================================================
-
-         fsun =2.0 * coszen(i)*(1.0 - dexp(-0.5*lai_f(i)/coszen(i)))
-                                   ! Sunlit leaf area
-         fshad=lai_f(i) - fsun
-                                   ! Shaded leaf area
-!           print*,'f, f ====',fshad,fsun
-      !================================================================
-      ! Stomatal conductance before including effects of
-      ! temperature, vapor pressure defict and water stress.
-      !================================================================
-
-         gspar = fsun * gsun + fshad * gshad
-
-      !================================================================
-      ! function for temperature effect
-      !================================================================
-
-         temps = ts(i) - 273.156
-!FAB         bt= (tmax(kcov) - topt(kcov))/(tmax(kcov) - tmin(kcov))
-         bt= (tmax(kcov) - topt(kcov))/(topt(kcov) - tmin(kcov))
-         gt= (tmax(kcov) - temps)/(tmax(kcov) - topt(kcov))
-         gt= gt**bt
-         gt= gt*(temps - tmin(kcov))/(topt(kcov) - tmin(kcov))
-
-!         print*,'gt ==========',gt
-
-      !================================================================
-      ! function for vapor pressure deficit
-      !================================================================
-
-         es = 6.108*exp(17.27*(ts(i) - 273.156)/(ts(i) - 35.86))
-         d0=  es *(1.0 - rh(i))/10.0           !kPa
-         gd= 1.0 - bvpd(kcov) * d0
-
-!         print*,'gd===',gd
-      !================================================================
-      ! function for water stress
-      !================================================================
-
-         psi = (-0.72 - 0.0013 * srad(i))
-!        psi_s=(-0.395-0.043*(ts-273.15))*102.
-         gw=(psi - psi2(kcov))/(psi1(kcov) - psi2(kcov))
-
-!         print*,'gw==',gw
-!TEST
-!         gw=1
-         if (gw .gt. 1.0) gw=1.0
-         if (gw .lt. 0.1) gw=0.1
-         if (gd .gt. 1.0) gd=1.0
-         if (gd .lt. 0.1) gd=0.1
-
-      !================================================================
-      ! Stomatal resistance for water vapor
-      !================================================================
-
-         rst=1.0/(gspar * gt * gd * gw)
-!         print*,'rst===',rst
-
-      end if
-
-
-              
-       coedew = 0.1  ! for clear cloud
-       es = 6.108*exp(17.27*(ts(i) - 273.156)/(ts(i) - 35.86))
-       dq = 0.622/1000.0 * es *(1.0- rh(i))*1000.0    ! unit g/kg
-       dq = dmax1(0.0001d0,dq)
-       usmin=1.5/dq*coedew
-
-!        print*,'prec===== ', prec(i)
-!       print*,'usmin   ===  ', usmin
-! what is the unit of precipitation threshold 
-        if(ts(i) .gt. 273.156 .and. prec(i) .gt. rainthr) then
-        is_rain = .true.
-
-!        print*, 'rain==='
-      else if (ts(i) .gt. 273.156 .and. ustar(i,j) .lt. usmin) then
-        is_dew = .true.
-
-!        print*, 'dew==='
-
-
-      else
-        is_rain = .false.
-        is_dew = .false.
-
-!         print*, 'NO dew, NO rain ==='
-
-
-      end if
-
-      !================================================================
-      !Decide fraction of stomatal blocking due to wet conditions
-      !================================================================
-
-      wst = 0.0
-
-      if ((is_dew .or. is_rain) .and. srad(i) .gt. 200.0) then
-
-         wst = (srad(i) - 200.0)/800.0
-         wst = dmin1(wst, 0.5d0)
-
-      end if
-      
-      !================================================================
-      ! In-canopy aerodynamic resistance
-      !================================================================
-
-        rac = rac1(kcov)+(lai_f(i)-   &
-                  laimin(i))/(laimax(i)-laimin(i)+1.E-10)  &
-                * (rac2(kcov)-rac1(kcov))
-
-!        print*,'rac1 = ', rac
-
-        rac = rac*lai_f(i)**0.25/ustar(i,j)/ustar(i,j)
-
-!        print*,'rac2 = ', rac
-
-      !================================================================
-      ! Ground resistance for O3
-      !================================================================
-
-       if(ts(i) .lt. 272.15 .and. kcov .ne. 14 ) then
-
-        rgo_f = dmin1( rgo(kcov)*2.0, rgo(kcov) *     &
-                                 dexp(0.2*(272.15-ts(i))))
-
-!       print*,'rgo_f1 =',rgo_f, ts(i)
-      else
-        rgo_f = rgo(kcov)
-
-      end if
-        
-      !================================================================
-      ! Ground resistance for SO2
-      !================================================================
-
-      if (kcov .eq. 12) then
-
-         rgs_f = dmin1(rgs(kcov)*(275.15 - ts(i)), 500.d0)
-         rgs_f = dmax1(rgs(kcov), 100.d0)
-
-!         print*,'rgs_f ==== ', rgs_f
-
-      else if (is_rain .and. kcov .ne. 14 ) then
-
-         rgs_f = 50.0
-!         print*,'rgs_f ==== ', rgs_f
-
-      else if (is_dew .and. kcov .ne. 14 ) then
-
-         rgs_f = 100.0
-!         print*,'rgs_f ==== ', rgs_f
-
-
-       else if(ts(i) .lt. 272.156 .and. kcov .ne. 14 ) then
-
-
-         rgs_f = dmin1( rgs(kcov)*2.0, rgs(kcov) *     &
-                                     dexp(0.2*(272.156 - ts(i))))
-!         print*,'rgs_f ==== ', rgs_f
-
-      else
-
-        rgs_f =  rgs(kcov)
-!        print*,'rgs_f ==== ', rgs_f
-
-
-      end if
-
-      !================================================================
-      ! Cuticle resistance for O3 AND SO2
-      !================================================================
-
-      if (rcutdo(kcov) .le. -1) then
-         rcuto_f = 1.E25
-         rcuts_f = 1.E25
-
-!         print*,'RCUT === ', rcuto_f,rcuts_f 
-
-
-      else if (is_rain) then
-
-        rcuto_f = rcutwo(kcov)/lai_f(i)**0.5/ustar(i,j)
-        rcuts_f = 50.0/lai_f(i)**0.5/ustar(i,j)
-        rcuts_f = dmax1(rcuts_f, 20.d0)
-!        print*,'RCUT === ', rcuto_f,rcuts_f 
-
-
-      else if (is_dew) then
-
-        rcuto_f = rcutwo(kcov)/lai_f(i)**0.5/ustar(i,j)
-        rcuts_f = 100.0/lai_f(i)**0.5/ustar(i,j)
-        rcuts_f = dmax1 (rcuts_f, 20.d0)
-!        print*,'RCUT === ', rcuto_f,rcuts_f 
-
-
-      else if (ts(i) .lt. 272.156) then
-
-        ryx = dexp(0.2 * (272.156 - ts(i) ))
-        rcuto_f = rcutdo(kcov)/dexp(3.0 * rh(i))/     &
-                 lai_f(i)**0.25/ustar(i,j)
-        rcuts_f = rcutds(kcov)/dexp(3.0 * rh(i))/     &
-                 lai_f(i)**0.25/ustar(i,j)
-        rcuto_f = dmin1( rcuto_f * 2.0, rcuto_f * ryx )
-        rcuts_f = dmin1( rcuts_f*2.0, rcuts_f * ryx )
-        rcuto_f = dmax1 (rcuto_f,100.d0)
-        rcuts_f = dmax1 (rcuts_f,100.d0)
-!        print*,'RCUT === ', rcuto_f,rcuts_f 
-
-
-      else
-        rcuto_f=rcutdo(kcov)/exp(3.*rh(i))/lai_f(i)**0.25/ustar(i,j)
-        rcuts_f=rcutds(kcov)/exp(3.*rh(i))/lai_f(i)**0.25/ustar(i,j)
-        rcuto_f = dmax1 (rcuto_f, 100.d0)
-        rcuts_f = dmax1 (rcuts_f, 100.d0)
-
-!        print*,'RCUT === ', rcuto_f,rcuts_f 
-
-      end if
-
-      !================================================================
-      ! If snow occurs, Rg and Rcut are adjusted by snow cover
-      ! fraction
-      !================================================================
-
-         fsnow= sd(i)/sdmax(kcov)
-         fsnow= dmin1(1.0d0, fsnow)   !snow cover fraction for leaves
-!         print*,' fsnow=  ', fsnow 
-
-      if (fsnow .gt. 0.0001 .and.kcov .ne. 20 .or.          &
-                                 kcov .ne. 15 .or.          & 
-                                 kcov .ne. 14 .or.          &
-                                 kcov .ne. 12        ) then
-
-        rsnows= dmin1(70.*(275.15-ts(i)), 500.d0)
-        rsnows= dmax1(rsnows, 100.d0)
-        rcuts_f=1.0/((1.0 - fsnow)/rcuts_f + fsnow/rsnows)
-        rcuto_f=1.0/((1.0 - fsnow)/rcuto_f + fsnow/2000.0)
-        fsnow  =dmin1(1.d0, fsnow*2.0)
-                                        !snow cover fraction for ground
-        rgs_f=1.0/((1.0 - fsnow)/rgs_f + fsnow/rsnows)
-        rgo_f=1.0/((1.0 - fsnow)/rgo_f + fsnow/2000.0)
-
-!        print*,'rsnows= ', rsnows, ' fsnow=  ', fsnow 
-      end if
-
-
-      !================================================================
-      ! Calculate diffusivity for each gas species
-      !================================================================
-
-        do ig=1,igas
-
-        dgas = 0.369 * mw(ig) + 6.29
-        di=0.001*ts(i)**1.75*sqrt((29.0 + mw(ig))/mw(ig)/29.)
-        di=di/1.0/(dair**0.3333 + dgas**0.3333)**2
-        vi=145.8 * 1.e-4 * (ts(i) * 0.5 + t2(i) *0.5)**1.5/    &
-                          (ts(i) * 0.5 + t2(i) *0.5 +110.4)
-
-      
-      !================================================================
-      ! Calculate quasi-laminar resistance
-      !================================================================
-
-        rb(ig,i,j) =5.0/ustar(i,j) * (vi/di)**.666667
-
-!        print*,'rb==', rb(ig,i,j)
-
-      !================================================================
-      ! Calculate stomatal resistance for each species from the ratio
-      ! of  diffusity of water vapor to the gas species
-      !================================================================
-
-        dvh2o = 0.001*ts(i)**1.75 * sqrt((29.0 + 18.0 )/29.0/18.0)
-        dvh2o = dvh2o/(dair**0.3333 + dh2o**0.3333)**2
-        rstom = rst * dVh2o/di + rm(ig) 
-! (rst <999) for bare surfaces)
-      !================================================================
-      ! Scale cuticle and ground resistances for each species
-      !================================================================
-
-        rcut = 1.0/(alphaz(ig)/rcuts_f+betaz(ig)/rcuto_f)
-        rg   = 1.0/(alphaz(ig)/rgs_f+betaz(ig)/rgo_f)
-
-      !================================================================
-      ! Calculate total surface resistance
-      !================================================================
+          ! initialise rst as undef
+          rst = -999.0D0
+          if (srad(i)   >= 0.1D0  .and. &
+              ts(i)     <  tmaxk  .and. &
+              ts(i)     >  tmink  .and. &
+              lai_f(i)  > 0.001D0 .and. &
+              coszen(i) > 0.001D0 ) then
+            !================================================================
+            ! Calculate direct and diffuse PAR from solar radiation and
+            ! solar zenith angle
+            !================================================================
+            rdu   = 600.0D0 * dexp(-0.185D0/coszen(i))*coszen(i)
+            rdv   = 0.4D0 * (600.0D0 - rdu ) * coszen(i)
+            ww1   = -dlog(coszen(i))/2.302585D0
+!           print *, ' ww1 = ', ww1
+            ww2   = -1.195D0 + 0.4459D0 * ww1 - 0.0345D0 * ww1**d_two
+            ww3   = 1320.0D0*10.0D0**ww2
+!           print *, 'ww= ', ww
+            rdm   = (720.0D0*dexp(-0.06D0/coszen(i))-ww3)*coszen(i)
+!           print *, 'ww3= ', ww3, rdm
+            rdn   = 0.6D0 * (720.0D0 - rdm - ww3) * coszen(i)
+            rv    = dmax1(0.1D0,  rdu + rdv)
+            rn    = dmax1(0.01D0, rdm + rdn)
+            ratio = dmin1(0.9D0,srad(i)/( rv + rn))
+!           print *, 'ratio= ', ratio, rdn, rv, rn
+            sv    = ratio * rv                            ! Total PAR
+            fv    = dmin1(0.99D0, (0.901D0 - ratio)/0.7D0)
+!           print *, 'sv  fv  = ', sv, fv
+!           print *, 'rv  xxxxx  = ', rv, (1.0 - fv**0.6667)
+            fvv   = dmax1(0.01D0,rdu/rv*(1.0D0 - fv**0.6667D0))
+!           print *, 'fvv  = ', fvv  
+            ! fraction of PAR in the direct beam
+            pardir = fvv * sv
+            ! PAR from direct radiation
+            pardif = sv - pardir
+            ! PAR from diffuse radiation
+!           print *, 'pardif========', pardif   
+            !================================================================
+            ! Calculate sunlit and shaded leaf area, PAR for sunlit and
+            ! shaded leaves
+            !===============================================================
+            if ( lai_f(i) > 2.5D0 .and. srad(i) > 200.0D0 ) then
+              pshad = pardif * dexp(-0.5D0 * lai_f(i)**0.8D0) + &
+                      0.07D0 * pardir * (1.1D0-0.1D0*lai_f(i))* &
+                      dexp(-coszen(i))
+              psun = pardir**0.8D0*0.5D0/coszen(i) + pshad
+            else
+              pshad = pardif * dexp(-0.5D0 * lai_f(i)**0.7D0) + &
+                      0.07D0 * pardir *(1.1D0-0.1D0*lai_f(i)) * &
+                      dexp(-coszen(i))
+              psun = pardir * 0.5D0/coszen(i) + pshad
+            end if
+!           print *, 'pshad   psun   ', pshad , psun 
+            rshad = rsminz(kcov) + brs(kcov) * rsminz(kcov)/pshad
+            rsun  = rsminz(kcov) + brs(kcov) * rsminz(kcov)/psun
+            gshad = 1.0D0/rshad
+            gsun  = 1.0D0/rsun
+!           print *, 'rshad  ----< ', rshad, rsun, ' >---------rsun'
+!           print *, 'gshad  ----< ', gshad, gsun, ' >-------- gsun'
+            !================================================================
+            ! Fsun, Fshade are the total sunlit and shaded leaf area
+            ! index
+            !================================================================
+            fsun  = 2.0D0*coszen(i)*(1.0D0-dexp(-0.5D0*lai_f(i)/coszen(i)))
+            ! Sunlit leaf area
+            fshad = lai_f(i) - fsun
+            ! Shaded leaf area
+!           print *, 'f, f ====',fshad,fsun
+            !================================================================
+            ! Stomatal conductance before including effects of
+            ! temperature, vapor pressure defict and water stress.
+            !================================================================
+            gspar = fsun * gsun + fshad * gshad
+            !================================================================
+            ! function for temperature effect
+            !================================================================
+            temps = ts(i) - tzero
+            bt = (tmax(kcov) - topt(kcov))/(topt(kcov) - tmin(kcov))
+            gt = (tmax(kcov) - temps)/(tmax(kcov) - topt(kcov))
+            gt = gt**bt
+            gt = gt*(temps - tmin(kcov))/(topt(kcov) - tmin(kcov))
+!           print *, 'gt ==========',gt
+            !================================================================
+            ! function for vapor pressure deficit
+            !================================================================
+            es = 6.108D0*dexp(17.27D0*(ts(i)-tzero)/(ts(i)-35.86D0))
+            d0 = es*(d_one-rh(i))/10.0D0 ! kPa
+            gd = 1.0D0 - bvpd(kcov) * d0
+!           print *, 'gd===',gd
+            !================================================================
+            ! function for water stress
+            !================================================================
+            psi = (-0.72D0 - 0.0013D0 * srad(i))
+!           psi_s = (-0.395D0-0.043D0*(ts-tzero))*102.0D0
+            gw = (psi - psi2(kcov))/(psi1(kcov) - psi2(kcov))
+!           print *, 'gw==',gw
+!           TEST
+!           gw = 1
+            if ( gw > 1.0D0 ) gw = 1.0D0
+            if ( gw < 0.1D0 ) gw = 0.1D0
+            if ( gd > 1.0D0 ) gd = 1.0D0
+            if ( gd < 0.1D0 ) gd = 0.1D0
+            !================================================================
+            ! Stomatal resistance for water vapor
+            !================================================================
+            rst = 1.0D0 / (gspar * gt * gd * gw)
+!           print *, 'rst===',rst
+          end if
+          coedew = 0.1D0  ! for clear cloud
+          es = 6.108D0*dexp(17.27D0*(ts(i)-tzero)/(ts(i)-35.86D0))
+          dq = 0.622D0/1000.0D0*es*(1.0D0-rh(i))*1000.0D0 ! unit g/kg
+          dq = dmax1(0.0001D0,dq)
+          usmin = 1.5D0/dq*coedew
+!         print *, 'prec===== ', prec(i)
+!         print *, 'usmin   ===  ', usmin
+!         what is the unit of precipitation threshold 
+          if ( ts(i) > tzero .and. prec(i) > rainthr ) then
+            is_rain = .true.
+!           print *, 'rain==='
+          else if (ts(i) < tzero .and. ustar(i,j) < usmin) then
+            is_dew = .true.
+!           print *, 'dew==='
+          else
+            is_rain = .false.
+            is_dew = .false.
+!           print *, 'NO dew, NO rain ==='
+          end if
+          !================================================================
+          ! Decide fraction of stomatal blocking due to wet conditions
+          !================================================================
+          wst = 0.0D0
+          if ( (is_dew .or. is_rain) .and. srad(i) > 200.0D0 ) then
+            wst = (srad(i) - 200.0D0)/800.0D0
+            wst = dmin1(wst, 0.5D0)
+          end if
+          !================================================================
+          ! In-canopy aerodynamic resistance
+          !================================================================
+          rac = rac1(kcov)+(lai_f(i)-laimin(i))/ &
+                (laimax(i)-laimin(i)+1.D-10)*(rac2(kcov)-rac1(kcov))
+!         print *, 'rac1 = ', rac
+          rac = rac*lai_f(i)**0.25D0/ustar(i,j)/ustar(i,j)
+!         print *, 'rac2 = ', rac
+          !================================================================
+          ! Ground resistance for O3
+          !================================================================
+          if (ts(i) < 272.15D0 .and. kcov /= 14 ) then
+            rgo_f = dmin1( rgo(kcov)*2.0D0, rgo(kcov) *     &
+                           dexp(0.2D0*(272.15D0-ts(i))))
+!           print *, 'rgo_f1 =',rgo_f, ts(i)
+          else
+            rgo_f = rgo(kcov)
+          end if
+          !================================================================
+          ! Ground resistance for SO2
+          !================================================================
+          if ( kcov == 12 ) then
+            rgs_f = dmin1(rgs(kcov)*(275.15D0 - ts(i)), 500.D0)
+            rgs_f = dmax1(rgs(kcov), 100.D0)
+!           print *, 'rgs_f ==== ', rgs_f
+          else if ( is_rain .and. kcov /= 14 ) then
+            rgs_f = 50.0D0
+!           print *, 'rgs_f ==== ', rgs_f
+          else if ( is_dew .and. kcov /= 14 ) then
+            rgs_f = 100.0D0
+!           print *, 'rgs_f ==== ', rgs_f
+          else if ( ts(i) < 272.156 .and. kcov /= 14 ) then
+            rgs_f = dmin1(rgs(kcov)*2.0D0, rgs(kcov) *     &
+                          dexp(0.2D0*(272.156D0 - ts(i))))
+!           print *, 'rgs_f ==== ', rgs_f
+          else
+            rgs_f = rgs(kcov)
+!           print *, 'rgs_f ==== ', rgs_f
+          end if
+          !================================================================
+          ! Cuticle resistance for O3 AND SO2
+          !================================================================
+          if ( rcutdo(kcov) <= -1.0D0 ) then
+            rcuto_f = 1.D25
+            rcuts_f = 1.D25
+!           print *, 'RCUT === ', rcuto_f,rcuts_f 
+          else if ( is_rain ) then
+            rcuto_f = rcutwo(kcov)/lai_f(i)**0.5D0/ustar(i,j)
+            rcuts_f = 50.0D0/lai_f(i)**0.5D0/ustar(i,j)
+            rcuts_f = dmax1(rcuts_f, 20.D0)
+!           print *, 'RCUT === ', rcuto_f,rcuts_f 
+          else if ( is_dew ) then
+            rcuto_f = rcutwo(kcov)/lai_f(i)**0.5D0/ustar(i,j)
+            rcuts_f = 100.0D0/lai_f(i)**0.5D0/ustar(i,j)
+            rcuts_f = dmax1(rcuts_f, 20.D0)
+!           print *, 'RCUT === ', rcuto_f,rcuts_f 
+          else if (ts(i) < 272.156D0 ) then
+            ryx = dexp(0.2D0 * (272.156D0 - ts(i) ))
+            rcuto_f = rcutdo(kcov)/dexp(3.0D0 * rh(i))/     &
+                      lai_f(i)**0.25D0/ustar(i,j)
+            rcuts_f = rcutds(kcov)/dexp(3.0D0 * rh(i))/     &
+                      lai_f(i)**0.25D0/ustar(i,j)
+            rcuto_f = dmin1(rcuto_f * 2.0D0, rcuto_f * ryx )
+            rcuts_f = dmin1(rcuts_f * 2.0D0, rcuts_f * ryx )
+            rcuto_f = dmax1(rcuto_f,100.D0)
+            rcuts_f = dmax1(rcuts_f,100.D0)
+!           print *, 'RCUT === ', rcuto_f,rcuts_f 
+          else
+            rcuto_f = rcutdo(kcov)/exp(3.0D0*rh(i)) / &
+                      lai_f(i)**0.25D0/ustar(i,j)
+            rcuts_f = rcutds(kcov)/exp(3.0D0*rh(i)) / &
+                      lai_f(i)**0.25D0/ustar(i,j)
+            rcuto_f = dmax1(rcuto_f, 100.D0)
+            rcuts_f = dmax1(rcuts_f, 100.D0)
+!           print *, 'RCUT === ', rcuto_f,rcuts_f 
+          end if
+          !================================================================
+          ! If snow occurs, Rg and Rcut are adjusted by snow cover
+          ! fraction
+          !================================================================
+          fsnow = sd(i)/sdmax(kcov)
+          fsnow = dmin1(1.0D0, fsnow)   !snow cover fraction for leaves
+!         print *, ' fsnow=  ', fsnow 
+          if ( fsnow > 0.0001D0 .and. kcov /= 20 .or. &
+                                      kcov /= 15 .or. & 
+                                      kcov /= 14 .or. &
+                                      kcov /= 12 ) then
+            rsnows = dmin1(70.0D0*(275.15D0-ts(i)), 500.D0)
+            rsnows = dmax1(rsnows, 100.D0)
+            rcuts_f = 1.0D0/((1.0D0 - fsnow)/rcuts_f + fsnow/rsnows)
+            rcuto_f = 1.0D0/((1.0D0 - fsnow)/rcuto_f + fsnow/2000.0D0)
+            fsnow = dmin1(1.0D0, fsnow*2.0D0)
+            ! snow cover fraction for ground
+            rgs_f = 1.0D0/((1.0D0 - fsnow)/rgs_f + fsnow/rsnows)
+            rgo_f = 1.0D0/((1.0D0 - fsnow)/rgo_f + fsnow/2000.0D0)
+!           print *, 'rsnows= ', rsnows, ' fsnow=  ', fsnow 
+          end if
+          !================================================================
+          ! Calculate diffusivity for each gas species
+          !================================================================
+          do ig = 1 , igas
+            dgas = 0.369D0 * mw(ig) + 6.29D0
+            di = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0 + mw(ig))/mw(ig)/29.D0)
+            di = di/1.0D0/(dair**0.3333D0 + dgas**0.3333D0)**2.0D0
+            vi = 145.8D0 * 1.D-4 * (ts(i) * 0.5D0 + t2(i) *0.5D0)**1.5D0/ &
+                 (ts(i) * 0.5D0 + t2(i) *0.5D0 + 110.4D0)
+            !================================================================
+            ! Calculate quasi-laminar resistance
+            !================================================================
+            rb(ig,i,j) = 5.0D0/ustar(i,j) * (vi/di)**.666667D0
+!           print *, 'rb==', rb(ig,i,j)
+            !================================================================
+            ! Calculate stomatal resistance for each species from the ratio
+            ! of  diffusity of water vapor to the gas species
+            !================================================================
+            dvh2o = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0+18.0D0)/29.0D0/18.0D0)
+            dvh2o = dvh2o/(dair**0.3333D0 + dh2o**0.3333D0)**2.0D0
+            rstom = rst * dVh2o/di + rm(ig) 
+            ! (rst <999) for bare surfaces)
+            !================================================================
+            ! Scale cuticle and ground resistances for each species
+            !================================================================
+            rcut = 1.0D0/(alphaz(ig)/rcuts_f+betaz(ig)/rcuto_f)
+            rg   = 1.0D0/(alphaz(ig)/rgs_f+betaz(ig)/rgo_f)
+            !================================================================
+            ! Calculate total surface resistance
+            !================================================================
 !FAB
-!account for zero stomatal resistance (rst and rstom are zero for bare surfaces)
-!set wst to 1 also in that case (total stomatal blocking).             
-      
-        if(rst== -999.) wst = 1.0
-
-!        rc(ig,i,j) = (1.0 - wst)/rstom + 1.0/(rg)+1.0/rcut
-        rc(ig,i,j) = (1.0 - wst)/rstom + 1.0/(rac+rg)+1.0/rcut
-
-        rc(ig,i,j) = dmax1(10.d0,1.0/rc(ig,i,j) )
-
-       end do !igas
-
-       end do !ilg
-       end do !luc
-
-      
-      end subroutine stomtresis
+            ! account for zero stomatal resistance (rst and rstom are zero
+            ! for bare surfaces)
+            ! set wst to 1 also in that case (total stomatal blocking).
+            if ( rst > -999.0 ) wst = 1.0D0
+!           rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rg)+1.0D0/rcut
+            rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rac+rg)+1.0D0/rcut
+            rc(ig,i,j) = dmax1(10.D0,1.0D0/rc(ig,i,j))
+          end do !igas
+        end do !ilg
+      end do !luc
+    end subroutine stomtresis
 
 end module mod_che_drydep
