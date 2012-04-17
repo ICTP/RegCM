@@ -31,7 +31,7 @@ module mod_bats_leaftemp
 !
   private
 !
-  public :: lftemp , satur
+  public :: lftemp , satur , fseas
 !
   contains
 !
@@ -446,7 +446,7 @@ module mod_bats_leaftemp
           if ( sigf(n,j,i) > 0.001D0 ) then
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
               vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,j,i)*0.025D0)
-              seas = d_one/(rmini(n,j,i)+fseas(tlef(n,j,i)))
+              seas = d_one/(rmini(n,j,i)+fseas(tlef(n,j,i),lveg(n,j,i)))
               lftrs(n,j,i) = rsmin(lveg(n,j,i))*radf(n,j,i)*seas*vpdf
               lftrs(n,j,i) = dmin1(lftrs(n,j,i),rmax0)
             else
@@ -458,15 +458,6 @@ module mod_bats_leaftemp
     end do
   end do
 !
-  contains
-
-  function fseas(x)
-    implicit none
-    real(dp) :: fseas
-    real(dp) , intent(in) :: x
-    fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
-  end function fseas
- 
   end subroutine stomat
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -797,4 +788,15 @@ module mod_bats_leaftemp
     end do
   end subroutine deriv
 !
+  real(dp) function fseas(x,ic)
+    implicit none
+    real(dp) , intent(in) :: x
+    integer , intent(in) :: ic
+    if ( ic == 1 ) then ! Crop cutoff
+      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_four)
+    else
+      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
+    end if
+  end function fseas
+! 
 end module mod_bats_leaftemp

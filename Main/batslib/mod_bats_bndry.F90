@@ -287,8 +287,7 @@ module mod_bats_bndry
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
-              seasb(n,j,i) = dmax1(d_zero,d_one-0.0016D0 * &
-                           dmax1(298.0D0-tgbrd(n,j,i),d_zero)**d_two)
+              seasb(n,j,i) = fseas(tgbrd(n,j,i),lveg(n,j,i))
             end if
           end if
         end do

@@ -26,6 +26,7 @@ module mod_bats_mtrxbats
   use mod_service
   use mod_bats_common
   use mod_bats_internal
+  use mod_bats_leaftemp , only : fseas
   use mod_bats_lake
   use mod_bats_bndry
   use mod_bats_drag
@@ -618,10 +619,10 @@ module mod_bats_mtrxbats
                 nnn = nnn + 1
               else
                 tlef_s(n,j,i) = smissval
-                ssw_s(n,j,i) = smissval
-                rsw_s(n,j,i) = smissval
+                ssw_s(n,j,i)  = smissval
+                rsw_s(n,j,i)  = smissval
                 rnos_s(n,j,i) = smissval
-                scv_s(n,j,i) = smissval
+                scv_s(n,j,i)  = smissval
               end if
             end do
             if ( nnn >= max0(nnsg/2,1) ) then
@@ -632,10 +633,10 @@ module mod_bats_mtrxbats
               scv_o(j,i) = scv_o(j,i)/real(nnn)
             else
               tlef_o(j,i) = smissval
-              ssw_o(j,i) = smissval
-              rsw_o(j,i) = smissval
+              ssw_o(j,i)  = smissval
+              rsw_o(j,i)  = smissval
               rnos_o(j,i) = smissval
-              scv_o(j,i) = smissval
+              scv_o(j,i)  = smissval
             end if
             !
             ! reset accumulation arrays to zero
@@ -790,7 +791,7 @@ module mod_bats_mtrxbats
             albgld = albgl
           else if ( ldmsk1(n,j,i) == 1 ) then
             ! Land
-            sfac = d_one - fseas(tgbrd(n,j,i))
+            sfac = d_one - fseas(tgbrd(n,j,i),lveg(n,j,i))
             !
             ! ccm tests here on land mask for veg and soils data
             ! reduces albedo at low temps !!!!!
@@ -904,15 +905,6 @@ module mod_bats_mtrxbats
     end do
     aemiss = sum(emiss,1)*rdnnsg
     call time_end(subroutine_name,idindx)
-
-    contains
-
-      function fseas(x)
-        implicit none
-        real(dp) :: fseas
-        real(dp) , intent(in) :: x
-        fseas = dmax1(d_zero,(d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two))
-      end function fseas
 
   end subroutine albedobats
 !
