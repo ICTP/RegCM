@@ -84,8 +84,7 @@ module mod_che_drydep
 !
 ! NOTE : Now BATS, albeit not directly in the GLCC dataset but using the
 !        FUDGE, allows for 22 classes: urban and suburban (21 and 22) have
-!        been added. Here the scheme is inconsistent (20 classes only) and
-!        will generate segfault if those classes are used with chem.
+!        been added. Here the scheme is inconsistent (20 classes only)
 !        Be aware of this.
 !
 !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
