@@ -514,6 +514,9 @@ module mod_params
       read (ipunit, tiedtkeparam)
       print * , 'TIEDTKEPARAM namelist READ IN'
     end if
+    if ( icup < 0 .or. (icup > 5 .and. icup < 98) .or. icup > 99 ) then
+      call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
+    end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
       print * , 'param: UWPARAM namelist READ IN'
@@ -1334,21 +1337,31 @@ module mod_params
     write (aline,*) 'Variable cumulus scheme: will use Grell '// &
          'over land and Emanuel over ocean.'
     call say
-    where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
-      cucontrol = 4
-    elsewhere
-      cucontrol = 2
-    end where
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0 ) then
+          cucontrol(j,i) = 4
+        else
+          cucontrol(j,i) = 2
+        end if
+      end do
+    end do
   end if
   if (icup == 98) then
     write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
          'over land and Grell over ocean.'
     call say
-    where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
-      cucontrol = 2
-    elsewhere
-      cucontrol = 4
-    end where
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0 ) then
+          cucontrol(j,i) = 2
+        else
+          cucontrol(j,i) = 4
+        end if
+      end do
+    end do
   end if
 
   if ( icup == 1 ) then
@@ -1702,9 +1715,15 @@ module mod_params
 !-----print out the parameters specified in the model.
 !
   if ( myid == 0 ) then
+    if ( ibltyp < 0 .or. ibltyp > 2 ) then
+      call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
+    end if
     if ( ibltyp == 0 ) print 99002
     print 99003 , ntrad
 !
+    if ( iboudy < 0 .or. iboudy > 5 ) then
+      call fatal(__FILE__,__LINE__,'UNSUPPORTED BDY SCHEME.')
+    end if
     if ( iboudy == 0 ) print 99004
     if ( iboudy == 1 ) print 99005 , fnudge , gnudge
     if ( iboudy == 2 ) print 99007
