@@ -261,7 +261,8 @@
 
         if (  isslt(1) > 0 )then
         do j=jci1,jci2
-         call sea_salt(j,wid10(j,:),ivegcov(j,:),seasalt_flx(j,:,:))
+         call sea_salt(j,wid10(j,ici1:ici2),ivegcov(j,ici1:ici2), &
+                       seasalt_flx(j,ici1:ici2,:))
         end do
         end if
 !
