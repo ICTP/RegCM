@@ -566,7 +566,7 @@ module mod_init
 ! chemistry initialisation
 !
   if ( ichem == 1 ) then
-    call start_chem(ice1,ice2,jce1,jce2,ifrest,idate1,intbdy,dtbdys)
+    call start_chem(ifrest,idate1,intbdy,dtbdys)
   end if
 !
   call time_end(subroutine_name,idindx)

@@ -29,6 +29,7 @@ module mod_che_interface
   use mod_che_ncio
   use mod_che_param
   use mod_che_drydep
+  use mod_che_bdyco
   use mod_che_emission
   use mod_che_carbonaer
   use mod_che_species

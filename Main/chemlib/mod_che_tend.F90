@@ -279,26 +279,32 @@
         ddepa = d_zero
         if ( idust(1) > 0 ) then
         do j=jci1,jci2
-          call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
-                            temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbed,      &
-                            pdepv(j,:,:,:),ddepa(j,:,:))
+          call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,ici1:ici2), &
+              ttb(j,ici1:ici2,:),rho(j,ici1:ici2,:),hlev,psurf(j,ici1:ici2), &
+              temp10(j,ici1:ici2),tsurf(j,ici1:ici2),srad(j,ici1:ici2),      &
+              rh10(j,ici1:ici2),wid10(j,ici1:ici2),zeff(j,ici1:ici2),dustbed, &
+              pdepv(j,ici1:ici2,:,:),ddepa(j,ici1:ici2,:))
         end do
         end if
 
        if ( isslt(1) >0 ) then
        do j=jci1,jci2
-         call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
-                          temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),ssltbed,      &
-                          pdepv(j,:,:,:),ddepa(j,:,:))
+         call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(j,ici1:ici2), &
+           ttb(j,ici1:ici2,:),rho(j,ici1:ici2,:),hlev,psurf(j,ici1:ici2), &
+           temp10(j,ici1:ici2),tsurf(j,ici1:ici2),srad(j,ici1:ici2), &
+           rh10(j,ici1:ici2),wid10(j,ici1:ici2),zeff(j,ici1:ici2),ssltbed,  &
+           pdepv(j,ici1:ici2,:,:),ddepa(j,ici1:ici2,:))
        end do
        end if 
 
         if ( icarb(1) > 0 ) then
         ibin = count( icarb > 0 ) 
           do j=jci1,jci2
-          call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev, &
-                           psurf(j,:),temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),         &
-                           carbed(1:ibin),pdepv(j,:,:,:),ddepa(j,:,:))
+          call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(j,ici1:ici2), &
+            ttb(j,ici1:ici2,:),rho(j,ici1:ici2,:),hlev,psurf(j,ici1:ici2), &
+            temp10(j,ici1:ici2),tsurf(j,ici1:ici2),srad(j,ici1:ici2), &
+            rh10(j,ici1:ici2),wid10(j,ici1:ici2),zeff(j,ici1:ici2),         &
+            carbed(1:ibin),pdepv(j,ici1:ici2,:,:),ddepa(j,ici1:ici2,:))
          end do
         end if 
 !!$
@@ -307,8 +313,10 @@
 !!$
         if ( igaschem == 1 ) then
           do j=jci1,jci2
-!          call drydep_gas(j,calday, ivegcov(j,:),rh10(j,:),srad(j,:),tsurf(j,:),prec(j,:,kz),temp10(j,:),  &
-!                          wid10(j,:),zeff(j,:),drydepvg(j,:,:))
+!          call drydep_gas(j,calday, ivegcov(j,ici1:ici2),rh10(j,ici1:ici2), &
+!               srad(j,ici1:ici2),tsurf(j,ici1:ici2),prec(j,ici1:ici2,kz),   &
+!               temp10(j,ici1:ici2),wid10(j,ici1:ici2),zeff(j,ici1:ici2),    &
+!               drydepvg(j,ici1:ici2,:))
           end do
         end if
 !!$
@@ -316,23 +324,31 @@
 !!$
         if ( idust(1) > 0 ) then
          do j=jci1,jci2
-          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
-                       fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:),prec(j,:,:),pdepv(j,:,:,:))  
+          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(j,ici1:ici2,:), &
+                       wl(j,ici1:ici2,:),fracloud(j,ici1:ici2,:),       &
+                       fracum(j,ici1:ici2,:),psurf(j,ici1:ici2),        &
+                       hlev,rho(j,ici1:ici2,:),prec(j,ici1:ici2,:),     &
+                       pdepv(j,ici1:ici2,:,:))  
          end do
         end if
 
        if ( isslt(1) > 0 )  then   
          do j=jci1,jci2
-         call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
-                      fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) )  
+         call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(j,ici1:ici2,:), &
+                      wl(j,ici1:ici2,:),fracloud(j,ici1:ici2,:),       &
+                      fracum(j,ici1:ici2,:),psurf(j,ici1:ici2),hlev,   &
+                      rho(j,ici1:ici2,:),prec(j,ici1:ici2,:),          &
+                      pdepv(j,ici1:ici2,:,:) )  
          end do
        end if
        if ( icarb(1) > 0 )  then   
          ibin = count( icarb > 0 ) 
           do j=jci1,jci2
-         call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl, &
-                     ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
-                     fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) ) 
+         call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,  &
+                     ttb(j,ici1:ici2,:),wl(j,ici1:ici2,:),          &
+                     fracloud(j,ici1:ici2,:),fracum(j,ici1:ici2,:), &
+                     psurf(j,ici1:ici2),hlev,rho(j,ici1:ici2,:),    &
+                     prec(j,ici1:ici2,:),pdepv(j,ici1:ici2,:,:) ) 
          end do
          end if
 !

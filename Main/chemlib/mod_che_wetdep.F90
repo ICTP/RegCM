@@ -58,25 +58,25 @@ module mod_che_wetdep
 !
     integer, intent(in) :: j               ! longitude index
     ! surf geopotential (m2/s2)
-    real(dp), dimension(:) , intent(in) :: phis1
+    real(dp), dimension(ici1:ici2) , intent(in) :: phis1
     ! midpoint geopot convert (m) to (km)
-    real(dp), dimension(:,:) , intent(in) :: zmid1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: zmid1
     ! temperature (K)
-    real(dp), dimension(:,:) , intent(in) :: tfld1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: tfld1
     ! dq/dt for convection (kg/kg/s) convert to (1/s) below
-    real(dp), dimension(:,:) , intent(in) :: cmfdqr1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: cmfdqr1
     ! stratoform precip (1/s)
-    real(dp), dimension(:,:) , intent(in) :: nrain1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: nrain1
     ! evaporation (kg/kg/s) convert to (1/s) below
-    real(dp), dimension(:,:) , intent(in) :: nevapr1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: nevapr1
     ! time step ( s )
     real(dp), intent(in) :: delt
     ! total atms density (kg/m3) convert to (#/cm^3) below
-    real(dp), dimension(:,:) , intent(in) :: xhnm1
+    real(dp), dimension(ici1:ici2,kz) , intent(in) :: xhnm1
     ! exported species ( mmr )
-    real(dp), dimension(:,:,:) , intent(in) :: qin1
+    real(dp), dimension(ici1:ici2,kz,ntr) , intent(in) :: qin1
     ! Pressure ( cb )
-    real(dp), dimension(:) , intent(in) :: ps2
+    real(dp), dimension(ici1:ici2) , intent(in) :: ps2
 !
     real(dp) :: phis(ici1:ici2)        ! surf geopotential (m2/s2)
     real(dp) :: zmid(ici1:ici2,kz)     ! midpoint geopot convert (m) to (km)
@@ -550,11 +550,11 @@ module mod_che_wetdep
     integer , dimension(mbin) , intent(in) :: indp
     real(dp) , dimension(mbin) , intent(in) :: beffdiam
     real(dp) , intent(in) :: rhoaer ! specific aerosol density
-    real(dp) , dimension(iy,kz) , intent(in) :: wl , fracloud , fracum , &
-                                                totppt , t , rho
-    real(dp) , dimension(iy) ,intent(in) :: pressg
+    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , totppt
+    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
+    real(dp) , dimension(ici1:ici2) ,intent(in) :: pressg
     real(dp) , dimension(kz) ,intent(in) :: shj
-    real(dp) , dimension(iy,kz,ntr) , intent (in) :: pdepv
+    real(dp) , dimension(ici1:ici2,kz,ntr) , intent (in) :: pdepv
     ! size of the aerosol bin
     ! index of the correponding aerosol in the chi table
 
@@ -660,9 +660,10 @@ module mod_che_wetdep
  
     integer , intent(in) :: mbin
     real(dp) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhsize , rhop
-    real(dp) , dimension(iy,kz) , intent(in) :: t , rho , totppt
-    real(dp) , dimension(iy,kz,ntr) , intent(in) :: pdepv ! care ,ntr dimension
-    real(dp) , dimension(iy) , intent(in) :: pressg
+    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
+    ! care ,ntr dimension
+    real(dp) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
+    real(dp) , dimension(ici1:ici2) , intent(in) :: pressg
     real(dp) , dimension(kz) , intent(in) :: shj
     real(dp) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef , wetdep 
 
@@ -748,10 +749,10 @@ module mod_che_wetdep
 
   integer , intent(in) :: mbin
   integer , dimension(mbin) , intent(in) :: indp 
-  real(dp) , dimension(iy,kz) , intent(in) :: t , rho , totppt
+  real(dp) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
   real(dp) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
-  real(dp) , dimension(iy) , intent(in) :: pressg
-  real(dp) , dimension(iy,kz,ntr) , intent(in) :: pdepv
+  real(dp) , dimension(ici1:ici2) , intent(in) :: pressg
+  real(dp) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
   real(dp) , dimension(kz) , intent(in) :: shj
   ! collection efficiency
   real(dp) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef

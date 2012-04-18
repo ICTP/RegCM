@@ -353,18 +353,18 @@ module mod_che_drydep
 !
       integer , intent(in) :: j , mbin
       integer , intent(in) , dimension(mbin) :: indsp
-      integer , intent(in) , dimension(iy) :: ivegcov
-      real(dp) , dimension(iy) , intent(in) :: pressg , rh10 , &
+      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(dp) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
-      real(dp) , dimension(iy,kz) , intent(in) :: roarow , throw
+      real(dp) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
       real(dp) , dimension(kz) , intent(in) :: shj
       real(dp) , dimension(mbin) , intent(in) :: beffdiam
       real(dp) , intent(in) :: rhop 
 
 ! output table to be passed out. Care dimension is ntr  
 
-      real(dp) , intent(out) , dimension(iy,kz,ntr) :: pdepv
-      real(dp) , intent(out) , dimension(iy,ntr) :: ddepv
+      real(dp) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
+      real(dp) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
 !
       real(dp) :: amfp , amob , eb , eim , ein , frx1
       real(dp) :: pre , prii , priiv , r1 , st
@@ -637,10 +637,10 @@ module mod_che_drydep
       implicit none
       integer , intent(in) :: j   
       real(dp) , intent(in) :: ccalday
-      integer , intent(in) , dimension(iy) :: ivegcov
-      real(dp) , intent(in) , dimension(iy) :: rh10 , srad , tsurf ,  prec, &
-                                               temp10 , wind10 , zeff
-      real(dp), intent(out) , dimension(iy,ntr) :: drydepvg
+      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(dp) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
+                                            prec, temp10 , wind10 , zeff
+      real(dp), intent(out) , dimension(ici1:ici2,ntr) :: drydepvg
       integer :: n , i , im , iday_m , kcov
       real(dp) , dimension(ici1:ici2,luc) :: ustar, resa
       real(dp) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
@@ -772,9 +772,9 @@ module mod_che_drydep
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
-      integer , dimension(iy) , intent(in) :: ivegcov(iy)
-      real(dp) , dimension(iy) , intent(in) :: temp2 , wind10 , rh10
-      real(dp) , dimension(iy) , intent(in) :: sutemp , srad , zeff
+      integer , dimension(ici1:ici2) , intent(in) :: ivegcov
+      real(dp) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
+      real(dp) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
       real(dp) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
 !
       integer :: i , j       
@@ -942,8 +942,8 @@ module mod_che_drydep
       implicit none
 
       integer , intent(in) :: igas
-      integer , intent(in) , dimension(iy) :: ivegcov
-      real(dp) , dimension(iy) , intent(in) :: coszen, srad , ts , rh , &
+      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(dp) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
                                                prec , sd , t2
       real(dp) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
       real(dp) , intent(in) , dimension(ici1:ici2,luc) :: ustar
