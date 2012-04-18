@@ -228,7 +228,8 @@
         if ( igaschem == 0 ) then
           if (iso2 > 0 .and. iso4 >0.) then
           do j=jci1,jci2
-            call chemsox(j,wl(j,:,:),fracloud(j,:,:),fracum(j,:,:),rho(j,:,:),ttb(j,:,:))
+            call chemsox(j,wl(j,ici1:ici2,:),fracloud(j,ici1:ici2,:), &
+                fracum(j,ici1:ici2,:),rho(j,ici1:ici2,:),ttb(j,ici1:ici2,:))
           end do
           end if
         end if

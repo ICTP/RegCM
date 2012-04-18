@@ -38,18 +38,18 @@ module mod_che_sox
      implicit none
 !
      integer , intent(in) :: j
-     real(dp) , dimension(iy,kz) , intent(in) :: wl , fracloud , &
-                                                 fracum , rho , ttb
+     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
+     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
      real(dp) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
                  clmin , remcum , oh1int , so2_rate , krembc
      real(dp) , dimension(ntr) ::  wetrem , wetrem_cvc
-     real(dp) , dimension(iy,kz) :: caircell , so2_snk , concmin
-     real(dp) :: rk_com(iy,kz,100)
-     real(8) :: h2o2mol
+     real(dp) , dimension(ici1:ici2,kz) :: caircell , so2_snk , concmin
+     real(dp) :: rk_com(ici1:ici2,kz,100)
+     real(dp) :: h2o2mol
 
      integer :: i , k
 
-     caircell(:,:)  = 0.001D0 * rho(:,:)/amd * navgdr
+     caircell(:,:) = 0.001D0 * rho(:,:)/amd * navgdr
 
      call chemrate(caircell,ttb,rk_com)
 
@@ -73,7 +73,7 @@ module mod_che_sox
      !---------------------------------------------
 
      do k = 1 , kz
-       do i = 2 , iym2
+       do i = ici1 , ici2
 
          cldno = d_one ! no cloud fraction
 
@@ -121,7 +121,7 @@ module mod_che_sox
      ! AQUEOUS CONVERSION IN CLOUDS AND WET REMOVAL
      ! Aqueous conversion from so2 to so4 : control by h2o2
      do k = 1 , kz
-       do i = 2 , iym2
+       do i = ici1 , ici2
          chimol = 28.9D0/64.0D0*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
 
          if ( ichaer == 1 ) then 
@@ -136,7 +136,7 @@ module mod_che_sox
      ! conversion in   Large scale clouds
  
      do k = 1 , kz
-       do i = 2 , iym2
+       do i = ici1 , ici2
          rxs1 = d_zero
          rxs11 = d_zero      ! fraction of conversion, not removed, as SO4 src
          wetrem(iso2) = d_zero
@@ -196,7 +196,7 @@ module mod_che_sox
      ! cumulus clouds
      ! wet removal by cumulus clouds (over the fraction of grid box
      ! fracum) assume the cloud water content = 2 g/m3  (ref Kasibhatla )
-     do i = 2 , iym2
+     do i = ici1 , ici2
        if ( kcumtop(j,i) > 0 ) then
          do k = kcumtop(j,i) , kz
            rxs2 = d_zero
@@ -243,9 +243,8 @@ module mod_che_sox
 !!$    !  - DMS + NO3 ---> SO2 +  .....
 !!$    !---------------------------------------------
 !!$
-!!$
 !!$    do  k = 1 , kx
-!!$      do  i = 2 , ilxm
+!!$      do  i = ici1 , ici2
 !!$
 !!$        no3int = no3(i,k,j)
 !!$        oh1int = oh(i,k,j)
@@ -287,21 +286,18 @@ module mod_che_sox
 !  *  Trieste -Italy                                            ****
 !  *****************************************************************
 ! 
-   subroutine chemrate (caircell,temp,rk_com) 
-
+   subroutine chemrate(caircell,temp,rk_com) 
      implicit none
-
-     real(dp) , dimension(iy,kz) , intent(in) :: caircell, temp
-     real(dp) , dimension(iy,kz,100) , intent(out) ::  rk_com
+     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: caircell , temp
+     real(dp) , dimension(ici1:ici2,kz,100) , intent(out) ::  rk_com
      real(dp) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
      integer :: i , k
 
-     rk_com = d_zero
-
+     rk_com(:,:,:) = d_zero
      do k = 1 , kz
-       do i = 2 , iym2
+       do i = ici1 , ici2
 
-          alpha= 0.4D0  
+          alpha = 0.4D0  
           te = temp(i,k)
 
           rk_com(i,k,1) = arr(1.0D0,    -234.D0,te)
@@ -315,7 +311,7 @@ module mod_che_sox
           rk_com(i,k,8) = arr(1.2D-11,  -260.D0,te)
           rk_com(i,k,9) = dmax1(0.0D0, rk_com(i,k,7) - rk_com(i,k,8))
           rk_com(i,k,10) = rk_com(i,k,8) + rk_com(i,k,9)
-          rk_com(i,k,11) = rk_com(i,k,8) + alpha *  rk_com(i,k,9)
+          rk_com(i,k,11) = rk_com(i,k,8) + alpha * rk_com(i,k,9)
 
           cair_mlc = caircell(i,k)
           rk0 = 3.0D-31
