@@ -39,6 +39,8 @@ module mod_che_start
 
   private
 
+  real(dp) , parameter :: solso4 = 0.9D0
+
   public  :: start_chem
 
   contains
