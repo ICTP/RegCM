@@ -64,7 +64,6 @@ module mod_cbmz_boxvars
   real(dp) :: xlat(nna)   ! Latitude, decimal degrees
   real(dp) :: xlon(nna)   ! Longitude, decimal degrees
   integer :: idate        ! Date YYMMDD (YY=100 for 2000)
-  integer :: ktaubx
 
 ! UNIT INDICES
 

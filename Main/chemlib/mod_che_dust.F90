@@ -26,6 +26,7 @@ module mod_che_dust
   use mod_dynparam
   use mod_mpmessage
   use mod_memutil
+  use mod_mppparam
   use mod_che_common
   use mod_che_ncio
   use mod_che_mppio
@@ -114,7 +115,7 @@ module mod_che_dust
     call getmem3d(clay2row2,1,iy,1,nats,1,jxp,'mod_che_dust:clay2row2')
     call getmem3d(sand2row2,1,iy,1,nats,1,jxp,'mod_che_dust:sand2row2')
     call getmem3d(silt2row2,1,iy,1,nats,1,jxp,'mod_che_dust:silt2row2')
-    call getmem3d(dustsotex,1,iy,1,jxp,1,nats,'mod_che_dust:dustsotex')
+    call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'mod_che_dust:dustsotex')
     call getmem2d(clayrow2,1,iy,1,jxp,'mod_che_dust:clayrow2')
     call getmem2d(sandrow2,1,iy,1,jxp,'mod_che_dust:sandrow2')
     call getmem4d(srel2d,1,iy,1,jxp,1,nsoil,1,nats,'mod_che_dust:srel2d')
@@ -216,28 +217,10 @@ module mod_che_dust
     end if
   end if
 
-  if (myid == 0 ) then
-    do j=1,jx
-      do n=1,nats
-        do i=1,iy
-          src_1(i,n,j)=dustsotex_io(i,j,n)
-        end do
-      end do
-    end do
+  if ( rd_tex ) then
+    call deco1_scatter(dustsotex_io,dustsotex, &
+                       jcross1,jcross2,icross1,icross2,1,nats)
   end if
-
-  call mpi_scatter(src_1,iy*jxp*nats,mpi_real8, &
-                   src1,iy*jxp*nats,mpi_real8,0,  &
-                   mycomm,ierr)
-
-
-    do j=1,jxp
-      do n=1,nats
-        do i=1,iy
-          dustsotex(i,j,n)=src1(i,n,j)
-        end do
-    end do
-  end do
 
 ! end texture file reading
 
@@ -254,8 +237,8 @@ module mod_che_dust
         sand2row2(i,nt,j) = bsnd(nt)*d_100
         silt2row2(i,nt,j) = bslt(nt)*d_100
 
-        sandrow2(i,j) = sandrow2(i,j) + dustsotex(i,j,nt)* sand2row2(i,nt,j)
-        clayrow2(i,j) = clayrow2(i,j) + dustsotex(i,j,nt)*clay2row2(i,nt,j)
+        sandrow2(i,j) = sandrow2(i,j) + dustsotex(j,i,nt)* sand2row2(i,nt,j)
+        clayrow2(i,j) = clayrow2(i,j) + dustsotex(j,i,nt)*clay2row2(i,nt,j)
 
       end do
     end do
@@ -489,7 +472,7 @@ module mod_che_dust
       xustarnd(ieff) = ustarnd(i) 
       xclayrow(ieff) = clayrow2(i,jloop)
       do n = 1 , nats
-        xftex(ieff,n) = dustsotex(i,jloop,n)
+        xftex(ieff,n) = dustsotex(jloop,i,n)
       do  ns = 1 , nsoil
          xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
       end do

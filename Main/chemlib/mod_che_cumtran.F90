@@ -22,6 +22,7 @@ module mod_che_cumtran
 ! Tracer convective transport
 !
   use mod_dynparam
+  use mod_realkinds
   use mod_che_common
 !
   private
@@ -42,8 +43,8 @@ module mod_che_cumtran
 
   implicit none
 !
-  real(8) :: chiabar , chibbar , deltas
-  integer :: i , j , k , kctop , n,cumfrc
+  real(dp) :: chiabar , chibbar , deltas , cumfrc
+  integer :: i , j , k , kctop , n
 !
   do n = 1 , ntr
     do j = jci1 , jci2

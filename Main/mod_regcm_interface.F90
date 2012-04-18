@@ -244,7 +244,6 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call free_mpp_initspace
     call time_print(6,'inizialization phase')
     call time_reset()
 !

@@ -69,13 +69,11 @@ module mod_che_chemistry
 
   contains
 
-    subroutine chemistry(jj,chemin,chemox,taa,psaa,zena, &
-                         ktau,idatein,tod)
+    subroutine chemistry(jj,chemin,chemox,taa,psaa,zena,idatein,tod)
 
       implicit none
 
       integer , intent(in) :: jj
-      integer(8) , intent(in) :: ktau
       integer , intent(in) :: idatein
       real(dp) , intent(in) :: tod ! abt added for time of day
       real(dp) , dimension(2:iym2,1:kz,totsp) , intent(in) :: chemin
@@ -95,7 +93,6 @@ module mod_che_chemistry
 
       time = dtchsolv
       idate = idatein
-      ktaubx = ktau
       xhour = tod        !abt added for time of day
       c_numitr = 20
 
@@ -265,30 +262,23 @@ module mod_che_chemistry
           chemox(i,k,ind_ACET) = xr(1,ind_ACET)
         end do
       end do
-      
-
-   end subroutine chemistry
+    end subroutine chemistry
 !
-!c -------------------------------------------------------------------
-    subroutine gas_phase(j,ktau,secofday,lyear,lmonth,lday)
-
+!-------------------------------------------------------------------
+!
+    subroutine gas_phase(j,secofday,lyear,lmonth,lday)
       implicit none
-
       integer , intent(in) :: j
       integer , intent(in) :: lyear , lmonth , lday
-      integer(8) :: ktau
       real(dp) , intent(in) :: secofday
 
-      real(dp) , dimension(2:iym2,1:kz) :: taa , psaa , rhoa
-      real(dp) , dimension(1:jxp,2:iym2,1:kz,totsp) :: chemin , chemox
-      real(dp) , dimension(1:iym2,1:kz,56) :: jphoto
-      real(dp) , dimension(iy,jxp) :: psdot
-      real(dp) :: airmw , cfactor , ccfactor , pfact , ro3 , rh2o2 
-      real(dp) , dimension(2:iym2) :: zena
-      real(dp) , dimension(iym1,ntr) :: vdep
-      real(dp) :: fact1 , fact2 , srctemp , tod
-      integer :: idatein , tstart
-      integer :: itr , i , k , nn
+      real(dp) , dimension(ici1:ici2,1:kz) :: taa , psaa
+      real(dp) , dimension(jci1:jci2,ici1:ici2,1:kz,totsp) :: chemin , chemox
+      real(dp) :: cfactor , pfact
+      real(dp) , dimension(ici1:ici2) :: zena
+      real(dp) :: tod
+      integer :: idatein
+      integer :: i , k
 
       chemin(j,:,:,:) = d_zero
       chemox(j,:,:,:) = d_zero
@@ -342,76 +332,67 @@ module mod_che_chemistry
      
       idatein = (lyear-1900)*10000+lmonth*100+lday
 
-      call chemistry(j,chemin(j,:,:,:),chemox(j,:,:,:),      &
-                     taa,psaa,zena,ktau,idatein,tod)
+      call chemistry(j,chemin(j,:,:,:),chemox(j,:,:,:), &
+                     taa,psaa,zena,idatein,tod)
 
- 
-!FAB :  Now save the chemistry tendency 
-!be carefull should be multiplied by surface pressure ( consistency with chib unit)
+      ! FAB :  Now save the chemistry tendency 
+      ! be carefull should be multiplied by surface pressure
+      ! ( consistency with chib unit)
 
- do k = 1 , kz
-        do i = 2 , iym2
-! convection factor to get the tendency from mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ! convection factor to get the tendency from 
+          ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-          pfact = cpsb(j,i)/ cfactor
- 
-        chemten(j,i,k,io3)   =  (chemox(j,i,k,ind_O3)- chemin(j,i,k,ind_O3) )*pfact*W_O3         &
-     &                          /dtchsolv
-        chemten(j,i,k,ino2)  =  (chemox(j,i,k,ind_NO2)- chemin(j,i,k,ind_NO2) )*pfact*W_NO2       &
-     &                          /dtchsolv
-        chemten(j,i,k,ino)   =  (chemox(j,i,k,ind_NO)- chemin(j,i,k,ind_O3))*pfact*W_NO          & 
-     &                          /dtchsolv
-        chemten(j,i,k,ico)   =  (chemox(j,i,k,ind_CO) -  chemin(j,i,k,ind_CO)) *pfact*W_CO        &
-     &                          /dtchsolv
-        chemten(j,i,k,ih2o2) =  (chemox(j,i,k,ind_H2O2) - chemin(j,i,k,ind_H2O2)) *pfact*W_H2O2    &
-     &                          /dtchsolv
-        chemten(j,i,k,ihno3)  =  (chemox(j,i,k,ind_HNO3) - chemin(j,i,k,ind_HNO3)) *pfact*W_HNO3   &
-     &                          /dtchsolv
-        chemten(j,i,k,in2o5)  = (chemox(j,i,k,ind_N2O5) - chemin(j,i,k,ind_N2O5)) *pfact*W_N2O5     &
-     &                          /dtchsolv
-          chemten(j,i,k,iso2)   = (chemox(j,i,k,ind_SO2)  - chemin(j,i,k,ind_SO2))    *pfact*W_SO2   &
-     &                          /dtchsolv
-          chemten(j,i,k,iso4)   = (chemox(j,i,k,ind_SULF) - chemin(j,i,k,ind_SULF)) *pfact*W_SULF   &
-     &                          /dtchsolv
-          chemten(j,i,k,idms)   = (chemox(j,i,k,ind_DMS)  - chemin(j,i,k,ind_DMS)) *pfact*W_DMS     &
-     &                          /dtchsolv
-          chemten(j,i,k,ihcho)  = (chemox(j,i,k,ind_HCHO) - chemin(j,i,k,ind_HCHO)) *pfact*W_HCHO   &
-     &                          /dtchsolv
-          chemten(j,i,k,iald2)  = (chemox(j,i,k,ind_ALD2) - chemin(j,i,k,ind_ALD2)) *pfact*W_ALD2    &
-     &                          /dtchsolv
-          chemten(j,i,k,iisop)  = (chemox(j,i,k,ind_ISOP) - chemin(j,i,k,ind_ISOP))  *pfact*W_ISOP    &
-     &                          /dtchsolv 
-          chemten(j,i,k,ic2h6)  = (chemox(j,i,k,ind_C2H6) - chemin(j,i,k,ind_C2H6))  *pfact*W_C2H6     &
-     &                          /dtchsolv 
-          chemten(j,i,k,ipar)   = (chemox(j,i,k,ind_PAR)  - chemin(j,i,k,ind_PAR)) *pfact*W_C3H8      &
-     &                          /dtchsolv
-          chemten(j,i,k,itolue) = (chemox(j,i,k,ind_TOLU) - chemin(j,i,k,ind_TOLU)) *pfact*W_TOLU      &
-     &                          /dtchsolv
-          chemten(j,i,k,ixyl)   = (chemox(j,i,k,ind_XYLE) - chemin(j,i,k,ind_XYLE)) *pfact*W_XYLE     &
-     &                          /dtchsolv
-          chemten(j,i,k,iethe)  = (chemox(j,i,k,ind_ETHE) - chemin(j,i,k,ind_ETHE)) *pfact*W_ETHENE   &
-     &                          /dtchsolv
-          chemten(j,i,k,ipan)   = (chemox(j,i,k,ind_PAN)  - chemin(j,i,k,ind_PAN))  * pfact*W_PAN     &
-     &                          /dtchsolv
-          chemten(j,i,k,ich4)   = (chemox(j,i,k,ind_CH4)  - chemin(j,i,k,ind_CH4))  * pfact*W_CH4      &
-     &                          /dtchsolv
-          chemten(j,i,k,iolt)   = (chemox(j,i,k,ind_PRPE) - chemin(j,i,k,ind_PRPE))  * pfact*W_OLT     &
-     &                          /dtchsolv
-          chemten(j,i,k,ioli)   = (chemox(j,i,k,ind_BUTE) - chemin(j,i,k,ind_BUTE))  * pfact*W_OLI    &
-     &                          /dtchsolv
-          chemten(j,i,k,imoh)   = (chemox(j,i,k,ind_MOH)  - chemin(j,i,k,ind_MOH))   *pfact*W_MOH   & 
-     &                          /dtchsolv
-          chemten(j,i,k,iacet)  = (chemox(j,i,k,ind_ACET) - chemin(j,i,k,ind_ACET))  *pfact*W_ACET    &
-     &                          /dtchsolv
-
-
-
-!        chemten(j,i,k,ilimo) = (chia(j,i,k,ilimo)-chib(j,i,k,ilimo))
-!     &                          /dtchem
-!        chemten(j,i,k,iapin) = (chia(j,i,k,iapin)-chib(j,i,k,iapin))
-!     &                          /dtchem
-
-         
+          pfact = cpsb(j,i)/cfactor/dtchsolv
+          chemten(j,i,k,io3)    = &
+             (chemox(j,i,k,ind_O3)  - chemin(j,i,k,ind_O3))  *pfact*W_O3
+          chemten(j,i,k,ino2)   = &
+             (chemox(j,i,k,ind_NO2) - chemin(j,i,k,ind_NO2)) *pfact*W_NO2
+          chemten(j,i,k,ino)    = &
+            (chemox(j,i,k,ind_NO)   - chemin(j,i,k,ind_O3))  *pfact*W_NO
+          chemten(j,i,k,ico)    = &
+            (chemox(j,i,k,ind_CO)   - chemin(j,i,k,ind_CO))  *pfact*W_CO
+          chemten(j,i,k,ih2o2)  = &
+            (chemox(j,i,k,ind_H2O2) - chemin(j,i,k,ind_H2O2))*pfact*W_H2O2
+          chemten(j,i,k,ihno3)  = &
+            (chemox(j,i,k,ind_HNO3) - chemin(j,i,k,ind_HNO3))*pfact*W_HNO3
+          chemten(j,i,k,in2o5)  = &
+            (chemox(j,i,k,ind_N2O5) - chemin(j,i,k,ind_N2O5))*pfact*W_N2O5
+          chemten(j,i,k,iso2)   = &
+            (chemox(j,i,k,ind_SO2)  - chemin(j,i,k,ind_SO2)) *pfact*W_SO2
+          chemten(j,i,k,iso4)   = &
+            (chemox(j,i,k,ind_SULF) - chemin(j,i,k,ind_SULF))*pfact*W_SULF
+          chemten(j,i,k,idms)   = &
+            (chemox(j,i,k,ind_DMS)  - chemin(j,i,k,ind_DMS)) *pfact*W_DMS
+          chemten(j,i,k,ihcho)  = &
+            (chemox(j,i,k,ind_HCHO) - chemin(j,i,k,ind_HCHO))*pfact*W_HCHO
+          chemten(j,i,k,iald2)  = &
+            (chemox(j,i,k,ind_ALD2) - chemin(j,i,k,ind_ALD2))*pfact*W_ALD2
+          chemten(j,i,k,iisop)  = &
+            (chemox(j,i,k,ind_ISOP) - chemin(j,i,k,ind_ISOP))*pfact*W_ISOP
+          chemten(j,i,k,ic2h6)  = &
+            (chemox(j,i,k,ind_C2H6) - chemin(j,i,k,ind_C2H6))*pfact*W_C2H6
+          chemten(j,i,k,ipar)   = &
+            (chemox(j,i,k,ind_PAR)  - chemin(j,i,k,ind_PAR)) *pfact*W_C3H8
+          chemten(j,i,k,itolue) = &
+            (chemox(j,i,k,ind_TOLU) - chemin(j,i,k,ind_TOLU))*pfact*W_TOLU
+          chemten(j,i,k,ixyl)   = &
+            (chemox(j,i,k,ind_XYLE) - chemin(j,i,k,ind_XYLE))*pfact*W_XYLE
+          chemten(j,i,k,iethe)  = &
+            (chemox(j,i,k,ind_ETHE) - chemin(j,i,k,ind_ETHE))*pfact*W_ETHENE
+          chemten(j,i,k,ipan)   = &
+            (chemox(j,i,k,ind_PAN)  - chemin(j,i,k,ind_PAN)) *pfact*W_PAN
+          chemten(j,i,k,ich4)   = &
+            (chemox(j,i,k,ind_CH4)  - chemin(j,i,k,ind_CH4)) *pfact*W_CH4
+          chemten(j,i,k,iolt)   = &
+            (chemox(j,i,k,ind_PRPE) - chemin(j,i,k,ind_PRPE))*pfact*W_OLT
+          chemten(j,i,k,ioli)   = &
+            (chemox(j,i,k,ind_BUTE) - chemin(j,i,k,ind_BUTE))*pfact*W_OLI
+          chemten(j,i,k,imoh)   = &
+            (chemox(j,i,k,ind_MOH)  - chemin(j,i,k,ind_MOH)) *pfact*W_MOH
+          chemten(j,i,k,iacet)  = &
+            (chemox(j,i,k,ind_ACET) - chemin(j,i,k,ind_ACET))*pfact*W_ACET
        end do
     end do
 

@@ -23,7 +23,6 @@ module mod_mppio
   use mod_atm_interface
   use mod_lm_interface
   use mod_cu_interface
-  use mod_che_interface
   use mod_rad_interface
   use mod_pbl_interface , only : ibltyp , tcm_state , allocate_tcm_state
   use mod_memutil
@@ -247,19 +246,5 @@ module mod_mppio
     endif
 
   end subroutine allocate_mod_mppio
-!
-  subroutine free_mpp_initspace
-    implicit none
-    if (ichem == 1) then
-      call relmem4d(src0)
-      call relmem3d(src1)
-    end if
-    if (myid == 0) then
-      if (ichem == 1) then
-        call relmem4d(src_0)
-        call relmem3d(src_1)
-      end if
-    end if
-  end subroutine free_mpp_initspace
 !
 end module mod_mppio

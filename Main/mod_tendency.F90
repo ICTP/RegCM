@@ -714,7 +714,7 @@ module mod_tendency
       ! Compute chemistry tendencies (other than transport)
       !
       sod = dble(idatex%second_of_day)
-      call tractend2(jci1,jci2,ici1,ici2,ktau,xyear,xmonth,xday,calday,sod)
+      call tractend2(ktau,xyear,xmonth,xday,sod)
       !
     end if ! ichem
 !
@@ -1379,7 +1379,7 @@ module mod_tendency
     !
     ! do cumulus transport of tracers
     !
-    if ( ichem == 1 .and. ichcumtra == 1 .and. icup .ne. 5) call cumtran
+    if ( ichem == 1 .and. ichcumtra == 1 .and. icup /= 5 ) call cumtran
     ! 
     ! trace the mass conservation of dry air and water substance:
     !

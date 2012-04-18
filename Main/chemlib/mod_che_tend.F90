@@ -22,6 +22,7 @@
 ! Tendency and budget for tracer transport and chemicals
 !
   use mod_constants
+  use mod_realkinds
   use mod_dynparam
   use mod_che_common
   use mod_che_indices
@@ -50,46 +51,37 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(jstart,jend,istart,iend,ktau,lyear,lmonth,lday,calday,secofday)
+    subroutine tractend2(ktau,lyear,lmonth,lday,secofday)
       implicit none
 !
-      integer , intent(in) :: jstart , jend , istart , iend , lmonth,lday,lyear
-      real(8), intent(in) :: calday,secofday
+      integer , intent(in) :: lmonth , lday , lyear
+      real(dp), intent(in) :: secofday
       integer(8) , intent(in) :: ktau
-
-
 !
-      real(8) :: agct , ak00t , ak0tm , akval , clmin , facb , facs , &
-                 fact , facv , pres10 , qsat10 , remcum , satvp ,     &
-                 shu10 , u10 , v10 , chias , chibs
+      real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
+                 satvp , shu10 , u10 , v10
 
-      real(8) , dimension(ntr) :: agingtend
-      real(8) , dimension(jstart:jend,iy,kz) :: wk, rho , settend , &
+      real(dp) , dimension(jci1:jci2,iy,kz) :: rho , &
                                     ttb, wl, fracloud, fracum , prec
 
-      integer :: i , j , ibin , itr , k , kk , kb , kdwd
+      integer :: i , j , ibin , k , kk
       integer , dimension(1:jxp,iy) :: ivegcov
 
-      real(8) , dimension(1:jxp,iy,kz,ntr) :: pdepv
-      real(8) , dimension(1:jxp,iy,ntr) :: ddepa
+      real(dp) , dimension(1:jxp,iy,kz,ntr) :: pdepv
+      real(dp) , dimension(1:jxp,iy,ntr) :: ddepa
 
-
-      real(8) , dimension(1:jxp,iy) :: psurf , rh10 , soilw , srad ,  &
+      real(dp) , dimension(1:jxp,iy) :: psurf , rh10 , soilw , srad ,  &
           temp10 , tsurf , vegfrac , wid10 , zeff , ustar
 
       real(dp) , dimension(1:jxp,iy,nbin) :: dust_flx
-      real(8), dimension(1:jxp,iy,sbin) :: seasalt_flx
-      real(8), dimension(1:jxp,iy,ntr) :: drydepvg
-      real(8) , dimension(ntr) :: wetrem , wetrem_cvc
+      real(dp), dimension(1:jxp,iy,sbin) :: seasalt_flx
 !
       integer(8) :: kchsolv
-
 !
 !**************************************************************************
 !     A : PRELIMINARY CALCULATIONS
 !*************************************************************************
 ! 
-
         rho = d_zero
         wl = d_zero
         ttb = d_zero
@@ -101,11 +93,11 @@
         dust_flx = d_zero
         seasalt_flx = d_zero
         ivegcov=0
-      do j = jstart , jend
+      do j = jci1 , jci2
 
 !       the unit: rho - kg/m3, wl - g/m3
         do k = 1 , kz
-          do i = istart , iend
+          do i = ici1 , ici2
 !           rho(j,i,k) = (sfs%psb(i,j)*a(k)+r8pt)* &
 !      what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
             rho(j,i,k) = crhob3d(j,i,k)
@@ -121,7 +113,7 @@
 !       cumulus scale : fracum, calculated from the total cloud fraction
 !       (as defined for the radiation scheme in cldfrac.f routine)
    
-        do i = istart , iend
+        do i = ici1 , ici2
            if ( kcumtop(j,i) > 0 ) then
             do kk = kcumtop(j,i) , kz
               fracum(j,i,kk) = ccldfra(j,i,kk) - cfcc(j,i,kk)
@@ -132,7 +124,7 @@
 !       variables used for natural fluxes and deposition velocities 
 ! 
         
-        do i = istart , iend
+        do i = ici1 , ici2
 
 ! care ocean-lake in veg2d is now back type 14-15 !!
 
@@ -235,7 +227,7 @@
 !
         if ( igaschem == 0 ) then
           if (iso2 > 0 .and. iso4 >0.) then
-          do j=jstart,jend
+          do j=jci1,jci2
             call chemsox(j,wl(j,:,:),fracloud(j,:,:),fracum(j,:,:),rho(j,:,:),ttb(j,:,:))
           end do
           end if
@@ -247,7 +239,7 @@
 !
         if ( (ibchb > 0 .and. ibchl > 0 ) .or. &
              (iochb > 0 .and. iochl > 0) ) then
-          do j=jstart,jend
+          do j=jci1,jci2
           call aging_carb(j)
           end do
         end if
@@ -259,7 +251,7 @@
         ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
         if ( idust(1) > 0 ) then
         
-        do j= jstart,jend
+        do j= jci1,jci2
  
         call sfflux(iy,2,iym2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
                       zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,dust_flx(j,:,:))     
@@ -267,7 +259,7 @@
         end if
 
         if (  isslt(1) > 0 )then
-        do j=jstart,jend
+        do j=jci1,jci2
          call sea_salt(j,wid10(j,:),ivegcov(j,:),seasalt_flx(j,:,:))
         end do
         end if
@@ -275,7 +267,7 @@
 !       update emission tendencies from inventories
 
 
-        do j= jstart,jend
+        do j= jci1,jci2
         call emis_tend(ktau,j,lmonth)
         end do
 !
@@ -286,7 +278,7 @@
         pdepv = d_zero
         ddepa = d_zero
         if ( idust(1) > 0 ) then
-        do j=jstart,jend
+        do j=jci1,jci2
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
                             temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),dustbed,      &
                             pdepv(j,:,:,:),ddepa(j,:,:))
@@ -294,7 +286,7 @@
         end if
 
        if ( isslt(1) >0 ) then
-       do j=jstart,jend
+       do j=jci1,jci2
          call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev,psurf(j,:), &
                           temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),ssltbed,      &
                           pdepv(j,:,:,:),ddepa(j,:,:))
@@ -303,7 +295,7 @@
 
         if ( icarb(1) > 0 ) then
         ibin = count( icarb > 0 ) 
-          do j=jstart,jend
+          do j=jci1,jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(j,:),ttb(j,:,:),rho(j,:,:),hlev, &
                            psurf(j,:),temp10(j,:),tsurf(j,:),srad(j,:),rh10(j,:),wid10(j,:),zeff(j,:),         &
                            carbed(1:ibin),pdepv(j,:,:,:),ddepa(j,:,:))
@@ -314,7 +306,7 @@
 !       option compatible with BATS and CLM
 !!$
         if ( igaschem == 1 ) then
-          do j=jstart,jend
+          do j=jci1,jci2
 !          call drydep_gas(j,calday, ivegcov(j,:),rh10(j,:),srad(j,:),tsurf(j,:),prec(j,:,kz),temp10(j,:),  &
 !                          wid10(j,:),zeff(j,:),drydepvg(j,:,:))
           end do
@@ -323,21 +315,21 @@
 !       WET deposition (rainout and washout) for aerosol
 !!$
         if ( idust(1) > 0 ) then
-         do j=jstart,jend
+         do j=jci1,jci2
           call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                        fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:),prec(j,:,:),pdepv(j,:,:,:))  
          end do
         end if
 
        if ( isslt(1) > 0 )  then   
-         do j=jstart,jend
+         do j=jci1,jci2
          call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                       fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) )  
          end do
        end if
        if ( icarb(1) > 0 )  then   
          ibin = count( icarb > 0 ) 
-          do j=jstart,jend
+          do j=jci1,jci2
          call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl, &
                      ttb(j,:,:),wl(j,:,:),fracloud(j,:,:), &
                      fracum(j,:,:),psurf(j,:),hlev,rho(j,:,:), prec(j,:,:), pdepv(j,:,:,:) ) 
@@ -350,7 +342,7 @@
         if ( igaschem == 1 ) then
         checum = d_zero !  fix the interface for this variable ! no effect of cumulus scavenging now
         chevap = d_zero
-         do j=jstart,jend        
+         do j=jci1,jci2        
 !          call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
 !                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,2:iym2))
          end do
@@ -367,12 +359,12 @@
       kchsolv = 6 ! for the moment
    
       if (mod(ktau+1,kchsolv) == 0 ) then   
-       do j = jstart,jend
-        call gas_phase(j,ktau,secofday,lyear,lmonth,lday)
+       do j = jci1,jci2
+        call gas_phase(j,secofday,lyear,lmonth,lday)
        end do
        end if
 ! add tendency due to chemistry reaction (every dtche)      
-       chiten(jstart:jend,:,:,:) =  chiten(jstart:jend,:,:,:) +   chemten(jstart:jend,:,:,:)
+       chiten(jci1:jci2,:,:,:) =  chiten(jci1:jci2,:,:,:) +   chemten(jci1:jci2,:,:,:)
 
       end if
  

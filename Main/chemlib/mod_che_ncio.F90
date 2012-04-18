@@ -320,7 +320,7 @@ module mod_che_ncio
     subroutine read_texture(nats,texture)
       implicit none
       integer , intent(in) :: nats
-      real(dp) , dimension(iy,jx,nats) , intent(out) :: texture
+      real(dp) , pointer , dimension(:,:,:) , intent(out) :: texture
 
       integer :: ivarid
       integer :: i , j , n
@@ -346,10 +346,10 @@ module mod_che_ncio
         istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
         call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
                       'DOMAIN FILE')
-        do j = 1 , jx
-          do i = 1 , iy
-            texture(i,j,n) = dble(toto(j,i))*0.01D0
-            if (texture(i,j,n)<d_zero) texture(i,j,n)=d_zero
+        do i = 1 , iy
+          do j = 1 , jx
+            texture(j,i,n) = dble(toto(j,i))*0.01D0
+            if ( texture(j,i,n) < d_zero ) texture(j,i,n) = d_zero
           end do
         end do
       end do
@@ -361,7 +361,7 @@ module mod_che_ncio
       implicit none
       character(256) :: aername
       character(5) , dimension(ntr) , intent(in) :: chtrname
-      real(dp) , dimension(iy,jx,12,ntr) , intent(out) :: chemsrc
+      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: chemsrc
 
       integer :: ncid , ivarid
       real(sp) , dimension(jx,iy) :: toto
@@ -388,9 +388,9 @@ module mod_che_ncio
               call check_ok(__FILE__,__LINE__, &
                             'Variable so2 read error','AEROSOL FILE')
               do m = 1 , 12
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = dble(toto(j,i))
                   end do
                 end do
               end do
@@ -409,9 +409,9 @@ module mod_che_ncio
                 istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
                 call check_ok(__FILE__,__LINE__, &
                               'Variable so2_mon read err','AEROSOL FILE')
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
                   end do
                 end do
               end do
@@ -425,9 +425,9 @@ module mod_che_ncio
               call check_ok(__FILE__,__LINE__, &
                             'Variable bc read error','AEROSOL FILE')
               do m = 1 , 12
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = dble(toto(j,i))
                   end do
                 end do
               end do
@@ -446,9 +446,9 @@ module mod_che_ncio
                 istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
                 call check_ok(__FILE__,__LINE__, &
                               'Variable bc_mon read err','AEROSOL FILE')
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
                   end do
                 end do
               end do
@@ -462,9 +462,9 @@ module mod_che_ncio
               call check_ok(__FILE__,__LINE__, &
                             'Variable oc read error','AEROSOL FILE')
               do m = 1 , 12
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = dble(toto(j,i))
                   end do
                 end do
               end do
@@ -483,9 +483,9 @@ module mod_che_ncio
                 istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
                 call check_ok(__FILE__,__LINE__, &
                               'Variable oc_mon read err','AEROSOL FILE')
-                do j = 1 , jx
-                  do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
+                do i = 1 , iy
+                  do j = 1 , jx
+                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
                   end do
                 end do
               end do
@@ -504,7 +504,7 @@ module mod_che_ncio
     subroutine read_emission(lmonth,echemsrc)
       implicit none
       integer , intent(in) :: lmonth
-      real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
+      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
       integer :: ncid 
       integer , dimension(3) :: istart , icount
@@ -665,7 +665,7 @@ module mod_che_ncio
       integer , intent(in) :: ncid
       integer , dimension(3) , intent(in) :: istart , icount
       integer , intent(in) :: lmonth
-      real(dp) , dimension(iy,jx,12,ntr) , intent(inout) :: echemsrc
+      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb
@@ -682,15 +682,15 @@ module mod_che_ncio
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' read err','CHEM_EMISS FILE')
       if ( lh ) then  ! half of lumped Aromatics
-        do j = 1 , jx
-          do i = 1 , iy
-            echemsrc(i,j,lmonth,ind) = d_half*toto(j,i)
+        do i = 1 , iy
+          do j = 1 , jx
+            echemsrc(j,i,lmonth,ind) = d_half*toto(j,i)
           end do
         end do
       else
-        do j = 1 , jx
-          do i = 1 , iy
-            echemsrc(i,j,lmonth,ind) = toto(j,i)
+        do i = 1 , iy
+          do j = 1 , jx
+            echemsrc(j,i,lmonth,ind) = toto(j,i)
           end do
         end do
       end if
@@ -701,9 +701,9 @@ module mod_che_ncio
         istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnb//' read err','CHEM_EMISS FILE')
-        do j = 1 , jx
-          do i = 1 , iy
-            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+        do i = 1 , iy
+          do j = 1 , jx
+            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
           end do
         end do
       end if
@@ -714,9 +714,9 @@ module mod_che_ncio
         istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnc//' read err','CHEM_EMISS FILE')
-        do j = 1 , jx
-          do i = 1 , iy
-            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+        do i = 1 , iy
+          do j = 1 , jx
+            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
           end do
         end do
       end if
@@ -727,9 +727,9 @@ module mod_che_ncio
         istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' read err','CHEM_EMISS FILE')
-        do j = 1 , jx
-          do i = 1 , iy
-            echemsrc(i,j,lmonth,ind) = toto(j,i) + echemsrc(i,j,lmonth,ind)
+        do i = 1 , iy
+          do j = 1 , jx
+            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
           end do
         end do
       end if

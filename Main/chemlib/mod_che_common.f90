@@ -159,9 +159,8 @@ contains
 
 ! FAB rewrite more elegantly above 
 
-      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
-      
-
+      call getmem4d(chemsrc,jce1,jce2,ice1,ice2, &
+                    1,mpy,1,ntr,'mod_che_common:chemsrc')
 
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
       call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'mod_che_common:cemtrac')

@@ -199,8 +199,6 @@ module mod_che_output
           end do
 
 !
-
-
   end subroutine output_chem
 !----------------------------------------------------------------
 !================================================================
@@ -208,7 +206,7 @@ module mod_che_output
   subroutine outche2(idatex)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
-      integer :: ni , itr , nj , nk , is , ie , js , je
+      integer :: ni , nj , nk , is , ie , js , je
 
        if ( lcband ) then
          ni = iym2

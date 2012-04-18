@@ -35,80 +35,42 @@ module mod_che_emission
 !
   private
 !
-  public :: chem_emission , chsrfem , emis_tend 
+  public :: chem_emission , emis_tend 
 !
   contains
 !
 ! SURFACE EMIOSSION flux
 !
   subroutine chem_emission(lmonth)
-
-#ifndef IBM
-    use mpi
-#endif 
     implicit none
-#ifdef IBM 
-    include 'mpif.h'
-#endif
-!
     integer , intent(in) :: lmonth
-    integer :: i , j , m
-    integer :: itr , ierr
 !
+    integer , save :: currmonth
     character (len=64) :: subroutine_name = 'chem_emission'
     integer :: idindx = 0
-
-    integer, save :: currmonth
 !
     call time_begin(subroutine_name,idindx)
-
-! read the monthly aerosol emission files
-! FAB: remember for now, we have 1 emission file containing all monthly emission for the whole simulation period
-! change that in the future. Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
-!
-!
-
-    if (lmonth == currmonth) then 
-     ! exit this routine
-     return 
+    !
+    ! read the monthly aerosol emission files
+    ! FAB: remember for now, we have 1 emission file containing all monthly
+    ! emission for the whole simulation period
+    ! change that in the future. Also lmonth is not really necessary here,
+    ! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+    !
+    if ( lmonth == currmonth ) then 
+      return 
     else
-     currmonth=lmonth
+      currmonth = lmonth
     end if
-
     if ( myid == 0 ) then
- 
-     write(*,*)'READ CHEM EMISSION for month', lmonth
-
-     chemsrc_io(:,:,:,:) = d_zero
-
-!  Also lmonth is not really necessary here, but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
-
+      write(*,*)'READ CHEM EMISSION for month', lmonth
+      chemsrc_io(:,:,:,:) = d_zero
+      ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
+      ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
       call read_emission(lmonth,chemsrc_io)
-      do j = 1 , jx
-        do itr = 1 , ntr
-          do m = 1 , mpy
-            do i = 1 , iy
-              src_0(i,m,itr,j) = chemsrc_io(i,j,lmonth,itr)
-            end do
-          end do
-        end do
-      end do
     end if
-
-    call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,  &
-                     src0, iy*mpy*ntr*jxp,mpi_real8,  &
-                     0,mpi_comm_world,ierr)
-    do j = 1 , jxp
-      do itr = 1 , ntr
-        do m = 1 , mpy
-          do i = 1 , iy
-            chemsrc(i,j,lmonth,itr) = src0(i,m,itr,j)
-          end do
-        end do
-      end do
-    end do
-
-
+    call deco1_scatter(chemsrc_io,chemsrc,jcross1, &
+                       jcross2,icross1,icross2,1,mpy,1,ntr)
     call time_end(subroutine_name,idindx) 
   end subroutine chem_emission
 !
@@ -139,23 +101,25 @@ subroutine emis_tend(ktau,j,lmonth)
     integer , intent(in) , dimension(:) :: bvoc_trmask
 #endif
 #endif
-!    real(dp) , intent(in) :: declin
-    integer :: jj ! Full grid j-component
+    integer :: i , itr
 
-    integer :: ib , itr , i , k
-    real(dp) :: daylen , fact , maxelev , dayhr , isosrc , amp
+    ! real(dp) , intent(in) :: declin
+    ! integer :: jj ! Full grid j-component
+    ! integer :: ib , k
+    ! real(dp) :: daylen , fact , maxelev , dayhr , isosrc , amp
     
     ! calculate the tendency linked to emissions from emission fluxes
-    ! In the future split these acalculation in corresponding module  ??
+    ! In the future split these calculations in corresponding module  ??
+
 #ifdef CLM
 #if (defined VOC)
-    jj = j+(jxp*myid)
+    ! jj = j+(jxp*myid)
 #endif
 #endif
 
     ! 1 General case. In the future: add injection heights.
     do itr = 1 , ntr
-      do i = 2 , iym2
+      do i = ici1 , ici2
         if ( chtrname(itr)(1:4).ne.'DUST' .or. &
              chtrname(itr)(1:4).ne.'SSALT' ) then 
 !!$          daylen = d_two*acos(-tan(declin)*tan(xlat(i,j)*degrad))*raddeg
@@ -176,33 +140,33 @@ subroutine emis_tend(ktau,j,lmonth)
           ! zero when using BATS
            if ( bvoc_trmask(itr) /= 0 ) then
              if ( ktau == 0 ) c2r_voc(jj,i,bvoc_trmask(itr)) = d_zero
-             chemsrc(i,j,lmonth,itr) = c2r_voc(jj,i,bvoc_trmask(itr))/d_1
+             chemsrc(j,i,lmonth,itr) = c2r_voc(jj,i,bvoc_trmask(itr))/d_1
            end if
 #endif
 #endif
            ! update emission tendency according to chemsrc value
 !!$           if ( chtrname(itr) == 'ISOP' ) then
 !!$             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
-!!$                           (amp)*chemsrc(i,j,lmonth,itr) * &
+!!$                           (amp)*chemsrc(j,i,lmonth,itr) * &
 !!$                          sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
 !!$             ! diagnostic for source, cumul
-!!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(i,j,lmonth,itr) * &
+!!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(j,i,lmonth,itr) * &
 !!$                           sin(mathpi*fact)*dtche/d_two
 !!$           else
  
   
          if ( ichdrdepo == 1) then  
              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                           chemsrc(i,j,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
+                           chemsrc(j,i,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
          elseif ( ichdrdepo ==2) then
 !then emission is injected in the PBL scheme
-              cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(i,j,lmonth,itr)
+              cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,lmonth,itr)
          end if
 
 
              ! diagnostic for source, cumul
              cemtr(i,j,itr) = cemtr(i,j,itr) + &
-                           chemsrc(i,j,lmonth,itr)*dtche/d_two
+                              chemsrc(j,i,lmonth,itr)*dtche/d_two
 !!$           end if
          end if
        end do

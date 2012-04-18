@@ -54,10 +54,6 @@ module mod_che_mppio
 
   real(dp) , pointer , dimension(:,:,:) :: chem0
   real(dp) , pointer , dimension(:,:,:) :: chem_0
-  real(dp) , pointer , dimension(:,:,:,:) :: src0
-  real(dp) , pointer , dimension(:,:,:,:) :: src_0
-  real(dp) , pointer , dimension(:,:,:) :: src1
-  real(dp) , pointer , dimension(:,:,:) :: src_1
 
   real(dp) , pointer , dimension(:,:,:) :: savch0, savch_0
 !
@@ -90,8 +86,6 @@ module mod_che_mppio
     if ( lch ) then
 
       call getmem3d(chem0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jxp,'che_mppio:chem0')
-      call getmem4d(src0,1,iy,1,mpy,1,ntr,1,jxp,'che_mppio:src0')
-      call getmem3d(src1,1,iy,1,nats,1,jxp,'che_mppio:src1')
       call getmem3d(savch0,1,iy,1,kz*25,1,jxp,'che_mppio:savch0')
 
       if (myid == 0) then
@@ -102,8 +96,6 @@ module mod_che_mppio
   
 
         call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
-        call getmem4d(src_0,1,iy,1,mpy,1,ntr,1,jx,'che_mppio:src_0')
-        call getmem3d(src_1,1,iy,1,nats,1,jx,'che_mppio:src_1')
         call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
 
       
@@ -128,14 +120,16 @@ module mod_che_mppio
         call getmem4d(remlsc_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:remlsc_io')
         call getmem3d(remdrd_io,1,iy,1,jx,1,ntr,'che_mppio:remdrd_io')
         call getmem3d(drydepv_io,1,iy,1,jx,1,ntr,'che_mppio:drydepv_io')
-        call getmem4d(chemsrc_io,1,iy,1,jx,1,mpy,1,ntr,'che_mppio:chemsrc_io')
+        call getmem4d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
+                      1,mpy,1,ntr,'che_mppio:chemsrc_io')
         call getmem3d(ddsfc_io,1,iy,1,jx,1,ntr,'che_mppio:ddsfc_io')
         call getmem3d(dtrace_io,1,iy,1,jx,1,ntr,'che_mppio:dtrace_io')
         call getmem3d(wdcvc_io,1,iy,1,jx,1,ntr,'che_mppio:wdcvc_io')
         call getmem3d(wdlsc_io,1,iy,1,jx,1,ntr,'che_mppio:wdlsc_io')
         call getmem4d(chia_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chia_io')
         call getmem4d(chib_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chib_io')
-        call getmem3d(dustsotex_io,1,iy,1,jx,1,nats,'che_mppio:dustsotex_io')
+        call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
+                      1,nats,'che_mppio:dustsotex_io')
 
         call getmem3d(aerasp_io,1,iym1,1,kz,1,mmj,'che_mppio:aerasp_io')
         call getmem3d(aerext_io,1,iym1,1,kz,1,mmj,'che_mppio:aerext_io')
