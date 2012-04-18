@@ -1239,7 +1239,7 @@ module mod_tendency
 !   Couple TKE to ps for use in vertical advection
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      do k = 1 , kz
+      do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2
             uwstatea%tkeps(j,i,k) = atm1%tke(j,i,k)*sfs%psa(j,i)

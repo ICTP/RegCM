@@ -81,7 +81,6 @@ module mod_params
   character(len=5) , dimension(maxntr) :: inpchtrname
   real(dp) , dimension(maxntr) :: inpchtrsol
   real(dp) , dimension(maxntr,2) :: inpchtrdpv
-  real(dp) , dimension(maxnbin,2) :: inpdustbsiz
   logical , dimension(n_atmvar) :: atm_enablevar
   logical , dimension(n_srfvar) :: srf_enablevar
   logical , dimension(n_stsvar) :: sts_enablevar
@@ -145,7 +144,7 @@ module mod_params
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
     ichcumtra , ichsolver , idirect , inpchtrname , inpchtrsol ,          &
-    inpchtrdpv , inpdustbsiz
+    inpchtrdpv
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
