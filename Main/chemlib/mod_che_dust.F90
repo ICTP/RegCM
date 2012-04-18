@@ -98,10 +98,10 @@ module mod_che_dust
 !
     subroutine allocate_mod_che_dust 
       implicit none
+      call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
       call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')
       call getmem3d(sand2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:sand2row2')
       call getmem3d(silt2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:silt2row2')
-      call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
       call getmem2d(clayrow2,ici1,ici2,jci1,jci2,'che_dust:clayrow2')
       call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
       call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats,'che_dust:srel2d')

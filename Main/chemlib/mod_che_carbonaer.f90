@@ -31,9 +31,8 @@ module mod_che_carbonaer
   ! Parameter usefull for wet and dry deposition of carbon aerosol 
   ! densities in kg/m3
 
-real(dp) , public , parameter :: rhobc   = 2000.0D0
-real(dp) , public , parameter :: rhooc   = 1200.0D0
-
+  real(dp) , public , parameter :: rhobc   = 2000.0D0
+  real(dp) , public , parameter :: rhooc   = 1200.0D0
   real(dp) , public , parameter :: rhobchl = 1600.0D0
   real(dp) , public , parameter :: rhoochl = 1200.0D0
 
@@ -50,53 +49,48 @@ real(dp) , public , parameter :: rhooc   = 1200.0D0
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
-  real(dp), parameter :: solbc = 0.05
-  real(dp), parameter :: solbchl = 0.8
-  real(dp), parameter :: soloc = 0.05
-  real(dp), parameter :: solochl = 0.8
-  public :: aging_carb, solbc, solbchl, soloc, solochl
+  real(dp) , parameter :: solbc = 0.05D0
+  real(dp) , parameter :: solbchl = 0.8D0
+  real(dp) , parameter :: soloc = 0.05D0
+  real(dp) , parameter :: solochl = 0.8D0
+  public :: aging_carb , solbc , solbchl , soloc , solochl
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
   real(dp) , public , dimension(5) :: carbed
 
-  
-
   contains
 
-  subroutine aging_carb(j)
-
-    implicit none
+    subroutine aging_carb(j)
+      implicit none
+      integer, intent(in) :: j
+      integer :: i , k
+      real(dp) :: agingtend1 , agingtend2
+      !
+      ! aging o carbon species : Conversion from hydrophobic to 
+      ! hydrophilic: Carbonaceopus species time constant
+      ! ( 1.15 day cooke et al.,1999)
+      !
+      if ( ibchb > 0 .and. ibchl > 0 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dtche/chagct))/dtche
+            agingtend2 = -agingtend1
+            chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
+            chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
+          end do
+        end do
+      end if
+      if ( iochb > 0  .and. iochl > 0 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dtche/chagct))/dtche
+            agingtend2 = -agingtend1
+            chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
+            chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
+          end do
+        end do
+      end if
+    end subroutine aging_carb
 !
-    integer, intent(in) :: j
-    integer :: i , k
-    real(dp) :: agingtend1 , agingtend2
-
-    ! aging o carbon species : Conversion from hydrophobic to 
-    ! hydrophilic: Carbonaceopus species time constant
-    ! ( 1.15 day cooke et al.,1999)
-
-    if ( ibchb > 0 .and. ibchl > 0 ) then
-      do k = 1 , kz
-        do i = 2 , iym2
-          agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dtche/chagct))/dtche
-          agingtend2 = -agingtend1
-          chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
-          chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
-        end do
-      end do
-    end if
- 
-    if ( iochb > 0  .and. iochl > 0 ) then
-      do k = 1 , kz
-        do i = 2 , iym2
-          agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dtche/chagct))/dtche
-          agingtend2 = -agingtend1
-          chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
-          chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
-        end do
-      end do
-    end if
-  end subroutine aging_carb
-
 end module mod_che_carbonaer
