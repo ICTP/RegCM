@@ -4,7 +4,7 @@ include $(REGCM_ROOT)/makeinc
 vpath %.F90 $(REGCM_ROOT)/external/mpi-serial
 vpath %.f90 $(REGCM_ROOT)/external/mpi-serial
 vpath %.c $(REGCM_ROOT)/external/mpi-serial
-vpath %.h $(REGCM_ROOT)/external/MCT/mpi-serial
+vpath %.h $(REGCM_ROOT)/external/mpi-serial
 
 if REGCM_PARALLEL
 noinst_LIBRARIES =
@@ -18,7 +18,7 @@ libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
 MPIFH= mpif.$(FORT_SIZE).h
 
 mpif.h:
-	cp -f $(REGCM_ROOT)/external/MCT/mpi-serial/$(MPIFH) mpif.h
+	cp -f $(REGCM_ROOT)/external/mpi-serial/$(MPIFH) mpif.h
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(MPEUCFLAGS) -c $<
