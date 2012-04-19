@@ -150,9 +150,9 @@ module mod_sst_1deg
 
   if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
 
-    call split_idate(idate,year,month,day,hour)
-
     do k = 1 , nsteps
+
+      call split_idate(idate,year,month,day,hour)
 
       if ( ssttyp == 'GISST' ) then
         nrec = (year-1947)*12 + month - 11
