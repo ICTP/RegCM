@@ -21,7 +21,7 @@ AC_INIT([RegCM], [5.0], [regcm-developer@eforge.escience-lab.org])
 
 AC_SUBST([PACKAGE_URL], ["https://gforge.ictp.it/gf/project/regcm"])
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.64])
 
 LT_INIT
 
