@@ -438,6 +438,7 @@ module mod_dynparam
     dirter  = '../../Input'
     dirglob = '../../Input'
 
+    h2opct = 50.0D0
     read(ipunit, terrainparam, err=103)
 
     ! Set convenient defaults for I/O parameters
