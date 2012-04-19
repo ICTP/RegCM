@@ -404,7 +404,7 @@ module mod_ecens
   end do
   where ( zs2 > 0.0 )
     zs2 = zs2 / 9.80616
-  else where
+  elsewhere
     zs2  = 0.0
   end where
 

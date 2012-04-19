@@ -1901,7 +1901,7 @@ module mod_rad_radiation
     end do
     where ( klov > 0 )
       seldo = .true.
-    else where
+    elsewhere
       seldo = .false.
     end where
     do n = n1 , n2
@@ -2099,7 +2099,7 @@ module mod_rad_radiation
 !
     where ( tclrsf(:,kzp1) < verynearone )
       seldo = .true.
-    else where
+    elsewhere
       seldo = .false.
     end where
 !

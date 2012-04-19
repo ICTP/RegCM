@@ -44,7 +44,7 @@ module mod_che_bdyco
   public :: nudge_chi , setup_che_bdycon
   public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , chebdy
 
-  type(rcm_time_and_date) :: chbdydate1 , chbdydate2
+  type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
 
   real(dp) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , chebdy
   real(dp) , pointer , dimension(:,:) :: cefc , cegc
