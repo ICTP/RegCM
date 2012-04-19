@@ -365,7 +365,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -406,7 +410,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -487,7 +495,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -532,7 +544,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -620,7 +636,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -668,7 +688,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -753,7 +777,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -794,7 +822,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -875,7 +907,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -920,7 +956,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1008,7 +1048,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1056,7 +1100,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1141,7 +1189,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1182,7 +1234,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1263,7 +1319,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1308,7 +1368,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1396,7 +1460,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1444,7 +1512,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nsize+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1531,7 +1603,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1574,7 +1650,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1661,7 +1741,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1708,7 +1792,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1795,7 +1883,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1838,7 +1930,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1925,7 +2021,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -1972,7 +2072,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -2059,7 +2163,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -2102,7 +2210,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -2189,7 +2301,11 @@ module mod_mppparam
                      0,mycomm,mpierr)
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
@@ -2236,7 +2352,11 @@ module mod_mppparam
     end if
     if ( myid == 0 ) then
       js = j1
-      je = jxp
+      if ( nproc == 1 ) then
+        je = j2
+      else
+        je = jxp
+      end if
       ib = (j1-1)*isize*ksize*nnsg+1
     else if ( myid == nproc-1 ) then
       js = 1
