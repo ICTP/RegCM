@@ -118,13 +118,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !
   use initializeMod
   use shr_orb_mod
-  use shr_kind_mod,  only : r8 => shr_kind_r8
   use clm_varpar,    only : lsmlon , lsmlat
   use clm_varsur,    only : landmask , landfrac , satbrt_clm
   use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
   use clm_varsur,    only : clm2bats_veg , ht_rcm
   use clm_varsur,    only : clm_fracveg
-  use clm_varsur,    only : slmo
   use atmdrvMod
   use program_offMod
   use clm_comp 
@@ -158,13 +156,13 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
   ! calendar type (GREGORIAN not available in CLM 3.5)
-  ! if ( ical == noleap ) then
+  if ( ical == noleap ) then
     r2cclndr = 'NO_LEAP'
-  ! else if ( ical == gregorian ) then
-  !   r2cclndr = 'GREGORIAN'
-  ! else
-  !   call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
-  ! end if
+  else if ( ical == gregorian ) then
+    r2cclndr = 'ESMF_CAL_GREGORIAN'
+  else
+    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
+  end if
   ! don't write to NCAR Mass Storage
   r2cmss_irt = 0
   ! clm output frequency
@@ -565,10 +563,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       wpm2 = d_one/(srffrq*secph)
     end if
  
-    call interf(1,jci1,jci2,ici1,ici2,ktau)
+    call interf(1,ktau)
 
     if ( iocnflx==2 ) then
-      call zengocndrv(jci1,jci2,ici1,ici2,ktau)
+      call zengocndrv(ktau)
     end if
  
     do i = ici1 , ici2
