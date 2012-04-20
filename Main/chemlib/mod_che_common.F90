@@ -60,10 +60,6 @@ module mod_che_common
 !
   real(dp) , pointer , dimension(:,:) :: chtrdpv
 
-  ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
-  ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-  real(dp) , pointer , dimension(:,:,:) :: chevap , checum
-
   real(dp) , pointer , dimension(:,:) :: chtrsize
   real(dp) , pointer , dimension(:) :: chtrsol
 
@@ -130,6 +126,8 @@ module mod_che_common
         call getmem4d(chemsrc,jce1,jce2,ice1,ice2, &
                       1,mpy,1,ntr,'mod_che_common:chemsrc')
 
+        call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
+                      1,ntr,'mod_che_common:cchifxuw')
         call getmem4d(remlsc,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                       'che_common:remlsc')
         call getmem4d(remcvc,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
@@ -151,8 +149,6 @@ module mod_che_common
         call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
         call getmem4d(chemall,1,jxp,1,iy,1,kz,1,totsp,'mod_che_common:chemall')
-     
-        call getmem3d(taucld,1,iy,1,kz,1,jxp,'mod_che_common:taucld')
         call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
 
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
@@ -163,12 +159,6 @@ module mod_che_common
         call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
-
-        call getmem3d(chevap,1,jxp,1,iy,1,kz,'mod_che_common:chevap')
-        call getmem3d(checum,1,jxp,1,iy,1,kz,'mod_che_common:checum')
-
-        call getmem3d(cchifxuw,1,jxp,1,iy,1,ntr,'mod_che_common:cchifxuw')
-
       end if
     end subroutine allocate_mod_che_common
 !

@@ -42,14 +42,11 @@
 
   contains
 !
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-!     This subroutine computes the tendencies for tracer transport and
-!     chemistry
+! This subroutine computes the tendencies for tracer transport and chemistry
 !
-!     j:             index of j slice in current computation
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine tractend2(ktau,lyear,lmonth,lday,secofday)
       implicit none
@@ -60,19 +57,27 @@
       real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   satvp , shu10 , u10 , v10
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec
+      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
       integer , dimension(ici1:ici2,jci1:jci2) :: ivegcov
       real(dp) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
       real(dp) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
       real(dp) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
-              srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar
+                 srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
+                 hsurf
       real(dp) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
       real(dp) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
+      ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
+      ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
+      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap , checum
+
       integer :: i , j , ibin , k , kk
       integer(8) :: kchsolv
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
+      !     For historical reasons and to avoid increase memory usage,
+      !     
       !*********************************************************************
       ! 
       rho         = d_zero
@@ -94,9 +99,10 @@
           do j = jci1 , jci2
             ! rho(j,i,k) = (sfs%psb(i,j)*a(k)+r8pt)* &
             ! what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
-            rho(i,k,j) = crhob3d(j,i,k)
-            wl(i,k,j) = cqcb3d(j,i,k)*crhob3d(j,i,k)
-            ttb(i,k,j) = ctb3d(j,i,k)
+            hgt(i,k,j)  = cza(j,i,k)
+            rho(i,k,j)  = crhob3d(j,i,k)
+            wl(i,k,j)   = cqcb3d(j,i,k)*crhob3d(j,i,k)
+            ttb(i,k,j)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
             prec(i,k,j) = crembc(j,i,k) / 3600.D0 !passed in mm/s  
@@ -164,8 +170,7 @@
           ! 10 m air temperature
           temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
-          shu10 = cqvb3d(j,i,kz)/ &
-                  (d_one+cqvb3d(j,i,kz))-csdelqk2d(j,i)*fact
+          shu10 = cqvb3d(j,i,kz)/(d_one+cqvb3d(j,i,kz))-csdelqk2d(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m
@@ -206,6 +211,7 @@
           ! aerodynamic resistance)
           !
           srad(i,j) = csol2d(j,i)
+          hsurf(i,j) = cht(j,i)
         end do
       end do
       !
@@ -344,9 +350,9 @@
         checum = d_zero
         chevap = d_zero
 !        do j = jci1 , jci2        
-!          call sethet(j,cza(j,:,:),cht(j,:),ttb(:,:,j),checum(j,:,:), &
-!                      cremrat(j,:,:),chevap(j,:,:),dtche,rho(:,:,j),  &
-!                      chib(j,:,:,:),iym3,prurf(:,j))
+!          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),checum(:,:,j), &
+!                      cremrat(j,:,:),chevap(:,:,j),dtche,rho(:,:,j),  &
+!                      chib(j,:,:,:),iym3,psurf(:,j))
 !        end do
       end if
       !
