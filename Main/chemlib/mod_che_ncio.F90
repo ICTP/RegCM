@@ -1319,8 +1319,9 @@ module mod_che_ncio
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , dimension(iy,jx,nt), intent(in) :: wdlsc, wdcvc, ddsfc,  &
                                                     cemtrac, drydepv
-      real(dp) , dimension(nny,nz,nnx) , intent(in) :: ext,ssa,asp 
-      real(dp) , dimension(nny,nnx), intent(in) :: tarf, ssrf,talwrf,srlwrf
+      real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
+      real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , &
+                                                          talwrf , srlwrf
 
       integer :: n , k, noutf
       integer , dimension(5) :: istart , icount
@@ -1451,7 +1452,7 @@ module mod_che_ncio
 
           !*** extinction
           do k = 1 , nz
-            dumio(:,:,k) = real(transpose(ext(o_is:o_ie,nz-k+1,o_js:o_je)))
+            dumio(:,:,k) = real(ext(o_js:o_je,o_is:o_ie,nz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(3), &
                                  dumio, istart(1:4), icount(1:4))
@@ -1460,7 +1461,7 @@ module mod_che_ncio
 
           !*** SSAE
           do k = 1 , nz
-            dumio(:,:,k) = real(transpose(ssa(o_is:o_ie,nz-k+1,o_js:o_je)))
+            dumio(:,:,k) = real(ssa(o_js:o_je,o_is:o_ie,nz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(4), &
                                  dumio, istart(1:4), icount(1:4))
@@ -1469,7 +1470,7 @@ module mod_che_ncio
 
           !*** ASP
           do k = 1 , nz
-            dumio(:,:,k) = real(transpose(asp(o_is:o_ie,nz-k+1,o_js:o_je)))
+            dumio(:,:,k) = real(asp(o_js:o_je,o_is:o_ie,nz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(5), &
                                  dumio, istart(1:4), icount(1:4))
@@ -1486,22 +1487,22 @@ module mod_che_ncio
           icount(2) = o_ni
           icount(1) = o_nj
 
-          dumio(:,:,1) = real(transpose(tarf(o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = real(tarf(o_js:o_je,o_is:o_ie))
           istatus = nf90_put_var(ncche(n), ioptvar(6) , &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__,'Error writing aertarf at '//ctime, &
                        'OPT FILE ERROR')
-          dumio(:,:,1) = real(transpose(ssrf(o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = real(ssrf(o_js:o_je,o_is:o_ie))
           istatus = nf90_put_var(ncche(n),  ioptvar(7), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__,'Error writing aersrrf at '//ctime, &
                        'OPT FILE ERROR')
-          dumio(:,:,1) = real(transpose(talwrf(o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = real(talwrf(o_js:o_je,o_is:o_ie))
           istatus = nf90_put_var(ncche(n),ioptvar(8), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                      'Error writing aertalwrf at '//ctime,'OPT FILE ERROR')
-          dumio(:,:,1) = real(transpose(srlwrf(o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = real(srlwrf(o_js:o_je,o_is:o_ie))
           istatus = nf90_put_var(ncche(n), ioptvar(9), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &

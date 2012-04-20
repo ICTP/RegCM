@@ -52,16 +52,14 @@ module mod_che_output
  
       call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
       call deco1_gather(cpsb,cpsb_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(aerext,aerext_io,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(aerssa,aerssa_io,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(aerasp,aerasp_io,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(aertarf,aertarf_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(aersrrf,aersrrf_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(aertalwrf,aertalwrf_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(aersrlwrf,aersrlwrf_io,jcross1,jcross2,icross1,icross2)
 
-          do j = jce1 , jce2
-            do k = 1 , kz
-              do i = ice1 , ice2
-                chem0(i,ntr*kz+k,j) = aerext(j,i,k)
-                chem0(i,ntr*kz+kz+k,j) = aerssa(j,i,k)
-                chem0(i,ntr*kz+kz*2+k,j) = aerasp(j,i,k)
-              end do
-            end do
-          end do
           do j = 1 , jxp
             do n = 1 , ntr
               do i = 1 , iy
@@ -77,15 +75,6 @@ module mod_che_output
               end do
             end do
           end do
-          do j = jce1 , jce2
-            do i = ice1 , ice2
-              chem0(i,(ntr+3)*kz+ntr*8+1,j) = aertarf(j,i)
-              chem0(i,(ntr+3)*kz+ntr*8+2,j) = aersrrf(j,i)
-              chem0(i,(ntr+3)*kz+ntr*8+3,j) = aertalwrf(j,i)
-              chem0(i,(ntr+3)*kz+ntr*8+4,j) = aersrlwrf(j,i)             
-
-            end do
-          end do
 
          call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*8+5)*jxp,            &
                         & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*8+5)*jxp, &
@@ -93,15 +82,6 @@ module mod_che_output
 
 
           if ( myid.eq.0 ) then
-            do j = jcross1 , jcross2
-              do k = 1 , kz
-                do i = icross1 , icross2
-                  aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
-                  aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
-                  aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
-                end do
-              end do
-            end do
             do j = 1 , jx
               do n = 1 , ntr
                 do i = 1 , iy
@@ -115,14 +95,6 @@ module mod_che_output
                   drydepv_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*7+n,j)
 
                 end do
-              end do
-            end do
-            do j = jcross1 , jcross2
-              do i = icross1 , icross2
-                aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+1,j)
-                aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+2,j)
-                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+3,j)
-                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+4,j)
               end do
             end do
 
