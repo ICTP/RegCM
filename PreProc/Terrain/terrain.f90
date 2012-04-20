@@ -574,9 +574,11 @@ program terrain
     call texfudge(fudge_tex,texout,htgrid,iy,jx,trim(char_tex))
   end if
 
-  where ( lndout > 14.5 .and. lndout < 15.5 )
-    htgrid = 0.0
-  end where
+  if ( .not. h2ohgt ) then
+    where ( lndout > 14.5 .and. lndout < 15.5 )
+      htgrid = 0.0
+    end where
+  end if
   where ( lndout > 13.5 .and. lndout < 15.5 )
     mask = 0.0
   elsewhere
@@ -625,9 +627,11 @@ program terrain
       end do
     end do
 
-    where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
-      htgrid_s = 0.0
-    end where
+    if ( .not. h2ohgt ) then
+      where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
+        htgrid_s = 0.0
+      end where
+    end if
     where ( lndout_s > 13.5 .and. lndout_s < 15.5 )
       mask_s = 0.0
     elsewhere

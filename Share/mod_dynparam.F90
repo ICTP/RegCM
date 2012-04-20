@@ -236,6 +236,10 @@ module mod_dynparam
 
   real(8) :: h2opct
 
+! Allow water pixels to have an elevation
+
+  logical :: h2ohgt 
+
 ! Resolution of the global terrain and landuse data be used
 !
 !     Use 60, for  1  degree resolution
@@ -350,7 +354,7 @@ module mod_dynparam
     namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
                   smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
                   fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
-                  h2opct , dirter , inpter
+                  h2opct , h2ohgt , dirter , inpter
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg
     namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
@@ -438,6 +442,7 @@ module mod_dynparam
     dirter  = '../../Input'
     dirglob = '../../Input'
 
+    h2ohgt = .false.
     h2opct = 50.0D0
     read(ipunit, terrainparam, err=103)
 
