@@ -1088,7 +1088,7 @@ module mod_date
       return
     end if
     if (cunit(1:6) == 'months') then
-      ! Unit is hours since reference
+      ! Unit is months since reference
       if (len_trim(cunit) >= 31) then
         read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
           cdum, d%year, cdum, d%month, cdum, d%day, &
