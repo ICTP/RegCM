@@ -601,7 +601,7 @@ module mod_che_drydep
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
  
             ! dignoctic for dry deposition
-            remdrd(i,j,indsp(ib)) = remdrd(i,j,indsp(ib)) + &
+            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
                                     settend(i,kz)*dtche/2.0D0
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
@@ -710,7 +710,7 @@ module mod_che_drydep
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
              ! drydep flux diagnostic (accumulated between two outputs time
              ! step) ! the fluc form is calulated in tracbud
-             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / d_two
+             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / d_two
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
              drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n)     
@@ -744,7 +744,7 @@ module mod_che_drydep
 !update chiten
 !             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
 !drydep flux diagnostic (accumulated between two outputs time step) 
-!             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
+!             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / 2 
 !
 !          do i = ici1 , ici2
 !          do n = 1 , ntr
@@ -755,7 +755,7 @@ module mod_che_drydep
 !!update chiten
 !             chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
 !!drydep flux diagnostic (accumulated between two outputs time step) 
-!             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
+!             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / 2 
 !!
 !!          drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n) 
 !          end do

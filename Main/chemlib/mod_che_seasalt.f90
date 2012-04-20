@@ -162,7 +162,7 @@ module mod_che_seasalt
         chiten(j,i,kz,isslt(ib)) = chiten(j,i,kz,isslt(ib)) + &
                 seasalt_flx(i,ib)*egrav/(cdsigma(kz)*1.D3)
         ! diagnostic source
-        cemtr(i,j,isslt(ib)) = cemtr(i,j,isslt(ib)) + &
+        cemtr(j,i,isslt(ib)) = cemtr(j,i,isslt(ib)) + &
                  seasalt_flx(i,ib)*dtche/d_two
 
       end do

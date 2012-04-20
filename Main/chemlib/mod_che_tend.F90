@@ -419,9 +419,9 @@
       do itr = 1 , ntr
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ddsfc(j,i,itr) = ddsfc(j,i,itr) + remdrd(i,j,itr)*cdsigma(kz)
+            ddsfc(j,i,itr) = ddsfc(j,i,itr) + remdrd(j,i,itr)*cdsigma(kz)
             ! Source cumulated diag(care the unit are alredy .m-2)
-            cemtrac(j,i,itr) = cemtr(i,j,itr)
+            cemtrac(j,i,itr) = cemtr(j,i,itr)
           end do
         end do
       end do

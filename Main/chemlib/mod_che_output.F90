@@ -48,7 +48,6 @@ module mod_che_output
                                               aerasp
       real(dp) , pointer , dimension(:,:) , intent(in) :: aertarf , aersrrf , &
                                               aertalwrf , aersrlwrf            
-      integer :: i , j , k , n
  
       call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
       call deco1_gather(cpsb,cpsb_io,jcross1,jcross2,icross1,icross2)
@@ -73,20 +72,14 @@ module mod_che_output
       call outche2(idatex) 
               
       ! put back to zero accumulated variables
-      do n = 1 , ntr
-        do j = 1 , jxp
-          do i = 1 , iy
-            cemtr(i,j,n) = 0.
-            remdrd(i,j,n) = 0.
-          end do
-        end do
-      end do
 
       remlsc(:,:,:,:) = d_zero
       remcvc(:,:,:,:) = d_zero
       rxsg(:,:,:,:) = d_zero
       rxsaq1(:,:,:,:) = d_zero
       rxsaq2(:,:,:,:) = d_zero
+      cemtr(:,:,:) = d_zero
+      remdrd(:,:,:) = d_zero
 
       drydepv(:,:,:) = d_zero
       cemtrac(:,:,:) = d_zero

@@ -52,6 +52,8 @@ module mod_diagnosis
   real(dp) , pointer , dimension(:,:,:) :: chia01 , chia02 , chiaill , chiaill1
   real(dp) , pointer , dimension(:,:,:) :: chia01_g , chia02_g ,  &
               chiaill1_g , chiaill_g
+  real(dp) , pointer , dimension(:,:,:,:) :: gatmp4
+  real(dp) , pointer , dimension(:,:,:) :: gatmp3
 
   contains
 
@@ -91,6 +93,10 @@ module mod_diagnosis
         call getmem3d(chia02_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chia02_g')
         call getmem3d(chiaill_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chiaill_g')
         call getmem3d(chiaill1_g,jcross1,jcross2,1,kz,1,ntr,'diagnosis:chiaill1_g')
+        call getmem4d(gatmp4,jcross1,jcross2,icross1,icross2, &
+                      1,kz,1,ntr,'diagnosis:gatmp4')
+        call getmem3d(gatmp3,jcross1,jcross2,icross1,icross2, &
+                      1,ntr,'diagnosis:gatmp3')
       end if
       call getmem1d(psa01,jce1,jce2,'diagnosis:psa01')
       call getmem1d(psailx,jce1,jce2,'diagnosis:psailx')
@@ -825,67 +831,92 @@ module mod_diagnosis
       tremdrd(itr,1) = d_zero
     end do
 !
-    call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(remlsc,remlsc_io, &
-                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(remcvc,remcvc_io, &
-                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(rxsg,rxsg_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(rxsaq1,rxsaq1_io, &
-                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(rxsaq2,rxsaq2_io, &
-                      jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-    call deco1_gather(remdrd,remdrd_io,jcross1,jcross2,icross1,icross2,1,ntr)
-    call deco1_gather(chemsrc,chemsrc_io, &
-                      jcross1,jcross2,icross1,icross2,1,mpy,1,ntr)
+    call deco1_gather(chia,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
     if ( myid == 0 ) then
       do itr = 1 , ntr
         do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + chia_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
+        end do
+      end do
+    end if
+    call deco1_gather(remlsc,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + remlsc_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
+        end do
+      end do
+    end if
+    call deco1_gather(remcvc,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + remcvc_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
+        end do
+      end do
+    end if
+    call deco1_gather(rxsg,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + rxsg_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
+        end do
+      end do
+    end if
+    call deco1_gather(rxsaq1,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + rxsaq1_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
+        end do
+      end do
+    end if
+    call deco1_gather(rxsaq2,gatmp4,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
           tttmp = d_zero
           do j = jout1 , jout2
             do i = iout1 , iout2
-              tttmp = tttmp + rxsaq2_io(j,i,k,itr)
+              tttmp = tttmp + gatmp4(j,i,k,itr)
             end do
           end do
           trxsaq2(itr,1) = trxsaq2(itr,1) + tttmp*dsigma(k)
         end do
       end do
+    end if
    
+    if ( myid == 0 ) then
       do itr = 1 , ntr
         ttrace(itr,1) = ttrace(itr,1)*dx*dx
         tremlsc(itr,1) = tremlsc(itr,1)*dx*dx
@@ -894,16 +925,25 @@ module mod_diagnosis
         trxsaq1(itr,1) = trxsaq1(itr,1)*dx*dx
         trxsaq2(itr,1) = trxsaq2(itr,1)*dx*dx
       end do
+    end if
    
+    call deco1_gather(remdrd,gatmp3,jcross1,jcross2,icross1,icross2,1,ntr)
+    if ( myid == 0 ) then
       do itr = 1 , ntr
         tttmp = d_zero
         do j = jout1 , jout2
           do i = iout1 , iout2
-            tttmp = tttmp + remdrd_io(j,i,itr)
+            tttmp = tttmp + gatmp3(j,i,itr)
           end do
         end do
         tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
+      end do
+    end if
    
+    call deco1_gather(chemsrc,chemsrc_io, &
+                      jcross1,jcross2,icross1,icross2,1,mpy,1,ntr)
+    if ( myid == 0 ) then
+      do itr = 1 , ntr
 !       emissions
         tttmp = d_zero
         do j = jout1 , jout2
