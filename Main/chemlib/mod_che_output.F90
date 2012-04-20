@@ -149,17 +149,13 @@ module mod_che_output
               end do
             end do
           end do
-          do j = 1 , jxp
-            do i = 1 , iym1
-              aertarf(j,i) = 0.
-              aersrrf(j,i) = 0.
-              aertalwrf(j,i) = 0.              
-              aersrlwrf(j,i) = 0.
-            end do
-          end do
 
+      aertarf(:,:) = d_zero
+      aersrrf(:,:) = d_zero
+      aertalwrf(:,:) = d_zero
+      aersrlwrf(:,:) = d_zero
 !
-  end subroutine output_chem
+    end subroutine output_chem
 !----------------------------------------------------------------
 !================================================================
 
