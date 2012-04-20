@@ -110,13 +110,15 @@ module mod_che_mppio
         call getmem3d(drydepv_io,1,iy,1,jx,1,ntr,'che_mppio:drydepv_io')
         call getmem4d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
                       1,mpy,1,ntr,'che_mppio:chemsrc_io')
-        call getmem3d(ddsfc_io,1,iy,1,jx,1,ntr,'che_mppio:ddsfc_io')
 
           call getmem3d(dtrace_io,jcross1,jcross2,icross1,icross2,1,ntr, &
                         'che_mppio:dtrace_io')
           call getmem3d(wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
                         'che_mppio:wdlsc_io')
-        call getmem3d(wdcvc_io,1,iy,1,jx,1,ntr,'che_mppio:wdcvc_io')
+          call getmem3d(wdcvc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
+                        'che_mppio:wdcvc_io')
+          call getmem3d(ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
+                        'che_mppio:ddsfc_io')
 
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')

@@ -1317,9 +1317,9 @@ module mod_che_ncio
       integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
-      real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc
-      real(dp) , dimension(iy,jx,nt), intent(in) :: wdcvc, ddsfc,  &
-                                                    cemtrac, drydepv
+      real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
+                                                   ddsfc
+      real(dp) , dimension(iy,jx,nt), intent(in) :: cemtrac, drydepv
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
       real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , &
                                                           talwrf , srlwrf
@@ -1401,21 +1401,21 @@ module mod_che_ncio
           cfd2 = dtche / (chemfrq *3600.0D0)
 
           !*** wet deposition from large-scale precip
-          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n))*cfd
+          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)*cfd)
           istatus = nf90_put_var(ncche(n), ichevar(4), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
 
           !*** wet deposition from convective precip
-          dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
+          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)*cfd)
           istatus = nf90_put_var(ncche(n), ichevar(5), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                'Error writing wet dep CONV at '//ctime,'CHE FILE ERROR')
 
           !*** dry deposition
-          dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
+          dumio(:,:,1) = real(ddsfc(o_js:o_je,o_is:o_ie,n)*cfd)
           istatus = nf90_put_var(ncche(n), ichevar(6), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &

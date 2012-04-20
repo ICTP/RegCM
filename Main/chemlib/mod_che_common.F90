@@ -150,13 +150,13 @@ module mod_che_common
      
         call getmem3d(taucld,1,iy,1,kz,1,jxp,'mod_che_common:taucld')
         call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
-        call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_common:ddsfc')
 
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
         call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
+        call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
+        call getmem3d(ddsfc,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddsfc')
 
         call getmem3d(drydepv,1,iy,1,jxp,1,ntr,'mod_che_common:drydepv')
-        call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_che_common:wdcvc')
         call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_common:wxaq')
         call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_common:wxsg')
         call getmem3d(chevap,1,jxp,1,iy,1,kz,'mod_che_common:chevap')
