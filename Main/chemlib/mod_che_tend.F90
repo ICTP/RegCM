@@ -270,8 +270,8 @@
       ! include calculation of dry dep/settling velocities and 
       ! updating tendencies
       !
-      pdepv(:,:,:) = d_zero
-      ddepa(:,:,:) = d_zero
+      pdepv(:,:,:,:) = d_zero
+      ddepa(:,:,:)   = d_zero
       if ( idust(1) > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(j,:),  &
