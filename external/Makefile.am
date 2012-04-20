@@ -30,7 +30,7 @@ mpif.h:
 	  $(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod mpif.h
 
 clean-local:
 	rm -f *.mod

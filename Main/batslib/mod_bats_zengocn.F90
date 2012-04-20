@@ -88,11 +88,11 @@ module mod_bats_zengocn
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-#ifdef CLM
-    jj = (jxp*myid) + j
-#endif
     do i = ici1 , ici2
       do j = jci1 , jci2
+#ifdef CLM
+        jj = (jxp*myid) + j
+#endif
         do n = 1 , nnsg
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then

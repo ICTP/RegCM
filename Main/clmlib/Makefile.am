@@ -387,6 +387,7 @@ ESMF_AlarmMod.o: ESMF_AlarmMod.F90 ESMF_TimeIntervalMod.o ESMF_TimeMod.o ESMF_Ba
 ESMF_BaseMod.o: ESMF_BaseMod.F90  
 ESMF_BaseTimeMod.o: ESMF_BaseTimeMod.F90 ESMF_BaseMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 ESMF_CalendarMod.o: ESMF_CalendarMod.F90 ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_Macros.inc ESMF_TimeMgr.inc ESMF.inc
+	$(MPIFC) -I. $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 ESMF_ClockMod.o: ESMF_ClockMod.F90 ESMF_TimeIntervalMod.o ESMF_TimeMod.o ESMF_BaseMod.o ESMF_AlarmMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 ESMF_FractionMod.o: ESMF_FractionMod.F90  
 ESMF_Mod.o: ESMF_Mod.F90 ESMF_TimeIntervalMod.o ESMF_FractionMod.o ESMF_TimeMod.o ESMF_AlarmClockMod.o ESMF_ClockMod.o ESMF_BaseMod.o ESMF_Stubs.o ESMF_BaseTimeMod.o ESMF_AlarmMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc

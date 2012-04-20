@@ -1,6 +1,6 @@
 diff -Naurb orig/clm_time_manager.F90 patch/clm_time_manager.F90
---- orig/clm_time_manager.F90	2010-07-15 14:47:01.000000000 +0200
-+++ patch/clm_time_manager.F90	2010-07-15 14:09:16.000000000 +0200
+--- orig/clm_time_manager.F90	2012-03-27 09:18:12.502032144 +0200
++++ patch/clm_time_manager.F90	2012-04-20 10:33:54.682229449 +0200
 @@ -627,7 +627,7 @@
    ! Advance the timestep.  
    ! Data from the restart file corresponds to the last timestep of the previous run.
@@ -10,3 +10,12 @@ diff -Naurb orig/clm_time_manager.F90 patch/clm_time_manager.F90
  
    ! Set flag that this is the first timestep of the restart run.
  
+@@ -693,7 +693,7 @@
+   caltmp = to_upper(calendar)
+   if ( trim(caltmp) == 'NO_LEAP' ) then
+      cal_type = ESMF_CAL_NOLEAP
+-  else if ( trim(caltmp) == 'GREGORIAN' ) then
++  else if ( trim(caltmp) == 'ESMF_CAL_GREGORIAN' ) then
+      cal_type = ESMF_CAL_GREGORIAN
+   else
+      write(6,*)sub,': unrecognized calendar specified: ',calendar
