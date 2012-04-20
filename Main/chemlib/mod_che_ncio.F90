@@ -1315,8 +1315,8 @@ module mod_che_ncio
           
       type(rcm_time_and_date) , intent(in) :: idate
       integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
-      real(dp) , dimension(iy,kz,jx,nt) , intent(in) :: chia
-      real(dp) , dimension(iy,jx) , intent(in) :: ps
+      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
+      real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , dimension(iy,jx,nt), intent(in) :: wdlsc, wdcvc, ddsfc,  &
                                                     cemtrac, drydepv
       real(dp) , dimension(nny,nz,nnx) , intent(in) :: ext,ssa,asp 
@@ -1350,7 +1350,7 @@ module mod_che_ncio
                                istart(1:1), icount(1:1))
         call check_ok(__FILE__,__LINE__, &
                       'Error writing itime '//ctime, 'CHE FILE ERROR')
-        dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*10.0D0)
+        dumio(:,:,1) = real((ps(o_js:o_je,o_is:o_ie)+rpt)*10.0D0)
         istart(3) = icherec
         istart(2) = 1
         istart(1) = 1
@@ -1375,8 +1375,8 @@ module mod_che_ncio
 
           !*** tracer concentration
           do k = 1 , nz
-            dumio(:,:,k) = real(transpose(chia(o_is:o_ie,nz-k+1,o_js:o_je,n) / &
-                                          ps(o_is:o_ie,o_js:o_je)))
+            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,nz-k+1,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
           end do
           istatus = nf90_put_var(ncche(n), ichevar(3), &
                                  dumio, istart, icount)

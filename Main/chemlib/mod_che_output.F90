@@ -50,17 +50,9 @@ module mod_che_output
                               aertalwrf , aersrlwrf            
       integer :: i , j , k , n , ierr
  
-      call deco1_gather(chia,chia_io
+      call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+      call deco1_gather(cpsb,cpsb_io,jcross1,jcross2,icross1,icross2)
 
-      do j = 1 , jxp
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = 1 , iy
-              chem0(i,(n-1)*kz+k,j) = chia(j,i,k,n)
-                end do
-              end do
-            end do
-          end do
           do j = jce1 , jce2
             do k = 1 , kz
               do i = ice1 , ice2
@@ -94,12 +86,6 @@ module mod_che_output
 
             end do
           end do
-          do j = 1 , jxp
-            do i = 1 , iym1
-              chem0(i,(ntr+3)*kz+ntr*8+5,j) = cpsb(j,i)
-            end do
-          end do
- 
 
          call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*8+5)*jxp,            &
                         & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*8+5)*jxp, &
@@ -107,15 +93,6 @@ module mod_che_output
 
 
           if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do n = 1 , ntr
-                do k = 1 , kz
-                  do i = 1 , iy
-                    chia_io(i,k,j,n) = chem_0(i,(n-1)*kz+k,j)
-                  end do
-                end do
-              end do
-            end do
             do j = jcross1 , jcross2
               do k = 1 , kz
                 do i = icross1 , icross2
@@ -146,12 +123,6 @@ module mod_che_output
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+2,j)
                 aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+3,j)
                 aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+4,j)
-              end do
-            end do
-
-            do j = 1 , jx
-              do i = 1 , iy
-                cpsa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*8+5,j)
               end do
             end do
 
@@ -247,7 +218,7 @@ module mod_che_output
                 wdlsc_io, wdcvc_io, ddsfc_io, cemtrac_io,    &
                 drydepv_io,  aerext_io, aerssa_io, aerasp_io, &
                 aertarf_io, aersrrf_io, &
-                aertalwrf_io, aersrlwrf_io, cpsa_io, idatex)
+                aertalwrf_io, aersrlwrf_io, cpsb_io, idatex)
 
         write (*,*) 'CHE variables written at ' , idatex 
         if (iaerosol > 0)  write (*,*) 'OPT variables written at ' , idatex 

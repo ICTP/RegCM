@@ -62,7 +62,7 @@ module mod_che_mppio
   real(dp)  , pointer , dimension(:,:,:,:) ::chebdy_in, chebdy_io0,chebdy_io1
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
-  real(dp), pointer, dimension (:,:) :: cpsa_io
+  real(dp), pointer, dimension (:,:) :: cpsb_io
 
 
 !---------- DATA init section--------------------------------------------
@@ -98,9 +98,8 @@ module mod_che_mppio
         call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
         call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
 
-      
-
-        call getmem2d(cpsa_io,1,iy,1,jx,'che_mppio:cpsa_io')
+        call getmem2d(cpsb_io,jcross1,jcross2,icross1,icross2, &
+                      'che_mppio:cpsb_io')
         call getmem2d(ssw2da_io,icross1,icross2,1,mmj,'che_mppio:ssw2da_io')
         call getmem2d(sdelqk2d_io,icross1,icross2,1,mmj,'che_mppio:sdelqk2d_io')
         call getmem2d(sdeltk2d_io,icross1,icross2,1,mmj,'che_mppio:sdeltk2d_io')
@@ -126,7 +125,8 @@ module mod_che_mppio
         call getmem3d(dtrace_io,1,iy,1,jx,1,ntr,'che_mppio:dtrace_io')
         call getmem3d(wdcvc_io,1,iy,1,jx,1,ntr,'che_mppio:wdcvc_io')
         call getmem3d(wdlsc_io,1,iy,1,jx,1,ntr,'che_mppio:wdlsc_io')
-        call getmem4d(chia_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chia_io')
+        call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
+                      1,kz,1,ntr,'che_mppio:chia_io')
         call getmem4d(chib_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:chib_io')
         call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                       1,nats,'che_mppio:dustsotex_io')
