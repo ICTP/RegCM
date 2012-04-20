@@ -124,13 +124,13 @@ module mod_rad_common
     end if
 
     if ( ichem == 1 ) then
-      call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerasp')
-      call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerext')
-      call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'mod_che_common:aerssa')
-      call getmem2d(aersrrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrrf')
-      call getmem2d(aertalwrf,jci1,jci2,ici1,ici2,'mod_che_common:aertalwrf')
-      call getmem2d(aersrlwrf,jci1,jci2,ici1,ici2,'mod_che_common:aersrlwrf')
-      call getmem2d(aertarf,jci1,jci2,ici1,ici2,'mod_che_common:aertarf')
+      call getmem3d(aerasp,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerasp')
+      call getmem3d(aerext,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerext')
+      call getmem3d(aerssa,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerssa')
+      call getmem2d(aersrrf,jce1,jce2,ice1,ice2,'mod_che_common:aersrrf')
+      call getmem2d(aertalwrf,jce1,jce2,ice1,ice2,'mod_che_common:aertalwrf')
+      call getmem2d(aersrlwrf,jce1,jce2,ice1,ice2,'mod_che_common:aersrlwrf')
+      call getmem2d(aertarf,jce1,jce2,ice1,ice2,'mod_che_common:aertarf')
     end if
   end subroutine  allocate_mod_rad_common
 
