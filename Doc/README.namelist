@@ -77,7 +77,8 @@
  fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
  fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
  fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
- h2opct = 75.,           ! Surface minimum H2O percent to be considered water
+ h2opct = 50.,           ! Surface minimum H2O percent to be considered water
+ h2ohgt = .false.,       ! Allow water points to have elevation greater than 0
  dirter = 'input/',      ! Output directory for terrain files
  inpter = 'globdata/',   ! Input directory for SURFACE dataset
  /

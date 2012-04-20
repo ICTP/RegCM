@@ -232,7 +232,8 @@ later when the model calculates climatic parameters.
  fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
  fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
  fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
- h2opct = 75.,           ! Surface minimum H2O percent to be considered water
+ h2opct = 50.,           ! Surface minimum H2O percent to be considered water
+ h2ohgt = .false.,       ! Allow water points to have elevation greater than 0
  dirter = 'input/',      ! Output directory for terrain files
  inpter = 'globdata/',   ! Input directory for SURFACE dataset
  /
@@ -258,6 +259,8 @@ This parameter can be used to have more land points than calculated by
 the simple interpolation engine. Try it with different values to find best
 land shapes. A zero value means use just the interpolation engine, higher
 values will extend into ocean points the land at land-water interface.
+The h2ohgt parameter allows also water points to have elevation greater
+than zero to avoid wall effects on the coasts.
 \item A number of flags control the capability of the \verb=terrain= program
 to modify on request the class type variables in the \verb=DOMAIN= file. You can
 modify on request the landuse, the texture and the lake/land interface.

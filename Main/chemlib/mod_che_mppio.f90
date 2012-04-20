@@ -30,74 +30,51 @@ module mod_che_mppio
   public
 
   real(dp) , pointer , dimension(:,:,:) :: cemtrac_io , wxaq_io , wxsg_io
-
   real(dp) , pointer , dimension(:,:,:) :: remdrd_io
   real(dp) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
-
-  real(dp) , pointer , dimension(:,:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
                                            wdcvc_io , wdlsc_io, drydepv_io
-
-  real(8) , pointer , dimension(:,:,:) :: aerasp_io ,           &
-                              aerext_io , aerssa_io
-  real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io,&
-                            aertalwrf_io , aersrlwrf_io
-
-
-  real(dp) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,  &
-                          sdelqk2d_io , sfracv2d_io , sfracb2d_io , &
-                          sfracs2d_io , svegfrac2d_io
-
+  real(8) , pointer , dimension(:,:,:) :: aerasp_io , aerext_io , aerssa_io
+  real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io , &
+                                        aertalwrf_io , aersrlwrf_io
+  real(dp) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
+                                         sdelqk2d_io , sfracv2d_io , &
+                                         sfracb2d_io , sfracs2d_io , &
+                                         svegfrac2d_io
+  real(dp) , pointer , dimension(:,:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
-
-  real(dp) , pointer , dimension(:,:,:) :: chem0
-  real(dp) , pointer , dimension(:,:,:) :: chem_0
-
-  real(dp) , pointer , dimension(:,:,:) :: savch0, savch_0
 !
 ! Boundary conditions arrays
 !
-  real(dp)  , pointer , dimension(:,:,:,:) ::chebdy_in, chebdy_io0,chebdy_io1
+  real(dp) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , chebdy_io1
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
   real(dp), pointer, dimension (:,:) :: cpsb_io
 
-
 !---------- DATA init section--------------------------------------------
 
   contains 
-!
-! This routines allocate all the arrays contained in the module
-!
-  subroutine allocate_mod_che_mppio(ilcband)
-    implicit none
-    logical , intent(in) :: ilcband
-    integer :: mmj
+    !
+    ! This routines allocate all the arrays contained in the module
+    !
+    subroutine allocate_mod_che_mppio(ilcband)
+      implicit none
+      logical , intent(in) :: ilcband
 
-    lcband = ilcband
+      lcband = ilcband
 
-    if ( lcband ) then
-      mmj = jx
-    else
-      mmj = jxm1
-    end if
-    if ( lch ) then
+      if ( lch ) then
+        if (myid == 0) then
+          call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2, &
+                        1,kz,1,ntr,'che_mppio:chebdy_io')
+          call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2, &
+                        1,kz,1,ntr,'che_mppio:chebdy_io')
+          call getmem4d(chebdy_in,jdot1,jdot2,idot1,idot2, &
+                        1,kz,1,50,'che_mppio:chebdy_in')
 
-      call getmem3d(chem0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jxp,'che_mppio:chem0')
-      call getmem3d(savch0,1,iy,1,kz*25,1,jxp,'che_mppio:savch0')
-
-      if (myid == 0) then
-!          call getmem4d(chebdy_io,1,jx,1,iy,1,kz,1,50,'che_mppio:chebdy_io') 
-        call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2,1,kz,1,ntr, 'che_mppio:chebdy_io')
-        call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2,1,kz,1,ntr, 'che_mppio:chebdy_io')
-        call getmem4d(chebdy_in,jdot1,jdot2,idot1,idot2,1,kz,1,50, 'che_mppio:chebdy_in')
+          call getmem4d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
+                        1,mpy,1,ntr,'che_mppio:chemsrc_io')
   
-        call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
-        call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
-
-        call getmem4d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
-                      1,mpy,1,ntr,'che_mppio:chemsrc_io')
-
           call getmem3d(dtrace_io,jcross1,jcross2,icross1,icross2,1,ntr, &
                         'che_mppio:dtrace_io')
           call getmem3d(wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
