@@ -59,12 +59,12 @@ module mod_che_output
       call deco1_gather(aersrrf,aersrrf_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(aertalwrf,aertalwrf_io,jcross1,jcross2,icross1,icross2)
       call deco1_gather(aersrlwrf,aersrlwrf_io,jcross1,jcross2,icross1,icross2)
+      call deco1_gather(dtrace,dtrace_io,jcross1,jcross2,icross1,icross2,1,ntr)
+      call deco1_gather(wdlsc,wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr)
 
           do j = 1 , jxp
             do n = 1 , ntr
               do i = 1 , iy
-                chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr+n,j) = wdlsc(i,j,n)
                 chem0(i,(ntr+3)*kz+ntr*2+n,j) = wdcvc(i,j,n)
                 chem0(i,(ntr+3)*kz+ntr*3+n,j) = ddsfc(i,j,n)
                 chem0(i,(ntr+3)*kz+ntr*4+n,j) = wxsg(i,j,n)
@@ -85,8 +85,6 @@ module mod_che_output
             do j = 1 , jx
               do n = 1 , ntr
                 do i = 1 , iy
-                  dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kz+n,j)
-                  wdlsc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr+n,j)
                   wdcvc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*2+n,j)
                   ddsfc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*3+n,j)
                   wxsg_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*4+n,j)
@@ -107,7 +105,6 @@ module mod_che_output
             rxsaq2_io  = 0.0
             cemtr_io   = 0.0
             remdrd_io  = 0.0
-            wdlsc_io   = 0.0
             wdcvc_io   = 0.0
             ddsfc_io   = 0.0
             wxsg_io    = 0.0
@@ -139,7 +136,6 @@ module mod_che_output
               do i = 1 , iy
                 cemtr(i,j,n) = 0.
                 remdrd(i,j,n) = 0.
-                wdlsc(i,j,n) = 0.
                 wdcvc(i,j,n) = 0.
                 ddsfc(i,j,n) = 0.
                 wxsg(i,j,n) = 0.
@@ -150,6 +146,7 @@ module mod_che_output
             end do
           end do
 
+      wdlsc(:,:,:) = d_zero
       aertarf(:,:) = d_zero
       aersrrf(:,:) = d_zero
       aertalwrf(:,:) = d_zero

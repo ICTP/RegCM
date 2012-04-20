@@ -397,36 +397,33 @@
 !
       integer :: i , itr , j , k
 !
-      do itr = 1 , ntr
-        do j = jce1 , jce2
-          do i = ice1 , ice2
-            dtrace(i,j,itr) = 0.0
-            wdlsc(i,j,itr) = 0.0
-            wdcvc(i,j,itr) = 0.0
-            wxsg(i,j,itr) = 0.0
-            wxaq(i,j,itr) = 0.0
-            ddsfc(i,j,itr) = 0.0
-          end do
-        end do
-      end do
+      dtrace(:,:,:) = d_zero
+      wdlsc(:,:,:) = d_zero
+      wdcvc(:,:,:) = d_zero
+      wxsg(:,:,:) = d_zero
+      wxaq(:,:,:) = d_zero
+      ddsfc(:,:,:) = d_zero
  
 !-----tracers (unit = kg):
       do itr = 1 , ntr
-        do j = jce1 , jce2
+        do k = 1 , kz
           do i = ice1 , ice2
-            do k = 1 , kz
-              dtrace(i,j,itr) = dtrace(i,j,itr) + chia(j,i,k,itr)       &
-                              & *cdsigma(k)
-              wdlsc(i,j,itr) = wdlsc(i,j,itr) + remlsc(i,k,j,itr)       &
-                             & *cdsigma(k)
-              wdcvc(i,j,itr) = wdcvc(i,j,itr) + remcvc(i,k,j,itr)       &
-                             & *cdsigma(k)
+            do j = jce1 , jce2
+              dtrace(j,i,itr) = dtrace(j,i,itr) + chia(j,i,k,itr)*cdsigma(k)
+              wdlsc(j,i,itr) = wdlsc(j,i,itr) + remlsc(i,k,j,itr)*cdsigma(k)
+              wdcvc(i,j,itr) = wdcvc(i,j,itr) + remcvc(i,k,j,itr)*cdsigma(k)
               wxsg(i,j,itr) = wxsg(i,j,itr) + rxsg(i,k,j,itr)*cdsigma(k)
 !             sum ls and conv contribution
               wxaq(i,j,itr) = wxaq(i,j,itr)                             &
                             & + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
                             & *cdsigma(k)
             end do
+          end do
+        end do
+      end do
+      do itr = 1 , ntr
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             ddsfc(i,j,itr) = ddsfc(i,j,itr) + remdrd(i,j,itr)*cdsigma(kz)
 !           Source cumulated diag(care the unit are alredy .m-2)
             cemtrac(i,j,itr) = cemtr(i,j,itr)
@@ -437,9 +434,9 @@
       do itr = 1 , ntr
         do j = jce1 , jce2
           do i = ice1 , ice2
-            dtrace(i,j,itr) = 1.D6*dtrace(i,j,itr)*d_1000*regrav
-                                                        ! unit: mg/m2
-            wdlsc(i,j,itr) = 1.D6*wdlsc(i,j,itr)*d_1000*regrav
+            ! unit: mg/m2
+            dtrace(j,i,itr) = 1.D6*dtrace(j,i,itr)*d_1000*regrav
+            wdlsc(j,i,itr) = 1.D6*wdlsc(j,i,itr)*d_1000*regrav
             wdcvc(i,j,itr) = 1.D6*wdcvc(i,j,itr)*d_1000*regrav
             ddsfc(i,j,itr) = 1.D6*ddsfc(i,j,itr)*d_1000*regrav
             wxsg(i,j,itr) = 1.D6*wxsg(i,j,itr)*d_1000*regrav
