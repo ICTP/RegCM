@@ -131,7 +131,6 @@ module mod_che_common
                       1,mpy,1,ntr,'mod_che_common:chemsrc')
 
         call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
-        call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'mod_che_common:cemtrac')
         call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'mod_che_common:remdrd')
         call getmem4d(remcvc,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:remcvc')
         call getmem4d(remlsc,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:remlsc')
@@ -157,6 +156,7 @@ module mod_che_common
         call getmem3d(ddsfc,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddsfc')
         call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
         call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
+        call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
 
         call getmem3d(drydepv,1,iy,1,jxp,1,ntr,'mod_che_common:drydepv')
         call getmem3d(chevap,1,jxp,1,iy,1,kz,'mod_che_common:chevap')

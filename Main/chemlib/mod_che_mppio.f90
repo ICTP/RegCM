@@ -97,7 +97,6 @@ module mod_che_mppio
         call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*8+5,1,jx,'che_mppio:chem_0')
         call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
 
-        call getmem3d(cemtrac_io,1,iy,1,jx,1,ntr,'che_mppio:cemtrac_io')
         call getmem3d(cemtr_io,1,iy,1,jx,1,ntr,'che_mppio:cemtr_io')
         call getmem4d(rxsaq1_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:rxsaq1_io')
         call getmem4d(rxsaq2_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:rxsaq2_io')
@@ -121,6 +120,8 @@ module mod_che_mppio
                         'che_mppio:wxsg_io')
           call getmem3d(wxaq_io,jcross1,jcross2,icross1,icross2,1,ntr, &
                         'che_mppio:wxaq_io')
+          call getmem3d(cemtrac_io,jcross1,jcross2,icross1,icross2,1,ntr, &
+                        'che_mppio:cemtrac_io')
 
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
