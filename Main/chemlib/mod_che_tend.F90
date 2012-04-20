@@ -412,9 +412,9 @@
               dtrace(j,i,itr) = dtrace(j,i,itr) + chia(j,i,k,itr)*cdsigma(k)
               wdlsc(j,i,itr) = wdlsc(j,i,itr) + remlsc(i,k,j,itr)*cdsigma(k)
               wdcvc(j,i,itr) = wdcvc(j,i,itr) + remcvc(i,k,j,itr)*cdsigma(k)
-              wxsg(i,j,itr) = wxsg(i,j,itr) + rxsg(i,k,j,itr)*cdsigma(k)
+              wxsg(j,i,itr) = wxsg(j,i,itr) + rxsg(i,k,j,itr)*cdsigma(k)
 !             sum ls and conv contribution
-              wxaq(i,j,itr) = wxaq(i,j,itr)                             &
+              wxaq(j,i,itr) = wxaq(j,i,itr)                             &
                             & + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
                             & *cdsigma(k)
             end do
@@ -439,8 +439,8 @@
             wdlsc(j,i,itr) = 1.D6*wdlsc(j,i,itr)*d_1000*regrav
             wdcvc(j,i,itr) = 1.D6*wdcvc(j,i,itr)*d_1000*regrav
             ddsfc(j,i,itr) = 1.D6*ddsfc(j,i,itr)*d_1000*regrav
-            wxsg(i,j,itr) = 1.D6*wxsg(i,j,itr)*d_1000*regrav
-            wxaq(i,j,itr) = 1.D6*wxaq(i,j,itr)*d_1000*regrav
+            wxsg(j,i,itr) = 1.D6*wxsg(j,i,itr)*d_1000*regrav
+            wxaq(j,i,itr) = 1.D6*wxaq(j,i,itr)*d_1000*regrav
 !           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
 !           factor to to pass im mg/m2
             cemtrac(i,j,itr) = 1.D6*cemtrac(i,j,itr)
