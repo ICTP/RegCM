@@ -94,6 +94,8 @@ module mod_che_dust
        2.56D-06 , 5.12D-06 , 5.12D-06 , 10.4D-06 , 10.24D-06 ,      &
        20.48D-06 , 20.48D-06 , 40.6D-06/
 !
+  integer :: ilg
+
   contains 
 !
     subroutine allocate_mod_che_dust 
@@ -105,6 +107,7 @@ module mod_che_dust
       call getmem2d(clayrow2,ici1,ici2,jci1,jci2,'che_dust:clayrow2')
       call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
       call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats,'che_dust:srel2d')
+      ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
 !
 !  ***********************************************************
@@ -390,27 +393,24 @@ module mod_che_dust
 !   * ashraf s. zakey                                   ******
 !   **********************************************************
 ! 
-    subroutine sfflux(ilg,il1,il2,jloop,ivegcov,vegfrac, &
-                      ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
+    subroutine sfflux(jloop,ivegcov,vegfrac,ustarnd,z0,soilw, &
+                      surfwd,roarow,trsize,rsfrow)
 ! 
       implicit none
 !
-      integer :: il1 , il2 , ilg , jloop
-      integer , dimension(ilg) ::  ivegcov
-      real(dp) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac ,   &
-                                   z0 , ustarnd
-      real(dp) , dimension(ilg,nbin) :: rsfrow
-      real(dp) , dimension(nbin,2) :: trsize
-      intent (in) il1 , il2 ,  ivegcov , jloop , roarow ,     &
-                  soilw , surfwd , vegfrac , z0 , ustarnd
-      intent (out) rsfrow
+      integer , intent(in) :: jloop
+      integer , intent(in) , dimension(ici1:ici2) ::  ivegcov
+      real(dp) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
+                surfwd , vegfrac , z0 , ustarnd
+      real(dp) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
+      real(dp) , intent(in) , dimension(nbin,2) :: trsize
 !
-      integer :: i , ieff , ieffmax , n , ns
       real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
                                    xsurfwd , xvegfrac , xz0 , xustarnd
       real(dp) , dimension(ilg,nbin) :: xrsfrow
       real(dp) , dimension(ilg,nats) :: xftex
       real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
+      integer :: i , ieff , ieffmax , n , ns
 ! 
       rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
@@ -427,7 +427,7 @@ module mod_che_dust
      
       ieff = 0
       ieffmax = 0
-      do i = il1 , il2
+      do i = ici1 , ici2
         if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then   
           ieff = ieff + 1
           xvegfrac(ieff) = vegfrac(i)
@@ -449,14 +449,14 @@ module mod_che_dust
       ieffmax = ieff
 
       if ( ieffmax > 0 ) then
-        call dust_module(1,ieffmax,ilg,trsize,xsoilw,xvegfrac,xsurfwd, &
+        call dust_module(1,ieffmax,trsize,xsoilw,xvegfrac,xsurfwd, &
                          xftex,xclayrow,xroarow,xz0,xsrel2d,xustarnd,xrsfrow)
       end if
         
       ! put back the dust flux on the right grid
      
       ieff = 0
-      do i = il1 , il2
+      do i = ici1 , ici2
         if  (ivegcov(i) == 8 .or. ivegcov(i) == 11) then     
           ieff = ieff + 1
           do n = 1 , nbin
@@ -477,11 +477,11 @@ module mod_che_dust
       end do
     end subroutine sfflux
 ! 
-    subroutine dust_module(il1,il2,ilg,trsize,soilw,vegfrac,surfwd,ftex, &
+    subroutine dust_module(il1,il2,trsize,soilw,vegfrac,surfwd,ftex, &
                            clayrow,roarow,z0,srel,ustarnd,rsfrow)
       implicit none
 !
-      integer :: il1 , il2 , ilg
+      integer :: il1 , il2
       real(dp) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd
       real(dp) , dimension(ilg,nbin) :: rsfrow
@@ -568,20 +568,20 @@ module mod_che_dust
  
       end do       ! end i loop
  
-      call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhodust)
+      call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
  
-      call emission(ilg,il1,il2,rhodust,ftex,uth,roarow,rc,utheff,     &
+      call emission(il1,il2,rhodust,ftex,uth,roarow,rc,utheff,     &
                     ustar,srel,rsfrow,trsize,vegfrac)
  
     end subroutine dust_module
 ! 
-    subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhodust)
+    subroutine uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
       implicit none
-      integer :: il1 , il2 , ilg , nsoil , ust
+      integer :: il1 , il2 , nsoil , ust
       real(dp) :: rhodust
       real(dp) , dimension(ilg) :: roarow
       real(dp) , dimension(ilg,nsoil) :: utheff
-      intent (in) il1 , il2 , ilg , nsoil , ust
+      intent (in) il1 , il2 , nsoil , ust
       intent (out) utheff
       integer :: n , i
       do n = 1 , nsoil
@@ -592,12 +592,12 @@ module mod_che_dust
       end do
     end subroutine uthefft
 !
-    subroutine emission(ilg,il1,il2,rhodust,ftex,uth,roarow,rc,      &
+    subroutine emission(il1,il2,rhodust,ftex,uth,roarow,rc,      &
                         utheff,ustar,srel,rsfrow,trsize,vegfrac)
  
       implicit none
 !
-      integer :: il1 , il2 , ilg
+      integer :: il1 , il2
       real(dp) :: rhodust , uth
       real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
@@ -605,7 +605,7 @@ module mod_che_dust
       real(dp) , dimension(ilg,nsoil,nats) :: srel
       real(dp) , dimension(nbin,2) :: trsize
       real(dp) , dimension(ilg,nsoil) :: utheff
-      intent (in)  il1 , il2 , ilg , rc , rhodust , roarow , srel ,  &
+      intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
                    trsize , ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
 !

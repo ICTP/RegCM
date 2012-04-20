@@ -248,8 +248,8 @@
       !
       if ( idust(1) > 0 ) then
         do j= jci1,jci2
-          call sfflux(iy,ici1,ici2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
-                      zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),         &
+          call sfflux(j,ivegcov(j,:),vegfrac(j,:),ustar(j,:),      &
+                      zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz), &
                       dustbsiz,dust_flx(j,:,:))     
         end do 
       end if
