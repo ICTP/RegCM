@@ -44,9 +44,9 @@ module mod_che_output
       ! but are outputed if CHE is active !
       ! that is why they need to pass as argument here (an other option
       ! would be to define an interface)!! 
-      real(dp) , pointer , dimension(:,:,:) , intent(in) :: aerext , aerssa , &
+      real(dp) , pointer , dimension(:,:,:)  :: aerext , aerssa , &
                               aerasp
-      real(dp) , pointer , dimension(:,:) , intent(in) :: aertarf , aersrrf , &
+      real(dp) , pointer , dimension(:,:)  :: aertarf , aersrrf , &
                               aertalwrf , aersrlwrf            
       integer :: i , j , k , n , ierr
  

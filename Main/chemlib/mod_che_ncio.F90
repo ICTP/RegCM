@@ -1643,7 +1643,7 @@ module mod_che_ncio
         istatus = nf90_get_var(ichin, chbc_ivar(n), xread, &
                   &            istart, icount)
         call check_ok(__FILE__,__LINE__, &
-             'variable '//trim(chbcname(i))//' read error','CHBC FILE ERROR')
+             'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
         do k = 1 , kz
           do j = 1 , jx
             do i = 1 , iy
