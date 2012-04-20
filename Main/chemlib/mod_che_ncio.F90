@@ -1308,13 +1308,12 @@ module mod_che_ncio
 
 !============================================================================
 
-    subroutine writerec_che2(nx,ny,nnx,nny,nz,nt,chia,wdlsc,wdcvc, &
+    subroutine writerec_che2(chia,wdlsc,wdcvc, &
                              ddsfc,cemtrac,drydepv,ext,ssa,asp,    &
                              tarf,ssrf,talwrf,srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
-      integer , intent(in) :: nx , ny , nnx , nny , nz , nt 
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
@@ -1369,8 +1368,8 @@ module mod_che_ncio
           icount(1) = o_nj
 
           !*** tracer concentration
-          do k = 1 , nz
-            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,nz-k+1,n) / &
+          do k = 1 , kz
+            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,kz-k+1,n) / &
                                 ps(o_js:o_je,o_is:o_ie))
           end do
           istatus = nf90_put_var(ncche(n), ichevar(3), &
@@ -1445,8 +1444,8 @@ module mod_che_ncio
           icount(1) = o_nj
 
           !*** extinction
-          do k = 1 , nz
-            dumio(:,:,k) = real(ext(o_js:o_je,o_is:o_ie,nz-k+1))
+          do k = 1 , kz
+            dumio(:,:,k) = real(ext(o_js:o_je,o_is:o_ie,kz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(3), &
                                  dumio, istart(1:4), icount(1:4))
@@ -1454,8 +1453,8 @@ module mod_che_ncio
                          'CHE FILE ERROR')
 
           !*** SSAE
-          do k = 1 , nz
-            dumio(:,:,k) = real(ssa(o_js:o_je,o_is:o_ie,nz-k+1))
+          do k = 1 , kz
+            dumio(:,:,k) = real(ssa(o_js:o_je,o_is:o_ie,kz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(4), &
                                  dumio, istart(1:4), icount(1:4))
@@ -1463,8 +1462,8 @@ module mod_che_ncio
                         'CHE FILE ERROR')
 
           !*** ASP
-          do k = 1 , nz
-            dumio(:,:,k) = real(asp(o_js:o_je,o_is:o_ie,nz-k+1))
+          do k = 1 , kz
+            dumio(:,:,k) = real(asp(o_js:o_je,o_is:o_ie,kz-k+1))
           end do
           istatus = nf90_put_var(ncche(n), ioptvar(5), &
                                  dumio, istart(1:4), icount(1:4))

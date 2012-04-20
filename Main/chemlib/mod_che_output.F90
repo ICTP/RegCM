@@ -111,37 +111,19 @@ module mod_che_output
 !----------------------------------------------------------------
 !================================================================
 
-  subroutine outche2(idatex)
+    subroutine outche2(idatex)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
-      integer :: ni , nj , nk , is , ie , js , je
 
-       if ( lcband ) then
-         ni = iym2
-         nj = jx
-         nk = kz
-         is = 2
-         js = 1
-         ie = iym1
-         je = jx
-       else
-         ni = iym2
-         nj = jxm2
-         nk = kz
-         is = 2
-         js = 2
-         ie = iym1
-         je = jxm1
-       end if
+      call writerec_che2(chia_io,wdlsc_io,wdcvc_io,ddsfc_io,cemtrac_io,   &
+                         drydepv_io,aerext_io,aerssa_io,aerasp_io,        &
+                         aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io, &
+                         cpsb_io,idatex)
 
-       call writerec_che2(nj, ni, je, ie, nk, ntr, chia_io,     &
-                wdlsc_io, wdcvc_io, ddsfc_io, cemtrac_io,    &
-                drydepv_io,  aerext_io, aerssa_io, aerasp_io, &
-                aertarf_io, aersrrf_io, &
-                aertalwrf_io, aersrlwrf_io, cpsb_io, idatex)
+      write (*,*) 'CHE variables written at ' , tochar(idatex) 
+      if ( iaerosol > 0 ) then
+        write (*,*) 'OPT variables written at ' , tochar(idatex)
+      end if
+    end subroutine outche2
 
-        write (*,*) 'CHE variables written at ' , idatex 
-        if (iaerosol > 0)  write (*,*) 'OPT variables written at ' , idatex 
-      end subroutine outche2
-
-     end module mod_che_output
+end module mod_che_output
