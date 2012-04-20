@@ -124,6 +124,7 @@ module mod_date
     module procedure split_i10 , split_rcm_time_and_date
   end interface
 
+  public :: timeval2ym
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
   public :: operator(>) , operator(<) , operator(>=) , &
@@ -1070,6 +1071,52 @@ module mod_date
     pm = x - z
   end function prevwk
 
+  subroutine timeval2ym(xval,cunit,year,month)
+    implicit none
+    real(dp) , intent(in) :: xval
+    character(*) , intent(in) :: cunit
+    integer , intent(out) :: year , month
+    type (iadate) ,save :: d
+    type (iatime) :: t
+    character(16) :: cdum
+
+    character(64) , save :: csave
+
+    if (csave == cunit) then
+      year = d%year+idnint(xval/12.0D0)
+      month = d%month+idnint(mod(xval,12.0D0))
+      return
+    end if
+    if (cunit(1:6) == 'months') then
+      ! Unit is hours since reference
+      if (len_trim(cunit) >= 31) then
+        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+          cdum, d%year, cdum, d%month, cdum, d%day, &
+          cdum, t%hour, cdum, t%minute, cdum, t%second
+      else if (len_trim(cunit) >= 28) then
+        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+          cdum, d%year, cdum, d%month, cdum, d%day, &
+          cdum, t%hour, cdum, t%minute
+      else if (len_trim(cunit) >= 25) then
+        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
+          cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+      else if (len_trim(cunit) >= 22) then
+        read(cunit,'(a13,i4,a1,i2,a1,i2)') &
+          cdum, d%year, cdum, d%month, cdum, d%day
+      else if (len_trim(cunit) >= 19) then
+        read(cunit,'(a13,i4,a1,i2)') &
+          cdum, d%year, cdum, d%month
+      else
+        call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2YM')
+      end if
+    else
+       call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS')
+    end if
+    csave = cunit
+    year = d%year+idnint(xval/12.0D0)
+    month = d%month+idnint(mod(xval,12.0D0))
+  end subroutine timeval2ym
+
   function timeval2date(xval,cunit,ccal) result(dd)
     implicit none
     real(dp) , intent(in) :: xval
@@ -1082,7 +1129,7 @@ module mod_date
     character(16) :: safeccal
     integer , save :: iunit
     type (rcm_time_and_date) , save :: dref
-    character(12) :: cdum
+    character(16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
 
