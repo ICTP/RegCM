@@ -107,9 +107,9 @@ module mod_che_sox
 
          !  gazeous conversion diagnostic 
 
-         rxsg(i,k,j,iso2) = rxsg(i,k,j,iso2) + &
+         rxsg(j,i,k,iso2) = rxsg(j,i,k,iso2) + &
                             so2_snk(i,k)*cldno*dtche/d_two
-         rxsg(i,k,j,iso4) = rxsg(i,k,j,iso4) + &
+         rxsg(j,i,k,iso4) = rxsg(j,i,k,iso4) + &
                             1.5D0*so2_snk(i,k)*cldno*dtche/d_two
 
        end do
@@ -180,12 +180,12 @@ module mod_che_sox
                               wetrem(iso4)/dtche
  
          ! and wetdep diagnostics
-         remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2) - wetrem(iso2)/d_two
-         remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4) - wetrem(iso4)/d_two
+         remlsc(j,i,k,iso2) = remlsc(j,i,k,iso2) - wetrem(iso2)/d_two
+         remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
  
          ! chemical aqueous conversion diagnostic
-         rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1/d_two
-         rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11/d_two
+         rxsaq1(j,i,k,iso2) = rxsaq1(j,i,k,iso2) - rxs1/d_two
+         rxsaq1(j,i,k,iso4) = rxsaq1(j,i,k,iso4) - rxs11/d_two
  
        end do
      end do
@@ -218,11 +218,11 @@ module mod_che_sox
                                 wetrem_cvc(iso4)/dtche - rxs21/dtche
  
            ! diagnostic of wet deposition
-           ! remcvc(i,k,j,1) = remcvc(i,k,j,1) - wetrem_cvc(iso2)/2.
-           remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4) - wetrem_cvc(iso4)/d_two
+           ! remcvc(j,i,k,1) = remcvc(j,i,k,1) - wetrem_cvc(iso2)/2.
+           remcvc(j,i,k,iso4) = remcvc(j,i,k,iso4) - wetrem_cvc(iso4)/d_two
            ! chemical aquesous conversion diagnostic
-           rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2/d_two
-           rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/d_two
+           rxsaq2(j,i,k,iso2) = rxsaq2(j,i,k,iso2) - rxs2/d_two
+           rxsaq2(j,i,k,iso4) = rxsaq2(j,i,k,iso4) - rxs21/d_two
  
          end do
        end if

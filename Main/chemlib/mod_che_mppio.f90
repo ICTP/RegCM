@@ -31,10 +31,7 @@ module mod_che_mppio
 
   real(dp) , pointer , dimension(:,:,:) :: cemtrac_io , cemtr_io , &
                                            wxaq_io , wxsg_io
-  real(dp) , pointer , dimension(:,:,:,:) :: rxsaq1_io , rxsaq2_io , rxsg_io
 
-  real(dp) , pointer , dimension(:,:,:,:) :: remcvc_io
-  real(dp) , pointer , dimension(:,:,:,:) :: remlsc_io
   real(dp) , pointer , dimension(:,:,:) :: remdrd_io
   real(dp) , pointer , dimension(:,:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
@@ -98,11 +95,6 @@ module mod_che_mppio
         call getmem3d(savch_0,1,iy,1,kz*25,1,jx,'che_mppio:savch_0')
 
         call getmem3d(cemtr_io,1,iy,1,jx,1,ntr,'che_mppio:cemtr_io')
-        call getmem4d(rxsaq1_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:rxsaq1_io')
-        call getmem4d(rxsaq2_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:rxsaq2_io')
-        call getmem4d(rxsg_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:rxsg_io')
-        call getmem4d(remcvc_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:remcvc_io')
-        call getmem4d(remlsc_io,1,iy,1,kz,1,jx,1,ntr,'che_mppio:remlsc_io')
         call getmem3d(remdrd_io,1,iy,1,jx,1,ntr,'che_mppio:remdrd_io')
         call getmem4d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
                       1,mpy,1,ntr,'che_mppio:chemsrc_io')
