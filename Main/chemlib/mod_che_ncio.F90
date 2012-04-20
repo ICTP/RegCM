@@ -1318,8 +1318,7 @@ module mod_che_ncio
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
-                                                   ddsfc , cemtrac
-      real(dp) , dimension(iy,jx,nt), intent(in) :: drydepv
+                                                   ddsfc , cemtrac , drydepv
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
       real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , &
                                                           talwrf , srlwrf
@@ -1332,14 +1331,8 @@ module mod_che_ncio
       character(len=36) :: ctime
       real(dp) :: cfd2
 
-      if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
-        write (6,*) 'Error writing record on CHE file'
-        write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
-        write (6,*) 'Got layers       ', nz, 'x', nx, 'x', ny
-        call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-      end if
-
       noutf = ntr
+
       if (iaerosol == 1 ) noutf = ntr + 1 
  
       do n = 1 , noutf        
@@ -1429,7 +1422,7 @@ module mod_che_ncio
                'Error writing emission rate '//ctime, 'CHE FILE ERROR')
 
           !*** dry dep vel 
-          dumio(:,:,1) = real(transpose(drydepv(o_is:o_ie,o_js:o_je,n))*cfd2)
+          dumio(:,:,1) = real(drydepv(o_js:o_je,o_is:o_ie,n)*cfd2)
           istatus = nf90_put_var(ncche(n), ichevar(8), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &

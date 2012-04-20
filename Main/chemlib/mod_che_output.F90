@@ -67,71 +67,35 @@ module mod_che_output
       call deco1_gather(wxaq,ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr)
       call deco1_gather(cemtrac,cemtrac_io,jcross1,jcross2, &
                         icross1,icross2,1,ntr)
+      call deco1_gather(drydepv,drydepv_io,jcross1,jcross2, &
+                        icross1,icross2,1,ntr)
 
-          do j = 1 , jxp
-            do n = 1 , ntr
-              do i = 1 , iy
-                chem0(i,(ntr+3)*kz+ntr*7+n,j) = drydepv(i,j,n)
-
-              end do
-            end do
-          end do
-
-         call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*8+5)*jxp,            &
-                        & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*8+5)*jxp, &
-                        & mpi_real8,0,mpi_comm_world,ierr)
-
-
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do n = 1 , ntr
-                do i = 1 , iy
-                  drydepv_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*7+n,j)
-
-                end do
-              end do
-            end do
-
-            call outche2(idatex) 
+      call outche2(idatex) 
               
-            remlsc_io  = 0.0
-            remcvc_io  = 0.0
-            rxsg_io    = 0.0
-            rxsaq1_io  = 0.0
-            rxsaq2_io  = 0.0
-            cemtr_io   = 0.0
-            remdrd_io  = 0.0
-            drydepv_io = 0.0
-            aertarf_io = 0.0
-            aersrrf_io = 0.0
-            aersrlwrf_io=0.0
-            aertalwrf_io=0.0
-          end if
-
-! put back to zero accumulated variables
-          do n = 1 , ntr
-            do j = 1 , jxp
-              do k = 1 , kz
-                do i = 1 , iy
-                  remlsc(i,k,j,n) = 0.
-                  remcvc(i,k,j,n) = 0.
-                  rxsg(i,k,j,n) = 0.
-                  rxsaq1(i,k,j,n) = 0.
-                  rxsaq2(i,k,j,n) = 0.
-                end do
-              end do
+      ! put back to zero accumulated variables
+      do n = 1 , ntr
+        do j = 1 , jxp
+          do k = 1 , kz
+            do i = 1 , iy
+              remlsc(i,k,j,n) = 0.
+              remcvc(i,k,j,n) = 0.
+              rxsg(i,k,j,n) = 0.
+              rxsaq1(i,k,j,n) = 0.
+              rxsaq2(i,k,j,n) = 0.
             end do
           end do
-          do n = 1 , ntr
-            do j = 1 , jxp
-              do i = 1 , iy
-                cemtr(i,j,n) = 0.
-                remdrd(i,j,n) = 0.
-                drydepv(i,j,n) =0.
-              end do
-            end do
+        end do
+      end do
+      do n = 1 , ntr
+        do j = 1 , jxp
+          do i = 1 , iy
+            cemtr(i,j,n) = 0.
+            remdrd(i,j,n) = 0.
           end do
+        end do
+      end do
 
+      drydepv(:,:,:) = d_zero
       cemtrac(:,:,:) = d_zero
       wxaq(:,:,:) = d_zero
       wxsg(:,:,:) = d_zero

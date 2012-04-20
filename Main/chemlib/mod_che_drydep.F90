@@ -616,7 +616,7 @@ module mod_che_drydep
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
           ! also settling , accumulated between two outputs time step) 
-          drydepv(i,j,indsp(ib)) =  drydepv(i,j,indsp(ib))+ddepv(i,indsp(ib))
+          drydepv(j,i,indsp(ib)) =  drydepv(j,i,indsp(ib))+ddepv(i,indsp(ib))
         end do
       end do
       call time_end(subroutine_name,idindx)
@@ -713,7 +713,7 @@ module mod_che_drydep
              remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / d_two
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
-             drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n)     
+             drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n)     
            end do 
          end do
        else if ( ichdrdepo == 2 ) then 
@@ -723,7 +723,7 @@ module mod_che_drydep
                                cpsb(j,i) * drydepvg(i,n)
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
-             drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
+             drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n) 
            end do
          end do
        end if 
@@ -757,7 +757,7 @@ module mod_che_drydep
 !!drydep flux diagnostic (accumulated between two outputs time step) 
 !             remdrd(i,j,n) = remdrd(i,j,n) + ddrem(i) * dtche / 2 
 !!
-!!          drydepv(i,j,n) =  drydepv(i,j,n) + drydepvg(i,n) 
+!!          drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n) 
 !          end do
 !          end do
 !          end if
