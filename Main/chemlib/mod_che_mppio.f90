@@ -101,13 +101,13 @@ module mod_che_mppio
       
 
         call getmem2d(cpsa_io,1,iy,1,jx,'che_mppio:cpsa_io')
-        call getmem2d(ssw2da_io,1,iym1,1,mmj,'che_mppio:ssw2da_io')
-        call getmem2d(sdelqk2d_io,1,iym1,1,mmj,'che_mppio:sdelqk2d_io')
-        call getmem2d(sdeltk2d_io,1,iym1,1,mmj,'che_mppio:sdeltk2d_io')
-        call getmem2d(sfracb2d_io,1,iym1,1,mmj,'che_mppio:sfracb2d_io')
-        call getmem2d(sfracs2d_io,1,iym1,1,mmj,'che_mppio:sfracs2d_io')
-        call getmem2d(sfracv2d_io,1,iym1,1,mmj,'che_mppio:sfracv2d_io')
-        call getmem2d(svegfrac2d_io,1,iym1,1,mmj,'che_mppio:svegfrac2d_io')
+        call getmem2d(ssw2da_io,icross1,icross2,1,mmj,'che_mppio:ssw2da_io')
+        call getmem2d(sdelqk2d_io,icross1,icross2,1,mmj,'che_mppio:sdelqk2d_io')
+        call getmem2d(sdeltk2d_io,icross1,icross2,1,mmj,'che_mppio:sdeltk2d_io')
+        call getmem2d(sfracb2d_io,icross1,icross2,1,mmj,'che_mppio:sfracb2d_io')
+        call getmem2d(sfracs2d_io,icross1,icross2,1,mmj,'che_mppio:sfracs2d_io')
+        call getmem2d(sfracv2d_io,icross1,icross2,1,mmj,'che_mppio:sfracv2d_io')
+        call getmem2d(svegfrac2d_io,icross1,icross2,1,mmj,'che_mppio:svegfrac2d_io')
 
         call getmem3d(cemtrac_io,1,iy,1,jx,1,ntr,'che_mppio:cemtrac_io')
         call getmem3d(cemtr_io,1,iy,1,jx,1,ntr,'che_mppio:cemtr_io')
@@ -131,13 +131,13 @@ module mod_che_mppio
         call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                       1,nats,'che_mppio:dustsotex_io')
 
-        call getmem3d(aerasp_io,1,iym1,1,kz,1,mmj,'che_mppio:aerasp_io')
-        call getmem3d(aerext_io,1,iym1,1,kz,1,mmj,'che_mppio:aerext_io')
-        call getmem3d(aerssa_io,1,iym1,1,kz,1,mmj,'che_mppio:aerssa_io')
-        call getmem2d(aersrrf_io,1,iym1,1,mmj,'che_mppio:aersrrf_io')
-        call getmem2d(aertarf_io,1,iym1,1,mmj,'che_mppio:aertarf_io')
-        call getmem2d(aertalwrf_io,1,iym1,1,mmj,'che_mppio:aertalwrf_io')
-        call getmem2d(aersrlwrf_io,1,iym1,1,mmj,'che_mppio:aersrlwrf_io')
+        call getmem3d(aerasp_io,icross1,icross2,1,kz,1,mmj,'che_mppio:aerasp_io')
+        call getmem3d(aerext_io,icross1,icross2,1,kz,1,mmj,'che_mppio:aerext_io')
+        call getmem3d(aerssa_io,icross1,icross2,1,kz,1,mmj,'che_mppio:aerssa_io')
+        call getmem2d(aersrrf_io,icross1,icross2,1,mmj,'che_mppio:aersrrf_io')
+        call getmem2d(aertarf_io,icross1,icross2,1,mmj,'che_mppio:aertarf_io')
+        call getmem2d(aertalwrf_io,icross1,icross2,1,mmj,'che_mppio:aertalwrf_io')
+        call getmem2d(aersrlwrf_io,icross1,icross2,1,mmj,'che_mppio:aersrlwrf_io')
 
 
       end if

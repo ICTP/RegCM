@@ -76,17 +76,17 @@ module mod_che_chemistry
       integer , intent(in) :: jj
       integer , intent(in) :: idatein
       real(dp) , intent(in) :: tod ! abt added for time of day
-      real(dp) , dimension(2:iym2,1:kz,totsp) , intent(in) :: chemin
-      real(dp) , dimension(2:iym2,1:kz,totsp) , intent(out) :: chemox
-      real(dp) , dimension(2:iym2,1:kz) , intent(in) :: taa , psaa
-      real(dp) , dimension(2:iym2) , intent(in) :: zena
+      real(dp) , dimension(ici1:ici2,1:kz,totsp) , intent(in) :: chemin
+      real(dp) , dimension(ici1:ici2,1:kz,totsp) , intent(out) :: chemox
+      real(dp) , dimension(ici1:ici2,1:kz) , intent(in) :: taa , psaa
+      real(dp) , dimension(ici1:ici2) , intent(in) :: zena
       ! LOCAL VARIABLES
-      real(dp) , dimension(2:iym2,1:kz) :: cfactor
-      real(dp) , dimension(2:iym2,1:kz,1:56) :: jphoto
+      real(dp) , dimension(ici1:ici2,1:kz) :: cfactor
+      real(dp) , dimension(ici1:ici2,1:kz,1:56) :: jphoto
       !ah  variable for photolysis
       real(dp) , dimension(1:kz) :: taucab , taucbl
-      real(dp) , dimension(1:iy,1:kz,1:jxp) :: taucld2
-      real(dp) , dimension(1:iy,0:kz+1) :: psaa2 , taa2
+      real(dp) , dimension(ici1:ici2,1:kz) :: taucld2
+      real(dp) , dimension(ici1:ici2,1:kz+1) :: psaa2 , taa2
       real(dp) , dimension(1:kz) :: hcbl , hcab
       real(dp) :: levav
       integer :: i , k , kbl , kab , ll,ic
@@ -101,16 +101,16 @@ module mod_che_chemistry
 
       ! Reorder from top-down to bottom-up
       do k = 1 , kz
-        do i = 2 , iym2
+        do i = ici1 , ici2
           ll = (kz+1)-k
-          taucld2(i,ll,jj) = taucld(i,k,jj)
+          taucld2(i,ll) = taucld(i,k,jj)
           psaa2(i,ll) = psaa(i,k)
           taa2(i,ll) = taa(i,k)
         end do
       end do
 
       do k = kz , 1 , -1
-        do i = 2 , iym2
+        do i = ici1 , ici2
           ll = (kz+1)-k
           altmid(1) = psaa2(i,k)
           temp(1) = taa2(i,k)
@@ -123,14 +123,14 @@ module mod_che_chemistry
           hcbl(ll) = d_zero
           if ( ll < kz ) then
             do kab = ll+1 , kz
-              taucab(ll) = taucab(ll)+taucld2(i,kab,jj)
+              taucab(ll) = taucab(ll)+taucld2(i,kab)
               levav = d_half*(psaa2(i,kab)+psaa2(i,kab+1))
-              hcab(ll) = hcab(ll) + taucld2(i,kab,jj)*levav
+              hcab(ll) = hcab(ll) + taucld2(i,kab)*levav
             end do
           end if
-          taucab(ll) = taucab(ll) +taucld2(i,ll,jj)*d_half
+          taucab(ll) = taucab(ll) +taucld2(i,ll)*d_half
           levav = d_half*(psaa2(i,ll)+psaa2(i,ll+1))
-          hcab(ll) = hcab(ll) + taucld2(i,ll,jj)*d_half*levav
+          hcab(ll) = hcab(ll) + taucld2(i,ll)*d_half*levav
           if ( dabs(taucab(ll)) < dlowval ) then
             hcab(ll) = d_zero
           else
@@ -140,14 +140,14 @@ module mod_che_chemistry
           altabove = hcab(ll)
           if ( ll > 1 ) then
             do kbl = 1 , ll-1
-              taucbl(ll) = taucbl(ll)+taucld2(i,kbl,jj)
+              taucbl(ll) = taucbl(ll)+taucld2(i,kbl)
               levav = d_half*(psaa2(i,kbl)+psaa2(i,kbl-1))
-              hcbl(ll) = hcbl(ll) + taucld2(i,kbl,jj)*levav
+              hcbl(ll) = hcbl(ll) + taucld2(i,kbl)*levav
             end do
           end if
-          taucbl(ll) = taucbl(ll) + taucld2(i,ll,jj)*d_half
+          taucbl(ll) = taucbl(ll) + taucld2(i,ll)*d_half
           levav = d_half*(psaa2(i,ll)+psaa2(i,ll-1))
-          hcbl(ll) = hcbl(ll) + taucld2(i,ll,jj)*d_half*levav
+          hcbl(ll) = hcbl(ll) + taucld2(i,ll)*d_half*levav
           if (dabs(taucbl(ll)) < dlowval ) then
             hcbl(ll) = d_zero
           else
@@ -284,7 +284,7 @@ module mod_che_chemistry
       chemox(j,:,:,:) = d_zero
      
       do k = 1 , kz
-        do i = 2 , iym2
+        do i = ici1 , ici2
           taa(i,k) = ctb3d(j,i,k)
           psaa(i,k)= (cpsb(j,i)*hlev(k)+chptop)
         end do
@@ -293,7 +293,7 @@ module mod_che_chemistry
       zena(:) = dacos(czen(j,:)*degrad)
 
       do k = 1 , kz
-        do i = 2 , iym2
+        do i = ici1 , ici2
 
 !work with chib3d arrays which are in kg.kg-1 
 !convert into molec.cm-3 

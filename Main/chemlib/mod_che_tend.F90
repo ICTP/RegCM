@@ -254,7 +254,7 @@
         
         do j= jci1,jci2
  
-        call sfflux(iy,2,iym2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
+        call sfflux(iy,ici1,ici2,j,ivegcov(j,:),vegfrac(j,:),ustar(j,:), &
                       zeff(j,:),soilw(j,:),wid10(j,:),rho(j,:,kz),dustbsiz,dust_flx(j,:,:))     
         end do 
         end if
@@ -362,7 +362,7 @@
         chevap = d_zero
          do j=jci1,jci2        
 !          call sethet(j,cza(j,:,:),cht(j,:),ttb(j,:,:),checum(j,:,:),cremrat(j,:,:), &
-!                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,2:iym2))
+!                      chevap(j,:,:),dtche,rho(j,:,:),chib(j,:,:,:),iym3,cpsb(j,ici1:ici2))
          end do
         end if
     
