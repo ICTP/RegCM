@@ -101,6 +101,7 @@ module mod_che_output
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
 
+      if (myid ==0) then 
       call writerec_che2(chia_io,wdlsc_io,wdcvc_io,ddsfc_io,cemtrac_io,   &
                          drydepv_io,aerext_io,aerssa_io,aerasp_io,        &
                          aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io, &
@@ -110,6 +111,8 @@ module mod_che_output
       if ( iaerosol > 0 ) then
         write (*,*) 'OPT variables written at ' , tochar(idatex)
       end if
+
+     end if
     end subroutine outche2
 
 end module mod_che_output
