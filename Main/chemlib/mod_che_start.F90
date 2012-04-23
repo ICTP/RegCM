@@ -307,8 +307,8 @@ module mod_che_start
     recc = 0
 
     if ( igaschem == 1 ) then
-      open( 26,file='TUVGRID2', status='old')
-      open( 25,file='REACTION.DAT_CBMZ', status='old')  
+      open( 26,file='TUVGRID2', status='old', err=900)
+      open( 25,file='REACTION.DAT_CBMZ', status='old', err=901)  
       ! FAB Traiter le prbleme du restart apres
       !  call regchem
       call chemread
@@ -334,6 +334,12 @@ module mod_che_start
         end do
       end do
     end if
+    return
+
+900 write(aline,*) 'Cannot open required file TUVGRID2.'
+    call fatal(__FILE__,__LINE__,'TUVGRID2 NOT FOUND')
+901 write(aline,*) 'Cannot open required file REACTION.DAT_CBMZ.'
+    call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
 
   end subroutine start_chem
 
