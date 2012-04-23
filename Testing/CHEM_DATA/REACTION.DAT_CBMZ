@@ -1,0 +1,1079 @@
+REACTION_CBMZ1      (from REACTION7_GMI_AQHG06 JUNE 2009)
+    Version to go with chemmain1.f
+
+Version with CBM-Z (Zaveri and Peters, 1999 (J.Geophys. Res.))
+ with most reactions from CBM-Z.1.3.txt (Zaveri, April, 2009)
+ also with gas-phase SO2, sulfate, DMS
+ also with heterogeeous reactions
+
+Original reference: Zaveri R.A. and L.K. Peters, 1999: A new lumped
+structure photochemical mechanism for large-scale applications.
+J. Geophys. Res., vol. 104, D23, 30,387-30,415.
+
+Update: April 30, 2009
+Report problems/bugs to Dr. Rahul A. Zaveri (rahul.zaveri@pnl.gov)
+Report numerical bugs to: Dr. Sanford Sillman (sillman@umich.edu)
+
+Future marine addition  from cbmz.f:
+ chemistry species list (in README):  hcl nh3 
++ marine dms msa mso mso2 ch3so2h ch3sch2oo ch3so2 ch3so3 ch3so2oo ch3so2ch2oo
+  sulfhox
+  (no Cl except HCl)
+
+Future:
+  add basic marine chemistry as in Zaveri (CBM.1.3, April 2009)
+  add basic aqueous chemistry (sulfate. halogens?) based on CMAQ or Zaveri
+
+(Sandy's notes: ADD TO CBM-Z and to CONDENSED MECHANISM
+  Heterogeneous chemistry (in cbm.f)  ('Heterogeneous', 'hetero..', GasRates_Het
+  aqueous reactions 
+  marine mechanism - in cbm.f "marine mechanism" also GasRates_Mar
+ rate contants: 
+  rate costant exact formulas:  GasRateConstants_Urb , _Bio
+  LoadPeroxyParameters (RO2+RO2)
+)
+================================
+CBM-Z species names and abbreviations
+      (note: species numbers are changed, consistent with previous REACTION.DAT)
+CBM-Z.1.3
+
+*dynamic* 56
+# background
+1	ih2so4	H2SO4	= S		; (sulfuric acid)
+2	ihno3	HNO3	= N		; (nitric acid)
+3	ihcl	HCl	= IGNORE	; (hydrochloric acid)
+4	inh3	NH3	= IGNORE	; (ammonia)
+5	ino	NO	= N		; (nitric oxide)
+6	ino2	NO2	= N		; (nitrogen dioxide)
+7	ino3	NO3	= N		; (nitrate radical)
+8	in2o5	N2O5	= 2 N		; (nitrogen pentoxide)
+9	ihono	HONO	= N		; (nitrous acid)
+10	ihno4	HNO4	= N		; (pernitric acid)
+11	io3	O3	= IGNORE	; (ozone)
+12	io1d	O1D	= IGNORE	; (oxygen atom singlet D)
+13	io3p	O3P	= IGNORE	; (oxygen atom triplet P)
+14	ioh	OH	= IGNORE	; (hydroxyl radical)
+15	iho2	HO2	= IGNORE	; (hydroperoxyl radical)
+16	ih2o2	H2O2	= IGNORE	; (hydrogen peroxide)
+17	ico	CO	= IGNORE	; (carbon monoxide)
+18	iso2	SO2	= S		; (sulfur dioxide)
+19	ich4	CH4	= IGNORE	; (methane)
+20	ic2h6	C2H6	= IGNORE	; (ethane)
+21	ich3o2	CH3O2	= IGNORE	; (methylperoxy radical) 
+22	iethp	ETHP	= IGNORE	; (ethylperoxy radical)
+23	ihcho	HCHO	= IGNORE	; (formaldehyde)
+24	ich3oh	CH3OH	= IGNORE	; (methanol)
+25	ianol	ANOL	= IGNORE	; (ethanol -CH2-CH2OH)
+26	ich3ooh	CH3OOH	= IGNORE	; (methyl hydrogen peroxide)
+27	iethooh ETHOOH	= IGNORE	; (ethyl hydrogen peroxide)
+28	iald2	ALD2	= IGNORE	; (acetaldehyde)
+29	ihcooh	HCOOH	= IGNORE	; (formic acid)
+30	ircooh	RCOOH	= IGNORE	; (higher organic acids)
+31	ic2o3	C2O3	= IGNORE	; (peroxyacyl radical)
+32	ipan	PAN	= N		; (peroxyacyl nitrate)
+# urban
+33	ipar	PAR	= IGNORE	; (paraffin carbon -C-)
+34	iaone	AONE	= IGNORE	; (acetone)
+35	imgly	MGLY	= IGNORE	; (methylglyoxal)
+36	ieth	ETH	= IGNORE	; (ethene)
+37	iolet	OLET	= IGNORE	; (terminal olefin carbons C=C)
+38	iolei	OLEI	= IGNORE	; (internal olefin carbons C=C)
+39	itol	TOL	= IGNORE	; (toluene)
+40	ixyl	XYL	= IGNORE	; (xylene)
+41	icres	CRES	= IGNORE	; (cresol and higher M.W. phenols)
+42	ito2	TO2	= IGNORE	; (toluene-OH adduct)
+43	icro	CRO	= IGNORE	; (methylphenoxy radical)
+44	iopen	OPEN	= IGNORE	; (high M.W. aromatic ox. frag)
+45	ionit	ONIT	= N		; (organic nitrate)
+46	irooh	ROOH	= IGNORE	; (higher organic peroxide)
+47	iro2	RO2	= IGNORE	; (alkylperoxy radical)
+48	iano2	ANO2	= IGNORE	; (acetylmethylperoxy radical)
+49	inap	NAP	= N		; (nitratoalkyl peroxy radicals)
+50	ixo2	XO2	= IGNORE	; (NO to NO2 operator)
+51	ixpar	XPAR	= IGNORE	; (PAR removal operator)
+# rural
+52	iisop	ISOP	= IGNORE	; (isoprene)
+53	iisoprd	ISOPRD	= IGNORE	; (lumped intermediate species)
+54	iisopp	ISOPP	= IGNORE	; (lumped peroxyradical of isoprene)
+55	iisopn	ISOPN	= N		; (no3-isoprene adduct)
+56	iisopo2	ISOPO2	= IGNORE	; (lumped peroxyradical of isoprene)
+*end*
+
+
+*fixed* 6
+1	H2O	= IGNORE	; (water vapor)
+2	H2	= IGNORE	; (molecular hydrogen)
+3	O2	= IGNORE	; (molecular oxygen)
+4	N2	= IGNORE	; (molecular nitrogen)
+5	PROD	= IGNORE	; (dummy product)
+6	hv	= IGNORE	; (photolysis)
+*end*
+
+*atoms* 2
+1	N
+2	S
+*end*
+
+================================
+
+
+========================================================
+PRELIMINARY INDICES
+
+START 
+     1      kkw = vector write index (write if
+     1      kmax = number of vector variables 
+    20      numitr = maximum number of iterati
+ 1.000E-02  converge = criteria for numerical conv
+
+ END  
+========================================================
+
+CHEMICAL SPECIES NAMES - TRANSPORTED (INPUT/OUTPUT) SPECIES
+  Indices:    
+    1, 2 = standard (old: fast/slow)
+    3=odd-h radicals.
+    4= peroxides
+    5=pans
+    6=hono/hno4
+    7=rno3
+    future:  aqueous or soluble aerosol;  aqueous odd-H (=CO3).
+
+The program will automatically assign the following categories
+based on family identification:
+  9.    OH     10. HO2       11. O3        12. NO2      13. NO
+ 14.   NO3     15.  N2O5     16.HNO3       17. H+       18. OH-
+ 19.  H2O2
+(20.   CO2-aq  21. ion-      22. ion+     23. io-2     24.  io+2 ?)
+ 8.   aq. radicals (CO3)
+
+NOTE: ISOPN and NAP category:  3 (RO2) or 7 (nitrate)?
+  (it represents VOC+NO3 product (ino2=7) 
+   and ONIT+OH ro2 product (rno2=3).  May need to separate into two.
+
+==============================================================================
+ETHOOH
+START 
+  1      O3  2    2     NO2  2    3      NO  2    4     NO3  2    5    N2O5  2  
+  6    HNO3  1    7    HONO  6    8    HNO4  6    9      OH  3   10     HO2  3  
+ 11    H2O2  4   12     SO2  1   13    SULF  1   14     H2O  0   15      CO  1
+ 16      H2  1   17     CH4  1   18    C2H6  1   19     PAR  1   20   CH3OH  1
+ 21    ANOL  1   22    HCHO  2   23    ALD2  1   24    AONE  1   25   HCOOH  1
+ 26   RCOOH  1   27    ETHE  1   28    OLET  1   29    OLEI  2   30    ISOP  2
+ 31  ISOPRD  1   32    TOLU  1   33    XYLE  1   34  CH3OOH  4   35  ETHOOH  4 
+ 36    ROOH  4   37    MGLY  2   38     PAN  5   39    ONIT  7   40    CRES  2  
+ 41     CRO  2   42     DMS  2   43    OPEN  1   44    PROD  1   45   CH3O2 -3  
+ 46    ETHP -3   47    C2O3 -3   48     RO2 -3   49     TO2 -3   50    ANO2 -3  
+ 51     NAP -3   52   ISOPP -3   53   ISOPN -3   54  ISOPO2 -3   55     XO2  2  
+ 56    XPAR  2   57     CO2  0   58     NH3  2   59    HCLG  2   60    NAOG  2  
+ 61     END  0   62     END  0   61     END  0   62     END  0   61     END  0  
+==============================================================================
+
+LUMPED SPECIES - COMBINED FORM
+ Lumped variable; followed by list of its species ('   x' ends)
+         x               x               x               x               x
+
+ (the "=" data is old, not used)
+
+==============================================================================
+START 
+     END                   
+
+---------------------------------------------------------------------
+-----------------------------------------
+HENRY'S LAW COEFFICIENTS:
+-----------------------------------------
+ HENRY'S LAW SPECIES NAMES:  GAS =  AQUEOUS (format a8, 4x,a8).
+
+ NOTE: Gas species comes first.
+       aqueous species (2nd) automatically added to species list.
+
+ FORMAT:  Index, A, B, accomodation coefficient, molecular weight
+          format 5xi5,e10.3,f10.0, e10.3, f10.0
+ Henry's law Coefficient: H=  A*exp(-B*(1/temp-1/298)
+ Units are moles/liter-atmosphere
+
+---------------------------------------------------------------------
+(HOCL, CO3 not included)
+START 
+     CO2 =     CO2L
+    1    0 3.400E-02     2400. 5.000E-02       44.
+    H2O2 =     H2OA
+    2    0 8.330E+04    -7379. 2.000E-02       34.
+      OH =      OHL
+    4    0 2.500E+01    -5280. 5.000E-02       17.
+     HO2 =     HO2L
+    5    0 2.000E+03    -6640. 2.000E-01       33.
+    HNO3 =     NICA
+    6    0 2.100E+05        0. 5.000E-02       63.
+      O3 =      O3L
+    7    0 1.130E-02    -2300. 5.300E-04       48.
+     NO2 =     NO2L
+    8    0 1.000E-02    -2500. 6.300E-04       46.
+      NO =      NOL
+    9    0 1.900E-03    -1480. 5.000E-03       30.
+   CH3O2 =   CH3O2L
+   10    0 6.000E+00    -5600. 5.000E-02       47.
+    HCHO =     FORL
+   11    0 6.300E+03    -6460. 5.000E-02       30.
+   HCOOH =     ACOL
+   12    0 3.500E+03    -5740. 5.000E-02       46.
+  CH3OOH =      MPL
+   13    0 2.270E+02    -5610. 5.000E-02       48.
+     NO3 =     NO3L
+   14    0 2.100E+05    -8700. 1.000E-03       62.
+     SO2 =     SO2L
+   15    0 1.230E+00    -3120. 5.000E-02       48.
+    SULF =     SUFA
+   16    0 1.000E+08        0. 5.000E-02       98.
+    HONO =     NISA
+   17    0 5.100E-04     1260. 5.000E-02       47.
+   CH3OH =   CH3OHL
+   18    0 2.200E+02    -4900. 5.000E-02       32.
+     NH3 =     NH3L
+   19    0 7.500E+01    -3400. 5.000E-02       17.
+     PAN =     PANL
+   20    0 2.900E+00    -5910. 5.000E-02      117.
+    HCLG =     HCLA
+   26    0 1.100E+00     2023. 5.600E-02       36.   (7.27e2, -2020. Changed:Sander 96, 1.1e0 2023
+    C2O3 =     PARA
+   35    0 1.000E+02        0. 5.000E-02       73.
+    ALD2 =     ALDA
+   37    0 6.300E+03    -6460. 5.000E-02       44.
+   RCOOH =      HAA
+   38    0 3.500E+03    -5740. 5.000E-02       46.
+    NAOG =     NAOH
+   48    0 1.000E+08        0. 5.000E-02       40.
+     END =           
+
+
+--------------------------------------------------------------------------
+-----------------------------------------
+AQUEOUS EQUILIBRIUM CONSTANTS
+-----------------------------------------
+EQUILIBRIUM SPECIES NAMES:  COMBINED SOLUTE = SOLUTE1 + SOLUTE2  (3(a4,4x))
+                                         XY =    X   +   Y
+By convention, SOLUTE2 = H+ or OH-.
+Also, FIRST EQUILIBRIUM CONSTANT is always 0= H+ + OH-.
+  NOTE: The Cation/anion X is automatically added to the species list.
+
+Enter aqueous equilibia in sequence:
+   (1) Neutral species <=> single cation/anion  must come first, then:
+   (2) Single cation/anion <=> double cation/anion
+
+AQUEOUS EQUILIBRIUM CONSTANTS
+ NOTE:  1st species must be H+ and OH- equilibrium.
+ SPECIES FORMAT:  XY = X + Y ;  Y must be H+ or OH- (except for 1st species)
+ NOTE: The Cation/anion C is automatically added to the species list.
+
+ EQUIL. CONSTANT FORMAT:  Index, A, B.   (5x,i5,e10.3,f10.0)
+ Equilibrium constant = A*exp(-B*(1/temp-1/298)
+ Units are moles/liter.   Constant = [X][Y]/[XY]
+
+--------------------------------------------------------------------------
+START 
+         =       H+ +      OH-
+    1    0 1.000E-14        0.
+    CO2L =     HCO3 +       H+
+    2    0 4.460E-07     1000.        (fix error:  A298)   
+    HCO3 =     CO3= +       H+
+    3    0 4.680E-11     1760.
+    SO2L =     HSO3 +       H+
+    5    0 1.230E-02    -1960.
+    HSO3 =     SO3= +       H+
+    6    0 6.610E-08    -1500.
+    SUFA =     HSO4 +       H+
+    7    0 1.000E+03        0.
+    HSO4 =     SO4= +       H+
+    8    0 1.020E-02    -2720.
+    H2OA =     HO2- +       H+
+    9    0 2.200E-12     3730.
+    HO2L =      O2- +       H+
+   10    0 1.600E-05        0.     (3.5e-5 => 16e-5 MECCA Sander 04)
+    NICA =     NO3- +       H+
+   11    0 1.540E+01    -8700.      (Sander 96: 1.5e1,0)
+    NISA =     NO2- +       H+
+   12    0 5.100E-04     1260.
+    NH3L =     NH4+ +      OH-
+   13    0 1.700E-05    -4325.     (1.75e-5, 450 -> 1.7e-5, -4325 Sander 96)
+    FORL =     DIOL +         
+   14    0 1.820E+03    -4020.        (MECCA: 1.8E-4)
+    ACOL =     HCOO +       H+
+   15    0 1.780E-04       20.
+    HCLA =      CL- +       H+
+   20    0 1.740E+06    -6900.
+     HAA =      AA- +       H+
+   28    0 1.780E-04        0.
+    NAOH =      NA+ +      OH-
+   35    0 1.000E+08        0.
+     END =          +         
+
+--------------------------------------------------------------------------
+
+-----------------------------------------
+SPECIAL EQUILIBRIUM CONSTANTS
+-----------------------------------------
+ FORMAT:  X = Y + Z ;    3(a8,4x)
+EQUILIBRIUM SPECIES NAMES:  COMBINED SOLUTE = SOLUTE1 + SOLUTE2  (3(a4,4x))
+                                         X1 =    Y   +   Z1
+                                         X2 =    Y   +   Z2
+                                        (X3 =   X2   +   Z3)
+
+ NOTE:  read  but not used in v5 format;  used in v5q or v7.
+ NOTE:  The species must be included in the species list
+         generated from standard aqueous equilibrium.
+
+  This is for use with equilibria that do not involve H+ or OH-
+  and where the second solute (Z1, Z2, etc.) has much higher
+  concentration then X1 or Y   (e.g. HgSO3 <=> Hg# + SO3=).
+  Or if Z1 is zero.
+
+  By convention, this defines a series of COMBINED SOLUTES that are
+  all in equilibria with SOLUTE1.
+
+  It can also represent a CHAIN of solutes, if the CHAIN is entered
+  in the order illustrated above with X3 and X2. The CHAIN LINK must
+  be through SOLUTE 1.
+
+  This is designed for aqueous, but it can be used for back-forth
+  gas-phase species also.  Units will be recognized automatically.
+
+  EQUILIBRIUM CONSTANT:     A, B, RATE INDEX (format10x,2e10.3,5x,i5)
+  CONSTANT      = A*exp(-B*(1/temp-1/298).     = [X][Y]/[XY]
+  UNITS ARE MOLES/LITER.  (Nondimensional for A1=B;  molec/cm3 for gas.)
+
+--------------------------------------------------------------------------
+START 
+     END =          +         
+
+-----------------------------------------------------------------------
+
+---------------------
+REACTIONS, RATES AND STOICHIOMETRIES:
+---------------------
+REACTION:   R1 + R2 => X1*P1 + X2*P2 + X3*P3.
+R1='MORE':  Continuation flag. R1,P3='NEXT':  ON TO NEXT REACTION.
+R1,P3=' END':  END OF SECTION.      '  hv'=HV REACTION,'   x'=no product.
+
+***NOTE***: KEEP COLUMN ORDER FIXED.
+            KEEP REACTIONS #1-24 FIXED IN THE SAME ORDER.
+
+---------------------
+RATE CONSTANTS
+---------------------
+RATE CONSTANTS ARE READ AS AN INDEX (giving the formula type)
+ FOLLOWED BY UP TO SEVEN PARAMETERS:  (A, B, C, D, E, F, G)
+
+UNITS are MOLECULES/CM2-SEC (or equivalent) FOR GAS-PHASE REACTIONS.
+      and MOLES/LITER-SEC for AQUEOUS REACTIONS.
+(Aqueous reactions are automatically identified by species type.)
+
+HVRATES ARE IDENTIFIED BY '  hv' IN REACTION.  IF NOT SPECIFIED,
+HV RATES ARE ALL SET IN PROPORTION TO NO2+hv->NO+O3, THE FIRST REACTION.
+The table hv rate constant gives ratio of hv rate to jNO2.
+
+AQUEOUS REACTIONS ARE IDENTIFIED AUTOMATICALLY IF THEY INVOLVE AQUEOUS SPECIES.
+(AQUEOUS SPECIES ARE IDENTIFIED BY HENRY'S LAW RATES, BELOW.)
+AQUEOUS RATE UNITS:  moles per liter or equivalent.
+
+-----------------------
+The INDEX determines both the read format and the rate formula:  
+
+  0 = standard form, ratek = A exp(-B/T)   10x, e10.3, f8.0
+ -1 = standard form 298, ratek = A exp(-B*(1/T-1/298))   10x, e10.3, f8.0
+ -2 = standard form *T;  A exp(-B/T) (T/300)^C      10x, e10.3, f8.0, f6.1
+
+ -3 = 3-body BOD function of five parameters: 10x,f6.2,e10.3,f6.1,e10.3,f6.1
+ -4 = Aexp(-B/T)* 3-body BOD function of (C,D,E,F,G)
+              10x, e10.3, f8.0, f6.2,e10.3,f6.1,e10.3,f6.1
+
+ -5   A exp(-B/T) * (1-ytn(C))  for nitrate yield   e10.3, f8.0, f6.1
+ -6   A exp(-B/T) * (  ytn(C))  for nitrate yield
+
+ -7   Density-dependent ratio format (for CO, GLYX+OH):
+      A exp(-B/T)* (C + D*dens)/(E + F*dens) , e10.3, f8.0,4e10.3
+
+ -8   Ratio of two reactions (K=K1/(1+K2)) with temp+ density-dependent K2
+       form MO2+MO2, etc., and density-dependent DMS+OH
+       A exp(-B/T) / (1 + (C+E*dens)* exp(-D/T)), e10.3, f8.0, e10.3 f8.0, e10.3
+
+ -9  Special H2O2 rate: (Aexp(-B/t) + C*dens*exp(-D/t)) *(1+ E exp(-F/T)*H2O)
+             3(e10.3, f8.0)
+
+ -10  Special HNO3 rate:  3(e10.3, f8.0)
+        A exp(-B/t) + C exp(-D/t)*dens*E exp(-F/t)/(Cexp(-D/T)*dens+Eexp(-F/T))
+
+ -11 Special C3H8 rate:  Aexp(-B/t)/(1+C*T/300^(D*exp(-E/t))) 
+             10x, e10.3, f8.0, e10.3, f8.3, f8.0
+
+ -12 Sum  of two reactions (AONE): Aexp(-B/T) + Cexp(-D/T)                    
+                10x, e10.3,f8.0, e10.3, f8.0
+
+(CUT THESE TWO, NOT USED.
+ -xx = 3-body BOD function of five parameters: 10x, f6.2,e10.3,f6.1,e10.3,f6.1
+         with k0 density-dependent
+ -xx = Aexp(-B/T)* 3-body BOD function of (C,D,E,F,G)
+         with k0 density-dependent
+              10x, e10.3, f8.0, f6.2,e10.3,f6.1,e10.3,f6.1
+)
+-13  RO2+RO2 parameterization reaction: 
+       RO2i->products representing RO2i+ all RO2's -> products from RO2i
+       A,B,C,D: (A,B)=rate constant for self-reaction, 
+       (C,D)= rate component for cross reaction: rk = 2*sqrt(rk(i)*rk(j))
+                10x, e10.3,f8.0, e10.3, f8.0
+
+
+ -20   reaction on sulfate aerosol: gamma, molec. weight. 10x, e10.3, f8.0
+       gamma = reaction efficiency.
+       uses saersa = sulfate aero surface area per unit volume cm2/cm3
+        (entered elsewhere).
+       ratek = saersa*(gamma/4)* [8RT/(pi*MW)]^0.5  (Pandis + Seinfeld)
+
+ -23   reaction on aqueous aerosol: gamma, molec. weight. 10x, e10.3, f8.0
+       same as reaction on sulfate
+       but uses input aqaersa = aqueous aerosol (cm2/cm3) instead of saersa
+       ratek = aqaersa*(gamma/4)* [8RT/(pi*MW)]^0.5  (Pandis + Seinfeld)
+
+-21  aerosol formation reaction
+-22  aerosol removal  reaction w/ partition coefficient using input aerosol M0
+
+ >0 = hv rates from table (1-56). 
+        Rate = j-value table value (TUV) for given index MULTIPLIED by A 
+ >100 = special rates (old format)  or special j-values
+
+ 102 or 100+n:  Special for O3+hv->2OH.  
+       Rate = j(O3+hv=>O1D) * A/(1+B(dens/H2O))  where B=k(O1D+M)/K(O1D+H2O)
+       n = N-100 = index number for jO3+hv->O1D reaction
+
+ -30 =hv rate relative to NO2 (also identified by regative rate)
+ -31 =hv rate relative to O3 (future)
+
+NOTES: bod
+c From NASA 1997 (DeMore, p.8):
+c  b = ko(300) = Low pressure limit at 300 K.
+c  c = exponent for temperature adjustment, -n in NASA.
+c      (ko(T)=ko(300)*(T/300)**c)
+c  d = kinf(300) = High pressure limit at 300 K.
+c  e = exponent for temperature admustment, -m in NASA.
+c      (kinf(T)=kinf(300)*(T/300)**e)
+c  u = Fc, base for exponent in log-T-P adjustment, always 0.6 in NASA.
+
+      f1=b*((tempx/300.)**c)*denx
+      f2=f1/( d * ((tempx/300.)**e))
+      ee= 1. / ( 1 + (log10(f2))**2. )
+      bod = (f1/(1+f2) ) * u ** ee
+NOTES bod finished.
+
+--------------------------------------------------------------------------
+
+START 
+     NO2 +       hv =>  1.000        NO +  1.000        O3 +  0.000      NEXT
+    1    4                                                                      
+           1.000E-00
+     NO3 +       hv =>  1.000        O3 +  1.000       NO2 +  0.000      NEXT
+    2    6                                                                      
+           1.000E-00
+     NO3 +       hv =>  1.000        NO +  0.000      NEXT +  0.000          
+    2    5                                                                      
+           1.000E-00
+    HONO +       hv =>  1.000        NO +  1.000        OH +  0.000      NEXT
+    3   12                                                                      
+           1.000E-00
+    HNO3 +       hv =>  1.000       NO2 +  1.000        OH +  0.000      NEXT
+    4   13                                                                      
+           1.000E-00
+    HNO4 +       hv =>  1.000       NO2 +  1.000       HO2 +  0.000       NO3
+                        0.000        OH +  0.000      NEXT +  0.000          
+    5   14                                                                      
+           1.000E-00
+    N2O5 +       hv =>  1.000       NO3 +  1.000       NO2 +  0.000      NEXT
+    6    7                                                                      
+           1.000E-00
+      O3 +       hv =>  2.000        OH +  0.000      NEXT +  0.000          
+  296  102           2=O3+hv=>O1D table value; 102=special O3+hv=>H2O           
+           1.000E-00 1.318E-01
+    H2O2 +       hv =>  2.000        OH +  0.000      NEXT +  0.000          
+  298   11                                                                      
+           1.000E-00
+      NO +       O3 =>  1.000       NO2 +  0.000      NEXT +  0.000          
+   18    0                                                                      
+           2.000E-12   1400.
+     NO2 +       O3 =>  1.000       NO3 +  0.000      NEXT +  0.000          
+   19    0                                                                      
+           1.200E-13   2450.
+      O3 +       OH =>  1.000       HO2 +  0.000      NEXT +  0.000          
+   20    0                                                                      
+           1.600E-12    940.
+      O3 +      HO2 =>  1.000        OH +  0.000      NEXT +  0.000          
+   21    0                                                                      
+           1.100E-14    500.
+      OH +       H2 =>  1.000       HO2 +  0.000      NEXT +  0.000          
+   22    0                                                                      
+           5.500E-12   2000.
+      NO +       OH =>  1.000      HONO +  0.000      NEXT +  0.000          
+   23   -3   DeMore 1997 =troe(7.0e-31,2.6,3.6e-11,0.1)                         
+            0.60 7.000E-31  -2.6 3.600E-11  -0.1
+     NO2 +       OH =>  1.000      HNO3 +  0.000      NEXT +  0.000          
+   24   -3   Sanders 2003 (JPL02) =bod(.60D0,2.00D-30,-3.0D0,2.50D-11,-0.0 103  
+            0.60 2.500E-30  -4.4 1.600E-11  -1.7
+      OH +      NO3 =>  1.000       HO2 +  1.000       NO2 +  0.000      NEXT
+   25    0                                                                      
+           2.200E-11      0.
+    HONO +       OH =>  1.000       NO2 +  0.000      NEXT +  0.000          
+   26    0                                                                      
+           1.800E-11    390.
+    HNO3 +       OH =>  1.000       NO3 +  0.000      NEXT +  0.000          
+   27  -10   Special HNO3 rate (Harvard) 115: A exp(-B/t) + C exp(-D/t)*E exp(-F
+           2.410E-14   -460. 6.510E-34  -1335. 2.690E-17  -2199.
+    HNO4 +       OH =>  1.000       NO2 +  0.000      NEXT +  0.000          
+   28    0                                                                      
+           1.300E-12   -380.
+      OH +      HO2 =>  0.000         x +  0.000      NEXT +  0.000          
+   29    0                                                                      
+           4.800E-11   -250.
+    H2O2 +       OH =>  1.000       HO2 +  0.000      NEXT +  0.000          
+   30    0                                                                      
+           2.900E-12    160.
+     HO2 +      HO2 =>  1.000      H2O2 +  0.000      NEXT +  0.000          
+   31   -9  Special rate from Chameides (1996?) 113  (Aexp(-B/t) + C*dens*exp(-D
+           2.300E-13   -600. 1.700E-33  -1000. 1.400E-21  -2200.
+      NO +      HO2 =>  1.000       NO2 +  1.000        OH +  0.000      NEXT
+   33    0                                                                      
+           3.500E-12   -250.
+     NO2 +      HO2 =>  1.000      HNO4 +  0.000      NEXT +  0.000          
+   34   -3  Sander 2003 =bod(.60D0,1.80D-31,-3.2D0,4.70D-12,-1.4  106           
+            0.60 1.800E-31  -3.2 4.700E-12  -1.4
+     NO2 +      HO2 =>  1.000      HONO +  0.000      NEXT +  0.000          
+   35    0                                                                      
+           5.000E-16      0.
+    HNO4 +        x =>  1.000       NO2 +  1.000       HO2 +  0.000      NEXT
+   36   -4   Harvard/GMI bod(.60D0,8.64D-05,-3.2D0,2.24D+15,-1.4D0  114         
+           1.000E-00  10900.  0.60 8.640E-05  -3.2 2.240E+15  -1.4
+     NO3 +       NO =>  2.000       NO2 +  0.000      NEXT +  0.000          
+   37    0                                                                      
+           1.500E-11   -170.
+     NO3 +      NO2 =>  1.000       NO2 +  1.000        NO +  0.000      NEXT
+   38    0                                                                      
+           4.500E-14   1260.
+     NO3 +      NO2 =>  1.000      N2O5 +  0.000      NEXT +  0.000          
+   39   -3   JPL 2000 R= bod(.60D0,2.00D-30,-4.4D0,1.40D-12,-0.7D0  101         
+            0.60 2.200E-30  -3.9 1.500E-12  -0.7
+     NO3 +      NO3 =>  2.000       NO2 +  0.000      NEXT +  0.000      NEXT
+   40    0                                                                      
+           8.500E-13   2450.
+     NO3 +      HO2 =>  0.700       NO2 +  0.700        OH +  0.300      HNO3
+    NEXT                0.000           +  0.000           +  0.000          
+   41    0                                                                      
+           3.500E-12      0.
+    N2O5 +      H2O =>  2.000      HNO3 +  0.000      NEXT +  0.000          
+   42    0                                                                      
+           2.000E-27      0.  
+    N2O5 +        x =>  1.000       NO3 +  1.000       NO2 +  0.000      NEXT
+   43   -4   JPL 2000 bod(.60D0,6.67D-04,-4.4D0,4.67D+14,-0.7D0) 111            
+           1.000E+00  10990.  0.60 6.670E-04  -4.4 4.670E+14  -0.7
+      CO +       OH =>  1.000       HO2 +  0.000      NEXT +  0.000          
+   44   -7   JPL 92 1.5E-13*(1+0.6*Patm)   112  A exp(-B/T)* (C + D*dens)/(E + F
+           1.500E-13      0. 1.000E-00 2.400E-20 1.000E-00 0.000E-00
+     SO2 +       OH =>  1.000      SULF +  1.000       HO2 +  0.000      NEXT
+   45   -3   Demore, 1997 = bod(.60D0,3.00D-31,-3.3D0,1.50D-12,-0.0D0 104       
+            0.60 3.000E-31  -3.3 1.500E-12  -0.0
+     CH4 +       OH =>  1.000     CH3O2 +  0.000      NEXT +  0.000          
+   46   -2    2.45e-12 1775 -> T^.667 2.8e-14 1575 ->(T/300)^.667 xxxx 1575     
+           1.255E-12   1575    0.667
+    C2H6 +       OH =>  1.000      ETHP +  0.000      NEXT +  0.000          
+   47   -2  (8.7e-12 1070 -> te**2*ARR(1.5e-17, -492.) ->(T/300)^2*1.35e-12 492 
+           1.350E-12    492    2.0  
+   CH3OH +       OH =>  1.000      HCHO +  1.000       HO2 +  0.000      NEXT
+   48    0                                                                      
+           6.700E-12    600.
+    HCHO +       hv =>  2.000       HO2 +  1.000        CO +  0.000      NEXT
+   49   15                                                                      
+           1.000E-00
+    HCHO +       hv =>  1.000        CO +  0.000      NEXT +  0.000          
+   50   16                                                                      
+           1.000E-00
+    HCHO +       OH =>  1.000       HO2 +  1.000        CO +  0.000      NEXT
+   51    0                                                                      
+           1.000E-11      0.
+     NO3 +     HCHO =>  1.000      HNO3 +  1.000       HO2 +  1.000        CO
+    NEXT          x     0.000         x +  0.000         x +  0.000         x
+   52    0                                                                      
+           3.400E-13   1900.
+  CH3OOH +       hv =>  1.000      HCHO +  1.000        OH +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   53   11     5e-4*jNO2 (4  5.0e-4) -> 0.7*jH2O2 (11 0.7)                      
+           0.700E-00
+  ETHOOH +       hv =>  1.000      ALD2 +  1.000        OH +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   54    4                                                                      
+           5.000E-04
+  CH3OOH +       OH =>  0.700     CH3O2 +  0.300      HCHO +  0.300        OH
+    NEXT                0.000           +  0.000           +  0.000          
+   55    0                                                                      
+           3.800E-12   -200.
+  ETHOOH +       OH =>  0.500        OH +  0.500      ETHP +  0.500      ALD2
+    NEXT                0.000           +  0.000           +  0.000          
+   56    0                                                                      
+           3.800E-12   -200.
+   CH3O2 +       NO =>  1.000      HCHO +  1.000       NO2 +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   57    0                                                                      
+           3.000E-12   -280.
+    ETHP +       NO =>  1.000      ALD2 +  1.000       NO2 +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   58    0                                                                      
+           2.600E-12   -365.
+   CH3O2 +      NO3 =>  1.000      HCHO +  1.000       NO2 +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   59    0                                                                      
+           1.100E-12      0.
+    ETHP +      NO3 =>  1.000      ALD2 +  1.000       NO2 +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   60    0                                                                      
+           2.500E-12      0.
+   CH3O2 +      HO2 =>  1.000    CH3OOH +  0.000      NEXT +  0.000          
+   61    0   Evans/Fiore from Tyndall 2001 133  A exp(-B/T) / (1 + (C+E*dens)* e
+           3.800E-13   -800                             
+    ETHP +      HO2 =>  1.000    ETHOOH +  0.000      NEXT +  0.000          
+   62    0                                                                      
+           7.500E-13   -700.
+   CH3O2 +        x =>  0.660      HCHO +  0.320       HO2 +  0.34      CH3OH   
+    NEXT                0.000           +  0.000           +  0.000          
+   63  -13   CH3O2+ro2, including self-reaction, ratek=sum kself*ro2            
+           1.300E-12   -640. 2.500E-13   -190.                            
+    ETHP +        x =>  0.800      ALD2 +  0.600       HO2 +  0.200      C2H6   
+    NEXT                0.000           +  0.000           +  0.000          
+   64  -13    ETHP+ro2, including self-reaction, ratek=sum kself*ro2            
+           1.300E-12   -640. 6.800E-14      0.                            
+    ANOL +       OH =>  1.000      ALD2 +  1.000       HO2 +  0.000      NEXT
+   65    0                                                                      
+           7.000E-12    235.
+    ALD2 +       hv =>  1.000     CH3O2 +  1.000       HO2 +  1.000        CO
+    NEXT                0.000           +  0.000           +  0.000          
+   66   17         (jNO2*4.6e-4, but here rate is included directly)            
+           1.000E-00
+    ALD2 +       OH =>  1.000      C2O3 +  0.000      NEXT +  0.000          
+   67    0                                                                      
+           5.600E-12   -270.
+    ALD2 +      NO3 =>  1.000      C2O3 +  1.000      HNO3 +  0.000      NEXT
+   68    0                                                                      
+           1.400E-12   1860.
+    C2O3 +      NO2 =>  1.000       PAN +  0.000      NEXT +  0.000          
+   69   -3  Tyndall 2001 =bod(.60D0,8.50D-29,-6.5D0, 1.1D-11,-1.0D0 105         
+            0.60 9.700E-29  -5.6 9.300E-12  -1.5
+     PAN +        x =>  1.000      C2O3 +  1.000       NO2 +  0.000      NEXT
+   70   -4    Tyndall 2001 =Aexp(-B/T)*bod  116 link to 10link to 105           
+           1.100E+28  14000.  0.60 9.700E-29  -5.6 9.300E-12  -1.5
+    C2O3 +       NO =>  1.000     CH3O2 +  1.000       NO2 +  0.000      NEXT
+   71    0                                                                      
+           5.300E-12   -360.
+    C2O3 +      NO3 =>  1.000     CH3O2 +  1.000       NO2 +  0.000      NEXT
+   72    0                                                                      
+           4.000E-12      0.
+    C2O3 +      HO2 =>  0.400        O3 +  0.400     RCOOH +  0.000      NEXT
+   73    0   Tyndall, 2001 148  A exp(-B/T) / (1 + (C+E*dens)* exp(-D/T))       
+           4.500E-13  -1000.                              
+    C2O3 +        x =>  1.000     CH3O2 +  0.000      NEXT    0.000      NEXT   
+   74  -13    C2O3+ro2, including self-reaction, ratek=sum kself*ro2            
+           2.900E-12   -500. 2.900E-12   -500.                            
+     PAR +       OH =>  1.000       RO2 +  0.000      NEXT +  0.000          
+   75    0                                                                      
+           8.100E-13      0.        
+    AONE +       hv =>  1.000      C2O3 +  1.000     CH3O2 +  0.000      NEXT
+   76   23        (4e-5*jNO2, here j-value is  entered  directly)               
+           1.000E-00
+    AONE +       OH =>  1.000      ANO2 +  0.000      NEXT +  0.000          
+   77   -2  (JPL02 -12    -> te**2*ARR(5.3e-18, -230.) ->(T/300)^2*4.77e-13 230 
+           4.770E-13    230    2.0  
+    MGLY +       hv =>  1.000      C2O3 +  1.000       HO2 +  1.000        CO
+    NEXT                0.000           +  0.000           +  0.000          
+   78    4       was jNO2*1.9e-02, here jNO2*9.64  -> BIG CHANGE                
+           9.640E-00
+    MGLY +       OH =>  1.000      C2O3 +  1.000       XO2 +  0.000      NEXT
+   79    0                                                                      
+           1.700E-11      0.
+    MGLY +      NO3 =>  1.000      C2O3 +  1.000        CO +  1.000      HNO3
+    NEXT                0.000           +  0.000           +  0.000          
+   80    0                                                                      
+           1.400E-12   1900.
+    ETHE +       O3 =>  1.000      HCHO +  0.520     HCOOH +  0.220       HO2
+                        0.120        OH +  0.240        CO    0.000      NEXT
+   81    0                                                                      
+           1.200E-14   2630.
+    ETHE +       OH =>  1.560      HCHO +  1.000       XO2 +  1.000       HO2
+                        0.220      ALD2    0.000      NEXT    0.000      NEXT
+   82   -3   Harvard/IUPAC 2003 =bod(.48D0,7.00D-29,+3.1D0,9.00D-12,-0.0D0 164  
+            0.60 1.000E-28   0.8 8.800E-12   0.0
+    OLET +       O3 =>  0.570      HCHO +  0.470      ALD2 +  0.310        CO
+                        0.260       HO2 +  0.330        OH +  0.070     CH3O2
+                        0.060      ETHP +  0.030       RO2 +  0.130      C2O3
+                        0.040      MGLY +  0.030     CH3OH +  0.220     HCOOH
+                        0.090     RCOOH +  1.060      XPAR    0.000      NEXT
+   83    0                                                                      
+           4.200E-15   1800.
+    OLEI +       O3 =>  0.070      AONE +  1.030      ALD2 +  0.300        CO
+                        0.220       HO2 +  0.600        OH +  0.100     CH3O2
+                        0.050      ETHP +  0.090       RO2 +  0.190      C2O3
+                        0.070      MGLY +  0.040     CH3OH +  0.110      ANO2
+                        0.160     RCOOH +  2.260      XPAR    0.000      NEXT
+   84    0                                                                      
+           8.900E-16    392.
+    OLET +       OH =>  1.000       XO2 +  1.000       HO2 +  1.000      HCHO
+                    +   1.000      ALD2 +  1.000      XPAR    0.000      NEXT
+   85    0                                                                      
+           5.800E-12   -478.
+    OLEI +       OH =>  1.000       XO2 +  1.000       HO2 +  0.230      AONE
+                    +   1.770      ALD2 +  2.230      XPAR    0.000      NEXT
+   86    0                                                                      
+           2.900E-11   -255.
+    OLET +      NO3 =>  1.000       NAP +  0.000      NEXT +  0.000          
+   87    0                                                                      
+           3.100E-13   1010.
+    OLEI +      NO3 =>  1.000       NAP +  0.000      NEXT +  0.000          
+   88    0                                                                      
+           2.500E-12      0.
+    TOLU +       OH =>  0.120      CRES +  0.080       XO2 +  0.800       TO2
+                        0.200       HO2    0.000      NEXT    0.000      NEXT
+   89    0                                                                      
+           2.100E-12   -322.
+    XYLE +       OH =>  0.050      CRES +  0.500       XO2 +  0.450       TO2
+                        0.550       HO2 +  1.100       PAR +  0.800      MGLY
+    NEXT                0.000           +  0.000           +  0.000          
+   90    0                                                                      
+           1.700E-11   -116.
+     TO2 +       NO =>  0.950       NO2 +  0.950      OPEN +  0.950       HO2
+                    +   0.050      ONIT +  0.000      NEXT +  0.000          
+   91    0                                                                      
+           8.100E-12      0.
+    CRES +       OH =>  0.400       CRO +  0.600       XO2 +  0.600       HO2
+                    +   0.300      OPEN    0.000      NEXT    0.000      NEXT
+   92    0                                                                      
+           4.100E-11      0.
+    CRES +      NO3 =>  1.000       CRO +  1.000      HNO3 +  0.000      NEXT
+   93    0                                                                      
+           2.200E-11      0.
+     CRO +      NO2 =>  1.000      ONIT    0.000      NEXT +  0.000      NEXT
+   94    0                                                                      
+           1.400E-11      0.
+    OPEN +       OH =>  1.000      C2O3 +  1.000       XO2 +  2.000       HO2
+                    +   1.000      HCHO +  2.000        CO    0.000      NEXT
+   95    0                                                                      
+           3.000E-11      0.
+    OPEN +       hv =>  1.000      C2O3 +  1.000        CO +  1.000       HO2
+    NEXT                0.000           +  0.000           +  0.000          
+   96    4                                                                      
+           9.040E-00         
+    OPEN +       O3 =>  0.030       XO2 +  0.030      ALD2 +  0.690        CO
+                        0.760       HO2 +  0.080        OH +  0.700      HCHO
+                        0.200      MGLY +  0.620      C2O3    0.000      NEXT
+   97    0                                                                      
+           5.400E-17    500.
+    ROOH +       hv =>  0.740      AONE +  1.000        OH +  0.900       HO2
+                     +  0.400       XO2 +  0.300      ALD2 +  0.100      ETHP
+                     +  1.980      XPAR    0.000      NEXT    0.0        NEXT
+   98   11   was 5e-4*jNO2(4), here .7*jH2O2 (11)                               
+           0.700E-00
+    ROOH +       OH =>  0.230        OH +  0.770       RO2 +  0.190      MGLY
+                     +  0.040      ALD2 +  0.420      XPAR    0.0        NEXT
+   99    0                                                                      
+           3.800E-12   -200.
+    ONIT +       OH =>  1.000       NAP +  0.000      NEXT +  0.000          
+  100    0                                                                      
+           1.600E-11    540.
+    ONIT +       hv =>  1.000       NO2 +  0.740      AONE +  0.410       XO2
+                     +  1.980      XPAR +  0.900       HO2 +  0.300      ALD2
+    NEXT                0.000           +  0.000           +  0.000          
+  101    4                                                                      
+           1.000E-04
+     RO2 +       NO =>  0.160      ONIT +  0.620      AONE +  0.840       NO2
+                        0.250      ALD2 +  0.340       XO2 +  0.080      ETHP
+                        1.680      XPAR +  0.760       HO2    0.000      NEXT
+  102    0                                                                      
+           4.000E-12      0.       
+    ANO2 +       NO =>  1.000      C2O3 +  1.000      HCHO +  1.000       NO2
+    NEXT                0.000           +  0.000           +  0.000          
+  103    0                                                                      
+           4.000E-12      0.       
+     NAP +       NO =>  0.500      ONIT +  0.500      HCHO +  1.500       NO2
+                        0.500      ALD2 +  0.500       HO2 +  1.000      XPAR
+    NEXT                0.000           +  0.000           +  0.000          
+  104    0                                                                      
+           4.000E-12      0.       
+     XO2 +       NO =>  1.000       NO2    0.000      NEXT    0.000      NEXT
+  105    0                                                                      
+           4.000E-12      0.       
+     RO2 +      NO3 =>  1.000       NO2 +  0.400       XO2 +  0.740      AONE
+                     +  0.300      ALD2 +  0.900       HO2 +  0.100      ETHP
+                        1.980      XPAR    0.000      NEXT    0.000      NEXT
+  106    0                                                                      
+           2.500E-12      0.       
+    ANO2 +      NO3 =>  1.000      C2O3 +  1.000      HCHO +  1.000       NO2
+    NEXT                0.000           +  0.000           +  0.000          
+  107    0                                                                      
+           1.200E-12      0.       
+     NAP +      NO3 =>  0.500      ONIT +  0.500      HCHO +  1.500       NO2
+                        0.500      ALD2 +  0.500       HO2 +  1.000      XPAR
+    NEXT                0.000           +  0.000           +  0.000          
+  108    0                                                                      
+           4.000E-12      0.       
+     XO2 +      NO3 =>  1.000       NO2    0.000      NEXT    0.000      NEXT
+  109    0                                                                      
+           2.500E-12      0.       
+     RO2 +      HO2 =>  1.000      ROOH +  0.000      NEXT +  0.000          
+  110    0                                                                      
+           1.700E-13  -1300.
+    ANO2 +      HO2 =>  1.000      ROOH +  0.000      NEXT +  0.000          
+  111    0                                                                      
+           1.700E-13  -1300.
+     NAP +      HO2 =>  1.000      ONIT +  0.000      NEXT +  0.000          
+  112    0                                                                      
+           1.700E-13  -1300.
+     XO2 +      HO2 =>  1.000      PROD +  0.000      NEXT +  0.000          
+  113    0                                                                      
+           1.700E-13  -1300.
+     RO2 +        x =>  0.240       XO2 +  0.570      AONE +  0.210      ALD2
+                        0.060      ETHP +  0.540       HO2 +  1.250      XPAR
+    NEXT                0.000           +  0.000           +  0.000          
+  114  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           5.300E-16  -1980. 5.300E-16  -1980.                            
+    ANO2 +        x =>  0.700      C2O3 +  0.150      AONE +  0.700      HCHO
+                        0.150      MGLY    0.000      NEXT    0.000      NEXT
+  115  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           8.000E-12      0. 8.000E-12      0.                            
+     NAP +        x =>  0.500       NO2 +  0.500      ONIT +  0.500      HCHO
+                        0.500      ALD2    0.000      NEXT    0.000      NEXT
+  116  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           1.000E-12      0. 1.000E-12      0.                            
+     XO2 +        x =>  1.000      PROD    0.000      NEXT    0.000      NEXT
+  117  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           3.100E-14  -1000. 3.100E-14  -1000.                            
+     PAR +     XPAR =>  1.000      PROD    0.000      NEXT    0.000      NEXT
+  118    0                                                                      
+           1.000E-11      0.       
+    ISOP +       OH =>  1.000     ISOPP +  0.080       XO2    0.000      NEXT
+  119    0                                                                      
+           2.600E-11   -409.
+    ISOP +       O3 =>  0.600      HCHO +  0.650    ISOPRD +  0.390     HCOOH
+                        0.150      ALD2 +  0.270        OH +  0.070       HO2
+                        0.070        CO +  0.200       XO2 +  0.200      C2O3
+    NEXT                0.000           +  0.000           +  0.000          
+  120    0                                                                      
+           1.200E-14   2013.
+    ISOP +      NO3 =>  1.000     ISOPN +  0.000      NEXT +  0.000          
+  121    0                                                                      
+           3.000E-12    446.
+  ISOPRD +       hv =>  0.970      C2O3 +  0.330       HO2 +  0.330        CO
+                      + 0.700     CH3O2 +  0.200      HCHO +  0.070      ALD2
+                      + 0.030      AONE    0.000      NEXT    0.000      NEXT
+  122    4    rate based on MVK(2.8e-3)+MACR(1.7e-3)+HAC(5.0e-3) *jNO2          
+           3.000E-03
+  ISOPRD +       OH =>  0.500    ISOPO2 +  0.500      C2O3 +  0.000      NEXT
+  123    0                                                                      
+           3.300E-11      0.
+  ISOPRD +       O3 =>  0.150      HCHO +  0.850      MGLY +  0.100       HO2
+                     +  0.270        OH +  0.160        CO +  0.110      C2O3
+                     +  0.070       XO2 +  0.050     CH3O2 +  0.090      AONE
+                     +  0.020      ALD2 +  0.460     RCOOH    0.000      NEXT
+  124    0                                                                      
+           7.000E-18      0.
+  ISOPRD +      NO3 =>  0.070      C2O3 +  0.070      HNO3 +  0.640        CO
+                     +  0.280      HCHO +  0.930      ONIT +  0.280      ALD2
+                        0.930       HO2 +  0.930       XO2 +  1.860       PAR
+    NEXT                0.000           +  0.000           +  0.000          
+  125    0                                                                      
+           1.000E-15      0.       
+   ISOPP +       NO =>  0.910       NO2 +  0.910       HO2 +  0.630      HCHO
+                        0.910    ISOPRD +  0.090      ONIT    0.000      NEXT
+  126    0                                                                      
+           4.000E-12      0.       
+   ISOPN +       NO =>  1.200       NO2 +  0.800      ONIT +  0.800      ALD2
+                        0.800       HO2    0.000      NEXT    0.000      NEXT
+  127    0                                                                      
+           4.000E-12      0.       
+  ISOPO2 +       NO =>  1.000       NO2 +  1.000       HO2 +  0.250      HCHO
+                     +  0.590        CO +  0.550      ALD2 +  0.340      MGLY
+                     +  0.630      AONE    0.000      NEXT    0.000      NEXT
+  128    0                                                                      
+           4.000E-12      0.       
+   ISOPP +      HO2 =>  1.000      ROOH +  0.000      NEXT +  0.000          
+  129    0                                                                      
+           1.700E-13  -1300.
+   ISOPN +      HO2 =>  1.000      ONIT +  2.000       PAR    0.000      NEXT
+  130    0                                                                      
+           1.700E-13  -1300.
+  ISOPO2 +      HO2 =>  1.000      ROOH +  0.000      NEXT +  0.000          
+  131    0                                                                      
+           1.700E-13  -1300.
+   ISOPP +        x =>  1.000    ISOPRD    0.000      NEXT    0.000      NEXT
+  132  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           3.100E-14  -1000. 3.100E-14  -1000.                            
+   ISOPN +        x =>  1.000      ALD2 +  1.000      ONIT +  2.000       PAR
+    NEXT                0.000           +  0.000           +  0.000          
+  133  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           3.100E-14  -1000. 3.100E-14  -1000.                            
+  ISOPO2 +        x =>  0.500      ALD2 +  0.500      AONE    0.000      NEXT
+  134  -13     RO2+ro2, including self-reaction, ratek=sum kself*ro2            
+           3.100E-14  -1000. 3.100E-14  -1000.                            
+     HO2 +        x =>  0.500      H2O2 +  0.000      NEXT +  0.000          
+  292  -20  +sulfate aerosol 154  (if SAERSA=1e-6 cm2/cm3, r=2e-3 s-1)          
+           2.000E-01     33.  
+     NO2 +        x =>  0.500      HNO3 +  0.500      HONO +  0.000      NEXT
+  293  -20  + sulfate aerosol 155                                               
+           1.000E-04     46.  
+     NO3 +        x =>  1.000      HNO3 +  0.000      NEXT +  0.000          
+  294  -20  + sulfate aerosol 156                                               
+           1.000E-03     59.  
+    N2O5 +        x =>  2.000      HNO3 +  0.000      NEXT +  0.000          
+  295  -20  +sulfate aerosol 157                                                
+           1.000E-01    108.  
+     END +          =>  0.000           +  0.000           +  0.000          
+
+
+===================================================================
+
+
+--------------------------------------------------------------------------
+-----------------------------------
+SPECIAL INPUT FOR RADICAL BALANCE-BACK EULER SOLVER
+-----------------------------------
+
+(FAMILY SPECIES: CUT.  See SPECIAL SPECIES NOTE BELOW.
+  May need to add, temporary, to run this with older versions. )
+
+SPECIAL INPUT FOR SOLVER: CASCADE LIST (ORDER OF SOLUTION)
+--------------------------------------------------------------------------
+
+
+ENTER LIST OF SPECIES IN ORDER FOR SOLVING FOR CHEMICAL PRODUCTION AND LOSS.
+THIS MUST FOLLOW REACTANT-TO-PRODUCT ORDER.
+
+ENTER SPECIES IN SEQUENCE FROM REACTANT TO PRODUCTS.
+(FOR AQ-EQUILIBRIUM SPECIES, ENTER FIRST, GAS-PHASE SPECIES ONLY.)
+
+EACH LINE CONTAINS UP TO THREE SPECIES, WITH THE FOLLOWING OPTIONS.
+
+(a) ONE INDEPENDENT SPECIES (not counting matched species in equilibrium)
+       which may be the primary of a cascade pair chain (see below)
+       and which is also solved for gas-aqueous equilibria;
+
+(b) THREE OR MORE INTERACTING SPECIES that do not fit into the pair solution,
+       and are solved by MULTISOLVE.
+     The linked species list continues on multiple lines 
+         until a blank or 'x' is entered.
+
+(c) TWO SPECIES WHICH ARE SOLVED AS A SPECIES PAIR, with third blank or 'x'.
+     The species are entered as a 'pair' - the first is the primary species.
+
+(d) PAIR DECLARATION: " 'pair' SPEC1 SPEC2"
+     Declares the species as an interacting pair, which is solved by the
+      pair chain solution. 
+      SPEC2 is solved along with SPEC1.
+      SPEC1 (or a species it is solved with) must be included 
+              elsewhere in cascade list.
+
+CASCADE PAIRS:
+The pair solution solves a group of two or more species with pairs of
+  closely interacting species, including a 'chain' of interacting species:
+  A<->B, A<->C, C<->C2, etc.
+
+The pair chain consists of primary and secondary species:  
+  A primary species may be linked to several secondary species
+     (with several primary-secondary pairs for same primary)
+  A secondary species may be linked to sub-secondary species.
+
+Normally, pair species rapidly interact, but the pair solution also
+  works if interaction is zero.
+  (e.g. linked aqueous species that become independent if LWC is zero)
+
+To enter:  either
+  (a) "pair SPEC1 SPEC2"  = establishes SPEC2 as paired under SPEC1
+          but does not solve at this point in the cascade
+          (used to establish the pair chain)
+or
+  (b) "SPEC1 SPEC2   x" = establishes SPEC2 as paired with SPEC1 
+           and solves here in the cascade.
+
+Pair examples:  HCL ->CL <->CLO ; also CL->HCL2 (CL2-, CL+CL-=CL2-)
+ Solve as HCL CL;  CL CLO, CL HCL2 ;
+   or CL CLO and HCL CL HCL2 multisolve - note multisolve can include pair.
+
+SPECIAL SPECIES ARE INCLUDED AUTOMATICALLY.  DO NOT INCLUDE:   
+      OH       HO2      H2O2              
+      O3       NO2        NO             
+     NO3      N2O5      HNO3            
+
+(H+, OH-, CO2 included in aqueous solver, do not include)
+
+FORMAT 3(a8,2x)
+   SPEC1     SPEC2     SPEC3        NOTES
+
+--------------------------------------------------------------------------
+
+START 
+    ISOP         x         x  
+   ISOPP         x         x  
+   ISOPN         x         x  
+  ISOPRD         x         x  
+  ISOPO2         x         x  
+    TOLU         x         x  
+    XYLE         x         x  
+     TO2         x         x  
+    CRES         x         x  
+     CRO         x         x  
+    OPEN         x         x  
+    OLEI         x         x  
+    OLET         x         x  
+    ETHE         x         x  
+     PAR         x         x  
+    XPAR         x         x  
+    ROOH         x         x  
+     RO2         x         x  
+    ONIT         x         x  
+     NAP         x         x  
+    AONE         x         x  
+    ANO2         x         x  
+    MGLY         x         x  
+    C2H6         x         x  
+  ETHOOH         x         x  
+    ETHP         x         x  
+    ANOL         x         x  
+    ALD2         x         x  
+    C2O3       PAN         x  
+     CH4         x         x  
+  CH3OOH         x         x  
+   CH3O2         x         x  
+   CH3OH         x         x  
+    HCHO         x         x  
+   HCOOH         x         x  
+   RCOOH         x         x  
+    PROD         x         x  
+      CO         x         x  
+      H2         x         x  
+     DMS         x         x  
+     SO2         x         x  
+     NH3         x         x        Ammonia
+    SULF         x         x       Fictitious sulfate particulate for aqueous
+    HCLG         x         x       Fictitious Cl-     particulate for aqueous
+    NAOG         x         x       Fictitious Na+     particulate for aqueous
+    HONO         x         x  
+    HNO4         x         x  
+     END                  
+
+
+--------------------------------------------------------------------------
+********END OF READ********
+--------------------------------------------------------------------------
+NOTES: 
+
+MODEL CHANGES for parameterized ro2-ro2:
+
+chemmech.EXT:   c_nnrro2, c_nrro2
+chemlocal.EXT:  ratero2
+
+cheminit1.f:  format f8.3 changed from f6.1 for nrk=-2,-5,-6
+              -13  read added, also SOA -21 and -22
+chemrates1.f
+   c_nrk(j).eq.-13
+
+chemsolve:  call setro2
+
