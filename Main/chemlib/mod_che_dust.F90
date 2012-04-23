@@ -410,7 +410,7 @@ module mod_che_dust
       real(dp) , dimension(ilg,nbin) :: xrsfrow
       real(dp) , dimension(ilg,nats) :: xftex
       real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
-      integer :: i , ieff , ieffmax , n , ns
+      integer :: i , ieff , n , ns
 ! 
       rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
@@ -426,7 +426,6 @@ module mod_che_dust
       xrsfrow = d_zero
      
       ieff = 0
-      ieffmax = 0
       do i = ici1 , ici2
         if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then   
           ieff = ieff + 1
@@ -439,26 +438,23 @@ module mod_che_dust
           xclayrow(ieff) = clayrow2(i,jloop)
           do n = 1 , nats
             xftex(ieff,n) = dustsotex(jloop,i,n)
-          do  ns = 1 , nsoil
-             xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
-          end do
+            do  ns = 1 , nsoil
+              xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
+            end do
           end do
         end if
       end do
      
-      ieffmax = ieff
-
-      if ( ieffmax > 0 ) then
-        call dust_module(1,ieffmax,trsize,xsoilw,xvegfrac,xsurfwd, &
+      if ( ieff > 0 ) then
+        call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsurfwd, &
                          xftex,xclayrow,xroarow,xz0,xsrel2d,xustarnd,xrsfrow)
       end if
         
       ! put back the dust flux on the right grid
      
-      ieff = 0
+      ieff = 1
       do i = ici1 , ici2
         if  (ivegcov(i) == 8 .or. ivegcov(i) == 11) then     
-          ieff = ieff + 1
           do n = 1 , nbin
             rsfrow(i,n) = xrsfrow(ieff,n)
             if ( ichdrdepo == 1 ) then  
@@ -470,11 +466,13 @@ module mod_che_dust
                    rsfrow(i,n)
             end if
             ! diagnostic source (accumulated)
-            cemtr(i,jloop,idust(n)) = cemtr(i,jloop,idust(n)) + &
+            cemtr(jloop,i,idust(n)) = cemtr(jloop,i,idust(n)) + &
                      rsfrow(i,n)*dtche/2.0D0
           end do
+          ieff = ieff + 1
         end if
       end do
+
     end subroutine sfflux
 ! 
     subroutine dust_module(il1,il2,trsize,soilw,vegfrac,surfwd,ftex, &
@@ -586,8 +584,8 @@ module mod_che_dust
       integer :: n , i
       do n = 1 , nsoil
         do i = il1 , il2
-          if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(n))
-          if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(n))
+          if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
+          if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(i))
         end do
       end do
     end subroutine uthefft
