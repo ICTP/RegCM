@@ -175,28 +175,28 @@ module mod_che_common
         allocate(chtrname(nbin))
         chtrname(1:ntr)(1:5) = (/'DUST1','DUST2','DUST3','DUST4'/)
         iaerosol = 1
-        write (aline,*) 'DUST simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'DUST simulation'
         call say
       else if ( chemsimtype(1:4) == 'SSLT' ) then 
         ntr = sbin
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:5) = (/'SSLT1','SSLT2'/)
         iaerosol = 1
-        write (aline,*) 'SSLT simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'SSLT simulation'
         call say
       else if ( chemsimtype(1:4) == 'CARB' ) then 
         ntr = 4
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:5) = (/'BC_HL','BC_HB','OC_HB','OC_HL'/)
         iaerosol = 1
-        write (aline,*) 'CARB simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'CARB simulation'
         call say
       else if ( chemsimtype(1:4) == 'SULF' ) then 
         ntr = 2
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  '/)
         iaerosol = 1
-        write (aline,*) 'SULF simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'SULF simulation'
         call say
       else if ( chemsimtype(1:4) == 'SUCA' ) then 
         ntr = 6
@@ -204,7 +204,7 @@ module mod_che_common
         chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL', &
                                  'BC_HB','OC_HB','OC_HL' /)
         iaerosol = 1
-        write (aline,*) 'SUCA simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'SUCA simulation'
         call say
       else if ( chemsimtype(1:4) == 'AERO' ) then 
         ntr = 12 
@@ -213,7 +213,7 @@ module mod_che_common
         chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL','BC_HB', &
                                  'OC_HB','OC_HL','DUST1','DUST2', &
                                  'DUST3','DUST4','SSLT1','SSLT2' /)
-        write (aline,*) 'AERO simulation , used tracers: ', chtrname(:)
+        write (aline,*) 'AERO simulation'
         call say
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
         ntr = 25
@@ -226,11 +226,13 @@ module mod_che_common
                                  'XYL  ','ETHE ','PAN  ','CH4  ', &
                                  'NH3  '  /)
         igaschem = 1
-        write (aline,*) 'CBMZ gas-phase + sulfate simulation , ', &
-                        'used tracers: ', chtrname(:)
+        write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say
       else 
         write (aline,*) 'Not a valid chemtype simulation : STOP !'
+        call say
+        write (aline,*) 'Valid simulations are : ' , &
+                        '  DUST SSLT CARB SULF SUCA AERO CBMZ'
         call say
         call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
       end if

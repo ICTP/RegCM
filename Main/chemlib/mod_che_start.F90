@@ -131,8 +131,6 @@ module mod_che_start
     jbin = 0
     kbin = 0
 
-    print *, 'startchem',ntr,chtrname
-
     do itr = 1 , ntr
       if ( chtrname(itr) == 'SO2' ) iso2 = itr
       if ( chtrname(itr) == 'DMS' ) idms = itr

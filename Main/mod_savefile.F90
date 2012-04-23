@@ -174,11 +174,11 @@ module mod_savefile
       if ( ichem == 1 ) then
         read (iutrst) chia_io
         read (iutrst) chib_io
-!             cumul removal terms (3d, 2d)
+        ! cumul removal terms (3d, 2d)
         read (iutrst) remlsc_io
         read (iutrst) remcvc_io
         read (iutrst) remdrd_io
-!             cumul ad, dif, emis terms ( scalar)
+        ! cumul ad, dif, emis terms ( scalar)
         read (iutrst) ssw2da_io
         read (iutrst) sdeltk2d_io
         read (iutrst) sdelqk2d_io

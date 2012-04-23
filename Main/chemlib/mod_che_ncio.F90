@@ -510,7 +510,6 @@ module mod_che_ncio
       character(64) ::chemi_timeunits
       real(dp) , dimension(:) , allocatable :: emtimeval
       integer , dimension(3) :: istart , icount
-      integer :: ivarid
       integer :: year, month 
 ! FAB: remember for now, we have 1 emission file containing all monthly
 ! emission for the whole simulation period

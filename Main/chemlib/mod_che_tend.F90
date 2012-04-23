@@ -250,7 +250,7 @@
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
       !
       if ( idust(1) > 0 ) then
-        do j= jci1,jci2
+        do j = jci1 , jci2
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
                       zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))     
