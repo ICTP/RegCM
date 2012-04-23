@@ -212,7 +212,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    if ( ichem == 1 ) call chem_emission(xmonth)
+    if ( ichem == 1 ) call chem_emission(xyear,xmonth)
 !
 !**********************************************************************
 !

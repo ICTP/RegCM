@@ -333,7 +333,7 @@
                        pdepv(:,:,:,j))  
         end do
       end if
-      if ( icarb(1) > 0 )  then   
+      if ( icarb(1) > 0 .and. 1==2)  then   
         ibin = count( icarb > 0 ) 
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &

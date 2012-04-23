@@ -501,15 +501,17 @@ module mod_che_ncio
 
     end subroutine read_aerosol
 
-    subroutine read_emission(lmonth,echemsrc)
+    subroutine read_emission(lyear,lmonth,echemsrc)
       implicit none
-      integer , intent(in) :: lmonth
+      integer , intent(in) :: lyear,lmonth
       real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
-      integer :: ncid 
+      integer :: n,ncid , itvar, idimid, chmnrec
+      character(64) ::chemi_timeunits
+      real(dp) , dimension(:) , allocatable :: emtimeval
       integer , dimension(3) :: istart , icount
       integer :: ivarid
- 
+      integer :: year, month 
 ! FAB: remember for now, we have 1 emission file containing all monthly
 ! emission for the whole simulation period
 ! change that in the future. Also lmonth is not really necessary here,
@@ -517,6 +519,7 @@ module mod_che_ncio
 ! all aggregations / lumping should in the future be done in emission preproc 
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
+       aername = trim(dirglob)//pthsep//'RCP26_CO_emis.nc'
       print *, 'Opening ch. emission file ', aername
 
       istatus = nf90_open(aername, nf90_nowrite, ncid)
@@ -524,9 +527,35 @@ module mod_che_ncio
                     'Error Opening chem emissiom file '//trim(aername), &
                     'CHE EMISS FILE OPEN ERROR')
 
+      istatus = nf90_inq_dimid(ncid, 'time', idimid)
+      call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
+      istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
+      call check_ok(__FILE__,__LINE__,'Dimension time read error', 'CHEMI FILE')
+
+      allocate (emtimeval(chmnrec))
+
+       istatus = nf90_inq_varid(ncid, 'time', itvar)
+       call check_ok(__FILE__,__LINE__,'variable time miss', 'CHEMISS FILE')
+
+       istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
+       call check_ok(__FILE__,__LINE__,'variable time units miss','CHEMISS FILE')
+
+       istatus = nf90_get_var(ncid, itvar, emtimeval)
+       call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+
+       do n=1, chmnrec
+        call timeval2ym(emtimeval(n),chemi_timeunits,year,month)
+         if (year == lyear .and. month == lmonth) then 
+         recc = n
+         exit
+        end if
+        end do 
+
+        print*, 'FAB', lyear, lmonth, recc
+
       !*** intialized in start_chem
       !*** Advice record counter
-      recc = recc + 1
+!      recc = recc + 1
       istart(1) = 1
       istart(2) = 1
       istart(3) = recc
@@ -539,105 +568,111 @@ module mod_che_ncio
 
       ! FAB pour esource amma
       if ( igaschem == 1 ) then  
-        ! NO emission                  
-        if ( ino /= 0 ) then
-          call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
-                    'a_NOX',.false.,'b_NOX')
-        end if
-        ! CO emission
-        if ( ico /= 0 ) then
+      if ( ico /= 0 ) then
           call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
-                    'a_CO',.false.,'b_CO')
+                    'CO_flux',.false.)
           print*, 'FAB emis testco','ico', maxval(echemsrc)
-        end if
-        ! HCHO emission                  
-        if ( ihcho /= 0 ) then
-          ! call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
-        end if
-        ! ACET emission                  
-        if ( iacet /= 0 ) then
-          call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
-                    'a_acet',.false.,'b_acet')
-        end if
-        ! SO2 emission
-        if ( iso2 /= 0 ) then
-          call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
-                    'a_so2',.false.)
-        end if
-        ! CH4
-        if ( ich4 /= 0 ) then
-          call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
-                    'a_ch4',.false.,'b_CH4')
-        end if
-        ! Ethane
-        if ( ic2h6 /= 0 ) then
-          call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
-                    'a_ETHANE',.false.,'b_ETHANE')
-        end if
-        ! PAR
-        if ( ipar /= 0 ) then
-          ! call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
-          !           'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
-        end if
-        ! Ethene
-        if ( iethe /= 0 ) then
-          call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
-                    'a_ETHENE',.false.,'b_ETHENE')
-        end if
-        ! Termenal Alkene
-        if ( iolt /= 0 ) then
-          call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
-                    'a_PROPENE',.false.,'b_PROPENE')
-        end if
-        ! Internal Alkene
-        if ( ioli /= 0 ) then
-          ! call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
-        end if
-        ! Isoprene
-        if ( iisop /= 0 ) then
-          call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
-        end if
-        ! Toluene
-        if ( itolue /= 0 ) then
-          istatus = nf90_inq_varid(ncid, 'a_XYLENE', ivarid)
-          if ( istatus == nf90_noerr ) then
-            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
-                      'a_TOLUENE',.true.,'b_TOLUENE')
-          end if
-        end if
-        ! Xylene
-        if ( ixyl /= 0 ) then
-          istatus = nf90_inq_varid(ncid, 'a_TOLUENE', ivarid)
-          if ( istatus == nf90_noerr ) then
-            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-                      'a_XYLENE',.true.)
-          else
-            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-                      'a_TOLUENE',.true.,'b_XYLENE')
-          end if
-        end if
-        ! Acetaldehyde
-        if ( iald2 /= 0 ) then
-          ! call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
-        end if
-        ! Methanol + Ethanol
-        if ( imoh /= 0 ) then
-          call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
-                    'a_ch3oh',.false.,'b_ch3oh','bio_ch3oh')
-        end if           
-        ! DMS
-        if ( idms /= 0 ) then
-          ! call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
-        end if
-        ! OC and BC anthropogenic + biomass burning
-        if ( ibchb /= 0 ) then
-          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
-                    'a_bc',.false.)
-        end if
-        if ( iochb /= 0 ) then
-          call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
-                    'a_oc',.false.)
-        end if
+      end if
+
+!!$        ! NO emission                  
+!!$        if ( ino /= 0 ) then
+!!$          call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
+!!$                    'a_NOX',.false.,'b_NOX')
+!!$        end if
+!!$        ! CO emission
+!!$        if ( ico /= 0 ) then
+!!$          call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
+!!$                    'a_CO',.false.,'b_CO')
+!!$          print*, 'FAB emis testco','ico', maxval(echemsrc)
+!!$        end if
+!!$        ! HCHO emission                  
+!!$        if ( ihcho /= 0 ) then
+!!$          ! call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc,'a_HCHO',.false.)
+!!$        end if
+!!$        ! ACET emission                  
+!!$        if ( iacet /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
+!!$                    'a_acet',.false.,'b_acet')
+!!$        end if
+!!$        ! SO2 emission
+!!$        if ( iso2 /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
+!!$                    'a_so2',.false.)
+!!$        end if
+!!$        ! CH4
+!!$        if ( ich4 /= 0 ) then
+!!$          call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
+!!$                    'a_ch4',.false.,'b_CH4')
+!!$        end if
+!!$        ! Ethane
+!!$        if ( ic2h6 /= 0 ) then
+!!$          call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
+!!$                    'a_ETHANE',.false.,'b_ETHANE')
+!!$        end if
+!!$        ! PAR
+!!$        if ( ipar /= 0 ) then
+!!$          ! call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
+!!$          !           'a_c3h8',.false.,'a_butane','bio_c3h8','o_c3h8')
+!!$        end if
+!!$        ! Ethene
+!!$        if ( iethe /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
+!!$                    'a_ETHENE',.false.,'b_ETHENE')
+!!$        end if
+!!$        ! Termenal Alkene
+!!$        if ( iolt /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
+!!$                    'a_PROPENE',.false.,'b_PROPENE')
+!!$        end if
+!!$        ! Internal Alkene
+!!$        if ( ioli /= 0 ) then
+!!$          ! call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
+!!$        end if
+!!$        ! Isoprene
+!!$        if ( iisop /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
+!!$        end if
+!!$        ! Toluene
+!!$        if ( itolue /= 0 ) then
+!!$          istatus = nf90_inq_varid(ncid, 'a_XYLENE', ivarid)
+!!$          if ( istatus == nf90_noerr ) then
+!!$            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
+!!$                      'a_TOLUENE',.true.,'b_TOLUENE')
+!!$          end if
+!!$        end if
+!!$        ! Xylene
+!!$        if ( ixyl /= 0 ) then
+!!$          istatus = nf90_inq_varid(ncid, 'a_TOLUENE', ivarid)
+!!$          if ( istatus == nf90_noerr ) then
+!!$            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+!!$                      'a_XYLENE',.true.)
+!!$          else
+!!$            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+!!$                      'a_TOLUENE',.true.,'b_XYLENE')
+!!$          end if
+!!$        end if
+!!$        ! Acetaldehyde
+!!$        if ( iald2 /= 0 ) then
+!!$          ! call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'a_ALD2',.false.)
+!!$        end if
+!!$        ! Methanol + Ethanol
+!!$        if ( imoh /= 0 ) then
+!!$          call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
+!!$                    'a_ch3oh',.false.,'b_ch3oh','bio_ch3oh')
+!!$        end if           
+!!$        ! DMS
+!!$        if ( idms /= 0 ) then
+!!$          ! call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
+!!$        end if
+!!$        ! OC and BC anthropogenic + biomass burning
+!!$        if ( ibchb /= 0 ) then
+!!$          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+!!$                    'a_bc',.false.)
+!!$        end if
+!!$        if ( iochb /= 0 ) then
+!!$          call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
+!!$                    'a_oc',.false.)
+!!$        end if
       else 
         ! uniquement les sources BB AMMA
         ! OC and BC anthropogenic + biomass burning

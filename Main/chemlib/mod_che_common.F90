@@ -118,7 +118,7 @@ module mod_che_common
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
         call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
                       ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
-        call getmem4d(chi,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
+        call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
         call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
         call getmem4d(chemten,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chemten')
