@@ -337,8 +337,10 @@ module mod_che_start
     return
 
 900 write(aline,*) 'Cannot open required file TUVGRID2.'
+    call say
     call fatal(__FILE__,__LINE__,'TUVGRID2 NOT FOUND')
 901 write(aline,*) 'Cannot open required file REACTION.DAT_CBMZ.'
+    call say
     call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
 
   end subroutine start_chem
