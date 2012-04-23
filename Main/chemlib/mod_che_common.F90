@@ -128,10 +128,6 @@ module mod_che_common
 
         call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
                       1,ntr,'mod_che_common:cchifxuw')
-        call getmem4d(remlsc,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
-                      'che_common:remlsc')
-        call getmem4d(remcvc,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
-                      'che_common:remcvc')
         call getmem4d(rxsg,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                       'che_common:rxsg')
         call getmem4d(rxsaq1,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
@@ -139,7 +135,11 @@ module mod_che_common
         call getmem4d(rxsaq2,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                       'che_common:rxsaq2')
         call getmem3d(cemtr,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtr')
-        call getmem3d(remdrd,jci1,jci2,ici1,ici2,1,ntr,'che_common:remdrd')
+        call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                      'che_common:remlsc')
+        call getmem4d(remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                      'che_common:remcvc')
+        call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
 
         call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
         call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
