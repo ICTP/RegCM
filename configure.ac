@@ -108,7 +108,9 @@ AC_ARG_WITH([roms],
 )
 AM_CONDITIONAL([DO_COMPILE_ROMS], [test x"$USEROMS" = x1])
 if eval "test x$USEROMS = x1"; then
-  AC_MSG_WARN([Compiling with ROMS model])
+  AC_CHECK_FILE([$ROMS_PREFIX/seaice.o],
+                [AM_CPPFLAGS="-DICE $AM_CPPFLAGS"; AC_MSG_WARN([Compiling with ROMS-ICE model])],
+                AC_MSG_WARN([Compiling with ROMS model]))
   AC_SUBST(ROMS_PREFIX)
 fi
 
