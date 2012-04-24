@@ -212,7 +212,7 @@ module mod_bats_mtrxbats
     if ( iocncpl == 1 ) then
       if (ktau > ntcpl) then 
         if (myid == 0) then 
-          print*, "[debug] -- updating fields with ROMS SST ..."
+          print*, "[debug] -- updating RegCM fields with ROMS data ..."
         end if
 !       update SST
         call romsocndrv

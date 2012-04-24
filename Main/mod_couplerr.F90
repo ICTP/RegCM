@@ -36,6 +36,7 @@
       type ESM_Field
         integer :: fid
         integer :: gtype        
+        integer :: itype
         character (len=40) :: name
         character (len=80) :: long_name
         character (len=80) :: units
@@ -72,6 +73,7 @@
         integer, allocatable :: petList(:) 
         type(ESMF_GridComp) :: comp
         type(ESM_Mesh), allocatable :: mesh(:,:)        
+        type(ESMF_Grid), allocatable :: grid(:)
         type(ESMF_DELayout), allocatable :: deLayout(:) 
         type(ESMF_DistGrid), allocatable :: distGrid(:)
         type(ESMF_ArraySpec), allocatable :: arrSpec(:)
@@ -132,6 +134,13 @@
       integer :: Ivpoint = 4
 !
 !-----------------------------------------------------------------------
+!     Interpolation type        
+!-----------------------------------------------------------------------
+!
+      integer :: Ibilin = 1 
+      integer :: Iconsv = 2
+!
+!-----------------------------------------------------------------------
 !     Variables for coupling (direction, import and export variables)  
 !-----------------------------------------------------------------------
 !
@@ -151,6 +160,8 @@
 !
       real*8, parameter :: MISSING_R8 = 1.0d20
 !
+      character(ESMF_MAXSTR) :: config_fname="regcm.rc"
+!
       integer :: cpl_dtsec, cpl_exvars, cpl_interp, cpl_dbglevel
       logical :: cpl_bdysmooth
 !
@@ -168,8 +179,14 @@
 !     Coupler component variables 
 !-----------------------------------------------------------------------
 !
-      type(ESMF_RouteHandle) :: routeHandleF
-      type(ESMF_RouteHandle) :: routeHandleB
+      type(ESMF_RouteHandle) :: routeHandleFB
+      type(ESMF_RouteHandle) :: routeHandleFC
+      type(ESMF_RouteHandle) :: routeHandleBB
+      type(ESMF_RouteHandle) :: routeHandleBC
+      type(ESMF_Field) :: fracFieldFS       
+      type(ESMF_Field) :: fracFieldFD       
+      type(ESMF_Field) :: fracFieldBS       
+      type(ESMF_Field) :: fracFieldBD       
       integer(ESMF_KIND_I4), pointer :: indices(:,:)
       real(ESMF_KIND_R8), pointer :: weights(:)
 !
@@ -212,8 +229,11 @@
 !
 !**********************************************************************
 !
-      integer :: i, j, k, nPets
+      integer :: i, j, k, nPets, petNum1, petNum2
       character(100) :: fmt_123 
+      logical :: file_exists
+!
+      type(ESMF_Config) :: cf
 !
 !-----------------------------------------------------------------------
 !     Initialize the coupler variables
@@ -224,8 +244,8 @@
       nNest = 1
 !
       if (.not. allocated(models)) then
-        ! check for number of pets
-        ! number of model must be less or equal than number of pets 
+        ! check for number of PETs
+        ! number of model must be less or equal than number of PETs
         if (nModels > petCount) then
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if          
@@ -233,28 +253,72 @@
         ! allocate user defined data types for models
         allocate(models(nModels))
 
-        do i = 1, nModels
-          ! allocate array to store pet list
-          if (i .eq. 1) then
-            nPets = (petCount/nModels)+mod(petCount, nModels)
-          else
-            nPets = petCount/nModels
+        ! check configuration file exist or not?
+        inquire(file=trim(config_fname), exist=file_exists)
+
+        if (file_exists) then
+          cf = ESMF_ConfigCreate(rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
+
+          call ESMF_ConfigLoadFile(cf, trim(config_fname), rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+
+          call ESMF_ConfigFindLabel(cf, 'PETs:', rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+          call ESMF_ConfigGetAttribute(cf, petNum1, rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+          call ESMF_ConfigGetAttribute(cf, petNum2, rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+
+          ! the number of PETs must be equal
+          if (petCount .ne. (petNum1+petNum2)) then
+            write(*,*) "Number of PETs must be consistent with regcm.rc"
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+        end if 
+
+        ! assign PETs to giridded components
+        do i = 1, nModels
+          ! allocate array to store PET list
+          if (file_exists) then
+            if (i .eq. Iatmos) then 
+              nPets = petNum1
+            else
+              nPets = petNum2
+            end if
+          else
+            if (i .eq. Iatmos) then
+              nPets = (petCount/nModels)+mod(petCount, nModels)
+            else
+              nPets = petCount/nModels
+            end if
+          end if
+
           if (.not. allocated(models(i)%petList)) then
             allocate(models(i)%petList(nPets))
           end if
           ! set number of processor
           models(i)%nproc = nPets
 
-          ! assign pets to model (each component has its own pet) 
-          ! For example; two models and seven cpu (or pet)
+          ! assign PETs to model (each component has its own PET) 
+          ! For example; two models and seven cpu (or PET)
           ! model a - 0, 2, 4, 6
           ! model b - 1, 3, 5
           !do j = 1, nPets 
           !  models(i)%petList(j) = (i+(j-1)*nModels)-1
           !end do
 
-          ! For example; two models and seven cpu (or pet)
+          ! For example; two models and seven cpu (or PET)
           ! model a - 0, 1, 2, 3
           ! model b - 4, 5, 6
           do j = 1, nPets
@@ -283,13 +347,17 @@
 !
       do i = 1, nModels
         if (i == Iatmos) then
-          k = 2 ! cross and dot (B Grid)
+          k = 2 ! cross and dot points are used (B Grid)
         else if (i == Iocean) then 
-          k = 1 ! only cross is used for variable SST (C Grid)
+          k = 2 ! cross and dot points are used (C Grid)
         end if
 !
         if (.not. allocated(models(i)%mesh)) then
           allocate(models(i)%mesh(k,nNest(i)))
+        end if
+!
+        if (.not. allocated(models(i)%grid)) then
+          allocate(models(i)%grid(nNest(i)))
         end if
       end do
 !
@@ -359,6 +427,25 @@
             models(i)%mesh(1,j)%mask%long_name = 'mask on rho'
             models(i)%mesh(1,j)%mask%units = '1'
 !
+!           psi points
+            models(i)%mesh(2,j)%gid = 2
+            models(i)%mesh(2,j)%gtype = Idot
+!
+            models(i)%mesh(2,j)%lon%gtype = Idot
+            models(i)%mesh(2,j)%lon%name = 'lonp'
+            models(i)%mesh(2,j)%lon%long_name = 'longitude at psi'
+            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(2,j)%lat%gtype = Idot
+            models(i)%mesh(2,j)%lat%name = 'latp'
+            models(i)%mesh(2,j)%lat%long_name = 'latitude at psi'
+            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(2,j)%mask%gtype = Idot
+            models(i)%mesh(2,j)%mask%name = 'mask_psi'
+            models(i)%mesh(2,j)%mask%long_name = 'mask on psi'
+            models(i)%mesh(2,j)%mask%units = '1'
+!
 !           u points
 !            models(i)%mesh(2,j)%gid = 2
 !            models(i)%mesh(2,j)%gtype = Iupoint
@@ -422,12 +509,13 @@
             allocate(models(i)%dataExport(8,nNest(i)))
           end if       
           if (.not. allocated(models(i)%dataImport)) then 
-            allocate(models(i)%dataImport(1,nNest(i)))
+            allocate(models(i)%dataImport(2,nNest(i)))
           end if
 !
           do j = 1, nNest(i)
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
+            models(i)%dataImport(1,j)%itype = Ibilin
             models(i)%dataImport(1,j)%name = 'SST'
             models(i)%dataImport(1,j)%long_name = &
             'Sea Surface Temperature'
@@ -435,14 +523,26 @@
             models(i)%dataImport(1,j)%scale_factor = 1.0d0
             models(i)%dataImport(1,j)%add_offset = 273.15d0
 !
+            models(i)%dataImport(2,j)%fid = 2
+            models(i)%dataImport(2,j)%gtype = Icross
+            models(i)%dataImport(2,j)%itype = Ibilin
+            models(i)%dataImport(2,j)%name = 'Hice'
+            models(i)%dataImport(2,j)%long_name = &
+            'Average Ice Thickness in Cell'
+            models(i)%dataImport(2,j)%units = 'mm'
+            models(i)%dataImport(2,j)%scale_factor = 1.0d3
+            models(i)%dataImport(2,j)%add_offset = 0.0d0
+!
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
+            models(i)%dataExport(1,j)%itype = Ibilin
             models(i)%dataExport(1,j)%name = 'Pair'
             models(i)%dataExport(1,j)%long_name = 'Surface Pressure'
             models(i)%dataExport(1,j)%units = 'Pascal'
 !
             models(i)%dataExport(2,j)%fid = 2
             models(i)%dataExport(2,j)%gtype = Icross
+            models(i)%dataExport(2,j)%itype = Ibilin
             models(i)%dataExport(2,j)%name = 'Tair'
             models(i)%dataExport(2,j)%long_name = &
             'Surface Air Temperature'
@@ -450,13 +550,15 @@
 !
             models(i)%dataExport(3,j)%fid = 3
             models(i)%dataExport(3,j)%gtype = Icross
+            models(i)%dataExport(3,j)%itype = Ibilin
             models(i)%dataExport(3,j)%name = 'Qair'
             models(i)%dataExport(3,j)%long_name = &
             'Surface Air Specific Humidity'
-            models(i)%dataExport(3,j)%units = 'g/kg'
+            models(i)%dataExport(3,j)%units = 'kg/kg'
 !
             models(i)%dataExport(4,j)%fid = 4
             models(i)%dataExport(4,j)%gtype = Icross
+            models(i)%dataExport(4,j)%itype = Iconsv
             models(i)%dataExport(4,j)%name = 'swrad'
             models(i)%dataExport(4,j)%long_name = &
             'solar shortwave radiation flux'
@@ -464,6 +566,7 @@
 !
             models(i)%dataExport(5,j)%fid = 5
             models(i)%dataExport(5,j)%gtype = Icross
+            models(i)%dataExport(5,j)%itype = Ibilin !Iconsv
             models(i)%dataExport(5,j)%name = 'lwrad_down'
             models(i)%dataExport(5,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -471,20 +574,23 @@
 !
             models(i)%dataExport(6,j)%fid = 6
             models(i)%dataExport(6,j)%gtype = Icross
+            models(i)%dataExport(6,j)%itype = Ibilin !Iconsv
             models(i)%dataExport(6,j)%name = 'rain'
             models(i)%dataExport(6,j)%long_name = &
             'rain fall rate'
             models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
 !
             models(i)%dataExport(7,j)%fid = 7
-            models(i)%dataExport(7,j)%gtype = Idot
+            models(i)%dataExport(7,j)%gtype = Icross
+            models(i)%dataExport(7,j)%itype = Ibilin
             models(i)%dataExport(7,j)%name = 'Uwind'
             models(i)%dataExport(7,j)%long_name = &
             'surface u-wind component'
             models(i)%dataExport(7,j)%units = 'meter second-1'
 !
             models(i)%dataExport(8,j)%fid = 8
-            models(i)%dataExport(8,j)%gtype = Idot
+            models(i)%dataExport(8,j)%gtype = Icross
+            models(i)%dataExport(8,j)%itype = Ibilin
             models(i)%dataExport(8,j)%name = 'Vwind'
             models(i)%dataExport(8,j)%long_name = &
             'surface v-wind component'
@@ -492,7 +598,7 @@
           end do 
         else if (i == Iocean) then
           if (.not. allocated(models(i)%dataExport)) then
-            allocate(models(i)%dataExport(1,nNest(i)))
+            allocate(models(i)%dataExport(2,nNest(i)))
           end if
           if (.not. allocated(models(i)%dataImport)) then
             allocate(models(i)%dataImport(8,nNest(i)))
@@ -501,13 +607,23 @@
           do j = 1, nNest(i)
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
+            models(i)%dataExport(1,j)%itype = Ibilin
             models(i)%dataExport(1,j)%name = 'SST'
             models(i)%dataExport(1,j)%long_name = & 
            'Sea Surface Temperature'
             models(i)%dataExport(1,j)%units = 'Celsius'
 !
+            models(i)%dataExport(2,j)%fid = 2
+            models(i)%dataExport(2,j)%gtype = Icross
+            models(i)%dataExport(2,j)%itype = Ibilin
+            models(i)%dataExport(2,j)%name = 'Hice'
+            models(i)%dataExport(2,j)%long_name = &
+            'Average Ice Thickness in Cell'
+            models(i)%dataExport(2,j)%units = 'm'
+!
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
+            models(i)%dataImport(1,j)%itype = Ibilin
             models(i)%dataImport(1,j)%name = 'Pair'
             models(i)%dataImport(1,j)%long_name = 'Surface Pressure'
             models(i)%dataImport(1,j)%units = 'milibar'
@@ -516,6 +632,7 @@
 !
             models(i)%dataImport(2,j)%fid = 2
             models(i)%dataImport(2,j)%gtype = Icross
+            models(i)%dataImport(2,j)%itype = Ibilin
             models(i)%dataImport(2,j)%name = 'Tair'
             models(i)%dataImport(2,j)%long_name = &
             'Surface Air Temperature'
@@ -525,15 +642,21 @@
 !
             models(i)%dataImport(3,j)%fid = 3
             models(i)%dataImport(3,j)%gtype = Icross
+            models(i)%dataImport(3,j)%itype = Ibilin
             models(i)%dataImport(3,j)%name = 'Qair'
             models(i)%dataImport(3,j)%long_name = &
             'Surface Air Specific Humidity'
-            models(i)%dataImport(3,j)%units = 'g/kg'
-            models(i)%dataImport(3,j)%scale_factor = 1.0d3
+!           SPECIFIC_HUMIDITY is defined in ROMS configuration 
+            models(i)%dataImport(3,j)%units = 'kg/kg'
+            models(i)%dataImport(3,j)%scale_factor = 1.0d0
+!           SPECIFIC_HUMIDITY is not defined !!!
+!            models(i)%dataImport(3,j)%units = 'g/kg'
+!            models(i)%dataImport(3,j)%scale_factor = 1.0d3
             models(i)%dataImport(3,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(4,j)%fid = 4
             models(i)%dataImport(4,j)%gtype = Icross
+            models(i)%dataImport(4,j)%itype = Iconsv
             models(i)%dataImport(4,j)%name = 'swrad'
             models(i)%dataImport(4,j)%long_name = &
             'solar shortwave radiation flux'
@@ -543,6 +666,7 @@
 !
             models(i)%dataImport(5,j)%fid = 5
             models(i)%dataImport(5,j)%gtype = Icross
+            models(i)%dataImport(5,j)%itype = Ibilin !Iconsv
             models(i)%dataImport(5,j)%name = 'lwrad_down'
             models(i)%dataImport(5,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -552,6 +676,7 @@
 !
             models(i)%dataImport(6,j)%fid = 6
             models(i)%dataImport(6,j)%gtype = Icross
+            models(i)%dataImport(6,j)%itype = Ibilin !Iconsv
             models(i)%dataImport(6,j)%name = 'rain'
             models(i)%dataImport(6,j)%long_name = &
             'rain fall rate'
@@ -561,6 +686,7 @@
 !
             models(i)%dataImport(7,j)%fid = 7
             models(i)%dataImport(7,j)%gtype = Icross
+            models(i)%dataImport(7,j)%itype = Ibilin
             models(i)%dataImport(7,j)%name = 'Uwind'
             models(i)%dataImport(7,j)%long_name = &
             'surface u-wind component'
@@ -570,6 +696,7 @@
 !
             models(i)%dataImport(8,j)%fid = 8
             models(i)%dataImport(8,j)%gtype = Icross
+            models(i)%dataImport(8,j)%itype = Ibilin
             models(i)%dataImport(8,j)%name = 'Vwind'
             models(i)%dataImport(8,j)%long_name = &
             'surface v-wind component'
@@ -811,32 +938,33 @@
 !
       end subroutine time_reconcile
 !
-      integer function getIndex(list, name)
+      integer function getVarID(list, name)
       implicit none
 !
-!=======================================================================
-!                                                                      !
-!  This subroutine is used to get indices of specified variable        !
-!                                                                      !
-!=======================================================================
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
 !
-!  Imported variable definitions.
+      type(ESM_Field), intent(in) :: list(:)
+      character (len=*) :: name
 !
-      character(len=*), dimension(:), intent(in) :: list
-      character(len=*), intent(in) :: name
-!
-!  Local variable definitions.
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
 !
       integer :: i
-
-      do i = 1, ubound(list, dim=1)
-        if (trim(list(i)) .eq. trim(name)) then
-          GetIndex = i
+!     
+!-----------------------------------------------------------------------
+!     Find index of specified field
+!-----------------------------------------------------------------------
+!
+      do i = 1, size(list, dim=1)
+        if (trim(list(i)%name) == trim(name)) then
+          getVarID = i
           return
         end if
       end do
-
-      end function getIndex
+      end function getVarId
 !
       integer function getMeshID(list, gtype)
       implicit none
@@ -965,340 +1093,5 @@
 
       return
       end subroutine calc_uvmet
-!
-      subroutine ocnrough(zo,zot,zoq,ustar,visa)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_constants
-      use mod_bats_common, only : iocnrough
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      real(dp), dimension(:,:), intent(in) :: ustar, visa
-      real(dp), dimension(:,:), intent(out) :: zoq, zot
-      real(dp), dimension(:,:), intent(inout) :: zo
-!
-!     Graziano: make this selectable on iocnrough flag
-!
-      if ( iocnrough == 2 ) then
-        zo = (0.013d0*ustar*ustar)*regrav+0.11d0*visa/ustar
-      else
-        zo = (0.0065d0*ustar*ustar)*regrav
-      end if
-!
-      zoq = zo/dexp(2.67d0*(((ustar*zo)/visa)**d_rfour)-2.57d0)
-      zot = zoq
-!
-      return
-      end subroutine ocnrough
-!
-      function psi (k, zeta)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_constants
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer,  intent(in) :: k
-      real(dp), intent(in) :: zeta
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      real(dp) :: chik, psi
-!
-      chik = (d_one-16.0D0*zeta)**d_rfour
-      if ( k == 1 ) then
-        psi = d_two*dlog((d_one+chik)*d_half) +                       &
-                      dlog((d_one+chik*chik)*d_half) -                  &
-                d_two*datan(chik) + d_two*datan(d_one)
-      else
-        psi = d_two*dlog((d_one+chik*chik)*d_half)
-      end if
-      end function psi
-!
-      function psi2d (k, zeta)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_constants
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(in) :: k
-      real(dp), dimension(:,:), intent(in) :: zeta
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer :: jxmin, jxmax, iymin, iymax
-      real(dp), allocatable, dimension(:,:) :: chik, psi2d
-!
-      jxmin = lbound(zeta, dim=1)
-      jxmax = ubound(zeta, dim=1)
-      iymin = lbound(zeta, dim=2)
-      iymax = ubound(zeta, dim=2)
-
-      if (.not.allocated(chik))allocate(chik(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(psi2d))allocate(psi2d(jxmin:jxmax,iymin:iymax))
-!
-      chik = (d_one-16.0D0*zeta)**d_rfour
-      if ( k == 1 ) then
-        psi2d = d_two*dlog((d_one+chik)*d_half) +                       &
-                      dlog((d_one+chik*chik)*d_half) -                  &
-                d_two*datan(chik) + d_two*datan(d_one)
-      else
-        psi2d = d_two*dlog((d_one+chik*chik)*d_half)
-      end if
-      end function psi2d
-!
-      subroutine adjustvars(z, t, q, u, v, zi, ps, ts, t2, q2,           &
-                           u10, v10, taux, tauy)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_constants
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      real(dp), dimension(:,:), intent(in) :: z 
-      real(dp), dimension(:,:), intent(in) :: t 
-      real(dp), dimension(:,:), intent(in) :: q 
-      real(dp), dimension(:,:), intent(in) :: u 
-      real(dp), dimension(:,:), intent(in) :: v 
-      real(dp), dimension(:,:), intent(in) :: zi 
-      real(dp), dimension(:,:), intent(in) :: ps 
-      real(dp), dimension(:,:), intent(in) :: ts
-!
-      real(dp), dimension(:,:), intent(inout) :: t2
-      real(dp), dimension(:,:), intent(inout) :: q2
-      real(dp), dimension(:,:), intent(inout) :: u10
-      real(dp), dimension(:,:), intent(inout) :: v10
-      real(dp), dimension(:,:), intent(inout) :: taux 
-      real(dp), dimension(:,:), intent(inout) :: tauy
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer :: i, jxmin, jxmax, iymin, iymax
-      real(dp), allocatable, dimension(:,:) :: th, dth, qs, dqh
-      real(dp), allocatable, dimension(:,:) :: thv, dthv, rho, xlv, visa
-      real(dp), allocatable, dimension(:,:) :: wc, ustr, wspd, um, zo
-      real(dp), allocatable, dimension(:,:) :: rb, zeta, obu, tstr, qstr
-      real(dp), allocatable, dimension(:,:) :: zot, zoq, thvstr, facttq 
-!
-      real(dp), parameter :: zetat = 0.465D0
-      real(dp), parameter :: zetam = 1.574D0
-!
-      real(dp), parameter :: z2  = d_two   ! m  (reference height)
-      real(dp), parameter :: z10 = d_10    ! m  (reference height)
-      real(dp), parameter :: zbeta = d_one ! -  (in computing W_*)
-!
-!     Get dimension bounds and allocate variables
-!
-      jxmin = lbound(t, dim=1)
-      jxmax = ubound(t, dim=1)
-      iymin = lbound(t, dim=2)
-      iymax = ubound(t, dim=2)
-
-      if (.not.allocated(th)) allocate(th(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(dth)) allocate(dth(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(qs)) allocate(qs(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(dqh)) allocate(dqh(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(thv)) allocate(thv(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(dthv)) allocate(dthv(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(rho)) allocate(rho(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(xlv)) allocate(xlv(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(visa)) allocate(visa(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(wc)) allocate(wc(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(ustr)) allocate(ustr(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(wspd)) allocate(wspd(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(um)) allocate(um(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(zo)) allocate(zo(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(rb)) allocate(rb(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(zeta)) allocate(zeta(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(obu)) allocate(obu(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(tstr)) allocate(tstr(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(qstr)) allocate(qstr(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(zot)) allocate(zot(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(zoq)) allocate(zoq(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(thvstr)) allocate(thvstr(jxmin:jxmax,iymin:iymax))
-      if (.not.allocated(facttq)) allocate(facttq(jxmin:jxmax,iymin:iymax))
-!
-!     Compute potential temperature and difference
-!
-      th = (t+tzero)*(d_1000/ps)**rovcp
-      dth = t+0.0098d0*z-ts
-!
-!     Compute specific humidity at saturation using Tetens' formula
-!
-      qs = (1.0007d0+3.46d-6*ps)*6.1121d0*dexp(17.502d0*t/(240.97d0+ts))
-      qs = qs*0.98d0
-      qs = ep2*qs/(ps-0.378d0*qs) 
-      dqh = q-qs
-!
-!     Compute virtual potential temperature and difference
-!
-      thv = th*(d_one+0.61d0*q)
-      dthv = dth*(d_one+0.61d0*q) + 0.61d0*th*dqh
-!
-!     Compute density and latent heat of vap. (J/kg)
-!
-      rho = ps*d_100/(rgas*(ts+tzero)*(d_one+0.61d0*qs))
-      xlv = (2.501d0-0.00237d0*ts)*1.0d+6
-!
-!     Kinematic viscosity of dry air (m2/s)- Andreas (1989) CRREL Rep. 89-11
-!
-      visa = 1.326d-5*(d_one+6.542d-3*t+8.301d-6*t*t-4.84d-9*t*t*t)
-!
-!     Initial values of u* (fiction velocity) and convective velocity
-!
-      wc = d_half
-      ustr = 0.06d0
-      wspd = dsqrt(u**d_two+v**d_two)
-      where ( dthv >= d_zero )
-        um = dmax1(wspd, 0.1d0)
-      elsewhere
-        um = dsqrt(wspd*wspd+wc*wc)
-      end where
-!
-!     Loop to obtain initial and good ustar and zo
-!
-      do i = 1, 5
-        zo = 0.013d0*ustr*ustr*regrav+0.11d0*visa/ustr
-        ustr = vonkar*um/dlog(z/zo)
-      end do
-!
-      rb = egrav*z*dthv/(thv*um*um)
-      where ( rb >= d_zero )       ! neutral or stable
-        zeta = rb*dlog(z/zo)/(d_one-d_five*dmin1(rb,0.19d0))
-        zeta = dmin1(d_two,dmax1(zeta,1.0d-6))
-      elsewhere                    ! unstable
-        zeta = rb*dlog(z/zo)
-        zeta = dmax1(-d_100,dmin1(zeta,-1.0d-6))
-      end where
-      obu = z/zeta
-!
-!     Main iteration (2-10 iterations would be fine)
-!
-      do i = 1, 10
-        call ocnrough (zo, zot, zoq, ustr, visa)
-!
-!       Wind
-!
-        zeta = z/obu
-        where ( zeta < -zetam )        ! zeta < -1
-          ustr = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+          &
-                  psi2d(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
-        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
-          ustr = vonkar*um/(dlog(z/zo)-psi2d(1,zeta)+psi2d(1,zo/obu))
-        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
-          ustr = vonkar*um/(dlog(z/zo)+d_five*zeta-d_five*zo/obu)
-        elsewhere                      !  1 < zeta, phi=5+zeta
-          ustr = vonkar*um/(dlog(obu/zo)+d_five-d_five*zo/obu+          &
-                  (d_five*dlog(zeta)+zeta-d_one))
-        end where  
-!
-!       Temperature
-!
-        zeta = z/obu
-        where ( zeta < -zetat )        ! zeta < -1
-          tstr = vonkar*dth/                                            &
-                 (dlog(-zetat*obu/zot)-psi(2,-zetat)+psi2d(2,zot/obu)+  &
-                 0.8d0*((zetat)**(-onet)-(-zeta)**(-onet)))
-        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
-          tstr = vonkar*dth/(dlog(z/zot)-                              &
-                 psi2d(2,zeta)+psi2d(2,zot/obu))
-        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
-          tstr = vonkar*dth/(dlog(z/zot)+d_five*zeta-d_five*zot/obu)
-        elsewhere                      !  1 < zeta, phi=5+zeta
-          tstr = vonkar*dth/(dlog(obu/zot)+d_five-d_five*zot/obu+       &
-                 (d_five*dlog(zeta)+zeta-d_one))
-        end where
-!
-!       Humidity
-!
-        zeta = z/obu
-        where ( zeta < -zetat )        ! zeta < -1
-          qstr = vonkar*dqh/                                            &
-                 (dlog(-zetat*obu/zoq)-psi(2,-zetat)+psi2d(2,zoq/obu)+  &
-                 0.8d0*((zetat)**(-onet)-(-zeta)**(-onet)))
-        elsewhere ( zeta < d_zero )    ! -1 <= zeta < 0
-          qstr = vonkar*dqh/(dlog(z/zoq)-                               &
-                 psi2d(2,zeta)+psi2d(2,zoq/obu))
-        elsewhere ( zeta <= d_one )    !  0 <= zeta <= 1
-          qstr = vonkar*dqh/(dlog(z/zoq)+d_five*zeta-d_five*zoq/obu)
-        elsewhere                      !  1 < zeta, phi=5+zeta
-          qstr = vonkar*dqh/(dlog(obu/zoq)+d_five-d_five*zoq/obu+       &
-                 (d_five*dlog(zeta)+zeta-d_one))
-        end where
-!
-        thvstr = tstr*(d_one+0.61d0*q) + 0.61d0*th*qstr
-!
-        zeta = vonkar*egrav*thvstr*z/(ustr**d_two*thv)
-        where ( zeta >= d_zero )   !neutral or stable
-          um = dmax1(wspd, 0.1d0)
-          zeta = dmin1(d_two,dmax1(zeta,1.0d-6))
-        elsewhere                  !unstable
-          wc = zbeta*(-egrav*ustr*thvstr*zi/thv)**onet
-          um = dsqrt(wspd*wspd+wc*wc)
-          zeta = dmax1(-d_100,dmin1(zeta,-1.0d-6))
-        end where
-        obu = z/zeta
-      end do
-!
-!     Compute surface variables (adjust height of the lowest sigma lev.) 
-!
-      taux = rho*ustr*ustr*u995/um
-      tauy = rho*ustr*ustr*u995/um
-!
-      zeta = z10/obu
-      where ( zeta < d_zero )
-        u10 = u+(ustr/vonkar)*(dlog(z10/z)-                             &
-              (psi2d(1,zeta)-psi2d(1,z/obu)))  
-        v10 = v+(ustr/vonkar)*(dlog(z10/z)-                             &
-              (psi2d(1,zeta)-psi2d(1,z/obu)))
-      elsewhere
-        u10 = u+(ustr/vonkar)*(dlog(z10/z)+                             &
-              d_five*zeta-d_five*z/obu)
-        v10 = v+(ustr/vonkar)*(dlog(z10/z)+                             &
-              d_five*zeta-d_five*z/obu)
-      end where
-!
-      facttq = dlog(z995*d_half)/dlog(z995/zo)
-      t2 = t+tzero-dth*facttq
-      q2 = q-dqh*facttq
-!      
-      return
-      end subroutine adjustvars
 !
       end module mod_couplerr

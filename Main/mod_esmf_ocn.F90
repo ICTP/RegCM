@@ -787,13 +787,19 @@
         staggerLoc = ESMF_STAGGERLOC_CENTER
         staggerEdgeLWidth = (/1,1/)
         staggerEdgeUWidth = (/1,1/)
+      else if (models(Iocean)%mesh(i,n)%gtype == Idot) then
+        staggerLoc = ESMF_STAGGERLOC_CORNER
+        staggerEdgeLWidth = (/0,0/)
+        staggerEdgeUWidth = (/1,1/)
       end if
 !
 !-----------------------------------------------------------------------
 !     Create ESMF Grid
 !-----------------------------------------------------------------------
 !
-      models(Iocean)%mesh(i,n)%grid = ESMF_GridCreate (                 &
+      if (i == 1) then
+!      models(Iocean)%mesh(i,n)%grid = ESMF_GridCreate (                 &
+      models(Iocean)%grid(n) = ESMF_GridCreate (                 &
                                     distgrid=models(Iocean)%distGrid(n),&
                                     indexflag=ESMF_INDEX_GLOBAL,        &
                                     gridEdgeLWidth=(/1,1/),             &
@@ -801,12 +807,14 @@
                                     name="ocn_grid",                    &
                                     rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Allocate coordinates 
 !-----------------------------------------------------------------------
 !
-      call ESMF_GridAddCoord (models(Iocean)%mesh(i,n)%grid,            &
+!      call ESMF_GridAddCoord (models(Iocean)%mesh(i,n)%grid,            &
+      call ESMF_GridAddCoord (models(Iocean)%grid(n),            &
                               staggerLoc=staggerLoc,                    &
                               staggerEdgeLWidth=staggerEdgeLWidth,      &
                               staggerEdgeUWidth=staggerEdgeUWidth,      &
@@ -817,7 +825,8 @@
 !     Allocate items for masking
 !-----------------------------------------------------------------------
 !
-      call ESMF_GridAddItem (models(Iocean)%mesh(i,n)%grid,             &
+!      call ESMF_GridAddItem (models(Iocean)%mesh(i,n)%grid,             &
+      call ESMF_GridAddItem (models(Iocean)%grid(n),             &
                              staggerLoc=staggerLoc,                     &
                              itemflag=ESMF_GRIDITEM_MASK,               &
                              rc=rc)
@@ -827,7 +836,8 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(i,n)%grid,                 &
+      !call ESMF_GridGet (models(Iocean)%mesh(i,n)%grid,                 &
+      call ESMF_GridGet (models(Iocean)%grid(n),                        &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -837,7 +847,8 @@
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
-      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+!      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+      call ESMF_GridGetCoord (models(Iocean)%grid(n),            &
                               localDE=j,                                &
                               staggerLoc=staggerLoc,                    &
                               coordDim=1,                               &
@@ -845,7 +856,8 @@
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+!      call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,            &
+      call ESMF_GridGetCoord (models(Iocean)%grid(n),            &
                               localDE=j,                                &
                               staggerLoc=staggerLoc,                    &
                               coordDim=2,                               &
@@ -853,7 +865,8 @@
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,             &
+!      call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,             &
+      call ESMF_GridGetItem (models(Iocean)%grid(n),             &
                              localDE=j,                                 &
                              staggerLoc=staggerLoc,                     &
                              itemflag=ESMF_GRIDITEM_MASK,               &
@@ -861,16 +874,25 @@
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
+!-----------------------------------------------------------------------
+!     Debug: write size of pointers    
+!-----------------------------------------------------------------------
+!
+        write(*,40) localPet, j, "PTR-"//                               &
+                    trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),      &
+                    lbound(ptrX, dim=1), ubound(ptrX, dim=1),           &
+                    lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+!
+!-----------------------------------------------------------------------
+!     Fill the pointers    
+!-----------------------------------------------------------------------
+!
       if (models(Iocean)%mesh(i,n)%gtype == Icross) then
-        if (cpl_dbglevel > 1) then
-          write(*,40) localPet, j, "IDX", IstrR, IendR, JstrR, JendR
-          write(*,40) localPet, j, "PTR",                               &
-            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
-            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
-          write(*,40) localPet, j, "OCN",                               &
-            lbound(GRID(n)%lonr, dim=1), ubound(GRID(n)%lonr, dim=1),   &
-            lbound(GRID(n)%lonr, dim=2), ubound(GRID(n)%lonr, dim=2)
-        end if              
+        write(*,40) localPet, j, "IDX-CROSS", IstrR, IendR, JstrR, JendR
+        write(*,40) localPet, j, "OCN-"//                               &
+          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
+          lbound(GRID(n)%lonr, dim=1), ubound(GRID(n)%lonr, dim=1),     &
+          lbound(GRID(n)%lonr, dim=2), ubound(GRID(n)%lonr, dim=2)
 !
         do jj = JstrR, JendR
           do ii = IstrR, IendR
@@ -880,24 +902,26 @@
           end do
         end do       
 !
-        if (cpl_dbglevel > 1) then
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_RHOpoint")
-          if (rc /= ESMF_SUCCESS) then
-            call ESMF_Finalize(endflag=ESMF_END_ABORT)
-          end if
-        end if
+      else if (models(Iocean)%mesh(i,n)%gtype == Idot) then
+        write(*,40) localPet, j, "IDX-DOT", IstrU, IendR, JstrV, JendR
+        write(*,40) localPet, j, "OCN-"//                               &
+          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
+          lbound(GRID(n)%lonp, dim=1), ubound(GRID(n)%lonp, dim=1),     &
+          lbound(GRID(n)%lonp, dim=2), ubound(GRID(n)%lonp, dim=2)
+        do jj = JstrV, JendR
+          do ii = IstrU, IendR
+            ptrX(ii,jj) = GRID(n)%lonp(ii,jj)
+            ptrY(ii,jj) = GRID(n)%latp(ii,jj)
+            ptrM(ii,jj) = int(GRID(n)%pmask(ii,jj))
+          end do
+        end do
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
-        if (cpl_dbglevel > 1) then
-          write(*,40) localPet, j, "IDX", IstrU, IendU, JstrU, JendU
-          write(*,40) localPet, j, "PTR",                               &
-            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
-            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
-          write(*,40) localPet, j, "OCN",                               &
-            lbound(GRID(n)%lonu, dim=1), ubound(GRID(n)%lonu, dim=1),   &
-            lbound(GRID(n)%lonu, dim=2), ubound(GRID(n)%lonu, dim=2)
-        end if
+        !write(*,40) localPet, j, "IDX", IstrU, IendU, JstrU, JendU
+        write(*,40) localPet, j, "OCN-"//                               &
+          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
+          lbound(GRID(n)%lonu, dim=1), ubound(GRID(n)%lonu, dim=1),     &
+          lbound(GRID(n)%lonu, dim=2), ubound(GRID(n)%lonu, dim=2)
 !
         do jj = JstrU, JendU
           do ii = IstrU, IendU
@@ -907,24 +931,12 @@
           end do
         end do
 !
-        if (cpl_dbglevel > 1) then
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_Upoint")
-          if (rc /= ESMF_SUCCESS) then
-            call ESMF_Finalize(endflag=ESMF_END_ABORT)
-          end if
-        end if
-!
       else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
-        if (cpl_dbglevel > 1) then
-          write(*,40) localPet, j, "IDX", IstrV, IendV, JstrV, JendV
-          write(*,40) localPet, j, "PTR",                               &
-            lbound(ptrX, dim=1), ubound(ptrX, dim=1),                   &
-            lbound(ptrX, dim=2), ubound(ptrX, dim=2)
-          write(*,40) localPet, j, "OCN",                               &
-            lbound(GRID(n)%lonv, dim=1), ubound(GRID(n)%lonv, dim=1),   &
-            lbound(GRID(n)%lonv, dim=2), ubound(GRID(n)%lonv, dim=2)
-        end if
+        !write(*,40) localPet, j, "IDX", IstrV, IendV, JstrV, JendV
+        write(*,40) localPet, j, "OCN-"//                               &
+          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
+          lbound(GRID(n)%lonv, dim=1), ubound(GRID(n)%lonv, dim=1),     &
+          lbound(GRID(n)%lonv, dim=2), ubound(GRID(n)%lonv, dim=2)
 !
         do jj = JstrV, JendV
           do ii = IstrV, IendV
@@ -933,15 +945,7 @@
             ptrM(ii,jj) = int(GRID(n)%vmask(ii,jj))
           end do
         end do
-!
-        if (cpl_dbglevel > 1) then       
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_Vpoint")
-          if (rc /= ESMF_SUCCESS) then
-            call ESMF_Finalize(endflag=ESMF_END_ABORT)
-          end if
-        end if
-       end if
+      end if
 !
 !-----------------------------------------------------------------------
 !     Nullify pointers 
@@ -956,8 +960,30 @@
         if (associated(ptrM)) then
           nullify(ptrM)
         end if
-!
       end do
+!
+!-----------------------------------------------------------------------
+!     Validate Grid 
+!-----------------------------------------------------------------------
+!
+      call ESMF_GridValidate(models(Iocean)%grid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Write ESMF Grid in VTK format (debug) 
+!-----------------------------------------------------------------------
+!
+      if (cpl_dbglevel .gt. 1) then
+      print*, '[debug] -- write grid information to file '//            &
+      '>ocean_'//trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype))//'point<'
+      call ESMF_GridWriteVTK(models(Iocean)%grid(n),                    &
+                         filename="ocean_"//                            &
+                         trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype))//&
+                         "point",                                       &
+                         staggerLoc=staggerLoc,                         &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
       end do
       end do
 !
@@ -965,7 +991,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 40   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
+ 40   format(" PET(",I3,") - DE(",I2,") - ", A10, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1051,14 +1077,6 @@
       JstrV = BOUNDS(ng)%Jstr(localPet)
       JendV = BOUNDS(ng)%JendR(localPet)
 !
-!      do tile=0,NtileI(ng)*NtileJ(ng)-1
-!        TLWidth(1,tile)=BOUNDS(ng)%Istr(tile)-BOUNDS(ng)%LBi(tile)
-!        TLWidth(2,tile)=BOUNDS(ng)%Jstr(tile)-BOUNDS(ng)%LBj(tile)
-!        TUWidth(1,tile)=BOUNDS(ng)%UBi(tile)-BOUNDS(ng)%Iend(tile)
-!        TUWidth(2,tile)=BOUNDS(ng)%UBj(tile)-BOUNDS(ng)%Jend(tile)
-!      end do
-!      TLW=(/TLWidth(1,localPet), TLWidth(2,localPet)/)
-!      TUW=(/TUWidth(1,localPet), TUWidth(2,localPet)/)
       TLW(1)=BOUNDS(ng)%Istr(localPet)-BOUNDS(ng)%LBi(localPet)
       TLW(2)=BOUNDS(ng)%Jstr(localPet)-BOUNDS(ng)%LBj(localPet)
       TUW(1)=BOUNDS(ng)%UBi(localPet)-BOUNDS(ng)%Iend(localPet)
@@ -1089,6 +1107,11 @@
         staggerLoc = ESMF_STAGGERLOC_CENTER
         staggerEdgeLWidth = (/1,1/)
         staggerEdgeUWidth = (/1,1/)
+      else if (models(Iocean)%dataExport(i,ng)%gtype == Idot) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Idot)
+        staggerLoc = ESMF_STAGGERLOC_CORNER
+        staggerEdgeLWidth = (/0,0/)
+        staggerEdgeUWidth = (/1,1/)
       end if
 !
 !-----------------------------------------------------------------------
@@ -1096,7 +1119,8 @@
 !-----------------------------------------------------------------------
 !
       models(Iocean)%dataExport(i,ng)%field = ESMF_FieldCreate (        &
-                        models(Iocean)%mesh(id,ng)%grid,                &
+                        !models(Iocean)%mesh(id,ng)%grid,                &
+                        models(Iocean)%grid(ng),                &
                         models(Iocean)%arrSpec(ng),                     &
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataExport(i,ng)%name),&
@@ -1104,10 +1128,22 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Attach interpolation type attribute of field 
+!-----------------------------------------------------------------------
+!
+      name = 'interpolation_type'
+      call ESMF_AttributeSet(models(Iocean)%dataExport(i,ng)%field,     &
+                            name=trim(name),                            &
+                            value=models(Iocean)%dataExport(i,ng)%itype,&
+                            rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+      !call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+      call ESMF_GridGet (models(Iocean)%grid(ng),               &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1166,6 +1202,11 @@
         staggerLoc = ESMF_STAGGERLOC_CENTER
         staggerEdgeLWidth = (/1,1/)
         staggerEdgeUWidth = (/1,1/)
+      else if (models(Iocean)%dataImport(i,ng)%gtype == Idot) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Idot)
+        staggerLoc = ESMF_STAGGERLOC_CORNER
+        staggerEdgeLWidth = (/0,0/)
+        staggerEdgeUWidth = (/1,1/)
       end if
 !
 !-----------------------------------------------------------------------
@@ -1173,7 +1214,8 @@
 !-----------------------------------------------------------------------
 !
       models(Iocean)%dataImport(i,ng)%field = ESMF_FieldCreate (        &
-                        models(Iocean)%mesh(id,ng)%grid,                &
+                        !models(Iocean)%mesh(id,ng)%grid,                &
+                        models(Iocean)%grid(ng),                &
                         models(Iocean)%arrSpec(ng),                     &
                         totalLWidth=TLW,                                &
                         totalUWidth=TUW,                                &
@@ -1186,7 +1228,7 @@
 !     Store routehandle to exchage halo region data 
 !-----------------------------------------------------------------------
 !
-      if (i .eq. 1) then
+      if ((cpl_dbglevel > 1) .and. (i .eq. 1)) then
       call ESMF_FieldPrint(models(Iocean)%dataImport(i,ng)%field, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
@@ -1195,13 +1237,13 @@
                    routehandle=models(Iocean)%dataImport(i,ng)%rhandle, &
                    rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      print*, "name -> ", trim(models(Iocean)%dataImport(i,ng)%name)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+      !call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+      call ESMF_GridGet (models(Iocean)%grid(ng),               &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1259,7 +1301,12 @@
       use mod_param, only : BOUNDS, N
       use mod_ocean, only : OCEAN
       use mod_scalars, only : itemp
+#ifdef ROMSICE
+      use mod_ice, only : ICE
+      use mod_stepping, only : nstp, linew
+#else
       use mod_stepping, only : nstp
+#endif
 !
       implicit none
 !
@@ -1326,6 +1373,15 @@
                                    OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)
           end do
         end do
+#ifdef ROMSICE
+      case ('Hice')
+        do j = JstrR, JendR
+          do i = IstrR, IendR
+            models(Iocean)%dataExport(k,ng)%ptr(i,j) =                  &
+                                   ICE(ng)%ai(i,j,linew(ng))
+          end do
+        end do
+#endif
       end select
 !
 !-----------------------------------------------------------------------
@@ -1488,7 +1544,8 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+!      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+      call ESMF_GridGet (models(Iocean)%grid(ng),               &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

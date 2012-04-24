@@ -669,18 +669,28 @@
 !     Create ESMF Grid
 !-----------------------------------------------------------------------
 !
-      models(Iatmos)%mesh(i,n)%grid = ESMF_GridCreate (                 &
+      if (i == 1) then
+!      models(Iatmos)%mesh(i,n)%grid = ESMF_GridCreate (                 &
+!                                    distgrid=models(Iatmos)%distGrid(n),&
+!                                    indexflag=ESMF_INDEX_GLOBAL,        &
+!                                    name="atm_grid",                    &
+!                                    rc=rc)
+      models(Iatmos)%grid(n) = ESMF_GridCreate (                        &
                                     distgrid=models(Iatmos)%distGrid(n),&
                                     indexflag=ESMF_INDEX_GLOBAL,        &
                                     name="atm_grid",                    &
                                     rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Allocate coordinates 
 !-----------------------------------------------------------------------
 !
-      call ESMF_GridAddCoord (models(Iatmos)%mesh(i,n)%grid,            &
+!      call ESMF_GridAddCoord (models(Iatmos)%mesh(i,n)%grid,            &
+!                              staggerLoc=staggerLoc,                    &
+!                              rc=rc)
+      call ESMF_GridAddCoord (models(Iatmos)%grid(n),                   &
                               staggerLoc=staggerLoc,                    &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -689,7 +699,10 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+!      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+!                         localDECount=localDECount,                     &
+!                         rc=rc)
+      call ESMF_GridGet (models(Iatmos)%grid(n),                        &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -699,7 +712,13 @@
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
-        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+!        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+!                                localDE=j,                              &
+!                                staggerLoc=staggerLoc,                  &
+!                                coordDim=1,                             &
+!                                farrayPtr=ptrX,                         &
+!                                rc=rc)
+        call ESMF_GridGetCoord (models(Iatmos)%grid(n),                 &
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=1,                             &
@@ -709,7 +728,13 @@
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if
 !
-        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+!        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+!                                localDE=j,                              &
+!                                staggerLoc=staggerLoc,                  &
+!                                coordDim=2,                             &
+!                                farrayPtr=ptrY,                         &
+!                                rc=rc)
+        call ESMF_GridGetCoord (models(Iatmos)%grid(n),                 &
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=2,                             &
@@ -774,7 +799,8 @@
 !     Validate Grid 
 !-----------------------------------------------------------------------
 !
-      call ESMF_GridValidate(models(Iatmos)%mesh(i,n)%grid, rc=rc)
+!      call ESMF_GridValidate(models(Iatmos)%mesh(i,n)%grid, rc=rc)
+      call ESMF_GridValidate(models(Iatmos)%grid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -784,7 +810,8 @@
       if (cpldbglevel .gt. 1) then
       print*, '[debug] -- write grid information to file '//            &
       '>atmos_'//trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//'point<'
-      call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,             &
+!      call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,             &
+      call ESMF_GridWriteVTK(models(Iatmos)%grid(n),                    &
                          filename="atmos_"//                            &
                          trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//&
                          "point",                                       &
@@ -864,7 +891,8 @@
 !
       name = models(Iatmos)%dataExport(i,n)%name
       models(Iatmos)%dataExport(i,n)%field = ESMF_FieldCreate (         &
-                                  models(Iatmos)%mesh(id,n)%grid,       &
+                                  !models(Iatmos)%mesh(id,n)%grid,       &
+                                  models(Iatmos)%grid(n),               &
                                   models(Iatmos)%arrSpec(n),            &
                                   indexflag=ESMF_INDEX_GLOBAL,          &
                                   staggerloc=staggerLoc,                &
@@ -873,10 +901,22 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Attach interpolation type attribute of field 
+!-----------------------------------------------------------------------
+!
+      name = 'interpolation_type'
+      call ESMF_AttributeSet(models(Iatmos)%dataExport(i,n)%field,      &
+                             name=trim(name),                           &
+                             value=models(Iatmos)%dataExport(i,n)%itype,&
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
+!      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
+      call ESMF_GridGet (models(Iatmos)%grid(n),                        &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -939,7 +979,8 @@
 !
       name = models(Iatmos)%dataImport(i,n)%name
       models(Iatmos)%dataImport(i,n)%field = ESMF_FieldCreate (         &
-                                  models(Iatmos)%mesh(id,n)%grid,       &
+                                  !models(Iatmos)%mesh(id,n)%grid,       &
+                                  models(Iatmos)%grid(n),               &
                                   models(Iatmos)%arrSpec(n),            &
                                   indexflag=ESMF_INDEX_GLOBAL,          &
                                   staggerloc=staggerLoc,                &
@@ -951,7 +992,8 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
+      !call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
+      call ESMF_GridGet (models(Iatmos)%grid(n),                        &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1088,104 +1130,6 @@
       name = models(Iatmos)%dataExport(i,n)%name
 !
 !-----------------------------------------------------------------------
-!     Adjust variables to surface (interact with atm + 995 -> 2m and 10m)
-!-----------------------------------------------------------------------
-!
-!      if (i == 1) then
-!
-!-----------------------------------------------------------------------
-!     Allocate variables 
-!-----------------------------------------------------------------------
-!
-!      if (.not. allocated(z995)) then
-!        dims(1) = (ubound(hgt, dim=1)-lbound(hgt, dim=1))+1
-!        dims(2) = (ubound(hgt, dim=2)-lbound(hgt, dim=2))+1
-!
-!        allocate(z995(dims(1),dims(2)))
-!        allocate(t995(dims(1),dims(2)))
-!        allocate(q995(dims(1),dims(2)))
-!        allocate(u995(dims(1),dims(2)))
-!        allocate(v995(dims(1),dims(2)))
-!        allocate(psurf(dims(1),dims(2)))
-!        allocate(tsurf(dims(1),dims(2)))
-!        allocate(t2(dims(1),dims(2)))
-!        allocate(q2(dims(1),dims(2)))
-!        allocate(zi(dims(1),dims(2)))
-!
-!        dims(1) = (ubound(uatm, dim=1)-lbound(uatm, dim=1))+1
-!        dims(2) = (ubound(uatm, dim=2)-lbound(uatm, dim=2))+1
-!
-!        allocate(u10(dims(1),dims(2)))
-!        allocate(v10(dims(1),dims(2)))
-!        allocate(taux(dims(1),dims(2)))
-!        allocate(tauy(dims(1),dims(2)))
-!      end if
-!
-!-----------------------------------------------------------------------
-!     Initialize variables
-!-----------------------------------------------------------------------
-!
-!      z995 = 0.0d0
-!      t995 = 0.0d0
-!      q995 = 0.0d0
-!      u995 = 0.0d0
-!      v995 = 0.0d0
-!      psurf = 0.0d0
-!      tsurf = 0.0d0
-!      t2 = 0.0d0
-!      q2 = 0.0d0
-!      u10 = 0.0d0
-!      v10 = 0.0d0
-!      zi = 0.0d0
-!      taux = 0.0d0
-!      tauy = 0.0d0
-!
-!-----------------------------------------------------------------------
-!     Fill variables 
-!-----------------------------------------------------------------------
-!
-!      do ii = ici1 , ici2
-!        do jj = jci1 , jci2
-!          zi(jj,ii)    = hpbl(jj,ii)
-!          z995(jj,ii)  = hgt(jj,ii,kz)
-!          t995(jj,ii)  = tatm(jj,ii,kz)-tzero
-!          q995(jj,ii)  = qvatm(jj,ii,kz)/(d_one+qvatm(jj,ii,kz))
-!          u995(jj,ii)  = uatm(jj,ii,kz)
-!          v995(jj,ii)  = vatm(jj,ii,kz)
-!          psurf(jj,ii) = (sfps(jj,ii)+ptop)*d_10
-!          tsurf(jj,ii) = tground2(jj,ii)-tzero
-!        end do
-!      end do
-!
-!-----------------------------------------------------------------------
-!     Adjust variables to surface level
-!-----------------------------------------------------------------------
-!
-!      call adjustvars(z995, t995, q995, u995, v995,                     &
-!                      zi, psurf, tsurf, t2, q2,                         &
-!                      u10, v10, taux, tauy)
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to stdout    
-!-----------------------------------------------------------------------
-!
-!      if (localPet == 0 .and. cpldbglevel > 3) then
-!        call print_matrix_r8(z995, 1, 1, localPet, 6, "Z995")
-!        call print_matrix_r8(t995, 1, 1, localPet, 6, "T995")
-!        call print_matrix_r8(q995, 1, 1, localPet, 6, "Q995")
-!        call print_matrix_r8(u995, 1, 1, localPet, 6, "U995")
-!        call print_matrix_r8(v995, 1, 1, localPet, 6, "V995")
-!
-!        call print_matrix_r8(t2, 1, 1, localPet, 6, "T2")
-!        call print_matrix_r8(q2, 1, 1, localPet, 6, "Q2")
-!        call print_matrix_r8(u10, 1, 1, localPet, 6, "U10")
-!        call print_matrix_r8(v10, 1, 1, localPet, 6, "V10")
-!        call print_matrix_r8(taux, 1, 1, localPet, 6, "TAUX")
-!        call print_matrix_r8(tauy, 1, 1, localPet, 6, "TAUY")
-!      end if
-!      end if
-!
-!-----------------------------------------------------------------------
 !     Debug: write size of pointers    
 !-----------------------------------------------------------------------
 !
@@ -1280,25 +1224,25 @@
                       lbound(u10m, dim=3), ubound(u10m, dim=3)
         end if
         if (localPet .eq. 0) then
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &                     
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), & 
-                     ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &                     
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), & 
+!                     ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = u10m(1,:,:)
         else if (localPet .eq. models(Iatmos)%nproc-1) then
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = u10m(1,:,:)
         else
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = u10m(1,:,:)
         end if
       else if (trim(adjustl(name)) == "Vwind") then ! m/s
@@ -1308,25 +1252,25 @@
                       lbound(v10m, dim=3), ubound(v10m, dim=3)
         end if
         if (localPet .eq. 0) then
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=1),           &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = v10m(1,:,:)
         else if (localPet .eq. models(Iatmos)%nproc-1) then
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=1), &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(:jxm2,2:iym2) = v10m(1,:,:)
         else
-          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
-                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
-                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
+!          write(*,40) localPet, "PTR2-"//trim(adjustl(name)),            &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=1), &
+!                      lbound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2), &
+!                      ubound(models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2), dim=2)
           models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = v10m(1,:,:)
         end if
       end if
@@ -1390,7 +1334,11 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
+#ifdef ROMSICE
+      use mod_bats_romsocn, only : sst2d, hice2d
+#else
       use mod_bats_romsocn, only : sst2d
+#endif
 !
       implicit none
 !
@@ -1445,7 +1393,7 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                 &
+      call ESMF_GridGet (models(Iatmos)%grid(n),                        &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1471,6 +1419,10 @@
       select case (trim(adjustl(name)))
       case('SST')      
           sst2d = (ptr*scale_factor)+add_offset
+#ifdef ROMSICE
+      case('Hice')      
+          hice2d = (ptr*scale_factor)+add_offset
+#endif
       end select
       end do
 !

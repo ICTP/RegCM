@@ -110,12 +110,14 @@
 !
       logical :: flag
       integer :: localPet, petCount, comm
-      integer :: i, j, dir
+      integer :: i, j, n, itype, dir
 !
       integer :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
+      type(ESMF_Grid) :: dstGrid, srcGrid
+      type(ESMF_ArraySpec) :: arrSpec  
       type(ESMF_RegridMethod_Flag) :: regridMethod
 !
 !-----------------------------------------------------------------------
@@ -170,7 +172,7 @@
 !     Debug: print coupling direction
 !-----------------------------------------------------------------------
 !  
-      if (cpl_dbglevel > 0 .and. localPet == 0) then
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
       if (dir == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else
@@ -353,6 +355,34 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get interpolation type 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (srcField,                                 &
+                              name='interpolation_type',                &
+                              value=itype,                              &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Create frac field if the interpolation type is conservative 
+!-----------------------------------------------------------------------
+!
+      if (itype == Iconsv) then   
+      call ESMF_FieldGet(srcField,                                      &
+                         arrayspec=arrSpec,                             &
+                         grid=srcGrid,                                  &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      fracFieldFS = ESMF_FieldCreate(srcGrid,                           &
+                                     arrSpec,                           &
+                                     staggerloc=ESMF_STAGGERLOC_CENTER, &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+!
+!-----------------------------------------------------------------------
 !     Get export field
 !-----------------------------------------------------------------------
 !
@@ -363,17 +393,46 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Create frac field if the interpolation type is conservative 
+!-----------------------------------------------------------------------
+!
+      if (itype == Iconsv) then
+      call ESMF_FieldGet(dstField,                                      &
+                         arrayspec=arrSpec,                             &
+                         grid=dstGrid,                                  &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      fracFieldFD = ESMF_FieldCreate(dstGrid,                           &
+                                     arrSpec,                           &
+                                     staggerloc=ESMF_STAGGERLOC_CENTER, &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+!
+!-----------------------------------------------------------------------
 !     Create ESMF routhandle (atm --> ocn) 
 !-----------------------------------------------------------------------
 !
-      regridMethod = ESMF_REGRIDMETHOD_BILINEAR
-!
+      if (itype == Iconsv) then
+      regridMethod = ESMF_REGRIDMETHOD_CONSERVE
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                                   dstField=dstField,                    &
-                                  routeHandle=routeHandleF,             &
+                                  srcFracField=fracFieldFS,             &
+                                  dstFracField=fracFieldFD,             &
+                                  routeHandle=routeHandleFC,            &
                                   regridmethod=regridMethod,            &
                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      else
+      regridMethod = ESMF_REGRIDMETHOD_BILINEAR
+      call ESMF_FieldRegridStore (srcField=srcField,                    &
+                                  dstField=dstField,                    &
+                                  routeHandle=routeHandleFB,            &
+                                  regridmethod=regridMethod,            &
+                                  rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
       end do
 !
@@ -403,6 +462,34 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get interpolation type 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (srcField,                                 &
+                              name='interpolation_type',                &
+                              value=itype,                              &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Create frac field if the interpolation type is conservative 
+!-----------------------------------------------------------------------
+!
+      if (itype == Iconsv) then
+      call ESMF_FieldGet(srcField,                                      &
+                         arrayspec=arrSpec,                             &
+                         grid=srcGrid,                                  &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      fracFieldBS = ESMF_FieldCreate(srcGrid,                           &
+                                     arrSpec,                           &
+                                     staggerloc=ESMF_STAGGERLOC_CENTER, &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+!
+!-----------------------------------------------------------------------
 !     Get export field
 !-----------------------------------------------------------------------
 !
@@ -411,6 +498,24 @@
                          dstField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!     
+!-----------------------------------------------------------------------
+!     Create frac field if the interpolation type is conservative 
+!-----------------------------------------------------------------------
+!
+      if (itype == Iconsv) then
+      call ESMF_FieldGet(dstField,                                      &
+                         arrayspec=arrSpec,                             &
+                         grid=dstGrid,                                  &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      fracFieldBD = ESMF_FieldCreate(dstGrid,                           &
+                                     arrSpec,                           &
+                                     staggerloc=ESMF_STAGGERLOC_CENTER, &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Create ESMF routhandle (ocn --> atm)
@@ -419,14 +524,27 @@
 !     grid is smaller than atmosphere model grid.
 !-----------------------------------------------------------------------
 !
+      if (itype == Iconsv) then
+      regridMethod = ESMF_REGRIDMETHOD_CONSERVE
+      call ESMF_FieldRegridStore (srcField=srcField,                    &
+                                  dstField=dstField,                    &
+                                  srcFracField=fracFieldBS,             &
+                                  dstFracField=fracFieldBD,             &
+                                  routeHandle=routeHandleBC,            &
+                                  regridmethod=regridMethod,            &
+                                  rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      else
+      regridMethod = ESMF_REGRIDMETHOD_BILINEAR 
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                               dstField=dstField,                        &
                               srcMaskValues=(/0/),                      &
                               unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
-                              routeHandle=routeHandleB,                 &
-                              regridmethod=ESMF_REGRIDMETHOD_BILINEAR,  &
+                              routeHandle=routeHandleBB,                &
+                              regridmethod=regridMethod,                &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
       end do
       end if
@@ -463,7 +581,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: i, j, dir
+      integer :: i, j, itype, dir
       integer :: localPet, petCount, comm
 !
       type(ESMF_Field) :: dstField, srcField
@@ -544,6 +662,16 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get interpolation type 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (srcField,                                 &
+                              name='interpolation_type',                &
+                              value=itype,                              &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Get export field
 !-----------------------------------------------------------------------
 !
@@ -557,10 +685,17 @@
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
+      if (itype == Iconsv) then
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleF,                               &
+                            routeHandleFC,                              &
                             rc=rc)
+      else
+      call ESMF_FieldRegrid(srcField,                                   &
+                            dstField,                                   &
+                            routeHandleFB,                              &
+                            rc=rc)
+      end if
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do
@@ -582,6 +717,15 @@
                          srcField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!-----------------------------------------------------------------------
+!     Get interpolation type 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (srcField,                                 &
+                              name='interpolation_type',                &
+                              value=itype,                              &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get export field
@@ -597,11 +741,19 @@
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
+      if (itype == Iconsv) then
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleB,                               &
+                            routeHandleBC,                              &
                             zeroregion=ESMF_REGION_SELECT,              &
                             rc=rc)
+      else
+      call ESMF_FieldRegrid(srcField,                                   &
+                            dstField,                                   &
+                            routeHandleBB,                              &
+                            zeroregion=ESMF_REGION_SELECT,              &
+                            rc=rc)
+      end if
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do

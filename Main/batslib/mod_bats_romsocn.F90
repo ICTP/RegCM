@@ -32,15 +32,31 @@ module mod_bats_romsocn
   public :: romsocndrv
   public :: allocate_mod_bats_romsocn
 !
-  real(dp), public, pointer, dimension(:,:) :: sst2d
+  ! missing value
   real(dp), parameter :: MISSING_R8 = 1.0d20
+  ! sst
+  real(dp), public, pointer, dimension(:,:) :: sst2d
+#ifdef ROMSICE
+  ! minimum ice depth in mm: less that this is removed
+  real(dp) , parameter :: iceminh = d_10
+  ! reference hgt in mm for latent heat removal from ice
+  real(dp) , parameter :: href = d_two * iceminh
+  ! steepness factor of latent heat removal
+  real(dp) , parameter :: steepf = 1.0D0  ! Tuning needed
+  real(dp), public, pointer, dimension(:,:) :: hice2d
+#endif
 !
   contains
 
   subroutine allocate_mod_bats_romsocn()
     implicit none
     call getmem2d(sst2d,jci1,jci2,ici1,ici2,'roms:sst2d') 
-    sst2d = MISSING_R8
+    sst2d  = MISSING_R8
+!
+#ifdef ROMSICE
+    call getmem2d(hice2d,jci1,jci2,ici1,ici2,'roms:hice2d') 
+    hice2d = MISSING_R8
+#endif
   end subroutine allocate_mod_bats_romsocn
 
   subroutine romsocndrv
@@ -48,7 +64,7 @@ module mod_bats_romsocn
 !
     real(dp) :: uv995, tsurf, t995, q995, z995, zi, psurf
     real(dp) :: qs, uv10, tau, lh, sh, dth, dqh, ustar, zo
-    real(dp) :: facttq 
+    real(dp) :: facttq, toth 
 !
     integer i , j , n
     character (len=64) :: subroutine_name='romsocndrv'
@@ -56,10 +72,11 @@ module mod_bats_romsocn
 !
     call time_begin(subroutine_name,idindx)
 !
+    ! feedback from ocean model -> atmodpheric model
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          ! feedback from ocn -> atm
+          ! update sea surface temperature
           if (sst2d(j,i) .lt. MISSING_R8) then  
             ! update ground temperature
             tgrd(n,j,i) = sst2d(j,i)
@@ -84,6 +101,27 @@ module mod_bats_romsocn
             t2m(n,j,i) = t995 + tzero - dth*facttq
             q2m(n,j,i) = q995 - dqh*facttq 
           end if
+#ifdef ROMSICE
+          ! update land use, mask and fluxes if ice is formed
+          if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
+            ldmsk1(n,j,i) = 2
+            ldmsk1(n,j,i) = 2
+            lveg(n,j,i) = 12
+            sfice(n,j,i) = hice2d(j,i) 
+            ! Reduce sensible heat flux for ice presence
+            toth = sfice(n,j,i) + sncv(n,j,i)
+            if ( toth > href ) then
+              sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+            end if
+          else
+            ldmsk1(n,j,i) = 0
+            ldmsk1(n,j,i) = 0
+            lveg(n,j,i) = 15
+            sfice(n,j,i) = d_zero
+            sncv(n,j,i) = d_zero
+            snag(n,j,i) = d_zero
+          end if
+#endif
         end do
       end do
     end do
