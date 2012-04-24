@@ -290,10 +290,7 @@
 !     Finalize coupler components.
 !-----------------------------------------------------------------------
 !
-      call ESMF_CplCompFinalize (cplComp,                               &
-                                 exportState=models(Iatmos)%stateExport,&
-                                 importState=models(Iocean)%stateImport,&
-                                 rc=rc)
+      call ESMF_CplCompFinalize (cplComp, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
 !-----------------------------------------------------------------------

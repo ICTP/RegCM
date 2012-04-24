@@ -58,7 +58,6 @@
         type(ESM_Field) :: lat
         type(ESM_Field) :: lon
         type(ESM_Field) :: mask
-        type(ESMF_Grid) :: grid
       end type ESM_Mesh
 !
 !-----------------------------------------------------------------------
@@ -177,6 +176,16 @@
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
+!
+!     FB - Forward-Bilinear
+!     FC - Forward-Conservative
+!     BB - Backward-Bilinear
+!     BC - Backward-Conservative
+!
+!     FS - Forward-Source
+!     FD - Forward-Destination
+!     BS - Backward-Source
+!     BD - Backward-Destination
 !-----------------------------------------------------------------------
 !
       type(ESMF_RouteHandle) :: routeHandleFB
@@ -187,8 +196,6 @@
       type(ESMF_Field) :: fracFieldFD       
       type(ESMF_Field) :: fracFieldBS       
       type(ESMF_Field) :: fracFieldBD       
-      integer(ESMF_KIND_I4), pointer :: indices(:,:)
-      real(ESMF_KIND_R8), pointer :: weights(:)
 !
 !-----------------------------------------------------------------------
 !     Constants
@@ -199,15 +206,6 @@
       real*8, parameter :: Cp = 3985.0d0
       real*8, parameter :: rho0 = 1025.0d0
       real*8, parameter :: Hscale=1.0d0/(rho0*Cp)
-!
-!-----------------------------------------------------------------------
-!     Temporary variables ( atm->ocn )
-!-----------------------------------------------------------------------
-!
-      real*8, allocatable, dimension(:,:) :: zi, z995, u995, v995
-      real*8, allocatable, dimension(:,:) :: psurf, tsurf, t995, q995
-      real*8, allocatable, dimension(:,:) :: t2, q2, u10, v10
-      real*8, allocatable, dimension(:,:) :: taux, tauy
 !
       contains
 !
@@ -239,9 +237,17 @@
 !     Initialize the coupler variables
 !-----------------------------------------------------------------------
 !
-      ! number of nested grid for each gridded component
-      ! the nested grid is not supported in this version (only mother)
+!-----------------------------------------------------------------------
+!     Number of nested grid or each gridded component
+!     It is not supported yet !!! Set ones to all ... 
+!-----------------------------------------------------------------------
+!
       nNest = 1
+!
+!-----------------------------------------------------------------------
+!     Allocate ESM_Model to store information about gridded comp. and
+!     distribute the PETs across components 
+!-----------------------------------------------------------------------
 !
       if (.not. allocated(models)) then
         ! check for number of PETs
@@ -447,42 +453,42 @@
             models(i)%mesh(2,j)%mask%units = '1'
 !
 !           u points
-!            models(i)%mesh(2,j)%gid = 2
-!            models(i)%mesh(2,j)%gtype = Iupoint
-!
-!            models(i)%mesh(2,j)%lon%gtype = Iupoint
-!            models(i)%mesh(2,j)%lon%name = 'lonu'
-!            models(i)%mesh(2,j)%lon%long_name = 'longitude at u'
-!            models(i)%mesh(2,j)%lon%units = 'degrees_east'
-!
-!            models(i)%mesh(2,j)%lat%gtype = Iupoint
-!            models(i)%mesh(2,j)%lat%name = 'latu'
-!            models(i)%mesh(2,j)%lat%long_name = 'latitude at u'
-!            models(i)%mesh(2,j)%lat%units = 'degrees_north'
-!
-!            models(i)%mesh(2,j)%mask%gtype = Iupoint
-!            models(i)%mesh(2,j)%mask%name = 'mask_u'
-!            models(i)%mesh(2,j)%mask%long_name = 'mask on u'
-!            models(i)%mesh(2,j)%mask%units = '1'
-!
-!           v points
 !            models(i)%mesh(3,j)%gid = 3
-!            models(i)%mesh(3,j)%gtype = Ivpoint
+!            models(i)%mesh(3,j)%gtype = Iupoint
 !
-!            models(i)%mesh(3,j)%lon%gtype = Ivpoint
-!            models(i)%mesh(3,j)%lon%name = 'lonv'
-!            models(i)%mesh(3,j)%lon%long_name = 'longitude at v'
+!            models(i)%mesh(3,j)%lon%gtype = Iupoint
+!            models(i)%mesh(3,j)%lon%name = 'lonu'
+!            models(i)%mesh(3,j)%lon%long_name = 'longitude at u'
 !            models(i)%mesh(3,j)%lon%units = 'degrees_east'
 !
-!            models(i)%mesh(3,j)%lat%gtype = Ivpoint
-!            models(i)%mesh(3,j)%lat%name = 'latv'
-!            models(i)%mesh(3,j)%lat%long_name = 'latitude at v'
+!            models(i)%mesh(3,j)%lat%gtype = Iupoint
+!            models(i)%mesh(3,j)%lat%name = 'latu'
+!            models(i)%mesh(3,j)%lat%long_name = 'latitude at u'
 !            models(i)%mesh(3,j)%lat%units = 'degrees_north'
 !
-!            models(i)%mesh(3,j)%mask%gtype = Ivpoint
-!            models(i)%mesh(3,j)%mask%name = 'mask_v'
-!            models(i)%mesh(3,j)%mask%long_name = 'mask on v'
+!            models(i)%mesh(3,j)%mask%gtype = Iupoint
+!            models(i)%mesh(3,j)%mask%name = 'mask_u'
+!            models(i)%mesh(3,j)%mask%long_name = 'mask on u'
 !            models(i)%mesh(3,j)%mask%units = '1'
+!
+!           v points
+!            models(i)%mesh(4,j)%gid = 4
+!            models(i)%mesh(4,j)%gtype = Ivpoint
+!
+!            models(i)%mesh(4,j)%lon%gtype = Ivpoint
+!            models(i)%mesh(4,j)%lon%name = 'lonv'
+!            models(i)%mesh(4,j)%lon%long_name = 'longitude at v'
+!            models(i)%mesh(4,j)%lon%units = 'degrees_east'
+!
+!            models(i)%mesh(4,j)%lat%gtype = Ivpoint
+!            models(i)%mesh(4,j)%lat%name = 'latv'
+!            models(i)%mesh(4,j)%lat%long_name = 'latitude at v'
+!            models(i)%mesh(4,j)%lat%units = 'degrees_north'
+!
+!            models(i)%mesh(4,j)%mask%gtype = Ivpoint
+!            models(i)%mesh(4,j)%mask%name = 'mask_v'
+!            models(i)%mesh(4,j)%mask%long_name = 'mask on v'
+!            models(i)%mesh(4,j)%mask%units = '1'
           end do 
         end if
 !
@@ -566,7 +572,7 @@
 !
             models(i)%dataExport(5,j)%fid = 5
             models(i)%dataExport(5,j)%gtype = Icross
-            models(i)%dataExport(5,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(5,j)%itype = Iconsv
             models(i)%dataExport(5,j)%name = 'lwrad_down'
             models(i)%dataExport(5,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -666,7 +672,7 @@
 !
             models(i)%dataImport(5,j)%fid = 5
             models(i)%dataImport(5,j)%gtype = Icross
-            models(i)%dataImport(5,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(5,j)%itype = Iconsv
             models(i)%dataImport(5,j)%name = 'lwrad_down'
             models(i)%dataImport(5,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -706,7 +712,6 @@
           end do
         end if   
       end do
-
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

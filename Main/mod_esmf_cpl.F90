@@ -767,7 +767,7 @@
 !
       end subroutine CPL_SetRun
 !
-      subroutine CPL_SetFinalize(comp, importState, exportState,       &
+      subroutine CPL_SetFinalize (comp, importState, exportState,       &
                                   clock, rc)
       implicit none
 !
@@ -782,14 +782,38 @@
       integer, intent(out) :: rc
 !
 !-----------------------------------------------------------------------
-!     Initialize return flag to success.
+!     Call ESMF finalize routines
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockDestroy(clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_CplCompDestroy(comp, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_FieldBundleSMMRelease(routehandleFB, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldBundleSMMRelease(routehandleFC, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldBundleSMMRelease(routehandleBB, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldBundleSMMRelease(routehandleBC, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_FieldDestroy(fracFieldFS, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldDestroy(fracFieldFD, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldDestroy(fracFieldBS, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_FieldDestroy(fracFieldBD, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
 !-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
-!
-!-----------------------------------------------------------------------
-!     Terminate CPL execution.  Close all NetCDF files.
-!-----------------------------------------------------------------------
 !
       end subroutine CPL_SetFinalize
 !
