@@ -518,7 +518,7 @@ module mod_che_ncio
 ! all aggregations / lumping should in the future be done in emission preproc 
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
-       aername = trim(dirglob)//pthsep//'RCP26_CO_emis.nc'
+!       aername = trim(dirglob)//pthsep//'RCP26_CO_emis.nc'
       print *, 'Opening ch. emission file ', aername
 
       istatus = nf90_open(aername, nf90_nowrite, ncid)
@@ -676,18 +676,23 @@ module mod_che_ncio
         ! uniquement les sources BB AMMA
         ! OC and BC anthropogenic + biomass burning
         if ( ibchb /= 0 ) then
-          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
-                    'b_BC',.false.)
+!          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+! consider new sources here                   'b_BC',.false.)
+         call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+                    'BC_flux',.false.)
         end if
         if ( iochb /= 0 ) then
           call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
-                    'b_OC',.false.)
+                    'OC_flux',.false.)
         end if
         if ( iso2 /= 0 ) then
           call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
-                    'b_SO2',.false.)
+                    'SO2_flux',.false.)
         end if
       end if
+
+      where (echemsrc(:,:,:,:) < 0. ) echemsrc(:,:,:,:) = 0.
+
       istatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__, &
                     'Error Closing Chem emission file '//trim(aername), &
@@ -1374,6 +1379,7 @@ module mod_che_ncio
         ctime = tochar(idate)
         tdif = idate-icherefdate
         nctime(1) = tohours(tdif)
+          
         istatus = nf90_put_var(ncche(n), ichevar(1), nctime, &
                                istart(1:1), icount(1:1))
         call check_ok(__FILE__,__LINE__, &

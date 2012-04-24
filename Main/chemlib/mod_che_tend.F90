@@ -48,10 +48,10 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(ktau,lyear,lmonth,lday,secofday)
+    subroutine tractend2(ktau,lyear,lmonth,lday,secofday,calday)
       implicit none
       integer , intent(in) :: lmonth , lday , lyear
-      real(dp), intent(in) :: secofday
+      real(dp), intent(in) :: secofday,calday
       integer(8) , intent(in) :: ktau
 !
       real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
@@ -308,11 +308,11 @@
       ! option compatible with BATS and CLM
       !
       if ( igaschem == 1 ) then
-!        do j = jci1 , jci2
-!          call drydep_gas(j,calday, ivegcov(:,j),rh10(:,j),  &
-!                          srad(:,j),tsurf(:,j),prec(:,kz,j), &
-!                          temp10(:,j),wid10(:,j),zeff(:,j),ddepg(:,:,j))
-!        end do
+        do j = jci1 , jci2
+          call drydep_gas(j,calday, ivegcov(:,j),rh10(:,j),  &
+                          srad(:,j),tsurf(:,j),prec(:,kz,j), &
+                          temp10(:,j),wid10(:,j),zeff(:,j))
+        end do
       end if
       !
       ! WET deposition (rainout and washout) for aerosol

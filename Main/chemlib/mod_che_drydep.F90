@@ -628,7 +628,7 @@ module mod_che_drydep
 !
 !
     subroutine drydep_gas(j,ccalday,ivegcov,rh10,srad,tsurf,prec,temp10,  &
-                          wind10,zeff,drydepvg)
+                          wind10,zeff)
 #ifdef CLM
 !     use clm_drydep, only : c2rvdep
 #endif
@@ -636,10 +636,12 @@ module mod_che_drydep
       implicit none
       integer , intent(in) :: j   
       real(dp) , intent(in) :: ccalday
+
       integer , intent(in) , dimension(ici1:ici2) :: ivegcov
       real(dp) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
-      real(dp), intent(out) , dimension(ici1:ici2,ntr) :: drydepvg
+      real(dp),  dimension(ici1:ici2,ntr) :: drydepvg
+
       integer :: n , i , im , iday_m , kcov
       real(dp) , dimension(ici1:ici2,luc) :: ustar, resa
       real(dp) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
