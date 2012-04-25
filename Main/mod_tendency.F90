@@ -640,6 +640,8 @@ module mod_tendency
     if ( icup == 5 ) then
       call tiedtkedrv(ktau)
     end if
+! save cumulus cloud fraction for chemistry before it is overwritten in cldfrac 
+    if (ichem==1) convcldfra(:,:,:) =  cldfra(:,:,:)  
 
     if ( ipptls == 1 ) then
       call hadv(cross,aten%qc,atmx%qc,kz,2)

@@ -67,7 +67,7 @@ module mod_che_common
 !
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
-  real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
+  real(dp) , pointer , dimension(:,:,:) :: convcldfra,cemtr , cemtrac , remdrd
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
 
@@ -128,6 +128,10 @@ module mod_che_common
 
         call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
                       1,ntr,'mod_che_common:cchifxuw')
+       
+        call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
+                      1,kz,'mod_che_common:convcldfra')
+        
         call getmem4d(rxsg,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                       'che_common:rxsg')
         call getmem4d(rxsaq1,jci1,jci2,ici1,ici2,1,kz,1,ntr, &

@@ -111,18 +111,24 @@
       end do
       !
       ! cloud fractionnal cover for wet deposition
-      ! large scale : fracloud, calculated from fcc coming from pcp.f
-      ! cumulus scale : fracum, calculated from the total cloud fraction
-      ! (as defined for the radiation scheme in cldfrac.f routine)
-      !
+      ! large scale : fracloud, calculated from fcc coming from pcp.f = large scale fraction
+      ! cumulus scale : fracum, now directly saved (== cloudfra right after call to convection scheme)
+      ! N.B : the difference with 'radiative cldfra' is that cldfra has an upper threshold of 0.8 and accound
+      ! both large scale and cumulus cloud)  
+      ! here cfcc + convcldfra can be > 1  !! Overestimation of removal ? 
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( kcumtop(j,i) > 0 ) then
-              do kk = kcumtop(j,i) , kz
-                fracum(i,kk,j) = ccldfra(j,i,kk) - cfcc(j,i,kk)
-              end do
-            end if
+
+            fracloud(i,k,j)  =  cfcc(j,i,k)
+            fracum(i,k,j)    =  convcldfra (j,i,k) 
+
+!            if ( kcumtop(j,i) > 0 ) then
+!              do kk = kcumtop(j,i) , kz
+!                fracum(i,kk,j) = ccldfra(j,i,kk) - cfcc(j,i,kk)
+!                 fracum(i,kk,j) = convcldfra (j,i,kk) 
+!              end do
+!            end if
           end do
         end do
       end do

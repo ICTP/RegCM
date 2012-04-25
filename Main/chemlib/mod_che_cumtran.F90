@@ -49,7 +49,8 @@ module mod_che_cumtran
               chibbar = chibbar + chib(j,i,k,n)*cdsigma(k)
             end do
             do k = kctop , kz
-              cumfrc =  ccldfra(j,i,k) - cfcc(j,i,k)
+ !             cumfrc =  ccldfra(j,i,k) - cfcc(j,i,k)
+              cumfrc =  convcldfra (j,i,k)
               chia(j,i,k,n) = chia(j,i,k,n)*(d_one-cumfrc)+cumfrc*chiabar/deltas
               chib(j,i,k,n) = chib(j,i,k,n)*(d_one-cumfrc)+cumfrc*chibbar/deltas
             end do
