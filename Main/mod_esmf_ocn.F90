@@ -219,9 +219,7 @@
 !-----------------------------------------------------------------------
 !
       logical, save :: first = .true.
-      integer :: tstr(Ngrids)
-      integer :: tend(Ngrids)
-      integer :: localPet, petCount, comm, nsteps, ng, rc2
+      integer :: localPet, petCount, comm, ng, rc2
 !
       type(ESMF_Time) :: currTime
 !
@@ -280,44 +278,18 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Set RCM start and end time steps
-!-----------------------------------------------------------------------
-!
-      nsteps = int(cplTimeStep/models(Iocean)%dtsec) 
-!
-      if (first) then
-        first = .false.
-        do ng = 1, Ngrids
-          tstr(ng) = ntstart(ng)
-          tend(ng) = tstr(ng)+nsteps-1
-        end do
-      else
-        do ng = 1, Ngrids
-          tstr(ng) = tend(ng)+1 
-          tend(ng) = tstr(ng)+nsteps-1
-        end do
-      end if
-!
-!-----------------------------------------------------------------------
-!     Add extra time step at stop time to finalize ROMS IO 
-!-----------------------------------------------------------------------
-!
-      do ng = 1, Ngrids
-        if (tend(ng) == ntend(ng)) then
-          tend(ng) = tend(ng)+1
-        end if
-      end do      
-!
-!-----------------------------------------------------------------------
 !     Get import data 
 !-----------------------------------------------------------------------
 !
-      call ROMS_GetImportData ()
+      call ROMS_GetImportData()
 !
 !-----------------------------------------------------------------------
 !     Run ROMS
 !-----------------------------------------------------------------------
 !
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        write(*,*) 'Run ocean model ', DBLE(cpl_dtsec), ' sec'
+      end if
       call ROMS_run (DBLE(cpl_dtsec))
 !
 !-----------------------------------------------------------------------
