@@ -1009,7 +1009,7 @@ module mod_params
     call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms, &
                    mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,      &
                    twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
-                   sdelqk2d,ssw2da,icumtop,icumbot)
+                   sdelqk2d,ssw2da,icumtop,icumbot,taucldsp)
  end if
   call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &

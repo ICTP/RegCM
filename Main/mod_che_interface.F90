@@ -43,7 +43,7 @@ module mod_che_interface
   subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms, &
                        mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,   &
                        twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
-                       sdelqk2d,ssw2da,icutop,icubot)
+                       sdelqk2d,ssw2da,icutop,icubot,taucldsp)
 
 ! this routine define the pointer interface between the chem module and the rest of the model
 ! It also call startchem which is the chemistry initialisation routine
@@ -58,6 +58,7 @@ module mod_che_interface
     real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
                                          sdelqk2d , ssw2da , twt
     real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
+    real(dp), pointer, dimension(:,:,:,:) :: taucldsp
     integer , pointer , dimension(:,:) :: icutop , icubot, iveg
     type(slice) , intent(in) :: atms
     type(domain), intent(in):: mddom
@@ -113,6 +114,9 @@ module mod_che_interface
     call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   
+
+    call assignpnt(taucldsp, ctaucld)
+
 
 !!$!
   cba_cr%dotflag = ba_cr%dotflag

@@ -36,7 +36,7 @@ module mod_che_chemistry
   real(dp) , parameter :: dtchsolv=900.E00
 ! 
 
-  public :: gas_phase, dtchsolv
+  public :: chemistry, dtchsolv
 
   integer , parameter :: jvO2 = 1
   integer , parameter :: jvO3a = 2
@@ -69,334 +69,204 @@ module mod_che_chemistry
 
   contains
 
-    subroutine chemistry(jj,chemin,chemox,taa,psaa,tauaa,zena,idatein,tod)
+    subroutine chemistry(j,secofday,lyear,lmonth,lday )
 
       implicit none
 
-      integer , intent(in) :: jj
-      integer , intent(in) :: idatein
-      real(dp) , intent(in) :: tod ! abt added for time of day
-      real(dp) , dimension(ici1:ici2,1:kz,totsp) , intent(in) :: chemin
-      real(dp) , dimension(ici1:ici2,1:kz,totsp) , intent(out) :: chemox
-      real(dp) , dimension(ici1:ici2,1:kz) , intent(in) :: taa , psaa , tauaa
-      real(dp) , dimension(ici1:ici2) , intent(in) :: zena
-      ! LOCAL VARIABLES
-      real(dp) , dimension(ici1:ici2,1:kz) :: cfactor
+      integer , intent(in) :: j
+     integer , intent(in) :: lyear , lmonth , lday
+     real(dp) , intent(in) :: secofday 
+
+         ! LOCAL VARIABLES
+      real(dp) , dimension(ici1:ici2,1:kz) :: cfact
       real(dp) , dimension(ici1:ici2,1:kz,1:56) :: jphoto
-      !ah  variable for photolysis
-      real(dp) , dimension(1:kz) :: taucab , taucbl
-      real(dp) , dimension(ici1:ici2,1:kz+1) :: psaa2 , taa2 , tauaa2
-      real(dp) , dimension(1:kz) :: hcbl , hcab
-      real(dp) :: levav
-      integer :: i , k , kbl , kab , ll,ic
+ 
+     real(dp) :: cfactor , pfact
+      integer :: i , k , kbl , kab ,ic
+
+
 
       time = dtchsolv
-      idate = idatein
-      xhour = tod        !abt added for time of day
+      idate = (lyear-1900)*10000+lmonth*100+lday
+      xhour =   secofday/3600.0D0       !abt added for time of day
       c_numitr = 20
+      kmax = 1
 
       ! initialize jphoto to zero
       jphoto(:,:,:) = d_zero
 
-      ! Reorder from top-down to bottom-up
-      do k = 1 , kz
+!! Begining of i, k loop
+       do k = 1, kz
         do i = ici1 , ici2
-          ll = (kz+1)-k
-          psaa2(i,ll) = psaa(i,k)
-          taa2(i,ll) = taa(i,k)
-          tauaa2(i,ll) = tauaa(i,k)
-        end do
-      end do
+   
+          altmid(1) = (cpsb(j,i)*hlev(k)+chptop) ! care here pressure4 is considered ???
+          temp(1) =   ctb3d(j,i,k)
+          zenith =    dacos(czen(j,i)*degrad)
+          dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
 
-      do k = kz , 1 , -1
-        do i = ici1 , ici2
-          ll = (kz+1)-k
-          altmid(1) = psaa2(i,k)
-          temp(1) = taa2(i,k)
-          zenith = zena(i) 
-          cfactor(i,k) = psaa2(i,k)*d_10/(kb*taa2(i,k))
-          dens(1)   = cfactor(i,k)
-          taucab(ll) = d_zero
-          hcab(ll) = d_zero
-          taucbl(ll) = d_zero
-          hcbl(ll) = d_zero
-          if ( ll < kz ) then
-            do kab = ll+1 , kz
-              taucab(ll) = taucab(ll)+tauaa2(i,kab)
-              levav = d_half*(psaa2(i,kab)+psaa2(i,kab+1))
-              hcab(ll) = hcab(ll) + tauaa2(i,kab)*levav
+
+          deptha = d_zero
+          depthb = d_zero
+          altabove= d_zero
+          altbelow= d_zero
+
+
+             
+          if ( k ==  1 ) then
+            deptha =  ctaucld(j,i,k,8) *d_half  ! (add the half layer ctaucld, should be no cloud in this layer ) 
+            depthb =  ctaucld(j,i,k,8) *d_half 
+!            altabove = cdzq(j,i,k) / 2 !altitude or pressure ?? 
+!   taltabove, altbelow are altitude above an below weighted by cloud optical depth 
+!   here altitude is taken in kpa to be consistent with altmid 
+!   WOULD not it BE BETTER TO CONSIDER ALTITUDE in M  ?
+            altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+            altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+            do kbl = k+1 , kz 
+             depthb = depthb + ctaucld(j,i,kbl,8)
+             altbelow =  altbelow +  cdsigma(kbl)* cpsb(j,i) * ctaucld(j,i,kbl,8)
             end do
-          end if
-          taucab(ll) = taucab(ll) +tauaa2(i,ll)*d_half
-          levav = d_half*(psaa2(i,ll)+psaa2(i,ll+1))
-          hcab(ll) = hcab(ll) + tauaa2(i,ll)*d_half*levav
-          if ( dabs(taucab(ll)) < dlowval ) then
-            hcab(ll) = d_zero
-          else
-            hcab(ll) = hcab(ll)/taucab(ll)
-          end if
-          deptha = taucab(ll)
-          altabove = hcab(ll)
-          if ( ll > 1 ) then
-            do kbl = 1 , ll-1
-              taucbl(ll) = taucbl(ll)+tauaa2(i,kbl)
-              levav = d_half*(psaa2(i,kbl)+psaa2(i,kbl-1))
-              hcbl(ll) = hcbl(ll) + tauaa2(i,kbl)*levav
-            end do
-          end if
-          taucbl(ll) = taucbl(ll) + tauaa2(i,ll)*d_half
-          levav = d_half*(psaa2(i,ll)+psaa2(i,ll-1))
-          hcbl(ll) = hcbl(ll) + tauaa2(i,ll)*d_half*levav
-          if (dabs(taucbl(ll)) < dlowval ) then
-            hcbl(ll) = d_zero
-          else
-            hcbl(ll) = hcbl(ll)/taucbl(ll)
-          end if
-          depthb = taucbl(ll)
-          altbelow = hcbl(ll)
-          kmax = 1
+
+
+! FAB TEST consider the visible taucld
+           
+           else if (k==kz ) then 
+             depthb =  ctaucld(j,i,k,8) *d_half
+             deptha =  ctaucld(j,i,k,8) *d_half
+             altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+             altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+             do kab = 1 , k-1 
+             deptha = deptha + ctaucld(j,i,kab,8)
+             altabove =  altabove + cdsigma(kab)* cpsb(j,i) * ctaucld(j,i,kab,8)
+             end do
+
+           else
+             depthb =  ctaucld(j,i,k,8) *d_half
+             deptha =  ctaucld(j,i,k,8) *d_half
+             altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+             altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+             do kbl = k+1 , kz 
+             depthb = depthb + ctaucld(j,i,kbl,8)
+             altbelow =  altbelow +  cdsigma(kbl)* cpsb(j,i) * ctaucld(j,i,kbl,8)
+             end do
+              do kab = 1 , k-1 
+             deptha = deptha + ctaucld(j,i,kab,8)
+             altabove =  altabove + cdsigma(kab)* cpsb(j,i) * ctaucld(j,i,kab,8)
+             end do
+            endif
+! normalise the weighted altitude above and bleow cloud        
+            if (depthb > d_zero)  altbelow = altbelow / depthb 
+            if (deptha >d_zero )  altabove = altabove / deptha      
+
 
           do ic = 1 , totsp
             xr(1,ic) = d_zero
           end do
-
           do ic = 1 , totsp
-            xr(1,ic) = chemall(jj,i,k,ic) 
+            xr(1,ic) = chemall(j,i,k,ic) 
           end do
 
-          xh2o           = chemin(i,k,ind_H2O)
-          xr(1,ind_H2O)  = xh2o
-          xr(1,ind_H2)   = 0.1E13
-          xr(1,ind_O3)   = chemin(i,k,ind_O3) !0.094E+13
-          xr(1,ind_NO2)  = chemin(i,k,ind_NO2) !0.300E+09
-          xr(1,ind_NO)   = chemin(i,k,ind_NO) !0.300E+09
-          xr(1,ind_CO)   = chemin(i,k,ind_CO) !0.100E+13
-          xr(1,ind_H2O2) = chemin(i,k,ind_H2O2) !0.200E+11
-          xr(1,ind_HNO3) = chemin(i,k,ind_HNO3) !0.200E+10
-          xr(1,ind_N2O5) = chemin(i,k,ind_N2O5) !0.100E+08
-          xr(1,ind_SO2)  = chemin(i,k,ind_SO2)  !0.200E+11
-          xr(1,ind_SULF) = chemin(i,k,ind_SULF) !0.200E+11
-          xr(1,ind_DMS)  = chemin(i,k,ind_DMS) !0.200E+10
-          xr(1,ind_HCHO) = chemin(i,k,ind_HCHO) !0.200E+10
-          xr(1,ind_ALD2) = chemin(i,k,ind_ALD2) !0.200E+10
-          xr(1,ind_ISOP) = chemin(i,k,ind_ISOP) !0.500E+10
-          xr(1,ind_C2H6) = chemin(i,k,ind_C2H6) !0.500E+10
-          xr(1,ind_PAR)  = chemin(i,k,ind_PAR) !0.200E+08
-          xr(1,ind_ACET) = chemin(i,k,ind_ACET) !0.200E+10
-          xr(1,ind_MOH)  = chemin(i,k,ind_MOH) !0.200E+10
-          xr(1,ind_PRPE) = chemin(i,k,ind_PRPE) !0.200E+09
-          xr(1,ind_BUTE) = chemin(i,k,ind_BUTE) !0.200E+07
-          xr(1,ind_TOLU) = chemin(i,k,ind_TOLU) !0.200E+07
-          xr(1,ind_XYLE) = chemin(i,k,ind_XYLE) !0.000E+10
-          xr(1,ind_CH4)  = chemin(i,k,ind_CH4)
-          xr(1,ind_PAN)  = chemin(i,k,ind_PAN) !0.750E+10
-          xr(1,ind_ETHE) = chemin(i,k,ind_ETHE) !10.200E+09
+          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
+          xrin(1,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
+          xrin(1,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
+          xrin(1,ind_NO2)  = chib3d(j,i,k,ino2)*cfactor /W_NO2
+          xrin(1,ind_NO)   = chib3d(j,i,k,ino)*cfactor/W_NO
+          xrin(1,ind_CO)   = chib3d(j,i,k,ico)*cfactor/W_CO
+          xrin(1,ind_H2O2) = chib3d(j,i,k,ih2o2)*cfactor/W_H2O2
+          xrin(1,ind_HNO3) = chib3d(j,i,k,ihno3)*cfactor/W_HNO3
+          xrin(1,ind_N2O5) = chib3d(j,i,k,in2o5)*cfactor/W_N2O5
+          xrin(1,ind_SO2)  = chib3d(j,i,k,iso2)*cfactor/W_SO2
+          xrin(1,ind_SULF) = chib3d(j,i,k,iso4)*cfactor/W_SULF
+          xrin(1,ind_DMS)  = chib3d(j,i,k,idms)*cfactor/W_DMS
+          xrin(1,ind_HCHO) = chib3d(j,i,k,ihcho)*cfactor/W_HCHO
+          xrin(1,ind_ALD2) = chib3d(j,i,k,iald2)*cfactor/W_ALD2
+          xrin(1,ind_ISOP) = chib3d(j,i,k,iisop)*cfactor/W_ISOP
+          xrin(1,ind_C2H6) = chib3d(j,i,k,ic2h6)*cfactor/W_C2H6
+          xrin(1,ind_PAR)  = chib3d(j,i,k,ipar)*cfactor/W_C3H8
+          xrin(1,ind_ETHE) = chib3d(j,i,k,iethe)*cfactor/W_ETHENE
+          xrin(1,ind_PRPE) = chib3d(j,i,k,iolt)*cfactor/W_OLT
+          xrin(1,ind_BUTE) = chib3d(j,i,k,ioli)*cfactor/W_OLI
+          xrin(1,ind_TOLU) = chib3d(j,i,k,itolue)*cfactor/W_TOLU
+          xrin(1,ind_XYLE) = chib3d(j,i,k,ixyl)*cfactor/W_XYLE
+          xrin(1,ind_PAN)  = chib3d(j,i,k,ipan)*cfactor/W_PAN
+          xrin(1,ind_CH4)  = chib3d(j,i,k,ich4)*cfactor/W_CH4
+          xrin(1,ind_MOH)  = chib3d(j,i,k,imoh)*cfactor/W_MOH
+          xrin(1,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
 
- 
-!fab deb
-!!$          xr(1,ind_O3)   =  0.094E+13
-!!$          xr(1,ind_NO2)  = 0.300E+09
-!!$          xr(1,ind_NO)   = 0.300E+09
-!!$          xr(1,ind_CO)   = 0.100E+13
-!!$          xr(1,ind_H2O2) = 0.200E+11
-!!$          xr(1,ind_HNO3) = 0.200E+10
-!!$          xr(1,ind_N2O5) = 0.100E+08
-!!$          xr(1,ind_SO2)  = 0.200E+11
-!!$          xr(1,ind_SULF) = 0.200E+11
-!!$          xr(1,ind_DMS)  = 0.200E+10
-!!$          xr(1,ind_HCHO) = 0.200E+10
-!!$          xr(1,ind_ALD2) = 0.200E+10
-!!$          xr(1,ind_ISOP) = 0.500E+10
-!!$          xr(1,ind_C2H6) = 0.500E+10
-!!$          xr(1,ind_PAR)  = 0.200E+08
-!!$          xr(1,ind_ACET) = 0.200E+10
-!!$          xr(1,ind_MOH)  = 0.200E+10
-!!$          xr(1,ind_PRPE) = 0.200E+09
-!!$          xr(1,ind_BUTE) = 0.200E+07
-!!$          xr(1,ind_TOLU) = 0.200E+07
-!!$          xr(1,ind_XYLE) = 0.000E+10
-!!$       
-!!$          xr(1,ind_PAN)  =  0.750E+10
-!!$          xr(1,ind_ETHE) = 10.200E+09
-!!$
-!!$
-!!$         xr(1,:) = d_zero
+          xr(:,:) = xrin(:,:)
 
           call chemmain
 
+          xrout(:,:) = xr(:,:)
+
           do ic = 1 , totsp
-            chemall(jj,i,k,ic) = xr(1,ic)
+            chemall(j,i,k,ic) = xrout(1,ic)
           end do
           ! Store photolysis rates
           do ic = 1 , 56
             jphoto(i,k,ic) = c_jval(1,ic)
           end do
 
-          chemox(i,k,ind_O3)   = xr(1,ind_O3)
-          chemox(i,k,ind_NO2)  = xr(1,ind_NO2)
-          chemox(i,k,ind_NO)   = xr(1,ind_NO)
-          chemox(i,k,ind_CO)   = xr(1,ind_CO)
-          chemox(i,k,ind_H2O2) = xr(1,ind_H2O2)
-          chemox(i,k,ind_HNO3) = xr(1,ind_HNO3)
-          chemox(i,k,ind_N2O5) = xr(1,ind_N2O5)
-          chemox(i,k,ind_SO2)  = xr(1,ind_SO2)
-          chemox(i,k,ind_SULF) = xr(1,ind_SULF)
-          chemox(i,k,ind_DMS)  = xr(1,ind_DMS)
-          chemox(i,k,ind_HCHO) = xr(1,ind_HCHO)
-          chemox(i,k,ind_ALD2) = xr(1,ind_ALD2)
-          chemox(i,k,ind_ISOP) = xr(1,ind_ISOP)
-          chemox(i,k,ind_C2H6) = xr(1,ind_C2H6)
-          chemox(i,k,ind_PAR)  = xr(1,ind_PAR)
-          chemox(i,k,ind_TOLU) = xr(1,ind_TOLU)
-          chemox(i,k,ind_XYLE) = xr(1,ind_XYLE)
-          chemox(i,k,ind_ETHE) = xr(1,ind_ETHE)
-          chemox(i,k,ind_PAN)  = xr(1,ind_PAN)
-          chemox(i,k,ind_CH4)  = xr(1,ind_CH4)
-          chemox(i,k,ind_PRPE) = xr(1,ind_PRPE)
-          chemox(i,k,ind_BUTE) = xr(1,ind_BUTE)
-          chemox(i,k,ind_MOH)  = xr(1,ind_MOH)
-          chemox(i,k,ind_ACET) = xr(1,ind_ACET)
-        end do
+!
+! Now calculate chemical tendencies       
+
+          ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
+          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
+          pfact = cpsb(j,i)/cfactor/dtchsolv
+          chemten(j,i,k,io3)    = &
+            (xrout(1,ind_O3)   - xrin(1,ind_O3))  *pfact*W_O3
+          chemten(j,i,k,ino2)   = &
+            (xrout(1,ind_NO2)  - xrin(1,ind_NO2)) *pfact*W_NO2
+          chemten(j,i,k,ino)    = &
+            (xrout(1,ind_NO)   - xrin(1,ind_O3))  *pfact*W_NO
+          chemten(j,i,k,ico)    = &
+            (xrout(1,ind_CO)   - xrin(1,ind_CO))  *pfact*W_CO
+          chemten(j,i,k,ih2o2)  = &
+            (xrout(1,ind_H2O2) - xrin(1,ind_H2O2))*pfact*W_H2O2
+          chemten(j,i,k,ihno3)  = &
+            (xrout(1,ind_HNO3) - xrin(1,ind_HNO3))*pfact*W_HNO3
+          chemten(j,i,k,in2o5)  = &
+            (xrout(1,ind_N2O5) - xrin(1,ind_N2O5))*pfact*W_N2O5
+          chemten(j,i,k,iso2)   = &
+            (xrout(1,ind_SO2)  - xrin(1,ind_SO2)) *pfact*W_SO2
+          chemten(j,i,k,iso4)   = &
+            (xrout(1,ind_SULF) - xrin(1,ind_SULF))*pfact*W_SULF
+          chemten(j,i,k,idms)   = &
+            (xrout(1,ind_DMS)  - xrin(1,ind_DMS)) *pfact*W_DMS
+          chemten(j,i,k,ihcho)  = &
+            (xrout(1,ind_HCHO) - xrin(1,ind_HCHO))*pfact*W_HCHO
+          chemten(j,i,k,iald2)  = &
+            (xrout(1,ind_ALD2) - xrin(1,ind_ALD2))*pfact*W_ALD2
+          chemten(j,i,k,iisop)  = &
+            (xrout(1,ind_ISOP) - xrin(1,ind_ISOP))*pfact*W_ISOP
+          chemten(j,i,k,ic2h6)  = &
+            (xrout(1,ind_C2H6) - xrin(1,ind_C2H6))*pfact*W_C2H6
+          chemten(j,i,k,ipar)   = &
+            (xrout(1,ind_PAR)  - xrin(1,ind_PAR)) *pfact*W_C3H8
+          chemten(j,i,k,itolue) = &
+            (xrout(1,ind_TOLU) - xrin(1,ind_TOLU))*pfact*W_TOLU
+          chemten(j,i,k,ixyl)   = &
+            (xrout(1,ind_XYLE) - xrin(1,ind_XYLE))*pfact*W_XYLE
+          chemten(j,i,k,iethe)  = &
+            (xrout(1,ind_ETHE) - xrin(1,ind_ETHE))*pfact*W_ETHENE
+          chemten(j,i,k,ipan)   = &
+            (xrout(1,ind_PAN)  - xrin(1,ind_PAN)) *pfact*W_PAN
+          chemten(j,i,k,ich4)   = &
+            (xrout(1,ind_CH4)  - xrin(1,ind_CH4)) *pfact*W_CH4
+          chemten(j,i,k,iolt)   = &
+            (xrout(1,ind_PRPE) - xrin(1,ind_PRPE))*pfact*W_OLT
+          chemten(j,i,k,ioli)   = &
+            (xrout(1,ind_BUTE) - xrin(1,ind_BUTE))*pfact*W_OLI
+          chemten(j,i,k,imoh)   = &
+            (xrout(1,ind_MOH)  - xrin(1,ind_MOH)) *pfact*W_MOH
+          chemten(j,i,k,iacet)  = &
+            (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
+
+
+        end do ! end i,k loop
       end do
     end subroutine chemistry
 !
 !-------------------------------------------------------------------
 !
-    subroutine gas_phase(j,secofday,lyear,lmonth,lday)
-      implicit none
-      integer , intent(in) :: j
-      integer , intent(in) :: lyear , lmonth , lday
-      real(dp) , intent(in) :: secofday
-
-      real(dp) , dimension(jci1:jci2,ici1:ici2,1:kz) :: taucld
-      real(dp) , dimension(ici1:ici2,1:kz) :: taa , psaa , tauaa
-      real(dp) , dimension(ici1:ici2,1:kz,totsp) :: chemin , chemox
-      real(dp) :: cfactor , pfact
-      real(dp) , dimension(ici1:ici2) :: zena
-      real(dp) :: tod
-      integer :: idatein
-      integer :: i , k
-
-      chemin(:,:,:) = d_zero
-      chemox(:,:,:) = d_zero
-
-      !###############################################
-      ! NOTE : WHERE IS THIS COMING FROM ???????
-      taucld(j,:,:) = d_zero
-      !###############################################
- 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          taa(i,k) = ctb3d(j,i,k)
-          psaa(i,k)= (cpsb(j,i)*hlev(k)+chptop)
-          tauaa(i,k) = taucld(j,i,k)
-        end do
-      end do 
-
-      zena(:) = dacos(czen(j,:)*degrad)
-
-      do k = 1 , kz
-        do i = ici1 , ici2
-
-!work with chib3d arrays which are in kg.kg-1 
-!convert into molec.cm-3 
-
-          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-          chemin(i,k,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
-          chemin(i,k,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
-          chemin(i,k,ind_NO2)  = chib3d(j,i,k,ino2)*cfactor /W_NO2
-          chemin(i,k,ind_NO)   = chib3d(j,i,k,ino)*cfactor/W_NO
-          chemin(i,k,ind_CO)   = chib3d(j,i,k,ico)*cfactor/W_CO
-          chemin(i,k,ind_H2O2) = chib3d(j,i,k,ih2o2)*cfactor/W_H2O2
-          chemin(i,k,ind_HNO3) = chib3d(j,i,k,ihno3)*cfactor/W_HNO3
-          chemin(i,k,ind_N2O5) = chib3d(j,i,k,in2o5)*cfactor/W_N2O5
-          chemin(i,k,ind_SO2)  = chib3d(j,i,k,iso2)*cfactor/W_SO2
-          chemin(i,k,ind_SULF) = chib3d(j,i,k,iso4)*cfactor/W_SULF
-          chemin(i,k,ind_DMS)  = chib3d(j,i,k,idms)*cfactor/W_DMS
-          chemin(i,k,ind_HCHO) = chib3d(j,i,k,ihcho)*cfactor/W_HCHO
-          chemin(i,k,ind_ALD2) = chib3d(j,i,k,iald2)*cfactor/W_ALD2
-          chemin(i,k,ind_ISOP) = chib3d(j,i,k,iisop)*cfactor/W_ISOP
-          chemin(i,k,ind_C2H6) = chib3d(j,i,k,ic2h6)*cfactor/W_C2H6
-          chemin(i,k,ind_PAR)  = chib3d(j,i,k,ipar)*cfactor/W_C3H8
-          chemin(i,k,ind_ETHE) = chib3d(j,i,k,iethe)*cfactor/W_ETHENE
-          chemin(i,k,ind_PRPE) = chib3d(j,i,k,iolt)*cfactor/W_OLT
-          chemin(i,k,ind_BUTE) = chib3d(j,i,k,ioli)*cfactor/W_OLI
-          chemin(i,k,ind_TOLU) = chib3d(j,i,k,itolue)*cfactor/W_TOLU
-          chemin(i,k,ind_XYLE) = chib3d(j,i,k,ixyl)*cfactor/W_XYLE
-          chemin(i,k,ind_PAN)  = chib3d(j,i,k,ipan)*cfactor/W_PAN
-          chemin(i,k,ind_CH4)  = chib3d(j,i,k,ich4)*cfactor/W_CH4
-          chemin(i,k,ind_MOH)  = chib3d(j,i,k,imoh)*cfactor/W_MOH
-          chemin(i,k,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
-        end do
-      end do
-
-      tod = secofday/3600.0D0
-     
-      idatein = (lyear-1900)*10000+lmonth*100+lday
-
-      call chemistry(j,chemin,chemox,taa,psaa,tauaa,zena,idatein,tod)
-
-      ! FAB :  Now save the chemistry tendency 
-      ! be carefull should be multiplied by surface pressure
-      ! ( consistency with chib unit)
-
-      do k = 1 , kz
-        do i = ici1 , ici2
-          ! convection factor to get the tendency from 
-          ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
-          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-          pfact = cpsb(j,i)/cfactor/dtchsolv
-          chemten(j,i,k,io3)    = &
-            (chemox(i,k,ind_O3)   - chemin(i,k,ind_O3))  *pfact*W_O3
-          chemten(j,i,k,ino2)   = &
-            (chemox(i,k,ind_NO2)  - chemin(i,k,ind_NO2)) *pfact*W_NO2
-          chemten(j,i,k,ino)    = &
-            (chemox(i,k,ind_NO)   - chemin(i,k,ind_O3))  *pfact*W_NO
-          chemten(j,i,k,ico)    = &
-            (chemox(i,k,ind_CO)   - chemin(i,k,ind_CO))  *pfact*W_CO
-          chemten(j,i,k,ih2o2)  = &
-            (chemox(i,k,ind_H2O2) - chemin(i,k,ind_H2O2))*pfact*W_H2O2
-          chemten(j,i,k,ihno3)  = &
-            (chemox(i,k,ind_HNO3) - chemin(i,k,ind_HNO3))*pfact*W_HNO3
-          chemten(j,i,k,in2o5)  = &
-            (chemox(i,k,ind_N2O5) - chemin(i,k,ind_N2O5))*pfact*W_N2O5
-          chemten(j,i,k,iso2)   = &
-            (chemox(i,k,ind_SO2)  - chemin(i,k,ind_SO2)) *pfact*W_SO2
-          chemten(j,i,k,iso4)   = &
-            (chemox(i,k,ind_SULF) - chemin(i,k,ind_SULF))*pfact*W_SULF
-          chemten(j,i,k,idms)   = &
-            (chemox(i,k,ind_DMS)  - chemin(i,k,ind_DMS)) *pfact*W_DMS
-          chemten(j,i,k,ihcho)  = &
-            (chemox(i,k,ind_HCHO) - chemin(i,k,ind_HCHO))*pfact*W_HCHO
-          chemten(j,i,k,iald2)  = &
-            (chemox(i,k,ind_ALD2) - chemin(i,k,ind_ALD2))*pfact*W_ALD2
-          chemten(j,i,k,iisop)  = &
-            (chemox(i,k,ind_ISOP) - chemin(i,k,ind_ISOP))*pfact*W_ISOP
-          chemten(j,i,k,ic2h6)  = &
-            (chemox(i,k,ind_C2H6) - chemin(i,k,ind_C2H6))*pfact*W_C2H6
-          chemten(j,i,k,ipar)   = &
-            (chemox(i,k,ind_PAR)  - chemin(i,k,ind_PAR)) *pfact*W_C3H8
-          chemten(j,i,k,itolue) = &
-            (chemox(i,k,ind_TOLU) - chemin(i,k,ind_TOLU))*pfact*W_TOLU
-          chemten(j,i,k,ixyl)   = &
-            (chemox(i,k,ind_XYLE) - chemin(i,k,ind_XYLE))*pfact*W_XYLE
-          chemten(j,i,k,iethe)  = &
-            (chemox(i,k,ind_ETHE) - chemin(i,k,ind_ETHE))*pfact*W_ETHENE
-          chemten(j,i,k,ipan)   = &
-            (chemox(i,k,ind_PAN)  - chemin(i,k,ind_PAN)) *pfact*W_PAN
-          chemten(j,i,k,ich4)   = &
-            (chemox(i,k,ind_CH4)  - chemin(i,k,ind_CH4)) *pfact*W_CH4
-          chemten(j,i,k,iolt)   = &
-            (chemox(i,k,ind_PRPE) - chemin(i,k,ind_PRPE))*pfact*W_OLT
-          chemten(j,i,k,ioli)   = &
-            (chemox(i,k,ind_BUTE) - chemin(i,k,ind_BUTE))*pfact*W_OLI
-          chemten(j,i,k,imoh)   = &
-            (chemox(i,k,ind_MOH)  - chemin(i,k,ind_MOH)) *pfact*W_MOH
-          chemten(j,i,k,iacet)  = &
-            (chemox(i,k,ind_ACET) - chemin(i,k,ind_ACET))*pfact*W_ACET
-       end do
-    end do
-
-end subroutine gas_phase
 
 end module mod_che_chemistry

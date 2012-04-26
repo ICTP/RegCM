@@ -374,7 +374,7 @@
         kchsolv = 6 ! for the moment
         if ( mod(ktau+1,kchsolv) == 0 ) then   
           do j = jci1 , jci2
-            call gas_phase(j,secofday,lyear,lmonth,lday)
+            call chemistry(j,secofday,lyear,lmonth,lday)
           end do
         end if
         ! add tendency due to chemistry reaction (every dtche)      

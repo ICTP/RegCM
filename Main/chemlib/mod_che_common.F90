@@ -52,7 +52,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: srclp2
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg , drydepv
-  real(dp) , pointer , dimension(:,:,:) :: taucld
+
   real(dp) , pointer , dimension(:,:,:,:) :: chemall
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
@@ -86,7 +86,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:) :: hlev , cdsigma , canudg
   real(dp) , pointer , dimension(:,:) :: czen
   real(dp) :: chptop
-
+  real(dp) , pointer , dimension(:,:,:,:) :: ctaucld
   type cbound_area
     logical :: dotflag
     logical :: havebound

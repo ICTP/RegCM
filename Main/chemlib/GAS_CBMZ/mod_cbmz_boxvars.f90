@@ -48,6 +48,8 @@ module mod_cbmz_boxvars
 
   real(dp) :: time         ! time step (sec)
   real(dp) :: xr(nna,nnb) ! concentration molec/cm3
+!FAB add
+  real(dp) :: xrin(nna,nnb), xrout(nna,nnb)  
   real(dp) :: xremit(nnb) ! emitted concentration molec/cm3
   real(dp) :: xrwdep(nnb) ! summed wet deposition
 
