@@ -166,7 +166,7 @@ module mod_rad_radiation
 ! uo2      - Layer absorber amount of  o2
 !
   real(dp) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,    &
-        explay , flxdiv , totfld , tauxcl , tauxci , wcl , gcl , fcl , &
+        explay , flxdiv , totfld , wcl , gcl , fcl , &
         wci , gci , fci , uh2o , uo3 , uco2 , uo2
 !
 !     These arrays are defined at model interfaces; 0 is the top of the
@@ -603,8 +603,6 @@ module mod_rad_radiation
     call getmem2d(explay,1,npoints,0,kz,'rad:explay')
     call getmem2d(flxdiv,1,npoints,0,kz,'rad:flxdiv')
     call getmem2d(totfld,1,npoints,0,kz,'rad:totfld')
-    call getmem2d(tauxcl,1,npoints,0,kz,'rad:tauxcl')
-    call getmem2d(tauxci,1,npoints,0,kz,'rad:tauxci')
     call getmem2d(wcl,1,npoints,0,kz,'rad:wcl')
     call getmem2d(gcl,1,npoints,0,kz,'rad:gcl')
     call getmem2d(fcl,1,npoints,0,kz,'rad:fcl')
@@ -785,7 +783,7 @@ module mod_rad_radiation
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
                     czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
                     abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,        &
-                    absgasnxt,absgastot,emsgastot,labsem)
+                    absgasnxt,absgastot,emsgastot,tauxcl,tauxci,labsem)
 !
     implicit none
 !
@@ -833,11 +831,12 @@ module mod_rad_radiation
     real(dp) , pointer , dimension(:,:) , intent(inout) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
+    real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
     real(dp) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , pointer , dimension(:,:) :: o3vmr
-    intent (out) alb , albc , abv , sol
+    intent (out) alb , albc , abv , sol , tauxcl , tauxci
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , totcf
@@ -889,7 +888,7 @@ module mod_rad_radiation
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
                   fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,adirlw,adiflw,asw,alw, &
-                  abv,sol,czen,czengt0,aeradfo,aeradfos)
+                  abv,sol,czen,czengt0,aeradfo,aeradfos,tauxcl,tauxci)
 !
 !     Convert units of shortwave fields needed by rest of model from CGS to MKS
 !
@@ -1078,7 +1077,7 @@ module mod_rad_radiation
                     eccf,solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,  &
                     solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,     &
                     adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,aeradfo,   &
-                    aeradfos)
+                    aeradfos,tauxcl,tauxci)
 ! 
     implicit none
 !
@@ -1090,11 +1089,12 @@ module mod_rad_radiation
              alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) , pointer , dimension(:,:) :: cld , pint
+    real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
              qrs , rei , rel
     intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
            adirsw , adifsw , adirlw , adiflw , asw , alw
-    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol
+    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol , tauxcl , tauxci
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , soll , solld , sols , solsd
 !
@@ -1313,11 +1313,11 @@ module mod_rad_radiation
 !
     do n = n1 , n2
       if ( czengt0(n) ) then
-        tauxcl(n,0) = d_zero
+        tauxcl(n,0,:) = d_zero
         wcl(n,0) = verynearone
         gcl(n,0) = 0.850D0
         fcl(n,0) = 0.725D0
-        tauxci(n,0) = d_zero
+        tauxci(n,0,:) = d_zero
         wci(n,0) = verynearone
         gci(n,0) = 0.850D0
         fci(n,0) = 0.725D0
@@ -1391,22 +1391,22 @@ module mod_rad_radiation
    
 !scheme     1
 !ccm3.6.6
-!           tauxcl(n,k) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)*dsqrt(cld(n,k))
-!           tauxci(n,k) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)*dsqrt(cld(n,k))
+!           tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)*dsqrt(cld(n,k))
+!           tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)*dsqrt(cld(n,k))
 !
 !scheme     2
 !KN
-            tauxcl(n,k) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
+            tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
                           (d_one+(d_one-0.85D0)*(d_one-cld(n,k))*      &
                           clwp(n,k)*tmp1l*(d_one-fice(n,k)))
-            tauxci(n,k) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k) /     &
+            tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k) /     &
                           (d_one+(d_one-0.78D0)*(d_one-cld(n,k)) * &
                           clwp(n,k)*tmp1i*fice(n,k))
    
 !scheme     3
 !EES        below replaced
-!           tauxcl(n,k) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)**0.85
-!           tauxci(n,k) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
+!           tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)**0.85
+!           tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
 !found_
 !
 !           Do not let single scatter albedo be 1; delta-eddington
@@ -1465,7 +1465,7 @@ module mod_rad_radiation
         end if
       end if
    
-      call radded(n1,n2,trayoslp,czen,czengt0,ns,lzero)
+      call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for layers
 !     below by adding succesive layers starting from the surface and
@@ -2526,13 +2526,14 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radded(n1,n2,trayoslp,czen,czengt0,ns,lzero)
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
 !
     implicit none
 !
     integer , intent(in) :: n1 , n2
     logical , intent(in) :: lzero
     real(dp) , pointer , dimension(:) , intent(in) :: czen
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) :: trayoslp
     integer :: ns
@@ -2616,25 +2617,27 @@ module mod_rad_radiation
                     abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
 !
         if ( lzero ) then
-          tautot = tauxcl(n,0)+tauxci(n,0)+tauray(n)+taugab(n)
-          taucsc = tauxcl(n,0)*wcl(n,0) + tauxci(n,0)*wci(n,0)
+          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
+          taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
           wtau = wray*tauray(n)
           wt = wtau + taucsc
           wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0)*wci(n,0))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0)*wci(n,0))/wt
+          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
+                  tauxci(n,0,ns)*wci(n,0))/wt
+          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
+                  tauxci(n,0,ns)*wci(n,0))/wt
         else
-          tautot = tauxcl(n,0)+tauxci(n,0)+tauray(n)+taugab(n)+tauxar3d(n,0,ns)
-          taucsc = tauxcl(n,0)*wcl(n,0) + tauxci(n,0)*wci(n,0)+tauasc3d(n,0,ns)
+          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
+                   tauray(n)+taugab(n)+tauxar3d(n,0,ns)
+          taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
+                   tauasc3d(n,0,ns)
           wtau = wray*tauray(n)
           wt = wtau + taucsc
           wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0)*wci(n,0)+gtota3d(n,0,ns))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0)*wci(n,0)+ftota3d(n,0,ns))/wt
+          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
+                  tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
+          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
+                  tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
         end if
 !
         ts = taus(wtot,ftot,tautot)
@@ -2734,27 +2737,27 @@ module mod_rad_radiation
                       abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
 !
           if ( lzero ) then
-            tautot = tauxcl(n,k)+tauxci(n,k)+tauray(n)+taugab(n)
-            taucsc = tauxcl(n,k)*wcl(n,k)+tauxci(n,k)*wci(n,k)
+            tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
+            taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k))/wt
+            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns))/wt
+            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns))/wt
           else
-            tautot = tauxcl(n,k) + tauxci(n,k) + tauray(n) + &
+            tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
                      taugab(n) + tauxar3d(n,k,ns)
-            taucsc = tauxcl(n,k)*wcl(n,k) + tauxci(n,k)*wci(n,k) + &
+            taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
                      tauasc3d(n,k,ns)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k)+gtota3d(n,k,ns))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k)+ftota3d(n,k,ns))/wt
+            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
+            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
           end if
 !
           ts = taus(wtot,ftot,tautot)

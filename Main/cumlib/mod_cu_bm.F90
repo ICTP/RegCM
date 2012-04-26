@@ -66,7 +66,7 @@ module mod_cu_bm
   real(dp) , pointer , dimension(:,:,:) :: tbase
   real(dp) , pointer , dimension(:,:) :: cldefi
   real(dp) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
-         tmod , tref , z0
+                                           tmod , tref , z0
   real(dp) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
          fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,       &
          thvref , tk , trefk
@@ -545,19 +545,19 @@ module mod_cu_bm
 !
       l0 = lb
       pk0 = pk(lb)
+      tprofbfl: &
       do l = ltpk , lbm1
         ivi = ltpk + lbm1 - l
         if ( trefk(ivi+1) <= t1 ) then
 !
 !         temperature reference profile above freezing level
 !
-          l0m1 = l0 - 1
           rdp0t = h1/(pk0-pkt)
           dthem = therk(l0) - trefk(l0)*apek(l0)
           do ll = ltpk , l0m1
             trefk(l) = (therk(l)-(pk(l)-pkt)*dthem*rdp0t)/apek(l)
           end do
-          go to 50
+          exit tprofbfl
         else
           stabdl = stabd
           trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabdl + &
@@ -565,15 +565,11 @@ module mod_cu_bm
           l0 = ivi
           pk0 = pk(l0)
         end if
-      end do
+      end do tprofbfl
 !
-!     freezing level at or above the cloud top
-!
-      l0m1 = l0 - 1
+      l0m1 = l0-1
 !
 !     deep convection reference humidity profile
-!
-   50     continue
 !
       do l = ltpk , lb
 !
@@ -767,6 +763,7 @@ module mod_cu_bm
 !scscscscscsc  shallow convection  cscscscscscscscscscscscscscscscscscsc
 !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
 !
+    shallow: &
     do n = 1 , khshal
       i = ishal(n)
       j = jshal(n)
@@ -968,7 +965,7 @@ module mod_cu_bm
         if ( qnew > qsatk(l)*stresh ) then
           ltop(j,i) = lbot(j,i)
           prtop(j,i) = pbot(j,i)
-          go to 100
+          exit shallow
         end if
         thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+h1)
         qrefk(l) = qrfkl
@@ -981,7 +978,7 @@ module mod_cu_bm
         if ( dtdeta < epsth ) then
           ltop(j,i) = lbot(j,i)
           prtop(j,i) = pbot(j,i)
-          go to 100
+          exit shallow
         end if
       end do
       if ( dst > d_zero ) then
@@ -1007,9 +1004,7 @@ module mod_cu_bm
 !scscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
 !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
 !
-    end do
-
-   100  continue
+    end do shallow
 
     nshal = 0
     do i = ici1 , ici2

@@ -53,6 +53,7 @@ module mod_rad_colmod3
   real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
     deltaz , tm1 , rh1
+  real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
   real(dp) , pointer , dimension(:,:,:) :: aermmr
   real(dp) , pointer , dimension(:,:,:) :: absgasnxt
   real(dp) , pointer , dimension(:,:,:) :: absgastot
@@ -135,6 +136,8 @@ module mod_rad_colmod3
       call getmem3d(absgasnxt,1,npr,1,kz,1,4,'colmod3:absgasnxt')
       call getmem3d(absgastot,1,npr,1,kzp1,1,kzp1,'colmod3:absgastot')
       call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
+      call getmem3d(tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
+      call getmem3d(tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
 
       call getmem1d(ioro,1,npr,'colmod3:ioro')
 
@@ -402,7 +405,8 @@ module mod_rad_colmod3
                 fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
                 fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
                 adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
-                aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
+                aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,tauxcl,  &
+                tauxci,labsem)
 !
 !   Save gas emission/absorbtion
 !
@@ -412,6 +416,7 @@ module mod_rad_colmod3
         gasabsnxt(j,i,:,:) = absgasnxt(n,:,:)
         gasabstot(j,i,:,:) = absgastot(n,:,:)
         gasemstot(j,i,:) = emsgastot(n,:)
+        taucldsp(j,i,:,:) = tauxcl(n,:,:) + tauxci(n,:,:)
         n = n + 1
       end do
     end do

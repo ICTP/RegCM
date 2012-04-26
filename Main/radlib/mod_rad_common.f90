@@ -95,6 +95,8 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:,:,:)  :: gasabstot
   real(dp) , pointer , dimension(:,:,:) :: gasemstot
 
+  real(dp) , pointer , dimension(:,:,:,:) :: taucldsp
+
   real(dp) , pointer , dimension(:,:) :: ptrop
 
   integer :: idirect , iemiss
@@ -112,11 +114,12 @@ module mod_rad_common
   subroutine allocate_mod_rad_common(ichem)
     implicit none
     integer , intent(in) :: ichem
-    call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldfra')
-    call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'mod_rad:cldlwc')
-    call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'mod_rad:heatrt')
-    call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'mod_rad:o3prof')
-    call getmem2d(ptrop,jci1,jci2,ici1,ici2,'colmod3:ptrop')
+    call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'rad:cldfra')
+    call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'rad:cldlwc')
+    call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'rad:heatrt')
+    call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'rad:o3prof')
+    call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
+    call getmem4d(taucldsp,jci1,jci2,ici1,ici2,1,kz,1,nspi,'rad:taucldsp')
     if ( irrtm == 0 ) then
       call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
@@ -124,13 +127,13 @@ module mod_rad_common
     end if
 
     if ( ichem == 1 ) then
-      call getmem3d(aerasp,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerasp')
-      call getmem3d(aerext,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerext')
-      call getmem3d(aerssa,jce1,jce2,ice1,ice2,1,kz,'mod_che_common:aerssa')
-      call getmem2d(aersrrf,jce1,jce2,ice1,ice2,'mod_che_common:aersrrf')
-      call getmem2d(aertalwrf,jce1,jce2,ice1,ice2,'mod_che_common:aertalwrf')
-      call getmem2d(aersrlwrf,jce1,jce2,ice1,ice2,'mod_che_common:aersrlwrf')
-      call getmem2d(aertarf,jce1,jce2,ice1,ice2,'mod_che_common:aertarf')
+      call getmem3d(aerasp,jce1,jce2,ice1,ice2,1,kz,'rad:aerasp')
+      call getmem3d(aerext,jce1,jce2,ice1,ice2,1,kz,'rad:aerext')
+      call getmem3d(aerssa,jce1,jce2,ice1,ice2,1,kz,'rad:aerssa')
+      call getmem2d(aersrrf,jce1,jce2,ice1,ice2,'rad:aersrrf')
+      call getmem2d(aertalwrf,jce1,jce2,ice1,ice2,'rad:aertalwrf')
+      call getmem2d(aersrlwrf,jce1,jce2,ice1,ice2,'rad:aersrlwrf')
+      call getmem2d(aertarf,jce1,jce2,ice1,ice2,'rad:aertarf')
     end if
   end subroutine  allocate_mod_rad_common
 

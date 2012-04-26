@@ -24,14 +24,14 @@ module mod_rad_o3blk
   use mod_memutil
   use mod_rad_common
 
-  public
+  private
+
+  public :: allocate_mod_rad_o3blk , o3data , read_o3data
 
   real(dp) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
-                             ppsum , ppwin , ppwrk
+                              ppsum , ppwin , ppwrk
   real(dp) , dimension(32) :: ppwrkh
   real(dp) , pointer , dimension(:) :: prlevh
-  private :: o3ann , o3sum , o3win , o3wrk , ppann , ppsum , ppwin ,&
-             ppwrk , ppwrkh , prlevh
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
              9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
@@ -73,71 +73,83 @@ module mod_rad_o3blk
 !----------------------------------------------------------------------
 !
   subroutine o3data
-  implicit none
+    implicit none
 !
-  integer :: i , j , jj , k , kj
-  real(dp) :: pb1 , pb2 , pt1 , pt2
+    integer :: i , j , jj , k , kj
+    real(dp) :: pb1 , pb2 , pt1 , pt2
 !
-  do k = 1 , 31
-    ppann(k) = ppsum(k)
-  end do
-  o3ann(1) = 0.5D0*(o3sum(1)+o3win(1))
+    do k = 1 , 31
+      ppann(k) = ppsum(k)
+    end do
+    o3ann(1) = 0.5D0*(o3sum(1)+o3win(1))
 !
-  do k = 2 , 31
-    o3ann(k) = o3win(k-1) + (o3win(k)-o3win(k-1)) / &
-               (ppwin(k)-ppwin(k-1))*(ppsum(k)-ppwin(k-1))
-  end do
-  do k = 2 , 31
-    o3ann(k) = 0.5D0*(o3ann(k)+o3sum(k))
-  end do
-  do k = 1 , 31
-    o3wrk(k) = o3ann(k)
-    ppwrk(k) = ppann(k)
-  end do
-  !
-  ! calculate half pressure levels for model and data levels
-  !
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kzp1 , 1 , -1
-        kj = kzp1 - k + 1
-        prlevh(kj) = (flev(k)*sfps(j,i)+ptp)*d_10
-      end do
-      ppwrkh(1) = 1100.0D0
-      do k = 2 , 31
-        ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))*d_half
-      end do
-      ppwrkh(32) = d_zero
-      do k = 1 , kz
-        o3prof(j,i,k) = d_zero
-        do jj = 1 , 31
-          if ( (-(prlevh(k)-ppwrkh(jj))) >= d_zero ) then
-            pb1 = d_zero
-          else
-            pb1 = prlevh(k) - ppwrkh(jj)
-          end if
-          if ( (-(prlevh(k)-ppwrkh(jj+1))) >= d_zero ) then
-            pb2 = d_zero
-          else
-            pb2 = prlevh(k) - ppwrkh(jj+1)
-          end if
-          if ( (-(prlevh(k+1)-ppwrkh(jj))) >= d_zero ) then
-            pt1 = d_zero
-          else
-            pt1 = prlevh(k+1) - ppwrkh(jj)
-          end if
-          if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= d_zero ) then
-            pt2 = d_zero
-          else
-            pt2 = prlevh(k+1) - ppwrkh(jj+1)
-          end if
-          o3prof(j,i,k) = o3prof(j,i,k) + (pb2-pb1-pt2+pt1)*o3wrk(jj)
+    do k = 2 , 31
+      o3ann(k) = o3win(k-1) + (o3win(k)-o3win(k-1)) / &
+                 (ppwin(k)-ppwin(k-1))*(ppsum(k)-ppwin(k-1))
+    end do
+    do k = 2 , 31
+      o3ann(k) = 0.5D0*(o3ann(k)+o3sum(k))
+    end do
+    do k = 1 , 31
+      o3wrk(k) = o3ann(k)
+      ppwrk(k) = ppann(k)
+    end do
+    !
+    ! calculate half pressure levels for model and data levels
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do k = kzp1 , 1 , -1
+          kj = kzp1 - k + 1
+          prlevh(kj) = (flev(k)*sfps(j,i)+ptp)*d_10
         end do
-        o3prof(j,i,k) = o3prof(j,i,k)/(prlevh(k)-prlevh(k+1))
+        ppwrkh(1) = 1100.0D0
+        do k = 2 , 31
+          ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))*d_half
+        end do
+        ppwrkh(32) = d_zero
+        do k = 1 , kz
+          o3prof(j,i,k) = d_zero
+          do jj = 1 , 31
+            if ( (-(prlevh(k)-ppwrkh(jj))) >= d_zero ) then
+              pb1 = d_zero
+            else
+              pb1 = prlevh(k) - ppwrkh(jj)
+            end if
+            if ( (-(prlevh(k)-ppwrkh(jj+1))) >= d_zero ) then
+              pb2 = d_zero
+            else
+              pb2 = prlevh(k) - ppwrkh(jj+1)
+            end if
+            if ( (-(prlevh(k+1)-ppwrkh(jj))) >= d_zero ) then
+              pt1 = d_zero
+            else
+              pt1 = prlevh(k+1) - ppwrkh(jj)
+            end if
+            if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= d_zero ) then
+              pt2 = d_zero
+            else
+              pt2 = prlevh(k+1) - ppwrkh(jj+1)
+            end if
+            o3prof(j,i,k) = o3prof(j,i,k) + (pb2-pb1-pt2+pt1)*o3wrk(jj)
+          end do
+          o3prof(j,i,k) = o3prof(j,i,k)/(prlevh(k)-prlevh(k+1))
+        end do
       end do
     end do
-  end do
 !
   end subroutine o3data
+!
+  subroutine read_o3data(iyear,imon,scenario)
+    implicit none
+    integer , intent(in) :: iyear , imon
+    character(len=8) , intent(in) :: scenario
+
+    if ( (iyear < 1850 .and. iyear > 2099) .or. &
+         (iyear == 2100 .and. imon /= 1 ) ) then
+      return
+    end if
+
+  end subroutine read_o3data
 !
 end module mod_rad_o3blk
