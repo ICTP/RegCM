@@ -1409,14 +1409,74 @@ module mod_tendency
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
-        maxv = maxval(aten%t)
-        if ( maxv > d_one ) then
+        maxv = dabs(maxval(aten%t))
+        if ( (maxv/dtsec) > 0.01 ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%t(jj,ii,kk) > maxv ) then
+                  write(stderr,*) 'II :', ii , ', JJ :', &
+                                   myid*jxp+jj , ', KK :', kk
+                end if
+              end do
+            end do
+          end do
+        end if
+        maxv = dabs(maxval(aten%u))
+        if ( (maxv/dtsec) > 0.005 ) then  ! 25 m/s per hour
+          write(stderr,*) 'MAXVAL ATEN U :', maxv
+          maxv = maxv - 0.001D0
+          do kk = 1 , kz
+            do ii = ici1 , ici2
+              do jj = jci1 , jci2
+                if ( aten%u(jj,ii,kk) > maxv ) then
+                  write(stderr,*) 'II :', ii , ', JJ :', &
+                                   myid*jxp+jj , ', KK :', kk
+                end if
+              end do
+            end do
+          end do
+        end if
+        maxv = dabs(maxval(aten%v))
+        if ( (maxv/dtsec) > 0.005 ) then  ! 25 m/s per hour
+          write(stderr,*) 'MAXVAL ATEN V :', maxv
+          maxv = maxv - 0.001D0
+          do kk = 1 , kz
+            do ii = ici1 , ici2
+              do jj = jci1 , jci2
+                if ( aten%v(jj,ii,kk) > maxv ) then
+                  write(stderr,*) 'II :', ii , ', JJ :', &
+                                   myid*jxp+jj , ', KK :', kk
+                end if
+              end do
+            end do
+          end do
+        end if
+        maxv = dabs(maxval(aten%qv))
+        if ( (maxv/dtsec) > 0.001 ) then ! 
+          write(stderr,*) 'MAXVAL ATEN QV :', maxv
+          maxv = maxv - 0.001D0
+          do kk = 1 , kz
+            do ii = ici1 , ici2
+              do jj = jci1 , jci2
+                if ( aten%qv(jj,ii,kk) > maxv ) then
+                  write(stderr,*) 'II :', ii , ', JJ :', &
+                                   myid*jxp+jj , ', KK :', kk
+                end if
+              end do
+            end do
+          end do
+        end if
+        maxv = dabs(maxval(aten%qc))
+        if ( (maxv/dtsec) > 0.001 ) then ! 
+          write(stderr,*) 'MAXVAL ATEN QC :', maxv
+          maxv = maxv - 0.001D0
+          do kk = 1 , kz
+            do ii = ici1 , ici2
+              do jj = jci1 , jci2
+                if ( aten%qc(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii , ', JJ :', &
                                    myid*jxp+jj , ', KK :', kk
                 end if
