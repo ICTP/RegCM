@@ -24,13 +24,18 @@ module mod_vertint
   use mod_constants
   use mod_message
 !
-  real(sp) , private , parameter :: rgas2 = real(rgas/2.0D0)
-  real(sp) , private , parameter :: rglr = real(rgas*lrate)
-  real(sp) , private , parameter :: b1 = -real(egrav/lrate)
-  real(sp) , private , parameter :: rbltop = real(bltop)
-  real(sp) , private , parameter :: psccm = 100.0
+  private
+
+  real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
+  real(sp) , parameter :: rglr = real(rgas*lrate)
+  real(sp) , parameter :: b1 = -real(egrav/lrate)
+  real(sp) , parameter :: rbltop = real(bltop)
+  real(sp) , parameter :: psccm = 100.0
 !
-  integer , private , parameter :: maxnlev = 100
+  integer , parameter :: maxnlev = 100
+
+  public :: intlin , intlin_o , intgtb , intlog , intlog_o
+  public :: intpsn , intv1 , intv2 , intv3
 !
   contains
 

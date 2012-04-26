@@ -28,22 +28,21 @@ module mod_interp
 
   private
 
-  real(sp) , public :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
-              glonmn , glonmx
-  integer , public :: imxmn , lcross , ldot
-
-  real(sp) , public , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(sp) , public , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
-  integer , public , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
-                              ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
-  integer , public , pointer, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
-                              id1ur , jd1dl , jd1dr , jd1ul , jd1ur
-
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr
 
-  data imxmn /0/
-  data lcross /0/
-  data ldot /0/
+  real(sp) :: alatmn , alatmx , alonmn , alonmx
+  real(sp) :: glatmn , glatmx , glonmn , glonmx
+
+  integer :: imxmn = 0
+  integer :: lcross = 0
+  integer :: ldot = 0
+
+  real(sp) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
+  real(sp) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  integer , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
+                                       jc1dl , jc1dr , jc1ul , jc1ur
+  integer , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
+                                       jd1dl , jd1dr , jd1ul , jd1ur
 
   contains
 !

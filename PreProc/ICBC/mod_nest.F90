@@ -246,12 +246,6 @@ module mod_nest
   type(rcm_time_and_date) :: imf
   real(sp) , dimension(2) :: trlat
 !
-! Setup interp
-!
-  imxmn = 0
-  lcross = 0
-  ldot = 0
-!
   plev(1) = 50.
   plev(2) = 70.
   plev(3) = 100.
