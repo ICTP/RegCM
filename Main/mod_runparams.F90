@@ -172,8 +172,8 @@ module mod_runparams
           'Total evapotranspiration','kg m-2 day-1','mean',.true.),           &
     output_variable('runoff','surface_runoff_flux',                           &
           'Surface runoff','kg m-2 day-1','mean',.true.),                     &
-    output_variable('scv','snowfall_flux',                                    &
-          'Snow precipitation','kg m-2 day-1','mean',.true.),                 &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
     output_variable('sena','surface_downward_sensible_heat_flux',             &
           'Sensible heat flux','W m-2','mean',.true.),                        &
     output_variable('flw','net_upward_longwave_flux_in_air',                  &
@@ -247,8 +247,8 @@ module mod_runparams
           'Total evapotranspiration','kg m-2 day-1','point',.true.),          &
     output_variable('runoff','surface_runoff_flux',                           &
           'Surface runoff','kg m-2 day-1','mean',.true.),                     &
-    output_variable('scv','snowfall_flux',                                    &
-          'Snow precipitation','kg m-2 day-1','mean',.true.),                 &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
     output_variable('sena','surface_downward_sensible_heat_flux',             &
           'Sensible heat flux','W m-2','mean',.true.),                        &
     output_variable('prcv','convective_rainfall_flux',                        &
@@ -339,8 +339,8 @@ module mod_runparams
          'Ground temperature','K','point',.true.),                            &
     output_variable('tpr','precipitation_flux',                               &
          'Total precipitation','kg m-2 day-1','point',.true.),                &
-    output_variable('scv','snowfall_flux',                                    &
-         'Snow precipitation','kg m-2 day-1','point',.true.),                 &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
     output_variable('sena','surface_downward_sensible_heat_flux',             &
          'Sensible heat flux','W m-2','point',.true.),                        &
     output_variable('flw','net_upward_longwave_flux_in_air',                  &
