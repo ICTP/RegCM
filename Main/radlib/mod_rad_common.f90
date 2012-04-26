@@ -119,7 +119,7 @@ module mod_rad_common
     call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'rad:heatrt')
     call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
-    call getmem4d(taucldsp,jci1,jci2,ici1,ici2,1,kz,1,nspi,'rad:taucldsp')
+    call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
     if ( irrtm == 0 ) then
       call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
