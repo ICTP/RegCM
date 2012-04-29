@@ -199,8 +199,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_param, only : Ngrids
-      use mod_scalars, only : ntstart, ntend
-      use mod_stepping, only : kstp, nstp
+      use mod_scalars, only : dt, exit_flag, NoError
 !
       implicit none
 !
@@ -288,9 +287,21 @@
 !-----------------------------------------------------------------------
 !
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        write(*,*) 'Run ocean model ', DBLE(cpl_dtsec), ' sec'
+        write(*,*) 'Run ocean model ',DBLE(cpl_dtsec)-minval(dt), ' sec'
       end if
-      call ROMS_run (DBLE(cpl_dtsec))
+      call ROMS_run (DBLE(cpl_dtsec)-minval(dt))
+!
+!-----------------------------------------------------------------------
+!     Check for error 
+!-----------------------------------------------------------------------
+!
+      if (exit_flag.ne.NoError) then
+        if (localPet == 0) then
+          write(*,*) 'OCN component exit with flag = ', exit_flag
+        end if
+        call ROMS_finalize()
+        call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if 
 !
 !-----------------------------------------------------------------------
 !     Put export data
@@ -515,6 +526,13 @@
 !     Set start time
 !-----------------------------------------------------------------------
 !
+      !if (all(LastRec)) then
+      !  MyStartTime = minval(tdays)
+      !else
+      !  MyStartTime = minval(tdays)-                                    &
+      !               (REAL(minval(nRST),r8)*minval(dt)*sec2day)
+      !  print*, "OCN Model is restarted - Start: ", MyStartTime, " days"
+      !end if
       MyStartTime = minval(tdays)
       call caldate (r_date, MyStartTime, str_year, yday, str_month,     &
                     str_day, hour)
