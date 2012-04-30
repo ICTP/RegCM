@@ -100,6 +100,7 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:) :: ptrop
 
   integer :: idirect , iemiss
+  integer :: iclimao3
   logical :: doabsems , dolw , dosw
   integer :: ichso4 , ichbc , ichoc
 

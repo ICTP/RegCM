@@ -20,9 +20,16 @@
 module mod_rad_o3blk
 
   use mod_constants
+  use mod_date
+  use mod_interp
+  use mod_vertint
+  use mod_mppparam
+  use mod_mpmessage
   use mod_dynparam
   use mod_memutil
   use mod_rad_common
+  use mod_stdio
+  use netcdf
 
   private
 
@@ -32,6 +39,11 @@ module mod_rad_o3blk
                               ppsum , ppwin , ppwrk
   real(dp) , dimension(32) :: ppwrkh
   real(dp) , pointer , dimension(:) :: prlevh
+
+  real(sp) , pointer , dimension(:,:) :: alon , alat , aps , laps
+  real(sp) , pointer , dimension(:,:,:) :: ozone1 , ozone2
+  real(sp) , pointer , dimension(:) :: asig
+  real(dp) , pointer , dimension(:,:,:) :: ozone
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
              9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
@@ -68,6 +80,22 @@ module mod_rad_o3blk
   subroutine allocate_mod_rad_o3blk
     implicit none
     call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
+
+    if ( iclimao3 == 1 ) then
+      call getmem2d(laps,jce1,jce2,ice1,ice2,'mod_o3blk:laps')
+      if ( myid == 0 ) then
+        call getmem1d(asig,1,kzp1,'mod_o3blk:asig')
+        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
+        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
+        call getmem2d(aps,jcross1,jcross2,icross1,icross2,'mod_o3blk:aps')
+        call getmem3d(ozone1,jcross1,jcross2, &
+                             icross1,icross2,1,kzp1,'mod_o3blk:ozone1')
+        call getmem3d(ozone2,jcross1,jcross2, &
+                             icross1,icross2,1,kzp1,'mod_o3blk:ozone2')
+        call getmem3d(ozone,jcross1,jcross2, &
+                            icross1,icross2,1,kzp1,'mod_o3blk:ozone')
+      end if
+    end if
   end subroutine allocate_mod_rad_o3blk
 !
 !----------------------------------------------------------------------
@@ -140,16 +168,222 @@ module mod_rad_o3blk
 !
   end subroutine o3data
 !
-  subroutine read_o3data(iyear,imon,scenario)
+  subroutine read_o3data(idatex,scenario,xlat,xlon,ps,ptop,sigma)
     implicit none
-    integer , intent(in) :: iyear , imon
+    type (rcm_time_and_date) , intent(in) :: idatex
+    real(dp) , pointer , dimension(:,:) :: xlat , xlon , ps
+    real(dp) , pointer , dimension(:) :: sigma
+    real(dp) , intent(in) :: ptop
     character(len=8) , intent(in) :: scenario
+!
+    character(len=64) :: infile
+    logical , save :: ifirst
+    logical :: dointerp
+    real(sp) , dimension(72,37,24) :: xozone1 , xozone2
+    real(sp) , dimension(njcross,nicross,24) :: yozone
+    real(sp) , save , dimension(37) :: lat
+    real(sp) , save , dimension(72) :: lon
+    real(sp) , save , dimension(24) :: plev
+    real(dp) :: xfac1 , xfac2 , odist
+    type (rcm_time_and_date) :: imonmidd
+    integer :: iyear , imon , iday , ihour
+    integer , save :: ncid = -1
+    integer :: im1 , iy1 , im2 , iy2
+    integer , save :: ism , isy
+    type (rcm_time_and_date) :: iref1 , iref2
+    type (rcm_time_interval) :: tdif
+    data ifirst /.true./
+!
+    call split_idate(idatex,iyear,imon,iday,ihour)
+    imonmidd = monmiddle(idatex)
 
     if ( (iyear < 1850 .and. iyear > 2099) .or. &
          (iyear == 2100 .and. imon /= 1 ) ) then
+      write (stderr,*) 'NO CLIMATIC O3 DATA AVAILABLE FOR ',iyear*100+imon
+      write (stderr,*) 'WILL USE TABULATED VALUES.'
       return
     end if
 
+    if ( myid == 0 ) then
+      if ( ifirst ) then
+        alon = real(xlon(jcross1:jcross2,icross1:icross2))
+        alat = real(xlat(jcross1:jcross2,icross1:icross2))
+        asig = real(sigma(1:kzp1))
+        ifirst = .false.
+      end if
+
+      if ( iyear < 2010 ) then
+        infile = 'Ozone_CMIP5_ACC_SPARC_RF.nc'
+      else if ( scenario(4:6) == '2.6' ) then
+        infile = 'Ozone_CMIP5_ACC_SPARC_RCP2.6.nc'
+      else if ( scenario(4:6) == '4.5' ) then
+        infile = 'Ozone_CMIP5_ACC_SPARC_RCP4.5.nc'
+      else if ( scenario(4:6) == '8.5' ) then
+        infile = 'Ozone_CMIP5_ACC_SPARC_RCP8.5.nc'
+      else
+        call fatal(__FILE__,__LINE__,'ONLY ACCEPTED RCP SCENARIOS')
+      end if
+    end if
+
+    im1 = imon
+    iy1 = iyear
+    im2 = imon
+    iy2 = iyear
+    if ( idatex > imonmidd ) then
+      call inextmon(iy2,im2)
+      ism = im1
+      isy = iy1
+      iref1 = imonmidd
+      iref2 = monmiddle(nextmon(idatex))
+    else
+      call iprevmon(iy1,im1)
+      ism = im1
+      isy = iy1
+      iref1 = monmiddle(prevmon(idatex))
+      iref2 = imonmidd
+    end if
+    dointerp = .false.
+    if ( ncid < 0 ) then
+      if ( myid == 0 ) then
+        call init_o3data(infile,ncid,lat,lon,plev)
+      else
+        ncid = 0
+      end if
+      ism = im1
+      isy = iy1
+      dointerp = .true.
+    else
+      if ( ism /= im1 .or. isy /= iy1 ) then
+        ism = im1
+        isy = iy1
+        dointerp = .true.
+      end if
+    end if
+
+    if ( dointerp ) then
+      ! We need pressure
+      laps = real((ps(jce1:jce2,ice1:ice2)))
+      call deco1_gather(laps,aps,jcross1,jcross2,icross1,icross2)
+      if ( myid == 0 ) then
+        write (stderr,*) 'Reading Ozone Data...'
+        call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
+        call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
+        call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call intv0(ozone1,yozone,aps,asig,plev,ptop,njcross,nicross,kzp1,24)
+        call bilinx2(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call intv0(ozone2,yozone,aps,asig,plev,ptop,njcross,nicross,kzp1,24)
+      end if
+    end if
+
+    if ( myid == 0 ) then
+      tdif = idatex-iref1
+      xfac1 = tohours(tdif)
+      tdif = idatex-iref2
+      xfac2 = tohours(tdif)
+      odist = xfac1 - xfac2
+      xfac1 = xfac1/odist
+      xfac2 = d_one-xfac1
+      ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
+    end if
+    call deco1_scatter(ozone,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
   end subroutine read_o3data
+!
+  subroutine inextmon(iyear,imon)
+    implicit none
+    integer , intent(inout) :: iyear , imon
+    imon = imon + 1
+    if ( imon > 12 ) then
+      imon = 1
+      iyear = iyear + 1
+    end if
+  end subroutine inextmon
+!
+  subroutine iprevmon(iyear,imon)
+    implicit none
+    integer , intent(inout) :: iyear , imon
+    imon = imon - 1
+    if ( imon < 1 ) then
+      imon = 12
+      iyear = iyear - 1
+    end if
+  end subroutine iprevmon
+!
+  subroutine init_o3data(o3file,ncid,lat,lon,plev)
+    implicit none
+    character(len=*) , intent(in) :: o3file
+    integer , intent(out) :: ncid
+    real(sp) , intent(out) , dimension(:) :: lat , lon , plev
+    integer :: iret
+    iret = nf90_open(o3file,nf90_nowrite,ncid)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
+    end if
+    call readvar1d(ncid,'latitude',lat)
+    call readvar1d(ncid,'longitude',lon)
+    call readvar1d(ncid,'level',plev)
+    plev(:) = plev(:) * 0.001
+  end subroutine init_o3data
+
+  subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
+    implicit none
+    integer , intent(in) :: ncid , iyear , imon
+    character(len=*) , intent(in) :: vname
+    real(sp) , intent(out) , dimension(:,:,:) :: val
+    real(dp) , save :: xscale , xfact
+    integer , save :: ilastncid , icvar
+    integer , save , dimension(4) :: istart , icount
+    integer :: iret , irec
+    data ilastncid /-1/
+    data icvar /-1/
+    data xscale /1.0D0/
+    data xfact /0.0D0/
+    data istart  /  1 ,  1 ,  1 ,  1/
+    data icount  / 72 , 37 , 24 ,  1/
+
+    irec = ((iyear-1849)*12+imon-12)+1
+    if ( ncid /= ilastncid ) then
+      iret = nf90_inq_varid(ncid,vname,icvar)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+      end if
+      iret = nf90_get_att(ncid,icvar,'scale_factor',xscale)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+      end if
+      iret = nf90_get_att(ncid,icvar,'add_offset',xfact)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+      end if
+    end if
+    istart(4) = irec
+    iret = nf90_get_var(ncid,icvar,val,istart,icount)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+    end if
+    val = real(val*xscale+xfact)
+  end subroutine readvar3d_pack
+
+  subroutine readvar1d(ncid,vname,val)
+    implicit none
+    integer , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(sp) , intent(out) , dimension(:) :: val
+    integer :: icvar , iret
+    iret = nf90_inq_varid(ncid,vname,icvar)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+    end if
+    iret = nf90_get_var(ncid,icvar,val)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+    end if
+  end subroutine readvar1d
 !
 end module mod_rad_o3blk

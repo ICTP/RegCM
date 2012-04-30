@@ -740,6 +740,10 @@ module mod_tendency
       call albedoclm(xmonth)
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      if ( iclimao3 == 1 ) then
+        call read_o3data(idatex,scenario,mddom_io%xlat,mddom_io%xlon, &
+                         sfs%psa,ptop,sigma)
+      end if
       if ( irrtm == 1 ) then
         call rrtmg_driver(xyear,eccf,loutrad)
       else
