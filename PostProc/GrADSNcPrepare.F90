@@ -212,9 +212,9 @@ program ncprepare
         minlon = rounder(minval(xlon(1,:)),.false.)
       end if
       if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
-        maxlon = rounder(xlon(jx,1),.true.)
-      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
         maxlon = rounder(xlon(jx,iy),.true.)
+      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
+        maxlon = rounder(xlon(jx,1),.true.)
       else
         maxlon = rounder(maxval(xlon(jx,:)),.true.)
       end if
