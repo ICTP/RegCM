@@ -66,19 +66,26 @@ module mod_rdldtr
     integer , parameter :: secpm = 60
     real(dp) :: delta
 
-    iosec = iores*secpm
+    if ( iores <= 0 ) then
+      iosec = iires
+    else
+      iosec = iores*secpm
+    end if
     inpsec = secpd/iires
     nlogb = 360*inpsec
     nlagb = 180*inpsec
     if (mod(nlogb,iosec) /= 0) then
-      write(stderr,*) 'Subroutine read_ncglob do not support'// &
-               ' iores = ',iores
+      write(stderr,*) 'Subroutine read_ncglob do not support iores = ',iores
       call die('read_ncglob')
     end if
     hnlogb = nlogb/2
     hnlagb = nlagb/2
     iopsec = secpd/iosec
     ifrac = inpsec/iopsec
+#ifdef DEBUG
+    write(stderr,*) 'INPSEC = ', inpsec
+    write(stderr,*) 'IOPSEC = ', iopsec
+#endif
 
     ireg = 0
     if (lreg) ireg = 1
@@ -95,6 +102,11 @@ module mod_rdldtr
       grdlnmn = dble(floor(xminlon))  -delta
       grdlnma = dble(ceiling(xmaxlon))+delta
     end if
+
+#ifdef DEBUG
+    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn , grdltma
+    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn , grdlnma
+#endif
 
     nlat = idnint((grdltma-grdltmn)*dble(inpsec))
     if (lonwrap) then
@@ -113,6 +125,11 @@ module mod_rdldtr
       nlon = nlon+1
       nlonin = nlonin + 1
     end if
+
+#ifdef DEBUG
+    write(stderr,*) 'WILL READ ', nlon , 'x', nlat, ' points'
+    write(stderr,*) 'WILL GIVE ', nlonin , 'x', nlatin, ' points'
+#endif
 
     call getmem2d(values,1,nlonin,1,nlatin,'rdldtr:values')
     call getmem2d(readbuf,1,nlon,1,nlat,'rdldtr:readbuf')

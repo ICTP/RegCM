@@ -19,15 +19,12 @@
  /
  &terrainparam
  domname = 'test_007',
- ntypec = 10,
- ntypec_s = 10,
  smthbdy = .false.,
  lakedpth = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
- h2opct = 75.,
  dirter = '/set/this/to/where/your/domain/file/is',
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /

@@ -276,7 +276,6 @@ program terrain
   if ( nsg>1 ) then
 
     write (stdout,*) 'Doing Subgrid with following parameters'
-    write (stdout,*) 'ntypec = ' , ntypec_s
     write (stdout,*) 'iy     = ' , iysg
     write (stdout,*) 'jx     = ' , jxsg
     write (stdout,*) 'ds     = ' , ds/nsg
@@ -321,6 +320,11 @@ program terrain
     call mxmnll(iysg,jxsg,xlon_s,xlat_s,i_band)
     write(stdout,*) 'Determined Subgrid coordinate range'
 !
+    ntypec_s = idnint((ds/dble(nsg)/d_two)*60.0D0/110.0)
+    do while ( mod(3600,ntypec_s*60) /= 0 )
+      ntypec_s = ntypec_s -1
+    end do
+    write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GTOPO_DEM_30s.nc','z',   &
                      30,ntypec_s,.true.,0)
@@ -428,10 +432,9 @@ program terrain
 !     set up the parameters and constants
 !
   write (stdout,*) 'Doing Grid with following parameters'
-  write (stdout,*) 'ntypec = ' , ntypec_s
   write (stdout,*) 'iy     = ' , iysg
   write (stdout,*) 'jx     = ' , jxsg
-  write (stdout,*) 'ds     = ' , ds/nsg
+  write (stdout,*) 'ds     = ' , ds
   write (stdout,*) 'clat   = ' , clat
   write (stdout,*) 'clon   = ' , clong
   write (stdout,*) 'iproj  = ' , iproj
@@ -470,6 +473,11 @@ program terrain
   call mxmnll(iy,jx,xlon,xlat,i_band)
   write(stdout,*)'Determined Grid coordinate range'
 !
+  ntypec = idnint((ds/d_two)*60.0D0/110.0)
+  do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
+    ntypec = ntypec - 1
+  end do
+  write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                    pthsep//'GTOPO_DEM_30s.nc','z',   &
                    30,ntypec,.true.,0)

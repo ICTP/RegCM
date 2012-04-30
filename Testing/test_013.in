@@ -20,8 +20,6 @@
  &terrainparam
  domname = 'MEGAPOLI2',
  itype_in = 1,
- ntypec = 10,
- ntypec_s = 10,
  ifanal = .true.,
  smthbdy = .false.,
  lakadj = .false.,
@@ -30,7 +28,6 @@
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
  ntex = 17,
- h2opct = 75.,
  dirter = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
  inpter = '/scratch/esp/RCM3DATA',
  /

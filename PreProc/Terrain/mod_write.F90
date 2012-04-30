@@ -19,18 +19,24 @@
 
 module mod_write
 
+  use netcdf
   use mod_stdio
   use mod_constants
   use mod_message
   use mod_memutil
+  use mod_dynparam
+  use mod_block
+  use mod_maps
+
+  private
+
+  integer , public :: ntypec , ntypec_s
+
+  public :: write_domain
 
   contains
 !
   subroutine write_domain(lsub)
-    use netcdf
-    use mod_dynparam
-    use mod_block
-    use mod_maps
     implicit none
     logical , intent (in) :: lsub
 

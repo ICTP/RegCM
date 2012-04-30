@@ -42,7 +42,7 @@ program ncplot
   real(4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
   real(8) , dimension(2) :: trlat
   real(4) , allocatable , dimension(:,:) :: xlat , xlon
-  real(4) , allocatable , dimension(:) :: level
+  real(4) , allocatable , dimension(:) :: level , tmplon
   real(8) , allocatable , dimension(:) :: times
   real(8) :: time1
   real(4) , allocatable , dimension(:,:) :: rin , rjn , ruv
@@ -170,6 +170,8 @@ program ncplot
   call checkalloc(istatus,__FILE__,__LINE__,'xlat')
   allocate(xlon(jx,iy), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'xlon')
+  allocate(tmplon(iy), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'tmplon')
 
   istatus = nf90_inq_varid(ncid, "xlat", ivarid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlat')
@@ -202,37 +204,22 @@ program ncplot
     minlon = -180.0
     maxlon = 180.0
   else
-    if ( clat >= 0.0 ) then
-      if (xlon(1,1) < 0.0 .and. xlon(1,iy) > 0.0) then
-        minlon = rounder(xlon(1,1),.false.)
-      else if (xlon(1,1) > 0.0 .and. xlon(1,iy) < 0.0) then
-        minlon = rounder(xlon(1,iy),.false.)
-      else
-        minlon = rounder(minval(xlon(1,:)),.false.)
-      end if
-      if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
-        maxlon = rounder(xlon(jx,iy),.true.)
-      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
-        maxlon = rounder(xlon(jx,1),.true.)
-      else
-        maxlon = rounder(maxval(xlon(jx,:)),.true.)
-      end if
-    else if ( clat < 0.0 ) then
-      if (xlon(1,1) < 0.0 .and. xlon(1,iy) > 0.0) then
-        minlon = rounder(xlon(1,iy),.false.)
-      else if (xlon(1,1) > 0.0 .and. xlon(1,iy) < 0.0) then
-        minlon = rounder(xlon(1,1),.false.)
-      else
-        minlon = rounder(minval(xlon(1,:)),.false.)
-      end if
-      if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
-        maxlon = rounder(xlon(jx,1),.true.)
-      else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
-        maxlon = rounder(xlon(jx,iy),.true.)
-      else
-        maxlon = rounder(maxval(xlon(jx,:)),.true.)
-      end if
+    tmplon(:) = xlon(jx,:)
+    if ( (tmplon(1 ) > 0.0 .and. tmplon(iy) < 0.0) .or. &
+         (tmplon(iy) > 0.0 .and. tmplon(1 ) < 0.0) ) then
+      where ( tmplon < 0.0 ) 
+        tmplon = tmplon + 360.0
+      endwhere
     end if
+    maxlon = rounder(maxval(tmplon),.true.)
+    tmplon(:) = xlon(1,:)
+    if ( (tmplon(1 ) > 180.0 .and. tmplon(iy) < 0.0) .or. &
+         (tmplon(iy) > 180.0 .and. tmplon(1 ) < 0.0) ) then
+      where ( tmplon > 180.0 ) 
+        tmplon = tmplon - 360.0
+      endwhere
+    end if
+    minlon = rounder(minval(tmplon),.false.)
   end if
   rlatinc = rounder(real(ds/111000.0/2.0),.false.)
   rloninc = rounder(real(ds/111000.0/2.0),.false.)
