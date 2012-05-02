@@ -59,7 +59,8 @@ module mod_pbl_interface
 
     ptp = ptop
     if ( ichem == 1 )      lchem = .true.
-    if ( ichdrydepo == 1 ) lchdrydepo = .true.
+!perform dry deposition calculation as part of pbl scheme
+    if ( ichdrydepo == 2 ) lchdrydepo = .true.
 
     dttke = dt
     dtpbl = dt
