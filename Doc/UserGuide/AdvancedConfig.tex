@@ -214,14 +214,6 @@ later when the model calculates climatic parameters.
 \begin{Verbatim}
  &terrainparam
  domname  = 'AQWA',      ! Name of the domain. Controls naming of input files
- ntypec = 5,             ! Resolution of the global terrain and landuse data
-                         ! Use 60, for  1  degree resolution
-                         !     30, for 30 minutes resolution
-                         !     10, for 10 minutes resolution
-                         !      5, for  5 minutes resolution
-                         !      3, for  3 minutes resolution
-                         !      2, for  2 minutes resolution
- ntypec_s = 2,           ! Same for subgrid (Used only if nsg > 1)
  smthbdy = .false.,      ! Smoothing Control flag
                          !  true  -> Perform extra smoothing in boundaries
  lakedpth    = .false.,  ! If using lakemod (see below), produce from
@@ -247,13 +239,6 @@ The things you need to know here:
 generated files will add this prefix to the old V3 naming convention,
 giving you the capability to recognize different runs. Try to use always
 meaningful names.
-\item In version 4.2 does exist a single input dataset, the 30s one. The
-\verb=ntypec= parameter controls initial subsampling of input dataset before
-the smoothing interpolation performed by the \verb=terrain= program.
-\item Use lakedepth if you plan to use the Hostetler lake model later on.
-It will be useless otherwise. It may be used in the future to
-have a common sea bathymetry with the ocean coupled model. The coupling
-engine of RegCM will be included in future model releases.
 \item You can control the final land-water mask using the h2opct parameter.
 This parameter can be used to have more land points than calculated by
 the simple interpolation engine. Try it with different values to find best

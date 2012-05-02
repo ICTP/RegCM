@@ -52,21 +52,12 @@
                     ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
                     ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
  ntr =  4,          ! Tracer parameters: number of tracers
- nbin = 2,          ! Tracer parameters: bins number for dust
  /
 !
 ! DOMAIN terrain generation parameters
 !
  &terrainparam
  domname  = 'AQWA',      ! Name of the domain. Controls naming of input files
- ntypec = 5,             ! Resolution of the global terrain and landuse data
-                         ! Use 60, for  1  degree resolution
-                         !     30, for 30 minutes resolution
-                         !     10, for 10 minutes resolution
-                         !      5, for  5 minutes resolution
-                         !      3, for  3 minutes resolution
-                         !      2, for  2 minutes resolution
- ntypec_s = 2,           ! Same for subgrid (Used only if nsg > 1)
  smthbdy = .false.,      ! Smoothing Control flag
                          !  true  -> Perform extra smoothing in boundaries
  lakedpth    = .false.,  ! If using lakemod (see below), produce from
@@ -377,13 +368,6 @@
                       ! for DUST type this value is not effectively considered
                       ! since a dry deposition scheme is explicitely included
                       ! in RegCM.
- inpdustbsiz  =   0.1,  1., 1., 2.5,
-                      ! Lower Size limit (first nbin) and Upper Size limit
-                      ! (second nbin values) of diameter bin classes for dust
-                      ! (in micrometer). Should never exceed nbin * 2 values.
-                      ! So in this example there are two bins of
-                      !   *  0.1 - 1.0 micrometer
-                      !   *  1.0 - 2.5 micrometer
 !
 ! NOTE
 !------
