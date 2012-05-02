@@ -1,0 +1,3 @@
+# config file for coupled RegCM model
+# PET distribution of gridded components 1 (RegCM) and 2 (ROMS), respectively
+PETs: 32 28

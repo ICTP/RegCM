@@ -1,0 +1,155 @@
+!Caspian domain
+ &dimparam
+ iy     = 86,
+ jx     = 96,
+ kz     = 18,
+ nsg    = 1,
+ /
+ &geoparam
+ iproj = 'LAMCON',
+ ds = 50.0,
+ ptop = 5.0,
+ clat = 50.0,
+ clon = 55.0,
+ plat = 50.0,
+ plon = 55.0,
+ truelatl = 30.0,
+ truelath = 60.0,
+ i_band = 0,
+ /
+ &terrainparam
+ domname = 'CAS',
+ ntypec = 10,
+ ntypec_s = 2,
+ smthbdy = .false.,
+ lakedpth = .false.,
+ fudge_lnd   = .false.,
+ fudge_lnd_s = .false.,
+ fudge_tex   = .false.,
+ fudge_tex_s = .false.,
+ fudge_lak   = .false.,
+ fudge_lak_s  = .false.,
+ h2opct = 75.,
+ dirter = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/input',
+ inpter = '/home/netapp/clima-shared/RCMDATA',
+ /
+ &ioparam
+ ibyte = 4,
+ /
+ &debugparam
+ debug_level = 3
+ dbgfrq = 3,
+ /
+ &boundaryparam
+ nspgx  = 12,
+ nspgd  = 12,
+ /
+ &modesparam
+ nsplit = 2,
+ /
+ &globdatparam
+ ibdyfrq = 6,
+ ssttyp = 'OI2WK',
+ dattyp = 'EIN15',
+ calendar = 'gregorian',
+ gdate1 = 1996030100,
+ gdate2 = 2009010100,
+ dirglob = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/input',
+ inpglob = '/home/netapp/clima-shared/RCMDATA',
+ /
+ &globwindow
+ lat0 = 0.0
+ lat1 = 0.0
+ lon0 = 0.0
+ lon1 = 0.0
+ /
+ &aerosolparam
+ aertyp = 'AER00D0'
+ ntr = 10,
+ /
+ &restartparam
+ ifrest  = .false. ,
+ mdate0  = 1995010100,
+ mdate1  = 1995010100, 
+ mdate2  = 2009010100,
+ /
+ &timeparam
+ dtrad   =    30.,
+ dtabem  =    18.,
+ dtsrf   =   600.,
+ dt      =   150.,
+ /
+ &outparam
+ ifsave  = .true. ,
+   savfrq  =  7200.,
+ ifatm  = .true. ,
+   atmfrq  =     6.,
+ ifrad   = .true. ,
+   radfrq  =     6.,
+ ifsrf   = .true. ,
+ iflak   = .true. ,
+   lakfrq  =     6.,
+ ifsub   = .true. ,
+   srffrq  =     3.,
+ ifchem  = .true.,
+   chemfrq =     6., 
+ dirout = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/output',
+ /
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup    =          2,
+ igcc    =          2,
+ ipptls  =          1,
+ iocnflx =          2,
+ iocncpl =          1,
+ ipgf    =          0,
+ iemiss  =          0,
+ lakemod =          0,
+ ichem   =          0,
+ scenario = 'A1B',
+ idcsst = 1,
+ iseaice = 0,
+ idesseas = 1,
+ iconvlwp = 1,
+ /
+ &subexparam
+ ncld    =          3,
+ qck1land=   .600E-04,
+ qck1oce =   .250E-03,
+ cevap   =   1.50E-02,
+ caccr   =      1.000,
+ gulland =        1.0,
+ cftotmax =      0.75,
+ /
+ &grellparam
+ shrmax  = 1.0,
+ edtmax  = 1.0,
+ edtmaxo = 1.0,
+ edtmaxx = 1.0,
+ shrmax_ocn = 1.0,
+ edtmax_ocn = 1.0,
+ edtmaxo_ocn = 1.0,
+ edtmaxx_ocn = 1.0,
+ shrmin  = 0.7,
+ edtmin  = 0.7,
+ edtmino = 0.7,
+ edtminx = 0.7,
+ shrmin_ocn = 0.7,
+ edtmin_ocn = 0.7,
+ edtmino_ocn = 0.7,
+ edtminx_ocn = 0.7,
+ /
+ &emanparam
+ /
+ &chemparam
+ idirect   =    1,
+ inpchtrname  =   '',
+ inpchtrsol   =   .00,
+ inpchtrdpv   =  .00000, .00000,
+ inpdustbsiz  =   .00,  .00,
+ /
+ &cplparam
+ cpldt        = 10800.,
+ cpldbglevel  = 1,
+ /

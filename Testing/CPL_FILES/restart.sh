@@ -113,14 +113,19 @@ fi
 # NRREC
 str1=`cat $romsin | grep "NRREC" | head -n 1`
 str2=`echo $str1 | awk -F! '{print $2}'`
-str1=${str1/\!$str2/""}
+if [ -n "$str1" ]; then
+  str1=${str1/\!$str2/""}
+fi
 val1=`echo "$str1" | awk -F"==" '{print $2}' | tr -d ' '`
+if [ -z "$val1" ]; then
+  val1=`echo "$str1" | awk -F"=" '{print $2}' | tr -d ' '`
+fi
 val2="-1"
 if [ "$val1" == "$val2" ]; then
   echo "[debug] -- the restart record (NRREC) is already changed. do not change it again!"
 else
   str2=${str1/$val1/$val2}
-  cat $romsin | sed "s/$str1/$str2 \!$val1/g" > .tmp
+  cat $romsin | sed "s/$str1/$str2/g" > .tmp
   mv .tmp $romsin
   echo "[debug] -- NRREC is changed to '$val2' in '$romsin' file."
 fi
@@ -130,6 +135,9 @@ str1=`cat $romsin | grep "LDEFOUT" | head -n 1`
 str2=`echo $str1 | awk -F! '{print $2}'`
 str1=${str1/\!$str2/""}
 val1=`echo "$str1" | awk -F"==" '{print $2}' | tr -d ' '`
+if [ -z "$val1" ]; then
+  val1=`echo "$str1" | awk -F"=" '{print $2}' | tr -d ' '`
+fi
 val2="F"
 if [ "$val1" == "$val2" ]; then
   echo "[debug] -- the LDEFOUT option is already changed. do not change it again!"
@@ -145,6 +153,9 @@ str1=`cat $romsin | grep "ININAME" | head -n 1`
 str2=`echo $str1 | awk -F! '{print $2}'`
 str1=${str1/\!$str2/""}
 val1=`echo "$str1" | awk -F"==" '{print $2}' | tr -d ' '`
+if [ -z "$val1" ]; then
+  val1=`echo "$str1" | awk -F"=" '{print $2}' | tr -d ' '`
+fi
 val2="output/ocean_rst.nc"
 if [ "$val1" == "$val2" ]; then
   echo "[debug] -- the restart file (ININAME) is already changed. do not change it again!"
