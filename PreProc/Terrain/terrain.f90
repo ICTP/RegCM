@@ -59,7 +59,7 @@ program terrain
   use mod_block
   use mod_smooth
   use mod_maputils
-  use mod_interp
+  use mod_intldtr
   use mod_fudge
   use mod_rdldtr
   use mod_write

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_interp
+module mod_intldtr
 !
   use mod_realkinds
   use mod_constants
@@ -535,4 +535,4 @@ module mod_interp
     end do
   end subroutine filter1plakes
 !
-end module mod_interp
+end module mod_intldtr
