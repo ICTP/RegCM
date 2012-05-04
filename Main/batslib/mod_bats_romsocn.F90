@@ -64,7 +64,10 @@ module mod_bats_romsocn
 !
     real(dp) :: uv995, tsurf, t995, q995, z995, zi, psurf
     real(dp) :: qs, uv10, tau, lh, sh, dth, dqh, ustar, zo
-    real(dp) :: facttq, toth 
+    real(dp) :: facttq
+#ifdef ROMSICE
+    real(dp) :: toth 
+#endif
 !
     integer i , j , n
     character (len=64) :: subroutine_name='romsocndrv'

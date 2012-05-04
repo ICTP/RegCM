@@ -26,6 +26,7 @@ module mod_cu_tiedtke
   use mod_constants
   use mod_cu_common
   use mod_cu_tables
+  use mod_service
 !
   private
 !
@@ -87,7 +88,7 @@ module mod_cu_tiedtke
 !
   subroutine allocate_mod_cu_tiedtke
     implicit none
-    nipoi = ici2 - ici1 + 1
+    nipoi = (ici2-ici1+1)*(jci2-jci1+1)
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
     call getmem2d(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
     call getmem2d(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
@@ -133,34 +134,40 @@ module mod_cu_tiedtke
 !   local variables
     integer :: i , j , k , ii , kclth
     real(dp) :: akclth
+    character (len=64) :: subroutine_name='tiedtkedrv'
+    integer :: idindx=0
+    !
+    call time_begin(subroutine_name,idindx)
 
 !   need to translate REGCM to TIEDTKE vars...
 
     ztmx = dtmdl
 
     total_precip_points = 0
-    do j = jci1 , jci2
-      ilab(:,:) = 2
+    ilab(:,:) = 2
+    cevapcu(:) = cevapu
 
-!     evaporation coefficient for kuo0 
-      cevapcu(:) = cevapu
-
-      if (lchem) then    
-        do k = 1 , kz
-          do i = ici1 , ici2
-            ii = i - 1
+!   evaporation coefficient for kuo0 
+    if (lchem) then    
+      do k = 1 , kz
+        ii = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             ! tracers input profile : implicit loop on tracer
             pxtm1(ii,k,:) = chias(j,i,k,:)
             pxtte(ii,k,:) = tchiten(j,i,k,:)/sfcps(j,i)
-          end do 
-        end do
-      else
-        pxtm1(:,:,:) = d_zero ! tracers input profiles
-        pxtte(:,:,:) = d_zero ! tracer tendencies
-      end if
+            ii = ii + 1
+          end do
+        end do 
+      end do
+    else
+      pxtm1(:,:,:) = d_zero ! tracers input profiles
+      pxtte(:,:,:) = d_zero ! tracer tendencies
+    end if
 
-      do i = ici1 , ici2
-        ii = i - 1
+    ii = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
 !     AMT NOTE: This is used in the switch between deep and shallow convectio
 !     The simpler switch on pressure difference still used in ECMWF 
 !     is commented out - possibly tests should be made to reinstate 
@@ -168,11 +175,15 @@ module mod_cu_tiedtke
         xphfx(ii) = qfx(j,i)
         ! Land/water flag - is correctly set?
         ldland(ii) = (lmask(j,i) == 0)
+        ii = ii + 1
       end do
+    end do
 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          ii = i - 1
+    ii = 1
+    do k = 1 , kz
+      ii = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           ! Pascal
           papp1(ii,k) = (hlev(k)*sfcps(j,i)+ptop)*d_1000
 
@@ -199,35 +210,42 @@ module mod_cu_tiedtke
           pqtec(ii,k) = d_zero ! detrained humidity tendancy
 
           xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
+          ii = ii + 1
         end do
       end do
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          ii = i - 1
+    end do
+
+    do k = 1 , kzp1
+      ii = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           ! 1st guess pressure at full levels
           paphp1(ii,k) = (flev(k)*sfcps(j,i)+ptop)*d_1000
+          ii = ii + 1
         end do
       end do
+    end do
 
-      ! Output variables (1d)
-      prsfc(:) = d_zero ! CHECK - surface rain flux
-      pssfc(:) = d_zero ! CHECK - surface snow flux      
-      paprc(:) = d_zero ! total precip cumulative 
-      paprs(:) = d_zero ! total snow cumulative 
+    ! Output variables (1d)
+    prsfc(:) = d_zero ! CHECK - surface rain flux
+    pssfc(:) = d_zero ! CHECK - surface snow flux      
+    paprc(:) = d_zero ! total precip cumulative 
+    paprs(:) = d_zero ! total snow cumulative 
 
-      ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
-      kctop(:) = 0
-      kcbot(:) = 0
+    ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
+    kctop(:) = 0
+    kcbot(:) = 0
 
-      call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
-                  pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
-                  pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
-                  pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
-      !
-      ! postprocess some fields including precipitation fluxes
-      !
-      do i = ici1 , ici2
-        ii = i - 1
+    call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
+                pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
+                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
+                pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
+    !
+    ! postprocess some fields including precipitation fluxes
+    !
+    ii = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if (ktype(ii) > 0) then
           if ( paprc(ii)+paprs(ii) > dlowval ) then
             total_precip_points = total_precip_points + 1
@@ -241,14 +259,17 @@ module mod_cu_tiedtke
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv
             end if
           end if
+          ii = ii + 1
         end if
       end do
+    end do
 
-      ! update tendencies - note that rate were ADDED in cudtdq
-      !                     thus here we must reset the rates. 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          ii = i - 1
+    ! update tendencies - note that rate were ADDED in cudtdq
+    !                     thus here we must reset the rates. 
+    do k = 1 , kz
+      ii = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if (ktype(ii) > 0) then
             tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
             uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
@@ -259,11 +280,14 @@ module mod_cu_tiedtke
               tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
             end if
           end if
+          ii = ii + 1
         end do
       end do
+    end do
 
-      do i = ici1 , ici2
-        ii = i - 1
+    ii = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         if (ktype(ii) > 0) then
           kclth = kcbot(ii) - kctop(ii) + 1
           akclth = d_one/dble(kclth)
@@ -272,10 +296,11 @@ module mod_cu_tiedtke
             rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
           end do
         end if
+        ii = ii + 1
       end do
-
     end do
 
+    call time_end(subroutine_name,idindx)
   end subroutine tiedtkedrv
 !
   subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
@@ -334,6 +359,10 @@ module mod_cu_tiedtke
   real(dp) , dimension(kbdim) :: zrain , ztopmax
   real(dp) :: zxip1 , zxlp1
   real(dp) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
+  character (len=64) :: subroutine_name='cucall'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !  Executable statements
 !
@@ -436,6 +465,7 @@ module mod_cu_tiedtke
     ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cucall
 !
 !---------------------------------------------------------------------
@@ -565,6 +595,10 @@ module mod_cu_tiedtke
          zuu , zvd , zvu , zxenh
   real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
+  character (len=64) :: subroutine_name='cumastr'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !     Executable statements
  
@@ -937,6 +971,7 @@ module mod_cu_tiedtke
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cumastr
 !
   subroutine cumastrh(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
@@ -1061,6 +1096,10 @@ module mod_cu_tiedtke
          zvd , zvu , zxenh
   real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
+  character (len=64) :: subroutine_name='cumastrh'
+  integer :: idindx=0
+  !
+  call time_begin(subroutine_name,idindx)
 !
 !     Executable statements
  
@@ -1377,6 +1416,7 @@ module mod_cu_tiedtke
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cumastrh
 !
   subroutine cumastrt(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
@@ -1499,6 +1539,10 @@ module mod_cu_tiedtke
                                 zmfub , zmfub1 , zrfl , zsfl
   real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
+  character (len=64) :: subroutine_name='cumastrt'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !     Executable statements
 !
@@ -1773,6 +1817,7 @@ module mod_cu_tiedtke
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cumastrt
 !
   subroutine cuini(kproma,kbdim,klev,klevp1,klevm1,pten,pqen,pqsen, &
@@ -1832,6 +1877,10 @@ module mod_cu_tiedtke
   logical , dimension(kbdim) :: loflag
   real(dp) :: zarg , zcpm , zzs
   real(dp) , dimension(kbdim) :: zph , zwmax
+  character (len=64) :: subroutine_name='cumini'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.           SPECIFY LARGE SCALE PARAMETERS AT HALF LEVELS
@@ -1967,6 +2016,7 @@ module mod_cu_tiedtke
 !
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuini
 !
   subroutine cuasc(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,puen,&
@@ -2048,6 +2098,10 @@ module mod_cu_tiedtke
                                 zmfuv , zpbase , zph , zqold
   real(dp) , dimension(kbdim,klev) :: zodetr , zoentr
 !
+  character (len=64) :: subroutine_name='cuasc'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !----------------------------------------------------------------------
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
@@ -2470,6 +2524,7 @@ module mod_cu_tiedtke
     end do
   end if
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuasc
 !
   subroutine cuasct(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,    &
@@ -2545,6 +2600,10 @@ module mod_cu_tiedtke
              zseen , ztglace , zxteen , zxtude , zz , zzdmf
   real(dp) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
                                 zpbase , zph , zqold
+  character (len=64) :: subroutine_name='cuasct'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.           SPECIFY PARAMETERS
@@ -2851,6 +2910,7 @@ module mod_cu_tiedtke
     end do
   end if
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuasct
 !
   subroutine cubase(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,    &
@@ -2901,6 +2961,10 @@ module mod_cu_tiedtke
   logical , dimension(kbdim) :: loflag
   real(dp) :: zbuo , zz
   real(dp) , dimension(kbdim) :: zph , zqold
+  character (len=64) :: subroutine_name='cubase'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !     1.           INITIALIZE VALUES AT LIFTING LEVEL
@@ -2990,6 +3054,7 @@ module mod_cu_tiedtke
     end do
   end if
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cubase
 !
   subroutine cubasmc(kproma,kbdim,klev,kk,klab,pten,pqen,pqsen,puen,&
@@ -3040,6 +3105,10 @@ module mod_cu_tiedtke
   integer :: jl , jt
   logical , dimension(kbdim) :: llo3
   real(dp) :: zzzmb
+  character (len=64) :: subroutine_name='cubasmc'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -3083,6 +3152,7 @@ module mod_cu_tiedtke
     end do
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cubasmc
 !
   subroutine cuddraf(kproma,kbdim,klev,klevp1,ptenh,pqenh,puen,pven,&
@@ -3145,6 +3215,10 @@ module mod_cu_tiedtke
              zmfdvk , zmfdxtk , zqdde , zqeen , zsdde , zseen ,     &
              zxtdde , zxteen
   real(dp) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
+  character (len=64) :: subroutine_name='cuddraf'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !     1.           CALCULATE MOIST DESCENT FOR CUMULUS DOWNDRAFT BY
@@ -3254,6 +3328,7 @@ module mod_cu_tiedtke
 !
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuddraf
 !
   subroutine cudlfs(kproma,kbdim,klev,klevp1,ptenh,pqenh,puen,pven, &
@@ -3312,6 +3387,10 @@ module mod_cu_tiedtke
   real(dp) :: zbuo , zmftop , zqtest , zttest
   real(dp) , dimension(kbdim) :: zcond , zph
   real(dp) , dimension(kbdim,klev) :: zqenwb , ztenwb
+  character (len=64) :: subroutine_name='cudlf'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !     1.           SET DEFAULT VALUES FOR DOWNDRAFTS
@@ -3417,6 +3496,7 @@ module mod_cu_tiedtke
     end do
   end if
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cudlfs
 !
   subroutine cudtdq(kproma,kbdim,klev,klevp1,ktopm2,ldcum,ktrac,    &
@@ -3457,6 +3537,10 @@ module mod_cu_tiedtke
   logical :: llo1
   real(dp) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
   real(dp) , dimension(kbdim) :: zmelt , zsheat
+  character (len=64) :: subroutine_name='cudtdq'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    2.0          INCREMENTATION OF T AND Q TENDENCIES
@@ -3558,6 +3642,7 @@ module mod_cu_tiedtke
     paprs(jl) = paprs(jl) + ztmx*psfl(jl)
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cudtdq
 !
   subroutine cududv(kproma,kbdim,klev,klevp1,ktopm2,ktype,kcbot,    &
@@ -3591,6 +3676,10 @@ module mod_cu_tiedtke
   integer :: ik , ikb , jk , jl
   real(dp) :: zdudt , zdvdt , zzp
   real(dp) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
+  character (len=64) :: subroutine_name='cududv'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.0          CALCULATE FLUXES AND UPDATE U AND V TENDENCIES
@@ -3675,6 +3764,7 @@ module mod_cu_tiedtke
 !
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cududv
 !
   subroutine cuentr(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,   &
@@ -3725,6 +3815,10 @@ module mod_cu_tiedtke
   logical :: llo1 , llo2
   real(dp) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
              zrrho , ztmzk , zzmzk
+  character (len=64) :: subroutine_name='cuentr'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -3740,12 +3834,23 @@ module mod_cu_tiedtke
 !*    1.2          SPECIFY ENTRAINMENT RATES FOR DEEP CLOUDS
 !     -----------------------------------------
 !
+  pdmfde(:) = d_zero
+  pdmfen(:) = d_zero
+  podetr(:,:) = d_zero
+
+  
+
+  if (.false.) then !AMT fudge timing test
+
   do jl = 1 , kproma
+
     ppbase(jl) = paphp1(jl,kcbot(jl))
+    if ( .not. ldcum(jl) ) cycle
     zrrho = (rgas*ptenh(jl,kk+1)*(d_one+vtmpc1*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
     zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
     zpmid = d_half*(ppbase(jl)+paphp1(jl,kctop0(jl)))
     zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
+
     llo1 = kk < kcbot(jl) .and. ldcum(jl)
     pdmfde(jl) = merge(zentr,d_zero,llo1)
     llo2 = llo1 .and. ktype(jl) == 2 .and.                            &
@@ -3754,12 +3859,14 @@ module mod_cu_tiedtke
     iklwmin = max(klwmin(jl),kctop0(jl)+2)
     llo2 = llo1 .and. ktype(jl) == 3 .and. kk >= iklwmin
     if ( llo2 ) pdmfen(jl) = zentr
+
     if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
       pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
       zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
       zentest = min(centrmax,zentest/(pmfu(jl,kk+1)*zrrho))
       pdmfen(jl) = zentr + zentest*pmfu(jl,kk+1)*zrrho*zdprho
     end if
+
     llo2 = llo1 .and. ktype(jl) == 1 .and.                            &
            (kk >= iklwmin .or. paphp1(jl,kk) > zpmid)
     if ( llo2 ) pdmfen(jl) = zentr
@@ -3769,6 +3876,7 @@ module mod_cu_tiedtke
     llo2 = llo1 .and. ktype(jl) == 1
     ikb = kcbot(jl)
     podetr(jl,kk) = d_zero
+
     if ( llo2 .and. kk <= khmin(jl) .and. kk >= kctop0(jl) ) then
       ikt = kctop0(jl)
       ikh = khmin(jl)
@@ -3782,7 +3890,66 @@ module mod_cu_tiedtke
       end if
     end if
   end do
+
+  else
+  
+  do jl = 1 , kproma
+    ppbase(jl) = paphp1(jl,kcbot(jl))
+
+    if ( .not. ldcum(jl) ) cycle
+
+    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+vtmpc1*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
+    zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
+    zpmid = d_half*(ppbase(jl)+paphp1(jl,kctop0(jl)))
+  
+    zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
+    llo1 = kk < kcbot(jl) .and. ldcum(jl)
+    pdmfde(jl) = merge(zentr,d_zero,llo1)
+
+    select case(ktype(jl))
+
+    case(1) 
+      llo2 = llo1 .and.                            &
+           (kk >= iklwmin .or. paphp1(jl,kk) > zpmid)
+      if ( llo2 ) pdmfen(jl) = zentr
+  !
+  !       organized detrainment, detrainment starts at khmin
+  !
+      ikb = kcbot(jl)
+      podetr(jl,kk) = d_zero
+      if ( llo1 .and. kk <= khmin(jl) .and. kk >= kctop0(jl) ) then
+        ! AMT: changed detrainment profile to linear instead of TAN
+        !      to speed up this section of code by factor of 5
+        ikt = kctop0(jl)
+        ikh = khmin(jl)
+        zarg=(paphp1(jl,ikh)-paphp1(jl,kk))/max(d_one,(paphp1(jl,ikh)-paphp1(jl,ikt)))
+        podetr(jl,kk)=zarg*centrmax*pmfu(jl,kk+1)*zdprho
+      end if
+
+    case(2)
+      llo2 = llo1 .and.                            &
+           (ppbase(jl)-paphp1(jl,kk) < 0.2D5 .or. paphp1(jl,kk) > zpmid)
+      pdmfen(jl) = merge(zentr,d_zero,llo2)
+      iklwmin = max(klwmin(jl),kctop0(jl)+2)
+
+    case(3)
+      llo2 = llo1 .and. kk >= iklwmin
+      if ( llo2 ) pdmfen(jl) = zentr
+      if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
+        pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
+        zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
+        zentest = min(centrmax,zentest/(pmfu(jl,kk+1)*zrrho))
+        pdmfen(jl) = zentr + zentest*pmfu(jl,kk+1)*zrrho*zdprho
+      end if
+    case default
+      cycle
+    end select
+
+  end do
+
+  end if !AMT temporary if statement for optimisation
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuentr
 !
   subroutine cuentrt(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,  &
@@ -3828,6 +3995,10 @@ module mod_cu_tiedtke
   integer :: iklwmin , jl
   logical :: llo1 , llo2
   real(dp) :: zdprho , zentest , zentr , zpmid , zrrho
+  character (len=64) :: subroutine_name='cuentrt'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -3866,6 +4037,7 @@ module mod_cu_tiedtke
     end if
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuentrt
 !
   subroutine cuflx(kproma,kbdim,klev,klevp1,pqen,pqsen,ptenh,pqenh, &
@@ -3914,6 +4086,10 @@ module mod_cu_tiedtke
              zrfl , zrfln , zrmin , zrnew , zrsum , zsnmlt ,        &
              ztmelp2 , zzp
   real(dp) , dimension(kbdim) :: zpsubcl
+  character (len=64) :: subroutine_name='cuflx'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 !
 !*    SPECIFY CONSTANTS
 !
@@ -4060,6 +4236,7 @@ module mod_cu_tiedtke
     psfl(jl) = psfl(jl) + zdpevap*psfl(jl)*(d_one/max(1.D-20,zrsum))
   end do
 !
+  call time_end(subroutine_name,idindx)
   end subroutine cuflx
 !
   subroutine cuadjtq(kproma,kbdim,klev,kk,pp,pt,pq,ldflag,kcall)
@@ -4111,6 +4288,10 @@ module mod_cu_tiedtke
   real(dp):: zcond(kbdim)
 
   !  Executable statements 
+  character (len=64) :: subroutine_name='cuadjtq'
+  integer :: idindx=0
+
+  call time_begin(subroutine_name,idindx)
 
   lookupoverflow = .false.
 
@@ -4152,6 +4333,8 @@ module mod_cu_tiedtke
     if (lookupoverflow) then 
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
+
+    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
 
     if ( isum == 0 ) go to 230
 
@@ -4220,6 +4403,8 @@ module mod_cu_tiedtke
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 
+    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
+
     if(isum == 0) go to 330
 
     do jl = 1 , kproma
@@ -4281,6 +4466,8 @@ module mod_cu_tiedtke
     if (lookupoverflow) then 
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
+
+    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
 
     if ( isum == 0 ) go to 430
 
@@ -4366,7 +4553,7 @@ module mod_cu_tiedtke
     endif
 
   end if
-end subroutine cuadjtq
+  call time_end(subroutine_name,idindx)
+  end subroutine cuadjtq
 
-!
 end module mod_cu_tiedtke
