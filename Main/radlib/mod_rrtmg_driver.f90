@@ -307,9 +307,9 @@ module mod_rrtmg_driver
                           ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                           taucmcl_lw)
     tauaer_lw = d_zero
-    !  provisoire
+    !  provisoire similar ti default std 
     do k = 1,nbndlw
-      emis_surf(:,k) = 0.97D0
+      emis_surf(:,k) = 1.D0
       ! = emsvt(:)
     end do 
 
@@ -331,7 +331,7 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
-    solin(:) = swdflx(:,1)
+    solin(:) = swdflx(:,kzp1)
     frsa(:)  = swdflx(:,1) - swuflx(:,1)
     sabtp(:) = swdflx(:,kzp1) - swuflx(:,kzp1)
     clrst(:) = swdflxc(:,kzp1) - swuflxc(:,kzp1)
