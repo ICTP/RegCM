@@ -119,7 +119,7 @@ module mod_bats_romsocn
           else
             ldmsk1(n,j,i) = 0
             ldmsk1(n,j,i) = 0
-            lveg(n,j,i) = 15
+            lveg(n,j,i) = lveg2(n,j,i) 
             sfice(n,j,i) = d_zero
             sncv(n,j,i) = d_zero
             snag(n,j,i) = d_zero

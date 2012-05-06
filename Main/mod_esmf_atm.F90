@@ -1221,7 +1221,7 @@
                       lbound(flw, dim=2), ubound(flw, dim=2)
         end if
         models(Iatmos)%dataExport(i,n)%ptr = flw
-      else if (trim(adjustl(name)) == "rain") then ! mm/day
+      else if (trim(adjustl(name)) == "rain") then ! mm/s
         if (cpl_dbglevel > 1) then
           write(*,40) localPet, "ATM-"//trim(adjustl(name)),            &
                       lbound(totpr, dim=1), ubound(totpr, dim=1),       &
