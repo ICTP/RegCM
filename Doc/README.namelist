@@ -35,7 +35,8 @@
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
  truelath = 60,    ! Lambert true latitude (high latitude side)
- i_band = 0,       ! Use this only if BAND option is used.
+ i_band = 0,       ! Use this to enable a tropical band. In this case the ds,
+                   ! iproj, clat, clon parameters are not considered.
  /
 !
 ! Aerosol dataset creation and use
@@ -82,12 +83,16 @@
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_RF, FV_A2, FV_B2,
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST
+                             !          ERSST, ERSKT, CCSST, HA_XX,
+                             !          CA_XX, EC_XX, IP_XX
+                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY
+                             !          EHA1B, CCSMN, ECEXY, HA_XX, CA_XX,
+                             !          EC_XX, IP_XX
+                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
@@ -100,13 +105,14 @@
 ! Global I/O control Stanza
 !
  &ioparam
- ibyte = 4,   ! Number of bytes in reclen. Usually 4
+ ibyte = 4,   ! Number of bytes in reclen. Usually 4. Used for I/O of non
+              ! netDF datasets (ECHAM5, GIST, ECWP, FVGCM)
  /
 !
 ! Debug I/O printout level.
 !
  &debugparam
- debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
+ debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
  dbgfrq = 3,      ! Interval for printout if debug_level >= 3
  /
 !
@@ -120,12 +126,6 @@
  high_nudge =    3.0D0, ! Nudge value high range
  medium_nudge =  2.0D0, ! Nudge value medium range
  low_nudge =     1.0D0  ! Nudge value low range
- /
-!
-! Split modes
-!
- &modesparam
- nsplit = 2, ! Number od split exp modes
  /
 !
 ! Model start/restart control
@@ -158,7 +158,7 @@
  ifsrf   = .true. ,         ! Output SRF ?
  ifsts   = .true. ,         ! Output STS ?
  ifsub   = .true. ,         ! Output SUB ?
- srffrq  =     3.,          ! Frequency in hours to write to SRF and SUB (and CLM)
+ srffrq  =     3.,          ! Frequency in hours to write SRF and SUB (and CLM)
  iflak   = .true.,          ! Output LAK ?
  lakfrq  =     6.,          ! Frequency in hours to write to LAK if lakemod is 1
                             ! It must be an integer multiple of batfrq
@@ -194,6 +194,7 @@
                         !   2 => Grell
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
+                        !   5 => Tiedtke (1996)
                         !  99 => Use Grell over land and Emanuel over ocean
                         !  98 => Use Emanuel over land and Grell over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
@@ -220,6 +221,8 @@
  idesseas =          1, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective liquid water path as the large-scale
                         ! liquid water path
+ irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
+ io3clima =          0, ! Use O3 climatic dataset from SPARC CMIP5
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)

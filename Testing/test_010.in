@@ -39,9 +39,6 @@
  nspgx  = 5,
  nspgd  = 5,
  /
- &modesparam
- nsplit = 2,
- /
  &globdatparam
  ssttyp = 'OI_WK',
  dattyp = 'EIN15',

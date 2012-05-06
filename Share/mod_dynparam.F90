@@ -344,7 +344,6 @@ module mod_dynparam
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
                    medium_nudge , low_nudge
-    namelist /modesparam/ nsplit
     namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
                    dirglob , inpglob , calendar , ibdyfrq
     namelist /aerosolparam/ aertyp , ntr
@@ -444,7 +443,8 @@ module mod_dynparam
     nspgv = (nspgd+nspgx)*8 + 8
     nspgp = nspgx*4
 
-    read(ipunit, modesparam, err=107)
+    ! Removed modesparam. It must not be changed, so avoid cluttering.
+    nsplit = 2
 
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'
@@ -498,10 +498,6 @@ module mod_dynparam
     ierr = 1
     return
   106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ',  &
         & trim(filename)
     ierr = 1
     return

@@ -44,9 +44,6 @@
  nspgx  = 12,
  nspgd  = 12,
  /
- &modesparam
- nsplit = 2,
- /
  &globdatparam
  ibdyfrq = 6,
  ssttyp = 'OI2WK',
