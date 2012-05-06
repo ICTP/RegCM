@@ -22,13 +22,13 @@ module mod_humid
   use mod_constants
   use mod_realkinds
 !
-  real(4) , parameter :: rt0 = real(rtzero)
-  real(4) , parameter :: t0 = real(tzero)
-  real(4) , parameter :: slh0 = real(lh0)
-  real(4) , parameter :: slh1 = real(lh1)
-  real(4) , parameter :: slsvp1 = real(lsvp1)
-  real(4) , parameter :: slsvp2 = real(lsvp2)
-  real(4) , parameter :: sep2 = real(ep2)
+  real(sp) , parameter :: rt0 = real(rtzero)
+  real(sp) , parameter :: t0 = real(tzero)
+  real(sp) , parameter :: slh0 = real(lh0)
+  real(sp) , parameter :: slh1 = real(lh1)
+  real(sp) , parameter :: slsvp1 = real(lsvp1)
+  real(sp) , parameter :: slsvp2 = real(lsvp2)
+  real(sp) , parameter :: sep2 = real(ep2)
 
   contains
 

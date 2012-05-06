@@ -50,7 +50,7 @@ module mod_vertint
   intent (in) f , im , jm , km , kp , p , p3d , ps
   intent (out) fp
 !
-  integer :: i , j , k , k1 , k1p , n
+  integer :: i , j , k , k1 , kp1 , n
   real(sp) , dimension(maxnlev) :: sig
   real(sp) :: sigp , w1 , wp
 !
@@ -76,10 +76,10 @@ module mod_vertint
           if ( sigp <= sig(1) ) then
             fp(i,j,n) = f(i,j,1)
           else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            k1p = k1 + 1
-            wp = (sigp-sig(k1))/(sig(k1p)-sig(k1))
+            kp1 = k1 + 1
+            wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
             w1 = 1. - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
+            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
           else if ( sigp >= sig(km) ) then
             fp(i,j,n) = f(i,j,km)
           else
@@ -109,7 +109,7 @@ module mod_vertint
   intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
   intent (out) fp
 !
-  integer :: i , j , k , k1 , k1p , n
+  integer :: i , j , k , k1 , kp1 , n
   real(sp) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -127,10 +127,10 @@ module mod_vertint
         if ( sigp <= sig(1) ) then
           fp(i,j,n) = f(i,j,1)
         else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-          k1p = k1 + 1
-          wp = (sigp-sig(k1))/(sig(k1p)-sig(k1))
+          kp1 = k1 + 1
+          wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
           w1 = 1. - wp
-          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
+          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
         else if ( sigp >= sig(km) ) then
           fp(i,j,n) = f(i,j,km)
         else
@@ -215,7 +215,7 @@ module mod_vertint
   intent (out) fp
 !
   real(sp) :: sigp , w1 , wp
-  integer :: i , j , k , k1 , k1p , kbc , n
+  integer :: i , j , k , k1 , kp1 , kbc , n
   real(sp) , dimension(maxnlev) :: sig
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
@@ -248,10 +248,10 @@ module mod_vertint
           if ( sigp <= sig(1) ) then
             fp(i,j,n) = f(i,j,1)
           else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            k1p = k1 + 1
-            wp = log(sigp/sig(k1))/log(sig(k1p)/sig(k1))
+            kp1 = k1 + 1
+            wp = log(sigp/sig(k1))/log(sig(kp1)/sig(k1))
             w1 = 1. - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
+            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
           else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
             fp(i,j,n) = f(i,j,km)
           else if ( sigp > 1. ) then
@@ -286,7 +286,7 @@ module mod_vertint
   intent (out) fp
 !
   real(sp) :: sigp , w1 , wp
-  integer :: i , j , k , k1 , k1p , kbc , n
+  integer :: i , j , k , k1 , kp1 , kbc , n
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -313,10 +313,10 @@ module mod_vertint
         if ( sigp <= sig(1) ) then
           fp(i,j,n) = f(i,j,1)
         else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-          k1p = k1 + 1
-          wp = log(sigp/sig(k1))/log(sig(k1p)/sig(k1))
+          kp1 = k1 + 1
+          wp = log(sigp/sig(k1))/log(sig(kp1)/sig(k1))
           w1 = 1. - wp
-          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
+          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
         else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
           fp(i,j,n) = f(i,j,km)
         else if ( sigp > 1. ) then
@@ -363,265 +363,202 @@ module mod_vertint
 !-----------------------------------------------------------------------
 !
   subroutine intv0(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-  implicit none
+    implicit none
 !
-  integer :: kccm , krcm , ni , nj
-  real(dp) :: pt
-  real(sp) , dimension(ni,nj,kccm) :: fccm
-  real(sp) , dimension(ni,nj,krcm) :: frcm
-  real(sp) , dimension(ni,nj) :: psrcm
-  real(sp) , dimension(kccm) :: sccm
-  real(sp) , dimension(krcm) :: srcm
-  intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-  intent (out) frcm
+    integer :: kccm , krcm , ni , nj
+    real(dp) :: pt
+    real(sp) , dimension(ni,nj,kccm) :: fccm
+    real(sp) , dimension(ni,nj,krcm) :: frcm
+    real(sp) , dimension(ni,nj) :: psrcm
+    real(sp) , dimension(kccm) :: sccm
+    real(sp) , dimension(krcm) :: srcm
+    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
+    intent (out) frcm
 !
-  real(sp) :: dp1 , pt1 , rc , rc1 , sc
-  integer :: i , j , k , k1 , k1p , n
+    real(sp) :: dp1 , pt1 , rc , rc1 , sc
+    integer :: i , j , k , k1 , kp1 , n
 
 !
-!     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATUES IN THE LAYER.
-! 
-  do i = 1 , ni
-    do j = 1 , nj
-      dp1 = psrcm(i,j)/psccm
-      pt1 = real(pt)/psccm
-      do n = 1 , krcm
-        sc = srcm(n)*dp1 + pt1
-        k1 = 0
-        do k = 1 , kccm
-          if ( sc > sccm(k) ) then
-            k1 = k
+!   INTV0 IS FOR VERTICAL INTERPOLATION OF TRACER WHERE THE TRACER HAS
+!   THE SAME VERTICAL ORDERING OF REGCM.
+!   THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+!   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+!
+    pt1 = real(pt)/psccm
+    do i = 1 , ni
+      do j = 1 , nj
+        dp1 = psrcm(i,j)/psccm
+        do n = 1 , krcm
+          sc = srcm(n)*dp1 + pt1
+          k1 = 0
+          do k = 1 , kccm
+            if ( sc > sccm(k) ) then
+              k1 = k
+            end if
+          end do
+          if ( k1 == 0 ) then
+            frcm(i,j,n) = fccm(i,j,1)
+          else if ( k1 /= kccm ) then
+            kp1 = k1+1
+            rc = (sc-sccm(k1))/(sccm(kp1)-sccm(k1))
+            rc1 = 1.0-rc
+            frcm(i,j,n) = rc1*fccm(i,j,k1)+rc*fccm(i,j,kp1)
+          else
+            frcm(i,j,n) = fccm(i,j,kccm)
           end if
         end do
-!
-!       CONDITION FOR SC .LT. SCCM(1) FOLLOWS
-!
-        if ( k1 == 0 ) then
-          frcm(i,j,n) = fccm(i,j,1)
-!
-!       CONDITION FOR SCCM(1) .LT. SC .LT. SCCM(KCCM) FOLLOWS
-!
-        else if ( k1 /= kccm ) then
-          k1p = k1+1
-          rc = (sc-sccm(k1))/(sccm(k1p)-sccm(k1))
-          rc1 = 1.0-rc
-          frcm(i,j,n) = rc1*fccm(i,j,k1)+rc*fccm(i,j,k1p)
-!
-!       CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
-!
-        else
-          frcm(i,j,n) = fccm(i,j,kccm)
-        end if
-!
       end do
     end do
-  end do
- 
   end subroutine intv0
 
   subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-  implicit none
+    implicit none
 !
-  integer :: kccm , krcm , ni , nj
-  real(dp) :: pt
-  real(sp) , dimension(ni,nj,kccm) :: fccm
-  real(sp) , dimension(ni,nj,krcm) :: frcm
-  real(sp) , dimension(ni,nj) :: psrcm
-  real(sp) , dimension(kccm) :: sccm
-  real(sp) , dimension(krcm) :: srcm
-  intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-  intent (out) frcm
+    integer :: kccm , krcm , ni , nj
+    real(dp) :: pt
+    real(sp) , dimension(ni,nj,kccm) :: fccm
+    real(sp) , dimension(ni,nj,krcm) :: frcm
+    real(sp) , dimension(ni,nj) :: psrcm
+    real(sp) , dimension(kccm) :: sccm
+    real(sp) , dimension(krcm) :: srcm
+    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
+    intent (out) frcm
 !
-  real(sp) :: dp1 , pt1 , rc , rc1 , sc
-  integer :: i , j , k , k1 , k1p , n
+    real(sp) :: dp1 , pt1 , rc , rc1 , sc
+    integer :: i , j , k , k1 , kp1 , n
 
 !
-!     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATUES IN THE LAYER.
+!   INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+!   HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+!   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
 ! 
-  do i = 1 , ni
-    do j = 1 , nj
-      dp1 = psrcm(i,j)/psccm
-      pt1 = real(pt)/psccm
-      do n = 1 , krcm
-        sc = srcm(n)*dp1 + pt1
-        k1 = 0
-        do k = 1 , kccm
-          if ( sc > sccm(k) ) then
-            k1 = k
+    pt1 = real(pt)/psccm
+    do i = 1 , ni
+      do j = 1 , nj
+        dp1 = psrcm(i,j)/psccm
+        do n = 1 , krcm
+          sc = srcm(n)*dp1 + pt1
+          k1 = 0
+          do k = 1 , kccm
+            if ( sc > sccm(k) ) then
+              k1 = k
+            end if
+          end do
+          if ( k1 == 0 ) then
+            frcm(i,j,n) = fccm(i,j,kccm)
+          else if ( k1 /= kccm ) then
+            kp1 = k1 + 1
+            rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+            rc1 = 1.0 - rc
+            frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+          else
+            frcm(i,j,n) = fccm(i,j,1)
           end if
         end do
-!
-!       CONDITION FOR SC .LT. SCCM(1) FOLLOWS
-!
-        if ( k1 == 0 ) then
-          frcm(i,j,n) = fccm(i,j,kccm)
-!
-!       CONDITION FOR SCCM(1) .LT. SC .LT. SCCM(KCCM) FOLLOWS
-!
-        else if ( k1 /= kccm ) then
-          k1p = k1 + 1
-          rc = (sc-sccm(k1))/(sccm(k1)-sccm(k1p))
-          rc1 = rc + 1.0
-          frcm(i,j,n) = rc1*fccm(i,j,kccm+1-k1)-rc*fccm(i,j,kccm+1-k1p)
-!
-!       CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
-!
-        else
-          frcm(i,j,n) = fccm(i,j,1)
-        end if
-!
       end do
     end do
-  end do
- 
   end subroutine intv1
 !
 !-----------------------------------------------------------------------
 !
   subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-  implicit none
+    implicit none
 !
-  integer :: kccm , krcm , ni , nj
-  real(dp) :: pt
-  real(sp) , dimension(ni,nj,kccm) :: fccm
-  real(sp) , dimension(ni,nj,krcm) :: frcm
-  real(sp) , dimension(ni,nj) :: psrcm
-  real(sp) , dimension(kccm) :: sccm
-  real(sp) , dimension(krcm) :: srcm
-  intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-  intent (out) frcm
+    integer :: kccm , krcm , ni , nj
+    real(dp) :: pt
+    real(sp) , dimension(ni,nj,kccm) :: fccm
+    real(sp) , dimension(ni,nj,krcm) :: frcm
+    real(sp) , dimension(ni,nj) :: psrcm
+    real(sp) , dimension(kccm) :: sccm
+    real(sp) , dimension(krcm) :: srcm
+    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
+    intent (out) frcm
 !
-  real(sp) :: a1 , dp1 , pt1 , rc , rc1 , sc
-  integer :: i , j , k , k1 , k1p , n
+    real(sp) :: a1 , dp1 , pt1 , rc , rc1 , sc
+    integer :: i , j , k , k1 , kp1 , n
 !
-!     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATUES IN THE LAYER.
+!   INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+!   LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+!   THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+!   WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+!   CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
+!   THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+!   TWO EXTREME TEMPERATUES IN THE LAYER.
 !
-  do i = 1 , ni
-    do j = 1 , nj
-      dp1 = psrcm(i,j)/psccm
-      pt1 = real(pt)/psccm
-      do n = 1 , krcm
-        sc = srcm(n)*dp1 + pt1
-        k1 = 0
-        do k = 1 , kccm
-          if ( sc > sccm(k) ) k1 = k
+    pt1 = real(pt)/psccm
+    do i = 1 , ni
+      do j = 1 , nj
+        dp1 = psrcm(i,j)/psccm
+        do n = 1 , krcm
+          sc = srcm(n)*dp1 + pt1
+          k1 = 0
+          do k = 1 , kccm
+            if ( sc > sccm(k) ) k1 = k
+          end do
+          if ( k1 == 0 ) then
+            frcm(i,j,n) = fccm(i,j,kccm)
+          else if ( k1 /= kccm ) then
+            kp1 = k1 + 1
+            rc = log(sccm(k1)/sc)/log(sccm(k1)/sccm(kp1))
+            rc1 = 1.0 - rc
+            frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+          else
+            a1 = rgas2*log(sc/sccm(kccm))
+            frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
+          end if
         end do
-!
-!           CONDITION FOR SC .LT. SCCM(1) FOLLOWS
-!
-        if ( k1 == 0 ) then
-          frcm(i,j,n) = fccm(i,j,kccm)
-!
-!             CONDITION FOR SCCM(1) .LT. SC .LT. SCCM(KCCM) FOLLOWS
-!
-        else if ( k1 /= kccm ) then
-          k1p = k1 + 1
-          rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(k1p))
-          rc1 = rc + 1.
-          frcm(i,j,n) = rc1*fccm(i,j,kccm+1-k1)-rc*fccm(i,j,kccm+1-k1p)
-!
-!             CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
-!
-        else
-          a1 = rgas2*log(sc/sccm(kccm))
-          frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
-!
-        end if
       end do
     end do
-  end do
- 
   end subroutine intv2
 !
 !-----------------------------------------------------------------------
 !
   subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
-  implicit none
+    implicit none
 !
-  integer :: kccm , ni , nj
-  real(dp) :: ptop
-  real(sp) , dimension(ni,nj,kccm) :: fccm
-  real(sp) , dimension(ni,nj) :: fsccm , psrccm
-  real(sp) , dimension(kccm) :: sccm
-  intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
-  intent (out) fsccm
+    integer :: kccm , ni , nj
+    real(dp) :: ptop
+    real(sp) , dimension(ni,nj,kccm) :: fccm
+    real(sp) , dimension(ni,nj) :: fsccm , psrccm
+    real(sp) , dimension(kccm) :: sccm
+    intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
+    intent (out) fsccm
 !
-  real(sp) :: a1 , rc , rc1 , sc
-  integer :: i , j , k , k1 , kp1
+    real(sp) :: a1 , rc , rc1 , sc
+    integer :: i , j , k , k1 , kp1
 !
-!**   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
-!     IS LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATUES IN THE LAYER.
+!   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
+!   IS LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+!   THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+!   WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+!   CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
+!   THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+!   TWO EXTREME TEMPERATUES IN THE LAYER.
 !
-  do i = 1 , ni
-    do j = 1 , nj
-      sc = (psrccm(i,j)+real(ptop))/100.
-      k1 = 0
-
-
-      do k = 1 , kccm - 1
-        if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k
+    do i = 1 , ni
+      do j = 1 , nj
+        sc = (psrccm(i,j)+real(ptop))/100.
+        k1 = 0
+        do k = 1 , kccm - 1
+          if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k
+        end do
+        !If the surface is below the GCM's lowest level,
+        !then extrapolate temperature
+        if (sc > sccm(kccm) ) then
+          a1 = rgas2*log(sc/sccm(kccm))
+          fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
+        !Otherwise, interpolate the surface temperature between
+        !the two adjacent GCM levels
+        else if ( k1 == 0 ) then
+          fsccm(i,j) = fccm(i,j,1)
+        else
+          kp1 = k1 + 1
+          rc = log(sccm(k1)/sc)/log(sccm(k1)/sccm(kp1))
+          rc1 = 1.0 - rc
+          fsccm(i,j) = rc1*fccm(i,j,kccm+1-k1)+rc*fccm(i,j,kccm+1-kp1)
+        end if
       end do
- 
-      !If the surface is below the GCM's lowest level,
-      !then extrapolate temperature
-      if (sc > sccm(kccm) ) then
-        a1 = rgas2*log(sc/sccm(kccm))
-        fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
-      !Otherwise, interpolate the surface temperature between
-      !the two adjacent GCM levels
-      else if ( k1 == 0 ) then
-!           write (stderr,*) 'Error: the RCM surface is above the GCM'
-!           write (stderr,*) 'model top at i,j=',i,j
-!           write (stderr,*) 'This might reasonably happen if you have a'
-!           write (stderr,*) 'very tall mountain in your domain. Setting '
-!           write (stderr,*) 'ptop to a smaller value could help.'
-!           write (stderr,*) 'Otherwise, this indicates a bug somewhere...'
-!           write (stderr,*) sc , ' => ', psrccm(i,j) , ', ', ptop
-!           stop
-!           endif
-        fsccm(i,j) = fccm(i,j,1)
-      else
-        kp1 = k1 + 1
-        rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(kp1))
-        rc1 = rc + 1.
-        fsccm(i,j) = rc1*fccm(i,j,kccm+1-k1)-rc*fccm(i,j,kccm+1-kp1)
-      end if
-!
     end do
-  end do
- 
   end subroutine intv3
 !
 end module mod_vertint

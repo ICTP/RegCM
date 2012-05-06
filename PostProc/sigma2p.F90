@@ -19,8 +19,11 @@
 
 program sigma2p
   use netcdf
+  use mod_realkinds
   use mod_constants
   use mod_message
+  use mod_vertint
+  use mod_derived
 
   implicit none
 
@@ -32,14 +35,14 @@ program sigma2p
   integer :: numarg , istatus , ncid , ncout
 
   integer , allocatable , dimension(:) :: dimids , dimlen
-  real(4) , allocatable , dimension(:) :: sigma
-  real(4) , allocatable , dimension(:,:,:) :: xvar
-  real(4) , allocatable , dimension(:,:,:) :: pvar
-  real(4) , allocatable , dimension(:,:) :: ps
-  real(4) , allocatable , dimension(:) :: avar
+  real(sp) , allocatable , dimension(:) :: sigma
+  real(sp) , allocatable , dimension(:,:,:) :: xvar
+  real(sp) , allocatable , dimension(:,:,:) :: pvar , tapvar , qapvar , hapvar
+  real(sp) , allocatable , dimension(:,:) :: ps , topo , mslp
+  real(sp) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
-  real(4) , allocatable , dimension(:) :: apvar
-  real(8) , allocatable , dimension(:) :: times
+  real(sp) , allocatable , dimension(:) :: apvar
+  real(dp) , allocatable , dimension(:) :: times
   logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
   integer , allocatable , dimension(:) :: varsize
   integer , allocatable , dimension(:) :: intscheme
@@ -49,10 +52,15 @@ program sigma2p
   integer :: ndims , nvars , natts , udimid , nvatts
   integer :: ivarid , idimid , xtype
   integer :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer :: ipsvarid
+  integer :: ipsvarid , ishvarid
   integer :: jx , iy , kz , nt
-  real(4) :: ptop
+  real(dp) :: ptop
+  integer , dimension(4) :: tdimids
+  integer , dimension(3) :: psdimids
   integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
+  integer :: tvarid , qvarid , irhvar , ihgvar , imslpvar
+  logical :: has_t , has_q
+  logical :: make_rh , make_hgt
   integer :: n3d , ip3d
 #ifdef __PGI
   integer , external :: iargc
@@ -60,6 +68,11 @@ program sigma2p
 #ifdef IBM 
   integer , external :: iargc
 #endif
+
+  data has_t /.false./
+  data has_q /.false./
+  data make_rh /.false./
+  data make_hgt /.false./
 
   data plevs /1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100./
 
@@ -174,10 +187,10 @@ program sigma2p
   call checkalloc(istatus,__FILE__,__LINE__,'xvar')
   allocate(pvar(jx,iy,np), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'pvar')
-  allocate(sigma(kz), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'sigma')
   allocate(times(nt), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'times')
+  allocate(sigma(kz), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'sigma')
 
   itvarid = 0
   do i = 1 , nvars
@@ -200,8 +213,17 @@ program sigma2p
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
     else if (varname == 'ps') then
       ipsvarid = i
+      psdimids = dimids(1:3)
+    else if (varname == 'topo') then
+      ishvarid = i
     else if (varname == 't') then
+      has_t = .true.
       intscheme(i) = 2
+      tvarid = i
+      tdimids = dimids(1:4)
+    else if (varname == 'qv') then
+      has_q = .true.
+      qvarid = i
     else if (varname == 'chtrname') then
       lchnameflag(i) = .true.
     end if
@@ -248,6 +270,69 @@ program sigma2p
                       'Error copy att '//trim(attname)//' for '//trim(varname))
     end do
   end do
+
+  if ( has_t ) then
+    make_hgt = .true.
+    istart(1) = 1
+    istart(2) = 1
+    icount(1) = jx
+    icount(2) = iy
+    allocate(topo(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'topo')
+    allocate(mslp(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'mslp')
+    allocate(hapvar(jx,iy,np), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'hapvar')
+    istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
+    istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
+#ifdef NETCDF4_HDF5
+    istatus = nf90_def_var_deflate(ncout, ihgvar, 1, 1, 9)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
+#endif
+    istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
+    istatus = nf90_put_att(ncout, ihgvar, 'long_name', 'Vertical distance above surface')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
+    istatus = nf90_put_att(ncout, ihgvar, 'units', 'm')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
+    istatus = nf90_put_att(ncout, ihgvar, '_FillValue', smissval)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding missval')
+    istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
+#ifdef NETCDF4_HDF5
+    istatus = nf90_def_var_deflate(ncout, imslpvar, 1, 1, 9)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
+#endif
+    istatus = nf90_put_att(ncout, imslpvar, 'standard_name', &
+                     'air_pressure_at_sea_level')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
+    istatus = nf90_put_att(ncout, imslpvar, 'long_name', &
+                     'Sea Level pressure')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
+    istatus = nf90_put_att(ncout, imslpvar, 'units', 'hPa')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
+  end if
+  if ( has_t .and. has_q ) then
+    make_rh = .true.
+    allocate(tapvar(jx,iy,np), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'tapvar')
+    allocate(qapvar(jx,iy,np), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qapvar')
+    istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
+#ifdef NETCDF4_HDF5
+    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, 9)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for rh')
+#endif
+    istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
+    istatus = nf90_put_att(ncout, irhvar, 'long_name', 'Relative Humidity')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
+    istatus = nf90_put_att(ncout, irhvar, 'units', '%')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
+  end if
 
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
   if ( istatus /= nf90_noerr ) then
@@ -341,18 +426,22 @@ program sigma2p
 
           n3d = varsize(i) / i3d
           ip3d = p3d*n3d
-
           allocate(apvar(ip3d),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
           do ii = 1 , n3d
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
             if (intscheme(i) == 1) then
-              call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+              call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
             else if (intscheme(i) == 2) then
-              call intlog(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+              call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
             end if
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
           end do
+          if ( i == tvarid ) then
+            tapvar = pvar
+          else if ( i == qvarid ) then
+            qapvar = pvar
+          end if
 
           icount(iv-1) = np
           istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
@@ -386,9 +475,9 @@ program sigma2p
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
                              (/jx,iy,kz/))
               if (intscheme(i) == 1) then
-                call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+                call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
               else if (intscheme(i) == 2) then
-                call intlog(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+                call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
               end if
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
             end do
@@ -419,6 +508,38 @@ program sigma2p
       end if
 
     end do
+
+    if ( make_rh ) then
+      call calc_rh(tapvar,qapvar,plevs,jx,iy,np)
+      iv = 4
+      istart(iv) = it
+      icount(iv) = 1
+      istart(1:iv-1) = 1
+      icount(1:iv-1) = dimsize(1:iv-1,tvarid)
+      icount(iv-1) = np
+      istatus = nf90_put_var(ncout, irhvar, qapvar, istart(1:iv), icount(1:iv))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error writing rh variable.')
+    end if
+    if ( make_hgt ) then
+      call calc_hgt(hapvar,tapvar,ps,topo,plevs,jx,iy,np)
+      iv = 4
+      istart(iv) = it
+      icount(iv) = 1
+      istart(1:iv-1) = 1
+      icount(1:iv-1) = dimsize(1:iv-1,tvarid)
+      icount(iv-1) = np
+      istatus = nf90_put_var(ncout, ihgvar, hapvar, istart(1:iv), icount(1:iv))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error writing hgt variable.')
+      call calc_slpres(hapvar,tapvar,ps,topo,mslp,plevs,jx,iy,np)
+      iv = 3
+      istart(iv) = it
+      icount(iv) = 1
+      istart(1:iv-1) = 1
+      icount(1:iv-1) = dimsize(1:iv-1,tvarid)
+      istatus = nf90_put_var(ncout, imslpvar, mslp, istart(1:iv), icount(1:iv))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error writing mslp variable.')
+    end if
+
   end do
 
   deallocate(dimlen)
@@ -433,103 +554,18 @@ program sigma2p
   deallocate(ps)
   deallocate(xvar)
   deallocate(pvar)
+  if ( make_rh ) then
+    deallocate(qapvar)
+    deallocate(tapvar)
+  end if
+  if ( make_hgt ) then
+    deallocate(topo)
+  end if
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error close input file '//trim(ncsfile))
 
   istatus = nf90_close(ncout)
   call checkncerr(istatus,__FILE__,__LINE__,'Error close output file '//trim(ncpfile))
-
-contains
-!
-  subroutine intlog(fp,f,pstar,sig,im,jm,km,p,kp)
-    implicit none
-    integer , intent(in) :: im , jm , km , kp
-    real(4) , intent(out) , dimension(im,jm,kp) :: fp
-    real(4) , intent(in) , dimension(im,jm) :: pstar
-    real(4) , intent(in) , dimension(km) :: sig
-    real(4) , intent(in) , dimension(kp) :: p
-    real(4) , intent(in) , dimension(im,jm,km) :: f
-    integer :: i , j , k , n
-    integer :: k1 , k1p , kbc
-    real(4) :: sigp , wp , w1
-!
-! intlog is for vertical interpolation of t.  the interpolation is
-! linear in log p.  where extrapolation upward is necessary,
-! the t field is considered to have 0 vertical derivative.
-! where extrapolation downward is necessary, the t field is
-! considered to have a lapse rate of lrate (k/m), and the
-! thickness is determined hydrostatically from the mean of the
-! two extreme temperatures in the layer.
-
-!   find first sigma level above boundary layer (less than sig=bltop)
-    do k = 1 , km
-      if (sig(k).lt.bltop) kbc = k
-    end do
-    do j = 1 , jm
-      do i = 1 , im
-        do n = 1 , kp
-          sigp = (p(n)-ptop) / (pstar(i,j)-ptop)
-          k1 = 0
-          do k = 1 , km
-            if (sigp.gt.sig(k)) k1 = k
-          end do
-          if (sigp.le.sig(1)) then
-            fp(i,j,n) = f(i,j,1)
-          else if ((sigp.gt.sig(1)) .and. (sigp.lt.sig(km))) then
-            k1p = k1 + 1
-            wp  = log(sigp/sig(k1)) / log(sig(k1p)/sig(k1))
-            w1  = 1. - wp
-            fp(i,j,n)= w1*f(i,j,k1) + wp*f(i,j,k1p)
-          else if ((sigp.ge.sig(km)) .and. (sigp.le.1.))then
-            fp(i,j,n) = f(i,j,km)
-          else if (sigp.gt.1.) then
-            fp(i,j,n) = f(i,j,kbc) &
-              * exp(-real(rovg*lrate)*log(sigp/sig(kbc)))
-!           ***** from r. errico, see routine height *****
-          end if
-        end do
-      end do
-    end do
-  end subroutine intlog
-!
-  subroutine intlin(fp,f,pstar,sig,im,jm,km,p,kp)
-    implicit none
-    integer , intent(in) :: im , jm , km , kp
-    real(4) , intent(out) , dimension(im,jm,kp) :: fp
-    real(4) , intent(in) , dimension(im,jm) :: pstar
-    real(4) , intent(in) , dimension(km) :: sig
-    real(4) , intent(in) , dimension(kp) :: p
-    real(4) , intent(in) , dimension(im,jm,km) :: f
-    integer :: i , j , k , n
-    integer :: k1 , k1p
-    real(4) :: sigp , wp , w1
-!
-!  intlin is for vertical interpolation of u, v, and relative humidity.
-!   the interpolation is linear in p.  where extrapolation is
-!   necessary, fields are considered to have 0 vertical derivative.
-
-    do j = 1 , jm
-      do i = 1 , im
-        do n = 1 , kp
-          sigp = (p(n)-ptop) / (pstar(i,j)-ptop)
-          k1 = 0
-          do k = 1 , km
-            if (sigp.gt.sig(k)) k1 = k
-          end do
-          if (sigp.le.sig(1)) then
-            fp(i,j,n) = f(i,j,1)
-          else if ((sigp.gt.sig(1)) .and. (sigp.lt.sig(km))) then
-            k1p = k1 + 1
-            wp  = (sigp-sig(k1))/(sig(k1p)-sig(k1))
-            w1  = 1.-wp
-            fp(i,j,n)  = w1*f(i,j,k1) + wp*f(i,j,k1p)
-          else if (sigp.ge.sig(km)) then
-            fp(i,j,n)  = f(i,j,km)
-          end if
-        end do
-      end do
-    end do
-  end subroutine intlin
 !
 end program sigma2p

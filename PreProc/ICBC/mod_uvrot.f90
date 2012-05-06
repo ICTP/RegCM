@@ -52,6 +52,9 @@ module mod_uvrot
 !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
 !**   AUTHOR:   D.MAJEWSKI
 !
+  if ( lgtype == 'NORMER' ) then
+    return
+  end if
   if ( lgtype == 'ROTMER' ) then
     if ( pollat > d_zero ) then
       pollam = pollon + 180.0D0
