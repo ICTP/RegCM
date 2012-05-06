@@ -62,7 +62,6 @@
  /
  &aerosolparam
  aertyp = 'AER00D0'
- ntr = 10,
  /
  &restartparam
  ifrest  = .false. ,
@@ -88,7 +87,7 @@
    lakfrq  =     6.,
  ifsub   = .true. ,
    srffrq  =     3.,
- ifchem  = .true.,
+ ifchem  = .false.,
    chemfrq =     6., 
  dirout = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/output',
  /
@@ -138,13 +137,6 @@
  edtminx_ocn = 0.7,
  /
  &emanparam
- /
- &chemparam
- idirect   =    1,
- inpchtrname  =   '',
- inpchtrsol   =   .00,
- inpchtrdpv   =  .00000, .00000,
- inpdustbsiz  =   .00,  .00,
  /
  &cplparam
  cpldt        = 10800.,

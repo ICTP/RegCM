@@ -55,7 +55,6 @@
  /
  &aerosolparam
  aertyp = 'AER11D1'
- ntr = 2,
  /
  &restartparam
  ifrest  = .false. ,
@@ -113,14 +112,9 @@
  elcrit  = 0.0011D0,
  coeffr  = 1.0D0,
  /
-  &chemparam
+ &chemparam
+ chemsimtype = 'SULF   ',
  idirect   =    1,
- inpchtrname  =  'SO2','SO4',
- inpchtrsol   =   0.20, 0.80,
- inpchtrdpv(:,1) = 0.003,0.0020
- inpchtrdpv(:,2) = 0.008,0.0020   
- inpdustbsiz(:,1)  = 0.01, 1.00, 2.50, 5.00
- inpdustbsiz(:,2)= 1.00, 2.50, 5.00,20.00
  /
  &clmparam
  dirclm = '/set/this/to/where/your/input/clm/data/are',

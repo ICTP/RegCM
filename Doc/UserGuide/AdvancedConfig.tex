@@ -120,7 +120,8 @@ affect the model behavior, at least in adjacent areas.
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
  truelath = 60,    ! Lambert true latitude (high latitude side)
- i_band = 0,       ! Enable ONLY if BAND option activated.
+ i_band = 0,       ! Use this to enable a tropical band. In this case the ds,
+                   ! iproj, clat, clon parameters are not considered.
  /
 \end{Verbatim}
 }
@@ -151,8 +152,23 @@ true latitudes at around one fourth and three fourth of the domain latitude
 space to better correct the projection distortion of the domain.
 \item The pole position for the rotated mercator position should be as near as
 possible to the center domain position.
-\item For the \verb=i_band= parameter, see below in the \verb=BAND= option
-discussion in \ref{i_band}.
+\item For the \verb=i_band= parameter, selecting this will enable the tropical
+band experiment, and the horizontal resolution will be calculated from the
+number of jx points.
+The projection is set to Normal Mercator, the center of the projection is set
+to \verb'clat = 0.0', \verb'clon = 180.0',
+and the grid point resolution is calculated as:
+\begin{equation}
+\frac{2*\pi*6370.0}{jx}
+\end{equation}
+Just remember:
+\begin{enumerate}
+\item The model for a tropical band simulation is heavy, as the number of points
+is usually huge to obtain a good horizontal resolution. Check any memory
+limit is disabled on your platform before attempting a run.
+\item The model scales well on a cluster with a large number of processors.
+\end{enumerate}
+
 \end{enumerate}
 
 \subsection{aerosolparam stanza}
@@ -176,7 +192,6 @@ active chemistry tracers part of the model.
                     ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
                     ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
  ntr =  4,          ! Tracer parameters: number of tracers
- nbin = 2,          ! Tracer parameters: bins number for dust
  /
 \end{Verbatim}
 }
@@ -186,7 +201,6 @@ The things you need to know here:
 \begin{enumerate}
 \item If \verb=aertyp= is left to \verb=AER00D0=, it is nonsense to activate
 chemistry in the model.
-\item The total number of tracers activated must be greater than nbin.
 \item If Anthropogenic and/or Biomass is activated, the model will also need
 the user to run the aerosol program. It can be run at the same level as the
 sst program, with the same calling syntax. Just replace sst with aerosol.
@@ -432,18 +446,6 @@ follow the conditions:
 \end{Verbatim}
 }
 
-\subsection{modesparam stanza}
-
-This needs not to be changed. Leave it to the default value.
-
-{\footnotesize
-\begin{Verbatim}
- &modesparam
- nsplit = 2, ! Number od split exp modes
- /
-\end{Verbatim}
-}
-
 \subsection{restartparam stanza}
 
 This stanza lets you control the time period the model is currently simulating
@@ -538,7 +540,7 @@ written in the files.
  ifsrf   = .true. ,         ! Output SRF ?
  ifsts   = .true. ,         ! Output STS ?
  ifsub   = .true. ,         ! Output SUB ?
- srffrq  =     3.,          ! Frequency in hours to write to SRF and SUB (and CLM)
+ srffrq  =     3.,          ! Frequency in hours to write SRF and SUB (and CLM)
  iflak   = .true.,          ! Output LAK ?
  lakfrq  =     6.,          ! Frequency in hours to write to LAK if lakemod is 1
                             ! It must be an integer multiple of batfrq
@@ -791,132 +793,42 @@ be introduced}
 {\footnotesize
 \begin{Verbatim}
  &chemparam
- idirect      =    1, ! enable or not aerosol feedbacks on radiation and
-                      ! dynamics (aerosol direct and semi direct effcts):
-                      !  0 = no coupling. Aerosol are only transported and
-                      !      don't interact with radiation scheme.
-                      !  1 = no coupling to dynamic and thermodynamic. However
-                      !      the clear sky surface and top of atmosphere
-                      !      aerosol radiative forcings are diagnosed.
-                      !  2 = allows aerosol feedbacks on radiative,
-                      !      thermodynamic and dynamic fields.
- ichremlsc    =    1, ! 1 = allows tracer removal (wet deposition) by large
-                      !     scale cloud
- ichremcvc    =    1, ! 1 = allows tracer removal by convective clouds
- ichdrdepo    =    1, ! 1 = enable tracer surface dry deposition. For dust,
-                      !     it is calculated by a size settling and dry
-                      !     deposition scheme. For other aerosol,a dry
-                      !     deposition velocity is simply prescribed further.
-                      !     Next release will include an improved aerosol dry
-                      !     deposition scheme for non dust aerosols.
- ichcumtra    =    1, ! 1 = enable tracer convective transport and mixing.
- inpchtrname  =  'DUST','DUST,'BC_HB','BC_HL',
-                      ! Tracer identifier. The number of input should be equal
-                      ! to ntr you have the choice between: 
-                      ! DUST  = Dust particle from soil
-                      ! BC_HB = Hydrophobic Black carbon aerosol
-                      ! BC_HL = Hydrophilic or aged black carbon
-                      ! OC_HB = Hydrophobic organic carbon aerosl
-                      ! OC_HL = Hydrophilic or aged organic carbon
-                      ! SO2   = sulfur dioxide
-                      ! SO4   = sulfate aerosol
- inpchtrsol   =  0.1, 0.1, 0.05, 0.8,
-                      ! Tracer solubility (fraction). The number of input
-                      ! should be equal to ntr. Will determine if tracer are
-                      ! efficiently removed by wet deposition or not
- inpchtrdpv   =  0.,0.,0.00025,0.00025,  0.,0.,0.00025,0.00250,
-                      ! Dry deposition velocity (in m/s) over land (first ntr)
-                      ! and ocean (second ntr values), a total of ntr*2 values.
-                      ! Should be consistent with tracer identifier.
-                      ! for DUST type this value is not effectively considered
-                      ! since a dry deposition scheme is explicitely included
-                      ! in RegCM.
- inpdustbsiz  =   0.1,  1., 1., 2.5,
-                      ! Lower Size limit (first nbin) and Upper Size limit
-                      ! (second nbin values) of diameter bin classes for dust
-                      ! (in micrometer). Should never exceed nbin * 2 values.
-                      ! So in this example there are two bins of
-                      !   *  0.1 - 1.0 micrometer
-                      !   *  1.0 - 2.5 micrometer
+ chemsimtype = 'CBMZ    ', ! Which chemical tracers to be activated.
+                           ! One in :
+                           !   DUST : Activate 4 dust bins scheme
+                           !   SSLT : Activate 2 bins Sea salt scheme
+                           !   CARB : Activate 4 species black/anthropic
+                           !          carbon simulations
+                           !   SULF : Activate SO2 and SO4 tracers
+                           !   SUCA : Activate both SUKF and CARB
+                           !   AERO : Activate all DUST, SSLT, CARB and SULF
+                           !   CBMZ : Activate gas phase and sulfate
+ ichsolver = 1, ! Activate the chemical solver
+ idirect   = 1, ! enable or not aerosol feedbacks on radiation and
+                ! dynamics (aerosol direct and semi direct effcts):
+                !  0 = no coupling. Aerosol are only transported and
+                !      don't interact with radiation scheme.
+                !  1 = no coupling to dynamic and thermodynamic. However
+                !      the clear sky surface and top of atmosphere 
+                !      aerosol radiative forcings are diagnosed.
+                !  2 = allows aerosol feedbacks on radiative,
+                !      thermodynamic and dynamic fields.
+ ichdrdepo = 0, ! 1 = enable tracer surface dry deposition. For dust,
+                !     it is calculated by a size settling and dry
+                !     deposition scheme. For other aerosol,a dry
+                !     deposition velocity is simply prescribed further.
+                !     Next release will include an improved aerosol dry
+                !     deposition scheme for non dust aerosols.
+ ichcumtra = 1, ! 1 = enable tracer convective transport and mixing.
  /
 \end{Verbatim}
 }
 
-Things you need to know here:
-
-\begin{enumerate}
-\item Always doublecheck consistency in dimensions specified in aerosolparam at
-\ref{aerosolparam} and the number of elements in input arrays here.
-\item This stanza is not considered if \verb=ichem= in physicsparam at
-\ref{physicsparam} is not set to $1$.
-\item Dust optical properties have been calculated for 4 defaults size bins
-in RegCM. If you want to modify the bin size for dust / climate feedback
-interactions consider extending this by yourself. Current bins are $0.01-1.00$,
-$1.00-2.50$, $2.50-5.00$ and $5.00-20.0$ micron diameter.
-\end{enumerate}
-
-\section{The BAND and the CLM options}
-
-We will now discuss from the user point of view how to use the two model
-setups which need to be activated at configure stage.
-
-\subsection{BAND option}
-
-The BAND option if activated allows the user to run a simulation over a tropical
-band symmetric around the equator. The executable of the model is different
-in the case of the band, and is named \verb=regcmMPI_band= or
-\verb=regcmSerial_band=. Note that due to the computational need of the
-\verb=BAND= model, it is strongly suggested to run it on parallel machines.
-\footnote{The serial option will not be supported in future releases}
-
-\subsubsection{Enable}
-
-At configure stage (see \ref{modconf}), the option is to be enabled with the
-right command line argument to the configure script
-
-\begin{Verbatim}
-  --enable-band           Supply this option if you plan on using tropical
-                          band option.
-\end{Verbatim}
-
-This will enable a preprocessing flag, and build a different model executable.
-Note that no modifications are needed for any other part of the model.
-
-\subsubsection{Prepare and run}
-\label{i_band}
-
-In the case of \verb=BAND= run, the \verb=geoparam= stanza described above in
-\ref{geoparam} is mostly ignored, as the projection is set to Normal Mercator,
-the center of the projection is set to \verb'clat = 0.0', \verb'clon = 180.0',
-and the grid point resolution is calculated as:
-
-\begin{equation}
-\frac{2*\pi*6370.0}{jx}
-\end{equation}
-
-The only parameter you need to set for a \verb=BAND= run is the \verb=i_band=
-value: set it to $1$.
-
-No special modification in model run is required, all steps are equal as in
-chapter \ref{tutorial}. Just substitute the executable name:
-
-\begin{Verbatim}
-$> mpirun -np 2 ./Bin/regcmMPI_band band.in
-\end{Verbatim}
-
-Some notes:
-
-\begin{enumerate}
-\item The model using the \verb=BAND= option is heavy, as the number of points
-is usually huge to obtain a good horizontal resolution. Check any memory
-limit is disabled on your platform before attempting a run with the \verb=BAND=
-option active.
-\item The model with the \verb=BAND= option scales very well on a cluster
-with a large number of processors.
-\end{enumerate}
-
-\subsection{CLM option}
+\section{The CLM options}
 \label{clm}
+
+We will now discuss from the user point of view how to use the model
+setup which need to be activated at configure stage.
 
 The \verb=CLM= option if activated allows the user to run a simulation using
 the CLM surface model instead of the default BATS1e model. We will not here go

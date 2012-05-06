@@ -56,7 +56,6 @@
  /
  &aerosolparam
  aertyp = 'AER00D0'
- ntr = 10,
  /
 &restartparam
  ifrest  = .false. ,
@@ -113,11 +112,4 @@
  &emanparam
  elcrit  = 0.0011D0,
  coeffr  = 1.0D0,
- /
- &chemparam
- idirect   =    1,
- inpchtrname  =   '',
- inpchtrsol   =   .00,
- inpchtrdpv   =  .00000, .00000,
- inpdustbsiz  =   .00,  .00,
  /
