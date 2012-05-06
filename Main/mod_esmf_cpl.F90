@@ -110,7 +110,7 @@
 !
       logical :: flag
       integer :: localPet, petCount, comm
-      integer :: i, j, n, itype, dir
+      integer :: i, j, n, itype
 !
       integer :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
@@ -144,7 +144,6 @@
 !
       call ESMF_StateReconcile(importState,                             &
                                vm=cplVM,                                &
-                               attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
@@ -154,18 +153,7 @@
 !
       call ESMF_StateReconcile(exportState,                             &
                                vm=cplVM,                                &
-                               attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get direction of coupling initialization
-!-----------------------------------------------------------------------
-!       
-      call ESMF_AttributeGet(importState,                               &
-                             name=trim(DIRECTION),                      &
-                             value=dir,                                 &
-                             rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -173,7 +161,7 @@
 !-----------------------------------------------------------------------
 !  
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else
         write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
@@ -224,7 +212,7 @@
 !     Save import state field names
 !-----------------------------------------------------------------------
 !
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
         if (.not. allocated(itemNamesImportF)) then
           allocate(itemNamesImportF(j))
         end if
@@ -239,7 +227,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (dir == FORWARD_ON) then          
+          if (DIRECTION == FORWARD_ON) then          
             itemNamesImportF(j) = trim(itemNames(i))
           else
             itemNamesImportB(j) = trim(itemNames(i))
@@ -299,7 +287,7 @@
 !     Save export state field names
 !-----------------------------------------------------------------------
 !
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
         if (.not. allocated(itemNamesExportF)) then
           allocate(itemNamesExportF(j))
         end if
@@ -314,7 +302,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (dir == FORWARD_ON) then
+          if (DIRECTION == FORWARD_ON) then
             itemNamesExportF(j) = trim(itemNames(i))
           else
             itemNamesExportB(j) = trim(itemNames(i))
@@ -333,7 +321,7 @@
 !     Forward coupling initialization
 !-----------------------------------------------------------------------
 !
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
 !
 !-----------------------------------------------------------------------
 !     Compute weight matrix between gridded component grids. It creates 
@@ -581,7 +569,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: i, j, itype, dir
+      integer :: i, j, itype
       integer :: localPet, petCount, comm
 !
       type(ESMF_Field) :: dstField, srcField
@@ -607,7 +595,6 @@
 !
       call ESMF_StateReconcile(importState,                             &
                                vm=cplVM,                                &
-                               attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
@@ -617,18 +604,7 @@
 !
       call ESMF_StateReconcile(exportState,                             &
                                vm=cplVM,                                &
-                               attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get direction of coupling initialization
-!-----------------------------------------------------------------------
-!       
-      call ESMF_AttributeGet(importState,                               &
-                             name=trim(DIRECTION),                      &
-                             value=dir,                                 &
-                             rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -636,7 +612,7 @@
 !-----------------------------------------------------------------------
 !  
       if (cpl_dbglevel > 0 .and. localPet == 0) then
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else
         write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
@@ -647,7 +623,7 @@
 !     Forward coupling run 
 !-----------------------------------------------------------------------
 !
-      if (dir == FORWARD_ON) then
+      if (DIRECTION == FORWARD_ON) then
 !
       do i = 1, size(itemNamesImportF, dim=1)
 !

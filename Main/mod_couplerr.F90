@@ -143,7 +143,7 @@
 !     Variables for coupling (direction, import and export variables)  
 !-----------------------------------------------------------------------
 !
-      character(len=40), parameter :: DIRECTION = 'DIRECTION'
+      integer :: DIRECTION
 !
       integer, parameter :: FORWARD_ON   = 1
       integer, parameter :: FORWARD_OFF  = 0
@@ -827,9 +827,9 @@
 !
       if (cpl_dbglevel > 0) then
         write(*, 30) localPet, 'COUPLED MODEL TIME STEP', cpl_dtsec
-        write(*, 30) localPet, 'EXCHANGE VARIABLE MODE ', cpl_exvars
-        write(*, 30) localPet, 'INTERPOLATION MODE     ', cpl_interp
-        write(*, 20) localPet, 'BOUNDARY SMOOTHING     ', cpl_bdysmooth
+!        write(*, 30) localPet, 'EXCHANGE VARIABLE MODE ', cpl_exvars
+!        write(*, 30) localPet, 'INTERPOLATION MODE     ', cpl_interp
+!        write(*, 20) localPet, 'BOUNDARY SMOOTHING     ', cpl_bdysmooth
         write(*, 30) localPet, 'DEBUG LEVEL            ', cpl_dbglevel
       end if
 !

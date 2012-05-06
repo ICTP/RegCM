@@ -117,7 +117,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: localPet, petCount, comm, ierr
+      integer :: localPet, petCount, ierr
 !
       type(ESMF_TimeInterval) :: dtrun     
 !
@@ -135,7 +135,7 @@
       call ESMF_VMGet(models(Iatmos)%vm,                                &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
-                      mpiCommunicator=comm,                             &
+                      mpiCommunicator=models(Iatmos)%comm,              &
                       rc=rc)  
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -143,7 +143,6 @@
 !     Initialize the gridded component 
 !-----------------------------------------------------------------------
 !
-      call MPI_Comm_dup(comm, models(Iatmos)%comm, ierr)
       call RCM_initialize(mpiCommunicator=models(Iatmos)%comm)
 !
 !-----------------------------------------------------------------------
@@ -672,14 +671,14 @@
                                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
 !-----------------------------------------------------------------------
 !     Debug: print DistGrid
 !-----------------------------------------------------------------------
 !
       if (cpldbglevel > 1) then
+      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if

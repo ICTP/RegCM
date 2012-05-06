@@ -123,7 +123,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, comm, ierr, subs, tile, n 
+      integer :: localPet, petCount, ierr, subs, tile, n 
       integer :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
@@ -140,7 +140,7 @@
       call ESMF_VMGet(models(Iocean)%vm,                                &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
-                      mpiCommunicator=comm,                             &
+                      mpiCommunicator=models(Iocean)%comm,              &
                       rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -149,7 +149,6 @@
 !-----------------------------------------------------------------------
 !
       flag = .TRUE.
-      call MPI_Comm_dup(comm, models(Iocean)%comm, ierr)
       call ROMS_initialize(flag, mpiCOMM=models(Iocean)%comm)
 !
 !-----------------------------------------------------------------------
@@ -763,14 +762,14 @@
                                    deBlockList=deBlockList,             &
                                    rc=rc)
 !
-!      call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
 !-----------------------------------------------------------------------
 !     Debug: print DistGrid
 !-----------------------------------------------------------------------
 !
       if (cpl_dbglevel > 1) then
+      call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       call ESMF_DistGridPrint(models(Iocean)%distGrid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
@@ -1232,15 +1231,17 @@
 !     Store routehandle to exchage halo region data 
 !-----------------------------------------------------------------------
 !
-      if ((cpl_dbglevel > 1) .and. (i .eq. 1)) then
+      if ((cpl_dbglevel > 3) .and. (i .eq. 1)) then
       call ESMF_FieldPrint(models(Iocean)%dataImport(i,ng)%field, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 !
+      if (cpl_dbglevel > 3) then
       call ESMF_FieldHaloStore(models(Iocean)%dataImport(i,ng)%field,   &
                    routehandle=models(Iocean)%dataImport(i,ng)%rhandle, &
                    rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -1555,13 +1556,14 @@
 !     Call halo region update 
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel > 1) checkflag = .true. 
-!
+      if (cpl_dbglevel > 3) then
+      checkflag = .true. 
       call ESMF_FieldHalo(models(Iocean)%dataImport(i,ng)%field,        &
              routehandle=models(Iocean)%dataImport(i,ng)%rhandle,       &
              checkflag=checkflag,                                       &
              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Get pointer

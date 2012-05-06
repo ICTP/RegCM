@@ -169,11 +169,7 @@
 !     Forward coupling
 !-----------------------------------------------------------------------
 !
-      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
-                              name=trim(DIRECTION),                     &
-                              value=FORWARD_ON,                         &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      DIRECTION = FORWARD_ON
 !
       call ESMF_CplCompInitialize(cplComp,                              &
                                  importState=models(Iatmos)%stateExport,&
@@ -188,11 +184,7 @@
 !     Backward coupling
 !-----------------------------------------------------------------------
 !
-      call ESMF_AttributeSet (models(Iocean)%stateExport,               &
-                              name=trim(DIRECTION),                     &
-                              value=FORWARD_OFF,                        &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      DIRECTION = FORWARD_OFF
 !
       call ESMF_CplCompInitialize(cplComp,                              &
                                  importState=models(Iocean)%stateExport,&
@@ -214,32 +206,24 @@
 !-----------------------------------------------------------------------
 !
       do i = 1, nModels
-        call ESMF_GridCompRun (models(i)%comp,                          &
-                               importState=models(i)%stateImport,       &
-                               exportState=models(i)%stateExport,       &
-                               clock=cplClock,                          &
-                               rc=rc)
+!
+      call ESMF_GridCompRun (models(i)%comp,                            &
+                             importState=models(i)%stateImport,         &
+                             exportState=models(i)%stateExport,         &
+                             clock=cplClock,                            &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Set coupling direction 
+!     Set coupling import state
 !-----------------------------------------------------------------------
 !
       if (i == Iatmos) then
-      call ESMF_AttributeSet (models(Iocean)%stateExport,               &
-                              name=trim(DIRECTION),                     &
-                              value=FORWARD_OFF,                        &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      j = Iocean
+        j = Iocean
+        DIRECTION = FORWARD_ON
       else
-      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
-                              name=trim(DIRECTION),                     &
-                              value=FORWARD_ON,                         &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      j = Iatmos
+        j = Iatmos
+        DIRECTION = FORWARD_OFF
       end if
 !
 !-----------------------------------------------------------------------
@@ -251,6 +235,7 @@
                            exportState=models(j)%stateImport,           &
                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       end do
 !
 !-----------------------------------------------------------------------
