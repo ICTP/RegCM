@@ -626,6 +626,13 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+    
+! fabtest:  set cloud fractional cover at top model level = 0
+!as in std scheme
+    cldf(:,kz-1:kz) = d_zero
+    clwp(:,kz-1:kz) = d_zero
+
+
     !
     ! set cloud fractional cover at bottom (ncld) model levels = 0
     !
