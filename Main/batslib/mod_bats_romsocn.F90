@@ -106,24 +106,22 @@ module mod_bats_romsocn
           end if
 #ifdef ROMSICE
           ! update land use, mask and fluxes if ice is formed
-          if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
-            ldmsk1(n,j,i) = 2
-            ldmsk1(n,j,i) = 2
-            lveg(n,j,i) = 12
-            sfice(n,j,i) = hice2d(j,i) 
-            ! Reduce sensible heat flux for ice presence
-            toth = sfice(n,j,i) + sncv(n,j,i)
-            if ( toth > href ) then
-              sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
-            end if
-          else
-            ldmsk1(n,j,i) = 0
-            ldmsk1(n,j,i) = 0
-            lveg(n,j,i) = lveg2(n,j,i) 
-            sfice(n,j,i) = d_zero
-            sncv(n,j,i) = d_zero
-            snag(n,j,i) = d_zero
-          end if
+          !if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
+          !  ldmsk1(n,j,i) = 2
+          !  lveg(n,j,i) = 12
+          !  sfice(n,j,i) = hice2d(j,i) 
+          !  ! Reduce sensible heat flux for ice presence
+          !  toth = sfice(n,j,i) + sncv(n,j,i)
+          !  if ( toth > href ) then
+          !    sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+          !  end if
+          !else
+          !  ldmsk1(n,j,i) = 0
+          !  lveg(n,j,i) = lveg2(n,j,i) 
+          !  sfice(n,j,i) = d_zero
+          !  sncv(n,j,i) = d_zero
+          !  snag(n,j,i) = d_zero
+          !end if
 #endif
         end do
       end do

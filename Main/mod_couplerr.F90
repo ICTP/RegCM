@@ -206,6 +206,7 @@
       real*8, parameter :: Cp = 3985.0d0
       real*8, parameter :: rho0 = 1025.0d0
       real*8, parameter :: Hscale=1.0d0/(rho0*Cp)
+      real*8, parameter :: day2sec=1.0d0/86400.0d0
 !
       contains
 !
@@ -687,7 +688,7 @@
             models(i)%dataImport(6,j)%long_name = &
             'rain fall rate'
             models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
-            models(i)%dataImport(6,j)%scale_factor = 1.0d0
+            models(i)%dataImport(6,j)%scale_factor = day2sec 
             models(i)%dataImport(6,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(7,j)%fid = 7
