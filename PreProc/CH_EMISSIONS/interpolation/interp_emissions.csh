@@ -20,8 +20,8 @@ set out_dir=/home/netapp-clima/users/fsolmon/ARGO/RCP_EMGLOB_PROCESSED/interpola
 ###############################################################################
 
 
-if ( ! -d $out_dir ) mkdir $out_dir
-rm -f $out_dir/*.nc
+#if ( ! -d $out_dir ) mkdir $out_dir
+#rm -f $out_dir/*.nc
 
 #GENERATE WEIGHTS
 set file_list=`ls ${data_dir}/*.nc`
@@ -33,6 +33,6 @@ foreach ifile ($data_dir/*.nc)
 end
 
 # here the final naming has to be interactive with regcm.in
-cdo merge $out_dir/*.nc $out_dir/CHEMISS.nc 
+cdo merge $out_dir/RCP*.nc $out_dir/CHEMISS.nc 
 exit
 
