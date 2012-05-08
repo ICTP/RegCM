@@ -169,7 +169,7 @@ module mod_ch_icbc
             pmpi = poxid_3(j,i)*cht42hybm(k0+1)+cht42hyam(k0+1)*p0
             do is = 1 , nchsp
               chv4(j,i,l,is) = (chv3(j,i,k0+1,is)*(prcm-pmpj) + &
-                                chv3(j,i,k0,is)*(prcm-pmpi))/(pmpi-pmpj)
+                                chv3(j,i,k0,is)*(pmpi-prcm))/(pmpi-pmpj)
             end do
           end if            
         end do
