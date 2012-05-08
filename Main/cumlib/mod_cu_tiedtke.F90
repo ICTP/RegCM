@@ -3838,8 +3838,6 @@ module mod_cu_tiedtke
   pdmfen(:) = d_zero
   podetr(:,:) = d_zero
 
-  
-
   if (.false.) then !AMT fudge timing test
 
   do jl = 1 , kproma
@@ -3905,6 +3903,7 @@ module mod_cu_tiedtke
     zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
     llo1 = kk < kcbot(jl) .and. ldcum(jl)
     pdmfde(jl) = merge(zentr,d_zero,llo1)
+    iklwmin = max(klwmin(jl),kctop0(jl)+2)
 
     select case(ktype(jl))
 
@@ -3930,7 +3929,6 @@ module mod_cu_tiedtke
       llo2 = llo1 .and.                            &
            (ppbase(jl)-paphp1(jl,kk) < 0.2D5 .or. paphp1(jl,kk) > zpmid)
       pdmfen(jl) = merge(zentr,d_zero,llo2)
-      iklwmin = max(klwmin(jl),kctop0(jl)+2)
 
     case(3)
       llo2 = llo1 .and. kk >= iklwmin
