@@ -674,82 +674,94 @@ module mod_memutil
     end do
   end subroutine relmem1d_d
 
-  recursive subroutine finalize_pool1d_i(n)
+  subroutine finalize_pool1d_i(n)
     implicit none
-    type(pool1d_i) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_i(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_i) , intent(inout) , pointer :: n
+    type(pool1d_i) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_i
 
-  recursive subroutine finalize_pool1d_s(n)
+  subroutine finalize_pool1d_s(n)
     implicit none
-    type(pool1d_s) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_s(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_s) , intent(inout) , pointer :: n
+    type(pool1d_s) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_s
 
-  recursive subroutine finalize_pool1d_l(n)
+  subroutine finalize_pool1d_l(n)
     implicit none
-    type(pool1d_l) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_l(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_l) , intent(inout) , pointer :: n
+    type(pool1d_l) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_l
 
-  recursive subroutine finalize_pool1d_r(n)
+  subroutine finalize_pool1d_r(n)
     implicit none
-    type(pool1d_r) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_r(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_r) , intent(inout) , pointer :: n
+    type(pool1d_r) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_r
 
-  recursive subroutine finalize_pool1d_d(n)
+  subroutine finalize_pool1d_d(n)
     implicit none
-    type(pool1d_d) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_d(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_d) , intent(inout) , pointer :: n
+    type(pool1d_d) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_d
 
-  recursive subroutine finalize_pool1d_t(n)
+  subroutine finalize_pool1d_t(n)
     implicit none
-    type(pool1d_t) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool1d_t(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool1d_t) , intent(inout) , pointer :: n
+    type(pool1d_t) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool1d_t
 
   subroutine getmem2d_l(a,l1,h1,l2,h2,vn)
@@ -992,69 +1004,79 @@ module mod_memutil
     end do
   end subroutine relmem2d_d
 
-  recursive subroutine finalize_pool2d_i(n)
+  subroutine finalize_pool2d_i(n)
     implicit none
-    type(pool2d_i) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool2d_i(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool2d_i) , intent(inout) , pointer :: n
+    type(pool2d_i) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool2d_i
 
-  recursive subroutine finalize_pool2d_s(n)
+  subroutine finalize_pool2d_s(n)
     implicit none
-    type(pool2d_s) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool2d_s(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool2d_s) , intent(inout) , pointer :: n
+    type(pool2d_s) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool2d_s
 
-  recursive subroutine finalize_pool2d_l(n)
+  subroutine finalize_pool2d_l(n)
     implicit none
-    type(pool2d_l) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool2d_l(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool2d_l) , intent(inout) , pointer :: n
+    type(pool2d_l) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool2d_l
 
-  recursive subroutine finalize_pool2d_r(n)
+  subroutine finalize_pool2d_r(n)
     implicit none
-    type(pool2d_r) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool2d_r(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool2d_r) , intent(inout) , pointer :: n
+    type(pool2d_r) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool2d_r
 
-  recursive subroutine finalize_pool2d_d(n)
+  subroutine finalize_pool2d_d(n)
     implicit none
-    type(pool2d_d) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool2d_d(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool2d_d) , intent(inout) , pointer :: n
+    type(pool2d_d) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool2d_d
 
   subroutine getmem3d_l(a,l1,h1,l2,h2,l3,h3,vn)
@@ -1302,69 +1324,79 @@ module mod_memutil
     end do
   end subroutine relmem3d_d
 
-  recursive subroutine finalize_pool3d_s(n)
+  subroutine finalize_pool3d_s(n)
     implicit none
-    type(pool3d_s) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool3d_s(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool3d_s) , intent(inout) , pointer :: n
+    type(pool3d_s) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool3d_s
 
-  recursive subroutine finalize_pool3d_i(n)
+  subroutine finalize_pool3d_i(n)
     implicit none
-    type(pool3d_i) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool3d_i(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool3d_i) , intent(inout) , pointer :: n
+    type(pool3d_i) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool3d_i
 
-  recursive subroutine finalize_pool3d_l(n)
+  subroutine finalize_pool3d_l(n)
     implicit none
-    type(pool3d_l) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool3d_l(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool3d_l) , intent(inout) , pointer :: n
+    type(pool3d_l) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool3d_l
 
-  recursive subroutine finalize_pool3d_r(n)
+  subroutine finalize_pool3d_r(n)
     implicit none
-    type(pool3d_r) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool3d_r(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool3d_r) , intent(inout) , pointer :: n
+    type(pool3d_r) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool3d_r
 
-  recursive subroutine finalize_pool3d_d(n)
+  subroutine finalize_pool3d_d(n)
     implicit none
-    type(pool3d_d) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool3d_d(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool3d_d) , intent(inout) , pointer :: n
+    type(pool3d_d) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool3d_d
 
   subroutine getmem4d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
@@ -1617,69 +1649,79 @@ module mod_memutil
     end do
   end subroutine relmem4d_d
 
-  recursive subroutine finalize_pool4d_s(n)
+  subroutine finalize_pool4d_s(n)
     implicit none
-    type(pool4d_s) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool4d_s(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool4d_s) , intent(inout) , pointer :: n
+    type(pool4d_s) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool4d_s
 
-  recursive subroutine finalize_pool4d_i(n)
+  subroutine finalize_pool4d_i(n)
     implicit none
-    type(pool4d_i) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool4d_i(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool4d_i) , intent(inout) , pointer :: n
+    type(pool4d_i) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool4d_i
 
-  recursive subroutine finalize_pool4d_l(n)
+  subroutine finalize_pool4d_l(n)
     implicit none
-    type(pool4d_l) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool4d_l(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool4d_l) , intent(inout) , pointer :: n
+    type(pool4d_l) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool4d_l
 
-  recursive subroutine finalize_pool4d_r(n)
+  subroutine finalize_pool4d_r(n)
     implicit none
-    type(pool4d_r) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool4d_r(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool4d_r) , intent(inout) , pointer :: n
+    type(pool4d_r) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool4d_r
 
-  recursive subroutine finalize_pool4d_d(n)
+  subroutine finalize_pool4d_d(n)
     implicit none
-    type(pool4d_d) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool4d_d(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool4d_d) , intent(inout) , pointer :: n
+    type(pool4d_d) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool4d_d
 
   subroutine getmem5d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
@@ -1937,69 +1979,79 @@ module mod_memutil
     end do
   end subroutine relmem5d_d
 
-  recursive subroutine finalize_pool5d_s(n)
+  subroutine finalize_pool5d_s(n)
     implicit none
-    type(pool5d_s) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool5d_s(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool5d_s) , intent(inout) , pointer :: n
+    type(pool5d_s) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool5d_s
 
-  recursive subroutine finalize_pool5d_i(n)
+  subroutine finalize_pool5d_i(n)
     implicit none
-    type(pool5d_i) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool5d_i(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool5d_i) , intent(inout) , pointer :: n
+    type(pool5d_i) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool5d_i
 
-  recursive subroutine finalize_pool5d_l(n)
+  subroutine finalize_pool5d_l(n)
     implicit none
-    type(pool5d_l) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool5d_l(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool5d_l) , intent(inout) , pointer :: n
+    type(pool5d_l) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool5d_l
 
-  recursive subroutine finalize_pool5d_r(n)
+  subroutine finalize_pool5d_r(n)
     implicit none
-    type(pool5d_r) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool5d_r(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool5d_r) , intent(inout) , pointer :: n
+    type(pool5d_r) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool5d_r
 
-  recursive subroutine finalize_pool5d_d(n)
+  subroutine finalize_pool5d_d(n)
     implicit none
-    type(pool5d_d) , intent(out) , pointer :: n
-    if ( associated(n%a%space) ) then
-      deallocate(n%a%space)
-    end if
-    if ( associated(n%next) ) then
-      call finalize_pool5d_d(n%next)
-    end if
-    deallocate(n)
-    nullify(n)
+    type(pool5d_d) , intent(inout) , pointer :: n
+    type(pool5d_d) , pointer :: p
+    do while ( associated(n) )
+      p => n%next
+      if ( associated(n%a%space) ) then
+        deallocate(n%a%space)
+      end if
+      deallocate(n)
+      nullify(n)
+      n => p
+    end do
   end subroutine finalize_pool5d_d
 
   subroutine memory_destroy

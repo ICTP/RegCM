@@ -446,10 +446,11 @@ AC_SUBST(SYSLIBS)
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
-		 PreProc/CH_EMISSIONS/Makefile \
-		 PreProc/CH_EMISSIONS/interpolation/Makefile \
-		 PreProc/CH_EMISSIONS/interpolation/tools/Makefile \
-		 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
+                 PreProc/CH_EMISSIONS/Makefile \
+                 PreProc/CH_EMISSIONS/creation/Makefile \
+                 PreProc/CH_EMISSIONS/interpolation/Makefile \
+                 PreProc/CH_EMISSIONS/interpolation/tools/Makefile \
+                 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ/Makefile \
