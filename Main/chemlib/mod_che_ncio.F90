@@ -504,7 +504,7 @@ module mod_che_ncio
     subroutine read_emission(lyear,lmonth,echemsrc)
       implicit none
       integer , intent(in) :: lyear,lmonth
-      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: echemsrc
+      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: echemsrc
       character(256) :: aername
       integer :: n,ncid , itvar, idimid, chmnrec
       character(64) ::chemi_timeunits
@@ -695,7 +695,7 @@ module mod_che_ncio
       integer , intent(in) :: ncid
       integer , dimension(3) , intent(in) :: istart , icount
       integer , intent(in) :: lmonth
-      real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: echemsrc
+      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb

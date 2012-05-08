@@ -826,9 +826,9 @@ module mod_rad_radiation
             sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
             aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , adiflw ,   &
             asw , alw , abv , sol , czen
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
-    real(dp) , pointer , dimension(:,:) , intent(inout) :: emsgastot
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgastot
+    real(dp) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
@@ -837,7 +837,7 @@ module mod_rad_radiation
     real(dp) , pointer , dimension(:,:,:) :: aermmr
     real(dp) , pointer , dimension(:,:) :: o3vmr
     intent (out) alb , albc , abv , sol , tauxcl , tauxci
-    intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
+    intent (out) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , totcf
 !
