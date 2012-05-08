@@ -2109,7 +2109,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_t
 
   subroutine assignp2d_l(a,b)
@@ -2161,7 +2165,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):) => a
+#endif
   end subroutine assignp2d_r
 
   subroutine assignp2d_d(a,b)
@@ -2269,7 +2277,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+#endif
   end subroutine assignp4d_s
 
   subroutine assignp4d_i(a,b)
