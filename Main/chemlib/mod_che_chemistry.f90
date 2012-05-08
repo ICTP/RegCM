@@ -92,6 +92,10 @@ module mod_che_chemistry
       c_numitr = 20
       kmax = 1
 
+
+  
+      
+      ! initialize jphoto to zero
       ! initialize jphoto to zero
       jphoto(:,:,:) = d_zero
 
@@ -111,7 +115,7 @@ module mod_che_chemistry
           altbelow= d_zero
 
 
-             
+       IF (1==2) THEN             
           if ( k ==  1 ) then
             deptha =  ctaucld(j,i,k,8) *d_half  ! (add the half layer ctaucld, should be no cloud in this layer ) 
             depthb =  ctaucld(j,i,k,8) *d_half 
@@ -157,6 +161,7 @@ module mod_che_chemistry
             if (depthb > d_zero)  altbelow = altbelow / depthb 
             if (deptha >d_zero )  altabove = altabove / deptha      
 
+      END IF
 
           do ic = 1 , totsp
             xr(1,ic) = d_zero

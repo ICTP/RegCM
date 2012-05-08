@@ -88,7 +88,7 @@ module mod_che_ncio
                  'CH2O    ','CH3OH   ','C2H5OH  ','C2H4    ', &
                  'C2H6    ','CH3CHO  ','CH3COCH3','BIGENE  ', &
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
-                 'TOLUE   ','PAN     ','SO2     ','SO4     ', &
+                 'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
 
   contains
@@ -541,7 +541,8 @@ module mod_che_ncio
 
        istatus = nf90_get_var(ncid, itvar, emtimeval)
        call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
-
+    
+       recc=0
        do n=1, chmnrec
         call timeval2ym(emtimeval(n),chemi_timeunits,year,month)
          if (year == lyear .and. month == lmonth) then 
@@ -549,7 +550,11 @@ module mod_che_ncio
          exit
         end if
         end do 
-
+       
+        if (recc == 0) then
+         print*,'chem emission : time record not ound emission file, STOP ! '   
+         stop 
+       end if  
         print*, 'FAB', lyear, lmonth, recc
 
       !*** intialized in start_chem
@@ -585,7 +590,7 @@ module mod_che_ncio
         ! ACET emission                  
         if ( iacet /= 0 ) then
           call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
-              'CH3COCH3_flux',.false.)
+              'ACET_flux',.false.)
         end if
         ! SO2 emission
         if ( iso2 /= 0 ) then
@@ -609,62 +614,50 @@ module mod_che_ncio
                     'C2H6_flux',.false.)
         end if
         ! PAR
-        !  DO THE LUMPING IN PREPROC !!
         if ( ipar /= 0 ) then
-!!$           call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
-!!$                 'C3H8_flux',.false.,'C4H10_flux')
          call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
-                 'C3H8_flux',.false.)
-
+                 'PAR_flux',.false.)
         end if
 
         ! Ethene
         if ( iethe /= 0 ) then
           call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
-                    'C2H4_flux',.false.)
+                    'ETHE_flux',.false.)
         end if
 
         ! Termenal Alkene
         if ( iolt /= 0 ) then
           call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
-                    'C3H6_flux',.false.)
+                    'OLT_flux',.false.)
         end if
 !!$        ! Internal Alkene
-!!$        if ( ioli /= 0 ) then
-!!$          ! call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'a_BIGENE',.true.)
-!!$        end if
+        if ( ioli /= 0 ) then
+           call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'OLI_flux',.false.)
+        end if
 !!$        ! Isoprene
 !!$        if ( iisop /= 0 ) then
 !!$          call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
 !!$        end if
-!!$        ! Toluene
-!!$        if ( itolue /= 0 ) then
-!!$          istatus = nf90_inq_varid(ncid, 'a_XYLENE', ivarid)
-!!$          if ( istatus == nf90_noerr ) then
-!!$            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
-!!$                      'a_TOLUENE',.true.,'b_TOLUENE')
-!!$          end if
-!!$        end if
+        ! Toluene
+        if ( itolue /= 0 ) then
+            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
+                      'TOL_flux',.false.)
+          end if
 !!$        ! Xylene
-!!$        if ( ixyl /= 0 ) then
-!!$          istatus = nf90_inq_varid(ncid, 'a_TOLUENE', ivarid)
-!!$          if ( istatus == nf90_noerr ) then
-!!$            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-!!$                      'a_XYLENE',.true.)
-!!$          else
-!!$            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
-!!$                      'a_TOLUENE',.true.,'b_XYLENE')
-!!$          end if
-!!$        end if
+        if ( ixyl /= 0 ) then
+            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+                      'XYL_flux',.true.)
+          end if
         ! Acetaldehyde
         if ( iald2 /= 0 ) then
-           call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'CH3CHO_flux',.false.)
+!test           call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'ALD2_flux',.false.)
         end if
         ! Methanol + Ethanol
         if ( imoh /= 0 ) then
           call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
-                    'CH3OH_flux',.false.)
+                    'MOH_flux',.false.)
         end if           
+
 !!$        ! DMS
 !!$        if ( idms /= 0 ) then
 !!$          ! call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)

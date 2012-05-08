@@ -43,8 +43,15 @@ module mod_cbmz_boxvars
 !    (xremit:  emitted component of xr (=direct emissions or entrainment))
 !    (xrwdep:  wet deposition sum )
 !
-  integer , parameter :: nna = 99
-  integer , parameter :: nnb = 2010
+
+!FAB : reduce a bi these dimensions to save memory
+
+!  integer , parameter :: nna = 99
+!  integer , parameter :: nnb = 2010
+
+
+integer , parameter :: nna = 1 
+integer , parameter :: nnb = 2010
 
   real(dp) :: time         ! time step (sec)
   real(dp) :: xr(nna,nnb) ! concentration molec/cm3

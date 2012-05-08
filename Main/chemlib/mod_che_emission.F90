@@ -57,6 +57,7 @@ module mod_che_emission
     ! change that in the future. Also lmonth is not really necessary here,
     ! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
     !
+    if (chemsimtype(1:4)=='DUST') return
     if ( lmonth == currmonth ) then 
       return 
     else
