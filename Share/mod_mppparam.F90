@@ -19,7 +19,9 @@
 !
 module mod_mppparam
 
+#ifndef IBM
   use mpi
+#endif
   use mod_realkinds
   use mod_dynparam
   use mod_message
@@ -301,9 +303,6 @@ module mod_mppparam
   end subroutine date_bcast
 !
   subroutine deco1_1d_real8_scatter(mg,ml)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -314,9 +313,6 @@ module mod_mppparam
   end subroutine deco1_1d_real8_scatter
 !
   subroutine deco1_1d_real8_gather(ml,mg)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -327,9 +323,6 @@ module mod_mppparam
   end subroutine deco1_1d_real8_gather
 !
   subroutine deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -389,9 +382,6 @@ module mod_mppparam
   end subroutine deco1_2d_real8_scatter
 !
   subroutine deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -453,9 +443,6 @@ module mod_mppparam
   end subroutine deco1_2d_real8_gather
 !
   subroutine deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -521,9 +508,6 @@ module mod_mppparam
   end subroutine deco1_3d_real8_scatter
 !
   subroutine deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -591,9 +575,6 @@ module mod_mppparam
   end subroutine deco1_3d_real8_gather
 !
   subroutine deco1_4d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -664,9 +645,6 @@ module mod_mppparam
   end subroutine deco1_4d_real8_scatter
 !
   subroutine deco1_4d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -739,9 +717,6 @@ module mod_mppparam
   end subroutine deco1_4d_real8_gather
 !
   subroutine deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -801,9 +776,6 @@ module mod_mppparam
   end subroutine deco1_2d_real4_scatter
 !
   subroutine deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -865,9 +837,6 @@ module mod_mppparam
   end subroutine deco1_2d_real4_gather
 !
   subroutine deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -933,9 +902,6 @@ module mod_mppparam
   end subroutine deco1_3d_real4_scatter
 !
   subroutine deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1003,9 +969,6 @@ module mod_mppparam
   end subroutine deco1_3d_real4_gather
 !
   subroutine deco1_4d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1076,9 +1039,6 @@ module mod_mppparam
   end subroutine deco1_4d_real4_scatter
 !
   subroutine deco1_4d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1151,9 +1111,6 @@ module mod_mppparam
   end subroutine deco1_4d_real4_gather
 !
   subroutine deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1213,9 +1170,6 @@ module mod_mppparam
   end subroutine deco1_2d_integer_scatter
 !
   subroutine deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1277,9 +1231,6 @@ module mod_mppparam
   end subroutine deco1_2d_integer_gather
 !
   subroutine deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1345,9 +1296,6 @@ module mod_mppparam
   end subroutine deco1_3d_integer_scatter
 !
   subroutine deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1415,9 +1363,6 @@ module mod_mppparam
   end subroutine deco1_3d_integer_gather
 !
   subroutine deco1_4d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1488,9 +1433,6 @@ module mod_mppparam
   end subroutine deco1_4d_integer_scatter
 !
   subroutine deco1_4d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1563,9 +1505,6 @@ module mod_mppparam
   end subroutine deco1_4d_integer_gather
 !
   subroutine subgrid_deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1629,9 +1568,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_real8_scatter
 !
   subroutine subgrid_deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1697,9 +1633,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_real8_gather
 !
   subroutine subgrid_deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1769,9 +1702,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_real8_scatter
 !
   subroutine subgrid_deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1843,9 +1773,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_real8_gather
 !
   subroutine subgrid_deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1909,9 +1836,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_real4_scatter
 !
   subroutine subgrid_deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -1977,9 +1901,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_real4_gather
 !
   subroutine subgrid_deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2049,9 +1970,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_real4_scatter
 !
   subroutine subgrid_deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2123,9 +2041,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_real4_gather
 !
   subroutine subgrid_deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2189,9 +2104,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_integer_scatter
 !
   subroutine subgrid_deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2257,9 +2169,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_2d_integer_gather
 !
   subroutine subgrid_deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2329,9 +2238,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_integer_scatter
 !
   subroutine subgrid_deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2403,9 +2309,6 @@ module mod_mppparam
   end subroutine subgrid_deco1_3d_integer_gather
 !
   subroutine deco1_2d_real8_exchange_right(ml,nex,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2450,9 +2353,6 @@ module mod_mppparam
   end subroutine deco1_2d_real8_exchange_right
 !
   subroutine deco1_2d_real8_exchange_left(ml,nex,i1,i2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2497,9 +2397,6 @@ module mod_mppparam
   end subroutine deco1_2d_real8_exchange_left
 !
   subroutine deco1_3d_real8_exchange_right(ml,nex,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2550,9 +2447,6 @@ module mod_mppparam
   end subroutine deco1_3d_real8_exchange_right
 !
   subroutine deco1_3d_real8_exchange_left(ml,nex,i1,i2,k1,k2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2603,9 +2497,6 @@ module mod_mppparam
   end subroutine deco1_3d_real8_exchange_left
 !
   subroutine deco1_4d_real8_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2663,9 +2554,6 @@ module mod_mppparam
   end subroutine deco1_4d_real8_exchange_right
 !
   subroutine deco1_4d_real8_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'
@@ -2723,9 +2611,6 @@ module mod_mppparam
   end subroutine deco1_4d_real8_exchange_left
 
   subroutine deco1d_2d_real8_allgat(a,b)
-#ifndef IBM
-    use mpi
-#endif
     implicit none
 #ifdef IBM
     include 'mpif.h'

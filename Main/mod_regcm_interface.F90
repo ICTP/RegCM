@@ -21,7 +21,6 @@
 module mod_regcm_interface
 
   use mod_memutil
-  use mod_mppgrid
   use mod_service
   use mod_che_interface
   use mod_atm_interface

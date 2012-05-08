@@ -266,19 +266,20 @@ AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
-  GFORTRAN_VERSION="`gfortran --version | head -1 | cut -d " " -f 4`"
-  GFORTRAN_MAJOR="`echo $GFORTRAN_VERSION | cut -d "." -f 1`"
-  GFORTRAN_MINOR="`echo $GFORTRAN_VERSION | cut -d "." -f 2`"
-  echo "gfortran is version $GFORTRAN_VERSION"
-  if eval "test "$GFORTRAN_MAJOR" -lt 4"; then
-    AC_MSG_WARN([We need at least gfortran 4.6.x.....])
-    exit 1
-  else
-    if eval "test "$GFORTRAN_MINOR" -lt 6"; then
-      AC_MSG_WARN([We need at least gfortran 4.6.x.....])
-      exit 1
-    fi
-  fi
+  # Following check seems not to work on SuSE, need investigation
+#  GFORTRAN_VERSION="`gfortran --version | head -1 | cut -d " " -f 4`"
+#  GFORTRAN_MAJOR="`echo $GFORTRAN_VERSION | cut -d "." -f 1`"
+#  GFORTRAN_MINOR="`echo $GFORTRAN_VERSION | cut -d "." -f 2`"
+#  echo "gfortran is version $GFORTRAN_VERSION"
+#  if eval "test "$GFORTRAN_MAJOR" -lt 4"; then
+#    AC_MSG_WARN([We need at least gfortran 4.6.x.....])
+#    exit 1
+#  else
+#    if eval "test "$GFORTRAN_MINOR" -lt 6"; then
+#      AC_MSG_WARN([We need at least gfortran 4.6.x.....])
+#      exit 1
+#    fi
+#  fi
   FCFLAGS="-fconvert=big-endian -fno-range-check"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
