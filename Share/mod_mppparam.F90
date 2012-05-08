@@ -2313,7 +2313,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , i , j , ib
     if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
@@ -2357,7 +2357,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , j , i , ib
     if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
@@ -2401,7 +2401,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
     if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
@@ -2451,7 +2451,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
     if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
@@ -2501,7 +2501,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
@@ -2558,7 +2558,7 @@ module mod_mppparam
 #ifdef IBM
     include 'mpif.h'
 #endif
-    real(dp) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
     integer :: i , j , k , n
@@ -2657,8 +2657,8 @@ module mod_mppparam
 !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
-    real(dp) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ux , vx
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ud , vd
     integer :: i , j
 
     ! TODO:  It might make sense to encapsulate the following code
@@ -2708,7 +2708,7 @@ module mod_mppparam
 !
   subroutine psc2psd(pc,pd)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(inout)  :: pc
+    real(dp) , pointer , dimension(:,:) , intent(in)  :: pc
     real(dp) , pointer , dimension(:,:) , intent(out) :: pd
     integer :: i , j
     !

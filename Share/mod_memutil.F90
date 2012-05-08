@@ -676,7 +676,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_i(n)
     implicit none
-    type(pool1d_i) , intent(inout) , pointer :: n
+    type(pool1d_i) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -689,7 +689,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_s(n)
     implicit none
-    type(pool1d_s) , intent(inout) , pointer :: n
+    type(pool1d_s) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -702,7 +702,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_l(n)
     implicit none
-    type(pool1d_l) , intent(inout) , pointer :: n
+    type(pool1d_l) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -715,7 +715,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_r(n)
     implicit none
-    type(pool1d_r) , intent(inout) , pointer :: n
+    type(pool1d_r) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -728,7 +728,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_d(n)
     implicit none
-    type(pool1d_d) , intent(inout) , pointer :: n
+    type(pool1d_d) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -741,7 +741,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_t(n)
     implicit none
-    type(pool1d_t) , intent(inout) , pointer :: n
+    type(pool1d_t) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -994,7 +994,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_i(n)
     implicit none
-    type(pool2d_i) , intent(inout) , pointer :: n
+    type(pool2d_i) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1007,7 +1007,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_s(n)
     implicit none
-    type(pool2d_s) , intent(inout) , pointer :: n
+    type(pool2d_s) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1020,7 +1020,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_l(n)
     implicit none
-    type(pool2d_l) , intent(inout) , pointer :: n
+    type(pool2d_l) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1033,7 +1033,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_r(n)
     implicit none
-    type(pool2d_r) , intent(inout) , pointer :: n
+    type(pool2d_r) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1046,7 +1046,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_d(n)
     implicit none
-    type(pool2d_d) , intent(inout) , pointer :: n
+    type(pool2d_d) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1304,7 +1304,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_s(n)
     implicit none
-    type(pool3d_s) , intent(inout) , pointer :: n
+    type(pool3d_s) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1317,7 +1317,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_i(n)
     implicit none
-    type(pool3d_i) , intent(inout) , pointer :: n
+    type(pool3d_i) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1330,7 +1330,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_l(n)
     implicit none
-    type(pool3d_l) , intent(inout) , pointer :: n
+    type(pool3d_l) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1343,7 +1343,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_r(n)
     implicit none
-    type(pool3d_r) , intent(inout) , pointer :: n
+    type(pool3d_r) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1356,7 +1356,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_d(n)
     implicit none
-    type(pool3d_d) , intent(inout) , pointer :: n
+    type(pool3d_d) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1619,7 +1619,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_s(n)
     implicit none
-    type(pool4d_s) , intent(inout) , pointer :: n
+    type(pool4d_s) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1632,7 +1632,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_i(n)
     implicit none
-    type(pool4d_i) , intent(inout) , pointer :: n
+    type(pool4d_i) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1645,7 +1645,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_l(n)
     implicit none
-    type(pool4d_l) , intent(inout) , pointer :: n
+    type(pool4d_l) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1658,7 +1658,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_r(n)
     implicit none
-    type(pool4d_r) , intent(inout) , pointer :: n
+    type(pool4d_r) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1671,7 +1671,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_d(n)
     implicit none
-    type(pool4d_d) , intent(inout) , pointer :: n
+    type(pool4d_d) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1939,7 +1939,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_s(n)
     implicit none
-    type(pool5d_s) , intent(inout) , pointer :: n
+    type(pool5d_s) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1952,7 +1952,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_i(n)
     implicit none
-    type(pool5d_i) , intent(inout) , pointer :: n
+    type(pool5d_i) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1965,7 +1965,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_l(n)
     implicit none
-    type(pool5d_l) , intent(inout) , pointer :: n
+    type(pool5d_l) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1978,7 +1978,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_r(n)
     implicit none
-    type(pool5d_r) , intent(inout) , pointer :: n
+    type(pool5d_r) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -1991,7 +1991,7 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_d(n)
     implicit none
-    type(pool5d_d) , intent(inout) , pointer :: n
+    type(pool5d_d) , intent(out) , pointer :: n
     if ( associated(n%a%space) ) then
       deallocate(n%a%space)
     end if
@@ -2039,7 +2039,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_l
 
   subroutine assignp1d_s(a,b)
@@ -2049,7 +2053,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_s
 
   subroutine assignp1d_i(a,b)
@@ -2059,7 +2067,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_i
 
   subroutine assignp1d_r(a,b)
@@ -2069,7 +2081,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_r
 
   subroutine assignp1d_d(a,b)
@@ -2079,7 +2095,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):) => a
+#endif
   end subroutine assignp1d_d
 
   subroutine assignp1d_t(a,b)
@@ -2099,7 +2119,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):) => a
+#endif
   end subroutine assignp2d_l
 
   subroutine assignp2d_s(a,b)
@@ -2109,7 +2133,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):) => a
+#endif
   end subroutine assignp2d_s
 
   subroutine assignp2d_i(a,b)
@@ -2119,7 +2147,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):) => a
+#endif
   end subroutine assignp2d_i
 
   subroutine assignp2d_r(a,b)
@@ -2139,7 +2171,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):) => a
+#endif
   end subroutine assignp2d_d
 
   subroutine assignp3d_l(a,b)
@@ -2149,7 +2185,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+#endif
   end subroutine assignp3d_l
 
   subroutine assignp3d_s(a,b)
@@ -2159,7 +2199,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+#endif
   end subroutine assignp3d_s
 
   subroutine assignp3d_i(a,b)
@@ -2169,7 +2213,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+#endif
   end subroutine assignp3d_i
 
   subroutine assignp3d_r(a,b)
@@ -2179,7 +2227,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+#endif
   end subroutine assignp3d_r
 
   subroutine assignp3d_d(a,b)
@@ -2189,7 +2241,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+#endif
   end subroutine assignp3d_d
 
   subroutine assignp4d_l(a,b)
@@ -2199,7 +2255,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+#endif
   end subroutine assignp4d_l
 
   subroutine assignp4d_s(a,b)
@@ -2219,7 +2279,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+#endif
   end subroutine assignp4d_i
 
   subroutine assignp4d_r(a,b)
@@ -2229,7 +2293,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+#endif
   end subroutine assignp4d_r
 
   subroutine assignp4d_d(a,b)
@@ -2239,7 +2307,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+#endif
   end subroutine assignp4d_d
 
   subroutine assignp5d_l(a,b)
@@ -2249,7 +2321,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+#endif
   end subroutine assignp5d_l
 
   subroutine assignp5d_s(a,b)
@@ -2259,7 +2335,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+#endif
   end subroutine assignp5d_s
 
   subroutine assignp5d_i(a,b)
@@ -2269,7 +2349,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+#endif
   end subroutine assignp5d_i
 
   subroutine assignp5d_r(a,b)
@@ -2279,7 +2363,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+#endif
   end subroutine assignp5d_r
 
   subroutine assignp5d_d(a,b)
@@ -2289,7 +2377,11 @@ module mod_memutil
       nullify(b)
       return
     end if
+#ifndef __GFORTRAN__
+    b => a
+#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+#endif
   end subroutine assignp5d_d
 
 end module mod_memutil
