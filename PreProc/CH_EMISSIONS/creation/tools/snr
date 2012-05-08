@@ -1,0 +1,36 @@
+#! /bin/csh -f
+
+# SNR - Search aNd Replace
+# shell invoking perl to replace text strings within a file
+
+set file = $1
+set intext = $2
+set outtext = $3
+
+if ( $1 == '' ) then
+   echo "replace text strings within a file;"
+   echo "the output file overwrites the input file\!"
+   echo "usage:"
+   echo "   snr <file> <input string> <output string>"
+   echo "    note that strange characters (e.g., >) need to be"
+   echo "    prefaced with a backslash (e.g., \>)"
+   echo ""
+   exit
+endif
+
+if ( -e temp.txt ) then
+ echo "need to first remove temp.txt"
+ exit 
+endif
+
+if ( -e pl.tmp ) then
+ echo "need to first remove pl.tmp"
+ exit 
+endif
+
+sed -e s/${intext}/${outtext}/g $file > temp.txt
+
+mv -f temp.txt $file
+
+exit
+

@@ -17,4 +17,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = Terrain ICBC CLM CH_EMISSIONS
+SUBDIRS = interpolation

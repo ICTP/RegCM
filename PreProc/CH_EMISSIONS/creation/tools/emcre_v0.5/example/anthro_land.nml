@@ -1,0 +1,175 @@
+! -*- f90 -*-
+
+&CTRL
+VERBOSE =.TRUE.
+! NAME OF OUTPUT netCDF FILE
+OUTPUT      = 'example.nc'
+! SPECIES NAME
+SPECIES     = 'NO2'
+! OUTPUT MASS FLUX IN ORIGINAL UNITS IN ADDITION ?
+L_MASSFLUX  = .FALSE.
+! MOLAR MASS OF SPECIES
+MOLARMASS   = 44.02
+YEAR_START  = 1950
+YEAR_END    = 2000
+GLOBALSCALE = 1.0
+! EMISSION HEIGHTS [m] (up to 100 levels)
+HEIGHT    = 45.
+INPUTPATH   = '/home/netapp/clima-users/users/apozzer/emissions/soft/test/data'
+!----------------------------------------------------------
+! FILE (EMISSION-CLASS), LEVEL, FACTOR ### (up to 10000 classes)
+!----------------------------------------------------------
+! ENERGY/POWER RELATED
+!----------------------------------------------------------
+SOURCE(1) = 'emiss_ene', 
+FRAC(1)   = 1.0
+YEAR(1) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(1) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+! Manufacturing industry
+!----------------------------------------------------------
+SOURCE(2) = 'emiss_ind', 
+FRAC(2)   = 1.00 
+YEAR(2) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(2) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+! Residential 
+!----------------------------------------------------------
+SOURCE(3) = 'emiss_dom', 
+FRAC(3)   = 1.00 
+YEAR(3) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(3) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+!  Transport
+!----------------------------------------------------------
+SOURCE(4) = 'emiss_tra', 
+FRAC(4)   = 1.00 
+YEAR(4) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(4) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+!  Agricultural sector
+!----------------------------------------------------------
+SOURCE(5) = 'emiss_agr', 
+FRAC(5)   = 1.00 
+YEAR(5) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(5) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+!  Agricultural waste burning
+!----------------------------------------------------------
+SOURCE(6) = 'emiss_agr', 
+FRAC(6)   = 1.00 
+YEAR(6) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(6) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+!----------------------------------------------------------
+!  Waste disposal
+!----------------------------------------------------------
+SOURCE(7) = 'emiss_wst', 
+FRAC(7)   = 1.00 
+YEAR(7) =  1850, 1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,1980,1990,2000 
+FILE_NAME(7) ='IPCC_emissions_NO_anthropogenic_1850_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1860_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1870_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1880_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1890_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1900_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1910_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1920_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1930_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1940_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1950_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1960_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1970_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1980_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_1990_0.5x0.5_v1_07_05_2009.nc',
+              'IPCC_emissions_NO_anthropogenic_2000_0.5x0.5_v1_07_05_2009.nc'
+/
