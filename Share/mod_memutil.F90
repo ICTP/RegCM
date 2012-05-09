@@ -2412,7 +2412,7 @@ module mod_memutil
 #ifndef __GFORTRAN__
     b => a(:,:,:,i)
 #else
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a(:,:,:,i)
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a(:,:,:,i)
 #endif
   end subroutine assignp4d_3d_d
 
