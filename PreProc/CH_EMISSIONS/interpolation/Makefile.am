@@ -23,7 +23,7 @@ include $(REGCM_ROOT)/makeinc
 
 bin_PROGRAMS = interp_emissions
 
-interp_emissions: interp_emissions.csh
+interp_emissions: interp_emissions.sh
 	cp $< $@
 
 # --------------------------------------------------------------------
