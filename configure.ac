@@ -447,7 +447,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  PreProc/CH_EMISSIONS/Makefile \
-                 PreProc/CH_EMISSIONS/creation/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
