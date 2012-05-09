@@ -687,10 +687,10 @@ module mod_tendency
       do itr = 1 , ntr
         ! Here assignpnt does not work with gfortran with a sliced array.
         ! Doing explicit work on bounds.
-        spchiten                      => chiten(:,:,:,itr)
-        spchi(lbound(chi,1):,1:,1:)   => chi(:,:,:,itr)
-        spchia(lbound(chia,1):,1:,1:) => chia(:,:,:,itr)
-        spchib3d(lbound(chib3d,1):,1:,1:) => chib3d(:,:,:,itr)
+        call assignpnt(chiten,spchiten,itr)
+        call assignpnt(chi,spchi,itr)
+        call assignpnt(chia,spchia,itr)
+        call assignpnt(chib3d,spchib3d,itr)
 
         call hadv(cross,spchiten,spchi,kz,2)
 

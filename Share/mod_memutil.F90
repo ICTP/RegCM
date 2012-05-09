@@ -57,6 +57,7 @@ module mod_memutil
     module procedure assignp4d_i
     module procedure assignp4d_r
     module procedure assignp4d_d
+    module procedure assignp4d_3d_d
     module procedure assignp5d_l
     module procedure assignp5d_s
     module procedure assignp5d_i
@@ -2085,6 +2086,7 @@ module mod_memutil
   end subroutine memory_destroy
 
   subroutine assignp1d_l(a,b)
+    implicit none
     logical , pointer , dimension(:) , intent(in) :: a
     logical , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2099,6 +2101,7 @@ module mod_memutil
   end subroutine assignp1d_l
 
   subroutine assignp1d_s(a,b)
+    implicit none
     integer(2) , pointer , dimension(:) , intent(in) :: a
     integer(2) , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2113,6 +2116,7 @@ module mod_memutil
   end subroutine assignp1d_s
 
   subroutine assignp1d_i(a,b)
+    implicit none
     integer , pointer , dimension(:) , intent(in) :: a
     integer , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2127,6 +2131,7 @@ module mod_memutil
   end subroutine assignp1d_i
 
   subroutine assignp1d_r(a,b)
+    implicit none
     real(sp) , pointer , dimension(:) , intent(in) :: a
     real(sp) , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2141,6 +2146,7 @@ module mod_memutil
   end subroutine assignp1d_r
 
   subroutine assignp1d_d(a,b)
+    implicit none
     real(dp) , pointer , dimension(:) , intent(in) :: a
     real(dp) , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2155,6 +2161,7 @@ module mod_memutil
   end subroutine assignp1d_d
 
   subroutine assignp1d_t(a,b)
+    implicit none
     type(rcm_time_and_date) , pointer , dimension(:) , intent(in) :: a
     type(rcm_time_and_date) , pointer , dimension(:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2169,6 +2176,7 @@ module mod_memutil
   end subroutine assignp1d_t
 
   subroutine assignp2d_l(a,b)
+    implicit none
     logical , pointer , dimension(:,:) , intent(in) :: a
     logical , pointer , dimension(:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2183,6 +2191,7 @@ module mod_memutil
   end subroutine assignp2d_l
 
   subroutine assignp2d_s(a,b)
+    implicit none
     integer(2) , pointer , dimension(:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2197,6 +2206,7 @@ module mod_memutil
   end subroutine assignp2d_s
 
   subroutine assignp2d_i(a,b)
+    implicit none
     integer , pointer , dimension(:,:) , intent(in) :: a
     integer , pointer , dimension(:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2211,6 +2221,7 @@ module mod_memutil
   end subroutine assignp2d_i
 
   subroutine assignp2d_r(a,b)
+    implicit none
     real(sp) , pointer , dimension(:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2225,6 +2236,7 @@ module mod_memutil
   end subroutine assignp2d_r
 
   subroutine assignp2d_d(a,b)
+    implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2239,6 +2251,7 @@ module mod_memutil
   end subroutine assignp2d_d
 
   subroutine assignp3d_l(a,b)
+    implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2253,6 +2266,7 @@ module mod_memutil
   end subroutine assignp3d_l
 
   subroutine assignp3d_s(a,b)
+    implicit none
     integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2267,6 +2281,7 @@ module mod_memutil
   end subroutine assignp3d_s
 
   subroutine assignp3d_i(a,b)
+    implicit none
     integer , pointer , dimension(:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2281,6 +2296,7 @@ module mod_memutil
   end subroutine assignp3d_i
 
   subroutine assignp3d_r(a,b)
+    implicit none
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2295,6 +2311,7 @@ module mod_memutil
   end subroutine assignp3d_r
 
   subroutine assignp3d_d(a,b)
+    implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2309,6 +2326,7 @@ module mod_memutil
   end subroutine assignp3d_d
 
   subroutine assignp4d_l(a,b)
+    implicit none
     logical , pointer , dimension(:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2323,6 +2341,7 @@ module mod_memutil
   end subroutine assignp4d_l
 
   subroutine assignp4d_s(a,b)
+    implicit none
     integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2337,6 +2356,7 @@ module mod_memutil
   end subroutine assignp4d_s
 
   subroutine assignp4d_i(a,b)
+    implicit none
     integer , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2351,6 +2371,7 @@ module mod_memutil
   end subroutine assignp4d_i
 
   subroutine assignp4d_r(a,b)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2365,6 +2386,7 @@ module mod_memutil
   end subroutine assignp4d_r
 
   subroutine assignp4d_d(a,b)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2378,7 +2400,24 @@ module mod_memutil
 #endif
   end subroutine assignp4d_d
 
+  subroutine assignp4d_3d_d(a,b,i)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: i
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+#ifndef __GFORTRAN__
+    b => a(:,:,:,i)
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a(:,:,:,i)
+#endif
+  end subroutine assignp4d_3d_d
+
   subroutine assignp5d_l(a,b)
+    implicit none
     logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2393,6 +2432,7 @@ module mod_memutil
   end subroutine assignp5d_l
 
   subroutine assignp5d_s(a,b)
+    implicit none
     integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2407,6 +2447,7 @@ module mod_memutil
   end subroutine assignp5d_s
 
   subroutine assignp5d_i(a,b)
+    implicit none
     integer , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2421,6 +2462,7 @@ module mod_memutil
   end subroutine assignp5d_i
 
   subroutine assignp5d_r(a,b)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
@@ -2435,6 +2477,7 @@ module mod_memutil
   end subroutine assignp5d_r
 
   subroutine assignp5d_d(a,b)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
     if ( .not. associated(a) ) then
