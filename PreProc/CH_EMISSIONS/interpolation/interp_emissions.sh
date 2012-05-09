@@ -34,11 +34,11 @@ EMISSDIR=`cat $INPFILE | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
            sed -e 's/ //g' -e 's/,//'`
 
 ## global emissions file locations / output of creation ##
-data_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED"
+data_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED/global_cmip"
+## grid of RCPs location
+CMIP5_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED/grids"
 ## grid of REGMC location
 REGCM_dir="$RCMINPDIR"
-## grid of RCPs location
-CMIP5_dir="$RCMINPDIR/grids"
 #output_directory
 out_dir="$RCMINPDIR"
 
@@ -54,12 +54,13 @@ $CDO gencon,$REGCM_dir/REGCM_grid.nc -setgrid,$CMIP5_dir/CMIP5_grid.nc \
 
 for file in ${file_list[*]}
 do
-  ofile=`basename $ifile`
-  echo 'Producing $ofile...'
-  $CDO remap,$REGCM_dir/REGCM_grid.nc,remapweights.nc $ifile $out_dir/$ofile
+  ofile=`basename $file`
+  echo "Producing $ofile..."
+  $CDO remap,$REGCM_dir/REGCM_grid.nc,remapweights.nc $file $out_dir/$ofile
 done
 
 # here the final naming has to be interactive with regcm.in
 $CDO merge $out_dir/RCP*.nc $out_dir/CHEMISS.nc 
+rm -f remapweights.nc
 echo 'Done'
 exit 0
