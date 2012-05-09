@@ -64,6 +64,13 @@ done
 # here the final naming has to be interactive with regcm.in
 rm -f $out_dir/${DOMNAME}_CHEMISS.nc
 $CDO merge $out_dir/RCP*.nc $out_dir/${DOMNAME}_CHEMISS.nc 
+
+echo 'Cleanup...'
+for file in ${file_list[*]}
+do
+  ofile=`basename $file`
+  rm -f $out_dir/$ofile
+done
 rm -f remapweights.nc
 echo 'Done'
 exit 0
