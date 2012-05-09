@@ -125,14 +125,9 @@ rm -f $par1 $par2 tutu.nc toto.nc
 @ nscen++
 end # on nscen
 
-
-             
 # clean up links
-
 unlink input
 rm emcre
 rm snr
-             
 
 exit
-

@@ -18,3 +18,13 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 SUBDIRS = tools
+
+include $(REGCM_ROOT)/makeinc
+
+bin_PROGRAMS = interp_emissions
+
+interp_emissions: interp_emissions.csh
+	cp $< $@
+
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
