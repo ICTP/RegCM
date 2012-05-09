@@ -262,7 +262,7 @@ AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
 AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90 -o x"$FC" = xpgf95])
 AM_CONDITIONAL(COMPILER_INTEL, [test x"$FC" = xifort])
 
-AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
+AM_CONDITIONAL(REGCM_PARALLEL, [test x"$PARALLEL" = "x1"])
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
@@ -388,7 +388,7 @@ else
 fi
 AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
-if eval "test x$PARALLEL = x1"; then
+if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
 else
   FORT_SIZE="real4double8"

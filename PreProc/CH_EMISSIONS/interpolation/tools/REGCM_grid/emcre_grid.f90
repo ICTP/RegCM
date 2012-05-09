@@ -24,7 +24,7 @@ PROGRAM EMCRE
 
   ! FOR COMMAND LINE
   CHARACTER(LEN=256) :: EXE          ! program name
-  CHARACTER(LEN=80)  :: CMD          ! argument
+  CHARACTER(LEN=256) :: CMD          ! argument
   INTEGER            :: NARG         ! number of arguments
 
 
@@ -66,6 +66,16 @@ PROGRAM EMCRE
   ! ... CONVERSION
   REAL(DP) :: conv                      ! conversion
 
+  LOGICAL :: smthbdy , lakedpth, fudge_lnd , fudge_lnd_s , fudge_tex , &
+             fudge_lak_s , fudge_tex_s , fudge_lak , h2ohgt
+  REAL(DP) :: h2opct
+  CHARACTER(len=64) :: domname
+  CHARACTER(len=256) :: dirter , inpter
+  CHARACTER(len=1) :: pthsep='/'
+  INTEGER :: ipunit = 101
+  namelist /terrainparam/ domname , smthbdy , lakedpth, fudge_lnd , &
+                fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
+                fudge_lak_s , h2opct , h2ohgt , dirter , inpter
 
   ! (1) READ COMMAND LINE
   NARG = COMMAND_ARGUMENT_COUNT()    ! number of arguments
@@ -82,9 +92,12 @@ PROGRAM EMCRE
   END IF
   !
   CALL GET_COMMAND_ARGUMENT(1,CMD)
+  open(ipunit, file=CMD, status='old', action='read', err=100)
+
+  read(ipunit, terrainparam, err=101)
 
   ! (2) INIT
-  fname=TRIM(CMD)
+  fname=TRIM(DIRTER)//pthsep//TRIM(domname)//'_DOMAIN000.nc'
   write(*,*) "INPUT FROM :", TRIM(fname)
 
   ! (3) OPEN NETCDF-FILE DIMENSION
@@ -210,6 +223,13 @@ PROGRAM EMCRE
   IF (ALLOCATED(xlatb)) DEALLOCATE(xlatb)
   IF (ALLOCATED(xtime)) DEALLOCATE(xtime)
   IF (ALLOCATED(var)) DEALLOCATE(var)
+
+  stop
+
+100 write ( 6, * ) 'Cannot read namelist file ', trim(CMD)
+    stop
+101 write ( 6, * ) 'Cannot read namelist stanza: terrainparam ', trim(CMD)
+    stop
 
 ! --------------------------------------------------------------------------
 ! ##########################################################################
@@ -372,8 +392,8 @@ CONTAINS
 
     ! CREATE NEW FILE
     CALL NFERR(status, &
-         nf90_create('REGCM_grid.nc', NF90_CLOBBER, ncid) &
-         ,51)
+         nf90_create(trim(dirter)//pthsep//'REGCM_grid.nc', &
+                     NF90_CLOBBER, ncid) ,51)
 
     ! ADD GLOBALE ATTRIBUTES
     ! - VERSION

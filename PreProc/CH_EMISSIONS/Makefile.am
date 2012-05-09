@@ -17,4 +17,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = interpolation
+SUBDIRS = creation interpolation
