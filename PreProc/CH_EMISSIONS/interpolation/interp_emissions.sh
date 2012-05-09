@@ -60,6 +60,7 @@ do
 done
 
 # here the final naming has to be interactive with regcm.in
+rm -f $out_dir/CHEMISS.nc
 $CDO merge $out_dir/RCP*.nc $out_dir/CHEMISS.nc 
 rm -f remapweights.nc
 echo 'Done'
