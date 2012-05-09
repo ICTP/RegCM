@@ -38,11 +38,10 @@ module mod_write
   real(sp) , pointer , dimension(:,:) :: ps4 , ts4
   real(sp) , pointer , dimension(:,:,:) :: h4 , q4
   real(sp) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(sp) , pointer , dimension(:,:,:) :: sulfate4
   real(sp) , pointer , dimension(:) :: yiy
   real(sp) , pointer , dimension(:) :: xjx
 
-  public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , sulfate4
+  public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4
   public :: init_output , close_output , newfile , writef
 
   data ncout /-1/
@@ -155,8 +154,6 @@ module mod_write
     end if
     istatus = nf90_put_att(ncout, nf90_global, 'global_data_source', dattyp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding global data_source')
-    istatus = nf90_put_att(ncout, nf90_global, 'sulfate_data_present', cdum)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error adding global sulfate_present')
     istatus = nf90_def_dim(ncout, 'iy', iy, idims(2))
     call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension iy')
     istatus = nf90_def_dim(ncout, 'jx', jx, idims(1))
