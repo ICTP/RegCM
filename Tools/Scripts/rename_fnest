@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]
+then
+  echo "Not enough arguments."
+  echo "Need:"
+  echo "       input directory from coarse run"
+  echo "       base directory input to nest run"
+  echo
+  exit 1
+fi
+
+if [ ! -d $1 ]
+then
+  echo "First argument must be a directory."
+  exit 1
+fi
+
+if [ ! -d $2 ]
+then
+  echo "Second argument must be a directory."
+  exit 1
+fi
+
+for file in $1/*ATM*.nc
+do
+  ofile=`basename $file`
+  ln -sf $file $2/`echo $ofile | cut -d "_" -f 2-`
+done
