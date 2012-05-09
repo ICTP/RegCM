@@ -28,6 +28,8 @@ then
 fi
 
 INPFILE=$1
+DOMNAME=`cat $INPFILE | grep domname | cut -d "=" -f 2 | tr "'" " " | \
+           sed -e 's/ //g' -e 's/,//'`
 RCMINPDIR=`cat $INPFILE | grep dirter | cut -d "=" -f 2 | tr "'" " " | \
            sed -e 's/ //g' -e 's/,//'`
 EMISSDIR=`cat $INPFILE | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
@@ -60,8 +62,8 @@ do
 done
 
 # here the final naming has to be interactive with regcm.in
-rm -f $out_dir/CHEMISS.nc
-$CDO merge $out_dir/RCP*.nc $out_dir/CHEMISS.nc 
+rm -f $out_dir/${DOMNAME}_CHEMISS.nc
+$CDO merge $out_dir/RCP*.nc $out_dir/${DOMNAME}_CHEMISS.nc 
 rm -f remapweights.nc
 echo 'Done'
 exit 0
