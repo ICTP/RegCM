@@ -43,6 +43,7 @@ module mod_regcm_interface
   use mod_sun
 #ifdef CLM
   use perf_mod
+  use mod_mtrxclm
   use spmdMod, only: mpicom
 #endif
   implicit none
@@ -186,7 +187,11 @@ module mod_regcm_interface
     if (myid == 0) then
       write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
     end if
+#ifdef CLM
+    call solar_clm(idatex,calday,declin,xyear)
+#else
     call solar1
+#endif
     call init_bdy
 !
 !**********************************************************************
@@ -235,7 +240,11 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call zenitm(coszrs,jci1,jci2,ici1,ici2)
+#ifdef CLM
+    call zenit_clm(coszrs)
+#else
+    call zenitm(coszrs)
+#endif
 !
 !**********************************************************************
 !
@@ -299,6 +308,11 @@ module mod_regcm_interface
           if (myid == 0) then
             write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
           end if
+#ifdef CLM
+          call solar_clm(idatex,calday,declin,xyear)
+#else
+          call solar1
+#endif
           call solar1
           !
           ! Read in new boundary conditions

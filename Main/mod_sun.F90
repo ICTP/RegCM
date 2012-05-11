@@ -86,11 +86,10 @@ module mod_sun
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine zenitm(coszrs,jstart,jend,istart,iend)
+  subroutine zenitm(coszrs)
 !
     implicit none
 !
-    integer, intent (in) :: jstart , jend , istart , iend
     real(dp) , pointer , intent (out), dimension(:,:) :: coszrs
 !
     integer :: i , j
@@ -104,8 +103,8 @@ module mod_sun
 !***********************************************************************
 !
     xt24 = dble(idatex%second_of_day)/secph
-    do i = istart , iend
-      do j = jstart , jend
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tlocap = xt24 + mddom%xlon(j,i)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
         omga = 15.0D0*(tlocap-12.0D0)*degrad

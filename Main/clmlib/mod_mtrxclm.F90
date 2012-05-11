@@ -23,18 +23,25 @@ module mod_mtrxclm
 
   use mod_dynparam
   use mod_mpmessage
+  use mod_service
   use mod_mppparam
+  use mod_date
   use mod_clm
   use mod_bats_common
   use mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_zengocn
 
+  use clm_time_manager , only : get_curr_calday
+  use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
+                           shr_orb_params
   private
 
   public :: mtrxclm
   public :: initclm
   public :: interfclm
+  public :: solar_clm
+  public :: zenit_clm
   public :: albedoclm
 
   interface fill_frame
@@ -156,13 +163,13 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
   ! calendar type (GREGORIAN not available in CLM 3.5)
-  if ( ical == noleap ) then
+  ! if ( ical == noleap ) then
     r2cclndr = 'NO_LEAP'
-  else if ( ical == gregorian ) then
-    r2cclndr = 'ESMF_CAL_GREGORIAN'
-  else
-    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
-  end if
+  ! else if ( ical == gregorian ) then
+  !   r2cclndr = 'ESMF_CAL_GREGORIAN'
+  ! else
+  !   call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
+  ! end if
   ! don't write to NCAR Mass Storage
   r2cmss_irt = 0
   ! clm output frequency
@@ -1038,6 +1045,70 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       b(jde2,ide2) = a(jci2,ici2,kz)
     end if
   end subroutine fill_frame3d
+
+  subroutine solar_clm(idatex,calday,declin,xyear)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idatex
+    integer , intent(in)  :: xyear
+    real(dp) , intent(out) :: calday , declin
+    real(dp) :: decdeg
+    real(dp) :: mvelp , obliq
+    integer :: iyear_ad
+    logical :: log_print
+    character (len=64) :: subroutine_name='solar_clm'
+    integer :: idindx=0
+!
+    call time_begin(subroutine_name,idindx)
+!
+    calday = yeardayfrac(idatex)
+!
+    log_print = .false.
+    iyear_ad = xyear
+!   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
+    call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
+                        r2clambm0,r2cmvelpp,log_print)
+!
+!   Get declin,eccf
+    call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
+                      declin,r2ceccf)
+
+!   convert declin to degrees
+    decdeg = declin/degrad
+    write (aline, 99001) calday, decdeg
+    call say
+
+    call time_end(subroutine_name,idindx)
+
+99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
+        &   ' degrees.')
+!
+  end subroutine solar_clm
+
+  subroutine zenit_clm(coszrs)
+    implicit none
+    real(dp) , pointer , intent(out), dimension(:,:) :: coszrs
+!
+    integer :: i , j
+    real(dp) :: cldy , declinp1 , xxlon
+    real(dp) :: xxlat
+    integer :: idindx=0
+    character (len=64) :: subroutine_name='zenitm_clm'
+!
+    call time_begin(subroutine_name,idindx)
+    cldy = get_curr_calday()
+    call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0, &
+                      r2cobliqr,declinp1,r2ceccf)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        xxlat = xlat(j,i)*degrad
+        xxlon = xlon(j,i)*degrad
+        coszrs(j,i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
+        coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
+        coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
+      end do
+    end do
+    call time_end(subroutine_name,idindx)
+  end subroutine zenit_clm
 
 end module mod_mtrxclm
 
