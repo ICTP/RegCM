@@ -179,7 +179,6 @@ module mod_cu_tiedtke
       end do
     end do
 
-    ii = 1
     do k = 1 , kz
       ii = 1
       do i = ici1 , ici2
@@ -259,8 +258,8 @@ module mod_cu_tiedtke
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv
             end if
           end if
-          ii = ii + 1
         end if
+        ii = ii + 1
       end do
     end do
 
