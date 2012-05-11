@@ -4331,7 +4331,7 @@ module mod_cu_tiedtke
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 
-    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
+    ! isum = 0 !AMT fudge to only make one iteration for temporary speed fix
 
     if ( isum == 0 ) go to 230
 
@@ -4400,9 +4400,9 @@ module mod_cu_tiedtke
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 
-    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
+    ! isum = 0 !AMT fudge to only make one iteration for temporary speed fix
 
-    if(isum == 0) go to 330
+    if ( isum == 0 ) go to 330
 
     do jl = 1 , kproma
       if ( ldflag(jl) .and. abs(zcond(jl) ) > d_zero) then
@@ -4464,7 +4464,7 @@ module mod_cu_tiedtke
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 
-    isum = 0 !AMT fudge to only make one iteration for temporary speed fix
+    ! isum = 0 !AMT fudge to only make one iteration for temporary speed fix
 
     if ( isum == 0 ) go to 430
 
