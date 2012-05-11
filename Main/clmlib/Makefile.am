@@ -386,12 +386,12 @@ ESMF_AlarmClockMod.o: ESMF_AlarmClockMod.F90 ESMF_TimeIntervalMod.o ESMF_TimeMod
 ESMF_AlarmMod.o: ESMF_AlarmMod.F90 ESMF_TimeIntervalMod.o ESMF_TimeMod.o ESMF_BaseMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 ESMF_BaseMod.o: ESMF_BaseMod.F90  
 ESMF_BaseTimeMod.o: ESMF_BaseTimeMod.F90 ESMF_BaseMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
-ESMF_CalendarMod.o: ESMF_CalendarMod.F90 ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_Macros.inc ESMF_TimeMgr.inc ESMF.inc
+ESMF_CalendarMod.o: ESMF_CalendarMod.F90 ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 	$(MPIFC) -I. $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 ESMF_ClockMod.o: ESMF_ClockMod.F90 ESMF_TimeIntervalMod.o ESMF_TimeMod.o ESMF_BaseMod.o ESMF_AlarmMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 ESMF_FractionMod.o: ESMF_FractionMod.F90  
 ESMF_Mod.o: ESMF_Mod.F90 ESMF_TimeIntervalMod.o ESMF_FractionMod.o ESMF_TimeMod.o ESMF_AlarmClockMod.o ESMF_ClockMod.o ESMF_BaseMod.o ESMF_Stubs.o ESMF_BaseTimeMod.o ESMF_AlarmMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
-ESMF_Stubs.o: ESMF_Stubs.F90 ESMF_TimeMod.o ESMF_BaseMod.o ESMF_CalendarMod.o ESMF.inc
+ESMF_Stubs.o: ESMF_Stubs.F90 ESMF_TimeMod.o ESMF_BaseMod.o ESMF_CalendarMod.o
 ESMF_TimeIntervalMod.o: ESMF_TimeIntervalMod.F90 ESMF_FractionMod.o ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 ESMF_TimeMod.o: ESMF_TimeMod.F90 ESMF_TimeIntervalMod.o ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 FracWetMod.o: FracWetMod.F90 shr_kind_mod.o clmtype.o misc.h preproc.h
@@ -399,7 +399,7 @@ FrictionVelocityMod.o: FrictionVelocityMod.F90 shr_kind_mod.o clm_varcon.o clmty
 Hydrology1Mod.o: Hydrology1Mod.F90 shr_kind_mod.o subgridAveMod.o clm_varcon.o clmtype.o FracWetMod.o clm_time_manager.o clm_atmlnd.o misc.h preproc.h
 Hydrology2Mod.o: Hydrology2Mod.F90 shr_kind_mod.o clm_varcon.o clmtype.o SoilHydrologyMod.o clm_varpar.o clm_time_manager.o clm_atmlnd.o SnowHydrologyMod.o misc.h preproc.h
 HydrologyLakeMod.o: HydrologyLakeMod.F90 shr_kind_mod.o clm_varcon.o clmtype.o clm_time_manager.o clm_atmlnd.o misc.h preproc.h
-Meat.o: Meat.F90 ESMF_TimeIntervalMod.o ESMF_FractionMod.o ESMF_TimeMod.o ESMF_ClockMod.o ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_AlarmMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc ESMF.inc
+Meat.o: Meat.F90 ESMF_TimeIntervalMod.o ESMF_FractionMod.o ESMF_TimeMod.o ESMF_ClockMod.o ESMF_BaseMod.o ESMF_BaseTimeMod.o ESMF_AlarmMod.o ESMF_CalendarMod.o ESMF_Macros.inc ESMF_TimeMgr.inc
 QSatMod.o: QSatMod.F90 shr_kind_mod.o shr_const_mod.o misc.h preproc.h
 RtmMod.o: RtmMod.F90 shr_kind_mod.o spmdGathScatMod.o perf_mod.o clm_mct_mod.o spmdMod.o clmtype.o clm_varcon.o shr_const_mod.o decompMod.o clm_varpar.o shr_sys_mod.o domainMod.o clm_time_manager.o clm_varctl.o RunoffMod.o abortutils.o ncdio.o areaMod.o misc.h preproc.h
 RunoffMod.o: RunoffMod.F90 shr_kind_mod.o spmdMod.o clm_mct_mod.o clmtype.o abortutils.o misc.h preproc.h
