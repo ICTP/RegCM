@@ -33,8 +33,9 @@ module mod_cu_tiedtke
   public :: allocate_mod_cu_tiedtke , tiedtkedrv
 !
   public :: entrpen , entrscv , entrmid , entrdd , cmfctop , cmfcmax , &
-            cmfcmin , cmfdeps , rhcdd , cprcon , iconv , nmctop ,      &
-            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv , cmtcape , zdlev
+            cmfcmin , cmfdeps , rhcdd , cprcon , ctrigger , iconv ,    &
+            nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv ,      &
+            cmtcape , zdlev
 !
   ! evaporation coefficient for kuo0
   real(dp) , pointer , dimension(:) :: cevapcu
