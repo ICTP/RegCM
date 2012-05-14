@@ -36,6 +36,7 @@ module mod_che_bdyco
   use mod_che_ncio 
   use mod_che_species
   use mod_che_indices
+  use mod_che_emission
   use mod_mppparam  
 
   private

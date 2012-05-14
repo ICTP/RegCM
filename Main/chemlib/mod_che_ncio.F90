@@ -543,19 +543,18 @@ module mod_che_ncio
        call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
     
        recc=0
-       do n=1, chmnrec
-        call timeval2ym(emtimeval(n),chemi_timeunits,year,month)
+       do n = 1 , chmnrec
+         call timeval2ym(emtimeval(n),chemi_timeunits,year,month)
          if (year == lyear .and. month == lmonth) then 
-         recc = n
-         exit
-        end if
-        end do 
+           recc = n
+           exit
+         end if
+       end do 
        
-        if (recc == 0) then
-         print*,'chem emission : time record not ound emission file, STOP ! '   
-         stop 
+       if ( recc == 0 ) then
+         print *,'chem emission : time record not found emission file, STOP ! '
+         call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
        end if  
-        print*, 'FAB', lyear, lmonth, recc
 
       !*** intialized in start_chem
       !*** Advice record counter

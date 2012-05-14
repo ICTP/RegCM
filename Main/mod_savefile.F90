@@ -30,6 +30,7 @@ module mod_savefile
   use mod_bdycod
   use mod_diagnosis
   use mod_mppio
+  use netcdf
 #ifdef CLM
   use mod_clm
   use restFileMod, only : restFile_write, restFile_write_binary
@@ -44,6 +45,16 @@ module mod_savefile
 
   integer :: isavlast
   integer :: iutrst
+  integer :: ncsave
+
+  integer , dimension(2) :: idimcross2d
+  integer , dimension(2) :: idimdot2d
+  integer , dimension(3) :: idimcross3d
+  integer , dimension(3) :: idimdot3d
+  integer , dimension(1) :: idimsigmafull
+  integer , dimension(1) :: idimsigmahalf
+  integer , dimension(3) :: idimsubgridcross2d
+
 #ifdef CLM
   character(len=256) :: thisclmrest
   character(len=256) :: lastclmrest
@@ -369,5 +380,36 @@ module mod_savefile
 #endif
     end if
   end subroutine write_savefile
+
+  subroutine preapare_nc_savefile(idate,ltmp)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    logical , intent(in) :: ltmp
+    character(256) :: ffout
+    character(32) :: fbname
+    integer :: ires
+    integer :: ixdim
+    if ( myid /= 0 ) then
+      return
+    end if
+    if (ltmp) then
+      write (fbname, '(a,i10)') 'TMPSAV.', toint10(idate)
+    else
+      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
+    end if
+    ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
+#ifdef NETCDF4_HDF5
+    ires = nf90_create(ffout, &
+              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncsave)
+#else
+    ires = nf90_create(ffout, nf90_clobber, ncsave)
+#endif
+    if ( ires /= nf90_noerr ) then
+      call say
+      call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
+    end if
+    ires = nf90_def_dim(ncsave,'iycross',nicross,ixdim)
+
+  end subroutine preapare_nc_savefile
 
 end module mod_savefile

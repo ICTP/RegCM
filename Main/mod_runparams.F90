@@ -183,7 +183,7 @@ module mod_runparams
     output_variable('fld','surface_downwelling_longwave_flux_in_air',         &
           'Downward LW flux','W m-2','mean',.true.),                          &
     output_variable('sina','surface_downwelling_shortwave_flux_in_air',       &
-          'Incident solar energy flux','W m-2','mean',.true.),                &
+          'Incident visible solar energy flux','W m-2','mean',.true.),        &
     output_variable('prcv','convective_rainfall_flux',                        &
           'Convective precipitation','kg m-2 day-1','mean',.true.),           &
     output_variable('zpbl','atmosphere_boundary_layer_thickness',             &

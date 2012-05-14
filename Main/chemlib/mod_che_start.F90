@@ -22,6 +22,7 @@ module mod_che_start
   use mod_dynparam
   use mod_mpmessage
   use mod_che_common
+  use mod_che_emission
   use mod_che_indices
   use mod_che_bdyco
   use mod_che_wetdep

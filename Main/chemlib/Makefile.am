@@ -110,16 +110,14 @@ mod_che_wetdep.o mod_che_wetdep.mod: mod_che_wetdep.F90 \
 mod_che_bdyco.o mod_che_bdyco.mod: mod_che_bdyco.F90  \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  mod_che_common.o mod_che_mppio.o mod_che_species.o mod_che_ncio.o
+  mod_che_common.o mod_che_mppio.o mod_che_species.o mod_che_ncio.o \
+	mod_che_emission.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
 mod_che_start.o mod_che_start.mod: mod_che_start.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  mod_che_common.o mod_che_indices.o mod_che_wetdep.o  mod_che_bdyco.o mod_che_carbonaer.o\
-  mod_che_ncio.o
+  mod_che_common.o mod_che_indices.o mod_che_wetdep.o  mod_che_bdyco.o \
+  mod_che_emission.o mod_che_carbonaer.o mod_che_ncio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
-
 mod_che_output.o mod_che_output.mod: mod_che_output.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_service.mod \
