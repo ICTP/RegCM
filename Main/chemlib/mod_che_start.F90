@@ -323,7 +323,7 @@ module mod_che_start
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     call split_idate(idate1,lyear,lmonth,lday,lhour)
-    call chem_emission(lyear,lmonth)
+    call chem_emission(lyear,lmonth,lday,lhour)
 
     ! Finally initialise chia and chib to chib0 over the whole domain
 

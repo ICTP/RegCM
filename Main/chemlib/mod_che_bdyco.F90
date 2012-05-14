@@ -234,11 +234,13 @@ module mod_che_bdyco
       end if
       call read_chbc(chebdy_in)
       chebdy_io1 = d_zero
-      do n=1,size(ichbdy2trac)
-             if(ichbdy2trac(n) > 0) chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      do n = 1 , size(ichbdy2trac)
+        if ( ichbdy2trac(n) > 0 ) then
+          chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+        end if
       end do
       call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
-      call chem_emission(lyear,lmonth)
+      call chem_emission(lyear,lmonth,lday,lhour)
     end if
  
     call deco1_scatter(chebdy_io1,chebdy, &

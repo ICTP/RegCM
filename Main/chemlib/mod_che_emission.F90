@@ -41,9 +41,9 @@ module mod_che_emission
 !
 ! SURFACE EMIOSSION flux
 !
-  subroutine chem_emission(lyear,lmonth)
+  subroutine chem_emission(lyear,lmonth,lday,lhour)
     implicit none
-    integer , intent(in) :: lyear,lmonth
+    integer , intent(in) :: lyear , lmonth , lday , lhour
 !
     integer , save :: currmonth
     character (len=64) :: subroutine_name = 'chem_emission'
@@ -64,7 +64,8 @@ module mod_che_emission
       currmonth = lmonth
     end if
     if ( myid == 0 ) then
-      write(*,*)'READ CHEM EMISSION for month', lyear, lmonth
+      write(*,*)'READ CHEM EMISSION for ', &
+           lyear*1000000+lmonth*10000+lday*100+lhour
       chemsrc_io(:,:,:,:) = d_zero
       ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
       ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
@@ -72,7 +73,7 @@ module mod_che_emission
     end if
     call deco1_scatter(chemsrc_io,chemsrc,jcross1, &
                        jcross2,icross1,icross2,1,mpy,1,ntr)
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
   end subroutine chem_emission
 !
 !
