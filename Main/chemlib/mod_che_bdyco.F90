@@ -211,6 +211,7 @@ module mod_che_bdyco
     real(dp) , intent(in) :: dtbdys
     integer :: i , j , k , n , mmrec
     character(len=32) :: appdat
+    integer :: lyear , lmonth , lday , lhour
 
     character (len=64) :: subroutine_name='chem_bdyin'
     integer :: idindx=0
@@ -236,7 +237,8 @@ module mod_che_bdyco
       do n=1,size(ichbdy2trac)
              if(ichbdy2trac(n) > 0) chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
       end do
- 
+      call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
+      call chem_emission(lyear,lmonth)
     end if
  
     call deco1_scatter(chebdy_io1,chebdy, &

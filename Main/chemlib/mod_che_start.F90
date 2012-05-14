@@ -54,6 +54,7 @@ module mod_che_start
     type(rcm_time_interval) , intent(in) :: intbdy
     real (dp) , intent(in) :: dtbdys
     integer :: i , j , k , itr , ibin , jbin , kbin
+    integer :: lyear , lmonth , lday , lhour
 
     ! A : Intialise chemistry tracer indices         
 
@@ -321,6 +322,8 @@ module mod_che_start
     call init_mod_che_ncio
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
+    call split_idate(idate1,lyear,lmonth,lday,lhour)
+    call chem_emission(lyear,lmonth)
 
     ! Finally initialise chia and chib to chib0 over the whole domain
 
@@ -334,6 +337,7 @@ module mod_che_start
         end do
       end do
     end if
+!
     return
 
 900 write(aline,*) 'Cannot open required file TUVGRID2.'
