@@ -306,6 +306,7 @@
  cmtcape = 40.0D0,  ! CAPE adjustment timescale parameter
  zdlev = 1.5D4,     ! Restrict rainfall up to this elevation
  cprcon = 1.0D-4,   ! Coefficients for determining conversion
+ ctrigger = -1.1D0, ! Trigger parameter for the convection
  nmctop = 4,        ! max. level for cloud base of mid level conv.
  cmfctop = 0.35D0,  ! Relat. cloud massflux at level above nonbuoyancy
  lmfpen = .true.,   ! true if penetrative convection is switched on

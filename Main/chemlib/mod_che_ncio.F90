@@ -98,20 +98,20 @@ module mod_che_ncio
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       if (lcband) then
         o_is = 2
-        o_ie = iy-1
+        o_ie = iy-2
         o_js = 1
         o_je = jx
-        o_ni = iy-2
+        o_ni = iy-3
         o_nj = jx
         o_nz = kz
         lwrap = .true.
       else
         o_is = 2
-        o_ie = iy-1
+        o_ie = iy-2
         o_js = 2
-        o_je = jx-1
-        o_ni = iy-2
-        o_nj = jx-2
+        o_je = jx-2
+        o_ni = iy-3
+        o_nj = jx-3
         o_nz = kz
         lwrap = .false.
       end if
@@ -1024,15 +1024,14 @@ module mod_che_ncio
 !
 !         ADD DIMENSIONS
 !
-      istatus = nf90_def_dim(ncid, 'iy', o_ni, idims(2))
-      call check_ok(__FILE__,__LINE__,'Error create dim iy', fterr)
-      istatus = nf90_def_dim(ncid, 'jx', o_nj, idims(1))
-      call check_ok(__FILE__,__LINE__,'Error create dim jx', fterr)
-      istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-      call check_ok(__FILE__,__LINE__,'Error create dim time', fterr)
-      istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
-      call check_ok(__FILE__,__LINE__,'Error create dim kz', fterr)
-
+    istatus = nf90_def_dim(ncid, 'iy', o_ni, idims(2))
+    call check_ok(__FILE__,__LINE__,'Error create dim iy', fterr)
+    istatus = nf90_def_dim(ncid, 'jx', o_nj, idims(1))
+    call check_ok(__FILE__,__LINE__,'Error create dim jx', fterr)
+    istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
+    call check_ok(__FILE__,__LINE__,'Error create dim time', fterr)
+    istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
+    call check_ok(__FILE__,__LINE__,'Error create dim kz', fterr)
 !
 !         OUT TYPE DEPENDENT DIMENSIONS
 !

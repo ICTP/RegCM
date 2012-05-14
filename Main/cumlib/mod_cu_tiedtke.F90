@@ -54,6 +54,8 @@ module mod_cu_tiedtke
   real(dp) :: rhcdd        ! relative saturation in downdrafts
   real(dp) :: cprcon       ! coefficients for determining conversion
                            ! from cloud water to rain
+  real(dp) :: ctrigger     ! coefficients for triggering convection
+
   integer :: iconv
   integer :: nmctop    !  max. level for cloud base of mid level conv.
   logical :: lmfpen    !  true if penetrative convection is switched on
@@ -672,7 +674,7 @@ module mod_cu_tiedtke
     zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
     zmfub(jl) = min(zmfub(jl),zmfmax)
     if ( .not.llo1 ) ldcum(jl) = .false.
-    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,-1.10D0*pqhfla(jl)*egrav))
+    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
     zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
   end do
 !

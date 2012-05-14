@@ -139,8 +139,8 @@ module mod_params
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
-    cmtcape , zdlev , cprcon , nmctop , lmfpen , lmfscv ,        &
-    lmfmid , lmfdd , lmfdudv
+    cmtcape , zdlev , cprcon , ctrigger , nmctop , lmfpen ,      &
+    lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
     ichcumtra , ichsolver , idirect , inpchtrname , inpchtrsol ,          &
@@ -404,6 +404,7 @@ module mod_params
   nmctop   = 4
   cmfctop  = 0.35D0
   cprcon   = 1.0D-4
+  ctrigger = -1.1D-0
 ! Control switch flags
   lmfpen   = .true.
   lmfscv   = .true.
