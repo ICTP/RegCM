@@ -418,6 +418,7 @@ module mod_params
   rstbl = 1.5D0
 
 !c------namelist chemparam ; ( 0= none, 1= activated)
+  ichsolver = 1     ! enable chem solver
   ichremlsc = 1     ! tracer removal by large scale clouds
   ichremcvc = 1     ! tracer removal by convective clouds
   ichdrdepo = 1     ! tracer dry deposition

@@ -122,8 +122,6 @@ module mod_tendency
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
-    real(dp) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia , &
-                                            spchib3d
     integer :: i , itr , j , k , lev , n , ii , jj , kk
     integer :: ierr , icons_mpi
     logical :: loutrad , labsem
@@ -688,40 +686,27 @@ module mod_tendency
       !
       ! horizontal and vertical advection
       !
-      do itr = 1 , ntr
-        ! Here assignpnt does not work with gfortran with a sliced array.
-        ! Doing explicit work on bounds.
-        call assignpnt(chiten,spchiten,itr)
-        call assignpnt(chi,spchi,itr)
-        call assignpnt(chia,spchia,itr)
-        call assignpnt(chib3d,spchib3d,itr)
+      call hadv(chiten,chi,kz)
 
-        call hadv(cross,spchiten,spchi,kz,2)
-
-        if ( icup /= 1 ) then
-          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(cross,spchiten,spchia,kz,5)
+      if ( icup /= 1 ) then
+        if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+          call vadv(chiten,chia,kz,5)
+        else
+          if ( iuwvadv == 1 ) then
+            call vadv(chiten,chia,kz,6)
           else
-            if ( iuwvadv == 1 ) then
-              call vadv(cross,spchiten,spchia,kz,6)
-            else
-              call vadv(cross,spchiten,spchia,kz,5)
-            end if
+            call vadv(chiten,chia,kz,5)
           end if
         end if
-
-        ! horizontal diffusion: initialize scratch vars to 0.
-        ! need to compute tracer tendencies due to diffusion
-
-        call diffu_x(spchiten,spchib3d,sfs%psb,xkc,kz)
-
-      end do ! end tracer loop
+      end if
+      ! horizontal diffusion: initialize scratch vars to 0.
+      ! need to compute tracer tendencies due to diffusion
+      call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
       !
       ! Compute chemistry tendencies (other than transport)
       !
       sod = dble(idatex%second_of_day)
       call tractend2(ktau,xyear,xmonth,xday,sod,calday)
-      !
     end if ! ichem
 !
 !----------------------------------------------------------------------

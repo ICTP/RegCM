@@ -27,6 +27,11 @@ module mod_diffusion
   use mod_service 
   private
 
+  interface diffu_x
+    module procedure diffu_x3d
+    module procedure diffu_x4d
+  end interface
+
   public :: diffu_d , diffu_x
 !
   contains
@@ -172,7 +177,7 @@ module mod_diffusion
 
   end subroutine diffu_d
 !
-  subroutine diffu_x(ften,f,press,xkc,kmax)
+  subroutine diffu_x3d(ften,f,press,xkc,kmax)
 !
     implicit none
 !
@@ -184,7 +189,7 @@ module mod_diffusion
 !
     integer :: i , j , k
 !
-    character (len=64) :: subroutine_name='diffu_x'
+    character (len=64) :: subroutine_name='diffu_x3d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -256,6 +261,100 @@ module mod_diffusion
 
     call time_end(subroutine_name,idindx)
 
-  end subroutine diffu_x
+  end subroutine diffu_x3d
 !
+  subroutine diffu_x4d(ften,f,press,xkc,kmax)
+!
+    implicit none
+!
+    integer , intent(in) :: kmax
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: f
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ften
+    real(dp) , pointer , dimension(:,:) , intent(in) :: press
+!
+    integer :: i , j , k , n
+!
+    character (len=64) :: subroutine_name='diffu_x4d'
+    integer :: idindx=0
+!
+    call time_begin(subroutine_name,idindx)
+    !
+    ! fourth-order scheme for interior:
+    !
+    do n = 1 , ntr
+      do k = 1 , kmax
+        do i = icii1 , icii2
+          do j = jcii1 , jcii2
+            ften(j,i,k,n) = ften(j,i,k,n) - xkc(j,i,k) *    &
+                        rdxsq*(f(j+2,i,k,n)+f(j-2,i,k,n) +  &
+                               f(j,i+2,k,n)+f(j,i-2,k,n) -  &
+                       d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
+                               f(j,i+1,k,n)+f(j,i-1,k,n)) + &
+                      d_twelve*f(j,i,k,n))*press(j,i)
+          end do
+        end do
+      end do
+    end do
+    !
+    ! second-order scheme for east and west boundaries:
+    !
+    if ( ma%hasleft ) then
+      j = jci1
+      do n = 1 , ntr
+        do k = 1 , kmax
+          do i = ici1 , ici2
+            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
+                          rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                          d_four*f(j,i,k,n))*press(j,i)
+          end do
+        end do
+      end do
+    end if
+    if ( ma%hasright ) then
+      j = jci2
+      do n = 1 , ntr
+        do k = 1 , kmax
+          do i = ici1 , ici2
+            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
+                          rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                          d_four*f(j,i,k,n))*press(j,i)
+          end do
+        end do
+      end do
+    end if
+    !
+    ! second-order scheme for north and south boundaries:
+    !
+    if ( ma%hasbottom ) then
+      i = ici1
+      do n = 1 , ntr
+        do k = 1 , kmax
+          do j = jci1 , jci2
+            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &
+                        rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                               f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                        d_four*f(j,i,k,n))*press(j,i)
+          end do
+        end do
+      end do
+    end if
+    if ( ma%hastop ) then
+      i = ici2
+      do n = 1 , ntr
+        do k = 1 , kmax
+          do j = jci1 , jci2
+            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &
+                        rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                               f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                        d_four*f(j,i,k,n))*press(j,i)
+          end do
+        end do
+      end do
+    end if
+    call time_end(subroutine_name,idindx)
+  end subroutine diffu_x4d
+
 end module mod_diffusion

@@ -313,7 +313,7 @@
       ! GAS phase dry deposition velocity + tendencies
       ! option compatible with BATS and CLM
       !
-      if ( igaschem == 1 ) then
+      if ( igaschem == 1 .and. ichdrdepo == 1 ) then
         do j = jci1 , jci2
           call drydep_gas(j,calday, ivegcov(:,j),rh10(:,j),  &
                           srad(:,j),tsurf(:,j),prec(:,kz,j), &
@@ -339,7 +339,7 @@
                        pdepv(:,:,:,j))  
         end do
       end if
-      if ( icarb(1) > 0 .and. 1==2)  then   
+      if ( icarb(1) > 0 )  then   
         ibin = count( icarb > 0 ) 
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &

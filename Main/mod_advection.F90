@@ -31,6 +31,16 @@ module mod_advection
    
   public :: init_advection, hadv , vadv
 
+  interface hadv
+    module procedure hadv3d
+    module procedure hadv4d
+  end interface hadv
+
+  interface vadv
+    module procedure vadv3d
+    module procedure vadv4d
+  end interface vadv
+
   real(dp) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
   real(dp) , pointer , dimension(:,:,:) :: va   ! V wind * ps
   real(dp) , pointer , dimension(:,:) :: ps     ! Surface pressure
@@ -97,7 +107,7 @@ module mod_advection
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine hadv(ldot,ften,f,nk,ind)
+    subroutine hadv3d(ldot,ften,f,nk,ind)
 !
       implicit none
 !
@@ -110,7 +120,7 @@ module mod_advection
       real(dp) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
       integer :: i , j , k
 !
-      character (len=64) :: subroutine_name='hadv'
+      character (len=64) :: subroutine_name='hadv3d'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -209,7 +219,59 @@ module mod_advection
       end if
       call time_end(subroutine_name,idindx)
 !
-    end subroutine hadv
+    end subroutine hadv3d
+!
+    subroutine hadv4d(ften,f,nk)
+      implicit none
+      integer , intent (in) :: nk
+      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+!
+      real(dp) :: fx1 , fx2 , fy1 , fy2
+      real(dp) :: ucmona , ucmonb , vcmona , vcmonb
+      integer :: i , j , k , n
+!
+      character (len=64) :: subroutine_name='hadv4d'
+      integer :: idindx=0
+!
+      call time_begin(subroutine_name,idindx)
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ucmonb = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
+              ucmona = d_half*(ua(j,  i+1,k)+ua(j,  i,k))
+              if ( ucmonb >= d_zero ) then
+                fx2 = fact1*f(j,  i,k,n) + fact2*f(j+1,i,k,n)
+              else
+                fx2 = fact1*f(j+1,i,k,n) + fact2*f(j,  i,k,n)
+              end if
+              if ( ucmona >= d_zero ) then
+                fx1 = fact1*f(j-1,i,k,n) + fact2*f(j,  i,k,n)
+              else
+                fx1 = fact1*f(j,  i,k,n) + fact2*f(j-1,i,k,n)
+              end if
+              vcmonb = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
+              vcmona = d_half*(va(j+1,i,  k)+va(j,i,  k))
+              if ( vcmonb >= d_zero ) then
+                fy2 = fact1*f(j,i,  k,n) + fact2*f(j,i+1,k,n)
+              else
+                fy2 = fact1*f(j,i+1,k,n) + fact2*f(j,i,  k,n)
+              end if
+              if ( vcmona >= d_zero ) then
+                fy1 = fact1*f(j,i+1,k,n) + fact2*f(j,  i,k,n)
+              else
+                fy1 = fact1*f(j,i,  k,n) + fact2*f(j,i-1,k,n)
+              end if
+              ften(j,i,k,n) = ften(j,i,k,n) -                      &
+                   (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
+                   (dx*mapfx(j,i)*mapfx(j,i))
+            end do
+          end do
+        end do
+      end do
+      call time_end(subroutine_name,idindx)
+    end subroutine hadv4d
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -232,7 +294,7 @@ module mod_advection
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine vadv(ldot,ften,f,nk,ind)
+    subroutine vadv3d(ldot,ften,f,nk,ind)
 !
       implicit none
 !
@@ -244,7 +306,7 @@ module mod_advection
       real(dp) :: f1 , f2 , slope
       integer :: i , j , k
 !
-      character (len=64) :: subroutine_name='vadv'
+      character (len=64) :: subroutine_name='vadv3d'
       integer :: idindx=0
 !
 !----------------------------------------------------------------------
@@ -524,6 +586,127 @@ module mod_advection
 !
       call time_end(subroutine_name,idindx)
 
-    end subroutine vadv
+    end subroutine vadv3d
+!
+    subroutine vadv4d(ften,f,nk,ind)
+!
+      implicit none
+!
+      integer , intent(in) :: ind , nk
+      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+!
+      real(dp) :: slope
+      integer :: i , j , k , n
+!
+      character (len=64) :: subroutine_name='vadv4d'
+      integer :: idindx=0
+!
+!----------------------------------------------------------------------
+!
+      call time_begin(subroutine_name,idindx)
+!
+      if ( ind == 5 ) then
+        do n = 1 , ntr
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              fg(j,i,1) = d_zero
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            end do
+          end do
+          do k = 2 , nk-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k,n) = ften(j,i,k,n) - &
+                        (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,nk,n) = ften(j,i,nk,n) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            end do
+          end do
+        end do
+      else if ( ind == 6 ) then
+        do n = 1 , ntr
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              fg(j,i,1) = d_zero
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                fg(j,i,k)= twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( kpbl(j,i).gt.nk ) then
+                call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
+              end if
+              if ( kpbl(j,i).ge.4 ) then
+                ! Calculate slope of scalar in layer above ambiguous layer
+                k = kpbl(j,i)-2
+                if ( (f(j,i,k+1,n)-f(j,i,k,n)) > d_zero .and. &
+                     (f(j,i,k,n)-f(j,i,k-1,n)) > d_zero ) then
+                  slope = min((f(j,i,k+1,n)-f(j,i,k,n))/(a(k+1)-a(k)), &
+                              (f(j,i,k,n)-f(j,i,k-1,n))/(a(k)-a(k-1)))
+                else if ( (f(j,i,k+1,n)-f(j,i,k,n)) < d_zero .and. &
+                          (f(j,i,k,n)-f(j,i,k-1,n)) < d_zero ) then
+                  slope = max((f(j,i,k+1,n)-f(j,i,k,n))/(a(k+1)-a(k)), &
+                              (f(j,i,k,n)-f(j,i,k-1,n))/(a(k)-a(k-1)))
+                else
+                  slope = d_zero
+                end if
+                ! Replace the values of scalar at top and bottom of ambiguous
+                ! layer as long as inversion is actually in the ambiguous layer
+                k = kpbl(j,i)
+                fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-a(k-2))
+                if (abs(f(j,i,k-2,n) + slope*(a(k-1)-a(k-2))-f(j,i,k,n)) > &
+                    abs(f(j,i,k-1,n)-f(j,i,k,n)) ) then
+                  fg(j,i,k) = f(j,i,k,n)
+                else
+                  fg(j,i,k) = f(j,i,k-2,n) + slope*(sigma(k)-a(k-2))
+                end if
+              end if
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            end do
+          end do
+          do k = 2 , nk-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k,n) = ften(j,i,k,n) - &
+                    (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,nk,n) = ften(j,i,nk,n) + &
+                     vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            end do
+          end do
+        end do
+      end if
+      call time_end(subroutine_name,idindx)
+    end subroutine vadv4d
 !
 end module mod_advection

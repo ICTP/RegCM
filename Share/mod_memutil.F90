@@ -57,7 +57,6 @@ module mod_memutil
     module procedure assignp4d_i
     module procedure assignp4d_r
     module procedure assignp4d_d
-    module procedure assignp4d_3d_d
     module procedure assignp5d_l
     module procedure assignp5d_s
     module procedure assignp5d_i
@@ -2399,22 +2398,6 @@ module mod_memutil
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
 #endif
   end subroutine assignp4d_d
-
-  subroutine assignp4d_3d_d(a,b,i)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: b
-    integer , intent(in) :: i
-    if ( .not. associated(a) ) then
-      nullify(b)
-      return
-    end if
-#ifndef __GFORTRAN__
-    b => a(:,:,:,i)
-#else
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a(:,:,:,i)
-#endif
-  end subroutine assignp4d_3d_d
 
   subroutine assignp5d_l(a,b)
     implicit none
