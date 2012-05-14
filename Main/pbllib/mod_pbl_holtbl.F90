@@ -716,7 +716,8 @@
       end do
     end do
   end do
-  if ( lchem .and. lchdrydepo ) then
+ ! if ( lchem .and. lchdrydepo ) then
+  if (lchem) then
     !
     !     coef1, coef2, coef3 and coefe are the same as for water vapor
     !     and cloud water so they do not need to be recalculated
@@ -828,10 +829,9 @@
       do i = ici1 , ici2
         do j = jci1 , jci2
 !          if ( chname(itr) /= 'DUST' ) &
-! shut down thid diag temporarly
-!            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
-!                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
-!                hydf(kz)/sfcps(j,i)
+            drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
+                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
+                hydf(kz)/sfcps(j,i)
  
         end do
       end do

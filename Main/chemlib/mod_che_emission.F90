@@ -157,7 +157,7 @@ subroutine emis_tend(ktau,j,lmonth)
 !!$           else
  
   
-         if ( ichdrdepo == 1) then  
+         if ( ichdrdepo /= 2 ) then  
              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                            chemsrc(j,i,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
          elseif ( ichdrdepo ==2) then
