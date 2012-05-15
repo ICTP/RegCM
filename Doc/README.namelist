@@ -221,7 +221,7 @@
  iconvlwp =          1, ! Use convective liquid water path as the large-scale
                         ! liquid water path
  irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
- io3clima =          0, ! Use O3 climatic dataset from SPARC CMIP5
+ iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)
