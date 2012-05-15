@@ -80,7 +80,7 @@ module mod_write
     integer , dimension(2) :: ivvar
     integer , dimension(3) :: illvar
     integer , dimension(4) :: x3ddim
-    character(64) :: csdate , cdum
+    character(64) :: csdate
     character(256) :: history
     real(sp) , dimension(2) :: trlat
     real(sp) :: hptop
