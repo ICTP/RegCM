@@ -524,9 +524,7 @@ module mod_che_drydep
                 ! * r = exp (- st^0.2)                            *****
                 ! *****************************************************
  
-!               r1 = exp (-st**0.5)
                 r1 = dmax1(0.5D0,exp(-st**0.5D0))
-!               if ( k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
                 if ( kcov >= 11 .and. r1 < 0.5D0 ) r1 = 0.5D0
                 if ( r1 < 0.4D0 ) r1 = 0.4D0
                 ! ***************************************************
@@ -892,9 +890,9 @@ module mod_che_drydep
             ! * ensure that conditions over land are never stable when
             ! * there is incoming solar radiation
             ! ***************************************************************
-            if ( srad(i) > 0.0D0 .and. rib < 0.0D0 ) rib = 1.D-15
+            if ( srad(i) > 0.0D0 .and. rib > 0.0D0 ) rib = 1.D-15
             dtemp = ptemp2 - sutemp(i)
-            if ( dabs(dtemp) > 1.D-10 ) dtemp = dsign(1.D-10,dtemp)
+            if ( dabs(dtemp) < 1.D-10 ) dtemp = dsign(1.D-10,dtemp)
             tbar = 0.5D0*(ptemp2+sutemp(i))
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
@@ -1106,7 +1104,7 @@ module mod_che_drydep
           if ( ts(i) > tzero .and. prec(i) > rainthr ) then
             is_rain = .true.
 !           print *, 'rain==='
-          else if (ts(i) < tzero .and. ustar(i,j) < usmin) then
+          else if (ts(i) > tzero .and. ustar(i,j) < usmin) then
             is_dew = .true.
 !           print *, 'dew==='
           else
@@ -1252,7 +1250,7 @@ module mod_che_drydep
             ! account for zero stomatal resistance (rst and rstom are zero
             ! for bare surfaces)
             ! set wst to 1 also in that case (total stomatal blocking).
-            if ( rst > -999.0 ) wst = 1.0D0
+            if ( rst == -999.0 ) wst = 1.0D0
 !           rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rg)+1.0D0/rcut
             rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rac+rg)+1.0D0/rcut
             rc(ig,i,j) = dmax1(10.D0,1.0D0/rc(ig,i,j))
