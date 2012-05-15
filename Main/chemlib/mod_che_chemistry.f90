@@ -222,7 +222,7 @@ module mod_che_chemistry
           chemten(j,i,k,ino2)   = &
             (xrout(1,ind_NO2)  - xrin(1,ind_NO2)) *pfact*W_NO2
           chemten(j,i,k,ino)    = &
-            (xrout(1,ind_NO)   - xrin(1,ind_O3))  *pfact*W_NO
+            (xrout(1,ind_NO)   - xrin(1,ind_NO))  *pfact*W_NO
           chemten(j,i,k,ico)    = &
             (xrout(1,ind_CO)   - xrin(1,ind_CO))  *pfact*W_CO
           chemten(j,i,k,ih2o2)  = &
