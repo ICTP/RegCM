@@ -463,7 +463,8 @@ module mod_rrtmg_driver
     do i = ici1 , ici2
       do j = jci1 , jci2
         dlat(n) = dabs(xlat(j,i))
-        xptrop(n) = ptrop(j,i)
+!FAB bug should be in hpa
+        xptrop(n) = ptrop(j,i)/100.
         n = n + 1
       end do
     end do
@@ -573,6 +574,22 @@ module mod_rrtmg_driver
     !
     ! other gas (n2o,ch4)
     !
+!FAB test
+      if ( iyear >= 1750 .and. iyear <= 2100 ) then
+!      co2vmr = cgas(2,iyear)*1.0D-6
+!      co2mmr = co2vmr*44.0D0/28.9644D0
+      ch40 = cgas(3,iyear)*1.0D-9*0.55241D0
+      n2o0 = cgas(4,iyear)*1.0D-9*1.51913D0
+      cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
+      cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
+    else
+!      write (aline,*) 'Loading gas scenario for simulation year: ', iyear
+!      call say
+!      call fatal(__FILE__,__LINE__,                                   &
+!            'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
+    end if
+
+
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kz
