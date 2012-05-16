@@ -519,7 +519,7 @@ module mod_che_ncio
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
 !       aername = trim(dirglob)//pthsep//'RCP26_CO_emis.nc'
-      print *, 'Opening ch. emission file ', aername
+      print *, 'Opening ch. emission file ', trim(aername)
 
       istatus = nf90_open(aername, nf90_nowrite, ncid)
       call check_ok(__FILE__,__LINE__, &
@@ -680,6 +680,7 @@ module mod_che_ncio
       call check_ok(__FILE__,__LINE__, &
                     'Error Closing Chem emission file '//trim(aername), &
                     'CH EMISS FILE CLOSE ERROR')
+      deallocate (emtimeval)
     end subroutine read_emission
 
     subroutine rvar(ncid,istart,icount,ind,lmonth,echemsrc,cna,lh,cnb,cnc,cnd)

@@ -219,10 +219,12 @@ module mod_che_bdyco
 !
     call time_begin(subroutine_name,idindx)
   
+    chbdydate2 = chbdydate2 + intbdy
+    call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
+
     chib0(:,:,:,:) = chib1(:,:,:,:)
 
     if ( myid == 0 ) then
-      chbdydate2 = chbdydate2 + intbdy
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then
@@ -240,8 +242,6 @@ module mod_che_bdyco
           chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
         end if
       end do
-      call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
-      call chem_emission(lyear,lmonth,lday,lhour)
     end if
  
     call deco1_scatter(chebdy_io1,chebdy, &
@@ -270,6 +270,9 @@ module mod_che_bdyco
     end do
     call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
+
+    call chem_emission(lyear,lmonth,lday,lhour)
+
     call time_end(subroutine_name,idindx)
   end subroutine chem_bdyin
 

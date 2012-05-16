@@ -66,9 +66,8 @@ module mod_che_emission
     if ( myid == 0 ) then
       write(*,*)'READ CHEM EMISSION for ', &
            lyear*1000000+lmonth*10000+lday*100+lhour
-      chemsrc_io(:,:,:,:) = d_zero
       ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
-      ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+      ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
       call read_emission(lyear,lmonth,chemsrc_io)
     end if
     call deco1_scatter(chemsrc_io,chemsrc,jcross1, &
