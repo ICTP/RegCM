@@ -1085,6 +1085,13 @@ module mod_date
     if (csave == cunit) then
       year = d%year+idnint(xval/12.0D0)
       month = d%month+idnint(mod(xval,12.0D0))
+      if ( month > 12 ) then
+        month = month - 12
+        year = year + 1
+      else if ( month < 1 ) then
+        month = month + 12
+        year = year - 1
+      end if
       return
     end if
     if (cunit(1:6) == 'months') then
@@ -1115,6 +1122,13 @@ module mod_date
     csave = cunit
     year = d%year+idnint(xval/12.0D0)
     month = d%month+idnint(mod(xval,12.0D0))
+    if ( month > 12 ) then
+      month = month - 12
+      year = year + 1
+    else if ( month < 1 ) then
+      month = month + 12
+      year = year - 1
+    end if
   end subroutine timeval2ym
 
   function timeval2date(xval,cunit,ccal) result(dd)
