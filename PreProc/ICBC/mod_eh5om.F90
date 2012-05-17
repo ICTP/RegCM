@@ -161,14 +161,14 @@ module mod_eh5om
         finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
                yr_rf(year-1940)//chmon(month)
       else if ( dattyp == 'EH5A2' ) then
-        finm = 'A2/'//yr_rf(year-2000)//'/'//'EH_A2'//              &
-               yr_rf(year-2000)//chmon(month)
+        finm = 'A2/'//yr_a2(year-2000)//'/'//'EH_A2'//              &
+               yr_a2(year-2000)//chmon(month)
       else if ( dattyp == 'EH5B1' ) then
-        finm = 'B1/'//yr_rf(year-2000)//'/'//'EH_B1'//              &
-               yr_rf(year-2000)//chmon(month)
+        finm = 'B1/'//yr_a2(year-2000)//'/'//'EH_B1'//              &
+               yr_a2(year-2000)//chmon(month)
       else if ( dattyp == 'EHA1B' ) then
-        finm = 'A1B/'//yr_rf(year-2000)//'/'//'E_A1B'//             &
-               yr_rf(year-2000)//chmon(month)
+        finm = 'A1B/'//yr_a2(year-2000)//'/'//'E_A1B'//             &
+               yr_a2(year-2000)//chmon(month)
       else
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
