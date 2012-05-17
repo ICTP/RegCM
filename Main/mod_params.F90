@@ -707,6 +707,7 @@ module mod_params
     call mpi_bcast(cmtcape,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(zdlev,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(cprcon,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(ctrigger,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(nmctop,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(lmfpen,1,mpi_logical,0,mycomm,ierr)
     call mpi_bcast(lmfscv,1,mpi_logical,0,mycomm,ierr)
