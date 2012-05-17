@@ -25,7 +25,7 @@ RRTMGSW = RRTMG_SW/librrtmgsw.a
 noinst_LIBRARIES = librad.a
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   mod_rad_common.f90 mod_rad_radiation.F90 mod_rad_tracer.f90 \
-  mod_rad_aerosol.F90 mod_rad_scenarios.F90\
+  mod_rad_aerosol.F90 mod_rad_scenarios.F90 mod_atm_msis.f90 \
   mod_rrtmg_driver.f90 rrtmg_sw_cldprmc.f90  rrtmg_sw_read_nc.f90 \
   rrtmg_sw_spcvmc.f90  rrtmg_sw_vrtqdr.f90 rrtmg_sw_cldprop.f90 \
   rrtmg_sw_rad.f90 rrtmg_sw_reftra.f90 rrtmg_sw_spcvrt.f90 \
@@ -34,7 +34,8 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   rrtmg_lw_cldprop.f90  rrtmg_lw_rad.f90     rrtmg_lw_rtrn.f90 \
   rrtmg_lw_setcoef.f90 mcica_subcol_gen_lw.f90   rrtmg_lw_init.f90 \
   rrtmg_lw_rad.nomcica.f90 rrtmg_lw_rtrnmc.f90  rrtmg_lw_taumol.f90  \
-  rrtmg_lw_cldprmc.f90  rrtmg_lw_read_nc.f90    rrtmg_lw_rtrnmr.f90
+  rrtmg_lw_cldprmc.f90  rrtmg_lw_read_nc.f90    rrtmg_lw_rtrnmr.f90 \
+	mod_rad_atmosphere.f90
 
 if COMPILER_SUN
   CPPFLAGS += -MRRTMG_SW
@@ -57,6 +58,11 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+mod_atm_msis.o mod_atm_msis.mod: mod_atm_msis.f90 \
+  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_constants.mod \
+  $(REGCM_ROOT)/Share/mod_spline.mod
+mod_rad_atmosphere.o mod_rad_atmosphere.mod: mod_rad_atmosphere.f90 \
+  $(REGCM_ROOT)/Share/mod_realkinds.mod
 mod_rad_aerosol.o mod_rad_aerosol.mod: mod_rad_aerosol.F90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
