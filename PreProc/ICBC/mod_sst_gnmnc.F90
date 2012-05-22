@@ -48,7 +48,6 @@ module mod_sst_gnmnc
 !
   data varname/'time', 'TOBESET'/
 !
-
   public :: sst_gnmnc
 
   contains
@@ -77,7 +76,7 @@ module mod_sst_gnmnc
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
-  integer :: year, month, day, hour
+  integer :: year , month , day , hour , y1 , y2
   real(sp) :: ufac
 !
   call split_idate(globidate2, year, month, day, hour)  
@@ -137,6 +136,9 @@ module mod_sst_gnmnc
   else if ( ssttyp == 'IP_85' ) then
     inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp85_r1i1p1_200601-230012.nc'
     varname(2) = 'tos'
+  else if ( ssttyp == 'GF_RF' ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_195101-195512.nc'
+    varname(2) = 'ts'
   else
     call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
   end if
@@ -238,14 +240,14 @@ module mod_sst_gnmnc
   idate = idateo
   do k = 1 , nsteps
 
+    call split_idate(globidate2, year, month, day, hour)  
+
     call gnmnc_sst(idate)
     if ( ssttyp(1:3) == 'IP_' ) then
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
     else
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
     end if
-    !call bilinx2(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
-    !call bilinx2(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
     do j = 2 , jx-1
       do i = 2 , iy-1
@@ -302,7 +304,6 @@ module mod_sst_gnmnc
 
   integer :: it , i , j
   type(rcm_time_interval) :: tdiff1 , tdiff2
-
 
   it = imondiff(idate,fidate1) + 1
   icount(1) = ilon

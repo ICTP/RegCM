@@ -263,7 +263,8 @@ program icbc
       call get_nest(idate)
     else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
-              dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' ) then
+              dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
+              dattyp(1:3) == 'GF_' ) then
       call get_gn6hnc(idate)
     end if
     call writef(idate)

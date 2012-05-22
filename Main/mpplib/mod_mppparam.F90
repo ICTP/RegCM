@@ -24,7 +24,7 @@ module mod_mppparam
 #endif
   use mod_realkinds
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_memutil
   use mod_date
   use mod_stdio

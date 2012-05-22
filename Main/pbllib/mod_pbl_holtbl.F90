@@ -124,14 +124,7 @@
   end  subroutine allocate_mod_pbl_holtbl
 !
   subroutine holtbl
-!
-#ifndef IBM
-  use mpi
-#endif
   implicit none
-#ifdef IBM
-  include 'mpif.h'
-#endif 
 !
   real(dp) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &

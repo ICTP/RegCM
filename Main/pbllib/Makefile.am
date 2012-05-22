@@ -21,6 +21,15 @@ noinst_LIBRARIES = libpbl.a
 libpbl_a_SOURCES = mod_pbl_common.f90 mod_pbl_thetal.f90 mod_pbl_uwtcm.F90 \
                    mod_pbl_holtbl.F90
 
+REGCMSRC = $(REGCM_ROOT)/Main
+MPP = $(REGCMSRC)/mpplib
+MPP_INCLUDE = $(MPP)
+if COMPILER_SUN
+FCFLAGS += -M$(MPP_INCLUDE) 
+else
+FCFLAGS += -I$(MPP_INCLUDE)
+endif
+
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -38,14 +47,14 @@ clean-local:
 
 mod_pbl_common.o mod_pbl_common.mod: mod_pbl_common.f90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-	$(REGCM_ROOT)/Share/mod_memutil.mod
+  $(REGCM_ROOT)/Share/mod_memutil.mod
 mod_pbl_holtbl.o mod_pbl_holtbl.mod: mod_pbl_holtbl.F90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-	$(REGCM_ROOT)/Share/mod_memutil.mod mod_pbl_common.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
+  $(REGCM_ROOT)/Share/mod_memutil.mod $(MPP)/mod_mpmessage.mod \
+  mod_pbl_common.o $(MPP)/mod_service.mod $(MPP)/mod_mppparam.mod
 mod_pbl_thetal.o mod_pbl_thetal.mod: mod_pbl_thetal.f90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_constants.mod
 mod_pbl_uwtcm.o mod_pbl_uwtcm.mod: mod_pbl_uwtcm.F90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-	$(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
+  $(REGCM_ROOT)/Share/mod_memutil.mod $(MPP)/mod_mpmessage.mod \
   mod_pbl_thetal.o mod_pbl_common.o

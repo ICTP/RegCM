@@ -22,6 +22,15 @@ libcum_a_SOURCES = mod_cu_common.f90 mod_cu_bm.F90 mod_cu_em.f90 \
                    mod_cu_grell.F90 mod_cu_kuo.F90 mod_cu_tables.f90 \
                    mod_cu_tiedtke.F90
 
+REGCMSRC = $(REGCM_ROOT)/Main
+MPP = $(REGCMSRC)/mpplib
+MPP_INCLUDE = $(MPP)
+if COMPILER_SUN
+FCFLAGS += -M$(MPP_INCLUDE) 
+else
+FCFLAGS += -I$(MPP_INCLUDE)
+endif
+
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -40,19 +49,18 @@ clean-local:
 mod_cu_common.o mod_cu_common.mod: mod_cu_common.f90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod
 mod_cu_bm.o mod_cu_bm.mod: mod_cu_bm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(REGCM_ROOT)/Share/mod_memutil.mod mod_cu_common.o
+  $(MPP)/mod_service.mod $(REGCM_ROOT)/Share/mod_memutil.mod mod_cu_common.o
 mod_cu_em.o mod_cu_em.mod: mod_cu_em.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(REGCM_ROOT)/Share/mod_memutil.mod mod_cu_common.o
+  $(MPP)/mod_service.mod $(REGCM_ROOT)/Share/mod_memutil.mod mod_cu_common.o
 mod_cu_grell.o mod_cu_grell.mod: mod_cu_grell.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  $(REGCM_ROOT)/Share/mod_service.mod mod_cu_common.o
-mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 \
+  $(MPP)/mod_service.mod mod_cu_common.o
+mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 $(MPP)/mod_service.mod \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   mod_cu_common.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_cu_tables.o mod_cu_tables.mod: mod_cu_tables.f90 \
   $(REGCM_ROOT)/Share/mod_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o
 mod_cu_tiedtke.o mod_cu_tiedtke.mod: mod_cu_tiedtke.F90 \
   $(REGCM_ROOT)/Share/mod_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o \
   $(REGCM_ROOT)/Share/mod_dynparam.o $(REGCM_ROOT)/Share/mod_memutil.o \
-  $(REGCM_ROOT)/Share/mod_message.o mod_cu_common.o mod_cu_tables.o
+  $(MPP)/mod_mpmessage.o $(MPP)/mod_service.mod mod_cu_common.o mod_cu_tables.o

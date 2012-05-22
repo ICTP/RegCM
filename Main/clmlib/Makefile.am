@@ -2,7 +2,9 @@ REGCMSRC = $(REGCM_ROOT)/Main
 BATS     = $(REGCMSRC)/batslib
 BSP      = $(REGCMSRC)/clmlib
 CLMSRC   = $(BSP)/clm3.5
+MPP      = $(REGCMSRC)/mpplib
 
+MPP_INCLUDE  = $(MPP)
 BATS_INCLUDE = $(BATS)
 ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
@@ -140,11 +142,11 @@ CPPFLAGS += -DG95
 endif
 
 if COMPILER_SUN
-  FCFLAGS += -M$(ESMF_INCLUDE) -M$(UTIL_INCLUDE) -M$(GLOB_INCLUDE) \
-             -M$(BATS_INCLUDE) $(NETCDFINC)
+  FCFLAGS += -M$(MPP_INCLUDE) -M$(ESMF_INCLUDE) -M$(UTIL_INCLUDE) \
+             -M$(GLOB_INCLUDE) -M$(BATS_INCLUDE) $(NETCDFINC)
 else
-  FCFLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
-             -I$(BATS_INCLUDE) $(NETCDFINC)
+  FCFLAGS += -I$(MPP_INCLUDE) -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) \
+             -I$(GLOB_INCLUDE) -I$(BATS_INCLUDE) $(NETCDFINC)
 endif
 
 %.o: %.f90
@@ -170,7 +172,7 @@ mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_memutil.mod \
            $(REGCM_ROOT)/Share/mod_constants.mod
 mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-           $(REGCM_ROOT)/Share/mod_message.mod mod_clm.o \
+           $(MPP)/mod_mppparam.mod $(MPP)/mod_mpmessage.mod mod_clm.o \
            $(BATS)/mod_bats_common.mod $(BATS)/mod_bats_mtrxbats.o \
            $(BATS)/mod_bats_drag.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<

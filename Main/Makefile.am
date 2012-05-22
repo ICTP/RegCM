@@ -1,8 +1,9 @@
 
-SUBDIRS = netlib batslib chemlib clmlib cumlib radlib pbllib
+SUBDIRS = mpplib netlib batslib chemlib clmlib cumlib radlib pbllib
 
 include $(REGCM_ROOT)/makeinc
 
+MPPLIBPTH = ./mpplib
 CLMLIBPTH = ./clmlib
 BATLIBPTH = ./batslib
 NETLIBPTH = ./netlib
@@ -13,7 +14,7 @@ PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ
 RRTMSWLIBPTH = radlib/RRTMG_SW
 
-
+MPPLIB = $(MPPLIBPTH)/libmpp.a
 CLMLIB = $(CLMLIBPTH)/libclm.a
 BATLIB = $(BATLIBPTH)/libbats.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
@@ -23,7 +24,6 @@ RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
 RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
-
 
 if REGCM_PARALLEL
 rcsuffix = MPI
@@ -37,6 +37,7 @@ endif
 
 program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
+LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
@@ -48,17 +49,17 @@ LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
 LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 
 if COMPILER_SUN
-  CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) -M$(CHELIBPTH) \
-              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) \
-							-M$(RRTMSWLIBPTH)
+  CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
+              -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH)  \
+              -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH)
 else
-  CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) -I$(CHELIBPTH) \
-              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) \
-							-I$(RRTMSWLIBPTH)
+  CPPFLAGS += -I$(MPPLIBPTH) -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) \
+              -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH)  \
+              -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH)
 endif
 
-LIBS = $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LCUMLIB) \
-       $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(SYSLIBS)
+LIBS = $(LMPPLIB) $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
+       $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(SYSLIBS)
 
 bin_PROGRAMS = regcm
 

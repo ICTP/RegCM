@@ -21,6 +21,14 @@
 SUBDIRS = RRTMG_SW
 RRTMGSW = RRTMG_SW/librrtmgsw.a
 
+REGCMSRC = $(REGCM_ROOT)/Main
+MPP = $(REGCMSRC)/mpplib
+MPP_INCLUDE = $(MPP)
+if COMPILER_SUN
+FCFLAGS += -M$(MPP_INCLUDE) 
+else
+FCFLAGS += -I$(MPP_INCLUDE)
+endif
 
 noinst_LIBRARIES = librad.a
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
@@ -50,10 +58,10 @@ endif
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.f90
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.f90
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -64,7 +72,7 @@ mod_atm_msis.o mod_atm_msis.mod: mod_atm_msis.f90 \
 mod_rad_atmosphere.o mod_rad_atmosphere.mod: mod_rad_atmosphere.f90 \
   $(REGCM_ROOT)/Share/mod_realkinds.mod
 mod_rad_aerosol.o mod_rad_aerosol.mod: mod_rad_aerosol.F90 \
-  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod \
+  $(REGCM_ROOT)/Share/mod_realkinds.mod $(MPP)/mod_mpmessage.mod \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
 	$(REGCM_ROOT)/Share/mod_memutil.mod mod_rad_common.o
 mod_rad_common.o mod_rad_common.mod: mod_rad_common.f90 \
@@ -72,20 +80,21 @@ mod_rad_common.o mod_rad_common.mod: mod_rad_common.f90 \
 	$(REGCM_ROOT)/Share/mod_memutil.mod
 mod_rad_o3blk.o mod_rad_o3blk.mod: mod_rad_o3blk.F90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-	$(REGCM_ROOT)/Share/mod_memutil.mod mod_rad_common.o
+  $(REGCM_ROOT)/Share/mod_memutil.mod $(MPP)/mod_mppparam.mod mod_rad_common.o
 mod_rad_colmod3.o mod_rad_colmod3.mod: mod_rad_colmod3.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_rad_common.o mod_rad_radiation.o \
-  mod_rad_outrad.o mod_rrtmg_driver.o
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_service.mod \
+  mod_rad_common.o mod_rad_radiation.o mod_rad_outrad.o mod_rrtmg_driver.o
 mod_rad_outrad.o mod_rad_outrad.mod: mod_rad_outrad.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_rad_common.o
 mod_rad_scenarios.o mod_rad_scenarios.mod: mod_rad_scenarios.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_mpmessage.mod
 mod_rad_tracer.o mod_rad_tracer.mod: mod_rad_tracer.f90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod
 mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  mod_rad_tracer.o mod_rad_scenarios.o mod_rad_aerosol.o
+  $(MPP)/mod_mpmessage.mod $(MPP)/mod_service.mod \
+  $(REGCM_ROOT)/Share/mod_memutil.mod mod_rad_tracer.o mod_rad_scenarios.o \
+  mod_rad_aerosol.o
 mod_rrtmg_driver.o mod_rrtmg_driver.mod: mod_rrtmg_driver.f90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
   $(RRTMGSW) rrtmg_sw_rad.o rrtmg_lw_rad.o mcica_subcol_gen_sw.o mcica_subcol_gen_lw.o mod_rad_common.o \

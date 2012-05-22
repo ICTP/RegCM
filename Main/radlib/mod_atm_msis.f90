@@ -1363,7 +1363,9 @@ module physics_msis
     end subroutine tselec
 !
     subroutine tretrv(svv)
+      implicit none
       real(dp) , dimension(25) , intent(out) :: svv
+      integer :: i
       do i = 1 , 25
         svv(i) = sav(i)
       end do

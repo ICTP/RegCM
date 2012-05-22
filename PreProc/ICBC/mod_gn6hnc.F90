@@ -111,6 +111,9 @@ module mod_gn6hnc
   character(64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
   character(64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
   character(64) :: ipbase3 = '_r1i1p1_'
+  character(64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
+  character(64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
+  character(64) :: gfdlbase3 = '_r1i1p1_'
 
   character(3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
@@ -121,6 +124,8 @@ module mod_gn6hnc
   character(3) , target , dimension(nvars) :: cavars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: ipvars = &
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+  character(3) , target , dimension(nvars) :: gfdlvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
@@ -170,6 +175,12 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/IPSL-CM5A-LR/HIST/ta/ta_6hrLev_IPSL-CM5A-LR_historical_'// &
             'r1i1p1_195001010300-195912312100.nc'
+    else if ( dattyp(1:3) == 'GF_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
+      pathaddname = trim(inpglob)// &
+            '/GFDL-ESM2M/RF/ta/ta_6hrLev_GFDL-ESM2M_historical_'// &
+            'r1i1p1_1951010100-1955123123.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
@@ -325,6 +336,29 @@ module mod_gn6hnc
       ! This one contains just orography.
       pathaddname = trim(inpglob)// &
             '/IPSL-CM5A-LR/fixed/orog_fx_IPSL-CM5A-LR_historical_r0i0p0.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+    else if ( dattyp(1:3) == 'GF_' ) then
+      istatus = nf90_inq_varid(inet1,'a',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+            '/GFDL-ESM2M/fixed/orog_fx_GFDL-ESM2M_historical_r0i0p0.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -895,6 +929,54 @@ module mod_gn6hnc
                     trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
                     (year/10*10), '01010300-', (year/10*10+9), '12312100.nc'
                 end if
+              else
+                write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                  trim(ipvars(i)), pthsep, trim(ipvars(i)), &
+                  trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
+                  (year/10*10+6), '01010300-', (year/10*10+15), '12312100.nc'
+              end if
+              pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
+            end if
+          end do
+          ! PS is in 50 years file...
+          if ( dattyp(4:4) == 'R' ) then
+            if ( year < 1950 ) then
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    1900, '01010300-', 1949, '12312100.nc'
+            else if ( year < 2000 ) then
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    1950, '01010300-', 1999, '12312100.nc'
+            else
+              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
+                    2000, '01010300-', 2005, '12312100.nc'
+            end if
+          else
+            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+               trim(ipvars(6)), pthsep, trim(ipvars(6)), &
+               trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
+               (year/50*50+6), '01010300-', (year/50*50+55), '12312100.nc'
+          end if
+          pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          write (stdout,*) inet(6), trim(pathaddname)
+          varname => ipvars
+        else if ( dattyp(1:3) == 'GF_' ) then
+          ! 10 yearly files, one for each variable
+          do i = 1 , nfiles-1
+            if ( ipvars(i) /= 'XXX' ) then
+              if ( dattyp(4:4) == 'R' ) then
+                write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
+                  trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
+                  (year/4*4), '010100-', (year/10*10+9), '12312100.nc'
               else
                 write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                   trim(ipvars(i)), pthsep, trim(ipvars(i)), &
