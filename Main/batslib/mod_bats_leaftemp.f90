@@ -792,8 +792,13 @@ module mod_bats_leaftemp
     implicit none
     real(dp) , intent(in) :: x
     integer , intent(in) :: ic
-    if ( ic == 1 ) then ! Crop cutoff
-      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_four)
+    logical , parameter :: lcrop_cutoff = .false.
+    if ( lcrop_cutoff ) then
+      if ( ic == 1 ) then ! Crop cutoff
+        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_four)
+      else
+        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
+      end if
     else
       fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
     end if
