@@ -32,6 +32,7 @@ module mod_nchelper
   public :: cdumlogical
 
   public :: openfile_withname
+  public :: createfile_withname
   public :: add_common_global_params
   public :: define_basic_dimensions
   public :: add_dimension
