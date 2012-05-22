@@ -76,10 +76,11 @@ program terrain
   implicit none
 !
   character(256) :: char_lnd , char_tex , char_lak
-  character(256) :: namelistfile , prgname
+  character(256) :: namelistfile , prgname , outname
   integer :: i , j , k , ierr , i0 , j0 , m , n
   logical :: ibndry
   real(dp) :: clong , hsum , have , dsinm
+  integer :: ntypec , ntypec_s
 !
   data ibndry /.true./
   real(dp) :: jumpsize , apara , bpara , func , funcprev
@@ -88,6 +89,7 @@ program terrain
   integer :: icount
   integer , parameter :: maxiter = 1000000
   real(dp) , parameter :: conv_crit = 0.00001D0
+  real(sp) , pointer , dimension(:) :: s_sigma
 !
   call header(1)
 !
@@ -271,6 +273,8 @@ program terrain
     call relmem1d(dsig)
     call relmem1d(alph)
   end if
+  call getmem1d(s_sigma,1,kz+1,'terrain:s_sigma')
+  s_sigma = real(sigma)
 
 !---------------------------------------------------------------------
 !
@@ -292,27 +296,27 @@ program terrain
 
     if ( iproj=='LAMCON' ) then
       call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
-                  clat,dsinm,0,xn,truelatl,truelath)
+                  clat,dsinm,0,xcone,truelatl,truelath)
       call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
-                  clat,dsinm,1,xn,truelatl,truelath)
+                  clat,dsinm,1,xcone,truelatl,truelath)
     else if ( iproj=='POLSTR' ) then
       call mappol(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                   clat,dsinm,0)
       call mappol(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                   clat,dsinm,1)
-      xn = d_one
+      xcone = d_one
     else if ( iproj=='NORMER' ) then
       call normer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                   clat,dsinm,0)
       call normer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                   clat,dsinm,1)
-      xn = d_zero
+      xcone = d_zero
     else if ( iproj=='ROTMER' ) then
       call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clon,     &
                   clat,plon,plat,dsinm,0)
       call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clon,     &
                   clat,plon,plat,dsinm,1)
-      xn = d_zero
+      xcone = d_zero
     else
       write (stderr,*) 'iproj = ', iproj
       write (stderr,*) 'Unrecognized or unsupported projection'
@@ -448,24 +452,24 @@ program terrain
 !
 !-----calling the map projection subroutine
   if ( iproj=='LAMCON' ) then
-    call lambrt(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0,xn,  &
+    call lambrt(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0,xcone,  &
                 truelatl,truelath)
-    call lambrt(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1,xn,  &
+    call lambrt(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1,xcone,  &
                 truelatl,truelath)
   else if ( iproj=='POLSTR' ) then
     call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
     call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-    xn = d_one
+    xcone = d_one
   else if ( iproj=='NORMER' ) then
     call normer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
     call normer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-    xn = d_zero
+    xcone = d_zero
   else if ( iproj=='ROTMER' ) then
     call rotmer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,plon,plat,   &
                 dsinm,0)
     call rotmer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,plon,plat,   &
                 dsinm,1)
-    xn = d_zero
+    xcone = d_zero
   else
     write (stderr,*) 'iproj = ', iproj
     write (stderr,*) 'Unrecognized or unsupported projection'
@@ -665,11 +669,20 @@ program terrain
                     trim(char_lak))
     end if
 
-    call write_domain(.true.)
+    write (outname,'(a,i0.3,a)') &
+       trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
+    call write_domain(outname,fudge_lnd_s,fudge_tex_s,fudge_lak_s,ntypec_s, &
+                      s_sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,dmap_s,    &
+                      coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,dpth_s,    &
+                      texout_s,frac_tex_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
-  call write_domain(.false.)
+  write (outname,'(a,i0.3,a)') &
+     trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
+  call write_domain(outname,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
+                    s_sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol, &
+                    mask,htgrid,lndout,snowam,dpth,texout,frac_tex)
   write(stdout,*) 'Grid data written to output file'
 
   call memory_destroy

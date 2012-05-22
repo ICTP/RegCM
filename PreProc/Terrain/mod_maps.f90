@@ -22,19 +22,18 @@ module mod_maps
   use mod_realkinds
   use mod_memutil
 
-  real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon ,  &
+  real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon ,     &
                    dmap , htgrid , lndout , mask , dpth , snowam ,  &
                    texout , xlat , xlon , xmap
   real(sp) , pointer , dimension(:,:,:) :: frac_tex
 
-  real(sp) , pointer , dimension(:,:) :: coriol_s , dlat_s ,     &
-                      dlon_s , dmap_s , htgrid_s , lndout_s ,       &
-                      mask_s , dpth_s , snowam_s , texout_s ,       &
+  real(sp) , pointer , dimension(:,:) :: coriol_s , dlat_s ,   &
+                      dlon_s , dmap_s , htgrid_s , lndout_s ,  &
+                      mask_s , dpth_s , snowam_s , texout_s ,  &
                       xlat_s , xlon_s , xmap_s
   real(sp) , pointer , dimension(:,:,:) :: frac_tex_s
 
   real(dp) , pointer , dimension(:) :: sigma
-  real(dp) :: xn
 
   contains
 
