@@ -229,9 +229,6 @@ module mod_mppparam
 
     call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(aertyp,7,mpi_character,0,mycomm,mpierr)
-    call mpi_bcast(ntr,1,mpi_integer,0,mycomm,mpierr)
-
     call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,mpierr)
 
     ! Setup all convenience dimensions

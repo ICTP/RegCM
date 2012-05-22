@@ -47,7 +47,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:,:) :: chi
   real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten, chemten
 !
-  real(dp) , pointer , dimension(:,:,:,:) :: chemsrc
+  real(dp) , pointer , dimension(:,:,:) :: chemsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
   real(dp) , pointer , dimension(:,:,:) :: srclp2
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
@@ -123,8 +123,8 @@ module mod_che_common
         call getmem4d(chemten,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chemten')
 
-        call getmem4d(chemsrc,jce1,jce2,ice1,ice2, &
-                      1,mpy,1,ntr,'mod_che_common:chemsrc')
+        call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
+                      1,ntr,'mod_che_common:chemsrc')
 
         call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
                       1,ntr,'mod_che_common:cchifxuw')

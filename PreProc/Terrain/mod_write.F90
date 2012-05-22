@@ -95,7 +95,7 @@ module mod_write
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding global lake_fudging')
     end if
-    if ( aertyp(7:7) == '1' ) then
+    if ( ltexture ) then
       call cdumlogical(cdum,texfudge)
       incstat = nf90_put_att(ncid, nf90_global, 'texture_fudging', cdum)
       call checkncerr(incstat,__FILE__,__LINE__, &
@@ -104,7 +104,7 @@ module mod_write
 
     ipnt = 1
     call define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
-    if ( aertyp(7:7) == '1' ) then
+    if ( ltexture ) then
       call add_dimension(ncid,'ntex',ntex,ipnt,idims)
     end if
 
@@ -123,7 +123,7 @@ module mod_write
     if ( lakedpth ) then
       call define_lakedepth(ncid,idims,ipnt,ivar)
     end if
-    if ( aertyp(7:7)=='1' ) then
+    if ( ltexture ) then
       call define_textures(ncid,idims,ipnt,ivar)
     end if
 !
@@ -150,7 +150,7 @@ module mod_write
     if (lakedpth) then
       call write_var2d_static(ncid,'dhlake',dpth,ipnt,ivar,do_transpose)
     endif
-    if ( aertyp(7:7)=='1' ) then
+    if ( ltexture ) then
       call write_var2d_static(ncid,'texout',texout,ipnt,ivar,do_transpose)
       call write_var3d_static(ncid,'frac_tex',frac_tex,ipnt,ivar,do_transpose)
     end if

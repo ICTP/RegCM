@@ -171,50 +171,6 @@ limit is disabled on your platform before attempting a run.
 
 \end{enumerate}
 
-\subsection{aerosolparam stanza}
-\label{aerosolparam}
-This stanza allows the user to specify aerosol usage in the model. It does
-enable building of soil texture database in the \verb=terrain= program and
-controls the dimension of the number of optical active tracers used in the
-active chemistry tracers part of the model.
-
-{\footnotesize
-\begin{Verbatim}
- &aerosolparam
- aertyp = 'AER00D0' ! Aerosol dataset used
-                    ! One in :
-                    ! AER00D0 -> Neither aerosol, nor dust used
-                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
-                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
-                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
-                    ! AER00D1 -> No aerosol, with dust
-                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
-                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
-                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
- ntr =  4,          ! Tracer parameters: number of tracers
- /
-\end{Verbatim}
-}
-
-The things you need to know here:
-
-\begin{enumerate}
-\item If \verb=aertyp= is left to \verb=AER00D0=, it is nonsense to activate
-chemistry in the model.
-\item If Anthropogenic and/or Biomass is activated, the model will also need
-the user to run the aerosol program. It can be run at the same level as the
-sst program, with the same calling syntax. Just replace sst with aerosol.
-\begin{Verbatim}
-$> cd $REGCM_RUN
-$> ./Bin/aerosol myregcm.in
-\end{Verbatim}
-The aerosol program prepares an emission dataset used by the model
-to consider optical active chemistry species effects in the radiation
-calculation. The surface dust emission are calculated using the soil
-texture dataset prepared by the \verb=terrain= program if the last
-$0$ is set to $1$ in \verb=aertyp=.
-\end{enumerate}
-
 \subsection{terrainparam stanza}
 \label{terparam}
 This stanza is used by the \verb=terrain= program to know how you want
@@ -232,6 +188,8 @@ later when the model calculates climatic parameters.
                          !  true  -> Perform extra smoothing in boundaries
  lakedpth    = .false.,  ! If using lakemod (see below), produce from
                          ! terrain program the domain bathymetry
+ ltexture    = .false.   ! If using DUST tracer (see below), produce from
+                         ! terrain program the texture soil dataset
  fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid

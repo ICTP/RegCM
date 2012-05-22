@@ -941,14 +941,14 @@ module mod_diagnosis
     end if
    
     call deco1_gather(chemsrc,chemsrc_io, &
-                      jcross1,jcross2,icross1,icross2,1,mpy,1,ntr)
+                      jcross1,jcross2,icross1,icross2,1,ntr)
     if ( myid == 0 ) then
       do itr = 1 , ntr
 !       emissions
         tttmp = d_zero
         do j = jout1 , jout2
           do i = iout1 , iout2
-            tttmp = tttmp + chemsrc_io(j,i,xmonth,itr)*dtsec*dx*dx
+            tttmp = tttmp + chemsrc_io(j,i,itr)*dtsec*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp

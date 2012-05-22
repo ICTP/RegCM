@@ -54,9 +54,6 @@
  lon0 = 0.0
  lon1 = 0.0
  /
- &aerosolparam
- aertyp = 'AER00D0'
- /
  &restartparam
  ifrest  = .false. ,
  mdate0  = 1990060100,

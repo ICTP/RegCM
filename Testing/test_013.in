@@ -20,9 +20,9 @@
  &terrainparam
  domname = 'MEGAPOLI2',
  itype_in = 1,
- ifanal = .true.,
  smthbdy = .false.,
- lakadj = .false.,
+ lakedpth = .false.,
+ ltexture = .true.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
@@ -44,9 +44,6 @@
  nspgx  = 12,
  nspgd  = 12,
  /
- &lakemodparam
- lkpts  = 10,
- /
  &globdatparam
  ssttyp = 'EHA1B',
  dattyp = 'EH5OM',
@@ -57,9 +54,6 @@
  /
  &lsmparam
  lsmtyp = 'BATS',
- /
- &aerosolparam
- aertyp = 'AER10D0'
  /
  &restartparam
  ifrest  = .false. ,
@@ -129,5 +123,3 @@
  imask  = 1,
  clmfrq = 24.,
  /
-
-                       

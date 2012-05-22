@@ -64,9 +64,15 @@ module mod_dynparam
  
   integer :: i_band
 
-! Control flag for lake model (Hostetler, etal. 1991, 1993a,b, 1995)
+! Control flag for creating bathymetry for lake model
+!    (Hostetler, etal. 1991, 1993a,b, 1995)
  
-  logical :: lakedpth
+  logical :: lakedpth = .false.
+
+! Control flag for crating teture dataset for aerosol dust
+!
+
+  logical :: ltexture = .false.
 
 ! Grid point horizontal resolution in km
 
@@ -150,23 +156,10 @@ module mod_dynparam
 ! Land Surface Legend number
 
   integer :: nveg
-
-! Aerosol dataset used
 !
-! One in : AER00D0 -> Neither aerosol, nor dust used
-!          AER01D0 -> Biomass, SO2 + BC + OC, no dust
-!          AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
-!          AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
-!          AER00D1 -> No aerosol, with dust
-!          AER01D1 -> Biomass, SO2 + BC + OC, with dust
-!          AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
-!          AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
+! Tracer parameters: number of tracers
 
-  character(7) :: aertyp
-
-! Tracer parameters: number of tracers and bins number for dust and sea salt
-
-  integer :: ntr   ! Total number of chemical tracers
+  integer :: ntr = 0  ! Total number of chemical tracers
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
@@ -340,9 +333,9 @@ module mod_dynparam
 
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                    plon , truelatl, truelath , i_band
-    namelist /terrainparam/ domname , smthbdy , lakedpth, fudge_lnd , &
-                  fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
-                  fudge_lak_s , h2opct , h2ohgt , dirter , inpter
+    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
+                  fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , &
+                  fudge_lak,  fudge_lak_s , h2opct , h2ohgt , dirter , inpter
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg
     namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
@@ -350,7 +343,6 @@ module mod_dynparam
                    medium_nudge , low_nudge
     namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
                    dirglob , inpglob , calendar , ibdyfrq
-    namelist /aerosolparam/ aertyp , ntr
 ! , nbin, sbin
 
     open(ipunit, file=filename, status='old', &
@@ -471,9 +463,6 @@ module mod_dynparam
     globidate2 = gdate2
     call setcal(globidate1,ical)
     call setcal(globidate2,ical)
-
-    ntr  = 0
-    read(ipunit, aerosolparam, err=111)
 
     ierr = 0
     return

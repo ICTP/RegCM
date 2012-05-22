@@ -354,7 +354,7 @@ program terrain
     call filter1plakes(iysg,jxsg,lndout_s)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 !
-    if ( aertyp(7:7)=='1' ) then
+    if ( ltexture ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLZB_SOIL_30s.nc',       &
                        'soiltype',30,ntypec_s,.true.,0)
@@ -393,7 +393,7 @@ program terrain
         lndout_s(1,j) = lndout_s(2,j)
         lndout_s(iysg,j) = lndout_s(iysg-1,j)
  
-        if ( aertyp(7:7)=='1' ) then
+        if ( ltexture ) then
           texout_s(1,j) = texout_s(2,j)
           texout_s(iysg,j) = texout_s(iysg-1,j)
           do k = 1 , ntex
@@ -408,7 +408,7 @@ program terrain
         lndout_s(i,1) = lndout_s(i,2)
         lndout_s(i,jxsg) = lndout_s(i,jxsg-1)
  
-        if ( aertyp(7:7)=='1' ) then
+        if ( ltexture ) then
           texout_s(i,1) = texout_s(i,2)
           texout_s(i,jxsg) = texout_s(i,jxsg-1)
           do k = 1 , ntex
@@ -428,7 +428,7 @@ program terrain
            '_LANDUSE' , nsg
     call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,iysg,jxsg, &
                   trim(char_lnd))
-    if ( aertyp(7:7)=='1' ) then
+    if ( ltexture ) then
       write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
              '_TEXTURE' , nsg
       call texfudge(fudge_tex_s,texout_s,htgrid_s,iysg,jxsg, &
@@ -507,7 +507,7 @@ program terrain
   call filter1plakes(iy,jx,lndout)
   write(stdout,*)'Interpolated landcover on model GRID'
 !
-  if ( aertyp(7:7)=='1' ) then
+  if ( ltexture ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLZB_SOIL_30s.nc',       &
                      'soiltype',30,ntypec,.true.,0)
@@ -549,7 +549,7 @@ program terrain
       lndout(1,j) = lndout(2,j)
       lndout(iy,j) = lndout(iy-1,j)
  
-      if ( aertyp(7:7)=='1' ) then
+      if ( ltexture ) then
         texout(1,j) = texout(2,j)
         texout(iy,j) = texout(iy-1,j)
         do k = 1 , ntex
@@ -564,7 +564,7 @@ program terrain
       lndout(i,1) = lndout(i,2)
       lndout(i,jx) = lndout(i,jx-1)
  
-      if ( aertyp(7:7)=='1' ) then
+      if ( ltexture ) then
         texout(i,1) = texout(i,2)
         texout(i,jx) = texout(i,jx-1)
         do k = 1 , ntex
@@ -585,7 +585,7 @@ program terrain
            '_LANDUSE'
   call lndfudge(fudge_lnd,lndout,htgrid,iy,jx,trim(char_lnd))
 
-  if ( aertyp(7:7)=='1' ) then
+  if ( ltexture ) then
     write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
              '_TEXTURE'
     call texfudge(fudge_tex,texout,htgrid,iy,jx,trim(char_tex))

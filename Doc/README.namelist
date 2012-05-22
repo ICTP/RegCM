@@ -39,21 +39,6 @@
                    ! iproj, clat, clon parameters are not considered.
  /
 !
-! Aerosol dataset creation and use
-!
- &aerosolparam
- aertyp = 'AER00D0' ! Aerosol dataset used
-                    ! One in :
-                    ! AER00D0 -> Neither aerosol, nor dust used
-                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
-                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
-                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
-                    ! AER00D1 -> No aerosol, with dust
-                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
-                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
-                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
- /
-!
 ! DOMAIN terrain generation parameters
 !
  &terrainparam
@@ -62,6 +47,8 @@
                          !  true  -> Perform extra smoothing in boundaries
  lakedpth    = .false.,  ! If using lakemod (see below), produce from
                          ! terrain program the domain bathymetry
+ ltexture    = .false.,  ! If using DUST tracers (see below), produce from
+                         ! terrain program the domain soil texture dataset
  fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid 
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid

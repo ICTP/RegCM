@@ -20,6 +20,7 @@
  domname = 'test_011',
  smthbdy = .false.,
  lakedpth = .false.,
+ ltexture = .true.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
@@ -52,9 +53,6 @@
  lat1 = 0.0
  lon0 = 0.0
  lon1 = 0.0
- /
- &aerosolparam
- aertyp = 'AER11D1'
  /
  &restartparam
  ifrest  = .false. ,

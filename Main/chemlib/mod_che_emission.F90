@@ -71,7 +71,7 @@ module mod_che_emission
       call read_emission(lyear,lmonth,chemsrc_io)
     end if
     call deco1_scatter(chemsrc_io,chemsrc,jcross1, &
-                       jcross2,icross1,icross2,1,mpy,1,ntr)
+                       jcross2,icross1,icross2,1,ntr)
     call time_end(subroutine_name,idindx)
   end subroutine chem_emission
 !
@@ -141,33 +141,33 @@ subroutine emis_tend(ktau,j,lmonth)
           ! zero when using BATS
            if ( bvoc_trmask(itr) /= 0 ) then
              if ( ktau == 0 ) c2r_voc(jj,i,bvoc_trmask(itr)) = d_zero
-             chemsrc(j,i,lmonth,itr) = c2r_voc(jj,i,bvoc_trmask(itr))/d_1
+             chemsrc(j,i,itr) = c2r_voc(jj,i,bvoc_trmask(itr))/d_1
            end if
 #endif
 #endif
            ! update emission tendency according to chemsrc value
 !!$           if ( chtrname(itr) == 'ISOP' ) then
 !!$             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
-!!$                           (amp)*chemsrc(j,i,lmonth,itr) * &
+!!$                           (amp)*chemsrc(j,i,itr) * &
 !!$                          sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
 !!$             ! diagnostic for source, cumul
-!!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(j,i,lmonth,itr) * &
+!!$             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(j,i,itr) * &
 !!$                           sin(mathpi*fact)*dtche/d_two
 !!$           else
  
   
          if ( ichdrdepo /= 2 ) then  
              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                           chemsrc(j,i,lmonth,itr)*egrav/(cdsigma(kz)*1.0D3)
+                           chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
          elseif ( ichdrdepo ==2) then
 !then emission is injected in the PBL scheme
-              cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,lmonth,itr)
+              cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
          end if
 
 
              ! diagnostic for source, cumul
              cemtr(j,i,itr) = cemtr(j,i,itr) + &
-                              chemsrc(j,i,lmonth,itr)*dtche/d_two
+                              chemsrc(j,i,itr)*dtche/d_two
 !!$           end if
          end if
        end do

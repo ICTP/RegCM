@@ -28,7 +28,7 @@ module mod_che_ncio
 !
   private
 !
-  public :: read_texture , read_aerosol , read_emission , recc
+  public :: read_texture , read_emission , recc
   public :: prepare_chem_out , init_mod_che_ncio , writerec_che2
   public :: open_chbc , close_chbc , chbc_search , read_chbc
 
@@ -357,154 +357,10 @@ module mod_che_ncio
       call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
     end subroutine read_texture
 
-    subroutine read_aerosol(chtrname,chemsrc)
-      implicit none
-      character(256) :: aername
-      character(5) , dimension(ntr) , intent(in) :: chtrname
-      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: chemsrc
-
-      integer :: ncid , ivarid
-      real(sp) , dimension(jx,iy) :: toto
-      character(5) :: aerctl
-      integer , dimension(3) :: istart , icount
-      integer :: itr , i , j , m
-
-      aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
-      istatus = nf90_open(aername, nf90_nowrite, ncid)
-      call check_ok(__FILE__,__LINE__, &
-           'Error Opening Aerosol file '//trim(aername),'AEROSOL FILE OPEN')
-
-      do itr = 1 , ntr
-        aerctl = chtrname(itr)
-        write (aline, *) itr , aerctl
-        call say
-        if ( aerctl(1:4) /= 'DUST') then
-          if ( aerctl(1:3) == 'SO2' ) then
-            if ( aertyp(4:4) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'so2', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable so2 miss','AEROSOL FILE')
-              istatus = nf90_get_var(ncid, ivarid, toto)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable so2 read error','AEROSOL FILE')
-              do m = 1 , 12
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-            if ( aertyp(5:5) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable so2_mon miss','AEROSOL FILE')
-              istart(1) = 1
-              istart(2) = 1
-              icount(1) = jx
-              icount(2) = iy
-              icount(3) = 1
-              do m = 1 , 12
-                istart(3) = m
-                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-                call check_ok(__FILE__,__LINE__, &
-                              'Variable so2_mon read err','AEROSOL FILE')
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-          else if ( aerctl(1:2) == 'BC' ) then
-            if ( aertyp(4:4) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'bc', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable bc miss','AEROSOL FILE')
-              istatus = nf90_get_var(ncid, ivarid, toto)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable bc read error','AEROSOL FILE')
-              do m = 1 , 12
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-            if ( aertyp(5:5) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable bc_mon miss','AEROSOL FILE')
-              istart(1) = 1
-              istart(2) = 1
-              icount(1) = jx
-              icount(2) = iy
-              icount(3) = 1
-              do m = 1 , 12
-                istart(3) = m
-                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-                call check_ok(__FILE__,__LINE__, &
-                              'Variable bc_mon read err','AEROSOL FILE')
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-          else if ( aerctl(1:2) == 'OC' ) then
-            if ( aertyp(4:4) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'oc', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable oc miss','AEROSOL FILE')
-              istatus = nf90_get_var(ncid, ivarid, toto)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable oc read error','AEROSOL FILE')
-              do m = 1 , 12
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-            if ( aertyp(5:5) == '1' ) then
-              istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable oc_mon miss','AEROSOL FILE')
-              istart(1) = 1
-              istart(2) = 1
-              icount(1) = jx
-              icount(2) = iy
-              icount(3) = 1
-              do m = 1 , 12
-                istart(3) = m
-                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-                call check_ok(__FILE__,__LINE__, &
-                              'Variable oc_mon read err','AEROSOL FILE')
-                do i = 1 , iy
-                  do j = 1 , jx
-                    chemsrc(j,i,m,itr) = chemsrc(j,i,m,itr) + dble(toto(j,i))
-                  end do
-                end do
-              end do
-            end if
-          end if
-        end if
-      end do
-
-      istatus = nf90_close(ncid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Error Close Aerosol file '//trim(aername), &
-                    'AEROSOL FILE CLOSE')
-
-    end subroutine read_aerosol
-
     subroutine read_emission(lyear,lmonth,echemsrc)
       implicit none
-      integer , intent(in) :: lyear,lmonth
-      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: echemsrc
+      integer , intent(in) :: lyear , lmonth
+      real(dp) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       character(256) :: aername
       integer :: n,ncid , itvar, idimid, chmnrec
       character(64) ::chemi_timeunits
@@ -570,111 +426,108 @@ module mod_che_ncio
 !                     HOMOGENEOUS PREPROC
 
       if ( ico /= 0 ) then
-          call rvar(ncid,istart,icount,ico,lmonth,echemsrc, &
-                    'CO_flux',.false.)
+          call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.)
           print*, 'FAB emis testco','ico', maxval(echemsrc)
       end if
 
       ! NO emission                  
        if ( ino /= 0 ) then
-          call rvar(ncid,istart,icount,ino,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,ino,echemsrc, &
                     'NO_flux',.false.)
         end if
 
 !!$        ! HCHO emission                  
         if ( ihcho /= 0 ) then
-           call rvar(ncid,istart,icount,ihcho,lmonth,echemsrc, &
+           call rvar(ncid,istart,icount,ihcho,echemsrc, &
              'HCHO_flux',.false.)
         end if
         ! ACET emission                  
         if ( iacet /= 0 ) then
-          call rvar(ncid,istart,icount,iacet,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,iacet,echemsrc, &
               'ACET_flux',.false.)
         end if
         ! SO2 emission
         if ( iso2 /= 0 ) then
-          call rvar(ncid,istart,icount,iso2,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,iso2,echemsrc, &
                     'SO2_flux',.false.)
         end if
 
         !NH3
         if ( iNH3 /= 0 ) then
-          call rvar(ncid,istart,icount,inh3,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,inh3,echemsrc, &
                     'NH3_flux',.false.)
         end if
         ! CH4
         if ( ich4 /= 0 ) then
-          call rvar(ncid,istart,icount,ich4,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,ich4,echemsrc, &
                     'CH4_flux',.false.)
         end if
         ! Ethane
         if ( ic2h6 /= 0 ) then
-          call rvar(ncid,istart,icount,ic2h6,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,ic2h6,echemsrc, &
                     'C2H6_flux',.false.)
         end if
         ! PAR
         if ( ipar /= 0 ) then
-         call rvar(ncid,istart,icount,ipar,lmonth,echemsrc, &
+         call rvar(ncid,istart,icount,ipar,echemsrc, &
                  'PAR_flux',.false.)
         end if
 
         ! Ethene
         if ( iethe /= 0 ) then
-          call rvar(ncid,istart,icount,iethe,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,iethe,echemsrc, &
                     'ETHE_flux',.false.)
         end if
 
         ! Termenal Alkene
         if ( iolt /= 0 ) then
-          call rvar(ncid,istart,icount,iolt,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,iolt,echemsrc, &
                     'OLT_flux',.false.)
         end if
 !!$        ! Internal Alkene
         if ( ioli /= 0 ) then
-           call rvar(ncid,istart,icount,ioli,lmonth,echemsrc,'OLI_flux',.false.)
+           call rvar(ncid,istart,icount,ioli,echemsrc,'OLI_flux',.false.)
         end if
 !!$        ! Isoprene
 !!$        if ( iisop /= 0 ) then
-!!$          call rvar(ncid,istart,icount,iisop,lmonth,echemsrc,'bio_isop',.false.)
+!!$          call rvar(ncid,istart,icount,iisop,echemsrc,'bio_isop',.false.)
 !!$        end if
         ! Toluene
         if ( itolue /= 0 ) then
-            call rvar(ncid,istart,icount,itolue,lmonth,echemsrc, &
+            call rvar(ncid,istart,icount,itolue,echemsrc, &
                       'TOL_flux',.false.)
           end if
 !!$        ! Xylene
         if ( ixyl /= 0 ) then
-            call rvar(ncid,istart,icount,ixyl,lmonth,echemsrc, &
+            call rvar(ncid,istart,icount,ixyl,echemsrc, &
                       'XYL_flux',.true.)
           end if
         ! Acetaldehyde
         if ( iald2 /= 0 ) then
-!test           call rvar(ncid,istart,icount,iald2,lmonth,echemsrc,'ALD2_flux',.false.)
+!test           call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.)
         end if
         ! Methanol + Ethanol
         if ( imoh /= 0 ) then
-          call rvar(ncid,istart,icount,imoh,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,imoh,echemsrc, &
                     'MOH_flux',.false.)
         end if           
 
 !!$        ! DMS
 !!$        if ( idms /= 0 ) then
-!!$          ! call rvar(ncid,istart,icount,idms,lmonth,echemsrc,'o_DMS',.false.)
+!!$          ! call rvar(ncid,istart,icount,idms,echemsrc,'o_DMS',.false.)
 !!$        end if
 
         ! OC and BC anthropogenic + biomass burning
         if ( ibchb /= 0 ) then
-          call rvar(ncid,istart,icount,ibchb,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,ibchb,echemsrc, &
                     'BC_flux',.false.)
         end if
         if ( iochb /= 0 ) then
-          call rvar(ncid,istart,icount,iochb,lmonth,echemsrc, &
+          call rvar(ncid,istart,icount,iochb,echemsrc, &
                     'OC_flux',.false.)
         end if
 
- 
-
-      where (echemsrc(:,:,:,:) < 0. ) echemsrc(:,:,:,:) = 0.
+      where (echemsrc(:,:,:) < 0. ) echemsrc(:,:,:) = d_zero
 
       istatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__, &
@@ -683,12 +536,11 @@ module mod_che_ncio
       deallocate (emtimeval)
     end subroutine read_emission
 
-    subroutine rvar(ncid,istart,icount,ind,lmonth,echemsrc,cna,lh,cnb,cnc,cnd)
+    subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,cnb,cnc,cnd)
       implicit none
       integer , intent(in) :: ncid
       integer , dimension(3) , intent(in) :: istart , icount
-      integer , intent(in) :: lmonth
-      real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: echemsrc
+      real(dp) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb
@@ -707,13 +559,13 @@ module mod_che_ncio
       if ( lh ) then  ! half of lumped Aromatics
         do i = 1 , iy
           do j = 1 , jx
-            echemsrc(j,i,lmonth,ind) = d_half*toto(j,i)
+            echemsrc(j,i,ind) = d_half*toto(j,i)
           end do
         end do
       else
         do i = 1 , iy
           do j = 1 , jx
-            echemsrc(j,i,lmonth,ind) = toto(j,i)
+            echemsrc(j,i,ind) = toto(j,i)
           end do
         end do
       end if
@@ -726,7 +578,7 @@ module mod_che_ncio
                       'Variable '//cnb//' read err','CHEM_EMISS FILE')
         do i = 1 , iy
           do j = 1 , jx
-            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
+            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
@@ -739,7 +591,7 @@ module mod_che_ncio
                       'Variable '//cnc//' read err','CHEM_EMISS FILE')
         do i = 1 , iy
           do j = 1 , jx
-            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
+            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
@@ -752,7 +604,7 @@ module mod_che_ncio
                       'Variable '//cnd//' read err','CHEM_EMISS FILE')
         do i = 1 , iy
           do j = 1 , jx
-            echemsrc(j,i,lmonth,ind) = toto(j,i) + echemsrc(j,i,lmonth,ind)
+            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
