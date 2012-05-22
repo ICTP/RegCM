@@ -161,7 +161,7 @@ module mod_erahi
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev2,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X

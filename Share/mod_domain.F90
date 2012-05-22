@@ -45,18 +45,20 @@ module mod_domain
 
   type (domain_io) :: mddom_io
 
+  interface read_domain
+    module procedure read_domain_type
+    module procedure read_domain_array
+    module procedure read_domain_array_single
+  end interface read_domain
+
   public :: domain_io , mddom_io , read_domain
 
   contains
 
-  integer function read_domain(ncid)
+  subroutine read_domain_type(ncid)
     implicit none
     integer , intent(in) :: ncid
-
-    read_domain = check_domain(ncid)
-    if ( read_domain /= 0 ) then
-      return
-    end if
+    call check_domain(ncid)
     call allocate_domain( )
     call read_var1d_static(ncid,'sigma',mddom_io%sigma)
     call read_var2d_static(ncid,'xlat',mddom_io%xlat)
@@ -69,7 +71,118 @@ module mod_domain
     call read_var2d_static(ncid,'xmap',mddom_io%msfx)
     call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
-  end function read_domain
+  end subroutine read_domain_type
+
+  subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
+                               lndcat,msfx,msfd,coriol)
+    implicit none
+    integer , intent(in) :: ncid
+    real(dp) , pointer , dimension(:) , intent(out) :: sigma
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: xlat
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: xlon
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: dlat
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: dlon
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: ht
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: mask
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: msfx
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: msfd
+    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    call check_domain(ncid)
+    call read_var1d_static(ncid,'sigma',sigma)
+    if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
+    if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
+    if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
+    if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+    if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
+    if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
+    if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
+    if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
+    if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
+    if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
+  end subroutine read_domain_array
+
+  subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
+                                      lndcat,msfx,msfd,coriol,ltrans)
+    implicit none
+    integer , intent(in) :: ncid
+    real(sp) , pointer , dimension(:) , intent(out) :: sigma
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: xlat
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: xlon
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: dlat
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: dlon
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: ht
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: mask
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: msfx
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: msfd
+    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    logical , intent(in) , optional :: ltrans
+    real(sp) , pointer , dimension(:,:) :: dum
+    logical :: dotrans
+    call check_domain(ncid)
+    call read_var1d_static(ncid,'sigma',sigma)
+
+    dotrans = .false.
+    if ( present(ltrans) ) then
+      dotrans = ltrans
+    end if
+    if ( dotrans ) then
+      call getmem2d(dum,1,jx,1,iy,'read_domain_arrays_single:dum')
+      if ( present(xlat) ) then
+        call read_var2d_static(ncid,'xlat',dum)
+        xlat = transpose(dum)
+      end if
+      if ( present(xlon) ) then
+        call read_var2d_static(ncid,'xlon',dum)
+        xlon = transpose(dum)
+      end if
+      if ( present(dlat) ) then
+        call read_var2d_static(ncid,'dlat',dum)
+        dlat = transpose(dum)
+      end if
+      if ( present(dlon) ) then
+        call read_var2d_static(ncid,'dlon',dum)
+        dlon = transpose(dum)
+      end if
+      if ( present(ht) ) then
+        call read_var2d_static(ncid,'topo',dum)
+        ht = transpose(dum)
+      end if
+      if ( present(mask) ) then
+        call read_var2d_static(ncid,'mask',dum)
+        mask = transpose(dum)
+      end if
+      if ( present(lndcat) ) then
+        call read_var2d_static(ncid,'landuse',dum)
+        lndcat = transpose(dum)
+      end if
+      if ( present(msfx) ) then
+        call read_var2d_static(ncid,'xmap',dum)
+        msfx = transpose(dum)
+      end if
+      if ( present(msfd) ) then
+        call read_var2d_static(ncid,'dmap',dum)
+        msfd = transpose(dum)
+      end if
+      if ( present(coriol) ) then
+        call read_var2d_static(ncid,'coriol',dum)
+        coriol = transpose(dum)
+      end if
+      call relmem2d(dum)
+    else
+      if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
+      if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
+      if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
+      if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+      if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
+      if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
+      if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
+      if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
+      if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
+      if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
+    end if
+  end subroutine read_domain_array_single
 
   subroutine allocate_domain
     implicit none
@@ -86,7 +199,7 @@ module mod_domain
     call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
   end subroutine allocate_domain
 
-  integer function check_domain(ncid)
+  subroutine check_domain(ncid)
     implicit none
     integer , intent(in) :: ncid
     integer :: istatus
@@ -94,46 +207,42 @@ module mod_domain
     integer :: iyy , jxx , kzz
     character(6) :: proj
     real(sp) :: dsx , iclat , iclon , ptsp
-    check_domain = -1
+
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
     if ( jx /= jxx ) then
-      write(stderr,*) 'Mismatch: JX in DOMAIN file /= JX in namelist'
       write(stderr,*) 'DOMAIN FILE : ', jxx
       write(stderr,*) 'NAMELIST    : ', jx
-      return
+      call die('Mismatch: JX in DOMAIN file /= JX in namelist')
     end if
     istatus = nf90_inq_dimid(ncid, 'iy', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension IY')
     istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
     if ( iy /= iyy ) then
-      write(stderr,*) 'Mismatch: IY in DOMAIN file /= IY in namelist'
       write(stderr,*) 'DOMAIN FILE : ', iyy
       write(stderr,*) 'NAMELIST    : ', iy
-      return
+      call die('Mismatch: IY in DOMAIN file /= IY in namelist')
     end if
     istatus = nf90_inq_dimid(ncid, 'kz', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
     istatus = nf90_inquire_dimension(ncid, idimid, len=kzz)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension KZ')
     if ( kz+1 /= kzz ) then
-      write(stderr,*) 'Mismatch: KZ in DOMAIN file /= KZ+1 in namelist'
       write(stderr,*) 'DOMAIN FILE : ', kzz
       write(stderr,*) 'NAMELIST    : ', kz
-      return
+      call die('Mismatch: KZ in DOMAIN file /= KZ+1 in namelist')
     end if
     istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search variable PTOP')
     istatus = nf90_get_var(ncid, ivarid, ptsp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
     if ( dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00 ) then
-      write(stderr,*) 'Mismatch: PTOP in DOMAIN file /= PTOP in namelist'
       write(stderr,*) 'DOMAIN FILE : ', ptop
       write(stderr,*) 'NAMELIST    : ', ptsp
-      return
+      call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global, 'projection', proj)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute projection')
@@ -141,39 +250,35 @@ module mod_domain
       write(stderr,*) 'Mismatch: IPROJ in DOMAIN file /= IPROJ in namelist'
       write(stderr,*) 'DOMAIN FILE : ', proj
       write(stderr,*) 'NAMELIST    : ', iproj
-      return
+      call die('Mismatch: IPROJ in DOMAIN file /= IPROJ in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global,'grid_size_in_meters', dsx)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_size_in_meters')
     if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00 ) then 
-      write(stderr,*) 'Mismatch: DS in DOMAIN file /= DS in namelist'
       write(stderr,*) 'DOMAIN FILE : ', dsx/1000.0
       write(stderr,*) 'NAMELIST    : ', ds
-      return
+      call die('Mismatch: DS in DOMAIN file /= DS in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global, &
                            'latitude_of_projection_origin', iclat)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute latitude_of_projection_origin')
     if (dabs(dble(iclat)-dble(clat)) > 0.001D+00 ) then
-      write(stderr,*) 'Mismatch: CLAT in DOMAIN file /= CLAT in namelist'
       write(stderr,*) 'DOMAIN FILE : ', iclat
       write(stderr,*) 'NAMELIST    : ', clat
-      return
+      call die('Mismatch: CLAT in DOMAIN file /= CLAT in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global, &
                            'longitude_of_projection_origin', iclon)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute longitude_of_projection_origin')
     if (dabs(dble(iclon)-dble(clon)) > 0.001D+00 ) then
-      write(stderr,*) 'Mismatch: CLON in DOMAIN file /= CLON in namelist'
       write(stderr,*) 'DOMAIN FILE : ', iclon
       write(stderr,*) 'NAMELIST    : ', clon
-      return
+      call die('Mismatch: CLON in DOMAIN file /= CLON in namelist')
     end if
-    check_domain = 0
     return
-  end function check_domain
+  end subroutine check_domain
 
 end module mod_domain

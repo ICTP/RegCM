@@ -41,6 +41,7 @@ module mod_gn6hnc
   use mod_uvrot
   use mod_vectutil
   use mod_message
+  use mod_nchelper
 
   private
 
@@ -515,7 +516,7 @@ module mod_gn6hnc
     call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
     call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     ! Rotate winds
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat,iproj)
+    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
  
     ! Go to bottom->top
     if ( dattyp(1:3) /= 'EC_' ) then

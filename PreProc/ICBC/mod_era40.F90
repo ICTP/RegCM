@@ -19,6 +19,7 @@
 
 module mod_era40
 
+  use netcdf
   use mod_dynparam
   use mod_realkinds
   use mod_stdio
@@ -82,7 +83,7 @@ module mod_era40
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -132,7 +133,6 @@ module mod_era40
   end subroutine getera40
 
   subroutine era6hour(dattyp,idate,idate0)
-  use netcdf
   implicit none
 !
   character(5) , intent(in) :: dattyp

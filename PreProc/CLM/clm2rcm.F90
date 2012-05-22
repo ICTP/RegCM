@@ -28,13 +28,14 @@ program clm2rcm
   use mod_nclib
   use mod_dynparam
   use mod_message
-  use mod_read_domain
+  use mod_grid
   use mod_param_clm
   use mod_date
   use mod_clm3grid
   use mod_memutil
   use mod_realkinds
   use mod_stdio
+  use mod_domain
   use mod_nchelper
 
   implicit none
@@ -43,19 +44,17 @@ program clm2rcm
   integer , parameter :: ndim = 3
   logical , parameter :: bvoc = .false.
 !
-  integer :: istatus , ncid , idum
+  integer :: istatus , ncid , incin , idum
   integer , dimension(4) :: idims
   integer , dimension(4) :: ivdims
   integer :: ldim , ivar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
-  real(sp) , dimension(2) :: trlat
   real(sp) , pointer , dimension(:) :: yiy
   real(sp) , pointer , dimension(:) :: xjx
-  integer , dimension(8) :: tvals
   real(sp) :: hptop , xmiss
   real(dp) , dimension(1) :: xdate
-  integer , dimension(2) :: ivvar
+  integer , dimension(2) :: ihvar
   integer , dimension(2) :: illvar
   integer , dimension(2) :: izvar
   integer , dimension(4) :: icount , istart
@@ -75,12 +74,12 @@ program clm2rcm
   real(sp) , pointer , dimension(:,:,:,:) :: regyxzt , zoom , dumw
   real(sp) , pointer , dimension(:,:) :: landmask , sandclay
   integer :: ipathdiv , ierr
-  integer :: i , iz , it , j , k , l , kmax
+  integer :: i , iz , it , j , k , l , kmax , ipnt
   integer :: jotyp , idin , idout , ifield , ifld , imap
   character(256) :: namelistfile , prgname
   character(256) :: inpfile , terfile , checkfile
   character(256) :: outfil_nc
-  character(64) :: history , csdate , cldim
+  character(64) :: csdate , cldim
   integer , dimension(8) :: ilevs
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
@@ -112,22 +111,13 @@ program clm2rcm
 !     ** Get latitudes and longitudes from DOMAIN file
 !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-  call read_domain(terfile)
-
-  if ( dabs(clatx-clat) > 0.001D0 .or.   &
-       dabs(clonx-clon) > 0.001D0) then
-    write(stderr,*) 'DOMAIN file is inconsistent with regcm.in'
-    write(stderr,*) '  namelist       :  clat=' , clat , ' clon=' , clon
-    write(stderr,*) '  DOMAIN file    :  clat=' , clatx , ' clon=' , clonx
-    call die('clm2rcm')
-  end if
-  if ( iprojx/=iproj ) then
-    write(stderr,*) 'DOMAIN file is inconsistent with regcm.in'
-    write(stderr,*) '  namelist       : iproj=' , iproj
-    write(stderr,*) '  DOMAIN file    : iproj=' , iprojx
-    call die('clm2rcm')
-  end if
- 
+  call openfile_withname(terfile,incin)
+  istatus = nf90_get_att(incin,nf90_global,'grid_factor',xcone)
+  call checkncerr(istatus,__FILE__,__LINE__,'Attribute grid_factor missing')
+  call read_domain(incin,sigx,xlat,xlon,ltrans=.true.)
+  istatus = nf90_close(incin)
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error closing file '//trim(terfile))
 !     ** Set output variables
   jotyp = 2
   xscale = 1.
@@ -136,136 +126,21 @@ program clm2rcm
 !     ** Open Output checkfile in NetCDF format
 
   checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
-#ifdef NETCDF4_HDF5
-  istatus = nf90_create(checkfile, &
-   ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), ncid)
-#else
-  istatus = nf90_create(checkfile, nf90_clobber, ncid)
-#endif
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error create file '//trim(checkfile))
 
-  istatus = nf90_put_att(ncid, nf90_global, 'title',  &
-         'ICTP Regional Climatic model V4 clm2rcm program output')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global title')
-  istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global institution')
-  istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'None')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global Conventions')
-  call date_and_time(values=tvals)
-  write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
-       tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
-       tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
-       ' : Created by RegCM aerosol program'
-  istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global history')
-  istatus = nf90_put_att(ncid, nf90_global, 'references', &
-             'http://eforge.escience-lab.org/gf/project/regcm')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global references')
-  istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global experiment')
-  istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global projection')
-  istatus = nf90_put_att(ncid, nf90_global, 'grid_size_in_meters', ds*1000.0)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global gridsize')
-  istatus = nf90_put_att(ncid, nf90_global,   &
-               'latitude_of_projection_origin', clat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global clat')
-  istatus = nf90_put_att(ncid, nf90_global,   &
-               'longitude_of_projection_origin', clon)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add global clon')
-  if (iproj == 'ROTMER') then
-    istatus = nf90_put_att(ncid, nf90_global, &
-                 'grid_north_pole_latitude', plat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error add global plat')
-    istatus = nf90_put_att(ncid, nf90_global, &
-                 'grid_north_pole_longitude', plon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error add global plon')
-  else if (iproj == 'LAMCON') then
-    trlat(1) = real(truelatl)
-    trlat(2) = real(truelath)
-    istatus = nf90_put_att(ncid, nf90_global, &
-                 'standard_parallel', trlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error add global truelat')
-  end if
-  istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension iy')
-  istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension jx')
-  istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension time')
-  istatus = nf90_def_dim(ncid, 'kz', kz+1, idims(4))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension kz')
-  istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4), izvar(1))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable sigma')
-  istatus = nf90_put_att(ncid, izvar(1), 'standard_name',  &
-                         'atmosphere_sigma_coordinate')      
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma standard_name')
-  istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
-                         'Sigma at model layer midpoints')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma long_name')
-  istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma units')
-  istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma axis')
-  istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma positive')
-  istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
-                         'sigma: sigma ps: ps ptop: ptop')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma formula_terms')
-  istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
-                         varid=izvar(2))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable ptop')
-  istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
-                         'air_pressure')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop standard_name')
-  istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
-                         'Pressure at model top')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop long_name')
-  istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop units')
-  istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
-                         ivvar(1))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable iy')
-  istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
-                         'projection_y_coordinate')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy standard_name')
-  istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
-                         'y-coordinate in Cartesian system')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy long_name')
-  istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy units')
-  istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
-                         ivvar(2))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable jx')
-  istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
-                         'projection_x_coordinate')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx standard_name')
-  istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
-                         'x-coordinate in Cartesian system')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx long_name')
-  istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx units')
-  istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), illvar(1))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable xlat')
-  istatus = nf90_put_att(ncid, illvar(1), 'standard_name', 'latitude')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat standard_name')
-  istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
-                         'Latitude at cross points')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat long_name')
-  istatus = nf90_put_att(ncid, illvar(1), 'units', 'degrees_north')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat units')
-  istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), illvar(2))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable xlon')
-  istatus = nf90_put_att(ncid, illvar(2), 'standard_name', 'longitude')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon standard_name')
-  istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
-                         'Longitude at cross points')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon long_name')
-  istatus = nf90_put_att(ncid, illvar(2), 'units', 'degrees_east')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon units')
-  istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), ivar)
+  call createfile_withname(checkfile,ncid)
+  call add_common_global_params(ncid,'clm2rcm')
+  ipnt = 1
+  call define_basic_dimensions(ncid,jx,iy,kzp1,ipnt,idims)
+  call add_dimension(ncid,'time',nf90_unlimited,ipnt,idims)
+
+  call define_horizontal_coord(ncid,jx,iy,xjx,yiy,idims,ihvar)
+  call define_vertical_coord(ncid,idims,izvar)
+
+  ipnt = 1
+  call define_cross_geolocation_coord(ncid,idims,ipnt,illvar)
+
+  istatus = nf90_def_var(ncid, 'time', nf90_double, idims(4:4), ivar)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add variable time')
-
   irefdate = yrfirst(globidate1)
   irefdate = monmiddle(irefdate)
   csdate = tochar(irefdate)
@@ -275,31 +150,14 @@ program clm2rcm
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time calendar')
 !
   istatus = nf90_enddef(ncid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error End Definitions NetCDF output')
-!
-  istatus = nf90_put_var(ncid, izvar(1), sigx)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable sigma write')
-  hptop = real(ptop * 10.0D0)
-  istatus = nf90_put_var(ncid, izvar(2), hptop)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable ptop write')
-  call getmem1d(yiy,1,iy,'clm2rcm:yiy')
-  call getmem1d(xjx,1,jx,'clm2rcm:xjx')
-  yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
-  xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
-  do i = 2 , iy
-    yiy(i) = real(dble(yiy(i-1))+ds)
-  end do
-  do j = 2 , jx
-    xjx(j) = real(dble(xjx(j-1))+ds)
-  end do
-  istatus = nf90_put_var(ncid, ivvar(1), yiy)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable iy write')
-  istatus = nf90_put_var(ncid, ivvar(2), xjx)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable jx write')
-  istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlat write')
-  istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
-  call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlon write')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error End Definitions NetCDF output')
+  hptop = real(ptop*10.0D0)
+  call write_vertical_coord(ncid,sigx,hptop,izvar)
+  call write_horizontal_coord(ncid,xjx,yiy,ihvar)
+  ipnt = 1
+  call write_var2d_static(ncid,'xlat',xlat,ipnt,illvar,do_transpose)
+  call write_var2d_static(ncid,'xlon',xlon,ipnt,illvar,do_transpose)
 
   imondate = irefdate
   do it = 1 , 12

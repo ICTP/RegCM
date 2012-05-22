@@ -34,6 +34,8 @@ module mod_nest
   use mod_uvrot
   use mod_vectutil
   use mod_message
+  use mod_memutil
+  use mod_nchelper
 
   private
 
@@ -67,7 +69,7 @@ module mod_nest
 
   integer :: iy_in , jx_in , kz_in
   character(6) :: iproj_in
-  real(dp) :: clat_in , clon_in , plat_in , plon_in , ptop_in , grdfac_in
+  real(dp) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
 !
   character(14) :: fillin
   character(256) :: inpfile
@@ -180,7 +182,7 @@ module mod_nest
   call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kz_in)
   call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
   call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
-                grdfac_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
+                xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -189,7 +191,7 @@ module mod_nest
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,np,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -358,17 +360,17 @@ module mod_nest
       xsign = 1.0D0        ! NORTH HEMESPHERE
     end if
     if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
-      grdfac_in = (log10(cos(trlat(1)*degrad))                   &
+      xcone_in = (log10(cos(trlat(1)*degrad))                   &
                   -log10(cos(trlat(2)*degrad))) /                &
                   (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
                   -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
     else
-      grdfac_in = xsign*sin(dble(trlat(1))*degrad)
+      xcone_in = xsign*sin(dble(trlat(1))*degrad)
     end if
   else if ( iproj_in == 'POLSTR' ) then
-    grdfac_in = 1.0D0
+    xcone_in = 1.0D0
   else if ( iproj_in == 'NORMER' ) then
-    grdfac_in = 0.0D0
+    xcone_in = 0.0D0
   else
     istatus = nf90_get_att(ncinp, nf90_global, &
                     'grid_north_pole_latitude', plat_in)
@@ -376,7 +378,7 @@ module mod_nest
     istatus = nf90_get_att(ncinp, nf90_global, &
                     'grid_north_pole_longitude', plon_in)
     call checkncerr(istatus,__FILE__,__LINE__,'attribure plon read error')
-    grdfac_in = 0.0D0
+    xcone_in = 0.0D0
   end if
  
 !     Set up pointers

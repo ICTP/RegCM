@@ -320,7 +320,7 @@ module mod_fvgcm
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X

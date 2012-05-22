@@ -32,6 +32,8 @@ module mod_ncep
   use mod_uvrot
   use mod_vectutil
   use mod_message
+  use mod_memutil
+  use mod_nchelper
 
   private
 
@@ -87,7 +89,7 @@ module mod_ncep
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X

@@ -65,7 +65,7 @@ program sst
 
   call init_grid
   terfile=trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-  call read_domain(terfile)
+  call read_domain_info(terfile)
 
   if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.       &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &

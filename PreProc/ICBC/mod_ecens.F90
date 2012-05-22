@@ -19,6 +19,7 @@
 
 module mod_ecens
 
+  use netcdf
   use mod_dynparam
   use mod_realkinds
   use mod_stdio
@@ -33,7 +34,7 @@ module mod_ecens
   use mod_uvrot
   use mod_vectutil
   use mod_message
-  use netcdf
+  use mod_nchelper
 
   implicit none
 
@@ -123,7 +124,7 @@ module mod_ecens
 !
 ! ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nplev,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nplev,plon,plat,iproj)
 !
 ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !

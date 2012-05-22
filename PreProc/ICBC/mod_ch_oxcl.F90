@@ -19,6 +19,7 @@
 
 module mod_ch_oxcl
 
+  use netcdf
   use mod_dynparam
   use mod_memutil
   use mod_grid
@@ -26,7 +27,7 @@ module mod_ch_oxcl
   use mod_interp
   use mod_date
   use mod_realkinds
-  use netcdf
+  use mod_nchelper
 
   private
 !

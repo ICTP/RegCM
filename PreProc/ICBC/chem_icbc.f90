@@ -61,7 +61,7 @@ program chem_icbc
 !      
   call memory_init
 !  
-  call init_grid(iy,jx,kz)
+  call init_grid(jx,iy,kz)
   call init_outoxd
 !
   tdif = globidate2-globidate1

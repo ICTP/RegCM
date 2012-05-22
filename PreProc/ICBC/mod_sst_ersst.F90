@@ -19,14 +19,14 @@
 
 module mod_sst_ersst
 
+  use netcdf
   use mod_realkinds
   use mod_stdio
-  use netcdf
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
-  use mod_nchelper
   use mod_message
+  use mod_nchelper
 
   private
 

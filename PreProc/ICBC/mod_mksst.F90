@@ -22,6 +22,7 @@ module mod_mksst
   use mod_realkinds
   use mod_stdio
   use netcdf
+  use mod_grid
   use mod_memutil
   use mod_constants
   use mod_dynparam
@@ -34,7 +35,6 @@ module mod_mksst
   integer :: ncst , ntime
   integer , dimension(3) :: ivar
   type(rcm_time_and_date) , dimension(:) , pointer :: itime
-  real(sp) , dimension(:,:) , pointer :: xlandu
   real(sp) , dimension(:,:) , pointer :: work1 , work2
   real(sp) , dimension(:,:) , pointer :: work3 , work4
   real(dp) , dimension(:) , pointer :: xtime
@@ -69,8 +69,6 @@ module mod_mksst
       call checkncerr(istatus,__FILE__,__LINE__,'Error time dimension '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "time", itvar)
       call checkncerr(istatus,__FILE__,__LINE__,'Error time var '//trim(sstfile))
-      istatus = nf90_inq_varid(ncst, "landuse", ivar(1))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error landuse var '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "sst", ivar(2))
       call checkncerr(istatus,__FILE__,__LINE__,'Error sst var '//trim(sstfile))
       lhasice = .true.
@@ -83,7 +81,6 @@ module mod_mksst
       istatus = nf90_get_att(ncst, itvar, "calendar", timecal)
       call checkncerr(istatus,__FILE__,__LINE__,'Error time var units '//trim(sstfile))
 
-      call getmem2d(xlandu,1,jx,1,iy,'mod_mksst:xlandu')
       call getmem2d(work1,1,jx,1,iy,'mod_mksst:work1')
       call getmem2d(work2,1,jx,1,iy,'mod_mksst:work2')
       if (lhasice) then
@@ -123,8 +120,6 @@ module mod_mksst
     icount(3) = 1
     icount(2) = iy
     icount(1) = jx
-    istatus = nf90_get_var(ncst, ivar(1), xlandu, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error landuse var read '//trim(sstfile))
     istatus = nf90_get_var(ncst, ivar(2), work1, istart, icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error sst var read '//trim(sstfile))
     if (lhasice) then
@@ -134,7 +129,7 @@ module mod_mksst
     if (idate == itime(irec)) then
       do i = 1 , jx
         do j = 1 , iy
-          if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and. &
+          if ( (landuse(i,j) > 13.9 .and. landuse(i,j) < 15.1) .and. &
                (work1(i,j) > -900.0) ) then
             tsccm(i,j) = work1(i,j)
             if (lhasice) then
@@ -163,7 +158,7 @@ module mod_mksst
       wt = real(tohours(ks1)/tohours(ks2))
       do i = 1 , jx
         do j = 1 , iy
-          if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &
+          if ( (landuse(i,j) > 13.9 .and. landuse(i,j) < 15.1) .and.  &
                (work1(i,j) > -900.0 .and. work2(i,j) > -900.0) ) then
             tsccm(i,j) = wt*work1(i,j) + (1.0-wt)*work2(i,j)
             if (lhasice) then

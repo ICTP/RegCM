@@ -19,15 +19,15 @@
 
 module mod_sst_gnmnc
 
+  use netcdf
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
   use mod_memutil
   use mod_sst_grid
   use mod_interp
-  use mod_nchelper
   use mod_message
-  use netcdf
+  use mod_nchelper
 
   private
 
@@ -75,8 +75,7 @@ module mod_sst_gnmnc
   real(sp) , pointer , dimension(:,:) :: glat2
   real(sp) , pointer , dimension(:,:) :: glon2
   type(rcm_time_and_date) :: idate , idatef , idateo
-  integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
-  integer , dimension(20) :: lund
+  integer :: i , j , k , nsteps , latid , lonid
   integer :: year , month , day , hour , y1 , y2
   real(sp) :: ufac
 !
@@ -252,31 +251,6 @@ module mod_sst_gnmnc
 
     do j = 2 , jx-1
       do i = 2 , iy-1
-        if ( sstmm(i,j) < -5000 .and.      &
-            (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
-          do iv = 1 , 20
-            lund(iv) = 0
-          end do
-          lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
-          lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
-          lund(nint(lu(i-1,j+1))) = lund(nint(lu(i-1,j+1))) + 2
-          lund(nint(lu(i,j-1))) = lund(nint(lu(i,j-1))) + 3
-          lund(nint(lu(i,j+1))) = lund(nint(lu(i,j+1))) + 3
-          lund(nint(lu(i+1,j-1))) = lund(nint(lu(i+1,j-1))) + 2
-          lund(nint(lu(i+1,j))) = lund(nint(lu(i+1,j))) + 3
-          lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
-          ludom = 18
-          lumax = 0
-          do iv = 1 , 20
-            if ( iv <= 13 .or. iv >= 16 ) then
-              if ( lund(iv) > lumax ) then
-                ludom = k
-                lumax = lund(iv)
-              end if
-            end if
-          end do
-          lu(i,j) = float(ludom)
-        end if
         sstmm(i,j) = sstmm(i,j) + ufac
       end do
     end do

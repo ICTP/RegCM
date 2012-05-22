@@ -107,7 +107,8 @@ mod_humid.o mod_humid.mod: mod_humid.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
 mod_mksst.o mod_mksst.mod: mod_mksst.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
  $(REGCM_ROOT)/Share/mod_stdio.mod $(REGCM_ROOT)/Share/mod_message.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_constants.mod \
- $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_nchelper.mod
+ $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_nchelper.mod \
+ mod_grid.o
 mod_ncep.o mod_ncep.mod: mod_ncep.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_message.mod mod_grid.o mod_write.o mod_hgt.o \

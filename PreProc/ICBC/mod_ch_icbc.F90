@@ -19,6 +19,7 @@
 
 module mod_ch_icbc
 
+  use netcdf
   use mod_dynparam
   use mod_grid
   use mod_wrtoxd
@@ -27,7 +28,7 @@ module mod_ch_icbc
   use mod_realkinds
   use mod_memutil
   use mod_message
-  use netcdf
+  use mod_nchelper
 
   private
 !

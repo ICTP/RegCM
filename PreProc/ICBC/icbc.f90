@@ -174,7 +174,7 @@ program icbc
 
   call memory_init
 
-  call init_grid(iy,jx,kz)
+  call init_grid(jx,iy,kz)
   call init_output
 
   if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. &

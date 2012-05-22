@@ -50,10 +50,9 @@ module mod_sst_fvgcm
 !
   integer , parameter :: ilon = 192 , jlat = 145
 !
-  integer :: i , it , j , k , ludom , lumax , nsteps , iv
+  integer :: i , it , j , k , nsteps
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
-  integer , dimension(20) :: lund
   real(sp) , dimension(ilon,jlat) :: temp
   real(sp) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , idateo , idatef
@@ -144,32 +143,6 @@ module mod_sst_fvgcm
  
     do j = 1 , jx
       do i = 1 , iy
-        if ( sstmm(i,j) < -5000. .and. &
-             (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
-          do iv = 1 , 20
-            lund(iv) = 0
-          end do
-          lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
-          lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
-          lund(nint(lu(i-1,j+1))) = lund(nint(lu(i-1,j+1))) + 2
-          lund(nint(lu(i,j-1))) = lund(nint(lu(i,j-1))) + 3
-          lund(nint(lu(i,j+1))) = lund(nint(lu(i,j+1))) + 3
-          lund(nint(lu(i+1,j-1))) = lund(nint(lu(i+1,j-1))) + 2
-          lund(nint(lu(i+1,j))) = lund(nint(lu(i+1,j))) + 3
-          lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
-          ludom = 18
-          lumax = 0
-          do iv = 1 , 20
-            if ( iv <= 13 .or. iv >= 16 ) then
-              if ( lund(iv) > lumax ) then
-                ludom = iv
-                lumax = lund(k)
-              end if
-            end if
-          end do
-          lu(i,j) = float(ludom)
-          write (stdout,*) ludom , sstmm(i,j)
-        end if
         if ( sstmm(i,j) > -100. ) then
           sstmm(i,j) = sstmm(i,j)
         else

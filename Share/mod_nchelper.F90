@@ -52,6 +52,19 @@ module mod_nchelper
   public :: write_var3d_static
   public :: checkncerr
 
+  interface read_var1d_static
+    module procedure read_var1d_static_double
+    module procedure read_var1d_static_single
+  end interface read_var1d_static
+
+  interface read_var2d_static
+    module procedure read_var2d_static_double
+    module procedure read_var2d_static_single
+  end interface read_var2d_static
+
+  public :: read_var1d_static
+  public :: read_var2d_static
+
   logical , public , parameter :: do_transpose = .true.
   logical , public , parameter :: no_transpose = .false.
   integer :: incstat
@@ -80,7 +93,7 @@ module mod_nchelper
     integer , dimension(8) :: tvals
 
     incstat = nf90_put_att(ncid, nf90_global, 'title',  &
-               'ICTP Regional Climatic model V4 domain')
+               'ICTP Regional Climatic model V4')
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global title')
     incstat = nf90_put_att(ncid, nf90_global, 'institution','ICTP')
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global institution')
@@ -644,7 +657,31 @@ module mod_nchelper
     ipnt = ipnt + 1
   end subroutine write_var3d_static
 
-  subroutine read_var1d_static(ncid,vnam,values)
+  subroutine read_var1d_static_single(ncid,vnam,values)
+    implicit none
+    integer , intent(in) :: ncid
+    character(len=*) , intent(in) :: vnam
+    real(sp) , pointer , dimension(:) :: values
+    integer :: ivarid
+    incstat = nf90_inq_varid(ncid, vnam, ivarid)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    incstat = nf90_get_var(ncid, ivarid, values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+  end subroutine read_var1d_static_single
+
+  subroutine read_var2d_static_single(ncid,vnam,values)
+    implicit none
+    integer , intent(in) :: ncid
+    character(len=*) , intent(in) :: vnam
+    real(sp) , pointer , dimension(:,:) :: values
+    integer :: ivarid
+    incstat = nf90_inq_varid(ncid, vnam, ivarid)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    incstat = nf90_get_var(ncid, ivarid, values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+  end subroutine read_var2d_static_single
+
+  subroutine read_var1d_static_double(ncid,vnam,values)
     implicit none
     integer , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
@@ -654,9 +691,9 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
-  end subroutine read_var1d_static
+  end subroutine read_var1d_static_double
 
-  subroutine read_var2d_static(ncid,vnam,values)
+  subroutine read_var2d_static_double(ncid,vnam,values)
     implicit none
     integer , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
@@ -666,7 +703,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
-  end subroutine read_var2d_static
+  end subroutine read_var2d_static_double
 
   subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
     implicit none

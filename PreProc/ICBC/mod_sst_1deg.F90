@@ -19,9 +19,9 @@
 
 module mod_sst_1deg
 
+  use netcdf
   use mod_realkinds
   use mod_stdio
-  use netcdf
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
@@ -67,12 +67,11 @@ module mod_sst_1deg
   integer , parameter :: ilon = 360 , jlat = 180
 !
   real(sp) , dimension(ilon,jlat) :: sst , ice
-  integer :: i , j , k , iwk , iv , ludom , lumax , nrec
+  integer :: i , j , k , iwk , nrec
   integer :: nsteps
   type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
-  integer , dimension(25) :: lund
   character(256) :: inpfile
   logical :: there
 !
@@ -177,32 +176,6 @@ module mod_sst_1deg
  
       do j = 1 , jx
         do i = 1 , iy
-          if ( sstmm(i,j) < -5000. .and. &
-               (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
-            do iv = 1 , 20
-              lund(iv) = 0
-            end do
-            lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
-            lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
-            lund(nint(lu(i-1,j+1))) = lund(nint(lu(i-1,j+1))) + 2
-            lund(nint(lu(i,j-1))) = lund(nint(lu(i,j-1))) + 3
-            lund(nint(lu(i,j+1))) = lund(nint(lu(i,j+1))) + 3
-            lund(nint(lu(i+1,j-1))) = lund(nint(lu(i+1,j-1))) + 2
-            lund(nint(lu(i+1,j))) = lund(nint(lu(i+1,j))) + 3
-            lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
-            ludom = 18
-            lumax = 0
-            do iv = 1 , 20
-              if ( iv <= 13 .or. iv >= 16 ) then
-                if ( lund(iv) > lumax ) then
-                  ludom = iv
-                  lumax = lund(iv)
-                end if
-              end if
-            end do
-            lu(i,j) = float(ludom)
-            write (stdout,*) ludom , sstmm(i,j)
-          end if
           if ( sstmm(i,j) > -100. ) then
             sstmm(i,j) = sstmm(i,j) + 273.15
           else
