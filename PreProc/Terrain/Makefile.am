@@ -13,10 +13,10 @@ terrain_SOURCES = mod_header.F90 mod_block.f90 mod_fudge.f90 mod_maps.f90 \
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -38,13 +38,14 @@ mod_maputils.o mod_maputils.mod: mod_maputils.f90 \
  $(REGCM_ROOT)/Share/mod_projections.mod
 mod_rdldtr.o mod_rdldtr.mod: mod_rdldtr.F90 mod_block.mod \
  $(REGCM_ROOT)/Share/mod_stdio.mod $(REGCM_ROOT)/Share/mod_constants.mod \
- $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod
+ $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
+ $(REGCM_ROOT)/Share/mod_nchelper.mod
 mod_smooth.o mod_smooth.mod: mod_smooth.f90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod
 mod_write.o mod_write.mod: mod_write.F90 $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
- mod_block.mod mod_maps.mod
+ $(REGCM_ROOT)/Share/mod_nchelper.mod mod_block.mod mod_maps.mod
 terrain.o: terrain.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_constants.mod mod_maps.mod mod_block.mod \
  mod_smooth.mod mod_maputils.mod mod_intldtr.mod mod_fudge.mod mod_rdldtr.mod \

@@ -26,6 +26,7 @@ module mod_mksst
   use mod_constants
   use mod_dynparam
   use mod_message
+  use mod_nchelper
 
   private
 

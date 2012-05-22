@@ -66,6 +66,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  use mpi
+  use mod_dynparam , only : mycomm
+  implicit none
+  integer :: ierr
+  call mpi_abort(mycomm,1,ierr)
+end subroutine myabort
+
 #ifdef ESMFCPL
 #include "regcm_esmf.F90"
 #else

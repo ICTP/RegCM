@@ -24,6 +24,7 @@ module mod_read_domain
   use mod_dynparam
   use mod_memutil
   use mod_message
+  use mod_nchelper
   use mod_stdio
 
   private

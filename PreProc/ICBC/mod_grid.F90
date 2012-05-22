@@ -23,6 +23,7 @@ module mod_grid
   use mod_realkinds
   use mod_stdio
   use mod_message
+  use mod_nchelper
 
   real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon , &
          msfx , topogm , xlandu , xlat , xlon

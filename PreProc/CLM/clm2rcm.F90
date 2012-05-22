@@ -17,6 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program clm2rcm
  
   use netcdf
@@ -30,6 +35,7 @@ program clm2rcm
   use mod_memutil
   use mod_realkinds
   use mod_stdio
+  use mod_nchelper
 
   implicit none
 !

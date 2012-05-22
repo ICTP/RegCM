@@ -17,6 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program terrain
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -673,4 +678,5 @@ program terrain
 !
 99001 format (a,a,a,a,i0.3)
 99002 format (a,a,a,a)
+
 end program terrain

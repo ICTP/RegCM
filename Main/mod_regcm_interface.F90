@@ -81,6 +81,7 @@ module mod_regcm_interface
     call mpi_comm_size(mycomm, ncpu, ierr)
 !
     call whoami(myid)
+    call setup_mesg(myid)
 !
 #ifdef DEBUG 
     call activate_debug()

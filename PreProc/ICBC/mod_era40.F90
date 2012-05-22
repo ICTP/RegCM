@@ -33,6 +33,7 @@ module mod_era40
   use mod_uvrot
   use mod_vectutil
   use mod_message
+  use mod_nchelper
 
   private
 

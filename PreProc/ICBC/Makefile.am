@@ -1,9 +1,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = aerosol sst icbc chem_icbc
+bin_PROGRAMS = sst icbc chem_icbc
 
-aerosol_SOURCES = mod_header.F90 aerosol.F90
 sst_SOURCES = mod_sst_eh5om.f90 mod_sst_ersst.F90 mod_sst_fvgcm.f90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
               mod_header.F90 sst.f90
@@ -22,18 +21,14 @@ chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ch_oxcl.F90 mod_wrtoxd.F90 \
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-aerosol.o: aerosol.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
- $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
- $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
- $(REGCM_ROOT)/Share/mod_interp.o
 chem_icbc.o: chem_icbc.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_date.mod mod_grid.o mod_wrtoxd.mod mod_header.mod \
  mod_ch_icbc.o mod_ch_oxcl.o $(REGCM_ROOT)/Share/mod_memutil.mod \
@@ -81,15 +76,15 @@ mod_eh5om.o mod_eh5om.mod: mod_eh5om.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
 mod_ein.o mod_ein.mod: mod_ein.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
- mod_grid.o mod_write.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
- mod_vectutil.o $(REGCM_ROOT)/Share/mod_interp.o \
- $(REGCM_ROOT)/Share/mod_vertint.o
+ $(REGCM_ROOT)/Share/mod_nchelper.mod $(REGCM_ROOT)/Share/mod_interp.o \
+ $(REGCM_ROOT)/Share/mod_vertint.o mod_grid.o mod_write.o mod_hgt.o \
+ mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o 
 mod_era40.o mod_era40.mod: mod_era40.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
+ $(REGCM_ROOT)/Share/mod_vertint.o $(REGCM_ROOT)/Share/mod_nchelper.mod \
  mod_grid.o mod_write.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
- mod_vectutil.o $(REGCM_ROOT)/Share/mod_interp.o \
- $(REGCM_ROOT)/Share/mod_vertint.o
+ mod_vectutil.o $(REGCM_ROOT)/Share/mod_interp.o
 mod_erahi.o mod_erahi.mod: mod_erahi.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_realkinds.mod \
  $(REGCM_ROOT)/Share/mod_stdio.mod $(REGCM_ROOT)/Share/mod_message.mod \
@@ -102,7 +97,8 @@ mod_fvgcm.o mod_fvgcm.mod: mod_fvgcm.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_interp.o $(REGCM_ROOT)/Share/mod_vertint.o
 mod_grid.o mod_grid.mod: mod_grid.F90 $(REGCM_ROOT)/Share/mod_memutil.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
- $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod
+ $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
+ $(REGCM_ROOT)/Share/mod_nchelper.mod
 mod_header.o mod_header.mod: mod_header.F90 $(REGCM_ROOT)/Share/mod_stdio.mod
 mod_hgt.o mod_hgt.mod: mod_hgt.F90 $(REGCM_ROOT)/Share/mod_constants.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod
@@ -111,7 +107,7 @@ mod_humid.o mod_humid.mod: mod_humid.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
 mod_mksst.o mod_mksst.mod: mod_mksst.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
  $(REGCM_ROOT)/Share/mod_stdio.mod $(REGCM_ROOT)/Share/mod_message.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_constants.mod \
- $(REGCM_ROOT)/Share/mod_dynparam.mod
+ $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_nchelper.mod
 mod_ncep.o mod_ncep.mod: mod_ncep.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_message.mod mod_grid.o mod_write.o mod_hgt.o \
@@ -126,12 +122,13 @@ mod_nest.o mod_nest.mod: mod_nest.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
 mod_sst_1deg.o mod_sst_1deg.mod: mod_sst_1deg.F90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
- mod_sst_grid.o $(REGCM_ROOT)/Share/mod_interp.o
+ $(REGCM_ROOT)/Share/mod_nchelper.mod $(REGCM_ROOT)/Share/mod_interp.o \
+ mod_sst_grid.o
 mod_sst_gnmnc.o mod_sst_gnmnc.mod: mod_sst_gnmnc.F90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_interp.o \
- mod_sst_grid.o
+ $(REGCM_ROOT)/Share/mod_nchelper.mod mod_sst_grid.o
 mod_sst_eh5om.o mod_sst_eh5om.mod: mod_sst_eh5om.f90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
@@ -139,7 +136,8 @@ mod_sst_eh5om.o mod_sst_eh5om.mod: mod_sst_eh5om.f90 \
 mod_sst_ersst.o mod_sst_ersst.mod: mod_sst_ersst.F90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
- mod_sst_grid.o $(REGCM_ROOT)/Share/mod_interp.o
+ $(REGCM_ROOT)/Share/mod_interp.o $(REGCM_ROOT)/Share/mod_nchelper.mod \
+ mod_sst_grid.o
 mod_sst_fvgcm.o mod_sst_fvgcm.mod: mod_sst_fvgcm.f90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_interp.o \
@@ -147,7 +145,7 @@ mod_sst_fvgcm.o mod_sst_fvgcm.mod: mod_sst_fvgcm.f90 \
 mod_sst_grid.o mod_sst_grid.mod: mod_sst_grid.F90 \
  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_stdio.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
- $(REGCM_ROOT)/Share/mod_message.mod
+ $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_nchelper.mod
 mod_uvrot.o mod_uvrot.mod: mod_uvrot.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
  $(REGCM_ROOT)/Share/mod_realkinds.mod
 mod_vectutil.o mod_vectutil.mod: mod_vectutil.f90 \

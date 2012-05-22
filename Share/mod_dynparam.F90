@@ -92,6 +92,10 @@ module mod_dynparam
 
   real(8) :: plon
 
+! Lambert / Polar Cone factor
+
+  real(8) :: xcone
+
 ! Lambert true latitude (low latitude side)
 
   real(8) :: truelatl

@@ -25,6 +25,7 @@ module mod_sst_gnmnc
   use mod_memutil
   use mod_sst_grid
   use mod_interp
+  use mod_nchelper
   use mod_message
   use netcdf
 

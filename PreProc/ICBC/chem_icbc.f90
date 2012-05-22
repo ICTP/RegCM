@@ -17,6 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program chem_icbc
 
   use mod_dynparam

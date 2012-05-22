@@ -91,10 +91,10 @@ endif
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.*
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

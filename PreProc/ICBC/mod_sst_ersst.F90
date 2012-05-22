@@ -25,6 +25,7 @@ module mod_sst_ersst
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
+  use mod_nchelper
   use mod_message
 
   private

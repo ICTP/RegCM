@@ -17,11 +17,18 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program ncprepare
   use netcdf
   use mod_projections
   use mod_date
   use mod_message
+  use mod_nchelper
+
   implicit none
 
   character(256) :: prgname , ncfile , tmpctl , tmpcoord , experiment

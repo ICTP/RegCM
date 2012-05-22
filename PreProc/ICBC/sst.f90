@@ -17,6 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program sst
 
   use mod_header

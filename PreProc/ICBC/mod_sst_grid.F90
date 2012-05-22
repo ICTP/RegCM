@@ -24,6 +24,7 @@ module mod_sst_grid
   use netcdf
   use mod_dynparam
   use mod_memutil
+  use mod_nchelper
   use mod_message
 
   private

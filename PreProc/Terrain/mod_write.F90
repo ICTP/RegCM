@@ -22,7 +22,7 @@ module mod_write
   use netcdf
   use mod_stdio
   use mod_constants
-  use mod_message
+  use mod_nchelper
   use mod_memutil
   use mod_dynparam
   use mod_block

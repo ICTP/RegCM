@@ -17,6 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  implicit none
+  call abort
+end subroutine myabort
+
 program sigma2p
   use netcdf
   use mod_realkinds
@@ -24,6 +29,7 @@ program sigma2p
   use mod_message
   use mod_vertint
   use mod_derived
+  use mod_nchelper
 
   implicit none
 
