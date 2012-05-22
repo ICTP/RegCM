@@ -85,7 +85,7 @@ AC_DEFUN([RR_PATH_NETCDF],[
   AC_CHECK_LIB([netcdf], [nf_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
-    LIBS="$LIBS -lnetcdff"
+    LIBS="-lnetcdff $LIBS"
     AC_CHECKING([for libnetcdff.a])
     AC_CHECK_LIB([netcdff], [nf_close],
                  [netcdf=yes], [netcdf=no])
