@@ -20,6 +20,7 @@
 module mod_cloud_s1
 !
   use mod_runparams
+  use mod_mpmessage
   use mod_memutil
   use mod_atm_interface , only : atmstate , slice , surfstate
 !

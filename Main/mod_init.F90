@@ -187,7 +187,7 @@ module mod_init
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tbase(j,i,k) = ts00 + tlp*dlog((sfs%psa(j,i)*a(k)+ptop)*d_r100)
+            tbase(j,i,k) = ts00 + tlp*dlog((sfs%psa(j,i)*hsigma(k)+ptop)*d_r100)
           end do
         end do
       end do

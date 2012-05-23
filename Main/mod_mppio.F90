@@ -107,7 +107,6 @@ module mod_mppio
   real(dp) , pointer , dimension(:,:,:) :: omega_io
   real(dp) , pointer , dimension(:,:,:) :: tbase_io
 
-  type(domain) :: mddom_io
   type(atmstate) :: atm1_io
   type(atmstate) :: atm2_io
   type(surfstate) :: sfs_io
@@ -135,7 +134,6 @@ module mod_mppio
     implicit none
 
     if (myid == 0) then
-      call allocate_domain(mddom_io,.false.)
       call allocate_atmstate(atm1_io,ibltyp,.false.,zero_exchange_point)
       call allocate_atmstate(atm2_io,ibltyp,.false.,zero_exchange_point)
       if ( ibltyp == 2 .or. ibltyp == 99 ) then

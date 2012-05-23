@@ -37,7 +37,6 @@ module mod_che_output
 
     subroutine output_chem(idatex,aerext,aerssa,aerasp,aertarf, &
                            aersrrf,aertalwrf,aersrlwrf)
-      use mpi
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
       ! note : aerosol optical properties variables are defined in RAD module

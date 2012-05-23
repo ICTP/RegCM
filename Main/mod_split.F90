@@ -77,13 +77,7 @@ module mod_split
 ! Intial computation of vertical modes.
 !
   subroutine spinit
-#ifndef IBM
-    use mpi
-#endif
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) :: eps , eps1 , fac , pdlog
     integer :: i , ijlx , j , k , l , n , ns
     logical :: lstand
@@ -242,13 +236,7 @@ module mod_split
 ! Compute deld, delh, integrate in time and add correction terms appropriately
 !
   subroutine splitf
-#ifndef IBM
-    use mpi
-#endif
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
     integer :: i , j , k , l , n
     character (len=64) :: subroutine_name='splitf'

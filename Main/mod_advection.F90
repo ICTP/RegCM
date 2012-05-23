@@ -25,6 +25,7 @@ module mod_advection
   use mod_dynparam
   use mod_runparams
   use mod_memutil
+  use mod_mpmessage
   use mod_service
 
   private
@@ -332,10 +333,10 @@ module mod_advection
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              fg(j,i,k) = twt(k,1)*f(j,i,k) *                              &
-                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*a(k)+ptop))**c287 + &
-                        twt(k,2)*f(j,i,k-1) *                            &
-                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*a(k-1)+ptop))**c287
+              fg(j,i,k) = twt(k,1)*f(j,i,k) *                                 &
+                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*hsigma(k)+ptop))**c287 + &
+                        twt(k,2)*f(j,i,k-1) *                                 &
+                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*hsigma(k-1)+ptop))**c287
             end do
           end do
         end do
@@ -541,24 +542,24 @@ module mod_advection
               k = kpbl(j,i)-2
               if ( (f(j,i,k+1)-f(j,i,k)) > d_zero .and. &
                    (f(j,i,k)-f(j,i,k-1)) > d_zero ) then
-                slope = min((f(j,i,k+1)-f(j,i,k))/(a(k+1)-a(k)), &
-                            (f(j,i,k)-f(j,i,k-1))/(a(k)-a(k-1)))
+                slope = min((f(j,i,k+1)-f(j,i,k))/(hsigma(k+1)-hsigma(k)), &
+                            (f(j,i,k)-f(j,i,k-1))/(hsigma(k)-hsigma(k-1)))
               else if ( (f(j,i,k+1)-f(j,i,k)) < d_zero .and. &
                         (f(j,i,k)-f(j,i,k-1)) < d_zero ) then
-                slope = max((f(j,i,k+1)-f(j,i,k))/(a(k+1)-a(k)), &
-                            (f(j,i,k)-f(j,i,k-1))/(a(k)-a(k-1)))
+                slope = max((f(j,i,k+1)-f(j,i,k))/(hsigma(k+1)-hsigma(k)), &
+                            (f(j,i,k)-f(j,i,k-1))/(hsigma(k)-hsigma(k-1)))
               else
                 slope = d_zero
               end if
               ! Replace the values of scalar at top and bottom of ambiguous
               ! layer as long as inversion is actually in the ambiguous layer
               k = kpbl(j,i)
-              fg(j,i,k-1) = f(j,i,k-2) + slope*(sigma(k-1)-a(k-2))
-              if (abs(f(j,i,k-2) + slope*(a(k-1)-a(k-2))-f(j,i,k)) > &
+              fg(j,i,k-1) = f(j,i,k-2) + slope*(sigma(k-1)-hsigma(k-2))
+              if (abs(f(j,i,k-2) + slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k)) > &
                   abs(f(j,i,k-1)-f(j,i,k)) ) then
                 fg(j,i,k) = f(j,i,k)
               else
-                fg(j,i,k) = f(j,i,k-2) + slope*(sigma(k)-a(k-2))
+                fg(j,i,k) = f(j,i,k-2) + slope*(sigma(k)-hsigma(k-2))
               end if
             end if
           end do
@@ -663,24 +664,29 @@ module mod_advection
                 k = kpbl(j,i)-2
                 if ( (f(j,i,k+1,n)-f(j,i,k,n)) > d_zero .and. &
                      (f(j,i,k,n)-f(j,i,k-1,n)) > d_zero ) then
-                  slope = min((f(j,i,k+1,n)-f(j,i,k,n))/(a(k+1)-a(k)), &
-                              (f(j,i,k,n)-f(j,i,k-1,n))/(a(k)-a(k-1)))
+                  slope = min((f(j,i,k+1,n)-f(j,i,k,n))/ &
+                               (hsigma(k+1)-hsigma(k)),  &
+                              (f(j,i,k,n)-f(j,i,k-1,n))/ &
+                               (hsigma(k)-hsigma(k-1)))
                 else if ( (f(j,i,k+1,n)-f(j,i,k,n)) < d_zero .and. &
                           (f(j,i,k,n)-f(j,i,k-1,n)) < d_zero ) then
-                  slope = max((f(j,i,k+1,n)-f(j,i,k,n))/(a(k+1)-a(k)), &
-                              (f(j,i,k,n)-f(j,i,k-1,n))/(a(k)-a(k-1)))
+                  slope = max((f(j,i,k+1,n)-f(j,i,k,n))/ &
+                              (hsigma(k+1)-hsigma(k)),   &
+                              (f(j,i,k,n)-f(j,i,k-1,n))/ &
+                              (hsigma(k)-hsigma(k-1)))
                 else
                   slope = d_zero
                 end if
                 ! Replace the values of scalar at top and bottom of ambiguous
                 ! layer as long as inversion is actually in the ambiguous layer
                 k = kpbl(j,i)
-                fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-a(k-2))
-                if (abs(f(j,i,k-2,n) + slope*(a(k-1)-a(k-2))-f(j,i,k,n)) > &
+                fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-hsigma(k-2))
+                if (abs(f(j,i,k-2,n) + slope * &
+                       (hsigma(k-1)-hsigma(k-2))-f(j,i,k,n)) > &
                     abs(f(j,i,k-1,n)-f(j,i,k,n)) ) then
                   fg(j,i,k) = f(j,i,k,n)
                 else
-                  fg(j,i,k) = f(j,i,k-2,n) + slope*(sigma(k)-a(k-2))
+                  fg(j,i,k) = f(j,i,k-2,n) + slope*(sigma(k)-hsigma(k-2))
                 end if
               end if
             end do

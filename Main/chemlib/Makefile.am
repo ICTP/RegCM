@@ -17,6 +17,8 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ/:.
+
 SUBDIRS = GAS_CBMZ
 
 CBMZLIB = GAS_CBMZ/libcbmz.a
@@ -51,6 +53,12 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
+%.mod: %.f90 %.o
+	@true
+
+%.mod: %.F90 %.o
+	@true
+
 distclean-local:
 	rm -f *.mod
 
@@ -59,77 +67,23 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-
-mod_che_chemistry.o mod_che_chemistry.mod: mod_che_chemistry.f90 \
-  $(CBMZLIB) $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_che_species.o mod_che_indices.o \
-  mod_che_common.o
-mod_che_param.o: mod_che_param.f90 $(REGCM_ROOT)/Share/mod_realkinds.mod
-mod_che_indices.o: mod_che_indices.f90
-mod_che_species.o: mod_che_species.f90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod
-mod_che_carbonaer.o: mod_che_carbonaer.f90 \
-  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(REGCM_ROOT)/Share/mod_constants.mod mod_che_common.o mod_che_species.o \
-  mod_che_indices.o
-mod_che_seasalt.o: mod_che_seasalt.f90 \
-  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(REGCM_ROOT)/Share/mod_constants.mod mod_che_common.o
-mod_che_common.o: mod_che_common.F90 \
-  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  $(MPP)/mod_mpmessage.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(MPP)/mod_mppparam.mod mod_che_param.o mod_che_species.o 
-mod_che_mppio.o: mod_che_mppio.f90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  mod_che_param.o mod_che_species.o $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(MPP)/mod_mpmessage.mod $(REGCM_ROOT)/Share/mod_memutil.mod
-mod_che_ncio.o: mod_che_ncio.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_mpmessage.mod \
-  mod_che_indices.o  mod_che_common.o
-mod_che_dust.o: mod_che_dust.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  $(MPP)/mod_mpmessage.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  $(MPP)/mod_mppparam.mod mod_che_ncio.o mod_che_mppio.o
+mod_che_bdyco.o mod_che_bdyco.mod: mod_che_bdyco.F90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_mppparam.mod mod_service.mod mod_mpmessage.mod mod_che_common.mod mod_che_mppio.mod mod_che_ncio.mod mod_che_species.mod mod_che_indices.mod mod_che_emission.mod mod_mppparam.mod
+mod_che_carbonaer.o mod_che_carbonaer.mod: mod_che_carbonaer.f90 mod_realkinds.mod mod_dynparam.mod mod_constants.mod mod_che_common.mod mod_che_species.mod mod_che_indices.mod
+mod_che_chemistry.o mod_che_chemistry.mod: mod_che_chemistry.f90 mod_realkinds.mod mod_dynparam.mod mod_constants.mod mod_che_common.mod mod_che_indices.mod mod_che_species.mod mod_cbmz_boxvars.mod mod_cbmz_chemmech.mod mod_cbmz_chemvars.mod mod_cbmz_molwg.mod mod_cbmz_main1.mod
+mod_che_common.o mod_che_common.mod: mod_che_common.F90 mod_realkinds.mod mod_dynparam.mod mod_mppparam.mod mod_memutil.mod mod_mpmessage.mod mod_che_param.mod mod_che_species.mod
+mod_che_cumtran.o mod_che_cumtran.mod: mod_che_cumtran.F90 mod_dynparam.mod mod_realkinds.mod mod_che_common.mod
+mod_che_drydep.o mod_che_drydep.mod: mod_che_drydep.F90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_che_common.mod mod_che_dust.mod mod_mpmessage.mod mod_service.mod mod_che_ncio.mod mod_che_mppio.mod mod_che_indices.mod mod_che_indices.mod
+mod_che_dust.o mod_che_dust.mod: mod_che_dust.F90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_mpmessage.mod mod_memutil.mod mod_mppparam.mod mod_che_common.mod mod_che_ncio.mod mod_che_mppio.mod
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-mod_che_drydep.o: mod_che_drydep.F90 $(REGCM_ROOT)/Share/mod_realkinds.mod \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_mpmessage.mod \
-  mod_che_common.o mod_che_dust.o mod_che_indices.o mod_che_ncio.o \
-  mod_che_mppio.o
-mod_che_tend.o mod_che_tend.mod: mod_che_tend.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_mpmessage.mod \
-  $(REGCM_ROOT)/Share/mod_constants.o mod_che_common.o mod_che_indices.o \
-  mod_che_param.o mod_che_sox.o mod_che_drydep.o mod_che_wetdep.o \
-  mod_che_emission.o mod_che_sox.o mod_che_seasalt.o mod_che_emission.o \
-  mod_che_dust.o mod_che_seasalt.o mod_che_carbonaer.o mod_che_mppio.o \
-  mod_che_chemistry.o
-mod_che_cumtran.o: mod_che_cumtran.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  mod_che_common.o
-mod_che_sox.o mod_che_sox.mod: mod_che_sox.f90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  mod_che_common.o
-mod_che_emission.o mod_che_emission.mod: mod_che_emission.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  $(MPP)/mod_mpmessage.mod $(MPP)/mod_service.mod \
-  mod_che_common.o mod_che_param.o mod_che_mppio.o mod_che_indices.o \
-  mod_che_ncio.o mod_che_dust.o
-mod_che_wetdep.o mod_che_wetdep.mod: mod_che_wetdep.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  mod_che_common.o mod_che_indices.o mod_che_drydep.o
-mod_che_bdyco.o mod_che_bdyco.mod: mod_che_bdyco.F90  \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(MPP)/mod_service.mod \
-  $(MPP)/mod_mpmessage.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
-  $(MPP)/mod_mppparam.mod mod_che_common.o mod_che_mppio.o mod_che_species.o \
-  mod_che_ncio.o mod_che_emission.o
-mod_che_start.o mod_che_start.mod: mod_che_start.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  $(MPP)/mod_mppparam.mod mod_che_common.o mod_che_indices.o mod_che_wetdep.o \
-  mod_che_bdyco.o mod_che_emission.o mod_che_carbonaer.o mod_che_ncio.o
-mod_che_output.o mod_che_output.mod: mod_che_output.F90 \
-  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
-  $(MPP)/mod_mpmessage.mod $(MPP)/mod_service.mod \
-  mod_che_common.o mod_che_param.o mod_che_mppio.o mod_che_indices.o \
-  mod_che_ncio.o 
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
-
-
-
+mod_che_emission.o mod_che_emission.mod: mod_che_emission.F90 mod_constants.mod mod_mpmessage.mod mod_service.mod mod_dynparam.mod mod_che_common.mod mod_che_param.mod mod_che_mppio.mod mod_che_dust.mod mod_che_ncio.mod mod_che_indices.mod
+mod_che_indices.o mod_che_indices.mod: mod_che_indices.f90
+mod_che_mppio.o mod_che_mppio.mod: mod_che_mppio.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_mpmessage.mod mod_che_param.mod mod_che_common.mod mod_che_species.mod
+mod_che_ncio.o mod_che_ncio.mod: mod_che_ncio.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_che_indices.mod mod_che_common.mod
+mod_che_output.o mod_che_output.mod: mod_che_output.F90 mod_constants.mod mod_mpmessage.mod mod_service.mod mod_dynparam.mod mod_che_common.mod mod_che_param.mod mod_che_mppio.mod mod_che_ncio.mod mod_che_indices.mod
+mod_che_param.o mod_che_param.mod: mod_che_param.f90 mod_realkinds.mod
+mod_che_seasalt.o mod_che_seasalt.mod: mod_che_seasalt.f90 mod_realkinds.mod mod_dynparam.mod mod_constants.mod mod_che_common.mod
+mod_che_sox.o mod_che_sox.mod: mod_che_sox.f90 mod_constants.mod mod_dynparam.mod mod_che_common.mod mod_che_species.mod mod_che_indices.mod
+mod_che_species.o mod_che_species.mod: mod_che_species.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod
+mod_che_start.o mod_che_start.mod: mod_che_start.F90 mod_dynparam.mod mod_mpmessage.mod mod_che_common.mod mod_che_emission.mod mod_che_indices.mod mod_che_bdyco.mod mod_che_wetdep.mod mod_che_carbonaer.mod mod_che_ncio.mod mod_che_mppio.mod mod_che_bdyco.mod mod_cbmz_init1.mod mod_che_dust.mod mod_che_sox.mod mod_che_seasalt.mod mod_mppparam.mod
+mod_che_tend.o mod_che_tend.mod: mod_che_tend.F90 mod_constants.mod mod_realkinds.mod mod_dynparam.mod mod_che_common.mod mod_che_indices.mod mod_che_param.mod mod_che_sox.mod mod_che_drydep.mod mod_che_wetdep.mod mod_che_emission.mod mod_che_dust.mod mod_che_seasalt.mod mod_che_carbonaer.mod mod_che_mppio.mod mod_che_chemistry.mod
+mod_che_wetdep.o mod_che_wetdep.mod: mod_che_wetdep.F90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_che_common.mod mod_che_indices.mod mod_che_drydep.mod

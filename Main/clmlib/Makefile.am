@@ -10,6 +10,9 @@ ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
 GLOB_INCLUDE = .
 
+vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:\
+            $(REGCM_ROOT)/Main/batslib:.
+
 vpath %.F90 $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
             $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
             $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
@@ -158,6 +161,12 @@ endif
 %.o: %.c
 	$(CC) -o $@ $(CFLAGS) $(DEFFLAGS) -c $<
 
+%.mod: %.f90 %.o
+	@true
+
+%.mod: %.F90 %.o
+	@true
+
 distclean-local:
 	rm -f *.mod $(PATCHSRC)
 
@@ -166,17 +175,6 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-
-mod_clm_void.o: mod_clm_void.F90
-mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-           $(REGCM_ROOT)/Share/mod_memutil.mod \
-           $(REGCM_ROOT)/Share/mod_constants.mod
-mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-           $(MPP)/mod_mppparam.mod $(MPP)/mod_mpmessage.mod mod_clm.o \
-           $(BATS)/mod_bats_common.mod $(BATS)/mod_bats_mtrxbats.o \
-           $(BATS)/mod_bats_drag.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
 accFldsMod.o: $(BSP)/accFldsMod.F90
 atmdrvMod.o: $(BSP)/atmdrvMod.F90
 BareGroundFluxesMod.o: $(BSP)/BareGroundFluxesMod.F90
@@ -332,10 +330,6 @@ $(BSP)/VOCEmissionMod.F90: $(BSP)/patchset/VOCEmissionMod.F90.patch shr_kind_mod
 $(BSP)/ncdio.F90: $(BSP)/patchset/ncdio.F90.patch clm_mct_mod.o spmdMod.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o nanMod.o misc.h preproc.h
 	cp -f $(CLMSRC)/src/main/ncdio.F90 .
 	patch -p1 -i $(BSP)/patchset/ncdio.F90.patch
-
-# --------------------------------------------------------------------
-# DO NOT DELETE THIS LINE -- make depend depends on it.
-
 BalanceCheckMod.o: BalanceCheckMod.F90 clm_varpar.o abortutils.o clmtype.o shr_kind_mod.o subgridAveMod.o clm_time_manager.o clm_atmlnd.o misc.h preproc.h
 BiogeophysRestMod.o: BiogeophysRestMod.F90 clm_varpar.o shr_kind_mod.o clm_varctl.o abortutils.o clmtype.o clm_varcon.o initSurfAlbMod.o ncdio.o decompMod.o misc.h preproc.h
 Biogeophysics1Mod.o: Biogeophysics1Mod.F90 clm_varpar.o shr_kind_mod.o clm_atmlnd.o clm_varcon.o clmtype.o QSatMod.o misc.h preproc.h
@@ -532,3 +526,9 @@ system_messages.o: system_messages.F90 abortutils.o
 threadutil.o: threadutil.c  gptl.h private.h
 wrf_error_fatal.o: wrf_error_fatal.F90 shr_sys_mod.o 
 wrf_message.o: wrf_message.F90  
+clm_time_manager.o clm_time_manager.mod: clm_time_manager.F90 shr_kind_mod.mod spmdMod.mod abortutils.mod ESMF_Mod.mod ncdio.mod clm_varctl.mod
+clm_varvoc.o clm_varvoc.mod: clm_varvoc.F90 shr_kind_mod.mod clm_varpar.mod
+mod_clm.o mod_clm.mod: mod_clm.F90 mod_dynparam.mod mod_realkinds.mod mod_constants.mod mod_memutil.mod
+mod_clm_void.o mod_clm_void.mod: mod_clm_void.F90
+mod_mtrxclm.o mod_mtrxclm.mod: mod_mtrxclm.F90 mod_dynparam.mod mod_mpmessage.mod mod_service.mod mod_mppparam.mod mod_date.mod mod_clm.mod mod_bats_common.mod mod_bats_mtrxbats.mod mod_bats_drag.mod mod_bats_zengocn.mod clm_time_manager.mod shr_orb_mod.mod atmdrvMod.mod clm_comp.mod initializeMod.mod shr_orb_mod.mod clm_varpar.mod clm_varsur.mod clm_varsur.mod clm_varsur.mod clm_varsur.mod atmdrvMod.mod program_offMod.mod clm_comp.mod clmtype.mod perf_mod.mod clm_varsur.mod clmtype.mod clm_varsur.mod clm_varsur.mod
+program_offMod.o program_offMod.mod: program_offMod.F90 shr_kind_mod.mod shr_orb_mod.mod clm_comp.mod clm_time_manager.mod atmdrvMod.mod abortutils.mod controlMod.mod clm_mct_mod.mod spmdMod.mod ESMF_Mod.mod perf_mod.mod mod_clm.mod mod_dynparam.mod

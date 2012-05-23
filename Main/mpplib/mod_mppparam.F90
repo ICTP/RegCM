@@ -160,6 +160,10 @@ module mod_mppparam
     module procedure deco1d_2d_real8_allgat
   end interface deco1_allgat
 
+#ifdef DEBUG
+  type(deco1d_nc_var4d) , public :: qqxp
+#endif
+
   public :: model_area
   type(model_area) , public :: ma
 !

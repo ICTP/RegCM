@@ -19,21 +19,293 @@
 !
 module mod_ncio
 !
+  use netcdf
   use mod_runparams
+  use mod_mpmessage
+  use mod_memutil
+  use mod_nchelper
+  use mod_domain
   use mod_cu_interface
   use mod_lm_interface
   use mod_rad_interface , only : iemiss
   use mod_pbl_interface , only : ibltyp
-  use mod_mpmessage
   use mod_che_interface
-  use mod_memutil
 !
-  private
+  integer , parameter :: n_atmvar = 14
+  integer , parameter :: n_srfvar = 26
+  integer , parameter :: n_subvar = 16
+  integer , parameter :: n_radvar = 18
+  integer , parameter :: n_chevar = 17
+  integer , parameter :: n_lakvar = 16
+  integer , parameter :: n_stsvar = 13
+
+  type output_variable
+    character(len=8) :: vname
+    character(len=128) :: vstd_name
+    character(len=128) :: vdesc
+    character(len=16) :: vunit
+    character(len=16) :: time_meth
+    logical :: enabled
+  end type
+
+  type(output_variable) , dimension(n_atmvar) :: atm_variables
+  type(output_variable) , dimension(n_srfvar) :: srf_variables
+  type(output_variable) , dimension(n_subvar) :: sub_variables
+  type(output_variable) , dimension(n_radvar) :: rad_variables
+  type(output_variable) , dimension(n_chevar) :: che_variables
+  type(output_variable) , dimension(n_lakvar) :: lak_variables
+  type(output_variable) , dimension(n_stsvar) :: sts_variables
+
+  data atm_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('u','eastward_wind','U component (westerly) of wind',     &
+            'm s-1','point',.true.),                                          &
+    output_variable('v','northward_wind','V component (southerly) of wind',   &
+            'm s-1','point',.true.),                                          &
+    output_variable('omega','lagrangian_tendency_of_air_pressure',            &
+            'Pressure velocity','hPa s-1','point',.true.),                    &
+    output_variable('t','air_temperature',                                    &
+            'Temperature','K','point',.true.),                                &
+    output_variable('qv','humidity_mixing_ratio',                             &
+            'Water vapor mixing ratio','kg kg-1','point',.true.),             &
+    output_variable('qc','cloud_liquid_water_mixing_ratio',                   &
+            'Cloud water mixing ratio','kg kg-1','point',.true.),             &
+    output_variable('tke','turbulent_kinetic_energy',                         &
+            'Turbulent Kinetic Energy','m2 s2','point',.true.),               &
+    output_variable('kth','vertical_momentum_diffusivity',                    &
+            'Vertical Turbulent Viscosity','m2 s-1','point',.true.),          &
+    output_variable('kzm','vertical_scalar_diffusivity',                      &
+            'Vertical Turbulent Diffusivity','m2 s-1','point',.true.),        &
+    output_variable('tpr','precipitation_flux',                               &
+            'Total daily precipitation rate','kg m-2 day-1','point',.true.),  &
+    output_variable('tgb','soil_temperature',                                 &
+            'Lower groud temperature','K','point',.true.),                    &
+    output_variable('swt','moisture_content_of_soil_layer',                   &
+            'Total soil water','kg m-2','point',.true.) /
+
+  data srf_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('tbnds','','','','',.true.),                              &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('u10m','eastward_wind',                                   &
+          '10 meters U component (westerly) of wind','m s-1','point',.true.), &
+    output_variable('v10m','northward_wind',                                  &
+          '10 meters V component (southerly) of wind','m s-1','point',.true.),&
+    output_variable('uvdrag','surface_drag_coefficient_in_air',               &
+          'Surface drag stress','1','point',.true.),                          &
+    output_variable('tg','surface_temperature',                               &
+          'Ground temperature','K','point',.true.),                           &
+    output_variable('tlef','canopy_temperature',                              &
+          'Foliage temperature','K','point',.true.),                          &
+    output_variable('t2m','air_temperature',                                  &
+          '2 meters temperature','K','point',.true.),                         &
+    output_variable('q2m','specific_humidity',                                &
+          '2 meters Specific humidity','1','point',.true.),                   &
+    output_variable('smw','soil_moisture_content',                            &
+          'Moisture content','kg m-2','point',.true.),                        &
+    output_variable('tpr','precipitation_flux',                               &
+          'Total precipitation','kg m-2 day-1','mean',.true.),                &
+    output_variable('evp','water_evaporation_flux',                           &
+          'Total evapotranspiration','kg m-2 day-1','mean',.true.),           &
+    output_variable('runoff','surface_runoff_flux',                           &
+          'Surface runoff','kg m-2 day-1','mean',.true.),                     &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
+    output_variable('sena','surface_downward_sensible_heat_flux',             &
+          'Sensible heat flux','W m-2','mean',.true.),                        &
+    output_variable('flw','net_upward_longwave_flux_in_air',                  &
+          'Net infrared energy flux','W m-2','mean',.true.),                  &
+    output_variable('fsw','net_downward_shortwave_flux_in_air',               &
+          'Net solar absorbed energy flux','W m-2','mean',.true.),            &
+    output_variable('fld','surface_downwelling_longwave_flux_in_air',         &
+          'Downward LW flux','W m-2','mean',.true.),                          &
+    output_variable('sina','surface_downwelling_shortwave_flux_in_air',       &
+          'Incident visible solar energy flux','W m-2','mean',.true.),        &
+    output_variable('prcv','convective_rainfall_flux',                        &
+          'Convective precipitation','kg m-2 day-1','mean',.true.),           &
+    output_variable('zpbl','atmosphere_boundary_layer_thickness',             &
+          'PBL layer thickness','m','point',.true.),                          &
+    output_variable('aldirs','surface_albedo_short_wave_direct',              &
+          'Surface albedo to direct short wave radiation','1','point',.true.),&
+    output_variable('aldifs','surface_albedo_short_wave_diffuse',             &
+         'Surface albedo to diffuse short wave radiation','1','point',.true.),&
+    output_variable('sund','duration_of_sunshine',                            &
+         'Duration of sunshine','s','sum',.true.),                            &
+    output_variable('seaice','seaice_binary_mask',                            &
+          'Sea ice mask','1','point',.false.) /
+
+  data sts_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('tbnds','','','','',.true.),                              &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('tgmax','surface_temperature',                            &
+          'Maximum surface temperature','K','maximum',.true.),                &
+    output_variable('tgmin','surface_temperature',                            &
+          'Minimum surface temperature','K','minimum',.true.),                &
+    output_variable('t2max','air_temperature',                                &
+          'Maximum 2 meters temperature','K','maximum',.true.),               &
+    output_variable('t2min','air_temperature',                                &
+          'Minimum 2 meters temperature','K','minimum',.true.),               &
+    output_variable('t2avg','air_temperature',                                &
+          'Average 2 meters temperature','K','mean',.true.),                  &
+    output_variable('w10max','wind_speed',                                    &
+          'Maximum speed of 10m wind','m s-1','maximum',.true.),              &
+    output_variable('pcpmax','precipitation_flux',                            &
+          'Maximum precipitation flux','kg m-2 s-1','maximum',.true.),        &
+    output_variable('pcpavg','precipitation_flux',                            &
+          'Average precipitation flux','kg m-2 s-1','mean',.true.),           &
+    output_variable('sund','duration_of_sunshine',                            &
+          'Duration of sunshine','s','sum',.true.),                           &
+    output_variable('ps_min','air_pressure',                                  &
+          'Minimum of surface pressure','hPa','minimum',.true.) /
+
+  data sub_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('u10m','eastward_wind',                                   &
+          '10 meters U component (westerly) of wind','m s-1','point',.true.), &
+    output_variable('v10m','northward_wind',                                  &
+          '10 meters V component (southerly) of wind','m s-1','point',.true.),&
+    output_variable('uvdrag','surface_drag_coefficient_in_air',               &
+          'Surface drag stress','1','point',.true.),                          &
+    output_variable('tg','surface_temperature',                               &
+          'Ground temperature','K','point',.true.),                           &
+    output_variable('tlef','canopy_temperature',                              &
+          'Foliage temperature','K','point',.true.),                          &
+    output_variable('t2m','air_temperature',                                  &
+          '2 meters temperature','K','point',.true.),                         &
+    output_variable('q2m','specific_humidity',                                &
+          '2 meters Specific humidity','1','point',.true.),                   &
+    output_variable('smw','soil_moisture_content',                            &
+          'Soil moisture content','kg kg-1','point',.true.),                  &
+    output_variable('tpr','precipitation_flux',                               &
+          'Total precipitation','kg m-2 day-1','mean',.true.),                &
+    output_variable('evp','water_evaporation_flux',                           &
+          'Total evapotranspiration','kg m-2 day-1','point',.true.),          &
+    output_variable('runoff','surface_runoff_flux',                           &
+          'Surface runoff','kg m-2 day-1','mean',.true.),                     &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
+    output_variable('sena','surface_downward_sensible_heat_flux',             &
+          'Sensible heat flux','W m-2','mean',.true.),                        &
+    output_variable('prcv','convective_rainfall_flux',                        &
+          'Convective precipitation','kg m-2 day-1','mean',.true.) /
+
+  data rad_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('cld','cloud_area_fraction_in_atmosphere_layer',          &
+       'Cloud fractional cover','1','point',.true.),                          &
+    output_variable('clwp','thickness_of_liquid_water_cloud',                 &
+       'Cloud liquid water path','g m-2','point',.true.),                     &
+    output_variable('qrs',                                                    &
+       'tendency_of_air_temperature_due_to_shortwave_heating',                &
+       'Solar heating rate','K s-1','point',.true.),                          &
+    output_variable('qrl',                                                    &
+       'tendency_of_air_temperature_due_to_longwave_heating',                 &
+       'Longwave cooling rate','K s-1','point',.true.),                       &
+    output_variable('frsa','surface_net_downward_shortwave_flux',             &
+       'Surface net downward shortwave flux','W m-2','point',.true.),         &
+    output_variable('frla','surface_net_upward_longwave_flux',                &
+       'Surface net upward longwave flux','W m-2','point',.true.),            &
+    output_variable('clrst',                                                  &
+       'toa_net_downward_shortwave_flux_assuming_clear_sky',                  &
+       'Clearsky TOA net downward shortwave flux','W m-2','point',.true.),    &
+    output_variable('clrss',                                                  &
+       'surface_net_downward_shortwave_flux_assuming_clear_sky',              &
+       'Surface net downward shortwave flux','W m-2','point',.true.),         &
+    output_variable('clrlt','toa_net_upward_longwave_flux_assuming_clear_sky',&
+       'Clearsky TOA net upward longwave flux','W m-2','point',.true.),       &
+    output_variable('clrls',                                                  &
+       'surface_net_upward_longwave_flux_assuming_clear_sky',                 &
+       'Clearsky net upward longwave flux','W m-2','point',.true.),           &
+    output_variable('solin','toa_incoming_shortwave_flux',                    &
+       'Incoming solar flux','W m-2','point',.true.),                         &
+    output_variable('sabtp','toa_net_upward_shortwave_flux',                  &
+       'Net TOA upward shortwave flux','W m-2','point',.true.),               &
+    output_variable('totcf','cloud_area_fraction',                            &
+       'Total cloud fraction','1','point',.true.),                            &
+    output_variable('totcl','atmosphere_cloud_condensed_water_content',       &
+       'Total columnar water content','kg m-2','point',.true.),               &
+    output_variable('totci','atmosphere_ice_condensed_water_content',         &
+       'Total columnar ice content','kg m-2','point',.true.),                 &
+    output_variable('firtp','toa_net_upward_longwave_flux',                   &
+       'net upward LW flux at TOA','W m-2','point',.true.) /
+
+  data che_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('trac','atmosphere_mixing_ratio_of_tracer',               &
+     'Tracers mixing ratios','kg kg-1','point',.true.),                       &
+    output_variable('aext8','aerosol_optical_depth',                          &
+     'aer mix. aod.','1','point',.true.),                                     &
+    output_variable('assa8','aerosol_single_scattering_albedo',               &
+     'aer mix. sin. scat. alb','1','point',.true.),                           &
+    output_variable('agfu8','aerosol_asymmetry_parameter',                    &
+     'aer mix. sin. scat. asy','1','point',.true.),                           &
+    output_variable('colb','instantaneous_column_burden',                     &
+     'columnburden inst','mg m-2','point',.true.),                            &
+    output_variable('wdlsc',                                                  &
+     'tendency_of_wet_deposition_of_tracer_due_to_large_scale_precipitation', &
+     'wet dep lgscale','mg m-2 day-1','point',.true.),                        &
+    output_variable('wdcvc',                                                  &
+     'tendency_of_wet_deposition_of_tracer_due_to_convective_precipitation',  &
+     'wet dep convect','mg m-2 day-1','point',.true.),                        &
+    output_variable('sdrdp','tendency_of_dry_deposition_of_tracer',           &
+     'surf dry depos','mg m-2 day-1','point',.true.),                         &
+    output_variable('xgasc','tendency_of_gas_conversion_of_tracer',           &
+     'chem gas conv','mg m-2 day-1','point',.true.),                          &
+    output_variable('xaquc','tendency_of_aqueous_conversion_of_tracer',       &
+     'chem aqu conv','mg m-2 day-1','point',.true.),                          &
+    output_variable('emiss','tendency_of_surface_emission_of_tracer',         &
+     'surf emission','mg m-2 day-1','point',.true.),                          &
+    output_variable('acstoarf',                                               &
+     'toa_instantaneous_shortwave_radiative_forcing',                         &
+     'TOArad SW forcing av.','W m-2','point',.true.),                         &
+    output_variable('acstsrrf','surface_shortwave_radiative_forcing',         &
+     'SRFrad SW forcing av.','W m-2','point',.true.),                         &
+    output_variable('acstalrf','toa_longwave_radiative_forcing',              &
+     'TOArad LW forcing av.','W m-2','point',.true.),                         &
+    output_variable('acssrlrf','surface_longwave_radiative_forcing',          &
+     'SRFrad LW forcing av.','W m-2','point',.true.) /
+
+  data lak_variables / &
+    output_variable('time','','','','',.true.),                               &
+    output_variable('ps','','','','point',.true.),                            &
+    output_variable('tg','surface_temperature',                               &
+         'Ground temperature','K','point',.true.),                            &
+    output_variable('tpr','precipitation_flux',                               &
+         'Total precipitation','kg m-2 day-1','point',.true.),                &
+    output_variable('scv','lwe_thickness_of_surface_snow_amount',             &
+          'Snow thickness','kg m-2','mean',.true.),                           &
+    output_variable('sena','surface_downward_sensible_heat_flux',             &
+         'Sensible heat flux','W m-2','point',.true.),                        &
+    output_variable('flw','net_upward_longwave_flux_in_air',                  &
+         'Net infrared energy flux','W m-2','point',.true.),                  &
+    output_variable('fsw','net_downward_shortwave_flux_in_air',               &
+         'Net solar absorbed energy flux','W m-2','point',.true.),            &
+    output_variable('fld','surface_downwelling_longwave_flux_in_air',         &
+         'Downward LW flux','W m-2','point',.true.),                          &
+    output_variable('sina','surface_downwelling_shortwave_flux_in_air',       &
+         'Incident solar energy flux','W m-2','point',.true.),                &
+    output_variable('aldirs','surface_albedo_short_wave_direct',              &
+         'Surface albedo to direct short wave radiation','1','point',.true.), &
+    output_variable('aldifs','surface_albedo_short_wave_diffuse',             &
+         'Surface albedo to diffuse short wave radiation','1','point',.true.),&
+    output_variable('evl','water_evaporation_flux_where_sea_ice',             &
+         'Water evaporation','mm sec-1','point',.true.),                      &
+    output_variable('aveice','floating_ice_thickness',                        &
+         'Floating ice thickness','mm','point',.true.),                       &
+    output_variable('hsnow','surface_snow_thickness_where_sea_ice',           &
+         'Floating snow thickness','mm','point',.true.),                      &
+    output_variable('tlake','water_temperature',                              &
+         'Lake water temperature','K','point',.true.) /
 !
   public :: ivarname_lookup
   public :: init_mod_ncio , release_mod_ncio
-  public :: open_domain , read_domain , read_domain_lake, &
-            read_subdomain , read_subdomain_lake,         &
+  public :: read_domain_info , read_domain_lake,   &
+            read_subdomain , read_subdomain_lake,  &
             close_domain
   public :: open_icbc , read_icbc , icbc_search
   public :: prepare_common_out
@@ -55,7 +327,6 @@ module mod_ncio
   integer , dimension(n_lakvar) :: ilakvar
   character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  real(dp) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
   real(dp) :: tpd , cfd
   real(dp) :: xns2d
@@ -411,7 +682,6 @@ contains
       o_nz = kz
       lwrap = .false.
     end if
-    call getmem1d(hsigma,1,o_nz,'ncio:hsigma')
     call getmem2d(ioxlat,1,o_nj,1,o_ni,'ncio:ioxlat')
     call getmem2d(ioxlon,1,o_nj,1,o_ni,'ncio:ioxlon')
     call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
@@ -431,190 +701,25 @@ contains
     end if
   end subroutine init_mod_ncio
 
-  subroutine open_domain(dx , sigma)
-    use netcdf
+  subroutine read_domain_info
     implicit none
-
-    real(dp) , intent(out) :: dx
-    real(dp) , dimension(kzp1) :: sigma
-
-    integer :: ivarid , idimid
-    integer :: iyy , jxx , kzz , k
-    character(6) :: proj
-    real(sp) :: dsx , iclat , iclon , ptsp
-    real(sp) , dimension(kzp1) :: rsdum
-
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
     call say
-    istatus = nf90_open(dname, nf90_nowrite, idmin)
-    call check_ok(__FILE__,__LINE__,'Error Opening Domain file '//trim(dname), &
-                  'DOMAIN FILE')
-    if ( nsg > 1 ) then
-      write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
-      call say
-      istatus = nf90_open(sdname, nf90_nowrite, isdmin)
-      call check_ok(__FILE__,__LINE__, &
-           'Error Opening SubDomain file '//trim(sdname), 'SUBDOM FILE')
-    end if
-    istatus = nf90_inq_dimid(idmin, 'iy', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=iyy)
-    call check_ok(__FILE__,__LINE__,'Dimension iy read error', 'DOMAIN FILE')
-    istatus = nf90_inq_dimid(idmin, 'jx', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=jxx)
-    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'DOMAIN FILE')
-    istatus = nf90_inq_dimid(idmin, 'kz', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=kzz)
-    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'ptop', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable ptop miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, ptsp)
-    call check_ok(__FILE__,__LINE__,'Variable ptop read error', 'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, 'projection', proj)
-    call check_ok(__FILE__,__LINE__,'Attribute projection miss', &
-                  'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global,'grid_size_in_meters', dsx)
-    call check_ok(__FILE__,__LINE__,'Attribute gridsize miss','DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, &
-                           'latitude_of_projection_origin', iclat)
-    call check_ok(__FILE__,__LINE__,'Attribute clat miss', 'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, &
-                           'longitude_of_projection_origin', iclon)
-    call check_ok(__FILE__,__LINE__,'Attribute clon miss', 'DOMAIN FILE')
-!
-!         Consistency Check
-!
-    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
-      write (6,*) 'Error: dims from regcm.in and DOMAIN file differ.'
-      write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
-      call say
-      write (aline,*) 'DOMAIN file    : IY=', iyy ,'  JX=', jxx, '  KZ=', kzz-1
-      call say
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
-    if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
-      write (6,*) 'Error: ptop from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', ptop
-      write (6,*) 'DOMAIN file    = ', ptsp*d_r10
-      call fatal(__FILE__,__LINE__, 'DOMAIN ptop')
-    end if
-    if (proj /= iproj) then
-      write (6,*) 'Error: proj from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', iproj
-      write (6,*) 'DOMAIN file    = ', proj
-      call fatal(__FILE__,__LINE__, 'DOMAIN proj')
-    end if
-    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00) then
-      write (6,*) 'Error: ds from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', ds
-      write (6,*) 'DOMAIN file    = ', dsx*d_r1000
-      call fatal(__FILE__,__LINE__, 'DOMAIN ds')
-    end if
-    if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
-      write (6,*) 'Error: clat from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', clat
-      write (6,*) 'DOMAIN file    = ', iclat
-      call fatal(__FILE__,__LINE__, 'DOMAIN clat')
-    end if
-    if (dabs(dble(iclon)-dble(clon)) > 0.001D+00) then
-      write (6,*) 'Error: clon from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', clon
-      write (6,*) 'DOMAIN file    = ', iclon
-      call fatal(__FILE__,__LINE__, 'DOMAIN clon')
-    end if
-!
-!         Assign values in the top data modules
-!
+    call openfile_withname(dname,idmin)
+    call read_domain(idmin)
     tpd = houpd/atmfrq
     cfd = houpd/chemfrq
-    dx = dble(dsx)
-    istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable sigma miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, rsdum)
-    call check_ok(__FILE__,__LINE__,'Variable sigma read error','DOMAIN FILE')
-    sigma = dble(rsdum)
-    do k = 1 , kz
-      hsigma(k) = ((sigma(k)+sigma(k+1))/2.0D0)
-    end do
-
-  end subroutine open_domain
-
-  subroutine read_domain(ht,lnd,xlat,xlon,dlat,dlon,xmap,dmap,f)
-    use netcdf
-    implicit none
-
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ht
-    real(dp) , pointer , dimension(:,:) , intent(out) :: lnd
-    real(dp) , pointer , dimension(:,:) , intent(out) :: xlat
-    real(dp) , pointer , dimension(:,:) , intent(out) :: xlon
-    real(dp) , pointer , dimension(:,:) , intent(out) :: dlat
-    real(dp) , pointer , dimension(:,:) , intent(out) :: dlon
-    real(dp) , pointer , dimension(:,:) , intent(out) :: xmap
-    real(dp) , pointer , dimension(:,:) , intent(out) :: dmap
-    real(dp) , pointer , dimension(:,:) , intent(out) :: f
-
-    integer :: ivarid
-
-    if (idmin < 0) then
-      write (6,*) 'Error : Domain file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE')
-    end if
-
-    istatus = nf90_inq_varid(idmin, 'topo', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, ht)
-    call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
-    iotopo = real(ht(o_js:o_je,o_is:o_ie))
-    istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, lnd)
-    call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
-    iolnds = real(lnd(o_js:o_je,o_is:o_ie))
-    istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, xlat)
-    call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
-    ioxlat = real(xlat(o_js:o_je,o_is:o_ie))
-    istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, xlon)
-    call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
-    ioxlon = real(xlon(o_js:o_je,o_is:o_ie))
-    istatus = nf90_inq_varid(idmin, 'dlat', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dlat miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, dlat)
-    call check_ok(__FILE__,__LINE__,'Variable dlat read error', 'DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'dlon', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dlon miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, dlon)
-    call check_ok(__FILE__,__LINE__,'Variable dlon read error', 'DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, xmap)
-    call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, dmap)
-    call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, f)
-    call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'mask', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable mask read error','DOMAIN FILE')
-    iomask = sp2d(o_js:o_je,o_is:o_ie)
-  end subroutine read_domain
+    ioxlat(:,:) = mddom_io%xlat(o_js:o_je,o_is:o_ie)
+    ioxlon(:,:) = mddom_io%xlon(o_js:o_je,o_is:o_ie)
+    iotopo(:,:) = mddom_io%ht(o_js:o_je,o_is:o_ie)
+    iomask(:,:) = mddom_io%mask(o_js:o_je,o_is:o_ie)
+    iolnds(:,:) = mddom_io%lndcat(o_js:o_je,o_is:o_ie)
+  end subroutine read_domain_info
 
   subroutine read_domain_lake(hlake)
-    use netcdf
     implicit none
 
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake
-
     integer :: n , ivarid
 
     if (idmin < 0) then
@@ -632,7 +737,6 @@ contains
   end subroutine read_domain_lake
 
   subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
-    use netcdf
     implicit none
 
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ht1
@@ -641,80 +745,35 @@ contains
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: xlon1
 
     integer :: ivarid
-    integer :: i , j , n , ii , jj
     
-    if (isdmin < 0) then
-      write (6,*) 'Error : Subdom file not in open state'
-      call fatal(__FILE__,__LINE__,'SUBDOMAIN FILE')
+    if ( nsg > 1 ) then
+      write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
+      call say
+      call openfile_withname(sdname,isdmin)
     end if
-
     istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable topo miss', 'SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
     call check_ok(__FILE__,__LINE__,'Variable topo read error','SUBDOMAIN FILE')
-    do j = 1 , jxsg
-      do i = 1 , iysg
-        jj = mod(j,nsg)
-        if ( jj == 0 ) jj = nsg
-        ii = mod(i,nsg)
-        if ( ii == 0 ) ii = nsg
-        n = (jj-1)*nsg + ii
-        jj = (j+nsg-1)/nsg
-        ii = (i+nsg-1)/nsg
-        ht1(n,jj,ii) = dble(sp2d1(j,i))*egrav
-      end do
-    end do
+    call reorder_2_3(sp2d1,ht1)
     iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'landuse', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable landuse miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
     call check_ok(__FILE__,__LINE__,'Variable landuse read error', &
                   'SUBDOMAIN FILE')
-    do j = 1 , jxsg
-      do i = 1 , iysg
-        jj = mod(j,nsg)
-        if ( jj == 0 ) jj = nsg
-        ii = mod(i,nsg)
-        if ( ii == 0 ) ii = nsg
-        n = (jj-1)*nsg + ii
-        jj = (j+nsg-1)/nsg
-        ii = (i+nsg-1)/nsg
-        lnd1(n,jj,ii) = dble(sp2d1(j,i))
-      end do
-    end do
+    call reorder_2_3(sp2d1,lnd1)
     istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlat miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
     call check_ok(__FILE__,__LINE__,'Variable xlat read error','SUBDOMAIN FILE')
-    do j = 1 , jxsg
-      do i = 1 , iysg
-        jj = mod(j,nsg)
-        if ( jj == 0 ) jj = nsg
-        ii = mod(i,nsg)
-        if ( ii == 0 ) ii = nsg
-        n = (jj-1)*nsg + ii
-        jj = (j+nsg-1)/nsg
-        ii = (i+nsg-1)/nsg
-        xlat1(n,jj,ii) = dble(sp2d1(j,i))
-      end do
-    end do
+    call reorder_2_3(sp2d1,xlat1)
     ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'xlon', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlon miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
     call check_ok(__FILE__,__LINE__,'Variable xlon read error','SUBDOMAIN FILE')
-    do j = 1 , jxsg
-      do i = 1 , iysg
-        jj = mod(j,nsg)
-        if ( jj == 0 ) jj = nsg
-        ii = mod(i,nsg)
-        if ( ii == 0 ) ii = nsg
-        n = (jj-1)*nsg + ii
-        jj = (j+nsg-1)/nsg
-        ii = (i+nsg-1)/nsg
-        xlon1(n,jj,ii) = dble(sp2d1(j,i))
-      end do
-    end do
+    call reorder_2_3(sp2d1,xlon1)
     ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
@@ -724,42 +783,23 @@ contains
   end subroutine read_subdomain
 
   subroutine read_subdomain_lake(hlake1)
-    use netcdf
     implicit none
-
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake1
-
     integer :: ivarid
-    integer :: i , j , n , ii , jj
-    
     if (isdmin < 0) then
       write (6,*) 'Error : Subdom file not in open state'
       call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE')
     end if
-
     istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable dhlake miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
     call check_ok(__FILE__,__LINE__,'Variable dhlake read error', &
                   'SUBDOMAIN FILE')
-    do j = 1 , jxsg
-      do i = 1 , iysg
-        jj = mod(j,nsg)
-        if ( jj == 0 ) jj = nsg
-        ii = mod(i,nsg)
-        if ( ii == 0 ) ii = nsg
-        n = (jj-1)*nsg + ii
-        jj = (j+nsg-1)/nsg
-        ii = (i+nsg-1)/nsg
-        hlake1(n,jj,ii) = dble(sp2d1(j,i))
-      end do
-    end do
+    call reorder_2_3(sp2d1,hlake1)
   end subroutine read_subdomain_lake
 
   subroutine close_domain
-    use netcdf
     implicit none
-
     if (idmin >= 0) then
       istatus = nf90_close(idmin)
       call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
@@ -771,7 +811,6 @@ contains
                    'SUBDOMAIN FILE')
       isdmin = -1
     end if
-
   end subroutine close_domain
 
   integer function icbc_search(idate)
@@ -797,42 +836,19 @@ contains
   end function icbc_search
 
   subroutine open_icbc(idate)
-    use netcdf
     type(rcm_time_and_date) , intent(in) :: idate
     character(10) :: ctime
     integer :: idimid , itvar , i , chkdiff
     real(dp) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
-    integer :: iyy , jxx , kzz
 
     call close_icbc
     write (ctime, '(i10)') toint10(idate)
     icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
-    istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
-    call check_ok(__FILE__,__LINE__, &
-        'Error Opening ICBC file '//trim(icbcname),'ICBC FILE OPEN')
+    call openfile_withname(icbcname,ibcin)
     ibcrec = 1
     ibcnrec = 0
-    istatus = nf90_inq_dimid(ibcin, 'iy', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ibcin, idimid, len=iyy)
-    call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
-    istatus = nf90_inq_dimid(ibcin, 'jx', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ibcin, idimid, len=jxx)
-    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
-    istatus = nf90_inq_dimid(ibcin, 'kz', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
-    istatus = nf90_inquire_dimension(ibcin, idimid, len=kzz)
-    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
-    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
-      write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
-      write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
-      call say
-      write (aline,*) 'ICBC file      : IY=', iyy, '  JX=',  jxx, '  KZ=', kzz
-      call say
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
+    call check_domain(ibcin,.true.)
     istatus = nf90_inq_dimid(ibcin, 'time', idimid)
     call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
     istatus = nf90_inquire_dimension(ibcin, idimid, len=ibcnrec)
@@ -887,7 +903,6 @@ contains
   end subroutine open_icbc
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
-    use netcdf
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: u
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: v
@@ -927,7 +942,6 @@ contains
   end subroutine read_icbc
 
   subroutine close_icbc
-    use netcdf
     implicit none
     if (ibcin >= 0) then
       istatus = nf90_close(ibcin)
@@ -939,7 +953,6 @@ contains
   end subroutine close_icbc
 
   subroutine close_common(ncid, ctype)
-    use netcdf
     implicit none
     integer , intent(inout) :: ncid
     character(3) , intent(in) :: ctype
@@ -952,7 +965,6 @@ contains
   end subroutine close_common
 
   subroutine prepare_common_out(idate,ctype)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(3) , intent(in) :: ctype
@@ -1758,7 +1770,6 @@ contains
   end subroutine prepare_common_out
 
   subroutine addvara(ncid,ctype,idims,lmiss,nvar)
-    use netcdf
     implicit none
     integer , intent(in) :: ncid
     character(3) , intent(in) :: ctype
@@ -1929,7 +1940,6 @@ contains
   end subroutine addvara
 
   subroutine writerec_sts(fbat, idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
@@ -2014,7 +2024,6 @@ contains
   end subroutine writerec_sts
 
   subroutine writerec_srf(fbat, mask , idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
@@ -2131,7 +2140,6 @@ contains
   end subroutine writerec_srf
 
   subroutine writerec_sub(fsub, idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
@@ -2162,7 +2170,7 @@ contains
         cycle
       end if
       if ( sub_variables(ivar)%enabled ) then
-        call reorder(fsub,subio,nxb,nyb,nsg,n)
+        call reorder_3_2(fsub,subio,n)
         if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
             ivar == ivarname_lookup('SUB', 'v10m')   .or. &
             ivar == ivarname_lookup('SUB', 't2m')    .or. &
@@ -2193,7 +2201,7 @@ contains
                         'Error writing '//sub_variables(ivar)%vname// &
                         ' at '//ctime, 'SUB FILE')
           istart(3) = 2
-          call reorder(fsub,subio,nxb,nyb,nsg,n+1)
+          call reorder_3_2(fsub,subio,n+1)
           istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                         'Error writing '//sub_variables(ivar)%vname// &
@@ -2224,32 +2232,7 @@ contains
     isubrec = isubrec + 1
   end subroutine writerec_sub
 
-  subroutine reorder(fdp,fsp,nx,ny,nz,n)
-    implicit none
-    integer :: ny , nx , nz , n
-    real(sp) , pointer , dimension(:,:,:,:) :: fdp
-    real(sp) , pointer , dimension(:,:) :: fsp
-    intent (in) fdp , ny , nx , nz , n
-    intent (out) fsp
-
-    integer :: i , ii , j , jj , k
-!
-    do j = 1 , nx*nz
-      do i = 1 , ny*nz
-        jj = mod(j,nz)
-        if ( jj == 0 ) jj = nz
-        ii = mod(i,nz)
-        if ( ii == 0 ) ii = nz
-        k = (jj-1)*nz + ii
-        jj = (j+nz-1)/nz
-        ii = (i+nz-1)/nz
-        fsp(j,i) = fdp(k,jj+1,ii+1,n)
-      end do
-    end do
-  end subroutine reorder
-
   subroutine writerec_rad(nrad3d,nrad2d,frad3d,frad2d,ps,idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nrad3d , nrad2d
@@ -2327,7 +2310,6 @@ contains
 
   subroutine writerec_atm(u,v,omega,t,qv,qc,tke,kth,kzm,ps,rc,rnc, &
                           tgb,swt,mask,idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: u
@@ -2663,7 +2645,6 @@ contains
                           ddsfc, wxsg, wxaq, cemtrac, aertarf,    &
                           aersrrf, aertalwrf, aersrlwrf, ps,      &
                           idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer , intent(in) :: nx , ny , nz , nt
@@ -2893,7 +2874,6 @@ contains
   end subroutine writerec_che
 
   subroutine writerec_lak(fbat,evl,aveice,hsnow,tlake,idate)
-    use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
@@ -2983,7 +2963,6 @@ contains
   end subroutine writerec_lak
 
   subroutine check_ok(f,l,m1,mf)
-    use netcdf
     implicit none
     character(*) , intent(in) :: f, m1 , mf
     integer , intent(in) :: l
@@ -3006,5 +2985,44 @@ contains
     call close_common(ncche,'CHE')
     call close_common(nclak,'LAK')
   end subroutine release_mod_ncio
+
+  subroutine reorder_2_3(m1,m2)
+    implicit none
+    real(sp) , pointer , dimension(:,:) , intent(in) :: m1
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: m2
+    integer :: i , j , ii , jj , n
+    do j = 1 , jxsg
+      do i = 1 , iysg
+        jj = mod(j,nsg)
+        if ( jj == 0 ) jj = nsg
+        ii = mod(i,nsg)
+        if ( ii == 0 ) ii = nsg
+        n = (jj-1)*nsg + ii
+        jj = (j+nsg-1)/nsg
+        ii = (i+nsg-1)/nsg
+        m2(n,jj,ii) = dble(m1(j,i))
+      end do
+    end do
+  end subroutine reorder_2_3
+
+  subroutine reorder_3_2(m2,m1,m)
+    implicit none
+    integer , intent(in) :: m
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: m2
+    real(sp) , pointer , dimension(:,:) , intent(out) :: m1
+    integer :: i , ii , j , jj , n
+    do j = 1 , o_njg
+      do i = 1 , o_nig
+        jj = mod(j,nsg)
+        if ( jj == 0 ) jj = nsg
+        ii = mod(i,nsg)
+        if ( ii == 0 ) ii = nsg
+        n = (jj-1)*nsg + ii
+        jj = (j+nsg-1)/nsg
+        ii = (i+nsg-1)/nsg
+        m1(j,i) = m2(n,jj+1,ii+1,m)
+      end do
+    end do
+  end subroutine reorder_3_2
 
 end module mod_ncio

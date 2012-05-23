@@ -514,7 +514,7 @@ module mod_precip
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = (a(k)*psc(j,i)+ptop)*d_1000
+          pres = (hsigma(k)*psc(j,i)+ptop)*d_1000
           if ( tmp3 > tzero ) then
             satvp = svp1*d_1000*dexp(svp2*(tmp3-tzero)/(tmp3-svp3))
           else

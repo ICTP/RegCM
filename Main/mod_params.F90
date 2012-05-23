@@ -22,6 +22,7 @@ module mod_params
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
+  use mod_domain
   use mod_cu_interface
   use mod_lm_interface
   use mod_atm_interface
@@ -955,13 +956,15 @@ module mod_params
 !
 
   if ( myid == 0 ) then
-    call open_domain(dx,sigma)
+    call read_domain_info
+    sigma(:) = mddom_io%sigma(:)
   end if
-  call mpi_bcast(clat,1,mpi_real,0,mycomm,ierr)
-  call mpi_bcast(plon,1,mpi_real,0,mycomm,ierr)
+
+  call mpi_bcast(ds,1,mpi_real8,0,mycomm,ierr)
   call mpi_bcast(ptop,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(dx,1,mpi_real8,0,mycomm,ierr)
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mycomm,ierr)
+
+  dx = ds * d_1000
  
 !rst-fix
   appdat = tochar(idate0)
@@ -1009,15 +1012,15 @@ module mod_params
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,ts1,zpbl)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                     sfs,qdot,pptc,ldmsk,sigma,a,dsigma,qcon,cldfra,cldlwc)
+                     sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms, &
-                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,      &
+    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
+                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
                    twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,       &
                    sdelqk2d,ssw2da,icumtop,icumbot,taucldsp)
  end if
-  call init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg,solis,  &
-                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss, &
+  call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
+                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &
                 sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
@@ -1048,8 +1051,6 @@ module mod_params
   call split_idate(idatex,xyear,xmonth,xday,xhour)
   kstsoff = khour*xhour
 !
-
- 
   write (aline, *) 'input/output parameters '
   call say
   write (aline,*) 'if true(T) create SAV files for '// &
@@ -1164,13 +1165,9 @@ module mod_params
   call say
 
   if ( myid == 0 ) then
-    call read_domain(mddom_io%ht,mddom_io%lndcat, &
-                     mddom_io%xlat,mddom_io%xlon, &
-                     mddom_io%dlat,mddom_io%dlon, &
-                     mddom_io%msfx,mddom_io%msfd, &
-                     mddom_io%coriol)
     if ( nsg > 1 ) then
       call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
+      ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
 #ifndef CLM
       if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
 #endif
@@ -1273,8 +1270,8 @@ module mod_params
 !-----compute dsigma and half sigma levels.
 !
   do k = 1 , kz
-    dsigma(k) = sigma(k+1) - sigma(k)
-    a(k) = (sigma(k+1)+sigma(k))*d_half
+    dsigma(k) = (sigma(k+1) - sigma(k))
+    hsigma(k) = (sigma(k+1) + sigma(k))*d_half
   end do
 !
 !
@@ -1286,7 +1283,7 @@ module mod_params
   sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
   kmxpbl = kz
   do k = kz , 1 , -1
-    delsig = a(k) - sigtbl
+    delsig = hsigma(k) - sigtbl
     if ( delsig <= d_zero ) then
       kmxpbl = k
       exit
@@ -1394,11 +1391,11 @@ module mod_params
 !
 !       get twght from 1/2 level sigma values
 !
-        bb = dlog(a(ktop)) + dlog(a(kbase))
-        cc = dlog(a(ktop))*dlog(a(kbase))
+        bb = dlog(hsigma(ktop)) + dlog(hsigma(kbase))
+        cc = dlog(hsigma(ktop))*dlog(hsigma(kbase))
         ssum = d_zero
         do k = ktop , kbase
-          xx = dlog(a(k))
+          xx = dlog(hsigma(k))
           twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
           ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
         end do
@@ -1442,7 +1439,7 @@ module mod_params
     call allocate_mod_cu_grell
     kbmax = kz
     do k = 1 , kz - 1
-      if ( a(k) <= skbmax ) kbmax = kz - k
+      if ( hsigma(k) <= skbmax ) kbmax = kz - k
     end do
     write (aline, *) '*********************************' 
     call say
@@ -1534,7 +1531,7 @@ module mod_params
     clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
     minorig = kz
     do k = 1 , kz
-      if ( a(k) <= minsig ) minorig = kz - k
+      if ( hsigma(k) <= minsig ) minorig = kz - k
     end do
     write (aline, *) ' '
     call say
@@ -1628,8 +1625,8 @@ module mod_params
     call init_mod_pbl_uwtcm
   end if
 
-  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd, &
-                cchifxuw,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,ptop,    &
+  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
+                cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,sigma,dsigma,ptop, &
                 chtrdpv,chtrname,ichem,ichdrdepo,dt)
  
 !     Convective Cloud Cover
@@ -1662,18 +1659,18 @@ module mod_params
   twt(1,2) = d_zero
   qcon(1) = d_zero
   do k = 2 , kz
-    twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
+    twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
     twt(k,2) = d_one - twt(k,1)
-    qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
+    qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
   end do
  
   chibot = 450.0D0
   ptmb = d_10*ptop
-  pz = a(1)*(d_1000-ptmb) + ptmb
+  pz = hsigma(1)*(d_1000-ptmb) + ptmb
   if ( pz > chibot ) call fatal(__FILE__,__LINE__,                 &
                                  'VERTICAL INTERPOLATION ERROR')
   do k = 1 , kz
-    pk = a(k)*(d_1000-ptmb) + ptmb
+    pk = hsigma(k)*(d_1000-ptmb) + ptmb
     if ( pk <= chibot ) kchi = k
   end do
  
@@ -1713,7 +1710,7 @@ module mod_params
 !
 ! Setup Boundary condition routines.
 !
-  call setup_bdycon(a)
+  call setup_bdycon(hsigma)
 !
   if ( icup == 3 ) call lutbl(ptop)
 !
@@ -1739,7 +1736,7 @@ module mod_params
     print 99010
 !
     do k = 1 , kz
-      print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,    &
+      print 99011 , k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) ,    &
             twt(k,2) , qcon(k)
     end do
     print 99012 , kzp1 , sigma(kzp1)

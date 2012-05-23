@@ -490,7 +490,7 @@ module mod_vmodes
     call vprntv(thetaf,kzp1,'thetaf  ')
     call vprntv(hweigh,kz,'hweigh  ')
     print 99004 , alpha1 , alpha2
-    call vprntm(a,kz,kz,'a       ')
+    call vprntm(hsigma,kz,kz,'a       ')
     call vprntm(hydros,kz,kz,'hydros  ')
     call vprntm(hydror,kz,kz,'hydror  ')
     call vprntm(hydroc,kz,kzp1,'hydroc  ')

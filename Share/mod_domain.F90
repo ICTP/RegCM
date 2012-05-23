@@ -51,7 +51,7 @@ module mod_domain
     module procedure read_domain_array_single
   end interface read_domain
 
-  public :: domain_io , mddom_io , read_domain
+  public :: domain_io , mddom_io , read_domain , check_domain
 
   contains
 
@@ -199,15 +199,19 @@ module mod_domain
     call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
   end subroutine allocate_domain
 
-  subroutine check_domain(ncid)
+  subroutine check_domain(ncid,lmod)
     implicit none
     integer , intent(in) :: ncid
+    logical , optional :: lmod
     integer :: istatus
     integer :: idimid , ivarid
-    integer :: iyy , jxx , kzz
+    integer :: iyy , jxx , kzz , kcheck
     character(6) :: proj
+    logical :: lh
     real(sp) :: dsx , iclat , iclon , ptsp
 
+    lh = .false.
+    if ( present(lmod) ) lh = lmod
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
@@ -230,10 +234,16 @@ module mod_domain
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
     istatus = nf90_inquire_dimension(ncid, idimid, len=kzz)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension KZ')
-    if ( kz+1 /= kzz ) then
+    kcheck = kzp1
+    if ( lh ) kcheck = kz
+    if ( kcheck /= kzz ) then
       write(stderr,*) 'DOMAIN FILE : ', kzz
       write(stderr,*) 'NAMELIST    : ', kz
-      call die('Mismatch: KZ in DOMAIN file /= KZ+1 in namelist')
+      if ( lh ) then
+        call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
+      else
+        call die('Mismatch: KZ in DOMAIN file /= KZ+1 in namelist')
+      end if 
     end if
     istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search variable PTOP')

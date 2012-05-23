@@ -77,7 +77,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pb3d(j,i,k) = a(k)*sfs%psb(j,i)+ptop
+          atms%pb3d(j,i,k) = hsigma(k)*sfs%psb(j,i)+ptop
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
                   ((sfs%psb(j,i)+ptop)/atms%pb3d(j,i,k))**rovcp
                    
