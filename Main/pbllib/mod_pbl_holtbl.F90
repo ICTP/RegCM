@@ -23,6 +23,7 @@
   ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
   !
     use mod_dynparam
+    use mod_runparams , only : ibltyp
     use mod_mppparam
     use mod_memutil
     use mod_service

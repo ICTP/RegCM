@@ -22,7 +22,7 @@ module mod_lm_interface
 ! Link surface and atmospheric models
 !
   use mod_bats_common
-  use mod_runparams, only : cpldt, dtsrf, dtsec
+  use mod_runparams
   use mod_memutil
   use mod_atm_interface , only : slice , surfstate , domain
 #ifdef CLM
@@ -43,8 +43,6 @@ module mod_lm_interface
 #endif
 !
   public
-
-  integer :: idcsst , lakemod , idesseas , iseaice
 
   contains
 

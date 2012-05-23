@@ -54,7 +54,7 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_cu_bm.o mod_cu_bm.mod: mod_cu_bm.F90 mod_dynparam.mod mod_realkinds.mod mod_memutil.mod mod_cu_common.mod
-mod_cu_common.o mod_cu_common.mod: mod_cu_common.f90 mod_dynparam.mod mod_memutil.mod mod_realkinds.mod
+mod_cu_common.o mod_cu_common.mod: mod_cu_common.f90 mod_dynparam.mod mod_memutil.mod mod_realkinds.mod mod_runparams.mod
 mod_cu_em.o mod_cu_em.mod: mod_cu_em.f90 mod_dynparam.mod mod_memutil.mod mod_cu_common.mod
 mod_cu_grell.o mod_cu_grell.mod: mod_cu_grell.F90 mod_dynparam.mod mod_memutil.mod mod_service.mod mod_cu_common.mod
 mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 mod_dynparam.mod mod_memutil.mod mod_cu_common.mod

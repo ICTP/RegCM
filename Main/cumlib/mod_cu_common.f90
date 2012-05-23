@@ -24,10 +24,11 @@ module mod_cu_common
   use mod_dynparam
   use mod_memutil
   use mod_realkinds
+  use mod_runparams
+  use mod_runparams
 
   public
 !
-
   real(dp) :: clfrcv ! Cloud fractional cover for convective precip
   real(dp) :: cllwcv ! Cloud liquid water content for convective precip.
   real(dp) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
@@ -73,8 +74,6 @@ module mod_cu_common
   real(dp) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
 
   logical :: lchem
-  integer :: icup
-  integer :: igcc
   integer :: total_precip_points
 
   data lchem /.false./

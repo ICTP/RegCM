@@ -24,6 +24,7 @@ module mod_che_ncio
   use mod_mpmessage
   use mod_che_indices
   use mod_che_common
+  use mod_runparams
   use netcdf
 !
   private
@@ -68,7 +69,6 @@ module mod_che_ncio
   integer :: o_nz
   logical :: lwrap  
   character(256) :: dname , icbcname
-  real(sp) , dimension(:) , pointer :: hsigma
   real(sp) , dimension(:,:) , pointer :: ioxlat
   real(sp) , dimension(:,:) , pointer :: ioxlon
   real(sp) , dimension(:,:) , pointer :: iotopo
@@ -116,7 +116,6 @@ module mod_che_ncio
         lwrap = .false.
       end if
 
-      call getmem1d(hsigma,1,o_nz,'ncio:hsigma')
       call getmem2d(ioxlat,1,o_nj,1,o_ni,'ncio:ioxlat')
       call getmem2d(ioxlon,1,o_nj,1,o_ni,'ncio:ioxlon')
       call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
@@ -125,188 +124,6 @@ module mod_che_ncio
       call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
       call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
     end subroutine init_mod_che_ncio
-
-
-! IMPORTANT : note the 2 following routine have to be duplicated in the che_ncio_module 
-! one day think about merging chem_ncio and ncio module ( Graziano would like that )  
- subroutine open_domain
-    use netcdf
-    implicit none
-
-    real(dp)                   :: dx
-    real(dp) , dimension(kzp1) :: sigma
-
-    integer :: ivarid , idimid
-    integer :: iyy , jxx , kzz , k
-    character(6) :: proj
-    real(sp) :: dsx , iclat , iclon , ptsp
-    real(sp) , dimension(kzp1) :: rsdum
-
-    write (aline,*) 'open_domain: READING HEADER FILE:', dname
-    call say
-    istatus = nf90_open(dname, nf90_nowrite, idmin)
-    call check_ok(__FILE__,__LINE__,'Error Opening Domain file '//trim(dname), &
-                  'DOMAIN FILE')
-!!$    if ( nsg > 1 ) then
-!!$      write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
-!!$      call say
-!!$      istatus = nf90_open(sdname, nf90_nowrite, isdmin)
-!!$      call check_ok(__FILE__,__LINE__, &
-!!$           'Error Opening SubDomain file '//trim(sdname), 'SUBDOM FILE')
-!!$    end if
-    istatus = nf90_inq_dimid(idmin, 'iy', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=iyy)
-    call check_ok(__FILE__,__LINE__,'Dimension iy read error', 'DOMAIN FILE')
-    istatus = nf90_inq_dimid(idmin, 'jx', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=jxx)
-    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'DOMAIN FILE')
-    istatus = nf90_inq_dimid(idmin, 'kz', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'DOMAIN FILE')
-    istatus = nf90_inquire_dimension(idmin, idimid, len=kzz)
-    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'DOMAIN FILE')
-    istatus = nf90_inq_varid(idmin, 'ptop', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable ptop miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, ptsp)
-    call check_ok(__FILE__,__LINE__,'Variable ptop read error', 'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, 'projection', proj)
-    call check_ok(__FILE__,__LINE__,'Attribute projection miss', &
-                  'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global,'grid_size_in_meters', dsx)
-    call check_ok(__FILE__,__LINE__,'Attribute gridsize miss','DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, &
-                           'latitude_of_projection_origin', iclat)
-    call check_ok(__FILE__,__LINE__,'Attribute clat miss', 'DOMAIN FILE')
-    istatus = nf90_get_att(idmin, nf90_global, &
-                           'longitude_of_projection_origin', iclon)
-    call check_ok(__FILE__,__LINE__,'Attribute clon miss', 'DOMAIN FILE')
-!
-!         Consistency Check
-!
-    if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
-      write (6,*) 'Error: dims from regcm.in and DOMAIN file differ.'
-      write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
-      call say
-      write (aline,*) 'DOMAIN file    : IY=', iyy ,'  JX=', jxx, '  KZ=', kzz-1
-      call say
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-    end if
-    if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
-      write (6,*) 'Error: ptop from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', ptop
-      write (6,*) 'DOMAIN file    = ', ptsp*d_r10
-      call fatal(__FILE__,__LINE__, 'DOMAIN ptop')
-    end if
-    if (proj /= iproj) then
-      write (6,*) 'Error: proj from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', iproj
-      write (6,*) 'DOMAIN file    = ', proj
-      call fatal(__FILE__,__LINE__, 'DOMAIN proj')
-    end if
-    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00) then
-      write (6,*) 'Error: ds from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', ds
-      write (6,*) 'DOMAIN file    = ', dsx*d_r1000
-      call fatal(__FILE__,__LINE__, 'DOMAIN ds')
-    end if
-    if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
-      write (6,*) 'Error: clat from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', clat
-      write (6,*) 'DOMAIN file    = ', iclat
-      call fatal(__FILE__,__LINE__, 'DOMAIN clat')
-    end if
-    if (dabs(dble(iclon)-dble(clon)) > 0.001D+00) then
-      write (6,*) 'Error: clon from regcm.in and DOMAIN file differ.'
-      write (6,*) 'Input namelist = ', clon
-      write (6,*) 'DOMAIN file    = ', iclon
-      call fatal(__FILE__,__LINE__, 'DOMAIN clon')
-    end if
-!
-!         Assign values in the top data modules
-!
-    tpd = houpd/atmfrq
-    cfd = houpd/chemfrq
-    dx = dble(dsx)
-    istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable sigma miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, rsdum)
-    call check_ok(__FILE__,__LINE__,'Variable sigma read error','DOMAIN FILE')
-    sigma = dble(rsdum)
-    do k = 1 , kz
-      hsigma(k) = real((sigma(k)+sigma(k+1))/2.0D0)
-    end do
-
-  end subroutine open_domain
-
-  subroutine read_domain
-  !subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f)
-  ! I shut down passing the argument for now , but maybe could be usefull for chemistry module   
-
-   use netcdf
-    implicit none
- !real(dp) , dimension(jx,iy), intent(out)  :: ht
- !....
-    real(dp) , dimension(jx,iy)  :: ht
-    real(dp) , dimension(jx,iy)  :: lnd
-    real(dp) , dimension(jx,iy)  :: xlat
-    real(dp) , dimension(jx,iy)  :: xlon
-    real(dp) , dimension(jx,iy)  :: xmap
-    real(dp) , dimension(jx,iy)  :: dmap
-    real(dp) , dimension(jx,iy)  :: f
-
-    integer :: ivarid
-
-    if (idmin < 0) then
-      write (6,*) 'Error : Domain file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE')
-    end if
-
-    istatus = nf90_inq_varid(idmin, 'topo', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
-    ht = dble(sp2d)
-    iotopo = sp2d(o_js:o_je,o_is:o_ie)
-    istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
-    lnd = dble(sp2d)
-    iolnds = sp2d(o_js:o_je,o_is:o_ie)
-    istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
-    xlat = dble(sp2d)
-    ioxlat = sp2d(o_js:o_je,o_is:o_ie)
-    istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
-    xlon = dble(sp2d)
-    ioxlon = sp2d(o_js:o_je,o_is:o_ie)
-    istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
-    xmap = dble(sp2d)
-    istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
-    dmap = dble(sp2d)
-    istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
-    f = dble(sp2d)
-    istatus = nf90_inq_varid(idmin, 'mask', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable mask read error','DOMAIN FILE')
-    iomask = sp2d(o_js:o_je,o_is:o_ie)
-  end subroutine read_domain
 
     subroutine close_domain
       implicit none
@@ -624,7 +441,6 @@ module mod_che_ncio
     type(rcm_time_and_date) , intent(in) :: idate
     logical, intent(in) :: ifrest
     integer  :: itr
-    character(128)::cdum
     character(8) ::chevarnam
     character(64) :: title
     character(32) :: fbname
@@ -641,6 +457,7 @@ module mod_che_ncio
     integer , dimension(5) :: illtpvar
     integer :: itvar , i , j
     integer :: ibin , jbin , noutf
+    character(len=129) :: cdum
 
     integer , dimension(9) :: tyx
     integer , dimension(9) :: tzyx
@@ -774,86 +591,83 @@ module mod_che_ncio
 !
 !     ADD RUN PARAMETERS
 !
-!FAB  istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
-!            call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
+      istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
+            call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
 
-!!$                        !!!Je skip ce bloc pour l'instant !!!
-!!$    call cdumlbcs
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_boundary_conditions' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add lbcs', fterr)
-!!$    call cdumcums
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_cumulous_convection_scheme' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add icup', fterr)
-!!$    if (icup == 2 .or. icup == 99 .or. icup == 98) then
-!!$      call cdumcumcl
-!!$      istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_convective_closure_assumption' , trim(cdum))
-!!$      call check_ok(__FILE__,__LINE__,'Error add igcc', fterr)
-!!$    end if
-!!$    call cdumpbl
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_boundary_layer_scheme' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add ibltyp', fterr)
-!!$    call cdummoist
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_moist_physics_scheme' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add ipptls', fterr)
-!!$    call cdumocnflx
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_ocean_flux_scheme' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add iocnflx', fterr)
-!!$    call cdumpgfs
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_pressure_gradient_force_scheme' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add ipgf', fterr)
-!!$    call cdumemiss
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_use_emission_factor' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add iemiss', fterr)
-!!$    call cdumlakes
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_use_lake_model' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add lakemod', fterr)
-!!$    call cdumchems
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_chemistry' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add ichem', fterr)
-!!$    call cdumdcsst
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_diurnal_cycle_sst' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add dcsst', fterr)
-!!$    call cdumseaice
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_seaice_effect' , trim(cdum))
-!!$    call check_ok(__FILE__,__LINE__,'Error add seaice', fterr)
-!!$    call cdumdesseas
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_seasonal_desert_albedo_effect' , trim(cdum))
-!!$
-!!$    call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
+      call cdumlbcs(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+             'model_boundary_conditions' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add lbcs', fterr)
+      call cdumcums(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_cumulous_convection_scheme' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add icup', fterr)
+      if (icup == 2 .or. icup == 99 .or. icup == 98) then
+        call cdumcumcl(cdum)
+        istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_convective_closure_assumption' , trim(cdum))
+        call check_ok(__FILE__,__LINE__,'Error add igcc', fterr)
+      end if
+      call cdumpbl(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_boundary_layer_scheme' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add ibltyp', fterr)
+      call cdummoist(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_moist_physics_scheme' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add ipptls', fterr)
+      call cdumocnflx(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_ocean_flux_scheme' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add iocnflx', fterr)
+      call cdumpgfs(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_pressure_gradient_force_scheme' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add ipgf', fterr)
+      call cdumemiss(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_use_emission_factor' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add iemiss', fterr)
+      call cdumlakes(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_use_lake_model' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add lakemod', fterr)
+      call cdumchems(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_chemistry' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add ichem', fterr)
+      call cdumdcsst(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_diurnal_cycle_sst' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add dcsst', fterr)
+      call cdumseaice(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_seaice_effect' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add seaice', fterr)
+      call cdumdesseas(cdum)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_seasonal_desert_albedo_effect' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
 
       istatus = nf90_put_att(ncid, nf90_global,  &
                'model_simulation_initial_start' , tochar(globidate1))
       call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
 
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_simulation_start' , tochar(idate1))
-!!$    call check_ok(__FILE__,__LINE__,'Error add idate1', fterr)
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_simulation_expected_end' , tochar(idate2))
-!!$    call check_ok(__FILE__,__LINE__,'Error add idate2', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_simulation_start' , tochar(idate1))
+      call check_ok(__FILE__,__LINE__,'Error add idate1', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_simulation_expected_end' , tochar(idate2))
+      call check_ok(__FILE__,__LINE__,'Error add idate2', fterr)
 
-
-    if (ifrest) then
-      cdum = 'Yes'
-    else
-      cdum = 'No'
-    end if
-    istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_is_a_restart' , trim(cdum))
-    call check_ok(__FILE__,__LINE__,'Error add ifrest', fterr)
+      if (ifrest) then
+        cdum = 'Yes'
+      else
+        cdum = 'No'
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_simulation_is_a_restart' , trim(cdum))
+      call check_ok(__FILE__,__LINE__,'Error add ifrest', fterr)
 
 
 !!$    istatus = nf90_put_att(ncid, nf90_global,  &

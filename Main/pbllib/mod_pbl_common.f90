@@ -25,6 +25,7 @@ module mod_pbl_common
   use mod_constants
   use mod_dynparam
   use mod_memutil
+  use mod_runparams , only : ibltyp
 !
   private
 
@@ -63,7 +64,6 @@ module mod_pbl_common
 
   public :: tcm_state
 
-  integer , public :: ibltyp
   integer , public :: kmxpbl
 
   !
@@ -160,9 +160,8 @@ module mod_pbl_common
     end if
   end subroutine allocate_tcm_state
 
-  subroutine allocate_mod_pbl_common(ibltyp,ichem)
+  subroutine allocate_mod_pbl_common(ichem)
     implicit none
-    integer , intent(in) :: ibltyp
     integer , intent(in) :: ichem
     call getmem2d(kpbl,jce1,jce2,ice1,ice2,'pbl_common:kpbl')
     call getmem2d(zpbl,jce1,jce2,ice1,ice2,'pbl_common:zpbl')

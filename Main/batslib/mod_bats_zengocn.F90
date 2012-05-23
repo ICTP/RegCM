@@ -26,6 +26,7 @@ module mod_bats_zengocn
     use mod_dynparam
     use mod_service
     use mod_bats_common
+    use mod_runparams , only : iocnrough
 !
     private
 !

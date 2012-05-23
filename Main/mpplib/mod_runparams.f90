@@ -59,6 +59,25 @@ module mod_runparams
   integer :: klak
   ! Internal count for how many SRF outputs per day
   integer(8) :: ksts , kstsoff
+  !
+  ! Cumulus scheme index
+  integer :: icup
+  ! Closure index for Grell
+  integer :: igcc
+  ! Boundary layer index
+  integer :: ibltyp
+  ! Lake model activation index
+  integer :: lakemod
+  ! Diurnal cycle SST index
+  integer :: idcsst
+  ! Sea Ice scheme index
+  integer :: iseaice
+  ! Seasonal albedo for desert index
+  integer :: idesseas
+  ! Ocean model switch indexes
+  integer :: iocnrough , iocnflx , iocncpl
+  ! Radiation switch controls
+  integer :: idirect , iemiss
 !
   real(dp) :: dt , dt2 , dtbdys
   real(dp) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
@@ -117,4 +136,193 @@ module mod_runparams
     if (a > 13.5D0 .and. a < 14.5D0) islake = .true.
   end function
 !
+  subroutine cdumlbcs(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (iboudy)
+      case(0)
+       write (cdum,'(a)') 'Fixed'
+      case(1)
+       write (cdum,'(a)') 'Relaxation, linear technique'
+      case(2)
+       write (cdum,'(a)') 'Time-dependent'
+      case(3)
+       write (cdum,'(a)') 'Time and inflow/outflow dependent'
+      case(4)
+       write (cdum,'(a)') 'Sponge (Perkey & Kreitzberg, MWR 1976)'
+      case(5)
+       write (cdum,'(a)') 'Relaxation, exponential technique'
+      case default 
+       write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumlbcs
+
+  subroutine cdumcums(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (icup)
+      case(1)
+       write (cdum,'(a)') 'Kuo'
+      case(2)
+       write (cdum,'(a)') 'Grell'
+      case(3)
+       write (cdum,'(a)') 'Betts-Miller (1986)'
+      case(4)
+       write (cdum,'(a)') 'Emanuel (1991)'
+      case(5)
+        write (cdum,'(a)') 'Tiedtke (1986)'
+      case(98)
+        write (cdum,'(a)') 'Grell over ocean, Emanuel (1991) over land'
+      case(99)
+        write (cdum,'(a)') 'Emanuel (1991) over ocean, Grell over land'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumcums
+
+  subroutine cdumcumcl(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (igcc)
+      case(1)
+        write (cdum,'(a)') 'Arakawa & Schubert (1974)'
+      case(2)
+        write (cdum,'(a)') 'Fritsch & Chappell (1980)'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumcumcl
+
+  subroutine cdumpbl(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (ibltyp)
+      case(0)
+        write (cdum,'(a)') 'Frictionless'
+      case(1)
+        write (cdum,'(a)') 'Holtslag PBL (Holtslag, 1990)'
+      case(2)
+        write (cdum,'(a)') 'UW PBL (Bretherton and McCaa, 2004)'
+      case(99)
+        write (cdum,'(a)') 'Holtslag PBL, with UW in diag. mode'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumpbl
+
+  subroutine cdummoist(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (ipptls)
+      case(1)
+        write (cdum,'(a)') 'Explicit moisture (SUBEX; Pal et al 2000)'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdummoist
+
+  subroutine cdumocnflx(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (iocnflx)
+      case(1)
+        write (cdum,'(a)') 'Use BATS1e Monin-Obukhov'
+      case(2)
+        write (cdum,'(a)') 'Zeng et al (1998)'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumocnflx
+
+  subroutine cdumpgfs(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (ipgf)
+      case(0)
+        write (cdum,'(a)') 'Use full fields'
+      case(1)
+        write (cdum,'(a)') 'Hydrostatic deduction with perturbation temperature'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumpgfs
+
+  subroutine cdumemiss(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (iemiss)
+      case(0)
+        write (cdum,'(a)') 'No'
+      case(1)
+        write (cdum,'(a)') 'Yes'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumemiss
+
+  subroutine cdumlakes(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (lakemod)
+      case(0)
+        write (cdum,'(a)') 'No'
+      case(1)
+        write (cdum,'(a)') 'Yes'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumlakes
+
+  subroutine cdumchems(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (ichem)
+      case(0)
+        write (cdum,'(a)') 'Not active'
+      case(1)
+        write (cdum,'(a)') 'Active'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumchems
+
+  subroutine cdumdcsst(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (idcsst)
+      case(0)
+        write (cdum,'(a)') 'Not active'
+      case(1)
+        write (cdum,'(a)') 'Active'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumdcsst
+
+  subroutine cdumseaice(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (iseaice)
+      case(0)
+        write (cdum,'(a)') 'Not active'
+      case(1)
+        write (cdum,'(a)') 'Active'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumseaice
+
+  subroutine cdumdesseas(cdum)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    select case (idesseas)
+      case(0)
+        write (cdum,'(a)') 'Not active'
+      case(1)
+        write (cdum,'(a)') 'Active'
+      case default 
+        write (cdum,'(a)') 'Unknown or not specified'
+    end select
+  end subroutine cdumdesseas
+
 end module mod_runparams

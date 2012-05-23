@@ -40,8 +40,6 @@ module mod_bats_common
   ! How many soil model steps for a day
   real(sp) :: fdaysrf
 
-  integer :: iocnrough , iocnflx, iocncpl
-
   real(dp) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
          drag , evpr , gwet , ldew , q2m , sfcp , trnof , &
          srnof , rsw , snag , sncv , sent , sfice , ssw , &

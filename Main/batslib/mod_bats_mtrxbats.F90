@@ -21,6 +21,7 @@ module mod_bats_mtrxbats
 
   use mod_realkinds
   use mod_dynparam
+  use mod_runparams , only : iocnflx , iocncpl
   use mod_mpmessage
   use mod_constants
   use mod_service

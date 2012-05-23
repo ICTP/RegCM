@@ -24,7 +24,7 @@ module mod_mppio
   use mod_lm_interface
   use mod_cu_interface
   use mod_rad_interface
-  use mod_pbl_interface , only : ibltyp , tcm_state , allocate_tcm_state
+  use mod_pbl_interface , only : tcm_state , allocate_tcm_state
   use mod_memutil
   use mod_mpmessage
 !

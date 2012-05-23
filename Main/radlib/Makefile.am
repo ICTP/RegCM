@@ -78,11 +78,11 @@ mcica_subcol_gen_sw.o mcica_subcol_gen_sw.mod: mcica_subcol_gen_sw.f90 parkind.m
 mod_atm_msis.o mod_atm_msis.mod: mod_atm_msis.f90 mod_constants.mod mod_spline.mod mod_realkinds.mod
 mod_rad_aerosol.o mod_rad_aerosol.mod: mod_rad_aerosol.F90 mod_realkinds.mod mod_dynparam.mod mod_constants.mod mod_memutil.mod mod_mpmessage.mod mod_rad_common.mod
 mod_rad_atmosphere.o mod_rad_atmosphere.mod: mod_rad_atmosphere.f90 mod_realkinds.mod
-mod_rad_colmod3.o mod_rad_colmod3.mod: mod_rad_colmod3.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_rad_radiation.mod mod_rad_common.mod mod_rad_outrad.mod mod_rrtmg_driver.mod mod_rad_aerosol.mod
+mod_rad_colmod3.o mod_rad_colmod3.mod: mod_rad_colmod3.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_rad_radiation.mod mod_rad_common.mod mod_rad_outrad.mod mod_rrtmg_driver.mod mod_rad_aerosol.mod mod_runparams.mod
 mod_rad_common.o mod_rad_common.mod: mod_rad_common.f90 mod_constants.mod mod_dynparam.mod mod_realkinds.mod mod_memutil.mod
 mod_rad_o3blk.o mod_rad_o3blk.mod: mod_rad_o3blk.F90 mod_constants.mod mod_date.mod mod_interp.mod mod_vertint.mod mod_mppparam.mod mod_mpmessage.mod mod_dynparam.mod mod_memutil.mod mod_rad_common.mod mod_stdio.mod
 mod_rad_outrad.o mod_rad_outrad.mod: mod_rad_outrad.F90 mod_dynparam.mod mod_mpmessage.mod mod_rad_common.mod
-mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 mod_dynparam.mod mod_mpmessage.mod mod_service.mod mod_memutil.mod mod_rad_common.mod mod_rad_tracer.mod mod_rad_scenarios.mod mod_rad_aerosol.mod
+mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 mod_dynparam.mod mod_mpmessage.mod mod_service.mod mod_memutil.mod mod_rad_common.mod mod_rad_tracer.mod mod_rad_scenarios.mod mod_rad_aerosol.mod mod_runparams.mod
 mod_rad_scenarios.o mod_rad_scenarios.mod: mod_rad_scenarios.F90 mod_dynparam.mod mod_mpmessage.mod mod_realkinds.mod
 mod_rad_tracer.o mod_rad_tracer.mod: mod_rad_tracer.f90 mod_constants.mod mod_dynparam.mod mod_realkinds.mod
 mod_rrtmg_driver.o mod_rrtmg_driver.mod: mod_rrtmg_driver.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_rad_common.mod mod_rad_scenarios.mod mod_rad_tracer.mod mod_rad_aerosol.mod rrtmg_sw_rad.mod mcica_subcol_gen_sw.mod parrrsw.mod rrsw_wvn.mod parrrtm.mod rrtmg_lw_rad.mod mod_rad_outrad.mod

@@ -35,7 +35,7 @@ module mod_cu_interface
   contains
 
   subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                           sfs,qdot,pptc,ldmsk,sigma,a,dsigma, &
+                           sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma, &
                            qcon,cldfra,cldlwc)
     implicit none
     real(dp) , intent(in) :: dtsec
@@ -51,14 +51,14 @@ module mod_cu_interface
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: qdot
     real(dp) , pointer , intent(in) , dimension(:,:) :: pptc
     integer , pointer , intent(in) , dimension(:,:) :: ldmsk
-    real(dp) , pointer , intent(in) , dimension(:) :: sigma , a , dsigma , qcon
+    real(dp) , pointer , intent(in) , dimension(:) :: sigma , hsigma
+    real(dp) , pointer , intent(in) , dimension(:) :: dsigma , qcon
     real(dp) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
-    if ( ichem    == 1 ) lchem = .true.
+    if ( ichem == 1 ) lchem = .true.
     dtcum  = dtsec
     dtmdl  = dtsec
     aprdiv = d_one/dble(ntsrf)
-
     call assignpnt(mddom%ht,sfhgt)
     call assignpnt(atm1%t,ptatm)
     call assignpnt(atm1%u,puatm)
@@ -87,7 +87,7 @@ module mod_cu_interface
     call assignpnt(pptc,lmpcpc)
     call assignpnt(ldmsk,lmask)
     call assignpnt(sigma,flev)
-    call assignpnt(a,hlev)
+    call assignpnt(hsigma,hlev)
     call assignpnt(dsigma,dflev)
     call assignpnt(qcon,wlev)
     call assignpnt(cldfra,rcldfra)

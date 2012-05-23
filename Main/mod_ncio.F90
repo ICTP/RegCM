@@ -25,10 +25,6 @@ module mod_ncio
   use mod_memutil
   use mod_nchelper
   use mod_domain
-  use mod_cu_interface
-  use mod_lm_interface
-  use mod_rad_interface , only : iemiss
-  use mod_pbl_interface , only : ibltyp
   use mod_che_interface
 !
   integer , parameter :: n_atmvar = 14
@@ -371,8 +367,6 @@ module mod_ncio
 
   integer , dimension(numbat) :: lak_fbats
 
-  character(128) :: cdum
-
   data lmaskfill /.false./
   data idmin   /-1/
   data isdmin  /-1/
@@ -399,182 +393,6 @@ module mod_ncio
                    0, 0/
 
 contains
-
-  subroutine cdumlbcs
-    implicit none
-    select case (iboudy)
-      case(0)
-       write (cdum,'(a)') 'Fixed'
-      case(1)
-       write (cdum,'(a)') 'Relaxation, linear technique'
-      case(2)
-       write (cdum,'(a)') 'Time-dependent'
-      case(3)
-       write (cdum,'(a)') 'Time and inflow/outflow dependent'
-      case(4)
-       write (cdum,'(a)') 'Sponge (Perkey & Kreitzberg, MWR 1976)'
-      case(5)
-       write (cdum,'(a)') 'Relaxation, exponential technique'
-      case default 
-       write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumlbcs
-
-  subroutine cdumcums
-    implicit none
-    select case (icup)
-      case(1)
-       write (cdum,'(a)') 'Kuo'
-      case(2)
-       write (cdum,'(a)') 'Grell'
-      case(3)
-       write (cdum,'(a)') 'Betts-Miller (1986)'
-      case(4)
-       write (cdum,'(a)') 'Emanuel (1991)'
-      case(5)
-        write (cdum,'(a)') 'Tiedtke (1986)'
-      case(98)
-        write (cdum,'(a)') 'Grell over ocean, Emanuel (1991) over land'
-      case(99)
-        write (cdum,'(a)') 'Emanuel (1991) over ocean, Grell over land'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumcums
-
-  subroutine cdumcumcl
-    implicit none
-    select case (igcc)
-      case(1)
-        write (cdum,'(a)') 'Arakawa & Schubert (1974)'
-      case(2)
-        write (cdum,'(a)') 'Fritsch & Chappell (1980)'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumcumcl
-
-  subroutine cdumpbl
-    implicit none
-    select case (ibltyp)
-      case(0)
-        write (cdum,'(a)') 'Frictionless'
-      case(1)
-        write (cdum,'(a)') 'Holtslag PBL (Holtslag, 1990)'
-      case(2)
-        write (cdum,'(a)') 'UW PBL (Bretherton and McCaa, 2004)'
-      case(99)
-        write (cdum,'(a)') 'Holtslag PBL, with UW in diag. mode'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumpbl
-
-  subroutine cdummoist
-    implicit none
-    select case (ipptls)
-      case(1)
-        write (cdum,'(a)') 'Explicit moisture (SUBEX; Pal et al 2000)'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdummoist
-
-  subroutine cdumocnflx
-    implicit none
-    select case (iocnflx)
-      case(1)
-        write (cdum,'(a)') 'Use BATS1e Monin-Obukhov'
-      case(2)
-        write (cdum,'(a)') 'Zeng et al (1998)'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumocnflx
-
-  subroutine cdumpgfs
-    implicit none
-    select case (ipgf)
-      case(0)
-        write (cdum,'(a)') 'Use full fields'
-      case(1)
-        write (cdum,'(a)') 'Hydrostatic deduction with perturbation temperature'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumpgfs
-
-  subroutine cdumemiss
-    implicit none
-    select case (iemiss)
-      case(0)
-        write (cdum,'(a)') 'No'
-      case(1)
-        write (cdum,'(a)') 'Yes'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumemiss
-
-  subroutine cdumlakes
-    implicit none
-    select case (lakemod)
-      case(0)
-        write (cdum,'(a)') 'No'
-      case(1)
-        write (cdum,'(a)') 'Yes'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumlakes
-
-  subroutine cdumchems
-    implicit none
-    select case (ichem)
-      case(0)
-        write (cdum,'(a)') 'Not active'
-      case(1)
-        write (cdum,'(a)') 'Active'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumchems
-
-  subroutine cdumdcsst
-    implicit none
-    select case (idcsst)
-      case(0)
-        write (cdum,'(a)') 'Not active'
-      case(1)
-        write (cdum,'(a)') 'Active'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumdcsst
-
-  subroutine cdumseaice
-    implicit none
-    select case (iseaice)
-      case(0)
-        write (cdum,'(a)') 'Not active'
-      case(1)
-        write (cdum,'(a)') 'Active'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumseaice
-
-  subroutine cdumdesseas
-    implicit none
-    select case (idesseas)
-      case(0)
-        write (cdum,'(a)') 'Not active'
-      case(1)
-        write (cdum,'(a)') 'Active'
-      case default 
-        write (cdum,'(a)') 'Unknown or not specified'
-    end select
-  end subroutine cdumdesseas
 
   function ivarname_lookup(ctype,sname)
     implicit none
@@ -999,6 +817,7 @@ contains
     integer , dimension(5) :: tcyx
     integer , dimension(5) :: tczyx
     integer , dimension(5) :: tdyx
+    character(len=128) :: cdum
 
     if (ctype == 'ATM') then
       ncid = ncatm
@@ -1131,57 +950,57 @@ contains
 !
     istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
     call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
-    call cdumlbcs
+    call cdumlbcs(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_boundary_conditions' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add lbcs', fterr)
-    call cdumcums
+    call cdumcums(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_cumulous_convection_scheme' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add icup', fterr)
     if (icup == 2 .or. icup == 99 .or. icup == 98) then
-      call cdumcumcl
+      call cdumcumcl(cdum)
       istatus = nf90_put_att(ncid, nf90_global,  &
             'model_convective_closure_assumption' , trim(cdum))
       call check_ok(__FILE__,__LINE__,'Error add igcc', fterr)
     end if
-    call cdumpbl
+    call cdumpbl(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_boundary_layer_scheme' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add ibltyp', fterr)
-    call cdummoist
+    call cdummoist(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_moist_physics_scheme' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add ipptls', fterr)
-    call cdumocnflx
+    call cdumocnflx(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_ocean_flux_scheme' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add iocnflx', fterr)
-    call cdumpgfs
+    call cdumpgfs(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_pressure_gradient_force_scheme' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add ipgf', fterr)
-    call cdumemiss
+    call cdumemiss(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_use_emission_factor' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add iemiss', fterr)
-    call cdumlakes
+    call cdumlakes(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_use_lake_model' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add lakemod', fterr)
-    call cdumchems
+    call cdumchems(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_chemistry' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add ichem', fterr)
-    call cdumdcsst
+    call cdumdcsst(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_diurnal_cycle_sst' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add dcsst', fterr)
-    call cdumseaice
+    call cdumseaice(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_seaice_effect' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add seaice', fterr)
-    call cdumdesseas
+    call cdumdesseas(cdum)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_seasonal_desert_albedo_effect' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
@@ -1784,6 +1603,7 @@ contains
     integer :: ivar
     character(64) :: cmethodpnt , cmethodmax , cmethodmin
     character(64) :: cmethodsum , cmethodmean
+    character(len=128) :: cdum
 
     integer :: i , ndims
 

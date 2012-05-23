@@ -152,7 +152,7 @@ else
 mod_lm_interface.o mod_lm_interface.mod: mod_lm_interface.F90 mod_bats_common.mod mod_runparams.mod mod_memutil.mod mod_atm_interface.mod mod_bats_mtrxbats.mod mod_bats_param.mod mod_bats_mppio.mod mod_bats_bndry.mod mod_bats_co2.mod mod_bats_drag.mod mod_bats_lake.mod mod_bats_leaftemp.mod mod_bats_mtrxbats.mod mod_bats_zengocn.mod mod_bats_romsocn.mod
 endif
 mod_mppio.o mod_mppio.mod: mod_mppio.F90 mod_runparams.mod mod_atm_interface.mod mod_lm_interface.mod mod_cu_interface.mod mod_rad_interface.mod mod_pbl_interface.mod mod_memutil.mod mod_mpmessage.mod
-mod_ncio.o mod_ncio.mod: mod_ncio.F90 mod_runparams.mod mod_mpmessage.mod mod_memutil.mod mod_nchelper.mod mod_domain.mod mod_cu_interface.mod mod_lm_interface.mod mod_rad_interface.mod mod_pbl_interface.mod mod_che_interface.mod
+mod_ncio.o mod_ncio.mod: mod_ncio.F90 mod_runparams.mod mod_mpmessage.mod mod_memutil.mod mod_nchelper.mod mod_domain.mod mod_che_interface.mod
 if DO_COMPILE_LIBCLM
 mod_output.o mod_output.mod: mod_output.F90 mod_runparams.mod mod_mpmessage.mod mod_mppparam.mod mod_service.mod mod_atm_interface.mod mod_che_interface.mod mod_che_output.mod mod_lm_interface.mod mod_rad_interface.mod mod_cu_interface.mod mod_pbl_interface.mod mod_ncio.mod mod_bdycod.mod mod_precip.mod mod_split.mod mod_savefile.mod mod_mppio.mod mod_clm.mod
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -167,7 +167,7 @@ else
 mod_params.o mod_params.mod: mod_params.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_domain.mod mod_cu_interface.mod mod_lm_interface.mod mod_atm_interface.mod mod_che_interface.mod mod_rad_interface.mod mod_pbl_interface.mod mod_precip.mod mod_cloud_s1.mod mod_split.mod mod_slice.mod mod_bdycod.mod mod_ncio.mod mod_diagnosis.mod mod_tendency.mod mod_ncio.mod mod_advection.mod mod_mppio.mod
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 endif
-mod_pbl_interface.o mod_pbl_interface.mod: mod_pbl_interface.F90 mod_realkinds.mod mod_service.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod mod_mppparam.mod mod_atm_interface.mod mod_pbl_common.mod mod_pbl_holtbl.mod mod_pbl_uwtcm.mod
+mod_pbl_interface.o mod_pbl_interface.mod: mod_pbl_interface.F90 mod_realkinds.mod mod_service.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod mod_mppparam.mod mod_atm_interface.mod mod_pbl_common.mod mod_pbl_holtbl.mod mod_pbl_uwtcm.mod mod_runparams.mod
 mod_precip.o mod_precip.mod: mod_precip.f90 mod_runparams.mod mod_memutil.mod mod_atm_interface.mod
 mod_rad_interface.o mod_rad_interface.mod: mod_rad_interface.f90 mod_realkinds.mod mod_atm_interface.mod mod_rad_common.mod mod_rad_aerosol.mod mod_rad_colmod3.mod mod_rrtmg_driver.mod mod_rad_o3blk.mod mod_rad_outrad.mod mod_rad_radiation.mod mod_rad_scenarios.mod mod_rad_tracer.mod
 if DO_COMPILE_LIBCLM

@@ -52,7 +52,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_pbl_common.o mod_pbl_common.mod: mod_pbl_common.f90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod
-mod_pbl_holtbl.o mod_pbl_holtbl.mod: mod_pbl_holtbl.F90 mod_dynparam.mod mod_mppparam.mod mod_memutil.mod mod_service.mod mod_mpmessage.mod mod_pbl_common.mod
+mod_pbl_common.o mod_pbl_common.mod: mod_pbl_common.f90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod mod_runparams.mod
+mod_pbl_holtbl.o mod_pbl_holtbl.mod: mod_pbl_holtbl.F90 mod_dynparam.mod mod_mppparam.mod mod_memutil.mod mod_service.mod mod_mpmessage.mod mod_pbl_common.mod mod_runparams.mod
 mod_pbl_thetal.o mod_pbl_thetal.mod: mod_pbl_thetal.f90 mod_constants.mod mod_realkinds.mod
 mod_pbl_uwtcm.o mod_pbl_uwtcm.mod: mod_pbl_uwtcm.F90 mod_realkinds.mod mod_memutil.mod mod_dynparam.mod mod_constants.mod mod_mpmessage.mod mod_pbl_common.mod mod_pbl_thetal.mod

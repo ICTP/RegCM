@@ -35,8 +35,8 @@ module mod_pbl_interface
   contains
 
   subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
-                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,a,sigma,dsigma,  &
-                      ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
+                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,   &
+                      sigma,dsigma,ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
     integer , intent(in) :: ichem , ichdrydepo
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
@@ -50,7 +50,7 @@ module mod_pbl_interface
     real(dp) , pointer , dimension(:,:,:) :: remdrd
     integer , pointer , dimension(:,:) :: ldmsk
     real(dp) , pointer , dimension(:,:) :: psdot
-    real(dp) , pointer , dimension(:) :: a
+    real(dp) , pointer , dimension(:) :: hsigma
     real(dp) , pointer , dimension(:) :: sigma
     real(dp) , pointer , dimension(:) :: dsigma
     real(dp) :: dt , ptop
@@ -109,8 +109,8 @@ module mod_pbl_interface
     call assignpnt(mddom%coriol,coriolis)
     call assignpnt(mddom%msfx,mapfcx)
     call assignpnt(ldmsk,landmsk)
-    call assignpnt(a,hlev)
     call assignpnt(sigma,flev)
+    call assignpnt(hsigma,hlev)
     call assignpnt(dsigma,dlev)
     call assignpnt(chtrdpv,depvel)
     if ( associated(chtrname) ) chname => chtrname
@@ -118,7 +118,8 @@ module mod_pbl_interface
   end subroutine init_pbl
 
   subroutine get_data_from_tcm(tcmstate,tcmtend,aten,atm1,atm2,bRegridWinds)
-    implicit none 
+    use mod_runparams , only : ibltyp
+    implicit none
     type(atmstate) , intent(inout) :: tcmtend , aten , atm1 , atm2
     type(tcm_state) , intent(inout) :: tcmstate
     logical , intent(in) :: bRegridWinds
