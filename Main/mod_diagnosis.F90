@@ -675,7 +675,7 @@ module mod_diagnosis
     call mpi_bcast(worka,nicross*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
 
     do k = 1 , kz
-      do j = jde1 , jde2
+      do j = jce1 , jce2
         vaill(j,k) = atm1%v(j,idi2,k)
         va02(j,k)  = atm1%v(j,idi1,k)
         xkcill1(j,k) = xkc(j,ici2,k)
@@ -688,7 +688,7 @@ module mod_diagnosis
         end do
       end do
     end do
-    do j = jde1 , jde2
+    do j = jce1 , jce2
       psaill(j)  = sfs%psa(j,ice2)
       psaill1(j) = sfs%psa(j,ici2)
       psa01(j) = sfs%psa(j,ice1)

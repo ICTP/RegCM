@@ -25,6 +25,7 @@ module mod_che_ncio
   use mod_che_indices
   use mod_che_common
   use mod_runparams
+  use mod_domain
   use netcdf
 !
   private
@@ -123,16 +124,13 @@ module mod_che_ncio
       call getmem3d(dumio,1,o_nj,1,o_ni,1,o_nz,'ncio:dumio')
       call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
       call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
-    end subroutine init_mod_che_ncio
 
-    subroutine close_domain
-      implicit none
-      if (idmin >= 0) then
-        istatus = nf90_close(idmin)
-        call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
-        idmin = -1
-      end if
-    end subroutine close_domain
+      ioxlat(:,:) = mddom_io%xlat(o_js:o_je,o_is:o_ie)
+      ioxlon(:,:) = mddom_io%xlon(o_js:o_je,o_is:o_ie)
+      iotopo(:,:) = mddom_io%ht(o_js:o_je,o_is:o_ie)
+      iomask(:,:) = mddom_io%mask(o_js:o_je,o_is:o_ie)
+      
+    end subroutine init_mod_che_ncio
 
     subroutine read_texture(nats,texture)
       implicit none
@@ -669,24 +667,22 @@ module mod_che_ncio
               'model_simulation_is_a_restart' , trim(cdum))
       call check_ok(__FILE__,__LINE__,'Error add ifrest', fterr)
 
-
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_timestep_in_seconds' , dt)
-!!$    call check_ok(__FILE__,__LINE__,'Error add dt', fterr)
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_timestep_in_minutes_solar_rad_calc' , dtrad)
-!!$    call check_ok(__FILE__,__LINE__,'Error add dtrad', fterr)
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_timestep_in_seconds_bats_calc' , dtsrf)
-!!$    call check_ok(__FILE__,__LINE__,'Error add dtsrf', fterr)
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_timestep_in_hours_radiation_calc' , dtabem)
-!!$    call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
-!!$    istatus = nf90_put_att(ncid, nf90_global,  &
-!!$            'model_timestep_in_hours_boundary_input' , ibdyfrq)
-!!$    call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
-
-
+      istatus = nf90_put_att(ncid, nf90_global,  &
+               'model_timestep_in_seconds' , dt)
+      call check_ok(__FILE__,__LINE__,'Error add dt', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_timestep_in_minutes_solar_rad_calc' , dtrad)
+      call check_ok(__FILE__,__LINE__,'Error add dtrad', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+             'model_timestep_in_seconds_bats_calc' , dtsrf)
+      call check_ok(__FILE__,__LINE__,'Error add dtsrf', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_timestep_in_hours_radiation_calc' , dtabem)
+      call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
+      istatus = nf90_put_att(ncid, nf90_global,  &
+              'model_timestep_in_hours_boundary_input' , ibdyfrq)
+      call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
+!
 !End of Global Attributes
 !
 !         ADD DIMENSIONS

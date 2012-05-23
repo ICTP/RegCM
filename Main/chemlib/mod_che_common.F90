@@ -132,11 +132,11 @@ module mod_che_common
         call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
                       1,kz,'mod_che_common:convcldfra')
         
-        call getmem4d(rxsg,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
+        call getmem4d(rxsg,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                       'che_common:rxsg')
-        call getmem4d(rxsaq1,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
+        call getmem4d(rxsaq1,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                       'che_common:rxsaq1')
-        call getmem4d(rxsaq2,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
+        call getmem4d(rxsaq2,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                       'che_common:rxsaq2')
         call getmem3d(cemtr,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtr')
         call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
