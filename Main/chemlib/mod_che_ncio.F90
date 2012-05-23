@@ -927,6 +927,9 @@ module mod_che_ncio
       istatus = nf90_put_var(ncid, illtpvar(4), iomask)
       call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
   
+      istatus = nf90_sync(ncid)
+      call check_ok(__FILE__,__LINE__,'Error sync file', fterr)
+
       ncche(itr) = ncid
 
 ! end of tracer loop       

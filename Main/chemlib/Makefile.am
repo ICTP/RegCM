@@ -78,7 +78,7 @@ mod_che_dust.o mod_che_dust.mod: mod_che_dust.F90 mod_realkinds.mod mod_constant
 mod_che_emission.o mod_che_emission.mod: mod_che_emission.F90 mod_constants.mod mod_mpmessage.mod mod_service.mod mod_dynparam.mod mod_che_common.mod mod_che_param.mod mod_che_mppio.mod mod_che_dust.mod mod_che_ncio.mod mod_che_indices.mod
 mod_che_indices.o mod_che_indices.mod: mod_che_indices.f90
 mod_che_mppio.o mod_che_mppio.mod: mod_che_mppio.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_mpmessage.mod mod_che_param.mod mod_che_common.mod mod_che_species.mod
-mod_che_ncio.o mod_che_ncio.mod: mod_che_ncio.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_che_indices.mod mod_che_common.mod mod_runparams.mod
+mod_che_ncio.o mod_che_ncio.mod: mod_che_ncio.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_che_indices.mod mod_che_common.mod mod_runparams.mod mod_domain.mod
 mod_che_output.o mod_che_output.mod: mod_che_output.F90 mod_constants.mod mod_mpmessage.mod mod_service.mod mod_dynparam.mod mod_che_common.mod mod_che_param.mod mod_che_mppio.mod mod_che_ncio.mod mod_che_indices.mod
 mod_che_param.o mod_che_param.mod: mod_che_param.f90 mod_realkinds.mod
 mod_che_seasalt.o mod_che_seasalt.mod: mod_che_seasalt.f90 mod_realkinds.mod mod_dynparam.mod mod_constants.mod mod_che_common.mod
