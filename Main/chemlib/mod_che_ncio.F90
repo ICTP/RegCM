@@ -76,9 +76,6 @@ module mod_che_ncio
   real(sp) , dimension(:,:) , pointer :: iomask
   real(sp) , dimension(:,:,:) , pointer :: dumio
 
-  real(sp) , dimension(:,:) , pointer :: sp2d
-  real(sp) , dimension(:,:) , pointer :: iolnds
-
   data ichin   /-1/
   data ioxcl   /-1/
   data ibcrec  / 1/
@@ -122,13 +119,11 @@ module mod_che_ncio
       call getmem2d(iotopo,1,o_nj,1,o_ni,'ncio:iotopo')
       call getmem2d(iomask,1,o_nj,1,o_ni,'ncio:iomask')
       call getmem3d(dumio,1,o_nj,1,o_ni,1,o_nz,'ncio:dumio')
-      call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
-      call getmem2d(iolnds,1,o_nj,1,o_ni,'ncio:iolnds')
 
-      ioxlat(:,:) = mddom_io%xlat(o_js:o_je,o_is:o_ie)
-      ioxlon(:,:) = mddom_io%xlon(o_js:o_je,o_is:o_ie)
-      iotopo(:,:) = mddom_io%ht(o_js:o_je,o_is:o_ie)
-      iomask(:,:) = mddom_io%mask(o_js:o_je,o_is:o_ie)
+      ioxlat(:,:) = real(mddom_io%xlat(o_js:o_je,o_is:o_ie))
+      ioxlon(:,:) = real(mddom_io%xlon(o_js:o_je,o_is:o_ie))
+      iotopo(:,:) = real(mddom_io%ht(o_js:o_je,o_is:o_ie))
+      iomask(:,:) = real(mddom_io%mask(o_js:o_je,o_is:o_ie))
       
     end subroutine init_mod_che_ncio
 

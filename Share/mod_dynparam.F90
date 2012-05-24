@@ -498,9 +498,6 @@ module mod_dynparam
         & trim(filename)
     ierr = 1
     return
-  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ',  &
-        & trim(filename)
-    ierr = 1
 
   end subroutine initparam
 
