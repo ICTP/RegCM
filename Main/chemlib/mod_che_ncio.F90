@@ -1004,7 +1004,7 @@ module mod_che_ncio
       real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , &
                                                           talwrf , srlwrf
 
-      integer :: n , k, noutf
+      integer :: n , k , noutf
       integer , dimension(5) :: istart , icount
                     
       real(dp) , dimension(1) :: nctime
@@ -1051,8 +1051,8 @@ module mod_che_ncio
           icount(1) = o_nj
 
           !*** tracer concentration
-          do k = kz , 1 , -1
-            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,kz-k+1,n) / &
+          do k = 1 , kz
+            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,k,n) / &
                                 ps(o_js:o_je,o_is:o_ie))
           end do
           istatus = nf90_put_var(ncche(n), ichevar(3), &
