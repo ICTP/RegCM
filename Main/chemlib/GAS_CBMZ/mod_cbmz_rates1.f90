@@ -519,9 +519,13 @@ module mod_cbmz_rates1
         !  RATE FOR 9.O3+hv=2OH (IF PRODUCT=OH)
         !
         if ( jc == 102 ) then
-          if ( c_nh2o > 0 ) then
-            ratek(kk,j) = hvrate(kk,2)*c_rk(1,j) / &
-              (d_one+0.13181D0*c_dens(kk)/c_h2ogas(kk))
+          if ( c_nh2o > d_zero ) then
+            if ( c_h2ogas(kk) > d_zero ) then
+              ratek(kk,j) = hvrate(kk,2)*c_rk(1,j) / &
+                (d_one+0.13181D0*c_dens(kk)/c_h2ogas(kk))
+            else
+              ratek(kk,j) = hvrate(kk,2)
+            end if
           end if
         end if
       end do

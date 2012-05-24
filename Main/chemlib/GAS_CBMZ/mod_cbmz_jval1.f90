@@ -129,9 +129,7 @@ module mod_cbmz_jval1
  
 !     PRELIMINARY:  ENTER JVALS AS ZERO.
 !     RETURN IF ZENITH>94.  (CUT IF VECTORIZED)
-      do jc = 1 , jct
-        jval(jc) = d_zero
-      end do
+      jval(:) = d_zero
       if ( jparam(1) >= hvmat(1,nhv(1)) ) return
  
 !     LOOP:  Establish index and fractions for each j-parameter
