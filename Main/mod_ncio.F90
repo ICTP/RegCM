@@ -527,11 +527,11 @@ contains
     call read_domain(idmin)
     tpd = houpd/atmfrq
     cfd = houpd/chemfrq
-    ioxlat(:,:) = mddom_io%xlat(o_js:o_je,o_is:o_ie)
-    ioxlon(:,:) = mddom_io%xlon(o_js:o_je,o_is:o_ie)
-    iotopo(:,:) = mddom_io%ht(o_js:o_je,o_is:o_ie)
-    iomask(:,:) = mddom_io%mask(o_js:o_je,o_is:o_ie)
-    iolnds(:,:) = mddom_io%lndcat(o_js:o_je,o_is:o_ie)
+    ioxlat(:,:) = real(mddom_io%xlat(o_js:o_je,o_is:o_ie))
+    ioxlon(:,:) = real(mddom_io%xlon(o_js:o_je,o_is:o_ie))
+    iotopo(:,:) = real(mddom_io%ht(o_js:o_je,o_is:o_ie))
+    iomask(:,:) = real(mddom_io%mask(o_js:o_je,o_is:o_ie))
+    iolnds(:,:) = real(mddom_io%lndcat(o_js:o_je,o_is:o_ie))
   end subroutine read_domain_info
 
   subroutine read_domain_lake(hlake)
