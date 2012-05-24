@@ -75,54 +75,57 @@ module mod_bats_romsocn
 !
     call time_begin(subroutine_name,idindx)
 !
-    ! feedback from ocean model -> atmodpheric model
+    ! feedback from ocean -> atmospheric model
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          ! update sea surface temperature
-          if (sst2d(j,i) .lt. MISSING_R8) then  
-            ! update ground temperature
-            tgrd(n,j,i) = sst2d(j,i)
-            tgbrd(n,j,i) = sst2d(j,i)
-            ! calculate bulk fluxes using zengocean bulk flux alg.
-            uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
-            tsurf = sst2d(j,i)-tzero
-            t995 = tatm(j,i,kz)-tzero
-            q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
-            z995 = hgt(j,i,kz)
-            zi = hpbl(j,i)
-            psurf = (sfps(j,i)+ptop)*d_10
-            call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
-                         uv10,tau,lh,sh,dth,dqh,ustar,zo)
-            ! update surface variables
-            sent(n,j,i) = sh
-            evpr(n,j,i) = lh/wlhv
-            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
-            facttq = dlog(z995*d_half)/dlog(z995/zo)
-            u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
-            v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
-            t2m(n,j,i) = t995 + tzero - dth*facttq
-            q2m(n,j,i) = q995 - dqh*facttq 
-          end if
+          ! update only inland water/ocean grids
+          if (iveg1(n,j,i) == 14 .or. iveg1(n,j,i) == 15) then
+            ! update sea surface temperature
+            if (sst2d(j,i) .lt. MISSING_R8) then  
+              ! update ground temperature
+              tgrd(n,j,i) = sst2d(j,i)
+              tgbrd(n,j,i) = sst2d(j,i)
+              ! calculate bulk fluxes using zengocean bulk flux alg.
+              uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
+              tsurf = sst2d(j,i)-tzero
+              t995 = tatm(j,i,kz)-tzero
+              q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
+              z995 = hgt(j,i,kz)
+              zi = hpbl(j,i)
+              psurf = (sfps(j,i)+ptop)*d_10
+              call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
+                           uv10,tau,lh,sh,dth,dqh,ustar,zo)
+              ! update surface variables
+              sent(n,j,i) = sh
+              evpr(n,j,i) = lh/wlhv
+              drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
+              facttq = dlog(z995*d_half)/dlog(z995/zo)
+              u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
+              v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
+              t2m(n,j,i) = t995 + tzero - dth*facttq
+              q2m(n,j,i) = q995 - dqh*facttq 
+            end if
 #ifdef ROMSICE
-          ! update land use, mask and fluxes if ice is formed
-          !if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
-          !  ldmsk1(n,j,i) = 2
-          !  lveg(n,j,i) = 12
-          !  sfice(n,j,i) = hice2d(j,i) 
-          !  ! Reduce sensible heat flux for ice presence
-          !  toth = sfice(n,j,i) + sncv(n,j,i)
-          !  if ( toth > href ) then
-          !    sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
-          !  end if
-          !else
-          !  ldmsk1(n,j,i) = 0
-          !  lveg(n,j,i) = lveg2(n,j,i) 
-          !  sfice(n,j,i) = d_zero
-          !  sncv(n,j,i) = d_zero
-          !  snag(n,j,i) = d_zero
-          !end if
+            ! update land use, mask and fluxes if ice is formed
+            if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
+              ldmsk1(n,j,i) = 2
+              lveg(n,j,i) = 12
+              sfice(n,j,i) = hice2d(j,i) 
+              ! reduce sensible heat flux for ice presence
+              toth = sfice(n,j,i) + sncv(n,j,i)
+              if ( toth > href ) then
+                sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+              end if
+            else
+              ldmsk1(n,j,i) = 0
+              lveg(n,j,i) = iveg1(n,j,i) 
+              sfice(n,j,i) = d_zero
+              sncv(n,j,i) = d_zero
+              snag(n,j,i) = d_zero
+            end if
 #endif
+          end if
         end do
       end do
     end do

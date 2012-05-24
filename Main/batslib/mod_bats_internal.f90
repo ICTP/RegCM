@@ -67,8 +67,6 @@ module mod_bats_internal
   real(dp) , pointer , dimension(:,:) :: usw , vsw , flwa , flwda , fswa , &
          sina , svga
   integer , pointer , dimension(:,:,:) :: lveg
-! keeps original value of the lveg for the coupling
-  integer , pointer , dimension(:,:,:) :: lveg2
 !
   public :: gwatr , rnof , rsubsr , rsubss , rsubst , rsur , sold ,     &
             wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr  , bb ,    &
@@ -92,7 +90,7 @@ module mod_bats_internal
             wtgl , wtglq ,  wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 ,   &
             wtshi , wtsqi , df , ribl , ribn , usw , vsw , flwa , flwda , &
             fswa , sina , svga
-  public :: lveg, lveg2
+  public :: lveg
 
   public :: allocate_mod_bats_internal
 
@@ -254,7 +252,6 @@ module mod_bats_internal
     call getmem3d(ribl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribl')
     call getmem3d(ribn,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribn')
     call getmem3d(lveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lveg')
-    call getmem3d(lveg2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lveg2')
 
     call getmem2d(usw,jci1,jci2,ici1,ici2,'bats_internal:usw')
     call getmem2d(vsw,jci1,jci2,ici1,ici2,'bats_internal:vsw')

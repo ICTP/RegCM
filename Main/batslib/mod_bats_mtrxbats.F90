@@ -339,7 +339,6 @@ module mod_bats_mtrxbats
             evpr(n,j,i) = qfx(j,i)
             lveg(n,j,i) = iveg1(n,j,i)
             if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
-            lveg2(n,j,i) = lveg(n,j,i)
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
                           seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
             zh(n,j,i) = hgt(j,i,kz)
@@ -710,7 +709,6 @@ module mod_bats_mtrxbats
         do n = 1 , nnsg
           lveg(n,j,i) = iveg1(n,j,i)
           if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
-          lveg2(n,j,i) = lveg(n,j,i)
         end do
       end do
     end do
