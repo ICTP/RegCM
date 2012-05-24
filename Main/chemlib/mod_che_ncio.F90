@@ -1051,7 +1051,7 @@ module mod_che_ncio
           icount(1) = o_nj
 
           !*** tracer concentration
-          do k = 1 , kz
+          do k = kz , 1 , -1
             dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,kz-k+1,n) / &
                                 ps(o_js:o_je,o_is:o_ie))
           end do
