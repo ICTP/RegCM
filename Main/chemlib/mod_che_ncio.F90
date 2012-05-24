@@ -363,7 +363,7 @@ module mod_che_ncio
       istatus = nf90_inq_varid(ncid, cna, ivarid)     
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto)
+      istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' read err','CHEM_EMISS FILE')
       if ( lh ) then  ! half of lumped Aromatics
