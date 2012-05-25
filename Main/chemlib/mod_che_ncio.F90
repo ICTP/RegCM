@@ -175,7 +175,7 @@ module mod_che_ncio
       integer :: n,ncid , itvar, idimid, chmnrec
       character(64) ::chemi_timeunits
       real(dp) , dimension(:) , allocatable :: emtimeval
-      integer , dimension(3) :: istart , icount
+      integer , dimension(4) :: istart , icount
       integer :: year, month 
 ! FAB: remember for now, we have 1 emission file containing all monthly
 ! emission for the whole simulation period
@@ -227,10 +227,12 @@ module mod_che_ncio
 !      recc = recc + 1
       istart(1) = 1
       istart(2) = 1
-      istart(3) = recc
+      istart(3) = 1
+      istart(4) = recc
       icount(1) = jx
       icount(2) = iy
       icount(3) = 1
+      icount(4) = 1
 
 !FAB VERY IMPORTANT : THIS READING SECTION SHOULD BE FIXED WITH
 !                     HOMOGENEOUS PREPROC
@@ -298,10 +300,10 @@ module mod_che_ncio
         if ( ioli /= 0 ) then
            call rvar(ncid,istart,icount,ioli,echemsrc,'OLI_flux',.false.)
         end if
-!!$        ! Isoprene
-!!$        if ( iisop /= 0 ) then
-!!$          call rvar(ncid,istart,icount,iisop,echemsrc,'bio_isop',.false.)
-!!$        end if
+        ! Isoprene
+        if ( iisop /= 0 ) then
+          call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_flux',.false.)
+        end if
         ! Toluene
         if ( itolue /= 0 ) then
             call rvar(ncid,istart,icount,itolue,echemsrc, &
@@ -349,7 +351,7 @@ module mod_che_ncio
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,cnb,cnc,cnd)
       implicit none
       integer , intent(in) :: ncid
-      integer , dimension(3) , intent(in) :: istart , icount
+      integer , dimension(4) , intent(in) :: istart , icount
       real(dp) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
@@ -360,7 +362,7 @@ module mod_che_ncio
       real(sp) , dimension(jx,iy) :: toto
       integer :: i , j , ind
 
-      istatus = nf90_inq_varid(ncid, cna, ivarid)     
+      istatus = nf90_inq_varid(ncid, cna, ivarid)
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' miss','CHEM_EMISS FILE')
       istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)

@@ -916,7 +916,8 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,i))
               ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,i))
               rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,i))
-              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i))
+              ! Correct unit of measure of runoff coming from CLM
+              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i))*d_r1000
               scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,i))
               tlef_s(n,j,i) = real(c2rtlef(jj,i))
               ssw_s(n,j,i) = real(c2rsm10cm(jj,i))
