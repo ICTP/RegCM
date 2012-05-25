@@ -229,7 +229,8 @@ program icbc
     call headernest
   else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
-            dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' ) then
+            dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
+            dattyp(1:3) == 'GF_' ) then
     call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)

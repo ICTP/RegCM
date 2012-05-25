@@ -140,6 +140,10 @@ module mod_sst_gnmnc
     call split_idate(globidate1, year, month, day, hour)  
     y1 = (year-1)/5*5+1
     y2 = y1+4
+    if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
+      y1 = y1 - 5
+      y2 = y1 + 4
+    end if
     if ( ssttyp(4:5) == 'RF' ) then
       write(inpfile,'(a,i4,a,i4,a)') &
          trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &

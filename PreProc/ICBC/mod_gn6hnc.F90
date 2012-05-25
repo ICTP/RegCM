@@ -353,6 +353,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      istatus = nf90_inq_varid(inet1,'p0',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      istatus = nf90_get_var(inet1,ivar1,dp0)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      p0 = real(dp0)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -493,7 +498,8 @@ module mod_gn6hnc
  
       ! All processing assumes dataset in top -> bottom
       ! CanESM and IPSL are read bottom -> top
-      if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then
+      if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
+           dattyp(1:3) == 'GF_' ) then
         call top2btm(tvar,nlon,nlat,klev)
         call top2btm(qvar,nlon,nlat,klev)
         call top2btm(uvar,nlon,nlat,klev)
@@ -574,7 +580,7 @@ module mod_gn6hnc
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
-    integer :: year , month , day , hour
+    integer :: year , month , day , hour , y1 , y2
     integer :: fyear , fmonth , fday , fhour
 !
 !
@@ -971,53 +977,34 @@ module mod_gn6hnc
           write (stdout,*) inet(6), trim(pathaddname)
           varname => ipvars
         else if ( dattyp(1:3) == 'GF_' ) then
-          ! 10 yearly files, one for each variable
-          do i = 1 , nfiles-1
-            if ( ipvars(i) /= 'XXX' ) then
+          ! 5 yearly files, one for each variable
+          y1 = (year-1)/5*5+1
+          y2 = y1+4
+          if ( year == y1 .and. month == 1 .and. &
+               day == 1 .and. hour == 0 ) then
+            y1 = y1-5
+            y2 = y1+4
+          end if
+          do i = 1 , nfiles
+            if ( gfdlvars(i) /= 'XXX' ) then
               if ( dattyp(4:4) == 'R' ) then
-                write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
-                  trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
-                  (year/4*4), '010100-', (year/10*10+9), '12312100.nc'
+                write (inname,99005) 'RF',pthsep,trim(gfdlvars(i)), pthsep, &
+                  trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
+                  y1, '010100-', y2, '123123.nc'
               else
-                write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(ipvars(i)), pthsep, trim(ipvars(i)), &
-                  trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
-                  (year/10*10+6), '01010300-', (year/10*10+15), '12312100.nc'
+                write (inname,99005) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
+                  pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
+                  trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
+                  y1, '010100-', y2, '123123.nc'
               end if
-              pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+              pathaddname = trim(inpglob)//'/GFDL-ESM2M/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
               write (stdout,*) inet(i), trim(pathaddname)
             end if
           end do
-          ! PS is in 50 years file...
-          if ( dattyp(4:4) == 'R' ) then
-            if ( year < 1950 ) then
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    1900, '01010300-', 1949, '12312100.nc'
-            else if ( year < 2000 ) then
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    1950, '01010300-', 1999, '12312100.nc'
-            else
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    2000, '01010300-', 2005, '12312100.nc'
-            end if
-          else
-            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-               trim(ipvars(6)), pthsep, trim(ipvars(6)), &
-               trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
-               (year/50*50+6), '01010300-', (year/50*50+55), '12312100.nc'
-          end if
-          pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
-          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error open '//trim(pathaddname))
-          write (stdout,*) inet(6), trim(pathaddname)
-          varname => ipvars
+          varname => gfdlvars
         end if
       end if
 
@@ -1106,6 +1093,13 @@ module mod_gn6hnc
         end do
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
+      else if ( dattyp(1:3) == 'GF_' ) then
+        do k = 1, klev
+          pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
+        end do
+        ! Go to hPa
+        psvar(:,:) = psvar(:,:)*0.01
+        pp3d(:,:,:) = pp3d(:,:,:)*0.01
       end if
       istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
@@ -1133,7 +1127,6 @@ module mod_gn6hnc
       end if
 
     end if ! Other data types not the GFS11 or E_ICH1
- 
 
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
 99002   format (a,i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
