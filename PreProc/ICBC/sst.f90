@@ -104,6 +104,13 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
+  else if ( ssttyp == 'GF_RF' .or. ssttyp == 'GF_45' .or. &
+            ssttyp == 'GF_85' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
