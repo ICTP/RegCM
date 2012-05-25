@@ -164,6 +164,43 @@ module mod_sst_gnmnc
       call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
     end if
     varname(2) = 'ts'
+  else if ( ssttyp(1:3) == 'CN_' ) then
+    call split_idate(globidate1, year, month, day, hour)  
+    if ( year < 2006 ) then
+      y1 = (year)/10*10
+      if ( y1 == 2000 ) then
+        y2 = 2005
+      else
+        y2 = y1 + 9
+      end if
+    else
+      y1 = (year-6)/10*10+6
+      y2 = y1 + 9
+    end if
+    if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
+      y1 = y1 - 10
+      y2 = y1 + 9
+    end if
+    if ( ssttyp(4:5) == 'RF' ) then
+      write(inpfile,'(a,i4,a,i4,a)') &
+         trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
+         y1 , '01-', y2, '12.nc'
+    else if ( ssttyp(4:5) == '26' ) then
+      write(inpfile,'(a,i4,a,i4,a)') &
+         trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp26_r1i1p1_', &
+         y1 , '01-', y2, '12.nc'
+    else if ( ssttyp(4:5) == '45' ) then
+      write(inpfile,'(a,i4,a,i4,a)') &
+         trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp45_r1i1p1_', &
+         y1 , '01-', y2, '12.nc'
+    else if ( ssttyp(4:5) == '85' ) then
+      write(inpfile,'(a,i4,a,i4,a)') &
+         trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp85_r1i1p1_', &
+         y1 , '01-', y2, '12.nc'
+    else
+      call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
+    end if
+    varname(2) = 'tos'
   else
     call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
   end if
@@ -173,7 +210,7 @@ module mod_sst_gnmnc
   write (stdout,*) inet1 , trim(inpfile)
 
 ! GET DIMENSION IDs
-  if ( ssttyp(1:3) /= 'IP_' ) then
+  if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' ) then
     istatus = nf90_inq_dimid(inet1,'lat',latid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
     istatus = nf90_inq_dimid(inet1,'lon',lonid)
@@ -211,7 +248,7 @@ module mod_sst_gnmnc
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
 
-  if ( ssttyp(1:3) /= 'IP_' ) then
+  if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' ) then
     call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
 !   GET LATITUDE AND LONGITUDE
@@ -227,12 +264,6 @@ module mod_sst_gnmnc
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
     istatus = nf90_get_var(inet1,lonid,glon2)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
-!    call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
-!    call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
-!    glat(:) = glat2(1,:)
-!    glon(:) = glon2(:,1)
-!    call relmem2d(glat2)
-!    call relmem2d(glon2)
     where (glon2 >= 180.0)
       glon2 = glon2-360.0
     end where
@@ -248,9 +279,11 @@ module mod_sst_gnmnc
   call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
 ! CHECK FOR THE REQUIRED RECORD IN DATA FILE  
   istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1)//' units')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read var '//varname(1)//' units')
   istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1)//' calendar')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read var '//varname(1)//' calendar')
   fidate1 = timeval2date(work1(1),cunit,ccal)
 
   idateo = monfirst(globidate1)
@@ -266,7 +299,7 @@ module mod_sst_gnmnc
   do k = 1 , nsteps
 
     call gnmnc_sst(idate)
-    if ( ssttyp(1:3) == 'IP_' ) then
+    if ( ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'CN_' ) then
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
     else
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
@@ -339,6 +372,73 @@ module mod_sst_gnmnc
       else if ( ssttyp(4:5) == '85' ) then
         write(inpfile,'(a,i4,a,i4,a)') &
            trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_rcp85_r1i1p1_', &
+           y1 , '01-', y2, '12.nc'
+      end if
+      istatus = nf90_open(inpfile,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+      write (stdout,*) inet1 , trim(inpfile)
+      istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(1))
+      istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
+      istatus = nf90_inq_dimid(inet1,'time',timid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+      istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+      call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
+      istart(1) = 1
+      icount(1) = timlen
+      istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1)//' units')
+      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1)//' calendar')
+      fidate1 = timeval2date(work1(1),cunit,ccal)
+      it = imondiff(idate,fidate1) + 1
+      istart(3) = it
+      istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      next = timeval2date(work1(it),cunit,ccal)
+    else
+      istart(3) = it-1
+      istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      istart(3) = it
+      istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      prev = timeval2date(work1(it-1),cunit,ccal)
+      next = timeval2date(work1(it),cunit,ccal)
+    end if
+  else if ( ssttyp(1:3) == 'CN_' ) then
+    if ( it > timlen ) then
+      istart(3) = it-1
+      istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      prev = timeval2date(work1(it-1),cunit,ccal)
+      ! Try switching to next file
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
+      call split_idate(idate, year, month, day, hour)  
+      y1 = (year-1)/5*5+1
+      y2 = y1+4
+      if ( ssttyp(4:5) == 'RF' ) then
+        write(inpfile,'(a,i4,a,i4,a)') &
+           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
+           y1 , '01-', y2, '12.nc'
+      else if ( ssttyp(4:5) == '26' ) then
+        write(inpfile,'(a,i4,a,i4,a)') &
+           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp26_r1i1p1_', &
+           y1 , '01-', y2, '12.nc'
+      else if ( ssttyp(4:5) == '45' ) then
+        write(inpfile,'(a,i4,a,i4,a)') &
+           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp45_r1i1p1_', &
+           y1 , '01-', y2, '12.nc'
+      else if ( ssttyp(4:5) == '85' ) then
+        write(inpfile,'(a,i4,a,i4,a)') &
+           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp85_r1i1p1_', &
            y1 , '01-', y2, '12.nc'
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)

@@ -111,6 +111,13 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
+  else if ( ssttyp == 'CN_RF' .or. ssttyp == 'CN_45' .or. &
+            ssttyp == 'CN_85' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
