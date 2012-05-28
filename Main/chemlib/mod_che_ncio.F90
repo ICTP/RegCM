@@ -20,6 +20,7 @@
 module mod_che_ncio
 !
   use mod_realkinds
+  use mod_nchelper
   use mod_dynparam
   use mod_mpmessage
   use mod_che_indices
@@ -45,7 +46,7 @@ module mod_che_ncio
   integer :: ichin 
   integer :: ioxcl     
 
-  integer , dimension(:) , allocatable :: ncche     
+  integer , dimension(:) , pointer :: ncche     
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_optvar) ::ioptvar 
 
@@ -437,13 +438,10 @@ module mod_che_ncio
     logical, intent(in) :: ifrest
     integer  :: itr
     character(8) ::chevarnam
-    character(64) :: title
     character(32) :: fbname
     character(16) :: fterr
-    character(256) :: ofname , history
-    integer , dimension(8) :: tvals
+    character(256) :: ofname
     real(sp) :: hptop
-    real(sp) , dimension(2) :: trlat
     real(sp) , dimension(iysg) :: yiy
     real(sp) , dimension(jxsg) :: xjx
     integer :: ncid
@@ -465,9 +463,16 @@ module mod_che_ncio
     noutf = ntr
     if (iaerosol == 1 ) noutf = ntr + 1 
 
-    if ( .not. allocated(ncche) ) then
-      allocate(ncche(noutf))
+    if ( .not. associated(ncche) ) then
+      call getmem1d(ncche,1,noutf,'che_ncio:ncche')
     end if
+    do itr = 1, noutf
+      if ( ncche(itr) >= 0 ) then
+        istatus = nf90_close(ncche(itr))
+        call check_ok(__FILE__,__LINE__,'Error close chem file output','CHE')
+        ncche(itr) = -1
+      end if
+    end do
     ibin = 0
     jbin = 0
 !   tracer loop , since we are generating one output per
@@ -476,7 +481,6 @@ module mod_che_ncio
       if ( itr < noutf ) then  
         ncid = ncche(itr)     
         chevarnam =  chtrname(itr)
-
         if ( chtrname(itr) == 'DUST' )  then
           ibin = ibin+1
           write( chevarnam(5:6),'(I1)') ibin
@@ -488,7 +492,6 @@ module mod_che_ncio
       else if ( itr == noutf) then
         chevarnam = 'OPT'
       end if 
-      title = 'ICTP Regional Climatic model V4  '//chevarnam//' output'
       icherefdate = idate
       icherec = 1
 
@@ -502,87 +505,10 @@ module mod_che_ncio
       write (aline, *) 'Opening new output file ', trim(ofname)
       call say
 
-#ifdef NETCDF4_HDF5
-      istatus = nf90_create(ofname, &
-                   ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
-#else
-      istatus = nf90_create(ofname, nf90_clobber, ncid)
-#endif
+      call createfile_withname(ofname,ncid)
+      call add_common_global_params(ncid,'Model (Chemistry '// &
+                      trim(chevarnam)//')')
       ncche(itr) = ncid
-
-      ! Start Global Attributes
-      istatus = nf90_put_att(ncid, nf90_global, 'title', title)
-      call check_ok(__FILE__,__LINE__,'Error add title', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
-      call check_ok(__FILE__,__LINE__,'Error add institution', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'source', &
-                  'RegCM Model '//'SVN_REV'//' simulation output')
-      call check_ok(__FILE__,__LINE__,'Error add source', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
-      call check_ok(__FILE__,__LINE__,'Error add Conventions', fterr)
-      call date_and_time(values=tvals)
-      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
-             tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,       &
-             tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,             &
-             ' : Created by RegCM model'
-      istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-      call check_ok(__FILE__,__LINE__,'Error add history', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'references', &
-               'http://eforge.escience-lab.org/gf/project/regcm')
-      call check_ok(__FILE__,__LINE__,'Error add references', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
-      call check_ok(__FILE__,__LINE__,'Error add experiment', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-      call check_ok(__FILE__,__LINE__,'Error add projection', fterr)
-      if (iproj == 'LAMCON') then
-        istatus = nf90_put_att(ncid, nf90_global, &
-                        'grid_mapping_name', 'lambert_conformal_conic')
-        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-      else if (iproj == 'POLSTR') then
-        istatus = nf90_put_att(ncid, nf90_global, &
-                        'grid_mapping_name', 'stereographic')
-        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-      else if (iproj == 'NORMER') then
-        istatus = nf90_put_att(ncid, nf90_global, &
-                        'grid_mapping_name', 'mercator')
-        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-      else if (iproj == 'ROTMER') then
-        istatus = nf90_put_att(ncid, nf90_global, &
-                        'grid_mapping_name', 'rotated_latitude_longitude')
-        call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
-      end if
-      istatus = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*d_1000)
-      call check_ok(__FILE__,__LINE__,'Error add gridsize', fterr)
-      istatus = nf90_put_att(ncid, nf90_global, &
-                       'latitude_of_projection_origin', clat)
-      call check_ok(__FILE__,__LINE__,'Error add clat', fterr)
-      istatus = nf90_put_att(ncid, nf90_global,   &
-                       'longitude_of_projection_origin', clon)
-      call check_ok(__FILE__,__LINE__,'Error add clon', fterr)
-      istatus = nf90_put_att(ncid, nf90_global,   &
-                       'longitude_of_central_meridian', clon)
-      call check_ok(__FILE__,__LINE__,'Error add gmtllon', fterr)
-      if (iproj == 'ROTMER') then
-        istatus = nf90_put_att(ncid, nf90_global, &
-                       'grid_north_pole_latitude', plat)
-        call check_ok(__FILE__,__LINE__,'Error add plat', fterr)
-        istatus = nf90_put_att(ncid, nf90_global, &
-                       'grid_north_pole_longitude', plon)
-        call check_ok(__FILE__,__LINE__,'Error add plon', fterr)
-      else if (iproj == 'LAMCON') then
-        trlat(1) = real(truelatl)
-        trlat(2) = real(truelath)
-        istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', trlat)
-        call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
-      else if (iproj == 'NORMER') then
-        istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', clat)
-        call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
-      else if (iproj == 'POLSTR') then
-        trlat(1) = 1.0
-        istatus = nf90_put_att(ncid, nf90_global, &
-                   'scale_factor_at_projection_origin', trlat(1:1))
-        call check_ok(__FILE__,__LINE__,'Error add scfac', fterr)
-      end if
 !
 !     ADD RUN PARAMETERS
 !
@@ -643,7 +569,6 @@ module mod_che_ncio
       istatus = nf90_put_att(ncid, nf90_global,  &
               'model_seasonal_desert_albedo_effect' , trim(cdum))
       call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
-
       istatus = nf90_put_att(ncid, nf90_global,  &
                'model_simulation_initial_start' , tochar(globidate1))
       call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
@@ -815,7 +740,6 @@ module mod_che_ncio
 
     tyx = (/idims(1),idims(2),idims(3),-1,-1,-1,-1,-1,-1/)
     tzyx = (/idims(1),idims(2),idims(4),idims(3),-1,-1,-1,-1,-1/)
-         
 
     if (itr < noutf) then      
 

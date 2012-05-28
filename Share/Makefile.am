@@ -1,4 +1,6 @@
 
+include $(REGCM_ROOT)/makeinc
+
 noinst_LIBRARIES = librcmlib.a
 librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 mod_space.f90 \
                       mod_message.f90 mod_memutil.F90 mod_projections.f90 \

@@ -644,7 +644,7 @@ module mod_che_drydep
       real(dp) , dimension(ici1:ici2,luc) :: ustar, resa
       real(dp) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
       real(dp) , dimension(ngasd,ici1:ici2,luc) :: vdg
-      real(dp) , dimension(ici1:ici2) :: ddrem
+      real(dp) , dimension(ici1:ici2) :: icz , ddrem
       real(dp) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(dp) :: kd
 
@@ -675,8 +675,9 @@ module mod_che_drydep
       end do 
       call aerodyresis(zeff,wind10,temp10,tsurf,rh10,srad,ivegcov,ustar,resa)
       snow(:) = d_zero 
+      icz(:) = czen(j,:)
       call stomtresis(lai_f,laimin,laimax,ivegcov,ngasd,ustar,prec,snow,srad, &
-                      tsurf,temp10,rh10,czen(j,:),resc,resb)
+                      tsurf,temp10,rh10,icz,resc,resb)
       ! now calculate the dry deposition velocities and select it
       ! according to the gasphase mechanism
       ! vdg in m.s-1
@@ -973,6 +974,8 @@ module mod_che_drydep
 
       do j = 1 , luc
         do i = ici1 , ici2
+          is_rain = .false.
+          is_dew  = .false.
           if ( ivegcov(i) == 0 ) then
             kcov = 14
           else
@@ -1107,9 +1110,6 @@ module mod_che_drydep
           else if (ts(i) > tzero .and. ustar(i,j) < usmin) then
             is_dew = .true.
 !           print *, 'dew==='
-          else
-            is_rain = .false.
-            is_dew = .false.
 !           print *, 'NO dew, NO rain ==='
           end if
           !================================================================

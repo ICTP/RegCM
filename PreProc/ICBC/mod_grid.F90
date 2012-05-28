@@ -72,8 +72,6 @@ module mod_grid
     integer :: k
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
-    istatus = nf90_get_att(incin,nf90_global,'grid_factor',xcone)
-    call checkncerr(istatus,__FILE__,__LINE__,'Attribute grid_factor missing')
     call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm,mask,landuse)
     istatus = nf90_close(incin)
     call checkncerr(istatus,__FILE__,__LINE__, &

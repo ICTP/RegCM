@@ -535,31 +535,4 @@ module mod_output
 
   end subroutine outrad
 !
-  subroutine outche
-
-    implicit none
-!
-    integer :: ni , itr , nj , nk
-
-    if ( lband ) then
-      ni = iym3
-      nj = jx
-      nk = kz
-      itr = ntr
-    else
-      ni = iym3
-      nj = jxm3
-      nk = kz
-      itr = ntr
-    end if
-    call writerec_che(nj, ni, nk, itr, chia_io,         &
-           aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
-           wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
-           wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
-           aertalwrf_io, aersrlwrf_io, sfs_io%psa, idatex)
-
-    print *, 'CHE variables written at ' , tochar(idatex)
-
-  end subroutine outche
-!
 end module mod_output

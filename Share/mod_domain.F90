@@ -288,7 +288,9 @@ module mod_domain
       write(stderr,*) 'NAMELIST    : ', clon
       call die('Mismatch: CLON in DOMAIN file /= CLON in namelist')
     end if
-    return
+    istatus = nf90_get_att(ncid,nf90_global,'grid_factor',xcone)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute grid_factor')
   end subroutine check_domain
 
 end module mod_domain

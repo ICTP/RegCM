@@ -71,7 +71,7 @@
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap , checum
 
-      integer :: i , j , ibin , k , kk
+      integer :: i , j , ibin , k
       integer(8) :: kchsolv
       !
       !*********************************************************************

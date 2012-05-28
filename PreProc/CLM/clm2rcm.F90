@@ -112,8 +112,6 @@ program clm2rcm
 !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call openfile_withname(terfile,incin)
-  istatus = nf90_get_att(incin,nf90_global,'grid_factor',xcone)
-  call checkncerr(istatus,__FILE__,__LINE__,'Attribute grid_factor missing')
   call read_domain(incin,sigx,xlat,xlon,ltrans=.true.)
   istatus = nf90_close(incin)
   call checkncerr(istatus,__FILE__,__LINE__, &

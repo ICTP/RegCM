@@ -87,7 +87,6 @@ module mod_params
   logical , dimension(n_stsvar) :: sts_enablevar
   logical , dimension(n_subvar) :: sub_enablevar
   logical , dimension(n_radvar) :: rad_enablevar
-  logical , dimension(n_chevar) :: che_enablevar
   logical , dimension(n_lakvar) :: lak_enablevar
   integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(8) :: nbdyfrq
@@ -117,7 +116,7 @@ module mod_params
     radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,    &
     ifchem , chemfrq , atm_enablevar , srf_enablevar ,             &
     rad_enablevar , sub_enablevar , sts_enablevar ,                &
-    lak_enablevar , che_enablevar , dirout
+    lak_enablevar , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -295,7 +294,6 @@ module mod_params
   sub_enablevar(:) = .true.
   lak_enablevar(:) = .true.
   rad_enablevar(:) = .true.
-  che_enablevar(:) = .true.
   dirout = './output' 
 !chem2
   ifchem = .false.
@@ -886,9 +884,6 @@ module mod_params
     end do
     do i = 1 , n_radvar
       rad_variables(i)%enabled = rad_enablevar(i)
-    end do
-    do i = 1 , n_chevar
-      che_variables(i)%enabled = che_enablevar(i)
     end do
     if ( lakemod /= 1 .and. iseaice /= 1 ) then
       srf_variables(ivarname_lookup('SRF','seaice'))%enabled = .false.
