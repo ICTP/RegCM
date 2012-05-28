@@ -606,7 +606,7 @@ diff -Naurb org/clm_atmlnd.F90 patchd/clm_atmlnd.F90
 +     call get_proc_global(numg,numl,numc,nump) 
 +
 +     nt = endg-begg+1
-+     if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
++     if( ichem == 1 ) then  !Aerosol scheme on
 +       nout = 22
 +       allocate(c2r_all(nt*nout))
 +       allocate(c2r_allout(numg*nout))
@@ -648,7 +648,7 @@ diff -Naurb org/clm_atmlnd.F90 patchd/clm_atmlnd.F90
 +        c2r_all(nn+17*nt) = clm_l2a%qflx_infl(n)*(24._r8 * 3600._r8)
 +        c2r_all(nn+18*nt) = clm_l2a%qflx_surf(n)*(24._r8 * 3600._r8)
 +        c2r_all(nn+19*nt) = clm_l2a%qflx_drain(n)*(24._r8 * 3600._r8)
-+        if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
++        if( ichem == 1 ) then  !Aerosol scheme on
 +          c2r_all(nn+20*nt) = clm_l2a%frac_sno(n)
 +          c2r_all(nn+21*nt) = clm_l2a%frac_veg_nosno(n)
 +        end if

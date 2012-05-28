@@ -517,7 +517,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   else if ( ivers == 2 ) then ! end of ivers = 1
     iii = 0
     jj = 1
-    if ( aertyp/='AER00D0' ) then
+    if ( ichem == 1 ) then
       nout = 22
     else
       nout = 20
@@ -548,7 +548,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         c2rinfl(j,i) = c2r_allout(ii+(17*kk)+iii)
         c2rro_sur(j,i) = c2r_allout(ii+(18*kk)+iii)
         c2rro_sub(j,i) = c2r_allout(ii+(19*kk)+iii)
-        if ( aertyp/='AER00D0' ) then
+        if ( ichem == 1 ) then
           c2rfracsno(j,i) = c2r_allout(ii+(20*kk)+iii)
           c2rfvegnosno(j,i) = c2r_allout(ii+(21*kk)+iii)
         end if
@@ -572,7 +572,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
     call interf(1,ktau)
 
-    if ( iocnflx==2 ) then
+    if ( iocnflx == 2 ) then
       call zengocndrv(ktau)
     end if
  

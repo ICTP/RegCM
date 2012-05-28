@@ -27,6 +27,7 @@ module mod_clm
   use mod_realkinds
   use mod_constants
   use mod_memutil
+  use mod_runparams , only : ichem , iocnflx
 !
   implicit none
 
