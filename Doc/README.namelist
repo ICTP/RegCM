@@ -69,15 +69,15 @@
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_RF, FV_A2, FV_B2,
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST, HA_XX,
-                             !          CA_XX, EC_XX, IP_XX
-                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
+                             !          ERSST, ERSKT, CCSST, CA_XX,
+                             !          HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          CN_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY, HA_XX, CA_XX,
-                             !          EC_XX, IP_XX
+                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
+                             !          EC_XX, IP_XX, GF_XX, CN_XX
                              ! with XX for CMIP5 datasets in RF, 26, 45, 85
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
