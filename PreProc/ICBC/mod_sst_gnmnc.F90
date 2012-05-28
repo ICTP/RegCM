@@ -177,9 +177,11 @@ module mod_sst_gnmnc
       y1 = (year-6)/10*10+6
       y2 = y1 + 9
     end if
-    if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-      y1 = y1 - 10
-      y2 = y1 + 9
+    if ( year /= 2006 .and. month /= 1 .and. day /= 1 .and. hour /= 0 ) then
+      if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
+        y1 = y1 - 10
+        y2 = y1 + 9
+      end if
     end if
     if ( ssttyp(4:5) == 'RF' ) then
       write(inpfile,'(a,i4,a,i4,a)') &

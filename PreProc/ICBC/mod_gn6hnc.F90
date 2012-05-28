@@ -115,6 +115,9 @@ module mod_gn6hnc
   character(64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
   character(64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
   character(64) :: gfdlbase3 = '_r1i1p1_'
+  character(64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
+  character(64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
+  character(64) :: cnrmbase3 = '_r1i1p1_'
 
   character(3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
@@ -127,6 +130,8 @@ module mod_gn6hnc
   character(3) , target , dimension(nvars) :: ipvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: gfdlvars = &
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+  character(3) , target , dimension(nvars) :: cnrmvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
@@ -182,6 +187,12 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/GFDL-ESM2M/RF/ta/ta_6hrLev_GFDL-ESM2M_historical_'// &
             'r1i1p1_1951010100-1955123123.nc'
+    else if ( dattyp(1:3) == 'CN_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
+      pathaddname = trim(inpglob)// &
+            '/CNRM-CM5/RF/ta/ta_6hrLev_CNRM-CM5_historical_'// &
+            'r1i1p1_195001010600-195002010000.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
@@ -372,6 +383,34 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+    else if ( dattyp(1:3) == 'CN_' ) then
+      istatus = nf90_inq_varid(inet1,'a',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      istatus = nf90_inq_varid(inet1,'p0',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      istatus = nf90_get_var(inet1,ivar1,dp0)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      p0 = real(dp0)
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+            '/CNRM-CM5/fixed/orog_fx_CNRM-CM5_historical_r0i0p0.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
@@ -450,7 +489,8 @@ module mod_gn6hnc
       ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
-    else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' ) then
+    else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
+              dattyp(1:3) == 'CN_' ) then
       call setcal(itimes(1), gregorian)
     else
       call setcal(itimes(1), noleap)
@@ -480,7 +520,7 @@ module mod_gn6hnc
 !
 !
     call readgn6hnc(idate)
-    write (stdout,*) 'Read in fields at Date: ', tochar(idate)
+    write (stderr,*) 'Read in fields at Date: ', tochar(idate)
  
     ! GFS and EC-EARTH grids are already on pressure levels.
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
@@ -499,7 +539,7 @@ module mod_gn6hnc
       ! All processing assumes dataset in top -> bottom
       ! CanESM and IPSL are read bottom -> top
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
-           dattyp(1:3) == 'GF_' ) then
+           dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' ) then
         call top2btm(tvar,nlon,nlat,klev)
         call top2btm(qvar,nlon,nlat,klev)
         call top2btm(uvar,nlon,nlat,klev)
@@ -580,7 +620,7 @@ module mod_gn6hnc
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
-    integer :: year , month , day , hour , y1 , y2
+    integer :: year , month , day , hour , y1 , y2 , m1 , m2
     integer :: fyear , fmonth , fday , fhour
 !
 !
@@ -1005,6 +1045,47 @@ module mod_gn6hnc
             end if
           end do
           varname => gfdlvars
+        else if ( dattyp(1:3) == 'CN_' ) then
+          ! monthly files, one for each variable
+          if ( day == 1 .and. hour == 0 ) then
+            m1 = month-1
+            y1 = year
+            if ( m1 < 1 ) then
+              m1 = 12
+              y1 = year-1
+            end if
+            m2 = m1+1
+            y2 = y1
+          else
+            m1 = month
+            y1 = year
+            m2 = m1+1
+            y2 = y1
+          end if
+          if ( m2 > 12 ) then
+            m2 = 1
+            y2 = y2+1
+          end if
+          do i = 1 , nfiles
+            if ( cnrmvars(i) /= 'XXX' ) then
+              if ( dattyp(4:4) == 'R' ) then
+                write (inname,99007) 'RF',pthsep,trim(cnrmvars(i)), pthsep, &
+                  trim(cnrmvars(i)), trim(cnrmbase1)//trim(cnrmbase3), &
+                  y1, m1, '010600-', y2, m2, '010000.nc'
+              else
+                write (inname,99007) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
+                  pthsep, trim(cnrmvars(i)), pthsep, trim(cnrmvars(i)), &
+                  trim(cnrmbase2)//dattyp(4:5)//trim(cnrmbase3), &
+                  y1, m1, '010600-', y2, m2, '010000.nc'
+              end if
+              pathaddname = trim(inpglob)//'/CNRM-CM5/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
+            end if
+          end do
+          varname => cnrmvars
         end if
       end if
 
@@ -1093,7 +1174,7 @@ module mod_gn6hnc
         end do
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
-      else if ( dattyp(1:3) == 'GF_' ) then
+      else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' ) then
         do k = 1, klev
           pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
         end do
@@ -1134,6 +1215,7 @@ module mod_gn6hnc
 99004   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99005   format (a,a,a,a,a,a,i0.4,a,i0.4,a)
 99006   format (a,a,i0.4,a,a,a,i0.4,a)
+99007   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 
   end subroutine readgn6hnc
 !

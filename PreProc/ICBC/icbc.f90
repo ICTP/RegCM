@@ -178,7 +178,7 @@ program icbc
   call init_output
 
   if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. &
-      dattyp(1:3) == 'CA_' ) then
+      dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'GF_' ) then
     if (ical /= noleap ) then
       write(stderr,*) 'Calendar should be set to noleap'
       call die('icbc','Calendar mismatch',1)
@@ -230,7 +230,7 @@ program icbc
   else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
             dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
-            dattyp(1:3) == 'GF_' ) then
+            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' ) then
     call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)
@@ -270,7 +270,7 @@ program icbc
     else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
               dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
-              dattyp(1:3) == 'GF_' ) then
+              dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' ) then
       call get_gn6hnc(idate)
     end if
     call writef(idate)
@@ -283,9 +283,6 @@ program icbc
   call close_output
   call closesst
  
-  if (debug_level > 2) then
-  end if
-
   call memory_destroy
 
   call finaltime(0)

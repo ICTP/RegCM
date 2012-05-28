@@ -127,14 +127,14 @@ module mod_mksst
       call checkncerr(istatus,__FILE__,__LINE__,'Error ice var read '//trim(sstfile))
     end if
     if (idate == itime(irec)) then
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (landuse(i,j) > 13.9 .and. landuse(i,j) < 15.1) .and. &
-               (work1(i,j) > -900.0) ) then
-            tsccm(i,j) = work1(i,j)
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) .and. &
+               (work1(j,i) > -900.0) ) then
+            tsccm(j,i) = work1(j,i)
             if (lhasice) then
-              if ( work3(i,j) > -900.0) then
-                if ( work3(i,j) > 35. ) tsccm(i,j) = 271.0
+              if ( work3(j,i) > -900.0) then
+                if ( work3(j,i) > 35. ) tsccm(j,i) = 271.0
               end if
             end if
           end if
@@ -156,15 +156,15 @@ module mod_mksst
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
       wt = real(tohours(ks1)/tohours(ks2))
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (landuse(i,j) > 13.9 .and. landuse(i,j) < 15.1) .and.  &
-               (work1(i,j) > -900.0 .and. work2(i,j) > -900.0) ) then
-            tsccm(i,j) = wt*work1(i,j) + (1.0-wt)*work2(i,j)
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) .and.  &
+               (work1(j,i) > -900.0 .and. work2(j,i) > -900.0) ) then
+            tsccm(j,i) = wt*work1(j,i) + (1.0-wt)*work2(j,i)
             if (lhasice) then
-              if ( work3(i,j) > -900.0 .and. work4(i,j) > -900.0 ) then
-                if ( wt*work3(i,j)+(1-wt)*work4(i,j) > 35. ) then
-                  tsccm(i,j) = 271.0
+              if ( work3(j,i) > -900.0 .and. work4(j,i) > -900.0 ) then
+                if ( wt*work3(j,i)+(1-wt)*work4(j,i) > 35. ) then
+                  tsccm(j,i) = 271.0
                 endif
               end if
             end if
