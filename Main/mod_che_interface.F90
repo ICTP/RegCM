@@ -42,7 +42,8 @@ module mod_che_interface
 !
   subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms, &
                        mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,   &
-                       twt,ptop,coszrs,iveg,svegfrac2d,solis,sdeltk2d,     &
+                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &
+                       solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,icutop,icubot,taucldsp)
 
 ! this routine define the pointer interface between the chem module and the rest of the model
@@ -56,7 +57,7 @@ module mod_che_interface
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
     real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
-                                         sdelqk2d , ssw2da , twt
+                                         sdelqk2d , ssw2da , twt, sfracv2d,sfracb2d,sfracs2d
     real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
     real(dp), pointer, dimension(:,:,:,:) :: taucldsp
     integer , pointer , dimension(:,:) :: icutop , icubot, iveg
@@ -100,6 +101,10 @@ module mod_che_interface
     call assignpnt(remrat,cremrat)
     call assignpnt(solis,csol2d)
     call assignpnt(svegfrac2d,cvegfrac)
+    call assignpnt(sfracv2d,csfracv2d)
+    call assignpnt(sfracb2d,csfracb2d)
+    call assignpnt(sfracs2d,csfracs2d)
+
     call assignpnt(sdeltk2d,csdeltk2d) 
     call assignpnt(sdelqk2d,csdelqk2d)
     call assignpnt(iveg,cveg2d) 

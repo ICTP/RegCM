@@ -155,15 +155,15 @@
             facb = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zlnd)
             facs = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zsno)
             ! fact = csfracv2d(j,i)*facv 
-            fact = cvegfrac(j,i) * facv + (d_one-cvegfrac(j,i)) * facb
-!           FAB REVOIR CETTE partie et definir interface pour sfracs,sfracv
-!                      + sfracb2d(j,i)*facb + sfracs2d(j,i)*facs
+!            fact = cvegfrac(j,i) * facv + (d_one-cvegfrac(j,i)) * facb
+
+           fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + csfracs2d(j,i)*facs
             !
             ! grid level effective roughness lenght (linear averaging for now)
-            ! zeff(i) = rough(ivegcov(i))*sfracv2d(j,i) + &
-            !           zlnd * sfracb2d(j,i) + zsno * sfracs2d(j,i)
-            zeff(i,j) = crough(ivegcov(i,j))*cvegfrac(j,i) + &
-                        zlnd*(d_one-cvegfrac(j,i))
+
+            zeff(i,j) = crough(ivegcov(i,j))*csfracv2d(j,i) + &
+                       zlnd * csfracb2d(j,i) + zsno * csfracs2d(j,i)
+
           else
             ! water surface
             fact = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zoce)
@@ -415,7 +415,7 @@
       do itr = 1 , ntr
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ddsfc(j,i,itr) = ddsfc(j,i,itr) + remdrd(j,i,itr)*cdsigma(kz)
+            ddsfc(j,i,itr) =  remdrd(j,i,itr)*cdsigma(kz)
             ! Source cumulated diag(care the unit are alredy .m-2)
             cemtrac(j,i,itr) = cemtr(j,i,itr)
           end do

@@ -94,6 +94,23 @@ module mod_rrtmg_driver
 ! interface variable with RRTM routine are defines from 1 to npr since RRTM internal loop start from 1
 ! npr utlimately depends on the proc
 !
+
+! Define here the total number of vertical levels, including standard atmosphere hat
+! replace kz by ktot, kzp1 by ktotp1
+
+! 1 determine ktot and ktotp1 in function of ptop
+!   do k =1 , size (xclim,1)
+!     if ( (ptop / 100)  < xlim(k,2 )  ) then
+!      kclimstart = k 
+!      exit
+!     end if      
+!   end do 
+
+!    ktotp1 = kzp1 +  size(xclim,1))- kclimstart +1 
+!    ktot = ktotp1 -1
+
+!allocate with ktot and kotp1
+
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
@@ -120,7 +137,6 @@ module mod_rrtmg_driver
     call getmem1d(aerlwfos,1,npr,'rrtmg:aerlwfos')
     call getmem1d(abv,1,npr,'rrtmg:sol')
     call getmem1d(sol,1,npr,'rrtmg:sol')
-
     call getmem1d(tsfc,1,npr,'rrtmg:tsfc')
     call getmem1d(psfc,1,npr,'rrtmg:psfc')
     call getmem1d(asdir,1,npr,'rrtmg:asdir')
@@ -131,6 +147,7 @@ module mod_rrtmg_driver
     call getmem1d(dlat,1,npr,'rrtmg:dlat')
     call getmem1d(xptrop,1,npr,'rrtmg:xptrop')
     call getmem1d(ioro,1,npr,'rrtmg:ioro')
+
     call getmem2d(play,1,npr,1,kz,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kz,'rrtmg:tlay')
     call getmem2d(h2ovmr,1,npr,1,kz,'rrtmg:h2ovmr')
@@ -208,6 +225,8 @@ module mod_rrtmg_driver
     call getmem2d(cfc11mmr,1,npr,1,kz,'rrtmg:cfc11mmr')
     call getmem2d(cfc12mmr,1,npr,1,kz,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kz,'rrtmg:deltaz')
+
+
   end subroutine allocate_mod_rad_rrtmg
 !
   subroutine rrtmg_driver(iyear,eccf,lout)
@@ -669,6 +688,13 @@ module mod_rrtmg_driver
       end do
     end do
     !
+    !
+    !Standard atmosphere extension from ptop to 0.1 hpa  
+
+    !do n=1,npr
+    !  plev(n,kzp1 +1 : kztot) =  statm(2,kstclim:31)
+    !end do 
+    
     !
     ! CLOUD Properties:
     !

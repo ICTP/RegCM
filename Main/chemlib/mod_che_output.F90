@@ -61,12 +61,20 @@ module mod_che_output
       call deco1_gather(wdlsc,wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr)
       call deco1_gather(wdcvc,wdcvc_io,jcross1,jcross2,icross1,icross2,1,ntr)
       call deco1_gather(ddsfc,ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(wxsg,ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(wxaq,ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr)
+!      call deco1_gather(wxsg,wxsg_io,jcross1,jcross2,icross1,icross2,1,ntr)
+!      call deco1_gather(wxaq,wxsaq_io,jcross1,jcross2,icross1,icross2,1,ntr)
       call deco1_gather(cemtrac,cemtrac_io,jcross1,jcross2, &
                         icross1,icross2,1,ntr)
       call deco1_gather(drydepv,drydepv_io,jcross1,jcross2, &
                         icross1,icross2,1,ntr)
+
+
+
+     !perform specific calculations 
+
+      aeraod_io = sum( aerext_io,3)
+
+      
 
       call outche2(idatex) 
               
@@ -101,8 +109,8 @@ module mod_che_output
       type(rcm_time_and_date) , intent(in) :: idatex
 
       if (myid ==0) then 
-      call writerec_che2(chia_io,wdlsc_io,wdcvc_io,ddsfc_io,cemtrac_io,   &
-                         drydepv_io,aerext_io,aerssa_io,aerasp_io,        &
+      call writerec_che2(chia_io,dtrace_io, wdlsc_io,wdcvc_io,ddsfc_io,cemtrac_io,   &
+                         drydepv_io,aerext_io,aerssa_io,aerasp_io,aeraod_io,        &
                          aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io, &
                          cpsb_io,idatex)
 

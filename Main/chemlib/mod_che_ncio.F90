@@ -40,8 +40,8 @@ module mod_che_ncio
   integer :: istatus
   integer :: recc
 
-  integer , parameter :: n_chevar = 18
-  integer , parameter :: n_optvar = 9
+  integer , parameter :: n_chevar = 19
+  integer , parameter :: n_optvar =10 
   integer , parameter :: n_chbcvar = 25
   integer :: ichin 
   integer :: ioxcl     
@@ -235,8 +235,6 @@ module mod_che_ncio
       icount(3) = 1
       icount(4) = 1
 
-!FAB VERY IMPORTANT : THIS READING SECTION SHOULD BE FIXED WITH
-!                     HOMOGENEOUS PREPROC
 
       if ( ico /= 0 ) then
           call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.)
@@ -317,7 +315,7 @@ module mod_che_ncio
           end if
         ! Acetaldehyde
         if ( iald2 /= 0 ) then
-!test           call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.)
+           call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.)
         end if
         ! Methanol + Ethanol
         if ( imoh /= 0 ) then
@@ -777,6 +775,13 @@ module mod_che_ncio
                 'dr. dep. vel','m.s-1', &
                 tyx,.false.,ichevar(8))
 
+               call ch_addvara(ncid,chevarnam,'trac_burden', &
+                'tracer_burden', &
+                'trac bud ','mg.m-2', &
+                tyx,.false.,ichevar(9))
+
+
+
      else if (itr==noutf) then 
 
               
@@ -810,6 +815,12 @@ module mod_che_ncio
                 'surface_longwave_radiative_forcing', &
                 'SRFrad LW forcing av.','W m-2', &
                 tyx,.false.,ioptvar(9))
+
+             call ch_addvara(ncid,chevarnam,'aod', &
+                'aerosol optical depth vis band', &
+                'aer aod vis band',' ', &
+                tyx,.false.,ioptvar(10))
+
 
      end if 
 
@@ -916,8 +927,8 @@ module mod_che_ncio
 
 !============================================================================
 
-    subroutine writerec_che2(chia,wdlsc,wdcvc, &
-                             ddsfc,cemtrac,drydepv,ext,ssa,asp,    &
+    subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc, &
+                             ddsfc,cemtrac,drydepv,ext,ssa,asp, aod,   &
                              tarf,ssrf,talwrf,srlwrf,ps,idate)
       implicit none
           
@@ -925,9 +936,9 @@ module mod_che_ncio
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
-                                                   ddsfc , cemtrac , drydepv
+                                                   ddsfc , cemtrac , drydepv,dtrace
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
-      real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , &
+      real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf ,aod,  &
                                                           talwrf , srlwrf
 
       integer :: n , k , noutf
@@ -1036,6 +1047,14 @@ module mod_che_ncio
           call check_ok(__FILE__,__LINE__, &
                'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
 
+          !*** tracer burden (instantaneous) 
+          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n))
+          istatus = nf90_put_var(ncche(n), ichevar(9), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing trac burden '//ctime, 'CHE FILE ERROR')
+
+
           istatus = nf90_sync(ncche(n))
           call check_ok(__FILE__,__LINE__, &
                         'Error sync at '//ctime, 'CHE FILE ERROR')
@@ -1109,6 +1128,16 @@ module mod_che_ncio
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                      'Error writing aersrlwrf at '//ctime,'OPT FILE ERROR')
+
+
+          dumio(:,:,1) = real(aod(o_js:o_je,o_is:o_ie))
+          istatus = nf90_put_var(ncche(n), ioptvar(10), &
+                                 dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+                     'Error writing aod at '//ctime,'OPT FILE ERROR')
+ 
+
+
           istatus = nf90_sync(ncche(n))
           call check_ok(__FILE__,__LINE__, &
                      'Error sync at '//ctime, 'OPT FILE ERROR')
