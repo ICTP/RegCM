@@ -45,6 +45,7 @@ module mod_regcm_interface
   use perf_mod
   use mod_mtrxclm
   use spmdMod, only: mpicom
+  use clm_varsur , only : numdays
 #endif
   implicit none
 !
@@ -189,6 +190,7 @@ module mod_regcm_interface
       write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
     end if
 #ifdef CLM
+    numdays = dayspy
     call solar_clm(idatex,calday,declin,xyear)
 #else
     call solar1

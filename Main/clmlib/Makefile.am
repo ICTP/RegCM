@@ -84,7 +84,7 @@ HydrologyLakeMod.F90 Meat.F90 QSatMod.F90 RtmMod.F90 RunoffMod.F90 \
 SnowHydrologyMod.F90 SoilHydrologyMod.F90 SoilTemperatureMod.F90 \
 SurfaceRadiationMod.F90 TridiagonalMod.F90 abortutils.F90 \
 accumulMod.F90 areaMod.F90 clm_csmMod.F90 clm_mct_mod.F90 \
-clm_time_manager.F90 clm_varcon.F90 clm_varorb.F90 do_close_dispose.F90 \
+clm_varcon.F90 clm_varorb.F90 do_close_dispose.F90 \
 domainMod.F90 eshr_estate_mod.F90 eshr_inputinfo_mod.F90 \
 eshr_rc_mod.F90 eshr_timemgr_mod.F90 f_wrappers.c fileutils.F90 \
 filterMod.F90 get_zeits.c getdatetime.F90 gptl.c gptl_papi.c gptlutil.c \

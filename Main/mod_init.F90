@@ -45,7 +45,7 @@ module mod_init
 #ifdef CLM
   use mod_clm
   use mod_lm_interface
-  use clm_varsur , only : init_tgb , init_grid , numdays
+  use clm_varsur , only : init_tgb , init_grid
 #endif
 !
   private
@@ -502,7 +502,6 @@ module mod_init
 #endif
   end if
 #ifdef CLM
-  numdays = dayspy
   call mkslice
   call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 #endif

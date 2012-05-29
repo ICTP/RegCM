@@ -25,6 +25,7 @@ module mod_lm_interface
   use mod_runparams
   use mod_memutil
   use mod_atm_interface , only : slice , surfstate , domain
+  use mod_domain
 #ifdef CLM
   use mod_mtrxclm
   use mod_clm
@@ -93,7 +94,8 @@ module mod_lm_interface
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
     integer , intent(in) :: ichem , iemiss
-    type(domain) , intent(in) :: dom , dom1
+    type(domain) , intent(in) :: dom
+    type(domain_io) , intent(in) :: dom1
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , zpbl
