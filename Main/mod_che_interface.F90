@@ -40,14 +40,15 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms, &
-                       mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,   &
-                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &
-                       solis,sdeltk2d,     &
-                       sdelqk2d,ssw2da,icutop,icubot,taucldsp)
+  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
+                       mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,  &
+                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
+                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,    &
+                       icubot,taucldsp)
 
-! this routine define the pointer interface between the chem module and the rest of the model
-! It also call startchem which is the chemistry initialisation routine
+    ! this routine define the pointer interface between the chem module and
+    ! the rest of the model
+    ! It also call startchem which is the chemistry initialisation routine
 
     implicit none
     logical, intent(in) :: ifrest
@@ -57,7 +58,7 @@ module mod_che_interface
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
     real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
-                                         sdelqk2d , ssw2da , twt, sfracv2d,sfracb2d,sfracs2d
+             sdelqk2d , ssw2da , twt , sfracv2d , sfracb2d , sfracs2d
     real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
     real(dp), pointer, dimension(:,:,:,:) :: taucldsp
     integer , pointer , dimension(:,:) :: icutop , icubot, iveg
@@ -84,7 +85,7 @@ module mod_che_interface
     call assignpnt(atms%qvb3d,cqvb3d)
     call assignpnt(atms%qcb3d,cqcb3d)
     call assignpnt(atms%rhob3d,crhob3d)
-!wind at cell center
+    ! wind at cell center
     call assignpnt(atms%ubx3d,cubx3d)
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
@@ -108,10 +109,7 @@ module mod_che_interface
     call assignpnt(sdeltk2d,csdeltk2d) 
     call assignpnt(sdelqk2d,csdelqk2d)
     call assignpnt(iveg,cveg2d) 
-!call assignpnt(rough,crough) 
-!call assignpnt(iexsol,ciexsol) 
-!call assignpnt(xmopor,cxmopor) 
-!call assignpnt(depuv,cdepuv) 
+
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)
     call assignpnt(a,hlev)
@@ -122,28 +120,19 @@ module mod_che_interface
 
     call assignpnt(taucldsp, ctaucld)
 
+    cba_cr%dotflag = ba_cr%dotflag
+    cba_cr%havebound = ba_cr%havebound
+    call assignpnt(ba_cr%bsouth, cba_cr%bsouth)   
+    call assignpnt(ba_cr%bnorth, cba_cr%bnorth)   
+    call assignpnt(ba_cr%beast, cba_cr%beast)   
+    call assignpnt(ba_cr%bwest, cba_cr%bwest)   
+    call assignpnt(ba_cr%ibnd, cba_cr%ibnd)   
 
-!!$!
-  cba_cr%dotflag = ba_cr%dotflag
-  cba_cr%havebound = ba_cr%havebound
- call assignpnt(ba_cr%bsouth, cba_cr%bsouth)   
- call assignpnt(ba_cr%bnorth, cba_cr%bnorth)   
- call assignpnt(ba_cr%beast, cba_cr%beast)   
- call assignpnt(ba_cr%bwest, cba_cr%bwest)   
- call assignpnt(ba_cr%ibnd, cba_cr%ibnd)   
-
- cba_cr%ns = ba_cr%ns
- cba_cr%nn = ba_cr%nn
- cba_cr%ne = ba_cr%ne
- cba_cr%nw = ba_cr%nw
- cba_cr%nsp = ba_cr%nsp
-!!$
-
-
-!$
-! Peform chemistry initialisation
-
-!   call start_chem(ifrest)
+    cba_cr%ns = ba_cr%ns
+    cba_cr%nn = ba_cr%nn
+    cba_cr%ne = ba_cr%ne
+    cba_cr%nw = ba_cr%nw
+    cba_cr%nsp = ba_cr%nsp
 
   end subroutine init_chem
 !

@@ -36,7 +36,7 @@ module mod_che_mppio
                                            wdcvc_io , wdlsc_io, drydepv_io
   real(8) , pointer , dimension(:,:,:) :: aerasp_io , aerext_io , aerssa_io
   real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io , &
-                                        aertalwrf_io , aersrlwrf_io,aeraod_io
+                                        aertalwrf_io , aersrlwrf_io , aeraod_io
   real(dp) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
                                          sdelqk2d_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
@@ -138,9 +138,6 @@ module mod_che_mppio
                         'che_mppio:aersrlwrf_io')
           call getmem2d(aeraod_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:aeraod_io')
-
-
-
         end if
       end if
     end subroutine allocate_mod_che_mppio

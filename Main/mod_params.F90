@@ -1011,9 +1011,9 @@ module mod_params
   if ( ichem == 1 ) then
     call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
                    mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
-                   twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d, sfracb2d, sfracs2d ,& 
-                   solis,sdeltk2d,       &
-                   sdelqk2d,ssw2da,icumtop,icumbot,taucldsp)
+                   twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
+                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,icumtop,      &
+                   icumbot,taucldsp)
  end if
   call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &

@@ -154,16 +154,12 @@
                    dlog(cza(j,i,kz)/crough(ivegcov(i,j)))
             facb = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zlnd)
             facs = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zsno)
-            ! fact = csfracv2d(j,i)*facv 
-!            fact = cvegfrac(j,i) * facv + (d_one-cvegfrac(j,i)) * facb
-
-           fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + csfracs2d(j,i)*facs
+            fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + &
+                   csfracs2d(j,i)*facs
             !
             ! grid level effective roughness lenght (linear averaging for now)
-
             zeff(i,j) = crough(ivegcov(i,j))*csfracv2d(j,i) + &
                        zlnd * csfracb2d(j,i) + zsno * csfracs2d(j,i)
-
           else
             ! water surface
             fact = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zoce)
