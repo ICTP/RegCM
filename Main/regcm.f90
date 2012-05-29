@@ -74,8 +74,9 @@ subroutine myabort
   call mpi_abort(mycomm,1,ierr)
 end subroutine myabort
 
-#ifdef ESMFCPL
-#include "regcm_esmf.F90"
-#else
-#include "regcm_nonesmf.F90"
-#endif
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+! The main program is in either regcm_nonesmf.F90 or regcm_esmf.F90
+! Check wichever applies
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
