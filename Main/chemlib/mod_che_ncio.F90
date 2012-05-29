@@ -638,7 +638,7 @@ module mod_che_ncio
         istatus = nf90_put_att(ncid, izvar(2), 'standard_name', 'air_pressure')
         call check_ok(__FILE__,__LINE__,'Error add ptop standard_name', fterr)
         istatus = nf90_put_att(ncid, izvar(2), 'long_name', &
-                               'Pressure at model top').mod
+                               'Pressure at model top')
         call check_ok(__FILE__,__LINE__,'Error add ptop long_name', fterr)
         istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
         call check_ok(__FILE__,__LINE__,'Error add ptop units', fterr)
