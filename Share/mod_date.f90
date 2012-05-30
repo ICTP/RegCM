@@ -117,7 +117,7 @@ module mod_date
   end interface
 
   interface setcal
-    module procedure set_calint , set_calstring
+    module procedure set_calint , set_calstring , set_caltype
   end interface
 
   interface split_idate
@@ -378,6 +378,13 @@ module mod_date
     x%ival = i
     x%iunit = usec
   end subroutine initfromintit
+
+  subroutine set_caltype(x, y)
+    implicit none
+    type (rcm_time_and_date) , intent(inout) :: x
+    type (rcm_time_and_date) , intent(in) :: y
+    x%calendar = y%calendar
+  end subroutine set_caltype
 
   subroutine set_calint(x, c)
     implicit none

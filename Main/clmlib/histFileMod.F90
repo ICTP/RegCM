@@ -1730,7 +1730,7 @@ contains
 #endif	
     use clm_varcon  , only : zsoi, zlak
     use fileutils   , only : get_filename
-    use clm_time_manager, only : get_ref_date
+    use clm_time_manager, only : get_ref_date , calendar
 #if (defined CASA)
     use CASAMod,    only : nlive, npools
 #endif
@@ -1908,7 +1908,7 @@ contains
     call check_ret(nf_put_att_text (nfid(t), time_var_id(t), 'long_name', len_trim(str), trim(str)), subname)
     str = 'days since ' // basedate // " " // basesec
     call check_ret(nf_put_att_text (nfid(t), time_var_id(t), 'units', len_trim(str), trim(str)), subname)
-    str = 'noleap'
+    str = calendar
     call check_ret(nf_put_att_text (nfid(t), time_var_id(t), 'calendar', len_trim(str), trim(str)), subname)
     str = 'time_bounds'
     call check_ret(nf_put_att_text (nfid(t), time_var_id(t), 'bounds', len_trim(str), trim(str)), subname)

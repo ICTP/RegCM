@@ -22,6 +22,7 @@
 module mod_mtrxclm
 
   use mod_dynparam
+  use mod_runparams , only : idate0
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -162,15 +163,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   call split_idate(idate2,year,month,day,hour)
   r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
-  ! calendar type (GREGORIAN not available in CLM 3.5)
-  ! if ( ical == noleap ) then
-    r2cclndr = 'NO_LEAP'
-  ! else if ( ical == gregorian ) then
-  !   r2cclndr = 'ESMF_CAL_GREGORIAN'
-  ! else
-  !   call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
-  ! end if
-  ! don't write to NCAR Mass Storage
+  r2cclndr = calstr(idate0%calendar)
   r2cmss_irt = 0
   ! clm output frequency
   r2coutfrq = idint(clmfrq)
@@ -917,7 +910,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,i))
               rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,i))
               ! Correct unit of measure of runoff coming from CLM
-              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i))*d_r1000
+              rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i)*d_r1000)
               scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,i))
               tlef_s(n,j,i) = real(c2rtlef(jj,i))
               ssw_s(n,j,i) = real(c2rsm10cm(jj,i))
