@@ -32,6 +32,10 @@ module mod_mppparam
 
   private
 
+#ifdef IBM
+  include 'mpif.h'
+#endif
+
   public :: set_nproc , broadcast_params , date_bcast
 
   type model_area
