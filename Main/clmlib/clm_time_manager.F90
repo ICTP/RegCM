@@ -13,7 +13,7 @@ module clm_time_manager
    use mod_date
    use mod_mpmessage
    use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
-                  ktau , mtau , dtsrf , ntsrf , doing_restart
+                  ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart
 
    implicit none
    private
@@ -119,7 +119,11 @@ subroutine timemgr_restart_io( ncid, flag )
   character(len=*), intent(in) :: flag  ! 'read' or 'write'
   !
 
-  ! Will do nothing here to be safe
+  calendar = calstr(idatex%calendar)
+  cordex_refdate = 1949120100
+  call setcal(cordex_refdate,idatex)
+
+  call calc_nestep( )
 
 end subroutine timemgr_restart_io
 
@@ -139,6 +143,10 @@ subroutine timemgr_restart( stop_ymd_synclock, stop_tod_synclock )
   tm_first_restart_step = .true.
 
   ! Calculate ending time step
+
+  calendar = calstr(idatex%calendar)
+  cordex_refdate = 1949120100
+  call setcal(cordex_refdate,idatex)
 
   call calc_nestep( )
 
@@ -168,6 +176,8 @@ subroutine init_calendar( )
   !
   ! Local variables
   !
+  calendar = calstr(idatex%calendar)
+
 end subroutine init_calendar
 
 !=========================================================================================
@@ -224,10 +234,12 @@ subroutine get_curr_date(yr, mon, day, tod, offset)
     type (rcm_time_interval) :: tdif
     integer :: ih
     id = idatex
+    ih = -idnint(dtsec)*(ntsrf-1)
     if ( present(offset) ) then
-      tdif = offset
-      id = id + tdif
+      ih = ih + offset
     end if
+    tdif = ih
+    id = id + tdif
     call split_idate(id,yr,mon,day,ih)
     tod = id%second_of_day
 
@@ -256,10 +268,15 @@ subroutine get_prev_date(yr, mon, day, tod)
       day,   &! day of month
       tod     ! time of day (seconds past 0Z)
 
+    type (rcm_time_and_date) :: id
+    type (rcm_time_interval) :: tdif
     integer :: ih
-
-    call split_idate(idatex,yr,mon,day,ih)
-    tod = idatex%second_of_day
+    id = idatex
+    ih = -idnint(dtsrf)
+    tdif = ih
+    id = id + tdif
+    call split_idate(id,yr,mon,day,ih)
+    tod = id%second_of_day
 
 end subroutine get_prev_date
 

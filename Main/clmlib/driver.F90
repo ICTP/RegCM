@@ -700,8 +700,7 @@ subroutine driver2(caldayp1, declinp1, rstwr)
   ! ============================================================================
 
   call t_startf('clm_driver_io')
-!abt  if(nstep > 0) call htapes_wrapup()
-  call htapes_wrapup()
+  if(nstep > 0) call htapes_wrapup()
 
   ! ============================================================================
   ! Write to DGVM history buffer if appropriate

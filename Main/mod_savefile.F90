@@ -221,7 +221,7 @@ module mod_savefile
     character(32) :: fbname
     logical :: existing
 #ifdef CLM
-    real(dp) :: cdtime
+    integer :: ioff
 #endif
     if ( myid == 0 ) then
       if (ltmp) then
@@ -351,10 +351,10 @@ module mod_savefile
     end if
 
 #ifdef CLM
-    cdtime = dble(get_step_size())
-    filer_rest = restFile_filename(type='netcdf',offset=-idint(cdtime))
+    ioff = dtsec*(ntsrf-1)
+    filer_rest = restFile_filename(type='netcdf',offset=ioff)
     call restFile_write(filer_rest)
-    filer_rest = restFile_filename(type='binary',offset=-idint(cdtime))
+    filer_rest = restFile_filename(type='binary',offset=ioff)
     call restFile_write_binary(filer_rest)
     thisclmrest = filer_rest(1:256)
 #endif

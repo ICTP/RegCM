@@ -380,9 +380,9 @@ module mod_init
     !
     ! CLM modifies landuse table. Get the modified one from restart file
     !
-    mddom%lndcat(:,:) = lndcat2d(:,:)
+    mddom%lndcat(jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
     do n = 1 , nnsg
-      lndcat1(n,:,:) = lndcat2d(:,:)
+      lndcat1(n,jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
     end do
 #endif
 !
