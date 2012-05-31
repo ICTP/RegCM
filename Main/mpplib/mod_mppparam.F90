@@ -309,9 +309,6 @@ module mod_mppparam
 !
   subroutine deco1_1d_real8_scatter(mg,ml)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:) , intent(out) :: ml ! model local
     call mpi_scatter(mg,jxp,mpi_real8,ml,jxp,mpi_real8,0,mycomm,mpierr)
@@ -319,9 +316,6 @@ module mod_mppparam
 !
   subroutine deco1_1d_real8_gather(ml,mg)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:) , intent(out) :: mg ! model global
     call mpi_gather(ml,jxp,mpi_real8,mg,jxp,mpi_real8,0,mycomm,mpierr)
@@ -329,9 +323,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -388,9 +379,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -449,9 +437,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -514,9 +499,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -581,9 +563,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -651,9 +630,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -723,9 +699,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -782,9 +755,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -843,9 +813,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -908,9 +875,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -975,9 +939,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -1045,9 +1006,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -1117,9 +1075,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1176,9 +1131,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1237,9 +1189,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -1302,9 +1251,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -1369,9 +1315,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -1439,9 +1382,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
@@ -1511,9 +1451,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1574,9 +1511,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1639,9 +1573,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -1708,9 +1639,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -1779,9 +1707,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1842,9 +1767,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -1907,9 +1829,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -1976,9 +1895,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -2047,9 +1963,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -2110,9 +2023,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
@@ -2175,9 +2085,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -2244,9 +2151,6 @@ module mod_mppparam
 !
   subroutine subgrid_deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -2315,9 +2219,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real8_exchange_right(ml,nex,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , i , j , ib
@@ -2359,9 +2260,6 @@ module mod_mppparam
 !
   subroutine deco1_2d_real8_exchange_left(ml,nex,i1,i2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
     integer :: isize , ssize , j , i , ib
@@ -2403,9 +2301,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real8_exchange_right(ml,nex,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
@@ -2453,9 +2348,6 @@ module mod_mppparam
 !
   subroutine deco1_3d_real8_exchange_left(ml,nex,i1,i2,k1,k2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
     integer :: isize , ksize , ssize , hsize , i , j , k , ib
@@ -2503,9 +2395,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real8_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
@@ -2560,9 +2449,6 @@ module mod_mppparam
 !
   subroutine deco1_4d_real8_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
     integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
@@ -2617,9 +2503,6 @@ module mod_mppparam
 
   subroutine deco1d_2d_real8_allgat(a,b)
     implicit none
-#ifdef IBM
-    include 'mpif.h'
-#endif
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
     integer :: ii , i , j , ssize , gsize
