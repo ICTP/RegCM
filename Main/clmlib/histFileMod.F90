@@ -16,6 +16,7 @@ module histFileMod
   use shr_sys_mod , only : shr_sys_getenv
   use abortutils  , only : endrun
   use clm_varcon  , only : spval,ispval
+  use clm_varsur   , only : r2coutfrq
   implicit none
   save
   private
@@ -2894,8 +2895,6 @@ contains
              call check_ret(nf_put_vara_int (nfid(t), nstep_id(t), start1, count1, nstep), subname)
 
              time = mdcur + mscur/86400._r8
-             call check_ret(nf_put_vara_double (nfid(t), time_var_id(t), start1, count1, time), subname)
-
              start2(1) = 1
              start2(2) = tape(t)%ntimes
              count2(1) = 2
@@ -2903,6 +2902,19 @@ contains
              timedata(1) = tape(t)%begtime
              timedata(2) = time
              call check_ret(nf_put_vara_double(nfid(t), time_bounds_id(t), start2, count2, timedata), subname)
+
+             write(6,*)
+             write(6,*)'HTAPES_WRAPUP: Writing current time sample to local history file ', &
+                  trim(locfnh(t)),' at nstep = ',get_nstep(), &
+                  ' for history time interval beginning at ', tape(t)%begtime, &
+                  ' and ending at ',time
+             write(6,*)
+             ! Update beginning time of next interval
+
+             tape(t)%begtime = time
+
+             time = mdcur + mscur/86400._r8 - (r2coutfrq/2.0D0)/24.0D0
+             call check_ret(nf_put_vara_double (nfid(t), time_var_id(t), start1, count1, time), subname)
 
              start2(1) = 1
              start2(2) = tape(t)%ntimes
@@ -2912,19 +2924,9 @@ contains
              call check_ret(nf_put_vara_text(nfid(t), date_written_id(t), start2, count2, cdate), subname)
              call check_ret(nf_put_vara_text(nfid(t), time_written_id(t), start2, count2, ctime), subname)
 
-             write(6,*)
-             write(6,*)'HTAPES_WRAPUP: Writing current time sample to local history file ', &
-                  trim(locfnh(t)),' at nstep = ',get_nstep(), &
-                  ' for history time interval beginning at ', tape(t)%begtime, &
-                  ' and ending at ',time
-             write(6,*)
 #ifndef UNICOSMP
              call shr_sys_flush(6)
 #endif
-
-             ! Update beginning time of next interval
-
-             tape(t)%begtime = time
 
           endif
 

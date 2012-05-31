@@ -14,12 +14,14 @@ module clm_time_manager
    use mod_mpmessage
    use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
                   ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart
+   use clm_varsur   , only : r2coutfrq
 
    implicit none
    private
    save
 
    type (rcm_time_and_date) :: cordex_refdate
+   integer :: ioffset
 
 ! Public methods
 
@@ -104,6 +106,7 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   calendar = calstr(idatex%calendar)
   cordex_refdate = 1949120100
   call setcal(cordex_refdate,idatex)
+  ioffset = -idnint(dtsec)*(ntsrf-1)
 
 end subroutine timemgr_init
 
@@ -122,6 +125,7 @@ subroutine timemgr_restart_io( ncid, flag )
   calendar = calstr(idatex%calendar)
   cordex_refdate = 1949120100
   call setcal(cordex_refdate,idatex)
+  ioffset = -idnint(dtsec)*(ntsrf-1)
 
   call calc_nestep( )
 
@@ -234,7 +238,7 @@ subroutine get_curr_date(yr, mon, day, tod, offset)
     type (rcm_time_interval) :: tdif
     integer :: ih
     id = idatex
-    ih = -idnint(dtsec)*(ntsrf-1)
+    ih = ioffset
     if ( present(offset) ) then
       ih = ih + offset
     end if
@@ -272,8 +276,7 @@ subroutine get_prev_date(yr, mon, day, tod)
     type (rcm_time_interval) :: tdif
     integer :: ih
     id = idatex
-    ih = -idnint(dtsrf)
-    tdif = ih
+    tdif = (ioffset - r2coutfrq*60)
     id = id + tdif
     call split_idate(id,yr,mon,day,ih)
     tod = id%second_of_day
@@ -338,9 +341,9 @@ subroutine get_curr_time(days, seconds)
     real(r8) :: rh
 
     tdif = idatex - cordex_refdate
-    rh = tohours(tdif)
-    days = idnint(rh/24.0D0)
-    seconds = mod(rh,24.0D0)*3600.0D0
+    rh = tohours(tdif) + dble(ioffset)/3600.0D0
+    days = idint(rh/24.0D0)
+    seconds = (rh-days*24.0D0)*3600.0D0
 
 end subroutine get_curr_time
 
@@ -358,11 +361,14 @@ subroutine get_prev_time(days, seconds)
 
    type (rcm_time_interval) :: tdif
    real(r8) :: rh
-   
+
    tdif = idatex - cordex_refdate
    rh = tohours(tdif)
-   days = idnint(rh/24.0D0)
-   seconds = mod(rh,24.0D0)*3600.0D0
+   if ( doing_restart ) then
+     rh = rh - r2coutfrq
+   end if
+   days = idint(rh/24.0D0)
+   seconds = (rh-days*24.0D0)*3600.0D0
 
 end subroutine get_prev_time
 
