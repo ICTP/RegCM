@@ -31,31 +31,36 @@ module mod_wrtoxd
 
   private
 
-  public :: chv4 , oxv4
-  public :: nchsp , noxsp
-  public :: chspec , oxspec
+  public :: chv4 , oxv4 , aev4
+  public :: nchsp , noxsp , naesp
+  public :: chspec , oxspec , aespec
 
-  public :: init_outoxd , close_outoxd , newfile_ch_icbc , &
-            newfile_ch_oxcl , write_ch_icbc , write_ch_oxcl
+  public :: init_outoxd , close_outoxd
+  public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc
+  public :: write_ch_icbc , write_ox_icbc , write_ae_icbc
 
-  integer :: ncout , ncoutox
+  integer :: ncoutch , ncoutox , ncoutae
   character(256) :: ofname
   type(rcm_time_and_date) , save :: irefdate
-  integer :: itimech , itimeox
+  integer :: itimech , itimeox , itimeae
   integer , dimension(4) :: idims
   integer :: istatus
 
   integer , parameter :: nchsp = 25
   integer , parameter :: noxsp = 5
+  integer , parameter :: naesp = 14
 
   integer , dimension(nchsp+1) :: ichvar
   integer , dimension(noxsp+1) :: ioxvar
+  integer , dimension(naesp+1) :: iaevar
 
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
+  character(len=8) , dimension(naesp) :: aespec
 
   real(sp) , pointer , dimension(:,:,:,:) :: chv4
   real(sp) , pointer , dimension(:,:,:,:) :: oxv4
+  real(sp) , pointer , dimension(:,:,:,:) :: aev4
   
   character(len=128) :: buffer
 
@@ -64,9 +69,13 @@ module mod_wrtoxd
                 'CO' , 'CH2O' , 'CH3OH' , 'C2H5OH' , 'C2H4' , 'C2H6' ,   &
                 'CH3CHO' , 'CH3COCH3' , 'BIGENE' , 'BIGALK' , 'C3H6' ,   &
                 'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
+  data aespec / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
+                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
+                'DST01', 'DST02', 'DST03', 'DST04' /
 
-  data ncout   /-1/
+  data ncoutch /-1/
   data ncoutox /-1/
+  data ncoutae /-1/
 
   contains
 
@@ -74,17 +83,22 @@ module mod_wrtoxd
     implicit none
     call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
     call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
+    call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
   end subroutine init_outoxd
 
   subroutine close_outoxd
     implicit none
-    if (ncout > 0) then
-      istatus = nf90_close(ncout)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(ofname))
+    if (ncoutch > 0) then
+      istatus = nf90_close(ncoutch)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close CH file')
     end if
     if (ncoutox > 0) then
       istatus = nf90_close(ncoutox)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(ofname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close OX file')
+    end if
+    if (ncoutae > 0) then
+      istatus = nf90_close(ncoutae)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close AE file')
     end if
   end subroutine close_outoxd
 
@@ -99,9 +113,9 @@ module mod_wrtoxd
     character(64) :: csdate
     real(sp) :: hptop
 
-    if (ncout > 0) then
-      istatus = nf90_close(ncout)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(ofname))
+    if (ncoutch > 0) then
+      istatus = nf90_close(ncoutch)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close CH file')
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
@@ -112,65 +126,65 @@ module mod_wrtoxd
 
     csdate = tochar(idate1)
 
-    call createfile_withname(ofname,ncout)
-    call add_common_global_params(ncout,'chem_icbc')
+    call createfile_withname(ofname,ncoutch)
+    call add_common_global_params(ncoutch,'chem_icbc')
 
     ipnt = 1
-    call define_basic_dimensions(ncout,jx,iy,kz,ipnt,idims)
-    call add_dimension(ncout,'time',nf90_unlimited,ipnt,idims)
+    call define_basic_dimensions(ncoutch,jx,iy,kz,ipnt,idims)
+    call add_dimension(ncoutch,'time',nf90_unlimited,ipnt,idims)
 !
-    call define_horizontal_coord(ncout,jx,iy,xjx,yiy,idims,ihvar)
-    call define_vertical_coord(ncout,idims,izvar)
+    call define_horizontal_coord(ncoutch,jx,iy,xjx,yiy,idims,ihvar)
+    call define_vertical_coord(ncoutch,idims,izvar)
 
     ipnt = 1
-    call define_cross_geolocation_coord(ncout,idims,ipnt,illvar)
+    call define_cross_geolocation_coord(ncoutch,idims,ipnt,illvar)
 
-    istatus = nf90_def_var(ncout, 'time', nf90_double, idims(4:4), ichvar(1))
+    istatus = nf90_def_var(ncoutch, 'time', nf90_double, idims(4:4), ichvar(1))
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding variable time')
-    istatus = nf90_put_att(ncout, ichvar(1), 'units', 'hours since '//csdate)
+    istatus = nf90_put_att(ncoutch, ichvar(1), 'units', 'hours since '//csdate)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding time units')
-    istatus = nf90_put_att(ncout, ichvar(1), 'calendar', calendar)
+    istatus = nf90_put_att(ncoutch, ichvar(1), 'calendar', calendar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding time calendar')
 
     do i = 1 , nchsp
-      istatus = nf90_def_var(ncout, chspec(i), nf90_float, idims, ichvar(i+1))
+      istatus = nf90_def_var(ncoutch, chspec(i), nf90_float, idims, ichvar(i+1))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error adding variable '//trim(chspec(i)))
 #ifdef NETCDF4_HDF5
-      istatus = nf90_def_var_deflate(ncout, ichvar(i+1), 1, 1, 9)
+      istatus = nf90_def_var_deflate(ncoutch, ichvar(i+1), 1, 1, 9)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error setting compression on '//trim(chspec(i)))
 #endif
       buffer = 'mass_fraction_of_'//trim(chspec(i))//'_in_air'
-      istatus = nf90_put_att(ncout, ichvar(i+1), 'standard_name', buffer)
+      istatus = nf90_put_att(ncoutch, ichvar(i+1), 'standard_name', buffer)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error adding standard_name on '//trim(chspec(i)))
       buffer = trim(chspec(i))//' Volume Mixing Ratio'
-      istatus = nf90_put_att(ncout, ichvar(i+1), 'long_name', buffer)
+      istatus = nf90_put_att(ncoutch, ichvar(i+1), 'long_name', buffer)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error adding long_name on '//trim(chspec(i)))
-      istatus = nf90_put_att(ncout, ichvar(i+1), 'units', 'kg kg-1')
+      istatus = nf90_put_att(ncoutch, ichvar(i+1), 'units', 'kg kg-1')
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error adding units on '//trim(chspec(i)))
-      istatus = nf90_put_att(ncout, ichvar(i+1), 'coordinates', 'xlon xlat')
+      istatus = nf90_put_att(ncoutch, ichvar(i+1), 'coordinates', 'xlon xlat')
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error adding coordinates on '//trim(chspec(i)))
     end do
-    istatus = nf90_enddef(ncout)
+    istatus = nf90_enddef(ncoutch)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error End Definitions NetCDF output')
     hptop = real(ptop)*10.0
-    call write_vertical_coord(ncout,sigma2,hptop,izvar)
-    call write_horizontal_coord(ncout,xjx,yiy,ihvar)
+    call write_vertical_coord(ncoutch,sigma2,hptop,izvar)
+    call write_horizontal_coord(ncoutch,xjx,yiy,ihvar)
     ipnt = 1
-    call write_var2d_static(ncout,'xlat',xlat,ipnt,illvar,no_transpose)
-    call write_var2d_static(ncout,'xlon',xlon,ipnt,illvar,no_transpose)
+    call write_var2d_static(ncoutch,'xlat',xlat,ipnt,illvar,no_transpose)
+    call write_var2d_static(ncoutch,'xlon',xlon,ipnt,illvar,no_transpose)
 
 99001 format (a,a,a,a,i10,a)
 
   end subroutine newfile_ch_icbc
 
-  subroutine newfile_ch_oxcl(idate1)
+  subroutine newfile_ox_icbc(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
     integer :: i , ipnt , istatus
@@ -183,7 +197,7 @@ module mod_wrtoxd
 
     if (ncoutox > 0) then
       istatus = nf90_close(ncoutox)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(ofname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close OX file')
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
@@ -250,7 +264,89 @@ module mod_wrtoxd
 
 99001 format (a,a,a,a,i10,a)
 
-  end subroutine newfile_ch_oxcl
+  end subroutine newfile_ox_icbc
+
+  subroutine newfile_ae_icbc(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
+    integer :: i , ipnt , istatus
+    integer , dimension(2) :: izvar
+    integer , dimension(2) :: ihvar
+    integer , dimension(2) :: illvar
+    real(sp) , pointer , dimension(:) :: xjx , yiy
+    character(64) :: csdate
+    real(sp) :: hptop
+
+    if (ncoutae > 0) then
+      istatus = nf90_close(ncoutae)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close AE file')
+    end if
+
+    write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
+                '_AEBC.', toint10(idate1), '.nc'
+
+    irefdate = idate1
+    itimeae = 1
+
+    csdate = tochar(idate1)
+
+    call createfile_withname(ofname,ncoutae)
+    call add_common_global_params(ncoutae,'aerc_icbc')
+
+    ipnt = 1
+    call define_basic_dimensions(ncoutae,jx,iy,kz,ipnt,idims)
+    call add_dimension(ncoutae,'time',nf90_unlimited,ipnt,idims)
+!
+    call define_horizontal_coord(ncoutae,jx,iy,xjx,yiy,idims,ihvar)
+    call define_vertical_coord(ncoutae,idims,izvar)
+
+    ipnt = 1
+    call define_cross_geolocation_coord(ncoutae,idims,ipnt,illvar)
+
+    istatus = nf90_def_var(ncoutae, 'time', nf90_double, idims(4:4), iaevar(1))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding variable time')
+    istatus = nf90_put_att(ncoutae, iaevar(1), 'units', 'hours since '//csdate)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding time units')
+    istatus = nf90_put_att(ncoutae, iaevar(1), 'calendar', calendar)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding time calendar')
+
+    do i = 1 , naesp
+      istatus = nf90_def_var(ncoutae, aespec(i), nf90_float, idims, iaevar(i+1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding variable '//trim(aespec(i)))
+#ifdef NETCDF4_HDF5
+      istatus = nf90_def_var_deflate(ncoutae, iaevar(i+1), 1, 1, 9)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error setting compression on '//trim(aespec(i)))
+#endif
+      buffer = 'mass_fraction_of_'//trim(aespec(i))//'_in_air'
+      istatus = nf90_put_att(ncoutae, iaevar(i+1), 'standard_name', buffer)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding standard_name on '//trim(aespec(i)))
+      buffer = trim(aespec(i))//' Volume Mixing Ratio'
+      istatus = nf90_put_att(ncoutae, iaevar(i+1), 'long_name', buffer)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding long_name on '//trim(aespec(i)))
+      istatus = nf90_put_att(ncoutae, iaevar(i+1), 'units', 'kg kg-1')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding units on '//trim(aespec(i)))
+      istatus = nf90_put_att(ncoutae, iaevar(i+1), 'coordinates', 'xlon xlat')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding coordinates on '//trim(aespec(i)))
+    end do
+    istatus = nf90_enddef(ncoutae)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error End Definitions NetCDF output')
+    hptop = real(ptop)*10.0
+    call write_vertical_coord(ncoutae,sigma2,hptop,izvar)
+    call write_horizontal_coord(ncoutae,xjx,yiy,ihvar)
+    ipnt = 1
+    call write_var2d_static(ncoutae,'xlat',xlat,ipnt,illvar,no_transpose)
+    call write_var2d_static(ncoutae,'xlon',xlon,ipnt,illvar,no_transpose)
+
+99001 format (a,a,a,a,i10,a)
+
+  end subroutine newfile_ae_icbc
 
   subroutine write_ch_icbc(idate)
     implicit none
@@ -265,7 +361,7 @@ module mod_wrtoxd
     icount1(1) = 1
     tdif = idate - irefdate
     xdate(1) = tohours(tdif)
-    istatus = nf90_put_var(ncout, ichvar(1), xdate, istart1, icount1)
+    istatus = nf90_put_var(ncoutch, ichvar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
 
     istart(4) = itimech
@@ -278,7 +374,7 @@ module mod_wrtoxd
     icount(1) = jx
 
     do i = 1 , nchsp
-      istatus = nf90_put_var(ncout, ichvar(i+1), chv4(:,:,:,i), istart, icount)
+      istatus = nf90_put_var(ncoutch,ichvar(i+1),chv4(:,:,:,i),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error variable '//chspec(i)//' write')
     end do
@@ -289,7 +385,7 @@ module mod_wrtoxd
 !
   end subroutine write_ch_icbc
 
-  subroutine write_ch_oxcl(idate)
+  subroutine write_ox_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer :: i , istatus
@@ -315,16 +411,52 @@ module mod_wrtoxd
     icount(1) = jx
 
     do i = 1 , noxsp
-      istatus = nf90_put_var(ncoutox, ioxvar(i+1), &
-                             oxv4(:,:,:,i), istart, icount)
+      istatus = nf90_put_var(ncoutox,ioxvar(i+1),oxv4(:,:,:,i),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error variable '//oxspec(i)//' write')
     end do
 
-    write (stdout ,*) 'Write ch_oxcl : ', tochar(idate)
+    write (stdout ,*) 'Write ox_icbc : ', tochar(idate)
 
     itimeox = itimeox + 1
 !
-  end subroutine write_ch_oxcl
+  end subroutine write_ox_icbc
 !
+  subroutine write_ae_icbc(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer :: i , istatus
+    integer , dimension(1) :: istart1 , icount1
+    integer , dimension(4) :: istart , icount
+    real(dp) , dimension(1) :: xdate
+    type(rcm_time_interval) :: tdif
+!
+    istart1(1) = itimeae
+    icount1(1) = 1
+    tdif = idate - irefdate
+    xdate(1) = tohours(tdif)
+    istatus = nf90_put_var(ncoutae, iaevar(1), xdate, istart1, icount1)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
+
+    istart(4) = itimeae
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = kz
+    icount(2) = iy
+    icount(1) = jx
+
+    do i = 1 , naesp
+      istatus = nf90_put_var(ncoutae,iaevar(i+1),aev4(:,:,:,i),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error variable '//aespec(i)//' write')
+    end do
+
+    write (stdout ,*) 'Write ae_icbc : ', tochar(idate)
+
+    itimeae = itimeae + 1
+!
+  end subroutine write_ae_icbc
+
 end module mod_wrtoxd

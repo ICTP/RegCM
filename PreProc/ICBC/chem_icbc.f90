@@ -30,7 +30,8 @@ program chem_icbc
   use mod_wrtoxd
   use mod_header
   use mod_ch_icbc
-  use mod_ch_oxcl
+  use mod_ox_icbc
+  use mod_ae_icbc
   use mod_memutil
 !
   implicit none
@@ -75,26 +76,29 @@ program chem_icbc
   idate = globidate1
   iodate = idate
 
-  call newfile_ch_oxcl(idate)
   call newfile_ch_icbc(idate)
+  call newfile_ox_icbc(idate)
+  call newfile_ae_icbc(idate)
 
-  call header_ch_oxcl
   call header_ch_icbc
+  call header_ox_icbc
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
      call newfile_ch_icbc(monfirst(idate))
-     call newfile_ch_oxcl(monfirst(idate))
+     call newfile_ox_icbc(monfirst(idate))
+     call newfile_ae_icbc(monfirst(idate))
    end if
    call get_ch_icbc(idate)
-   call get_ch_oxcl(idate)
+   call get_ox_icbc(idate)
    iodate = idate
    idate = idate + tbdy
   end do
 
   call close_outoxd
-  call close_ch_oxcl
   call close_ch_icbc
+  call close_ox_icbc
+  call close_ae_icbc
 
   call memory_destroy
 

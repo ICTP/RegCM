@@ -50,8 +50,7 @@ module mod_ch_icbc
   real(sp) :: prcm , pmpi , pmpj
   integer :: ncid , istatus
 
-!  integer , parameter :: nchsp = 25
-
+  data ncid /-1/
 
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
@@ -60,9 +59,6 @@ module mod_ch_icbc
   subroutine header_ch_icbc
     implicit none
     integer :: ivarid , idimid , is , istatus
-
-
-
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'mz4_avg_2000-2007_aug.nc', nf90_nowrite, ncid)
@@ -184,8 +180,10 @@ module mod_ch_icbc
   subroutine close_ch_icbc
     use netcdf
     implicit none
-    istatus=nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error close chemical file')
+    if ( ncid > 0 ) then
+      istatus = nf90_close(ncid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close chemical file')
+    end if
   end subroutine close_ch_icbc
 
 end module mod_ch_icbc

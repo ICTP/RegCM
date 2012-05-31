@@ -13,8 +13,8 @@ icbc_SOURCES = mod_vectutil.f90 mod_ecwcp.f90 mod_eh5om.F90 mod_ein.F90 \
                mod_ncep.F90 mod_nest.F90 mod_write.F90 mod_header.F90 \
                mod_hgt.F90 mod_humid.f90 mod_mksst.F90 mod_uvrot.f90 \
                mod_ecens.F90 mod_gn6hnc.F90 icbc.f90
-chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ch_oxcl.F90 mod_wrtoxd.F90 \
-                    mod_grid.F90 mod_header.F90 chem_icbc.f90
+chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ox_icbc.F90 mod_ae_icbc.F90 \
+                    mod_wrtoxd.F90 mod_grid.F90 mod_header.F90 chem_icbc.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -36,10 +36,11 @@ distclean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-chem_icbc.o chem_icbc.mod: chem_icbc.f90 mod_dynparam.mod mod_date.mod mod_grid.mod mod_wrtoxd.mod mod_header.mod mod_ch_icbc.mod mod_ch_oxcl.mod mod_memutil.mod
+chem_icbc.o chem_icbc.mod: chem_icbc.f90 mod_dynparam.mod mod_date.mod mod_grid.mod mod_wrtoxd.mod mod_header.mod mod_ch_icbc.mod mod_ox_icbc.mod mod_ae_icbc.mod mod_memutil.mod
 icbc.o icbc.mod: icbc.f90 mod_dynparam.mod mod_message.mod mod_header.mod mod_stdio.mod mod_memutil.mod mod_mksst.mod mod_date.mod mod_grid.mod mod_date.mod mod_ecwcp.mod mod_eh5om.mod mod_ein.mod mod_era40.mod mod_erahi.mod mod_ecens.mod mod_fvgcm.mod mod_ncep.mod mod_nest.mod mod_gn6hnc.mod mod_write.mod
 mod_ch_icbc.o mod_ch_icbc.mod: mod_ch_icbc.F90 mod_dynparam.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_memutil.mod mod_message.mod mod_nchelper.mod
-mod_ch_oxcl.o mod_ch_oxcl.mod: mod_ch_oxcl.F90 mod_dynparam.mod mod_memutil.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_nchelper.mod
+mod_ox_icbc.o mod_ox_icbc.mod: mod_ox_icbc.F90 mod_dynparam.mod mod_memutil.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_nchelper.mod
+mod_ae_icbc.o mod_ae_icbc.mod: mod_ae_icbc.F90 mod_dynparam.mod mod_memutil.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_nchelper.mod
 mod_ecens.o mod_ecens.mod: mod_ecens.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_memutil.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_nchelper.mod
 mod_ecwcp.o mod_ecwcp.mod: mod_ecwcp.f90 mod_dynparam.mod mod_memutil.mod mod_stdio.mod mod_realkinds.mod mod_message.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod
 mod_eh5om.o mod_eh5om.mod: mod_eh5om.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_grid.mod mod_memutil.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod
