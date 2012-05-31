@@ -1367,11 +1367,11 @@ end subroutine clm_map2gcell
      if( ichem == 1 ) then  !Aerosol scheme on
        nout = 22
        allocate(c2r_all(nt*nout))
-       allocate(c2r_allout(numg*nout))
+       if ( .not. allocated(c2r_allout) ) allocate(c2r_allout(numg*nout))
      else
        nout = 20
        allocate(c2r_all(nt*nout))
-       allocate(c2r_allout(numg*nout))
+       if ( .not. allocated(c2r_allout) ) allocate(c2r_allout(numg*nout))
      end if
      allocate(displace(npes))
 

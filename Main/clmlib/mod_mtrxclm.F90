@@ -550,8 +550,6 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       iii = iii + c2rngc(nn1)*nout
     end do
  
-    deallocate(c2r_allout)
- 
     if ( ktau == 0 .and. debug_level == 2 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
@@ -571,7 +569,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
     do i = ici1 , ici2
       do j = jci1 , jci2
+
         jj = (jxp*myid) + j
+
         uvdrag(j,i) = d_zero
         hfx(j,i) = d_zero
         qfx(j,i) = d_zero
@@ -641,7 +641,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
-        else if ( landmask(jj,i)==0 ) then !ocean
+        else if ( landmask(jj,i) == 0 ) then !ocean
  
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
@@ -702,7 +702,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
  
-        else if ( landmask(jj,i)==3 ) then
+        else if ( landmask(jj,i) == 3 ) then
           !gridcell with some % land and ocean
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
