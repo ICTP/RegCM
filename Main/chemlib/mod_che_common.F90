@@ -38,7 +38,7 @@ module mod_che_common
 
   ! chemistry nameliste option
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , &
-                      ichremlsc , ichsursrc, ichsolver
+                      ichremlsc , ichsursrc, ichsolver, ichdustemd
   ! usefull flags
   integer  :: iaerosol , igaschem
 

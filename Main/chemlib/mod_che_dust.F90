@@ -56,6 +56,11 @@ module mod_che_dust
   integer , parameter :: jfs = 1 
   integer , parameter :: ust = 1
 !
+
+!choice of emission distribution 1= alfaro/gomes
+!                                2 = Kok + Laurent et al.
+! ichdustemd
+
 ! lognormal alfaro parameters
 ! define the aerosol distribution at the emission and the corresponding 
 ! weighting factors in fuction of bin sizes
@@ -73,11 +78,21 @@ module mod_che_dust
   real(dp) , parameter  :: e2 = 3.52D0
   real(dp) , parameter  :: e3 = 3.46D0
   !        
-  real(dp) , dimension(isize) :: frac1 , frac2 , frac3
+  real(dp) , dimension(isize) :: frac1 , frac2 , frac3, frac
   real(dp) , dimension(2,isize) :: aerosize       
+
+
+
+! parameter for alternative Kok emission distribution
+      real(8), parameter :: d = 3.4      
+      real(8), parameter :: sigmas = 3.0    
+!     Normalization constant
+      real(8), parameter :: cv=12.62    
+      real(8), parameter :: lambda=12.0       
 
   ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
   ! in each texture type.
+
 
   real(dp) , pointer, dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
   real(dp) , pointer,  dimension(:,:) :: clayrow2 , sandrow2
@@ -147,8 +162,8 @@ module mod_che_dust
       real(dp) , dimension(nsoil) :: ss
       logical :: rd_tex 
       character(5) :: aerctl
-      real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,          &
-                 asigma2 , asigma3 , rwi , totv1 , totv2 , totv3
+      real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,  amean,asigma,        &
+                 asigma2 , asigma3 , rwi , totv1 , totv2 , totv3, totv
       !
       ! Fab update 
       ! change type 1 and 2 and 3 to Laurent et al., 2008, 
@@ -286,6 +301,8 @@ module mod_che_dust
       totv2 = d_zero
       totv3 = d_zero
 
+      totv = d_zero
+
       do n = 1 , isize
 
         rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
@@ -306,7 +323,13 @@ module mod_che_dust
         totv2 = totv2 + frac2(n)
         totv3 = totv3 + frac3(n)
 
-      end do
+ ! if Kok is used
+        amean = log10(d)
+        asigma = log10(sigmas)
+        frac(n) = rwi/cv*(1+ERF(log(rwi/d)/sqrt(2.0)/log(sigmas)))*exp(-(rwi/lambda)**3)  !see Kok (2011)
+        totv = totv + frac(n)
+
+     end do
 
       do n = 1 , isize
         frac1(n) = frac1(n)/totv1
@@ -315,6 +338,12 @@ module mod_che_dust
         if ( frac1(n) < 1.0D-9 ) frac1(n) = d_zero
         if ( frac2(n) < 1.0D-9 ) frac2(n) = d_zero
         if ( frac3(n) < 1.0D-9 ) frac3(n) = d_zero
+
+
+        frac(n) = frac(n)/totv
+    
+        if ( frac(n).lt.1.E-9 ) frac(n) = d_zero
+
       end do
 
     end subroutine inidust
@@ -408,7 +437,7 @@ module mod_che_dust
       real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
                                    xsurfwd , xvegfrac , xz0 , xustarnd
       real(dp) , dimension(ilg,nbin) :: xrsfrow
-      real(dp) , dimension(ilg,nats) :: xftex
+      real(dp) , dimension(ilg,nats) :: xftex, xalphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
       integer :: i , ieff , n , ns
 ! 
@@ -424,7 +453,8 @@ module mod_che_dust
       xsrel2d = d_zero
       xustarnd=d_zero
       xrsfrow = d_zero
-     
+      xalphaprop =d_zero
+
       ieff = 0
       do i = ici1 , ici2
         if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then   
@@ -438,6 +468,15 @@ module mod_che_dust
           xclayrow(ieff) = clayrow2(i,jloop)
           do n = 1 , nats
             xftex(ieff,n) = dustsotex(jloop,i,n)
+
+            if (ichdustemd==2) then 
+              if ( clay2row2(i,n,jloop) .le. 20 ) then
+                xalphaprop(ieff,n) = 10**(0.134*clay2row2(i,n,jloop)-6)*0.035
+              else 
+                xalphaprop(ieff,n)= 10**(-0.1*clay2row2(i,n,jloop)-1.2)*0.035
+              end if
+            end if  
+
             do  ns = 1 , nsoil
               xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
             end do
@@ -447,7 +486,7 @@ module mod_che_dust
      
       if ( ieff > 0 ) then
         call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsurfwd, &
-                         xftex,xclayrow,xroarow,xz0,xsrel2d,xustarnd,xrsfrow)
+                         xftex,xclayrow,xroarow,xalphaprop,xz0,xsrel2d,xustarnd,xrsfrow)
       end if
         
       ! put back the dust flux on the right grid
@@ -476,14 +515,14 @@ module mod_che_dust
     end subroutine sfflux
 ! 
     subroutine dust_module(il1,il2,trsize,soilw,vegfrac,surfwd,ftex, &
-                           clayrow,roarow,z0,srel,ustarnd,rsfrow)
+                           clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
       implicit none
 !
       integer :: il1 , il2
       real(dp) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd
       real(dp) , dimension(ilg,nbin) :: rsfrow
-      real(dp) , dimension(ilg,nats) :: ftex
+      real(dp) , dimension(ilg,nats) :: ftex, alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
       real(dp) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
@@ -568,7 +607,7 @@ module mod_che_dust
  
       call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
  
-      call emission(il1,il2,rhodust,ftex,uth,roarow,rc,utheff,     &
+      call emission(il1,il2,rhodust,ftex,alphaprop, uth,roarow,rc,utheff,     &
                     ustar,srel,rsfrow,trsize,vegfrac)
  
     end subroutine dust_module
@@ -590,7 +629,7 @@ module mod_che_dust
       end do
     end subroutine uthefft
 !
-    subroutine emission(il1,il2,rhodust,ftex,uth,roarow,rc,      &
+    subroutine emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc,      &
                         utheff,ustar,srel,rsfrow,trsize,vegfrac)
  
       implicit none
@@ -599,7 +638,7 @@ module mod_che_dust
       real(dp) :: rhodust , uth
       real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
-      real(dp) , dimension(ilg,nats) :: ftex
+      real(dp) , dimension(ilg,nats) :: ftex, alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
       real(dp) , dimension(nbin,2) :: trsize
       real(dp) , dimension(ilg,nsoil) :: utheff
@@ -640,6 +679,8 @@ module mod_che_dust
                 ! fine.  
                 ! fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
                 ! FAB 
+
+                if (ichdustemd==1 ) then 
                 fsoil(i,nt) = srel(i,ns,nt)*fdp1*fdp2 
                 ! size-distributed kinetic energy flux(per texture type)
                 dec = fsoil(i,nt)*beta
@@ -670,6 +711,13 @@ module mod_che_dust
                           (mathpi/6.0D0)*rhodust*((d2*1.0D-04)**d_three)
                 fsoil3(i,nt) = fsoil3(i,nt) + 1.0D-2*p3*(dec/e3)* &
                           (mathpi/6.0D0)*rhodust*((d3*1.0D-04)**d_three)
+
+
+                elseif (ichdustemd ==2) then   
+                
+                 fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)*srel(i,ns,nt)*fdp1*fdp2 
+
+                end if
               end if
             end if
           end do
@@ -683,9 +731,20 @@ module mod_che_dust
         do n = 1 , isize
           do i = il1 , il2
             ! discretisation of the modal emission in isize emission sub bin
+
+
+            if(ichdustemd==1) then
+
             rsfrowsub(i,n,nt) = fsoil1(i,nt)*frac1(n) + &
                                 fsoil2(i,nt)*frac2(n) + &
                                 fsoil3(i,nt)*frac3(n)
+
+            elseif(ichdustemd==2) then
+
+            rsfrowsub(i,n,nt) = fsoil(i,nt)*frac(n) 
+
+            end if
+
             ! and in tranport bins (nbin)
             rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
             do k = 1 , nbin

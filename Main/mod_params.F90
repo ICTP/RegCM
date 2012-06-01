@@ -140,7 +140,8 @@ module mod_params
     lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-    ichcumtra , ichsolver , idirect
+         ichcumtra , ichsolver , idirect, ichdustemd
+
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
@@ -419,6 +420,7 @@ module mod_params
   ichremcvc = 1     ! tracer removal by convective clouds
   ichdrdepo = 1     ! tracer dry deposition
   ichcumtra = 1     ! tracer convective transport
+  ichdustemd  = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
   idirect = 1       ! tracer direct effect
 #ifdef CLM
 !c------CLM Specific
@@ -725,6 +727,8 @@ module mod_params
     call mpi_bcast(ichcumtra,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(idirect,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(ichsolver,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(ichdustemd,1,mpi_integer,0,mycomm,ierr)
+
     call chem_config
 
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
