@@ -31,11 +31,7 @@ module mod_ae_icbc
 
   private
 !
-  integer :: nyear , month , nday , nhour
-  integer :: k , l
-  integer :: k0
-
-  integer , parameter :: aeilon = 128 , aejlat = 64 , aeilev = 26 , aeitime = 12
+  integer , parameter :: aeilon = 144 , aejlat = 96 , aeilev = 26 , aeitime = 12
   real(sp) , dimension(aeilon) :: aet42lon
   real(sp) , dimension(aejlat) :: aet42lat
   real(sp) , dimension(aeilev) :: aet42hyam , aet42hybm
@@ -45,29 +41,50 @@ module mod_ae_icbc
   real(sp) :: p0
   real(sp) , dimension(aeilon,aejlat) :: xps
   real(sp) , dimension(aeilon,aejlat) :: paeid_2
-  real(sp) , dimension(aeilon,aeilev,aejlat,aeitime,naesp) :: aev2
+  real(sp) , dimension(aeilon,aejlat,aeilev,aeitime,naesp) :: aev2
   real(sp) , dimension(aeilon,aejlat,aeitime) :: xps2
   real(sp) , pointer , dimension(:,:) :: paeid_3
   real(sp) , pointer , dimension(:,:,:,:) :: aev3
+  integer :: iyear
+  character(len=8) , dimension(4) :: scendir
 
   real(sp) :: prcm , pmpi , pmpj
-  integer :: ncid , istatus
+  integer :: ncid , istatus , iscen
 
   public :: header_ae_icbc , get_ae_icbc , close_ae_icbc
 
   data ncid /-1/
+  data scendir / 'RF', 'RCP26', 'RCP45', 'RCP85' /
 
   contains
 
-  subroutine header_ae_icbc
+  subroutine header_ae_icbc(idate)
     implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
     integer :: ivarid , istatus , is
+    integer :: nyear , month , nday , nhour
+    character(len=256) :: aefilename
 
+    call split_idate(idate,nyear,month,nday,nhour)
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
     call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
 
-    istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
-                      'aeid_3d_64x128_L26_c030722.nc', nf90_nowrite, ncid)
+    iyear = nyear/10*10
+    select case ( dattyp(4:5) )
+      case ( '26' )
+        iscen = 2
+      case ( '45' )
+        iscen = 3
+      case ( '85' )
+        iscen = 4
+      case default
+        iscen = 1
+    end select
+    write(aefilename,'(a,i0.4,a,i0.4,a)') &
+       trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
+       trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
+       iyear, '-', iyear+9, '.nc'
+    istatus = nf90_open(aefilename,nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
@@ -105,13 +122,38 @@ module mod_ae_icbc
   subroutine get_ae_icbc(idate)
     implicit none
 !
-    integer :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
+    integer :: i , l , is , j , k , k0
     real(sp) , dimension(aeilon,aejlat,aeilev) :: xinp
     real(sp) :: wt1 , wt2 , r4pt
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer :: m1 , m2
+    integer :: ivarid , istatus
+    integer :: nyear , month , nday , nhour
+    character(len=256) :: aefilename
+
+    call split_idate(idate,nyear,month,nday,nhour)
+
+    if ( nyear > iyear + 9 ) then
+      iyear = nyear/10*10
+      write(aefilename,'(a,i0.4,a,i0.4,a)') &
+         trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
+         trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
+         iyear, '-', iyear+9, '.nc'
+      istatus = nf90_open(aefilename,nf90_nowrite, ncid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
+      istatus = nf90_inq_varid(ncid,'PS',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+      istatus = nf90_get_var(ncid,ivarid,xps2)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+      do is = 1 , naesp
+        istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//aespec(is))
+        istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//aespec(is))
+      end do
+    end if
 
     d1 = monfirst(idate)
     d2 = nextmon(d1)
@@ -123,10 +165,10 @@ module mod_ae_icbc
     wt2 = 1.0 - wt1
 
     do is = 1 , naesp
-      do i = 1 , aejlat
-        do j = 1 , aeilon
-          do l = 1 , aeilev
-            xinp(j,i,l) = aev2(j,l,i,m1,is)*wt2+aev2(j,l,i,m2,is)*wt1
+      do l = 1 , aeilev
+        do i = 1 , aejlat
+          do j = 1 , aeilon
+            xinp(j,i,l) = aev2(j,i,l,m1,is)*wt2+aev2(j,i,l,m2,is)*wt1
           end do
         end do
       end do
@@ -163,7 +205,8 @@ module mod_ae_icbc
 
             do is = 1 , naesp
               aev4(j,i,l,is) = aev3(j,i,aeilev,is) + &
-                 (aev3(j,i,aeilev,is) - aev3(j,i,aeilev-1,is))*(prcm-pmpi)/(pmpi-pmpj)
+                 (aev3(j,i,aeilev,is) - aev3(j,i,aeilev-1,is)) * &
+                 (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
             pmpj = paeid_3(j,i)*aet42hybm(k0)+aet42hyam(k0)*p0

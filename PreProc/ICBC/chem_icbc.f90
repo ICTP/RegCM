@@ -82,6 +82,7 @@ program chem_icbc
 
   call header_ch_icbc
   call header_ox_icbc
+  call header_ae_icbc(idate)
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
@@ -91,6 +92,7 @@ program chem_icbc
    end if
    call get_ch_icbc(idate)
    call get_ox_icbc(idate)
+   call get_ae_icbc(idate)
    iodate = idate
    idate = idate + tbdy
   end do
