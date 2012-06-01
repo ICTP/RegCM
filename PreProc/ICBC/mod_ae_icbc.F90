@@ -41,7 +41,7 @@ module mod_ae_icbc
   real(sp) :: p0
   real(sp) , dimension(aeilon,aejlat) :: xps
   real(sp) , dimension(aeilon,aejlat) :: paeid_2
-  real(sp) , dimension(aeilon,aejlat,aeilev,aeitime,naesp) :: aev2
+  real(sp) , pointer , dimension(:,:,:,:,:) :: aev2
   real(sp) , dimension(aeilon,aejlat,aeitime) :: xps2
   real(sp) , pointer , dimension(:,:) :: paeid_3
   real(sp) , pointer , dimension(:,:,:,:) :: aev3
@@ -68,6 +68,8 @@ module mod_ae_icbc
     call split_idate(idate,nyear,month,nday,nhour)
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
     call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
+    call getmem5d(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
+                  1,naesp,'mod_ae_icbc:aev2')
 
     iyear = nyear/10*10
     select case ( dattyp(4:5) )

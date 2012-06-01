@@ -43,6 +43,16 @@ program chem_icbc
   integer :: nnn , nsteps
   integer :: ierr
   character(256) :: namelistfile , prgname
+  character(len=8)   :: chemsimtype
+  integer :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
+             ichsolver , idirect
+  logical :: dochem , dooxcl , doaero
+  data dochem /.false./
+  data dooxcl /.false./
+  data doaero /.false./
+!
+  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
+    ichcumtra , ichsolver , idirect
 !
   call header('chem_icbc')
 !
@@ -59,11 +69,26 @@ program chem_icbc
     write ( 6, * ) 'Check argument and namelist syntax'
     stop
   end if
-!      
+!
+  read(ipunit, chemparam, err=101)
+!
+  select case (chemsimtype)
+    case ( 'CBMZ' )
+      dochem = .true.
+    case ( 'DUST', 'SSLT' , 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+      doaero = .true.
+    case default
+      write (stderr,*) 'Unknown chemsimtype'
+      write (stderr,*) 'Assuming nothing to do for this experiment'
+      call finaltime(0)
+      write(stdout,*) 'Successfully completed CHEM ICBC'
+      stop
+  end select
+
   call memory_init
 !  
   call init_grid(jx,iy,kz)
-  call init_outoxd
+  call init_outoxd(chemsimtype)
 !
   tdif = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
@@ -76,34 +101,40 @@ program chem_icbc
   idate = globidate1
   iodate = idate
 
-  call newfile_ch_icbc(idate)
-  call newfile_ox_icbc(idate)
-  call newfile_ae_icbc(idate)
+  if ( dochem ) call newfile_ch_icbc(idate)
+  if ( dooxcl ) call newfile_ox_icbc(idate)
+  if ( doaero ) call newfile_ae_icbc(idate)
 
-  call header_ch_icbc
-  call header_ox_icbc
-  call header_ae_icbc(idate)
+  if ( dochem ) call header_ch_icbc
+  if ( dooxcl ) call header_ox_icbc
+  if ( doaero ) call header_ae_icbc(idate)
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
-     call newfile_ch_icbc(monfirst(idate))
-     call newfile_ox_icbc(monfirst(idate))
-     call newfile_ae_icbc(monfirst(idate))
+     if ( dochem ) call newfile_ch_icbc(monfirst(idate))
+     if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
+     if ( doaero ) call newfile_ae_icbc(monfirst(idate))
    end if
-   call get_ch_icbc(idate)
-   call get_ox_icbc(idate)
-   call get_ae_icbc(idate)
+   if ( dochem ) call get_ch_icbc(idate)
+   if ( dooxcl ) call get_ox_icbc(idate)
+   if ( doaero ) call get_ae_icbc(idate)
    iodate = idate
    idate = idate + tbdy
   end do
 
   call close_outoxd
-  call close_ch_icbc
-  call close_ox_icbc
-  call close_ae_icbc
+  if ( dochem ) call close_ch_icbc
+  if ( dooxcl ) call close_ox_icbc
+  if ( doaero ) call close_ae_icbc
 
   call memory_destroy
 
+  call finaltime(0)
+  write(stdout,*) 'Successfully completed CHEM ICBC'
+  stop
+
+  101 write (stderr,*) 'Cannot read namelist stanza: chemparam'
+  write (stderr,*) 'Assuming nothing to do for this experiment (ichem = 0)'
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'
 

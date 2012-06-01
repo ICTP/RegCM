@@ -48,15 +48,23 @@ module mod_wrtoxd
 
   integer , parameter :: nchsp = 25
   integer , parameter :: noxsp = 5
-  integer , parameter :: naesp = 14
+  integer :: naesp
 
   integer , dimension(nchsp+1) :: ichvar
   integer , dimension(noxsp+1) :: ioxvar
-  integer , dimension(naesp+1) :: iaevar
+  integer , pointer , dimension(:) :: iaevar
 
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
-  character(len=8) , dimension(naesp) :: aespec
+
+  character(len=8) , pointer , dimension(:) :: aespec
+
+  character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(4) :: aesslt
+  character(len=8) , target , dimension(4) :: aecarb
+  character(len=8) , target , dimension(2) :: aesulf
+  character(len=8) , target , dimension(6) :: aesuca
+  character(len=8) , target , dimension(14) :: aeaero
 
   real(sp) , pointer , dimension(:,:,:,:) :: chv4
   real(sp) , pointer , dimension(:,:,:,:) :: oxv4
@@ -69,7 +77,12 @@ module mod_wrtoxd
                 'CO' , 'CH2O' , 'CH3OH' , 'C2H5OH' , 'C2H4' , 'C2H6' ,   &
                 'CH3CHO' , 'CH3COCH3' , 'BIGENE' , 'BIGALK' , 'C3H6' ,   &
                 'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
-  data aespec / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
+  data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
+  data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' /
+  data aesulf / 'SOA' , 'SO4' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
                 'DST01', 'DST02', 'DST03', 'DST04' /
 
@@ -79,11 +92,49 @@ module mod_wrtoxd
 
   contains
 
-  subroutine init_outoxd
+  subroutine init_outoxd(chemsimtype)
     implicit none
-    call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
-    call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
-    call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
+    character(len=8) , intent(in) :: chemsimtype
+    logical :: doaero , dochem , dooxcl
+    data doaero /.false./
+    data dochem /.false./
+    data dooxcl /.false./
+    select case ( chemsimtype ) 
+      case ( 'DUST' )
+        naesp = 4
+        aespec => aedust
+        doaero = .true.
+      case ( 'SSLT' )
+        naesp = 4
+        aespec => aesslt
+        doaero = .true.
+      case ( 'CARB' )
+        naesp = 4
+        aespec => aecarb
+        doaero = .true.
+      case ( 'SULF' )
+        naesp = 2
+        aespec => aesulf
+        doaero = .true.
+      case ( 'SUCA' )
+        naesp = 6
+        aespec => aesuca
+        doaero = .true.
+      case ( 'AERO' )
+        naesp = 14
+        aespec => aeaero
+        doaero = .true.
+      case ( 'CBMZ' )
+        dochem = .true.
+      case default
+        call die('init_outoxd','Unknown chemsimtype')
+    end select
+    if ( doaero ) then
+      call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
+      call getmem1d(iaevar,1,naesp,'mod_wrtoxd:iaevar')
+    end if
+    if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
+    if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
   end subroutine init_outoxd
 
   subroutine close_outoxd
