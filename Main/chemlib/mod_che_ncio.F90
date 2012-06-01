@@ -46,8 +46,6 @@ module mod_che_ncio
   integer :: n_aebcvar
   integer :: ichin  , iaein
 
-  integer :: igas , iaer
-
   integer , dimension(:) , pointer :: ncche     
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_optvar) ::ioptvar 
@@ -91,9 +89,6 @@ module mod_che_ncio
   data iaein   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
-
-  data igas /0/
-  data iaer  /0/
 
   data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
                  'N2O5    ','H2O2    ','CH4     ','CO      ', &
@@ -1195,14 +1190,15 @@ module mod_che_ncio
 
       call close_chbc
       write (ctime, '(i10)') toint10(idate)
-      if ( igas == 1 ) then
+      if ( igaschem == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
         istatus = nf90_open(icbcname, nf90_nowrite, ichin)
         call check_ok(__FILE__,__LINE__, &
               'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
         call check_dims(ichin)
         ibcid = ichin
-      else if ( iaer == 1 ) then
+      end if
+      if ( iaerosol == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
         istatus = nf90_open(icbcname, nf90_nowrite, iaein)
         call check_ok(__FILE__,__LINE__, &
@@ -1252,14 +1248,14 @@ module mod_che_ncio
         end if
       end if
       deallocate(icbc_nctime)
-      if ( igas == 1 ) then
+      if ( igaschem == 1 ) then
         do i = 1 , n_chbcvar
           istatus = nf90_inq_varid(ichin, trim(chbcname(i)), chbc_ivar(i))
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(chbcname(i))//' missing','CHBC FILE ERROR')
         end do
       end if
-      if ( iaer == 1 ) then
+      if ( iaerosol == 1 ) then
         do i = 1 , n_aebcvar
           istatus = nf90_inq_varid(iaein, trim(aebcname(i)), aebc_ivar(i))
           call check_ok(__FILE__,__LINE__, &
@@ -1283,7 +1279,7 @@ module mod_che_ncio
       icount(2) = iy
       icount(1) = jx
       iafter = 0
-      if ( igas == 1 ) then
+      if ( igaschem == 1 ) then
         do n = 1 , n_chbcvar
           istatus = nf90_get_var(ichin, chbc_ivar(n), xread, istart, icount)
           call check_ok(__FILE__,__LINE__, &
@@ -1298,8 +1294,14 @@ module mod_che_ncio
           iafter = iafter + 1
         end do
       end if
-      if ( iaer == 1 ) then
+      if ( iaerosol == 1 ) then
         do n = 1 , n_aebcvar
+
+          ! GRAZIANO
+          ! Need to introduce SSLT and SOA reductions to internal vars.
+          ! This does not work AND MUST BE CHANGED NEXT WEEK
+          ! GRAZIANO
+
           istatus = nf90_get_var(iaein, aebc_ivar(n), xread, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(aebcname(n))//' read error','CHBC FILE ERROR')

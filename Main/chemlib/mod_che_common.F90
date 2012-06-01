@@ -38,9 +38,10 @@ module mod_che_common
 
   ! chemistry nameliste option
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , &
-                      ichremlsc , ichsursrc, ichsolver, ichdustemd
+                      ichremlsc , ichsursrc , ichsolver , &
+                      ichdustemd
   ! usefull flags
-  integer  :: iaerosol , igaschem
+  integer :: iaerosol , igaschem
 
   ! tracer variables
 
@@ -167,7 +168,6 @@ module mod_che_common
       end if
     end subroutine allocate_mod_che_common
 !
-
     subroutine chem_config
       implicit none
       ! Define here the possible types of simulation and fix the dimension
