@@ -61,8 +61,8 @@ module mod_wrtoxd
 
   character(len=8) , target , dimension(4) :: aedust
   character(len=8) , target , dimension(4) :: aesslt
-  character(len=8) , target , dimension(4) :: aecarb
-  character(len=8) , target , dimension(2) :: aesulf
+  character(len=8) , target , dimension(5) :: aecarb
+  character(len=8) , target , dimension(1) :: aesulf
   character(len=8) , target , dimension(6) :: aesuca
   character(len=8) , target , dimension(14) :: aeaero
 
@@ -79,8 +79,8 @@ module mod_wrtoxd
                 'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' /
-  data aesulf / 'SOA' , 'SO4' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' /
+  data aesulf / 'SO4' /
   data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' /
   data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
@@ -109,11 +109,11 @@ module mod_wrtoxd
         aespec => aesslt
         doaero = .true.
       case ( 'CARB' )
-        naesp = 4
+        naesp = 5
         aespec => aecarb
         doaero = .true.
       case ( 'SULF' )
-        naesp = 2
+        naesp = 1
         aespec => aesulf
         doaero = .true.
       case ( 'SUCA' )
