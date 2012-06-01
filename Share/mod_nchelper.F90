@@ -50,6 +50,7 @@ module mod_nchelper
   public :: write_horizontal_coord
   public :: write_var2d_static
   public :: write_var3d_static
+  public :: check_dims
   public :: checkncerr
 
   interface read_var1d_static
@@ -344,7 +345,6 @@ module mod_nchelper
     integer , intent(in) , dimension(:) :: idims
     integer , intent(inout) :: ipnt
     integer , dimension(:) , intent(out) :: ivar
-
 
     incstat = nf90_def_var(ncid, 'landuse', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable landuse')
@@ -756,6 +756,41 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error open NetCDF input '//trim(fname))
   end subroutine openfile_withname
+
+  subroutine check_dims(ncid)
+    implicit none
+    integer , intent(in) :: ncid
+    integer :: istatus
+    integer :: idimid
+    integer :: iyy , jxx , kzz , kcheck
+    istatus = nf90_inq_dimid(ncid, 'jx', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
+    istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
+    if ( jx /= jxx ) then
+      write(stderr,*) 'DOMAIN FILE : ', jxx
+      write(stderr,*) 'NAMELIST    : ', jx
+      call die('Mismatch: JX in DOMAIN file /= JX in namelist')
+    end if
+    istatus = nf90_inq_dimid(ncid, 'iy', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension IY')
+    istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
+    if ( iy /= iyy ) then
+      write(stderr,*) 'DOMAIN FILE : ', iyy
+      write(stderr,*) 'NAMELIST    : ', iy
+      call die('Mismatch: IY in DOMAIN file /= IY in namelist')
+    end if
+    istatus = nf90_inq_dimid(ncid, 'kz', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
+    istatus = nf90_inquire_dimension(ncid, idimid, len=kzz)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension KZ')
+    if ( kz /= kzz ) then
+      write(stderr,*) 'DOMAIN FILE : ', kzz
+      write(stderr,*) 'NAMELIST    : ', kz
+      call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
+    end if
+  end subroutine check_dims
 
   subroutine checkncerr(ival,filename,line,arg)
     implicit none

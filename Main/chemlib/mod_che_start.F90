@@ -320,7 +320,7 @@ module mod_che_start
 
     call setup_che_bdycon
 
-    if ( myid == 0 ) call init_mod_che_ncio
+    if ( myid == 0 ) call init_mod_che_ncio(chemsimtype)
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     call split_idate(idate1,lyear,lmonth,lday,lhour)

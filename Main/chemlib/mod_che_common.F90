@@ -169,7 +169,6 @@ module mod_che_common
 !
 
     subroutine chem_config
-
       implicit none
       ! Define here the possible types of simulation and fix the dimension
       ! of relevant tracer dimension and parameters 

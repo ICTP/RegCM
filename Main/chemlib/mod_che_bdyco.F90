@@ -243,10 +243,8 @@ module mod_che_bdyco
         end if
       end do
     end if
- 
     call deco1_scatter(chebdy_io1,chebdy, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-
     do n = 1 , ntr
       do k = 1 , kz
         do i = ice1 , ice2

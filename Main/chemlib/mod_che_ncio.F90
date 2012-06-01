@@ -43,17 +43,27 @@ module mod_che_ncio
   integer , parameter :: n_chevar = 19
   integer , parameter :: n_optvar = 10
   integer , parameter :: n_chbcvar = 25
-  integer :: ichin 
-  integer :: ioxcl     
+  integer :: n_aebcvar
+  integer :: ichin  , iaein
+
+  integer :: igas , iaer
 
   integer , dimension(:) , pointer :: ncche     
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_optvar) ::ioptvar 
 
   character(len=8) , dimension(n_chbcvar) :: chbcname
+  character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(4) :: aesslt
+  character(len=8) , target , dimension(5) :: aecarb
+  character(len=8) , target , dimension(1) :: aesulf
+  character(len=8) , target , dimension(6) :: aesuca
+  character(len=8) , target , dimension(14) :: aeaero
+
+  character(len=8) , pointer , dimension(:) :: aebcname
   integer , dimension(n_chbcvar) :: chbc_ivar
+  integer , dimension(:) , pointer :: aebc_ivar
   
-  type(rcm_time_and_date) , dimension(:) , allocatable :: oxcl_idate
   type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
   type(rcm_time_and_date) , save :: icherefdate
   integer , dimension(9) :: idims 
@@ -78,9 +88,12 @@ module mod_che_ncio
   real(sp) , dimension(:,:,:) , pointer :: dumio
 
   data ichin   /-1/
-  data ioxcl   /-1/
+  data iaein   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
+
+  data igas /0/
+  data iaer  /0/
 
   data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
                  'N2O5    ','H2O2    ','CH4     ','CO      ', &
@@ -89,11 +102,20 @@ module mod_che_ncio
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
                  'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
+  data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
+  data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' /
+  data aesulf / 'SO4' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
+                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' , &
+                'DST01', 'DST02', 'DST03', 'DST04' /
 
   contains
 
-    subroutine init_mod_che_ncio
+    subroutine init_mod_che_ncio(chemsymtype)
       implicit none
+      character(len=8) , intent(in) :: chemsymtype
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       if (lcband) then
         o_is = 2
@@ -125,7 +147,30 @@ module mod_che_ncio
       ioxlon(:,:) = real(mddom_io%xlon(o_js:o_je,o_is:o_ie))
       iotopo(:,:) = real(mddom_io%ht(o_js:o_je,o_is:o_ie))
       iomask(:,:) = real(mddom_io%mask(o_js:o_je,o_is:o_ie))
-      
+      n_aebcvar = 0
+      select case ( chemsymtype )
+        case ( 'DUST' )
+          n_aebcvar = 4
+          aebcname => aedust
+        case ( 'SSLT' )
+          n_aebcvar = 4
+          aebcname => aesslt
+        case ( 'CARB' )
+          n_aebcvar = 5
+          aebcname => aecarb
+        case ( 'SULF' )
+          n_aebcvar = 1
+          aebcname => aesulf
+        case ( 'SUCA' )
+          n_aebcvar = 6
+          aebcname => aesuca
+        case ( 'AERO' )
+          n_aebcvar = 14
+          aebcname => aeaero
+      end select
+      if ( n_aebcvar > 0 ) then
+        call getmem1d(aebc_ivar,1,n_aebcvar,'ncio:aebc_ivar')
+      end if
     end subroutine init_mod_che_ncio
 
     subroutine read_texture(nats,texture)
@@ -1144,53 +1189,43 @@ module mod_che_ncio
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       character(10) :: ctime
-      integer :: idimid , itvar , i , chkdiff
+      integer :: ibcid , idimid , itvar , i , chkdiff
       real(dp) , dimension(:) , allocatable :: icbc_nctime
       character(64) :: icbc_timeunits , icbc_timecal
-      integer :: iyy , jxx , kzz
 
       call close_chbc
       write (ctime, '(i10)') toint10(idate)
-      icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
-      istatus = nf90_open(icbcname, nf90_nowrite, ichin)
-      call check_ok(__FILE__,__LINE__, &
-            'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
+      if ( igas == 1 ) then
+        icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
+        istatus = nf90_open(icbcname, nf90_nowrite, ichin)
+        call check_ok(__FILE__,__LINE__, &
+              'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
+        call check_dims(ichin)
+        ibcid = ichin
+      else if ( iaer == 1 ) then
+        icbcname = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
+        istatus = nf90_open(icbcname, nf90_nowrite, iaein)
+        call check_ok(__FILE__,__LINE__, &
+              'Error Opening ICBC file '//trim(icbcname),'AEBC FILE OPEN')
+        call check_dims(iaein)
+        ibcid = iaein
+      end if
       ibcrec = 1
       ibcnrec = 0
-      istatus = nf90_inq_dimid(ichin, 'iy', idimid)
-      call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
-      istatus = nf90_inquire_dimension(ichin, idimid, len=iyy)
-      call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
-      istatus = nf90_inq_dimid(ichin, 'jx', idimid)
-      call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
-      istatus = nf90_inquire_dimension(ichin, idimid, len=jxx)
-      call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
-      istatus = nf90_inq_dimid(ichin, 'kz', idimid)
-      call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
-      istatus = nf90_inquire_dimension(ichin, idimid, len=kzz)
-      call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
-      if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
-        write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
-        write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
-        call say
-        write (aline,*) 'ICBC file      : IY=', iyy, '  JX=', jxx, '  KZ=', kzz
-        call say
-        call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
-      end if
-      istatus = nf90_inq_dimid(ichin, 'time', idimid)
+      istatus = nf90_inq_dimid(ibcid, 'time', idimid)
       call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
-      istatus = nf90_inquire_dimension(ichin, idimid, len=ibcnrec)
+      istatus = nf90_inquire_dimension(ibcid, idimid, len=ibcnrec)
       call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
       if ( ibcnrec < 1 ) then
         write (6,*) 'Time var in ICBC has zero dim.'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
-      istatus = nf90_inq_varid(ichin, 'time', itvar)
+      istatus = nf90_inq_varid(ibcid, 'time', itvar)
       call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
-      istatus = nf90_get_att(ichin, itvar, 'units', icbc_timeunits)
+      istatus = nf90_get_att(ibcid, itvar, 'units', icbc_timeunits)
       call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
-!!$   istatus = nf90_get_att(ichin, itvar, 'calendar', icbc_timecal)
-!!$   call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
+      istatus = nf90_get_att(ibcid, itvar, 'calendar', icbc_timecal)
+      call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
       allocate(icbc_nctime(ibcnrec), stat=istatus)
       if ( istatus /= 0 ) then
         write(6,*) 'Memory allocation error in ICBC for time real values'
@@ -1201,7 +1236,7 @@ module mod_che_ncio
         write(6,*) 'Memory allocation error in ICBC for time array'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
-      istatus = nf90_get_var(ichin, itvar, icbc_nctime)
+      istatus = nf90_get_var(ibcid, itvar, icbc_nctime)
       call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
       do i = 1 , ibcnrec
         chbc_idate(i) = timeval2date(icbc_nctime(i), &
@@ -1217,11 +1252,20 @@ module mod_che_ncio
         end if
       end if
       deallocate(icbc_nctime)
-      do i = 1 , n_chbcvar
-        istatus = nf90_inq_varid(ichin, trim(chbcname(i)), chbc_ivar(i))
-        call check_ok(__FILE__,__LINE__, &
-             'variable '//trim(chbcname(i))//' missing','CHBC FILE ERROR')
-      end do
+      if ( igas == 1 ) then
+        do i = 1 , n_chbcvar
+          istatus = nf90_inq_varid(ichin, trim(chbcname(i)), chbc_ivar(i))
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(chbcname(i))//' missing','CHBC FILE ERROR')
+        end do
+      end if
+      if ( iaer == 1 ) then
+        do i = 1 , n_aebcvar
+          istatus = nf90_inq_varid(iaein, trim(aebcname(i)), aebc_ivar(i))
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(aebcname(i))//' missing','AEBC FILE ERROR')
+        end do
+      end if
     end subroutine open_chbc 
 
     subroutine read_chbc(chebdio)
@@ -1229,7 +1273,7 @@ module mod_che_ncio
       real(dp) , dimension (:,:,:,:), intent(out) :: chebdio 
       integer , dimension(4) :: istart , icount
       real(sp) , dimension(jx,iy,kz) :: xread
-      integer :: i , j , k, n
+      integer :: i , j , k, n , iafter
       istart(4) = ibcrec
       istart(3) = 1
       istart(2) = 1
@@ -1238,29 +1282,51 @@ module mod_che_ncio
       icount(3) = kz
       icount(2) = iy
       icount(1) = jx
-      do n = 1 , n_chbcvar
-        istatus = nf90_get_var(ichin, chbc_ivar(n), xread, istart, icount)
-        call check_ok(__FILE__,__LINE__, &
-             'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              chebdio(j,i,k,n) = xread(j,i,k)
+      iafter = 0
+      if ( igas == 1 ) then
+        do n = 1 , n_chbcvar
+          istatus = nf90_get_var(ichin, chbc_ivar(n), xread, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                chebdio(j,i,k,n) = xread(j,i,k)
+              end do
+            end do
+          end do
+          iafter = iafter + 1
+        end do
+      end if
+      if ( iaer == 1 ) then
+        do n = 1 , n_aebcvar
+          istatus = nf90_get_var(iaein, aebc_ivar(n), xread, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(aebcname(n))//' read error','CHBC FILE ERROR')
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                chebdio(j,i,k,iafter+n) = xread(j,i,k)
+              end do
             end do
           end do
         end do
-      end do
+      end if
     end subroutine read_chbc
 
     subroutine close_chbc
       implicit none
       if ( ichin >= 0 ) then
         istatus = nf90_close(ichin)
-        call check_ok(__FILE__,__LINE__, &
-              'Error Close CHBC file '//trim(icbcname),'CHBC FILE')
-        if ( allocated(chbc_idate) ) deallocate(chbc_idate)
+        call check_ok(__FILE__,__LINE__, 'Error Close file', 'CHBC FILE ERROR')
         ichin = -1
       end if
+      if ( iaein >= 0 ) then
+        istatus = nf90_close(iaein)
+        call check_ok(__FILE__,__LINE__, 'Error Close file', 'AEBC FILE ERROR')
+        iaein = -1
+      end if
+      if ( allocated(chbc_idate) ) deallocate(chbc_idate)
     end subroutine close_chbc
 
     subroutine check_ok(f,l,m1,mf)
