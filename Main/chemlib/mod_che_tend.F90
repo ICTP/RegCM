@@ -101,7 +101,7 @@
             ! what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
             hgt(i,k,j)  = cza(j,i,k)
             rho(i,k,j)  = crhob3d(j,i,k)
-            wl(i,k,j)   = cqcb3d(j,i,k)*crhob3d(j,i,k)*1.E3
+            wl(i,k,j)   = cqcb3d(j,i,k)*crhob3d(j,i,k)*d_1000
             ttb(i,k,j)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !

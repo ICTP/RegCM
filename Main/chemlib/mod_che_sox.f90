@@ -47,7 +47,7 @@ module mod_che_sox
      integer :: i , k
 
 !FAB 
-     caircell(:,:) = 1.D-6* rho(:,:)/amdk * navgdr
+     caircell(:,:) = 1.D-6 * rho(:,:)/amdk * navgdr
 
      call chemrate(caircell,ttb,rk_com)
 
@@ -100,7 +100,7 @@ module mod_che_sox
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
          !---------------------------------------------      
 
-         so2_rate = rk_com(i,k,12) * oh1int  *10
+         so2_rate = rk_com(i,k,12) * oh1int * d_10
          so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dtche))/dtche
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
