@@ -139,9 +139,8 @@ module mod_params
     cmtcape , zdlev , cprcon , ctrigger , nmctop , lmfpen ,      &
     lmfscv , lmfmid , lmfdd , lmfdudv
 
-  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-         ichcumtra , ichsolver , idirect, ichdustemd
-
+  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
+         ichcumtra , ichsolver , idirect , ichdustemd
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
@@ -420,7 +419,7 @@ module mod_params
   ichremcvc = 1     ! tracer removal by convective clouds
   ichdrdepo = 1     ! tracer dry deposition
   ichcumtra = 1     ! tracer convective transport
-  ichdustemd  = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
+  ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
   idirect = 1       ! tracer direct effect
 #ifdef CLM
 !c------CLM Specific
