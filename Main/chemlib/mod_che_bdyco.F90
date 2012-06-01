@@ -54,7 +54,6 @@ module mod_che_bdyco
   integer :: cnbdm
 
   contains
-
 !
   subroutine allocate_mod_che_bdyco
     implicit none
@@ -113,8 +112,10 @@ module mod_che_bdyco
 
       call read_chbc(chebdy_in)
       chebdy_io0 =d_zero
-      do n=1,size(ichbdy2trac)
-             if(ichbdy2trac(n) > 0) chebdy_io0(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      do n = 1 , size(ichbdy2trac)
+        if ( ichbdy2trac(n) > 0 ) then
+          chebdy_io0(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+        end if
       end do
 
       appdat = tochar(chbdydate1)
@@ -138,10 +139,11 @@ module mod_che_bdyco
       end if
       call read_chbc(chebdy_in )
       chebdy_io1 = d_zero
-      do n=1,size(ichbdy2trac)
-             if(ichbdy2trac(n) > 0) chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+      do n = 1 , size(ichbdy2trac)
+        if ( ichbdy2trac(n) > 0 ) then
+          chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+        end if
       end do
-
 
       write (6,*) 'READY  CHBC from     ' , &
             toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
@@ -170,8 +172,6 @@ module mod_che_bdyco
     end do
     call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
-  
-
     !
     ! Repeat fot T2
     !
@@ -248,20 +248,17 @@ module mod_che_bdyco
                        jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
 
     do n = 1 , ntr
-
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
-            end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
           end do
         end do
-
+      end do
     end do
     call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
-
-    do k=1,kz
+    do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys

@@ -1230,7 +1230,6 @@ module mod_che_ncio
       integer , dimension(4) :: istart , icount
       real(sp) , dimension(jx,iy,kz) :: xread
       integer :: i , j , k, n
-
       istart(4) = ibcrec
       istart(3) = 1
       istart(2) = 1
@@ -1240,8 +1239,7 @@ module mod_che_ncio
       icount(2) = iy
       icount(1) = jx
       do n = 1 , n_chbcvar
-        istatus = nf90_get_var(ichin, chbc_ivar(n), xread, &
-                  &            istart, icount)
+        istatus = nf90_get_var(ichin, chbc_ivar(n), xread, istart, icount)
         call check_ok(__FILE__,__LINE__, &
              'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
         do k = 1 , kz

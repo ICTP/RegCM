@@ -79,9 +79,6 @@ module mod_params
   real(dp) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   integer :: hspan
-  character(len=5) , dimension(maxntr) :: inpchtrname
-  real(dp) , dimension(maxntr) :: inpchtrsol
-  real(dp) , dimension(maxntr,2) :: inpchtrdpv
   logical , dimension(n_atmvar) :: atm_enablevar
   logical , dimension(n_srfvar) :: srf_enablevar
   logical , dimension(n_stsvar) :: sts_enablevar
@@ -143,8 +140,7 @@ module mod_params
     lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-    ichcumtra , ichsolver , idirect , inpchtrname , inpchtrsol ,          &
-    inpchtrdpv
+    ichcumtra , ichsolver , idirect
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
@@ -424,7 +420,6 @@ module mod_params
   ichdrdepo = 1     ! tracer dry deposition
   ichcumtra = 1     ! tracer convective transport
   idirect = 1       ! tracer direct effect
-  inpchtrname(:) = "XXXXX"
 #ifdef CLM
 !c------CLM Specific
   imask = 1
