@@ -45,14 +45,14 @@ program chem_icbc
   character(256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
   integer :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
-             ichsolver , idirect
+             ichsolver , idirect , ichdustemd
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
   data doaero /.false./
 !
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-    ichcumtra , ichsolver , idirect
+    ichcumtra , ichsolver , idirect , ichdustemd
 !
   call header('chem_icbc')
 !
