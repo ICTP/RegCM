@@ -672,10 +672,12 @@ module mod_date
   end subroutine sub_days_noleap
 
   function add_interval(x, y) result (z)
+    implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
     type (iadate) :: d
+    real(dp) :: dm
     integer :: tmp
     z = x
     tmp = int(y%ival)
@@ -705,10 +707,24 @@ module mod_date
         z%days_from_reference = z%days_from_reference + tmp
       case (umnt)
         call days_from_reference_to_date(x,d)
+        ! Adjust date of the month: This is really a trick...
+        select case (z%calendar)
+          case (gregorian)
+            dm = dble(d%day)/dble(mdays_leap(d%year, d%month))
+          case (noleap)
+            dm = dble(d%day)/dble(mlen(d%month))
+        end select
         d%month = d%month+mod(tmp,12)
         call adjustpm(d%month,d%year,12)
         tmp = tmp/12
         d%year = d%year+tmp
+        ! Adjust date of the month: This is really a trick...
+        select case (z%calendar)
+          case (gregorian)
+            d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)
+          case (noleap)
+            d%day = idnint(dble(mlen(d%month)) * dm)
+        end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)

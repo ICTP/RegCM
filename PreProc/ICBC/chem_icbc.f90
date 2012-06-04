@@ -105,7 +105,7 @@ program chem_icbc
   if ( dooxcl ) call newfile_ox_icbc(idate)
   if ( doaero ) call newfile_ae_icbc(idate)
 
-  if ( dochem ) call header_ch_icbc
+  if ( dochem ) call header_ch_icbc(idate)
   if ( dooxcl ) call header_ox_icbc
   if ( doaero ) call header_ae_icbc(idate)
 

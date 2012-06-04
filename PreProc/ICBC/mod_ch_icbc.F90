@@ -20,6 +20,7 @@
 module mod_ch_icbc
 
   use netcdf
+  use mod_stdio
   use mod_dynparam
   use mod_grid
   use mod_wrtoxd
@@ -44,26 +45,49 @@ module mod_ch_icbc
   real(sp) , pointer , dimension(:,:) :: poxid_3
   real(sp) , pointer , dimension(:,:,:,:) :: chv3
   real(sp) , pointer , dimension(:,:) :: xps
-  real(sp) , pointer , dimension(:,:) :: poxid_2
   real(sp) , pointer , dimension(:,:,:,:) :: xinp
+  real(sp) , pointer , dimension(:,:,:,:) :: chv4_1
+  real(sp) , pointer , dimension(:,:,:,:) :: chv4_2
 
   real(sp) :: prcm , pmpi , pmpj
-  integer :: ncid , istatus
-
-  data ncid /-1/
-
+  real(sp) :: r4pt
+  integer :: ism
+  type (rcm_time_and_date) :: iref1 , iref2
+  
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
   contains
 
-  subroutine header_ch_icbc
+  subroutine header_ch_icbc(idate)
     implicit none
-    integer :: ivarid , idimid , is , istatus
+    type(rcm_time_and_date) , intent(in) :: idate
+    type (rcm_time_and_date) :: imonmidd
+    integer :: ivarid , idimid , is
+    integer :: nyear , month , nday , nhour
+    character(len=256) :: chfilename
+    integer :: ncid , istatus
+    integer :: im1 , im2
 
-    istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
-                      'mz4_avg_2000-2007_aug.nc', nf90_nowrite, ncid)
+    call split_idate(idate,nyear,month,nday,nhour)
+    imonmidd = monmiddle(idate)
+    im1 = month
+    im2 = month
+    if ( idate >= imonmidd ) then
+      im2 = inextmon(im2)
+      iref1 = imonmidd
+      iref2 = monmiddle(nextmon(idate))
+    else
+      im1 = iprevmon(im1)
+      iref1 = monmiddle(prevmon(idate))
+      iref2 = imonmidd
+    end if
+    ism = im1
+
+    write(chfilename,'(a,i0.2,a)') &
+       trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+       'mz4_avg_2000-2007_',im1,'.nc'
+    istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
-
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilon)
@@ -77,17 +101,16 @@ module mod_ch_icbc
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilev)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lev')
 
-
-    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_icbc:poxid_3')
+    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_icbc:poxid_3_1')
     call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
-
+    call getmem4d(chv4_1,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_1')
+    call getmem4d(chv4_2,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_2')
 
     call getmem1d(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
     call getmem1d(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
     call getmem1d(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
     call getmem1d(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
-    call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps')
-    call getmem2d(poxid_2,1,chilon,1,chjlat,'mod_ch_icbc:poxid_2')
+    call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps1')
     call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
@@ -110,18 +133,14 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
 
-    istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
-    istatus = nf90_get_var(ncid,ivarid,xps)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    p0 = p0*0.01
+    r4pt = real(ptop)
+    write(stdout,*) 'Static read OK.'
 
-    do is = 1 , nchsp
-      istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//trim(chspec(is)))
-      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//trim(chspec(is)))
-    end do
+    call read2m(im1,im2)
 
   end subroutine header_ch_icbc
 
@@ -130,19 +149,80 @@ module mod_ch_icbc
 !
     integer :: i , is , j , k , l , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) :: r4pt
+    integer :: nyear , month , nday , nhour
+    character(len=256) :: chfilename
+    logical :: doread
+    type (rcm_time_and_date) :: imonmidd
+    type (rcm_time_interval) :: tdif
+    real(sp) :: xfac1 , xfac2 , odist
+    integer :: im1 , im2
 
+    call split_idate(idate,nyear,month,nday,nhour)
+    imonmidd = monmiddle(idate)
+    im1 = month
+    im2 = month
+    if ( idate >= imonmidd ) then
+      im2 = inextmon(im2)
+      iref1 = imonmidd
+      iref2 = monmiddle(nextmon(idate))
+    else
+      im1 = iprevmon(im1)
+      iref1 = monmiddle(prevmon(idate))
+      iref2 = imonmidd
+    end if
+    doread = .false.
+    if ( ism /= im1 ) then
+      ism = im1
+      doread = .true.
+    end if
+
+    if ( doread ) then
+      call read2m(im1,im2)
+    end if
+
+    tdif = idate-iref1
+    xfac1 = tohours(tdif)
+    tdif = iref2-idate
+    xfac2 = tohours(tdif)
+    odist = xfac1 + xfac2
+    xfac1 = xfac1/odist
+    xfac2 = d_one-xfac1
+    chv4 = (chv4_1*xfac2+chv4_2*xfac1)
+
+    call write_ch_icbc(idate)
+
+  end subroutine get_ch_icbc
+
+  subroutine read2m(im1,im2)
+    implicit none
+    integer , intent(in) :: im1 , im2
+    integer :: i , is , j , k , l , k0
+    character(len=256) :: chfilename
+    integer :: ncid , istatus , ivarid
+
+    write(chfilename,'(a,i0.2,a)') &
+       trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+       'mz4_avg_2000-2007_',im1,'.nc'
+    istatus = nf90_open(chfilename,nf90_nowrite,ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
+    write(stdout, *) trim(chfilename)
+    istatus = nf90_inq_varid(ncid,'PS',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    istatus = nf90_get_var(ncid,ivarid,xps)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    xps = xps*0.01
     do is = 1 , nchsp
+      istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//trim(chspec(is)))
+      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//trim(chspec(is)))
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,iy,jx,chilev) 
     end do
-
-    poxid_2 = xps*0.01
-    p0 = p0*0.01
-    r4pt = real(ptop)
-
-    call bilinx2(poxid_3,poxid_2,xlon,xlat,cht42lon,cht42lat,chilon,chjlat,iy,jx,1)
-
+    call bilinx2(poxid_3,xps,xlon,xlat,cht42lon,cht42lat, &
+                 chilon,chjlat,iy,jx,1)
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
@@ -159,31 +239,96 @@ module mod_ch_icbc
 
             do is = 1 , nchsp
               chv4(j,i,l,is) = chv3(j,i,chilev,is) + &
-                 (chv3(j,i,chilev,is) - chv3(j,i,chilev-1,is))*(prcm-pmpi)/(pmpi-pmpj)
+                 (chv3(j,i,chilev,is) - chv3(j,i,chilev-1,is)) * &
+                 (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
             pmpj = poxid_3(j,i)*cht42hybm(k0)+cht42hyam(k0)*p0
             pmpi = poxid_3(j,i)*cht42hybm(k0+1)+cht42hyam(k0+1)*p0
             do is = 1 , nchsp
-              chv4(j,i,l,is) = (chv3(j,i,k0+1,is)*(prcm-pmpj) + &
-                                chv3(j,i,k0,is)*(pmpi-prcm))/(pmpi-pmpj)
+              chv4_1(j,i,l,is) = (chv3(j,i,k0+1,is)*(prcm-pmpj) + &
+                                  chv3(j,i,k0,is)*(pmpi-prcm))/(pmpi-pmpj)
             end do
           end if            
         end do
       end do
     end do            
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
+    write(chfilename,'(a,i0.2,a)') &
+       trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+       'mz4_avg_2000-2007_',im2,'.nc'
+    istatus = nf90_open(chfilename,nf90_nowrite,ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
+    write(stdout, *) trim(chfilename)
+    istatus = nf90_inq_varid(ncid,'PS',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    istatus = nf90_get_var(ncid,ivarid,xps)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    xps = xps*0.01
+    do is = 1 , nchsp
+      istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//trim(chspec(is)))
+      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//trim(chspec(is)))
+      call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
+                   chilon,chjlat,iy,jx,chilev) 
+    end do
+    call bilinx2(poxid_3,xps,xlon,xlat,cht42lon,cht42lat, &
+                 chilon,chjlat,iy,jx,1)
+    do i = 1 , iy 
+      do j = 1 , jx
+        do l = 1 , kz
+          prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.0
+          k0 = -1
+          do k = chilev , 1 , -1
+            pmpi = poxid_3(j,i)*cht42hybm(k)+cht42hyam(k)*p0
+            k0 = k
+            if (prcm > pmpi) exit
+          end do
+          if (k0 == chilev) then        
+            pmpj = poxid_3(j,i)*cht42hybm(chilev-1)+cht42hyam(chilev-1)*p0
+            pmpi = poxid_3(j,i)*cht42hybm(chilev)+cht42hyam(chilev)*p0
 
-    call write_ch_icbc(idate)
-
-  end subroutine get_ch_icbc
+            do is = 1 , nchsp
+              chv4(j,i,l,is) = chv3(j,i,chilev,is) + &
+                 (chv3(j,i,chilev,is) - chv3(j,i,chilev-1,is)) * &
+                 (prcm-pmpi)/(pmpi-pmpj)
+            end do
+          else if (k0 >= 1) then
+            pmpj = poxid_3(j,i)*cht42hybm(k0)+cht42hyam(k0)*p0
+            pmpi = poxid_3(j,i)*cht42hybm(k0+1)+cht42hyam(k0+1)*p0
+            do is = 1 , nchsp
+              chv4_2(j,i,l,is) = (chv3(j,i,k0+1,is)*(prcm-pmpj) + &
+                                  chv3(j,i,k0,is)*(pmpi-prcm))/(pmpi-pmpj)
+            end do
+          end if            
+        end do
+      end do
+    end do            
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
+  end subroutine read2m
 
   subroutine close_ch_icbc
-    use netcdf
     implicit none
-    if ( ncid > 0 ) then
-      istatus = nf90_close(ncid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close chemical file')
-    end if
+    return
   end subroutine close_ch_icbc
+
+  integer function inextmon(im)
+    implicit none
+    integer , intent(in) :: im
+    inextmon = im+1
+    if ( inextmon == 13 ) inextmon = 1
+  end function inextmon
+
+  integer function iprevmon(im)
+    implicit none
+    integer , intent(in) :: im
+    iprevmon = im-1
+    if ( iprevmon == 0 ) iprevmon = 12
+  end function iprevmon
 
 end module mod_ch_icbc
