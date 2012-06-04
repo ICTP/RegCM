@@ -52,11 +52,11 @@ module mod_che_ncio
 
   character(len=8) , dimension(n_chbcvar) :: chbcname
   character(len=8) , target , dimension(4) :: aedust
-  character(len=8) , target , dimension(4) :: aesslt
-  character(len=8) , target , dimension(5) :: aecarb
+  character(len=8) , target , dimension(2) :: aesslt
+  character(len=8) , target , dimension(4) :: aecarb
   character(len=8) , target , dimension(1) :: aesulf
-  character(len=8) , target , dimension(6) :: aesuca
-  character(len=8) , target , dimension(14) :: aeaero
+  character(len=8) , target , dimension(5) :: aesuca
+  character(len=8) , target , dimension(11) :: aeaero
 
   character(len=8) , pointer , dimension(:) :: aebcname
   integer , dimension(n_chbcvar) :: chbc_ivar
@@ -97,14 +97,14 @@ module mod_che_ncio
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
                  'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
-  data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
-  data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' /
+  data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
+  data aesslt / 'SSLT01' , 'SSLT02' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' /
   data aesulf / 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
-                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' , &
-                'DST01', 'DST02', 'DST03', 'DST04' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SO4' ,   &
+                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02',  &
+                'DUST03' , 'DUST04' /
 
   contains
 
@@ -148,19 +148,19 @@ module mod_che_ncio
           n_aebcvar = 4
           aebcname => aedust
         case ( 'SSLT' )
-          n_aebcvar = 4
+          n_aebcvar = 2
           aebcname => aesslt
         case ( 'CARB' )
-          n_aebcvar = 5
+          n_aebcvar = 4
           aebcname => aecarb
         case ( 'SULF' )
           n_aebcvar = 1
           aebcname => aesulf
         case ( 'SUCA' )
-          n_aebcvar = 6
+          n_aebcvar = 5
           aebcname => aesuca
         case ( 'AERO' )
-          n_aebcvar = 14
+          n_aebcvar = 11
           aebcname => aeaero
       end select
       if ( n_aebcvar > 0 ) then
@@ -486,7 +486,7 @@ module mod_che_ncio
       integer , dimension(2) :: ivvar
       integer , dimension(5) :: illtpvar
       integer :: itvar , i , j
-      integer :: ibin , jbin , noutf
+      integer :: noutf
       character(len=129) :: cdum
 
       integer , dimension(9) :: tyx
@@ -510,22 +510,12 @@ module mod_che_ncio
           ncche(itr) = -1
         end if
       end do
-      ibin = 0
-      jbin = 0
       ! tracer loop , since we are generating one output per
       ! tracer + 1 output for OPT
       do itr = 1, noutf
         if ( itr < noutf ) then  
           ncid = ncche(itr)     
           chevarnam =  chtrname(itr)
-          if ( chtrname(itr) == 'DUST' )  then
-            ibin = ibin+1
-            write( chevarnam(5:6),'(I1)') ibin
-          end if
-          if ( chtrname(itr) == 'SSLT')  then
-            jbin = jbin+1
-            write( chevarnam(5:6),'(I1)') jbin
-          end if
         else if ( itr == noutf) then
           chevarnam = 'OPT'
         end if 
@@ -1296,12 +1286,6 @@ module mod_che_ncio
       end if
       if ( iaerosol == 1 ) then
         do n = 1 , n_aebcvar
-
-          ! GRAZIANO
-          ! Need to introduce SSLT and SOA reductions to internal vars.
-          ! This does not work AND MUST BE CHANGED NEXT WEEK
-          ! GRAZIANO
-
           istatus = nf90_get_var(iaein, aebc_ivar(n), xread, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(aebcname(n))//' read error','CHBC FILE ERROR')

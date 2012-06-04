@@ -79,16 +79,24 @@ module mod_wrtoxd
                 'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
   data aesulf / 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SOA' , 'SO4' , &
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
                 'DST01', 'DST02', 'DST03', 'DST04' /
 
+  integer :: ioc2 , isoa
+  integer :: isslt1 , isslt2 , isslt3 , isslt4
   data ncoutch /-1/
   data ncoutox /-1/
   data ncoutae /-1/
+
+  logical :: sum_soa_to_oc2
+  logical :: sum_sslt_bins
+
+  data sum_soa_to_oc2 /.false./
+  data sum_sslt_bins  /.false./
 
   contains
 
@@ -96,6 +104,7 @@ module mod_wrtoxd
     implicit none
     character(len=8) , intent(in) :: chemsimtype
     logical :: doaero , dochem , dooxcl
+    integer :: i
     data doaero /.false./
     data dochem /.false./
     data dooxcl /.false./
@@ -108,10 +117,12 @@ module mod_wrtoxd
         naesp = 4
         aespec => aesslt
         doaero = .true.
+        sum_sslt_bins = .true.
       case ( 'CARB' )
         naesp = 5
         aespec => aecarb
         doaero = .true.
+        sum_soa_to_oc2 = .true.
       case ( 'SULF' )
         naesp = 1
         aespec => aesulf
@@ -120,10 +131,13 @@ module mod_wrtoxd
         naesp = 6
         aespec => aesuca
         doaero = .true.
+        sum_soa_to_oc2 = .true.
       case ( 'AERO' )
         naesp = 14
         aespec => aeaero
         doaero = .true.
+        sum_sslt_bins = .true.
+        sum_soa_to_oc2 = .true.
       case ( 'CBMZ' )
         dochem = .true.
       case default
@@ -131,10 +145,36 @@ module mod_wrtoxd
     end select
     if ( doaero ) then
       call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
-      call getmem1d(iaevar,1,naesp,'mod_wrtoxd:iaevar')
+      call getmem1d(iaevar,1,naesp+1,'mod_wrtoxd:iaevar')
     end if
     if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
     if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
+    if ( sum_soa_to_oc2 ) then
+      ioc2 = -1
+      isoa = -1
+      do i = 1 , naesp
+        if ( aespec(i) == 'SOA' ) isoa = i
+        if ( aespec(i) == 'OC2' ) ioc2 = i
+      end do
+      if ( isoa < 0 .or. ioc2 < 0 ) then
+        call fatal(__FILE__,__LINE__,'Logical error: Search SOA error')
+      end if
+    end if
+    if ( sum_sslt_bins ) then
+      isslt1 = -1
+      isslt2 = -1
+      isslt3 = -1
+      isslt4 = -1
+      do i = 1 , naesp
+        if ( aespec(i) == 'SSLT01' ) isslt1 = i
+        if ( aespec(i) == 'SSLT02' ) isslt2 = i
+        if ( aespec(i) == 'SSLT03' ) isslt3 = i
+        if ( aespec(i) == 'SSLT04' ) isslt4 = i
+      end do
+      if ( isslt1 < 0 .or. isslt2 < 0 .or. isslt3 < 0 .or. isslt4 < 0 ) then
+        call fatal(__FILE__,__LINE__,'Logical error: Search SSLT error.')
+      end if
+    end if
   end subroutine init_outoxd
 
   subroutine close_outoxd
@@ -325,7 +365,8 @@ module mod_wrtoxd
     integer , dimension(2) :: ihvar
     integer , dimension(2) :: illvar
     real(sp) , pointer , dimension(:) :: xjx , yiy
-    character(64) :: csdate
+    character(len=64) :: csdate
+    character(len=6) :: dustname
     real(sp) :: hptop
 
     if (ncoutae > 0) then
@@ -362,9 +403,19 @@ module mod_wrtoxd
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding time calendar')
 
     do i = 1 , naesp
-      istatus = nf90_def_var(ncoutae, aespec(i), nf90_float, idims, iaevar(i+1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error adding variable '//trim(aespec(i)))
+      if ( aespec(i) == 'SOA' ) cycle
+      if ( aespec(i) == 'SSLT03' ) cycle
+      if ( aespec(i) == 'SSLT04' ) cycle
+      if ( aespec(i)(1:3) == 'DST' ) then
+        dustname = 'DUST'//aespec(i)(4:5)
+        istatus = nf90_def_var(ncoutae,dustname,nf90_float,idims,iaevar(i+1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error adding variable '//trim(aespec(i)))
+      else
+        istatus = nf90_def_var(ncoutae,aespec(i),nf90_float,idims,iaevar(i+1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error adding variable '//trim(aespec(i)))
+      end if
 #ifdef NETCDF4_HDF5
       istatus = nf90_def_var_deflate(ncoutae, iaevar(i+1), 1, 1, 9)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -498,7 +549,19 @@ module mod_wrtoxd
     icount(2) = iy
     icount(1) = jx
 
+    if ( sum_sslt_bins ) then
+      aev4(:,:,:,isslt1) = aev4(:,:,:,isslt1) + aev4(:,:,:,isslt2)
+      aev4(:,:,:,isslt2) = aev4(:,:,:,isslt3) + aev4(:,:,:,isslt4)
+    end if
+
+    if ( sum_soa_to_oc2 ) then
+      aev4(:,:,:,ioc2) = aev4(:,:,:,ioc2) + aev4(:,:,:,isoa)
+    end if
+
     do i = 1 , naesp
+      if ( aespec(i) == 'SOA' ) cycle
+      if ( aespec(i) == 'SSLT03' ) cycle
+      if ( aespec(i) == 'SSLT04' ) cycle
       istatus = nf90_put_var(ncoutae,iaevar(i+1),aev4(:,:,:,i),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error variable '//aespec(i)//' write')

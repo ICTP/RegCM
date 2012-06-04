@@ -526,8 +526,8 @@ module mod_che_wetdep
       !-----------------------------------------------------------------
       tracer_loop1 : &
       do itr = 1 , ntr
-        if (chtrname(itr).ne.'DUST'  .or. chtrname(itr).ne.'BC_HB' .or. &
-            chtrname(itr).ne.'SSALT' .or. chtrname(itr).ne.'BC_HL' .or. &
+        if (chtrname(itr)(1:4).ne.'DUST' .or. chtrname(itr).ne.'BC_HB' .or. &
+            chtrname(itr)(1:4).ne.'SSLT' .or. chtrname(itr).ne.'BC_HL' .or. &
             chtrname(itr).ne.'DMS'   .or. chtrname(itr).ne.'OC_HB' .or. &
             chtrname(itr).ne.'OC_HL' ) then
           temp_dep(:) = (d_one-dexp(-het_rates(:,k,itr)*delt))*qin(:,k,itr)

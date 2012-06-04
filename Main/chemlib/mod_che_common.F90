@@ -57,7 +57,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:,:) :: chemall
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
-  character(len=5) , pointer , dimension(:) :: chtrname
+  character(len=6) , pointer , dimension(:) :: chtrname
 !
   real(dp) , pointer , dimension(:,:) :: chtrdpv
 
@@ -177,14 +177,14 @@ module mod_che_common
       if ( chemsimtype(1:4) == 'DUST' ) then
         ntr = nbin
         allocate(chtrname(nbin))
-        chtrname(1:ntr)(1:5) = (/'DUST1','DUST2','DUST3','DUST4'/)
+        chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
         iaerosol = 1
         write (aline,*) 'DUST simulation'
         call say
       else if ( chemsimtype(1:4) == 'SSLT' ) then 
         ntr = sbin
         allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:5) = (/'SSLT1','SSLT2'/)
+        chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
         iaerosol = 1
         write (aline,*) 'SSLT simulation'
         call say
@@ -214,9 +214,9 @@ module mod_che_common
         ntr = 12 
         allocate(chtrname(ntr))
         iaerosol = 1
-        chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL','BC_HB', &
-                                 'OC_HB','OC_HL','DUST1','DUST2', &
-                                 'DUST3','DUST4','SSLT1','SSLT2' /)
+        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','BC_HL ','BC_HB ', &
+                                 'OC_HB ','OC_HL ','DUST01','DUST02', &
+                                 'DUST03','DUST04','SSLT01','SSLT02' /)
         write (aline,*) 'AERO simulation'
         call say
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 

@@ -62,7 +62,7 @@ module mod_ch_icbc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: imonmidd
-    integer :: ivarid , idimid , is
+    integer :: ivarid , idimid
     integer :: nyear , month , nday , nhour
     character(len=256) :: chfilename
     integer :: ncid , istatus
@@ -146,11 +146,8 @@ module mod_ch_icbc
 
   subroutine get_ch_icbc(idate)
     implicit none
-!
-    integer :: i , is , j , k , l , k0
     type(rcm_time_and_date) , intent(in) :: idate
     integer :: nyear , month , nday , nhour
-    character(len=256) :: chfilename
     logical :: doread
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
