@@ -202,8 +202,8 @@ endif
 # RegCM Main Program
 #
 if DO_COMPILE_LIBESMF
-regcm.o: regcm.f90 mod_dynparam.mod
+regcm.o: regcm.f90 mod_dynparam.mod $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
 else
-regcm.o: regcm.f90 mod_dynparam.mod
+regcm.o: regcm.f90 mod_dynparam.mod $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
