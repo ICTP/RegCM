@@ -99,12 +99,12 @@ module mod_che_ncio
                  'DMS     '/
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
-  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'OC2' /
+  data aecarb / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' /
   data aesulf / 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'OC2' , 'SO4' ,   &
-                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02',  &
-                'DUST03' , 'DUST04' /
+  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO4' /
+  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO4' , &
+                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , &
+                'DUST04' /
 
   contains
 

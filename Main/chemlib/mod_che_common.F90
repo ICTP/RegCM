@@ -191,22 +191,22 @@ module mod_che_common
       else if ( chemsimtype(1:4) == 'CARB' ) then 
         ntr = 4
         allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:5) = (/'BC_HL','BC_HB','OC_HB','OC_HL'/)
+        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
         iaerosol = 1
         write (aline,*) 'CARB simulation'
         call say
       else if ( chemsimtype(1:4) == 'SULF' ) then 
         ntr = 2
         allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  '/)
+        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
         iaerosol = 1
         write (aline,*) 'SULF simulation'
         call say
       else if ( chemsimtype(1:4) == 'SUCA' ) then 
         ntr = 6
         allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','BC_HL', &
-                                 'BC_HB','OC_HB','OC_HL' /)
+        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                                 'SO2   ','SO4   '/)
         iaerosol = 1
         write (aline,*) 'SUCA simulation'
         call say
@@ -214,21 +214,21 @@ module mod_che_common
         ntr = 12 
         allocate(chtrname(ntr))
         iaerosol = 1
-        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','BC_HL ','BC_HB ', &
-                                 'OC_HB ','OC_HL ','DUST01','DUST02', &
+        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                                 'SO2   ','SO4   ','DUST01','DUST02', &
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
         write (aline,*) 'AERO simulation'
         call say
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
         ntr = 25
         allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:5) = (/'SO2  ','SO4  ','DMS  ','O3   ', &
-                                 'NO2  ','NO   ','CO   ','H2O2 ', &
-                                 'HNO3 ','N2O5 ','HCHO ','ALD2 ', &
-                                 'ISOP ','C2H6 ','PAR  ','ACET ', &
-                                 'MOH  ','OLT  ','OLI  ','TOLUE', &
-                                 'XYL  ','ETHE ','PAN  ','CH4  ', &
-                                 'NH3  '  /)
+        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','DMS   ','O3    ', &
+                                 'NO2   ','NO    ','CO    ','H2O2  ', &
+                                 'HNO3  ','N2O5  ','HCHO  ','ALD2  ', &
+                                 'ISOP  ','C2H6  ','PAR   ','ACET  ', &
+                                 'MOH   ','OLT   ','OLI   ','TOLUE ', &
+                                 'XYL   ','ETHE  ','PAN   ','CH4   ', &
+                                 'NH3   '  /)
         igaschem = 1
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say

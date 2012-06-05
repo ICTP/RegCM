@@ -366,7 +366,7 @@ module mod_wrtoxd
     integer , dimension(2) :: illvar
     real(sp) , pointer , dimension(:) :: xjx , yiy
     character(len=64) :: csdate
-    character(len=6) :: dustname
+    character(len=6) :: specname
     real(sp) :: hptop
 
     if (ncoutae > 0) then
@@ -407,15 +407,21 @@ module mod_wrtoxd
       if ( aespec(i) == 'SSLT03' ) cycle
       if ( aespec(i) == 'SSLT04' ) cycle
       if ( aespec(i)(1:3) == 'DST' ) then
-        dustname = 'DUST'//aespec(i)(4:5)
-        istatus = nf90_def_var(ncoutae,dustname,nf90_float,idims,iaevar(i+1))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error adding variable '//trim(aespec(i)))
+        specname = 'DUST'//aespec(i)(4:5)
+      else if ( aespec(i)(1:3) == 'OC1' ) then
+        specname = 'OC_HL'
+      else if ( aespec(i)(1:3) == 'OC2' ) then
+        specname = 'OC_HB'
+      else if ( aespec(i)(1:3) == 'CB1' ) then
+        specname = 'BC_HL'
+      else if ( aespec(i)(1:3) == 'CB2' ) then
+        specname = 'BC_HB'
       else
-        istatus = nf90_def_var(ncoutae,aespec(i),nf90_float,idims,iaevar(i+1))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error adding variable '//trim(aespec(i)))
+        specname = aespec(i)
       end if
+      istatus = nf90_def_var(ncoutae,specname,nf90_float,idims,iaevar(i+1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error adding variable '//trim(aespec(i)))
 #ifdef NETCDF4_HDF5
       istatus = nf90_def_var_deflate(ncoutae, iaevar(i+1), 1, 1, 9)
       call checkncerr(istatus,__FILE__,__LINE__, &
