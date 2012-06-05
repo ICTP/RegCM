@@ -1184,7 +1184,6 @@ module mod_rad_radiation
     integer :: n , indxsl , k , ns
 !
     character (len=64) :: subroutine_name='radcsw'
-    logical :: lzero = .false.
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -1455,18 +1454,8 @@ module mod_rad_radiation
 !     Layer input properties now completely specified; compute the
 !     delta-Eddington solution reflectivities and transmissivities
 !     for each layer, starting from the top and working downwards:
-   
-!     options for aerosol: no climatic feedback if idirect == 1
-!     should be consistent with aeroppt routine
-
-      lzero = .true.
-      if ( lchem ) then
-        if ( idirect == 2 ) then
-          lzero = .false.
-        end if
-      end if
-   
-      call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
+!
+      call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for layers
 !     below by adding succesive layers starting from the surface and
@@ -1601,7 +1590,7 @@ module mod_rad_radiation
 !       0 for interface quantities refers to top of atmos- phere,
 !       while 1 refers to the surface:
 !
-        call radclr(n1,n2,trayoslp,czen,czengt0,ns,.true.)
+        call radclr(n1,n2,trayoslp,czen,czengt0,ns)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for
 !       entire column; 0,1 on layer quantities refers to two
@@ -1667,7 +1656,7 @@ module mod_rad_radiation
 !     quantities refers to top of atmos- phere, while 1 refers to the
 !     surface:
 !
-      call radclr(n1,n2,trayoslp,czen,czengt0,ns,.false.)
+      call radclr(n1,n2,trayoslp,czen,czengt0,ns)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for entire
 !     column; 0,1 on layer quantities refers to two effective layers
@@ -2302,7 +2291,7 @@ module mod_rad_radiation
 !
 ! trayoslp - Tray/sslp
 !
-  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns,lzero)
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns)
 !
     implicit none
 !
@@ -2311,7 +2300,6 @@ module mod_rad_radiation
     real(dp) , pointer , dimension(:) , intent(in) :: czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
     integer , intent(in) :: ns
-    logical , intent(in) :: lzero
 !
 !---------------------------Local variables-----------------------------
 !
@@ -2433,17 +2421,10 @@ module mod_rad_radiation
 !
           tauray(n) = trayoslp*pflx(n,kzp1)
           taugab(n) = abh2o(ns)*uth2o(n) + abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
-          if ( lzero ) then
-            tautot = tauray(n) + taugab(n)
-            wtot = (wray*tauray(n))/tautot
-            gtot = (gray*wray*tauray(n))/(wtot*tautot)
-            ftot = (fray*wray*tauray(n)/(wtot*tautot))
-          else
-            tautot = tauray(n) + taugab(n) + tauxar(n,ns)
-            wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
-            gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
-            ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
-          end if
+          tautot = tauray(n) + taugab(n) + tauxar(n,ns)
+          wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
+          gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
+          ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
 !
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
@@ -2527,12 +2508,11 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
 !
     implicit none
 !
     integer , intent(in) :: n1 , n2
-    logical , intent(in) :: lzero
     real(dp) , pointer , dimension(:) , intent(in) :: czen
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
@@ -2616,31 +2596,17 @@ module mod_rad_radiation
         tauray(n) = trayoslp*(pflx(n,1)-pflx(n,0))
         taugab(n) = abh2o(ns)*uh2o(n,0) + abo3(ns)*uo3(n,0) + &
                     abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
-!
-        if ( lzero ) then
-          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
-          taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
-          wtau = wray*tauray(n)
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0))/wt
-        else
-          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
-                   tauray(n)+taugab(n)+tauxar3d(n,0,ns)
-          taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
-                   tauasc3d(n,0,ns)
-          wtau = wray*tauray(n)
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
-        end if
-!
+        tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
+                 tauray(n)+taugab(n)+tauxar3d(n,0,ns)
+        taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
+                 tauasc3d(n,0,ns)
+        wtau = wray*tauray(n)
+        wt = wtau + taucsc
+        wtot = wt/tautot
+        gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
+                tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
+        ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
+                tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
         ts = taus(wtot,ftot,tautot)
         ws = omgs(wtot,ftot)
         gs = asys(gtot,ftot)
@@ -2737,29 +2703,17 @@ module mod_rad_radiation
           taugab(n) = abh2o(ns)*uh2o(n,k) + abo3(ns)*uo3(n,k) +  &
                       abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
 !
-          if ( lzero ) then
-            tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
-            taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
-            wtau = wray*tauray(n)
-            wt = wtau + taucsc
-            wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
-          else
-            tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
-                     taugab(n) + tauxar3d(n,k,ns)
-            taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
-                     tauasc3d(n,k,ns)
-            wtau = wray*tauray(n)
-            wt = wtau + taucsc
-            wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
-          end if
+          tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
+                   taugab(n) + tauxar3d(n,k,ns)
+          taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
+                   tauasc3d(n,k,ns)
+          wtau = wray*tauray(n)
+          wt = wtau + taucsc
+          wtot = wt/tautot
+          gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
+                  wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
+          ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
+                  wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
 !
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
@@ -3348,6 +3302,7 @@ module mod_rad_radiation
         pinpl(n,4) = (p2+pint(n,k2+1))*d_half
 
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
+
         if ( lchem .and. idirect > 0 ) then
           do kn = 1 , 4
             xuinpl (n,k2,kn) =  uinpl(n,kn)

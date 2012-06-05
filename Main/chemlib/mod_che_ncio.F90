@@ -244,7 +244,8 @@ module mod_che_ncio
        call check_ok(__FILE__,__LINE__,'variable time miss', 'CHEMISS FILE')
 
        istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
-       call check_ok(__FILE__,__LINE__,'variable time units miss','CHEMISS FILE')
+       call check_ok(__FILE__,__LINE__,'variable time units miss', &
+                     'CHEMISS FILE')
 
        istatus = nf90_get_var(ncid, itvar, emtimeval)
        call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')

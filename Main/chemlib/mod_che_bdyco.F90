@@ -157,18 +157,14 @@ module mod_che_bdyco
     !
     call deco1_scatter(chebdy_io0,chebdy, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-  
-
     do n = 1 , ntr
-  
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              chib0(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
-            end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            chib0(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
           end do
         end do
-  
+      end do
     end do
     call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
@@ -178,15 +174,13 @@ module mod_che_bdyco
     call deco1_scatter(chebdy_io1,chebdy, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
     do n = 1 , ntr
-
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
-            end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
           end do
         end do
-
+      end do
     end do
     call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
@@ -225,14 +219,14 @@ module mod_che_bdyco
     chib0(:,:,:,:) = chib1(:,:,:,:)
 
     if ( myid == 0 ) then
-      write (6,'(a,i10)') 'SEARCH BC data for ', toint10(chbdydate2)
+      write (6,'(a,i10)') 'SEARCH CHBC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then
         call open_chbc(monfirst(chbdydate2))
         mmrec = chbc_search(chbdydate2)
         if (mmrec < 0) then
           appdat = tochar(chbdydate2)
-          call fatal(__FILE__,__LINE__,'chBC for '//appdat//' not found')
+          call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
         end if
       end if
       call read_chbc(chebdy_in)
