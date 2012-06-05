@@ -268,31 +268,69 @@ module mod_che_start
 
     ichbdy2trac(:) = 0 
 
-    ichbdy2trac(1)  = io3
-    ichbdy2trac(2)  = ino
-    ichbdy2trac(3)  = ino2
-    ichbdy2trac(4)  = ihno3
-    ichbdy2trac(5)  = in2o5
-    ichbdy2trac(6)  = ih2o2
-    ichbdy2trac(7)  = ich4
-    ichbdy2trac(8)  = ico
-    ichbdy2trac(9)  = ihcho
-    ichbdy2trac(10) = imoh
-    ichbdy2trac(11) = ieoh
-    ichbdy2trac(12) = iethe
-    ichbdy2trac(13) = ic2h6
-    ichbdy2trac(14) = iald2
-    ichbdy2trac(15) = iacet
-    ichbdy2trac(16) = ioli
-    ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
-    ichbdy2trac(17) = iolt
-    ichbdy2trac(18) = ic3h8
-    ichbdy2trac(19) = iisop
-    ichbdy2trac(20) = itolue
-    ichbdy2trac(21) = ipan
-    ichbdy2trac(22) = iso2
-    ichbdy2trac(23) = iso4
-    ichbdy2trac(24) = idms
+    select case (chemsimtype)
+      case ('DUST')
+        do i = 1 , ibin
+          ichbdy2trac(i) = idust(i)
+        end do
+      case ('SSLT')
+        do i = 1 , jbin
+          ichbdy2trac(i) = isslt(i)
+        end do
+      case ('CARB')
+        do i = 1 , kbin
+          ichbdy2trac(i) = icarb(i)
+        end do
+      case ('SULF')
+        ichbdy2trac(1) = iso2
+        ichbdy2trac(2) = iso4
+      case ('SUCA')
+        do i = 1 , kbin
+          ichbdy2trac(i) = icarb(i)
+        end do
+        ichbdy2trac(kbin+1) = iso2
+        ichbdy2trac(kbin+2) = iso4
+      case ('AERO')
+        do i = 1 , kbin
+          ichbdy2trac(i) = icarb(i)
+        end do
+        ichbdy2trac(kbin+1) = iso2
+        ichbdy2trac(kbin+2) = iso4
+        itr = kbin+2
+        do i = 1 , ibin
+          ichbdy2trac(itr+i) = idust(i)
+        end do
+        itr = itr + ibin
+        do i = 1 , jbin
+          ichbdy2trac(itr+i) = isslt(i)
+        end do
+      case ('CBMZ')
+        ichbdy2trac(1)  = io3
+        ichbdy2trac(2)  = ino
+        ichbdy2trac(3)  = ino2
+        ichbdy2trac(4)  = ihno3
+        ichbdy2trac(5)  = in2o5
+        ichbdy2trac(6)  = ih2o2
+        ichbdy2trac(7)  = ich4
+        ichbdy2trac(8)  = ico
+        ichbdy2trac(9)  = ihcho
+        ichbdy2trac(10) = imoh
+        ichbdy2trac(11) = ieoh
+        ichbdy2trac(12) = iethe
+        ichbdy2trac(13) = ic2h6
+        ichbdy2trac(14) = iald2
+        ichbdy2trac(15) = iacet
+        ichbdy2trac(16) = ioli
+        ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
+        ichbdy2trac(17) = iolt
+        ichbdy2trac(18) = ic3h8
+        ichbdy2trac(19) = iisop
+        ichbdy2trac(20) = itolue
+        ichbdy2trac(21) = ipan
+        ichbdy2trac(22) = iso2
+        ichbdy2trac(23) = iso4
+        ichbdy2trac(24) = idms
+    end select
 
     if ( idust(1) > 0 ) then
       ! fisrt activate dust initialization
