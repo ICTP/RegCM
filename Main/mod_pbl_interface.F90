@@ -55,7 +55,7 @@ module mod_pbl_interface
     real(dp) , pointer , dimension(:) :: dsigma
     real(dp) :: dt , ptop
     real(dp) , pointer , dimension(:,:) :: chtrdpv
-    character(len=5) , pointer , dimension(:) :: chtrname
+    character(len=6) , pointer , dimension(:) :: chtrname
 
     ptp = ptop
     if ( ichem == 1 )      lchem = .true.

@@ -78,7 +78,7 @@ module mod_rad_common
 
   real(dp) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
 
-  character(len=5) , pointer , dimension(:) :: tracname ! chtrname
+  character(len=6) , pointer , dimension(:) :: tracname ! chtrname
 
   integer :: ncld ! # of bottom model levels with no clouds
 

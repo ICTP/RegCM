@@ -128,7 +128,7 @@ module mod_pbl_common
   real(dp) , public :: ptp                                    ! ptop
 
   real(dp) , public , pointer , dimension(:,:) :: depvel       ! chtrdpv
-  character(len=5) , public , pointer , dimension(:) :: chname ! chtrname
+  character(len=6) , public , pointer , dimension(:) :: chname ! chtrname
   logical , public :: lchem , lchdrydepo
 
   real(dp) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp

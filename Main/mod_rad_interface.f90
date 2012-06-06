@@ -65,7 +65,7 @@ module mod_rad_interface
     real(dp) , pointer , intent(in) , dimension(:,:) :: flwd
     integer , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
     real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: chia
-    character(len=5) , pointer , intent(in) , dimension(:) :: chtrname
+    character(len=6) , pointer , intent(in) , dimension(:) :: chtrname
 
     if ( ichem == 1 ) lchem = .true.
     ptp = ptop
