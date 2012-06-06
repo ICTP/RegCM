@@ -56,15 +56,16 @@ module mod_wrtoxd
 
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
+  real(sp), dimension (nchsp ) ::  mw
 
   character(len=8) , pointer , dimension(:) :: aespec
 
   character(len=8) , target , dimension(4) :: aedust
   character(len=8) , target , dimension(4) :: aesslt
   character(len=8) , target , dimension(5) :: aecarb
-  character(len=8) , target , dimension(1) :: aesulf
-  character(len=8) , target , dimension(6) :: aesuca
-  character(len=8) , target , dimension(14) :: aeaero
+  character(len=8) , target , dimension(2) :: aesulf
+  character(len=8) , target , dimension(7) :: aesuca
+  character(len=8) , target , dimension(15) :: aeaero
 
   real(sp) , pointer , dimension(:,:,:,:) :: chv4
   real(sp) , pointer , dimension(:,:,:,:) :: oxv4
@@ -80,9 +81,9 @@ module mod_wrtoxd
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
-  data aesulf / 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO4' , &
+  data aesulf / 'SO2', 'SO4' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' ,'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2', 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
                 'DST01', 'DST02', 'DST03', 'DST04' /
 
@@ -124,16 +125,16 @@ module mod_wrtoxd
         doaero = .true.
         sum_soa_to_oc2 = .true.
       case ( 'SULF' )
-        naesp = 1
+        naesp = 2
         aespec => aesulf
         doaero = .true.
       case ( 'SUCA' )
-        naesp = 6
+        naesp = 7 
         aespec => aesuca
         doaero = .true.
         sum_soa_to_oc2 = .true.
       case ( 'AERO' )
-        naesp = 14
+        naesp = 15
         aespec => aeaero
         doaero = .true.
         sum_sslt_bins = .true.
@@ -409,13 +410,13 @@ module mod_wrtoxd
       if ( aespec(i)(1:3) == 'DST' ) then
         specname = 'DUST'//aespec(i)(4:5)
       else if ( aespec(i)(1:3) == 'OC1' ) then
-        specname = 'OC_HL'
-      else if ( aespec(i)(1:3) == 'OC2' ) then
         specname = 'OC_HB'
+      else if ( aespec(i)(1:3) == 'OC2' ) then
+        specname = 'OC_HL'
       else if ( aespec(i)(1:3) == 'CB1' ) then
-        specname = 'BC_HL'
-      else if ( aespec(i)(1:3) == 'CB2' ) then
         specname = 'BC_HB'
+      else if ( aespec(i)(1:3) == 'CB2' ) then
+        specname = 'BC_HL'
       else
         specname = aespec(i)
       end if

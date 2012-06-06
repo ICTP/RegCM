@@ -114,6 +114,7 @@ module mod_ae_icbc
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
     do is = 1 , naesp
+      if ( aespec(is) == 'SO2' ) cycle
       istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//aespec(is))
       istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
@@ -150,6 +151,7 @@ module mod_ae_icbc
       istatus = nf90_get_var(ncid,ivarid,xps2)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
       do is = 1 , naesp
+        if ( aespec(is) == 'SO2' ) cycle
         istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
         call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//aespec(is))
         istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
