@@ -78,24 +78,23 @@ module mod_che_sox
 
          cldno = d_one ! no cloud fraction
 
-         if ( ioxclim == 1 ) then 
+         if ( ioxclim == 1 ) then
            ! from the oxidant climatology
            oh1int = oxcl(i,k,j,iox_oh)
-           print*,j,i,k, oh1int
+           !print*,j,i,k, oh1int
            if ( czen(j,i) < 0.001D0 ) then
-           oh1int = oh1int*0.01D0
+             oh1int = oh1int * 0.01D0
            else 
-           oh1int = oh1int * 1.99D0 
+             oh1int = oh1int * 1.99D0 
            end if
          else
            oh1int = 30.0D5
            if ( czen(j,i) < 0.001D0 ) then
-           oh1int = oh1int*0.01D0
+             oh1int = oh1int * 0.01D0
            else 
-           oh1int = oh1int * 1.99D0 
+             oh1int = oh1int * 1.99D0 
           end if
          end if
-
 
          ! Sink & Tendencies 
          ! here p1 unit: s^-1  and the ratio of molar mass 

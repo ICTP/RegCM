@@ -102,17 +102,13 @@ module mod_che_ncio
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
                  'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
-
   data oxbcname /'OH      ','HO2      ','O3      ', 'NO3     ','H2O2    ' /
-
-
-
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
   data aecarb / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' /
-  data aesulf / 'SO2','SO4' /
-  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' ,'SO2', 'SO4' /
-  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2','SO4' , &
+  data aesulf / 'SO2' , 'SO4' /
+  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2' , 'SO4' /
+  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , &
                 'DUST04' /
 
@@ -528,7 +524,6 @@ module mod_che_ncio
         if ( itr < noutf ) then  
           ncid = ncche(itr)     
           chevarnam =  chtrname(itr)
-          print*, chevarnam
         else if ( itr == noutf) then
           chevarnam = 'OPT'
         end if 
@@ -1212,7 +1207,7 @@ module mod_che_ncio
         call check_dims(iaein)
         ibcid = iaein
       end if
-        if ( ioxclim == 1 ) then
+      if ( ioxclim == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXCL.'//ctime//'.nc'
         istatus = nf90_open(icbcname, nf90_nowrite, ioxin)
         call check_ok(__FILE__,__LINE__, &
@@ -1276,7 +1271,6 @@ module mod_che_ncio
                'variable '//trim(aebcname(i))//' missing','AEBC FILE ERROR')
         end do
       end if
-
       if ( ioxclim == 1 ) then
         do i = 1 , n_oxbcvar
           istatus = nf90_inq_varid(ioxin, trim(oxbcname(i)), oxbc_ivar(i))
@@ -1284,9 +1278,7 @@ module mod_che_ncio
                'variable '//trim(oxbcname(i))//' missing','OXBC FILE ERROR')
         end do
       end if
-
-
-    end subroutine open_chbc 
+    end subroutine open_chbc
 
     subroutine read_chbc(chebdio)
       implicit none
@@ -1334,8 +1326,6 @@ module mod_che_ncio
        iafter = iafter +1 
       end if
       print *,'apres aebc', n_aebcvar , iafter 
-
-      ioxclim = 1
       if ( ioxclim == 1 ) then
         do n = 1 , n_oxbcvar
           istatus = nf90_get_var(ioxin, oxbc_ivar(n), xread, istart, icount)
@@ -1352,7 +1342,6 @@ module mod_che_ncio
       end if
 
      print *, iafter, maxval ( chebdio(:,:,:,iafter+1))
-
 
     end subroutine read_chbc
 

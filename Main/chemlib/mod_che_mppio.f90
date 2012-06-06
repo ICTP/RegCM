@@ -46,7 +46,8 @@ module mod_che_mppio
 !
 ! Boundary conditions arrays
 !
-  real(dp) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , chebdy_io1, oxcl_io
+  real(dp) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , &
+                                             chebdy_io1 , oxcl_io
   real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
 !
   real(dp), pointer, dimension (:,:) :: cpsb_io
@@ -71,11 +72,10 @@ module mod_che_mppio
                         1,kz,1,ntr,'che_mppio:chebdy_io')
           call getmem4d(chebdy_in,jdot1,jdot2,idot1,idot2, &
                         1,kz,1,50,'che_mppio:chebdy_in')
-         if(ioxclim ==1 ) then 
-          call getmem4d(oxcl_io,jdot1,jdot2,idot1,idot2, &
-                        1,kz,1,5,'che_mppio:oxcl_io')
-
-         end if
+          if ( ioxclim == 1 ) then 
+            call getmem4d(oxcl_io,jdot1,jdot2,idot1,idot2, &
+                          1,kz,1,5,'che_mppio:oxcl_io')
+          end if
           call getmem3d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
                         1,ntr,'che_mppio:chemsrc_io')
   
