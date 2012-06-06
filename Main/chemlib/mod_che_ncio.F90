@@ -102,7 +102,7 @@ module mod_che_ncio
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
                  'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
-  data oxbcname /'OH      ','HO2      ','O3      ', 'NO3     ','H2O2    ' /
+  data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
   data aecarb / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' /
