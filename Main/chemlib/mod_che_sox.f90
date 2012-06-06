@@ -19,6 +19,7 @@
 
 module mod_che_sox
   
+  use mod_che_bdyco
   use mod_constants
   use mod_dynparam
   use mod_che_common
@@ -70,18 +71,28 @@ module mod_che_sox
      ! The variable name of the SO2 sink is snk_so2
      !---------------------------------------------
 
+
+   
      do k = 1 , kz
        do i = ici1 , ici2
 
          cldno = d_one ! no cloud fraction
 
-         if ( ichaer == 1 ) then 
+         if ( ioxclim == 1 ) then 
            ! from the oxidant climatology
-           oh1int = oxbc0%bc(i,k,j,iox_oh)
-         else
-           oh1int = 15.0D5
+           oh1int = oxcl(i,k,j,iox_oh)
+           print*,j,i,k, oh1int
            if ( czen(j,i) < 0.001D0 ) then
            oh1int = oh1int*0.01D0
+           else 
+           oh1int = oh1int * 1.99D0 
+           end if
+         else
+           oh1int = 30.0D5
+           if ( czen(j,i) < 0.001D0 ) then
+           oh1int = oh1int*0.01D0
+           else 
+           oh1int = oh1int * 1.99D0 
           end if
          end if
 

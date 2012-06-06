@@ -732,6 +732,7 @@ module mod_params
 
     call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(iaerosol,1,mpi_integer,0,mycomm,ierr)  
+    call mpi_bcast(ioxclim,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(igaschem,1,mpi_integer,0,mycomm,ierr)  
   end if
 !

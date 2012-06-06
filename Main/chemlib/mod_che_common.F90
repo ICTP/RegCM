@@ -41,7 +41,7 @@ module mod_che_common
                       ichremlsc , ichsursrc , ichsolver , &
                       ichdustemd
   ! usefull flags
-  integer :: iaerosol , igaschem
+  integer :: iaerosol , igaschem, ioxclim
 
   ! tracer variables
 
@@ -200,6 +200,7 @@ module mod_che_common
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
         iaerosol = 1
+        ioxclim =1
         write (aline,*) 'SULF simulation'
         call say
       else if ( chemsimtype(1:4) == 'SUCA' ) then 
@@ -208,12 +209,14 @@ module mod_che_common
         chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
                                  'SO2   ','SO4   '/)
         iaerosol = 1
+        ioxclim=1
         write (aline,*) 'SUCA simulation'
         call say
       else if ( chemsimtype(1:4) == 'AERO' ) then 
         ntr = 12 
         allocate(chtrname(ntr))
         iaerosol = 1
+        ioxclim= 1
         chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
                                  'SO2   ','SO4   ','DUST01','DUST02', &
                                  'DUST03','DUST04','SSLT01','SSLT02' /)

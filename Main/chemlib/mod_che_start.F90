@@ -264,7 +264,7 @@ module mod_che_start
 
     ! define now correspndance between boundary species indices and
     ! tracer indices
-    ! must be absoutely consistent with ch  / depends on chem mechanism
+    ! must be absoutely consistent with ch_bdy  / depends on chem mechanism
 
     ichbdy2trac(:) = 0 
 
@@ -277,26 +277,29 @@ module mod_che_start
         do i = 1 , jbin
           ichbdy2trac(i) = isslt(i)
         end do
-      case ('CARB')
-        do i = 1 , kbin
-          ichbdy2trac(i) = icarb(i)
-        end do
+      case ('CARB')        
+        ichbdy2trac(1)  = iochb
+        ichbdy2trac(2)  = iochl
+        ichbdy2trac(3)  = ibchb
+        ichbdy2trac(4)  = ibchl
       case ('SULF')
         ichbdy2trac(1) = iso2
         ichbdy2trac(2) = iso4
       case ('SUCA')
-        do i = 1 , kbin
-          ichbdy2trac(i) = icarb(i)
-        end do
-        ichbdy2trac(kbin+1) = iso2
-        ichbdy2trac(kbin+2) = iso4
+        ichbdy2trac(1)  = iochb
+        ichbdy2trac(2)  = iochl
+        ichbdy2trac(3)  = ibchb
+        ichbdy2trac(4)  = ibchl
+        ichbdy2trac(5) = iso2
+        ichbdy2trac(6) = iso4
       case ('AERO')
-        do i = 1 , kbin
-          ichbdy2trac(i) = icarb(i)
-        end do
-        ichbdy2trac(kbin+1) = iso2
-        ichbdy2trac(kbin+2) = iso4
-        itr = kbin+2
+        ichbdy2trac(1)  = iochb
+        ichbdy2trac(2)  = iochl
+        ichbdy2trac(3)  = ibchb
+        ichbdy2trac(4)  = ibchl
+        ichbdy2trac(5) = iso2
+        ichbdy2trac(6) = iso4
+        itr = 6
         do i = 1 , ibin
           ichbdy2trac(itr+i) = idust(i)
         end do

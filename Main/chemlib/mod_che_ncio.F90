@@ -35,31 +35,35 @@ module mod_che_ncio
   public :: prepare_chem_out , init_mod_che_ncio , writerec_che2
   public :: open_chbc , close_chbc , chbc_search , read_chbc
 
-  public :: chbc_ivar
+  public :: chbc_ivar,n_chbcvar,n_aebcvar
 
   integer :: istatus
   integer :: recc
 
   integer , parameter :: n_chevar = 19
+   integer , parameter :: n_oxbcvar = 5
   integer , parameter :: n_optvar = 10
   integer , parameter :: n_chbcvar = 25
   integer :: n_aebcvar
-  integer :: ichin  , iaein
+  integer :: ichin  , iaein, ioxin
 
   integer , dimension(:) , pointer :: ncche     
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_optvar) ::ioptvar 
 
   character(len=8) , dimension(n_chbcvar) :: chbcname
+  character(len=8) , dimension(n_oxbcvar) :: oxbcname
   character(len=8) , target , dimension(4) :: aedust
   character(len=8) , target , dimension(2) :: aesslt
   character(len=8) , target , dimension(4) :: aecarb
-  character(len=8) , target , dimension(1) :: aesulf
-  character(len=8) , target , dimension(5) :: aesuca
-  character(len=8) , target , dimension(11) :: aeaero
+  character(len=8) , target , dimension(2) :: aesulf
+  character(len=8) , target , dimension(6) :: aesuca
+  character(len=8) , target , dimension(12) :: aeaero
 
   character(len=8) , pointer , dimension(:) :: aebcname
   integer , dimension(n_chbcvar) :: chbc_ivar
+  integer , dimension(n_oxbcvar) :: oxbc_ivar
+
   integer , dimension(:) , pointer :: aebc_ivar
   
   type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
@@ -89,6 +93,7 @@ module mod_che_ncio
   data iaein   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
+  data ioxin  /-1/
 
   data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
                  'N2O5    ','H2O2    ','CH4     ','CO      ', &
@@ -97,12 +102,17 @@ module mod_che_ncio
                  'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
                  'TOLUENE ','PAN     ','SO2     ','SO4     ', &
                  'DMS     '/
+
+  data oxbcname /'OH      ','HO2      ','O3      ', 'NO3     ','H2O2    ' /
+
+
+
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
   data aecarb / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' /
-  data aesulf / 'SO4' /
-  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO4' /
-  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO4' , &
+  data aesulf / 'SO2','SO4' /
+  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' ,'SO2', 'SO4' /
+  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2','SO4' , &
                 'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , &
                 'DUST04' /
 
@@ -154,18 +164,19 @@ module mod_che_ncio
           n_aebcvar = 4
           aebcname => aecarb
         case ( 'SULF' )
-          n_aebcvar = 1
+          n_aebcvar = 2
           aebcname => aesulf
         case ( 'SUCA' )
-          n_aebcvar = 5
+          n_aebcvar = 6
           aebcname => aesuca
         case ( 'AERO' )
-          n_aebcvar = 11
+          n_aebcvar = 12
           aebcname => aeaero
       end select
       if ( n_aebcvar > 0 ) then
         call getmem1d(aebc_ivar,1,n_aebcvar,'ncio:aebc_ivar')
       end if
+
     end subroutine init_mod_che_ncio
 
     subroutine read_texture(nats,texture)
@@ -517,6 +528,7 @@ module mod_che_ncio
         if ( itr < noutf ) then  
           ncid = ncche(itr)     
           chevarnam =  chtrname(itr)
+          print*, chevarnam
         else if ( itr == noutf) then
           chevarnam = 'OPT'
         end if 
@@ -772,6 +784,9 @@ module mod_che_ncio
           ichevar = -1
           ichevar(1) = itvar
           ichevar(2) = illtpvar(5)
+
+         
+
           call ch_addvara(ncid,chevarnam,chevarnam, &
                     'atmosphere_mixing_ratio_of_tracer', &
                     'Tracers mixing ratios','kg kg-1', &
@@ -1197,6 +1212,14 @@ module mod_che_ncio
         call check_dims(iaein)
         ibcid = iaein
       end if
+        if ( ioxclim == 1 ) then
+        icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXCL.'//ctime//'.nc'
+        istatus = nf90_open(icbcname, nf90_nowrite, ioxin)
+        call check_ok(__FILE__,__LINE__, &
+              'Error Opening ICBC file '//trim(icbcname),'OXBC FILE OPEN')
+        call check_dims(iaein)
+        ibcid = ioxin
+      end if
       ibcrec = 1
       ibcnrec = 0
       istatus = nf90_inq_dimid(ibcid, 'time', idimid)
@@ -1253,6 +1276,16 @@ module mod_che_ncio
                'variable '//trim(aebcname(i))//' missing','AEBC FILE ERROR')
         end do
       end if
+
+      if ( ioxclim == 1 ) then
+        do i = 1 , n_oxbcvar
+          istatus = nf90_inq_varid(ioxin, trim(oxbcname(i)), oxbc_ivar(i))
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(oxbcname(i))//' missing','OXBC FILE ERROR')
+        end do
+      end if
+
+
     end subroutine open_chbc 
 
     subroutine read_chbc(chebdio)
@@ -1289,7 +1322,25 @@ module mod_che_ncio
         do n = 1 , n_aebcvar
           istatus = nf90_get_var(iaein, aebc_ivar(n), xread, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'variable '//trim(aebcname(n))//' read error','CHBC FILE ERROR')
+               'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                chebdio(j,i,k,iafter+1) = xread(j,i,k)
+              end do
+            end do
+          end do
+        end do
+       iafter = iafter +1 
+      end if
+      print *,'apres aebc', n_aebcvar , iafter 
+
+      ioxclim = 1
+      if ( ioxclim == 1 ) then
+        do n = 1 , n_oxbcvar
+          istatus = nf90_get_var(ioxin, oxbc_ivar(n), xread, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
@@ -1299,6 +1350,10 @@ module mod_che_ncio
           end do
         end do
       end if
+
+     print *, iafter, maxval ( chebdio(:,:,:,iafter+1))
+
+
     end subroutine read_chbc
 
     subroutine close_chbc

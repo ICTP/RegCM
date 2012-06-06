@@ -43,11 +43,11 @@ module mod_che_bdyco
 
   public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval
   public :: nudge_chi , setup_che_bdycon
-  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , chebdy
+  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , chebdyi, oxcl
 
   type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
 
-  real(dp) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , chebdy
+  real(dp) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , chebdy, oxcl
   real(dp) , pointer , dimension(:,:) :: cefc , cegc
   integer , pointer , dimension(:) :: ichbdy2trac
    
@@ -73,12 +73,20 @@ module mod_che_bdyco
     call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
     call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
     call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
+    
+    if (ioxclim==1) then  
+     call getmem4d(oxcl,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1, &
+                        1,kz,1,5,'mod_che_bdyco:oxcl')
+
+    end if 
+
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     implicit none
     logical :: ifrest
-    integer :: datefound , i , j , k , ierr,n
+    integer :: datefound , i , j , k , ierr,n, after
     real (dp) :: dtbdys
     character(len=32) :: appdat
     type (rcm_time_and_date) :: idate1, chbc_date
@@ -110,14 +118,25 @@ module mod_che_bdyco
         call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
       end if
 
+
       call read_chbc(chebdy_in)
       chebdy_io0 =d_zero
+      after = 0
       do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
           chebdy_io0(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+          after = after +1
         end if
       end do
 
+      ! handle oxidant climatology 
+      if (ioxclim == 1) then 
+      do n = 1, 5
+        oxcl_io(:,:,:,n) =     chebdy_in(:,:,:,after+n)
+      end do   
+     end if 
+        print*, 'che_init oxcl_io', after, maxval(chebdy_in(:,:,:,3)),  maxval( oxcl_io (:,:,:,1))
+      
       appdat = tochar(chbdydate1)
       if ( .not. ifrest ) then
         write (6,*) 'READY ICCH  DATA for ', appdat
@@ -197,14 +216,29 @@ module mod_che_bdyco
     call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
 
+    ! handle oxc lima
+    call deco1_scatter(oxcl_io,oxcl, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,5)
+
+    call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
+    call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
+
+    print*, 'che_init', maxval( oxcl (:,:,:,1))
+
+
     call time_end(subroutine_name,idindx)
+
+
+
+
+
   end subroutine che_init_bdy
 
   subroutine chem_bdyin(dtbdys,intbdy)
     implicit none
     type(rcm_time_interval) :: intbdy
     real(dp) , intent(in) :: dtbdys
-    integer :: i , j , k , n , mmrec
+    integer :: i , j , k , n , mmrec, after
     character(len=32) :: appdat
     integer :: lyear , lmonth , lday , lhour
 
@@ -231,11 +265,22 @@ module mod_che_bdyco
       end if
       call read_chbc(chebdy_in)
       chebdy_io1 = d_zero
-      do n = 1 , size(ichbdy2trac)
+      after=0  
+     do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
           chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+          after = after+1
         end if
       end do
+
+ ! handle oxidant clim 
+     if (ioxclim == 1) then
+      do n = 1, 5
+        oxcl_io(:,:,:,n) =     chebdy_in(:,:,:,after+n)
+      end do   
+     end if 
+
+
     end if
     call deco1_scatter(chebdy_io1,chebdy, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
@@ -260,7 +305,22 @@ module mod_che_bdyco
     call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
 
+
+
+     ! handle oxidant climatology 
+
+    call deco1_scatter(oxcl_io,oxcl, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,5)
+
+    call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
+    call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
+
+     print*, 'che_bdyin', maxval( oxcl (:,:,:,1))
+
+     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)
+
+
 
     call time_end(subroutine_name,idindx)
   end subroutine chem_bdyin

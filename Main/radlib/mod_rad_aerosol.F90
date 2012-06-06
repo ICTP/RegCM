@@ -712,10 +712,12 @@ module mod_rad_aerosol
               ga(n,k,itr) = gsdust(ns,ibin)
               fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
             else if ( tracname(itr) == 'SO4' ) then
+              ! maximum limit for effect on sulfate extinction 
+              rh0 = dmin1(0.97D0,dmax1(d_zero,rh(n,k)))
               uaer(n,k,itr) = aermmr(n,k,itr)*path
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbase(ns) *               &
-                   dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(n,k)+kscoef(ns,3)) + &
-                   kscoef(ns,4)/(rh(n,k)+kscoef(ns,5)))
+                   dexp(kscoef(ns,1)+kscoef(ns,2)/(rh0+kscoef(ns,3)) + &
+                   kscoef(ns,4)/(rh0+kscoef(ns,5)))
               wa(n,k,itr) = d_one - wsbase(ns) * &
                    dexp(wscoef(ns,1)+wscoef(ns,2) / &
                    (rh(n,k)+wscoef(ns,3))+wscoef(ns,4)/(rh(n,k)+wscoef(ns,5)))
