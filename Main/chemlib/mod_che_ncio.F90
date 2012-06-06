@@ -1322,10 +1322,9 @@ module mod_che_ncio
               end do
             end do
           end do
+        iafter = iafter + 1
         end do
-       iafter = iafter +1 
       end if
-      print *,'apres aebc', n_aebcvar , iafter 
       if ( ioxclim == 1 ) then
         do n = 1 , n_oxbcvar
           istatus = nf90_get_var(ioxin, oxbc_ivar(n), xread, istart, icount)
@@ -1341,7 +1340,7 @@ module mod_che_ncio
         end do
       end if
 
-     print *, iafter, maxval ( chebdio(:,:,:,iafter+1))
+     where (chebdio < d_zero) chebdio = d_zero
 
     end subroutine read_chbc
 
