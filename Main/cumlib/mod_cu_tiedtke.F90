@@ -1173,7 +1173,7 @@ module mod_cu_tiedtke
     zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
     zmfub(jl) = min(zmfub(jl),zmfmax)
     if ( .not.llo1 ) ldcum(jl) = .false.
-    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,-1.10D0*pqhfla(jl)*egrav))
+    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
     zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
   end do
 !
@@ -1613,7 +1613,7 @@ module mod_cu_tiedtke
     zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
     zmfub(jl) = min(zmfub(jl),zmfmax)
     if ( .not.llo1 ) ldcum(jl) = .false.
-    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,-1.10D0 *pqhfla(jl)*egrav))
+    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger *pqhfla(jl)*egrav))
     zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
   end do
 !
