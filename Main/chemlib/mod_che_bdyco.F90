@@ -216,12 +216,14 @@ module mod_che_bdyco
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
 
     ! handle oxc lima
+
+    if (ioxclim==1) then 
     call deco1_scatter(oxcl_io,oxcl, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,5)
 
     call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
     call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
-
+    end if
     call time_end(subroutine_name,idindx)
   end subroutine che_init_bdy
 
@@ -294,13 +296,13 @@ module mod_che_bdyco
     call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
 
     ! handle oxidant climatology 
-
+    if (ioxclim==1) then 
     call deco1_scatter(oxcl_io,oxcl, &
                        jcross1,jcross2,icross1,icross2,1,kz,1,5)
     call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
     call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
 
-
+    end if
     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)
 
