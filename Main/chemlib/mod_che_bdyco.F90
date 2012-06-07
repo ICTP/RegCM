@@ -135,8 +135,6 @@ module mod_che_bdyco
           oxcl_io(:,:,:,n) = chebdy_in(:,:,:,after+n)
         end do   
       end if 
-      print*, 'che_init oxcl_io', after, &
-              maxval(chebdy_in(:,:,:,3)),  maxval( oxcl_io (:,:,:,1))
       
       appdat = tochar(chbdydate1)
       if ( .not. ifrest ) then
@@ -224,8 +222,6 @@ module mod_che_bdyco
     call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
     call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
 
-    print*, 'che_init', maxval( oxcl (:,:,:,1))
-
     call time_end(subroutine_name,idindx)
   end subroutine che_init_bdy
 
@@ -304,7 +300,6 @@ module mod_che_bdyco
     call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
     call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
 
-    print*, 'che_bdyin', maxval( oxcl (:,:,:,1))
 
     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)

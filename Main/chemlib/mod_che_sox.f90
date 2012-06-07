@@ -80,8 +80,7 @@ module mod_che_sox
 
          if ( ioxclim == 1 ) then
            ! from the oxidant climatology
-           oh1int = oxcl(i,k,j,iox_oh)
-           !print*,j,i,k, oh1int
+           oh1int = oxcl(j,i,k,iox_oh)
            if ( czen(j,i) < 0.001D0 ) then
              oh1int = oh1int * 0.01D0
            else 
