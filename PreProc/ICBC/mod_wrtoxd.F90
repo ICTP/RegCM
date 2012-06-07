@@ -81,9 +81,9 @@ module mod_wrtoxd
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
-  data aesulf / 'SO2', 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' ,'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2', 'SO4' , &
+  data aesulf / 'SO2' , 'SO4' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
                 'DST01', 'DST02', 'DST03', 'DST04' /
 
@@ -123,20 +123,24 @@ module mod_wrtoxd
         naesp = 5
         aespec => aecarb
         doaero = .true.
+        dooxcl = .true.
         sum_soa_to_oc2 = .true.
       case ( 'SULF' )
         naesp = 2
         aespec => aesulf
         doaero = .true.
+        dooxcl = .true.
       case ( 'SUCA' )
         naesp = 7 
         aespec => aesuca
         doaero = .true.
+        dooxcl = .true.
         sum_soa_to_oc2 = .true.
       case ( 'AERO' )
         naesp = 15
         aespec => aeaero
         doaero = .true.
+        dooxcl = .true.
         sum_sslt_bins = .true.
         sum_soa_to_oc2 = .true.
       case ( 'CBMZ' )

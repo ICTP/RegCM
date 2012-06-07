@@ -75,8 +75,11 @@ program chem_icbc
   select case (chemsimtype)
     case ( 'CBMZ' )
       dochem = .true.
-    case ( 'DUST', 'SSLT' , 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+    case ( 'DUST', 'SSLT' )
       doaero = .true.
+    case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+      doaero = .true.
+      dooxcl = .true.
     case default
       write (stderr,*) 'Unknown chemsimtype'
       write (stderr,*) 'Assuming nothing to do for this experiment'

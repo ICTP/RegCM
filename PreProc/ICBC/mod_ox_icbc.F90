@@ -42,9 +42,8 @@ module mod_ox_icbc
 !
 ! Oxidant climatology variables
 !
-  real(sp) :: p0
+  real(sp) :: p0 , r4pt
   real(sp) , dimension(oxilon,oxjlat) :: xps
-  real(sp) , dimension(oxilon,oxjlat) :: poxid_2
   real(sp) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
   real(sp) , dimension(oxilon,oxjlat,oxitime) :: xps2
   real(sp) , pointer , dimension(:,:) :: poxid_3
@@ -62,6 +61,8 @@ module mod_ox_icbc
   subroutine header_ox_icbc
     implicit none
     integer :: ivarid , istatus , is
+
+    r4pt = real(ptop)
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
     call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ox_icbc:oxv3')
@@ -90,10 +91,12 @@ module mod_ox_icbc
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    p0 = p0*0.01
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    xps2 = xps2 * 0.01
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//oxspec(is))
@@ -108,7 +111,7 @@ module mod_ox_icbc
     integer :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
     real(sp) , dimension(oxilon,oxjlat,oxilev) :: xinp
-    real(sp) :: wt1 , wt2 , r4pt
+    real(sp) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer :: m1 , m2
@@ -140,42 +143,38 @@ module mod_ox_icbc
       end do
     end do
 
-    poxid_2 = xps*0.01
-    p0 = p0*0.01
-    r4pt = real(ptop)
-
-    call bilinx2(poxid_3,poxid_2,xlon,xlat,oxt42lon,oxt42lat, &
+    call bilinx2(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
                  oxilon,oxjlat,iy,jx,1)
-
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
           prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
           k0 = -1
           do k = oxilev , 1 , -1
-            pmpi = poxid_3(j,i)*oxt42hybm(k)+oxt42hyam(k)*p0
+            pmpi = oxt42hyam(k)*p0+poxid_3(j,i)*oxt42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == oxilev) then        
-            pmpj = poxid_3(j,i)*oxt42hybm(oxilev-1)+oxt42hyam(oxilev-1)*p0
-            pmpi = poxid_3(j,i)*oxt42hybm(oxilev)+oxt42hyam(oxilev)*p0
-
+          if (k0 == oxilev) then
+            pmpj = oxt42hyam(oxilev-1)*p0+poxid_3(j,i)*oxt42hybm(oxilev-1)
+            pmpi = oxt42hyam(oxilev  )*p0+poxid_3(j,i)*oxt42hybm(oxilev  )
             do is = 1 , noxsp
               oxv4(j,i,l,is) = oxv3(j,i,oxilev,is) + &
-                 (oxv3(j,i,oxilev,is) - oxv3(j,i,oxilev-1,is))*(prcm-pmpi)/(pmpi-pmpj)
+                 (oxv3(j,i,oxilev-1,is) - oxv3(j,i,oxilev,is)) * &
+                 (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = poxid_3(j,i)*oxt42hybm(k0)+oxt42hyam(k0)*p0
-            pmpi = poxid_3(j,i)*oxt42hybm(k0+1)+oxt42hyam(k0+1)*p0
+            pmpj = oxt42hyam(k0  )*p0+poxid_3(j,i)*oxt42hybm(k0  )
+            pmpi = oxt42hyam(k0+1)*p0+poxid_3(j,i)*oxt42hybm(k0+1)
+            wt1 = (prcm-pmpj)/(pmpi-pmpj)
+            wt2 = 1.0 - wt1
             do is = 1 , noxsp
-              oxv4(j,i,l,is) = (oxv3(j,i,k0+1,is)*(prcm-pmpj) + &
-                                oxv3(j,i,k0,is)*(prcm-pmpi))/(pmpi-pmpj)
+              oxv4(j,i,l,is) = oxv3(j,i,k0+1,is)*wt1 + oxv3(j,i,k0,is)*wt2
             end do
-          end if            
+          end if
         end do
       end do
-    end do            
+    end do
 
     call write_ox_icbc(idate)
 

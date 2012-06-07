@@ -38,9 +38,8 @@ module mod_ae_icbc
 !
 ! Oxidant climatology variables
 !
-  real(sp) :: p0
+  real(sp) :: p0 , r4pt
   real(sp) , dimension(aeilon,aejlat) :: xps
-  real(sp) , dimension(aeilon,aejlat) :: paeid_2
   real(sp) , pointer , dimension(:,:,:,:,:) :: aev2
   real(sp) , dimension(aeilon,aejlat,aeitime) :: xps2
   real(sp) , pointer , dimension(:,:) :: paeid_3
@@ -70,6 +69,8 @@ module mod_ae_icbc
     call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
     call getmem5d(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
                   1,naesp,'mod_ae_icbc:aev2')
+
+    r4pt = real(ptop)
 
     iyear = nyear/10*10
     select case ( dattyp(4:5) )
@@ -109,10 +110,12 @@ module mod_ae_icbc
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    p0 = p0*0.01
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    xps2 = xps2*0.01
     do is = 1 , naesp
       if ( aespec(is) == 'SO2' ) cycle
       istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
@@ -128,7 +131,7 @@ module mod_ae_icbc
     type(rcm_time_and_date) , intent(in) :: idate
     integer :: i , l , is , j , k , k0
     real(sp) , dimension(aeilon,aejlat,aeilev) :: xinp
-    real(sp) :: wt1 , wt2 , r4pt
+    real(sp) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer :: m1 , m2
@@ -150,6 +153,7 @@ module mod_ae_icbc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
       istatus = nf90_get_var(ncid,ivarid,xps2)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+      xps2 = xps2*0.01
       do is = 1 , naesp
         if ( aespec(is) == 'SO2' ) cycle
         istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
@@ -186,11 +190,7 @@ module mod_ae_icbc
       end do
     end do
 
-    paeid_2 = xps*0.01
-    p0 = p0*0.01
-    r4pt = real(ptop)
-
-    call bilinx2(paeid_3,paeid_2,xlon,xlat,aet42lon,aet42lat, &
+    call bilinx2(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
                  aeilon,aejlat,iy,jx,1)
 
     do i = 1 , iy 
@@ -199,30 +199,30 @@ module mod_ae_icbc
           prcm=((paeid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
           k0 = -1
           do k = aeilev , 1 , -1
-            pmpi = paeid_3(j,i)*aet42hybm(k)+aet42hyam(k)*p0
+            pmpi = aet42hyam(k)*p0+paeid_3(j,i)*aet42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == aeilev) then        
-            pmpj = paeid_3(j,i)*aet42hybm(aeilev-1)+aet42hyam(aeilev-1)*p0
-            pmpi = paeid_3(j,i)*aet42hybm(aeilev)+aet42hyam(aeilev)*p0
-
+          if (k0 == aeilev) then
+            pmpj = aet42hyam(aeilev-1)*p0+paeid_3(j,i)*aet42hybm(aeilev-1)
+            pmpi = aet42hyam(aeilev  )*p0+paeid_3(j,i)*aet42hybm(aeilev  )
             do is = 1 , naesp
               aev4(j,i,l,is) = aev3(j,i,aeilev,is) + &
-                 (aev3(j,i,aeilev,is) - aev3(j,i,aeilev-1,is)) * &
+                 (aev3(j,i,aeilev-1,is) - aev3(j,i,aeilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = paeid_3(j,i)*aet42hybm(k0)+aet42hyam(k0)*p0
-            pmpi = paeid_3(j,i)*aet42hybm(k0+1)+aet42hyam(k0+1)*p0
+            pmpj = aet42hyam(k0  )*p0+paeid_3(j,i)*aet42hybm(k0  )
+            pmpi = aet42hyam(k0+1)*p0+paeid_3(j,i)*aet42hybm(k0+1)
+            wt1 = (prcm-pmpj)/(pmpi-pmpj)
+            wt2 = 1.0 - wt1
             do is = 1 , naesp
-              aev4(j,i,l,is) = (aev3(j,i,k0+1,is)*(prcm-pmpj) + &
-                                aev3(j,i,k0,is)*(prcm-pmpi))/(pmpi-pmpj)
+              aev4(j,i,l,is) = aev3(j,i,k0+1,is)*wt1 + aev3(j,i,k0,is)*wt2
             end do
-          end if            
+          end if
         end do
       end do
-    end do            
+    end do
 
     call write_ae_icbc(idate)
 
