@@ -224,33 +224,33 @@ module mod_ch_icbc
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((pchem_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.0
+          prcm=((pchem_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
           k0 = -1
           do k = chilev , 1 , -1
-            pmpi = pchem_3(j,i)*cht42hybm(k)+cht42hyam(k)*p0
+            pmpi = cht42hyam(k)*p0+pchem_3(j,i)*cht42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == chilev) then        
-            pmpj = pchem_3(j,i)*cht42hybm(chilev-1)+cht42hyam(chilev-1)*p0
-            pmpi = pchem_3(j,i)*cht42hybm(chilev)+cht42hyam(chilev)*p0
-
+          if (k0 == chilev) then
+            pmpj = cht42hyam(chilev-1)*p0+pchem_3(j,i)*cht42hybm(chilev-1)
+            pmpi = cht42hyam(chilev  )*p0+pchem_3(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
-              chv4(j,i,l,is) = chv3(j,i,chilev,is) + &
-                 (chv3(j,i,chilev,is) - chv3(j,i,chilev-1,is)) * &
+              chv4_1(j,i,l,is) = chv3(j,i,chilev,is) + &
+                 (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = pchem_3(j,i)*cht42hybm(k0)+cht42hyam(k0)*p0
-            pmpi = pchem_3(j,i)*cht42hybm(k0+1)+cht42hyam(k0+1)*p0
+            pmpj = cht42hyam(k0  )*p0+pchem_3(j,i)*cht42hybm(k0  )
+            pmpi = cht42hyam(k0+1)*p0+pchem_3(j,i)*cht42hybm(k0+1)
+            wt1 = (prcm-pmpj)/(pmpi-pmpj)
+            wt2 = 1.0 - wt1
             do is = 1 , nchsp
-              chv4_1(j,i,l,is) = (chv3(j,i,k0+1,is)*(prcm-pmpj) + &
-                                  chv3(j,i,k0,is)*(pmpi-prcm))/(pmpi-pmpj)
+              chv4_1(j,i,l,is) = chv3(j,i,k0+1,is)*wt1 + chv3(j,i,k0,is)*wt2
             end do
-          end if            
+          end if
         end do
       end do
-    end do            
+    end do
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
     write(chfilename,'(a,i0.2,a)') &
@@ -290,7 +290,7 @@ module mod_ch_icbc
             pmpj = cht42hyam(chilev-1)*p0+pchem_3(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+pchem_3(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
-              chv4(j,i,l,is) = chv3(j,i,chilev,is) + &
+              chv4_2(j,i,l,is) = chv3(j,i,chilev,is) + &
                  (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
@@ -300,7 +300,7 @@ module mod_ch_icbc
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , nchsp
-              chv4(j,i,l,is) = chv3(j,i,k0+1,is)*wt1 + chv3(j,i,k0,is)*wt2
+              chv4_2(j,i,l,is) = chv3(j,i,k0+1,is)*wt1 + chv3(j,i,k0,is)*wt2
             end do
           end if
         end do
