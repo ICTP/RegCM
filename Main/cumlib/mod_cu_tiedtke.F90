@@ -727,10 +727,7 @@ module mod_cu_tiedtke
 ! (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
 !
   do jl = 1 , kproma
-!    ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.0D4)
-    if ( paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)) > 2.0D4 ) then
-      ktype(jl) = 1
-    end if
+    ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.0D4)
     zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
   end do
 !
