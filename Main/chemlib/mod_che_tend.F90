@@ -48,10 +48,10 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(ktau,lyear,lmonth,lday,secofday,calday)
+    subroutine tractend2(ktau,lyear,lmonth,lday,secofday,calday,declin)
       implicit none
       integer , intent(in) :: lmonth , lday , lyear
-      real(dp), intent(in) :: secofday,calday
+      real(dp), intent(in) :: secofday,calday,declin
       integer(8) , intent(in) :: ktau
 !
       real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
@@ -267,7 +267,7 @@
       ! update emission tendencies from inventories
       !
       do j = jci1 , jci2
-        call emis_tend(ktau,j,lmonth)
+        call emis_tend(ktau,j,lmonth,declin)
       end do
       !
       ! aerosol settling and drydep 
