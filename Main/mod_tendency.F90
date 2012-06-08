@@ -707,7 +707,7 @@ module mod_tendency
       ! Compute chemistry tendencies (other than transport)
       !
       sod = dble(idatex%second_of_day)
-      call tractend2(ktau,xyear,xmonth,xday,sod,calday)
+      call tractend2(ktau,xyear,xmonth,xday,sod,calday,declin)
     end if ! ichem
 !
 !----------------------------------------------------------------------
