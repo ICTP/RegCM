@@ -31,7 +31,7 @@ module mod_wrtoxd
 
   private
 
-  public :: chv4 , oxv4 , aev4
+  public :: chv4 , oxv4 , aev4, mw
   public :: nchsp , noxsp , naesp
   public :: chspec , oxspec , aespec
 
@@ -57,6 +57,7 @@ module mod_wrtoxd
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
   real(sp), dimension (nchsp ) ::  mw
+   
 
   character(len=8) , pointer , dimension(:) :: aespec
 
@@ -78,10 +79,17 @@ module mod_wrtoxd
                 'CO' , 'CH2O' , 'CH3OH' , 'C2H5OH' , 'C2H4' , 'C2H6' ,   &
                 'CH3CHO' , 'CH3COCH3' , 'BIGENE' , 'BIGALK' , 'C3H6' ,   &
                 'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
+ 
+
+  data mw / 48., 30.,  46., 63., 108., 34., 16., & 
+            28., 30., 32., 46., 28., 30., &    
+            44., 58., 56.,72., 42.,  &
+            44., 68., 92., 121., 64., 96., 62. /
+
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
-  data aesulf / 'SO2' , 'SO4' /
+  data aesulf / 'SO2' , 'SO463' /
   data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
   data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &

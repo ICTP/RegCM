@@ -152,7 +152,7 @@ module mod_ch_icbc
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
     real(sp) :: xfac1 , xfac2 , odist
-    integer :: im1 , im2
+    integer :: im1 , im2, n
 
     call split_idate(idate,nyear,month,nday,nhour)
     imonmidd = monmiddle(idate)
@@ -184,7 +184,12 @@ module mod_ch_icbc
     odist = xfac1 + xfac2
     xfac1 = xfac1/odist
     xfac2 = d_one-xfac1
+! rq: pppv(mozart) to pppm 
     chv4 = (chv4_1*xfac2+chv4_2*xfac1)
+
+   do n=1, nchsp
+    chv4(:,:,:,n)  = chv4(:,:,:,n) * mw(n)/amd  
+   end do
 
     call write_ch_icbc(idate)
 
