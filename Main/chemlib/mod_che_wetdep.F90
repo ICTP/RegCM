@@ -586,7 +586,7 @@ module mod_che_wetdep
           do i = ici1 , ici2
             if ( wl(i,k) > clmin ) then
               wetrem(indp(n)) = d_zero
-              if ( cremrat(j,i,k) > d_zero ) then
+              if ( cremrat(j,i,k) > d_zero .and. fracloud(i,k) > d_zero ) then
                 wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
                    chib(j,i,k,indp(n))* &
                    (dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
