@@ -66,12 +66,8 @@ module mod_che_output
       call deco1_gather(drydepv,drydepv_io,jcross1,jcross2, &
                         icross1,icross2,1,ntr)
 
-     !perform specific calculations 
-
-      aeraod_io = sum(aerext_io,3)
-
       call outche2(idatex) 
-              
+
       ! put back to zero accumulated variables
 
       remlsc(:,:,:,:) = d_zero
@@ -102,17 +98,16 @@ module mod_che_output
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
 
-      if (myid ==0) then 
-      call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,ddsfc_io, &
+      if ( myid == 0 ) then 
+        aeraod_io = sum(aerext_io,3)
+        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,ddsfc_io, &
               cemtrac_io,drydepv_io,aerext_io,aerssa_io,aerasp_io,aeraod_io, &
               aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io,cpsb_io,idatex)
-
-      write (*,*) 'CHE variables written at ' , tochar(idatex) 
-      if ( iaerosol > 0 ) then
-        write (*,*) 'OPT variables written at ' , tochar(idatex)
+        write (*,*) 'CHE variables written at ' , tochar(idatex) 
+        if ( iaerosol > 0 ) then
+          write (*,*) 'OPT variables written at ' , tochar(idatex)
+        end if
       end if
-
-     end if
     end subroutine outche2
 
 end module mod_che_output
