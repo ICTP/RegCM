@@ -98,8 +98,8 @@ FCLD = $(MPIFC)
 if DO_COMPILE_LIBESMF
 LIBS += $(ESMFLIBPTH)
 CPPFLAGS += $(ESMFINCPTH) -I$(ROMS_PREFIX)
-regcm_SOURCES += regcm_esmf.F90 mod_esmf_atm.F90 mod_esmf_ocn.F90 \
-                 mod_esmf_cpl.F90 mod_couplerr.F90
+regcm_SOURCES += mod_couplerr.F90 mod_esmf_atm.F90 mod_esmf_ocn.F90 \
+                 mod_esmf_cpl.F90 regcm_esmf.F90
 skip_files  = $(ROMS_PREFIX)/master.o
 regcm_LDADD = $(filter-out $(skip_files), $(wildcard $(ROMS_PREFIX)/*.o))
 else
@@ -188,7 +188,7 @@ mod_vmodes.o: mod_vmodes.F90 mod_runparams.mod mod_memutil.mod mod_mpmessage.mod
 # ESMF modules
 #
 if DO_COMPILE_LIBESMF
-regcm_esmf.o: regcm_esmf.F90 ESMF.mod mod_couplerr.mod mod_esmf_atm.mod mod_esmf_ocn.mod mod_esmf_cpl.mod
+regcm_esmf.o: regcm_esmf.F90 mod_couplerr.mod mod_esmf_atm.mod mod_esmf_ocn.mod mod_esmf_cpl.mod
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_couplerr.o: mod_couplerr.F90 mod_realkinds.mod mod_dynparam.mod mod_atm_interface.o
 mod_esmf_atm.o: mod_esmf_atm.F90 mod_regcm_interface.o mod_atm_interface.o mod_couplerr.mod mod_runparams.mod mod_dynparam.mod mod_constants.mod mod_date.mod mod_bats_common.mod mod_bats_common.mod mod_dynparam.mod mod_bats_romsocn.mod mod_bats_romsocn.mod
