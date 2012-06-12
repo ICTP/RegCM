@@ -159,8 +159,9 @@ module mod_che_dust
       real(dp) , dimension(nsoil) :: ss
       logical :: rd_tex 
       character(5) :: aerctl
-      real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,  amean,asigma,        &
-                 asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
+      real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
+             asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
+      real(dp) , external :: derf
       !
       ! Fab update 
       ! change type 1 and 2 and 3 to Laurent et al., 2008, 
@@ -322,7 +323,7 @@ module mod_che_dust
         ! if Kok is used
         amean = log10(d)
         asigma = log10(sigmas)
-        frac(n) = rwi / cv * (d_one+erf(log(rwi/d)/sqrt(d_two)/ &
+        frac(n) = rwi / cv * (d_one+derf(log(rwi/d)/sqrt(d_two)/ &
                   log(sigmas)))*exp(-(rwi/lambda)**d_three)  !see Kok (2011)
         totv = totv + frac(n)
       end do
