@@ -161,7 +161,9 @@ module mod_che_dust
       character(5) :: aerctl
       real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
              asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
+#ifdef __PGI 
       real(dp) , external :: derf
+#endif
       !
       ! Fab update 
       ! change type 1 and 2 and 3 to Laurent et al., 2008, 
