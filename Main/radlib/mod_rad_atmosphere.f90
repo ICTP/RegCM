@@ -29,8 +29,18 @@ module mod_stdatm
   integer , public , parameter :: ipolarsummer = 4
   integer , public , parameter :: ipolarwinter = 5
 
+  integer , public , parameter :: istdatm_hgtkm = 1  ! HGT in km
+  integer , public , parameter :: istdatm_prsmb = 2  ! PRESS in hPa
+  integer , public , parameter :: istdatm_tempk = 3  ! TEMP in K
+  integer , public , parameter :: istdatm_airdn = 4  ! RHO in kg/m^3
+  integer , public , parameter :: istdatm_qdens = 5  ! Q in kg/m^3
+  integer , public , parameter :: istdatm_ozone = 6  ! Ozone in kg/m^3
+
+  integer , public , parameter :: n_atmzones = 5
+  integer , public , parameter :: n_atmparms = 6
+  integer , public , parameter :: n_atmlevls = 31
   integer :: ip , il , iz
-  real(dp) , dimension(6,31,5) :: stdatm
+  real(dp) , dimension(n_atmparms,n_atmlevls,n_atmzones) :: stdatm
   public :: stdatm
 
 !-------------------------------------------------------------------------------
