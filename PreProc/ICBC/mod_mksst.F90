@@ -62,24 +62,31 @@ module mod_mksst
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error Opening '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error Opening '//trim(sstfile))
       istatus = nf90_inq_dimid(ncst, 'time', idimid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time dimension '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time dimension '//trim(sstfile))
       istatus = nf90_inquire_dimension(ncst, idimid, len=ntime)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time dimension '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time dimension '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "time", itvar)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time var '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time var '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "sst", ivar(2))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error sst var '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error sst var '//trim(sstfile))
       lhasice = .true.
       istatus = nf90_inq_varid(ncst, "ice", ivar(3))
       if ( istatus /= nf90_noerr) then
         lhasice = .false.
       end if
       istatus = nf90_get_att(ncst, itvar, "units", timeunits)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time var units '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time var units '//trim(sstfile))
       istatus = nf90_get_att(ncst, itvar, "calendar", timecal)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time var units '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time var units '//trim(sstfile))
 
       call getmem2d(work1,1,jx,1,iy,'mod_mksst:work1')
       call getmem2d(work2,1,jx,1,iy,'mod_mksst:work2')
@@ -91,7 +98,8 @@ module mod_mksst
       call getmem1d(itime,1,ntime,'mod_mksst:itime')
 
       istatus = nf90_get_var(ncst, itvar, xtime)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error time var read '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error time var read '//trim(sstfile))
       do i = 1 , ntime
         itime(i) = timeval2date(xtime(i), timeunits, timecal)
       end do
@@ -121,21 +129,29 @@ module mod_mksst
     icount(2) = iy
     icount(1) = jx
     istatus = nf90_get_var(ncst, ivar(2), work1, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error sst var read '//trim(sstfile))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error sst var read '//trim(sstfile))
     if (lhasice) then
       istatus = nf90_get_var(ncst, ivar(3), work3, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error ice var read '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error ice var read '//trim(sstfile))
     end if
     if (idate == itime(irec)) then
       do i = 1 , iy
         do j = 1 , jx
-          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) .and. &
-               (work1(j,i) > -900.0) ) then
-            tsccm(j,i) = work1(j,i)
-            if (lhasice) then
-              if ( work3(j,i) > -900.0) then
-                if ( work3(j,i) > 35. ) tsccm(j,i) = 271.0
+          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
+            if ( work1(j,i) > -900.0 ) then
+              tsccm(j,i) = work1(j,i)
+              if (lhasice) then
+                if ( work3(j,i) > -900.0) then
+                  if ( work3(j,i) > 35. ) then
+                    tsccm(j,i) = 271.0
+                  end if
+                end if
               end if
+            else
+              ! Find nearest water points
+              tsccm(j,i) = nearn(j,i,work1)
             end if
           end if
         end do
@@ -148,31 +164,65 @@ module mod_mksst
       icount(2) = iy
       icount(1) = jx
       istatus = nf90_get_var(ncst, ivar(2), work2, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error sst var read '//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error sst var read '//trim(sstfile))
       if (lhasice) then
         istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error ice var read '//trim(sstfile))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error ice var read '//trim(sstfile))
       end if
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
       wt = real(tohours(ks1)/tohours(ks2))
       do i = 1 , iy
         do j = 1 , jx
-          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) .and.  &
-               (work1(j,i) > -900.0 .and. work2(j,i) > -900.0) ) then
-            tsccm(j,i) = wt*work1(j,i) + (1.0-wt)*work2(j,i)
-            if (lhasice) then
-              if ( work3(j,i) > -900.0 .and. work4(j,i) > -900.0 ) then
-                if ( wt*work3(j,i)+(1-wt)*work4(j,i) > 35. ) then
-                  tsccm(j,i) = 271.0
-                endif
+          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
+            if ( (work1(j,i) > -900.0 .and. work2(j,i) > -900.0) ) then
+              tsccm(j,i) = wt*work1(j,i) + (1.0-wt)*work2(j,i)
+              if (lhasice) then
+                if ( work3(j,i) > -900.0 .and. work4(j,i) > -900.0 ) then
+                  if ( wt*work3(j,i)+(1-wt)*work4(j,i) > 35. ) then
+                    tsccm(j,i) = 271.0
+                  endif
+                end if
               end if
+            else
+              ! Find nearest water points
+              tsccm(j,i) = nearn(j,i,work1)*wt + (1.0-wt)*nearn(j,i,work2)
             end if
           end if
         end do
       end do
     end if
   end subroutine readsst
+
+  real(sp) function nearn(jp,ip,sst)
+    implicit none
+    integer , intent(in) :: jp , ip
+    real(sp) , dimension(:,:) , intent(in) :: sst
+    real(sp) :: wt , wtsum
+    integer :: i , j , nr , np
+    nr = 1
+    np = -1
+    nearn = 0.0
+    wtsum = 0.0
+    do while ( np < 0 )
+      do i = ip - nr , ip + nr
+        do j = jp - nr , jp + nr
+          if ( i < 1 .or. i > iy ) cycle
+          if ( j < 1 .or. j > jx ) cycle
+          if ( sst(j,i) > -900.0 ) then
+            wt = 1.0/sqrt(real(i-ip)**2.0+real(j-jp)**2.0)
+            nearn = nearn + sst(j,i)*wt
+            wtsum = wtsum + wt
+            np = np + 1
+          end if
+        end do
+      end do
+      nr = nr + 1
+    end do
+    nearn = nearn / wtsum
+  end function nearn
 
   subroutine closesst
     implicit none

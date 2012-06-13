@@ -103,27 +103,38 @@ module mod_sst_gnmnc
     inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp85_r1i1p1_200601-210012.nc'
     varname(2) = 'ts'
   else if ( ssttyp == "HA_RF" ) then
-    if (year*1000000+month*10000+day*100+hour > 2005110100) then
+!    if (year*1000000+month*10000+day*100+hour > 2005110100) then
 !     use modified file (r45 first time step is added to hist last time step)
-      inpfile = trim(inpglob)// &
-           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200512.nc'
-    else
-      inpfile = trim(inpglob)// &
-           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200511.nc'
-    end if
-!    inpfile = trim(inpglob)// &
-!          '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_195912-200512.nc'
-    varname(2) = 'ts'
-!    varname(2) = 'tos'
+!      inpfile = trim(inpglob)// &
+!           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200512.nc'
+!    else
+!      inpfile = trim(inpglob)// &
+!           '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200511.nc'
+!    end if
+   if ( year < 1959 ) then
+     inpfile = trim(inpglob)// &
+           '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_185912-195911.nc'
+   else
+     inpfile = trim(inpglob)// &
+           '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_195912-200512.nc'
+   end if
+!    varname(2) = 'ts'
+    varname(2) = 'tos'
   else if ( ssttyp == "HA_26" ) then
-    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp26_r1i1p1_200512-209911.nc'
-    varname(2) = 'ts'
+!    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp26_r1i1p1_200512-209911.nc'
+    inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp26_r1i1p1_200512-209911.nc'
+    varname(2) = 'tos'
+!    varname(2) = 'ts'
   else if ( ssttyp == "HA_45" ) then
-    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp45_r1i1p1_200511-209911.nc'
-    varname(2) = 'ts'
+!    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp45_r1i1p1_200511-209911.nc'
+    inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp45_r1i1p1_200512-209911.nc'
+    varname(2) = 'tos'
+!    varname(2) = 'ts'
   else if ( ssttyp == "HA_85" ) then
-    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
-    varname(2) = 'ts'
+!    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
+    inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp85_r1i1p1_200512-209912.nc'
+    varname(2) = 'tos'
+!    varname(2) = 'ts'
   else if ( ssttyp == "EC_RF" ) then
     inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
     varname(2) = 'sst'
@@ -250,7 +261,8 @@ module mod_sst_gnmnc
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
 
-  if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' ) then
+  if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' .and. &
+       ssttyp(1:3) /= 'HA_' ) then
     call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
 !   GET LATITUDE AND LONGITUDE
@@ -258,17 +270,38 @@ module mod_sst_gnmnc
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
     istatus = nf90_get_var(inet1,lonid,glon)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
-  else  
-    call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
-    call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
-!   GET LATITUDE AND LONGITUDE
-    istatus = nf90_get_var(inet1,latid,glat2)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
-    istatus = nf90_get_var(inet1,lonid,glon2)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
-    where (glon2 >= 180.0)
-      glon2 = glon2-360.0
-    end where
+  else
+    if ( ssttyp(1:3) == 'HA_' ) then
+      call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
+      call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
+      call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
+      call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
+!     GET LATITUDE AND LONGITUDE
+      istatus = nf90_get_var(inet1,latid,glat)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+      istatus = nf90_get_var(inet1,lonid,glon)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+      do j = 1 , ilon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , jlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
+    else
+      call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
+      call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
+!     GET LATITUDE AND LONGITUDE
+      istatus = nf90_get_var(inet1,latid,glat2)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+      istatus = nf90_get_var(inet1,lonid,glon2)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
+    end if
   end if
   call getmem2d(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
   call getmem2d(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
@@ -301,7 +334,8 @@ module mod_sst_gnmnc
   do k = 1 , nsteps
 
     call gnmnc_sst(idate)
-    if ( ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'CN_' ) then
+    if ( ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'CN_' .or. &
+         ssttyp(1:3) == 'HA_' ) then
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
     else
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
