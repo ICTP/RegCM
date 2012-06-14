@@ -17,9 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_stdatm
+module mod_rad_atmosphere
 
   use mod_realkinds
+  use mod_constants
+  use mod_dynparam
 
   private
 
@@ -39,13 +41,33 @@ module mod_stdatm
   integer , public , parameter :: n_atmzones = 5
   integer , public , parameter :: n_atmparms = 6
   integer , public , parameter :: n_atmlevls = 31
+  integer , public , parameter :: n_preflev  = 31
+  integer , public , parameter :: n_prehlev  = 30
   integer :: ip , il , iz
   real(dp) , dimension(n_atmparms,n_atmlevls,n_atmzones) :: stdatm
-  public :: stdatm
+  real(dp) , dimension(n_prehlev) :: stdplevh
+  real(dp) , dimension(n_preflev) :: stdplevf
+  public :: stdplevf , stdplevh , stdatm_val
 
 !-------------------------------------------------------------------------------
 !
+!  Standard reference pressure levels
+!
+  data stdplevf / &
+    1013.0D0 , 900.0D0 , 800.0D0 , 700.0D0 , 650.0D0 , 550.0D0 , 500.0D0 , &
+     450.0D0 , 375.0D0 , 325.0D0 , 275.0D0 , 250.0D0 , 225.0D0 , 175.0D0 , &
+     150.0D0 , 125.0D0 , 100.0D0 ,  90.0D0 ,  75.0D0 ,  65.0D0 ,  55.0D0 , &
+      45.0D0 ,  40.0D0 ,  35.0D0 ,  30.0D0 ,  25.0D0 ,  12.5D0 ,   7.5D0 , &
+       2.5D0 ,   1.5D0 ,   0.5D0 /
+  data stdplevh / &
+     950.0D0 , 850.0D0 , 750.0D0 , 675.0D0 , 600.0D0 , 525.0D0 , 475.0D0 , &
+     415.0D0 , 350.0D0 , 300.0D0 , 265.0D0 , 215.0D0 , 200.0D0 , 165.0D0 , &
+     135.0D0 , 115.0D0 ,  95.0D0 ,  85.0D0 ,  70.0D0 ,  60.0D0 ,  50.0D0 , &
+      42.5D0 ,  37.5D0 ,  32.5D0 ,  27.5D0 ,  17.5D0 ,  10.0D0 ,   5.0D0 , &
+       2.0D0 ,   1.0D0 /
+!
 !  Standard TROpical ATMosphere
+!
   data (((stdatm(ip,il,iz),ip=1,6),il=1,31),iz=1,1) &
   / 0.0D0,1013.00D0,300.00D0,0.116700D+04,0.190000D+02,0.560000D-04 , &
     1.0D0, 904.00D0,294.00D0,0.106400D+04,0.130000D+02,0.560000D-04 , &
@@ -219,4 +241,84 @@ module mod_stdatm
    45.0D0,   1.11D0,247.00D0,0.156900D+01,0.190000D-04,0.130000D-04 , &
    50.0D0,   0.57D0,259.00D0,0.768200D+00,0.630000D-05,0.430000D-05 /
 !
-end module mod_stdatm
+   contains
+
+     real(dp) function stdatm_val(jday,lat,plev,ival)
+       implicit none
+       real(dp) , intent(in) :: jday
+       real(dp) , intent(in) :: lat
+       real(dp) , intent(in) :: plev
+       integer , intent(in) :: ival
+       integer :: k , kp1 , kp2
+       real(dp) :: wts1 , wts2 , wtp1 , wtp2
+       real(dp) :: vs1 , vs2
+
+       stdatm_val = dmissval
+
+       if ( lat >= 75.0D0 ) then ! use Polar , interpolate with season
+         wts1 = winter_wgt(jday)
+         wts2 = 1.0D0-wts1
+         kp1 = find_klev(plev,ipolarwinter)
+         kp2 = find_klev(plev,ipolarsummer)
+         wtp1 = plev_wgt(kp1,plev,ipolarwinter)
+         wtp2 = plev_wgt(kp1,plev,ipolarsummer)
+         vs1 = stdatm(ival,kp1,ipolarwinter)*wtp1 + &
+               stdatm(ival,kp1+1,ipolarwinter)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp1,ipolarsummer)*wtp1 + &
+               stdatm(ival,kp1+1,ipolarsummer)*(d_one-wtp1)
+         stdatm_val = vs1*wts1+vs2*wts2
+       else if ( lat <= 25.0D0 ) then ! Tropical
+         kp1 = find_klev(plev,itropical)
+         wtp1 = plev_wgt(kp1,plev,itropical)
+         stdatm_val = stdatm(ival,kp1,itropical)*wtp1 + &
+                      stdatm(ival,kp1+1,itropical)*(d_one-wtp1)
+       else if ( lat > 25.0D0 .and. lat < 75.0D0 ) then ! midlat , seasonal
+         wts1 = winter_wgt(jday)
+         wts2 = 1.0D0-wts1
+         kp1 = find_klev(plev,imidlatwinter)
+         kp2 = find_klev(plev,imidlatsummer)
+         wtp1 = plev_wgt(kp1,plev,imidlatwinter)
+         wtp2 = plev_wgt(kp1,plev,imidlatsummer)
+         vs1 = stdatm(ival,kp1,imidlatwinter)*wtp1 + &
+               stdatm(ival,kp1+1,imidlatwinter)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp1,imidlatsummer)*wtp1 + &
+               stdatm(ival,kp1+1,imidlatsummer)*(d_one-wtp1)
+         stdatm_val = vs1*wts1+vs2*wts2
+       end if
+     end function stdatm_val
+
+     real(dp) function winter_wgt(jday)
+       implicit none
+       real(dp) , intent(in) :: jday
+       real(dp) :: dis
+       dis = ((half_dayspy-jday-sixteenth_dayspy+d_one)/dayspy)*mathpi
+       winter_wgt = dsin(dis)**d_two
+     end function winter_wgt
+
+     integer function find_klev(plev,izone)
+       implicit none
+       integer , intent(in) :: izone
+       real(dp) , intent(in) :: plev
+       integer :: k
+       find_klev = 1
+       do k = 2 , n_atmlevls
+         find_klev = k-1
+         if ( plev > stdatm(istdatm_prsmb,k,izone) ) exit
+       end do
+     end function find_klev
+
+     real(dp) function plev_wgt(k,plev,izone)
+       implicit none
+       integer , intent(in) :: k , izone
+       real(dp) , intent(in) :: plev
+       if ( plev >= stdatm(istdatm_prsmb,k,izone) ) then
+         plev_wgt = d_one
+       else if ( plev <= stdatm(istdatm_prsmb,k+1,izone) ) then
+         plev_wgt = d_zero
+       else
+         plev_wgt = (plev-stdatm(istdatm_prsmb,k+1,izone)) / &
+             (stdatm(istdatm_prsmb,k,izone)-stdatm(istdatm_prsmb,k+1,izone))
+       end if
+     end function plev_wgt
+
+end module mod_rad_atmosphere

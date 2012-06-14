@@ -33,7 +33,7 @@ clean-local:
 mod_constants.o mod_constants.mod: mod_constants.F90
 mod_date.o mod_date.mod: mod_date.f90 mod_realkinds.mod mod_stdio.mod mod_message.mod
 mod_domain.o mod_domain.mod: mod_domain.F90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_nchelper.mod mod_stdio.mod mod_message.mod
-mod_dynparam.o mod_dynparam.mod: mod_dynparam.F90 mod_constants.mod mod_date.mod
+mod_dynparam.o mod_dynparam.mod: mod_dynparam.F90 mod_constants.mod mod_date.mod mod_realkinds.mod
 mod_ensemble.o mod_ensemble.mod: mod_ensemble.f90 mod_realkinds.mod mod_memutil.mod mod_constants.mod
 mod_interp.o mod_interp.mod: mod_interp.f90 mod_memutil.mod mod_realkinds.mod mod_stdio.mod mod_message.mod mod_constants.mod
 mod_memutil.o mod_memutil.mod: mod_memutil.F90 mod_space.mod mod_message.mod mod_realkinds.mod mod_constants.mod mod_date.mod

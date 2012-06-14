@@ -19,6 +19,7 @@
 !
 module mod_dynparam
 
+  use mod_realkinds
   use mod_constants
   use mod_date
 
@@ -45,7 +46,7 @@ module mod_dynparam
 
 ! If not 14 , 18 or 23 (precalculated), hint for custom calculation
 
-  real(8) :: dsmax , dsmin
+  real(dp) :: dsmax , dsmin
 
 ! Sub grid decomposition
 
@@ -76,39 +77,39 @@ module mod_dynparam
 
 ! Grid point horizontal resolution in km
 
-  real(8) :: ds
+  real(dp) :: ds
 
 ! Pressure of model top in cbar
 
-  real(8) :: ptop
+  real(dp) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-  real(8) :: clat
+  real(dp) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-  real(8) :: clon
+  real(dp) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-  real(8) :: plat
+  real(dp) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-  real(8) :: plon
+  real(dp) :: plon
 
 ! Lambert / Polar Cone factor
 
-  real(8) :: xcone
+  real(dp) :: xcone
 
 ! Lambert true latitude (low latitude side)
 
-  real(8) :: truelatl
+  real(dp) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-  real(8) :: truelath
+  real(dp) :: truelath
 
 !###################### I/O control flag ###############################
 
@@ -131,9 +132,9 @@ module mod_dynparam
   integer :: nspgd
 
 ! Nudge control coefficients
-  real(8) :: high_nudge
-  real(8) :: medium_nudge
-  real(8) :: low_nudge
+  real(dp) :: high_nudge
+  real(dp) :: medium_nudge
+  real(dp) :: low_nudge
 
 ! Number od split exp modes
 
@@ -231,7 +232,7 @@ module mod_dynparam
 
 ! Surface minimum H2O percent to be considered water
 
-  real(8) :: h2opct
+  real(dp) :: h2opct
 
 ! Allow water pixels to have an elevation
 
@@ -265,8 +266,10 @@ module mod_dynparam
 
   character(12) :: calendar
   integer :: ical
-  real(8) :: dayspy
-  real(8) :: dpd
+  real(dp) :: dayspy
+  real(dp) :: half_dayspy
+  real(dp) :: sixteenth_dayspy
+  real(dp) :: dpd
 
 ! Fixed dimensions
 
@@ -303,23 +306,23 @@ module mod_dynparam
 ! Model output control parameters
 
   logical :: ifsave
-  real(8) :: savfrq
+  real(dp) :: savfrq
 
   logical :: ifatm
-  real(8) :: atmfrq
+  real(dp) :: atmfrq
 
   logical :: ifrad
-  real(8) :: radfrq
+  real(dp) :: radfrq
 
   logical :: ifsrf
   logical :: ifsub
   logical :: ifsts
   logical :: iflak
-  real(8) :: lakfrq
-  real(8) :: srffrq
+  real(dp) :: lakfrq
+  real(dp) :: srffrq
 
   logical :: ifchem
-  real(8) :: chemfrq
+  real(dp) :: chemfrq
 
   integer :: ibdyfrq
 
@@ -459,6 +462,8 @@ module mod_dynparam
       ical = gregorian
     end if
     dpd = 360.0D0/dayspy
+    half_dayspy = dayspy/2.0D0
+    sixteenth_dayspy = dayspy/16.0D0
     globidate1 = gdate1
     globidate2 = gdate2
     call setcal(globidate1,ical)
@@ -503,7 +508,7 @@ module mod_dynparam
 
   subroutine init_globwindow(lat0,lon0,lat1,lon1)
     implicit none
-    real(8) , intent(out) :: lat0 , lat1 , lon0 , lon1
+    real(dp) , intent(out) :: lat0 , lat1 , lon0 , lon1
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
     lat0 = 0.0D0
