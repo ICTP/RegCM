@@ -165,27 +165,34 @@ module mod_che_dust
       real(dp) , external :: derf
 #endif
       !
-      ! Fab update 
+      ! FAB update 
       ! change type 1 and 2 and 3 to Laurent et al., 2008, 
-      ! marticorena et al., 1997 soil size parameter 
-      !
-      data bcly/0.00D0 , 0.10D0 , 0.10D0 , 0.15D0 , 0.15D0 , 0.15D0 , &
-                0.20D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
-      data bsnd/0.90D0 , 0.60D0 , 0.60D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
+      ! marticorena et al., 1997 soil size parameter.
+
+      ! change also the clay/sand/sil percentage (used to calculate the ratio of vertical/horizontal 
+      ! flux): This (bcly) is only effective when  Kok size distribution is option enabled
+      ! 
+      data bcly/0.00D0 , 0.004D0 , 0.007D0 , 0.15D0 , 0.15D0 , 0.005D0 , &
+                0.005D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
+      data bsnd/0.90D0 , 0.949D0 , 0.9420D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
                 0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
-      data bslt/0.10D0 , 0.30D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0 , &
-                0.50D0 , 0.50D0 , 0.50D0 , 0.00D0 , 0.00D0 , 0.00D0/
+      data bslt/0.10D0 , 0.047D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
+                0.65D0 , 0.50D0 , 0.50D0 , 0.00D0 , 0.00D0 , 0.00D0/
 ! 
       data eps/1.0D-7/
 !
-      data mmd/690.0D0 , 210.0D0 ,  10.0D0 , 690.0D0 , 210.0D0 , &
-                 0.0D0 , 690.0D0 , 210.0D0 ,   0.0D0 , 520.0D0 , &
-               100.0D0 ,   5.0D0 , 520.0D0 ,  75.0D0 ,   2.5D0 , &
-               520.0D0 ,  75.0D0 ,   2.5D0 , 210.0D0 ,  75.0D0 , &
-                 2.5D0 , 210.0D0 ,  50.0D0 ,   2.5D0 , 125.0D0 , &
-                50.0D0 ,   1.0D0 , 100.0D0 ,  10.0D0 ,   1.0D0 , &
-               100.0D0 ,  10.0D0 ,   0.5D0 , 100.0D0 ,  10.0D0 , &
-                 0.5D0/
+      data mmd/690.0D0 ,   0.0D0 ,   0.0D0 ,&
+               690.0D0 , 210.0D0 ,   0.0D0 ,&
+               690.0D0 , 210.0D0 ,   0.0D0 ,&
+               520.0D0 , 100.0D0 ,   5.0D0 ,& 
+               520.0D0 ,  75.0D0 ,   2.5D0 ,& 
+               520.0D0 ,  75.0D0 ,   2.5D0 ,&
+               210.0D0 ,  75.0D0 ,   2.5D0 ,& 
+               210.0D0 ,  50.0D0 ,   2.5D0 ,& 
+               125.0D0 ,  50.0D0 ,   1.0D0 ,& 
+               100.0D0 ,  10.0D0 ,   1.0D0 ,& 
+               100.0D0 ,  10.0D0 ,   0.5D0 ,& 
+               100.0D0 ,  10.0D0 ,   0.5D0/
 ! 
       data sigma/1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , &
                  1.8D0 , 1.8D0 , 1.6D0 , 1.7D0 , 1.8D0 , 1.6D0 , 1.7D0 , &
@@ -759,6 +766,7 @@ module mod_che_dust
           do i = il1 , il2
             rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
                            (d_one - vegfrac(i)) 
+                           
             ! * EBL(i)
             ! * (1-snowfrac)     
           end do

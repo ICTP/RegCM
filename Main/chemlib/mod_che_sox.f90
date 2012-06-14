@@ -165,10 +165,12 @@ module mod_che_sox
            ! here remart is divided by fracloud
            ! ( large scale cloud fraction) to get the incloud removal rate
            !
-           if ( cremrat(j,i,k) > d_zero ) then
-             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
-                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
-           end if
+! FAB TEST : REMOVE WET DEP AS IT IS CALCULATED IN WETDEPA
+
+!!$           if ( cremrat(j,i,k) > d_zero ) then
+!!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
+!!$                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
+!!$           end if
  
            ! Below cloud scavenging only for SO2 only stratiform precip !
            ! rembc is in calculated in prec, [mm/hr] and converted to
@@ -218,10 +220,11 @@ module mod_che_sox
  
            ! removal (including theremoval on the rxs21 term)
            ! contratily to LS clouds, remcum is already an in cloud removal rate
-           wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
-                              rxs21)*(dexp(-remcum*dtche)-d_one)
+!!$ FAB TEST DON'T COSIDER REMOVAL HERE
+!!$          wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
+!!$                              rxs21)*(dexp(-remcum*dtche)-d_one)
 
-           ! tendancies due to convective removal processes
+           ! tendancies due to convective cloud processes
            chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs2/dtche
 
            chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &

@@ -100,7 +100,9 @@ module mod_che_chemistry
       jphoto(:,:,:) = d_zero
 
 !! Begining of i, k loop
-       do k = 1, kz
+!! do not solve chemistry for stratospher
+!        do k = 1, kz
+       do k= 2, kz
         do i = ici1 , ici2
    
           altmid(1) = (cpsb(j,i)*hlev(k)+chptop) ! care here pressure4 is considered ???

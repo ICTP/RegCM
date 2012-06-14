@@ -308,8 +308,8 @@
       !
       ! GAS phase dry deposition velocity + tendencies
       ! option compatible with BATS and CLM
-      !
-      if ( igaschem == 1 .and. ichdrdepo == 1 ) then
+      ! dry deposition for SO2  is calculated also in non gaschem simulations
+      if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo == 1 ) then
         do j = jci1 , jci2
           call drydep_gas(j,calday, ivegcov(:,j),rh10(:,j),  &
                           srad(:,j),tsurf(:,j),prec(:,kz,j), &

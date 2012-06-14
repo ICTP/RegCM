@@ -692,6 +692,8 @@ module mod_che_drydep
 
        drydepvg = d_zero
        drydepvg(:,iso2)  =  vdg(1,:,1)
+! SO2 deposition is used in SULF , AERO and CBMZ simulations
+       if(igaschem > 0 ) then 
        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
        drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
@@ -700,6 +702,7 @@ module mod_che_drydep
        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
        drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
+       end if 
        ! Finally : gas phase dry dep tendency calculation 
        if ( ichdrdepo == 1 ) then  
          do i = ici1 , ici2
