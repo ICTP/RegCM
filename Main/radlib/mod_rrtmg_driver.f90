@@ -29,6 +29,7 @@ module mod_rrtmg_driver
   use mod_rad_scenarios
   use mod_rad_tracer
   use mod_rad_aerosol
+  use mod_rad_atmosphere
   use rrtmg_sw_rad
   use mcica_subcol_gen_sw
   use parrrsw
@@ -36,6 +37,7 @@ module mod_rrtmg_driver
   use parrrtm
   use rrtmg_lw_rad
   use mod_rad_outrad
+  use mod_runparams , only : calday
 
   private
 !
@@ -81,35 +83,29 @@ module mod_rrtmg_driver
   real(dp) , pointer , dimension(:,:) :: emis_surf
   real(dp) , pointer , dimension(:,:,:) :: tauc_lw
   real(dp) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer :: npr
+  integer :: npr , kth , ktf , kclimf , kclimh
 
   contains
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
+    integer :: k
+
     npr = (jci2-jci1+1)*(ici2-ici1+1)
 
-! note 
-! final output variables ( notably passed to radout)  are allocated from jstart to jend
-! interface variable with RRTM routine are defines from 1 to npr since RRTM internal loop start from 1
-! npr utlimately depends on the proc
-!
+    ! Define here the total number of vertical levels, including standard
+    ! atmosphere hat replace kz by kth, kzp1 by ktf
 
-! Define here the total number of vertical levels, including standard atmosphere hat
-! replace kz by ktot, kzp1 by ktotp1
-
-! 1 determine ktot and ktotp1 in function of ptop
-!   do k =1 , size (xclim,1)
-!     if ( (ptop / 100)  < xlim(k,2 )  ) then
-!      kclimstart = k 
-!      exit
-!     end if      
-!   end do 
-
-!    ktotp1 = kzp1 +  size(xclim,1))- kclimstart +1 
-!    ktot = ktotp1 -1
-
-!allocate with ktot and kotp1
+    do k = 1 , n_prehlev
+      kclimh = k
+      if ( ptop*d_10 > stdplevh(k) ) exit
+    end do
+    kth = kz + n_prehlev - kclimh - 1
+    do k = 1 , n_preflev
+      kclimf = k
+      if ( ptop*d_10 > stdplevf(k) ) exit
+    end do
+    ktf = kzp1 + n_preflev - kclimf - 1
 
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
@@ -126,11 +122,11 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
-    call getmem2d(qrs,1,npr,1,kz,'rrtmg:qrs')
-    call getmem2d(qrl,1,npr,1,kz,'rrtmg:qrl')
-    call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
-    call getmem2d(cld_int,1,npr,1,kz,'rrtmg:cld_int')
-    call getmem2d(empty2,1,npr,1,kz,'rrtmg:empty2')
+    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
+    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
+    call getmem2d(clwp_int,1,npr,1,kth,'rrtmg:clwp_int')
+    call getmem2d(cld_int,1,npr,1,kth,'rrtmg:cld_int')
+    call getmem2d(empty2,1,npr,1,kth,'rrtmg:empty2')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
     call getmem1d(aeradfos,1,npr,'rrtmg:aeradfos')
     call getmem1d(aerlwfo,1,npr,'rrtmg:aerlwfo')
@@ -148,83 +144,83 @@ module mod_rrtmg_driver
     call getmem1d(xptrop,1,npr,'rrtmg:xptrop')
     call getmem1d(ioro,1,npr,'rrtmg:ioro')
 
-    call getmem2d(play,1,npr,1,kz,'rrtmg:play')
-    call getmem2d(tlay,1,npr,1,kz,'rrtmg:tlay')
-    call getmem2d(h2ovmr,1,npr,1,kz,'rrtmg:h2ovmr')
-    call getmem2d(o3vmr,1,npr,1,kz,'rrtmg:o3vmr')
-    call getmem2d(co2vmr,1,npr,1,kz,'rrtmg:co2vmr')
-    call getmem2d(ch4vmr,1,npr,1,kz,'rrtmg:ch4vmr')
-    call getmem2d(n2ovmr,1,npr,1,kz,'rrtmg:n2ovmr')
-    call getmem2d(o2vmr,1,npr,1,kz,'rrtmg:o2vmr')
-    call getmem2d(cfc11vmr,1,npr,1,kz,'rrtmg:cfc11vmr')
-    call getmem2d(cfc12vmr,1,npr,1,kz,'rrtmg:cfc12vmr')
-    call getmem2d(cfc22vmr,1,npr,1,kz,'rrtmg:cfc22vmr')
-    call getmem2d(ccl4vmr,1,npr,1,kz,'rrtmg:ccl4vmr')
-    call getmem2d(reicmcl,1,npr,1,kz,'rrtmg:reicmcl')
-    call getmem2d(relqmcl,1,npr,1,kz,'rrtmg:relqmcl')
-    call getmem2d(swhr,1,npr,1,kz,'rrtmg:swhr')
-    call getmem2d(swhrc,1,npr,1,kz,'rrtmg:swhrc')
-    call getmem2d(ciwp,1,npr,1,kz,'rrtmg:ciwp')
-    call getmem2d(clwp,1,npr,1,kz,'rrtmg:clwp')
-    call getmem2d(rei,1,npr,1,kz,'rrtmg:rei')
-    call getmem2d(rel,1,npr,1,kz,'rrtmg:rel')
-    call getmem2d(cldf,1,npr,1,kz,'rrtmg:cldf')
-    call getmem2d(lwhr,1,npr,1,kz,'rrtmg:lwhr')
-    call getmem2d(lwhrc,1,npr,1,kz,'rrtmg:lwhrc')
-    call getmem2d(duflx_dt,1,npr,1,kz,'rrtmg:duflx_dt')
-    call getmem2d(duflxc_dt,1,npr,1,kz,'rrtmg:duflxc_dt')
-    call getmem2d(plev,1,npr,1,kzp1,'rrtmg:plev')
-    call getmem2d(tlev,1,npr,1,kzp1,'rrtmg:tlev')
-    call getmem2d(swuflx,1,npr,1,kzp1,'rrtmg:swuflx')
-    call getmem2d(swdflx,1,npr,1,kzp1,'rrtmg:swdflx')
-    call getmem2d(swuflxc,1,npr,1,kzp1,'rrtmg:swuflxc')
-    call getmem2d(swdflxc,1,npr,1,kzp1,'rrtmg:swdflxc')
-    call getmem2d(lwuflx,1,npr,1,kzp1,'rrtmg:lwuflx')
-    call getmem2d(lwdflx,1,npr,1,kzp1,'rrtmg:lwdflx')
-    call getmem2d(lwuflxc,1,npr,1,kzp1,'rrtmg:lwuflxc')
-    call getmem2d(lwdflxc,1,npr,1,kzp1,'rrtmg:lwdflxc')
-    call getmem2d(swddiruviflx,1,npr,1,kzp1,'rrtmg:swddiruviflx')
-    call getmem2d(swddifuviflx,1,npr,1,kzp1,'rrtmg:swddifuviflx')
-    call getmem2d(swddirpirflx,1,npr,1,kzp1,'rrtmg:swddirpirflx')
-    call getmem2d(swddifpirflx,1,npr,1,kzp1,'rrtmg:swddifpirflx')
-    call getmem2d(swdvisflx,1,npr,1,kzp1,'rrtmg:swdvisflx')
-    call getmem3d(cldfmcl,1,ngptsw,1,npr,1,kz,'rrtmg:cldfmcl')
-    call getmem3d(taucmcl,1,ngptsw,1,npr,1,kz,'rrtmg:taucmcl')
-    call getmem3d(ssacmcl,1,ngptsw,1,npr,1,kz,'rrtmg:ssacmcl')
-    call getmem3d(asmcmcl,1,ngptsw,1,npr,1,kz,'rrtmg:asmcmcl')
-    call getmem3d(fsfcmcl,1,ngptsw,1,npr,1,kz,'rrtmg:fsfcmcl')
-    call getmem3d(ciwpmcl,1,ngptsw,1,npr,1,kz,'rrtmg:ciwpmcl')
-    call getmem3d(clwpmcl,1,ngptsw,1,npr,1,kz,'rrtmg:clwpmcl')
-    call getmem3d(cldfmcl_lw,1,ngptlw,1,npr,1,kz,'rrtmg:cldfmcl_lw')
-    call getmem3d(taucmcl_lw,1,ngptlw,1,npr,1,kz,'rrtmg:taucmcl_lw')
-    call getmem3d(ciwpmcl_lw,1,ngptlw,1,npr,1,kz,'rrtmg:ciwpmcl_lw')
-    call getmem3d(clwpmcl_lw,1,ngptlw,1,npr,1,kz,'rrtmg:clwpmcl_lw')
-    call getmem3d(tauaer,1,npr,1,kz,1,nbndsw,'rrtmg:tauaer')
-    call getmem3d(ssaaer,1,npr,1,kz,1,nbndsw,'rrtmg:ssaaer')
-    call getmem3d(asmaer,1,npr,1,kz,1,nbndsw,'rrtmg:asmaer')
-    call getmem3d(ecaer,1,npr,1,kz,1,nbndsw,'rrtmg:ecaer')
-    call getmem3d(tauc,1,nbndsw,1,npr,1,kz,'rrtmg:tauc')
-    call getmem3d(ssac,1,nbndsw,1,npr,1,kz,'rrtmg:ssac')
-    call getmem3d(asmc,1,nbndsw,1,npr,1,kz,'rrtmg:asmc')
-    call getmem3d(fsfc,1,nbndsw,1,npr,1,kz,'rrtmg:fsfc')
+    call getmem2d(play,1,npr,1,kth,'rrtmg:play')
+    call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
+    call getmem2d(h2ovmr,1,npr,1,kth,'rrtmg:h2ovmr')
+    call getmem2d(o3vmr,1,npr,1,kth,'rrtmg:o3vmr')
+    call getmem2d(co2vmr,1,npr,1,kth,'rrtmg:co2vmr')
+    call getmem2d(ch4vmr,1,npr,1,kth,'rrtmg:ch4vmr')
+    call getmem2d(n2ovmr,1,npr,1,kth,'rrtmg:n2ovmr')
+    call getmem2d(o2vmr,1,npr,1,kth,'rrtmg:o2vmr')
+    call getmem2d(cfc11vmr,1,npr,1,kth,'rrtmg:cfc11vmr')
+    call getmem2d(cfc12vmr,1,npr,1,kth,'rrtmg:cfc12vmr')
+    call getmem2d(cfc22vmr,1,npr,1,kth,'rrtmg:cfc22vmr')
+    call getmem2d(ccl4vmr,1,npr,1,kth,'rrtmg:ccl4vmr')
+    call getmem2d(reicmcl,1,npr,1,kth,'rrtmg:reicmcl')
+    call getmem2d(relqmcl,1,npr,1,kth,'rrtmg:relqmcl')
+    call getmem2d(swhr,1,npr,1,kth,'rrtmg:swhr')
+    call getmem2d(swhrc,1,npr,1,kth,'rrtmg:swhrc')
+    call getmem2d(ciwp,1,npr,1,kth,'rrtmg:ciwp')
+    call getmem2d(clwp,1,npr,1,kth,'rrtmg:clwp')
+    call getmem2d(rei,1,npr,1,kth,'rrtmg:rei')
+    call getmem2d(rel,1,npr,1,kth,'rrtmg:rel')
+    call getmem2d(cldf,1,npr,1,kth,'rrtmg:cldf')
+    call getmem2d(lwhr,1,npr,1,kth,'rrtmg:lwhr')
+    call getmem2d(lwhrc,1,npr,1,kth,'rrtmg:lwhrc')
+    call getmem2d(duflx_dt,1,npr,1,kth,'rrtmg:duflx_dt')
+    call getmem2d(duflxc_dt,1,npr,1,kth,'rrtmg:duflxc_dt')
+    call getmem2d(plev,1,npr,1,ktf,'rrtmg:plev')
+    call getmem2d(tlev,1,npr,1,ktf,'rrtmg:tlev')
+    call getmem2d(swuflx,1,npr,1,ktf,'rrtmg:swuflx')
+    call getmem2d(swdflx,1,npr,1,ktf,'rrtmg:swdflx')
+    call getmem2d(swuflxc,1,npr,1,ktf,'rrtmg:swuflxc')
+    call getmem2d(swdflxc,1,npr,1,ktf,'rrtmg:swdflxc')
+    call getmem2d(lwuflx,1,npr,1,ktf,'rrtmg:lwuflx')
+    call getmem2d(lwdflx,1,npr,1,ktf,'rrtmg:lwdflx')
+    call getmem2d(lwuflxc,1,npr,1,ktf,'rrtmg:lwuflxc')
+    call getmem2d(lwdflxc,1,npr,1,ktf,'rrtmg:lwdflxc')
+    call getmem2d(swddiruviflx,1,npr,1,ktf,'rrtmg:swddiruviflx')
+    call getmem2d(swddifuviflx,1,npr,1,ktf,'rrtmg:swddifuviflx')
+    call getmem2d(swddirpirflx,1,npr,1,ktf,'rrtmg:swddirpirflx')
+    call getmem2d(swddifpirflx,1,npr,1,ktf,'rrtmg:swddifpirflx')
+    call getmem2d(swdvisflx,1,npr,1,ktf,'rrtmg:swdvisflx')
+    call getmem3d(cldfmcl,1,ngptsw,1,npr,1,kth,'rrtmg:cldfmcl')
+    call getmem3d(taucmcl,1,ngptsw,1,npr,1,kth,'rrtmg:taucmcl')
+    call getmem3d(ssacmcl,1,ngptsw,1,npr,1,kth,'rrtmg:ssacmcl')
+    call getmem3d(asmcmcl,1,ngptsw,1,npr,1,kth,'rrtmg:asmcmcl')
+    call getmem3d(fsfcmcl,1,ngptsw,1,npr,1,kth,'rrtmg:fsfcmcl')
+    call getmem3d(ciwpmcl,1,ngptsw,1,npr,1,kth,'rrtmg:ciwpmcl')
+    call getmem3d(clwpmcl,1,ngptsw,1,npr,1,kth,'rrtmg:clwpmcl')
+    call getmem3d(cldfmcl_lw,1,ngptlw,1,npr,1,kth,'rrtmg:cldfmcl_lw')
+    call getmem3d(taucmcl_lw,1,ngptlw,1,npr,1,kth,'rrtmg:taucmcl_lw')
+    call getmem3d(ciwpmcl_lw,1,ngptlw,1,npr,1,kth,'rrtmg:ciwpmcl_lw')
+    call getmem3d(clwpmcl_lw,1,ngptlw,1,npr,1,kth,'rrtmg:clwpmcl_lw')
+    call getmem3d(tauaer,1,npr,1,kth,1,nbndsw,'rrtmg:tauaer')
+    call getmem3d(ssaaer,1,npr,1,kth,1,nbndsw,'rrtmg:ssaaer')
+    call getmem3d(asmaer,1,npr,1,kth,1,nbndsw,'rrtmg:asmaer')
+    call getmem3d(ecaer,1,npr,1,kth,1,nbndsw,'rrtmg:ecaer')
+    call getmem3d(tauc,1,nbndsw,1,npr,1,kth,'rrtmg:tauc')
+    call getmem3d(ssac,1,nbndsw,1,npr,1,kth,'rrtmg:ssac')
+    call getmem3d(asmc,1,nbndsw,1,npr,1,kth,'rrtmg:asmc')
+    call getmem3d(fsfc,1,nbndsw,1,npr,1,kth,'rrtmg:fsfc')
     call getmem2d(emis_surf,1,npr,1,nbndlw,'rrtmg:emis_surf')
-    call getmem3d(tauaer_lw,1,npr,1,kz,1,nbndlw,'rrtmg:tauaer_lw')
-    call getmem3d(tauc_lw,1,nbndlw,1,npr,1,kz,'rrtmg:tauc_lw')
-    call getmem2d(fice,1,npr,1,kz,'rrtmg:fice')
-    call getmem2d(wcl,1,npr,1,kz,'rrtmg:wcl')
-    call getmem2d(wci,1,npr,1,kz,'rrtmg:wci')
-    call getmem2d(gcl,1,npr,1,kz,'rrtmg:gcl')
-    call getmem2d(gci,1,npr,1,kz,'rrtmg:gci')
-    call getmem2d(fcl,1,npr,1,kz,'rrtmg:fcl')
-    call getmem2d(fci,1,npr,1,kz,'rrtmg:fci')
-    call getmem2d(tauxcl,1,npr,1,kz,'rrtmg:tauxcl')
-    call getmem2d(tauxci,1,npr,1,kz,'rrtmg:tauxci')
-    call getmem2d(h2ommr,1,npr,1,kz,'rrtmg:h2ommr')
-    call getmem2d(n2ommr,1,npr,1,kz,'rrtmg:n2ommr')
-    call getmem2d(ch4mmr,1,npr,1,kz,'rrtmg:ch4mmr')
-    call getmem2d(cfc11mmr,1,npr,1,kz,'rrtmg:cfc11mmr')
-    call getmem2d(cfc12mmr,1,npr,1,kz,'rrtmg:cfc12mmr')
-    call getmem2d(deltaz,1,npr,1,kz,'rrtmg:deltaz')
+    call getmem3d(tauaer_lw,1,npr,1,kth,1,nbndlw,'rrtmg:tauaer_lw')
+    call getmem3d(tauc_lw,1,nbndlw,1,npr,1,kth,'rrtmg:tauc_lw')
+    call getmem2d(fice,1,npr,1,kth,'rrtmg:fice')
+    call getmem2d(wcl,1,npr,1,kth,'rrtmg:wcl')
+    call getmem2d(wci,1,npr,1,kth,'rrtmg:wci')
+    call getmem2d(gcl,1,npr,1,kth,'rrtmg:gcl')
+    call getmem2d(gci,1,npr,1,kth,'rrtmg:gci')
+    call getmem2d(fcl,1,npr,1,kth,'rrtmg:fcl')
+    call getmem2d(fci,1,npr,1,kth,'rrtmg:fci')
+    call getmem2d(tauxcl,1,npr,1,kth,'rrtmg:tauxcl')
+    call getmem2d(tauxci,1,npr,1,kth,'rrtmg:tauxci')
+    call getmem2d(h2ommr,1,npr,1,kth,'rrtmg:h2ommr')
+    call getmem2d(n2ommr,1,npr,1,kth,'rrtmg:n2ommr')
+    call getmem2d(ch4mmr,1,npr,1,kth,'rrtmg:ch4mmr')
+    call getmem2d(cfc11mmr,1,npr,1,kth,'rrtmg:cfc11mmr')
+    call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
+    call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
 
 
   end subroutine allocate_mod_rad_rrtmg
@@ -288,7 +284,7 @@ module mod_rrtmg_driver
     if ( maxval(coszen) > dlowval) then
       ! generates cloud properties:
       permuteseed = 1
-      call mcica_subcol_sw(iplon,npr,kz,icld,permuteseed,irng,play,   &
+      call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,  &
                            cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                            cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                            taucmcl,ssacmcl,asmcmcl,fsfcmcl)
@@ -305,7 +301,7 @@ module mod_rrtmg_driver
       aldif = reshape(lwdifalb(jci1:jci2,ici1:ici2),(/npr/))
       czen = reshape(coszen(jci1:jci2,ici1:ici2),(/npr/))
 
-      call rrtmg_sw(npr,kz,icld,play,plev,tlay,tlev,tsfc,    &
+      call rrtmg_sw(npr,kth,icld,play,plev,tlay,tlev,tsfc,  &
                     h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr, &
                     asdir,asdif,aldir,aldif,czen,adjes,      &
                     dyofyr,solcon,inflgsw,iceflgsw,liqflgsw, &
@@ -321,7 +317,7 @@ module mod_rrtmg_driver
     ! LW call :
 
     permuteseed = 150
-    call  mcica_subcol_lw(iplon,npr,kz,icld,permuteseed,irng,play,   &
+    call  mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play, &
                           cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                           ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                           taucmcl_lw)
@@ -334,7 +330,7 @@ module mod_rrtmg_driver
 
     idrv = 0
 
-    call rrtmg_lw(npr,kz,icld,idrv,play,plev,tlay,tlev,tsfc,    & 
+    call rrtmg_lw(npr,kth,icld,idrv,play,plev,tlay,tlev,tsfc,  & 
                   h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
                   cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf, &
                   inflglw,iceflglw,liqflglw,cldfmcl_lw,         &
@@ -397,7 +393,7 @@ module mod_rrtmg_driver
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
                 tauasc3d,gtota3d)
 
-  end subroutine  rrtmg_driver
+  end subroutine rrtmg_driver
 
   subroutine prep_dat_rrtm(iyear,inflagsw)
 !
@@ -482,8 +478,7 @@ module mod_rrtmg_driver
     do i = ici1 , ici2
       do j = jci1 , jci2
         dlat(n) = dabs(xlat(j,i))
-!FAB bug should be in hpa
-        xptrop(n) = ptrop(j,i)/100.
+        xptrop(n) = ptrop(j,i)/100.0D0
         n = n + 1
       end do
     end do
@@ -506,6 +501,9 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+    do k = kzp1 , kth
+      play(:,k) = stdplevh(kclimh+k-kzp1)
+    end do
     !
     ! convert pressures from mb to pascals and define interface pressures:
     !
@@ -518,6 +516,9 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
+    end do
+    do k = kzp1+1 , ktf
+      plev(:,k) = stdplevf(kclimf+k-kzp1)
     end do
     !
     ! ground temperature
@@ -542,10 +543,22 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+    do k = kzp1 , kth
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tlay(n,k) = stdatm_val(calday,xlat(j,i),play(n,k),istdatm_tempk)
+          n = n + 1
+        end do
+      end do
+    end do
     !
     ! air temperature at the interface (same method as in vertical
     ! advection routine)
     !
+    do n = 1 , npr
+      tlev(n,1) = tsfc(n)
+    end do
     do k = 2 , kz
       kj = kzp1-k+1
       do n = 1 , npr
@@ -560,9 +573,14 @@ module mod_rrtmg_driver
         end if 
       end do
     end do
-    do n = 1 , npr
-      tlev(n,1) = tsfc(n)
-      tlev(n,kzp1) = tlay(n,kz)
+    do k = kzp1 , ktf
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tlev(n,k) = stdatm_val(calday,xlat(j,i),plev(n,k),istdatm_tempk)
+          n = n + 1
+        end do
+      end do
     end do
     !
     ! h2o volume mixing ratio
@@ -578,6 +596,18 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+    do k = kzp1 , kth
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          h2ommr(n,k) = stdatm_val(calday,xlat(j,i), &
+                        play(n,k),istdatm_qdens)*d_r1000
+          h2ommr(n,k) = h2ommr(n,k) * d_r1000
+          h2ovmr(n,k) = h2ommr(n,k) * ep2
+          n = n + 1
+        end do
+      end do
+    end do
     !
     ! o3 volume mixing ratio (already on the right grid)
     !
@@ -586,6 +616,16 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           o3vmr(n,k) = o3prof(j,i,k) * amo/amd
+          n = n + 1
+        end do
+      end do
+    end do
+    do k = kzp1 , kth
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          o3vmr(n,k) = stdatm_val(calday,xlat(j,i), &
+                             play(n,k),istdatm_ozone)*d_r1000
           n = n + 1
         end do
       end do
@@ -611,7 +651,7 @@ module mod_rrtmg_driver
 
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         n2ovmr(n,k)   = n2ommr(n,k) * (44.D0/amd)
         ch4vmr(n,k)   = ch4mmr(n,k) * (16.D0/amd)
@@ -662,13 +702,11 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    
-! fabtest:  set cloud fractional cover at top model level = 0
-!as in std scheme
-    cldf(:,kz-1:kz) = d_zero
-    clwp(:,kz-1:kz) = d_zero
-
-
+    !
+    ! fabtest:  set cloud fractional cover at top model level = 0
+    ! as in std scheme
+    cldf(:,kz-1:kth) = d_zero
+    clwp(:,kz-1:kth) = d_zero
     !
     ! set cloud fractional cover at bottom (ncld) model levels = 0
     !
@@ -688,13 +726,6 @@ module mod_rrtmg_driver
       end do
     end do
     !
-    !
-    !Standard atmosphere extension from ptop to 0.1 hpa  
-
-    !do n=1,npr
-    !  plev(n,kzp1 +1 : kztot) =  statm(2,kstclim:31)
-    !end do 
-    
     !
     ! CLOUD Properties:
     !
@@ -729,7 +760,7 @@ module mod_rrtmg_driver
     !  partition of total  water path betwwen liquide and ice.
     ! ( waiting for prognostic ice !) 
     !
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         ciwp(n,k) =  clwp(n,k) *  fice(n,k)
         clwp(n,k) =  clwp(n,k) * (d_one - fice(n,k))
