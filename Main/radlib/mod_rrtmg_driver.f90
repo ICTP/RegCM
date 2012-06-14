@@ -312,8 +312,12 @@ module mod_rrtmg_driver
                     swddifuviflx,swddirpirflx,swddifpirflx,  &
                     swdvisflx)
     else
+      swuflx(:,:) = d_zero
       swdflx(:,:) = d_zero
+      swuflxc(:,:) = d_zero
       swdflxc(:,:) = d_zero
+      swhr(:,:) = d_zero
+      swhrc(:,:) = d_zero
       swdvisflx(:,:) = d_zero
       swddiruviflx(:,:) = d_zero
       swddifuviflx(:,:) = d_zero 
