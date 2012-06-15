@@ -612,8 +612,9 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           h2ommr(n,k) = stdatm_val(calday,xlat(j,i), &
-                        play(n,k),istdatm_qdens)*d_r1000
-          h2ommr(n,k) = h2ommr(n,k) * d_r1000
+                                   play(n,k),istdatm_qdens) / &
+                        stdatm_val(calday,xlat(j,i), &
+                                   play(n,k),istdatm_airdn)
           h2ovmr(n,k) = h2ommr(n,k) * ep2
           n = n + 1
         end do
@@ -636,7 +637,9 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           o3vmr(n,k) = stdatm_val(calday,xlat(j,i), &
-                             play(n,k),istdatm_ozone)*d_r1000
+                                  play(n,k),istdatm_ozone) / &
+                       stdatm_val(calday,xlat(j,i), &
+                                  play(n,k),istdatm_airdn) * amo/amd
           n = n + 1
         end do
       end do
@@ -644,10 +647,9 @@ module mod_rrtmg_driver
     !
     ! other gas (n2o,ch4)
     !
-!FAB test
-      if ( iyear >= 1750 .and. iyear <= 2100 ) then
-!      co2vmr = cgas(2,iyear)*1.0D-6
-!      co2mmr = co2vmr*44.0D0/28.9644D0
+    if ( iyear >= 1750 .and. iyear <= 2100 ) then
+!     co2vmr = cgas(2,iyear)*1.0D-6
+!     co2mmr = co2vmr*44.0D0/28.9644D0
       ch40 = cgas(3,iyear)*1.0D-9*0.55241D0
       n2o0 = cgas(4,iyear)*1.0D-9*1.51913D0
       cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
