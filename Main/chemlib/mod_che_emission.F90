@@ -107,7 +107,7 @@ contains
         ! real(dp) , intent(in) :: declin
         ! integer :: jj ! Full grid j-component
         ! integer :: ib , k
-        real(dp) :: daylen , fact , maxelev , dayhr , isosrc , amp
+        real(dp) :: daylen , fact , maxelev , amp
 
         ! calculate the tendency linked to emissions from emission fluxes
         ! In the future split these calculations in corresponding module  ??

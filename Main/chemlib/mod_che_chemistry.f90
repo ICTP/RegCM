@@ -75,7 +75,6 @@ module mod_che_chemistry
       integer , intent(in) :: j
       integer , intent(in) :: lyear , lmonth , lday
       real(dp) , intent(in) :: secofday 
-      real(dp) , dimension(ici1:ici2,1:kz) :: cfact
       real(dp) , dimension(ici1:ici2,1:kz,1:56) :: jphoto
       real(dp) :: cfactor , pfact
       integer :: i , k , kbl , kab ,ic
