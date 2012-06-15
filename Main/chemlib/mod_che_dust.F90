@@ -168,9 +168,9 @@ module mod_che_dust
       ! FAB update 
       ! change type 1 and 2 and 3 to Laurent et al., 2008, 
       ! marticorena et al., 1997 soil size parameter.
-
-      ! change also the clay/sand/sil percentage (used to calculate the ratio of vertical/horizontal 
-      ! flux): This (bcly) is only effective when  Kok size distribution is option enabled
+      ! change also the clay/sand/sil percentage (used to calculate the ratio
+      ! of vertical/horizontal flux): This (bcly) is only effective when Kok
+      ! size distribution is option enabled
       ! 
       data bcly/0.00D0 , 0.004D0 , 0.007D0 , 0.15D0 , 0.15D0 , 0.005D0 , &
                 0.005D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
@@ -766,7 +766,6 @@ module mod_che_dust
           do i = il1 , il2
             rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
                            (d_one - vegfrac(i)) 
-                           
             ! * EBL(i)
             ! * (1-snowfrac)     
           end do

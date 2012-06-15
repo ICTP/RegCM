@@ -32,11 +32,10 @@ module mod_che_chemistry
   use mod_cbmz_main1
   private
 
-
-  real(dp) , parameter :: dtchsolv=900.E00
+  real(dp) , parameter :: dtchsolv = 900.0D0
 ! 
 
-  public :: chemistry, dtchsolv
+  public :: chemistry , dtchsolv
 
   integer , parameter :: jvO2 = 1
   integer , parameter :: jvO3a = 2
@@ -65,7 +64,7 @@ module mod_che_chemistry
   integer , parameter :: jvCH3ONO2 = 25
   integer , parameter :: jvPAN = 26
 
-  real(dp) , parameter :: kb = 1.380658E-19
+  real(dp) , parameter :: kb = 1.380658D-19
 
   contains
 
@@ -74,104 +73,86 @@ module mod_che_chemistry
       implicit none
 
       integer , intent(in) :: j
-     integer , intent(in) :: lyear , lmonth , lday
-     real(dp) , intent(in) :: secofday 
-
-         ! LOCAL VARIABLES
+      integer , intent(in) :: lyear , lmonth , lday
+      real(dp) , intent(in) :: secofday 
       real(dp) , dimension(ici1:ici2,1:kz) :: cfact
       real(dp) , dimension(ici1:ici2,1:kz,1:56) :: jphoto
- 
-     real(dp) :: cfactor , pfact
+      real(dp) :: cfactor , pfact
       integer :: i , k , kbl , kab ,ic
-
-
 
       time = dtchsolv
       idate = (lyear-1900)*10000+lmonth*100+lday
-      xhour =   secofday/3600.0D0       !abt added for time of day
+      xhour =   secofday/3600.0D0   ! abt added for time of day
       c_numitr = 20
       kmax = 1
-
-
-  
       
       ! initialize jphoto to zero
       ! initialize jphoto to zero
       jphoto(:,:,:) = d_zero
 
-!! Begining of i, k loop
-!! do not solve chemistry for stratospher
-!        do k = 1, kz
-       do k= 2, kz
+      ! Begining of i , k loop
+      ! do not solve chemistry for stratosphere (k == 1)
+      do k = 2 , kz
         do i = ici1 , ici2
-   
-          altmid(1) = (cpsb(j,i)*hlev(k)+chptop) ! care here pressure4 is considered ???
+          ! care here pressure4 is considered ???
+          altmid(1) = (cpsb(j,i)*hlev(k)+chptop)
           temp(1) =   ctb3d(j,i,k)
           zenith =    dacos(czen(j,i)*degrad)
           dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
-
-
           deptha = d_zero
           depthb = d_zero
           altabove= d_zero
           altbelow= d_zero
-
-
-       IF (1==2) THEN             
-          if ( k ==  1 ) then
-            deptha =  ctaucld(j,i,k,8) *d_half  ! (add the half layer ctaucld, should be no cloud in this layer ) 
-            depthb =  ctaucld(j,i,k,8) *d_half 
-!            altabove = cdzq(j,i,k) / 2 !altitude or pressure ?? 
-!   taltabove, altbelow are altitude above an below weighted by cloud optical depth 
-!   here altitude is taken in kpa to be consistent with altmid 
-!   WOULD not it BE BETTER TO CONSIDER ALTITUDE in M  ?
-            altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-            altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
-            do kbl = k+1 , kz 
-             depthb = depthb + ctaucld(j,i,kbl,8)
-             altbelow =  altbelow +  cdsigma(kbl)* cpsb(j,i) * ctaucld(j,i,kbl,8)
-            end do
-
-
-! FAB TEST consider the visible taucld
-           
-           else if (k==kz ) then 
-             depthb =  ctaucld(j,i,k,8) *d_half
-             deptha =  ctaucld(j,i,k,8) *d_half
-             altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-             altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
-             do kab = 1 , k-1 
-             deptha = deptha + ctaucld(j,i,kab,8)
-             altabove =  altabove + cdsigma(kab)* cpsb(j,i) * ctaucld(j,i,kab,8)
-             end do
-
-           else
-             depthb =  ctaucld(j,i,k,8) *d_half
-             deptha =  ctaucld(j,i,k,8) *d_half
-             altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-             altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
-             do kbl = k+1 , kz 
-             depthb = depthb + ctaucld(j,i,kbl,8)
-             altbelow =  altbelow +  cdsigma(kbl)* cpsb(j,i) * ctaucld(j,i,kbl,8)
-             end do
+          if ( 1 == 2 ) then             
+            if ( k ==  1 ) then
+              ! (add the half layer ctaucld, should be no cloud in this layer ) 
+              deptha =  ctaucld(j,i,k,8) *d_half
+              depthb =  ctaucld(j,i,k,8) *d_half 
+!             altabove = cdzq(j,i,k) / 2 !altitude or pressure ?? 
+              ! altabove, altbelow are altitude above an below weighted
+              ! by cloud optical depth 
+              ! here altitude is taken in kpa to be consistent with altmid 
+              ! WOULD not it BE BETTER TO CONSIDER ALTITUDE in M  ?
+              altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+              altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+              do kbl = k+1 , kz 
+                depthb = depthb + ctaucld(j,i,kbl,8)
+                altbelow = altbelow + cdsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
+              end do
+              ! FAB TEST consider the visible taucld
+            else if ( k == kz ) then 
+              depthb =  ctaucld(j,i,k,8) *d_half
+              deptha =  ctaucld(j,i,k,8) *d_half
+              altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+              altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
               do kab = 1 , k-1 
-             deptha = deptha + ctaucld(j,i,kab,8)
-             altabove =  altabove + cdsigma(kab)* cpsb(j,i) * ctaucld(j,i,kab,8)
-             end do
+                deptha = deptha + ctaucld(j,i,kab,8)
+                altabove = altabove + cdsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
+              end do
+            else
+              depthb =  ctaucld(j,i,k,8) *d_half
+              deptha =  ctaucld(j,i,k,8) *d_half
+              altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
+              altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+              do kbl = k+1 , kz 
+                depthb = depthb + ctaucld(j,i,kbl,8)
+                altbelow = altbelow + cdsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
+              end do
+              do kab = 1 , k-1 
+                deptha = deptha + ctaucld(j,i,kab,8)
+                altabove = altabove + cdsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
+              end do
             endif
-! normalise the weighted altitude above and bleow cloud        
+            ! normalise the weighted altitude above and bleow cloud        
             if (depthb > d_zero)  altbelow = altbelow / depthb 
             if (deptha >d_zero )  altabove = altabove / deptha      
-
-      END IF
-
+          end if
           do ic = 1 , totsp
             xr(1,ic) = d_zero
           end do
           do ic = 1 , totsp
             xr(1,ic) = chemall(j,i,k,ic) 
           end do
-
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
           xrin(1,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
           xrin(1,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
@@ -212,10 +193,9 @@ module mod_che_chemistry
           do ic = 1 , 56
             jphoto(i,k,ic) = c_jval(1,ic)
           end do
-
-!
-! Now calculate chemical tendencies       
-
+          !
+          ! Now calculate chemical tendencies       
+          !
           ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
           pfact = cpsb(j,i)/cfactor/dtchsolv
@@ -267,13 +247,8 @@ module mod_che_chemistry
             (xrout(1,ind_MOH)  - xrin(1,ind_MOH)) *pfact*W_MOH
           chemten(j,i,k,iacet)  = &
             (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
-
-
-        end do ! end i,k loop
+        end do ! end i , k loop
       end do
     end subroutine chemistry
 !
-!-------------------------------------------------------------------
-!
-
 end module mod_che_chemistry
