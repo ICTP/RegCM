@@ -24,6 +24,7 @@ module mod_cu_em
   use mod_dynparam
   use mod_memutil
   use mod_cu_common
+  use mod_mppparam , only : iqv
 !
   private
 !
@@ -79,7 +80,7 @@ module mod_cu_em
         do k = 1 , kz
           kk = kzp1 - k
           tcup(k) = tas(j,i,kk)                         ! [k]
-          qcup(k) = qvas(j,i,kk)/(d_one+qvas(j,i,kk))   ! [kg/kg]
+          qcup(k) = qxas(j,i,kk,iqv)/(d_one+qxas(j,i,kk,iqv)) ! [kg/kg]
           qscup(k) = qsas(j,i,kk)/(d_one+qsas(j,i,kk))  ! [kg/kg]
           ucup(k) = uas(j,i,kk)                         ! [m/s]
           vcup(k) = vas(j,i,kk)                         ! [m/s]
@@ -113,8 +114,8 @@ module mod_cu_em
           do k = 1 , kz
             kk = kzp1 - k
             tten(j,i,kk) = ft(k)*sfcps(j,i) + tten(j,i,kk)
-            qvten(j,i,kk) = fq(k)/(d_one-fq(k))* &
-                              sfcps(j,i)+qvten(j,i,kk)
+            qxten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))* &
+                              sfcps(j,i)+qxten(j,i,kk,iqv)
             ! There is a bit of an inconsistency here...  The wind
             ! tendencies from convection are on cross points, but the
             ! model wants them on dot points.

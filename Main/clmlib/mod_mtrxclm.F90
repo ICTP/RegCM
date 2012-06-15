@@ -23,6 +23,7 @@ module mod_mtrxclm
 
   use mod_dynparam
   use mod_runparams , only : idate0
+  use mod_mppparam , only : iqv
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -46,7 +47,7 @@ module mod_mtrxclm
   public :: albedoclm
 
   interface fill_frame
-    module procedure fill_frame2d , fill_frame3d
+    module procedure fill_frame2d , fill_frame3d , fill_frame4d
   end interface fill_frame
 
   contains
@@ -231,7 +232,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   r2cxlon = r2cxlond*degrad
   if ( .not.ifrest ) then
     call fill_frame(tatm,r2ctb)
-    call fill_frame(qvatm,r2cqb)
+    call fill_frame(qxatm,r2cqb,iqv)
     r2cqb = r2cqb/(d_one+r2cqb)
     call fill_frame(hgt,r2czga)
     call fill_frame(uatm,r2cuxb)
@@ -478,7 +479,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( ivers == 1 ) then
  
     call fill_frame(tatm,r2ctb)
-    call fill_frame(qvatm,r2cqb)
+    call fill_frame(qxatm,r2cqb,iqv)
     r2cqb = r2cqb/(d_one+r2cqb)
     call fill_frame(hgt,r2czga)
     call fill_frame(uatm,r2cuxb)
@@ -1039,6 +1040,47 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       b(jde2,ide2) = a(jci2,ici2,kz)
     end if
   end subroutine fill_frame3d
+
+  subroutine fill_frame4d(a,b,l)
+    implicit none
+    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: a
+    integer , intent(in) :: l
+    real(dp) , pointer , intent(out) , dimension(:,:) :: b
+    b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
+    if ( ma%hasleft ) then
+      b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz,l)
+    end if
+    if ( ma%hasright ) then
+      b(jce2,ici1:ici2) = a(jci2,ici1:ici2,kz,l)
+      b(jde2,ici1:ici2) = a(jci2,ici1:ici2,kz,l)
+    end if
+    if ( ma%hasbottom ) then
+      b(jci1:jci2,ice1) = a(jci1:jci2,ici1,kz,l)
+    end if
+    if ( ma%hastop ) then
+      b(jci1:jci2,ice2) = a(jci1:jci2,ici2,kz,l)
+      b(jci1:jci2,ide2) = a(jci1:jci2,ici2,kz,l)
+    end if
+    if ( ma%hasleft .and. ma%hasbottom ) then
+      b(jce1,ice1) = a(jci1,ici1,kz,l)
+    end if
+    if ( ma%hasleft .and. ma%hastop ) then
+      b(jce1,ice2) = a(jci1,ici2,kz,l)
+      b(jce1,ide2) = a(jci1,ici2,kz,l)
+    end if
+    if ( ma%hasright .and. ma%hasbottom ) then
+      b(jce2,ice1) = a(jci2,ici1,kz,l)
+      b(jce2,ide1) = a(jci2,ici1,kz,l)
+      b(jde2,ice1) = a(jci2,ici1,kz,l)
+      b(jde2,ide1) = a(jci2,ici1,kz,l)
+    end if
+    if ( ma%hasright .and. ma%hastop ) then
+      b(jce2,ice2) = a(jci2,ici2,kz,l)
+      b(jce2,ide2) = a(jci2,ici2,kz,l)
+      b(jde2,ice2) = a(jci2,ici2,kz,l)
+      b(jde2,ide2) = a(jci2,ici2,kz,l)
+    end if
+  end subroutine fill_frame4d
 
   subroutine solar_clm(idatex,calday,declin,xyear)
     implicit none

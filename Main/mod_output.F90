@@ -142,14 +142,14 @@ module mod_output
     if ( ldoatm ) then
 !
 !=======================================================================
-!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgbrd,tsw,olcd2d
+!     gather  ua,va,ta,qxa,rainc,rainnc,tgbrd,tsw,olcd2d
 !=======================================================================
 !
       call deco1_gather(atm1%u,atm1_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%v,atm1_io%v,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%t,atm1_io%t,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(atm1%qx,atm1_io%qx, &
+                        jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
       call deco1_gather(omega,omega_io,jcross1,jcross2,icross1,icross2,1,kz)
       call deco1_gather(sfs%psa,sfs_io%psa,jcross1,jcross2,icross1,icross2)
       call deco1_gather(sfs%rainc,sfs_io%rainc,jcross1,jcross2,icross1,icross2)
@@ -266,14 +266,14 @@ module mod_output
       call deco1_gather(atm1%u,atm1_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%v,atm1_io%v,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm1%t,atm1_io%t,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(atm1%qx,atm1_io%qx, &
+                        jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
 
       call deco1_gather(atm2%u,atm2_io%u,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm2%v,atm2_io%v,jdot1,jdot2,idot1,idot2,1,kz)
       call deco1_gather(atm2%t,atm2_io%t,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm2%qv,atm2_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(atm2%qc,atm2_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
+      call deco1_gather(atm2%qx,atm2_io%qx, &
+                        jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
 
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call deco1_gather(atm1%tke,atm1_io%tke, &
@@ -480,8 +480,8 @@ module mod_output
 
   implicit none
 
-  call writerec_atm(atm1_io%u,atm1_io%v,omega_io,atm1_io%t,atm1_io%qv, &
-                    atm1_io%qc,atm1_io%tke,tcmstate_io%kth,tcmstate_io%kzm, &
+  call writerec_atm(atm1_io%u,atm1_io%v,omega_io,atm1_io%t,atm1_io%qx, &
+                    atm1_io%tke,tcmstate_io%kth,tcmstate_io%kzm, &
                     sfs_io%psa,sfs_io%rainc,sfs_io%rainnc,tgbrd_io, &
                     tsw_io,ldmsk1_io,idatex)
  

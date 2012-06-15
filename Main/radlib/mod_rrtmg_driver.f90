@@ -38,6 +38,7 @@ module mod_rrtmg_driver
   use rrtmg_lw_rad
   use mod_rad_outrad
   use mod_runparams , only : calday
+  use mod_mppparam , only : iqv
 
   private
 !
@@ -601,7 +602,7 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,kj) = dmax1(1.0D-7,qvatms(j,i,k))
+          h2ommr(n,kj) = dmax1(1.0D-7,qxatms(j,i,k,iqv))
           h2ovmr(n,kj) = h2ommr(n,kj) * ep2
           n = n + 1
         end do

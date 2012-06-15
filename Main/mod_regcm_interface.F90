@@ -268,7 +268,7 @@ module mod_regcm_interface
     character(len=32) :: appdat
 !
 #ifdef DEBUG
-    if ( .false. ) call deco1d_nc_create('clouds1',cross,zqxn,qqxp)
+    if ( .true. ) call deco1d_nc_create('clouds1',cross,zqxn,qqxp)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
       !
@@ -339,7 +339,7 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
-    if ( .false. ) call deco1d_nc_destroy(qqxp)
+    if ( .true. ) call deco1d_nc_destroy(qqxp)
 #endif
     call time_print(6,'evolution phase')
 !
