@@ -263,11 +263,11 @@ module mod_diffusion
 
   end subroutine diffu_x3d
 !
-  subroutine diffu_x4d(ften,f,press,xkc,n4,kmax)
+  subroutine diffu_x4d(ften,f,press,xkc,kmax)
 !
     implicit none
 !
-    integer , intent(in) :: kmax , n4
+    integer , intent(in) :: kmax
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ften
@@ -282,7 +282,7 @@ module mod_diffusion
     !
     ! fourth-order scheme for interior:
     !
-    do n = 1 , n4
+    do n = 1 , ntr
       do k = 1 , kmax
         do i = icii1 , icii2
           do j = jcii1 , jcii2
@@ -301,7 +301,7 @@ module mod_diffusion
     !
     if ( ma%hasleft ) then
       j = jci1
-      do n = 1 , n4
+      do n = 1 , ntr
         do k = 1 , kmax
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
@@ -314,7 +314,7 @@ module mod_diffusion
     end if
     if ( ma%hasright ) then
       j = jci2
-      do n = 1 , n4
+      do n = 1 , ntr
         do k = 1 , kmax
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
@@ -330,7 +330,7 @@ module mod_diffusion
     !
     if ( ma%hasbottom ) then
       i = ici1
-      do n = 1 , n4
+      do n = 1 , ntr
         do k = 1 , kmax
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &
@@ -343,7 +343,7 @@ module mod_diffusion
     end if
     if ( ma%hastop ) then
       i = ici2
-      do n = 1 , n4
+      do n = 1 , ntr
         do k = 1 , kmax
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &

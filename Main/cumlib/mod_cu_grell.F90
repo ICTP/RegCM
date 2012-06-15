@@ -23,7 +23,6 @@ module mod_cu_grell
   use mod_memutil
   use mod_service 
   use mod_cu_common
-  use mod_mppparam , only : iqv
  
   private
 
@@ -305,10 +304,10 @@ module mod_cu_grell
                 pvatm(jp1,i,kk)/sfcps(jp1,i)+   &
                 pvatm(jp1,i+1,kk)/sfcps(jp1,i+1))*d_rfour
           t(j,i,k) = tas(j,i,kk)
-          q(j,i,k) = qxas(j,i,kk,iqv)
+          q(j,i,k) = qvas(j,i,kk)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
           tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dtcum
-          qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dtcum
+          qo(j,i,k) = q(j,i,k) + (qvten(j,i,kk))/sfcps(j,i)*dtcum
           p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
           vsp(j,i,k) = dsqrt(us**d_two+vs**d_two)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
@@ -321,7 +320,7 @@ module mod_cu_grell
           outq(j,i,k) = d_zero
           ter11(j,i) = sfhgt(j,i)*regrav
           if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
-          qcrit(j,i) = qcrit(j,i) + qxten(j,i,kk,iqv)
+          qcrit(j,i) = qcrit(j,i) + qvten(j,i,kk)
         end do
       end do
     end do
@@ -338,7 +337,7 @@ module mod_cu_grell
           if ( pret(j,i) > d_zero ) then
             kk = kz - k + 1
             tten(j,i,kk) = sfcps(j,i)*outt(j,i,k) + tten(j,i,kk)
-            qxten(j,i,kk,iqv) = sfcps(j,i)*outq(j,i,k) + qxten(j,i,kk,iqv)
+            qvten(j,i,kk) = sfcps(j,i)*outq(j,i,k) + qvten(j,i,kk)
           end if
         end do
       end do

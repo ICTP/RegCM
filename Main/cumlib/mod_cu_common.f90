@@ -38,33 +38,35 @@ module mod_cu_common
   ! Grell shared parameters for tracers removal
   integer , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
 !
-  real(dp) , pointer , dimension(:,:) :: sfhgt       ! mddom%ht
-  real(dp) , pointer , dimension(:,:,:) :: hgt       ! za
-  real(dp) , pointer , dimension(:,:,:) :: ptatm     ! atm1%t
-  real(dp) , pointer , dimension(:,:,:) :: puatm     ! atm1%u
-  real(dp) , pointer , dimension(:,:,:) :: pvatm     ! atm1%v
-  real(dp) , pointer , dimension(:,:,:,:) :: pvqxtm  ! atm1%qx
-  real(dp) , pointer , dimension(:,:,:) :: tas       ! atms%tb3d
-  real(dp) , pointer , dimension(:,:,:) :: uas       ! atms%ubx3d
-  real(dp) , pointer , dimension(:,:,:) :: vas       ! atms%vbx3d
-  real(dp) , pointer , dimension(:,:,:) :: pas       ! atms%pb3d
-  real(dp) , pointer , dimension(:,:,:) :: qsas      ! atms%qsb3d
-  real(dp) , pointer , dimension(:,:,:,:) :: qxas    ! atms%qxb3d
+  real(dp) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
+  real(dp) , pointer , dimension(:,:,:) :: hgt    ! za
+  real(dp) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
+  real(dp) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
+  real(dp) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
+  real(dp) , pointer , dimension(:,:,:) :: pvqvtm ! atm1%qv
+  real(dp) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
+  real(dp) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
+  real(dp) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
+  real(dp) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
+  real(dp) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
+  real(dp) , pointer , dimension(:,:,:) :: qcas   ! atms%qcb3d
+  real(dp) , pointer , dimension(:,:,:) :: qvas   ! atms%qvb3d
   real(dp) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
-  real(dp) , pointer , dimension(:,:,:) :: tten      ! aten%t
-  real(dp) , pointer , dimension(:,:,:) :: uten      ! aten%u
-  real(dp) , pointer , dimension(:,:,:) :: vten      ! aten%v
-  real(dp) , pointer , dimension(:,:,:,:) :: qxten   ! aten%qx
-  real(dp) , pointer , dimension(:,:,:,:) :: tchiten !chiten 
-  real(dp) , pointer , dimension(:,:) :: psfcps      ! sfs%psa
-  real(dp) , pointer , dimension(:,:) :: sfcps       ! sfs%psb
-  real(dp) , pointer , dimension(:,:) :: rainc       ! sfs%rainc
-  real(dp) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
-  real(dp) , pointer , dimension(:,:,:) :: svv       ! qdot
-  real(dp) , pointer , dimension(:,:) :: lmpcpc      ! pptc
-  integer , pointer , dimension(:,:) :: lmask        ! ldmsk
-  real(dp) , pointer , dimension(:,:,:) :: rcldlwc   ! rcldlwc 
-  real(dp) , pointer , dimension(:,:,:) :: rcldfra   ! rcldfra
+  real(dp) , pointer , dimension(:,:,:) :: tten   ! aten%t
+  real(dp) , pointer , dimension(:,:,:) :: uten   ! aten%u
+  real(dp) , pointer , dimension(:,:,:) :: vten   ! aten%v
+  real(dp) , pointer , dimension(:,:,:) :: qvten  ! aten%qv
+  real(dp) , pointer , dimension(:,:,:) :: qcten  ! aten%qc
+  real(dp) , pointer , dimension(:,:,:,:) :: tchiten  !chiten 
+  real(dp) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
+  real(dp) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
+  real(dp) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
+  real(dp) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
+  real(dp) , pointer , dimension(:,:,:) :: svv    ! qdot
+  real(dp) , pointer , dimension(:,:) :: lmpcpc   ! pptc
+  integer , pointer , dimension(:,:) :: lmask    ! ldmsk
+  real(dp) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
+  real(dp) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
 
   real(dp) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon

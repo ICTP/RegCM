@@ -25,7 +25,6 @@ module mod_ncio
   use mod_memutil
   use mod_nchelper
   use mod_domain
-  use mod_mppparam , only : iqc , iqv
 !
   integer , parameter :: n_atmvar = 14
   integer , parameter :: n_srfvar = 26
@@ -705,7 +704,7 @@ contains
     istatus = nf90_get_var(ibcin,icbc_ivar(5),t,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
     istatus = nf90_get_var(ibcin,icbc_ivar(6),qv,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable qv read error', 'ICBC FILE')
   end subroutine read_icbc
 
   subroutine close_icbc
@@ -1895,7 +1894,7 @@ contains
     iradrec = iradrec + 1
   end subroutine writerec_rad
 
-  subroutine writerec_atm(u,v,omega,t,qx,tke,kth,kzm,ps,rc,rnc, &
+  subroutine writerec_atm(u,v,omega,t,qv,qc,tke,kth,kzm,ps,rc,rnc, &
                           tgb,swt,mask,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -1903,7 +1902,8 @@ contains
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: v
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: t
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: qx
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: qv
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: qc
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: tke
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: kth
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: kzm
@@ -2064,8 +2064,8 @@ contains
             else
               jp1 = j
             end if
-            if (qx(jp1,ip1,k,iqv) > dlowval) then
-              dumio(j,i,k) = real(qx(jp1,ip1,k,iqv)/ps(jp1,ip1))
+            if (qv(jp1,ip1,k) > dlowval) then
+              dumio(j,i,k) = real(qv(jp1,ip1,k)/ps(jp1,ip1))
             end if
           end do
         end do
@@ -2087,8 +2087,8 @@ contains
             else
               jp1 = j
             end if
-            if (qx(jp1,ip1,k,iqc) > dlowval) then
-              dumio(j,i,k) = real(qx(jp1,ip1,k,iqc)/ps(jp1,ip1))
+            if (qc(jp1,ip1,k) > dlowval) then
+              dumio(j,i,k) = real(qc(jp1,ip1,k)/ps(jp1,ip1))
             end if
           end do
         end do

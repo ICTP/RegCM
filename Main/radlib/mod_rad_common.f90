@@ -35,11 +35,11 @@ module mod_rad_common
   real(dp) , pointer , dimension(:,:) :: sfps    ! sfs%psb
   real(dp) , pointer , dimension(:,:) :: psfps   ! sfs%psa
 
-  real(dp) , pointer , dimension(:,:,:) :: tatms    ! atms%tb3d
-  real(dp) , pointer , dimension(:,:,:,:) :: qxatms ! atms%qxb3d
-  real(dp) , pointer , dimension(:,:,:) :: rhatms   ! atms%rhb3d
-  real(dp) , pointer , dimension(:,:) :: tground    ! sfs%tgbb
-  real(dp) , pointer , dimension(:,:) :: xlat       ! mddom%xlat
+  real(dp) , pointer , dimension(:,:,:) :: tatms  ! atms%tb3d
+  real(dp) , pointer , dimension(:,:,:) :: qvatms ! atms%qvb3d
+  real(dp) , pointer , dimension(:,:,:) :: rhatms ! atms%rhb3d
+  real(dp) , pointer , dimension(:,:) :: tground  ! sfs%tgbb
+  real(dp) , pointer , dimension(:,:) :: xlat     ! mddom%xlat
 
   ! vegetation absorbed radiation (full solar spectrum)
   real(dp) , pointer , dimension(:,:) :: abveg   ! sabveg

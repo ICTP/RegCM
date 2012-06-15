@@ -34,7 +34,6 @@ module mod_bats_mtrxbats
   use mod_bats_mppio
   use mod_bats_zengocn
   use mod_bats_romsocn
-  use mod_mppparam , only : iqv
 
   private
 
@@ -318,7 +317,7 @@ module mod_bats_mtrxbats
       do i = ici1 , ici2
         do j = jci1 , jci2
           p0 = (sfps(j,i)+ptop)*d_1000
-          qs0 = qxatm(j,i,kz,iqv)/(d_one+qxatm(j,i,kz,iqv))
+          qs0 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
           ts0 = thatm(j,i,kz)
           hl = lh0 - lh1*(ts0-tzero)
           satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts0))

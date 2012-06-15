@@ -26,7 +26,6 @@ module mod_bats_romsocn
   use mod_service
   use mod_bats_common
   use mod_bats_zengocn
-  use mod_mppparam
 !
   private
 !
@@ -91,7 +90,7 @@ module mod_bats_romsocn
               uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
               tsurf = sst2d(j,i)-tzero
               t995 = tatm(j,i,kz)-tzero
-              q995 = qxatm(j,i,kz,iqv)/(d_one+qxatm(j,i,kz,iqv))
+              q995 = qvatm(j,i,kz)/(d_one+qvatm(j,i,kz))
               z995 = hgt(j,i,kz)
               zi = hpbl(j,i)
               psurf = (sfps(j,i)+ptop)*d_10

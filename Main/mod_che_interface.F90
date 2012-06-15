@@ -82,7 +82,8 @@ module mod_che_interface
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
     call assignpnt(atms%tb3d,ctb3d)
-    call assignpnt(atms%qxb3d,cqxb3d)
+    call assignpnt(atms%qvb3d,cqvb3d)
+    call assignpnt(atms%qcb3d,cqcb3d)
     call assignpnt(atms%rhob3d,crhob3d)
     ! wind at cell center
     call assignpnt(atms%ubx3d,cubx3d)

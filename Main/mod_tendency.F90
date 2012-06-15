@@ -281,7 +281,8 @@ module mod_tendency
       do i = ice1 , ice2
         do j = jce1 , jce2
           atmx%t(j,i,k)  = atm1%t(j,i,k)/sfs%psa(j,i)
-          atmx%qx(j,i,k,:) = atm1%qx(j,i,k,:)/sfs%psa(j,i)
+          atmx%qv(j,i,k) = atm1%qv(j,i,k)/sfs%psa(j,i)
+          atmx%qc(j,i,k) = atm1%qc(j,i,k)/sfs%psa(j,i)
         end do
       end do
     end do
@@ -321,8 +322,8 @@ module mod_tendency
     call deco1_exchange_right(atm2%v,1,ide1,ide2,1,kz)
     call deco1_exchange_left(atm2%t,1,ice1,ice2,1,kz)
     call deco1_exchange_right(atm2%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(atm2%qx,1,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atm2%qx,1,ice1,ice2,1,kz,1,nqx)
+    call deco1_exchange_left(atm2%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atm2%qv,1,ice1,ice2,1,kz)
 !
     call deco1_exchange_left(atmx%u,1,ide1,ide2,1,kz)
     call deco1_exchange_right(atmx%u,1,ide1,ide2,1,kz)
@@ -330,8 +331,10 @@ module mod_tendency
     call deco1_exchange_right(atmx%v,1,ide1,ide2,1,kz)
     call deco1_exchange_left(atmx%t,1,ice1,ice2,1,kz)
     call deco1_exchange_right(atmx%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(atmx%qx,1,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atmx%qx,1,ice1,ice2,1,kz,1,nqx)
+    call deco1_exchange_left(atmx%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atmx%qv,1,ice1,ice2,1,kz)
+    call deco1_exchange_left(atmx%qc,1,ice1,ice2,1,kz)
+    call deco1_exchange_right(atmx%qc,1,ice1,ice2,1,kz)
 !
     if ( ichem == 1 ) then
       call deco1_exchange_left(chi,1,ice1,ice2,1,kz,1,ntr)
@@ -362,8 +365,10 @@ module mod_tendency
     call deco1_exchange_right(atms%ubx3d,2,ice1,ice2,1,kz)
     call deco1_exchange_left(atms%vbx3d,2,ice1,ice2,1,kz)
     call deco1_exchange_right(atms%vbx3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_left(atms%qxb3d,2,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atms%qxb3d,2,ice1,ice2,1,kz,1,nqx)
+    call deco1_exchange_left(atms%qvb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%qvb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_left(atms%qcb3d,2,ice1,ice2,1,kz)
+    call deco1_exchange_right(atms%qcb3d,2,ice1,ice2,1,kz)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call deco1_exchange_left(atm2%tke,2,ice1,ice2,1,kzp1)
@@ -556,11 +561,12 @@ module mod_tendency
 !   compute the temperature tendency:
 !
     aten%t(:,:,:) = d_zero
-    aten%qx(:,:,:,:) = d_zero
+    aten%qv(:,:,:) = d_zero
+    aten%qc(:,:,:) = d_zero
 !
 !   compute the horizontal advection term:
 !
-    call hadv(cross,aten%t,atmx%t,kz)
+    call hadv(cross,aten%t,atmx%t,kz,1)
 !
 !   compute the vertical advection term:
 !
@@ -568,7 +574,7 @@ module mod_tendency
       call vadv(cross,aten%t,atm1%t,kz,1)
     else
       if ( iuwvadv == 1 ) then
-        call vadv(cross,aten%t,atm1%t,kz,3)
+        call vadv(cross,aten%t,atm1%t,kz,6)
       else
         call vadv(cross,aten%t,atm1%t,kz,1)
       end if
@@ -579,8 +585,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qx(j,i,k,iqv))))
-          tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+          rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qv(j,i,k))))
+          tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qv(j,i,k)))
           aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
                           (ptop/sfs%psa(j,i)+hsigma(k))
         end do
@@ -590,6 +596,8 @@ module mod_tendency
 !   compute the diffusion term for t and store in difft:
 !
     adf%difft(:,:,:) = d_zero
+    adf%diffq(:,:,:) = d_zero
+!
     call diffu_x(adf%difft,atms%tb3d,sfs%psb,xkc,kz)
 !
 !   compute the moisture tendencies:
@@ -602,15 +610,15 @@ module mod_tendency
 !   icup = 99: grell over land, emanuel over ocean
 !   icup = 98: emanuel over land, grell over ocean
 !
-    call hadv(aten%qx,atmx%qx,kz,iqv,1)
+    call hadv(cross,aten%qv,atmx%qv,kz,1)
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,iqv,1)
+        call vadv(cross,aten%qv,atm1%qv,kz,2)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqv,4)
+          call vadv(cross,aten%qv,atm1%qv,kz,6)
         else
-          call vadv(aten%qx,atm1%qx,kz,iqv,1)
+          call vadv(cross,aten%qv,atm1%qv,kz,2)
         end if
       end if
     end if
@@ -639,36 +647,36 @@ module mod_tendency
     if (ichem==1) convcldfra(:,:,:) =  cldfra(:,:,:)  
 
     if ( ipptls == 1 ) then
-      call hadv(aten%qx,atmx%qx,kz,iqv,2)
+      call hadv(cross,aten%qc,atmx%qc,kz,2)
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,iqc,2)
+        call vadv(cross,aten%qc,atm1%qc,kz,5)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqc,4)
+          call vadv(cross,aten%qc,atm1%qc,kz,6)
         else
-          call vadv(aten%qx,atm1%qx,kz,iqc,2)
+          call vadv(cross,aten%qc,atm1%qc,kz,5)
         end if
       end if
       call pcp
       call cldfrac
 #ifdef DEBUG
-      if ( .true. ) then
-        call microphys(omega,jci1,jci2,ici1,ici2)
-        call deco1d_nc_write(qqxp)
+      if ( .false. ) then
+        call microphys(jci1,jci2,ici1,ici2)
+!        call deco1d_nc_write(qqxp)
       end if
 #endif
 !
-!     need also to set diffqx to 0 here before calling diffu_x
+!     need also to set diffq to 0 here before calling diffut
 !
-      adf%diffqx(:,:,:,:) = d_zero
-! 
+      adf%diffq(:,:,:) = d_zero
+ 
 !     compute the diffusion terms:
-!     the diffusion term for qv is stored in diffqx. before
-!     completing aten%qx computation, do not use diffqx for other
+!     the diffusion term for qv is stored in diffq. before
+!     completing aten%qv computation, do not use diffq for other
 !     purpose.
 !
-      call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,nqx,kz)
-      aten%qx(:,:,:,iqc) = adf%diffqx(:,:,:,iqc)
+      call diffu_x(adf%diffq,atms%qvb3d,sfs%psb,xkc,kz)
+      call diffu_x(aten%qc,atms%qcb3d,sfs%psb,xkc,kz)
     end if
 !
     if ( ichem == 1 ) then
@@ -683,18 +691,18 @@ module mod_tendency
 
       if ( icup /= 1 ) then
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(chiten,chia,kz,1)
+          call vadv(chiten,chia,kz,5)
         else
           if ( iuwvadv == 1 ) then
-            call vadv(chiten,chia,kz,2)
+            call vadv(chiten,chia,kz,6)
           else
-            call vadv(chiten,chia,kz,1)
+            call vadv(chiten,chia,kz,5)
           end if
         end if
       end if
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
-      call diffu_x(chiten,chib3d,sfs%psb,xkc,ntr,kz)
+      call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
       !
       ! Compute chemistry tendencies (other than transport)
       !
@@ -705,7 +713,7 @@ module mod_tendency
 !----------------------------------------------------------------------
 !  compute the pbl fluxes:
 !  the diffusion and pbl tendencies of t and qv are stored in
-!  difft and diffqx.
+!  difft and diffq.
 !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
@@ -800,9 +808,9 @@ module mod_tendency
     end if
 
     if ( ibltyp == 99 ) then
-      call check_conserve_qt(holtten%qx,uwten,uwstateb,kz)
-      adf%diffqx(:,:,:,iqv) = adf%diffqx(:,:,:,iqv) + holtten%qx(:,:,:,iqv)
-      aten%qx(:,:,:,iqc) = aten%qx(:,:,:,iqc) + holtten%qx(:,:,:,iqc)
+      call check_conserve_qt(holtten%qv,holtten%qc,uwten,uwstateb,kz)
+      adf%diffq = adf%diffq + holtten%qv
+      aten%qc = aten%qc + holtten%qc
     end if
 !
 !   add ccm radiative transfer package-calculated heating rates to
@@ -818,7 +826,7 @@ module mod_tendency
     end do
 !
 !   add horizontal diffusion and pbl tendencies for t and qv to aten%t
-!   and aten%qx for calculating condensational term in subroutine
+!   and aten%qv for calculating condensational term in subroutine
 !   "condtq".
 !
     if ( ipptls == 1 ) then
@@ -833,7 +841,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+            aten%qv(j,i,k) = aten%qv(j,i,k) + adf%diffq(j,i,k)
           end do
         end do
       end do
@@ -845,7 +853,7 @@ module mod_tendency
     end if
 !
 !   subtract horizontal diffusion and pbl tendencies from aten%t and
-!   aten%qx for appling the sponge boundary conditions on t and qv:
+!   aten%qv for appling the sponge boundary conditions on t and qv:
 !
     if ( iboudy == 4 ) then
       do k = 1 , kz
@@ -866,15 +874,15 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) - adf%diffqx(j,i,k,iqv)
+            aten%qv(j,i,k) = aten%qv(j,i,k) - adf%diffq(j,i,k)
           end do
         end do
       end do
-      call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+      call sponge(kz,ba_cr,xqb,aten%qv)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+            aten%qv(j,i,k) = aten%qv(j,i,k) + adf%diffq(j,i,k)
           end do
         end do
       end do
@@ -885,7 +893,7 @@ module mod_tendency
     if ( iboudy == 1 .or. iboudy == 5 ) then
       xtm1 = xbctime - dtsec
       call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
-      call nudge(kz,iqv,ba_cr,xtm1,atm2%qx,iboudy,xqb,aten%qx)
+      call nudge(kz,ba_cr,xtm1,atm2%qv,iboudy,xqb,aten%qv)
     end if
 !
     if ( ichem == 1 ) then
@@ -902,7 +910,14 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%t(j,i,k) = atm2%t(j,i,k) + dt*aten%t(j,i,k)
-          atmc%qx(j,i,k,:) = atm2%qx(j,i,k,:) + dt*aten%qx(j,i,k,:)
+          atmc%qv(j,i,k) = atm2%qv(j,i,k) + dt*aten%qv(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atmc%qc(j,i,k) = atm2%qc(j,i,k) + dt*aten%qc(j,i,k)
         end do
       end do
     end do
@@ -927,10 +942,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
-            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qv(j,i,k))/psc(j,i))
+            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qv(j,i,k)))
             tvb = atm2%t(j,i,k)*(d_one+ep1* &
-                                 (atm2%qx(j,i,k,iqv))/sfs%psb(j,i))
+                                 (atm2%qv(j,i,k))/sfs%psb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
             ttld(j,i,k) = td(j,i,k) - psd(j,i) * &
                       t00pg*((hsigma(k)*psd(j,i)+ptop)/p00pg)**pgfaa1
@@ -940,7 +955,7 @@ module mod_tendency
       if ( ma%hasleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
+            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qv(jce1,i,k)))
             ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
                         t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
           end do
@@ -949,7 +964,7 @@ module mod_tendency
       if ( ma%hasright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
+            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qv(jce2,i,k)))
             ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
                      t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
           end do
@@ -958,7 +973,7 @@ module mod_tendency
       if ( ma%hasbottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
+            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qv(j,ice1,k)))
             ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
                      t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
           end do
@@ -967,7 +982,7 @@ module mod_tendency
       if ( ma%hastop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))
+            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qv(j,ice2,k)))
             ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
                      t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
           end do
@@ -977,10 +992,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
-            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qv(j,i,k))/psc(j,i))
+            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qv(j,i,k)))
             tvb = atm2%t(j,i,k)*(d_one+ep1* &
-                 (atm2%qx(j,i,k,iqv))/sfs%psb(j,i))
+                 (atm2%qv(j,i,k))/sfs%psb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
           end do
         end do
@@ -988,28 +1003,28 @@ module mod_tendency
       if ( ma%hasleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
+            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qv(jce1,i,k)))
           end do
         end do
       end if
       if ( ma%hasright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
+            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qv(jce2,i,k)))
           end do
         end do
       end if
       if ( ma%hasbottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
+            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qv(j,ice1,k)))
           end do
         end do
       end if
       if ( ma%hastop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))
+            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qv(j,ice2,k)))
           end do
         end do
       end if
@@ -1038,8 +1053,8 @@ module mod_tendency
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
 !
-    call hadv(dot,aten%u,atmx%u,kz)
-    call hadv(dot,aten%v,atmx%v,kz)
+    call hadv(dot,aten%u,atmx%u,kz,3)
+    call hadv(dot,aten%v,atmx%v,kz,3)
 !
 !   compute coriolis terms:
 !
@@ -1062,10 +1077,10 @@ module mod_tendency
           do j = jdi1 , jdi2
             psasum = psd(j,i) + psd(j,i-1) + psd(j-1,i) + psd(j-1,i-1)
             sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qx(j-1,i-1,k,iqv)))
-            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qx(j-1,i,k,iqv)))
-            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qx(j,i-1,k,iqv)))
-            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qv(j-1,i-1,k)))
+            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qv(j-1,i,k)))
+            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qv(j,i-1,k)))
+            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qv(j,i,k)))
             rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
                     ((hsigma(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
             rtbar = rgas*rtbar*sigpsa/16.0D0
@@ -1086,10 +1101,10 @@ module mod_tendency
           do j = jdi1 , jdi2
             psasum = psd(j,i) + psd(j,i-1) + psd(j-1,i) + psd(j-1,i-1)
             sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qx(j-1,i-1,k,iqv)))
-            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qx(j-1,i,k,iqv)))
-            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qx(j,i-1,k,iqv)))
-            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qv(j-1,i-1,k)))
+            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qv(j-1,i,k)))
+            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qv(j,i-1,k)))
+            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qv(j,i,k)))
             rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
             aten%u(j,i,k) = aten%u(j,i,k) - rtbar * &
                    (dlog(d_half*(psd(j,i)+psd(j,i-1))*hsigma(k)+ptop) -    &
@@ -1109,8 +1124,8 @@ module mod_tendency
     if ( ipgf == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv = (ttld(j,i,kz)/psd(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/ &
-                                       (d_one+atmx%qx(j,i,kz,iqv)))
+          tv = (ttld(j,i,kz)/psd(j,i))/(d_one+atmx%qc(j,i,kz)/ &
+                                       (d_one+atmx%qv(j,i,kz)))
           phi(j,i,kz) = mddom%ht(j,i) + &
                    rgas*t00pg/pgfaa1*((psd(j,i)+ptop)/p00pg)**pgfaa1
           phi(j,i,kz) = phi(j,i,kz) - rgas * &
@@ -1121,11 +1136,11 @@ module mod_tendency
         lev = kz - k
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
-                    dsigma(lev+1))/(psd(j,i)*(dsigma(lev)+         &
-                    dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqv)/  &
-                    (d_one+atmx%qx(j,i,lev,iqv)))
-            phi(j,i,lev) = phi(j,i,lev+1) - rgas *         &
+            tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)* &
+                    dsigma(lev+1))/(psd(j,i)*(dsigma(lev)+       &
+                    dsigma(lev+1))))/(d_one+atmx%qc(j,i,lev)/    &
+                    (d_one+atmx%qv(j,i,lev)))
+            phi(j,i,lev) = phi(j,i,lev+1) - rgas *    &
                    tvavg*dlog((hsigma(lev)+ptop/psd(j,i))/ &
                              (hsigma(lev+1)+ptop/psd(j,i)))
           end do
@@ -1134,8 +1149,8 @@ module mod_tendency
     else if ( ipgf == 0 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv = (td(j,i,kz)/psd(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/  &
-               (d_one+atmx%qx(j,i,kz,iqv)))
+          tv = (td(j,i,kz)/psd(j,i))/(d_one+atmx%qc(j,i,kz)/  &
+               (d_one+atmx%qv(j,i,kz)))
           phi(j,i,kz) = mddom%ht(j,i) - rgas * &
                tv*dlog((hsigma(kz)+ptop/psd(j,i))/(d_one+ptop/psd(j,i)))
         end do
@@ -1144,10 +1159,10 @@ module mod_tendency
         lev = kz - k
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
-                    dsigma(lev+1))/(psd(j,i)*(dsigma(lev)+         &
-                    dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqc)/  &
-                    (d_one+atmx%qx(j,i,lev,iqv)))
+            tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*   &
+                    dsigma(lev+1))/(psd(j,i)*(dsigma(lev)+     &
+                    dsigma(lev+1))))/(d_one+atmx%qc(j,i,lev)/  &
+                    (d_one+atmx%qv(j,i,lev)))
             phi(j,i,lev) = phi(j,i,lev+1) - rgas *    &
                    tvavg*dlog((hsigma(lev)+ptop/psd(j,i))  &
                            /(hsigma(lev+1)+ptop/psd(j,i)))
@@ -1177,8 +1192,8 @@ module mod_tendency
 !
 !   compute the vertical advection terms:
 !
-    call vadv(dot,aten%u,atm1%u,kz,2)
-    call vadv(dot,aten%v,atm1%v,kz,2)
+    call vadv(dot,aten%u,atm1%u,kz,4)
+    call vadv(dot,aten%v,atm1%v,kz,4)
 !
 !   apply the sponge boundary condition on u and v:
 !
@@ -1284,20 +1299,18 @@ module mod_tendency
           atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
                           gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
           atm1%t(j,i,k) = atmc%t(j,i,k)
-          qvas = atmc%qx(j,i,k,iqv)
+          qvas = atmc%qv(j,i,k)
           if ( qvas < dlowval ) qvas = minqx
-          qvbs = omuhf*atm1%qx(j,i,k,iqv) + &
-                 gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
+          qvbs = omuhf*atm1%qv(j,i,k) + gnuhf*(atm2%qv(j,i,k)+atmc%qv(j,i,k))
           if ( qvbs < dlowval ) qvbs = minqx
-          atm2%qx(j,i,k,iqv) = qvbs
-          atm1%qx(j,i,k,iqv) = qvas
-          qcas = atmc%qx(j,i,k,iqc)
+          atm2%qv(j,i,k) = qvbs
+          atm1%qv(j,i,k) = qvas
+          qcas = atmc%qc(j,i,k)
           if ( qcas < dlowval ) qcas = d_zero
-          qcbs = omu*atm1%qx(j,i,k,iqc) + &
-                 gnu*(atm2%qx(j,i,k,iqc)+atmc%qx(j,i,k,iqc))
+          qcbs = omu*atm1%qc(j,i,k) + gnu*(atm2%qc(j,i,k)+atmc%qc(j,i,k))
           if ( qcbs < dlowval ) qcbs = d_zero
-          atm2%qx(j,i,k,iqc) = qcbs
-          atm1%qx(j,i,k,iqc) = qcas
+          atm2%qc(j,i,k) = qcbs
+          atm1%qc(j,i,k) = qcas
         end do
       end do
     end do
@@ -1435,14 +1448,14 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%qx(:,:,:,iqv)))
+        maxv = dabs(maxval(aten%qv))
         if ( (maxv/dtsec) > 0.001 ) then ! 
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqv) > maxv ) then
+                if ( aten%qv(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii , ', JJ :', &
                                    myid*jxp+jj , ', KK :', kk
                 end if
@@ -1450,14 +1463,14 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%qx(:,:,:,iqc)))
+        maxv = dabs(maxval(aten%qc))
         if ( (maxv/dtsec) > 0.001 ) then ! 
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqc) > maxv ) then
+                if ( aten%qc(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii , ', JJ :', &
                                    myid*jxp+jj , ', KK :', kk
                 end if

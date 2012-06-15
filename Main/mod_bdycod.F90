@@ -74,11 +74,11 @@ module mod_bdycod
   integer :: nbdm
 !
   interface nudge
-    module procedure nudge4d , nudge3d , nudge2d
+    module procedure nudge3d , nudge2d
   end interface nudge
 !
   interface sponge
-    module procedure sponge4d , sponge3d , sponge2d
+    module procedure sponge3d , sponge2d
   end interface sponge
 !
   public :: sponge , nudge , setup_bdycon
@@ -797,7 +797,8 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
-            atm2%qx(jce1,i,k,:) = atm1%qx(jce1,i,k,:)
+            atm2%qv(jce1,i,k) = atm1%qv(jce1,i,k)
+            atm2%qc(jce1,i,k) = atm1%qc(jce1,i,k)
           end do
         end do
       end if
@@ -817,7 +818,8 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
-            atm2%qx(jce2,i,k,:) = atm1%qx(jce2,i,k,:)
+            atm2%qv(jce2,i,k) = atm1%qv(jce2,i,k)
+            atm2%qc(jce2,i,k) = atm1%qc(jce2,i,k)
           end do
         end do
       end if
@@ -837,7 +839,8 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
-            atm2%qx(j,ice1,k,:) = atm1%qx(j,ice1,k,:)
+            atm2%qv(j,ice1,k) = atm1%qv(j,ice1,k)
+            atm2%qc(j,ice1,k) = atm1%qc(j,ice1,k)
           end do
         end do
       end if
@@ -854,7 +857,8 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
-            atm2%qx(j,ice2,k,:) = atm1%qx(j,ice2,k,:)
+            atm2%qv(j,ice2,k) = atm1%qv(j,ice2,k)
+            atm2%qc(j,ice2,k) = atm1%qc(j,ice2,k)
           end do
         end do
       end if
@@ -977,7 +981,7 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm1%t(jce1,i,k) = xtb%b0(jce1,i,k)
-            atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
+            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k)
           end do
         end do
       end if
@@ -985,7 +989,7 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm1%t(jce2,i,k) = xtb%b0(jce2,i,k)
-            atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
+            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k)
           end do
         end do
       end if
@@ -993,7 +997,7 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm1%t(j,ice1,k) = xtb%b0(j,ice1,k)
-            atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
+            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k)
           end do
         end do
       end if
@@ -1001,7 +1005,7 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm1%t(j,ice2,k) = xtb%b0(j,ice2,k)
-            atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
+            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k)
           end do
         end do
       end if
@@ -1013,7 +1017,7 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm1%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
-            atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
+            atm1%qv(jce1,i,k) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
         end do
       end if
@@ -1021,7 +1025,7 @@ module mod_bdycod
         do k = 1 , kz
           do i = ici1 , ici2
             atm1%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
-            atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
+            atm1%qv(jce2,i,k) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
         end do
       end if
@@ -1029,7 +1033,7 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm1%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
-            atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
+            atm1%qv(j,ice1,k) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
         end do
       end if
@@ -1037,7 +1041,7 @@ module mod_bdycod
         do k = 1 , kz
           do j = jce1 , jce2
             atm1%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
-            atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
+            atm1%qv(j,ice2,k) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
         end do
       end if
@@ -1052,15 +1056,15 @@ module mod_bdycod
       if ( ma%hasleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            qext = atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)
-            qint = atm1%qx(jci1,i,k,iqv)/sfs%psa(jci1,i)
+            qext = atm1%qv(jce1,i,k)/sfs%psa(jce1,i)
+            qint = atm1%qv(jci1,i,k)/sfs%psa(jci1,i)
             uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
             if ( uavg >= d_zero ) then
               qvx = qext
             else
               qvx = qint
             end if
-            atm1%qx(jce1,i,k,iqv) = qvx*sfs%psa(jce1,i)
+            atm1%qv(jce1,i,k) = qvx*sfs%psa(jce1,i)
           end do
         end do
       end if
@@ -1070,15 +1074,15 @@ module mod_bdycod
       if ( ma%hasright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            qext = atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)
-            qint = atm1%qx(jci2,i,k,iqv)/sfs%psa(jci2,i)
+            qext = atm1%qv(jce2,i,k)/sfs%psa(jce2,i)
+            qint = atm1%qv(jci2,i,k)/sfs%psa(jci2,i)
             uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
             if ( uavg < d_zero ) then
               qvx = qext
             else
               qvx = qint
             end if
-            atm1%qx(jce2,i,k,iqv) = qvx*sfs%psa(jce2,i)
+            atm1%qv(jce2,i,k) = qvx*sfs%psa(jce2,i)
           end do
         end do
       end if
@@ -1088,15 +1092,15 @@ module mod_bdycod
       if ( ma%hasbottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
-            qint = atm1%qx(j,ici1,k,iqv)/sfs%psa(j,ici1)
+            qext = atm1%qv(j,ice1,k)/sfs%psa(j,ice1)
+            qint = atm1%qv(j,ici1,k)/sfs%psa(j,ici1)
             vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
             if ( vavg >= d_zero ) then
               qvx = qext
             else
               qvx = qint
             end if
-            atm1%qx(j,ice1,k,iqv) = qvx*sfs%psa(j,ice1)
+            atm1%qv(j,ice1,k) = qvx*sfs%psa(j,ice1)
           end do
         end do
       end if
@@ -1106,15 +1110,15 @@ module mod_bdycod
       if ( ma%hastop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
-            qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
+            qext = atm1%qv(j,ice2,k)/sfs%psa(j,ice2)
+            qint = atm1%qv(j,ici2,k)/sfs%psa(j,ici2)
             vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
             if ( vavg < d_zero ) then
               qvx = qext
             else
               qvx = qint
             end if
-            atm1%qx(j,ice2,k,iqv) = qvx*sfs%psa(j,ice2)
+            atm1%qv(j,ice2,k) = qvx*sfs%psa(j,ice2)
           end do
         end do
       end if
@@ -1134,14 +1138,14 @@ module mod_bdycod
     if ( ma%hasleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          qcint = atm1%qx(jci1,i,k,iqc)/sfs%psa(jci1,i)
+          qcint = atm1%qc(jci1,i,k)/sfs%psa(jci1,i)
           uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
           if ( uavg >= d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
           end if
-          atm1%qx(jce1,i,k,iqc) = qcx*sfs%psa(jce1,i)
+          atm1%qc(jce1,i,k) = qcx*sfs%psa(jce1,i)
         end do
       end do
     end if
@@ -1151,14 +1155,14 @@ module mod_bdycod
     if ( ma%hasright ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          qcint = atm1%qx(jci2,i,k,iqc)/sfs%psa(jci2,i)
+          qcint = atm1%qc(jci2,i,k)/sfs%psa(jci2,i)
           uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
           if ( uavg < d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
           end if
-          atm1%qx(jce2,i,k,iqc) = qcx*sfs%psa(jce2,i)
+          atm1%qc(jce2,i,k) = qcx*sfs%psa(jce2,i)
         end do
       end do
     end if
@@ -1168,14 +1172,14 @@ module mod_bdycod
     if ( ma%hasbottom ) then
       do k = 1 , kz
         do j = jce1 , jce2
-          qcint = atm1%qx(j,ici1,k,iqc)/sfs%psa(j,ici1)
+          qcint = atm1%qc(j,ici1,k)/sfs%psa(j,ici1)
           vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
           if ( vavg >= d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
           end if
-          atm1%qx(j,ice1,k,iqc) = qcx*sfs%psa(j,ice1)
+          atm1%qc(j,ice1,k) = qcx*sfs%psa(j,ice1)
         end do
       end do
     end if
@@ -1185,14 +1189,14 @@ module mod_bdycod
     if ( ma%hastop ) then
       do k = 1 , kz
         do j = jce1 , jce2
-          qcint = atm1%qx(j,ici2,k,iqc)/sfs%psa(j,ici2)
+          qcint = atm1%qc(j,ici2,k)/sfs%psa(j,ici2)
           vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
           if ( vavg < d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
           end if
-          atm1%qx(j,ice2,k,iqc) = qcx*sfs%psa(j,ice2)
+          atm1%qc(j,ice2,k) = qcx*sfs%psa(j,ice2)
         end do
       end do
     end if
@@ -1226,85 +1230,6 @@ module mod_bdycod
 ! ften  : is the tendency calculated from the model.              c
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-  subroutine sponge4d(nk,m,ba,bnd,ften)
-!
-    implicit none
-!
-    integer , intent(in) :: nk , m
-    type(bound_area) , intent(in) :: ba
-    type(v3dbound) , intent(in) :: bnd
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-!
-    integer :: i , j , k
-    integer :: ib , i1 , i2 , j1 , j2
-    real(dp) , pointer , dimension(:) :: wg
-    character (len=64) :: subroutine_name='sponge4d'
-    integer :: idindx=0
-!
-    call time_begin(subroutine_name,idindx)
-    if ( ba%dotflag ) then
-      wg => wgtd
-      i1 = idi1
-      i2 = idi2
-      j1 = jdi1
-      j2 = jdi2
-    else
-      wg => wgtx
-      i1 = ici1
-      i2 = ici2
-      j1 = jci1
-      j2 = jci2
-    end if
-!
-!----------------------------------------------------------------------
-!
-    if ( ba%ns /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bsouth(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            ften(j,i,k,m) = wg(ib)*ften(j,i,k,m) + (d_one-wg(ib))*bnd%bt(j,i,k)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%nn /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bnorth(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            ften(j,i,k,m) = wg(ib)*ften(j,i,k,m) + (d_one-wg(ib))*bnd%bt(j,i,k)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%nw /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bwest(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            ften(j,i,k,m) = wg(ib)*ften(j,i,k,m) + (d_one-wg(ib))*bnd%bt(j,i,k)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%ne /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%beast(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            ften(j,i,k,m) = wg(ib)*ften(j,i,k,m) + (d_one-wg(ib))*bnd%bt(j,i,k)
-          end do
-        end do
-      end do
-    end if
-    call time_end(subroutine_name,idindx)
-  end subroutine sponge4d
 !
   subroutine sponge3d(nk,ba,bnd,ften)
 !
@@ -1501,140 +1426,6 @@ module mod_bdycod
 !         2D or 3D (managed by interface declaration)             c
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-  subroutine nudge4d(nk,m,ba,xt,f,ibdy,bnd,ften)
-!
-    implicit none
-!
-    integer , intent(in) :: ibdy , nk , m
-    real(dp) , intent(in) :: xt
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
-    type(bound_area) , intent(in) :: ba
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-!
-    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
-    integer :: i , j , k , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge4d'
-    integer :: idindx=0
-!
-    call time_begin(subroutine_name,idindx)
-!
-    if ( ba%dotflag ) then
-      lfc => fcd
-      lgc => gcd
-      i1 = idi1
-      i2 = idi2
-      j1 = jdi1
-      j2 = jdi2
-    else
-      lfc => fcx
-      lgc => gcx
-      i1 = ici1
-      i2 = ici2
-      j1 = jci1
-      j2 = jci2
-    end if
-!
-    if ( ba%ns /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bsouth(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            if ( ibdy == 1 ) then
-              xf = lfc(ib)
-              xg = lgc(ib)
-            else
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-            end if
-            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,m)
-            fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,m)
-            fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,m)
-            fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,m)
-            fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,m)
-            ften(j,i,k,m) = ften(j,i,k,m) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%nn /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bnorth(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            if ( ibdy == 1 ) then
-              xf = lfc(ib)
-              xg = lgc(ib)
-            else
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-            end if
-            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,m)
-            fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,m)
-            fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,m)
-            fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,m)
-            fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,m)
-            ften(j,i,k,m) = ften(j,i,k,m) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%nw /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%bwest(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            if ( ibdy == 1 ) then
-              xf = lfc(ib)
-              xg = lgc(ib)
-            else
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-            end if
-            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,m)
-            fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,m)
-            fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,m)
-            fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,m)
-            fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,m)
-            ften(j,i,k,m) = ften(j,i,k,m) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end do
-      end do
-    end if
-    if ( ba%ne /= 0 ) then
-      do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
-            if ( .not. ba%beast(j,i) ) cycle
-            ib = ba%ibnd(j,i)
-            if ( ibdy == 1 ) then
-              xf = lfc(ib)
-              xg = lgc(ib)
-            else
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-            end if
-            fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,m)
-            fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,m)
-            fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,m)
-            fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,m)
-            fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,m)
-            ften(j,i,k,m) = ften(j,i,k,m) + xf*fls0 -  &
-                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-          end do
-        end do
-      end do
-    end if
-
-    call time_end(subroutine_name,idindx)
-  end subroutine nudge4d
 !
   subroutine nudge3d(nk,ba,xt,f,ibdy,bnd,ften)
 !

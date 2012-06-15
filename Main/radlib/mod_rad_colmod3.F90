@@ -28,7 +28,6 @@ module mod_rad_colmod3
   use mod_rad_outrad
   use mod_rrtmg_driver
   use mod_rad_aerosol
-  use mod_mppparam , only : iqv
 !
   private
 !
@@ -691,7 +690,7 @@ module mod_rad_colmod3
 !   h2o mass mixing ratio
 !
     do k = 1 , kz
-      h2ommr(:,k) = reshape(dmax1(1.0D-8,qxatms(jci1:jci2,ici1:ici2,k,iqv)),(/npr/))
+      h2ommr(:,k) = reshape(dmax1(1.0D-8,qvatms(jci1:jci2,ici1:ici2,k)),(/npr/))
     end do
     qm1(:,:) = h2ommr(:,:)
 !

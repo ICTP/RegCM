@@ -73,7 +73,7 @@ module mod_rad_interface
     call assignpnt(a,hlev)
     call assignpnt(twt,twtr)
     call assignpnt(atms%tb3d,tatms)
-    call assignpnt(atms%qxb3d,qxatms)
+    call assignpnt(atms%qvb3d,qvatms)
     call assignpnt(atms%rhb3d,rhatms)
     call assignpnt(sfs%tgbb,tground)
     call assignpnt(sfs%psa,psfps)
