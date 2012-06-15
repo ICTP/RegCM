@@ -692,24 +692,28 @@ module mod_che_drydep
 
        drydepvg = d_zero
        drydepvg(:,iso2)  =  vdg(1,:,1)
-! SO2 deposition is used in SULF , AERO and CBMZ simulations
-       if(igaschem > 0 ) then 
-       drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
-       drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
-       drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
-       drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-       drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5 
-       drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
-       drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
-       drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
+       ! SO2 deposition is used in SULF , AERO and CBMZ simulations
+       if ( igaschem > 0 ) then 
+         drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
+         drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
+         drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
+         drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
+         drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5 
+         drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
+         drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
+         drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
        end if 
        ! Finally : gas phase dry dep tendency calculation 
        if ( ichdrdepo == 1 ) then  
          do i = ici1 , ici2
            do n = 1 , ntr
              kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
-             ! dry dep removal tendency (+)
-             ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dtche))/dtche
+             if ( kd*dtche < 25.0D0 ) then
+               ! dry dep removal tendency (+)
+               ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dtche))/dtche
+             else
+               ddrem(i) = d_zero
+             end if
              ! update chiten
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
              ! drydep flux diagnostic (accumulated between two outputs time
