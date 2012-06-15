@@ -762,7 +762,7 @@ module mod_nchelper
     integer , intent(in) :: ncid
     integer :: istatus
     integer :: idimid
-    integer :: iyy , jxx , kzz , kcheck
+    integer :: iyy , jxx , kzz
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
