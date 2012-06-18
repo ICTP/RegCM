@@ -670,6 +670,8 @@ module mod_che_drydep
         end if
        
         lai_f(i) = lai(kcov,im) + iday_m/30.5D0*(lai(kcov,im+1)-lai(kcov,im))
+
+        if( lai_f(i) < d_zero)  lai_f(i) = d_zero 
         laimin(i) = lai(kcov,14)
         laimax(i) = lai(kcov,15)
       end do 

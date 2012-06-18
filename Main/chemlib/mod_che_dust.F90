@@ -437,7 +437,7 @@ module mod_che_dust
       real(dp) , intent(in) , dimension(nbin,2) :: trsize
 !
       real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
-                                   xsurfwd , xvegfrac , xz0 , xustarnd
+                                   xsurfwd , xvegfrac , xz0 , xustarnd, xsnowfrac
       real(dp) , dimension(ilg,nbin) :: xrsfrow
       real(dp) , dimension(ilg,nats) :: xftex , xalphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
@@ -446,6 +446,7 @@ module mod_che_dust
       rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
       xvegfrac = d_zero
+      xsnowfrac = d_zero
       xftex = d_zero
       xsoilw = d_zero
       xsurfwd = d_zero
@@ -462,6 +463,7 @@ module mod_che_dust
         if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then   
           ieff = ieff + 1
           xvegfrac(ieff) = vegfrac(i)
+          xsnowfrac(ieff) =  csfracs2d(jloop,i) 
           xsoilw(ieff) = soilw(i)
           xsurfwd(ieff) = surfwd(i)
           xz0(ieff) = z0(i)
@@ -487,7 +489,7 @@ module mod_che_dust
       end do
      
       if ( ieff > 0 ) then
-        call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsurfwd, &
+        call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsnowfrac,xsurfwd, &
                          xftex,xclayrow,xroarow,xalphaprop,xz0, &
                          xsrel2d,xustarnd,xrsfrow)
       end if
@@ -517,13 +519,13 @@ module mod_che_dust
 
     end subroutine sfflux
 ! 
-    subroutine dust_module(il1,il2,trsize,soilw,vegfrac,surfwd,ftex, &
+    subroutine dust_module(il1,il2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
                            clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
       implicit none
 !
       integer :: il1 , il2
       real(dp) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                   vegfrac , z0 , ustarnd
+                                   vegfrac , z0 , ustarnd, snowfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
       real(dp) , dimension(ilg,nats) :: ftex , alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
@@ -611,7 +613,7 @@ module mod_che_dust
       call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
  
       call emission(il1,il2,rhodust,ftex,alphaprop, uth,roarow,rc,utheff, &
-                    ustar,srel,rsfrow,trsize,vegfrac)
+                    ustar,srel,rsfrow,trsize,vegfrac,snowfrac)
  
     end subroutine dust_module
 ! 
@@ -633,13 +635,13 @@ module mod_che_dust
     end subroutine uthefft
 !
     subroutine emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc, &
-                        utheff,ustar,srel,rsfrow,trsize,vegfrac)
+                        utheff,ustar,srel,rsfrow,trsize,vegfrac,snowfrac)
  
       implicit none
 !
       integer :: il1 , il2
       real(dp) :: rhodust , uth
-      real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac
+      real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac, snowfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
       real(dp) , dimension(ilg,nats) :: ftex , alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
@@ -658,8 +660,9 @@ module mod_che_dust
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
       !
-      data const/d_one/, beta/16300.0D0/ 
- 
+      !data const/d_one/, beta/16300.0D0/ 
+      data const/d_half/, beta/16300.0D0/
+  
       p1 = d_zero
       p2 = d_zero
       p3 = d_zero
@@ -765,7 +768,7 @@ module mod_che_dust
         do nt = 1 , nats
           do i = il1 , il2
             rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
-                           (d_one - vegfrac(i)) 
+                           (d_one - vegfrac(i))*(d_one - snowfrac(i)) 
             ! * EBL(i)
             ! * (1-snowfrac)     
           end do
