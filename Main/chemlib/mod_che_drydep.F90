@@ -670,7 +670,6 @@ module mod_che_drydep
        lai_f(i) = lai(kcov,lmonth) + (lai(kcov,lmonth+1)- lai(kcov,lmonth))/30.D0 * dble(lday - 15)
       end if 
 
-      if(kcov==1)   print* , lmonth, lday, lai_f(i)
 
         if( lai_f(i) < d_zero)  lai_f(i) = d_zero 
         laimin(i) = lai(kcov,14)
