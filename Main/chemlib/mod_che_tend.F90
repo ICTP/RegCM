@@ -311,7 +311,7 @@
       ! dry deposition for SO2  is calculated also in non gaschem simulations
       if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo == 1 ) then
         do j = jci1 , jci2
-          call drydep_gas(j,calday, ivegcov(:,j),rh10(:,j),  &
+          call drydep_gas(j,calday,lmonth,lday, ivegcov(:,j),rh10(:,j),  &
                           srad(:,j),tsurf(:,j),prec(:,kz,j), &
                           temp10(:,j),wid10(:,j),zeff(:,j))
         end do

@@ -82,7 +82,7 @@ contains
 #if (defined VOC)
   subroutine emis_tend(ktau,j,lmonth,c2r_voc,bvoc_trmask)
 #else
-    subroutine emis_tend(ktau,j,lmonth)
+    subroutine emis_tend(ktau,j,lmonth,declin)
 #endif  
 #else
       !FAB: no dirunal evol for now:  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
