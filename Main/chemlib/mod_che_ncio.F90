@@ -227,12 +227,11 @@ module mod_che_ncio
       integer :: year, month 
 ! FAB: remember for now, we have 1 emission file containing all monthly
 ! emission for the whole simulation period
-! change that in the future. Also lmonth is not really necessary here,
-! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
-! all aggregations / lumping should in the future be done in emission preproc 
+! change that in the future.,
+
+ 
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
-!       aername = trim(dirglob)//pthsep//'RCP26_CO_emis.nc'
       print *, 'Opening ch. emission file ', trim(aername)
 
       istatus = nf90_open(aername, nf90_nowrite, ncid)
@@ -348,7 +347,11 @@ module mod_che_ncio
         end if
         ! Isoprene
         if ( iisop /= 0 ) then
-          call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_flux',.false.)
+          call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.)
+          !here use io3(never emuitted) to temporarily read anthropo isoprene and add to biogenic. Should be refined 
+          call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.)
+          echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
+          echemsrc(:,:,io3) = d_zero
         end if
         ! Toluene
         if ( itolue /= 0 ) then
@@ -369,6 +372,13 @@ module mod_che_ncio
           call rvar(ncid,istart,icount,imoh,echemsrc, &
                     'MOH_flux',.false.)
         end if           
+
+        !acids
+         if ( ircooh /= 0 ) then
+          call rvar(ncid,istart,icount,ircooh,echemsrc, &
+                    'RCOOH_flux',.false.)
+        end if
+
 
 !!$        ! DMS
 !!$        if ( idms /= 0 ) then
@@ -810,6 +820,11 @@ module mod_che_ncio
                     'tracer_burden', &
                     'trac bud ','mg.m-2', &
                     tyx,.false.,ichevar(9))
+          call ch_addvara(ncid,chevarnam,'chem_tend', &
+                    'chemical_prod_loss', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(10))
+
          else if ( itr == noutf ) then 
            ioptvar = -1
            ioptvar(1) = itvar
@@ -945,12 +960,12 @@ module mod_che_ncio
 !============================================================================
 
     subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc, &
-                             ddsfc,cemtrac,drydepv,ext,ssa,asp, aod,   &
+                             ddsfc,cemtrac,drydepv,chemdiag,ext,ssa,asp, aod,   &
                              tarf,ssrf,talwrf,srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
-      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia
+      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia,chemdiag
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         ddsfc , cemtrac , drydepv , dtrace
@@ -1069,9 +1084,37 @@ module mod_che_ncio
           call check_ok(__FILE__,__LINE__, &
                'Error writing trac burden '//ctime, 'CHE FILE ERROR')
 
+
+          !*** 3D tracer diagnostic : chemical productio/loss
+          istart(4) = icherec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(5) = 1
+          icount(4) = 1
+          icount(3) = o_nz
+          icount(2) = o_ni
+          icount(1) = o_nj
+
+          do k = 1 , kz
+            dumio(:,:,k) = real(chemdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(10), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing diag'//chtrname(n)//' at '//ctime,'CHE FILE ERROR')
+
+
+
+          !closing
           istatus = nf90_sync(ncche(n))
           call check_ok(__FILE__,__LINE__, &
                         'Error sync at '//ctime, 'CHE FILE ERROR')
+
+
+          
+
 
         else if ( n == noutf ) then 
 

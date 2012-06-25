@@ -83,7 +83,7 @@ module mod_cbmz_molwg
   real(dp) , parameter :: w_moh     = 32.040D0
   real(dp) , parameter :: w_eoh     = 46.070D0
   real(dp) , parameter :: w_benz    = 78.110D0
-
+  real(dp),  parameter :: w_rcooh   = 59.1D0
   real(dp) , parameter :: w_apin    = 136.230D0
   real(dp) , parameter :: w_limo    = 136.230D0
 

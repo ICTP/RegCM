@@ -109,6 +109,7 @@ module mod_che_start
     ieoh   =  0
     imoh   =  0
     iaco2  =  0
+    ircooh =  0
     ico2   =  0
     in2o   =  0
     ipar   =  0
@@ -226,6 +227,7 @@ module mod_che_start
       if ( chtrname(itr) == 'MOH'   ) imoh      = itr
       if ( chtrname(itr) == 'EOH'   ) ieoh      = itr
       if ( chtrname(itr) == 'ACO2'  ) iaco2     = itr
+      if ( chtrname(itr) == 'RCOOH'  ) ircooh     = itr
       if ( chtrname(itr) == 'CO2'   ) ico2      = itr
       if ( chtrname(itr) == 'DMS'   ) idms      = itr
       if ( chtrname(itr) == 'NOX'   ) inox      = itr

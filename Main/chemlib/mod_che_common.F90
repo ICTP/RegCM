@@ -46,7 +46,7 @@ module mod_che_common
   ! tracer variables
 
   real(dp) , pointer , dimension(:,:,:,:) :: chi
-  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten, chemten
+  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten, chemten,chemdiag
 !
   real(dp) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
@@ -124,7 +124,8 @@ module mod_che_common
         call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
         call getmem4d(chemten,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chemten')
-
+        call getmem4d(chemdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
         call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
                       1,ntr,'mod_che_common:chemsrc')
 
@@ -227,7 +228,7 @@ module mod_che_common
         write (aline,*) 'AERO simulation'
         call say
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
-        ntr = 25
+        ntr = 26
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','DMS   ','O3    ', &
                                  'NO2   ','NO    ','CO    ','H2O2  ', &
@@ -235,7 +236,7 @@ module mod_che_common
                                  'ISOP  ','C2H6  ','PAR   ','ACET  ', &
                                  'MOH   ','OLT   ','OLI   ','TOLUE ', &
                                  'XYL   ','ETHE  ','PAN   ','CH4   ', &
-                                 'NH3   '  /)
+                                 'RCOOH' ,'NH3   '  /)
         igaschem = 1
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say

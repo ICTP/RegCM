@@ -33,7 +33,7 @@ module mod_che_indices
   integer :: ico , ihcho , iald2 , iethe , ic2h6 , ic3h8
   integer :: iisop , itolue , ixyl , inh3 , ipan , in2o
   integer :: irooh , iacet , ibenz , ich4 , ico2
-  integer :: inox , ihox , isox , ieoh , imoh , iaco2
+  integer :: inox , ihox , isox , ieoh , imoh , iaco2, ircooh
   integer :: ipar , iolt , ioli
   integer :: iapin , ilimo
   integer :: ialk4, ialk7
@@ -72,7 +72,7 @@ module mod_che_indices
   integer , parameter :: ind_ald2   = 23 
   integer , parameter :: ind_acet   = 24 
   integer , parameter :: ind_aco2   = 25 
-  integer , parameter :: ind_rcoh   = 26
+  integer , parameter :: ind_rcooh   = 26
   integer , parameter :: ind_ethe   = 27 
   integer , parameter :: ind_prpe   = 28 
   integer , parameter :: ind_bute   = 29 

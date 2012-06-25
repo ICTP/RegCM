@@ -96,7 +96,9 @@ module mod_che_chemistry
           ! care here pressure4 is considered ???
           altmid(1) = (cpsb(j,i)*hlev(k)+chptop)
           temp(1) =   ctb3d(j,i,k)
-          zenith =    dacos(czen(j,i)*degrad)
+!     FAB:wth !     zenith =    dacos(czen(j,i)*degrad)
+          zenith =    dacos(czen(j,i))*raddeg
+
           dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
           deptha = d_zero
           depthb = d_zero
@@ -178,7 +180,7 @@ module mod_che_chemistry
           xrin(1,ind_CH4)  = chib3d(j,i,k,ich4)*cfactor/W_CH4
           xrin(1,ind_MOH)  = chib3d(j,i,k,imoh)*cfactor/W_MOH
           xrin(1,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
-
+          xrin(1,ind_rcooh) = chib3d(j,i,k,ircooh)*cfactor/W_RCOOH
           xr(:,:) = xrin(:,:)
 
           call chemmain
@@ -246,8 +248,14 @@ module mod_che_chemistry
             (xrout(1,ind_MOH)  - xrin(1,ind_MOH)) *pfact*W_MOH
           chemten(j,i,k,iacet)  = &
             (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
+          chemten(j,i,k,ircooh)  = &
+            (xrout(1,ind_RCOOH) - xrin(1,ind_RCOOH))*pfact*W_RCOOH
+
         end do ! end i , k loop
       end do
+
+        chemdiag(j,:,:,:) =  chemdiag(j,:,:,:) + chemten(j,:,:,:) *  dble(dtchsolv) / (3600D0 * dble(chfrq)) 
+
     end subroutine chemistry
 !
 end module mod_che_chemistry
