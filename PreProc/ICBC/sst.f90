@@ -94,6 +94,13 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
+  else if ( ssttyp == 'CS_RF' .or. ssttyp == 'CS_26' .or. &
+            ssttyp == 'CS_45' .or. ssttyp == 'CS_85' ) then
+    if (ical /= noleap ) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
   else if ( ssttyp == 'EC_RF' .or. ssttyp == 'EC_45' .or. &
             ssttyp == 'EC_85' ) then
     call sst_gnmnc
