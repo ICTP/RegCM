@@ -46,7 +46,7 @@ module mod_che_common
   ! tracer variables
 
   real(dp) , pointer , dimension(:,:,:,:) :: chi
-  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten, chemten,chemdiag
+  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten , chemten , chemdiag
 !
   real(dp) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
@@ -131,7 +131,6 @@ module mod_che_common
 
         call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
                       1,ntr,'mod_che_common:tmpsrc')
-
 
         call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
                       1,ntr,'mod_che_common:cchifxuw')
@@ -236,7 +235,7 @@ module mod_che_common
                                  'ISOP  ','C2H6  ','PAR   ','ACET  ', &
                                  'MOH   ','OLT   ','OLI   ','TOLUE ', &
                                  'XYL   ','ETHE  ','PAN   ','CH4   ', &
-                                 'RCOOH' ,'NH3   '  /)
+                                 'RCOOH ','NH3   ' /)
         igaschem = 1
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say

@@ -625,8 +625,8 @@ module mod_che_drydep
 !******************************************************************************
 !
 !
-    subroutine drydep_gas(j,ccalday,lmonth,lday,ivegcov,rh10,srad,tsurf,prec,temp10,  &
-                          wind10,zeff)
+    subroutine drydep_gas(j,ccalday,lmonth,lday,ivegcov,rh10,srad,tsurf, &
+                          prec,temp10,wind10,zeff)
 #ifdef CLM
 !     use clm_drydep, only : c2rvdep
 #endif
@@ -634,7 +634,7 @@ module mod_che_drydep
       implicit none
       integer , intent(in) :: j   
       real(dp) , intent(in) :: ccalday
-      integer, intent(in) :: lmonth,lday 
+      integer, intent(in) :: lmonth , lday 
       integer , intent(in) , dimension(ici1:ici2) :: ivegcov
       real(dp) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
@@ -648,8 +648,6 @@ module mod_che_drydep
       real(dp) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(dp) :: kd
 
-#ifndef CLM
-
       ! Different options for LAI and roughness 
       ! for the moment read from 
      
@@ -661,17 +659,16 @@ module mod_che_drydep
         else
           kcov = ivegcov(i)
         end if
-
-      im = lmonth -1
-      if (lmonth==1) im = 12 
-      if (lday <= 15 ) then
-       lai_f(i) = lai(kcov,im) + (lai(kcov,lmonth)- lai(kcov,im))/30.D0 * dble(15 + lday)  
-      else
-       lai_f(i) = lai(kcov,lmonth) + (lai(kcov,lmonth+1)- lai(kcov,lmonth))/30.D0 * dble(lday - 15)
-      end if 
-
-
-        if( lai_f(i) < d_zero)  lai_f(i) = d_zero 
+        im = lmonth - 1
+        if ( lmonth == 1 ) im = 12 
+        if (lday <= 15 ) then
+          lai_f(i) = lai(kcov,im) + (lai(kcov,lmonth) - &
+                     lai(kcov,im))/30.D0 * dble(15 + lday)  
+        else
+          lai_f(i) = lai(kcov,lmonth) + (lai(kcov,lmonth+1) - &
+                     lai(kcov,lmonth))/30.D0 * dble(lday - 15)
+        end if 
+        if ( lai_f(i) < d_zero) lai_f(i) = d_zero 
         laimin(i) = lai(kcov,14)
         laimax(i) = lai(kcov,15)
       end do 
@@ -737,7 +734,7 @@ module mod_che_drydep
            end do
          end do
        end if 
-#endif
+
 ! if CLM is used then use directly the clm dry dep module.
 #ifdef CLM
 

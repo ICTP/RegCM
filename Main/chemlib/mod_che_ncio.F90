@@ -348,7 +348,8 @@ module mod_che_ncio
         ! Isoprene
         if ( iisop /= 0 ) then
           call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.)
-          !here use io3(never emuitted) to temporarily read anthropo isoprene and add to biogenic. Should be refined 
+          ! here use io3(never emuitted) to temporarily read anthropo
+          ! isoprene and add to biogenic. Should be refined 
           call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.)
           echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
           echemsrc(:,:,io3) = d_zero
@@ -374,11 +375,10 @@ module mod_che_ncio
         end if           
 
         !acids
-         if ( ircooh /= 0 ) then
+        if ( ircooh /= 0 ) then
           call rvar(ncid,istart,icount,ircooh,echemsrc, &
                     'RCOOH_flux',.false.)
         end if
-
 
 !!$        ! DMS
 !!$        if ( idms /= 0 ) then
@@ -959,13 +959,13 @@ module mod_che_ncio
 
 !============================================================================
 
-    subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc, &
-                             ddsfc,cemtrac,drydepv,chemdiag,ext,ssa,asp, aod,   &
-                             tarf,ssrf,talwrf,srlwrf,ps,idate)
+    subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,ddsfc,cemtrac,drydepv, &
+                             chemdiag,ext,ssa,asp,aod,tarf,ssrf,talwrf,     &
+                             srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
-      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia,chemdiag
+      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , chemdiag
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         ddsfc , cemtrac , drydepv , dtrace
@@ -1084,7 +1084,6 @@ module mod_che_ncio
           call check_ok(__FILE__,__LINE__, &
                'Error writing trac burden '//ctime, 'CHE FILE ERROR')
 
-
           !*** 3D tracer diagnostic : chemical productio/loss
           istart(4) = icherec
           istart(3) = 1
@@ -1095,7 +1094,6 @@ module mod_che_ncio
           icount(3) = o_nz
           icount(2) = o_ni
           icount(1) = o_nj
-
           do k = 1 , kz
             dumio(:,:,k) = real(chemdiag(o_js:o_je,o_is:o_ie,k,n) / &
                                 ps(o_js:o_je,o_is:o_ie))
@@ -1103,18 +1101,12 @@ module mod_che_ncio
           istatus = nf90_put_var(ncche(n), ichevar(10), &
                                  dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing diag'//chtrname(n)//' at '//ctime,'CHE FILE ERROR')
-
-
+               'Error writing chemdiag at '//ctime,'CHE FILE ERROR')
 
           !closing
           istatus = nf90_sync(ncche(n))
           call check_ok(__FILE__,__LINE__, &
                         'Error sync at '//ctime, 'CHE FILE ERROR')
-
-
-          
-
 
         else if ( n == noutf ) then 
 

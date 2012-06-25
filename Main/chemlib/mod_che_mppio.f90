@@ -42,7 +42,7 @@ module mod_che_mppio
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
   real(dp) , pointer , dimension(:,:,:) :: chemsrc_io
-  real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io, chemdiag_io
+  real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io
 !
 ! Boundary conditions arrays
 !
@@ -126,7 +126,6 @@ module mod_che_mppio
 
           call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chemdiag_io')
-
 
           call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                         1,nats,'che_mppio:dustsotex_io')

@@ -95,10 +95,8 @@ module mod_che_chemistry
         do i = ici1 , ici2
           ! care here pressure4 is considered ???
           altmid(1) = (cpsb(j,i)*hlev(k)+chptop)
-          temp(1) =   ctb3d(j,i,k)
-!     FAB:wth !     zenith =    dacos(czen(j,i)*degrad)
-          zenith =    dacos(czen(j,i))*raddeg
-
+          temp(1) = ctb3d(j,i,k)
+          zenith = dacos(czen(j,i))*raddeg
           dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
           deptha = d_zero
           depthb = d_zero
@@ -250,11 +248,11 @@ module mod_che_chemistry
             (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
           chemten(j,i,k,ircooh)  = &
             (xrout(1,ind_RCOOH) - xrin(1,ind_RCOOH))*pfact*W_RCOOH
-
         end do ! end i , k loop
       end do
 
-        chemdiag(j,:,:,:) =  chemdiag(j,:,:,:) + chemten(j,:,:,:) *  dble(dtchsolv) / (3600D0 * dble(chfrq)) 
+      chemdiag(j,:,:,:) = chemdiag(j,:,:,:) + &
+              chemten(j,:,:,:) * dble(dtchsolv) / (3600D0 * dble(chfrq)) 
 
     end subroutine chemistry
 !

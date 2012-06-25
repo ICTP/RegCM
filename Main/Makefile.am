@@ -133,7 +133,7 @@ mod_cu_interface.o: mod_cu_interface.f90 mod_constants.mod mod_realkinds.mod mod
 mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.mod mod_atm_interface.o mod_che_interface.o mod_domain.mod mod_memutil.mod mod_mppparam.mod mod_mppio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.mod mod_mppparam.mod mod_service.mod
-mod_header.o: mod_header.F90 mod_constants.mod mod_realkinds.mod mod_date.mod
+mod_header.o: mod_header.F90 regcm.o mod_constants.mod mod_realkinds.mod mod_date.mod
 if DO_COMPILE_LIBCLM
 mod_init.o: mod_init.F90 mod_runparams.mod mod_mppparam.mod mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.mod rrtmg_lw_init.mod mod_pbl_interface.mod mod_precip.o mod_bdycod.o mod_mpmessage.mod mod_sun.o mod_ncio.o mod_savefile.o mod_diagnosis.o mod_mppio.o mod_slice.o mod_constants.mod mod_clm.mod mod_lm_interface.mod clm_varsur.mod
 else

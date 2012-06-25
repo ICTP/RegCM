@@ -110,15 +110,19 @@ module mod_che_dust
 
   contains 
 !
-    subroutine allocate_mod_che_dust 
+    subroutine allocate_mod_che_dust(ichem)
       implicit none
-      call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
-      call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')
-      call getmem3d(sand2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:sand2row2')
-      call getmem3d(silt2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:silt2row2')
-      call getmem2d(clayrow2,ici1,ici2,jci1,jci2,'che_dust:clayrow2')
-      call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
-      call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats,'che_dust:srel2d')
+      integer , intent(in) :: ichem
+      if ( ichem == 1 ) then
+        call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
+        call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')
+        call getmem3d(sand2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:sand2row2')
+        call getmem3d(silt2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:silt2row2')
+        call getmem2d(clayrow2,ici1,ici2,jci1,jci2,'che_dust:clayrow2')
+        call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
+        call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats, &
+                      'che_dust:srel2d')
+      end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
 !
@@ -436,8 +440,8 @@ module mod_che_dust
       real(dp) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
       real(dp) , intent(in) , dimension(nbin,2) :: trsize
 !
-      real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
-                                   xsurfwd , xvegfrac , xz0 , xustarnd, xsnowfrac
+      real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
+                xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
       real(dp) , dimension(ilg,nbin) :: xrsfrow
       real(dp) , dimension(ilg,nats) :: xftex , xalphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
@@ -525,7 +529,7 @@ module mod_che_dust
 !
       integer :: il1 , il2
       real(dp) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                   vegfrac , z0 , ustarnd, snowfrac
+                                   vegfrac , z0 , ustarnd , snowfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
       real(dp) , dimension(ilg,nats) :: ftex , alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
@@ -641,7 +645,7 @@ module mod_che_dust
 !
       integer :: il1 , il2
       real(dp) :: rhodust , uth
-      real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac, snowfrac
+      real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac , snowfrac
       real(dp) , dimension(ilg,nbin) :: rsfrow
       real(dp) , dimension(ilg,nats) :: ftex , alphaprop
       real(dp) , dimension(ilg,nsoil,nats) :: srel
@@ -660,8 +664,9 @@ module mod_che_dust
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
       !
-      !data const/d_one/, beta/16300.0D0/ 
-      data const/d_half/, beta/16300.0D0/
+      !data const /d_one/
+      data const /d_half/
+      data beta  /16300.0D0/
   
       p1 = d_zero
       p2 = d_zero

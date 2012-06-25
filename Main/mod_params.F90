@@ -787,7 +787,7 @@ module mod_params
 
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)
-  call allocate_mod_che_dust
+  call allocate_mod_che_dust(ichem)
   call allocate_mod_che_bdyco
 !
 !-----------------------------------------------------------------------
