@@ -122,7 +122,7 @@ module mod_sst_gnmnc
     varname(2) = 'tos'
   else if ( ssttyp == "CS_RF" ) then
    inpfile = trim(inpglob)// &
-         '/SST/os_Omon_CSIRO-Mk3-6-0_historical_r1i1p1_185001-200512.nc'
+         '/SST/tos_Omon_CSIRO-Mk3-6-0_historical_r1i1p1_185001-200512.nc'
     varname(2) = 'tos'
   else if ( ssttyp == "CS_26" ) then
     inpfile = trim(inpglob)//'/SST/tos_Omon_CSIRO-Mk3-6-0_rcp26_r1i1p1_200601-210012.nc'
