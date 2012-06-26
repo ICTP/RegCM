@@ -665,7 +665,8 @@ module mod_che_dust
       ! Put const consistent with soil parameters and Laurent et al., 08
       !
       !data const /d_one/
-      data const /d_half/
+      !data const /d_half/
+      data const /0.4D0/
       data beta  /16300.0D0/
   
       p1 = d_zero

@@ -280,34 +280,34 @@ module mod_che_start
           ichbdy2trac(i) = isslt(i)
         end do
       case ('CARB')        
-        ichbdy2trac(1)  = iochb
-        ichbdy2trac(2)  = iochl
-        ichbdy2trac(3)  = ibchb
-        ichbdy2trac(4)  = ibchl
+        ichbdy2trac(1)  = ibchb
+        ichbdy2trac(2)  = ibchl
+        ichbdy2trac(3)  = iochb
+        ichbdy2trac(4)  = iochl
       case ('SULF')
         ichbdy2trac(1) = iso2
         ichbdy2trac(2) = iso4
       case ('SUCA')
-        ichbdy2trac(1)  = iochb
-        ichbdy2trac(2)  = iochl
-        ichbdy2trac(3)  = ibchb
-        ichbdy2trac(4)  = ibchl
+        ichbdy2trac(1)  = ibchb
+        ichbdy2trac(2)  = ibchl
+        ichbdy2trac(3)  = iochb
+        ichbdy2trac(4)  = iochl
         ichbdy2trac(5) = iso2
         ichbdy2trac(6) = iso4
       case ('AERO')
-        ichbdy2trac(1)  = iochb
-        ichbdy2trac(2)  = iochl
-        ichbdy2trac(3)  = ibchb
-        ichbdy2trac(4)  = ibchl
+        ichbdy2trac(1)  = ibchb
+        ichbdy2trac(2)  = ibchl
+        ichbdy2trac(3)  = iochb
+        ichbdy2trac(4)  = iochl
         ichbdy2trac(5) = iso2
         ichbdy2trac(6) = iso4
         itr = 6
-        do i = 1 , ibin
-          ichbdy2trac(itr+i) = idust(i)
-        end do
-        itr = itr + ibin
         do i = 1 , jbin
           ichbdy2trac(itr+i) = isslt(i)
+        end do
+        itr = itr + jbin
+        do i = 1 , ibin
+          ichbdy2trac(itr+i) = idust(i)
         end do
       case ('CBMZ')
         ichbdy2trac(1)  = io3
