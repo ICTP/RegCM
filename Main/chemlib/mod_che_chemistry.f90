@@ -102,7 +102,7 @@ module mod_che_chemistry
           depthb = d_zero
           altabove= d_zero
           altbelow= d_zero
-          if ( 1 == 2 ) then             
+          if ( 1 == 1 ) then             
             if ( k ==  1 ) then
               ! (add the half layer ctaucld, should be no cloud in this layer ) 
               deptha =  ctaucld(j,i,k,8) *d_half

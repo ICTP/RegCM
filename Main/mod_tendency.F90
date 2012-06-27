@@ -564,6 +564,14 @@ module mod_tendency
     aten%qv(:,:,:) = d_zero
     aten%qc(:,:,:) = d_zero
 !
+    if (ichem == 1) then 
+! intialise also tracer tendency  
+      chiten(:,:,:,:) = d_zero
+      chiten0(:,:,:,:) = d_zero
+!      !accumulation factor for diagnostics 
+!      cdiagf =  dble(dtche) / (3600D0 * dble(chfrq))* d_half
+   end if 
+
 !   compute the horizontal advection term:
 !
     call hadv(cross,aten%t,atmx%t,kz,1)
@@ -622,12 +630,15 @@ module mod_tendency
         end if
       end if
     end if
-    !
+
     ! Zero out radiative clouds
     !
     cldfra(:,:,:) = d_zero
     cldlwc(:,:,:) = d_zero
 
+    ! conv tracer diagnostic
+    if (ichem ==1 .and. ichdiag == 1) chiten0 = chiten
+    
     if ( icup == 1 ) then
       call cupara(ktau)
     end if
@@ -643,6 +654,9 @@ module mod_tendency
     if ( icup == 5 ) then
       call tiedtkedrv(ktau)
     end if
+   
+    if (ichem ==1 .and. ichdiag == 1)  cconvdiag =  cconvdiag + (chiten - chiten0) * cdiagf
+
 ! save cumulus cloud fraction for chemistry before it is overwritten in cldfrac 
     if (ichem==1) convcldfra(:,:,:) =  cldfra(:,:,:)  
 
@@ -681,14 +695,14 @@ module mod_tendency
 !
     if ( ichem == 1 ) then
       !
-      ! TRANSPORT OF TRACERS : initialize tracer tendencies
+      ! horizontal and vertical advection + diag
       !
-      chiten(:,:,:,:) = d_zero
-      !
-      ! horizontal and vertical advection
-      !
+      if (ichdiag==1) chiten0 =  chiten
       call hadv(chiten,chi,kz)
+      if (ichdiag==1) cadvhdiag =  cadvhdiag + (chiten - chiten0) * cdiagf
+  
 
+       if (ichdiag==1) chiten0 =  chiten
       if ( icup /= 1 ) then
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
           call vadv(chiten,chia,kz,5)
@@ -700,9 +714,12 @@ module mod_tendency
           end if
         end if
       end if
+       if (ichdiag==1) cadvvdiag =  cadvvdiag + (chiten - chiten0) * cdiagf
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
-      call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
+       if (ichdiag==1)  chiten0 =  chiten
+       call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
+       if (ichdiag==1) cdifhdiag =  cdifhdiag + (chiten - chiten0) * cdiagf 
       !
       ! Compute chemistry tendencies (other than transport)
       !
@@ -792,6 +809,9 @@ module mod_tendency
 !
 !   Call medium resolution PBL
 !
+!   
+    if (ichem == 1 .and. ichdiag==1 )   chiten0 =  chiten
+
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
       call uwtcm
@@ -813,6 +833,8 @@ module mod_tendency
       aten%qc = aten%qc + holtten%qc
     end if
 !
+    if (ichem ==1  .and. ichdiag==1 )  ctbldiag =  ctbldiag + (chiten - chiten0) * cdiagf 
+
 !   add ccm radiative transfer package-calculated heating rates to
 !   temperature tendency
 !
@@ -897,11 +919,14 @@ module mod_tendency
     end if
 !
     if ( ichem == 1 ) then
+
+       if (ichdiag==1) chiten0 = chiten
       ! keep nudge_chi for now 
       if ( iboudy == 1 .or. iboudy == 5 ) then
         xtm1 = xbctime - dtsec
         call nudge_chi(kz,cba_cr,xtm1,chib,chiten)
       end if
+      if (ichdiag==1)  cbdydiag = cbdydiag + (chiten0 - chiten) * cdiagf
     end if
 !
 !   forecast t, qv, and qc at tau+1:
@@ -1373,9 +1398,10 @@ module mod_tendency
       if ( ichem == 1 ) call tracdiag(xkc)
     end if
     !
-    ! do cumulus transport of tracers
+    ! do cumulus transport/mixing  of tracers (grell
     !
-    if ( ichem == 1 .and. ichcumtra == 1 .and. icup /= 5 ) call cumtran
+    if ( ichem == 1 .and. ichcumtra == 1 .and. icup /= 5 )  call cumtran
+   
     ! 
     ! trace the mass conservation of dry air and water substance:
     !

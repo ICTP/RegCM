@@ -68,29 +68,82 @@ module mod_che_output
       call deco1_gather(chemdiag,chemdiag_io,jcross1,jcross2, &
                         icross1,icross2,1,kz,1,ntr)
 
+      call deco1_gather(cadvhdiag,cadvhdiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+        call deco1_gather(cadvvdiag,cadvvdiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+       call deco1_gather(cdifhdiag,cdifhdiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+
+        call deco1_gather(cconvdiag,cconvdiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+
+        call deco1_gather(cbdydiag,cbdydiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+         call deco1_gather(ctbldiag,ctbldiag_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+      
+        
+          call deco1_gather(remcvc,remcvc_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+         
+         
+          call deco1_gather(remlsc,remlsc_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,ntr)
+         
+
+ 
+
+
       call outche2(idatex) 
 
       ! put back to zero accumulated variables
+
+     
+      cemtr(:,:,:) = d_zero
+      remdrd(:,:,:) = d_zero
+      chemdiag(:,:,:,:) = d_zero
+      drydepv(:,:,:) = d_zero
+      cemtrac(:,:,:) = d_zero
 
       remlsc(:,:,:,:) = d_zero
       remcvc(:,:,:,:) = d_zero
       rxsg(:,:,:,:) = d_zero
       rxsaq1(:,:,:,:) = d_zero
       rxsaq2(:,:,:,:) = d_zero
-      cemtr(:,:,:) = d_zero
-      remdrd(:,:,:) = d_zero
-      chemdiag(:,:,:,:) = d_zero
-      drydepv(:,:,:) = d_zero
-      cemtrac(:,:,:) = d_zero
+
       wxaq(:,:,:) = d_zero
       wxsg(:,:,:) = d_zero
       ddsfc(:,:,:) = d_zero
       wdcvc(:,:,:) = d_zero
       wdlsc(:,:,:) = d_zero
+      
+      cadvhdiag(:,:,:,:) = d_zero
+      cadvvdiag(:,:,:,:) = d_zero
+      cdifhdiag(:,:,:,:) = d_zero
+      cconvdiag(:,:,:,:) = d_zero
+      cbdydiag(:,:,:,:) = d_zero
+      ctbldiag (:,:,:,:) = d_zero 
+
       aertarf(:,:) = d_zero
       aersrrf(:,:) = d_zero
       aertalwrf(:,:) = d_zero
       aersrlwrf(:,:) = d_zero
+
+
+
+
+
+
+
+
+
+
 !
     end subroutine output_chem
 !----------------------------------------------------------------
@@ -103,7 +156,10 @@ module mod_che_output
       if ( myid == 0 ) then 
         aeraod_io = sum(aerext_io,3)
         call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,ddsfc_io, &
-              cemtrac_io,drydepv_io,chemdiag_io,aerext_io,aerssa_io,     &
+              cemtrac_io,drydepv_io,chemdiag_io,                         &
+              cadvhdiag_io, cadvvdiag_io, cdifhdiag_io, cconvdiag_io, cbdydiag_io, ctbldiag_io,  &
+              remlsc_io,remcvc_io,                                      &
+              aerext_io,aerssa_io,                                       &
               aerasp_io,aeraod_io,aertarf_io,aersrrf_io,aertalwrf_io,    &
               aersrlwrf_io,cpsb_io,idatex)
         write (*,*) 'CHE variables written at ' , tochar(idatex) 

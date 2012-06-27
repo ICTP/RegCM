@@ -397,13 +397,15 @@
           do i = ici1 , ici2
             do j = jci1 , jci2
               dtrace(j,i,itr) = dtrace(j,i,itr) + chia(j,i,k,itr)*cdsigma(k)
-              wdlsc(j,i,itr) = wdlsc(j,i,itr) + remlsc(j,i,k,itr)*cdsigma(k)
-              wdcvc(j,i,itr) = wdcvc(j,i,itr) + remcvc(j,i,k,itr)*cdsigma(k)
-              wxsg(j,i,itr) = wxsg(j,i,itr) + rxsg(j,i,k,itr)*cdsigma(k)
+              ! here change the sign convention to have a positive deposition flux ( when the tend is negative)  
+              wdlsc(j,i,itr) = wdlsc(j,i,itr) - remlsc(j,i,k,itr)*cdsigma(k) 
+              wdcvc(j,i,itr) = wdcvc(j,i,itr) - remcvc(j,i,k,itr)*cdsigma(k)
+
+!              wxsg(j,i,itr) = wxsg(j,i,itr) + rxsg(j,i,k,itr)*cdsigma(k)
               ! sum ls and conv contribution
-              wxaq(j,i,itr) = wxaq(j,i,itr)                             &
-                            & + (rxsaq1(j,i,k,itr)+rxsaq2(j,i,k,itr))   &
-                            & *cdsigma(k)
+!              wxaq(j,i,itr) = wxaq(j,i,itr)                             &
+!                            & + (rxsaq1(j,i,k,itr)+rxsaq2(j,i,k,itr))   &
+!                            & *cdsigma(k)
             end do
           end do
         end do

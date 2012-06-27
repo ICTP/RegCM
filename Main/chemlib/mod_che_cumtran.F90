@@ -35,6 +35,8 @@ module mod_che_cumtran
     implicit none
     real(dp) :: chiabar , chibbar , deltas , cumfrc
     integer :: i , j , k , kctop , n
+
+    if (ichdiag ==1) chiten0 = chia 
     do n = 1 , ntr
       do j = jci1 , jci2
         do i = ici1 , ici2
@@ -58,6 +60,9 @@ module mod_che_cumtran
         end do
       end do
     end do
+    !here calculate a pseudo tendency / factor 2 is added since we are out of leap frog 
+    if (ichdiag==1) cconvdiag = cconvdiag + ( (chiten0 - chia) / dtche ) * d_two * cdiagf 
+
   end subroutine cumtran
 !
 end module mod_che_cumtran

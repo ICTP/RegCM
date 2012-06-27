@@ -534,9 +534,9 @@ module mod_che_wetdep
           chiten(j,ici1:ici2,k,itr) = chiten(j,ici1:ici2,k,itr) - &
                                       temp_dep(:)/delt 
           remcvc(j,ici1:ici2,k,itr) = remcvc(j,ici1:ici2,k,itr) + &
-                                      temp_dep(:)/d_two
+                                      temp_dep(:)*cdiagf
           remlsc(j,ici1:ici2,k,itr) = remlsc(j,ici1:ici2,k,itr) + &
-                                      temp_dep(:)/d_two
+                                      temp_dep(:)*cdiagf
         end if
       end do tracer_loop1
     end do level_loop2
@@ -592,8 +592,9 @@ module mod_che_wetdep
                    (dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dtche
-                remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) - &
-                   wetrem(indp(n))/d_two
+                ! save the tendency as a diag 
+                remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
+                   wetrem(indp(n))/dtche  *cdiagf
               end if
             end if
           end do
@@ -611,8 +612,9 @@ module mod_che_wetdep
                    chib(j,i,k,indp(n))*(dexp(-remcum*dtche)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/dtche
-              remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - &
-                   wetrem_cvc(indp(n))/d_two
+         !save the tendency as a diag 
+              remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) + &
+                   wetrem_cvc(indp(n))/ dtche *cdiagf
             end do
           end if
         end do
@@ -646,8 +648,8 @@ module mod_che_wetdep
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
           ! wet deposition diagnostic, adding to rainout contribution ! 
           ! nod differenciation between conv and large scale yet
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) + wtend*dtche/d_two
-          remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + wtend*dtche/d_two
+          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf
+          remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) - wtend * cdiagf
         end do
       end do
     end do

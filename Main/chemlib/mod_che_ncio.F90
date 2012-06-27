@@ -820,10 +820,65 @@ module mod_che_ncio
                     'tracer_burden', &
                     'trac bud ','mg.m-2', &
                     tyx,.false.,ichevar(9))
+
+          if ( ichdiag == 1) then
+
           call ch_addvara(ncid,chevarnam,'chem_tend', &
                     'chemical_prod_loss', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(10))
+
+
+          
+          call ch_addvara(ncid,chevarnam,'advh_tend', &
+                    'advect. hor. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(11))
+
+
+
+          call ch_addvara(ncid,chevarnam,'advv_tend', &
+                    'advec. ver. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(12))
+
+           
+
+          call ch_addvara(ncid,chevarnam,'difh_tend', &
+                    'diff. hor. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(13))
+
+
+
+          call ch_addvara(ncid,chevarnam,'conv_tend', &
+                    'convec_tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(14))
+
+
+
+          call ch_addvara(ncid,chevarnam,'tubl_tend', &
+                    'turb. vert. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(15))
+
+                    call ch_addvara(ncid,chevarnam,'remlsc_tend', &
+                    'large scal prc removal tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(16))
+
+                    call ch_addvara(ncid,chevarnam,'remcvc_tend', &
+                    'conv scale prc removal tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(17))
+
+          call ch_addvara(ncid,chevarnam,'bdyc_tend', &
+                    'bdy. cond. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(18))
+           end if
+
 
          else if ( itr == noutf ) then 
            ioptvar = -1
@@ -960,12 +1015,15 @@ module mod_che_ncio
 !============================================================================
 
     subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,ddsfc,cemtrac,drydepv, &
-                             chemdiag,ext,ssa,asp,aod,tarf,ssrf,talwrf,     &
+                             chemdiag, cadvhdiag, cadvvdiag, cdifhdiag, cconvdiag, cbdydiag, ctbldiag, &
+                              remlsc,remcvc,        &  
+                             ext,ssa,asp,aod,tarf,ssrf,talwrf,     &
                              srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
-      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , chemdiag
+      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , chemdiag, &
+                     cadvhdiag, cadvvdiag, cdifhdiag, cconvdiag, cbdydiag, ctbldiag, remlsc,remcvc  
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         ddsfc , cemtrac , drydepv , dtrace
@@ -1043,14 +1101,14 @@ module mod_che_ncio
           cfd2 = dtche / (chemfrq *3600.0D0)
 
           !*** wet deposition from large-scale precip
-          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)*cfd)
+          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)* 86400.D0)
           istatus = nf90_put_var(ncche(n), ichevar(4), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
 
           !*** wet deposition from convective precip
-          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)*cfd)
+          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)* 86400.D0)
           istatus = nf90_put_var(ncche(n), ichevar(5), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
@@ -1084,6 +1142,9 @@ module mod_che_ncio
           call check_ok(__FILE__,__LINE__, &
                'Error writing trac burden '//ctime, 'CHE FILE ERROR')
 
+
+          if (ichdiag==1 ) then 
+
           !*** 3D tracer diagnostic : chemical productio/loss
           istart(4) = icherec
           istart(3) = 1
@@ -1102,6 +1163,95 @@ module mod_che_ncio
                                  dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'Error writing chemdiag at '//ctime,'CHE FILE ERROR')
+
+
+          do k = 1 , kz
+            dumio(:,:,k) = real(cadvhdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(11), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing cadvhdiag at '//ctime,'CHE FILE ERROR')
+
+
+         
+          do k = 1 , kz
+            dumio(:,:,k) = real(cadvvdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(12), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing cadvvdiag at '//ctime,'CHE FILE ERROR')
+
+
+
+             do k = 1 , kz
+            dumio(:,:,k) = real(cdifhdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(13), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing cdifhdiag at '//ctime,'CHE FILE ERROR')
+
+
+
+           
+             do k = 1 , kz
+            dumio(:,:,k) = real(cconvdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(14), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing cconvdiag at '//ctime,'CHE FILE ERROR')
+
+          
+             do k = 1 , kz
+            dumio(:,:,k) = real(ctbldiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(15), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing ctbldiag at '//ctime,'CHE FILE ERROR')
+
+  
+
+                     
+             do k = 1 , kz
+            dumio(:,:,k) = real(remlsc(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(16), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing remlsc at '//ctime,'CHE FILE ERROR')
+
+        
+             do k = 1 , kz
+            dumio(:,:,k) = real(remcvc(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(17), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing remcvc at '//ctime,'CHE FILE ERROR')
+
+
+
+              do k = 1 , kz
+            dumio(:,:,k) = real(cbdydiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(18), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+               'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
+ 
+          end if 
 
           !closing
           istatus = nf90_sync(ncche(n))

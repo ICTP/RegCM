@@ -348,8 +348,9 @@ module mod_che_start
     ! if ( .not.allocated(chevap) ) allocate(chevap(iy,kz))
     ! if ( .not.allocated(checum) ) allocate(checum(iy,kz))
 
-    !*** Initialize record read counter for CH EMISSI (see mod_che_ncio.F90)
-    recc = 0
+    !*** Initialize accumulation factor for output diagnostics 
+    ! (see mod_che_ncio.F90) . Care to the 0.5 factor added (leap frog related)
+     cdiagf =  dble(dtche) / (3600D0 * dble(chfrq))* d_half
 
     if ( igaschem == 1 ) then
       open( 26,file='TUVGRID2', status='old', err=900)
