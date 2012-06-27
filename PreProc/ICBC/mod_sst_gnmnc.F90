@@ -529,7 +529,7 @@ module mod_sst_gnmnc
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon
-      if (work2(i,j) < 0.9E+20) then
+      if (work2(i,j) < 0.9E+20 .and. work3(i,j) < 0.9E+20 ) then
         sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
       else
         sst(i,j) = -9999.0
