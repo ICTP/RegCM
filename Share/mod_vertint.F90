@@ -27,7 +27,7 @@ module mod_vertint
   private
 
   real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
-  real(sp) , parameter :: rglr = real(rgas*lrate)
+  real(sp) , parameter :: rglr = -real(rgas*lrate)
   real(sp) , parameter :: b1 = -real(egrav/lrate)
   real(sp) , parameter :: rbltop = real(bltop)
   real(sp) , parameter :: psccm = 100.0
@@ -256,7 +256,6 @@ module mod_vertint
             fp(i,j,n) = f(i,j,km)
           else if ( sigp > 1. ) then
             fp(i,j,n) = f(i,j,kbc)*exp(+rglr*log(sigp/sig(kbc))*real(regrav))
-!               ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
           else
           end if
         end do
@@ -321,7 +320,6 @@ module mod_vertint
           fp(i,j,n) = f(i,j,km)
         else if ( sigp > 1. ) then
           fp(i,j,n) = f(i,j,kbc)*exp(rglr*log(sigp/sig(kbc))*real(regrav))
-!             ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
         else
         end if
       end do
