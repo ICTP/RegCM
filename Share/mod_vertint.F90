@@ -27,7 +27,8 @@ module mod_vertint
   private
 
   real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
-  real(sp) , parameter :: rglr = -real(rgas*lrate)
+  ! lrate is defined as a positive constant.
+  real(sp) , parameter :: rglr = real(rgas*lrate)
   real(sp) , parameter :: b1 = -real(egrav/lrate)
   real(sp) , parameter :: rbltop = real(bltop)
   real(sp) , parameter :: psccm = 100.0
