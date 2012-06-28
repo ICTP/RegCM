@@ -42,8 +42,9 @@ module mod_che_mppio
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
   real(dp) , pointer , dimension(:,:,:) :: chemsrc_io
-  real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io, &
-                                       cadvhdiag_io, cadvvdiag_io, cdifhdiag_io, cconvdiag_io, cbdydiag_io, ctbldiag_io 
+  real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io , &
+    cadvhdiag_io , cadvvdiag_io , cdifhdiag_io , cconvdiag_io , cbdydiag_io ,  &
+    ctbldiag_io 
 
 !
 ! Boundary conditions arrays
@@ -126,9 +127,6 @@ module mod_che_mppio
           call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chib_io')
 
-
-
-
           call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                         1,nats,'che_mppio:dustsotex_io')
 
@@ -149,27 +147,22 @@ module mod_che_mppio
           call getmem2d(aeraod_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:aeraod_io')
          
-          if (ichdiag==1 ) then
-
-          call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:chemdiag_io')
-
-        call getmem4d(cadvhdiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:cadvhdiag_io')
-        call getmem4d(cadvvdiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:cadvvdiag_io')
-        call getmem4d(cdifhdiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:cdifhdiag_io')
-        call getmem4d(cconvdiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:cconvdiag_io')
-        call getmem4d(ctbldiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:ctbldiag_io')
-        call getmem4d(cbdydiag_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:cbdydiag_io')
-
-        end if 
-
-
+          if ( ichdiag == 1 ) then
+            call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:chemdiag_io')
+            call getmem4d(cadvhdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cadvhdiag_io')
+            call getmem4d(cadvvdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cadvvdiag_io')
+            call getmem4d(cdifhdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cdifhdiag_io')
+            call getmem4d(cconvdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cconvdiag_io')
+            call getmem4d(ctbldiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:ctbldiag_io')
+            call getmem4d(cbdydiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cbdydiag_io')
+          end if 
         end if
       end if
     end subroutine allocate_mod_che_mppio

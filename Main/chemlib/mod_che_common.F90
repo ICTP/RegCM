@@ -39,14 +39,14 @@ module mod_che_common
   ! chemistry nameliste option
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , &
                       ichremlsc , ichsursrc , ichsolver , &
-                      ichdustemd, ichdiag
+                      ichdustemd , ichdiag
   ! usefull flags
   integer :: iaerosol , igaschem , ioxclim
   
   ! tracer variables
 
   real(dp) , pointer , dimension(:,:,:,:) :: chi
-  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten ,chiten0, chemten 
+  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten 
 !
   real(dp) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
@@ -68,13 +68,14 @@ module mod_che_common
 !
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
-  real(dp) , pointer , dimension(:,:,:) :: convcldfra,cemtr , cemtrac , remdrd
+  real(dp) , pointer , dimension(:,:,:) :: convcldfra , cemtr , cemtrac , remdrd
 
 !diagnostic
   real(dp) :: cdiagf
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(dp) , pointer , dimension(:,:,:,:) :: chemdiag, cadvhdiag, cadvvdiag, cdifhdiag, cconvdiag, cbdydiag, ctbldiag  
+  real(dp) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
+          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag  
 
 
 !*****************************************************************************
@@ -126,7 +127,8 @@ module mod_che_common
                       ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
         call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
         call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
-         call getmem4d(chiten0,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
+        call getmem4d(chiten0,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                      'che_common:chiten0')
         call getmem4d(chemten,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chemten')
 
@@ -174,26 +176,22 @@ module mod_che_common
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
 
-
-        
-        if (ichdiag == 1) then 
-        call getmem4d(chemdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
-        call getmem4d(cadvhdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cadvhdiag')
-        call getmem4d(cadvvdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cadvvdiag')
-        call getmem4d(cdifhdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cdifhdiag')
-        call getmem4d(cconvdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cconvdiag')
-        call getmem4d(ctbldiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
-        call getmem4d(cbdydiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
-
+        if ( ichdiag == 1 ) then 
+          call getmem4d(chemdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
+          call getmem4d(cadvhdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cadvhdiag')
+          call getmem4d(cadvvdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cadvvdiag')
+          call getmem4d(cdifhdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cdifhdiag')
+          call getmem4d(cconvdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cconvdiag')
+          call getmem4d(ctbldiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
+          call getmem4d(cbdydiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
         end if 
-
       end if
     end subroutine allocate_mod_che_common
 !

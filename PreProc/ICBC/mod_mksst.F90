@@ -56,8 +56,11 @@ module mod_mksst
     integer , dimension(3) :: istart , icount
     character(64) :: timeunits , timecal
     integer :: i , j , irec
+    integer :: iyy , im , id , ih
     type(rcm_time_interval) :: ks1 , ks2
     real(sp) :: wt
+
+    call split_idate(idate,iyy,im,id,ih)
 
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
@@ -150,8 +153,16 @@ module mod_mksst
                 end if
               end if
             else
-              ! Find nearest water points
-              tsccm(j,i) = nearn(j,i,work1)
+              ! If latitude is greater than 70 and month is in winter,
+              ! assume ice coverage if missing
+              if ( xlat(j,i) > 55.0 .and. ( im > 9 .or. im < 4 ) ) then
+                tsccm(j,i) = 271.0
+              else if ( xlat(j,i) < -55.0 .and. ( im > 5 .and. im < 9 ) ) then
+                tsccm(j,i) = 271.0
+              else
+                ! Find nearest water points
+                tsccm(j,i) = nearn(j,i,work1)
+              end if
             end if
           end if
         end do
@@ -187,8 +198,16 @@ module mod_mksst
                 end if
               end if
             else
-              ! Find nearest water points
-              tsccm(j,i) = nearn(j,i,work1)*wt + (1.0-wt)*nearn(j,i,work2)
+              ! If latitude is greater than 70 and month is in winter,
+              ! assume ice coverage if missing
+              if ( xlat(j,i) > 55.0 .and. ( im > 9 .or. im < 4 ) ) then
+                tsccm(j,i) = 271.0
+              else if ( xlat(j,i) < -55.0 .and. ( im > 5 .and. im < 9 ) ) then
+                tsccm(j,i) = 271.0
+              else
+                ! Find nearest water points
+                tsccm(j,i) = nearn(j,i,work1)*wt + (1.0-wt)*nearn(j,i,work2)
+              end if
             end if
           end if
         end do

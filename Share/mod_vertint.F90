@@ -28,7 +28,7 @@ module mod_vertint
 
   real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
   ! lrate is defined as a positive constant.
-  real(sp) , parameter :: rglr = real(rgas*lrate)
+  real(sp) , parameter :: rglrog = real(rgas*lrate*regrav)
   real(sp) , parameter :: b1 = -real(egrav/lrate)
   real(sp) , parameter :: rbltop = real(bltop)
   real(sp) , parameter :: psccm = 100.0
@@ -256,7 +256,7 @@ module mod_vertint
           else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
             fp(i,j,n) = f(i,j,km)
           else if ( sigp > 1. ) then
-            fp(i,j,n) = f(i,j,kbc)*exp(+rglr*log(sigp/sig(kbc))*real(regrav))
+            fp(i,j,n) = f(i,j,kbc)*exp(rglrog*log(sigp/sig(kbc)))
           else
           end if
         end do
@@ -320,7 +320,7 @@ module mod_vertint
         else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
           fp(i,j,n) = f(i,j,km)
         else if ( sigp > 1. ) then
-          fp(i,j,n) = f(i,j,kbc)*exp(rglr*log(sigp/sig(kbc))*real(regrav))
+          fp(i,j,n) = f(i,j,kbc)*exp(rglrog*log(sigp/sig(kbc)))
         else
         end if
       end do
