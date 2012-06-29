@@ -144,13 +144,15 @@ module mod_che_chemistry
             ! normalise the weighted altitude above and bleow cloud        
             if (depthb > d_zero)  altbelow = altbelow / depthb 
             if (deptha >d_zero )  altabove = altabove / deptha      
-        
+
+!         call the chemistry solver         
+            xr(1,:) = d_zero
+            xrin(1,:) = d_zero
+!         1 : initialise xrin with the concentrations from previous chemsolv step
           do ic = 1 , totsp
-            xr(1,ic) = d_zero
+            xrin(1,ic) = chemall(j,i,k,ic) 
           end do
-          do ic = 1 , totsp
-            xr(1,ic) = chemall(j,i,k,ic) 
-          end do
+!         2  : update input concentrations for transported species only  
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
           xrin(1,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
           xrin(1,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
@@ -177,17 +179,19 @@ module mod_che_chemistry
           xrin(1,ind_CH4)  = chib3d(j,i,k,ich4)*cfactor/W_CH4
           xrin(1,ind_MOH)  = chib3d(j,i,k,imoh)*cfactor/W_MOH
           xrin(1,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
-          xrin(1,ind_rcooh) = chib3d(j,i,k,ircooh)*cfactor/W_RCOOH
+          xrin(1,ind_RCOOH) = chib3d(j,i,k,ircooh)*cfactor/W_RCOOH
+
+!         solver work with xr 
           xr(:,:) = xrin(:,:)
 
           call chemmain
 
           xrout(:,:) = xr(:,:)
-
+!         save the concentrations of all species for next chemistry step
           do ic = 1 , totsp
             chemall(j,i,k,ic) = xrout(1,ic)
           end do
-          ! Store photolysis rates
+          ! Store photolysis rates for diagnostic
           do ic = 1 , 56
             jphoto(i,k,ic) = c_jval(1,ic)
           end do
