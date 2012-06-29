@@ -375,6 +375,11 @@
           do j = jci1 , jci2
             call chemistry(j,secofday,lyear,lmonth,lday)
           end do
+
+        if (myid == 0) then
+          print*,'Jvalue max NO2 ',minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
+        end if
+
         end if
         ! add tendency due to chemistry reaction (every dtche)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &

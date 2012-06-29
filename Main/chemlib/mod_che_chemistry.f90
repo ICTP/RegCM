@@ -37,32 +37,8 @@ module mod_che_chemistry
 
   public :: chemistry , dtchsolv
 
-  integer , parameter :: jvO2 = 1
-  integer , parameter :: jvO3a = 2
-  integer , parameter :: jvO3b = 3
-  integer , parameter :: jvNO2 = 4
-  integer , parameter :: jvNO3a = 5
-  integer , parameter :: jvNO3b = 6
-  integer , parameter :: jvN2O5a = 7
-  integer , parameter :: jvN2O5b = 8
-  integer , parameter :: jvN2O = 9
-  integer , parameter :: jvHO2 = 10
-  integer , parameter :: jvH2O2 = 11
-  integer , parameter :: jvHNO2 = 12
-  integer , parameter :: jvHNO3 = 13
-  integer , parameter :: jvHNO4 = 14
-  integer , parameter :: jvCH2Oa = 15
-  integer , parameter :: jvCH2Ob = 16
-  integer , parameter :: jvCH3CHOa = 17
-  integer , parameter :: jvCH3CHOb = 18
-  integer , parameter :: jvCH3CHOc = 19
-  integer , parameter :: jvC2H5CHO = 20
-  integer , parameter :: jvCHOCHO = 21
-  integer , parameter :: jvCH3COCHO = 22
-  integer , parameter :: jvCH3COCH3 = 23
-  integer , parameter :: jvCH3OOH = 24
-  integer , parameter :: jvCH3ONO2 = 25
-  integer , parameter :: jvPAN = 26
+
+
 
   real(dp) , parameter :: kb = 1.380658D-19
 
@@ -75,7 +51,7 @@ module mod_che_chemistry
       integer , intent(in) :: j
       integer , intent(in) :: lyear , lmonth , lday
       real(dp) , intent(in) :: secofday 
-      real(dp) , dimension(ici1:ici2,1:kz,1:56) :: jphoto
+
       real(dp) :: cfactor , pfact
       integer :: i , k , kbl , kab ,ic
 
@@ -85,11 +61,7 @@ module mod_che_chemistry
       c_numitr = 20
       kmax = 1
       
-      ! initialize jphoto to zero
-      ! initialize jphoto to zero
-      jphoto(:,:,:) = d_zero
-
-      ! Begining of i , k loop
+       ! Begining of i , k loop
       ! do not solve chemistry for stratosphere (k == 1)
       do k = 2 , kz
         do i = ici1 , ici2
@@ -193,7 +165,7 @@ module mod_che_chemistry
           end do
           ! Store photolysis rates for diagnostic
           do ic = 1 , 56
-            jphoto(i,k,ic) = c_jval(1,ic)
+            jphoto(j,i,k,ic) = c_jval(1,ic)
           end do
           !
           ! Now calculate chemical tendencies       
@@ -251,11 +223,14 @@ module mod_che_chemistry
             (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
           chemten(j,i,k,ircooh)  = &
             (xrout(1,ind_RCOOH) - xrin(1,ind_RCOOH))*pfact*W_RCOOH
+
         end do ! end i , k loop
       end do
 
-      chemdiag(j,:,:,:) = chemdiag(j,:,:,:) + &
+      if (ichdiag > 0 )chemdiag(j,:,:,:) = chemdiag(j,:,:,:) + &
               chemten(j,:,:,:) * dble(dtchsolv) / (3600D0 * dble(chfrq)) 
+
+
 
     end subroutine chemistry
 !

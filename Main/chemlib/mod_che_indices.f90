@@ -116,4 +116,32 @@ module mod_che_indices
   integer , parameter :: ind_lip    = 67
   integer , parameter :: ind_pin2   = 68
 
+! indices for jvalues 
+  integer , parameter :: jvO2 = 1
+  integer , parameter :: jvO3a = 2
+  integer , parameter :: jvO3b = 3
+  integer , parameter :: jvNO2 = 4
+  integer , parameter :: jvNO3a = 5
+  integer , parameter :: jvNO3b = 6
+  integer , parameter :: jvN2O5a = 7
+  integer , parameter :: jvN2O5b = 8
+  integer , parameter :: jvN2O = 9
+  integer , parameter :: jvHO2 = 10
+  integer , parameter :: jvH2O2 = 11
+  integer , parameter :: jvHNO2 = 12
+  integer , parameter :: jvHNO3 = 13
+  integer , parameter :: jvHNO4 = 14
+  integer , parameter :: jvCH2Oa = 15
+  integer , parameter :: jvCH2Ob = 16
+  integer , parameter :: jvCH3CHOa = 17
+  integer , parameter :: jvCH3CHOb = 18
+  integer , parameter :: jvCH3CHOc = 19
+  integer , parameter :: jvC2H5CHO = 20
+  integer , parameter :: jvCHOCHO = 21
+  integer , parameter :: jvCH3COCHO = 22
+  integer , parameter :: jvCH3COCH3 = 23
+  integer , parameter :: jvCH3OOH = 24
+  integer , parameter :: jvCH3ONO2 = 25
+  integer , parameter :: jvPAN = 26
+
 end module mod_che_indices

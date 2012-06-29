@@ -54,7 +54,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg , drydepv
 
-  real(dp) , pointer , dimension(:,:,:,:) :: chemall
+  real(dp) , pointer , dimension(:,:,:,:) :: chemall,jphoto
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
   character(len=6) , pointer , dimension(:) :: chtrname
@@ -166,6 +166,8 @@ module mod_che_common
 
         call getmem4d(chemall,1,jxp,1,iy,1,kz,1,totsp,'mod_che_common:chemall')
         call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
+        call getmem4d(jphoto,jce1,jce2, &
+                        ice1,ice2,1,kz,1,56,'che_common:jphoto')
 
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
         call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
@@ -176,7 +178,7 @@ module mod_che_common
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
 
-        if ( ichdiag == 1 ) then 
+        if ( ichdiag >0  ) then 
           call getmem4d(chemdiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
           call getmem4d(cadvhdiag,jce1,jce2, &
@@ -191,6 +193,8 @@ module mod_che_common
                         ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
           call getmem4d(cbdydiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
+
+          
         end if 
       end if
     end subroutine allocate_mod_che_common

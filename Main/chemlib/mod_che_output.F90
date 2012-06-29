@@ -65,10 +65,11 @@ module mod_che_output
                         icross1,icross2,1,ntr)
       call deco1_gather(drydepv,drydepv_io,jcross1,jcross2, &
                         icross1,icross2,1,ntr)
-      call deco1_gather(chemdiag,chemdiag_io,jcross1,jcross2, &
+
+      if (ichdiag > 0) then   
+       call deco1_gather(chemdiag,chemdiag_io,jcross1,jcross2, &
                         icross1,icross2,1,kz,1,ntr)
 
-      if ( ichdiag == 1 ) then
         call deco1_gather(cadvhdiag,cadvhdiag_io,jcross1,jcross2, &
                           icross1,icross2,1,kz,1,ntr)
         call deco1_gather(cadvvdiag,cadvvdiag_io,jcross1,jcross2, &

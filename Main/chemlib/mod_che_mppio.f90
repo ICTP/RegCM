@@ -147,7 +147,7 @@ module mod_che_mppio
           call getmem2d(aeraod_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:aeraod_io')
          
-          if ( ichdiag == 1 ) then
+          if ( ichdiag >0 ) then
             call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:chemdiag_io')
             call getmem4d(cadvhdiag_io,jcross1,jcross2,icross1,icross2, &
