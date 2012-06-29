@@ -37,6 +37,7 @@ module mod_cu_common
 
   ! Grell shared parameters for tracers removal
   integer , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
+
 !
   real(dp) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
   real(dp) , pointer , dimension(:,:,:) :: hgt    ! za
@@ -61,6 +62,7 @@ module mod_cu_common
   real(dp) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
   real(dp) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
   real(dp) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
+  real(dp) , pointer , dimension(:,:,:) :: convpr   ! prec rate ( used in chem) 
   real(dp) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
   real(dp) , pointer , dimension(:,:,:) :: svv    ! qdot
   real(dp) , pointer , dimension(:,:) :: lmpcpc   ! pptc
@@ -88,6 +90,8 @@ module mod_cu_common
     call getmem2d(icumbot,jci1,jci2,ici1,ici2,'mod_cu_common:icumbot')
     call getmem2d(icumtop,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
     call getmem2d(icumdwd,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
+    call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_common:convpr')
+
   end subroutine allocate_mod_cu_common
 !
 end module mod_cu_common

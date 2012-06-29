@@ -101,8 +101,7 @@ module mod_che_chemistry
           deptha = d_zero
           depthb = d_zero
           altabove= d_zero
-          altbelow= d_zero
-          if ( 1 == 1 ) then             
+          altbelow= d_zero      
             if ( k ==  1 ) then
               ! (add the half layer ctaucld, should be no cloud in this layer ) 
               deptha =  ctaucld(j,i,k,8) *d_half
@@ -145,7 +144,7 @@ module mod_che_chemistry
             ! normalise the weighted altitude above and bleow cloud        
             if (depthb > d_zero)  altbelow = altbelow / depthb 
             if (deptha >d_zero )  altabove = altabove / deptha      
-          end if
+        
           do ic = 1 , totsp
             xr(1,ic) = d_zero
           end do

@@ -43,7 +43,7 @@ module mod_che_interface
   subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
                        mddom,sfs,ba_cr, fcc,cldfra,rembc,remrat,a,anudg,  &
                        twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
-                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,icutop,    &
+                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icutop,    &
                        icubot,taucldsp)
 
     ! this routine define the pointer interface between the chem module and
@@ -59,7 +59,7 @@ module mod_che_interface
     real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
     real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
              sdelqk2d , ssw2da , twt , sfracv2d , sfracb2d , sfracs2d
-    real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat
+    real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat, convpr
     real(dp), pointer, dimension(:,:,:,:) :: taucldsp
     integer , pointer , dimension(:,:) :: icutop , icubot, iveg
     type(slice) , intent(in) :: atms
@@ -96,7 +96,7 @@ module mod_che_interface
     call assignpnt(sfs%psb,cpsb)
     call assignpnt(sfs%tgb,ctg)
     call assignpnt(sfs%uvdrag,cuvdrag)
-    
+    call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)
     call assignpnt(cldfra,ccldfra)
     call assignpnt(rembc,crembc)

@@ -212,6 +212,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
+    convpr(:,:,:) = d_zero 
 !
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -1101,6 +1102,8 @@ module mod_cu_grell
                 outq(j,i,k) = outq(j,i,k) + dellaq(j,i,k)*xmb(j,i)
                 pret(j,i) = pret(j,i) + &
                   (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
+!FAB save the layer rain rate for chem removal
+                convpr(j,i,k) = (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
               end if
             end if
           end if

@@ -56,7 +56,7 @@
 !
       real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   satvp , shu10 , u10 , v10
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec
+      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec, convprec
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
       integer , dimension(ici1:ici2,jci1:jci2) :: ivegcov
@@ -84,6 +84,7 @@
       wl          = d_zero
       ttb         = d_zero
       prec        = d_zero
+      convprec    = d_zero
       ustar       = d_zero
       fracloud    = d_zero
       fracum      = d_zero
@@ -106,6 +107,8 @@
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
             prec(i,k,j) = crembc(j,i,k) / 3600.D0 !passed in mm/s  
+            !and the quivalent for convective prec
+            convprec(i,k,j) = cconvpr(j,i,k) ! already in mm/s
           end do
         end do
       end do
@@ -324,7 +327,7 @@
           call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j), &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),  &
-                       pdepv(:,:,:,j))  
+                       convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
       if ( isslt(1) > 0 )  then   
@@ -332,7 +335,7 @@
           call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j), &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),  &
-                       pdepv(:,:,:,j))  
+                       convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
       if ( icarb(1) > 0 )  then   
@@ -340,7 +343,7 @@
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),pdepv(:,:,:,j)) 
+                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),convprec(:,:,j),pdepv(:,:,:,j)) 
         end do
       end if
       !
