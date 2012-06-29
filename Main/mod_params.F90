@@ -757,7 +757,7 @@ module mod_params
   call allocate_mod_tend
   call allocate_mod_bdycon(iboudy,lband)
   call allocate_mod_pbl_common(ichem)
-  call allocate_mod_cu_common
+  call allocate_mod_cu_common(ichem)
   call allocate_mod_precip(ichem)
   call allocate_mod_split
   call allocate_mod_mppio
@@ -1012,8 +1012,8 @@ module mod_params
     call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
                    mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
                    twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
-                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,      &
-                   icumbot,taucldsp)
+                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
+                   icumtop,icumbot,taucldsp)
  end if
   call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &

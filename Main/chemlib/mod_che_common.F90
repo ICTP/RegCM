@@ -86,10 +86,11 @@ module mod_che_common
   real(dp) :: ccalday , crdxsq
   real(dp) , pointer , dimension(:,:,:,:) ::chib3d
   real(dp) , pointer , dimension(:,:,:) :: ctb3d , cqvb3d , cubx3d , cvbx3d , &
-         crhob3d , cqcb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat, cconvpr
+         crhob3d , cqcb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
+         cconvpr
   real(dp) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
          cssw2da , cvegfrac , csol2d , csdeltk2d , csdelqk2d , ctwt , &
-         cuvdrag , csfracv2d , csfracb2d , csfracs2d, cxlat,crainc
+         cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
   real(dp) , pointer , dimension(:) :: hlev , cdsigma , canudg
   real(dp) , pointer , dimension(:,:) :: czen
   real(dp) :: chptop

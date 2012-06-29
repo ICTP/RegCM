@@ -212,7 +212,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
-    convpr(:,:,:) = d_zero 
+    if ( lchem ) convpr(:,:,:) = d_zero 
 !
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -1102,14 +1102,30 @@ module mod_cu_grell
                 outq(j,i,k) = outq(j,i,k) + dellaq(j,i,k)*xmb(j,i)
                 pret(j,i) = pret(j,i) + &
                   (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
-!FAB save the layer rain rate for chem removal
-                convpr(j,i,k) = (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
               end if
             end if
           end if
         end do
       end do
     end do
+    if ( lchem ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( xac(j,i) >= d_zero ) then
+              if ( k <= ktop(j,i) ) then
+                outtes = dellat(j,i,k)*xmb(j,i)*secpd
+                if ( (outtes < htmax2d(j,i)) .and. &
+                     (outtes > htmin2d(j,i)) ) then
+                  !FAB save the layer rain rate for chem removal
+                  convpr(j,i,k) = (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
+                end if
+              end if
+            end if
+          end do
+        end do
+      end do
+    end if
 !
 !   calculate cloud fraction and water content
 !

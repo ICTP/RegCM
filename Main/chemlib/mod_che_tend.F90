@@ -56,7 +56,8 @@
 !
       real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   satvp , shu10 , u10 , v10
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec, convprec
+      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
+                                                      convprec
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
       real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
       integer , dimension(ici1:ici2,jci1:jci2) :: ivegcov
@@ -343,7 +344,8 @@
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),convprec(:,:,j),pdepv(:,:,:,j)) 
+                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),             &
+                       convprec(:,:,j),pdepv(:,:,:,j)) 
         end do
       end if
       !

@@ -543,14 +543,15 @@ module mod_che_wetdep
   end subroutine sethet
 
   subroutine wetdepa(j,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
-                     pressg,shj,rho,strappt,convppt, pdepv)
+                     pressg,shj,rho,strappt,convppt,pdepv)
     implicit none
 !
     integer , intent(in) :: j , mbin
     integer , dimension(mbin) , intent(in) :: indp
     real(dp) , dimension(mbin) , intent(in) :: beffdiam
     real(dp) , intent(in) :: rhoaer ! specific aerosol density
-    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , strappt,convppt
+    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
+                                                       strappt , convppt
     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
     real(dp) , dimension(ici1:ici2) ,intent(in) :: pressg
     real(dp) , dimension(kz) ,intent(in) :: shj
@@ -648,8 +649,10 @@ module mod_che_wetdep
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
           ! wet deposition diagnostic, adding to rainout contribution ! 
           ! nod differenciation between conv and large scale yet
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf *  convppt(i,k) / totppt (i,k)
-          remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) - wtend * cdiagf *  strappt(i,k) / totppt (i,k) 
+          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf * &
+                                  convppt(i,k) / totppt (i,k)
+          remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) - wtend * cdiagf * &
+                                  strappt(i,k) / totppt (i,k) 
         end do
       end do
     end do
