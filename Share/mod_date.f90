@@ -1106,8 +1106,8 @@ module mod_date
     character(64) , save :: csave
 
     if (csave == cunit) then
-      year = d%year+idnint(xval/12.0D0)
-      month = d%month+idnint(mod(xval,12.0D0))
+      year = d%year+idint(xval/12.0D0)
+      month = d%month+idint(mod(xval,12.0D0))
       if ( month > 12 ) then
         month = month - 12
         year = year + 1
@@ -1143,8 +1143,8 @@ module mod_date
        call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS')
     end if
     csave = cunit
-    year = d%year+idnint(xval/12.0D0)
-    month = d%month+idnint(mod(xval,12.0D0))
+    year = d%year+idint(xval/12.0D0)
+    month = d%month+idint(mod(xval,12.0D0))
     if ( month > 12 ) then
       month = month - 12
       year = year + 1
