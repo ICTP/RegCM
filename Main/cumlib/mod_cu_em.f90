@@ -939,6 +939,7 @@ module mod_cu_em
           qp(i) = dmin1(qp(i),qstm)
           qp(i) = dmax1(qp(i),d_zero)
         end if
+        pplev(i) = pplev(i) + wt(i)*sigd*water(i)/egrav
       end do
 !
 !     calculate surface precipitation in mm/s
