@@ -1099,11 +1099,12 @@ module mod_date
     real(dp) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     integer , intent(out) :: year , month
-    type (iadate) ,save :: d
+    type (iadate) , save :: d
     type (iatime) :: t
     character(16) :: cdum
 
     character(64) , save :: csave
+    data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
 
     if (csave == cunit) then
       year = d%year+idint(xval/12.0D0)
