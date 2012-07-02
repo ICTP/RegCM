@@ -1109,7 +1109,7 @@ module mod_cu_grell
       end do
     end do
     if ( lchem ) then
-      do k = 1 , kz
+      do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( xac(j,i) >= d_zero ) then
@@ -1118,7 +1118,10 @@ module mod_cu_grell
                 if ( (outtes < htmax2d(j,i)) .and. &
                      (outtes > htmin2d(j,i)) ) then
                   !FAB save the layer rain rate for chem removal
-                  convpr(j,i,k) = (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
+                  convpr(j,i,k) = convpr(j,i,k-1) + &
+                     (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
+                else if ( outtes < htmin2d(j,i) )
+                  convpr(j,i,k) = pret(j,i)
                 end if
               end if
             end if
