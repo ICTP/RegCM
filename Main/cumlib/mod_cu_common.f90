@@ -44,7 +44,7 @@ module mod_cu_common
   real(dp) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
   real(dp) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
   real(dp) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
-  real(dp) , pointer , dimension(:,:,:) :: pvqvtm ! atm1%qv
+  real(dp) , pointer , dimension(:,:,:,:) :: pvqxtm ! atm1%qx
   real(dp) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
