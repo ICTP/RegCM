@@ -280,6 +280,11 @@ module mod_cu_tiedtke
             qcten(j,i,k) = pxlte(ii,k) * sfcps(j,i)
             if ( lchem ) then
               tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
+              ! build for chemistry 3d table of constant precipitation rate
+              ! from the surface to the top of the convection
+              if ( k > kctop(ii) ) then
+                convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
+              end if
             end if
           end if
           ii = ii + 1

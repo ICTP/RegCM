@@ -283,6 +283,11 @@ module mod_cu_kuo
               if ( lchem ) then
                 icumtop(j,i) = ktop
                 icumbot(j,i) = kbaseb
+                ! build for chemistry 3d table of constant precipitation rate
+                ! from the surface to the top of the convection
+                do k = 1 , ktop-1
+                  convpr(j,i,kz-k+1) = prainx/dtmdl
+                end do
               end if
               cycle
             end if

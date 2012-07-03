@@ -65,7 +65,7 @@ module mod_cu_em
 !
     real(dp) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
     real(dp) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
-                                qscup , tcup , ucup , vcup , pplev
+                                qscup , tcup , ucup , vcup
     real(dp) , dimension(kz,1) :: ftra , tra
     integer :: i , j , k , iflag , kbase , kclth , kk , ktop
     real(dp) , dimension(kzp1) :: phcup
@@ -90,10 +90,9 @@ module mod_cu_em
           phcup(k) = (flev(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
         end do
         cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
-        pplev(:) = d_zero
    
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
-                     kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,pplev,wd,    &
+                     kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,          &
                      tprime,qprime,cbmf,kbase,ktop)
    
         cbmf2d(j,i) = cbmf
@@ -122,8 +121,12 @@ module mod_cu_em
             uten(j,i,kk) = fu(k)*sfcps(j,i) + uten(j,i,kk)
             vten(j,i,kk) = fv(k)*sfcps(j,i) + vten(j,i,kk)
           end do
+          ! build for chemistry 3d table of constant precipitation rate
+          ! from the surface to the top of the convection
           if ( lchem ) then
-            convpr(j,i,:) = pplev(:)
+            do k = 1 , ktop-1
+              convpr(j,i,kz-k+1) = pret
+            end do
           end if
    
           ! Cloud fraction and cloud water
@@ -292,19 +295,19 @@ module mod_cu_em
 !   7. a maximum value to the cloud base mass flux has been added.
 !
   subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,iflag,ft,fq,fu,fv, &
-                     ftra,precip,pplev,wd,tprime,qprime,cbmf,icb,inb)
+                     ftra,precip,wd,tprime,qprime,cbmf,icb,inb)
 !
     implicit none
 !
     real(dp) :: cbmf , precip , qprime , tprime , wd
     integer :: icb , iflag , inb , na , nd , nl , ntra
     real(dp) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
-                               t , u , v , pplev
+                               t , u , v
     real(dp) , dimension(nd,1) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
-                   inb , precip , q , qprime , qs , t , tra , u , v , pplev
+                   inb , precip , q , qprime , qs , t , tra , u , v
 !
     real(dp) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                alv , alvnew , am , amp1 , anum , asij , asum , awat , &
@@ -453,9 +456,8 @@ module mod_cu_em
             alvnew = wlhv - cpvmcl*(tnew-tzero)
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
-            pplev(j) = 1.0D5*(ph(j)-ph(j+1)) * &
-                       (q(j)-qnew)*regrav/(dtcum*d_1000)  ! mm/s
-            precip = precip + pplev(j)
+            precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
+                     (q(j)-qnew)*regrav/(dtcum*d_1000)  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
@@ -939,7 +941,6 @@ module mod_cu_em
           qp(i) = dmin1(qp(i),qstm)
           qp(i) = dmax1(qp(i),d_zero)
         end if
-        pplev(i) = pplev(i) + wt(i)*sigd*water(i)/egrav
       end do
 !
 !     calculate surface precipitation in mm/s

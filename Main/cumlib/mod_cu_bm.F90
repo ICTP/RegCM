@@ -1035,6 +1035,9 @@ module mod_cu_bm
           if ( lchem ) then
             icumtop(j,i) = ltpk
             icumbot(j,i) = kbaseb
+            do k = ltpk , kz
+              convpr(j,i,k) = prainx/dtcum
+            end do
           end if
         end if
       end do
