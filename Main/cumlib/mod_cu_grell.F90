@@ -1111,9 +1111,9 @@ module mod_cu_grell
     ! build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
     if ( lchem ) then
-      do k = 1 , ktop(j,i)-1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do k = 1 , ktop(j,i)-1
             convpr(j,i,kz-k+1) = pret(j,i)
           end do
         end do
