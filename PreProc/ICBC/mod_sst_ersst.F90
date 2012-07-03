@@ -98,7 +98,7 @@ module mod_sst_ersst
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
     end if
-  else if ( year > 1988 .and. year < 2010 ) then
+  else if ( year > 1988 .and. year < 2009 ) then
     isyear = 1989
     ierastart = 1989010100
     if ( ssttyp == 'ERSST' ) then
@@ -106,8 +106,16 @@ module mod_sst_ersst
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
     end if
+  else if ( year > 2008 ) then
+    isyear = 2009
+    ierastart = 2009010100
+    if ( ssttyp == 'ERSST' ) then
+      inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
+    else if ( ssttyp == 'ERSKT' ) then
+      inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
+    end if
   else
-    call die('sst_ersst','The dataset is prepared only for 1979-2009',1)
+    call die('sst_ersst','The dataset is prepared only for 1979-present',1)
   end if
 
   write (stdout,*) trim(inpfile)
@@ -148,6 +156,20 @@ module mod_sst_ersst
       end if
       istatus = nf90_close(inet)
       call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1979 file')
+      istatus = nf90_open(inpfile,nf90_nowrite,inet)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot open file '//trim(inpfile))
+      write (stdout,*) trim(inpfile)
+      lfirst = .true.
+    else if ( year > 2008 .and. isyear == 2009 ) then
+      ierastart = 2009010100
+      if ( ssttyp == 'ERSST' ) then
+        inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
+      else if ( ssttyp == 'ERSKT' ) then
+        inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
+      end if
+      istatus = nf90_close(inet)
+      call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1989 file')
       istatus = nf90_open(inpfile,nf90_nowrite,inet)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Cannot open file '//trim(inpfile))
