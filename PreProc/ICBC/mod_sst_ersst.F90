@@ -26,6 +26,7 @@ module mod_sst_ersst
   use mod_sst_grid
   use mod_interp
   use mod_message
+  use mod_memutil
   use mod_nchelper
 
   private
@@ -52,18 +53,23 @@ module mod_sst_ersst
 
   implicit none
 !
-  integer , parameter :: ilon = 240 , jlat = 121
+  integer :: ilon , jlat
   integer , parameter :: idtbc = 6
 !
   integer :: i , it , j
-  real(sp) , dimension(jlat) :: lati
-  real(sp) , dimension(ilon) :: loni
+  integer :: istatus , inet
+  integer :: year , month , day , hour , isyear
+  integer :: dimi , vari
+  real(sp) , pointer , dimension(:) :: lati
+  real(sp) , pointer , dimension(:) :: loni
   integer :: ierrec , nsteps
   type(rcm_time_and_date) :: idate , ierastart
   type(rcm_time_interval) :: tdiff , itbc
-  real(sp) , dimension(ilon,jlat) :: sst
-  character(256) :: inpfile
-!
+  real(sp) , pointer , dimension(:,:) :: sst
+  character(len=256) :: inpfile
+  logical :: lfirst
+
+  data lfirst /.true./
 !
   if ( ssttyp /= 'ERSST' .and. ssttyp /= 'ERSKT' ) then
     write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
@@ -81,27 +87,79 @@ module mod_sst_ersst
 
   call open_sstfile(globidate1)
  
-!     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
-  do i = 1 , ilon
-    loni(i) = float(i-1)*1.5
-  end do
-  do j = 1 , jlat
-    lati(j) = -90. + 1.5*float(j-1)
-  end do
- 
+  ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
+
+  call split_idate(globidate1,year,month,day,hour)
+  if ( year > 1979 .and. year < 1989 ) then
+    isyear = 1979
+    ierastart = 1979010100
+    if ( ssttyp == 'ERSST' ) then
+      inpfile=trim(inpglob)//'/SST/sstERAIN.1979-1989.nc'
+    else if ( ssttyp == 'ERSKT' ) then
+      inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
+    end if
+  else if ( year > 1989 .and. year < 2010 ) then
+    isyear = 1989
+    ierastart = 1989010100
+    if ( ssttyp == 'ERSST' ) then
+      inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+    else if ( ssttyp == 'ERSKT' ) then
+      inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+    end if
+  else
+    call die('sst_ersst','The dataset is prepared only for 1979-2009',1)
+  end if
+
+  istatus = nf90_open(inpfile,nf90_nowrite,inet)
+  call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(inpfile))
+  istatus = nf90_inq_dimid(inet,'longitude',dimi)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
+  istatus = nf90_inquire_dimension(inet,dimi,len=ilon)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+  istatus = nf90_inq_dimid(inet,'latitude',dimi)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
+  istatus = nf90_inquire_dimension(inet,dimi,len=jlat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+
+  call getmem1d(loni,1,ilon,'sst_ersst:loni')
+  call getmem1d(lati,1,jlat,'sst_ersst:lati')
+  call getmem2d(sst,1,ilon,1,jlat,'sst_ersst:sst')
+
+  istatus = nf90_inq_varid(inet,'longitude',vari)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
+  istatus = nf90_get_var(inet,vari,loni)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+  istatus = nf90_inq_varid(inet,'latitude',vari)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
+  istatus = nf90_get_var(inet,vari,lati)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+
   idate = globidate1
-  ierastart = 1989010100
   do it = 1 , nsteps
+
+    call split_idate(idate,year,month,day,hour)
+    if ( year > 1989 .and. isyear == 1979 ) then
+      ierastart = 1989010100
+      if ( ssttyp == 'ERSST' ) then
+        inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+      else if ( ssttyp == 'ERSKT' ) then
+        inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+      end if
+      istatus = nf90_close(inet)
+      call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1979 file')
+      istatus = nf90_open(inpfile,nf90_nowrite,inet)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot open file '//trim(inpfile))
+      lfirst = .true.
+    end if
 
     tdiff = idate-ierastart
     ierrec = idnint(tohours(tdiff))/idtbc+1
 
     if ( ssttyp == 'ERSST' ) then
-      inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
-      call sst_erain(ierrec,ilon,jlat,sst,inpfile,1)
+      call sst_erain(ierrec,ilon,jlat,sst,inet,lfirst,1)
     else if ( ssttyp == 'ERSKT' ) then
-      inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
-      call sst_erain(ierrec,ilon,jlat,sst,inpfile,2)
+      call sst_erain(ierrec,ilon,jlat,sst,inet,lfirst,2)
     end if
 
     call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
@@ -120,66 +178,58 @@ module mod_sst_ersst
 !
 !-----------------------------------------------------------------------
 !
-  subroutine sst_erain(it,ilon,jlat,sst,pathaddname,itype)
+  subroutine sst_erain(it,ilon,jlat,sst,inet,lfirst,itype)
   use netcdf
   implicit none
 !
-  integer :: it , ilon , jlat , itype
-  character(256) :: pathaddname
-  intent (in) it , ilon , jlat , pathaddname , itype
-  real(sp) , dimension(ilon,jlat) :: sst
-  intent (out) :: sst
+  integer , intent(in) :: it , ilon , jlat , inet , itype
+  logical , intent(inout) :: lfirst
+  real(sp) , dimension(ilon,jlat) ,intent(out) :: sst
 !
   integer :: i , j , n
   character(4) , dimension(2) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
 !
-  integer , save :: inet , ivar
+  integer , save :: ivar
   real(dp) , save :: xadd , xscale , xmiss
-  integer , dimension(10) , save :: icount , istart
-  logical , save :: lfirst
+  integer , dimension(3) , save :: icount , istart
 !
-!     This is the latitude, longitude dimension of the grid to be read.
-!     This corresponds to the lat and lon dimension variables in the
-!     netCDF file.
+! This is the latitude, longitude dimension of the grid to be read.
+! This corresponds to the lat and lon dimension variables in the
+! netCDF file.
 !
-!     The data are packed into short integers (INTEGER*2).  The array
-!     work will be used to hold the packed integers. The array 'sst'
-!     will contain the unpacked data.
+! The data are packed into short integers (INTEGER*2).  The array
+! work will be used to hold the packed integers. The array 'sst'
+! will contain the unpacked data.
 !
-!     DATA ARRAY AND WORK ARRAY
+! DATA ARRAY AND WORK ARRAY
 !
   data varname/'sst','skt'/
-  data lfirst /.true./
 !
   if ( lfirst ) then
-    istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname(itype),ivar)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Cannot find variable '//trim(varname(itype)))
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute scale_factor')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Cannot get attribute scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
     call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute add_offset')
     istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
     call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute _FillValue')
     istart(1) = 1
     istart(2) = 1
-    icount(1) = 240
-    icount(2) = 121
-    do n = 4 , 10
-      istart(n) = 0
-      icount(n) = 0
-    end do
+    icount(1) = ilon
+    icount(2) = jlat
     lfirst = .false.
   end if
 !
   istart(3) = it
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  call checkncerr(istatus,__FILE__,__LINE__,'Cannot read '//trim(varname(itype)))
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                 'Cannot read '//trim(varname(itype)))
 !
   do j = 1 , jlat
     do i = 1 , ilon
@@ -190,7 +240,6 @@ module mod_sst_ersst
       end if
     end do
   end do
-!
 !
   end subroutine sst_erain
 !
