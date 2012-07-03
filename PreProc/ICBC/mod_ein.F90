@@ -38,7 +38,7 @@ module mod_ein
 
   private
 
-  integer :: inlev , klev , jlat , ilon , imindat , imaxdat
+  integer :: inlev , klev , jlat , ilon
 
   real(sp) , pointer , dimension(:,:,:) :: b3
   real(sp) , pointer , dimension(:,:,:) :: d3
@@ -155,13 +155,6 @@ module mod_ein
 !
   data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
-!
-  if ( idate < imindat .or. idate > imaxdat ) then
-    write (stderr, *) 'EIN data for resolution ',xres,' degrees ', &
-                  'are available only from ',imindat,' up to ', imaxdat
-    call die('ein6hour','EIN dataset unavailable',1)
-  end if
- 
   call split_idate(idate,year,month,day,hour)
 
   if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
@@ -467,20 +460,14 @@ module mod_ein
       jlat = 121
       ilon = 240
       xres = 1.50
-      imindat = 1989010100
-      imaxdat = 2010033118
     case (25)
       jlat = 73
       ilon = 144
       xres = 2.50
-      imindat = 1989010100
-      imaxdat = 1998123118
     case (75)
       jlat = 241
       ilon = 480
       xres = 0.750
-      imindat = 1989010100
-      imaxdat = 2007123118
     case default
       call die('headerein','Unsupported resolution',1)
   end select
