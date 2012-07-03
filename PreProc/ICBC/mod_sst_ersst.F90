@@ -90,7 +90,7 @@ module mod_sst_ersst
   ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
 
   call split_idate(globidate1,year,month,day,hour)
-  if ( year > 1979 .and. year < 1989 ) then
+  if ( year > 1978 .and. year < 1989 ) then
     isyear = 1979
     ierastart = 1979010100
     if ( ssttyp == 'ERSST' ) then
