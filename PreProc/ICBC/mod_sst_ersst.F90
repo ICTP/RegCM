@@ -98,7 +98,7 @@ module mod_sst_ersst
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
     end if
-  else if ( year > 1989 .and. year < 2010 ) then
+  else if ( year > 1988 .and. year < 2010 ) then
     isyear = 1989
     ierastart = 1989010100
     if ( ssttyp == 'ERSST' ) then
@@ -110,6 +110,7 @@ module mod_sst_ersst
     call die('sst_ersst','The dataset is prepared only for 1979-2009',1)
   end if
 
+  write (stdout,*) trim(inpfile)
   istatus = nf90_open(inpfile,nf90_nowrite,inet)
   call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(inpfile))
   istatus = nf90_inq_dimid(inet,'longitude',dimi)
@@ -138,7 +139,7 @@ module mod_sst_ersst
   do it = 1 , nsteps
 
     call split_idate(idate,year,month,day,hour)
-    if ( year > 1989 .and. isyear == 1979 ) then
+    if ( year > 1988 .and. isyear == 1979 ) then
       ierastart = 1989010100
       if ( ssttyp == 'ERSST' ) then
         inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
@@ -150,6 +151,7 @@ module mod_sst_ersst
       istatus = nf90_open(inpfile,nf90_nowrite,inet)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Cannot open file '//trim(inpfile))
+      write (stdout,*) trim(inpfile)
       lfirst = .true.
     end if
 
@@ -165,35 +167,33 @@ module mod_sst_ersst
     call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
     write(stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
-!       ******           WRITE OUT SST DATA ON MM4 GRID
+    ! WRITE OUT SST DATA ON REGCM GRID
     call writerec(idate,.false.)
     write(stdout,*) 'WRITING OUT MM4 SST DATA:' , tochar(idate)
 
     idate = idate + itbc
-
   end do
 
- 
   end subroutine sst_ersst
 !
 !-----------------------------------------------------------------------
 !
   subroutine sst_erain(it,ilon,jlat,sst,inet,lfirst,itype)
-  use netcdf
-  implicit none
+    use netcdf
+    implicit none
 !
-  integer , intent(in) :: it , ilon , jlat , inet , itype
-  logical , intent(inout) :: lfirst
-  real(sp) , dimension(ilon,jlat) ,intent(out) :: sst
+    integer , intent(in) :: it , ilon , jlat , inet , itype
+    logical , intent(inout) :: lfirst
+    real(sp) , dimension(ilon,jlat) ,intent(out) :: sst
 !
-  integer :: i , j , n
-  character(4) , dimension(2) :: varname
-  integer(2) , dimension(ilon,jlat) :: work
-  integer :: istatus
+    integer :: i , j , n
+    character(4) , dimension(2) :: varname
+    integer(2) , dimension(ilon,jlat) :: work
+    integer :: istatus
 !
-  integer , save :: ivar
-  real(dp) , save :: xadd , xscale , xmiss
-  integer , dimension(3) , save :: icount , istart
+    integer , save :: ivar
+    real(dp) , save :: xadd , xscale , xmiss
+    integer , dimension(3) , save :: icount , istart
 !
 ! This is the latitude, longitude dimension of the grid to be read.
 ! This corresponds to the lat and lon dimension variables in the
@@ -205,41 +205,43 @@ module mod_sst_ersst
 !
 ! DATA ARRAY AND WORK ARRAY
 !
-  data varname/'sst','skt'/
+    data varname/'sst','skt'/
 !
-  if ( lfirst ) then
-    istatus = nf90_inq_varid(inet,varname(itype),ivar)
+    if ( lfirst ) then
+      istatus = nf90_inq_varid(inet,varname(itype),ivar)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot find variable '//trim(varname(itype)))
+      istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot get attribute scale_factor')
+      istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot get attribute add_offset')
+      istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot get attribute _FillValue')
+      istart(1) = 1
+      istart(2) = 1
+      icount(1) = ilon
+      icount(2) = jlat
+      lfirst = .false.
+    end if
+!
+    istart(3) = it
+    icount(3) = 1
+    istatus = nf90_get_var(inet,ivar,work,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Cannot find variable '//trim(varname(itype)))
-    istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Cannot get attribute scale_factor')
-    istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute add_offset')
-    istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
-    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute _FillValue')
-    istart(1) = 1
-    istart(2) = 1
-    icount(1) = ilon
-    icount(2) = jlat
-    lfirst = .false.
-  end if
+                   'Cannot read '//trim(varname(itype)))
 !
-  istart(3) = it
-  icount(3) = 1
-  istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-                 'Cannot read '//trim(varname(itype)))
-!
-  do j = 1 , jlat
-    do i = 1 , ilon
-      if (work(i,j) /= xmiss) then
-        sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
-      else
-        sst(i,jlat+1-j) = -9999.0
-      end if
+    do j = 1 , jlat
+      do i = 1 , ilon
+        if (work(i,j) /= xmiss) then
+          sst(i,j) = real(dble(work(i,j))*xscale + xadd)
+        else
+          sst(i,j) = -9999.0
+        end if
+      end do
     end do
-  end do
 !
   end subroutine sst_erain
 !
