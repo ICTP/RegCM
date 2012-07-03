@@ -149,6 +149,7 @@ module mod_sst_ersst
     call split_idate(idate,year,month,day,hour)
     if ( year > 1988 .and. isyear == 1979 ) then
       ierastart = 1989010100
+      isyear = 1989
       if ( ssttyp == 'ERSST' ) then
         inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
       else if ( ssttyp == 'ERSKT' ) then
@@ -161,8 +162,9 @@ module mod_sst_ersst
                       'Cannot open file '//trim(inpfile))
       write (stdout,*) trim(inpfile)
       lfirst = .true.
-    else if ( year > 2008 .and. isyear == 2009 ) then
+    else if ( year > 2008 .and. isyear == 1989 ) then
       ierastart = 2009010100
+      isyear = 2009
       if ( ssttyp == 'ERSST' ) then
         inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
       else if ( ssttyp == 'ERSKT' ) then
