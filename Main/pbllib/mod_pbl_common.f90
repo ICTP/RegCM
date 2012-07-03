@@ -85,31 +85,27 @@ module mod_pbl_common
   real(dp) , public , pointer , dimension(:,:,:) :: vten      ! aten%v
   real(dp) , public , pointer , dimension(:,:,:) :: tten      ! aten%t
   real(dp) , public , pointer , dimension(:,:,:) :: tketen    ! aten%tke
-  real(dp) , public , pointer , dimension(:,:,:) :: qvten     ! aten%qv
-  real(dp) , public , pointer , dimension(:,:,:) :: qcten     ! aten%qc
+  real(dp) , public , pointer , dimension(:,:,:,:) :: qxten   ! aten%qx
   real(dp) , public , pointer , dimension(:,:,:) :: uuwten    ! uwten%u
   real(dp) , public , pointer , dimension(:,:,:) :: vuwten    ! uwten%v
   real(dp) , public , pointer , dimension(:,:,:) :: tuwten    ! uwten%t
   real(dp) , public , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
-  real(dp) , public , pointer , dimension(:,:,:) :: qvuwten   ! uwten%qv
-  real(dp) , public , pointer , dimension(:,:,:) :: qcuwten   ! uwten%qc
+  real(dp) , public , pointer , dimension(:,:,:,:) :: qxuwten ! uwten%qx
   real(dp) , public , pointer , dimension(:,:,:) :: uatm      ! atms%ubx3d
   real(dp) , public , pointer , dimension(:,:,:) :: vatm      ! atms%vbx3d
   real(dp) , public , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
   real(dp) , public , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
   real(dp) , public , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
-  real(dp) , public , pointer , dimension(:,:,:) :: qvatm     ! atms%qv
-  real(dp) , public , pointer , dimension(:,:,:) :: qcatm     ! atms%qc
+  real(dp) , public , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
   real(dp) , public , pointer , dimension(:,:,:) :: tkests    ! atms%tke
   real(dp) , public , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
   real(dp) , public , pointer , dimension(:,:,:) :: zq        ! atms%zq
   real(dp) , public , pointer , dimension(:,:,:) :: za        ! atms%za
   real(dp) , public , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
   real(dp) , public , pointer , dimension(:,:,:) :: difft     ! adf%difft
-  real(dp) , public , pointer , dimension(:,:,:) :: diffq     ! adf%diffq
+  real(dp) , public , pointer , dimension(:,:,:,:) :: diffqx  ! adf%diffqx
   real(dp) , public , pointer , dimension(:,:,:) :: radheatrt ! heatrt
-  real(dp) , public , pointer , dimension(:,:,:) :: diagqv    ! holtten%qv
-  real(dp) , public , pointer , dimension(:,:,:) :: diagqc    ! holtten%qc
+  real(dp) , public , pointer , dimension(:,:,:,:) :: diagqx  ! holtten%qx
   real(dp) , public , pointer , dimension(:,:,:,:) :: chmx    ! chib
   real(dp) , public , pointer , dimension(:,:,:,:) :: chten   ! chiten
   real(dp) , public , pointer , dimension(:,:,:) :: drmr      ! remdrd

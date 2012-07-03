@@ -152,7 +152,7 @@
   do k = 1 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
-        thvx(j,i,k) = thxatm(j,i,k)*(d_one+ep1*qvatm(j,i,k))
+        thvx(j,i,k) = thxatm(j,i,k)*(d_one+ep1*qxatm(j,i,k,iqv))
       end do
     end do
   end do
@@ -261,7 +261,7 @@
 !     th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
 !     th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
 !                 dlog(za(j,i,kz)*d_r10)
-      sh10 = qvatm(j,i,kz)/(qvatm(j,i,kz)+d_one)
+      sh10 = qxatm(j,i,kz,iqv)/(qxatm(j,i,kz,iqv)+d_one)
       ! "virtual" potential temperature
       if ( hfxv(j,i) >= d_zero ) then
         th10(j,i) = thvx(j,i,kz)
@@ -530,7 +530,7 @@
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = qvatm(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = qxatm(j,i,1,iqv)/coef2(j,i,1)
     end do
   end do
  
@@ -541,7 +541,7 @@
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (qvatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (qxatm(j,i,k,iqv)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                        (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -553,7 +553,7 @@
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (qvatm(j,i,kz) + &
+      coeff1(j,i,kz) = (qxatm(j,i,kz,iqv) + &
                dtpbl*alphak(j,i,kz)*qfx(j,i) + &
                coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
@@ -584,7 +584,7 @@
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          diagqv(j,i,k) = (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
+          diagqx(j,i,k,iqv) = (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -592,8 +592,8 @@
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          diffq(j,i,k) = diffq(j,i,k) + &
-                         (tpred1(j,i,k)-qvatm(j,i,k))*rdtpbl*sfcps(j,i)
+          diffqx(j,i,k,iqv) = diffqx(j,i,k,iqv) + &
+                         (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -614,7 +614,7 @@
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = qcatm(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = qxatm(j,i,1,iqc)/coef2(j,i,1)
     end do
   end do
   do k = 2 , kz - 1
@@ -624,7 +624,7 @@
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (qcatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (qxatm(j,i,k,iqc)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -635,7 +635,7 @@
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (qcatm(j,i,kz)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+      coeff1(j,i,kz) = (qxatm(j,i,kz,iqc)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
   end do
@@ -663,7 +663,7 @@
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          diagqc(j,i,k) = (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
+          diagqx(j,i,k,iqc) = (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -671,8 +671,8 @@
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qcten(j,i,k) = qcten(j,i,k) + &
-                      (tpred1(j,i,k)-qcatm(j,i,k))*rdtpbl*sfcps(j,i)
+          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + &
+                      (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdtpbl*sfcps(j,i)
         end do
       end do
     end do
@@ -942,7 +942,8 @@
       do j = jci1 , jci2
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
-          tkv = thxatm(j,i,k)*(d_one+mult*(qvatm(j,i,k)/(qvatm(j,i,k)+d_one)))
+          tkv = thxatm(j,i,k)*(d_one+mult* &
+                      (qxatm(j,i,k,iqv)/(qxatm(j,i,k,iqv)+d_one)))
           ri(j,i,k) = egrav*(tkv-tlv)*za(j,i,k)/(th10(j,i)*vv(j,i,k))
         end if
       end do

@@ -53,8 +53,7 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:,:) :: u
     real(dp) , pointer , dimension(:,:,:) :: v
     real(dp) , pointer , dimension(:,:,:) :: t
-    real(dp) , pointer , dimension(:,:,:) :: qv
-    real(dp) , pointer , dimension(:,:,:) :: qc
+    real(dp) , pointer , dimension(:,:,:,:) :: qx
     real(dp) , pointer , dimension(:,:,:) :: tke
   end type atmstate
 
@@ -81,9 +80,8 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:,:) :: ubd3d
     real(dp) , pointer , dimension(:,:,:) :: vbd3d
     real(dp) , pointer , dimension(:,:,:) :: rhb3d
-    real(dp) , pointer , dimension(:,:,:) :: qvb3d
     real(dp) , pointer , dimension(:,:,:) :: qsb3d
-    real(dp) , pointer , dimension(:,:,:) :: qcb3d
+    real(dp) , pointer , dimension(:,:,:,:) :: qxb3d
     real(dp) , pointer , dimension(:,:,:) :: zq
     real(dp) , pointer , dimension(:,:,:) :: za
     real(dp) , pointer , dimension(:,:,:) :: dzq
@@ -96,7 +94,7 @@ module mod_atm_interface
     real(dp) , pointer , dimension(:,:,:) :: difft
     real(dp) , pointer , dimension(:,:,:) :: difuu
     real(dp) , pointer , dimension(:,:,:) :: difuv
-    real(dp) , pointer , dimension(:,:,:) :: diffq
+    real(dp) , pointer , dimension(:,:,:,:) :: diffqx
   end type diffx
 
   type v3dbound
@@ -538,8 +536,7 @@ module mod_atm_interface
         call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
         call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
         call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
-        call getmem3d(atm%qv,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:qv')
-        call getmem3d(atm%qc,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:qc')
+        call getmem4d(atm%qx,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                         1,kzp1,'atmstate:tke')
@@ -548,8 +545,7 @@ module mod_atm_interface
         call getmem3d(atm%u,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:u')
         call getmem3d(atm%v,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:v')
         call getmem3d(atm%t,jcross1,jcross2,icross1,icross2,1,kz,'atmstate:t')
-        call getmem3d(atm%qv,jcross1,jcross2,icross1,icross2,1,kz,'atmstate:qv')
-        call getmem3d(atm%qc,jcross1,jcross2,icross1,icross2,1,kz,'atmstate:qc')
+        call getmem4d(atm%qx,jcross1,jcross2,icross1,icross2,1,kz,1,nqx,'atmstate:qx')
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call getmem3d(atm%tke, &
                         jcross1,jcross2,icross1,icross2,1,kzp1,'atmstate:tke')
@@ -633,10 +629,8 @@ module mod_atm_interface
                              ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:ubx3d')
       call getmem3d(ax%vbx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                              ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:vbx3d')
-      call getmem3d(ax%qcb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
-                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:qcb3d')
-      call getmem3d(ax%qvb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
-                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:qvb3d')
+      call getmem4d(ax%qxb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
+                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,nqx,'slice:qxb3d')
       call getmem3d(ax%tb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                             ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:tb3d')
       call getmem3d(ax%ubd3d,jde1-ma%jbl2,jde2+ma%jbr2, &
@@ -664,7 +658,7 @@ module mod_atm_interface
       call getmem3d(dx%difuu,jde1,jde2,ide1,ide2,1,kz,'diffx:difuu')
       call getmem3d(dx%difuv,jde1,jde2,ide1,ide2,1,kz,'diffx:difuv')
       call getmem3d(dx%difft,jce1,jce2,ice1,ice2,1,kz,'diffx:difft')
-      call getmem3d(dx%diffq,jce1,jce2,ice1,ice2,1,kz,'diffx:diffq')
+      call getmem4d(dx%diffqx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'diffx:diffqx')
     end subroutine allocate_diffx
 !
     subroutine allocate_mod_atm_interface(ibltyp)

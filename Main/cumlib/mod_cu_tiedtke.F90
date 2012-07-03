@@ -27,6 +27,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
+  use mod_mppparam , only : iqc , iqv
 !
   private
 !
@@ -192,14 +193,14 @@ module mod_cu_tiedtke
           ptm1(ii,k)  = tas(j,i,k)  ! temperature
           pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
           pvm1(ii,k)  = vas(j,i,k)  ! v     "
-          pqm1(ii,k)  = qvas(j,i,k) ! humidity
-          pxlm1(ii,k) = qcas(j,i,k) ! cloud liquid water
+          pqm1(ii,k)  = qxas(j,i,k,iqv) ! humidity
+          pxlm1(ii,k) = qxas(j,i,k,iqc) ! cloud liquid water
 
           ptte(ii,k)  = tten(j,i,k)/sfcps(j,i)
           pvom(ii,k)  = uten(j,i,k)/sfcps(j,i)
           pvol(ii,k)  = vten(j,i,k)/sfcps(j,i)
-          pqte(ii,k)  = qvten(j,i,k)/sfcps(j,i)
-          pxlte(ii,k) = qcten(j,i,k)/sfcps(j,i)
+          pqte(ii,k)  = qxten(j,i,k,iqv)/sfcps(j,i)
+          pxlte(ii,k) = qxten(j,i,k,iqc)/sfcps(j,i)
 
           ! IS vertical velocity in Pa/s or in m/s?
           pverv(ii,k)  = d_half*(svv(j,i,k)+svv(j,i,k+1))
@@ -276,8 +277,8 @@ module mod_cu_tiedtke
             tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
             uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
             vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
-            qvten(j,i,k) = pqte(ii,k)  * sfcps(j,i)
-            qcten(j,i,k) = pxlte(ii,k) * sfcps(j,i)
+            qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
+            qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
             if ( lchem ) then
               tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
               ! build for chemistry 3d table of constant precipitation rate

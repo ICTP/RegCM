@@ -23,10 +23,17 @@ module mod_cloud_s1
   use mod_mpmessage
   use mod_memutil
   use mod_atm_interface , only : atmstate , slice , surfstate
-!
+  use mod_mppparam , only : iqqv => iqv
+  use mod_mppparam , only : iqqc => iqc
+
+  use mod_pbl_common
+
+ 
+
   private
 
   integer , parameter :: nmax = 5
+  
 
   real(dp) , parameter :: ptsphy = 1000.0
   real(dp) , parameter :: lvl = 2.50E6
@@ -34,13 +41,18 @@ module mod_cloud_s1
   real(dp) , parameter :: dpotdz = -1.0E-3
   real(dp) , parameter :: vervel = 0.0015
   real(dp) , parameter :: qrad = 1.0E-2
-
+  real(dp) :: w2 
+  real(dp) :: w1
+ 
   real(dp) , pointer , dimension(:,:,:) :: pres   ! from atms
   real(dp) , pointer , dimension(:,:,:) :: zt     ! from atms
   real(dp) , pointer , dimension(:,:,:) :: zeta   ! from atms
   real(dp) , pointer , dimension(:,:,:) :: dzeta  ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: zqv    ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: zqc    ! from atms
+  real(dp) , pointer , dimension(:,:,:,:) :: zqxx ! from atms
+  real(dp) , pointer , dimension(:,:,:) :: rhob3d ! from atms added by R
+  real(dp) , pointer , dimension(:,:,:) :: omega  ! from atms added by R
+  real(dp) , pointer , dimension(:,:,:) :: heatrt ! added by R
+
 
   integer , parameter :: nqx = 5
 
@@ -49,10 +61,11 @@ module mod_cloud_s1
   real(dp) , pointer , dimension(:,:,:) :: ztl
   real(dp) , pointer , dimension(:,:,:) :: dqsatdt
   real(dp) , pointer , dimension(:,:,:) :: satvp
-
+  real(dp) , pointer , dimension(:,:,:,:) :: wvflux
   real(dp) , pointer , dimension(:,:,:,:) :: vqx
   real(dp) , pointer , dimension(:,:,:,:) :: zqx
-  real(dp) , public , pointer , dimension(:,:,:,:) :: zqxn
+  real(dp) , pointer , dimension(:,:,:) :: zqxfg
+  real(dp) , public  , pointer, dimension(:,:,:,:) :: zqxn
   real(dp) , pointer , dimension(:,:,:) :: zfallsink
   real(dp) , pointer , dimension(:,:,:) :: zfallsrce
   real(dp) , pointer , dimension(:,:,:) :: zfluxq
@@ -61,10 +74,18 @@ module mod_cloud_s1
   real(dp) , pointer , dimension(:,:,:,:) :: zqlhs
   real(dp) , pointer , dimension(:,:,:,:) :: zsolqa
   real(dp) , pointer , dimension(:,:,:,:) :: zsolqb
-
-  integer , pointer , dimension(:) :: kphase
+  real(dp) , pointer , dimension(:,:,:) :: totalw1
+  real(dp) , pointer , dimension(:,:,:) :: totalw2
+  real(dp) , pointer , dimension(:,:,:) :: diff
+  real(dp) , pointer , dimension(:,:) :: zfrzmax
+  integer , pointer , dimension(:) :: kphase                     ! marker for water phase of each species
+                                                                 ! 0=vapour, 1=liquid, 2=ice  
+  integer , pointer , dimension(:) :: imelt                      ! marks melting linkage for ice categories
+                                                                 ! ice->liquid, snow->rain
   integer , pointer , dimension(:,:,:,:) :: jindex1
   integer , pointer , dimension(:,:,:) :: jindex2
+   
+
 
   contains
 
@@ -75,7 +96,9 @@ module mod_cloud_s1
     call getmem3d(satvp,jci1,jci2,ici1,ici2,1,kz,'clouds1:satvp')
     call getmem4d(vqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:vqx')
     call getmem4d(zqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx')
+    call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zqxfg')
     call getmem4d(zqxn,jce1,jce2,ice1,ice2,1,kz,1,nqx,'clouds1:zqxn')
+    call getmem2d(zfrzmax,jci1,jci2,ici1,ici2,'clouds1:zfrzmax')
     call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsink')
     call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsrce')
     call getmem3d(zfluxq,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfluxq')
@@ -87,6 +110,17 @@ module mod_cloud_s1
     call getmem4d(jindex1,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:jindex1')
     call getmem3d(jindex2,jci1,jci2,ici1,ici2,1,nqx,'clouds1:jindex2')
     call getmem1d(kphase,1,nqx,'clouds1:kphase')
+    call getmem1d(imelt,1,nqx,'clouds1:imelt')
+    call getmem3d(totalw1,jci1,jci2,ici1,ici2,1,kz,'clouds1:totalw1')
+    call getmem3d(totalw2,jci1,jci2,ici1,ici2,1,kz,'clouds1:totalw2')
+    call getmem3d(diff,jci1,jci2,ici1,ici2,1,kz,'clouds1:diff')
+    call getmem4d(wvflux,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:wvflux')
+    !call getmem3d(omega,jce1,jce2,ice1,ice2,1,kz,'atm_interface:omega')
+
+    
+
+
+
   end subroutine allocate_mod_cloud_s1
 
   subroutine init_cloud_s1(atms)
@@ -96,18 +130,26 @@ module mod_cloud_s1
     call assignpnt(atms%tb3d,zt)
     call assignpnt(atms%za,zeta)
     call assignpnt(atms%dzq,dzeta)
-    call assignpnt(atms%qvb3d,zqv)
-    call assignpnt(atms%qcb3d,zqc)
+    call assignpnt(atms%qxb3d,zqxx)
+    call assignpnt(atms%rhob3d,rhob3d)
+    call assignpnt(heatrt,radheatrt)
   end subroutine init_cloud_s1
 
-  subroutine microphys(jstart,jend,istart,iend)
+  subroutine microphys(omega,jstart,jend,istart,iend)
     implicit none
     integer , intent(in) :: jstart , jend , istart , iend
-!
-    integer :: i , j , k , n
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega  !added by R
+
+    integer :: i , j , k , n , m
     integer :: iqi , iql , iqr , iqs , iqv , jn , jo , kautoconv
     logical :: lmicro
     real(dp) :: zcond , zdtdp , zexplicit
+    real(dp) :: zfrz
+    real(dp) :: alpha1 !coefficient autoconversion
+    real(dp) :: slht !sublimation latent heat 
+    real(dp) :: ralsdcp
+    real(dp) :: ralvdcp
+    real(dp) :: zrldcp
 !
     ! local real variables for autoconversion rate constants
     real(dp) , parameter :: zauto_rate_khair = 0.355D0  ! microphysical terms
@@ -116,11 +158,18 @@ module mod_cloud_s1
     real(dp) , parameter :: zauto_rate_kesl = 1.D-3         !giusto!
     real(dp) , parameter :: zauto_rate_klepi = 0.5D-3
     real(dp) , parameter :: zautocrit = 5.D-4               !giusto!
+    real(dp) , parameter :: zt0 = 273.16
+    real(dp) , parameter :: zepsec = 1.E-10
+    real(dp) , parameter :: qi0 = 1.0E-3 !g g^(-1)
+    real(dp) , parameter :: vlht = 2260. !kJ/kg evaporation latent heat  
+    real(dp) , parameter :: rcpd =  1005. !J/(kg·K) Cp_dry (dry air calorific capacity at constant pressure) 
  
+
     ! local real constants for evaporation
     real(dp) , parameter :: kevap = 0.100D-02    !! Raindrop evap rate coef
     real(dp) , parameter :: rlmin = 1.D-8
  
+     
     ! Define species tags, hard wire for now
     iqv = 1    ! vapour
     iql = 2    ! liquid cloud water
@@ -130,8 +179,8 @@ module mod_cloud_s1
  
     ! Define which autoconversion paramaterization to be chosen
     !KAUTOCONV=1 ! Klein & Pincus (2000)
-    kautoconv = 2 ! Khairoutdinov and Kogan (2000)
-    !KAUTOCONV=3 ! Kessler (1969)
+    !kautoconv = 2 ! Khairoutdinov and Kogan (2000)
+    KAUTOCONV=3 ! Kessler (1969)
     !KAUTOCONV=4 ! Sundqvist
  
     ! Define species phase, 0=vapour, 1=liquid, 2=ice
@@ -140,13 +189,28 @@ module mod_cloud_s1
     kphase(iqr) = 1
     kphase(iqi) = 2
     kphase(iqs) = 2
- 
-    zqx(jci1:jci2,ici1:ici2,1:kz,iqv) = zqv(jci1:jci2,ici1:ici2,1:kz)
-    zqx(jci1:jci2,ici1:ici2,1:kz,iql) = zqc(jci1:jci2,ici1:ici2,1:kz)
-    ztl(jci1:jci2,ici1:ici2,1:kz)     = zt(jci1:jci2,ici1:ici2,1:kz)
 
+
+    ! Set up melting/freezing index,
+    ! if an ice category melts/freezes, where does it go?
+
+    imelt(iqv)=-99
+    imelt(iql)=iqi
+    imelt(iqr)=iqs
+    imelt(iqi)=iql
+    imelt(iqs)=iqr
+
+   
+    
+   
+    !zqxn(jce1:jce2,ice1:ice2,1:kz,1:nqx)= d_zero
+    zqx(jci1:jci2,ici1:ici2,1:kz,iqv) = zqxx(jci1:jci2,ici1:ici2,1:kz,iqqv)
+    zqx(jci1:jci2,ici1:ici2,1:kz,iql) = zqxx(jci1:jci2,ici1:ici2,1:kz,iqqc)
+    ztl(jci1:jci2,ici1:ici2,1:kz)     = zt(jci1:jci2,ici1:ici2,1:kz)
+  
     do n = 1 , nqx
       do k = 1 , kz
+    !print*, omega(2,2,k), 'level', k
         do j = jstart , jend
           do i = istart , iend
             if ( kphase(n) == 1 ) then
@@ -159,11 +223,24 @@ module mod_cloud_s1
         end do
       end do
     end do
-   
+    
     !-----------------
     ! loop over levels
     do k = 1 , kz - 1
     !-----------------
+
+    !---------------------------------
+    ! First guess microphysics
+    !---------------------------------
+    do n = 1 , nqx
+      do j = jstart , jend
+        do i = istart , iend
+          zqxfg(j,i,n)=zqx(j,i,k,n)
+        end do
+      end do
+    end do
+
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!set the fall velocities!!!!!!!!!!
       do j = jstart , jend
         do i = istart , iend
@@ -174,6 +251,21 @@ module mod_cloud_s1
           vqx(j,i,k,iqs) = d_zero !*sqrt(ZQX(JL,JK,IQS))
         end do
       end do
+      
+
+
+
+
+      ! calculate cloud total water at the beginning
+
+      do j = jstart , jend
+        do i = istart , iend
+          totalw1(j,i,k)= zqx(j,i,k,iqv)+zqx(j,i,k,iql)+zqx(j,i,k,iqr) + &
+                          zqx(j,i,k,iqi)+zqx(j,i,k,iqs)
+        end do
+      end do
+      w1=sum(totalw1)
+
         ! reset matrix so missing pathways are set
         zsolqb(:,:,:,:)  = d_zero  !_JPRB
         zsolqa(:,:,:,:)  = d_zero  !_JPRB
@@ -221,7 +313,7 @@ module mod_cloud_s1
         ! for example from condensation processes
         do i = istart , iend
           zdtdp = rovcp*zt(j,i,k)/pres(j,i,k)
-          zcond = dqsatdt(j,i,k)*((vervel*zdtdp)+qrad)
+          zcond = dqsatdt(j,i,k)*((omega(j,i,k)*zdtdp)+radheatrt(j,i,k))
           zsolqa(j,i,iqv,iql) = zsolqa(j,i,iqv,iql) - zcond
           zsolqa(j,i,iql,iqv) = zsolqa(j,i,iql,iqv) + zcond
         end do
@@ -283,8 +375,58 @@ module mod_cloud_s1
             ! ELSE
             !        ZSOLQB(JL,IQV,IQR)=0.0
             ! END IF
- 
+
+          !  Snow Autoconversion rate follow Lin et al. 1983
+          ! print*,'temperatura', zt(j,i,k)
+            if (zt(j,i,k) <=  zt0) then
+              if (zqx(j,i,k,iqi) > zepsec) then
+                alpha1 = ptsphy*1.0E-3*exp(0.025*(zt(j,i,k)-zt0))
+                zsolqa(j,i,iqs,iqi)=zsolqa(j,i,iqs,iqi)-alpha1*qi0
+                zsolqa(j,i,iqi,iqs)=zsolqa(j,i,iqi,iqs)+alpha1*qi0
+                zsolqb(j,i,iqs,iqi)=zsolqb(j,i,iqs,iqi)+ptsphy*alpha1
+            !   print*,'ice', zsolqa(j,i,iqi,iqs)
+              end if
+            end if
+         end do
+        end do
+
+        !Freezing of rain
+
+        do j = jstart , jend
+          do i = istart , iend
+             slht=(2834.1 -0.29*zt(j,i,k)-0.004*(zt(j,i,k)**2)) !sublimation latent heat
+             !print*, 'slht', slht
+          end do
+        end do
+
+        ralsdcp=slht/rcpd
+        ralvdcp=vlht/rcpd
+        zrldcp  = 1.0/(ralsdcp-ralvdcp)
+
+        do j = jstart, jend
+          do i = istart, iend
+            zfrzmax(j,i) = max((zt0-zt(j,i,k))*zrldcp,d_zero)
+            !print*, 'zfrmax', zfrzmax(j,i)
+          end do
+        end do
+
+          
+          do j = jstart, jend
+            do i = istart, iend
+              if (zfrzmax(j,i) > zepsec .AND. zqxfg(j,i,iqr) > zepsec) then
+                zfrz=min(zqxfg(j,i,iqr),zfrzmax(j,i))
+                zsolqa(j,i,iqs,iqr)=zsolqa(j,i,iqs,iqr) + zfrz
+                zsolqa(j,i,iqr,iqs)=zsolqa(j,i,iqr,iqs) - zfrz
+                !print*, 'sink of rain', zsolqa(j,i,iqs,iqr)
+                !print*, 'source of rain', zsolqa(j,i,iqr,iqs)      
+              end if 
+            end do
+          end do
+          
+
             !!!!!!!!!!!!!!!!!!! Evaporate very small amounts of liquid and ice
+        do j = jstart, jend
+          do i = istart, iend
  
             if ( zqx(j,i,k,iql) < rlmin ) then
               zsolqa(j,i,iqv,iql) = zqx(j,i,k,iql)
@@ -459,11 +601,23 @@ module mod_cloud_s1
         do j = jstart , jend
           do i = istart , iend
             zqx(j,i,k,n) = zqxn(j,i,k,n)
+            wvflux(j,i,k,n) = rhob3d(j,i,k)*zqxn(j,i,k,n)*vqx(j,i,k,n)
           end do
        end do 
      end do 
-    end do   ! kz : end of vertical loop
 
+  ! calculate cloud total water at the end
+      do j = jstart , jend
+        do i = istart , iend
+          totalw2(j,i,k)= zqx(j,i,k,iqv)+zqx(j,i,k,iql)+zqx(j,i,k,iqr) + &
+                          zqx(j,i,k,iqi)+zqx(j,i,k,iqs)
+        end do
+      end do
+      w2=sum(totalw2)
+   end do   ! kz : end of vertical loop
+   !print*,' diff qt=', w2-w1  
+
+ 
     contains
 
      real(dp) function dqsatdtc(zt,satc)
@@ -511,7 +665,7 @@ module mod_cloud_s1
     ! AND RETURNS WITH THE SOLUTION VECTOR X. A, N, NP,
     ! AND INDX ARE NOT MODI ED BY THIS ROUTINE AND CAN BE
     ! LEFT IN PLACE FOR SUCCESSIVE CALLS WITH DI
- 
+     
     do k = 1 , kz
       do j = jstart , jend
         do i = istart , iend
@@ -532,7 +686,7 @@ module mod_cloud_s1
                 ii = m
             end if
             bbm(j,i,k,m) = xsum
-          end do
+            end do
           do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
             xsum = bbm(j,i,k,m)
             do jj = m + 1 , nqx

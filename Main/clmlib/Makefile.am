@@ -350,7 +350,7 @@ m_zeit.o:  m_zeit.F90 m_SortingTools.o m_ioutil.o m_die.o m_stdio.o m_mpif90.o
 mct_mod.o:  mct_mod.F90 m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_List.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o m_Router.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_die.o m_Transfer.o shr_kind_mod.o m_stdio.o m_SparseMatrix.o m_Rearranger.o m_GlobalSegMap.o m_inpak90.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_mpi_mod.o m_MCTWorld.o m_Permuter.o m_MergeSorts.o 
 mkarbinitMod.o:  mkarbinitMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o shr_const_mod.o decompMod.o pftvarcon.o misc.h preproc.h
 mod_clm.o:  mod_clm.F90  
-mod_mtrxclm.o:  mod_mtrxclm.F90 clm_varsur.o shr_orb_mod.o clmtype.o program_offMod.o clm_varpar.o atmdrvMod.o mod_clm.o perf_mod.o clm_comp.o initializeMod.o clm_time_manager.o 
+mod_mtrxclm.o:  mod_mtrxclm.F90 clm_varsur.o shr_orb_mod.o clmtype.o program_offMod.o clm_varpar.o atmdrvMod.o mod_clm.o perf_mod.o clm_comp.o initializeMod.o clm_time_manager.o mod_mppparam.mod
 nanMod.o:  nanMod.F90 shr_kind_mod.o 
 ncdio.o:  ncdio.F90 clm_mct_mod.o spmdMod.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o nanMod.o misc.h preproc.h
 ndepFileMod.o:  ndepFileMod.F90 spmdMod.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o decompMod.o clm_time_manager.o clm_atmlnd.o ncdio.o misc.h preproc.h

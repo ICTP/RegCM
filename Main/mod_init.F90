@@ -116,9 +116,9 @@ module mod_init
       do i = ice1 , ice2
         do j = jce1 , jce2
           atm1%t(j,i,k) = xtb%b0(j,i,k)
-          atm1%qv(j,i,k) = xqb%b0(j,i,k)
+          atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
           atm2%t(j,i,k) = xtb%b0(j,i,k)
-          atm2%qv(j,i,k) = xqb%b0(j,i,k)
+          atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
         end do
       end do
     end do
@@ -262,14 +262,14 @@ module mod_init
     call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm1_io%t,atm1%t,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm1_io%qv,atm1%qv,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm1_io%qc,atm1%qc,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm1_io%qx,atm1%qx, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
 
     call deco1_scatter(atm2_io%u,atm2%u,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm2_io%v,atm2%v,jdot1,jdot2,idot1,idot2,1,kz)
     call deco1_scatter(atm2_io%t,atm2%t,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm2_io%qv,atm2%qv,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm2_io%qc,atm2%qc,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_scatter(atm2_io%qx,atm2%qx, &
+                       jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
 
     call deco1_scatter(sfs_io%psa,sfs%psa,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(sfs_io%psb,sfs%psb,jcross1,jcross2,icross1,icross2)

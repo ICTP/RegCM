@@ -165,13 +165,14 @@ module mod_diagnosis
 !
 !   water substance (unit = kg):
 !
-    call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_gather(atm1%qx,atm1_io%qx,jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
+
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tttmp = tttmp + atm1_io%qv(j,i,k)
+            tttmp = tttmp + atm1_io%qx(j,i,k,iqv)
           end do
         end do
         tvmass = tvmass + tttmp*dsigma(k)
@@ -181,13 +182,12 @@ module mod_diagnosis
 
     call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
-    call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tttmp = tttmp + atm1_io%qc(j,i,k)
+            tttmp = tttmp + atm1_io%qx(j,i,k,iqc)
           end do
         end do
         tcmass = tcmass + tttmp*dsigma(k)
@@ -348,7 +348,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = ice1 , ice2
           worka(i,k) = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
-                       (atm1%qv(jce2,i,k)/sfs%psa(jce2,i)) /   &
+                       (atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)) /   &
                        (mddom%msfx(jce2,i)*mddom%msfx(jce2,i))
         end do
       end do
@@ -357,7 +357,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = ice1 , ice2
           workb(i,k) = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k)) * &
-                        (atm1%qv(jce1,i,k)/sfs%psa(jce1,i)) / &
+                        (atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)) / &
                         (mddom%msfx(jce1,i)*mddom%msfx(jce1,i))
         end do
       end do
@@ -374,8 +374,8 @@ module mod_diagnosis
 !
     do k = 1 , kz
       do j = jce1 , jce2
-        qvailx(j,k) = atm1%qv(j,ice2,k)
-        qva01(j,k) = atm1%qv(j,ice1,k)
+        qvailx(j,k) = atm1%qx(j,ice2,k,iqv)
+        qva01(j,k) = atm1%qx(j,ice1,k,iqv)
       end do
     end do
     do j = jce1 , jce2
@@ -407,7 +407,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = ice1 , ice2
           worka(i,k) = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
-                       (atm1%qc(jce2,i,k)/sfs%psa(jce2,i))  /  &
+                       (atm1%qx(jce2,i,k,iqc)/sfs%psa(jce2,i))  /  &
                        (mddom%msfx(jce2,i)*mddom%msfx(jce2,i))
         end do
       end do
@@ -416,7 +416,7 @@ module mod_diagnosis
       do k = 1 , kz
         do i = ice1 , ice2
           workb(i,k) = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k))* &
-                       (atm1%qc(jce1,i,k)/sfs%psa(jce1,i)) /  &
+                       (atm1%qx(jce1,i,k,iqc)/sfs%psa(jce1,i)) /  &
                        (mddom%msfx(jce1,i)*mddom%msfx(jce1,i))
         end do
       end do
@@ -433,8 +433,8 @@ module mod_diagnosis
 !
     do k = 1 , kz
       do j = jce1 , jce2
-        qcailx(j,k) = atm1%qc(j,ice2,k)
-        qca01(j,k)  = atm1%qc(j,ice1,k)
+        qcailx(j,k) = atm1%qx(j,ice2,k,iqc)
+        qca01(j,k)  = atm1%qx(j,ice1,k,iqc)
       end do
     end do
     call deco1_gather(qcailx,qcailx_g,jcross1,jcross2,1,kz)
@@ -509,13 +509,14 @@ module mod_diagnosis
 !-----water substance (unit = kg):
 !
     tvmass = d_zero
-    call deco1_gather(atm1%qv,atm1_io%qv,jcross1,jcross2,icross1,icross2,1,kz)
+    call deco1_gather(atm1%qx,atm1_io%qx, &
+                      jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tttmp = tttmp + atm1_io%qv(j,i,k)
+            tttmp = tttmp + atm1_io%qx(j,i,k,iqv)
           end do
         end do
         tvmass = tvmass + tttmp*dsigma(k)
@@ -525,13 +526,12 @@ module mod_diagnosis
     call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
     tcmass = d_zero
-    call deco1_gather(atm1%qc,atm1_io%qc,jcross1,jcross2,icross1,icross2,1,kz)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tttmp = tttmp + atm1_io%qc(j,i,k)
+            tttmp = tttmp + atm1_io%qx(j,i,k,iqc)
           end do
         end do
         tcmass = tcmass + tttmp*dsigma(k)

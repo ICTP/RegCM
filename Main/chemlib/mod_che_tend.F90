@@ -103,7 +103,7 @@
             ! what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
             hgt(i,k,j)  = cza(j,i,k)
             rho(i,k,j)  = crhob3d(j,i,k)
-            wl(i,k,j)   = cqcb3d(j,i,k)*crhob3d(j,i,k)*d_1000
+            wl(i,k,j)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
             ttb(i,k,j)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
@@ -176,7 +176,7 @@
           ! 10 m air temperature
           temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
-          shu10 = cqvb3d(j,i,kz)/(d_one+cqvb3d(j,i,kz))-csdelqk2d(j,i)*fact
+          shu10 = cqxb3d(j,i,kz,iqv)/(d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m

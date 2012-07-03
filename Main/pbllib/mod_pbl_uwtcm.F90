@@ -72,6 +72,7 @@ module mod_pbl_uwtcm
   use mod_mpmessage
   use mod_pbl_common
   use mod_pbl_thetal
+  use mod_mppparam , only : iqv , iqc
 
   private
 
@@ -267,8 +268,8 @@ module mod_pbl_uwtcm
           zax(k) = d_half*(zqx(k)+zqx(k+1))
           tke(k) = tkests(j,i,k)
           tx(k)  = tatm(j,i,k)
-          qx(k)  = qvatm(j,i,k)
-          qcx(k) = qcatm(j,i,k)
+          qx(k)  = qxatm(j,i,k,iqv)
+          qcx(k) = qxatm(j,i,k,iqc)
           ux(k)  = uatm(j,i,k)
           vx(k)  = vatm(j,i,k)
           if ( lchem ) chix(:,k) = chmx(j,i,k,:)
@@ -708,9 +709,9 @@ module mod_pbl_uwtcm
           ! Temperature tendency
           tuwten(j,i,k)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdtpbl
           ! Water vapor tendency
-          qvuwten(j,i,k) = psbx*(qx(k)-qxs(k))*rdtpbl
+          qxuwten(j,i,k,iqv) = psbx*(qx(k)-qxs(k))*rdtpbl
           ! Cloud water tendency
-          qcuwten(j,i,k) = psbx*(qcx(k)-qcxs(k))*rdtpbl
+          qxuwten(j,i,k,iqc) = psbx*(qcx(k)-qcxs(k))*rdtpbl
 
           ! Tracer tendency
           if ( lchem ) chiuwten(j,i,k,:) = psbx*(chix(:,k) - chixs(:,k))*rdtpbl

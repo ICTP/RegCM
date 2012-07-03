@@ -50,15 +50,13 @@ module mod_cu_common
   real(dp) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
   real(dp) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
   real(dp) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
-  real(dp) , pointer , dimension(:,:,:) :: qcas   ! atms%qcb3d
-  real(dp) , pointer , dimension(:,:,:) :: qvas   ! atms%qvb3d
+  real(dp) , pointer , dimension(:,:,:,:) :: qxas ! atms%qxb3d
   real(dp) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
   real(dp) , pointer , dimension(:,:,:) :: tten   ! aten%t
   real(dp) , pointer , dimension(:,:,:) :: uten   ! aten%u
   real(dp) , pointer , dimension(:,:,:) :: vten   ! aten%v
-  real(dp) , pointer , dimension(:,:,:) :: qvten  ! aten%qv
-  real(dp) , pointer , dimension(:,:,:) :: qcten  ! aten%qc
-  real(dp) , pointer , dimension(:,:,:,:) :: tchiten  !chiten 
+  real(dp) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
+  real(dp) , pointer , dimension(:,:,:,:) :: tchiten  ! chiten 
   real(dp) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
   real(dp) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
   real(dp) , pointer , dimension(:,:) :: rainc    ! sfs%rainc

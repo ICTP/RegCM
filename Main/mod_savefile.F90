@@ -105,13 +105,11 @@ module mod_savefile
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
       read (iutrst) atm1_io%t
-      read (iutrst) atm1_io%qv
-      read (iutrst) atm1_io%qc
+      read (iutrst) atm1_io%qx
       read (iutrst) atm2_io%u
       read (iutrst) atm2_io%v
       read (iutrst) atm2_io%t
-      read (iutrst) atm2_io%qv
-      read (iutrst) atm2_io%qc
+      read (iutrst) atm2_io%qx
       read (iutrst) sfs_io%psa , sfs_io%psb
       read (iutrst) sfs_io%tga , sfs_io%tgb
       read (iutrst) sfs_io%hfx , sfs_io%qfx
@@ -244,13 +242,11 @@ module mod_savefile
       write (iutsav) atm1_io%u
       write (iutsav) atm1_io%v
       write (iutsav) atm1_io%t
-      write (iutsav) atm1_io%qv
-      write (iutsav) atm1_io%qc
+      write (iutsav) atm1_io%qx
       write (iutsav) atm2_io%u
       write (iutsav) atm2_io%v
       write (iutsav) atm2_io%t
-      write (iutsav) atm2_io%qv
-      write (iutsav) atm2_io%qc
+      write (iutsav) atm2_io%qx
       write (iutsav) sfs_io%psa , sfs_io%psb
       write (iutsav) sfs_io%tga , sfs_io%tgb
       write (iutsav) sfs_io%hfx , sfs_io%qfx

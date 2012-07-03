@@ -71,22 +71,19 @@ module mod_pbl_interface
     call assignpnt(aten%v,vten)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%tke,tketen)
-    call assignpnt(aten%qv,qvten)
-    call assignpnt(aten%qc,qcten)
+    call assignpnt(aten%qx,qxten)
     call assignpnt(uwten%u,uuwten)
     call assignpnt(uwten%v,vuwten)
     call assignpnt(uwten%t,tuwten)
     call assignpnt(uwten%tke,tkeuwten)
-    call assignpnt(uwten%qv,qvuwten)
-    call assignpnt(uwten%qc,qcuwten)
+    call assignpnt(uwten%qx,qxuwten)
     call assignpnt(atm2%tke,tkests)
     call assignpnt(atms%ubx3d,uatm)
     call assignpnt(atms%vbx3d,vatm)
     call assignpnt(atms%ubd3d,udatm)
     call assignpnt(atms%vbd3d,vdatm)
     call assignpnt(atms%tb3d,tatm)
-    call assignpnt(atms%qvb3d,qvatm)
-    call assignpnt(atms%qcb3d,qcatm)
+    call assignpnt(atms%qxb3d,qxatm)
     call assignpnt(atms%chib3d,chmx)
     call assignpnt(atms%thx3d,thxatm)
     call assignpnt(atms%za,za)
@@ -94,10 +91,9 @@ module mod_pbl_interface
     call assignpnt(atms%dzq,dzq)
     call assignpnt(atms%rhox2d,rhox2d)
     call assignpnt(adf%difft,difft)
-    call assignpnt(adf%diffq,diffq)
+    call assignpnt(adf%diffqx,diffqx)
     call assignpnt(heatrt,radheatrt)
-    call assignpnt(holtten%qv,diagqv)
-    call assignpnt(holtten%qc,diagqc)
+    call assignpnt(holtten%qx,diagqx)
     call assignpnt(chiten,chten)
     call assignpnt(remdrd,drmr)
     call assignpnt(sfs%psb,sfcps)
@@ -131,17 +127,17 @@ module mod_pbl_interface
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      diffq(jci1:jci2,ici1:ici2,:) =  &
-                  diffq(jci1:jci2,ici1:ici2,:) +  &
-                  tcmtend%qv(jci1:jci2,ici1:ici2,:)
+      diffqx(jci1:jci2,ici1:ici2,:,iqv) =  &
+                  diffqx(jci1:jci2,ici1:ici2,:,iqv) +  &
+                  tcmtend%qx(jci1:jci2,ici1:ici2,:,iqv)
       difft(jci1:jci2,ici1:ici2,:) =  &
                   difft(jci1:jci2,ici1:ici2,:) +  &
                   tcmtend%t(jci1:jci2,ici1:ici2,:)
 
       ! Put the cloud water tendency in aten
-      aten%qc(jci1:jci2,ici1:ici2,:) =  &
-                 aten%qc(jci1:jci2,ici1:ici2,:) +   &
-                 tcmtend%qc(jci1:jci2,ici1:ici2,:)
+      aten%qx(jci1:jci2,ici1:ici2,:,iqc) =  &
+                 aten%qx(jci1:jci2,ici1:ici2,:,iqc) +   &
+                 tcmtend%qx(jci1:jci2,ici1:ici2,:,iqc)
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
@@ -198,8 +194,7 @@ module mod_pbl_interface
     atm2%tke(jci1:jci2,ici1:ici2,kzp1) =  &
                tcmstate%srftke(jci1:jci2,ici1:ici2)
 
-!   tcmtend%qc = 0.0d0
-!   tcmtend%qv = 0.0d0
+!   tcmtend%qx = 0.0d0
 !   tcmtend%t = 0.0d0
 !   tcmtend%u = 0.0d0
 !   tcmtend%v = 0.0d0
@@ -366,11 +361,11 @@ module mod_pbl_interface
     !
   end subroutine set_tke_bc
 
-  subroutine check_conserve_qt(rcmqvten,rcmqcten,tcmtend,tcmstate,kmax)
+  subroutine check_conserve_qt(rcmqxten,tcmtend,tcmstate,kmax)
     implicit none
     type(atmstate) , intent(in) :: tcmtend
     type(tcm_state) :: tcmstate
-    real(dp) , dimension(:,:,:) , intent(in) :: rcmqvten , rcmqcten
+    real(dp) , dimension(:,:,:,:) , intent(in) :: rcmqxten
     integer , intent(in) :: kmax
     real(dp) , dimension(kmax) :: rho1d , rhobydpdz1d
     real(dp) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
@@ -389,12 +384,12 @@ module mod_pbl_interface
 
         rho1d = d_1000*(hlev*sfcps(j,i) + ptp) / &
                     ( rgas * tatm(j,i,:) *  &
-                    (d_one + ep1* qvatm(j,i,:) - qcatm(j,i,:))  )
+                    (d_one + ep1* qxatm(j,i,:,iqv) - qxatm(j,i,:,iqc)) )
 
 
-        qwtcm = sum((tcmtend%qv(j,i,:) + tcmtend%qc(j,i,:))  &
+        qwtcm = sum((tcmtend%qx(j,i,:,iqv) + tcmtend%qx(j,i,:,iqc))  &
                       *rho1d*dzq(j,i,:))*dtops
-        qwrcm = sum((rcmqvten(j,i,:) + rcmqcten(j,i,:))   &
+        qwrcm = sum((rcmqxten(j,i,:,iqv) + rcmqxten(j,i,:,iqc))   &
                       *rho1d*dzq(j,i,:))*dtops
 !                     *rhobydpdz1d*dzq(j,i,:))*dtops
 

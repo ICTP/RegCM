@@ -127,7 +127,7 @@ module mod_che_chemistry
           end do
 !         2  : update input concentrations for transported species only  
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-          xrin(1,ind_H2O)  = cqvb3d(j,i,k)*cfactor / 18.D00
+          xrin(1,ind_H2O)  = cqxb3d(j,i,k,iqv)*cfactor / 18.D00
           xrin(1,ind_O3)   = chib3d(j,i,k,io3)*cfactor/W_O3
           xrin(1,ind_NO2)  = chib3d(j,i,k,ino2)*cfactor /W_NO2
           xrin(1,ind_NO)   = chib3d(j,i,k,ino)*cfactor/W_NO

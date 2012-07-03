@@ -25,6 +25,7 @@ module mod_cu_kuo
   use mod_dynparam
   use mod_memutil
   use mod_cu_common
+  use mod_mppparam , only : iqv
 
   private
 
@@ -99,7 +100,7 @@ module mod_cu_kuo
     end if
 !
 !   compute the moisture convergence in a column:
-!   at this stage, qvten(j,i,k) only includes horizontal advection.
+!   at this stage, qxten(j,i,k,iqv) only includes horizontal advection.
 !   sca: is the amount of total moisture convergence
 !
     total_precip_points = 0
@@ -108,7 +109,7 @@ module mod_cu_kuo
 !
         sca = d_zero
         do k = 1 , kz
-          sca = sca + qvten(j,i,k)*dflev(k)
+          sca = sca + qxten(j,i,k,iqv)*dflev(k)
         end do
 !
 !       determine if moist convection exists:
@@ -125,7 +126,7 @@ module mod_cu_kuo
           eqtm = d_zero
           do k = k700 , kz
             ttp = ptatm(j,i,k)/psfcps(j,i) + pert
-            q = pvqvtm(j,i,k)/psfcps(j,i) + perq
+            q = pvqxtm(j,i,k,iqv)/psfcps(j,i) + perq
             psg = psfcps(j,i)*hlev(k) + ptop
             t1 = ttp*(d_100/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
@@ -229,7 +230,7 @@ module mod_cu_kuo
                 pux = psx*hlev(k) + ptop
                 e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(j,i,k)/psx))
                 qs = ep2*e1/(pux-e1)
-                rh = pvqvtm(j,i,k)/(qs*psx)
+                rh = pvqxtm(j,i,k,iqv)/(qs*psx)
                 rh = dmin1(rh,d_one)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
@@ -253,7 +254,7 @@ module mod_cu_kuo
                 rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtcum*d_half
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
-                qvten(j,i,k) = eddyf
+                qxten(j,i,k,iqv) = eddyf
                 rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtcum*d_half
               end do
 !
@@ -298,18 +299,19 @@ module mod_cu_kuo
 !
         tmp3(1) = d_zero
         do k = 2 , kz
-          if ( pvqvtm(j,i,k) < 1.0D-15 ) then
+          if ( pvqxtm(j,i,k,iqv) < 1.0D-15 ) then
             tmp3(k) = d_zero
           else
-            tmp3(k) = pvqvtm(j,i,k)*(pvqvtm(j,i,k-1)/pvqvtm(j,i,k))**wlev(k)
+            tmp3(k) = pvqxtm(j,i,k,iqv)* &
+                      (pvqxtm(j,i,k-1,iqv)/pvqxtm(j,i,k,iqv))**wlev(k)
           end if
         end do
-        qvten(j,i,1) = qvten(j,i,1)-svv(j,i,2)*tmp3(2)/dflev(1)
+        qxten(j,i,1,iqv) = qxten(j,i,1,iqv)-svv(j,i,2)*tmp3(2)/dflev(1)
         do k = 2 , kzm1
-          qvten(j,i,k) = qvten(j,i,k)-(svv(j,i,k+1)*tmp3(k+1) - &
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv)-(svv(j,i,k+1)*tmp3(k+1) - &
                                        svv(j,i,k)*tmp3(k))/dflev(k)
         end do
-        qvten(j,i,kz) = qvten(j,i,kz) + svv(j,i,kz)*tmp3(kz)/dflev(kz)
+        qxten(j,i,kz,iqv) = qxten(j,i,kz,iqv) + svv(j,i,kz)*tmp3(kz)/dflev(kz)
 !
       end do
     end do
@@ -322,7 +324,7 @@ module mod_cu_kuo
           rsht = rsheat(j,i,k)/tauht
           rswt = rswat(j,i,k)/tauht
           tten(j,i,k) = tten(j,i,k) + rsht
-          qvten(j,i,k) = qvten(j,i,k) + rswt
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rswt
           rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtcum/(d_two*tauht))
           rswat(j,i,k) = rswat(j,i,k)*(d_one-dtcum/(d_two*tauht))
         end do

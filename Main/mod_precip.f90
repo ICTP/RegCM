@@ -27,6 +27,7 @@ module mod_precip
 !
   use mod_runparams
   use mod_memutil
+  use mod_mppparam , only : iqc , iqv
   use mod_atm_interface , only : atmstate , slice , surfstate
 !
   private
@@ -34,9 +35,9 @@ module mod_precip
 ! Precip sum beginning from top
   real(dp) , pointer , dimension(:,:) :: pptsum
   real(dp) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
-  real(dp) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
-  real(dp) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
-  real(dp) , pointer , dimension(:,:,:) :: tten , qvten , qcten
+  real(dp) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
+  real(dp) , pointer , dimension(:,:,:) :: t3 , t2 , tten
+  real(dp) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
   real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
  
   real(dp) :: qcth , aprdiv
@@ -84,17 +85,14 @@ module mod_precip
 
       call assignpnt(atmslice%tb3d,t3)
       call assignpnt(atmslice%pb3d,p3)
-      call assignpnt(atmslice%qvb3d,qv3)
-      call assignpnt(atmslice%qcb3d,qc3)
+      call assignpnt(atmslice%qxb3d,qx3)
       call assignpnt(atmslice%qsb3d,qs3)
       call assignpnt(atmslice%rhb3d,rh3)
       call assignpnt(atmslice%rhob3d,rho3)
       call assignpnt(atm%t,t2)
-      call assignpnt(atm%qv,qv2)
-      call assignpnt(atm%qc,qc2)
+      call assignpnt(atm%qx,qx2)
       call assignpnt(aten%t,tten)
-      call assignpnt(aten%qc,qcten)
-      call assignpnt(aten%qv,qvten)
+      call assignpnt(aten%qx,qxten)
       call assignpnt(sfs%psb,psf)
       call assignpnt(sfs%rainnc,rainnc)
       call assignpnt(pptnc,lsmrnc)
@@ -157,7 +155,7 @@ module mod_precip
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,1)*d_1000                             ![Pa][avg]
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
-          qcw = qc3(j,i,1)                                   ![kg/kg][avg]
+          qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
 !         1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
 !         1ac. Compute the maximum precipation rate
@@ -196,7 +194,7 @@ module mod_precip
             dpovg = dsigma(1)*psf(j,i)*thog                  ![kg/m2]
             pptsum(j,i) = pptnew*dpovg                         ![kg/m2/s][avg]
 !           1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(j,i,1) = qcten(j,i,1) - pptnew*psf(j,i)    ![kg/kg/s*cb][avg]
+            qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psf(j,i) ![kg/kg/s*cb][avg]
           else  !   Cloud but no new precipitation
             pptsum(j,i) = d_zero                               ![kg/m2/s][avg]
           end if
@@ -218,7 +216,7 @@ module mod_precip
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,k)*d_1000                             ![Pa][avg]
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
-          qcw = qc3(j,i,k)                                   ![kg/kg][avg]
+          qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = fcc(j,i,k)                                   ![frac][avg]
           if ( tcel > d_zero ) then
             es = svp1*d_1000*dexp(svp2*tcel/(tk-svp3))       ![Pa][avg]
@@ -226,7 +224,7 @@ module mod_precip
             es = svp4*d_1000*dexp(svp5-svp6/tk)              ![Pa][avg]
           end if
           qs = ep2*es/(ppa-es)                               ![kg/kg][avg]
-          rh = dmin1(dmax1(qv3(j,i,k)/qs,d_zero),rhmax)      ![frac][avg]
+          rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
     
 !         1bb. Convert accumlated precipitation to kg/kg/s.
 !              Used for raindrop evaporation and accretion.
@@ -245,13 +243,14 @@ module mod_precip
 !           2bcb. Raindrop evaporation [kg/kg/s]
             rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
                                                            ![kg/kg/s][avg]
-            rdevap = dmin1((qs-qv3(j,i,k))/dt,rdevap)      ![kg/kg/s][avg]
+            rdevap = dmin1((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
 !           2bcc. Update the precipitation accounting for the raindrop
 !                 evaporation [kg/m2/s]
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg       ![kg/m2/s][avg]
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-            qvten(j,i,k) = qvten(j,i,k) + rdevap*psf(j,i)  ![kg/kg/s*cb][avg]
+            qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rdevap*psf(j,i)
+                                                           ![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
             tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psf(j,i)
                                                            ![k/s*cb][avg]
@@ -295,7 +294,7 @@ module mod_precip
 !           1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg        ![kg/m2/s][avg]
 !           1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(j,i,k) = qcten(j,i,k) - pptnew*psf(j,i)   ![kg/kg/s*cb][avg]
+            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psf(j,i) ![kg/kg/s*cb][avg]
           else
             pptnew = d_zero                                  ![kg/kg/s][avg]
           end if
@@ -321,7 +320,7 @@ module mod_precip
             rembc(j,i,k) = d_zero
             if ( remrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                rembc(j,i,k) = rembc(j,i,k) + remrat(j,i,kk)*qc3(j,i,kk) *  &
+                rembc(j,i,k) = rembc(j,i,k) + remrat(j,i,kk)*qx3(j,i,kk,iqc) * &
                              psf(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
 !   the below cloud precipitation rate is now used directly in chemistry
@@ -420,9 +419,9 @@ module mod_precip
 !---------------------------------------------------------------------
           if ( p3(j,i,k) >= 75.0D0 ) then
             ! Clouds below 750hPa
-            if ( qv3(j,i,k) <= 0.003D0 ) then
+            if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
               fcc(j,i,k) = fcc(j,i,k) * &
-                     dmax1(0.15D0,dmin1(d_one,qv3(j,i,k)/0.003D0))
+                     dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
             end if
           end if
 !---------------------------------------------------------------------
@@ -441,7 +440,7 @@ module mod_precip
         do j = jci1 , jci2
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          exlwc = qc3(j,i,k)*rho3(j,i,k)*d_1000
+          exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
 
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
@@ -477,10 +476,10 @@ module mod_precip
 !    adjustment based on asai (1965, j. meteo. soc. japan).       c
 !                                                                 c
 ! ---modified to include the effects of partial cloud cover       c
-!    (see Pal et al 2000).  When partial clouds exist, the qvten  c
+!    (see Pal et al 2000).  When partial clouds exist, the qxten  c
 !    in/out of the clear and cloudy portions of the grid cell is  c
 !    assumed to be at the same rate (i.e., if there is 80% cloud  c
-!    cover, .2 of qvten goes to raising qv in the clear region    c
+!    cover, .2 of qxten goes to raising qv in the clear region    c
 !    and .8 goes to condensation or evaporation of qc in the      c
 !    cloudy portion).                                             c
 !                                                                 c
@@ -508,8 +507,8 @@ module mod_precip
       do i = ici1 , ici2
         do j = jci1 , jci2
           tmp3 = (t2(j,i,k)+dt*tten(j,i,k))/psc(j,i)
-          qvcs = dmax1((qv2(j,i,k)+dt*qvten(j,i,k))/psc(j,i),lowq)
-          qccs = dmax1((qc2(j,i,k)+dt*qcten(j,i,k))/psc(j,i),dlowval)
+          qvcs = dmax1((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv))/psc(j,i),lowq)
+          qccs = dmax1((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc))/psc(j,i),dlowval)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
@@ -539,7 +538,7 @@ module mod_precip
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            qvc_cld = dmax1((qs3(j,i,k)+dt*qvten(j,i,k)/psc(j,i)),d_zero)
+            qvc_cld = dmax1((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
@@ -554,8 +553,8 @@ module mod_precip
           !-----------------------------------------------------------
           !     3.  Compute the tendencies.
           !-----------------------------------------------------------
-          qvten(j,i,k) = qvten(j,i,k) - psc(j,i)*tmp2
-          qcten(j,i,k) = qcten(j,i,k) + psc(j,i)*tmp2
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) - psc(j,i)*tmp2
+          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + psc(j,i)*tmp2
           tten(j,i,k) = tten(j,i,k) + psc(j,i)*tmp2*wlhvocp
         end do
       end do

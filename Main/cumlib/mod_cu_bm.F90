@@ -23,6 +23,7 @@ module mod_cu_bm
   use mod_realkinds
   use mod_memutil
   use mod_cu_common
+  use mod_mppparam , only : iqv
 
 !*****************************************************************
 !
@@ -292,7 +293,7 @@ module mod_cu_bm
         do k = 1 , kz
           t(j,i,k) = tas(j,i,k)
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = qvas(j,i,k)
+          q(j,i,k) = qxas(j,i,k,iqv)
           pppk = (hlev(k)*sfcps(j,i)+ptop)*d_1000
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
@@ -1046,7 +1047,7 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           tten(j,i,k)  = tten(j,i,k)  + tmod(j,i,k) *sfcps(j,i)
-          qvten(j,i,k) = qvten(j,i,k) + qqmod(j,i,k)*sfcps(j,i)
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qqmod(j,i,k)*sfcps(j,i)
         end do
       end do
     end do
