@@ -338,6 +338,8 @@ module mod_bats_zengocn
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
             v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
+            taux(n,j,i) = tau*(uatm(j,i,kz)/uv995) 
+            tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995) 
             t2m(n,j,i) = t995 + tzero - dth*facttq
             q2m(n,j,i) = q995 - dqh*facttq
             !

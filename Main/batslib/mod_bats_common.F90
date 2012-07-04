@@ -43,7 +43,8 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
          drag , evpr , gwet , ldew , q2m , sfcp , trnof , &
          srnof , rsw , snag , sncv , sent , sfice , ssw , &
-         t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl
+         t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl, &
+         taux, tauy
 !
   real(dp) :: rdnnsg
   real(sp) :: rrnnsg
@@ -198,6 +199,8 @@ module mod_bats_common
     call getmem3d(t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
     call getmem3d(u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
     call getmem3d(v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
+    call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
+    call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
     call getmem3d(lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
 
     call getmem2d(flw,jce1,jce2,ice1,ice2,'bats:flw')

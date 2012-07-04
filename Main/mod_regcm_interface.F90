@@ -285,6 +285,10 @@ module mod_regcm_interface
         end if
       end if
       !
+      ! Get SST from ocean model 
+      !
+      
+      !
       ! Compute tendencies
       !
       call tend

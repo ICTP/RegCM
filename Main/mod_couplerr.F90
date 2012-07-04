@@ -76,6 +76,8 @@
         type(ESMF_DELayout), allocatable :: deLayout(:) 
         type(ESMF_DistGrid), allocatable :: distGrid(:)
         type(ESMF_ArraySpec), allocatable :: arrSpec(:)
+        integer :: nExport
+        integer :: nImport
         type(ESM_Field), allocatable :: dataExport(:,:)
         type(ESM_Field), allocatable :: dataImport(:,:)
         type(ESMF_State) :: stateExport
@@ -163,6 +165,7 @@
 !
       integer :: cpl_dtsec, cpl_exvars, cpl_interp, cpl_dbglevel
       logical :: cpl_bdysmooth
+      integer :: ibulk
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -188,10 +191,10 @@
 !     BD - Backward-Destination
 !-----------------------------------------------------------------------
 !
-      type(ESMF_RouteHandle) :: routeHandleFB
-      type(ESMF_RouteHandle) :: routeHandleFC
-      type(ESMF_RouteHandle) :: routeHandleBB
-      type(ESMF_RouteHandle) :: routeHandleBC
+      type(ESMF_RouteHandle), allocatable, dimension(:,:) :: routeHandleFB
+      type(ESMF_RouteHandle), allocatable, dimension(:,:) :: routeHandleFC
+      type(ESMF_RouteHandle), allocatable, dimension(:,:) :: routeHandleBB
+      type(ESMF_RouteHandle), allocatable, dimension(:,:) :: routeHandleBC
       type(ESMF_Field) :: fracFieldFS       
       type(ESMF_Field) :: fracFieldFD       
       type(ESMF_Field) :: fracFieldBS       
@@ -205,7 +208,8 @@
 !
       real*8, parameter :: Cp = 3985.0d0
       real*8, parameter :: rho0 = 1025.0d0
-      real*8, parameter :: Hscale=1.0d0/(rho0*Cp)
+      real*8, parameter :: Hscale = rho0*Cp
+      real*8, parameter :: Hscale2 = 1.0d0/(rho0*Cp)
       real*8, parameter :: day2sec=1.0d0/86400.0d0
 !
       contains
@@ -274,6 +278,7 @@
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
 
+          ! read PETs option
           call ESMF_ConfigFindLabel(cf, 'PETs:', rc=rc)
           if (rc /= ESMF_SUCCESS) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -287,9 +292,19 @@
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
 
-          ! the number of PETs must be equal
+          ! check PETs option
           if (petCount .ne. (petNum1+petNum2)) then
             write(*,*) "Number of PETs must be consistent with regcm.rc"
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+
+          ! read Bulk option
+          call ESMF_ConfigFindLabel(cf, 'Bulk:', rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+          call ESMF_ConfigGetAttribute(cf, ibulk, rc=rc)
+          if (rc /= ESMF_SUCCESS) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
         end if 
@@ -349,6 +364,22 @@
       end if
 !
 !-----------------------------------------------------------------------
+!     Set number of import and export fields 
+!-----------------------------------------------------------------------
+!
+      if (ibulk == 1) then
+        models(Iatmos)%nExport = 11
+        models(Iatmos)%nImport = 2
+        models(Iocean)%nExport = 2
+        models(Iocean)%nImport = 11
+      else
+        models(Iatmos)%nExport = 5
+        models(Iatmos)%nImport = 2
+        models(Iocean)%nExport = 2
+        models(Iocean)%nImport = 5
+      end if
+!
+!-----------------------------------------------------------------------
 !     Allocate mesh variable (depend on model staggering type) 
 !-----------------------------------------------------------------------
 !
@@ -356,7 +387,7 @@
         if (i == Iatmos) then
           k = 2 ! cross and dot points are used (B Grid)
         else if (i == Iocean) then 
-          k = 2 ! cross and dot points are used (C Grid)
+          k = 4 
         end if
 !
         if (.not. allocated(models(i)%mesh)) then
@@ -367,6 +398,21 @@
           allocate(models(i)%grid(nNest(i)))
         end if
       end do
+!
+!-----------------------------------------------------------------------
+!     Allocate routehandle 
+!-----------------------------------------------------------------------
+!
+      if (.not. allocated(routeHandleFB)) then
+        allocate(routeHandleFB(ubound(models(Iatmos)%mesh, dim=1),      &
+                               ubound(models(Iocean)%mesh, dim=1)))
+        allocate(routeHandleFC(ubound(models(Iatmos)%mesh, dim=1),      &
+                               ubound(models(Iocean)%mesh, dim=1)))
+        allocate(routeHandleBB(ubound(models(Iatmos)%mesh, dim=1),      &
+                               ubound(models(Iocean)%mesh, dim=1)))
+        allocate(routeHandleBC(ubound(models(Iatmos)%mesh, dim=1),      &
+                               ubound(models(Iocean)%mesh, dim=1)))
+      end if
 !
 !-----------------------------------------------------------------------
 !     Set mesh or grid information for each model 
@@ -454,42 +500,42 @@
             models(i)%mesh(2,j)%mask%units = '1'
 !
 !           u points
-!            models(i)%mesh(3,j)%gid = 3
-!            models(i)%mesh(3,j)%gtype = Iupoint
-!
-!            models(i)%mesh(3,j)%lon%gtype = Iupoint
-!            models(i)%mesh(3,j)%lon%name = 'lonu'
-!            models(i)%mesh(3,j)%lon%long_name = 'longitude at u'
-!            models(i)%mesh(3,j)%lon%units = 'degrees_east'
-!
-!            models(i)%mesh(3,j)%lat%gtype = Iupoint
-!            models(i)%mesh(3,j)%lat%name = 'latu'
-!            models(i)%mesh(3,j)%lat%long_name = 'latitude at u'
-!            models(i)%mesh(3,j)%lat%units = 'degrees_north'
-!
-!            models(i)%mesh(3,j)%mask%gtype = Iupoint
-!            models(i)%mesh(3,j)%mask%name = 'mask_u'
-!            models(i)%mesh(3,j)%mask%long_name = 'mask on u'
-!            models(i)%mesh(3,j)%mask%units = '1'
-!
+            models(i)%mesh(3,j)%gid = 3
+            models(i)%mesh(3,j)%gtype = Iupoint
+
+            models(i)%mesh(3,j)%lon%gtype = Iupoint
+            models(i)%mesh(3,j)%lon%name = 'lonu'
+            models(i)%mesh(3,j)%lon%long_name = 'longitude at u'
+            models(i)%mesh(3,j)%lon%units = 'degrees_east'
+
+            models(i)%mesh(3,j)%lat%gtype = Iupoint
+            models(i)%mesh(3,j)%lat%name = 'latu'
+            models(i)%mesh(3,j)%lat%long_name = 'latitude at u'
+            models(i)%mesh(3,j)%lat%units = 'degrees_north'
+
+            models(i)%mesh(3,j)%mask%gtype = Iupoint
+            models(i)%mesh(3,j)%mask%name = 'mask_u'
+            models(i)%mesh(3,j)%mask%long_name = 'mask on u'
+            models(i)%mesh(3,j)%mask%units = '1'
+
 !           v points
-!            models(i)%mesh(4,j)%gid = 4
-!            models(i)%mesh(4,j)%gtype = Ivpoint
+            models(i)%mesh(4,j)%gid = 4
+            models(i)%mesh(4,j)%gtype = Ivpoint
 !
-!            models(i)%mesh(4,j)%lon%gtype = Ivpoint
-!            models(i)%mesh(4,j)%lon%name = 'lonv'
-!            models(i)%mesh(4,j)%lon%long_name = 'longitude at v'
-!            models(i)%mesh(4,j)%lon%units = 'degrees_east'
+            models(i)%mesh(4,j)%lon%gtype = Ivpoint
+            models(i)%mesh(4,j)%lon%name = 'lonv'
+            models(i)%mesh(4,j)%lon%long_name = 'longitude at v'
+            models(i)%mesh(4,j)%lon%units = 'degrees_east'
 !
-!            models(i)%mesh(4,j)%lat%gtype = Ivpoint
-!            models(i)%mesh(4,j)%lat%name = 'latv'
-!            models(i)%mesh(4,j)%lat%long_name = 'latitude at v'
-!            models(i)%mesh(4,j)%lat%units = 'degrees_north'
+            models(i)%mesh(4,j)%lat%gtype = Ivpoint
+            models(i)%mesh(4,j)%lat%name = 'latv'
+            models(i)%mesh(4,j)%lat%long_name = 'latitude at v'
+            models(i)%mesh(4,j)%lat%units = 'degrees_north'
 !
-!            models(i)%mesh(4,j)%mask%gtype = Ivpoint
-!            models(i)%mesh(4,j)%mask%name = 'mask_v'
-!            models(i)%mesh(4,j)%mask%long_name = 'mask on v'
-!            models(i)%mesh(4,j)%mask%units = '1'
+            models(i)%mesh(4,j)%mask%gtype = Ivpoint
+            models(i)%mesh(4,j)%mask%name = 'mask_v'
+            models(i)%mesh(4,j)%mask%long_name = 'mask on v'
+            models(i)%mesh(4,j)%mask%units = '1'
           end do 
         end if
 !
@@ -509,16 +555,17 @@
 !
 !-----------------------------------------------------------------------
 !       Set import and export fields 
+!       Note: Only import fields need scale and offset
 !-----------------------------------------------------------------------
 !
-        if (i == Iatmos) then
-          if (.not. allocated(models(i)%dataExport)) then 
-            allocate(models(i)%dataExport(8,nNest(i)))
-          end if       
-          if (.not. allocated(models(i)%dataImport)) then 
-            allocate(models(i)%dataImport(2,nNest(i)))
-          end if
+        if (.not. allocated(models(i)%dataExport)) then
+          allocate(models(i)%dataExport(models(i)%nExport,nNest(i)))
+        end if
+        if (.not. allocated(models(i)%dataImport)) then
+          allocate(models(i)%dataImport(models(i)%nImport,nNest(i)))
+        end if
 !
+        if (i == Iatmos) then
           do j = 1, nNest(i)
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
@@ -528,7 +575,7 @@
             'Sea Surface Temperature'
             models(i)%dataImport(1,j)%units = 'Kelvin'
             models(i)%dataImport(1,j)%scale_factor = 1.0d0
-            models(i)%dataImport(1,j)%add_offset = 273.15d0
+            models(i)%dataImport(1,j)%add_offset = 273.16d0
 !
             models(i)%dataImport(2,j)%fid = 2
             models(i)%dataImport(2,j)%gtype = Icross
@@ -539,6 +586,8 @@
             models(i)%dataImport(2,j)%units = 'mm'
             models(i)%dataImport(2,j)%scale_factor = 1.0d3
             models(i)%dataImport(2,j)%add_offset = 0.0d0
+!
+            if (ibulk == 1) then
 !
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
@@ -565,52 +614,112 @@
 !
             models(i)%dataExport(4,j)%fid = 4
             models(i)%dataExport(4,j)%gtype = Icross
-            models(i)%dataExport(4,j)%itype = Iconsv
-            models(i)%dataExport(4,j)%name = 'swrad'
+            models(i)%dataExport(4,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(4,j)%name = 'Swrad'
             models(i)%dataExport(4,j)%long_name = &
             'solar shortwave radiation flux'
-            models(i)%dataExport(4,j)%units = 'watt meter-2'
+            models(i)%dataExport(4,j)%units = 'Celsius m/s'
 !
             models(i)%dataExport(5,j)%fid = 5
             models(i)%dataExport(5,j)%gtype = Icross
-            models(i)%dataExport(5,j)%itype = Iconsv
-            models(i)%dataExport(5,j)%name = 'lwrad_down'
+            models(i)%dataExport(5,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(5,j)%name = 'Lwrad'
             models(i)%dataExport(5,j)%long_name = &
-            'downwelling longwave radiation flux'
+            'net longwave radiation flux'
             models(i)%dataExport(5,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(6,j)%fid = 6
             models(i)%dataExport(6,j)%gtype = Icross
             models(i)%dataExport(6,j)%itype = Ibilin !Iconsv
-            models(i)%dataExport(6,j)%name = 'rain'
+            models(i)%dataExport(6,j)%name = 'Lwrad_down'
             models(i)%dataExport(6,j)%long_name = &
-            'rain fall rate'
-            models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
+            'downwelling longwave radiation flux'
+            models(i)%dataExport(6,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(7,j)%fid = 7
             models(i)%dataExport(7,j)%gtype = Icross
-            models(i)%dataExport(7,j)%itype = Ibilin
-            models(i)%dataExport(7,j)%name = 'Uwind'
+            models(i)%dataExport(7,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(7,j)%name = 'Lhflx'
             models(i)%dataExport(7,j)%long_name = &
-            'surface u-wind component'
-            models(i)%dataExport(7,j)%units = 'meter second-1'
+            'latent heat flux'
+            models(i)%dataExport(7,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(8,j)%fid = 8
             models(i)%dataExport(8,j)%gtype = Icross
-            models(i)%dataExport(8,j)%itype = Ibilin
-            models(i)%dataExport(8,j)%name = 'Vwind'
+            models(i)%dataExport(8,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(8,j)%name = 'Shflx'
             models(i)%dataExport(8,j)%long_name = &
+            'sensible heat flux'
+            models(i)%dataExport(8,j)%units = 'watt meter-2'
+!
+            models(i)%dataExport(9,j)%fid = 9
+            models(i)%dataExport(9,j)%gtype = Icross
+            models(i)%dataExport(9,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(9,j)%name = 'Rain'
+            models(i)%dataExport(9,j)%long_name = &
+            'rain fall rate'
+            models(i)%dataExport(9,j)%units ='kilogram meter-2 second-1'
+!
+            models(i)%dataExport(10,j)%fid = 10
+            models(i)%dataExport(10,j)%gtype = Icross
+            models(i)%dataExport(10,j)%itype = Ibilin
+            models(i)%dataExport(10,j)%name = 'Uwind'
+            models(i)%dataExport(10,j)%long_name = &
+            'surface u-wind component'
+            models(i)%dataExport(10,j)%units = 'meter second-1'
+!
+            models(i)%dataExport(11,j)%fid = 11
+            models(i)%dataExport(11,j)%gtype = Icross
+            models(i)%dataExport(11,j)%itype = Ibilin
+            models(i)%dataExport(11,j)%name = 'Vwind'
+            models(i)%dataExport(11,j)%long_name = &
             'surface v-wind component'
-            models(i)%dataExport(8,j)%units = 'meter second-1'
+            models(i)%dataExport(11,j)%units = 'meter second-1'
+!
+            else
+!
+            models(i)%dataExport(1,j)%fid = 1
+            models(i)%dataExport(1,j)%gtype = Icross
+            models(i)%dataExport(1,j)%itype = Ibilin
+            models(i)%dataExport(1,j)%name = 'EminP'
+            models(i)%dataExport(1,j)%long_name = &
+            'surface freshwater (E-P) flux'
+            models(i)%dataExport(1,j)%units = 'm/s'
+!
+            models(i)%dataExport(2,j)%fid = 2
+            models(i)%dataExport(2,j)%gtype = Icross
+            models(i)%dataExport(2,j)%itype = Ibilin
+            models(i)%dataExport(2,j)%name = 'NHeat'
+            models(i)%dataExport(2,j)%long_name = &
+            'surface net heat flux'
+            models(i)%dataExport(2,j)%units = 'degC m/s'
+!
+            models(i)%dataExport(3,j)%fid = 3
+            models(i)%dataExport(3,j)%gtype = Icross
+            models(i)%dataExport(3,j)%itype = Ibilin !Iconsv
+            models(i)%dataExport(3,j)%name = 'Swrad'
+            models(i)%dataExport(3,j)%long_name = &
+            'solar shortwave radiation flux'
+            models(i)%dataExport(3,j)%units = 'W/m2'
+!
+            models(i)%dataExport(4,j)%fid = 4
+            models(i)%dataExport(4,j)%gtype = Icross
+            models(i)%dataExport(4,j)%itype = Ibilin
+            models(i)%dataExport(4,j)%name = 'Ustr'
+            models(i)%dataExport(4,j)%long_name = &
+            'u component of surface momentum flux'
+            models(i)%dataExport(4,j)%units = 'm2/s2'
+!
+            models(i)%dataExport(5,j)%fid = 5
+            models(i)%dataExport(5,j)%gtype = Icross
+            models(i)%dataExport(5,j)%itype = Ibilin
+            models(i)%dataExport(5,j)%name = 'Vstr'
+            models(i)%dataExport(5,j)%long_name = &
+            'v component of surface momentum flux'
+            models(i)%dataExport(5,j)%units = 'm2/s2'
+            end if
           end do 
         else if (i == Iocean) then
-          if (.not. allocated(models(i)%dataExport)) then
-            allocate(models(i)%dataExport(2,nNest(i)))
-          end if
-          if (.not. allocated(models(i)%dataImport)) then
-            allocate(models(i)%dataImport(8,nNest(i)))
-          end if
-!
           do j = 1, nNest(i)
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
@@ -627,6 +736,8 @@
             models(i)%dataExport(2,j)%long_name = &
             'Average Ice Thickness in Cell'
             models(i)%dataExport(2,j)%units = 'm'
+!
+            if (ibulk == 1) then
 !
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
@@ -645,7 +756,7 @@
             'Surface Air Temperature'
             models(i)%dataImport(2,j)%units = 'Celsius'
             models(i)%dataImport(2,j)%scale_factor = 1.0d0
-            models(i)%dataImport(2,j)%add_offset = -273.15d0
+            models(i)%dataImport(2,j)%add_offset = -273.16d0
 !
             models(i)%dataImport(3,j)%fid = 3
             models(i)%dataImport(3,j)%gtype = Icross
@@ -663,53 +774,136 @@
 !
             models(i)%dataImport(4,j)%fid = 4
             models(i)%dataImport(4,j)%gtype = Icross
-            models(i)%dataImport(4,j)%itype = Iconsv
-            models(i)%dataImport(4,j)%name = 'swrad'
+            models(i)%dataImport(4,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(4,j)%name = 'Swrad'
             models(i)%dataImport(4,j)%long_name = &
             'solar shortwave radiation flux'
             models(i)%dataImport(4,j)%units = 'Celsius m/s'
-            models(i)%dataImport(4,j)%scale_factor = Hscale 
+            models(i)%dataImport(4,j)%scale_factor = Hscale2 
             models(i)%dataImport(4,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(5,j)%fid = 5
             models(i)%dataImport(5,j)%gtype = Icross
-            models(i)%dataImport(5,j)%itype = Iconsv
-            models(i)%dataImport(5,j)%name = 'lwrad_down'
+            models(i)%dataImport(5,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(5,j)%name = 'Lwrad'
             models(i)%dataImport(5,j)%long_name = &
-            'downwelling longwave radiation flux'
+            'net longwave radiation flux'
             models(i)%dataImport(5,j)%units = 'Celsius m/s'
-            models(i)%dataImport(5,j)%scale_factor = Hscale
+            models(i)%dataImport(5,j)%scale_factor = -Hscale2
             models(i)%dataImport(5,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(6,j)%fid = 6
             models(i)%dataImport(6,j)%gtype = Icross
             models(i)%dataImport(6,j)%itype = Ibilin !Iconsv
-            models(i)%dataImport(6,j)%name = 'rain'
+            models(i)%dataImport(6,j)%name = 'Lwrad_down'
             models(i)%dataImport(6,j)%long_name = &
-            'rain fall rate'
-            models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
-            models(i)%dataImport(6,j)%scale_factor = day2sec
+            'downwelling longwave radiation flux'
+            models(i)%dataImport(6,j)%units = 'Celsius m/s'
+            models(i)%dataImport(6,j)%scale_factor = Hscale2
             models(i)%dataImport(6,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(7,j)%fid = 7
             models(i)%dataImport(7,j)%gtype = Icross
-            models(i)%dataImport(7,j)%itype = Ibilin
-            models(i)%dataImport(7,j)%name = 'Uwind'
+            models(i)%dataImport(7,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(7,j)%name = 'Lhflx'
             models(i)%dataImport(7,j)%long_name = &
-            'surface u-wind component'
-            models(i)%dataImport(7,j)%units = 'meter second-1'
-            models(i)%dataImport(7,j)%scale_factor = 1.0d0
+            'latent heat flux'
+            models(i)%dataImport(7,j)%units = 'Celsius m/s'
+            models(i)%dataImport(7,j)%scale_factor = -Hscale2
             models(i)%dataImport(7,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(8,j)%fid = 8
             models(i)%dataImport(8,j)%gtype = Icross
-            models(i)%dataImport(8,j)%itype = Ibilin
-            models(i)%dataImport(8,j)%name = 'Vwind'
+            models(i)%dataImport(8,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(8,j)%name = 'Shflx'
             models(i)%dataImport(8,j)%long_name = &
-            'surface v-wind component'
-            models(i)%dataImport(8,j)%units = 'meter second-1'
-            models(i)%dataImport(8,j)%scale_factor = 1.0d0
+            'sensible heat flux'
+            models(i)%dataImport(8,j)%units = 'Celsius m/s'
+            models(i)%dataImport(8,j)%scale_factor = -Hscale2
             models(i)%dataImport(8,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(9,j)%fid = 9
+            models(i)%dataImport(9,j)%gtype = Icross
+            models(i)%dataImport(9,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(9,j)%name = 'Rain'
+            models(i)%dataImport(9,j)%long_name = &
+            'rain fall rate'
+            models(i)%dataImport(9,j)%units ='kilogram meter-2 second-1'
+            models(i)%dataImport(9,j)%scale_factor = day2sec
+            models(i)%dataImport(9,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(10,j)%fid = 10
+            models(i)%dataImport(10,j)%gtype = Icross
+            models(i)%dataImport(10,j)%itype = Ibilin
+            models(i)%dataImport(10,j)%name = 'Uwind'
+            models(i)%dataImport(10,j)%long_name = &
+            'surface u-wind component'
+            models(i)%dataImport(10,j)%units = 'meter second-1'
+            models(i)%dataImport(10,j)%scale_factor = 1.0d0
+            models(i)%dataImport(10,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(11,j)%fid = 11
+            models(i)%dataImport(11,j)%gtype = Icross
+            models(i)%dataImport(11,j)%itype = Ibilin
+            models(i)%dataImport(11,j)%name = 'Vwind'
+            models(i)%dataImport(11,j)%long_name = &
+            'surface v-wind component'
+            models(i)%dataImport(11,j)%units = 'meter second-1'
+            models(i)%dataImport(11,j)%scale_factor = 1.0d0
+            models(i)%dataImport(11,j)%add_offset = 0.0d0
+!
+            else
+!
+            models(i)%dataImport(1,j)%fid = 1
+            models(i)%dataImport(1,j)%gtype = Icross
+            models(i)%dataImport(1,j)%itype = Ibilin
+            models(i)%dataImport(1,j)%name = 'EminP'
+            models(i)%dataImport(1,j)%long_name = &
+            'surface freshwater (E-P) flux'
+            models(i)%dataImport(1,j)%units = 'm/s'
+            models(i)%dataImport(1,j)%scale_factor = day2sec 
+            models(i)%dataImport(1,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(2,j)%fid = 2
+            models(i)%dataImport(2,j)%gtype = Icross
+            models(i)%dataImport(2,j)%itype = Ibilin
+            models(i)%dataImport(2,j)%name = 'NHeat'
+            models(i)%dataImport(2,j)%long_name = &
+            'surface net heat flux'
+            models(i)%dataImport(2,j)%units = 'degC m/s'
+            models(i)%dataImport(2,j)%scale_factor = Hscale2
+            models(i)%dataImport(2,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(3,j)%fid = 3
+            models(i)%dataImport(3,j)%gtype = Icross
+            models(i)%dataImport(3,j)%itype = Ibilin !Iconsv
+            models(i)%dataImport(3,j)%name = 'Swrad'
+            models(i)%dataImport(3,j)%long_name = &
+            'solar shortwave radiation flux'
+            models(i)%dataImport(3,j)%units = 'degC m/s'
+            models(i)%dataImport(3,j)%scale_factor = Hscale2
+            models(i)%dataImport(3,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(4,j)%fid = 4
+            models(i)%dataImport(4,j)%gtype = Iupoint !Icross
+            models(i)%dataImport(4,j)%itype = Ibilin
+            models(i)%dataImport(4,j)%name = 'Ustr'
+            models(i)%dataImport(4,j)%long_name = &
+            'u component of surface momentum flux'
+            models(i)%dataImport(4,j)%units = 'm2/s2'
+            models(i)%dataImport(4,j)%scale_factor = 1.0d0/rho0
+            models(i)%dataImport(4,j)%add_offset = 0.0d0
+!
+            models(i)%dataImport(5,j)%fid = 5
+            models(i)%dataImport(5,j)%gtype = Ivpoint !Icross
+            models(i)%dataImport(5,j)%itype = Ibilin
+            models(i)%dataImport(5,j)%name = 'Vstr'
+            models(i)%dataImport(5,j)%long_name = &
+            'v component of surface momentum flux'
+            models(i)%dataImport(5,j)%units = 'm2/s2'
+            models(i)%dataImport(5,j)%scale_factor = 1.0d0/rho0
+            models(i)%dataImport(5,j)%add_offset = 0.0d0
+            end if
           end do
         end if   
       end do
@@ -970,7 +1164,9 @@
           return
         end if
       end do
-      end function getVarId
+      getVarID = -1 
+      return
+      end function getVarID
 !
       integer function getMeshID(list, gtype)
       implicit none
@@ -998,7 +1194,9 @@
           return
         end if
       end do
-      end function getMeshId
+      getMeshID = -1 
+      return
+      end function getMeshID
 !
       subroutine print_matrix_r8(inp, iskip, jskip, pet, id, header)
       implicit none
@@ -1100,4 +1298,30 @@
       return
       end subroutine calc_uvmet
 !
+      subroutine print_size_r8 (field, localPet, header)
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real(dp), intent(in) :: field(:,:) 
+      integer, intent(in) :: localPet
+      character(len=*), intent(in) :: header
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      write(*,40) localPet, trim(adjustl(header)),                      &
+                  lbound(field, dim=1), ubound(field, dim=1),           &
+                  lbound(field, dim=2), ubound(field, dim=2)
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 40   format(" PET(",I3,") - ", A20, " : ", 4I8)
+      end subroutine print_size_r8
+
       end module mod_couplerr

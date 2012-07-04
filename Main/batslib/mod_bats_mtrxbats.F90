@@ -216,7 +216,7 @@ module mod_bats_mtrxbats
         if (myid == 0) then 
           print*, "[debug] -- updating RegCM fields with ROMS data ..."
         end if
-!       update SST
+        ! update SST
         call romsocndrv
       end if
     end if

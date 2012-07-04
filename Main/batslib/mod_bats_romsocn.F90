@@ -58,6 +58,7 @@ module mod_bats_romsocn
     call getmem2d(hice2d,jci1,jci2,ici1,ici2,'roms:hice2d') 
     hice2d = MISSING_R8
 #endif
+!
   end subroutine allocate_mod_bats_romsocn
 
   subroutine romsocndrv
@@ -99,7 +100,8 @@ module mod_bats_romsocn
                            uv10,tau,lh,sh,dth,dqh,ustar,zo)
               ! update surface variables
               sent(n,j,i) = sh
-              evpr(n,j,i) = lh/wlhv
+              !evpr(n,j,i) = lh/wlhv 
+              evpr(n,j,i) = lh/((2.501d0-0.00237d0*tsurf)*1.0d6)
               drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
               facttq = dlog(z995*d_half)/dlog(z995/zo)
               u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
@@ -109,21 +111,23 @@ module mod_bats_romsocn
             end if
 #ifdef ROMSICE
             ! update land use, mask and fluxes if ice is formed
-            if ((hice2d(j,i) .lt. MISSING_R8) .and. (hice2d(j,i) .gt. iceminh)) then
-              ldmsk1(n,j,i) = 2
-              lveg(n,j,i) = 12
-              sfice(n,j,i) = hice2d(j,i) 
-              ! reduce sensible heat flux for ice presence
-              toth = sfice(n,j,i) + sncv(n,j,i)
-              if ( toth > href ) then
-                sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+            if (hice2d(j,i) .lt. MISSING_R8) then
+              if (hice2d(j,i) .gt. iceminh) then
+                ldmsk1(n,j,i) = 2
+                lveg(n,j,i) = 12
+                sfice(n,j,i) = hice2d(j,i) 
+                ! reduce sensible heat flux for ice presence
+                toth = sfice(n,j,i) + sncv(n,j,i)
+                if ( toth > href ) then
+                  sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+                end if
+              else
+                ldmsk1(n,j,i) = 0
+                lveg(n,j,i) = iveg1(n,j,i) 
+                sfice(n,j,i) = d_zero
+                sncv(n,j,i) = d_zero
+                snag(n,j,i) = d_zero
               end if
-            else
-              ldmsk1(n,j,i) = 0
-              lveg(n,j,i) = iveg1(n,j,i) 
-              sfice(n,j,i) = d_zero
-              sncv(n,j,i) = d_zero
-              snag(n,j,i) = d_zero
             end if
 #endif
           end if

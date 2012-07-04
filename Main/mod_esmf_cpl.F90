@@ -110,7 +110,7 @@
 !
       logical :: flag
       integer :: localPet, petCount, comm
-      integer :: i, j, n, itype
+      integer :: i, j, n, itype, vid, sid, did
 !
       integer :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
@@ -343,6 +343,14 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get import field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iatmos)%dataExport(:,1),itemNamesImportF(i))
+      if (vid < 0) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      sid = models(Iatmos)%dataExport(vid,1)%gtype
+!
+!-----------------------------------------------------------------------
 !     Get interpolation type 
 !-----------------------------------------------------------------------
 !
@@ -381,6 +389,22 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get export field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iocean)%dataImport(:,1),itemNamesExportF(i))
+      if (vid < 0) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      did = models(Iocean)%dataImport(vid,1)%gtype
+!
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        print*, 'Init Forward - ',                                      &
+                trim(models(Iocean)%dataImport(vid,1)%name), ' / ',     &
+                trim(itemNamesExportF(i)), ' / ',                       &
+                trim(GRIDDES(sid)), ' --> ',                            &
+                trim(GRIDDES(did))
+      end if
+!
+!-----------------------------------------------------------------------
 !     Create frac field if the interpolation type is conservative 
 !-----------------------------------------------------------------------
 !
@@ -408,7 +432,7 @@
                                   dstField=dstField,                    &
                                   srcFracField=fracFieldFS,             &
                                   dstFracField=fracFieldFD,             &
-                                  routeHandle=routeHandleFC,            &
+                                  routeHandle=routeHandleFC(sid,did),   &
                                   regridmethod=regridMethod,            &
                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -416,7 +440,7 @@
       regridMethod = ESMF_REGRIDMETHOD_BILINEAR
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                                   dstField=dstField,                    &
-                                  routeHandle=routeHandleFB,            &
+                                  routeHandle=routeHandleFB(sid,did),   &
                                   regridmethod=regridMethod,            &
                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -448,6 +472,13 @@
                          srcField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get import field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iocean)%dataExport(:,1),itemNamesImportB(i))
+      sid = models(Iocean)%dataExport(vid,1)%gtype
 !
 !-----------------------------------------------------------------------
 !     Get interpolation type 
@@ -486,6 +517,21 @@
                          dstField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get export field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iatmos)%dataImport(:,1),itemNamesExportB(i))
+      did = models(Iatmos)%dataImport(vid,1)%gtype
+!
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        print*, 'Init Backward - ',                                     &
+        trim(models(Iatmos)%dataImport(vid,1)%name), ' / ',             &
+        trim(itemNamesExportB(i)), ' / ',                               &
+        trim(GRIDDES(did)), ' --> ',                                    &
+        trim(GRIDDES(sid))
+      end if
 !     
 !-----------------------------------------------------------------------
 !     Create frac field if the interpolation type is conservative 
@@ -518,7 +564,7 @@
                                   dstField=dstField,                    &
                                   srcFracField=fracFieldBS,             &
                                   dstFracField=fracFieldBD,             &
-                                  routeHandle=routeHandleBC,            &
+                                  routeHandle=routeHandleBC(did,sid),   &
                                   regridmethod=regridMethod,            &
                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -528,7 +574,7 @@
                               dstField=dstField,                        &
                               srcMaskValues=(/0/),                      &
                               unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
-                              routeHandle=routeHandleBB,                &
+                              routeHandle=routeHandleBB(did,sid),       &
                               regridmethod=regridMethod,                &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -569,7 +615,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: i, j, itype
+      integer :: i, j, itype, vid, sid, did
       integer :: localPet, petCount, comm
 !
       type(ESMF_Field) :: dstField, srcField
@@ -638,6 +684,13 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get export field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iatmos)%dataExport(:,1),itemNamesImportF(i))
+      sid = models(Iatmos)%dataExport(vid,1)%gtype
+!
+!-----------------------------------------------------------------------
 !     Get interpolation type 
 !-----------------------------------------------------------------------
 !
@@ -658,18 +711,33 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get export field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iocean)%dataImport(:,1),itemNamesExportF(i))
+      did = models(Iocean)%dataImport(vid,1)%gtype
+!
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        print*, 'Run Forward  - ',                                      &
+                trim(models(Iocean)%dataImport(vid,1)%name), ' / ',     &
+                trim(itemNamesImportF(i)), ' / ',                       &
+                trim(GRIDDES(sid)), ' --> ',                            &
+                trim(GRIDDES(did))
+      end if
+!
+!-----------------------------------------------------------------------
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
       if (itype == Iconsv) then
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleFC,                              &
+                            routeHandleFC(sid,did),                     &
                             rc=rc)
       else
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleFB,                              &
+                            routeHandleFB(sid,did),                     &
                             rc=rc)
       end if
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -693,6 +761,14 @@
                          srcField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get import field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iocean)%dataExport(:,1),itemNamesImportB(i))
+      sid = models(Iocean)%dataExport(vid,1)%gtype
+!
 !-----------------------------------------------------------------------
 !     Get interpolation type 
 !-----------------------------------------------------------------------
@@ -714,19 +790,34 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Get export field mesh id
+!-----------------------------------------------------------------------
+!
+      vid = getVarID(models(Iatmos)%dataImport(:,1),itemNamesExportB(i))
+      did = models(Iatmos)%dataImport(vid,1)%gtype
+!
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
+        print*, 'Run Backward  - ',                                     &
+        trim(models(Iatmos)%dataImport(vid,1)%name), ' / ',             &
+        trim(itemNamesImportB(i)), ' / ',                               &
+        trim(GRIDDES(did)), ' --> ',                                    &
+        trim(GRIDDES(sid))
+      end if
+!
+!-----------------------------------------------------------------------
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
       if (itype == Iconsv) then
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleBC,                              &
+                            routeHandleBC(did,sid),                     &
                             zeroregion=ESMF_REGION_SELECT,              &
                             rc=rc)
       else
       call ESMF_FieldRegrid(srcField,                                   &
                             dstField,                                   &
-                            routeHandleBB,                              &
+                            routeHandleBB(did,sid),                     &
                             zeroregion=ESMF_REGION_SELECT,              &
                             rc=rc)
       end if
@@ -758,6 +849,12 @@
       integer, intent(out) :: rc
 !
 !-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j
+!
+!-----------------------------------------------------------------------
 !     Call ESMF finalize routines
 !-----------------------------------------------------------------------
 !
@@ -767,14 +864,14 @@
       call ESMF_CplCompDestroy(comp, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_FieldBundleSMMRelease(routehandleFB, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      call ESMF_FieldBundleSMMRelease(routehandleFC, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      call ESMF_FieldBundleSMMRelease(routehandleBB, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      call ESMF_FieldBundleSMMRelease(routehandleBC, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      do i = 1, ubound(models(Iatmos)%mesh, dim=1)
+        do j = 1, ubound(models(Iocean)%mesh, dim=1)
+          call ESMF_FieldBundleSMMRelease(routehandleFB(i,j), rc=rc)
+          call ESMF_FieldBundleSMMRelease(routehandleFC(i,j), rc=rc)
+          call ESMF_FieldBundleSMMRelease(routehandleBB(i,j), rc=rc)
+          call ESMF_FieldBundleSMMRelease(routehandleBC(i,j), rc=rc)
+        end do
+      end do
 !
       call ESMF_FieldDestroy(fracFieldFS, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

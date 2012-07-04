@@ -34,6 +34,8 @@
       use ocean_control_mod, only : ROMS_initialize
       use ocean_control_mod, only : ROMS_run
       use ocean_control_mod, only : ROMS_finalize
+      use ocean_coupler_mod, only : rdata, CoupleSteps 
+      use mod_forces, only : FORCES
 ! 
       implicit none
       private
@@ -677,7 +679,7 @@
 !
       end subroutine ROMS_SetClock
 !
-      subroutine ROMS_SetGridArrays ()
+      subroutine ROMS_SetGridArrays()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -700,6 +702,7 @@
       integer :: staggerEdgeLWidth(2)
       integer :: staggerEdgeUWidth(2)
       integer, allocatable :: deBlockList(:,:,:)
+      character(len=40) :: name
 !
       type(ESMF_StaggerLoc) :: staggerLoc
       real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
@@ -886,21 +889,23 @@
 !     Debug: write size of pointers    
 !-----------------------------------------------------------------------
 !
-        write(*,40) localPet, j, "PTR-"//                               &
-                    trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),      &
+      name = GRIDDES(models(Iocean)%mesh(i,n)%gtype)
+      if (cpl_dbglevel > 0) then
+        write(*,40) localPet, j, adjustl("PTR/OCN/GRD/"//name),         &
                     lbound(ptrX, dim=1), ubound(ptrX, dim=1),           &
                     lbound(ptrX, dim=2), ubound(ptrX, dim=2)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Fill the pointers    
 !-----------------------------------------------------------------------
 !
       if (models(Iocean)%mesh(i,n)%gtype == Icross) then
-        write(*,40) localPet, j, "IDX-CROSS", IstrR, IendR, JstrR, JendR
-        write(*,40) localPet, j, "OCN-"//                               &
-          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
-          lbound(GRID(n)%lonr, dim=1), ubound(GRID(n)%lonr, dim=1),     &
-          lbound(GRID(n)%lonr, dim=2), ubound(GRID(n)%lonr, dim=2)
+        if (cpl_dbglevel > 0) then
+        write(*,40) localPet, j, adjustl("DAT/OCN/GRD/"//name),         &
+        lbound(GRID(n)%lonr, dim=1), ubound(GRID(n)%lonr, dim=1),       &
+        lbound(GRID(n)%lonr, dim=2), ubound(GRID(n)%lonr, dim=2)
+        end if
 !
         do jj = JstrR, JendR
           do ii = IstrR, IendR
@@ -911,11 +916,12 @@
         end do       
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Idot) then
-        write(*,40) localPet, j, "IDX-DOT", IstrU, IendR, JstrV, JendR
-        write(*,40) localPet, j, "OCN-"//                               &
-          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
-          lbound(GRID(n)%lonp, dim=1), ubound(GRID(n)%lonp, dim=1),     &
-          lbound(GRID(n)%lonp, dim=2), ubound(GRID(n)%lonp, dim=2)
+        if (cpl_dbglevel > 0) then
+        write(*,40) localPet, j, adjustl("DAT/OCN/GRD/"//name),         &
+        lbound(GRID(n)%lonp, dim=1), ubound(GRID(n)%lonp, dim=1),       &
+        lbound(GRID(n)%lonp, dim=2), ubound(GRID(n)%lonp, dim=2)
+        end if
+!
         do jj = JstrV, JendR
           do ii = IstrU, IendR
             ptrX(ii,jj) = GRID(n)%lonp(ii,jj)
@@ -925,10 +931,11 @@
         end do
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
-        write(*,40) localPet, j, "OCN-"//                               &
-          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
-          lbound(GRID(n)%lonu, dim=1), ubound(GRID(n)%lonu, dim=1),     &
-          lbound(GRID(n)%lonu, dim=2), ubound(GRID(n)%lonu, dim=2)
+        if (cpl_dbglevel > 0) then
+        write(*,40) localPet, j, adjustl("DAT/OCN/GRD/"//name),         &
+        lbound(GRID(n)%lonu, dim=1), ubound(GRID(n)%lonu, dim=1),       &
+        lbound(GRID(n)%lonu, dim=2), ubound(GRID(n)%lonu, dim=2)
+        end if
 !
         do jj = JstrU, JendU
           do ii = IstrU, IendU
@@ -939,10 +946,11 @@
         end do
 !
       else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
-        write(*,40) localPet, j, "OCN-"//                               &
-          trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype)),                &
-          lbound(GRID(n)%lonv, dim=1), ubound(GRID(n)%lonv, dim=1),     &
-          lbound(GRID(n)%lonv, dim=2), ubound(GRID(n)%lonv, dim=2)
+        if (cpl_dbglevel > 0) then
+        write(*,40) localPet, j, adjustl("DAT/OCN/GRD/"//name),         &
+        lbound(GRID(n)%lonv, dim=1), ubound(GRID(n)%lonv, dim=1),       &
+        lbound(GRID(n)%lonv, dim=2), ubound(GRID(n)%lonv, dim=2)
+        end if
 !
         do jj = JstrV, JendV
           do ii = IstrV, IendV
@@ -957,29 +965,31 @@
 !     Nullify pointers 
 !-----------------------------------------------------------------------
 !
-        if (associated(ptrY)) then
-          nullify(ptrY)
-        end if
-        if (associated(ptrX)) then
-          nullify(ptrX)
-        end if
-        if (associated(ptrM)) then
-          nullify(ptrM)
-        end if
+      if (associated(ptrY)) then
+        nullify(ptrY)
+      end if
+      if (associated(ptrX)) then
+        nullify(ptrX)
+      end if
+      if (associated(ptrM)) then
+        nullify(ptrM)
+      end if
       end do
 !
 !-----------------------------------------------------------------------
 !     Validate Grid 
 !-----------------------------------------------------------------------
 !
-!      call ESMF_GridValidate(models(Iocean)%grid(n), rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      if (cpl_dbglevel > 1) then
+      call ESMF_GridValidate(models(Iocean)%grid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Write ESMF Grid in VTK format (debug) 
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel .gt. 1) then
+      if (cpl_dbglevel > 1) then
       print*, '[debug] -- write grid information to file '//            &
       '>ocean_'//trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iocean)%grid(n),                    &
@@ -997,7 +1007,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 40   format(" PET(",I3,") - DE(",I2,") - ", A10, " : ", 4I8)
+ 40   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1223,6 +1233,7 @@
                         totalLWidth=TLW,                                &
                         totalUWidth=TUW,                                &
                         staggerLoc=staggerLoc,                          &
+                        indexflag=ESMF_INDEX_GLOBAL,                    &
                         name=trim(models(Iocean)%dataImport(i,ng)%name),&
                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1267,7 +1278,7 @@
 !     Initialize pointer 
 !-----------------------------------------------------------------------
 !
-      models(Iocean)%dataImport(i,ng)%ptr = 0.0d0
+      models(Iocean)%dataImport(i,ng)%ptr = MISSING_R8
       end do
 !
 !-----------------------------------------------------------------------
@@ -1280,12 +1291,6 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
       end do
-!
-!-----------------------------------------------------------------------
-!     Format definition 
-!-----------------------------------------------------------------------
-!
- 60   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1363,27 +1368,50 @@
       models(Iocean)%dataExport(k,ng)%ptr = MISSING_R8
 !
 !-----------------------------------------------------------------------
-!     Get name of the field 
+!     Debug: write size of pointers    
 !-----------------------------------------------------------------------
 !
       name = trim(adjustl(models(Iocean)%dataExport(k,ng)%name))
+      if (cpl_dbglevel > 1) then
+        write(*,50) localPet, 0, adjustl("PTR/OCN/EXP/"//name),         &
+                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
+                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=1), &
+                    lbound(models(Iocean)%dataExport(k,ng)%ptr, dim=2), &
+                    ubound(models(Iocean)%dataExport(k,ng)%ptr, dim=2)
+      end if
 !
       select case (trim(adjustl(name)))
       case ('SST')
-        do j = JstrR, JendR
-          do i = IstrR, IendR
-            models(Iocean)%dataExport(k,ng)%ptr(i,j) =                  &
-                                   OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)
-          end do
-        end do
+      if (cpl_dbglevel > 1) then
+        write(*,50) localPet, 0, adjustl("DAT/OCN/EXP/"//name),         &
+                  lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
+                  ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=1), &
+                  lbound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2), &
+                  ubound(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp), dim=2)
+      end if  
+!
+      do j = JstrR, JendR
+      do i = IstrR, IendR
+        models(Iocean)%dataExport(k,ng)%ptr(i,j) =                      &
+                                OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)
+      end do
+      end do
 #ifdef ROMSICE
       case ('Hice')
-        do j = JstrR, JendR
-          do i = IstrR, IendR
-            models(Iocean)%dataExport(k,ng)%ptr(i,j) =                  &
-                                   ICE(ng)%ai(i,j,linew(ng))
-          end do
-        end do
+      if (cpl_dbglevel > 1) then
+        write(*,50) localPet, 0, adjustl("DAT/OCN/EXP/"//name),         &
+                  lbound(ICE(ng)%ai(:,:,linew(ng)), dim=1),             &
+                  ubound(ICE(ng)%ai(:,:,linew(ng)), dim=1),             &
+                  lbound(ICE(ng)%ai(:,:,linew(ng)), dim=2),             &
+                  ubound(ICE(ng)%ai(:,:,linew(ng)), dim=2)
+      end if
+!
+      do j = JstrR, JendR
+      do i = IstrR, IendR
+         models(Iocean)%dataExport(k,ng)%ptr(i,j) =                     &
+                                ICE(ng)%ai(i,j,linew(ng))
+      end do
+      end do
 #endif
       end select
 !
@@ -1393,7 +1421,7 @@
 !
       if (cpl_dbglevel > 3) then
       write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
             I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
             'ocn_export',                                               &
             trim(adjustl(name)),                                        &
@@ -1405,9 +1433,7 @@
 !
       open(unit=99, file = trim(outfile)) 
       call print_matrix_r8(models(Iocean)%dataExport(k,ng)%ptr,         &
-                           1, 1, localPet, 99, "OCN_PTR")
-      call print_matrix_r8(OCEAN(ng)%t(:,:,N(ng),nstp(ng),itemp),       &
-                           1, 1, localPet, 99, "RDATA")
+                           1, 1, localPet, 99, "PTR/OCN/EXP")
       close(unit=99)
       end if
 !
@@ -1417,7 +1443,7 @@
 !
       if (cpl_dbglevel > 2) then
       write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
             'ocn_export',                                               &
             trim(adjustl(name)),                                        &
             models(Iocean)%time%year,                                   &
@@ -1438,8 +1464,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !     
- 60   format(' PET (', I3, ') - ', 2I4, ' - ', 2F15.4)
- 70   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
+ 50   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success
@@ -1455,9 +1480,8 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use ocean_coupler_mod, only : rdata, CoupleSteps 
       use mod_param, only : NtileI, NtileJ, BOUNDS, N, Lm, Mm
-      use mod_scalars, only : dt
+      use mod_scalars, only : dt, itemp, isalt
 !
       implicit none
 !
@@ -1531,17 +1555,7 @@
 !-----------------------------------------------------------------------
 !
       do i = 1, ubound(models(Iocean)%dataImport(:,ng), dim=1)
-        name = models(Iocean)%dataImport(i,ng)%name
-!
-!-----------------------------------------------------------------------
-!     Set staggering type 
-!-----------------------------------------------------------------------
-!
-      if (models(Iocean)%dataImport(i,ng)%gtype == Icross) then
-        id = getMeshID(models(Iocean)%mesh(:,ng), Icross)
-      else if (models(Iocean)%dataImport(i,ng)%gtype == Idot) then
-        id = getMeshID(models(Iocean)%mesh(:,ng), Idot)
-      end if
+      name = models(Iocean)%dataImport(i,ng)%name
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -1577,6 +1591,18 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
+!     Debug: write size of pointers    
+!-----------------------------------------------------------------------
+!
+      if (cpl_dbglevel > 1) then
+        write(*,60) localPet, j, adjustl("PTR/OCN/IMP/"//name),         &
+                    lbound(ptr, dim=1), ubound(ptr, dim=1),             &
+                    lbound(ptr, dim=2), ubound(ptr, dim=2)
+        write(*,60) localPet, j, adjustl("IND/OCN/IMP/"//name),         &
+                    LBi, UBi, LBj, UBj
+      end if     
+!
+!-----------------------------------------------------------------------
 !     Put data to ROMS variable
 !-----------------------------------------------------------------------
 !
@@ -1584,37 +1610,49 @@
       add_offset = models(Iocean)%dataImport(i,ng)%add_offset
 !
       select case (trim(adjustl(name)))
+      case ('Pair')
+        do jj = LBj, UBj
+          do ii = LBi, UBi
+            rdata(ng)%Pair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
       case ('Tair')
         do jj = LBj, UBj
           do ii = LBi, UBi
             rdata(ng)%Tair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
-        end do
+       end do
       case ('Qair')
         do jj = LBj, UBj
           do ii = LBi, UBi
             rdata(ng)%Qair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
-      case ('Pair')
+      case ('Lwrad')
         do jj = LBj, UBj
           do ii = LBi, UBi
-            rdata(ng)%Pair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
-          end do 
-        end do
-      case ('swrad')
-        do jj = LBj, UBj
-          do ii = LBi, UBi
-            rdata(ng)%swrad(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+            rdata(ng)%Lwrad(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
-      case ('lwrad_down')
+      case ('Lwrad_down')
         do jj = LBj, UBj
           do ii = LBi, UBi
-            rdata(ng)%lwrad_down(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+            rdata(ng)%Lwrad_down(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
-      case ('rain')
+      case ('Lhflx')
+        do jj = LBj, UBj
+          do ii = LBi, UBi
+            rdata(ng)%Lhflx(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Shflx')
+        do jj = LBj, UBj
+          do ii = LBi, UBi
+            rdata(ng)%Shflx(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Rain')
         do jj = LBj, UBj
           do ii = LBi, UBi
             rdata(ng)%rain(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
@@ -1632,6 +1670,68 @@
           rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
           end do
         end do
+      case ('Swrad')
+        do jj = LBj, UBj
+          do ii = LBi, UBi
+            rdata(ng)%Swrad(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('EminP')
+      if (cpl_dbglevel > 1) then
+        write(*,60) localPet, j, adjustl("DAT/OCN/IMP/"//name),         &
+                    lbound(rdata(ng)%EminP, dim=1),                     &
+                    ubound(rdata(ng)%EminP, dim=1),                     &
+                    lbound(rdata(ng)%EminP, dim=2),                     &
+                    ubound(rdata(ng)%EminP, dim=2)
+      end if
+!
+      do jj = LBj, UBj
+        do ii = LBi, UBi
+          rdata(ng)%EminP(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        end do
+      end do
+      case ('NHeat')
+      if (cpl_dbglevel > 1) then
+        write(*,60) localPet, j, adjustl("DAT/OCN/IMP/"//name),         &
+                    lbound(rdata(ng)%Nhflx, dim=1),                     &
+                    ubound(rdata(ng)%Nhflx, dim=1),                     &
+                    lbound(rdata(ng)%Nhflx, dim=2),                     &
+                    ubound(rdata(ng)%Nhflx, dim=2)
+      end if
+!
+      do jj = LBj, UBj
+        do ii = LBi, UBi
+          rdata(ng)%Nhflx(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        end do
+      end do
+      case ('Ustr')
+      if (cpl_dbglevel > 1) then
+        write(*,60) localPet, j, adjustl("DAT/OCN/IMP/"//name),         &
+                    lbound(rdata(ng)%Ustr, dim=1),                      &
+                    ubound(rdata(ng)%Ustr, dim=1),                      &
+                    lbound(rdata(ng)%Ustr, dim=2),                      &
+                    ubound(rdata(ng)%Ustr, dim=2)
+      end if
+!
+      do jj = LBj, UBj
+        do ii = LBi, UBi
+          rdata(ng)%Ustr(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        end do
+      end do
+      case ('Vstr')
+      if (cpl_dbglevel > 1) then
+        write(*,60) localPet, j, adjustl("DAT/OCN/IMP/"//name),         &
+                    lbound(rdata(ng)%Vstr, dim=1),                      &
+                    ubound(rdata(ng)%Vstr, dim=1),                      &
+                    lbound(rdata(ng)%Vstr, dim=2),                      &
+                    ubound(rdata(ng)%Vstr, dim=2)
+      end if
+!
+      do jj = LBj, UBj
+        do ii = LBi, UBi
+          rdata(ng)%Vstr(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+        end do
+      end do
       end select
       end do
 !
@@ -1641,7 +1741,7 @@
 !
       if (cpl_dbglevel > 3) then
       write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",                       &
+            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
             I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
             'ocn_import',                                               &
             trim(adjustl(name)),                                        &
@@ -1652,8 +1752,7 @@
             localPet
 !
       open(unit=99, file = trim(outfile)) 
-      call print_matrix_r8(ptr, 1, 1, localPet, 99, "OCN_PTR")
-      call print_matrix_r8(rdata(ng)%Vwind, 1, 1, localPet, 99, "RDATA")
+      call print_matrix_r8(ptr, 1, 1, localPet, 99, "PTR/OCN/IMP")
       close(unit=99)
       end if
 !
@@ -1663,7 +1762,7 @@
 !
       if (cpl_dbglevel > 2) then
       write(outfile,                                                    &
-            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
             'ocn_import',                                               &
             trim(adjustl(name)),                                        &
             models(Iocean)%time%year,                                   &
@@ -1692,7 +1791,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 80   format(" PET(",I3,") - DE(",I2,") - ", A3, " : ", 4I8)
+ 60   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
