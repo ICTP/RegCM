@@ -44,7 +44,7 @@ module mod_che_mppio
   real(dp) , pointer , dimension(:,:,:) :: chemsrc_io
   real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io , &
     cadvhdiag_io , cadvvdiag_io , cdifhdiag_io , cconvdiag_io , cbdydiag_io ,  &
-    ctbldiag_io 
+    ctbldiag_io , cseddpdiag_io
 
 !
 ! Boundary conditions arrays
@@ -162,6 +162,10 @@ module mod_che_mppio
                           1,kz,1,ntr,'che_mppio:ctbldiag_io')
             call getmem4d(cbdydiag_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:cbdydiag_io')
+
+            call getmem4d(cseddpdiag_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:cbdydiag_io')
+
           end if 
         end if
       end if

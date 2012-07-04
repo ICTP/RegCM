@@ -179,8 +179,8 @@ contains
                          chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
 
                     ! diagnostic for source, cumul
-                    cemtr(j,i,itr) = cemtr(j,i,itr) + &
-                         chemsrc(j,i,itr)*dtche/d_two
+                    cemtrac(j,i,itr) = cemtrac(j,i,itr) + &
+                         chemsrc(j,i,itr)*cdiagf
                  end if
               end do
            end do
@@ -195,8 +195,8 @@ contains
                     !then emission is injected in the PBL scheme
                     cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
                     ! diagnostic for source, cumul
-                    cemtr(j,i,itr) = cemtr(j,i,itr) + &
-                         chemsrc(j,i,itr)*dtche/d_two
+                    cemtrac(j,i,itr) = cemtrac(j,i,itr) + &
+                         chemsrc(j,i,itr)*cdiagf
                   end if 
                  end do
               end do

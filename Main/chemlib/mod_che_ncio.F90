@@ -40,7 +40,7 @@ module mod_che_ncio
   integer :: istatus
   integer :: recc
 
-  integer , parameter :: n_chevar = 19
+  integer , parameter :: n_chevar = 20
    integer , parameter :: n_oxbcvar = 5
   integer , parameter :: n_optvar = 10
   integer , parameter :: n_chbcvar = 25
@@ -796,11 +796,11 @@ module mod_che_ncio
                     'atmosphere_mixing_ratio_of_tracer', &
                     'Tracers mixing ratios','kg kg-1', &
                     tzyx,.false.,ichevar(3))
-          call ch_addvara(ncid,chevarnam,'wetdep_ls_flx', &
+          call ch_addvara(ncid,chevarnam,'wetdep_rainout_flx', &
                     'wet_deposition_from_large_scale_precip', &
                     'Wet deposition LS','mg/m2/d', &
                     tyx,.false.,ichevar(4))
-          call ch_addvara(ncid,chevarnam,'wetdep_conv_flx', &
+          call ch_addvara(ncid,chevarnam,'wetdep_washout_flx', &
                     'wet_deposition_from_convective_precip', &
                     'Wet deposition CONV','mg/m2/d', &
                     tyx,.false.,ichevar(5))
@@ -846,18 +846,24 @@ module mod_che_ncio
                     'turb. vert. tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(15))
-            call ch_addvara(ncid,chevarnam,'remlsc_tend', &
-                    'large scal prc removal tend', &
+            call ch_addvara(ncid,chevarnam,'rainout_tend', &
+                    'large + conv scal rainout removal tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(16))
-            call ch_addvara(ncid,chevarnam,'remcvc_tend', &
-                    'conv scale prc removal tend', &
+            call ch_addvara(ncid,chevarnam,'washout_tend', &
+                    'large + conv scale washout removal tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(17))
             call ch_addvara(ncid,chevarnam,'bdyc_tend', &
                     'bdy. cond. tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(18))
+
+            call ch_addvara(ncid,chevarnam,'sedddp_tend', &
+                    'sedim. ddep. tend', &
+                    'chem tendency','kg kg-1 s-1', &
+                    tzyx,.false.,ichevar(19))
+             
           end if
 
          else if ( itr == noutf ) then 
@@ -996,14 +1002,14 @@ module mod_che_ncio
 
     subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,ddsfc,cemtrac,drydepv, &
                              chemdiag,cadvhdiag,cadvvdiag,cdifhdiag,        &
-                             cconvdiag,cbdydiag,ctbldiag,remlsc,remcvc,     &  
+                             cconvdiag,cbdydiag,ctbldiag,cseddpdiag,remlsc,remcvc,     &  
                              ext,ssa,asp,aod,tarf,ssrf,talwrf,srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , &
              chemdiag , cadvhdiag , cadvvdiag , cdifhdiag , cconvdiag , &
-             cbdydiag , ctbldiag , remlsc , remcvc  
+             cbdydiag , ctbldiag , remlsc , remcvc  ,cseddpdiag
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         ddsfc , cemtrac , drydepv , dtrace
@@ -1077,18 +1083,18 @@ module mod_che_ncio
 
           ! accumulated quantities between two output steps are converted
           ! to deposition/emission mean rate (mg /m2/per day)  
-          cfd = 24.0D0/chemfrq
+          cfd = 1000.D0 * 86400.D0 ! from kg/m2/s to mg/m2/day
           cfd2 = dtche / (chemfrq *3600.0D0)
 
           !*** wet deposition from large-scale precip
-          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)* 86400.D0)
+          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)* cfd)
           istatus = nf90_put_var(ncche(n), ichevar(4), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
 
           !*** wet deposition from convective precip
-          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)* 86400.D0)
+          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)* cfd)
           istatus = nf90_put_var(ncche(n), ichevar(5), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
@@ -1115,8 +1121,8 @@ module mod_che_ncio
           call check_ok(__FILE__,__LINE__, &
                'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
 
-          !*** tracer burden (instantaneous) 
-          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n))
+          !*** tracer burden (instantaneous in mg/m2) 
+          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n)) * 1.D6
           istatus = nf90_put_var(ncche(n), ichevar(9), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &
@@ -1205,7 +1211,19 @@ module mod_che_ncio
                                    dumio, istart, icount)
             call check_ok(__FILE__,__LINE__, &
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
+
+
+             do k = 1 , kz
+              dumio(:,:,k) = real(cseddpdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                  ps(o_js:o_je,o_is:o_ie))
+            end do
+            istatus = nf90_put_var(ncche(n), ichevar(19), &
+                                   dumio, istart, icount)
+            call check_ok(__FILE__,__LINE__, &
+                         'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
+
           end if 
+
 
           !closing
           istatus = nf90_sync(ncche(n))

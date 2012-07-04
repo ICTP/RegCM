@@ -551,7 +551,8 @@ module mod_che_wetdep
     real(dp) , dimension(mbin) , intent(in) :: beffdiam
     real(dp) , intent(in) :: rhoaer ! specific aerosol density
     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
-                                                       strappt , convppt
+                                                       strappt 
+     real(dp) , dimension(ici1:ici2,kz) , intent(inout)  :: convppt
     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
     real(dp) , dimension(ici1:ici2) ,intent(in) :: pressg
     real(dp) , dimension(kz) ,intent(in) :: shj
@@ -562,7 +563,7 @@ module mod_che_wetdep
     real(dp) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
     real(dp) , dimension(ntr) :: wetrem , wetrem_cvc 
     real(dp) :: wtend
-    integer :: n , k , i
+    integer :: n , k , i, nk
 
     ! rain out parametrisation 
     ! clmin = non-precipitating cloud
@@ -582,6 +583,11 @@ module mod_che_wetdep
       ! level average removal rates
       ! here remrat is divided by fracloud (large scale cloud fraction)
       ! to get the correct in cloud removal rate 
+
+      ! IMPORTANT NOTE : for the diag ,we use now rmlsc and remcvc arrays to output rainout and wahout instead of the 
+      ! large scale vs convective removal. In each arry convective and large scale rainout ( washout) added. The name of thearray
+      ! is thus a bit misleading 
+
       if ( ichremlsc == 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
@@ -613,8 +619,8 @@ module mod_che_wetdep
                    chib(j,i,k,indp(n))*(dexp(-remcum*dtche)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/dtche
-         !save the tendency as a diag 
-              remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) + &
+         !add the concvetive rainout to large scale save the tendency as a diag 
+              remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/ dtche *cdiagf
             end do
           end if
@@ -637,6 +643,20 @@ module mod_che_wetdep
     end do
     ! dry density for now
     rhop(:,:,:) = rhoaer
+
+    ! convppt is a pseudo-3d array of con prec rate conatining constant rate (equals to surface cumul precipi)  from surface to cumtop.
+    ! inside the cloud, need itnterpolate linearly between the prec rate and o ( top of the cloud) 
+    n=0
+    do i=  ici1 , ici2
+    if ( kcumtop(j,i) >  0 ) then
+    do k =  kcumtop(j,i) , kcumbot(j,i) 
+      nk = kcumbot(j,i) -  kcumtop(j,i) + 1 
+      convppt(i,k) = (n / nk ) *   convppt(i,kz)
+      n=n+1
+    end do 
+    end if 
+   end do 
+
     totppt(:,:) = strappt(:,:) + convppt(:,:)   
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)
 
@@ -647,12 +667,16 @@ module mod_che_wetdep
         do i = ici1 , ici2
           wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dtche))/dtche
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
-          ! wet deposition diagnostic, adding to rainout contribution ! 
-          ! nod differenciation between conv and large scale yet
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf * &
-                                  convppt(i,k) / totppt (i,k)
-          remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) - wtend * cdiagf * &
-                                  strappt(i,k) / totppt (i,k) 
+          ! wet deposition washout diagnostic ( both from conv and large scale)! 
+          ! 
+          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf 
+                               
+           
+          ! sum on the vertical to get total surface flux diag fo rain out and washout
+          ! ( already weighted for time average cdiagf !), also change sign convention    
+          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
+          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
+         
         end do
       end do
     end do

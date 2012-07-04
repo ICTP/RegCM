@@ -85,6 +85,8 @@ module mod_che_output
         call deco1_gather(remcvc,remcvc_io,jcross1,jcross2, &
                           icross1,icross2,1,kz,1,ntr)
         call deco1_gather(remlsc,remlsc_io,jcross1,jcross2, &
+                          icross1,icross2,1,kz,1,ntr)        
+        call deco1_gather(cseddpdiag,cseddpdiag_io,jcross1,jcross2, &
                           icross1,icross2,1,kz,1,ntr)
       end if
 
@@ -117,7 +119,8 @@ module mod_che_output
         cconvdiag(:,:,:,:) = d_zero
         cbdydiag(:,:,:,:) = d_zero
         ctbldiag (:,:,:,:) = d_zero 
-      end if
+        cseddpdiag(:,:,:,:) = d_zero      
+       end if
 
       aertarf(:,:) = d_zero
       aersrrf(:,:) = d_zero
@@ -137,7 +140,7 @@ module mod_che_output
         call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,ddsfc_io,   &
                            cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &
                            cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
-                           cbdydiag_io,ctbldiag_io,remlsc_io,remcvc_io,    &
+                           cbdydiag_io,ctbldiag_io,cseddpdiag_io,remlsc_io,remcvc_io,    &
                            aerext_io,aerssa_io,aerasp_io,aeraod_io,        &
                            aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io,&
                            cpsb_io,idatex)

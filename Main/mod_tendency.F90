@@ -1401,12 +1401,9 @@ module mod_tendency
     !
     ! budgets for tracers
     !
-    if ( ichem == 1 ) then
-      call tracbud
-      if ( .not. lband .and. debug_level > 2 ) then
+      if (ichem==1 .and. .not. lband .and. debug_level > 2 ) then
         call contrac
       end if
-    end if
     !
     ! Print out noise parameter
     !

@@ -387,64 +387,19 @@
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
       end if
+
+! Finally save tarcer instantaneous burden for diag
+
+     dtrace(:,:,:) = d_zero
+     do k=1,kz 
+     do i = ici1 , ici2
+       do j = jci1 , jci2       
+        dtrace(j,i,:) = dtrace(j,i,:) + chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
+       end do
+     end do
+     end do
+
     end subroutine tractend2
 !
-    subroutine tracbud
-      implicit none
-      integer :: i , itr , j , k
-
-      dtrace(:,:,:) = d_zero
-      wdlsc(:,:,:) = d_zero
-      wdcvc(:,:,:) = d_zero
-      wxsg(:,:,:) = d_zero
-      wxaq(:,:,:) = d_zero
-      ddsfc(:,:,:) = d_zero
-      ! 
-      ! tracers (unit = kg):
-      ! 
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              dtrace(j,i,itr) = dtrace(j,i,itr) + chia(j,i,k,itr)*cdsigma(k)
-              ! here change the sign convention to have a positive deposition
-              ! flux ( when the tend is negative)  
-              wdlsc(j,i,itr) = wdlsc(j,i,itr) - remlsc(j,i,k,itr)*cdsigma(k) 
-              wdcvc(j,i,itr) = wdcvc(j,i,itr) - remcvc(j,i,k,itr)*cdsigma(k)
-!             wxsg(j,i,itr) = wxsg(j,i,itr) + rxsg(j,i,k,itr)*cdsigma(k)
-              ! sum ls and conv contribution
-!             wxaq(j,i,itr) = wxaq(j,i,itr) +                        &
-!                            (rxsaq1(j,i,k,itr)+rxsaq2(j,i,k,itr)) * &
-!                            cdsigma(k)
-            end do
-          end do
-        end do
-      end do
-      do itr = 1 , ntr
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ddsfc(j,i,itr) =  remdrd(j,i,itr)*cdsigma(kz)
-            ! Source cumulated diag(care the unit are alredy .m-2)
-            cemtrac(j,i,itr) = cemtr(j,i,itr)
-          end do
-        end do
-      end do
-      do itr = 1 , ntr
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! unit: mg/m2
-            dtrace(j,i,itr) = 1.D6*dtrace(j,i,itr)*d_1000*regrav
-            wdlsc(j,i,itr) = 1.D6*wdlsc(j,i,itr)*d_1000*regrav
-            wdcvc(j,i,itr) = 1.D6*wdcvc(j,i,itr)*d_1000*regrav
-            ddsfc(j,i,itr) = 1.D6*ddsfc(j,i,itr)*d_1000*regrav
-            wxsg(j,i,itr) = 1.D6*wxsg(j,i,itr)*d_1000*regrav
-            wxaq(j,i,itr) = 1.D6*wxaq(j,i,itr)*d_1000*regrav
-            ! cemtrac isbuilt from chsurfem so just need the 1e6*dt/2
-            ! factor to to pass im mg/m2
-            cemtrac(j,i,itr) = 1.D6*cemtrac(j,i,itr)
-          end do
-        end do
-      end do
-    end subroutine tracbud
 !
 end module mod_che_tend

@@ -75,7 +75,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
   real(dp) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
-          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag  
+          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag , cseddpdiag 
 
 
 !*****************************************************************************
@@ -196,7 +196,9 @@ module mod_che_common
           call getmem4d(cbdydiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
 
-          
+         call getmem4d(cseddpdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
+
         end if 
       end if
     end subroutine allocate_mod_che_common
