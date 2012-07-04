@@ -188,8 +188,10 @@ module mod_split
       end do
     end do
 !
-    call deco1_exchange_right(uuu,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(vvv,1,ide1,ide2,1,kz)
+    call exchange_right(uuu,1,ide1,ide2,1,kz)
+    call exchange_top(uuu,1,jde1,jde2,1,kz)
+    call exchange_right(vvv,1,ide1,ide2,1,kz)
+    call exchange_top(vvv,1,jde1,jde2,1,kz)
 !
     do l = 1 , nsplit
       do k = 1 , kz
@@ -254,8 +256,7 @@ module mod_split
 !   on the x-grid, a p(x) point outside the grid domain is assumed to
 !   satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1); and similarly for the i's.
 !
-    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
-    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
+    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
 !
 !=======================================================================
@@ -284,8 +285,10 @@ module mod_split
       end do
     end do
 !
-    call deco1_exchange_right(uuu,1,1,iy,1,kz)
-    call deco1_exchange_right(vvv,1,1,iy,1,kz)
+    call exchange_right(uuu,1,ide1,ide2,1,kz)
+    call exchange_top(uuu,1,jde1,jde2,1,kz)
+    call exchange_right(vvv,1,ide1,ide2,1,kz)
+    call exchange_top(vvv,1,jde1,jde2,1,kz)
 !
     do l = 1 , nsplit
       do i = ide1 , ide2
@@ -329,8 +332,10 @@ module mod_split
       end do
     end do
 !
-    call deco1_exchange_right(uuu,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(vvv,1,ide1,ide2,1,kz)
+    call exchange_right(uuu,1,ide1,ide2,1,kz)
+    call exchange_top(uuu,1,jde1,jde2,1,kz)
+    call exchange_right(vvv,1,ide1,ide2,1,kz)
+    call exchange_top(vvv,1,jde1,jde2,1,kz)
 !
     do l = 1 , nsplit
       do i = ide1 , ide2
@@ -474,7 +479,8 @@ module mod_split
 
 !=======================================================================
 
-    call deco1_exchange_left(dhsum,1,1,iy,1,nsplit)
+    call exchange_left(dhsum,1,idi1,idi2,1,nsplit)
+    call exchange_bottom(dhsum,1,jdi1,jdi2,1,nsplit)
 
     do l = 1 , nsplit
       do k = 1 , kz
@@ -544,7 +550,8 @@ module mod_split
 !     compute gradient of delh;  output = (work1,work2)
 !
       xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n0)
-      call deco1_exchange_left(xdelh,1,1,iy)
+      call exchange_left(xdelh,1,idi1,idi2)
+      call exchange_bottom(xdelh,1,jdi1,jdi2)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           fac = dx2*mddom%msfx(j,i)
@@ -578,8 +585,10 @@ module mod_split
         end do
       end do
 !
-      call deco1_exchange_right(uu,1,1,iy)
-      call deco1_exchange_right(vv,1,1,iy)
+      call exchange_right(uu,1,idi1,idi2)
+      call exchange_top(uu,1,jdi1,jdi2)
+      call exchange_right(vv,1,idi1,idi2)
+      call exchange_top(vv,1,jdi1,jdi2)
 !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -640,7 +649,8 @@ module mod_split
 !       compute gradient of delh;  output = (work1,work2)
 !
         xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n1)
-        call deco1_exchange_left(xdelh,1,1,iy)
+        call exchange_left(xdelh,1,idi1,idi2)
+        call exchange_bottom(xdelh,1,jdi1,jdi2)
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             fac = dx2*mddom%msfx(j,i)
@@ -674,8 +684,10 @@ module mod_split
           end do
         end do
 !
-        call deco1_exchange_right(uu,1,1,iy)
-        call deco1_exchange_right(vv,1,1,iy)
+        call exchange_right(uu,1,idi1,idi2)
+        call exchange_top(uu,1,jdi1,jdi2)
+        call exchange_right(vv,1,idi1,idi2)
+        call exchange_top(vv,1,jdi1,jdi2)
 !
         do i = ici1 , ici2
           do j = jci1 , jci2

@@ -184,8 +184,7 @@ module mod_che_bdyco
         end do
       end do
     end do
-    call deco1_exchange_left(chib0,1,ice1,ice2,1,kz,1,ntr)
-    call deco1_exchange_right(chib0,1,ice1,ice2,1,kz,1,ntr)
+    call exchange(chib0,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     !
     ! Repeat fot T2
     !
@@ -200,8 +199,7 @@ module mod_che_bdyco
         end do
       end do
     end do
-    call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
-    call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
+    call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     !
     ! Calculate time varying component
     !
@@ -212,16 +210,14 @@ module mod_che_bdyco
         end do
       end do
     end do
-    call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
-    call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
+    call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
     ! handle oxc lima
 
     if ( ioxclim == 1 ) then 
       call deco1_scatter(oxcl_io,oxcl, &
                          jcross1,jcross2,icross1,icross2,1,kz,1,5)
-      call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
-      call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
+      call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
     end if
     call time_end(subroutine_name,idindx)
   end subroutine che_init_bdy
@@ -282,8 +278,7 @@ module mod_che_bdyco
         end do
       end do
     end do
-    call deco1_exchange_left(chib1,1,ice1,ice2,1,kz,1,ntr)
-    call deco1_exchange_right(chib1,1,ice1,ice2,1,kz,1,ntr)
+    call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -291,15 +286,13 @@ module mod_che_bdyco
         end do
       end do
     end do
-    call deco1_exchange_left(chibt,1,ice1,ice2,1,kz,1,ntr)
-    call deco1_exchange_right(chibt,1,ice1,ice2,1,kz,1,ntr)
+    call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
     ! handle oxidant climatology 
     if ( ioxclim == 1 ) then 
       call deco1_scatter(oxcl_io,oxcl, &
                          jcross1,jcross2,icross1,icross2,1,kz,1,5)
-      call deco1_exchange_left(oxcl,1,ice1,ice2,1,kz,1,5)
-      call deco1_exchange_right(oxcl,1,ice1,ice2,1,kz,1,5)
+      call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
     end if
     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)

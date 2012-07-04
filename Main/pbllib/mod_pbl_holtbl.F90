@@ -310,8 +310,10 @@
     end do
   end do
 
-  call deco1_exchange_left(akzz1,1,ice1,ice2,1,kz)
-  call deco1_exchange_left(akzz2,1,ice1,ice2,1,kz)
+  call exchange_left(akzz1,1,ice1,ice2,1,kz)
+  call exchange_bottom(akzz1,1,jce1,jce2,1,kz)
+  call exchange_left(akzz2,1,ice1,ice2,1,kz)
+  call exchange_bottom(akzz2,1,jce1,jce2,1,kz)
 
   !
   !   calculate coefficients at dot points for u and v wind

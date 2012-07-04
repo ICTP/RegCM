@@ -152,17 +152,35 @@ module mod_mppparam
                      subgrid_deco1_3d_integer_gather
   end interface subgrid_deco1_gather
 
-  interface deco1_exchange_left
-    module procedure deco1_2d_real8_exchange_left ,  &
-                     deco1_3d_real8_exchange_left,   &
-                     deco1_4d_real8_exchange_left
-  end interface deco1_exchange_left
+  interface exchange
+    module procedure real8_2d_exchange ,  &
+                     real8_3d_exchange,   &
+                     real8_4d_exchange
+  end interface exchange
 
-  interface deco1_exchange_right
-    module procedure deco1_2d_real8_exchange_right , &
-                     deco1_3d_real8_exchange_right,  &
-                     deco1_4d_real8_exchange_right
-  end interface deco1_exchange_right
+  interface exchange_left
+    module procedure real8_2d_exchange_left ,  &
+                     real8_3d_exchange_left,   &
+                     real8_4d_exchange_left
+  end interface exchange_left
+
+  interface exchange_right
+    module procedure real8_2d_exchange_right , &
+                     real8_3d_exchange_right,  &
+                     real8_4d_exchange_right
+  end interface exchange_right
+
+  interface exchange_top
+    module procedure real8_2d_exchange_top ,  &
+                     real8_3d_exchange_top,   &
+                     real8_4d_exchange_top
+  end interface exchange_top
+
+  interface exchange_bottom
+    module procedure real8_2d_exchange_bottom , &
+                     real8_3d_exchange_bottom,  &
+                     real8_4d_exchange_bottom
+  end interface exchange_bottom
 
   interface deco1_allgat
     module procedure deco1d_2d_real8_allgat
@@ -185,7 +203,8 @@ module mod_mppparam
 !
   public :: deco1_scatter , deco1_gather
   public :: subgrid_deco1_scatter , subgrid_deco1_gather
-  public :: deco1_exchange_left , deco1_exchange_right
+  public :: exchange
+  public :: exchange_left , exchange_right , exchange_top , exchange_bottom
   public :: deco1_allgat
   public :: uvcross2dot , psc2psd
 !
@@ -195,8 +214,10 @@ module mod_mppparam
     implicit none
     integer , intent(in) :: ncpu
     nproc = ncpu 
-    jxp   =  jx/nproc
+    jxp =  jx/nproc
+    iyp =  iy
     jxpsg  = jxp * nsg
+    iypsg  = iyp * nsg
   end subroutine set_nproc
 
   subroutine broadcast_params
@@ -2221,7 +2242,17 @@ module mod_mppparam
     end if
   end subroutine subgrid_deco1_3d_integer_gather
 !
-  subroutine deco1_2d_real8_exchange_right(ml,nex,i1,i2)
+  subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2
+    call real8_2d_exchange_left(ml,nex,i1,i2)
+    call real8_2d_exchange_right(ml,nex,i1,i2)
+    call real8_2d_exchange_top(ml,nex,j1,j2)
+    call real8_2d_exchange_bottom(ml,nex,j1,j2)
+  end subroutine real8_2d_exchange
+!
+  subroutine real8_2d_exchange_right(ml,nex,i1,i2)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
@@ -2230,19 +2261,19 @@ module mod_mppparam
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right')
     end if
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do i = i1 , i2
+      do i = i1 , i2
+        do j = 1 , nex
           r8vector1(ib) = ml(j,i)
           ib = ib + 1
         end do
@@ -2253,16 +2284,16 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do i = i1 , i2
+      do i = i1 , i2
+        do j = 1 , nex
           ml(jxp+j,i) = r8vector2(ib)
           ib = ib + 1
         end do
       end do
     end if
-  end subroutine deco1_2d_real8_exchange_right
+  end subroutine real8_2d_exchange_right
 !
-  subroutine deco1_2d_real8_exchange_left(ml,nex,i1,i2)
+  subroutine real8_2d_exchange_left(ml,nex,i1,i2)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2
@@ -2271,19 +2302,19 @@ module mod_mppparam
     isize = i2-i1+1
     ssize = nex*isize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_2d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_2d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left')
     end if
     if ( ma%right /= mpi_proc_null ) then
       ib = 1 
-      do j = 1 , nex
-        do i = i1 , i2
+      do i = i1 , i2
+        do j = 1 , nex
           r8vector1(ib) = ml((jxp-j)+1,i)
           ib = ib + 1
         end do
@@ -2294,16 +2325,108 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do i = i1 , i2
+      do i = i1 , i2
+        do j = 1 , nex
           ml((1-j),i) = r8vector2(ib)
           ib = ib + 1
         end do
       end do
     end if
-  end subroutine deco1_2d_real8_exchange_left
+  end subroutine real8_2d_exchange_left
 !
-  subroutine deco1_3d_real8_exchange_right(ml,nex,i1,i2,k1,k2)
+  subroutine real8_2d_exchange_bottom(ml,nex,j1,j2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2
+    integer :: jsize , ssize , i , j , jb
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ssize = nex*jsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom')
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(jb) = ml(j,i)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
+                      r8vector2,ssize,mpi_real8,ma%top,2, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,iyp+i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+  end subroutine real8_2d_exchange_bottom
+!
+  subroutine real8_2d_exchange_top(ml,nex,j1,j2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2
+    integer :: jsize , ssize , i , j , jb
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ssize = nex*jsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top')
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(jb) = ml(j,iyp-i+1)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
+                      r8vector2,ssize,mpi_real8,ma%bottom,2, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,1-i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+  end subroutine real8_2d_exchange_top
+!
+  subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , i1 , i2 , k1 , k2
+    call real8_3d_exchange_left(ml,nex,i1,i2,k1,k2)
+    call real8_3d_exchange_right(ml,nex,i1,i2,k1,k2)
+    call real8_3d_exchange_top(ml,nex,j1,j2,k1,k2)
+    call real8_3d_exchange_bottom(ml,nex,j1,j2,k1,k2)
+  end subroutine real8_3d_exchange
+!
+  subroutine real8_3d_exchange_right(ml,nex,i1,i2,k1,k2)
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
@@ -2314,20 +2437,20 @@ module mod_mppparam
     hsize = isize*ksize
     ssize = nex*hsize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right')
     end if
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do k = k1 , k2
-          do i = i1 , i2
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
             r8vector1(ib) = ml(j,i,k)
             ib = ib + 1
           end do
@@ -2339,18 +2462,18 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do k = k1 , k2
-          do i = i1 , i2
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
             ml(jxp+j,i,k) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-  end subroutine deco1_3d_real8_exchange_right
+  end subroutine real8_3d_exchange_right
 !
-  subroutine deco1_3d_real8_exchange_left(ml,nex,i1,i2,k1,k2)
+  subroutine real8_3d_exchange_left(ml,nex,i1,i2,k1,k2)
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2
@@ -2361,20 +2484,20 @@ module mod_mppparam
     hsize = isize*ksize
     ssize = nex*hsize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_3d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_3d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left')
     end if
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do k = k1 , k2
-          do i = i1 , i2
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
             r8vector1(ib) = ml((jxp-j)+1,i,k)
             ib = ib + 1
           end do
@@ -2386,18 +2509,122 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do k = k1 , k2
-          do i = i1 , i2
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
             ml((1-j),i,k) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-  end subroutine deco1_3d_real8_exchange_left
+  end subroutine real8_3d_exchange_left
 !
-  subroutine deco1_4d_real8_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
+  subroutine real8_3d_exchange_bottom(ml,nex,j1,j2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , k1 , k2
+    integer :: jsize , ksize , ssize , hsize , i , j , k , jb
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    hsize = jsize*ksize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom')
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(jb) = ml(j,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,1, &
+                      r8vector2,ssize,mpi_real8,ma%top,1, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,iyp+i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_3d_exchange_bottom
+!
+  subroutine real8_3d_exchange_top(ml,nex,j1,j2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , k1 , k2
+    integer :: jsize , ksize , ssize , hsize , i , j , k , jb
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    hsize = jsize*ksize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top')
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(jb) = ml(j,iyp-i+1,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,1, &
+                      r8vector2,ssize,mpi_real8,ma%bottom,1, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,1-i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_3d_exchange_top
+!
+  subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    call real8_4d_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
+    call real8_4d_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
+    call real8_4d_exchange_top(ml,nex,j1,j2,k1,k2,n1,n2)
+    call real8_4d_exchange_bottom(ml,nex,j1,j2,k1,k2,n1,n2)
+  end subroutine real8_4d_exchange
+!
+  subroutine real8_4d_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
     implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
@@ -2411,21 +2638,21 @@ module mod_mppparam
     hsize = vsize*nsize
     ssize = nex*hsize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_right')
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_right')
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right')
     end if
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
               r8vector1(ib) = ml(j,i,k,n)
               ib = ib + 1
             end do
@@ -2438,10 +2665,10 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
               ml(jxp+j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -2449,9 +2676,9 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine deco1_4d_real8_exchange_right
+  end subroutine real8_4d_exchange_right
 !
-  subroutine deco1_4d_real8_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
+  subroutine real8_4d_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
     implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
     integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
@@ -2465,21 +2692,21 @@ module mod_mppparam
     hsize = vsize*nsize
     ssize = nex*hsize
     if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left')
     else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1_4d_real8_exchange_left')
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left')
     end if
     if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left')
     else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'deco1_4d_real8_exchange_left')
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left')
     end if
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
               r8vector1(ib) = ml((jxp-j)+1,i,k,n)
               ib = ib + 1
             end do
@@ -2492,10 +2719,10 @@ module mod_mppparam
                       mycomm,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
-      do j = 1 , nex
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
               ml((1-j),i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -2503,8 +2730,116 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine deco1_4d_real8_exchange_left
-
+  end subroutine real8_4d_exchange_left
+!
+  subroutine real8_4d_exchange_bottom(ml,nex,j1,j2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , k1 , k2 , n1 , n2
+    integer :: jsize , ssize , ksize , nsize , vsize , hsize , jb
+    integer :: i , j , k , n
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    vsize = jsize*ksize
+    hsize = vsize*nsize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom')
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(jb) = ml(j,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
+                      r8vector2,ssize,mpi_real8,ma%top,2, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,iyp+i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_4d_exchange_bottom
+!
+  subroutine real8_4d_exchange_top(ml,nex,j1,j2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2 , k1 , k2 , n1 , n2
+    integer :: jsize , ssize , ksize , nsize , vsize , hsize , jb
+    integer :: i , j , k , n
+    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    vsize = jsize*ksize
+    hsize = vsize*nsize
+    ssize = nex*hsize
+    if ( .not. associated(r8vector1) ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top')
+    else if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top')
+    end if
+    if ( .not. associated(r8vector2) ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top')
+    else if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top')
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(jb) = ml(j,iyp-i+1,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
+                      r8vector2,ssize,mpi_real8,ma%bottom,2, &
+                      mycomm,mpi_status_ignore,mpierr)
+    if ( ma%bottom /= mpi_proc_null ) then
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,1-i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_4d_exchange_top
+!
   subroutine deco1d_2d_real8_allgat(a,b)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
@@ -2563,8 +2898,8 @@ module mod_mppparam
     ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
     ! chunk next door)
 
-    call deco1_exchange_left(ux,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(vx,1,ide1,ide2,1,kz)
+    call exchange_left(ux,1,ide1,ide2,1,kz)
+    call exchange_left(vx,1,ide1,ide2,1,kz)
 
     !
     !     x     x     x     x     x     x

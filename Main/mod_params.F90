@@ -1236,13 +1236,10 @@ module mod_params
                         dhlake1,jcross1,jcross2,icross1,icross2)
   endif
 #endif
-! 
-  call deco1_exchange_left(mddom%ht,1,idi1,idi2)
-  call deco1_exchange_right(mddom%ht,1,idi1,idi2)
-  call deco1_exchange_left(mddom%msfx,2,idi1,idi2)
-  call deco1_exchange_right(mddom%msfx,2,idi1,idi2)
-  call deco1_exchange_left(mddom%msfd,2,idi1,idi2)
-  call deco1_exchange_right(mddom%msfd,2,idi1,idi2)
+!
+  call exchange(mddom%ht,1,jdi1,jdi2,idi1,idi2)
+  call exchange(mddom%msfx,2,jdi1,jdi2,idi1,idi2)
+  call exchange(mddom%msfd,2,jdi1,jdi2,idi1,idi2)
 !
 !-----compute land/water mask on subgrid space
 !

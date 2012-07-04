@@ -274,8 +274,7 @@ module mod_bdycod
     !
     ! Calculate P* on dot points
     !
-    call deco1_exchange_left(xpsb%b0,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%b0,1,ice1,ice2)
+    call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b0,psdot)
     !
     ! Couple pressure u,v,t,q
@@ -288,10 +287,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%b0,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%b0,1,ide1,ide2,1,kz)
+    call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do k = 1 , kz
       do i = ice1 , ice2
@@ -301,15 +298,12 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xtb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%b0,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%b0,1,ice1,ice2,1,kz)
+    call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
     !
     ! Repeat for T2
     !
-    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
+    call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)
     !
     ! Couple pressure u,v,t,q
@@ -322,10 +316,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xub%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%b1,1,ide1,ide2,1,kz)
+    call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do k = 1 , kz
       do i = ice1 , ice2
@@ -335,10 +327,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xtb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%b1,1,ice1,ice2,1,kz)
+    call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     !
     ! Calculate time varying component
     !
@@ -347,8 +337,7 @@ module mod_bdycod
         xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
       end do
     end do
-    call deco1_exchange_left(xpsb%bt,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%bt,1,ice1,ice2)
+    call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -357,10 +346,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xub%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%bt,1,ide1,ide2,1,kz)
+    call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -369,10 +356,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xtb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%bt,1,ice1,ice2,1,kz)
+    call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
 !
     call time_end(subroutine_name,idindx)
 
@@ -428,8 +413,7 @@ module mod_bdycod
     call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
     call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
 !
-    call deco1_exchange_left(xpsb%b1,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%b1,1,ice1,ice2)
+    call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)
 !
 !   Couple pressure u,v,t,q
@@ -442,10 +426,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xub%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%b1,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%b1,1,ide1,ide2,1,kz)
+    call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do k = 1 , kz
       do i = ice1 , ice2
@@ -455,18 +437,15 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xtb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%b1,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%b1,1,ice1,ice2,1,kz)
+    call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
 !
     do i = ice1 , ice2
       do j = jce1 , jce2
         xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
       end do
     end do
-    call deco1_exchange_left(xpsb%bt,1,ice1,ice2)
-    call deco1_exchange_right(xpsb%bt,1,ice1,ice2)
+    call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -475,10 +454,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xub%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xub%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(xvb%bt,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(xvb%bt,1,ide1,ide2,1,kz)
+    call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -487,10 +464,8 @@ module mod_bdycod
         end do
       end do
     end do
-    call deco1_exchange_left(xtb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xtb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(xqb%bt,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(xqb%bt,1,ice1,ice2,1,kz)
+    call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
 !
     !
     ! Update ground temperature on Ocean/Lakes
@@ -573,8 +548,7 @@ module mod_bdycod
     !
     ! First compute the p* at dot points to decouple U,V:
     !
-    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
-    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
+    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
     ! Now compute last two points values in U and V
@@ -728,22 +702,39 @@ module mod_bdycod
       end do
     end if
 
-    call deco1_exchange_left(sue,1,1,kz)
-    call deco1_exchange_right(sue,1,1,kz)
-    call deco1_exchange_left(sui,1,1,kz)
-    call deco1_exchange_right(sui,1,1,kz)
-    call deco1_exchange_left(nue,1,1,kz)
-    call deco1_exchange_right(nue,1,1,kz)
-    call deco1_exchange_left(nui,1,1,kz)
-    call deco1_exchange_right(nui,1,1,kz)
-    call deco1_exchange_left(sve,1,1,kz)
-    call deco1_exchange_right(sve,1,1,kz)
-    call deco1_exchange_left(svi,1,1,kz)
-    call deco1_exchange_right(svi,1,1,kz)
-    call deco1_exchange_left(nve,1,1,kz)
-    call deco1_exchange_right(nve,1,1,kz)
-    call deco1_exchange_left(nvi,1,1,kz)
-    call deco1_exchange_right(nvi,1,1,kz)
+    call exchange_left(sue,1,1,kz)
+    call exchange_right(sue,1,1,kz)
+    call exchange_left(sui,1,1,kz)
+    call exchange_right(sui,1,1,kz)
+    call exchange_left(nue,1,1,kz)
+    call exchange_right(nue,1,1,kz)
+    call exchange_left(nui,1,1,kz)
+    call exchange_right(nui,1,1,kz)
+    call exchange_left(sve,1,1,kz)
+    call exchange_right(sve,1,1,kz)
+    call exchange_left(svi,1,1,kz)
+    call exchange_right(svi,1,1,kz)
+    call exchange_left(nve,1,1,kz)
+    call exchange_right(nve,1,1,kz)
+    call exchange_left(nvi,1,1,kz)
+    call exchange_right(nvi,1,1,kz)
+
+    call exchange_top(eue,1,1,kz)
+    call exchange_bottom(eue,1,1,kz)
+    call exchange_top(eui,1,1,kz)
+    call exchange_bottom(eui,1,1,kz)
+    call exchange_top(wue,1,1,kz)
+    call exchange_bottom(wue,1,1,kz)
+    call exchange_top(wui,1,1,kz)
+    call exchange_bottom(wui,1,1,kz)
+    call exchange_top(eve,1,1,kz)
+    call exchange_bottom(eve,1,1,kz)
+    call exchange_top(evi,1,1,kz)
+    call exchange_bottom(evi,1,1,kz)
+    call exchange_top(wve,1,1,kz)
+    call exchange_bottom(wve,1,1,kz)
+    call exchange_top(wvi,1,1,kz)
+    call exchange_bottom(wvi,1,1,kz)
 
     call time_end(subroutine_name,idindx)
 

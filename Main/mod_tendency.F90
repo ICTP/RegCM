@@ -156,8 +156,7 @@ module mod_tendency
       end do
     end do
 
-    call deco1_exchange_left(sfs%psa,1,ice1,ice2)
-    call deco1_exchange_right(sfs%psa,1,ice1,ice2)
+    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
     ! Internal U,V points
@@ -302,42 +301,28 @@ module mod_tendency
 !
 !=======================================================================
 !
-    call deco1_exchange_left(sfs%psb,1,ice1,ice2)
-    call deco1_exchange_right(sfs%psb,1,ice1,ice2)
+    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
 !
-    call deco1_exchange_left(atm1%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atm1%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(atm1%v,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atm1%v,1,ide1,ide2,1,kz)
+    call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm1%tke,1,ice1,ice2,1,kzp1)
-      call deco1_exchange_right(atm1%tke,1,ice1,ice2,1,kzp1)
+      call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 !
-    call deco1_exchange_left(atm2%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atm2%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(atm2%v,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atm2%v,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(atm2%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(atm2%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(atm2%qx,1,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atm2%qx,1,ice1,ice2,1,kz,1,nqx)
+    call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 !
-    call deco1_exchange_left(atmx%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atmx%u,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(atmx%v,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(atmx%v,1,ide1,ide2,1,kz)
-    call deco1_exchange_left(atmx%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_right(atmx%t,1,ice1,ice2,1,kz)
-    call deco1_exchange_left(atmx%qx,1,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atmx%qx,1,ice1,ice2,1,kz,1,nqx)
+    call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atmx%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 !
     if ( ichem == 1 ) then
-      call deco1_exchange_left(chi,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chi,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_left(chib,1,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(chib,1,ice1,ice2,1,kz,1,ntr)
+      call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
 !
 !=======================================================================
@@ -345,34 +330,25 @@ module mod_tendency
 !
 !   Calculate pdot , calculate decoupled variables at B
 !
-    call deco1_exchange_left(sfs%psb,1,ice1,ice2)
-    call deco1_exchange_right(sfs%psb,1,ice1,ice2)
+    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psb,psdot)
     call mkslice
 !
 !=======================================================================
 !
-    call deco1_exchange_left(atms%ubd3d,2,ide1,ide2,1,kz)
-    call deco1_exchange_right(atms%ubd3d,2,ide1,ide2,1,kz)
-    call deco1_exchange_left(atms%vbd3d,2,ide1,ide2,1,kz)
-    call deco1_exchange_right(atms%vbd3d,2,ide1,ide2,1,kz)
-    call deco1_exchange_left(atms%tb3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_right(atms%tb3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_left(atms%ubx3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_right(atms%ubx3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_left(atms%vbx3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_right(atms%vbx3d,2,ice1,ice2,1,kz)
-    call deco1_exchange_left(atms%qxb3d,2,ice1,ice2,1,kz,1,nqx)
-    call deco1_exchange_right(atms%qxb3d,2,ice1,ice2,1,kz,1,nqx)
+    call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_exchange_left(atm2%tke,2,ice1,ice2,1,kzp1)
-      call deco1_exchange_right(atm2%tke,2,ice1,ice2,1,kzp1)
+      call exchange(atm2%tke,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
     if ( ichem == 1 ) then
-      call deco1_exchange_left(atms%chib3d,2,ice1,ice2,1,kz,1,ntr)
-      call deco1_exchange_right(atms%chib3d,2,ice1,ice2,1,kz,1,ntr)
+      call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
 !
 !**********************************************************************
@@ -406,8 +382,7 @@ module mod_tendency
          end do
       end do
     end do
-    call deco1_exchange_left(qdot,1,ide1,ide2,1,kz)
-    call deco1_exchange_right(qdot,1,ide1,ide2,1,kz)
+    call exchange(qdot,1,jde1,jde2,ide1,ide2,1,kz)
 !
 !   compute omega
 !
@@ -442,7 +417,8 @@ module mod_tendency
         psd(j,i) = sfs%psa(j,i)
       end do
     end do
-    call deco1_exchange_left(psd,1,ice1,ice2)
+    call exchange_left(psd,1,ice1,ice2)
+    call exchange_bottom(psd,1,jce1,jce2)
 
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -790,10 +766,8 @@ module mod_tendency
     if ( icup == 1 ) then
       wrkkuo1(jce1:jce2,:,:) = rsheat(:,:,:)
       wrkkuo2(jce1:jce2,:,:) = rswat(:,:,:)
-      call deco1_exchange_left(wrkkuo1,1,ice1,ice2,1,kz)
-      call deco1_exchange_right(wrkkuo1,1,ice1,ice2,1,kz)
-      call deco1_exchange_left(wrkkuo2,1,ice1,ice2,1,kz)
-      call deco1_exchange_right(wrkkuo2,1,ice1,ice2,1,kz)
+      call exchange(wrkkuo1,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(wrkkuo2,1,jce1,jce2,ice1,ice2,1,kz)
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1)
     end if
     ! diagnostic on total evaporation
@@ -814,10 +788,10 @@ module mod_tendency
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
-      call deco1_exchange_left(sfs%psb,1,ice1,ice2)
-      call deco1_exchange_right(sfs%psb,1,ice1,ice2)
+      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
-      call deco1_exchange_left(sfs%uvdrag,1,ice1,ice2)
+      call exchange_left(sfs%uvdrag,1,ice1,ice2)
+      call exchange_bottom(sfs%uvdrag,1,jce1,jce2)
       call holtbl
     end if
 
@@ -1184,7 +1158,8 @@ module mod_tendency
       end do
     end if
 !
-    call deco1_exchange_left(phi,1,ide1,ide2,1,kz)
+    call exchange_left(phi,1,ide1,ide2,1,kz)
+    call exchange_bottom(phi,1,jde1,jde2,1,kz)
 !
 !   compute the geopotential gradient terms:
 !
