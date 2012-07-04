@@ -229,8 +229,8 @@ module mod_dynparam
   integer :: mycomm
   integer :: nproc
   integer :: myid
-  integer :: jxp
-  integer :: jxpsg
+  integer :: iyp , jxp
+  integer :: iypsg , jxpsg
 
 !####################### MPI parameters ################################
 
