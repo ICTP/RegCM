@@ -172,7 +172,7 @@ module mod_tendency
     !
     ! Boundary points
     !
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = idi1 , idi2
           atmx%u(jdi1,i,k) = wui(i,k)
@@ -197,7 +197,7 @@ module mod_tendency
         end do
       end if
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = idi1 , idi2
           atmx%u(jdi2,i,k) = eui(i,k)
@@ -222,7 +222,7 @@ module mod_tendency
         end do
       end if
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jdi1 , jdi2
           atmx%u(j,idi1,k) = sui(j,k)
@@ -247,7 +247,7 @@ module mod_tendency
         end do
       end if
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jdi1 , jdi2
           atmx%u(j,idi2,k) = nui(j,k)
@@ -424,22 +424,22 @@ module mod_tendency
         psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
       end do
     end do
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       do i = ici1 , ici2
         psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
       end do
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       do i = ici1 , ici2
         psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
       end do
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       do j = jce1 , jce2
         psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
       end do
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       do j = jce1 , jce2
         psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
       end do
@@ -934,7 +934,7 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ma%hasleft ) then
+      if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
             td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
@@ -943,7 +943,7 @@ module mod_tendency
           end do
         end do
       end if
-      if ( ma%hasright ) then
+      if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ici1 , ici2
             td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
@@ -952,7 +952,7 @@ module mod_tendency
           end do
         end do
       end if
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
             td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
@@ -961,7 +961,7 @@ module mod_tendency
           end do
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jce1 , jce2
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))
@@ -982,28 +982,28 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ma%hasleft ) then
+      if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
             td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
           end do
         end do
       end if
-      if ( ma%hasright ) then
+      if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ici1 , ici2
             td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
           end do
         end do
       end if
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
             td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
           end do
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jce1 , jce2
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))

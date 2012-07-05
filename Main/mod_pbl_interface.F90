@@ -340,19 +340,19 @@ module mod_pbl_interface
     !
     ! Set tke boundary conditions
     !
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       atm1%tke(jce1,:,:) = tkemin ! East boundary
       atm2%tke(jce1,:,:) = tkemin ! East boundary
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       atm1%tke(jce2,:,:) = tkemin ! West boundary
       atm2%tke(jce2,:,:) = tkemin ! West boundary
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       atm1%tke(:,ice2,:) = tkemin  ! South boundary
       atm2%tke(:,ice2,:) = tkemin  ! South boundary
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       atm1%tke(:,ice1,:) = tkemin  ! North boundary
       atm2%tke(:,ice1,:) = tkemin  ! North boundary
     end if

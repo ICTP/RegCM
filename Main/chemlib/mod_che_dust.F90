@@ -162,7 +162,7 @@ module mod_che_dust
       real(dp) , dimension(iy,nsoil,nats) :: srel
       real(dp) , dimension(nsoil) :: ss
       logical :: rd_tex 
-      character(5) :: aerctl
+      character(6) :: aerctl
       real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
              asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
 #ifdef __PGI 

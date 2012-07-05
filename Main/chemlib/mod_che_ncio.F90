@@ -1122,7 +1122,7 @@ module mod_che_ncio
                'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
 
           !*** tracer burden (instantaneous in mg/m2) 
-          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n)) * 1.D6
+          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n)*1.0D6)
           istatus = nf90_put_var(ncche(n), ichevar(9), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &

@@ -612,22 +612,22 @@ module mod_split
 !     not in Madala (1987)
 
       fac = (aam(ns)-d_one)/aam(ns)
-      if ( ma%hasleft ) then
+      if ( ma%has_bdyleft ) then
         do i = ici1 , ici2
           delh(jce1,i,ns,n1) = delh(jce1,i,ns,n0)*fac
         end do
       end if
-      if ( ma%hasright ) then
+      if ( ma%has_bdyright ) then
         do i = ici1 , ici2
           delh(jce2,i,ns,n1) = delh(jce2,i,ns,n0)*fac
         end do
       end if
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do j = jce1 , jce2
           delh(j,ice1,ns,n1) = delh(j,ice1,ns,n0)*fac
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do j = jce1 , jce2
           delh(j,ice2,ns,n1) = delh(j,ice2,ns,n0)*fac
         end do
@@ -711,22 +711,22 @@ module mod_split
 !
 !       not in Madala (1987)
 !
-        if ( ma%hasleft ) then 
+        if ( ma%has_bdyleft ) then 
           do i = ici1 , ici2
             delh(jce1,i,ns,n2) = d_two*delh(jce1,i,ns,n1)-delh(jce1,i,ns,n0)
           end do
         end if
-        if ( ma%hasright ) then
+        if ( ma%has_bdyright ) then
           do i = ici1 , ici2
             delh(jce2,i,ns,n2) = d_two*delh(jce2,i,ns,n1)-delh(jce2,i,ns,n0)
           end do
         end if
-        if ( ma%hasbottom ) then
+        if ( ma%has_bdybottom ) then
           do j = jce1 , jce2
             delh(j,ice1,ns,n2) = d_two*delh(j,ice1,ns,n1)-delh(j,ice1,ns,n0)
           end do
         end if
-        if ( ma%hastop ) then
+        if ( ma%has_bdytop ) then
           do j = jce1 , jce2
             delh(j,ice2,ns,n2) = d_two*delh(j,ice2,ns,n1)-delh(j,ice2,ns,n0)
           end do

@@ -310,7 +310,7 @@ module mod_che_bdyco
       !
       ! West boundary
       !
-      if ( ma%hasleft ) then
+      if ( ma%has_bdyleft ) then
         do itr = 1 , ntr
           do k = 1 , kz
             do i = ici1 , ici2
@@ -322,7 +322,7 @@ module mod_che_bdyco
       !
       ! East boundary
       !
-      if ( ma%hasright ) then
+      if ( ma%has_bdyright ) then
         do itr = 1 , ntr
           do k = 1 , kz
             do i = ici1 , ici2
@@ -334,7 +334,7 @@ module mod_che_bdyco
       !
       ! North and South boundaries
       !
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do itr = 1 , ntr
           do k = 1 , kz
             do j = jce1 , jce2
@@ -343,7 +343,7 @@ module mod_che_bdyco
           end do
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do itr = 1 , ntr
           do k = 1 , kz
             do j = jce1 , jce2
@@ -365,28 +365,28 @@ module mod_che_bdyco
 ! for chemistry relaxation towrds
 ! time dependant boundary conditions is considered
 
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
           chia(jce1,i,k,:) = chib0(jce1,i,k,:) + xt*chibt(jce1,i,k,:)
         end do
       end do
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = ici1 , ici2
           chia(jce2,i,k,:) = chib0(jce2,i,k,:) + xt*chibt(jce2,i,k,:)
         end do
       end do
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jce1 , jce2
           chia(j,ice1,k,:) = chib0(j,ice1,k,:) + xt*chibt(j,ice1,k,:)
         end do
       end do
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jce1 , jce2
           chia(j,ice2,k,:) = chib0(j,ice2,k,:) + xt*chibt(j,ice2,k,:)

@@ -227,8 +227,8 @@ module mod_atm_interface
       write(ndebug+myid,*) 'LFT = ', ma%left
 #endif
       ma%bandflag = lband
-      ma%hasleft  = .false.
-      ma%hasright = .false.
+      ma%has_bdyleft  = .false.
+      ma%has_bdyright = .false.
       jde1  = 1
       jdi1  = 1
       jdii1 = 1
@@ -246,13 +246,13 @@ module mod_atm_interface
           jde1  = jcross1
           jdi1  = jcross1+1
           jdii1 = jcross1+2
-          ma%hasleft = .true.
+          ma%has_bdyleft = .true.
         end if
         if ( myid == nproc-1 ) then
           jde2  = jxp
           jdi2  = jxp-1
           jdii2 = jxp-2
-          ma%hasright = .true.
+          ma%has_bdyright = .true.
         end if
       end if
 #ifdef DEBUG
@@ -290,13 +290,13 @@ module mod_atm_interface
       write(ndebug+myid,*) 'CRXPINT2 : ', jcii1 , jcii2
 #endif
       ! In 1D deco, each processor ALWAYS HAS top and bottom.
-      ma%hastop    = .true.
-      ma%hasbottom = .true.
+      ma%has_bdytop    = .true.
+      ma%has_bdybottom = .true.
 #ifdef DEBUG
-      write(ndebug+myid,*) 'TOPBDY   : ', ma%hastop
-      write(ndebug+myid,*) 'BTMBDY   : ', ma%hasbottom
-      write(ndebug+myid,*) 'RGTBDY   : ', ma%hasright
-      write(ndebug+myid,*) 'LFTBDY   : ', ma%hasleft
+      write(ndebug+myid,*) 'TOPBDY   : ', ma%has_bdytop
+      write(ndebug+myid,*) 'BTMBDY   : ', ma%has_bdybottom
+      write(ndebug+myid,*) 'RGTBDY   : ', ma%has_bdyright
+      write(ndebug+myid,*) 'LFTBDY   : ', ma%has_bdyleft
       flush(ndebug+myid)
 #endif
     end subroutine deco1_model

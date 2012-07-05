@@ -46,7 +46,7 @@ module mod_mppparam
 
   type model_area
     logical :: bandflag
-    logical :: hasleft , hasright , hastop , hasbottom
+    logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     integer :: left , right , top , bottom
     integer :: ibt1 , ibt2 , ibb1 , ibb2
     integer :: jbl1 , jbl2 , jbr1 , jbr2
@@ -3544,37 +3544,37 @@ module mod_mppparam
       !
       ! Corner points
       !
-      if ( ma%hasleft .and. ma%hasbottom ) then
+      if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
         pd(jde1,ide1) = pc(jce1,ice1)
       end if
-      if ( ma%hasleft .and. ma%hastop ) then
+      if ( ma%has_bdyleft .and. ma%has_bdytop ) then
         pd(jde1,ide2) = pc(jce1,ice2)
       end if
-      if ( ma%hasright .and. ma%hasbottom ) then
+      if ( ma%has_bdyright .and. ma%has_bdybottom ) then
         pd(jde2,ide1) = pc(jce2,ice1)
       end if
-      if ( ma%hasright .and. ma%hastop ) then
+      if ( ma%has_bdyright .and. ma%has_bdytop ) then
         pd(jde2,ide2) = pc(jce2,ice2)
       end if
       !
       ! Boundaries
       !
-      if ( ma%hasleft ) then
+      if ( ma%has_bdyleft ) then
         do i = idi1 , idi2
           pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
         end do
       end if
-      if ( ma%hasright ) then
+      if ( ma%has_bdyright ) then
         do i = idi1 , idi2
           pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
         end do
       end if
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do j = jdi1 , jdi2
           pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do j = jdi1 , jdi2
           pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
         end do
@@ -3583,12 +3583,12 @@ module mod_mppparam
       !
       ! Band (no east and west)
       !
-      if ( ma%hasbottom ) then
+      if ( ma%has_bdybottom ) then
         do j = jce1 , jce2
           pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
         end do
       end if
-      if ( ma%hastop ) then
+      if ( ma%has_bdytop ) then
         do j = jce1 , jce2
           pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
         end do

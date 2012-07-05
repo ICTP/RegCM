@@ -95,7 +95,7 @@ module mod_diffusion
     !
     ! second-order scheme for east and west boundaries:
     !
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       j = jdi1
       do k = 1 , kz
         do i = idi1 , idi2
@@ -115,7 +115,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       j = jdi2
       do k = 1 , kz
         do i = idi1 , idi2
@@ -138,7 +138,7 @@ module mod_diffusion
     !
     ! second-order scheme for north and south boundaries:
     !
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       i = idi1
       do k = 1 , kz
         do j = jdi1 , jdi2
@@ -155,7 +155,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       i = idi2
       do k = 1 , kz
         do j = jdi1 , jdi2
@@ -211,7 +211,7 @@ module mod_diffusion
     !
     ! second-order scheme for east and west boundaries:
     !
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       j = jci1
       do k = 1 , kmax
         do i = ici1 , ici2
@@ -222,7 +222,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       j = jci2
       do k = 1 , kmax
         do i = ici1 , ici2
@@ -236,7 +236,7 @@ module mod_diffusion
     !
     ! second-order scheme for north and south boundaries:
     !
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       i = ici1
       do k = 1 , kmax
         do j = jci1 , jci2
@@ -247,7 +247,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       i = ici2
       do k = 1 , kmax
         do j = jci1 , jci2
@@ -299,7 +299,7 @@ module mod_diffusion
     !
     ! second-order scheme for east and west boundaries:
     !
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       j = jci1
       do n = 1 , n4
         do k = 1 , kmax
@@ -312,7 +312,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       j = jci2
       do n = 1 , n4
         do k = 1 , kmax
@@ -328,7 +328,7 @@ module mod_diffusion
     !
     ! second-order scheme for north and south boundaries:
     !
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       i = ici1
       do n = 1 , n4
         do k = 1 , kmax
@@ -341,7 +341,7 @@ module mod_diffusion
         end do
       end do
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       i = ici2
       do n = 1 , n4
         do k = 1 , kmax

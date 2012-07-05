@@ -966,34 +966,34 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     real(dp) , pointer , intent(in) , dimension(:,:) :: a
     real(dp) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       b(jce2,ici1:ici2) = a(jci2,ici1:ici2)
       b(jde2,ici1:ici2) = a(jci2,ici1:ici2)
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       b(jci1:jci2,ice1) = a(jci1:jci2,ici1)
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       b(jci1:jci2,ice2) = a(jci1:jci2,ici2)
       b(jci1:jci2,ide2) = a(jci1:jci2,ici2)
     end if
-    if ( ma%hasleft .and. ma%hasbottom ) then
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
       b(jce1,ice1) = a(jci1,ici1)
     end if
-    if ( ma%hasleft .and. ma%hastop ) then
+    if ( ma%has_bdyleft .and. ma%has_bdytop ) then
       b(jce1,ice2) = a(jci1,ici2)
       b(jce1,ide2) = a(jci1,ici2)
     end if
-    if ( ma%hasright .and. ma%hasbottom ) then
+    if ( ma%has_bdyright .and. ma%has_bdybottom ) then
       b(jce2,ice1) = a(jci2,ici1)
       b(jde2,ice1) = a(jci2,ici1)
       b(jce2,ide1) = a(jci2,ici1)
       b(jde2,ide1) = a(jci2,ici1)
     end if
-    if ( ma%hasright .and. ma%hastop ) then
+    if ( ma%has_bdyright .and. ma%has_bdytop ) then
       b(jce2,ice2) = a(jci2,ici2)
       b(jde2,ice2) = a(jci2,ici2)
       b(jce2,ide2) = a(jci2,ici2)
@@ -1006,34 +1006,34 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     real(dp) , pointer , intent(in) , dimension(:,:,:) :: a
     real(dp) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       b(jce2,ici1:ici2) = a(jci2,ici1:ici2,kz)
       b(jde2,ici1:ici2) = a(jci2,ici1:ici2,kz)
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       b(jci1:jci2,ice1) = a(jci1:jci2,ici1,kz)
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       b(jci1:jci2,ice2) = a(jci1:jci2,ici2,kz)
       b(jci1:jci2,ide2) = a(jci1:jci2,ici2,kz)
     end if
-    if ( ma%hasleft .and. ma%hasbottom ) then
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
       b(jce1,ice1) = a(jci1,ici1,kz)
     end if
-    if ( ma%hasleft .and. ma%hastop ) then
+    if ( ma%has_bdyleft .and. ma%has_bdytop ) then
       b(jce1,ice2) = a(jci1,ici2,kz)
       b(jce1,ide2) = a(jci1,ici2,kz)
     end if
-    if ( ma%hasright .and. ma%hasbottom ) then
+    if ( ma%has_bdyright .and. ma%has_bdybottom ) then
       b(jce2,ice1) = a(jci2,ici1,kz)
       b(jce2,ide1) = a(jci2,ici1,kz)
       b(jde2,ice1) = a(jci2,ici1,kz)
       b(jde2,ide1) = a(jci2,ici1,kz)
     end if
-    if ( ma%hasright .and. ma%hastop ) then
+    if ( ma%has_bdyright .and. ma%has_bdytop ) then
       b(jce2,ice2) = a(jci2,ici2,kz)
       b(jce2,ide2) = a(jci2,ici2,kz)
       b(jde2,ice2) = a(jci2,ici2,kz)
@@ -1047,34 +1047,34 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     integer , intent(in) :: l
     real(dp) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
-    if ( ma%hasleft ) then
+    if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz,l)
     end if
-    if ( ma%hasright ) then
+    if ( ma%has_bdyright ) then
       b(jce2,ici1:ici2) = a(jci2,ici1:ici2,kz,l)
       b(jde2,ici1:ici2) = a(jci2,ici1:ici2,kz,l)
     end if
-    if ( ma%hasbottom ) then
+    if ( ma%has_bdybottom ) then
       b(jci1:jci2,ice1) = a(jci1:jci2,ici1,kz,l)
     end if
-    if ( ma%hastop ) then
+    if ( ma%has_bdytop ) then
       b(jci1:jci2,ice2) = a(jci1:jci2,ici2,kz,l)
       b(jci1:jci2,ide2) = a(jci1:jci2,ici2,kz,l)
     end if
-    if ( ma%hasleft .and. ma%hasbottom ) then
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
       b(jce1,ice1) = a(jci1,ici1,kz,l)
     end if
-    if ( ma%hasleft .and. ma%hastop ) then
+    if ( ma%has_bdyleft .and. ma%has_bdytop ) then
       b(jce1,ice2) = a(jci1,ici2,kz,l)
       b(jce1,ide2) = a(jci1,ici2,kz,l)
     end if
-    if ( ma%hasright .and. ma%hasbottom ) then
+    if ( ma%has_bdyright .and. ma%has_bdybottom ) then
       b(jce2,ice1) = a(jci2,ici1,kz,l)
       b(jce2,ide1) = a(jci2,ici1,kz,l)
       b(jde2,ice1) = a(jci2,ici1,kz,l)
       b(jde2,ide1) = a(jci2,ici1,kz,l)
     end if
-    if ( ma%hasright .and. ma%hastop ) then
+    if ( ma%has_bdyright .and. ma%has_bdytop ) then
       b(jce2,ice2) = a(jci2,ici2,kz,l)
       b(jce2,ide2) = a(jci2,ici2,kz,l)
       b(jde2,ice2) = a(jci2,ici2,kz,l)
