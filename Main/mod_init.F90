@@ -317,38 +317,38 @@ module mod_init
       call grid_distribute(gasemstot_io,gasemstot,jce1,jce2,ice1,ice2,1,kzp1)
     end if ! irrtm test
 
-    call subgrid_distribute(tlef_io,tlef,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(ssw_io,ssw,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(rsw_io,rsw,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(tgrd_io,tgrd,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(tgbrd_io,tgbrd,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(sncv_io,sncv,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(gwet_io,gwet,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(snag_io,snag,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(sfice_io,sfice,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(ldew_io,ldew,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(taf_io,taf,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(tsw_io,tsw,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(emiss_io,emiss,jce1,jce2,ice1,ice2)
-    call subgrid_distribute(ldmsk1_io,ldmsk1,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(tlef_io,tlef,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ssw_io,ssw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(rsw_io,rsw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tgrd_io,tgrd,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tgbrd_io,tgbrd,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(sncv_io,sncv,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(gwet_io,gwet,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(snag_io,snag,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(sfice_io,sfice,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ldew_io,ldew,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(taf_io,taf,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tsw_io,tsw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(emiss_io,emiss,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ldmsk1_io,ldmsk1,jci1,jci2,ici1,ici2)
 
-    call grid_distribute(solis_io,solis,jce1,jce2,ice1,ice2)
-    call grid_distribute(solvd_io,solvd,jce1,jce2,ice1,ice2)
-    call grid_distribute(solvs_io,solvs,jce1,jce2,ice1,ice2)
-    call grid_distribute(sabveg_io,sabveg,jce1,jce2,ice1,ice2)
-    call grid_distribute(flw_io,flw,jce1,jce2,ice1,ice2)
-    call grid_distribute(flwd_io,flwd,jce1,jce2,ice1,ice2)
-    call grid_distribute(fsw_io,fsw,jce1,jce2,ice1,ice2)
-    call grid_distribute(sinc_io,sinc,jce1,jce2,ice1,ice2)
-    call grid_distribute(ldmsk_io,ldmsk,jce1,jce2,ice1,ice2)
+    call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
+    call grid_distribute(solvd_io,solvd,jci1,jci2,ici1,ici2)
+    call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
+    call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
+    call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
+    call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
+    call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
+    call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
+    call grid_distribute(ldmsk_io,ldmsk,jci1,jci2,ici1,ici2)
 
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_distribute(eta_io,eta,jce1,jce2,ice1,ice2)
-      call subgrid_distribute(hi_io,hi,jce1,jce2,ice1,ice2)
-      call subgrid_distribute(aveice_io,aveice,jce1,jce2,ice1,ice2)
-      call subgrid_distribute(hsnow_io,hsnow,jce1,jce2,ice1,ice2)
-      call subgrid_distribute(tlak_io,tlak,jce1,jce2,ice1,ice2,1,ndpmax)
+      call subgrid_distribute(eta_io,eta,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(hi_io,hi,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(aveice_io,aveice,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(hsnow_io,hsnow,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(tlak_io,tlak,jci1,jci2,ici1,ici2,1,ndpmax)
     endif
 #else
     call grid_distribute(sols2d_io,sols2d,jce1,jce2,ice1,ice2)
@@ -385,9 +385,9 @@ module mod_init
     end if
 
     if ( idcsst == 1 ) then
-      call grid_distribute(dtskin_io,dtskin,jce1,jce2,ice1,ice2)
-      call grid_distribute(deltas_io,deltas,jce1,jce2,ice1,ice2)
-      call grid_distribute(tdeltas_io,tdeltas,jce1,jce2,ice1,ice2)
+      call grid_distribute(dtskin_io,dtskin,jci1,jci2,ici1,ici2)
+      call grid_distribute(deltas_io,deltas,jci1,jci2,ici1,ici2)
+      call grid_distribute(tdeltas_io,tdeltas,jci1,jci2,ici1,ici2)
     end if
     !
     ! Update ground temperature on Ocean/Lakes

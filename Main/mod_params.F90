@@ -1237,8 +1237,8 @@ module mod_params
 !
 !-----compute land/water mask on subgrid space
 !
-   do i = ice1 , ice2
-     do j = jce1 , jce2
+   do i = ici1 , ici2
+     do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
             mddom%lndcat(j,i) < 15.5D0 ) then
          ldmsk(j,i) = 0
