@@ -183,15 +183,15 @@ module mod_output
     if ( ldosrf ) then
 #ifndef CLM
       if ( lakemod == 1 .and. iflak .and. iolak == klak ) then
-        call subgrid_collect(eta,eta_io,jce1,jce2,ice1,ice2)
-        call subgrid_collect(hi,hi_io,jce1,jce2,ice1,ice2)
-        call subgrid_collect(aveice,aveice_io,jce1,jce2,ice1,ice2)
-        call subgrid_collect(hsnow,hsnow_io,jce1,jce2,ice1,ice2)
-        call subgrid_collect(tlak,tlak_io,jce1,jce2,ice1,ice2,1,ndpmax)
+        call subgrid_collect(eta,eta_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(hi,hi_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(hsnow,hsnow_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
       end if
 #endif
       if ( iseaice == 1 .or. lakemod == 1 ) then
-        call grid_collect(ldmsk,ldmsk_io,jce1,jce2,ice1,ice2)
+        call grid_collect(ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
       end if
       call grid_collect(fbat,fbat_io,jci1,jci2,ici1,ici2,1,numbat)
       if ( myid == 0 ) then

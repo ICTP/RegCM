@@ -221,7 +221,7 @@ module mod_init
     ! Init the diurnal cycle SST scheme
     !
     if ( idcsst == 1 ) then
-      tdeltas(:,:) = tground2(:,:) - 0.001D0
+      tdeltas(jci1:jci2,ici1:ici2) = tground2(jci1:jci2,ici1:ici2) - 0.001D0
       deltas(:,:) = 0.001D0
     end if
     !
@@ -470,7 +470,7 @@ module mod_init
     !
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_collect(idep,idep_io,jce1,jce2,ice1,ice2)
+      call subgrid_collect(idep,idep_io,jci1,jci2,ici1,ici2)
     end if
 #endif
   end if

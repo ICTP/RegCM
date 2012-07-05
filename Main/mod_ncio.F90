@@ -2298,7 +2298,7 @@ contains
       icount(3) = 1
       icount(2) = o_ni
       icount(1) = o_nj
-      dumio(:,:,1) = real(sum(tlake(n,:,o_js:o_je,o_is:o_ie),1)*xns2d)
+      dumio(:,:,1) = real(sum(tlake(:,o_js:o_je,o_is:o_ie,n),1)*xns2d)
       where (iolnds == 14)
         dumio(:,:,1) = dumio(:,:,1) + real(tzero)
       end where

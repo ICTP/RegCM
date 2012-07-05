@@ -1227,7 +1227,7 @@ module mod_params
 
 #ifndef CLM
   if ( lakemod == 1 ) then
-    call subgrid_distribute(dhlake1_io,dhlake1,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(dhlake1_io,dhlake1,jci1,jci2,ici1,ici2)
   endif
 #endif
 !
