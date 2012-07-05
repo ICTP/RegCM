@@ -664,8 +664,8 @@ module mod_bats_lake
       end do
     end do
 
-    do i = icross1 , icross2
-      do j = jcross1 , jcross2
+    do i = iout1 , iout2
+      do j = jout1 , jout2
         do n = 1 , nnsg
           if (idep_io(n,j,i) == 0) then
             hi_io(n,j,i)     = dmissval
