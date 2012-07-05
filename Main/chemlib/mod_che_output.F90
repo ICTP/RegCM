@@ -48,46 +48,34 @@ module mod_che_output
       real(dp) , pointer , dimension(:,:)  :: aertarf , aersrrf , &
                                               aertalwrf , aersrlwrf            
  
-      call deco1_gather(chia,chia_io,jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-      call deco1_gather(cpsb,cpsb_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(aerext,aerext_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(aerssa,aerssa_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(aerasp,aerasp_io,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_gather(aertarf,aertarf_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(aersrrf,aersrrf_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(aertalwrf,aertalwrf_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(aersrlwrf,aersrlwrf_io,jcross1,jcross2,icross1,icross2)
-      call deco1_gather(dtrace,dtrace_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(wdlsc,wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(wdcvc,wdcvc_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(ddsfc,ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_gather(cemtrac,cemtrac_io,jcross1,jcross2, &
-                        icross1,icross2,1,ntr)
-      call deco1_gather(drydepv,drydepv_io,jcross1,jcross2, &
-                        icross1,icross2,1,ntr)
+      call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_collect(cpsb,cpsb_io,jce1,jce2,ice1,ice2)
+      call grid_collect(aerext,aerext_io,jce1,jce2,ice1,ice2,1,kz)
+      call grid_collect(aerssa,aerssa_io,jce1,jce2,ice1,ice2,1,kz)
+      call grid_collect(aerasp,aerasp_io,jce1,jce2,ice1,ice2,1,kz)
+      call grid_collect(aertarf,aertarf_io,jce1,jce2,ice1,ice2)
+      call grid_collect(aersrrf,aersrrf_io,jce1,jce2,ice1,ice2)
+      call grid_collect(aertalwrf,aertalwrf_io,jce1,jce2,ice1,ice2)
+      call grid_collect(aersrlwrf,aersrlwrf_io,jce1,jce2,ice1,ice2)
+      call grid_collect(dtrace,dtrace_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(wdlsc,wdlsc_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(wdcvc,wdcvc_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(ddsfc,ddsfc_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(cemtrac,cemtrac_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(drydepv,drydepv_io,jce1,jce2,ice1,ice2,1,ntr)
 
       if (ichdiag > 0) then   
-       call deco1_gather(chemdiag,chemdiag_io,jcross1,jcross2, &
-                        icross1,icross2,1,kz,1,ntr)
-
-        call deco1_gather(cadvhdiag,cadvhdiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(cadvvdiag,cadvvdiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(cdifhdiag,cdifhdiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(cconvdiag,cconvdiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(cbdydiag,cbdydiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(ctbldiag,ctbldiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(remcvc,remcvc_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
-        call deco1_gather(remlsc,remlsc_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)        
-        call deco1_gather(cseddpdiag,cseddpdiag_io,jcross1,jcross2, &
-                          icross1,icross2,1,kz,1,ntr)
+        call grid_collect(chemdiag,chemdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cadvhdiag,cadvhdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cadvvdiag,cadvvdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cdifhdiag,cdifhdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cconvdiag,cconvdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cbdydiag,cbdydiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(ctbldiag,ctbldiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(remcvc,remcvc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call grid_collect(cseddpdiag,cseddpdiag_io, &
+                          jce1,jce2,ice1,ice2,1,kz,1,ntr)
       end if
 
       call outche2(idatex) 

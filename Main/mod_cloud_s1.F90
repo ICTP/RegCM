@@ -28,8 +28,6 @@ module mod_cloud_s1
 
   use mod_pbl_common
 
- 
-
   private
 
   integer , parameter :: nmax = 5
@@ -140,7 +138,7 @@ module mod_cloud_s1
     integer , intent(in) :: jstart , jend , istart , iend
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega  !added by R
 
-    integer :: i , j , k , n , m
+    integer :: i , j , k , n
     integer :: iqi , iql , iqr , iqs , iqv , jn , jo , kautoconv
     logical :: lmicro
     real(dp) :: zcond , zdtdp , zexplicit
@@ -686,7 +684,7 @@ module mod_cloud_s1
                 ii = m
             end if
             bbm(j,i,k,m) = xsum
-            end do
+          end do
           do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
             xsum = bbm(j,i,k,m)
             do jj = m + 1 , nqx

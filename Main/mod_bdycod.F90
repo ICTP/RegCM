@@ -259,18 +259,19 @@ module mod_bdycod
     !
     ! Send each processor its computing slice
     !
-    call deco1_scatter(ub0_io,xub%b0,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(vb0_io,xvb%b0,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(tb0_io,xtb%b0,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(qb0_io,xqb%b0,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(ps0_io,xpsb%b0,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ts0_io,ts0,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ub1_io,xub%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(vb1_io,xvb%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(tb1_io,xtb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
+    call grid_distribute(ub0_io,xub%b0,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(vb0_io,xvb%b0,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(tb0_io,xtb%b0,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(qb0_io,xqb%b0,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(ps0_io,xpsb%b0,jce1,jce2,ice1,ice2)
+    call grid_distribute(ts0_io,ts0,jce1,jce2,ice1,ice2)
+
+    call grid_distribute(ub1_io,xub%b1,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(vb1_io,xvb%b1,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(tb1_io,xtb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(qb1_io,xqb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(ps1_io,xpsb%b1,jce1,jce2,ice1,ice2)
+    call grid_distribute(ts1_io,ts1,jce1,jce2,ice1,ice2)
     !
     ! Calculate P* on dot points
     !
@@ -406,12 +407,12 @@ module mod_bdycod
       ps1_io(:,:) = (ps1_io(:,:)*d_r10)-ptop
     end if
 !
-    call deco1_scatter(ub1_io,xub%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(vb1_io,xvb%b1,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(tb1_io,xtb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(qb1_io,xqb%b1,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(ps1_io,xpsb%b1,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ts1_io,ts1,jcross1,jcross2,icross1,icross2)
+    call grid_distribute(ub1_io,xub%b1,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(vb1_io,xvb%b1,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(tb1_io,xtb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(qb1_io,xqb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(ps1_io,xpsb%b1,jce1,jce2,ice1,ice2)
+    call grid_distribute(ts1_io,ts1,jce1,jce2,ice1,ice2)
 !
     call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)

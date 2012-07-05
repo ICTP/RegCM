@@ -35,7 +35,6 @@ module mod_params
   use mod_slice
   use mod_bdycod
   use mod_ncio
-  use mod_diagnosis
   use mod_tendency
   use mod_ncio
   use mod_advection , only : init_advection
@@ -782,10 +781,6 @@ module mod_params
     call allocate_mod_rad_colmod3(ichem)
   end if
 
-  if ( .not. lband .and. debug_level > 2 ) then
-    call allocate_mod_diagnosis
-  end if
-
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)
   call allocate_mod_che_dust(ichem)
@@ -1215,25 +1210,24 @@ module mod_params
 
   end if  ! end if (myid == 0)
 
-  call deco1_scatter(mddom_io%ht,mddom%ht,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%lndcat,mddom%lndcat,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%xlat,mddom%xlat,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%xlon,mddom%xlon,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%dlat,mddom%dlat,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%dlon,mddom%dlon,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%msfx,mddom%msfx,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%msfd,mddom%msfd,jdot1,jdot2,idot1,idot2)
-  call deco1_scatter(mddom_io%coriol,mddom%coriol,jdot1,jdot2,idot1,idot2)
+  call grid_distribute(mddom_io%ht,mddom%ht,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%lndcat,mddom%lndcat,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%xlat,mddom%xlat,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%xlon,mddom%xlon,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%dlat,mddom%dlat,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%dlon,mddom%dlon,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%msfx,mddom%msfx,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%msfd,mddom%msfd,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%coriol,mddom%coriol,jde1,jde2,ide1,ide2)
 
-  call subgrid_deco1_scatter(ht1_io,ht1,jdot1,jdot2,idot1,idot2)
-  call subgrid_deco1_scatter(lndcat1_io,lndcat1,jdot1,jdot2,idot1,idot2)
-  call subgrid_deco1_scatter(xlat1_io,xlat1,jdot1,jdot2,idot1,idot2)
-  call subgrid_deco1_scatter(xlon1_io,xlon1,jdot1,jdot2,idot1,idot2)
+  call subgrid_distribute(ht1_io,ht1,jde1,jde2,ide1,ide2)
+  call subgrid_distribute(lndcat1_io,lndcat1,jde1,jde2,ide1,ide2)
+  call subgrid_distribute(xlat1_io,xlat1,jde1,jde2,ide1,ide2)
+  call subgrid_distribute(xlon1_io,xlon1,jde1,jde2,ide1,ide2)
 
 #ifndef CLM
   if ( lakemod == 1 ) then
-    call subgrid_deco1_scatter(dhlake1_io, &
-                        dhlake1,jcross1,jcross2,icross1,icross2)
+    call subgrid_distribute(dhlake1_io,dhlake1,jce1,jce2,ice1,ice2)
   endif
 #endif
 !

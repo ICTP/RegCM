@@ -232,8 +232,7 @@ module mod_che_dust
       end if
 
       if ( rd_tex ) then
-        call deco1_scatter(dustsotex_io,dustsotex, &
-                           jcross1,jcross2,icross1,icross2,1,nats)
+        call grid_distribute(dustsotex_io,dustsotex,jce1,jce2,ice1,ice2,1,nats)
       end if
 
 ! end texture file reading

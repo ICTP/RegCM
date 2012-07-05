@@ -220,9 +220,12 @@ module mod_dynparam
   ! J index Dot points Full Domain  = jde1 : begin , jde2 : end
   ! I index Cross points Internal Domain = ici1 : begin , ici2 : end
 
-  ! Global reference in global grid
-  integer :: igc1 , igc2 , igd1 , igd2
-  integer :: jgc1 , jgc2 , jgd1 , jgd2
+  ! Global reference in global grid jx*iy of dot points
+  ! The CROSS grid is contained within
+  integer :: global_istart
+  integer :: global_iend
+  integer :: global_jstart
+  integer :: global_jend
 
 !####################### MPI parameters ################################
 

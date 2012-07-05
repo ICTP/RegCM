@@ -42,6 +42,8 @@ module mod_mppparam
 
   public :: set_nproc , broadcast_params , date_bcast
 
+  integer :: cartesian_communicator
+
   type model_area
     logical :: bandflag
     logical :: hasleft , hasright , hastop , hasbottom
@@ -50,107 +52,117 @@ module mod_mppparam
     integer :: jbl1 , jbl2 , jbr1 , jbr2
   end type model_area
 
-  type deco1d_nc_var2d
+  type grid_nc_var2d
     character(len=64) :: varname
     integer :: irec = -1
     integer :: ncid = -1
     integer :: varid = 1
     integer :: nx = 0
     integer :: ny = 0
+    integer :: mynx1 = 0
+    integer :: mynx2 = 0
+    integer :: myny1 = 0
+    integer :: myny2 = 0
     real(dp) , pointer , dimension(:,:) :: val => null()
     real(dp) , pointer , dimension(:,:) :: iobuf => null()
-  end type deco1d_nc_var2d
+  end type grid_nc_var2d
 
-  type deco1d_nc_var3d
+  type grid_nc_var3d
     character(len=64) :: varname
     integer :: irec = -1
     integer :: ncid = -1
     integer :: varid = 1
     integer :: nx = 0
     integer :: ny = 0
+    integer :: mynx1 = 0
+    integer :: mynx2 = 0
+    integer :: myny1 = 0
+    integer :: myny2 = 0
     integer :: nz = 0
     real(dp) , pointer , dimension(:,:,:) :: val => null()
     real(dp) , pointer , dimension(:,:,:) :: iobuf => null()
-  end type deco1d_nc_var3d
+  end type grid_nc_var3d
 
-  type deco1d_nc_var4d
+  type grid_nc_var4d
     character(len=64) :: varname
     integer :: irec = -1
     integer :: ncid = -1
     integer :: varid = 1
     integer :: nx = 0
     integer :: ny = 0
+    integer :: mynx1 = 0
+    integer :: mynx2 = 0
+    integer :: myny1 = 0
+    integer :: myny2 = 0
     integer :: nz = 0
     integer :: nl = 0
     real(dp) , pointer , dimension(:,:,:,:) :: val => null()
     real(dp) , pointer , dimension(:,:,:,:) :: iobuf => null()
-  end type deco1d_nc_var4d
+  end type grid_nc_var4d
 
-  public :: deco1d_nc_var2d , deco1d_nc_var3d , deco1d_nc_var4d
+  public :: grid_nc_var2d , grid_nc_var3d , grid_nc_var4d
 
-  interface deco1d_nc_create
-    module procedure deco1d_nc_create_var2d , &
-                     deco1d_nc_create_var3d , &
-                     deco1d_nc_create_var4d
-  end interface deco1d_nc_create
+  interface grid_nc_create
+    module procedure grid_nc_create_var2d , &
+                     grid_nc_create_var3d , &
+                     grid_nc_create_var4d
+  end interface grid_nc_create
 
-  interface deco1d_nc_write
-    module procedure deco1d_nc_write_var2d , &
-                     deco1d_nc_write_var3d , &
-                     deco1d_nc_write_var4d
-  end interface deco1d_nc_write
+  interface grid_nc_write
+    module procedure grid_nc_write_var2d , &
+                     grid_nc_write_var3d , &
+                     grid_nc_write_var4d
+  end interface grid_nc_write
 
-  interface deco1d_nc_destroy
-    module procedure deco1d_nc_destroy_var2d , &
-                     deco1d_nc_destroy_var3d , &
-                     deco1d_nc_destroy_var4d
-  end interface deco1d_nc_destroy
+  interface grid_nc_destroy
+    module procedure grid_nc_destroy_var2d , &
+                     grid_nc_destroy_var3d , &
+                     grid_nc_destroy_var4d
+  end interface grid_nc_destroy
 
-  public :: deco1d_nc_create , deco1d_nc_write , deco1d_nc_destroy
+  public :: grid_nc_create , grid_nc_write , grid_nc_destroy
 
-  interface deco1_scatter
-    module procedure deco1_1d_real8_scatter ,   &
-                     deco1_2d_real8_scatter ,   &
-                     deco1_3d_real8_scatter ,   &
-                     deco1_4d_real8_scatter ,   &
-                     deco1_2d_real4_scatter ,   &
-                     deco1_3d_real4_scatter ,   &
-                     deco1_4d_real4_scatter ,   &
-                     deco1_2d_integer_scatter , &
-                     deco1_3d_integer_scatter , &
-                     deco1_4d_integer_scatter
-  end interface deco1_scatter
+  interface grid_distribute
+    module procedure real8_2d_distribute ,   &
+                     real8_3d_distribute ,   &
+                     real8_4d_distribute ,   &
+                     real4_2d_distribute ,   &
+                     real4_3d_distribute ,   &
+                     real4_4d_distribute ,   &
+                     integer_2d_distribute , &
+                     integer_3d_distribute , &
+                     integer_4d_distribute
+  end interface grid_distribute
 
-  interface deco1_gather
-    module procedure deco1_1d_real8_gather ,   &
-                     deco1_2d_real8_gather ,   &
-                     deco1_3d_real8_gather ,   &
-                     deco1_4d_real8_gather ,   &
-                     deco1_2d_real4_gather ,   &
-                     deco1_3d_real4_gather ,   &
-                     deco1_4d_real4_gather ,   &
-                     deco1_2d_integer_gather , &
-                     deco1_3d_integer_gather , &
-                     deco1_4d_integer_gather
-  end interface deco1_gather
+  interface subgrid_distribute
+    module procedure real8_2d_sub_distribute ,   &
+                     real8_3d_sub_distribute ,   &
+                     real4_2d_sub_distribute ,   &
+                     real4_3d_sub_distribute ,   &
+                     integer_2d_sub_distribute , &
+                     integer_3d_sub_distribute
+  end interface subgrid_distribute
 
-  interface subgrid_deco1_scatter
-    module procedure subgrid_deco1_2d_real8_scatter ,   &
-                     subgrid_deco1_3d_real8_scatter ,   &
-                     subgrid_deco1_2d_real4_scatter ,   &
-                     subgrid_deco1_3d_real4_scatter ,   &
-                     subgrid_deco1_2d_integer_scatter , &
-                     subgrid_deco1_3d_integer_scatter
-  end interface subgrid_deco1_scatter
+  interface grid_collect
+    module procedure real8_2d_collect ,   &
+                     real8_3d_collect ,   &
+                     real8_4d_collect ,   &
+                     real4_2d_collect ,   &
+                     real4_3d_collect ,   &
+                     real4_4d_collect ,   &
+                     integer_2d_collect , &
+                     integer_3d_collect , &
+                     integer_4d_collect
+  end interface grid_collect
 
-  interface subgrid_deco1_gather
-    module procedure subgrid_deco1_2d_real8_gather ,   &
-                     subgrid_deco1_3d_real8_gather ,   &
-                     subgrid_deco1_2d_real4_gather ,   &
-                     subgrid_deco1_3d_real4_gather ,   &
-                     subgrid_deco1_2d_integer_gather , &
-                     subgrid_deco1_3d_integer_gather
-  end interface subgrid_deco1_gather
+  interface subgrid_collect
+    module procedure real8_2d_sub_collect ,   &
+                     real8_3d_sub_collect ,   &
+                     real4_2d_sub_collect ,   &
+                     real4_3d_sub_collect ,   &
+                     integer_2d_sub_collect , &
+                     integer_3d_sub_collect
+  end interface subgrid_collect
 
   interface exchange
     module procedure real8_2d_exchange ,  &
@@ -182,12 +194,12 @@ module mod_mppparam
                      real8_4d_exchange_bottom
   end interface exchange_bottom
 
-  interface deco1_allgat
-    module procedure deco1d_2d_real8_allgat
-  end interface deco1_allgat
+  interface grid_fill
+    module procedure real8_2d_grid_fill
+  end interface grid_fill
 
 #ifdef DEBUG
-  type(deco1d_nc_var4d) , public :: qqxp
+  type(grid_nc_var4d) , public :: qqxp
 #endif
 
   public :: model_area
@@ -201,11 +213,10 @@ module mod_mppparam
   integer , pointer , dimension(:) :: i4vector2
   integer :: mpierr
 !
-  public :: deco1_scatter , deco1_gather
-  public :: subgrid_deco1_scatter , subgrid_deco1_gather
   public :: exchange
+  public :: grid_distribute , grid_collect , grid_fill
+  public :: subgrid_distribute , subgrid_collect
   public :: exchange_left , exchange_right , exchange_top , exchange_bottom
-  public :: deco1_allgat
   public :: uvcross2dot , psc2psd
 !
   contains
@@ -218,51 +229,56 @@ module mod_mppparam
     iyp =  iy
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
+    cartesian_communicator = mycomm
+    global_istart = 1
+    global_iend = iy
+    global_jstart = myid*jxp+1
+    global_jend = global_jstart+jxp-1
   end subroutine set_nproc
 
   subroutine broadcast_params
     implicit none
 
-    call mpi_barrier(mycomm,mpierr)
+    call mpi_barrier(cartesian_communicator,mpierr)
 
-    call mpi_bcast(iy,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(jx,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(kz,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nsg,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nveg,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(iy,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(jx,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(kz,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(nsg,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(nveg,1,mpi_integer,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(iproj,6,mpi_character,0,mycomm,mpierr)
-    call mpi_bcast(ds,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(ptop,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(clat,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(clon,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(plat,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(plon,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(truelatl,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(truelath,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(i_band,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(iproj,6,mpi_character,0,cartesian_communicator,mpierr)
+    call mpi_bcast(ds,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(ptop,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(clat,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(clon,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(plat,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(plon,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(truelatl,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(truelath,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(i_band,1,mpi_integer,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(domname,64,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(domname,64,mpi_character,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(ibyte,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(ibyte,1,mpi_integer,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(debug_level,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(dbgfrq,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(debug_level,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(dbgfrq,1,mpi_integer,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(nspgx,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nspgd,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(high_nudge,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(medium_nudge,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(low_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(nspgx,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(nspgd,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(high_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(medium_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(low_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(calendar,12,mpi_character,0,mycomm,mpierr)
-    call mpi_bcast(ical,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(dayspy,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(dpd,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(calendar,12,mpi_character,0,cartesian_communicator,mpierr)
+    call mpi_bcast(ical,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(dayspy,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(dpd,1,mpi_real8,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nsplit,1,mpi_integer,0,cartesian_communicator,mpierr)
 
-    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(ibdyfrq,1,mpi_integer,0,cartesian_communicator,mpierr)
 
     ! Setup all convenience dimensions
 
@@ -314,7 +330,7 @@ module mod_mppparam
       niout = iout2-iout1+1
     end if
 
-    call mpi_barrier(mycomm,mpierr)
+    call mpi_barrier(cartesian_communicator,mpierr)
 
   end subroutine broadcast_params
 
@@ -332,1915 +348,2519 @@ module mod_mppparam
     mpierr = mpierr+lerr
   end subroutine date_bcast
 !
-  subroutine deco1_1d_real8_scatter(mg,ml)
-    implicit none
-    real(dp) , pointer , dimension(:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:) , intent(out) :: ml ! model local
-    call mpi_scatter(mg,jxp,mpi_real8,ml,jxp,mpi_real8,0,mycomm,mpierr)
-  end subroutine deco1_1d_real8_scatter
-!
-  subroutine deco1_1d_real8_gather(ml,mg)
-    implicit none
-    real(dp) , pointer , dimension(:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:) , intent(out) :: mg ! model global
-    call mpi_gather(ml,jxp,mpi_real8,mg,jxp,mpi_real8,0,mycomm,mpierr)
-  end subroutine deco1_1d_real8_gather
-!
-  subroutine deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_scatter')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_scatter')
-    end if
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_scatter')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = mg(global_jstart+j-1,global_istart+i-1)
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_distribute')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            r8vector1(ib) = mg(j,i)
+            ib = ib + 1
+          end do
+        end do
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
       end if
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          r8vector1(ib) = mg(j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = r8vector2(ib)
           ib = ib + 1
         end do
       end do
     end if
-    call mpi_scatter(r8vector1,lsize,mpi_real8, &
-                     r8vector2,lsize,mpi_real8, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        ml(j,i) = r8vector2(ib)
-        ib = ib + 1
-      end do
-    end do
-  end subroutine deco1_2d_real8_scatter
+  end subroutine real8_2d_distribute
 !
-  subroutine deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_gather')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_2d_real8_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        r8vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_gather')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_2d_real8_gather')
-      end if
-    end if
-    call mpi_gather(r8vector2,lsize,mpi_real8, &
-                    r8vector1,lsize,mpi_real8, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          mg(j,i) = r8vector1(ib)
-          ib = ib + 1
-        end do
-      end do
-    end if
-  end subroutine deco1_2d_real8_gather
-!
-  subroutine deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_scatter')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_scatter')
-    end if
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_scatter')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_scatter')
-      end if
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = mg(global_jstart+j-1,global_istart+i-1,k)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_distribute')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            r8vector1(ib) = mg(j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              r8vector1(ib) = mg(j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(r8vector1,lsize,mpi_real8, &
-                     r8vector2,lsize,mpi_real8, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          ml(j,i,k) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine deco1_3d_real8_scatter
+  end subroutine real8_3d_distribute
 !
-  subroutine deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_gather')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_3d_real8_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          r8vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_gather')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_3d_real8_gather')
-      end if
-    end if
-    call mpi_gather(r8vector2,lsize,mpi_real8, &
-                    r8vector1,lsize,mpi_real8, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
-        do k = k1 , k2
-          do i = i1 , i2
-            mg(j,i,k) = r8vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_3d_real8_gather
-!
-  subroutine deco1_4d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+  subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_scatter')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_scatter')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = mg(global_jstart+j-1,global_istart+i-1,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_4d_distribute')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_4d_distribute')
+        end if
+        ib = 1
         do n = n1 , n2
           do k = k1 , k2
-            do i = i1 , i2
-              r8vector1(ib) = mg(j,i,k,n)
+            do i = istart , iend
+              do j = jstart , jend
+                r8vector1(ib) = mg(j,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(r8vector1,lsize,mpi_real8, &
-                     r8vector2,lsize,mpi_real8, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            ml(j,i,k,n) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-  end subroutine deco1_4d_real8_scatter
+  end subroutine real8_4d_distribute
 !
-  subroutine deco1_4d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_gather')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'deco1_4d_real8_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            r8vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_gather')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'deco1_4d_real8_gather')
-      end if
-    end if
-    call mpi_gather(r8vector2,lsize,mpi_real8, &
-                    r8vector1,lsize,mpi_real8, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              mg(j,i,k,n) = r8vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_4d_real8_gather
-!
-  subroutine deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_scatter')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_scatter')
-    end if
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_scatter')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = mg(global_jstart+j-1,global_istart+i-1)
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_distribute')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            r4vector1(ib) = mg(j,i)
+            ib = ib + 1
+          end do
+        end do
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
       end if
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          r4vector1(ib) = mg(j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = r4vector2(ib)
           ib = ib + 1
         end do
       end do
     end if
-    call mpi_scatter(r4vector1,lsize,mpi_real4, &
-                     r4vector2,lsize,mpi_real4, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        ml(j,i) = r4vector2(ib)
-        ib = ib + 1
-      end do
-    end do
-  end subroutine deco1_2d_real4_scatter
+  end subroutine real4_2d_distribute
 !
-  subroutine deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_gather')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_2d_real4_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        r4vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_gather')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_2d_real4_gather')
-      end if
-    end if
-    call mpi_gather(r4vector2,lsize,mpi_real4, &
-                    r4vector1,lsize,mpi_real4, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          mg(j,i) = r4vector1(ib)
-          ib = ib + 1
-        end do
-      end do
-    end if
-  end subroutine deco1_2d_real4_gather
-!
-  subroutine deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_scatter')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_scatter')
-    end if
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_scatter')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_scatter')
-      end if
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = mg(global_jstart+j-1,global_istart+i-1,k)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_distribute')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            r4vector1(ib) = mg(j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              r4vector1(ib) = mg(j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(r4vector1,lsize,mpi_real4, &
-                     r4vector2,lsize,mpi_real4, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          ml(j,i,k) = r4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine deco1_3d_real4_scatter
+  end subroutine real4_3d_distribute
 !
-  subroutine deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_gather')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_3d_real4_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          r4vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_gather')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_3d_real4_gather')
-      end if
-    end if
-    call mpi_gather(r4vector2,lsize,mpi_real4, &
-                    r4vector1,lsize,mpi_real4, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
-        do k = k1 , k2
-          do i = i1 , i2
-            mg(j,i,k) = r4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_3d_real4_gather
-!
-  subroutine deco1_4d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+  subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_scatter')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_scatter')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = mg(global_jstart+j-1,global_istart+i-1,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_4d_distribute')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_4d_distribute')
+        end if
+        ib = 1
         do n = n1 , n2
           do k = k1 , k2
-            do i = i1 , i2
-              r4vector1(ib) = mg(j,i,k,n)
+            do i = istart , iend
+              do j = jstart , jend
+                r4vector1(ib) = mg(j,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(r4vector1,lsize,mpi_real4, &
-                     r4vector2,lsize,mpi_real4, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            ml(j,i,k,n) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-  end subroutine deco1_4d_real4_scatter
+  end subroutine real4_4d_distribute
 !
-  subroutine deco1_4d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_gather')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'deco1_4d_real4_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            r4vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_gather')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'deco1_4d_real4_gather')
-      end if
-    end if
-    call mpi_gather(r4vector2,lsize,mpi_real4, &
-                    r4vector1,lsize,mpi_real4, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              mg(j,i,k,n) = r4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_4d_real4_gather
-!
-  subroutine deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_scatter')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_scatter')
-    end if
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_scatter')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = mg(global_jstart+j-1,global_istart+i-1)
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_distribute')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            i4vector1(ib) = mg(j,i)
+            ib = ib + 1
+          end do
+        end do
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
       end if
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          i4vector1(ib) = mg(j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = i4vector2(ib)
           ib = ib + 1
         end do
       end do
     end if
-    call mpi_scatter(i4vector1,lsize,mpi_integer, &
-                     i4vector2,lsize,mpi_integer, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        ml(j,i) = i4vector2(ib)
-        ib = ib + 1
-      end do
-    end do
-  end subroutine deco1_2d_integer_scatter
+  end subroutine integer_2d_distribute
 !
-  subroutine deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx
-    lsize = isize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_gather')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_2d_integer_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        i4vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_gather')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_2d_integer_gather')
-      end if
-    end if
-    call mpi_gather(i4vector2,lsize,mpi_integer, &
-                    i4vector1,lsize,mpi_integer, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize+1
-      do j = j1 , j2
-        do i = i1 , i2
-          mg(j,i) = i4vector1(ib)
-          ib = ib + 1
-        end do
-      end do
-    end if
-  end subroutine deco1_2d_integer_gather
-!
-  subroutine deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_scatter')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_scatter')
-    end if
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_scatter')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_scatter')
-      end if
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = mg(global_jstart+j-1,global_istart+i-1,k)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_distribute')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            i4vector1(ib) = mg(j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              i4vector1(ib) = mg(j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k) = i4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(i4vector1,lsize,mpi_integer, &
-                     i4vector2,lsize,mpi_integer, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          ml(j,i,k) = i4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine deco1_3d_integer_scatter
+  end subroutine integer_3d_distribute
 !
-  subroutine deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx
-    lsize = isize*ksize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_gather')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_3d_integer_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          i4vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_gather')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_3d_integer_gather')
-      end if
-    end if
-    call mpi_gather(i4vector2,lsize,mpi_integer, &
-                    i4vector1,lsize,mpi_integer, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize+1
-      do j = j1 , j2
-        do k = k1 , k2
-          do i = i1 , i2
-            mg(j,i,k) = i4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_3d_integer_gather
-!
-  subroutine deco1_4d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+  subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_scatter')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_scatter')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = mg(global_jstart+j-1,global_istart+i-1,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_4d_distribute')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_4d_distribute')
+        end if
+        ib = 1
         do n = n1 , n2
           do k = k1 , k2
-            do i = i1 , i2
-              i4vector1(ib) = mg(j,i,k,n)
+            do i = istart , iend
+              do j = jstart , jend
+                i4vector1(ib) = mg(j,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              ml(j,i,k,n) = i4vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(i4vector1,lsize,mpi_integer, &
-                     i4vector2,lsize,mpi_integer, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            ml(j,i,k,n) = i4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-  end subroutine deco1_4d_integer_scatter
+  end subroutine integer_4d_distribute
 !
-  subroutine deco1_4d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , js , je
-    integer :: isize , ksize , nsize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    gsize = isize*ksize*nsize*jx
-    lsize = isize*ksize*nsize*jxp
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_gather')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'deco1_4d_integer_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nsize+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            i4vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_gather')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'deco1_4d_integer_gather')
-      end if
-    end if
-    call mpi_gather(i4vector2,lsize,mpi_integer, &
-                    i4vector1,lsize,mpi_integer, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nsize+1
-      do j = j1 , j2
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              mg(j,i,k,n) = i4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-  end subroutine deco1_4d_integer_gather
-!
-  subroutine subgrid_deco1_2d_real8_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*nnsg*jx
-    lsize = isize*nnsg*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_scatter')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_scatter')
-    end if
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_scatter')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = mg(n,global_jstart+j-1,global_istart+i-1)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              r8vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
       end if
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            r8vector1(ib) = mg(nn,j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(r8vector1,lsize,mpi_real8, &
-                     r8vector2,lsize,mpi_real8, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          ml(nn,j,i) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine subgrid_deco1_2d_real8_scatter
+  end subroutine real8_2d_sub_distribute
 !
-  subroutine subgrid_deco1_2d_real8_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*nnsg*jx
-    lsize = isize*nnsg*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_gather')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_2d_real8_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          r8vector2(ib) = ml(nn,j,i)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_gather')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_2d_real8_gather')
-      end if
-    end if
-    call mpi_gather(r8vector2,lsize,mpi_real8, &
-                    r8vector1,lsize,mpi_real8, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            mg(nn,j,i) = r8vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine subgrid_deco1_2d_real8_gather
-!
-  subroutine subgrid_deco1_3d_real8_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , nn , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*nnsg*jx
-    lsize = isize*ksize*nnsg*jxp
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_scatter')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_scatter')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = mg(n,global_jstart+j-1,global_istart+i-1,k)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              r8vector1(ib) = mg(nn,j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                r8vector1(ib) = mg(n,j,i,k)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = r8vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(r8vector1,lsize,mpi_real8, &
-                     r8vector2,lsize,mpi_real8, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            ml(nn,j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-  end subroutine subgrid_deco1_3d_real8_scatter
+  end subroutine real8_3d_sub_distribute
 !
-  subroutine subgrid_deco1_3d_real8_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , nn , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx*nnsg
-    lsize = isize*ksize*jxp*nnsg
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_gather')
-    else if ( size(r8vector2) < lsize ) then
-      call getmem1d(r8vector2,1,lsize,'subgrid_deco1_3d_real8_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            r8vector2(ib) = ml(nn,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_gather')
-      else if ( size(r8vector1) < gsize ) then
-        call getmem1d(r8vector1,1,gsize,'subgrid_deco1_3d_real8_gather')
-      end if
-    end if
-    call mpi_gather(r8vector2,lsize,mpi_real8, &
-                    r8vector1,lsize,mpi_real8, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
-        do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              mg(nn,j,i,k) = r8vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-  end subroutine subgrid_deco1_3d_real8_gather
-!
-  subroutine subgrid_deco1_2d_real4_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx*nnsg
-    lsize = isize*jxp*nnsg
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_scatter')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_scatter')
-    end if
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_scatter')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = mg(n,global_jstart+j-1,global_istart+i-1)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              r4vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
       end if
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            r4vector1(ib) = mg(nn,j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(r4vector1,lsize,mpi_real4, &
-                     r4vector2,lsize,mpi_real4, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          ml(nn,j,i) = r4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine subgrid_deco1_2d_real4_scatter
+  end subroutine real4_2d_sub_distribute
 !
-  subroutine subgrid_deco1_2d_real4_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx*nnsg
-    lsize = isize*jxp*nnsg
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_gather')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_2d_real4_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          r4vector2(ib) = ml(nn,j,i)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_gather')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_2d_real4_gather')
-      end if
-    end if
-    call mpi_gather(r4vector2,lsize,mpi_real4, &
-                    r4vector1,lsize,mpi_real4, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            mg(nn,j,i) = r4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine subgrid_deco1_2d_real4_gather
-!
-  subroutine subgrid_deco1_3d_real4_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , nn , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx*nnsg
-    lsize = isize*ksize*jxp*nnsg
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_scatter')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_scatter')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = mg(n,global_jstart+j-1,global_istart+i-1,k)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              r4vector1(ib) = mg(nn,j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                r4vector1(ib) = mg(n,j,i,k)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = r4vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(r4vector1,lsize,mpi_real4, &
-                     r4vector2,lsize,mpi_real4, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            ml(nn,j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-  end subroutine subgrid_deco1_3d_real4_scatter
+  end subroutine real4_3d_sub_distribute
 !
-  subroutine subgrid_deco1_3d_real4_gather(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , nn , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx*nnsg
-    lsize = isize*ksize*jxp*nnsg
-    if ( .not. associated(r4vector2) ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_gather')
-    else if ( size(r4vector2) < lsize ) then
-      call getmem1d(r4vector2,1,lsize,'subgrid_deco1_3d_real4_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            r4vector2(ib) = ml(nn,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(r4vector1) ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_gather')
-      else if ( size(r4vector1) < gsize ) then
-        call getmem1d(r4vector1,1,gsize,'subgrid_deco1_3d_real4_gather')
-      end if
-    end if
-    call mpi_gather(r4vector2,lsize,mpi_real4, &
-                    r4vector1,lsize,mpi_real4, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
-        do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              mg(nn,j,i,k) = r4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-  end subroutine subgrid_deco1_3d_real4_gather
-!
-  subroutine subgrid_deco1_2d_integer_scatter(mg,ml,j1,j2,i1,i2)
+  subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx*nnsg
-    lsize = isize*jxp*nnsg
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_scatter')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_scatter')
-    end if
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_scatter')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_scatter')
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = mg(n,global_jstart+j-1,global_istart+i-1)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
+        end if
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              i4vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
       end if
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            i4vector1(ib) = mg(nn,j,i)
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = i4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     end if
-    call mpi_scatter(i4vector1,lsize,mpi_integer, &
-                     i4vector2,lsize,mpi_integer, &
-                     0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          ml(nn,j,i) = i4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
-  end subroutine subgrid_deco1_2d_integer_scatter
+  end subroutine integer_2d_sub_distribute
 !
-  subroutine subgrid_deco1_2d_integer_gather(ml,mg,j1,j2,i1,i2)
-    implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , nn , isize , gsize , lsize , js , je
-    isize = i2-i1+1
-    gsize = isize*jx*nnsg
-    lsize = isize*jxp*nnsg
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_gather')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_2d_integer_gather')
-    end if
-    if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do i = i1 , i2
-        do nn = 1 , nnsg
-          i4vector2(ib) = ml(nn,j,i)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_gather')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_2d_integer_gather')
-      end if
-    end if
-    call mpi_gather(i4vector2,lsize,mpi_integer, &
-                    i4vector1,lsize,mpi_integer, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*nnsg+1
-      do j = j1 , j2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            mg(nn,j,i) = i4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine subgrid_deco1_2d_integer_gather
-!
-  subroutine subgrid_deco1_3d_integer_scatter(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , nn , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx*nnsg
-    lsize = isize*ksize*jxp*nnsg
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_scatter')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_scatter')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_scatter')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_scatter')
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = mg(n,global_jstart+j-1,global_istart+i-1,k)
+            end do
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
+        end if
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              i4vector1(ib) = mg(nn,j,i,k)
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                i4vector1(ib) = mg(n,j,i,k)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = i4vector2(ib)
               ib = ib + 1
             end do
           end do
         end do
       end do
     end if
-    call mpi_scatter(i4vector1,lsize,mpi_integer, &
-                     i4vector2,lsize,mpi_integer, &
-                     0,mycomm,mpierr)
+  end subroutine integer_3d_sub_distribute
+!
+  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
-      do k = k1 , k2
-        do i = i1 , i2
-          do nn = 1 , nnsg
-            ml(nn,j,i,k) = i4vector2(ib)
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_jstart+j-1,global_istart+i-1) = ml(j,i)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
+        end if
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            mg(j,i) = r8vector1(ib)
             ib = ib + 1
           end do
         end do
       end do
-    end do
-  end subroutine subgrid_deco1_3d_integer_scatter
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          r8vector2(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real8_2d_collect
 !
-  subroutine subgrid_deco1_3d_integer_gather(ml,mg,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            mg(global_jstart+j-1,global_istart+i-1,k) = ml(j,i,k)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
+        end if
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do k = k1 , k2
+          do i = istart , iend
+            do j = jstart , jend
+              mg(j,i,k) = r8vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            r8vector2(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real8_3d_collect
+!
+  subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              mg(global_jstart+j-1,global_istart+i-1,k,n) = ml(j,i,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
+        end if
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = istart , iend
+              do j = jstart , jend
+                mg(j,i,k,n) = r8vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              r8vector2(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real8_4d_collect
+!
+  subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_jstart+j-1,global_istart+i-1) = ml(j,i)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
+        end if
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            mg(j,i) = r4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          r4vector2(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real4_2d_collect
+!
+  subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            mg(global_jstart+j-1,global_istart+i-1,k) = ml(j,i,k)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
+        end if
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do k = k1 , k2
+          do i = istart , iend
+            do j = jstart , jend
+              mg(j,i,k) = r4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            r4vector2(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real4_3d_collect
+!
+  subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              mg(global_jstart+j-1,global_istart+i-1,k,n) = ml(j,i,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
+        end if
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = istart , iend
+              do j = jstart , jend
+                mg(j,i,k,n) = r4vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              r4vector2(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real4_4d_collect
+!
+  subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_jstart+j-1,global_istart+i-1) = ml(j,i)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        lsize = isize*jsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
+        end if
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            mg(j,i) = i4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          i4vector2(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine integer_2d_collect
+!
+  subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            mg(global_jstart+j-1,global_istart+i-1,k) = ml(j,i,k)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
+        end if
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do k = k1 , k2
+          do i = istart , iend
+            do j = jstart , jend
+              mg(j,i,k) = i4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            i4vector2(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine integer_3d_collect
+!
+  subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              mg(global_jstart+j-1,global_istart+i-1,k,n) = ml(j,i,k,n)
+            end do
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = iend-istart+1
+        jsize = jend-jstart+1
+        ksize = k2-k1+1
+        nsize = n2-n1+1
+        lsize = isize*jsize*ksize*nsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
+        end if
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = istart , iend
+              do j = jstart , jend
+                mg(j,i,k,n) = i4vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      ksize = k2-k1+1
+      nsize = n2-n1+1
+      lsize = isize*jsize*ksize*nsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              i4vector2(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine integer_4d_collect
+!
+  subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            mg(n,global_jstart+j-1,global_istart+i-1) = ml(n,j,i)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
+        end if
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              mg(n,j,i) = r8vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            r8vector2(ib) = ml(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real8_2d_sub_collect
+!
+  subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              mg(n,global_jstart+j-1,global_istart+i-1,k) = ml(n,j,i,k)
+            end do
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r8vector1) ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
+        else if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
+        end if
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do k = k1 , k2
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                mg(n,j,i,k) = r8vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
+      else if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              r8vector2(ib) = ml(n,j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real8_3d_sub_collect
+!
+  subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            mg(n,global_jstart+j-1,global_istart+i-1) = ml(n,j,i)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
+        end if
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              mg(n,j,i) = r4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            r4vector2(ib) = ml(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real4_2d_sub_collect
+!
+  subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              mg(n,global_jstart+j-1,global_istart+i-1,k) = ml(n,j,i,k)
+            end do
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(r4vector1) ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
+        else if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
+        end if
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do k = k1 , k2
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                mg(n,j,i,k) = r4vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(r4vector2) ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
+      else if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              r4vector2(ib) = ml(n,j,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine real4_3d_sub_collect
+!
+  subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer , intent(in) :: j1 , j2 , i1 , i2
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
+    if ( myid == 0 ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            mg(n,global_jstart+j-1,global_istart+i-1) = ml(n,j,i)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        lsize = isize*jsize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
+        end if
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
+        do i = istart , iend
+          do j = jstart , jend
+            do n = 1 , nnsg
+              mg(n,j,i) = i4vector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      lsize = isize*jsize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            i4vector2(ib) = ml(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+    end if
+  end subroutine integer_2d_sub_collect
+!
+  subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , nn , k , js , je
-    integer :: isize , ksize , gsize , lsize
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    gsize = isize*ksize*jx*nnsg
-    lsize = isize*ksize*jxp*nnsg
-    if ( .not. associated(i4vector2) ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_gather')
-    else if ( size(i4vector2) < lsize ) then
-      call getmem1d(i4vector2,1,lsize,'subgrid_deco1_3d_integer_gather')
-    end if
+    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer :: istart , iend , jstart , jend , ierr
     if ( myid == 0 ) then
-      js = j1
-      if ( nproc == 1 ) then
-        je = j2
-      else
-        je = jxp
-      end if
-      ib = (j1-1)*isize*ksize*nnsg+1
-    else if ( myid == nproc-1 ) then
-      js = 1
-      je = jxp-(jx-j2)
-      ib = 1
-    else
-      js = 1
-      je = jxp
-      ib = 1
-    end if
-    do j = js , je
+      ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
-          do nn = 1 , nnsg
-            i4vector2(ib) = ml(nn,j,i,k)
-            ib = ib + 1
+          do j = j1 , j2
+            do n = 1 , nnsg
+              mg(n,global_jstart+j-1,global_istart+i-1,k) = ml(n,j,i,k)
+            end do
           end do
         end do
       end do
-    end do
-    if ( myid == 0 ) then
-      if ( .not. associated(i4vector1) ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_gather')
-      else if ( size(i4vector1) < gsize ) then
-        call getmem1d(i4vector1,1,gsize,'subgrid_deco1_3d_integer_gather')
-      end if
-    end if
-    call mpi_gather(i4vector2,lsize,mpi_integer, &
-                    i4vector1,lsize,mpi_integer, &
-                    0,mycomm,mpierr)
-    if ( myid == 0 ) then
-      ib = (j1-1)*isize*ksize*nnsg+1
-      do j = j1 , j2
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call mpi_recv(istart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(iend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jstart,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        call mpi_recv(jend,1,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        isize = (iend-istart+1)*nsg
+        jsize = (jend-jstart+1)*nsg
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize
+        if ( .not. associated(i4vector1) ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
+        else if ( size(i4vector1) < lsize ) then
+          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
+        end if
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+                      cartesian_communicator,mpi_status_ignore,ierr)
+        ib = 1
         do k = k1 , k2
-          do i = i1 , i2
-            do nn = 1 , nnsg
-              mg(nn,j,i,k) = i4vector1(ib)
+          do i = istart , iend
+            do j = jstart , jend
+              do n = 1 , nnsg
+                mg(n,j,i,k) = i4vector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = (i2-i1+1)*nsg
+      jsize = (j2-j1+1)*nsg
+      ksize = k2-k1+1
+      lsize = isize*jsize*ksize
+      if ( .not. associated(i4vector2) ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
+      else if ( size(i4vector2) < lsize ) then
+        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
+      end if
+      istart = global_istart+i1-1
+      iend = istart+isize-1
+      jstart = global_jstart+j1-1
+      jend = jstart+jsize-1
+      call mpi_send(istart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(iend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jstart,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      call mpi_send(jend,1,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              i4vector2(ib) = ml(n,j,i,k)
               ib = ib + 1
             end do
           end do
         end do
       end do
+      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+                    cartesian_communicator,mpi_status_ignore,ierr)
     end if
-  end subroutine subgrid_deco1_3d_integer_gather
+  end subroutine integer_3d_sub_collect
 !
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
@@ -2281,7 +2901,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
                       r8vector2,ssize,mpi_real8,ma%right,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do i = i1 , i2
@@ -2322,7 +2942,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
                       r8vector2,ssize,mpi_real8,ma%left,1, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do i = i1 , i2
@@ -2363,7 +2983,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
                       r8vector2,ssize,mpi_real8,ma%top,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%top /= mpi_proc_null ) then
       jb = 1
       do i = 1 , nex
@@ -2404,7 +3024,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
                       r8vector2,ssize,mpi_real8,ma%bottom,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%bottom /= mpi_proc_null ) then
       jb = 1
       do i = 1 , nex
@@ -2459,7 +3079,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
                       r8vector2,ssize,mpi_real8,ma%right,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do k = k1 , k2
@@ -2506,7 +3126,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
                       r8vector2,ssize,mpi_real8,ma%left,1, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do k = k1 , k2
@@ -2553,7 +3173,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,1, &
                       r8vector2,ssize,mpi_real8,ma%top,1, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%top /= mpi_proc_null ) then
       jb = 1
       do k = k1 , k2
@@ -2600,7 +3220,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,1, &
                       r8vector2,ssize,mpi_real8,ma%bottom,1, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%bottom /= mpi_proc_null ) then
       jb = 1
       do k = k1 , k2
@@ -2662,7 +3282,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
                       r8vector2,ssize,mpi_real8,ma%right,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%right /= mpi_proc_null ) then
       ib = 1
       do n = n1 , n2
@@ -2716,7 +3336,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
                       r8vector2,ssize,mpi_real8,ma%left,1, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
       ib = 1
       do n = n1 , n2
@@ -2770,7 +3390,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
                       r8vector2,ssize,mpi_real8,ma%top,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%top /= mpi_proc_null ) then
       jb = 1
       do n = n1 , n2
@@ -2824,7 +3444,7 @@ module mod_mppparam
     end if
     call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
                       r8vector2,ssize,mpi_real8,ma%bottom,2, &
-                      mycomm,mpi_status_ignore,mpierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%bottom /= mpi_proc_null ) then
       jb = 1
       do n = n1 , n2
@@ -2840,40 +3460,14 @@ module mod_mppparam
     end if
   end subroutine real8_4d_exchange_top
 !
-  subroutine deco1d_2d_real8_allgat(a,b)
+  subroutine real8_2d_grid_fill(a,b)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
-    integer :: ii , i , j , ssize , gsize
-    ssize = jxp*iy
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'deco1d_real8_allgat')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'deco1d_real8_allgat')
-    end if
-    gsize = jx*iy
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,gsize,'deco1d_real8_allgat')
-    else if ( size(r8vector2) < gsize ) then
-      call getmem1d(r8vector2,1,gsize,'deco1d_real8_allgat')
-    end if
-    ii = 1
-    do j = 1 , jxp
-      do i = 1 , iy
-        r8vector1(ii) = a(j,i)
-        ii = ii + 1
-      end do
-    end do
-    call mpi_allgather(r8vector1,jxp*iy,mpi_real8, &
-                       r8vector2,jxp*iy,mpi_real8,mycomm,mpierr)
-    ii = 1
-    do j = 1 , jx
-      do i = 1 , iy
-        b(j,i) = r8vector2(ii)
-        ii = ii + 1
-      end do
-    end do
-  end subroutine deco1d_2d_real8_allgat
+    integer :: ierr
+    call grid_collect(a,b,jde1,jde2,ide1,ide2)
+    call mpi_bcast(b,nidot*njdot,mpi_real8,0,cartesian_communicator,ierr)
+  end subroutine real8_2d_grid_fill
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.
@@ -3002,12 +3596,12 @@ module mod_mppparam
     end if
   end subroutine psc2psd
 
-  subroutine deco1d_nc_create_var2d(varname,ldot,val,xvar)
+  subroutine grid_nc_create_var2d(varname,ldot,val,xvar)
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
     real(dp) , pointer , dimension(:,:) , intent(in) :: val
-    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    type (grid_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: idims
 
@@ -3017,9 +3611,17 @@ module mod_mppparam
     if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
+      xvar%mynx1 = jde1
+      xvar%mynx2 = jde2
+      xvar%myny1 = ide1
+      xvar%myny2 = ide2
     else
       xvar%nx = njcross
       xvar%ny = nicross
+      xvar%mynx1 = jce1
+      xvar%mynx2 = jce2
+      xvar%myny1 = ice1
+      xvar%myny2 = ice2
     end if
     xvar%irec = 1
     if ( myid /= 0 ) return
@@ -3054,17 +3656,18 @@ module mod_mppparam
       return
     end if
     call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
-  end subroutine deco1d_nc_create_var2d
+  end subroutine grid_nc_create_var2d
 
-  subroutine deco1d_nc_write_var2d(xvar)
+  subroutine grid_nc_write_var2d(xvar)
     implicit none
-    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    type (grid_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(3) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
-    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny)
+    call grid_collect(xvar%val,xvar%iobuf, &
+                      xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2)
     if ( myid == 0 ) then
       istart(3) = xvar%irec
       istart(2) = 1
@@ -3084,11 +3687,11 @@ module mod_mppparam
       end if
     end if
     xvar%irec = xvar%irec + 1
-  end subroutine deco1d_nc_write_var2d
+  end subroutine grid_nc_write_var2d
 
-  subroutine deco1d_nc_destroy_var2d(xvar)
+  subroutine grid_nc_destroy_var2d(xvar)
     implicit none
-    type (deco1d_nc_var2d) , intent(inout) :: xvar
+    type (grid_nc_var2d) , intent(inout) :: xvar
     integer :: istat
     if ( myid == 0 ) then
       istat = nf90_close(xvar%ncid)
@@ -3101,14 +3704,14 @@ module mod_mppparam
     xvar%irec = -1
     nullify(xvar%val)
     call relmem2d(xvar%iobuf)
-  end subroutine deco1d_nc_destroy_var2d
+  end subroutine grid_nc_destroy_var2d
 
-  subroutine deco1d_nc_create_var3d(varname,ldot,val,xvar)
+  subroutine grid_nc_create_var3d(varname,ldot,val,xvar)
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: val
-    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    type (grid_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: idims
 
@@ -3118,9 +3721,17 @@ module mod_mppparam
     if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
+      xvar%mynx1 = jde1
+      xvar%mynx2 = jde2
+      xvar%myny1 = ide1
+      xvar%myny2 = ide2
     else
       xvar%nx = njcross
       xvar%ny = nicross
+      xvar%mynx1 = jce1
+      xvar%mynx2 = jce2
+      xvar%myny1 = ice1
+      xvar%myny2 = ice2
     end if
     xvar%nz = size(xvar%val,3)
     xvar%irec = 1
@@ -3161,17 +3772,18 @@ module mod_mppparam
       return
     end if
     call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
-  end subroutine deco1d_nc_create_var3d
+  end subroutine grid_nc_create_var3d
 
-  subroutine deco1d_nc_write_var3d(xvar)
+  subroutine grid_nc_write_var3d(xvar)
     implicit none
-    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    type (grid_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(4) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
-    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz)
+    call grid_collect(xvar%val,xvar%iobuf, &
+                      xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2,1,xvar%nz)
     if ( myid == 0 ) then
       istart(4) = xvar%irec
       istart(3) = 1
@@ -3193,11 +3805,11 @@ module mod_mppparam
       end if
     end if
     xvar%irec = xvar%irec + 1
-  end subroutine deco1d_nc_write_var3d
+  end subroutine grid_nc_write_var3d
 
-  subroutine deco1d_nc_destroy_var3d(xvar)
+  subroutine grid_nc_destroy_var3d(xvar)
     implicit none
-    type (deco1d_nc_var3d) , intent(inout) :: xvar
+    type (grid_nc_var3d) , intent(inout) :: xvar
     integer :: istat
     if ( myid == 0 ) then
       istat = nf90_close(xvar%ncid)
@@ -3210,14 +3822,14 @@ module mod_mppparam
     xvar%irec = -1
     nullify(xvar%val)
     call relmem3d(xvar%iobuf)
-  end subroutine deco1d_nc_destroy_var3d
+  end subroutine grid_nc_destroy_var3d
 
-  subroutine deco1d_nc_create_var4d(varname,ldot,val,xvar)
+  subroutine grid_nc_create_var4d(varname,ldot,val,xvar)
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: val
-    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    type (grid_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: idims
 
@@ -3227,9 +3839,17 @@ module mod_mppparam
     if ( ldot ) then
       xvar%nx = njdot
       xvar%ny = nidot
+      xvar%mynx1 = jde1
+      xvar%mynx2 = jde2
+      xvar%myny1 = ide1
+      xvar%myny2 = ide2
     else
       xvar%nx = njcross
       xvar%ny = nicross
+      xvar%mynx1 = jce1
+      xvar%mynx2 = jce2
+      xvar%myny1 = ice1
+      xvar%myny2 = ice2
     end if
     xvar%nz = size(xvar%val,3)
     xvar%nl = size(xvar%val,4)
@@ -3277,18 +3897,19 @@ module mod_mppparam
     end if
     call getmem4d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
                   1,xvar%nl,'var3d:iobuf')
-  end subroutine deco1d_nc_create_var4d
+  end subroutine grid_nc_create_var4d
 
-  subroutine deco1d_nc_write_var4d(xvar)
+  subroutine grid_nc_write_var4d(xvar)
     implicit none
-    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    type (grid_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     integer , dimension(5) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
-    call deco1_gather(xvar%val,xvar%iobuf,1,xvar%nx,1,xvar%ny, &
-                                          1,xvar%nz,1,xvar%nl)
+    call grid_collect(xvar%val,xvar%iobuf, &
+                      xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2, &
+                      1,xvar%nz,1,xvar%nl)
     if ( myid == 0 ) then
       istart(5) = xvar%irec
       istart(4) = 1
@@ -3312,11 +3933,11 @@ module mod_mppparam
       end if
     end if
     xvar%irec = xvar%irec + 1
-  end subroutine deco1d_nc_write_var4d
+  end subroutine grid_nc_write_var4d
 
-  subroutine deco1d_nc_destroy_var4d(xvar)
+  subroutine grid_nc_destroy_var4d(xvar)
     implicit none
-    type (deco1d_nc_var4d) , intent(inout) :: xvar
+    type (grid_nc_var4d) , intent(inout) :: xvar
     integer :: istat
     if ( myid == 0 ) then
       istat = nf90_close(xvar%ncid)
@@ -3329,6 +3950,6 @@ module mod_mppparam
     xvar%irec = -1
     nullify(xvar%val)
     call relmem4d(xvar%iobuf)
-  end subroutine deco1d_nc_destroy_var4d
+  end subroutine grid_nc_destroy_var4d
 
 end module mod_mppparam

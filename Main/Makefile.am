@@ -86,7 +86,7 @@ bin_PROGRAMS = regcm
 
 regcm_SOURCES = mod_atm_interface.f90 mod_che_interface.F90 \
   mod_lm_interface.F90 mod_cu_interface.f90 mod_rad_interface.f90 \
-  mod_pbl_interface.F90 mod_mppio.F90 mod_diagnosis.F90 mod_header.F90 \
+  mod_pbl_interface.F90 mod_mppio.F90 mod_header.F90 \
   mod_advection.F90 mod_ncio.F90 mod_bdycod.F90 mod_diffusion.F90 \
   mod_precip.f90 mod_sun.F90 mod_savefile.F90 mod_slice.F90 mod_init.F90 \
   mod_vmodes.F90 mod_split.F90 mod_output.F90 mod_cloud_s1.F90 \
@@ -130,14 +130,12 @@ mod_bdycod.o: mod_bdycod.F90 mod_dynparam.mod mod_mppparam.mod mod_memutil.mod m
 mod_che_interface.o: mod_che_interface.F90 mod_realkinds.mod mod_atm_interface.o mod_che_common.mod mod_che_cumtran.mod mod_che_dust.mod mod_che_indices.mod mod_che_mppio.mod mod_che_ncio.mod mod_che_param.mod mod_che_drydep.mod mod_che_bdyco.mod mod_che_emission.mod mod_che_carbonaer.mod mod_che_species.mod mod_che_tend.mod mod_che_start.mod
 mod_cloud_s1.o: mod_cloud_s1.F90 mod_runparams.mod mod_memutil.mod mod_atm_interface.o
 mod_cu_interface.o: mod_cu_interface.f90 mod_constants.mod mod_realkinds.mod mod_cu_common.mod mod_cu_tiedtke.mod mod_cu_tables.mod mod_cu_bm.mod mod_cu_em.mod mod_cu_kuo.mod mod_cu_grell.mod mod_atm_interface.o
-mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.mod mod_atm_interface.o mod_che_interface.o mod_domain.mod mod_memutil.mod mod_mppparam.mod mod_mppio.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.mod mod_mppparam.mod mod_service.mod
 mod_header.o: mod_header.F90 regcm.o mod_constants.mod mod_realkinds.mod mod_date.mod
 if DO_COMPILE_LIBCLM
-mod_init.o: mod_init.F90 mod_runparams.mod mod_mppparam.mod mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.mod rrtmg_lw_init.mod mod_pbl_interface.mod mod_precip.o mod_bdycod.o mod_mpmessage.mod mod_sun.o mod_ncio.o mod_savefile.o mod_diagnosis.o mod_mppio.o mod_slice.o mod_constants.mod mod_clm.mod mod_lm_interface.mod clm_varsur.mod
+mod_init.o: mod_init.F90 mod_runparams.mod mod_mppparam.mod mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.mod rrtmg_lw_init.mod mod_pbl_interface.mod mod_precip.o mod_bdycod.o mod_mpmessage.mod mod_sun.o mod_ncio.o mod_savefile.o mod_mppio.o mod_slice.o mod_constants.mod mod_clm.mod mod_lm_interface.mod clm_varsur.mod
 else
-mod_init.o: mod_init.F90 mod_runparams.mod mod_mppparam.mod mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.mod rrtmg_lw_init.mod mod_pbl_interface.mod mod_precip.o mod_bdycod.o mod_mpmessage.mod mod_sun.o mod_ncio.o mod_savefile.o mod_diagnosis.o mod_mppio.o mod_slice.o mod_constants.mod mod_lm_interface.mod
+mod_init.o: mod_init.F90 mod_runparams.mod mod_mppparam.mod mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.mod rrtmg_lw_init.mod mod_pbl_interface.mod mod_precip.o mod_bdycod.o mod_mpmessage.mod mod_sun.o mod_ncio.o mod_savefile.o mod_mppio.o mod_slice.o mod_constants.mod mod_lm_interface.mod
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
@@ -154,9 +152,9 @@ mod_output.o: mod_output.F90 mod_runparams.mod mod_mpmessage.mod mod_mppparam.mo
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
-mod_params.o: mod_params.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_domain.mod mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_diagnosis.o mod_tendency.o mod_ncio.mod mod_advection.o mod_mppio.o mod_clm.mod clm_varsur.mod
+mod_params.o: mod_params.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_domain.mod mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.mod mod_advection.o mod_mppio.o mod_clm.mod clm_varsur.mod
 else
-mod_params.o: mod_params.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_domain.mod mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_diagnosis.o mod_tendency.o mod_ncio.mod mod_advection.o mod_mppio.o
+mod_params.o: mod_params.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_domain.mod mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.mod mod_advection.o mod_mppio.o
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_pbl_interface.o: mod_pbl_interface.F90 mod_realkinds.mod mod_service.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod mod_mppparam.mod mod_atm_interface.o mod_pbl_common.mod mod_pbl_holtbl.mod mod_pbl_uwtcm.mod mod_runparams.mod
@@ -169,17 +167,17 @@ mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.mod mod_service.mod m
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
-mod_savefile.o: mod_savefile.F90 mod_runparams.mod mod_mpmessage.mod mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_diagnosis.o mod_mppio.o mod_clm.mod restfilemod.mod clm_varctl.mod clm_time_manager.mod
+mod_savefile.o: mod_savefile.F90 mod_runparams.mod mod_mpmessage.mod mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o mod_clm.mod restfilemod.mod clm_varctl.mod clm_time_manager.mod
 else
-mod_savefile.o: mod_savefile.F90 mod_runparams.mod mod_mpmessage.mod mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_diagnosis.o mod_mppio.o
+mod_savefile.o: mod_savefile.F90 mod_runparams.mod mod_mpmessage.mod mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o
 endif
 mod_slice.o: mod_slice.F90 mod_runparams.mod mod_atm_interface.o mod_che_interface.o mod_pbl_interface.o
 mod_split.o: mod_split.F90 mod_dynparam.mod mod_mppparam.mod mod_runparams.mod mod_atm_interface.o mod_vmodes.o mod_bdycod.o mod_atm_interface.mod mod_memutil.mod mod_service.mod mod_mppio.o
 mod_sun.o: mod_sun.F90 mod_constants.mod mod_dynparam.mod mod_runparams.mod mod_atm_interface.o mod_mpmessage.mod mod_service.mod
 if DO_COMPILE_LIBCLM
-mod_tendency.o: mod_tendency.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_stdio.mod mod_service.mod mod_memutil.mod mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_lm_interface.o mod_rad_interface.o mod_pbl_interface.o mod_bdycod.o mod_che_bdyco.mod mod_precip.o mod_slice.o mod_sun.o mod_diagnosis.o mod_advection.o mod_diffusion.o mod_mppio.o mod_domain.mod mod_cloud_s1.o mod_clm.mod mod_mtrxclm.mod clm_varsur.mod
+mod_tendency.o: mod_tendency.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_stdio.mod mod_service.mod mod_memutil.mod mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_lm_interface.o mod_rad_interface.o mod_pbl_interface.o mod_bdycod.o mod_che_bdyco.mod mod_precip.o mod_slice.o mod_sun.o mod_advection.o mod_diffusion.o mod_mppio.o mod_domain.mod mod_cloud_s1.o mod_clm.mod mod_mtrxclm.mod clm_varsur.mod
 else
-mod_tendency.o: mod_tendency.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_stdio.mod mod_service.mod mod_memutil.mod mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_lm_interface.o mod_rad_interface.o mod_pbl_interface.o mod_bdycod.o mod_che_bdyco.mod mod_precip.o mod_slice.o mod_sun.o mod_diagnosis.o mod_advection.o mod_diffusion.o mod_mppio.o mod_domain.mod mod_cloud_s1.o
+mod_tendency.o: mod_tendency.F90 mod_runparams.mod mod_mppparam.mod mod_mpmessage.mod mod_stdio.mod mod_service.mod mod_memutil.mod mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_lm_interface.o mod_rad_interface.o mod_pbl_interface.o mod_bdycod.o mod_che_bdyco.mod mod_precip.o mod_slice.o mod_sun.o mod_advection.o mod_diffusion.o mod_mppio.o mod_domain.mod mod_cloud_s1.o
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_tstep.o: mod_tstep.f90 mod_runparams.mod

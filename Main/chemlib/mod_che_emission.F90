@@ -70,8 +70,7 @@ contains
        ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
        call read_emission(lyear,lmonth,chemsrc_io)
     end if
-    call deco1_scatter(chemsrc_io,chemsrc,jcross1, &
-         jcross2,icross1,icross2,1,ntr)
+    call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
     call time_end(subroutine_name,idindx)
   end subroutine chem_emission
   !

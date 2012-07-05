@@ -173,8 +173,7 @@ module mod_che_bdyco
     !
     ! Send each processor its computing slice
     !
-    call deco1_scatter(chebdy_io0,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call grid_distribute(chebdy_io0,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     do n = 1 , ntr
       do k = 1 , kz
         do i = ice1 , ice2
@@ -188,8 +187,7 @@ module mod_che_bdyco
     !
     ! Repeat fot T2
     !
-    call deco1_scatter(chebdy_io1,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call grid_distribute(chebdy_io1,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     do n = 1 , ntr
       do k = 1 , kz
         do i = ice1 , ice2
@@ -215,8 +213,7 @@ module mod_che_bdyco
     ! handle oxc lima
 
     if ( ioxclim == 1 ) then 
-      call deco1_scatter(oxcl_io,oxcl, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,5)
+      call grid_distribute(oxcl_io,oxcl,jce1,jce2,ice1,ice2,1,kz,1,5)
       call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
     end if
     call time_end(subroutine_name,idindx)
@@ -267,8 +264,7 @@ module mod_che_bdyco
         end do
       end if
     end if
-    call deco1_scatter(chebdy_io1,chebdy, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
+    call grid_distribute(chebdy_io1,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     do n = 1 , ntr
       do k = 1 , kz
         do i = ice1 , ice2
@@ -290,8 +286,7 @@ module mod_che_bdyco
 
     ! handle oxidant climatology 
     if ( ioxclim == 1 ) then 
-      call deco1_scatter(oxcl_io,oxcl, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,5)
+      call grid_distribute(oxcl_io,oxcl,jce1,jce2,ice1,ice2,1,kz,1,5)
       call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
     end if
     ! Finally rad also the emission 

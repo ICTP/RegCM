@@ -38,7 +38,6 @@ module mod_init
   use mod_sun
   use mod_ncio
   use mod_savefile
-  use mod_diagnosis
   use mod_mppio
   use mod_slice
   use mod_constants
@@ -236,12 +235,6 @@ module mod_init
       end do
     end if
     !
-    ! Diagnostic init
-    !
-    if ( .not. lband .and. debug_level > 2 ) then
-      call initdiag
-    end if
-    !
     ! End of initial run case
     !
   else
@@ -259,37 +252,35 @@ module mod_init
 !
     mtau = mtau + ktau
 !
-    call deco1_scatter(atm1_io%u,atm1%u,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(atm1_io%v,atm1%v,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(atm1_io%t,atm1%t,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm1_io%qx,atm1%qx, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
+    call grid_distribute(atm1_io%u,atm1%u,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm1_io%v,atm1%v,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm1_io%t,atm1%t,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(atm1_io%qx,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-    call deco1_scatter(atm2_io%u,atm2%u,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(atm2_io%v,atm2%v,jdot1,jdot2,idot1,idot2,1,kz)
-    call deco1_scatter(atm2_io%t,atm2%t,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(atm2_io%qx,atm2%qx, &
-                       jcross1,jcross2,icross1,icross2,1,kz,1,nqx)
+    call grid_distribute(atm2_io%u,atm2%u,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm2_io%v,atm2%v,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm2_io%t,atm2%t,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(atm2_io%qx,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-    call deco1_scatter(sfs_io%psa,sfs%psa,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%psb,sfs%psb,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%tga,sfs%tga,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%tgb,sfs%tgb,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%hfx,sfs%hfx,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%qfx,sfs%qfx,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%rainc,sfs%rainc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%rainnc,sfs%rainnc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%uvdrag,sfs%uvdrag,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sfs_io%tgbb,sfs%tgbb,jcross1,jcross2,icross1,icross2)
+    call grid_distribute(sfs_io%psa,sfs%psa,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%psb,sfs%psb,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%tga,sfs%tga,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%tgb,sfs%tgb,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%hfx,sfs%hfx,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%qfx,sfs%qfx,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%rainc,sfs%rainc,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%rainnc,sfs%rainnc,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%tgbb,sfs%tgbb,jce1,jce2,ice1,ice2)
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
 
     if ( ipptls == 1 ) then
-      call deco1_scatter(fcc_io,fcc,jcross1,jcross2,icross1,icross2,1,kz)
+      call grid_distribute(fcc_io,fcc,jce1,jce2,ice1,ice2,1,kz)
     end if
-    call deco1_scatter(heatrt_io,heatrt,jcross1,jcross2,icross1,icross2,1,kz)
-    call deco1_scatter(o3prof_io,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
+    call grid_distribute(heatrt_io,heatrt,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(o3prof_io,o3prof,jce1,jce2,ice1,ice2,1,kzp1)
     if ( myid == 0 ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
@@ -299,82 +290,76 @@ module mod_init
 
     ! Scatter of the UW variables read in from the restart file
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call deco1_scatter(atm1_io%tke,atm1%tke, &
-                         jcross1,jcross2,icross1,icross2,1,kzp1)
-      call deco1_scatter(atm2_io%tke,atm2%tke, &
-                         jcross1,jcross2,icross1,icross2,1,kzp1)
-      call deco1_scatter(kpbl_io,kpbl,jcross1,jcross2,icross1,icross2)
+      call grid_distribute(atm1_io%tke,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm2_io%tke,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(kpbl_io,kpbl,jce1,jce2,ice1,ice2)
     end if
 !
     if ( iocnflx == 2 ) then
-      call deco1_scatter(zpbl_io,zpbl,jcross1,jcross2,icross1,icross2)
+      call grid_distribute(zpbl_io,zpbl,jce1,jce2,ice1,ice2)
     end if
     if ( icup == 1 ) then
-      call deco1_scatter(rsheat_io,rsheat,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_scatter(rswat_io,rswat,jcross1,jcross2,icross1,icross2,1,kz)
+      call grid_distribute(rsheat_io,rsheat,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(rswat_io,rswat,jce1,jce2,ice1,ice2,1,kz)
     end if
     if ( icup == 3 ) then
-      call deco1_scatter(tbase_io,tbase,jcross1,jcross2,icross1,icross2,1,kz)
-      call deco1_scatter(cldefi_io,cldefi,jcross1,jcross2,icross1,icross2)
+      call grid_distribute(tbase_io,tbase,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(cldefi_io,cldefi,jce1,jce2,ice1,ice2)
     end if
     if ( icup==4 .or. icup==99 .or. icup==98 ) then
-      call deco1_scatter(cbmf2d_io,cbmf2d,jcross1,jcross2,icross1,icross2)
+      call grid_distribute(cbmf2d_io,cbmf2d,jce1,jce2,ice1,ice2)
     end if
 
     if ( irrtm == 0 ) then 
-      call deco1_scatter(gasabsnxt_io,gasabsnxt, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,4)
-      call deco1_scatter(gasabstot_io,gasabstot, &
-                         jcross1,jcross2,icross1,icross2,1,kzp1,1,kzp1)
-      call deco1_scatter(gasemstot_io,gasemstot, &
-                         jcross1,jcross2,icross1,icross2,1,kzp1)
+      call grid_distribute(gasabsnxt_io,gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4)
+      call grid_distribute(gasabstot_io,gasabstot, &
+                           jce1,jce2,ice1,ice2,1,kzp1,1,kzp1)
+      call grid_distribute(gasemstot_io,gasemstot,jce1,jce2,ice1,ice2,1,kzp1)
     end if ! irrtm test
 
-    call subgrid_deco1_scatter(tlef_io,tlef,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(ssw_io,ssw,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(rsw_io,rsw,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(tgrd_io,tgrd,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(tgbrd_io,tgbrd,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(sncv_io,sncv,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(gwet_io,gwet,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(snag_io,snag,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(sfice_io,sfice,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(ldew_io,ldew,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(taf_io,taf,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(tsw_io,tsw,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(emiss_io,emiss,jcross1,jcross2,icross1,icross2)
-    call subgrid_deco1_scatter(ldmsk1_io,ldmsk1,jcross1,jcross2,icross1,icross2)
+    call subgrid_distribute(tlef_io,tlef,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(ssw_io,ssw,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(rsw_io,rsw,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(tgrd_io,tgrd,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(tgbrd_io,tgbrd,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(sncv_io,sncv,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(gwet_io,gwet,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(snag_io,snag,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(sfice_io,sfice,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(ldew_io,ldew,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(taf_io,taf,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(tsw_io,tsw,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(emiss_io,emiss,jce1,jce2,ice1,ice2)
+    call subgrid_distribute(ldmsk1_io,ldmsk1,jce1,jce2,ice1,ice2)
 
-    call deco1_scatter(solis_io,solis,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solvd_io,solvd,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solvs_io,solvs,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sabveg_io,sabveg,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(flw_io,flw,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(flwd_io,flwd,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(fsw_io,fsw,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(sinc_io,sinc,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(ldmsk_io,ldmsk,jcross1,jcross2,icross1,icross2)
+    call grid_distribute(solis_io,solis,jce1,jce2,ice1,ice2)
+    call grid_distribute(solvd_io,solvd,jce1,jce2,ice1,ice2)
+    call grid_distribute(solvs_io,solvs,jce1,jce2,ice1,ice2)
+    call grid_distribute(sabveg_io,sabveg,jce1,jce2,ice1,ice2)
+    call grid_distribute(flw_io,flw,jce1,jce2,ice1,ice2)
+    call grid_distribute(flwd_io,flwd,jce1,jce2,ice1,ice2)
+    call grid_distribute(fsw_io,fsw,jce1,jce2,ice1,ice2)
+    call grid_distribute(sinc_io,sinc,jce1,jce2,ice1,ice2)
+    call grid_distribute(ldmsk_io,ldmsk,jce1,jce2,ice1,ice2)
 
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_deco1_scatter(eta_io,eta,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(hi_io,hi,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(aveice_io,aveice, &
-                                 jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(hsnow_io,hsnow,jcross1,jcross2,icross1,icross2)
-      call subgrid_deco1_scatter(tlak_io,tlak, &
-                                 jcross1,jcross2,icross1,icross2,1,ndpmax)
+      call subgrid_distribute(eta_io,eta,jce1,jce2,ice1,ice2)
+      call subgrid_distribute(hi_io,hi,jce1,jce2,ice1,ice2)
+      call subgrid_distribute(aveice_io,aveice,jce1,jce2,ice1,ice2)
+      call subgrid_distribute(hsnow_io,hsnow,jce1,jce2,ice1,ice2)
+      call subgrid_distribute(tlak_io,tlak,jce1,jce2,ice1,ice2,1,ndpmax)
     endif
 #else
-    call deco1_scatter(sols2d_io,sols2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(soll2d_io,soll2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solsd2d_io,solsd2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(solld2d_io,solld2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldirs2d_io,aldirs2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldirl2d_io,aldirl2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldifs2d_io,aldifs2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(aldifl2d_io,aldifl2d,jcross1,jcross2,icross1,icross2)
-    call deco1_scatter(lndcat2d_io,lndcat2d,jcross1,jcross2,icross1,icross2)
+    call grid_distribute(sols2d_io,sols2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(soll2d_io,soll2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(solsd2d_io,solsd2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(solld2d_io,solld2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(aldirs2d_io,aldirs2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(aldirl2d_io,aldirl2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(aldifs2d_io,aldifs2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(aldifl2d_io,aldifl2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(lndcat2d_io,lndcat2d,jce1,jce2,ice1,ice2)
     !
     ! CLM modifies landuse table. Get the modified one from restart file
     !
@@ -385,30 +370,24 @@ module mod_init
 #endif
 !
     if ( ichem == 1 ) then
-      call deco1_scatter(chia_io,chia, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-      call deco1_scatter(chib_io,chib, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-      call deco1_scatter(remlsc_io,remlsc, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-      call deco1_scatter(remcvc_io,remcvc, &
-                         jcross1,jcross2,icross1,icross2,1,kz,1,ntr)
-      call deco1_scatter(remdrd_io,remdrd, &
-                         jcross1,jcross2,icross1,icross2,1,ntr)
-      call deco1_scatter(ssw2da_io,ssw2da,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(sdeltk2d_io,sdeltk2d,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(sdelqk2d_io,sdelqk2d,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(sfracv2d_io,sfracv2d,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(sfracb2d_io,sfracb2d,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(sfracs2d_io,sfracs2d,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(svegfrac2d_io,svegfrac2d, &
-                         jcross1,jcross2,icross1,icross2)
+      call grid_distribute(chia_io,chia,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(chib_io,chib,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(remlsc_io,remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(remcvc_io,remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(ssw2da_io,ssw2da,jce1,jce2,ice1,ice2)
+      call grid_distribute(sdeltk2d_io,sdeltk2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(sdelqk2d_io,sdelqk2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(sfracv2d_io,sfracv2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(sfracb2d_io,sfracb2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(sfracs2d_io,sfracs2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(svegfrac2d_io,svegfrac2d,jce1,jce2,ice1,ice2)
     end if
 
     if ( idcsst == 1 ) then
-      call deco1_scatter(dtskin_io,dtskin,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(deltas_io,deltas,jcross1,jcross2,icross1,icross2)
-      call deco1_scatter(tdeltas_io,tdeltas,jcross1,jcross2,icross1,icross2)
+      call grid_distribute(dtskin_io,dtskin,jce1,jce2,ice1,ice2)
+      call grid_distribute(deltas_io,deltas,jce1,jce2,ice1,ice2)
+      call grid_distribute(tdeltas_io,tdeltas,jce1,jce2,ice1,ice2)
     end if
     !
     ! Update ground temperature on Ocean/Lakes
@@ -449,13 +428,9 @@ module mod_init
         end if
       end do
     end do
-
-    call deco1_scatter(dstor_io,dstor,jdot1,jdot2,idot1,idot2,1,nsplit)
-    call deco1_scatter(hstor_io,hstor,jdot1,jdot2,idot1,idot2,1,nsplit)
 !
-    if ( .not. lband .and. debug_level > 2 ) then
-      call mpidiag
-    end if
+    call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
+    call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
     !
     ! Setup all timeseps for a restart
     !
@@ -495,7 +470,7 @@ module mod_init
     !
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_deco1_gather(idep,idep_io,jcross1,jcross2,icross1,icross2)
+      call subgrid_collect(idep,idep_io,jce1,jce2,ice1,ice2)
     end if
 #endif
   end if

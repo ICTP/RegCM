@@ -36,7 +36,6 @@ module mod_tendency
   use mod_precip
   use mod_slice
   use mod_sun
-  use mod_diagnosis
   use mod_advection
   use mod_diffusion
   use mod_mppio
@@ -457,7 +456,7 @@ module mod_tendency
       end do
     end do
 
-    call deco1_gather(ps4,ps_4,jcross1,jcross2,icross1,icross2,1,4)
+    call grid_collect(ps4,ps_4,jce1,jce2,ice1,ice2,1,4)
 
     if ( ktau /= 0 ) then
       if ( myid == 0 ) then
@@ -644,9 +643,9 @@ module mod_tendency
       call pcp
       call cldfrac
 #ifdef DEBUG
-      if ( .true. ) then
+      if ( .false. ) then
         call microphys(omega,jci1,jci2,ici1,ici2)
-        call deco1d_nc_write(qqxp)
+        call grid_nc_write(qqxp)
       end if
 #endif
 ! 
@@ -769,10 +768,6 @@ module mod_tendency
       call exchange(wrkkuo1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(wrkkuo2,1,jce1,jce2,ice1,ice2,1,kz)
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1)
-    end if
-    ! diagnostic on total evaporation
-    if ( .not. lband .and. debug_level > 2 ) then
-      call conqeva
     end if
 !
 !   Call medium resolution PBL
@@ -1353,32 +1348,9 @@ module mod_tendency
       dttke  = dt2
     end if
     !
-    ! compute the amounts advected through the lateral boundaries:
-    ! *** note *** we must calculate the amounts advected through
-    ! the lateral boundaries before updating the values
-    ! at boundary slices.
-    !
-    if ( .not. lband .and. debug_level > 2 ) then
-      call conadv
-      if ( ichem == 1 ) call tracdiag(xkc)
-    end if
-    !
     ! do cumulus transport/mixing  of tracers (grell
     !
     if ( ichem == 1 .and. ichcumtra == 1 .and. icup /= 5 )  call cumtran
-   
-    ! 
-    ! trace the mass conservation of dry air and water substance:
-    !
-    if ( .not. lband .and. debug_level > 2 ) then
-      call conmas
-    end if
-    !
-    ! budgets for tracers
-    !
-      if (ichem==1 .and. .not. lband .and. debug_level > 2 ) then
-        call contrac
-      end if
     !
     ! Print out noise parameter
     !

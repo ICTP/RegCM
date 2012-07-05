@@ -263,7 +263,7 @@ module mod_rad_o3blk
     if ( dointerp ) then
       ! We need pressure
       laps = real((ps(jce1:jce2,ice1:ice2)))
-      call deco1_gather(laps,aps,jcross1,jcross2,icross1,icross2)
+      call grid_collect(laps,aps,jce1,jce2,ice1,ice2)
       if ( myid == 0 ) then
         write (stderr,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
@@ -285,7 +285,7 @@ module mod_rad_o3blk
       xfac2 = d_one-xfac1
       ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
     end if
-    call deco1_scatter(ozone,o3prof,jcross1,jcross2,icross1,icross2,1,kzp1)
+    call grid_distribute(ozone,o3prof,jce1,jce2,ice1,ice2,1,kzp1)
   end subroutine read_o3data
 !
   subroutine inextmon(iyear,imon)

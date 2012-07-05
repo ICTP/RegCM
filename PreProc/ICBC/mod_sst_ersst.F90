@@ -56,7 +56,7 @@ module mod_sst_ersst
   integer :: ilon , jlat
   integer , parameter :: idtbc = 6
 !
-  integer :: i , it , j
+  integer :: it
   integer :: istatus , inet
   integer :: year , month , day , hour , isyear
   integer :: dimi , vari
@@ -210,7 +210,7 @@ module mod_sst_ersst
     logical , intent(inout) :: lfirst
     real(sp) , dimension(ilon,jlat) ,intent(out) :: sst
 !
-    integer :: i , j , n
+    integer :: i , j
     character(4) , dimension(2) :: varname
     integer(2) , dimension(ilon,jlat) :: work
     integer :: istatus
