@@ -229,8 +229,12 @@ module mod_mppparam
     nproc = ncpu
     cpus_per_dim(1) = ncpu
     cpus_per_dim(2) = 1
+    !cpus_per_dim(1) = 2
+    !cpus_per_dim(2) = 2
     jxp =  jx/nproc
     iyp =  iy
+    !jxp =  jx/2
+    !iyp =  iy/2
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
 
@@ -2660,15 +2664,6 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      jb = 1
-      do i = 1 , nex
-        do j = j1 , j2
-          r8vector1(jb) = ml(j,i)
-          jb = jb + 1
-        end do
-      end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
@@ -2678,6 +2673,15 @@ module mod_mppparam
           jb = jb + 1
         end do
       end do
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(jb) = ml(j,i)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex
@@ -2930,17 +2934,6 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
-      jb = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r8vector1(jb) = ml(j,i,k)
-            jb = jb + 1
-          end do
-        end do
-      end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
@@ -2952,6 +2945,17 @@ module mod_mppparam
           end do
         end do
       end do
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(jb) = ml(j,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize
@@ -3233,19 +3237,6 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
-      jb = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r8vector1(jb) = ml(j,i,k,n)
-              jb = jb + 1
-            end do
-          end do
-        end do
-      end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
@@ -3259,6 +3250,19 @@ module mod_mppparam
           end do
         end do
       end do
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(jb) = ml(j,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize

@@ -146,15 +146,15 @@ module mod_regcm_interface
       call say
       call fatal(__FILE__,__LINE__,'Domain too small')
     end if
-    if ( jxp*nproc /= jx ) then
-      write (aline,*) 'jx should be divided by nproc'
-      call say
-      write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
-      call say
-      call fatal(__FILE__,__LINE__,                                   &
-               & 'Domain dimension not multiple of' //                &
-               & ' processor number')
-    end if
+    !if ( jxp*nproc /= jx ) then
+    !  write (aline,*) 'jx should be divided by nproc'
+    !  call say
+    !  write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
+    !  call say
+    !  call fatal(__FILE__,__LINE__,                                   &
+    !           & 'Domain dimension not multiple of' //                &
+    !           & ' processor number')
+    !end if
 !
 !**********************************************************************
 !

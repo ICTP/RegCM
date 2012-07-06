@@ -238,16 +238,22 @@ module mod_atm_interface
         icii2 = iyp-3
       end if
 #ifdef DEBUG
-      write(ndebug+myid,*) 'TOP = ', ma%top
-      write(ndebug+myid,*) 'BTM = ', ma%bottom
-      write(ndebug+myid,*) 'RGT = ', ma%right
-      write(ndebug+myid,*) 'LFT = ', ma%left
-      write(ndebug+myid,*) 'DOTPEXT1 : ', jde1 , jde2
-      write(ndebug+myid,*) 'DOTPINT1 : ', jdi1 , jdi2
-      write(ndebug+myid,*) 'DOTPINT2 : ', jdii1 , jdii2
-      write(ndebug+myid,*) 'CRXPEXT1 : ', jce1 , jce2
-      write(ndebug+myid,*) 'CRXPINT1 : ', jci1 , jci2
-      write(ndebug+myid,*) 'CRXPINT2 : ', jcii1 , jcii2
+      write(ndebug+myid,*) 'TOPLEFT     = ', ma%topleft
+      write(ndebug+myid,*) 'TOP         = ', ma%top
+      write(ndebug+myid,*) 'TOPRIGHT    = ', ma%topright
+      write(ndebug+myid,*) 'RIGHT       = ', ma%right
+      write(ndebug+myid,*) 'BOTTOMRIGHT = ', ma%bottomright
+      write(ndebug+myid,*) 'BOTTOM      = ', ma%bottom
+      write(ndebug+myid,*) 'BOTTOMLEFT  = ', ma%bottomleft
+      write(ndebug+myid,*) 'LEFT        = ', ma%left
+      write(ndebug+myid,*) 'GLOBAL J = ', global_jstart , global_jend
+      write(ndebug+myid,*) 'GLOBAL I = ', global_istart , global_iend
+      write(ndebug+myid,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
+      write(ndebug+myid,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
+      write(ndebug+myid,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
+      write(ndebug+myid,*) 'CRXPEXTJI1 : ', jce1 , jce2 , ice1 , ice2
+      write(ndebug+myid,*) 'CRXPINTJI1 : ', jci1 , jci2 , ici1 , ici2
+      write(ndebug+myid,*) 'CRXPINTJI2 : ', jcii1 , jcii2 , icii1 , icii2
       write(ndebug+myid,*) 'TOPBDY   : ', ma%has_bdytop
       write(ndebug+myid,*) 'BTMBDY   : ', ma%has_bdybottom
       write(ndebug+myid,*) 'RGTBDY   : ', ma%has_bdyright
@@ -399,8 +405,8 @@ module mod_atm_interface
       write(ndebug+myid,*) 'BDYW : ', ba%nw
       write(ndebug+myid,*) 'BDYE : ', ba%ne
 
-      do i = iyp , 1 , -1
-        do j = 1 , jxp
+      do i = ide2 , ide1 , -1
+        do j = jde1, jde2
           if ( ba%bsouth(j,i) ) then
             write(ndebug+myid,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
           else if ( ba%bnorth(j,i) ) then
