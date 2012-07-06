@@ -742,7 +742,7 @@ module mod_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-  call deco1_model(lband)
+  call setup_model_indexes(lband)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -986,8 +986,8 @@ module mod_params
 
   ! Calculate boundary areas per processor
 
-  call deco1_bound(cross,lband,ba_cr)
-  call deco1_bound(dot,lband,ba_dt)
+  call setup_boundaries(cross,lband,ba_cr)
+  call setup_boundaries(dot,lband,ba_dt)
 
   call set_scenario(scenario)
 

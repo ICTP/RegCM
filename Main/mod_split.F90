@@ -251,8 +251,6 @@ module mod_split
 !=======================================================================
 !
 !   this routine determines p(.) from p(x) by a 4-point interpolation.
-!   on the x-grid, a p(x) point outside the grid domain is assumed to
-!   satisfy p(j,0)=p(j,1); p(j,iy)=p(j,iym1); and similarly for the i's.
 !
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)

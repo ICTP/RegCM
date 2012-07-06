@@ -136,7 +136,7 @@ module mod_atm_interface
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
   public :: allocate_surfstate , allocate_v3dbound , allocate_v2dbound
-  public :: deco1_bound , deco1_model
+  public :: setup_boundaries , setup_model_indexes
 
   real(dp) , public , pointer , dimension(:,:) :: hgfact
   real(dp) , public , pointer , dimension(:,:) :: psdot
@@ -151,66 +151,33 @@ module mod_atm_interface
 
   contains 
 !
-    subroutine deco1_model(lband)
-#ifndef IBM
-      use mpi
-#endif
+    subroutine setup_model_indexes(lband)
       implicit none
-#ifdef IBM
-      include 'mpif.h'
-#endif
       logical , intent(in) :: lband
-
-      ma%ibt1 = 0
-      ma%ibt2 = 0
-      ma%ibb1 = 0
-      ma%ibb2 = 0
-      if ( nproc == 1 ) then
-        if ( lband ) then
-          ma%jbr1 = 1
-          ma%jbl1 = 1
-          ma%jbr2 = 2
-          ma%jbl2 = 2
-        else
-          ma%jbr1 = 0
-          ma%jbr2 = 0
-          ma%jbl1 = 0
-          ma%jbl2 = 0
-        end if
-      else
-        if ( ma%has_bdyleft ) then
-          if ( lband ) then
-            ma%jbl1 = 1
-            ma%jbl2 = 2
-          else
-            ma%jbl1 = 0
-            ma%jbl2 = 0
-          endif
-          ma%jbr1 = 1
-          ma%jbr2 = 2
-        else if ( ma%has_bdyright ) then
-          if ( lband ) then
-            ma%jbr1 = 1
-            ma%jbr2 = 2
-          else
-            ma%jbr1 = 0
-            ma%jbr2 = 0
-          end if
-          ma%jbl1 = 1
-          ma%jbl2 = 2
-        else
-          ma%jbr1 = 1
-          ma%jbr2 = 2
-          ma%jbl1 = 1
-          ma%jbl2 = 2
-        end if
+      ma%jbl1 = 1
+      ma%jbl2 = 2
+      ma%jbr1 = 1
+      ma%jbr2 = 2
+      ma%ibt1 = 1
+      ma%ibt2 = 2
+      ma%ibb1 = 1
+      ma%ibb2 = 2
+      if ( ma%has_bdyleft ) then
+        ma%jbl1 = 0
+        ma%jbl2 = 0
       end if
-#ifdef DEBUG
-      write(ndebug+myid,*) 'TOP = ', ma%top
-      write(ndebug+myid,*) 'BTM = ', ma%bottom
-      write(ndebug+myid,*) 'RGT = ', ma%right
-      write(ndebug+myid,*) 'LFT = ', ma%left
-#endif
+      if ( ma%has_bdyright ) then
+        ma%jbr1 = 0
+        ma%jbr2 = 0
+      end if
+      if ( ma%has_bdytop ) then
+        ma%ibt1 = 0
+        ma%ibt2 = 0
+      end if
+      if ( ma%has_bdybottom ) then
+        ma%ibb1 = 0
+        ma%ibb2 = 0
+      end if
       ma%bandflag = lband
       jde1  = 1
       jdi1  = 1
@@ -218,68 +185,78 @@ module mod_atm_interface
       jde2  = jxp
       jdi2  = jxp
       jdii2 = jxp
-      ide1  = idot1
-      idi1  = idot1+1
-      idii1 = idot1+2
-      ide2  = idot2
-      idi2  = idot2-1
-      idii2 = idot2-2
-      if ( .not. lband ) then
-        if ( ma%has_bdyleft ) then
-          jde1  = jcross1
-          jdi1  = jcross1+1
-          jdii1 = jcross1+2
-        end if
-        if ( ma%has_bdyright ) then
-          jde2  = jxp
-          jdi2  = jxp-1
-          jdii2 = jxp-2
-        end if
+      ide1  = 1
+      idi1  = 1
+      idii1 = 1
+      ide2  = iyp
+      idi2  = iyp
+      idii2 = iyp
+      if ( ma%has_bdyleft ) then
+        jdi1 = 2
+        jdii1 = 3
       end if
-#ifdef DEBUG
-      write(ndebug+myid,*) 'DOTPEXT1 : ', jde1 , jde2
-      write(ndebug+myid,*) 'DOTPINT1 : ', jdi1 , jdi2
-      write(ndebug+myid,*) 'DOTPINT2 : ', jdii1 , jdii2
-#endif
+      if ( ma%has_bdyright ) then
+        jdi2 = jxp-1
+        jdii2 = jxp-2
+      end if
+      if ( ma%has_bdybottom ) then
+        idi1 = 2
+        idii1 = 3
+      end if
+      if ( ma%has_bdytop ) then
+        idi2 = iyp-1
+        idii2 = iyp-2
+      end if
       jce1  = 1
       jci1  = 1
       jcii1 = 1
       jce2  = jxp
       jci2  = jxp
       jcii2 = jxp
-      ice1  = icross1
-      ici1  = icross1+1
-      icii1 = icross1+2
-      ice2  = icross2
-      ici2  = icross2-1
-      icii2 = icross2-2
-      if ( .not. lband ) then
-        if ( ma%has_bdyleft ) then
-          jce1  = jcross1
-          jci1  = jcross1+1
-          jcii1 = jcross1+2
-        end if
-        if ( ma%has_bdyright ) then
-          jce2  = jxp-1
-          jci2  = jxp-2
-          jcii2 = jxp-3
-        end if
+      ice1  = 1
+      ici1  = 1
+      icii1 = 1
+      ice2  = iyp
+      ici2  = iyp
+      icii2 = iyp
+      if ( ma%has_bdyleft ) then
+        jci1 = 2
+        jcii1 = 3
+      end if
+      if ( ma%has_bdyright ) then
+        jce2 = jxp-1
+        jci2 = jxp-2
+        jcii2 = jxp-3
+      end if
+      if ( ma%has_bdybottom ) then
+        ici1 = 2
+        icii1 = 3
+      end if
+      if ( ma%has_bdytop ) then
+        ice2 = iyp-1
+        ici2 = iyp-2
+        icii2 = iyp-3
       end if
 #ifdef DEBUG
+      write(ndebug+myid,*) 'TOP = ', ma%top
+      write(ndebug+myid,*) 'BTM = ', ma%bottom
+      write(ndebug+myid,*) 'RGT = ', ma%right
+      write(ndebug+myid,*) 'LFT = ', ma%left
+      write(ndebug+myid,*) 'DOTPEXT1 : ', jde1 , jde2
+      write(ndebug+myid,*) 'DOTPINT1 : ', jdi1 , jdi2
+      write(ndebug+myid,*) 'DOTPINT2 : ', jdii1 , jdii2
       write(ndebug+myid,*) 'CRXPEXT1 : ', jce1 , jce2
       write(ndebug+myid,*) 'CRXPINT1 : ', jci1 , jci2
       write(ndebug+myid,*) 'CRXPINT2 : ', jcii1 , jcii2
-#endif
-#ifdef DEBUG
       write(ndebug+myid,*) 'TOPBDY   : ', ma%has_bdytop
       write(ndebug+myid,*) 'BTMBDY   : ', ma%has_bdybottom
       write(ndebug+myid,*) 'RGTBDY   : ', ma%has_bdyright
       write(ndebug+myid,*) 'LFTBDY   : ', ma%has_bdyleft
       flush(ndebug+myid)
 #endif
-    end subroutine deco1_model
+    end subroutine setup_model_indexes
 
-    subroutine deco1_bound(ldot,lband,ba)
+    subroutine setup_boundaries(ldot,lband,ba)
       implicit none
       logical , intent(in) :: ldot , lband
       type(bound_area) , intent(out) :: ba
@@ -289,11 +266,11 @@ module mod_atm_interface
       integer :: i , j , i1 , i2 , j1 , j2 , iglob , jglob
 
       ba%dotflag = ldot
-      call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'deco1_bound:ibnd')
-      call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'deco1_bound:bsouth')
-      call getmem2d(ba%bnorth,jde1,jde2,ide1,ide2,'deco1_bound:bnorth')
-      call getmem2d(ba%beast,jde1,jde2,ide1,ide2,'deco1_bound:beast')
-      call getmem2d(ba%bwest,jde1,jde2,ide1,ide2,'deco1_bound:bwest')
+      call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
+      call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
+      call getmem2d(ba%bnorth,jde1,jde2,ide1,ide2,'setup_boundaries:bnorth')
+      call getmem2d(ba%beast,jde1,jde2,ide1,ide2,'setup_boundaries:beast')
+      call getmem2d(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
       if ( ldot ) then
         ic = 0
         ba%nsp = nspgd
@@ -311,7 +288,7 @@ module mod_atm_interface
       jgbr1 = jx-ic-ba%nsp+2
       jgbr2 = jx-ic-1
       i1 = 1
-      i2 = iy
+      i2 = iyp
       j1 = 1
       j2 = jxp
       ba%ns = 0
@@ -325,10 +302,10 @@ module mod_atm_interface
       if ( lband ) then
         ! Check for South boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
             do j = j1 , j2
-              jglob = jxp*myid+j
+              jglob = global_jstart+j-1
               if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
               ba%ibnd(j,i) = iglob-igbb1+2
               ba%bsouth(j,i) = .true.
@@ -338,10 +315,10 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
             do j = j1 , j2
-              jglob = jxp*myid+j
+              jglob = global_jstart+j-1
               if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
               ba%ibnd(j,i) = igbt2-iglob+2
               ba%bnorth(j,i) = .true.
@@ -352,10 +329,10 @@ module mod_atm_interface
       else
         ! Check for South boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
             do j = j1 , j2
-              jglob = jxp*myid+j
+              jglob = global_jstart+j-1
               if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
                 if ( jglob <= jgbl2 .and. iglob >= jglob ) cycle
                 if ( jglob >= jgbr1 .and. iglob >= (jgbr2-jglob+2) ) cycle
@@ -368,10 +345,10 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
             do j = j1 , j2
-              jglob = jxp*myid+j
+              jglob = global_jstart+j-1
               if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
                 if ( jglob <= jgbl2 .and. (igbt2-iglob+2) >= jglob ) cycle
                 if ( jglob >= jgbr1 .and. (igbt2-iglob) >= (jgbr2-jglob) ) cycle
@@ -384,10 +361,10 @@ module mod_atm_interface
         end do
         ! West boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
           do j = j1 , j2
-            jglob = jxp*myid+j
+            jglob = global_jstart+j-1
             if ( jglob >= jgbl1 .and. jglob <= jgbl2 ) then
               if ( iglob < igbb2 .and. jglob > iglob ) cycle
               if ( iglob > igbt1 .and. jglob > (igbt2-iglob+2) ) cycle
@@ -399,10 +376,10 @@ module mod_atm_interface
         end do
         ! East boundary
         do i = i1 , i2
-          iglob = i
+          iglob = global_istart+i-1
           if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
           do j = j1 , j2
-            jglob = jxp*myid+j
+            jglob = global_jstart+j-1
             if ( jglob >= jgbr1 .and. jglob <= jgbr2 ) then
               if ( iglob < igbb2 .and. (jgbr2-jglob+2) > iglob ) cycle
               if ( iglob > igbt1 .and. (jgbr2-jglob) > (igbt2-iglob) ) cycle
@@ -422,7 +399,7 @@ module mod_atm_interface
       write(ndebug+myid,*) 'BDYW : ', ba%nw
       write(ndebug+myid,*) 'BDYE : ', ba%ne
 
-      do i = iy , 1 , -1
+      do i = iyp , 1 , -1
         do j = 1 , jxp
           if ( ba%bsouth(j,i) ) then
             write(ndebug+myid,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
@@ -439,7 +416,7 @@ module mod_atm_interface
         write(ndebug+myid,*) ' '
       end do
 #endif
-    end subroutine deco1_bound
+    end subroutine setup_boundaries
 
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none

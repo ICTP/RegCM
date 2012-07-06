@@ -79,7 +79,7 @@ module mod_bats_zengocn
                 xlv , zeta , zoq
     integer :: i , j , n , nconv
 #ifdef CLM
-    integer :: jj
+    integer :: ii , jj
 #endif
 !   real(dp) :: lwds , lwus
     real(dp) :: rs , rd , td , tdelta , delta
@@ -91,13 +91,16 @@ module mod_bats_zengocn
 !
     call time_begin(subroutine_name,idindx)
     do i = ici1 , ici2
+#ifdef CLM
+      ii = global_istart+i-1
+#endif
       do j = jci1 , jci2
 #ifdef CLM
-        jj = (jxp*myid) + j
+        jj = global_jstart+j-1
 #endif
         do n = 1 , nnsg
 #ifdef CLM
-          if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,i) == 3 ) then
+          if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,ii) == 3 ) then
 #else
           if ( ldmsk1(n,j,i) == 0 ) then
 #endif

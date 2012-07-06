@@ -410,7 +410,6 @@ module mod_pbl_interface
 
     !Set the variable chifxuw to be the net flux for each tracer
     ! (dummy declaration below -- declared and allocated in mod_pbl_common.F90)
-    ! real(dp), pointer, dimension(iy,jxp,ntr) :: chifxuw
     tracerfluxloop:  &
     do itr = 1,ntr
       !chifxuw(:,:,ntr) = ...

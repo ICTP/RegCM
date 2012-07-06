@@ -144,7 +144,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   type(rcm_time_and_date) , intent(in) :: idate1 , idate2
   real(8) , intent(in) :: dtrad , dtsrf , dx
 !
-  integer :: i , j , jj , n
+  integer :: i , j , ii , jj , n
   integer :: year , month , day , hour
   !
   ! Initialize run control variables for clm
@@ -345,9 +345,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   if ( .not.ifrest ) then
     do n = 1 , nnsg
       do i = ici1 , ici2
+        ii = global_istart+i-1
         do j = jci1 , jci2
-          jj = myid*jxp + j
-          ldmsk1(n,j,i) = landmask(jj,i)
+          jj = global_jstart+j-1
+          ldmsk1(n,j,i) = landmask(jj,ii)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
@@ -364,8 +365,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     do i = ici1 , ici2
+      ii = global_istart+i-1
       do j = jci1 , jci2
-        jj = myid*jxp + j
+        jj = global_jstart+j-1
         fsw(j,i)   = d_zero
         flw(j,i)   = d_zero
         sabveg(j,i)  = d_zero
@@ -379,11 +381,11 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
         ! Set some clm land surface/vegetation variables to the ones
         ! used in RegCM.  Make sure all are consistent  
 
-        lndcat(j,i) = clm2bats_veg(jj,i)
-        if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat(j,i) = 15.0D0
+        lndcat(j,i) = clm2bats_veg(jj,ii)
+        if ( clm2bats_veg(jj,ii) < 0.1D0 ) lndcat(j,i) = 15.0D0
         do n = 1 , nnsg
-          lndcat1(n,j,i) = clm2bats_veg(jj,i)
-          if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
+          lndcat1(n,j,i) = clm2bats_veg(jj,ii)
+          if ( clm2bats_veg(jj,ii) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
         end do
 
         iveg(j,i) = idnint(lndcat(j,i))
@@ -422,7 +424,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   use clm_varsur , only : landfrac
   implicit none
   integer , intent(in) :: imon
-  integer :: i , j , jj
+  integer :: i , j , ii , jj
 !
   call albedobats(imon)
 ! 
@@ -432,22 +434,23 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !     ****** use albedo calculated with BATS method when albedo=1
 !
   do i = ici1 , ici2
+    ii = global_istart+i-1
     do j = jci1 , jci2
-      jj = j+(jxp*myid)
+      jj = global_jstart+j-1
       if (ldmsk1(1,j,i) /= 0 .and. &
           (d_one-aldirs(j,i)) > 1.0D-10) then
-        aldirs(j,i) = aldirs(j,i)*landfrac(jj,i) + &
-                    aldirs(j,i)*(d_one-landfrac(jj,i))
-        aldirl(j,i) = aldirl(j,i)*landfrac(jj,i) + &
-                    aldirl(j,i)*(d_one-landfrac(jj,i))
-        aldifs(j,i) = aldifs(j,i)*landfrac(jj,i) + &
-                    aldifs(j,i)*(d_one-landfrac(jj,i))
-        aldifl(j,i) = aldifl(j,i)*landfrac(jj,i) + &
-                    aldifl(j,i)*(d_one-landfrac(jj,i))
-        albvs(j,i)  = aldirs(j,i)*landfrac(jj,i) + &
-                    albvs(j,i) *(d_one-landfrac(jj,i))
-        albvl(j,i)  = aldirl(j,i)*landfrac(jj,i) + &
-                    albvl(j,i) *(d_one-landfrac(jj,i)) 
+        aldirs(j,i) = aldirs(j,i)*landfrac(jj,ii) + &
+                    aldirs(j,i)*(d_one-landfrac(jj,ii))
+        aldirl(j,i) = aldirl(j,i)*landfrac(jj,ii) + &
+                    aldirl(j,i)*(d_one-landfrac(jj,ii))
+        aldifs(j,i) = aldifs(j,i)*landfrac(jj,ii) + &
+                    aldifs(j,i)*(d_one-landfrac(jj,ii))
+        aldifl(j,i) = aldifl(j,i)*landfrac(jj,ii) + &
+                    aldifl(j,i)*(d_one-landfrac(jj,ii))
+        albvs(j,i)  = aldirs(j,i)*landfrac(jj,ii) + &
+                    albvs(j,i) *(d_one-landfrac(jj,ii))
+        albvl(j,i)  = aldirl(j,i)*landfrac(jj,ii) + &
+                    albvl(j,i) *(d_one-landfrac(jj,ii)) 
       end if
       aldirs_o(j,i) = real(aldirs(j,i))
       aldifs_o(j,i) = real(aldifs(j,i))
@@ -473,7 +476,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
   integer(8) , intent(in) :: ktau
 !
   real(8) :: mmpd , wpm2
-  integer :: i , ii , iii , j , jj , kk , n , nn1 , nnn , nout
+  integer :: i , ii , iii , j , ii , jj , kk , n , nn1 , nnn , nout
   real(4) :: real_4
 !
   if ( ivers == 1 ) then
@@ -569,10 +572,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end if
  
     do i = ici1 , ici2
+      ii = global_istart+i-1
       do j = jci1 , jci2
-
-        jj = (jxp*myid) + j
-
+        jj = global_jstart+j-1
         uvdrag(j,i) = d_zero
         hfx(j,i) = d_zero
         qfx(j,i) = d_zero
@@ -589,50 +591,50 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sfracs2d(j,i) = d_zero
         end if
 
-        if ( landmask(jj,i)==1 ) then
-          tground2(j,i) = c2rtgb(jj,i)
-          tground1(j,i) = c2rtgb(jj,i)
-          hfx(j,i) = c2rsenht(jj,i)
-          qfx(j,i) = c2rlatht(jj,i)
-          uvdrag(j,i) = c2ruvdrag(jj,i)
-          tgbb(j,i) = c2rtgbb(jj,i)
+        if ( landmask(jj,ii)==1 ) then
+          tground2(j,i) = c2rtgb(jj,ii)
+          tground1(j,i) = c2rtgb(jj,ii)
+          hfx(j,i) = c2rsenht(jj,ii)
+          qfx(j,i) = c2rlatht(jj,ii)
+          uvdrag(j,i) = c2ruvdrag(jj,ii)
+          tgbb(j,i) = c2rtgbb(jj,ii)
  
           if ( i<=iym1 ) then
-            aldirs(j,i) = c2ralbdirs(jj,i)
-            aldirl(j,i) = c2ralbdirl(jj,i)
-            aldifs(j,i) = c2ralbdifs(jj,i)
-            aldifl(j,i) = c2ralbdifl(jj,i)
+            aldirs(j,i) = c2ralbdirs(jj,ii)
+            aldirl(j,i) = c2ralbdirl(jj,ii)
+            aldifs(j,i) = c2ralbdifs(jj,ii)
+            aldifl(j,i) = c2ralbdifl(jj,ii)
           end if
  
           do n = 1 , nnsg
-            tgrd(n,j,i) = c2rtgb(jj,i)
-            tgbrd(n,j,i) = c2rtgb(jj,i)
+            tgrd(n,j,i) = c2rtgb(jj,ii)
+            tgbrd(n,j,i) = c2rtgb(jj,ii)
             !supposed to be lower soil layer temp not tgrnd
-            taf(n,j,i) = c2r2mt(jj,i)
-            tlef(n,j,i) = c2rtlef(jj,i)
-            tsw(n,j,i) = c2rsmtot(jj,i)
-            rsw(n,j,i) = c2rsm1m(jj,i)
-            ssw(n,j,i) = c2rsm10cm(jj,i)
+            taf(n,j,i) = c2r2mt(jj,ii)
+            tlef(n,j,i) = c2rtlef(jj,ii)
+            tsw(n,j,i) = c2rsmtot(jj,ii)
+            rsw(n,j,i) = c2rsm1m(jj,ii)
+            ssw(n,j,i) = c2rsm10cm(jj,ii)
             ldew(n,j,i) = ldew(n,j,i)
-            sncv(n,j,i) = c2rsnowc(jj,i)
+            sncv(n,j,i) = c2rsnowc(jj,ii)
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
             sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
-            srfrna(n,j,i) = c2rro_sur(jj,i)*dtbat
-            runoff(n,j,i) = (c2rro_sub(jj,i)+c2rro_sur(jj,i))*dtbat
+            srfrna(n,j,i) = c2rro_sur(jj,ii)*dtbat
+            runoff(n,j,i) = (c2rro_sub(jj,ii)+c2rro_sur(jj,ii))*dtbat
  
             if ( lchem ) then
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,i)
+              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ii)
               sfracb2d(j,i) = sfracb2d(j,i) + d_one -               &
-                             (c2rfvegnosno(jj,i)+c2rfracsno(jj,i))
-              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,i)
+                             (c2rfvegnosno(jj,ii)+c2rfracsno(jj,ii))
+              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,ii)
             end if
           end do
  
           !abt added for 2m humidity when landmask = 1 or 3
-          q2d(j,i) = c2r2mq(jj,i)
+          q2d(j,i) = c2r2mq(jj,ii)
           prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
           prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
           flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
@@ -642,7 +644,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
-        else if ( landmask(jj,i) == 0 ) then !ocean
+        else if ( landmask(jj,ii) == 0 ) then !ocean
  
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
@@ -703,7 +705,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           pptnc(j,i) = d_zero
           pptc(j,i) = d_zero
  
-        else if ( landmask(jj,i) == 3 ) then
+        else if ( landmask(jj,ii) == 3 ) then
           !gridcell with some % land and ocean
           do n = 1 , nnsg
             uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
@@ -716,24 +718,24 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
               ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
               sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
               sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,i)
+              sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jj,ii)
               sfracb2d(j,i) = sfracb2d(j,i)                         &
-                              + d_one - (c2rfvegnosno(jj,i)+       &
-                              c2rfracsno(jj,i))
-              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,i)
-              ssw2da(j,i) = ssw2da(j,i)*landfrac(jj,i)             &
-                            + (d_one-landfrac(jj,i))*ssw(n,j,i)
-              sdeltk2d(j,i) = sdeltk2d(j,i)*landfrac(jj,i)         &
-                              + (d_one-landfrac(jj,i))*delt(n,j,i)
-              sdelqk2d(j,i) = sdelqk2d(j,i)*landfrac(jj,i)         &
-                              + (d_one-landfrac(jj,i))*delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jj,i)         &
-                              + (d_one-landfrac(jj,i))*sigf(n,j,i)
-              sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jj,i)         &
-                              + (d_one-landfrac(jj,i))*            &
+                              + d_one - (c2rfvegnosno(jj,ii)+       &
+                              c2rfracsno(jj,ii))
+              sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jj,ii)
+              ssw2da(j,i) = ssw2da(j,i)*landfrac(jj,ii)             &
+                            + (d_one-landfrac(jj,ii))*ssw(n,j,i)
+              sdeltk2d(j,i) = sdeltk2d(j,i)*landfrac(jj,ii)         &
+                              + (d_one-landfrac(jj,ii))*delt(n,j,i)
+              sdelqk2d(j,i) = sdelqk2d(j,i)*landfrac(jj,ii)         &
+                              + (d_one-landfrac(jj,ii))*delq(n,j,i)
+              sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jj,ii)         &
+                              + (d_one-landfrac(jj,ii))*sigf(n,j,i)
+              sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jj,ii)         &
+                              + (d_one-landfrac(jj,ii))*            &
                               (d_one-sigf(n,j,i))*(d_one-scvk(n,j,i))
-              sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jj,i)         &
-                              + (d_one-landfrac(jj,i))             &
+              sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jj,ii)         &
+                              + (d_one-landfrac(jj,ii))             &
                               *(sigf(n,j,i)*wt(n,j,i)+(d_one-sigf(n,j,i)) &
                               *scvk(n,j,i))
             end if
@@ -749,45 +751,45 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           end do
  
           uvdrag(j,i) = uvdrag(j,i)* &
-                        (d_one-landfrac(jj,i))+ &
-                        c2ruvdrag(jj,i)*landfrac(jj,i)
-          hfx(j,i) = hfx(j,i)*(d_one-landfrac(jj,i)) + &
-                           c2rsenht(jj,i)*landfrac(jj,i)
-          qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,i)) + &
-                           c2rlatht(jj,i)*landfrac(jj,i)
-          tground2(j,i) = tground2(j,i)*(d_one-landfrac(jj,i)) +     &
-                         c2rtgb(jj,i)*landfrac(jj,i)
-          tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,i)) +   &
-                            c2rtgbb(jj,i)*landfrac(jj,i)
-          tground1(j,i) = tground1(j,i)*(d_one-landfrac(jj,i)) +     &
-                         c2rtgb(jj,i)*landfrac(jj,i)
+                        (d_one-landfrac(jj,ii))+ &
+                        c2ruvdrag(jj,ii)*landfrac(jj,ii)
+          hfx(j,i) = hfx(j,i)*(d_one-landfrac(jj,ii)) + &
+                           c2rsenht(jj,ii)*landfrac(jj,ii)
+          qfx(j,i) = qfx(j,i)*(d_one-landfrac(jj,ii)) + &
+                           c2rlatht(jj,ii)*landfrac(jj,ii)
+          tground2(j,i) = tground2(j,i)*(d_one-landfrac(jj,ii)) +     &
+                         c2rtgb(jj,ii)*landfrac(jj,ii)
+          tgbb(j,i) = tgbb(j,i)* (d_one-landfrac(jj,ii)) +   &
+                            c2rtgbb(jj,ii)*landfrac(jj,ii)
+          tground1(j,i) = tground1(j,i)*(d_one-landfrac(jj,ii)) +     &
+                         c2rtgb(jj,ii)*landfrac(jj,ii)
  
           do n = 1 , nnsg
             !abt added below for the landfraction method
-            sncv(n,j,i) = c2rsnowc(jj,i)*landfrac(jj,i)          &
-                           + sncv(n,j,i)*(d_one-landfrac(jj,i))
-            tgrd(n,j,i) = c2rtgb(jj,i)*landfrac(jj,i) + tgrd(n,j,i) &
-                          *(d_one-landfrac(jj,i))
-            tgbrd(n,j,i) = c2rtgb(jj,i)*landfrac(jj,i)            &
-                           + tgbrd(n,j,i)*(d_one-landfrac(jj,i))
-            taf(n,j,i) = c2r2mt(jj,i)*landfrac(jj,i)            &
-                           + t2m(n,j,i)*(d_one-landfrac(jj,i))
+            sncv(n,j,i) = c2rsnowc(jj,ii)*landfrac(jj,ii)          &
+                           + sncv(n,j,i)*(d_one-landfrac(jj,ii))
+            tgrd(n,j,i) = c2rtgb(jj,ii)*landfrac(jj,ii) + tgrd(n,j,i) &
+                          *(d_one-landfrac(jj,ii))
+            tgbrd(n,j,i) = c2rtgb(jj,ii)*landfrac(jj,ii)            &
+                           + tgbrd(n,j,i)*(d_one-landfrac(jj,ii))
+            taf(n,j,i) = c2r2mt(jj,ii)*landfrac(jj,ii)            &
+                           + t2m(n,j,i)*(d_one-landfrac(jj,ii))
             !note taf is 2m temp not temp in foilage
-            tlef(n,j,i) = c2rtlef(jj,i)*landfrac(jj,i)          &
-                            + tlef(n,j,i)*(d_one-landfrac(jj,i))
-            tsw(n,j,i) = c2rsmtot(jj,i)*landfrac(jj,i)          &
-                           + tsw(n,j,i)*(d_one-landfrac(jj,i))
-            rsw(n,j,i) = c2rsm1m(jj,i)*landfrac(jj,i)           &
-                           + rsw(n,j,i)*(d_one-landfrac(jj,i))
-            ssw(n,j,i) = c2rsm10cm(jj,i)*landfrac(jj,i)         &
-                           + ssw(n,j,i)*(d_one-landfrac(jj,i))
-            q2d(j,i) = c2r2mq(jj,i)*landfrac(jj,i) + q2m(n,j,i)  &
-                       *(d_one-landfrac(jj,i))
+            tlef(n,j,i) = c2rtlef(jj,ii)*landfrac(jj,ii)          &
+                            + tlef(n,j,i)*(d_one-landfrac(jj,ii))
+            tsw(n,j,i) = c2rsmtot(jj,ii)*landfrac(jj,ii)          &
+                           + tsw(n,j,i)*(d_one-landfrac(jj,ii))
+            rsw(n,j,i) = c2rsm1m(jj,ii)*landfrac(jj,ii)           &
+                           + rsw(n,j,i)*(d_one-landfrac(jj,ii))
+            ssw(n,j,i) = c2rsm10cm(jj,ii)*landfrac(jj,ii)         &
+                           + ssw(n,j,i)*(d_one-landfrac(jj,ii))
+            q2d(j,i) = c2r2mq(jj,ii)*landfrac(jj,ii) + q2m(n,j,i)  &
+                       *(d_one-landfrac(jj,ii))
  
             evpa(n,j,i) = evpa(n,j,i) + dtbat*qfx(j,i)
             sena(n,j,i) = sena(n,j,i) + dtbat*hfx(j,i)
-            srfrna(n,j,i) = c2rro_sur(jj,i)*dtbat
-            runoff(n,j,i) = c2rro_sub(jj,i)*dtbat + c2rro_sur(jj,i)*dtbat
+            srfrna(n,j,i) = c2rro_sur(jj,ii)*dtbat
+            runoff(n,j,i) = c2rro_sub(jj,ii)*dtbat + c2rro_sur(jj,ii)*dtbat
           end do
           prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
           prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
@@ -805,10 +807,9 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
  
       do i = ici1 , ici2
+        ii = global_istart+i-1
         do j = jci1 , jci2
-
-          jj = (jxp*myid) + j
-
+          jj = global_jstart+j-1
           u10m_o(j,i) = 0.0
           v10m_o(j,i) = 0.0
           tg_o(j,i) = 0.0
@@ -906,18 +907,18 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
           scv_o(j,i) = 0.0
           nnn = 0
           do n = 1 , nnsg
-            if ( ldmsk1(n,j,i) /= 0 .and. landmask(jj,i)/=3 ) then
-              tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,i))
-              ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,i))
-              rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,i))
+            if ( ldmsk1(n,j,i) /= 0 .and. landmask(jj,ii)/=3 ) then
+              tlef_o(j,i) = tlef_o(j,i) + real(c2rtlef(jj,ii))
+              ssw_o(j,i) = ssw_o(j,i) + real(c2rsm10cm(jj,ii))
+              rsw_o(j,i) = rsw_o(j,i) + real(c2rsm1m(jj,ii))
               ! Correct unit of measure of runoff coming from CLM
               rnos_o(j,i) = rnos_o(j,i) + real(srfrna(n,j,i)*d_r1000)
-              scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,i))
-              tlef_s(n,j,i) = real(c2rtlef(jj,i))
-              ssw_s(n,j,i) = real(c2rsm10cm(jj,i))
-              rsw_s(n,j,i) = real(c2rsm1m(jj,i))
+              scv_o(j,i) = scv_o(j,i) + real(c2rsnowc(jj,ii))
+              tlef_s(n,j,i) = real(c2rtlef(jj,ii))
+              ssw_s(n,j,i) = real(c2rsm10cm(jj,ii))
+              rsw_s(n,j,i) = real(c2rsm1m(jj,ii))
               rnos_s(n,j,i) = real(srfrna(n,j,i)*mmpd)
-              scv_s(n,j,i) = real(c2rsnowc(jj,i))
+              scv_s(n,j,i) = real(c2rsnowc(jj,ii))
               nnn = nnn + 1
             else
               tlef_s(n,j,i) = smissval

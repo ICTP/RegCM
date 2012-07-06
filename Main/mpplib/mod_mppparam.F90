@@ -233,6 +233,7 @@ module mod_mppparam
     iyp =  iy
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
+
     if ( i_band == 1 ) dim_period(1) = .true.
     call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
                          cartesian_communicator,mpierr)
@@ -305,9 +306,9 @@ module mod_mppparam
     ma%has_bdyright  = (ma%right  == mpi_proc_null)
     ma%has_bdyleft   = (ma%left   == mpi_proc_null)
 
-    global_istart = 1
-    global_iend = iy
-    global_jstart = myid*jxp+1
+    global_istart = ma%location(2)*iyp+1
+    global_iend = global_istart+iyp-1
+    global_jstart = ma%location(1)*jxp+1
     global_jend = global_jstart+jxp-1
   end subroutine set_nproc
 
