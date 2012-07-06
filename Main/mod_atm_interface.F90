@@ -135,9 +135,8 @@ module mod_atm_interface
   type(bound_area) , public :: ba_cr , ba_dt
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
-  public :: allocate_surfstate
-  public :: deco1_bound , allocate_v3dbound , allocate_v2dbound
-  public :: deco1_model
+  public :: allocate_surfstate , allocate_v3dbound , allocate_v2dbound
+  public :: deco1_bound , deco1_model
 
   real(dp) , public , pointer , dimension(:,:) :: hgfact
   real(dp) , public , pointer , dimension(:,:) :: psdot
@@ -162,8 +161,14 @@ module mod_atm_interface
 #endif
       logical , intent(in) :: lband
 
+      ma%topleft     = mpi_proc_null
+      ma%topright    = mpi_proc_null
+      ma%bottomleft  = mpi_proc_null
+      ma%bottomright = mpi_proc_null
+
       ma%top    = mpi_proc_null
       ma%bottom = mpi_proc_null
+
       ma%ibt1 = 0
       ma%ibt2 = 0
       ma%ibb1 = 0

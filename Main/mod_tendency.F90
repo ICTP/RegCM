@@ -416,8 +416,7 @@ module mod_tendency
         psd(j,i) = sfs%psa(j,i)
       end do
     end do
-    call exchange_left(psd,1,ice1,ice2)
-    call exchange_bottom(psd,1,jce1,jce2)
+    call exchange_lb(psd,1,jce1,jce2,ice1,ice2)
 
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -785,8 +784,7 @@ module mod_tendency
       ! Call the Holtslag PBL
       call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
-      call exchange_left(sfs%uvdrag,1,ice1,ice2)
-      call exchange_bottom(sfs%uvdrag,1,jce1,jce2)
+      call exchange_lb(sfs%uvdrag,1,jce1,jce2,ice1,ice2)
       call holtbl
     end if
 
@@ -1153,8 +1151,7 @@ module mod_tendency
       end do
     end if
 !
-    call exchange_left(phi,1,ide1,ide2,1,kz)
-    call exchange_bottom(phi,1,jde1,jde2,1,kz)
+    call exchange_lb(phi,1,jde1,jde2,ide1,ide2,1,kz)
 !
 !   compute the geopotential gradient terms:
 !

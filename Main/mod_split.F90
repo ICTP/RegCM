@@ -188,10 +188,8 @@ module mod_split
       end do
     end do
 !
-    call exchange_right(uuu,1,ide1,ide2,1,kz)
-    call exchange_top(uuu,1,jde1,jde2,1,kz)
-    call exchange_right(vvv,1,ide1,ide2,1,kz)
-    call exchange_top(vvv,1,jde1,jde2,1,kz)
+    call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do l = 1 , nsplit
       do k = 1 , kz
@@ -285,10 +283,8 @@ module mod_split
       end do
     end do
 !
-    call exchange_right(uuu,1,ide1,ide2,1,kz)
-    call exchange_top(uuu,1,jde1,jde2,1,kz)
-    call exchange_right(vvv,1,ide1,ide2,1,kz)
-    call exchange_top(vvv,1,jde1,jde2,1,kz)
+    call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do l = 1 , nsplit
       do i = ide1 , ide2
@@ -332,10 +328,8 @@ module mod_split
       end do
     end do
 !
-    call exchange_right(uuu,1,ide1,ide2,1,kz)
-    call exchange_top(uuu,1,jde1,jde2,1,kz)
-    call exchange_right(vvv,1,ide1,ide2,1,kz)
-    call exchange_top(vvv,1,jde1,jde2,1,kz)
+    call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 !
     do l = 1 , nsplit
       do i = ide1 , ide2
@@ -479,8 +473,7 @@ module mod_split
 
 !=======================================================================
 
-    call exchange_left(dhsum,1,idi1,idi2,1,nsplit)
-    call exchange_bottom(dhsum,1,jdi1,jdi2,1,nsplit)
+    call exchange_lb(dhsum,1,jdi1,jdi2,idi1,idi2,1,nsplit)
 
     do l = 1 , nsplit
       do k = 1 , kz
@@ -550,8 +543,7 @@ module mod_split
 !     compute gradient of delh;  output = (work1,work2)
 !
       xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n0)
-      call exchange_left(xdelh,1,idi1,idi2)
-      call exchange_bottom(xdelh,1,jdi1,jdi2)
+      call exchange_lb(xdelh,1,jdi1,jdi2,idi1,idi2)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           fac = dx2*mddom%msfx(j,i)
@@ -585,10 +577,8 @@ module mod_split
         end do
       end do
 !
-      call exchange_right(uu,1,idi1,idi2)
-      call exchange_top(uu,1,jdi1,jdi2)
-      call exchange_right(vv,1,idi1,idi2)
-      call exchange_top(vv,1,jdi1,jdi2)
+      call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
+      call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -649,8 +639,7 @@ module mod_split
 !       compute gradient of delh;  output = (work1,work2)
 !
         xdelh(jdi1:jdi2,idi1:idi2) = delh(jdi1:jdi2,idi1:idi2,ns,n1)
-        call exchange_left(xdelh,1,idi1,idi2)
-        call exchange_bottom(xdelh,1,jdi1,jdi2)
+        call exchange_lb(xdelh,1,jdi1,jdi2,idi1,idi2)
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             fac = dx2*mddom%msfx(j,i)
@@ -684,10 +673,8 @@ module mod_split
           end do
         end do
 !
-        call exchange_right(uu,1,idi1,idi2)
-        call exchange_top(uu,1,jdi1,jdi2)
-        call exchange_right(vv,1,idi1,idi2)
-        call exchange_top(vv,1,jdi1,jdi2)
+        call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
+        call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 !
         do i = ici1 , ici2
           do j = jci1 , jci2

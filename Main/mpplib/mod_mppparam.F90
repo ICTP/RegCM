@@ -49,6 +49,7 @@ module mod_mppparam
     logical :: bandflag
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     integer :: left , right , top , bottom
+    integer :: topleft , topright , bottomleft , bottomright
     integer :: ibt1 , ibt2 , ibb1 , ibb2
     integer :: jbl1 , jbl2 , jbr1 , jbr2
   end type model_area
@@ -166,34 +167,30 @@ module mod_mppparam
   end interface subgrid_collect
 
   interface exchange
-    module procedure real8_2d_exchange ,  &
-                     real8_3d_exchange,   &
+    module procedure real8_2d_exchange , &
+                     real8_3d_exchange , &
                      real8_4d_exchange
   end interface exchange
 
-  interface exchange_left
-    module procedure real8_2d_exchange_left ,  &
-                     real8_3d_exchange_left,   &
-                     real8_4d_exchange_left
-  end interface exchange_left
+  interface exchange_lb
+    module procedure real8_2d_exchange_left_bottom , &
+                     real8_3d_exchange_left_bottom , &
+                     real8_4d_exchange_left_bottom
+  end interface exchange_lb
 
-  interface exchange_right
-    module procedure real8_2d_exchange_right , &
-                     real8_3d_exchange_right,  &
-                     real8_4d_exchange_right
-  end interface exchange_right
+  interface exchange_rt
+    module procedure real8_2d_exchange_right_top , &
+                     real8_3d_exchange_right_top , &
+                     real8_4d_exchange_right_top
+  end interface exchange_rt
 
-  interface exchange_top
-    module procedure real8_2d_exchange_top ,  &
-                     real8_3d_exchange_top,   &
-                     real8_4d_exchange_top
-  end interface exchange_top
+  interface exchange_lr
+    module procedure real8_bdy_exchange_left_right
+  end interface exchange_lr
 
-  interface exchange_bottom
-    module procedure real8_2d_exchange_bottom , &
-                     real8_3d_exchange_bottom,  &
-                     real8_4d_exchange_bottom
-  end interface exchange_bottom
+  interface exchange_tb
+    module procedure real8_bdy_exchange_top_bottom
+  end interface exchange_tb
 
   interface grid_fill
     module procedure real8_2d_grid_fill
@@ -214,10 +211,9 @@ module mod_mppparam
   integer , pointer , dimension(:) :: i4vector2
   integer :: mpierr
 !
-  public :: exchange
+  public :: exchange , exchange_lb , exchange_rt , exchange_lr , exchange_tb
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
-  public :: exchange_left , exchange_right , exchange_top , exchange_bottom
   public :: uvcross2dot , psc2psd
 !
   contains
@@ -354,7 +350,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -365,7 +361,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -382,7 +378,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -398,9 +394,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -417,7 +413,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -430,7 +425,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -450,7 +445,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -467,9 +462,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -488,7 +483,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -503,7 +497,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -526,7 +520,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -544,9 +538,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -566,7 +560,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -577,7 +571,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -594,7 +588,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -610,9 +604,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -629,7 +623,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -642,7 +635,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -662,7 +655,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -679,9 +672,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -700,7 +693,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -715,7 +707,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -738,7 +730,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -756,9 +748,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -778,7 +770,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -789,7 +781,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -806,7 +798,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -822,9 +814,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -841,7 +833,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -854,7 +845,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -874,7 +865,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -891,9 +882,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -912,7 +903,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -927,7 +917,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -950,7 +940,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = i2-i1+1
@@ -968,9 +958,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -990,7 +980,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1003,7 +993,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -1022,7 +1012,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1038,9 +1028,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1059,7 +1049,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1074,7 +1063,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -1096,7 +1085,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1113,9 +1102,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1135,7 +1124,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1148,7 +1137,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -1167,7 +1156,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1183,9 +1172,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1204,7 +1193,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1219,7 +1207,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -1241,7 +1229,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1258,9 +1246,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1280,7 +1268,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1293,7 +1281,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -1312,7 +1300,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1328,9 +1316,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1349,7 +1337,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1364,7 +1351,7 @@ module mod_mppparam
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -1386,7 +1373,7 @@ module mod_mppparam
           end do
         end do
         call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
       isize = (i2-i1+1)*nsg
@@ -1403,9 +1390,9 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1425,7 +1412,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1436,7 +1423,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -1446,7 +1433,7 @@ module mod_mppparam
           call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -1469,7 +1456,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1478,7 +1465,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_collect
 !
@@ -1488,7 +1475,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1501,7 +1487,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -1512,7 +1498,7 @@ module mod_mppparam
           call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -1538,7 +1524,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1549,7 +1535,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_3d_collect
 !
@@ -1559,7 +1545,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1574,7 +1559,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -1586,7 +1571,7 @@ module mod_mppparam
           call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
           do k = k1 , k2
@@ -1615,7 +1600,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -1628,7 +1613,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_4d_collect
 !
@@ -1637,7 +1622,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1648,7 +1633,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -1658,7 +1643,7 @@ module mod_mppparam
           call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -1681,7 +1666,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1690,7 +1675,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_2d_collect
 !
@@ -1700,7 +1685,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1713,7 +1697,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -1724,7 +1708,7 @@ module mod_mppparam
           call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -1750,7 +1734,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1761,7 +1745,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_3d_collect
 !
@@ -1771,7 +1755,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1786,7 +1769,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -1798,7 +1781,7 @@ module mod_mppparam
           call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
           do k = k1 , k2
@@ -1827,7 +1810,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -1840,7 +1823,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_4d_collect
 !
@@ -1849,7 +1832,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1860,7 +1843,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
@@ -1870,7 +1853,7 @@ module mod_mppparam
           call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -1893,7 +1876,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -1902,7 +1885,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_2d_collect
 !
@@ -1912,7 +1895,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1925,7 +1907,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -1936,7 +1918,7 @@ module mod_mppparam
           call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -1962,7 +1944,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -1973,7 +1955,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_3d_collect
 !
@@ -1983,7 +1965,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1998,7 +1979,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
@@ -2010,7 +1991,7 @@ module mod_mppparam
           call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
           do k = k1 , k2
@@ -2039,7 +2020,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -2052,7 +2033,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_4d_collect
 !
@@ -2061,7 +2042,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2074,7 +2055,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -2084,7 +2065,7 @@ module mod_mppparam
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -2109,7 +2090,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -2120,7 +2101,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_sub_collect
 !
@@ -2130,7 +2111,6 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2145,7 +2125,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -2156,7 +2136,7 @@ module mod_mppparam
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -2184,7 +2164,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -2197,7 +2177,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_3d_sub_collect
 !
@@ -2206,7 +2186,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2219,7 +2199,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -2229,7 +2209,7 @@ module mod_mppparam
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -2254,7 +2234,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -2265,7 +2245,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_2d_sub_collect
 !
@@ -2275,7 +2255,6 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2290,7 +2269,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -2301,7 +2280,7 @@ module mod_mppparam
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -2329,7 +2308,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -2342,7 +2321,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_3d_sub_collect
 !
@@ -2351,7 +2330,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu , ierr
+    integer :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2364,7 +2343,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
@@ -2374,7 +2353,7 @@ module mod_mppparam
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
           do j = window(3) , window(4)
@@ -2399,7 +2378,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = j1 , j2
@@ -2410,7 +2389,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_2d_sub_collect
 !
@@ -2420,7 +2399,6 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer :: ierr
     if ( myid == 0 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2435,7 +2413,7 @@ module mod_mppparam
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
@@ -2446,7 +2424,7 @@ module mod_mppparam
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
-                      cartesian_communicator,mpi_status_ignore,ierr)
+                      cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
           do i = window(1) , window(2)
@@ -2474,7 +2452,7 @@ module mod_mppparam
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
       call mpi_send(window,4,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -2487,7 +2465,7 @@ module mod_mppparam
         end do
       end do
       call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
-                    cartesian_communicator,mpi_status_ignore,ierr)
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_3d_sub_collect
 !
@@ -2495,43 +2473,32 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , j1 , j2  , i1 , i2
-    call real8_2d_exchange_left(ml,nex,i1,i2)
-    call real8_2d_exchange_right(ml,nex,i1,i2)
-    call real8_2d_exchange_top(ml,nex,j1,j2)
-    call real8_2d_exchange_bottom(ml,nex,j1,j2)
-  end subroutine real8_2d_exchange
-!
-  subroutine real8_2d_exchange_right(ml,nex,i1,i2)
-    implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2
-    integer :: isize , ssize , i , j , ib
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
+    integer :: isize , jsize , ssize , j , i , ib , jb
     isize = i2-i1+1
-    ssize = nex*isize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right')
-    end if
-    if ( ma%left /= mpi_proc_null ) then
-      ib = 1
+    jsize = j2-j1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      ib = 1 
       do i = i1 , i2
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml((jxp-j)+1,i)
           ib = ib + 1
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
-                      r8vector2,ssize,mpi_real8,ma%right,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%right /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -2540,39 +2507,20 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_exchange_right
-!
-  subroutine real8_2d_exchange_left(ml,nex,i1,i2)
-    implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2
-    integer :: isize , ssize , j , i , ib
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
-    isize = i2-i1+1
-    ssize = nex*isize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left')
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      ib = 1 
-      do i = i1 , i2
-        do j = 1 , nex
-          r8vector1(ib) = ml((jxp-j)+1,i)
-          ib = ib + 1
-        end do
-      end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
-                      r8vector2,ssize,mpi_real8,ma%left,1, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -2580,40 +2528,39 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r8vector1(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
-  end subroutine real8_2d_exchange_left
-!
-  subroutine real8_2d_exchange_bottom(ml,nex,j1,j2)
-    implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2
-    integer :: jsize , ssize , i , j , jb
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ssize = nex*jsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom')
-    end if
-    if ( ma%bottom /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1 
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(jb) = ml(j,i)
+          r8vector1(jb) = ml(j,(iyp-i)+1)
           jb = jb + 1
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
-                      r8vector2,ssize,mpi_real8,ma%top,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%top /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2622,39 +2569,29 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_exchange_bottom
-!
-  subroutine real8_2d_exchange_top(ml,nex,j1,j2)
-    implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2
-    integer :: jsize , ssize , i , j , jb
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ssize = nex*jsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top')
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1 
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(jb) = ml(j,iyp-i+1)
+          r8vector1(jb) = ml(j,i)
           jb = jb + 1
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
-                      r8vector2,ssize,mpi_real8,ma%bottom,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%bottom /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2663,53 +2600,41 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_exchange_top
+  end subroutine real8_2d_exchange
 !
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , i1 , i2 , k1 , k2
-    call real8_3d_exchange_left(ml,nex,i1,i2,k1,k2)
-    call real8_3d_exchange_right(ml,nex,i1,i2,k1,k2)
-    call real8_3d_exchange_top(ml,nex,j1,j2,k1,k2)
-    call real8_3d_exchange_bottom(ml,nex,j1,j2,k1,k2)
-  end subroutine real8_3d_exchange
-!
-  subroutine real8_3d_exchange_right(ml,nex,i1,i2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2 , k1 , k2
-    integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: isize , jsize , ksize , ssize , j , i , k , ib , jb
     isize = i2-i1+1
+    jsize = j2-j1+1
     ksize = k2-k1+1
-    hsize = isize*ksize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right')
-    end if
-    if ( ma%left /= mpi_proc_null ) then
-      ib = 1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1 
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml((jxp-j)+1,i,k)
             ib = ib + 1
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
-                      r8vector2,ssize,mpi_real8,ma%right,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%right /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -2720,43 +2645,20 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_3d_exchange_right
-!
-  subroutine real8_3d_exchange_left(ml,nex,i1,i2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2 , k1 , k2
-    integer :: isize , ksize , ssize , hsize , i , j , k , ib
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    hsize = isize*ksize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left')
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r8vector1(ib) = ml((jxp-j)+1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
-                      r8vector2,ssize,mpi_real8,ma%left,1, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -2766,44 +2668,43 @@ module mod_mppparam
           end do
         end do
       end do
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
-  end subroutine real8_3d_exchange_left
-!
-  subroutine real8_3d_exchange_bottom(ml,nex,j1,j2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , k1 , k2
-    integer :: jsize , ksize , ssize , hsize , i , j , k , jb
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    hsize = jsize*ksize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom')
-    end if
-    if ( ma%bottom /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1 
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(jb) = ml(j,i,k)
+            r8vector1(jb) = ml(j,(iyp-i)+1,k)
             jb = jb + 1
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,1, &
-                      r8vector2,ssize,mpi_real8,ma%top,1, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%top /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -2814,43 +2715,31 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_3d_exchange_bottom
-!
-  subroutine real8_3d_exchange_top(ml,nex,j1,j2,k1,k2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , k1 , k2
-    integer :: jsize , ksize , ssize , hsize , i , j , k , jb
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    hsize = jsize*ksize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top')
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1 
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(jb) = ml(j,iyp-i+1,k)
+            r8vector1(jb) = ml(j,i,k)
             jb = jb + 1
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,1, &
-                      r8vector2,ssize,mpi_real8,ma%bottom,1, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%bottom /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -2861,58 +2750,44 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_3d_exchange_top
+  end subroutine real8_3d_exchange
 !
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    call real8_4d_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
-    call real8_4d_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
-    call real8_4d_exchange_top(ml,nex,j1,j2,k1,k2,n1,n2)
-    call real8_4d_exchange_bottom(ml,nex,j1,j2,k1,k2,n1,n2)
-  end subroutine real8_4d_exchange
-!
-  subroutine real8_4d_exchange_right(ml,nex,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
-    integer :: i , j , k , n
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib , jb
     isize = i2-i1+1
+    jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
-    vsize = isize*ksize
-    hsize = vsize*nsize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right')
-    end if
-    if ( ma%left /= mpi_proc_null ) then
-      ib = 1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1 
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
               ib = ib + 1
             end do
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%left,2, &
-                      r8vector2,ssize,mpi_real8,ma%right,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%right /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -2925,48 +2800,20 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_4d_exchange_right
-!
-  subroutine real8_4d_exchange_left(ml,nex,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: isize , ssize , ksize , nsize , vsize , hsize , ib
-    integer :: i , j , k , n
-    if ( ma%left == mpi_proc_null .and. ma%right == mpi_proc_null) return
-    isize = i2-i1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    vsize = isize*ksize
-    hsize = vsize*nsize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left')
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%right,1, &
-                      r8vector2,ssize,mpi_real8,ma%left,1, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
     if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -2978,49 +2825,47 @@ module mod_mppparam
           end do
         end do
       end do
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
-  end subroutine real8_4d_exchange_left
-!
-  subroutine real8_4d_exchange_bottom(ml,nex,j1,j2,k1,k2,n1,n2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , k1 , k2 , n1 , n2
-    integer :: jsize , ssize , ksize , nsize , vsize , hsize , jb
-    integer :: i , j , k , n
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    vsize = jsize*ksize
-    hsize = vsize*nsize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom')
-    end if
-    if ( ma%bottom /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1 
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(jb) = ml(j,i,k,n)
+              r8vector1(jb) = ml(j,(iyp-i)+1,k,n)
               jb = jb + 1
             end do
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%bottom,2, &
-                      r8vector2,ssize,mpi_real8,ma%top,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%top /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -3033,48 +2878,33 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_4d_exchange_bottom
-!
-  subroutine real8_4d_exchange_top(ml,nex,j1,j2,k1,k2,n1,n2)
-    implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2 , k1 , k2 , n1 , n2
-    integer :: jsize , ssize , ksize , nsize , vsize , hsize , jb
-    integer :: i , j , k , n
-    if ( ma%top == mpi_proc_null .and. ma%bottom == mpi_proc_null) return
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    vsize = jsize*ksize
-    hsize = vsize*nsize
-    ssize = nex*hsize
-    if ( .not. associated(r8vector1) ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top')
-    else if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top')
-    end if
-    if ( .not. associated(r8vector2) ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top')
-    else if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top')
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      jb = 1
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1 
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(jb) = ml(j,iyp-i+1,k,n)
+              r8vector1(jb) = ml(j,i,k,n)
               jb = jb + 1
             end do
           end do
         end do
       end do
-    end if
-    call mpi_sendrecv(r8vector1,ssize,mpi_real8,ma%top,2, &
-                      r8vector2,ssize,mpi_real8,ma%bottom,2, &
-                      cartesian_communicator,mpi_status_ignore,mpierr)
-    if ( ma%bottom /= mpi_proc_null ) then
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
       jb = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -3087,15 +2917,650 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_4d_exchange_top
+  end subroutine real8_4d_exchange
+!
+  subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: isize , jsize , ssize , j , i , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      ib = 1 
+      do i = i1 , i2
+        do j = 1 , nex
+          r8vector1(ib) = ml((jxp-j)+1,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml((1-j),i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      jb = 1 
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(jb) = ml(j,(iyp-i)+1)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,1-i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+  end subroutine real8_2d_exchange_left_bottom
+!
+  subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: isize , jsize , ksize , ssize , j , i , k , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      ib = 1 
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml((jxp-j)+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml((1-j),i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      jb = 1 
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(jb) = ml(j,(iyp-i)+1,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,1-i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_3d_exchange_left_bottom
+!
+  subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      ib = 1 
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml((1-j),i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      jb = 1 
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(jb) = ml(j,(iyp-i)+1,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,1-i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_4d_exchange_left_bottom
+!
+  subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: isize , jsize , ssize , j , i , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(jxp+j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      end if
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r8vector1(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,iyp+i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      end if
+      jb = 1 
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(jb) = ml(j,i)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+  end subroutine real8_2d_exchange_right_top
+!
+  subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: isize , jsize , ksize , ssize , j , i , k , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(jxp+j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,iyp+i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      jb = 1 
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(jb) = ml(j,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+  end subroutine real8_3d_exchange_right_top
+!
+  subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib , jb
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%right /= mpi_proc_null) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(jxp+j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      ssize = nex*isize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,iyp+i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      jb = 1 
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(jb) = ml(j,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+  end subroutine real8_4d_exchange_right_top
+!
+  subroutine real8_bdy_exchange_left_right(ml,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: k1 , k2
+    integer :: ksize , k , ib
+    ksize = k2-k1+1
+    if ( ma%right /= mpi_proc_null) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+      else if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+      else if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+      end if
+      ib = 1 
+      do k = k1 , k2
+        r8vector1(ib) = ml(jxp,k)
+        ib = ib + 1
+      end do
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ksize,mpi_real8,ma%right,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(jxp+1,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
+    end if
+    if ( ma%left /= mpi_proc_null ) then
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+      else if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+      end if
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+      else if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+      end if
+      call mpi_recv(r8vector2,ksize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(0,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
+      ib = 1
+      do k = k1 , k2
+        r8vector1(ib) = ml(1,k)
+        ib = ib + 1
+      end do
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%left,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+  end subroutine real8_bdy_exchange_left_right
+!
+  subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
+    implicit none
+    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
+    integer , intent(in) :: k1 , k2
+    integer :: ksize , k , ib
+    ksize = k2-k1+1
+    if ( ma%top /= mpi_proc_null) then
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      else if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      else if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      ib = 1 
+      do k = k1 , k2
+        r8vector1(ib) = ml(iyp,k)
+        ib = ib + 1
+      end do
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ksize,mpi_real8,ma%top,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(iyp+1,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      else if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      else if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      call mpi_recv(r8vector2,ksize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(0,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
+      ib = 1
+      do k = k1 , k2
+        r8vector1(ib) = ml(1,k)
+        ib = ib + 1
+      end do
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+  end subroutine real8_bdy_exchange_top_bottom
 !
   subroutine real8_2d_grid_fill(a,b)
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
-    integer :: ierr
     call grid_collect(a,b,jde1,jde2,ide1,ide2)
-    call mpi_bcast(b,nidot*njdot,mpi_real8,0,cartesian_communicator,ierr)
+    call mpi_bcast(b,nidot*njdot,mpi_real8,0,cartesian_communicator,mpierr)
   end subroutine real8_2d_grid_fill
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
@@ -3121,8 +3586,8 @@ module mod_mppparam
     ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
     ! chunk next door)
 
-    call exchange_left(ux,1,ide1,ide2,1,kz)
-    call exchange_left(vx,1,ide1,ide2,1,kz)
+    call exchange_lb(ux,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_lb(vx,1,jde1,jde2,ide1,ide2,1,kz)
 
     !
     !     x     x     x     x     x     x

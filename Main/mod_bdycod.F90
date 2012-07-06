@@ -703,39 +703,33 @@ module mod_bdycod
       end do
     end if
 
-    call exchange_left(sue,1,1,kz)
-    call exchange_right(sue,1,1,kz)
-    call exchange_left(sui,1,1,kz)
-    call exchange_right(sui,1,1,kz)
-    call exchange_left(nue,1,1,kz)
-    call exchange_right(nue,1,1,kz)
-    call exchange_left(nui,1,1,kz)
-    call exchange_right(nui,1,1,kz)
-    call exchange_left(sve,1,1,kz)
-    call exchange_right(sve,1,1,kz)
-    call exchange_left(svi,1,1,kz)
-    call exchange_right(svi,1,1,kz)
-    call exchange_left(nve,1,1,kz)
-    call exchange_right(nve,1,1,kz)
-    call exchange_left(nvi,1,1,kz)
-    call exchange_right(nvi,1,1,kz)
+    if ( ma%has_bdytop ) then
+      call exchange_lr(nue,1,kz)
+      call exchange_lr(nui,1,kz)
+      call exchange_lr(nve,1,kz)
+      call exchange_lr(nvi,1,kz)
+    end if
 
-    call exchange_top(eue,1,1,kz)
-    call exchange_bottom(eue,1,1,kz)
-    call exchange_top(eui,1,1,kz)
-    call exchange_bottom(eui,1,1,kz)
-    call exchange_top(wue,1,1,kz)
-    call exchange_bottom(wue,1,1,kz)
-    call exchange_top(wui,1,1,kz)
-    call exchange_bottom(wui,1,1,kz)
-    call exchange_top(eve,1,1,kz)
-    call exchange_bottom(eve,1,1,kz)
-    call exchange_top(evi,1,1,kz)
-    call exchange_bottom(evi,1,1,kz)
-    call exchange_top(wve,1,1,kz)
-    call exchange_bottom(wve,1,1,kz)
-    call exchange_top(wvi,1,1,kz)
-    call exchange_bottom(wvi,1,1,kz)
+    if ( ma%has_bdybottom ) then
+      call exchange_lr(sue,1,kz)
+      call exchange_lr(sui,1,kz)
+      call exchange_lr(sve,1,kz)
+      call exchange_lr(svi,1,kz)
+    end if
+
+    if ( ma%has_bdyleft ) then
+      call exchange_tb(wue,1,kz)
+      call exchange_tb(wui,1,kz)
+      call exchange_tb(wve,1,kz)
+      call exchange_tb(wvi,1,kz)
+    end if
+
+    if ( ma%has_bdyright ) then
+      call exchange_tb(eue,1,kz)
+      call exchange_tb(eui,1,kz)
+      call exchange_tb(eve,1,kz)
+      call exchange_tb(evi,1,kz)
+    end if
 
     call time_end(subroutine_name,idindx)
 
