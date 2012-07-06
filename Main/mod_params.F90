@@ -1735,11 +1735,11 @@ module mod_params
     print 99019 , xkhmax
   end if
 
-  call deco1_allocate_v2dbound(xpsb,cross)
-  call deco1_allocate_v3dbound(xtb,kz,cross)
-  call deco1_allocate_v3dbound(xqb,kz,cross)
-  call deco1_allocate_v3dbound(xub,kz,dot)
-  call deco1_allocate_v3dbound(xvb,kz,dot)
+  call allocate_v2dbound(xpsb,cross)
+  call allocate_v3dbound(xtb,kz,cross)
+  call allocate_v3dbound(xqb,kz,cross)
+  call allocate_v3dbound(xub,kz,dot)
+  call allocate_v3dbound(xvb,kz,dot)
 
   call mpi_barrier(mycomm,ierr) 
 !

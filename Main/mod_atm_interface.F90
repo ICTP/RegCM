@@ -136,7 +136,7 @@ module mod_atm_interface
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
   public :: allocate_surfstate
-  public :: deco1_bound , deco1_allocate_v3dbound , deco1_allocate_v2dbound
+  public :: deco1_bound , allocate_v3dbound , allocate_v2dbound
   public :: deco1_model
 
   real(dp) , public , pointer , dimension(:,:) :: hgfact
@@ -463,7 +463,7 @@ module mod_atm_interface
 #endif
     end subroutine deco1_bound
 
-    subroutine deco1_allocate_v3dbound(xb,ke,ldot)
+    subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
       type(v3dbound) , intent(out) :: xb
       integer , intent(in) :: ke
@@ -483,9 +483,9 @@ module mod_atm_interface
         call getmem3d(xb%bt,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,1,ke,'v3dbound:bt')
       end if
-    end subroutine deco1_allocate_v3dbound
+    end subroutine allocate_v3dbound
 !
-    subroutine deco1_allocate_v2dbound(xb,ldot)
+    subroutine allocate_v2dbound(xb,ldot)
       implicit none
       type(v2dbound) , intent(out) :: xb
       logical , intent(in) :: ldot
@@ -504,7 +504,7 @@ module mod_atm_interface
         call getmem2d(xb%bt,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'v2dbound:bt')
       end if
-    end subroutine deco1_allocate_v2dbound
+    end subroutine allocate_v2dbound
 !
     subroutine allocate_atmstate(atm,ibltyp,lpar,exchange_points)
       implicit none
