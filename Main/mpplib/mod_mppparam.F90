@@ -221,7 +221,7 @@ module mod_mppparam
   subroutine set_nproc(ncpu)
     implicit none
     integer , intent(in) :: ncpu
-    nproc = ncpu 
+    nproc = ncpu
     jxp =  jx/nproc
     iyp =  iy
     jxpsg  = jxp * nsg
@@ -2488,7 +2488,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      ib = 1 
+      ib = 1
       do i = i1 , i2
         do j = 1 , nex
           r8vector1(ib) = ml((jxp-j)+1,i)
@@ -2550,7 +2550,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do i = 1 , nex
         do j = j1 , j2
           r8vector1(jb) = ml(j,(iyp-i)+1)
@@ -2581,7 +2581,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do i = 1 , nex
         do j = j1 , j2
           r8vector1(jb) = ml(j,i)
@@ -2596,6 +2596,130 @@ module mod_mppparam
       do i = 1 , nex
         do j = j1 , j2
           ml(j,1-i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(j,iyp-i+1)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(1-j,iyp+i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(jxp-j+1,iyp-i+1)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(jxp+j,iyp+i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(j,i)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(1-j,1-i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(jxp-j+1,i)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(jxp+j,1-i) = r8vector2(jb)
           jb = jb + 1
         end do
       end do
@@ -2622,7 +2746,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
-      ib = 1 
+      ib = 1
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -2692,7 +2816,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -2727,7 +2851,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -2745,6 +2869,146 @@ module mod_mppparam
         do i = 1 , nex
           do j = j1 , j2
             ml(j,1-i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(j,iyp-i+1,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(1-j,iyp+i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(jxp-j+1,iyp-i+1,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(jxp+j,iyp+i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(j,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(1-j,1-i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(jxp-j+1,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(jxp+j,1-i,k) = r8vector2(jb)
             jb = jb + 1
           end do
         end do
@@ -2773,7 +3037,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
-      ib = 1 
+      ib = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -2851,7 +3115,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
@@ -2890,7 +3154,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
-      jb = 1 
+      jb = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
@@ -2917,6 +3181,162 @@ module mod_mppparam
         end do
       end do
     end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(j,iyp-i+1,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(1-j,iyp+i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(jxp-j+1,iyp-i+1,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(jxp+j,iyp+i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(j,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(1-j,1-i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(jxp-j+1,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(jxp+j,1-i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_4d_exchange
 !
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
@@ -2933,7 +3353,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
-      ib = 1 
+      ib = 1
       do i = i1 , i2
         do j = 1 , nex
           r8vector1(ib) = ml((jxp-j)+1,i)
@@ -2967,7 +3387,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
-      jb = 1 
+      jb = 1
       do i = 1 , nex
         do j = j1 , j2
           r8vector1(jb) = ml(j,(iyp-i)+1)
@@ -2994,6 +3414,40 @@ module mod_mppparam
         end do
       end do
     end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(jxp-j+1,iyp-i+1)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(1-j,1-i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
   end subroutine real8_2d_exchange_left_bottom
 !
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -3011,7 +3465,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
-      ib = 1 
+      ib = 1
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -3049,7 +3503,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
-      jb = 1 
+      jb = 1
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -3080,6 +3534,44 @@ module mod_mppparam
         end do
       end do
     end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(jxp-j+1,iyp-i+1,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(1-j,1-i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_3d_exchange_left_bottom
 !
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -3098,7 +3590,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
-      ib = 1 
+      ib = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -3140,7 +3632,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
-      jb = 1 
+      jb = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
@@ -3169,6 +3661,48 @@ module mod_mppparam
           do i = 1 , nex
             do j = j1 , j2
               ml(j,1-i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(jxp-j+1,iyp-i+1,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(1-j,1-i,k,n) = r8vector2(jb)
               jb = jb + 1
             end do
           end do
@@ -3242,7 +3776,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
       end if
-      jb = 1 
+      jb = 1
       do i = 1 , nex
         do j = j1 , j2
           r8vector1(jb) = ml(j,i)
@@ -3250,6 +3784,40 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(jxp+j,iyp+i) = r8vector2(jb)
+          jb = jb + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      jb = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(jb) = ml(j,i)
+          jb = jb + 1
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_exchange_right_top
@@ -3326,7 +3894,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
       end if
-      jb = 1 
+      jb = 1
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -3336,6 +3904,44 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(jxp+j,iyp+i,k) = r8vector2(jb)
+            jb = jb + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      jb = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(jb) = ml(j,i,k)
+            jb = jb + 1
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_3d_exchange_right_top
@@ -3419,7 +4025,7 @@ module mod_mppparam
       else if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
       end if
-      jb = 1 
+      jb = 1
       do n = n1 , n2
         do k = k1 , k2
           do i = 1 , nex
@@ -3431,6 +4037,48 @@ module mod_mppparam
         end do
       end do
       call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector2) ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(jxp+j,iyp+i,k,n) = r8vector2(jb)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( .not. associated(r8vector1) ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      else if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      jb = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(jb) = ml(j,i,k,n)
+              jb = jb + 1
+            end do
+          end do
+        end do
+      end do
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_4d_exchange_right_top
@@ -3452,7 +4100,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
       end if
-      ib = 1 
+      ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(jxp,k)
         ib = ib + 1
@@ -3512,7 +4160,7 @@ module mod_mppparam
       else if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
-      ib = 1 
+      ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(iyp,k)
         ib = ib + 1
@@ -3566,7 +4214,7 @@ module mod_mppparam
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.
 ! This routine sheilds the user of the function from the need to worry
-! about the details of the domain decomposition.  
+! about the details of the domain decomposition.
 !
 ! Written by Travis A. O'Brien 01/04/11.
 !
@@ -3592,16 +4240,16 @@ module mod_mppparam
     !
     !     x     x     x     x     x     x
     !
-    !        o     o     o     o     o 
-    !         (i-1,j-1)     (i,j-1)            
+    !        o     o     o     o     o
+    !         (i-1,j-1)     (i,j-1)
     !     x     x     x-----x     x     x
     !                 |(i,j)|
-    !        o     o  |  o  |  o     o 
+    !        o     o  |  o  |  o     o
     !                 |     |
     !     x     x     x-----x     x     x
     !           (i-1,j)     (i,j)
     !
-    !        o     o     o     o     o 
+    !        o     o     o     o     o
     !
     !     x     x     x     x     x     x
     !
