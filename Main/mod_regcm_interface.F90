@@ -312,7 +312,6 @@ module mod_regcm_interface
 #else
           call solar1
 #endif
-          call solar1
           !
           ! Read in new boundary conditions
           !
