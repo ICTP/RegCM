@@ -226,6 +226,7 @@ module mod_mppparam
     logical , dimension(2) :: dim_period
     integer , dimension(2) :: isearch
     data dim_period /.false.,.false./
+
     nproc = ncpu
     cpus_per_dim(1) = ncpu
     cpus_per_dim(2) = 1
@@ -235,76 +236,90 @@ module mod_mppparam
     iyp =  iy
     !jxp =  jx/2
     !iyp =  iy/2
-    jxpsg  = jxp * nsg
-    iypsg  = iyp * nsg
 
     if ( i_band == 1 ) dim_period(1) = .true.
-    call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
-                         cartesian_communicator,mpierr)
-    call mpi_comm_rank(cartesian_communicator,myid,mpierr)
-    call mpi_cart_coords(cartesian_communicator,myid,2,ma%location,mpierr)
 
-    ! Set coordinates in the grid for the other processors
-    isearch(1) = ma%location(1)
-    isearch(2) = ma%location(2)+1
-    if ( isearch(2) < cpus_per_dim(2) ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
+    if ( nproc > 1 ) then
+      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
+                           cartesian_communicator,mpierr)
+      call mpi_comm_rank(cartesian_communicator,myid,mpierr)
+      call mpi_cart_coords(cartesian_communicator,myid,2,ma%location,mpierr)
+      ! Set coordinates in the grid for the other processors
+      isearch(1) = ma%location(1)
+      isearch(2) = ma%location(2)+1
+      if ( isearch(2) < cpus_per_dim(2) ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
+      else
+        ma%top = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)
+      isearch(2) = ma%location(2)-1
+      if ( isearch(2) >= 0 ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottom,mpierr)
+      else
+        ma%bottom = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)-1
+      isearch(2) = ma%location(2)
+      if ( isearch(1) >= 0 ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%left,mpierr)
+      else
+        ma%left = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)+1
+      isearch(2) = ma%location(2)
+      if ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
+      else
+        ma%right = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)+1
+      isearch(2) = ma%location(2)+1
+      if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
+             isearch(2) < cpus_per_dim(2) ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
+      else
+        ma%topright = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)-1
+      isearch(2) = ma%location(2)+1
+      if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. &
+             isearch(2) < cpus_per_dim(2) ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
+      else
+        ma%topleft = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)+1
+      isearch(2) = ma%location(2)-1
+      if ( ( isearch(1) < cpus_per_dim(2) .or. i_band == 1 ) .and. &
+             isearch(2) >= 0 ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
+      else
+        ma%bottomright = mpi_proc_null
+      end if
+      isearch(1) = ma%location(1)-1
+      isearch(2) = ma%location(2)-1
+      if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. isearch(2) >= 0 ) then
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
+      else
+        ma%bottomleft = mpi_proc_null
+      end if
     else
-      ma%top = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)
-    isearch(2) = ma%location(2)-1
-    if ( isearch(2) >= 0 ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottom,mpierr)
-    else
-      ma%bottom = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)-1
-    isearch(2) = ma%location(2)
-    if ( isearch(1) >= 0 ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%left,mpierr)
-    else
-      ma%left = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)+1
-    isearch(2) = ma%location(2)
-    if ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
-    else
-      ma%right = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)+1
-    isearch(2) = ma%location(2)+1
-    if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
-           isearch(2) < cpus_per_dim(2) ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
-    else
-      ma%topright = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)-1
-    isearch(2) = ma%location(2)+1
-    if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. &
-           isearch(2) < cpus_per_dim(2) ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
-    else
-      ma%topleft = mpi_proc_null
-    end if
-    isearch(1) = ma%location(1)+1
-    isearch(2) = ma%location(2)-1
-    if ( ( isearch(1) < cpus_per_dim(2) .or. i_band == 1 ) .and. &
-           isearch(2) >= 0 ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
-    else
+      jxp =  jx
+      iyp =  iy
+      cartesian_communicator = mycomm
+      ma%location(1) = 0
+      ma%location(2) = 0
+      ma%top         = mpi_proc_null
+      ma%bottom      = mpi_proc_null
+      ma%left        = mpi_proc_null
+      ma%right       = mpi_proc_null
+      ma%bottomleft  = mpi_proc_null
       ma%bottomright = mpi_proc_null
+      ma%topleft     = mpi_proc_null
+      ma%topright    = mpi_proc_null
     end if
-    isearch(1) = ma%location(1)-1
-    isearch(2) = ma%location(2)-1
-    if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. isearch(2) >= 0 ) then
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
-    else
-      ma%bottomleft = mpi_proc_null
-    end if
-
+  
     ma%has_bdytop    = (ma%top    == mpi_proc_null)
     ma%has_bdybottom = (ma%bottom == mpi_proc_null)
     ma%has_bdyright  = (ma%right  == mpi_proc_null)
@@ -314,6 +329,9 @@ module mod_mppparam
     global_iend = global_istart+iyp-1
     global_jstart = ma%location(1)*jxp+1
     global_jend = global_jstart+jxp-1
+
+    jxpsg  = jxp * nsg
+    iypsg  = iyp * nsg
   end subroutine set_nproc
 
   subroutine broadcast_params
