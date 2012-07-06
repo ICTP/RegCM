@@ -43,11 +43,11 @@ module mod_mppparam
   public :: set_nproc , broadcast_params , date_bcast
 
   integer :: cartesian_communicator
-  integer , dimension(4) :: window
 
   type model_area
     logical :: bandflag
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
+    integer , dimension(2) :: location
     integer :: left , right , top , bottom
     integer :: topleft , topright , bottomleft , bottomright
     integer :: ibt1 , ibt2 , ibb1 , ibb2
@@ -209,6 +209,7 @@ module mod_mppparam
   real(sp) , pointer , dimension(:) :: r4vector2
   integer , pointer , dimension(:) :: i4vector1
   integer , pointer , dimension(:) :: i4vector2
+  integer , dimension(4) :: window
   integer :: mpierr
 !
   public :: exchange , exchange_lb , exchange_rt , exchange_lr , exchange_tb
@@ -221,12 +222,89 @@ module mod_mppparam
   subroutine set_nproc(ncpu)
     implicit none
     integer , intent(in) :: ncpu
+    integer , dimension(2) :: cpus_per_dim
+    logical , dimension(2) :: dim_period
+    integer , dimension(2) :: isearch
+    data dim_period /.false.,.false./
     nproc = ncpu
+    cpus_per_dim(1) = ncpu
+    cpus_per_dim(2) = 1
     jxp =  jx/nproc
     iyp =  iy
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
-    cartesian_communicator = mycomm
+    if ( i_band == 1 ) dim_period(1) = .true.
+    call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
+                         cartesian_communicator,mpierr)
+    call mpi_comm_rank(cartesian_communicator,myid,mpierr)
+    call mpi_cart_coords(cartesian_communicator,myid,2,ma%location,mpierr)
+
+    ! Set coordinates in the grid for the other processors
+    isearch(1) = ma%location(1)
+    isearch(2) = ma%location(2)+1
+    if ( isearch(2) < cpus_per_dim(2) ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
+    else
+      ma%top = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)
+    isearch(2) = ma%location(2)-1
+    if ( isearch(2) >= 0 ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottom,mpierr)
+    else
+      ma%bottom = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)-1
+    isearch(2) = ma%location(2)
+    if ( isearch(1) >= 0 ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%left,mpierr)
+    else
+      ma%left = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)+1
+    isearch(2) = ma%location(2)
+    if ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
+    else
+      ma%right = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)+1
+    isearch(2) = ma%location(2)+1
+    if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
+           isearch(2) < cpus_per_dim(2) ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
+    else
+      ma%topright = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)-1
+    isearch(2) = ma%location(2)+1
+    if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. &
+           isearch(2) < cpus_per_dim(2) ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
+    else
+      ma%topleft = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)+1
+    isearch(2) = ma%location(2)-1
+    if ( ( isearch(1) < cpus_per_dim(2) .or. i_band == 1 ) .and. &
+           isearch(2) >= 0 ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
+    else
+      ma%bottomright = mpi_proc_null
+    end if
+    isearch(1) = ma%location(1)-1
+    isearch(2) = ma%location(2)-1
+    if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. isearch(2) >= 0 ) then
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
+    else
+      ma%bottomleft = mpi_proc_null
+    end if
+
+    ma%has_bdytop    = (ma%top    == mpi_proc_null)
+    ma%has_bdybottom = (ma%bottom == mpi_proc_null)
+    ma%has_bdyright  = (ma%right  == mpi_proc_null)
+    ma%has_bdyleft   = (ma%left   == mpi_proc_null)
+
     global_istart = 1
     global_iend = iy
     global_jstart = myid*jxp+1

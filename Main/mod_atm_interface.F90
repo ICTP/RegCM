@@ -161,64 +161,44 @@ module mod_atm_interface
 #endif
       logical , intent(in) :: lband
 
-      ma%topleft     = mpi_proc_null
-      ma%topright    = mpi_proc_null
-      ma%bottomleft  = mpi_proc_null
-      ma%bottomright = mpi_proc_null
-
-      ma%top    = mpi_proc_null
-      ma%bottom = mpi_proc_null
-
       ma%ibt1 = 0
       ma%ibt2 = 0
       ma%ibb1 = 0
       ma%ibb2 = 0
       if ( nproc == 1 ) then
         if ( lband ) then
-          ma%right = myid
-          ma%left  = myid
           ma%jbr1 = 1
           ma%jbl1 = 1
           ma%jbr2 = 2
           ma%jbl2 = 2
         else
-          ma%right = mpi_proc_null
-          ma%left  = mpi_proc_null
           ma%jbr1 = 0
           ma%jbr2 = 0
           ma%jbl1 = 0
           ma%jbl2 = 0
         end if
       else
-        if ( myid == 0 ) then
+        if ( ma%has_bdyleft ) then
           if ( lband ) then
-            ma%left = nproc-1
             ma%jbl1 = 1
             ma%jbl2 = 2
           else
-            ma%left = mpi_proc_null
             ma%jbl1 = 0
             ma%jbl2 = 0
           endif
-          ma%right = myid+1
           ma%jbr1 = 1
           ma%jbr2 = 2
-        else if ( myid == nproc-1 ) then
+        else if ( ma%has_bdyright ) then
           if ( lband ) then
-            ma%right = 0
             ma%jbr1 = 1
             ma%jbr2 = 2
           else
-            ma%right = mpi_proc_null
             ma%jbr1 = 0
             ma%jbr2 = 0
           end if
-          ma%left = myid-1
           ma%jbl1 = 1
           ma%jbl2 = 2
         else
-          ma%right = myid+1
-          ma%left  = myid-1
           ma%jbr1 = 1
           ma%jbr2 = 2
           ma%jbl1 = 1
@@ -232,8 +212,6 @@ module mod_atm_interface
       write(ndebug+myid,*) 'LFT = ', ma%left
 #endif
       ma%bandflag = lband
-      ma%has_bdyleft  = .false.
-      ma%has_bdyright = .false.
       jde1  = 1
       jdi1  = 1
       jdii1 = 1
@@ -247,17 +225,15 @@ module mod_atm_interface
       idi2  = idot2-1
       idii2 = idot2-2
       if ( .not. lband ) then
-        if ( myid == 0 ) then
+        if ( ma%has_bdyleft ) then
           jde1  = jcross1
           jdi1  = jcross1+1
           jdii1 = jcross1+2
-          ma%has_bdyleft = .true.
         end if
-        if ( myid == nproc-1 ) then
+        if ( ma%has_bdyright ) then
           jde2  = jxp
           jdi2  = jxp-1
           jdii2 = jxp-2
-          ma%has_bdyright = .true.
         end if
       end if
 #ifdef DEBUG
@@ -278,12 +254,12 @@ module mod_atm_interface
       ici2  = icross2-1
       icii2 = icross2-2
       if ( .not. lband ) then
-        if ( myid == 0 ) then
+        if ( ma%has_bdyleft ) then
           jce1  = jcross1
           jci1  = jcross1+1
           jcii1 = jcross1+2
         end if
-        if ( myid == nproc-1 ) then
+        if ( ma%has_bdyright ) then
           jce2  = jxp-1
           jci2  = jxp-2
           jcii2 = jxp-3
@@ -294,9 +270,6 @@ module mod_atm_interface
       write(ndebug+myid,*) 'CRXPINT1 : ', jci1 , jci2
       write(ndebug+myid,*) 'CRXPINT2 : ', jcii1 , jcii2
 #endif
-      ! In 1D deco, each processor ALWAYS HAS top and bottom.
-      ma%has_bdytop    = .true.
-      ma%has_bdybottom = .true.
 #ifdef DEBUG
       write(ndebug+myid,*) 'TOPBDY   : ', ma%has_bdytop
       write(ndebug+myid,*) 'BTMBDY   : ', ma%has_bdybottom
