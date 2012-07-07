@@ -4351,8 +4351,8 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
-    call grid_collect(a,b,jde1,jde2,ide1,ide2)
-    call mpi_bcast(b,nidot*njdot,mpi_real8,0,cartesian_communicator,mpierr)
+    call grid_collect(a,b,1,jxp,1,iyp)
+    call mpi_bcast(b,iy*jx,mpi_real8,0,cartesian_communicator,mpierr)
   end subroutine real8_2d_grid_fill
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
