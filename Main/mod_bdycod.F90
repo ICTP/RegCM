@@ -678,28 +678,36 @@ module mod_bdycod
     !
     ! fill up the interior silces:
     !
-    if ( ma%has_bdyleft ) then
+    if ( ma%has_bdyleft .and. ma%has_bdytop ) then
       do k = 1 , kz
-        wui(ide1,k) = sue(jdi1,k)
         wui(ide2,k) = nue(jdi1,k)
-        wvi(ide1,k) = sve(jdi1,k)
         wvi(ide2,k) = nve(jdi1,k)
-        sui(jde1,k) = wue(idi1,k)
         nui(jde1,k) = wue(idi2,k)
-        svi(jde1,k) = wve(idi1,k)
         nvi(jde1,k) = wve(idi2,k)
       end do
     end if
-    if ( ma%has_bdyright ) then
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+      do k = 1 , kz
+        wui(ide1,k) = sue(jdi1,k)
+        wvi(ide1,k) = sve(jdi1,k)
+        sui(jde1,k) = wue(idi1,k)
+        svi(jde1,k) = wve(idi1,k)
+      end do
+    end if
+    if ( ma%has_bdyright .and. ma%has_bdytop ) then
+      do k = 1 , kz
+        eui(ide2,k) = nue(jdi2,k)
+        evi(ide2,k) = nve(jdi2,k)
+        nui(jde2,k) = eue(idi2,k)
+        nvi(jde2,k) = eve(idi2,k)
+      end do
+    end if
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
       do k = 1 , kz
         eui(ide1,k) = sue(jdi2,k)
-        eui(ide2,k) = nue(jdi2,k)
         evi(ide1,k) = sve(jdi2,k)
-        evi(ide2,k) = nve(jdi2,k)
         sui(jde2,k) = eue(idi1,k)
-        nui(jde2,k) = eue(idi2,k)
         svi(jde2,k) = eve(idi1,k)
-        nvi(jde2,k) = eve(idi2,k)
       end do
     end if
 
