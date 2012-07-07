@@ -36,10 +36,6 @@ module mod_mppparam
   include 'mpif.h'
 #endif
 
-  integer , public , parameter :: nqx = 2
-  integer , public , parameter :: iqv = 1
-  integer , public , parameter :: iqc = 2
-
   public :: set_nproc , broadcast_params , date_bcast
 
   integer :: cartesian_communicator

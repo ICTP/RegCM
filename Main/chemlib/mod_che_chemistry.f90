@@ -22,6 +22,7 @@ module mod_che_chemistry
   use mod_realkinds
   use mod_dynparam
   use mod_constants
+  use mod_runparams , only : iqv
   use mod_che_common
   use mod_che_indices
   use mod_che_species

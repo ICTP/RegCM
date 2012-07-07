@@ -21,7 +21,7 @@ module mod_bats_mtrxbats
 
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iocnflx , iocncpl
+  use mod_runparams , only : iqv , iocnflx , iocncpl
   use mod_mpmessage
   use mod_constants
   use mod_service
@@ -34,7 +34,6 @@ module mod_bats_mtrxbats
   use mod_bats_mppio
   use mod_bats_zengocn
   use mod_bats_romsocn
-  use mod_mppparam , only : iqv
 
   private
 

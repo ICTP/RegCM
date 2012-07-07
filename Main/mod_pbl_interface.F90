@@ -29,6 +29,7 @@ module mod_pbl_interface
   use mod_pbl_common
   use mod_pbl_holtbl
   use mod_pbl_uwtcm
+  use mod_runparams , only : iqc , iqv
 
   public
 

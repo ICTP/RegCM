@@ -19,12 +19,13 @@
  
 module mod_cloud_s1
 !
-  use mod_runparams
+  use mod_realkinds
+  use mod_dynparam
   use mod_mpmessage
   use mod_memutil
   use mod_atm_interface , only : atmstate , slice , surfstate
-  use mod_mppparam , only : iqqv => iqv
-  use mod_mppparam , only : iqqc => iqc
+  use mod_runparams , only : iqqv => iqv
+  use mod_runparams , only : iqqc => iqc
 
   use mod_pbl_common
 

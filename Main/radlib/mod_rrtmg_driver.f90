@@ -37,8 +37,7 @@ module mod_rrtmg_driver
   use parrrtm
   use rrtmg_lw_rad
   use mod_rad_outrad
-  use mod_runparams , only : calday
-  use mod_mppparam , only : iqv
+  use mod_runparams , only : calday , iqv
 
   private
 !

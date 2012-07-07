@@ -22,13 +22,12 @@ module mod_rad_colmod3
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_runparams , only : iemiss
+  use mod_runparams , only : iemiss , iqv
   use mod_rad_radiation
   use mod_rad_common
   use mod_rad_outrad
   use mod_rrtmg_driver
   use mod_rad_aerosol
-  use mod_mppparam , only : iqv
 !
   private
 !

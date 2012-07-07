@@ -25,7 +25,6 @@ module mod_cu_common
   use mod_memutil
   use mod_realkinds
   use mod_runparams
-  use mod_runparams
 
   public
 !

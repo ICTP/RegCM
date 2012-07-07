@@ -22,8 +22,7 @@
 module mod_mtrxclm
 
   use mod_dynparam
-  use mod_runparams , only : idate0
-  use mod_mppparam , only : iqv
+  use mod_runparams , only : idate0 , iqv
   use mod_mpmessage
   use mod_service
   use mod_mppparam

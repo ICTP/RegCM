@@ -26,6 +26,10 @@ module mod_runparams
 
   implicit none
 
+  integer , public , parameter :: nqx = 2
+  integer , public , parameter :: iqv = 1
+  integer , public , parameter :: iqc = 2
+
   type(rcm_time_and_date) , save :: idate0 , idate1 , idate2
 
   type(rcm_time_and_date) , save :: idatex

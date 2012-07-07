@@ -63,7 +63,7 @@ mod_bats_internal.o mod_bats_internal.mod: mod_bats_internal.f90 mod_realkinds.m
 mod_bats_lake.o mod_bats_lake.mod: mod_bats_lake.F90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod mod_bats_internal.mod mod_bats_mppio.mod
 mod_bats_leaftemp.o mod_bats_leaftemp.mod: mod_bats_leaftemp.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_bats_common.mod mod_bats_internal.mod
 mod_bats_mppio.o mod_bats_mppio.mod: mod_bats_mppio.F90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod
-mod_bats_mtrxbats.o mod_bats_mtrxbats.mod: mod_bats_mtrxbats.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_constants.mod mod_service.mod mod_bats_common.mod mod_bats_internal.mod mod_bats_leaftemp.mod mod_bats_lake.mod mod_bats_bndry.mod mod_bats_drag.mod mod_bats_mppio.mod mod_bats_zengocn.mod mod_bats_romsocn.mod mod_runparams.mod mod_mppparam.mod
+mod_bats_mtrxbats.o mod_bats_mtrxbats.mod: mod_bats_mtrxbats.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_constants.mod mod_service.mod mod_bats_common.mod mod_bats_internal.mod mod_bats_leaftemp.mod mod_bats_lake.mod mod_bats_bndry.mod mod_bats_drag.mod mod_bats_mppio.mod mod_bats_zengocn.mod mod_bats_romsocn.mod mod_runparams.mod
 mod_bats_param.o mod_bats_param.mod: mod_bats_param.f90 mod_realkinds.mod
-mod_bats_romsocn.o mod_bats_romsocn.mod: mod_bats_romsocn.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_bats_common.mod mod_bats_zengocn.mod mod_mppparam.mod
-mod_bats_zengocn.o mod_bats_zengocn.mod: mod_bats_zengocn.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_bats_common.mod mod_runparams.mod mod_mppparam.mod
+mod_bats_romsocn.o mod_bats_romsocn.mod: mod_bats_romsocn.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_bats_common.mod mod_bats_zengocn.mod mod_runparams.mod
+mod_bats_zengocn.o mod_bats_zengocn.mod: mod_bats_zengocn.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_bats_common.mod mod_runparams.mod

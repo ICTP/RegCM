@@ -26,7 +26,7 @@ module mod_bats_romsocn
   use mod_service
   use mod_bats_common
   use mod_bats_zengocn
-  use mod_mppparam
+  use mod_runparams , only : iqv
 !
   private
 !

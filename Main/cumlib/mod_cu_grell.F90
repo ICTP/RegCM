@@ -23,7 +23,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_service 
   use mod_cu_common
-  use mod_mppparam , only : iqv
+  use mod_runparams , only : iqv
  
   private
 

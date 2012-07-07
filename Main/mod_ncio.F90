@@ -25,7 +25,7 @@ module mod_ncio
   use mod_memutil
   use mod_nchelper
   use mod_domain
-  use mod_mppparam , only : iqc , iqv
+  use mod_runparams , only : iqc , iqv
 !
   integer , parameter :: n_atmvar = 14
   integer , parameter :: n_srfvar = 26

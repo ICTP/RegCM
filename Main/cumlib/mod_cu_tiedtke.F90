@@ -27,7 +27,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_mppparam , only : iqc , iqv
+  use mod_runparams , only : iqc , iqv
 !
   private
 !

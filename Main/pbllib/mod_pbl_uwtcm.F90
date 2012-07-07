@@ -72,7 +72,7 @@ module mod_pbl_uwtcm
   use mod_mpmessage
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_mppparam , only : iqv , iqc
+  use mod_runparams , only : iqv , iqc
 
   private
 
