@@ -702,7 +702,7 @@ module mod_bdycod
         nvi(jde2,k) = eve(idi2,k)
       end do
     end if
-    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+    if ( ma%has_bdyright .and. ma%has_bdybottom ) then
       do k = 1 , kz
         eui(ide1,k) = sue(jdi2,k)
         evi(ide1,k) = sve(jdi2,k)
