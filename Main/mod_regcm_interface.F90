@@ -129,32 +129,7 @@ module mod_regcm_interface
 !
     call set_nproc(ncpu)
 
-    if ( ncpu /= nproc ) then
-      write (aline,*) 'The number of CPU is not well set'
-      call say
-      write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
-      call say
-      call fatal(__FILE__,__LINE__,'CPU Count mismatch')
-    end if
-!      print * , "process" , myid , "of" , nproc
     call mpi_barrier(mycomm,ierr)
-!     starttime= MPI_WTIME()
-    if ( jxp < 3 ) then
-      write (aline,*) 'The number of jxp must be greater than 2'
-      call say
-      write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
-      call say
-      call fatal(__FILE__,__LINE__,'Domain too small')
-    end if
-    !if ( jxp*nproc /= jx ) then
-    !  write (aline,*) 'jx should be divided by nproc'
-    !  call say
-    !  write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
-    !  call say
-    !  call fatal(__FILE__,__LINE__,                                   &
-    !           & 'Domain dimension not multiple of' //                &
-    !           & ' processor number')
-    !end if
 !
 !**********************************************************************
 !

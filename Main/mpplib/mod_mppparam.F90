@@ -225,25 +225,55 @@ module mod_mppparam
     integer , dimension(2) :: cpus_per_dim
     logical , dimension(2) :: dim_period
     integer , dimension(2) :: isearch
+    integer :: imaxcpus
+    real(dp) :: dimfac
     data dim_period /.false.,.false./
 
     nproc = ncpu
-    cpus_per_dim(1) = ncpu
-    cpus_per_dim(2) = 1
-    !cpus_per_dim(1) = 2
-    !cpus_per_dim(2) = 2
-    jxp =  jx/nproc
-    iyp =  iy
-    !jxp =  jx/2
-    !iyp =  iy/2
 
     if ( i_band == 1 ) dim_period(1) = .true.
 
-    if ( nproc > 1 ) then
+    if ( nproc == 1 ) then
+      cpus_per_dim(1) = 1
+      cpus_per_dim(2) = 1
+      jxp =  jx
+      iyp =  iy
+      cartesian_communicator = mycomm
+      ma%location(1) = 0
+      ma%location(2) = 0
+      ma%top         = mpi_proc_null
+      ma%bottom      = mpi_proc_null
+      ma%left        = mpi_proc_null
+      ma%right       = mpi_proc_null
+      ma%bottomleft  = mpi_proc_null
+      ma%bottomright = mpi_proc_null
+      ma%topleft     = mpi_proc_null
+      ma%topright    = mpi_proc_null
+    else
+      if ( nproc < 4 ) then
+        cpus_per_dim(1) = ncpu
+        cpus_per_dim(2) = 1
+      else if ( nproc >= 4 ) then
+        if ( mod(nproc,2) /= 0 ) then
+          write(stderr,*) 'Work does not evenly divide.'
+          write(stderr,*) 'Required number of CPUS must be even.'
+          call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
+        end if
+        dimfac = real(max(iy,jx))/real(iy+jx)
+        cpus_per_dim(1) = int(real(ncpu)**dimfac)
+        cpus_per_dim(2) = ncpu / cpus_per_dim(1)
+        imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
+        if ( mod(ncpu,imaxcpus) /= 0 ) then
+          write(stderr,*) 'Work does not evenly divide.'
+          write(stderr,*) 'Suggested minimum number of CPUS : ', imaxcpus
+          call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
+        end if
+      end if
       call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
                            cartesian_communicator,mpierr)
       call mpi_comm_rank(cartesian_communicator,myid,mpierr)
       call mpi_cart_coords(cartesian_communicator,myid,2,ma%location,mpierr)
+
       ! Set coordinates in the grid for the other processors
       isearch(1) = ma%location(1)
       isearch(2) = ma%location(2)+1
@@ -291,7 +321,7 @@ module mod_mppparam
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)-1
-      if ( ( isearch(1) < cpus_per_dim(2) .or. i_band == 1 ) .and. &
+      if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
              isearch(2) >= 0 ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
       else
@@ -304,20 +334,6 @@ module mod_mppparam
       else
         ma%bottomleft = mpi_proc_null
       end if
-    else
-      jxp =  jx
-      iyp =  iy
-      cartesian_communicator = mycomm
-      ma%location(1) = 0
-      ma%location(2) = 0
-      ma%top         = mpi_proc_null
-      ma%bottom      = mpi_proc_null
-      ma%left        = mpi_proc_null
-      ma%right       = mpi_proc_null
-      ma%bottomleft  = mpi_proc_null
-      ma%bottomright = mpi_proc_null
-      ma%topleft     = mpi_proc_null
-      ma%topright    = mpi_proc_null
     end if
   
     ma%has_bdytop    = (ma%top    == mpi_proc_null)
@@ -325,11 +341,42 @@ module mod_mppparam
     ma%has_bdyright  = (ma%right  == mpi_proc_null)
     ma%has_bdyleft   = (ma%left   == mpi_proc_null)
 
-    global_istart = ma%location(2)*iyp+1
-    global_iend = global_istart+iyp-1
-    global_jstart = ma%location(1)*jxp+1
-    global_jend = global_jstart+jxp-1
+    jxp =  jx/cpus_per_dim(1)
+    iyp =  iy/cpus_per_dim(2)
 
+    global_jstart = ma%location(1)*jxp+1
+    global_istart = ma%location(2)*iyp+1
+
+    if ( ma%has_bdytop ) then
+      if ( mod(iy,iyp) /= 0 ) then
+        global_iend = global_istart+iyp-1
+        if ( global_iend < iy ) then
+          iyp = iy-global_istart+1
+        else
+          iyp = mod(iy,iyp)
+        end if
+      end if
+    end if
+    if ( ma%has_bdyright ) then
+      if ( mod(jx,jxp) /= 0 ) then
+        global_jend = global_jstart+jxp-1
+        if ( global_jend < jx ) then
+          jxp = jx-global_jstart+1
+        else
+          jxp = mod(jx,jxp)
+        end if
+      end if
+    end if
+
+    ! Check the results
+    if ( jxp < 3 .or. iyp < 3 ) then
+      write(stderr,*) 'Cannot have one processor with less than 9 points.'
+      write(stderr,*) 'Processor ',myid,' has ',jxp*iyp,' (',jxp,'x',iyp,')'
+      call fatal(__FILE__,__LINE__,'Too much processors')
+    end if
+
+    global_jend = global_jstart+jxp-1
+    global_iend = global_istart+iyp-1
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
   end subroutine set_nproc
