@@ -45,11 +45,9 @@ The things you need to know here:
 
 \begin{enumerate}
 \item In the current version 4.3 the model parallelizes execution dividing
-the work between the processors along the jx (longitude) dimension. The
-minimum work per processor is 3 points along the jx dimension, so the maximum
-number of processors which can be used in a parallel run for the above
-configuration is just $16$. In future revision ICTP plans to introduce 2D
-decomposition.
+the work between the processors, with the minimum work per processor is 9
+points or a box $3*3$, so the maximum number of processors which can be used
+in a parallel run for the above configuration is roughly $180$.
 \item If a custom number of sigma level is chosen (not 14, 18 or 23), the actual
 sigma values are calculated mimimizing the $a,b$ coefficients for the 
 equation:
