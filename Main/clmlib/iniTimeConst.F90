@@ -484,9 +484,9 @@ subroutine iniTimeConst
             c2rdisps(nc) = c2rdisps(nc-1) + c2rngc(nc-1)
           endif
         enddo
-        call mpi_allgatherv(map_i(1),nn,MPI_INTEGER,omap_i,c2rngc,c2rdisps, &
+        call mpi_allgatherv(map_i,nn,MPI_INTEGER,omap_i,c2rngc,c2rdisps, &
                             MPI_INTEGER,mpicom,ier)
-        call mpi_allgatherv(map_j(1),nn,MPI_INTEGER,omap_j,c2rngc,c2rdisps, &
+        call mpi_allgatherv(map_j,nn,MPI_INTEGER,omap_j,c2rngc,c2rdisps, &
                             MPI_INTEGER,mpicom,ier)
 
         deallocate(map_i,map_j)

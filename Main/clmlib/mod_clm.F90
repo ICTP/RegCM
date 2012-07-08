@@ -34,6 +34,7 @@ module mod_clm
   integer :: imask
   real(dp) :: clmfrq
 !
+  integer :: r2comm        ! RegCM MPI communicator
   integer :: r2cdtime      ! timestep in seconds
   integer :: r2cnsrest     ! 0=initial, 1=restart
   integer :: r2cnestep     ! final timestep (or day if negative) number
@@ -169,9 +170,6 @@ module mod_clm
     implicit none
     logical , intent(in) :: lband
 
-! About the dimension ordering:
-! regcm: ix=lat,jx=lon, arrays are lat by lon
-! clm: i=lon, j=lat, arrays are lon by lat
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
     call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')
     call getmem2d(r2czga,1,jxp,1,iyp,'clm:r2czga')
@@ -189,6 +187,7 @@ module mod_clm
     call getmem2d(r2cxlon,1,jxp,1,iyp,'clm:r2cxlon')
     call getmem2d(r2cxlatd,1,jxp,1,iyp,'clm:r2cxlatd')
     call getmem2d(r2cxlond,1,jxp,1,iyp,'clm:r2cxlond')
+
     call getmem2d(r2ctb_all,1,jx,1,iy,'clm:r2ctb_all')
     call getmem2d(r2cqb_all,1,jx,1,iy,'clm:r2cqb_all')
     call getmem2d(r2czga_all,1,jx,1,iy,'clm:r2czga_all')
@@ -234,21 +233,23 @@ module mod_clm
     call getmem2d(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
     call getmem2d(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
     call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
+
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
 
-    call getmem2d(sols2d,jce1,jce2,ice1,ice2,'clm:sols2d')
-    call getmem2d(soll2d,jce1,jce2,ice1,ice2,'clm:soll2d')
-    call getmem2d(solsd2d,jce1,jce2,ice1,ice2,'clm:solsd2d')
-    call getmem2d(solld2d,jce1,jce2,ice1,ice2,'clm:solld2d')
-    call getmem2d(aldirs2d,jce1,jce2,ice1,ice2,'clm:aldirs2d')
-    call getmem2d(aldirl2d,jce1,jce2,ice1,ice2,'clm:aldirl2d')
-    call getmem2d(aldifs2d,jce1,jce2,ice1,ice2,'clm:aldifs2d')
-    call getmem2d(aldifl2d,jce1,jce2,ice1,ice2,'clm:aldifl2d')
-    call getmem2d(rs2d,jce1,jce2,ice1,ice2,'clm:rs2d')
-    call getmem2d(ra2d,jce1,jce2,ice1,ice2,'clm:ra2d')
-    call getmem2d(q2d,jce1,jce2,ice1,ice2,'clm:q2d')
-    call getmem2d(lndcat2d,jce1,jce2,ice1,ice2,'clm:lndcat2d')
+    call getmem2d(sols2d,jci1,jci2,ici1,ici2,'clm:sols2d')
+    call getmem2d(soll2d,jci1,jci2,ici1,ici2,'clm:soll2d')
+    call getmem2d(solsd2d,jci1,jci2,ici1,ici2,'clm:solsd2d')
+    call getmem2d(solld2d,jci1,jci2,ici1,ici2,'clm:solld2d')
+    call getmem2d(aldirs2d,jci1,jci2,ici1,ici2,'clm:aldirs2d')
+    call getmem2d(aldirl2d,jci1,jci2,ici1,ici2,'clm:aldirl2d')
+    call getmem2d(aldifs2d,jci1,jci2,ici1,ici2,'clm:aldifs2d')
+    call getmem2d(aldifl2d,jci1,jci2,ici1,ici2,'clm:aldifl2d')
+    call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
+    call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
+    call getmem2d(q2d,jci1,jci2,ici1,ici2,'clm:q2d')
+    call getmem2d(lndcat2d,jci1,jci2,ici1,ici2,'clm:lndcat2d')
+ 
   end subroutine allocate_mod_clm
 !
 end module mod_clm

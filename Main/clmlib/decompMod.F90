@@ -750,8 +750,8 @@ contains
 
 !!!! total # of cells given to each processor !!! abt rcm below
     dummy_in = procinfo%ncells
-    call MPI_GATHER(dummy_in,1,MPI_INTEGER,c2rngc(iam+1),1,MPI_INTEGER,0,MPI_COMM_WORLD,ier)
-    call MPI_BCAST(c2rngc(1),npes,MPI_INTEGER,0,MPI_COMM_WORLD,ier)
+    call MPI_GATHER(dummy_in,1,MPI_INTEGER,c2rngc(iam+1),1,MPI_INTEGER,0,r2comm,ier)
+    call MPI_BCAST(c2rngc(1),npes,MPI_INTEGER,0,r2comm,ier)
 !!! abt above
 
     call shr_sys_flush(6)

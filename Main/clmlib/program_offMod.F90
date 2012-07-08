@@ -134,7 +134,7 @@ contains
   ! -----------------------------------------------------------------
   call mpi_initialized (mpi_running, ier)
   if (.not. mpi_running) call mpi_init(ier)
-  mpicom_glob = MPI_COMM_WORLD
+  mpicom_glob = r2comm
   call spmd_init(mpicom_glob)
   call mct_world_init(1,mpicom_glob,mpicom,comp_id)
 
