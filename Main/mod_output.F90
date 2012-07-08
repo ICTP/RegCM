@@ -344,15 +344,15 @@ module mod_output
         call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
       end if
 #else
-      call grid_collect(sols2d,sols2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(soll2d,soll2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(solsd2d,solsd2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(solld2d,solld2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(aldirs2d,aldirs2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(aldirl2d,aldirl2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(aldifs2d,aldifs2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(aldifl2d,aldifl2d_io,jce1,jce2,ice1,ice2)
-      call grid_collect(lndcat2d,lndcat2d_io,jce1,jce2,ice1,ice2)
+      call grid_collect(sols2d,sols2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(soll2d,soll2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(solsd2d,solsd2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(solld2d,solld2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(aldirs2d,aldirs2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(aldirl2d,aldirl2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(aldifs2d,aldifs2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(aldifl2d,aldifl2d_io,jci1,jci2,ici1,ici2)
+      call grid_collect(lndcat2d,lndcat2d_io,jci1,jci2,ici1,ici2)
 #endif
       if ( idcsst == 1 ) then
         call grid_collect(dtskin,dtskin_io,jci1,jci2,ici1,ici2)

@@ -351,15 +351,15 @@ module mod_init
       call subgrid_distribute(tlak_io,tlak,jci1,jci2,ici1,ici2,1,ndpmax)
     endif
 #else
-    call grid_distribute(sols2d_io,sols2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(soll2d_io,soll2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(solsd2d_io,solsd2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(solld2d_io,solld2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(aldirs2d_io,aldirs2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(aldirl2d_io,aldirl2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(aldifs2d_io,aldifs2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(aldifl2d_io,aldifl2d,jce1,jce2,ice1,ice2)
-    call grid_distribute(lndcat2d_io,lndcat2d,jce1,jce2,ice1,ice2)
+    call grid_distribute(sols2d_io,sols2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(soll2d_io,soll2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(solsd2d_io,solsd2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(solld2d_io,solld2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(aldirs2d_io,aldirs2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(aldirl2d_io,aldirl2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(aldifs2d_io,aldifs2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(aldifl2d_io,aldifl2d,jci1,jci2,ici1,ici2)
+    call grid_distribute(lndcat2d_io,lndcat2d,jci1,jci2,ici1,ici2)
     !
     ! CLM modifies landuse table. Get the modified one from restart file
     !

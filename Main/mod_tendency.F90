@@ -756,7 +756,6 @@ module mod_tendency
         r2cnstep = (ktau+1)/ntsrf
       end if
       dtbat = dt*d_half*ntsrf
-      ! CLM j loop is in mtrxclm
       call mtrxclm(ktau)
     end if
 #endif
