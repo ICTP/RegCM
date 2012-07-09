@@ -256,7 +256,7 @@ module mod_mppparam
           call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
         end if
         dimfac = real(max(iy,jx))/real(iy+jx)
-        cpus_per_dim(1) = int(real(ncpu)**dimfac)
+        cpus_per_dim(1) = int(real(ncpu)*dimfac)
         cpus_per_dim(2) = ncpu / cpus_per_dim(1)
         imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
         if ( mod(ncpu,imaxcpus) /= 0 ) then

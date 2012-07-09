@@ -536,8 +536,6 @@ module mod_bats_mtrxbats
           tavg_o(j,i) = tavg_o(j,i)+t2m_o(j,i)/fdaysrf
           real_4 = real((sfps(j,i)+ptop)*d_10)
           psmn_o(j,i) = amin1(psmn_o(j,i),real_4)
-          pptc(j,i) = d_zero
-          pptnc(j,i) = d_zero
           if ( fsw(j,i) > 120.0D0 ) then
             sund_o(j,i) = sund_o(j,i) + real(dtbat)
             sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
@@ -656,6 +654,8 @@ module mod_bats_mtrxbats
           end do
         end do
       end if
+      pptc(:,:) = d_zero
+      pptnc(:,:) = d_zero
     end if
     call time_end(subroutine_name,idindx)
 !

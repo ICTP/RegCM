@@ -234,6 +234,12 @@ module mod_mtrxclm
     r2cxlon = r2cxlond*degrad
 
     if ( .not.ifrest ) then
+      !
+      !    Gather values of each nproc work_in array and fill
+      !      work_out(jx*iy) array.
+      !    3. Copy 1d work_out array to 2d (jx,iy) array for passing
+      !    to clm.
+      !
       call fill_frame(tatm,r2ctb)
       call fill_frame(qxatm,r2cqb,iqv)
       r2cqb = r2cqb/(d_one+r2cqb)
@@ -249,14 +255,7 @@ module mod_mtrxclm
       call fill_frame(solsd2d,r2csolsd)
       call fill_frame(solld2d,r2csolld)
       call fill_frame(flwd,r2cflwd)
-    end if
-    !
-    !    Gather values of each nproc work_in array and fill
-    !    work_out(jx*iy) array.
-    !    3. Copy 1d work_out array to 2d (jx,iy) array for passing
-    !    to clm.
-    !
-    if ( .not.ifrest ) then
+
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
       call grid_fill(r2czga,r2czga_all)
@@ -387,12 +386,10 @@ module mod_mtrxclm
             lndcat1(n,j,i) = clm2bats_veg(jg,ig)
             if ( clm2bats_veg(jg,ig) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
           end do
-
           iveg(j,i) = idnint(lndcat(j,i))
           do n = 1 , nnsg
             iveg1(n,j,i) = idnint(lndcat1(n,j,i))
           end do
-
           if ( ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) .and. &
                  ldmsk(j,i) /= 0 ) then
             iveg(j,i)   =  2
@@ -459,8 +456,8 @@ module mod_mtrxclm
 !
   subroutine interfclm(ivers,ktau)
     use clmtype
-    use clm_varsur , only : landmask, landfrac
-    use clm_varsur , only : c2r_allout,omap_i,omap_j
+    use clm_varsur , only : landmask , landfrac
+    use clm_varsur , only : c2r_allout , omap_i , omap_j
     implicit none
     !
     ! ivers = 1 : regcm -> clm
@@ -593,10 +590,10 @@ module mod_mtrxclm
             uvdrag(j,i)   = c2ruvdrag(jg,ig)
             tgbb(j,i)     = c2rtgbb(jg,ig)
 
-            aldirs(j,i) = c2ralbdirs(jg,ig)
-            aldirl(j,i) = c2ralbdirl(jg,ig)
-            aldifs(j,i) = c2ralbdifs(jg,ig)
-            aldifl(j,i) = c2ralbdifl(jg,ig)
+            aldirs(j,i)   = c2ralbdirs(jg,ig)
+            aldirl(j,i)   = c2ralbdirl(jg,ig)
+            aldifs(j,i)   = c2ralbdifs(jg,ig)
+            aldifl(j,i)   = c2ralbdifl(jg,ig)
 
             do n = 1 , nnsg
               tgrd(n,j,i)   = c2rtgb(jg,ig)
@@ -633,8 +630,6 @@ module mod_mtrxclm
             fswa(j,i)  = fswa(j,i) + dtbat*fsw(j,i)
             svga(j,i)  = svga(j,i) + dtbat*sabveg(j,i)
             sina(j,i)  = sina(j,i) + dtbat*sinc(j,i)
-            pptnc(j,i) = d_zero
-            pptc(j,i)  = d_zero
           else if ( landmask(jg,ig) == 0 ) then !ocean
             do n = 1 , nnsg
               uvdrag(j,i)   = uvdrag(j,i) + drag(n,j,i)
@@ -691,9 +686,6 @@ module mod_mtrxclm
             fswa(j,i)  = fswa(j,i) + dtbat*fsw(j,i)
             svga(j,i)  = svga(j,i) + dtbat*sabveg(j,i)
             sina(j,i)  = sina(j,i) + dtbat*sinc(j,i)
-            pptnc(j,i) = d_zero
-            pptc(j,i)  = d_zero
-
           else if ( landmask(jg,ig) == 3 ) then
             !gridcell with some % land and ocean
             do n = 1 , nnsg
@@ -787,84 +779,84 @@ module mod_mtrxclm
           end if
         end do
       end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          u10m_o(j,i) = 0.0
+          v10m_o(j,i) = 0.0
+          tg_o(j,i)   = 0.0
+          t2m_o(j,i)  = 0.0
+          q2m_o(j,i)  = 0.0
+          do n = 1 , nnsg
+            if ( ldmsk1(n,j,i) /= 0 ) then
+              q2m_s(n,j,i)  = real(q2d(j,i))
+              u10m_s(n,j,i) = real(uatm(j,i,kz))
+              v10m_s(n,j,i) = real(vatm(j,i,kz))
+              tg_s(n,j,i)   = real(tgrd(n,j,i))
+              t2m_s(n,j,i)  = real(taf(n,j,i))
+              q2m_o(j,i)    = q2m_o(j,i) + real(q2d(j,i))
+              u10m_o(j,i)   = u10m_o(j,i) + real(uatm(j,i,kz))
+              v10m_o(j,i)   = v10m_o(j,i) + real(vatm(j,i,kz))
+              t2m_o(j,i)    = t2m_o(j,i) + real(taf(n,j,i))
+              tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
+            else if ( ldmsk1(n,j,i) == 0 ) then
+              q2m_s(n,j,i)  = real(q2m(n,j,i))
+              tg_s(n,j,i)   = real(tgrd(n,j,i))
+              u10m_s(n,j,i) = real(u10m(n,j,i))
+              v10m_s(n,j,i) = real(v10m(n,j,i))
+              t2m_s(n,j,i)  = real(t2m(n,j,i))
+              q2m_o(j,i)    = q2m_o(j,i) + real(q2m(n,j,i))
+              u10m_o(j,i)   = u10m_o(j,i) + real(u10m(n,j,i))
+              v10m_o(j,i)   = v10m_o(j,i) + real(v10m(n,j,i))
+              t2m_o(j,i)    = t2m_o(j,i) + real(t2m(n,j,i))
+              tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
+            end if
+          end do
+          tgmx_o(j,i) = amax1(tgmx_o(j,i),tg_o(j,i))
+          tgmn_o(j,i) = amin1(tgmn_o(j,i),tg_o(j,i))
+          t2mx_o(j,i) = amax1(t2mx_o(j,i),t2m_o(j,i))
+          t2mn_o(j,i) = amin1(t2mn_o(j,i),t2m_o(j,i))
+          w10x_o(j,i) = amax1(w10x_o(j,i), &
+                        sqrt(u10m_o(j,i)**2.0+v10m_o(j,i)**2.0))
+          real_4      = real((pptnc(j,i)+pptc(j,i)))
+          pcpx_o(j,i) = amax1(pcpx_o(j,i),real_4)
+          pcpa_o(j,i) = pcpa_o(j,i) + real_4/fdaysrf
+          tavg_o(j,i) = tavg_o(j,i)+t2m_o(j,i)/fdaysrf
+          real_4      = real((sfps(j,i)+ptop)*d_10)
+          psmn_o(j,i) = amin1(psmn_o(j,i),real_4)
+          if ( fsw(j,i) > 120.0D0 ) then
+            sund_o(j,i) = sund_o(j,i) + real(dtbat)
+            sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
+          end if
+        end do
+      end do
 
       ! Fill output arrays if needed
 
       if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
 
         do i = ici1 , ici2
-          ig = global_istart+i-1
           do j = jci1 , jci2
-            jg = global_jstart+j-1
-            u10m_o(j,i) = 0.0
-            v10m_o(j,i) = 0.0
-            tg_o(j,i)   = 0.0
-            t2m_o(j,i)  = 0.0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                u10m_s(n,j,i) = real(uatm(j,i,kz))
-                v10m_s(n,j,i) = real(vatm(j,i,kz))
-                tg_s(n,j,i)   = real(tgrd(n,j,i))
-                t2m_s(n,j,i)  = real(taf(n,j,i))
-                u10m_o(j,i)   = u10m_o(j,i) + real(uatm(j,i,kz))
-                v10m_o(j,i)   = v10m_o(j,i) + real(vatm(j,i,kz))
-                t2m_o(j,i)    = t2m_o(j,i) + real(taf(n,j,i))
-                tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
-              else if ( ldmsk1(n,j,i) == 0 ) then
-                tg_s(n,j,i)   = real(tgrd(n,j,i))
-                u10m_s(n,j,i) = real(u10m(n,j,i))
-                v10m_s(n,j,i) = real(v10m(n,j,i))
-                t2m_s(n,j,i)  = real(t2m(n,j,i))
-                u10m_o(j,i)   = u10m_o(j,i) + real(u10m(n,j,i))
-                v10m_o(j,i)   = v10m_o(j,i) + real(v10m(n,j,i))
-                t2m_o(j,i)    = t2m_o(j,i) + real(t2m(n,j,i))
-                tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
-              end if
-            end do
-            tgmx_o(j,i) = amax1(tgmx_o(j,i),tg_o(j,i))
-            tgmn_o(j,i) = amin1(tgmn_o(j,i),tg_o(j,i))
-            t2mx_o(j,i) = amax1(t2mx_o(j,i),t2m_o(j,i))
-            t2mn_o(j,i) = amin1(t2mn_o(j,i),t2m_o(j,i))
-            w10x_o(j,i) = amax1(w10x_o(j,i), &
-                          sqrt(u10m_o(j,i)**2.0+v10m_o(j,i)**2.0))
-            real_4      = real((pptnc(j,i)+pptc(j,i)))
-            pcpx_o(j,i) = amax1(pcpx_o(j,i),real_4)
-            pcpa_o(j,i) = pcpa_o(j,i) + real_4/fdaysrf
-            tavg_o(j,i) = tavg_o(j,i)+t2m_o(j,i)/fdaysrf
-            real_4      = real((sfps(j,i)+ptop)*d_10)
-            psmn_o(j,i) = amin1(psmn_o(j,i),real_4)
-            pptnc(j,i)  = d_zero
-            pptc(j,i)   = d_zero
-            if ( fsw(j,i) > 120.0D0 ) then
-              sund_o(j,i) = sund_o(j,i) + real(dtbat)
-              sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
-            end if
             drag_o(j,i) = 0.0
-            q2m_o(j,i)  = 0.0
             evpa_o(j,i) = 0.0
             sena_o(j,i) = 0.0
             do n = 1 , nnsg
               if ( ldmsk1(n,j,i) /= 0 ) then
-                q2m_s(n,j,i)  = real(q2d(j,i))
                 drag_s(n,j,i) = real(uvdrag(j,i))
                 evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
                 sena_s(n,j,i) = real(sena(n,j,i)*wpm2)
                 tpr_s(n,j,i)  = real((prnca(j,i)+prca(j,i))*mmpd)
                 prcv_s(n,j,i) = real(prca(j,i)*mmpd)
                 ps_s(n,j,i)   = real(sfcp(n,j,i)*0.01D0)
-                q2m_o(j,i)    = q2m_o(j,i) + real(q2d(j,i))
                 drag_o(j,i)   = drag_o(j,i) + real(uvdrag(j,i))
                 evpa_o(j,i)   = evpa_o(j,i) + real(evpa(n,j,i))
                 sena_o(j,i)   = sena_o(j,i) + real(sena(n,j,i))
               else if ( ldmsk1(n,j,i) == 0 ) then
-                q2m_s(n,j,i)  = real(q2m(n,j,i))
                 drag_s(n,j,i) = real(drag(n,j,i))
                 evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
                 sena_s(n,j,i) = real(sena(n,j,i)*wpm2)
                 tpr_s(n,j,i)  = real((prnca(j,i)+prca(j,i))*mmpd)
                 prcv_s(n,j,i) = real(prca(j,i)*mmpd)
                 ps_s(n,j,i)   = real(sfcp(n,j,i)*0.01D0)
-                q2m_o(j,i)    = q2m_o(j,i) + real(q2m(n,j,i))
                 drag_o(j,i)   = drag_o(j,i) + real(drag(n,j,i))
                 evpa_o(j,i)   = evpa_o(j,i) + real(evpa(n,j,i))
                 sena_o(j,i)   = sena_o(j,i) + real(sena(n,j,i))
@@ -937,6 +929,8 @@ module mod_mtrxclm
           end do
         end do
       end if
+      pptnc(:,:) = d_zero
+      pptc(:,:)  = d_zero
     end if  ! end if ivers = 2
   end subroutine interfclm
 !
