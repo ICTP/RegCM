@@ -115,6 +115,16 @@ module mod_che_start
     ipar   =  0
     iolt   =  0
     ioli   =  0
+    imgly  =  0
+    icres  =  0
+    iopen  =  0
+    iisoprd = 0
+    ionit   = 0
+    ihcooh  = 0
+    ich3ooh = 0
+    iethooh = 0
+    irooh   = 0
+    ixo2 =    0
 
     !abt *** For initializing megan tracer biogenic voc mask  
     !    *** Mask not equal to zero when any MEGAN species is
@@ -234,6 +244,21 @@ module mod_che_start
       if ( chtrname(itr) == 'HOX'   ) ihox      = itr
       if ( chtrname(itr) == 'SOX'   ) isox      = itr
       if ( chtrname(itr) == 'PAR'   ) ipar      = itr
+      if ( chtrname(itr) == 'MGLY'  ) imgly     = itr
+      if ( chtrname(itr) == 'CRES'  ) icres     = itr
+      if ( chtrname(itr) == 'OPEN'  ) iopen     = itr
+      if ( chtrname(itr) == 'ISOPRD') iisoprd   = itr 
+      if ( chtrname(itr) == 'ONIT'  ) ionit     = itr
+      if ( chtrname(itr) == 'HCOOH' ) ihcooh    = itr
+      if ( chtrname(itr) == 'RCOOH' ) ircooh    = itr
+      if ( chtrname(itr) == 'CH3OOH') ich3ooh   = itr 
+      if ( chtrname(itr) == 'ETHOOH') iethooh   = itr 
+      if ( chtrname(itr) == 'ROOH'  ) irooh     = itr
+      if ( chtrname(itr) == 'HONO'  ) ihono     = itr
+      if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
+      if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
+
+
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
       !    *** regcm.in namelist.  If both are defined then STOP

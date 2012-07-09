@@ -258,15 +258,20 @@ module mod_che_common
         write (aline,*) 'AERO simulation'
         call say
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
-        ntr = 26
+        ntr = 37
         allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','DMS   ','O3    ', &
+        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
                                  'NO2   ','NO    ','CO    ','H2O2  ', &
                                  'HNO3  ','N2O5  ','HCHO  ','ALD2  ', &
                                  'ISOP  ','C2H6  ','PAR   ','ACET  ', &
                                  'MOH   ','OLT   ','OLI   ','TOLUE ', &
                                  'XYL   ','ETHE  ','PAN   ','CH4   ', &
-                                 'RCOOH ','NH3   ' /)
+                                 'MGLY  ','CRES  ','OPEN  ','ISOPRD', &
+                                 'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
+                                 'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
+                                 'XO2   ' /)
+
+
         igaschem = 1
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say

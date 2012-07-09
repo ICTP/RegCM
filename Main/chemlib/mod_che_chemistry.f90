@@ -155,6 +155,20 @@ module mod_che_chemistry
           xrin(1,ind_ACET) = chib3d(j,i,k,iacet)*cfactor/W_ACET
           xrin(1,ind_RCOOH) = chib3d(j,i,k,ircooh)*cfactor/W_RCOOH
 
+          xrin(1,ind_mgly) = chib3d(j,i,k,imgly)*cfactor/w_MGLY
+          xrin(1,ind_cres) = chib3d(j,i,k,icres)*cfactor/W_CRES
+          xrin(1,ind_open) = chib3d(j,i,k,iopen)*cfactor/W_OPEN
+          xrin(1,ind_isoprd) = chib3d(j,i,k,iisoprd)*cfactor/W_ISOPRD
+          xrin(1,ind_onit) = chib3d(j,i,k,ionit)*cfactor/W_ONIT
+          xrin(1,ind_hcooh ) = chib3d(j,i,k,ihcooh)*cfactor/W_HCOOH
+          xrin(1,ind_ch3ooh) = chib3d(j,i,k,ich3ooh)*cfactor/W_CH3OOH
+          xrin(1,ind_ethooh) = chib3d(j,i,k,iethooh)*cfactor/W_ETHOOH
+          xrin(1,ind_rooh) = chib3d(j,i,k,irooh)*cfactor/W_ROOH
+          xrin(1,ind_hono) = chib3d(j,i,k,ihono)*cfactor/W_HONO
+          xrin(1,ind_hno4) = chib3d(j,i,k,ihno4)*cfactor/W_HNO4
+          xrin(1,ind_xo2 ) = chib3d(j,i,k,ixo2)*cfactor/W_XO2
+
+
 !         solver work with xr 
           xr(:,:) = xrin(:,:)
 
@@ -225,6 +239,34 @@ module mod_che_chemistry
             (xrout(1,ind_ACET) - xrin(1,ind_ACET))*pfact*W_ACET
           chemten(j,i,k,ircooh)  = &
             (xrout(1,ind_RCOOH) - xrin(1,ind_RCOOH))*pfact*W_RCOOH
+          chemten(j,i,k,imgly)  = &
+            (xrout(1,ind_mgly) - xrin(1,ind_mgly))*pfact*W_mgly
+           chemten(j,i,k,icres)  = &
+            (xrout(1,ind_cres) - xrin(1,ind_cres))*pfact*W_cres
+           chemten(j,i,k,iopen)  = &
+            (xrout(1,ind_open) - xrin(1,ind_open))*pfact*W_open
+           chemten(j,i,k,iisoprd)  = &
+            (xrout(1,ind_isoprd) - xrin(1,ind_isoprd))*pfact*W_isoprd
+           chemten(j,i,k,ionit)  = &
+            (xrout(1,ind_onit) - xrin(1,ind_onit))*pfact*W_onit
+           chemten(j,i,k,ihcooh)  = &
+            (xrout(1,ind_hcooh) - xrin(1,ind_hcooh))*pfact*W_hcooh
+           chemten(j,i,k,ich3ooh)  = &
+            (xrout(1,ind_ch3ooh) - xrin(1,ind_ch3ooh))*pfact*W_ch3ooh
+           chemten(j,i,k,iethooh)  = &
+            (xrout(1,ind_ethooh) - xrin(1,ind_ethooh))*pfact*W_ethooh
+           chemten(j,i,k,irooh)  = &
+            (xrout(1,ind_rooh) - xrin(1,ind_rooh))*pfact*W_rooh
+           chemten(j,i,k,ihono)  = &
+            (xrout(1,ind_hono) - xrin(1,ind_hono))*pfact*W_hono
+           chemten(j,i,k,ihno4)  = &
+            (xrout(1,ind_hno4) - xrin(1,ind_hno4))*pfact*W_hno4
+           chemten(j,i,k,ixo2)  = &
+            (xrout(1,ind_xo2) - xrin(1,ind_xo2))*pfact*W_xo2
+
+
+
+
 
         end do ! end i , k loop
       end do

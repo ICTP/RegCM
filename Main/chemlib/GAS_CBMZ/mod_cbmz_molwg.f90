@@ -71,6 +71,12 @@ module mod_cbmz_molwg
   real(dp) , parameter :: w_tpan    = 147.0D0
   real(dp) , parameter :: w_alco    = 32.0D0
 
+  real(dp), parameter  :: w_cres   = 108.0D0
+  real(dp), parameter  :: w_hcooh   = 46.0D0 ! 
+  real(dp), parameter  :: w_ch3ooh   = 48.0D0 ! 
+  real(dp), parameter  :: w_ethooh   = 74.0D0 ! 
+
+
   real(dp) , parameter :: w_dms     = 62.0D0
   real(dp) , parameter :: w_rooh    = 48.0D0
   real(dp) , parameter :: w_nh3     = 17.0D0
@@ -86,5 +92,15 @@ module mod_cbmz_molwg
   real(dp),  parameter :: w_rcooh   = 59.1D0
   real(dp) , parameter :: w_apin    = 136.230D0
   real(dp) , parameter :: w_limo    = 136.230D0
+! 
+!here are some intermediate species or operator : set to molecular weight = 1, or determine form Emmons et al GMDD 
+!It should not matter since evry thing is converted to mol before the chem solver , so proprtion between reactants are 
+!conserved , unless other processes than chemical reaction modify concentrations
+!BUT unit is wong in the output  
+  real(dp) , parameter :: w_xo2    = 149.0D0 
+  real(dp), parameter  :: w_open   = 1.0D0 ! 
+  real(dp), parameter  :: w_isoprd =  116.D0 !
+  real(dp), parameter  :: w_onit   = 119.0D0 !
+
 
 end module mod_cbmz_molwg

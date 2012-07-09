@@ -33,8 +33,8 @@ module mod_che_indices
   integer :: ico , ihcho , iald2 , iethe , ic2h6 , ic3h8
   integer :: iisop , itolue , ixyl , inh3 , ipan , in2o
   integer :: irooh , iacet , ibenz , ich4 , ico2
-  integer :: inox , ihox , isox , ieoh , imoh , iaco2 , ircooh
-  integer :: ipar , iolt , ioli
+  integer :: inox , ihox , isox , ieoh , imoh , iaco2 , ircooh,ihcooh
+  integer :: ipar , iolt , ioli, imgly,icres,iopen,iisoprd, iethooh, ixo2
   integer :: iapin , ilimo
   integer :: ialk4, ialk7
 
@@ -46,7 +46,7 @@ module mod_che_indices
   integer :: iterpooh , itolooh , imekooh , ialkooh
 
   ! This the compound indecies
-  ! this list for cbmz-sill mechanism
+  ! this list ishould absolutly be consistent with REACTION.DAT for Sillman/CBMZ mechanism
   integer , parameter :: ind_o3     = 1
   integer , parameter :: ind_no2    = 2 
   integer , parameter :: ind_no     = 3 
@@ -71,13 +71,13 @@ module mod_che_indices
   integer , parameter :: ind_hcho   = 22 
   integer , parameter :: ind_ald2   = 23 
   integer , parameter :: ind_acet   = 24 
-  integer , parameter :: ind_aco2   = 25 
+  integer , parameter :: ind_hcooh   = 25 
   integer , parameter :: ind_rcooh  = 26
   integer , parameter :: ind_ethe   = 27 
   integer , parameter :: ind_prpe   = 28 
   integer , parameter :: ind_bute   = 29 
   integer , parameter :: ind_isop   = 30 
-  integer , parameter :: ind_iprd   = 31 
+  integer , parameter :: ind_isoprd   = 31 
   integer , parameter :: ind_tolu   = 32 
   integer , parameter :: ind_xyle   = 33 
   integer , parameter :: ind_ch3ooh = 34 

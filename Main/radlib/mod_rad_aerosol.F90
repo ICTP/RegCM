@@ -732,7 +732,9 @@ module mod_rad_aerosol
               end if
               do l = 1 , 7
                 if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
-                  kssslt(ns,jbin) = ksslt(ns,jbin,l)
+! FAB : test according to li et al., ksslt cannot exceed 1.3
+! quick fix for now, update parameterisation to LI et al, ACP 2008 in a near future
+                  kssslt(ns,jbin) = dmin1(ksslt(ns,jbin,l),1.2D0)
                   gssslt(ns,jbin) = gsslt(ns,jbin,l)
                   wssslt(ns,jbin) = wsslt(ns,jbin,l)
                 end if
