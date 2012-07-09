@@ -386,46 +386,46 @@ module mod_mppparam
   subroutine broadcast_params
     implicit none
 
-    call mpi_barrier(cartesian_communicator,mpierr)
+    call mpi_barrier(mycomm,mpierr)
 
-    call mpi_bcast(iy,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(jx,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(kz,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(nsg,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(nveg,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(iy,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(jx,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(kz,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nsg,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nveg,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(iproj,6,mpi_character,0,cartesian_communicator,mpierr)
-    call mpi_bcast(ds,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(ptop,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(clat,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(clon,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(plat,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(plon,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(truelatl,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(truelath,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(i_band,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(iproj,6,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(ds,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(ptop,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(clat,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(clon,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(plat,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(plon,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(truelatl,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(truelath,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(i_band,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(domname,64,mpi_character,0,cartesian_communicator,mpierr)
+    call mpi_bcast(domname,64,mpi_character,0,mycomm,mpierr)
 
-    call mpi_bcast(ibyte,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(ibyte,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(debug_level,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(dbgfrq,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(debug_level,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(dbgfrq,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(nspgx,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(nspgd,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(high_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(medium_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(low_nudge,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(nspgx,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nspgd,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(high_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(medium_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(low_nudge,1,mpi_real8,0,mycomm,mpierr)
 
-    call mpi_bcast(calendar,12,mpi_character,0,cartesian_communicator,mpierr)
-    call mpi_bcast(ical,1,mpi_integer,0,cartesian_communicator,mpierr)
-    call mpi_bcast(dayspy,1,mpi_real8,0,cartesian_communicator,mpierr)
-    call mpi_bcast(dpd,1,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(calendar,12,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(ical,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(dayspy,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(dpd,1,mpi_real8,0,mycomm,mpierr)
 
-    call mpi_bcast(nsplit,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,mpierr)
 
-    call mpi_bcast(ibdyfrq,1,mpi_integer,0,cartesian_communicator,mpierr)
+    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,mpierr)
 
     ! Setup all convenience dimensions
 
@@ -477,7 +477,7 @@ module mod_mppparam
       niout = iout2-iout1+1
     end if
 
-    call mpi_barrier(cartesian_communicator,mpierr)
+    call mpi_barrier(mycomm,mpierr)
 
   end subroutine broadcast_params
 
