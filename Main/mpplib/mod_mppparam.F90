@@ -405,6 +405,12 @@ module mod_mppparam
       write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
     end if
 
+    call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
+    call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
+    call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
+    call getmem1d(r4vector2,1,nsg*jx*iy*kz,'set_nproc:r4vector2')
+    call getmem1d(i4vector1,1,nsg*jx*iy*kz,'set_nproc:i4vector1')
+    call getmem1d(i4vector2,1,nsg*jx*iy*kz,'set_nproc:i4vector2')
   end subroutine set_nproc
 
   subroutine broadcast_params
@@ -539,9 +545,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_distribute')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_distribute')
         end if
         ib = 1
@@ -558,9 +562,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -604,9 +606,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_distribute')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_distribute')
         end if
         ib = 1
@@ -626,9 +626,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -677,9 +675,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_4d_distribute')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_4d_distribute')
         end if
         ib = 1
@@ -702,9 +698,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -749,9 +743,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_distribute')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_distribute')
         end if
         ib = 1
@@ -768,9 +760,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -814,9 +804,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_distribute')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_distribute')
         end if
         ib = 1
@@ -836,9 +824,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -887,9 +873,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_4d_distribute')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_4d_distribute')
         end if
         ib = 1
@@ -912,9 +896,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -959,9 +941,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_distribute')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_distribute')
         end if
         ib = 1
@@ -978,9 +958,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1024,9 +1002,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_distribute')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_distribute')
         end if
         ib = 1
@@ -1046,9 +1022,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1097,9 +1071,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_4d_distribute')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_4d_distribute')
         end if
         ib = 1
@@ -1122,9 +1094,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1171,9 +1141,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
         end if
         ib = 1
@@ -1192,9 +1160,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1242,9 +1208,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
         end if
         ib = 1
@@ -1266,9 +1230,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1315,9 +1277,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
         end if
         ib = 1
@@ -1336,9 +1296,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1386,9 +1344,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
         end if
         ib = 1
@@ -1410,9 +1366,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1459,9 +1413,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
         end if
         ib = 1
@@ -1480,9 +1432,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1530,9 +1480,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
         end if
         ib = 1
@@ -1554,9 +1502,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
       end if
       window(1) = global_istart+i1-1
@@ -1601,9 +1547,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
@@ -1620,9 +1564,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -1666,9 +1608,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
@@ -1688,9 +1628,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -1739,9 +1677,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
@@ -1764,9 +1700,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -1811,9 +1745,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
@@ -1830,9 +1762,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -1876,9 +1806,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
@@ -1898,9 +1826,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -1949,9 +1875,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
@@ -1974,9 +1898,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2021,9 +1943,7 @@ module mod_mppparam
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
@@ -2040,9 +1960,7 @@ module mod_mppparam
       isize = i2-i1+1
       jsize = j2-j1+1
       lsize = isize*jsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2086,9 +2004,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
@@ -2108,9 +2024,7 @@ module mod_mppparam
       jsize = j2-j1+1
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2159,9 +2073,7 @@ module mod_mppparam
         ksize = k2-k1+1
         nsize = n2-n1+1
         lsize = isize*jsize*ksize*nsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
@@ -2184,9 +2096,7 @@ module mod_mppparam
       ksize = k2-k1+1
       nsize = n2-n1+1
       lsize = isize*jsize*ksize*nsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2233,9 +2143,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
@@ -2254,9 +2162,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2304,9 +2210,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r8vector1) ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
-        else if ( size(r8vector1) < lsize ) then
+        if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
         end if
         call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
@@ -2328,9 +2232,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
-      else if ( size(r8vector2) < lsize ) then
+      if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2377,9 +2279,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
@@ -2398,9 +2298,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2448,9 +2346,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(r4vector1) ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
-        else if ( size(r4vector1) < lsize ) then
+        if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
         end if
         call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
@@ -2472,9 +2368,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(r4vector2) ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
-      else if ( size(r4vector2) < lsize ) then
+      if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2521,9 +2415,7 @@ module mod_mppparam
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
         lsize = isize*jsize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
@@ -2542,9 +2434,7 @@ module mod_mppparam
       isize = (i2-i1+1)*nsg
       jsize = (j2-j1+1)*nsg
       lsize = isize*jsize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2592,9 +2482,7 @@ module mod_mppparam
         jsize = (window(4)-window(3)+1)*nsg
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( .not. associated(i4vector1) ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
-        else if ( size(i4vector1) < lsize ) then
+        if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
         end if
         call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
@@ -2616,9 +2504,7 @@ module mod_mppparam
       jsize = (j2-j1+1)*nsg
       ksize = k2-k1+1
       lsize = isize*jsize*ksize
-      if ( .not. associated(i4vector2) ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
-      else if ( size(i4vector2) < lsize ) then
+      if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
       end if
       window(1) = global_istart+i1-1
@@ -2652,14 +2538,10 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       ib = 1
@@ -2683,14 +2565,10 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -2714,14 +2592,10 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -2745,14 +2619,10 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -2776,14 +2646,10 @@ module mod_mppparam
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -2807,14 +2673,10 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -2838,14 +2700,10 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -2869,14 +2727,10 @@ module mod_mppparam
     end if
     if ( ma%bottomright /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -2910,14 +2764,10 @@ module mod_mppparam
     ksize = k2-k1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       ib = 1
@@ -2945,14 +2795,10 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -2980,14 +2826,10 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -3015,14 +2857,10 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -3050,14 +2888,10 @@ module mod_mppparam
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -3085,14 +2919,10 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -3120,14 +2950,10 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -3155,14 +2981,10 @@ module mod_mppparam
     end if
     if ( ma%bottomright /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -3201,14 +3023,10 @@ module mod_mppparam
     nsize = n2-n1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       ib = 1
@@ -3240,14 +3058,10 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -3279,14 +3093,10 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -3318,14 +3128,10 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -3357,14 +3163,10 @@ module mod_mppparam
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -3396,14 +3198,10 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -3435,14 +3233,10 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -3474,14 +3268,10 @@ module mod_mppparam
     end if
     if ( ma%bottomright /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -3522,9 +3312,7 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       ib = 1
@@ -3539,9 +3327,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -3556,9 +3342,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       jb = 1
@@ -3573,9 +3357,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -3590,9 +3372,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       jb = 1
@@ -3607,9 +3387,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
@@ -3634,9 +3412,7 @@ module mod_mppparam
     ksize = k2-k1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       ib = 1
@@ -3653,9 +3429,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -3672,9 +3446,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       jb = 1
@@ -3691,9 +3463,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -3710,9 +3480,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       jb = 1
@@ -3729,9 +3497,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
@@ -3759,9 +3525,7 @@ module mod_mppparam
     nsize = n2-n1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       ib = 1
@@ -3780,9 +3544,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
@@ -3801,9 +3563,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       jb = 1
@@ -3822,9 +3582,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
@@ -3843,9 +3601,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       jb = 1
@@ -3864,9 +3620,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
@@ -3894,9 +3648,7 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
@@ -3911,9 +3663,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
       end if
       ib = 1
@@ -3928,9 +3678,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
@@ -3945,9 +3693,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
       end if
       jb = 1
@@ -3962,9 +3708,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
@@ -3979,9 +3723,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
       jb = 1
@@ -4006,9 +3748,7 @@ module mod_mppparam
     ksize = k2-k1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
@@ -4025,9 +3765,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
       end if
       ib = 1
@@ -4044,9 +3782,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
@@ -4063,9 +3799,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
       end if
       jb = 1
@@ -4082,9 +3816,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
@@ -4101,9 +3833,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
       end if
       jb = 1
@@ -4131,9 +3861,7 @@ module mod_mppparam
     nsize = n2-n1+1
     if ( ma%right /= mpi_proc_null) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
@@ -4152,9 +3880,7 @@ module mod_mppparam
     end if
     if ( ma%left /= mpi_proc_null ) then
       ssize = nex*isize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
       end if
       ib = 1
@@ -4173,9 +3899,7 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
@@ -4194,9 +3918,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
       end if
       jb = 1
@@ -4215,9 +3937,7 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector2) < ssize ) then
+      if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
       end if
       call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
@@ -4236,9 +3956,7 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex*ksize*nsize
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      else if ( size(r8vector1) < ssize ) then
+      if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
       end if
       jb = 1
@@ -4264,14 +3982,10 @@ module mod_mppparam
     integer :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%right /= mpi_proc_null) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
-      else if ( size(r8vector1) < ksize ) then
+      if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
-      else if ( size(r8vector2) < ksize ) then
+      if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
       end if
       ib = 1
@@ -4290,14 +4004,10 @@ module mod_mppparam
       end do
     end if
     if ( ma%left /= mpi_proc_null ) then
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
-      else if ( size(r8vector2) < ksize ) then
+      if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
       end if
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
-      else if ( size(r8vector1) < ksize ) then
+      if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
       end if
       call mpi_recv(r8vector2,ksize,mpi_real8,ma%left,0, &
@@ -4324,14 +4034,10 @@ module mod_mppparam
     integer :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%top /= mpi_proc_null) then
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
-      else if ( size(r8vector1) < ksize ) then
+      if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
-      else if ( size(r8vector2) < ksize ) then
+      if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
       ib = 1
@@ -4350,14 +4056,10 @@ module mod_mppparam
       end do
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      if ( .not. associated(r8vector2) ) then
-        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
-      else if ( size(r8vector2) < ksize ) then
+      if ( size(r8vector2) < ksize ) then
         call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
-      if ( .not. associated(r8vector1) ) then
-        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
-      else if ( size(r8vector1) < ksize ) then
+      if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
       call mpi_recv(r8vector2,ksize,mpi_real8,ma%bottom,0, &
