@@ -84,7 +84,6 @@ module mod_che_output
 
       cemtr(:,:,:) = d_zero
       remdrd(:,:,:) = d_zero
-      chemdiag(:,:,:,:) = d_zero
       drydepv(:,:,:) = d_zero
       cemtrac(:,:,:) = d_zero
 
@@ -101,6 +100,7 @@ module mod_che_output
       wdlsc(:,:,:) = d_zero
 
       if ( ichdiag == 1 ) then 
+        chemdiag(:,:,:,:) = d_zero
         cadvhdiag(:,:,:,:) = d_zero
         cadvvdiag(:,:,:,:) = d_zero
         cdifhdiag(:,:,:,:) = d_zero
