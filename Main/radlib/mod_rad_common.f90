@@ -116,24 +116,24 @@ module mod_rad_common
     integer , intent(in) :: ichem
     call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'rad:cldfra')
     call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'rad:cldlwc')
-    call getmem3d(heatrt,jce1,jce2,ice1,ice2,1,kz,'rad:heatrt')
-    call getmem3d(o3prof,jce1,jce2,ice1,ice2,1,kzp1,'rad:o3prof')
+    call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'rad:heatrt')
+    call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
     call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
     if ( irrtm == 0 ) then
-      call getmem4d(gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4,'rad:gasabsnxt')
-      call getmem4d(gasabstot,jce1,jce2,ice1,ice2,1,kzp1,1,kzp1,'rad:gasabstot')
-      call getmem3d(gasemstot,jce1,jce2,ice1,ice2,1,kzp1,'rad:gasemstot')
+      call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
+      call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
+      call getmem3d(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
     end if
 
     if ( ichem == 1 ) then
-      call getmem3d(aerasp,jce1,jce2,ice1,ice2,1,kz,'rad:aerasp')
-      call getmem3d(aerext,jce1,jce2,ice1,ice2,1,kz,'rad:aerext')
-      call getmem3d(aerssa,jce1,jce2,ice1,ice2,1,kz,'rad:aerssa')
-      call getmem2d(aersrrf,jce1,jce2,ice1,ice2,'rad:aersrrf')
-      call getmem2d(aertalwrf,jce1,jce2,ice1,ice2,'rad:aertalwrf')
-      call getmem2d(aersrlwrf,jce1,jce2,ice1,ice2,'rad:aersrlwrf')
-      call getmem2d(aertarf,jce1,jce2,ice1,ice2,'rad:aertarf')
+      call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'rad:aerasp')
+      call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'rad:aerext')
+      call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'rad:aerssa')
+      call getmem2d(aersrrf,jci1,jci2,ici1,ici2,'rad:aersrrf')
+      call getmem2d(aertalwrf,jci1,jci2,ici1,ici2,'rad:aertalwrf')
+      call getmem2d(aersrlwrf,jci1,jci2,ici1,ici2,'rad:aersrlwrf')
+      call getmem2d(aertarf,jci1,jci2,ici1,ici2,'rad:aertarf')
     end if
   end subroutine  allocate_mod_rad_common
 

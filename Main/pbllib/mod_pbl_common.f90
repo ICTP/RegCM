@@ -144,8 +144,8 @@ module mod_pbl_common
       call getmem3d(tcmstate%tkeps,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:tkeps')
       call getmem3d(tcmstate%advtke,jce1,jce2, &
                                     ice1,ice2,1,kzp1,'pbl_common:advtke')
-      call getmem3d(tcmstate%kzm,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:kzm')
-      call getmem3d(tcmstate%kth,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:kth')
+      call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
+      call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
       call getmem2d(tcmstate%zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
       call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
     else
@@ -159,8 +159,8 @@ module mod_pbl_common
   subroutine allocate_mod_pbl_common(ichem)
     implicit none
     integer , intent(in) :: ichem
-    call getmem2d(kpbl,jce1,jce2,ice1,ice2,'pbl_common:kpbl')
-    call getmem2d(zpbl,jce1,jce2,ice1,ice2,'pbl_common:zpbl')
+    call getmem2d(kpbl,jci1,jci2,ici1,ici2,'pbl_common:kpbl')
+    call getmem2d(zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
     !
     ! Allocate the tcm state variables
     !

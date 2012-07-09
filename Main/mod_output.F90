@@ -151,8 +151,8 @@ module mod_output
       call grid_collect(atm1%qx,atm1_io%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       call grid_collect(omega,omega_io,jce1,jce2,ice1,ice2,1,kz)
       call grid_collect(sfs%psa,sfs_io%psa,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%rainc,sfs_io%rainc,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%rainnc,sfs_io%rainnc,jce1,jce2,ice1,ice2)
+      call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%rainnc,sfs_io%rainnc,jci1,jci2,ici1,ici2)
       call subgrid_collect(tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)
       call subgrid_collect(tsw,tsw_io,jci1,jci2,ici1,ici2)
       call subgrid_collect(ldmsk1,ldmsk1_io,jci1,jci2,ici1,ici2)
@@ -164,9 +164,9 @@ module mod_output
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call grid_collect(atm1%tke,atm1_io%tke,jce1,jce2,ice1,ice2,1,kzp1)
         call grid_collect(uwstateb%kth,tcmstate_io%kth, &
-                          jce1,jce2,ice1,ice2,1,kzp1)
+                          jci1,jci2,ici1,ici2,1,kzp1)
         call grid_collect(uwstateb%kzm,tcmstate_io%kzm, &
-                          jce1,jce2,ice1,ice2,1,kzp1)
+                          jci1,jci2,ici1,ici2,1,kzp1)
       end if
 !
       if ( myid == 0 ) then
@@ -269,46 +269,46 @@ module mod_output
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call grid_collect(atm1%tke,atm1_io%tke,jce1,jce2,ice1,ice2,1,kzp1)
         call grid_collect(atm2%tke,atm2_io%tke,jce1,jce2,ice1,ice2,1,kzp1)
-        call grid_collect(kpbl,kpbl_io,jce1,jce2,ice1,ice2)
+        call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
       end if
 
       call grid_collect(sfs%psa,sfs_io%psa,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%psb,sfs_io%psb,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%tga,sfs_io%tga,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%tgb,sfs_io%tgb,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%hfx,sfs_io%hfx,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%qfx,sfs_io%qfx,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%rainc,sfs_io%rainc,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%rainnc,sfs_io%rainnc,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%tgbb,sfs_io%tgbb,jce1,jce2,ice1,ice2)
-      call grid_collect(sfs%uvdrag,sfs_io%uvdrag,jce1,jce2,ice1,ice2)
+      call grid_collect(sfs%hfx,sfs_io%hfx,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%qfx,sfs_io%qfx,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%rainnc,sfs_io%rainnc,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%tgbb,sfs_io%tgbb,jci1,jci2,ici1,ici2)
+      call grid_collect(sfs%uvdrag,sfs_io%uvdrag,jci1,jci2,ici1,ici2)
 
       if ( ipptls == 1 ) then
-        call grid_collect(fcc,fcc_io,jce1,jce2,ice1,ice2,1,kz)
+        call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
       end if
-      call grid_collect(heatrt,heatrt_io,jce1,jce2,ice1,ice2,1,kz)
-      call grid_collect(o3prof,o3prof_io,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
+      call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
 
       if ( iocnflx == 2 ) then
-        call grid_collect(zpbl,zpbl_io,jce1,jce2,ice1,ice2)
+        call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
       end if
       if ( icup == 1 ) then
-        call grid_collect(rsheat,rsheat_io,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(rswat,rswat_io,jce1,jce2,ice1,ice2,1,kz)
+        call grid_collect(rsheat,rsheat_io,jci1,jci2,ici1,ici2,1,kz)
+        call grid_collect(rswat,rswat_io,jci1,jci2,ici1,ici2,1,kz)
       end if
       if ( icup == 3 ) then
-        call grid_collect(tbase,tbase_io,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(cldefi,cldefi_io,jce1,jce2,ice1,ice2)
+        call grid_collect(tbase,tbase_io,jci1,jci2,ici1,ici2,1,kz)
+        call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
       end if
       if ( icup==4 .or. icup==99 .or. icup==98 ) then
-        call grid_collect(cbmf2d,cbmf2d_io,jce1,jce2,ice1,ice2)
+        call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
       end if
 
       if ( irrtm == 0 ) then
-        call grid_collect(gasabsnxt,gasabsnxt_io,jce1,jce2,ice1,ice2,1,kz,1,4)
+        call grid_collect(gasabsnxt,gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4)
         call grid_collect(gasabstot,gasabstot_io, &
-                          jce1,jce2,ice1,ice2,1,kzp1,1,kzp1)
-        call grid_collect(gasemstot,gasemstot_io,jce1,jce2,ice1,ice2,1,kzp1)
+                          jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
+        call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
       end if
 
       call subgrid_collect(tlef,tlef_io,jci1,jci2,ici1,ici2)

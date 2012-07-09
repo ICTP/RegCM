@@ -48,7 +48,7 @@ module mod_cu_em
 !
   subroutine allocate_mod_cu_em
     implicit none
-    call getmem2d(cbmf2d,jce1,jce2,ice1,ice2,'mod_cu_em:cbmf2d')
+    call getmem2d(cbmf2d,jci1,jci2,ici1,ici2,'mod_cu_em:cbmf2d')
   end subroutine allocate_mod_cu_em
 !
 !

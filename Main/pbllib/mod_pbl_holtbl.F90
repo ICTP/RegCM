@@ -43,7 +43,7 @@
                           coef1 , coef2 , coef3 , coefe , coeff1 , &
                           coeff2 , tpred1 , tpred2
     real(dp) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
-    real(dp) , pointer , dimension(:,:) :: govrth
+    real(dp) , pointer , dimension(:,:) :: govrth , uvdrage
     real(dp) , pointer , dimension(:) :: hydf
   !
     real(dp) , pointer , dimension(:,:,:) :: dza , thvx
@@ -110,6 +110,8 @@
       call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
       call getmem3d(dza,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:dza')
       call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rhohf')
+      call getmem2d(uvdrage,jce1-ma%jbl1,jce2, &
+                            ice1-ma%ibb1,ice2,'mod_holtbl:uvdrage')
       call getmem3d(akzz1,jce1-ma%jbl1,jce2, &
                           ice1-ma%ibb1,ice2,1,kz,'mod_holtbl:akzz1')
       call getmem3d(akzz2,jce1-ma%jbl1,jce2, &
@@ -235,6 +237,33 @@
     end do
   end do
  
+  if ( ma%has_bdyleft ) then
+    uvdrage(jce1,ici1:ici2) = uvdrag(jci1,ici1:ici2)
+  end if
+  if ( ma%has_bdyright ) then
+    uvdrage(jce2,ici1:ici2) = uvdrag(jci2,ici1:ici2)
+  end if
+  if ( ma%has_bdybottom ) then
+    uvdrage(jci1:jci2,ice1) = uvdrag(jci1:jci2,ici1)
+  end if
+  if ( ma%has_bdytop ) then
+    uvdrage(jci1:jci2,ice2) = uvdrag(jci1:jci2,ici2)
+  end if
+  if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+    uvdrage(jce1,ice1) = uvdrag(jci1,ici1)
+  end if
+  if ( ma%has_bdyleft .and. ma%has_bdytop ) then
+    uvdrage(jce1,ice2) = uvdrag(jci1,ici2)
+  end if
+  if ( ma%has_bdyright .and. ma%has_bdybottom ) then
+    uvdrage(jce2,ice1) = uvdrag(jci2,ici1)
+  end if
+  if ( ma%has_bdyright .and. ma%has_bdytop ) then
+    uvdrage(jce2,ice2) = uvdrag(jci2,ici2)
+  end if
+
+  call exchange_lb(uvdrage,1,jce1,jce2,ice1,ice2)
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! compute friction velocity
@@ -310,6 +339,41 @@
     end do
   end do
 
+  ! Fill boundaries
+
+  if ( ma%has_bdyleft ) then
+    akzz1(jce1,ici1:ici2,:) = akzz1(jci1,ici1:ici2,:)
+    akzz2(jce1,ici1:ici2,:) = akzz2(jci1,ici1:ici2,:)
+  end if
+  if ( ma%has_bdyright ) then
+    akzz1(jce2,ici1:ici2,:) = akzz1(jci2,ici1:ici2,:)
+    akzz2(jce2,ici1:ici2,:) = akzz2(jci2,ici1:ici2,:)
+  end if
+  if ( ma%has_bdybottom ) then
+    akzz1(jci1:jci2,ice1,:) = akzz1(jci1:jci2,ici1,:)
+    akzz2(jci1:jci2,ice1,:) = akzz2(jci1:jci2,ici1,:)
+  end if
+  if ( ma%has_bdytop ) then
+    akzz1(jci1:jci2,ice2,:) = akzz1(jci1:jci2,ici2,:)
+    akzz2(jci1:jci2,ice2,:) = akzz2(jci1:jci2,ici2,:)
+  end if
+  if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+    akzz1(jce1,ice1,:) = akzz1(jci1,ici1,:)
+    akzz2(jce1,ice1,:) = akzz2(jci1,ici1,:)
+  end if
+  if ( ma%has_bdyleft .and. ma%has_bdytop ) then
+    akzz1(jce1,ice2,:) = akzz1(jci1,ici2,:)
+    akzz2(jce1,ice2,:) = akzz2(jci1,ici2,:)
+  end if
+  if ( ma%has_bdyright .and. ma%has_bdybottom ) then
+    akzz1(jce2,ice1,:) = akzz1(jci2,ici1,:)
+    akzz2(jce2,ice1,:) = akzz1(jci2,ici1,:)
+  end if
+  if ( ma%has_bdyright .and. ma%has_bdytop ) then
+    akzz1(jce2,ice2,:) = akzz1(jci2,ici2,:)
+    akzz2(jce2,ice2,:) = akzz2(jci2,ici2,:)
+  end if
+
   call exchange_lb(akzz1,1,jce1,jce2,ice1,ice2,1,kz)
   call exchange_lb(akzz2,1,jce1,jce2,ice1,ice2,1,kz)
 
@@ -381,8 +445,8 @@
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      drgdot = (uvdrag(j-1,i-1)+uvdrag(j,i-1) + &
-                uvdrag(j-1,i)  +uvdrag(j,i))*d_rfour
+      drgdot = (uvdrage(j-1,i-1)+uvdrage(j,i-1) + &
+                uvdrage(j-1,i)  +uvdrage(j,i))*d_rfour
       uflxsf = drgdot*udatm(j,i,kz)
       vflxsf = drgdot*vdatm(j,i,kz)
       coefe(j,i,kz) = d_zero

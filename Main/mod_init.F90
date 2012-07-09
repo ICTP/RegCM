@@ -184,8 +184,8 @@ module mod_init
     !
     if (icup == 3) then
       do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             tbase(j,i,k) = ts00 + tlp*dlog((sfs%psa(j,i)*hsigma(k)+ptop)*d_r100)
           end do
         end do
@@ -198,8 +198,8 @@ module mod_init
     !
     ! Inizialize the surface atmospheric temperature
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         sfs%tgbb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
       end do
     end do
@@ -266,21 +266,21 @@ module mod_init
     call grid_distribute(sfs_io%psb,sfs%psb,jce1,jce2,ice1,ice2)
     call grid_distribute(sfs_io%tga,sfs%tga,jce1,jce2,ice1,ice2)
     call grid_distribute(sfs_io%tgb,sfs%tgb,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%hfx,sfs%hfx,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%qfx,sfs%qfx,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%rainc,sfs%rainc,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%rainnc,sfs%rainnc,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%tgbb,sfs%tgbb,jce1,jce2,ice1,ice2)
+    call grid_distribute(sfs_io%hfx,sfs%hfx,jci1,jci2,ici1,ici1)
+    call grid_distribute(sfs_io%qfx,sfs%qfx,jci1,jci2,ici1,ici1)
+    call grid_distribute(sfs_io%rainc,sfs%rainc,jci1,jci2,ici1,ici1)
+    call grid_distribute(sfs_io%rainnc,sfs%rainnc,jci1,jci2,ici1,ici1)
+    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jci1,jci2,ici1,ici1)
+    call grid_distribute(sfs_io%tgbb,sfs%tgbb,jci1,jci2,ici1,ici1)
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
 
     if ( ipptls == 1 ) then
-      call grid_distribute(fcc_io,fcc,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici1,1,kz)
     end if
-    call grid_distribute(heatrt_io,heatrt,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(o3prof_io,o3prof,jce1,jce2,ice1,ice2,1,kzp1)
+    call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici1,1,kz)
+    call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici1,1,kzp1)
     if ( myid == 0 ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
@@ -292,29 +292,29 @@ module mod_init
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call grid_distribute(atm1_io%tke,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(atm2_io%tke,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
-      call grid_distribute(kpbl_io,kpbl,jce1,jce2,ice1,ice2)
+      call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici1)
     end if
 !
     if ( iocnflx == 2 ) then
-      call grid_distribute(zpbl_io,zpbl,jce1,jce2,ice1,ice2)
+      call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici1)
     end if
     if ( icup == 1 ) then
-      call grid_distribute(rsheat_io,rsheat,jce1,jce2,ice1,ice2,1,kz)
-      call grid_distribute(rswat_io,rswat,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(rsheat_io,rsheat,jci1,jci2,ici1,ici1,1,kz)
+      call grid_distribute(rswat_io,rswat,jci1,jci2,ici1,ici1,1,kz)
     end if
     if ( icup == 3 ) then
-      call grid_distribute(tbase_io,tbase,jce1,jce2,ice1,ice2,1,kz)
-      call grid_distribute(cldefi_io,cldefi,jce1,jce2,ice1,ice2)
+      call grid_distribute(tbase_io,tbase,jci1,jci2,ici1,ici1,1,kz)
+      call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici1)
     end if
     if ( icup==4 .or. icup==99 .or. icup==98 ) then
-      call grid_distribute(cbmf2d_io,cbmf2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici1)
     end if
 
     if ( irrtm == 0 ) then 
-      call grid_distribute(gasabsnxt_io,gasabsnxt,jce1,jce2,ice1,ice2,1,kz,1,4)
+      call grid_distribute(gasabsnxt_io,gasabsnxt,jci1,jci2,ici1,ici1,1,kz,1,4)
       call grid_distribute(gasabstot_io,gasabstot, &
-                           jce1,jce2,ice1,ice2,1,kzp1,1,kzp1)
-      call grid_distribute(gasemstot_io,gasemstot,jce1,jce2,ice1,ice2,1,kzp1)
+                           jci1,jci2,ici1,ici1,1,kzp1,1,kzp1)
+      call grid_distribute(gasemstot_io,gasemstot,jci1,jci2,ici1,ici1,1,kzp1)
     end if ! irrtm test
 
     call subgrid_distribute(tlef_io,tlef,jci1,jci2,ici1,ici2)
@@ -375,13 +375,13 @@ module mod_init
       call grid_distribute(remlsc_io,remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remcvc_io,remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,kz)
-      call grid_distribute(ssw2da_io,ssw2da,jce1,jce2,ice1,ice2)
-      call grid_distribute(sdeltk2d_io,sdeltk2d,jce1,jce2,ice1,ice2)
-      call grid_distribute(sdelqk2d_io,sdelqk2d,jce1,jce2,ice1,ice2)
-      call grid_distribute(sfracv2d_io,sfracv2d,jce1,jce2,ice1,ice2)
-      call grid_distribute(sfracb2d_io,sfracb2d,jce1,jce2,ice1,ice2)
-      call grid_distribute(sfracs2d_io,sfracs2d,jce1,jce2,ice1,ice2)
-      call grid_distribute(svegfrac2d_io,svegfrac2d,jce1,jce2,ice1,ice2)
+      call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
+      call grid_distribute(sdeltk2d_io,sdeltk2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(sdelqk2d_io,sdelqk2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
     end if
 
     if ( idcsst == 1 ) then

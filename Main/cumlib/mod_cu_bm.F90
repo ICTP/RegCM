@@ -85,8 +85,8 @@ module mod_cu_bm
   subroutine allocate_mod_cu_bm
     implicit none
     integer :: intall
-    call getmem3d(tbase,jce1,jce2,ice1,ice2,1,kz,'cu_bm:tbase')
-    call getmem2d(cldefi,jce1,jce2,ice1,ice2,'cu_bm:cldefi')
+    call getmem3d(tbase,jci1,jci2,ici1,ici2,1,kz,'cu_bm:tbase')
+    call getmem2d(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem1d(apek,1,kz,'cu_bm:apek')
     call getmem1d(apesk,1,kz,'cu_bm:apesk')
     call getmem1d(difq,1,kz,'cu_bm:difq')

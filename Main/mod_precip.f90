@@ -61,7 +61,7 @@ module mod_precip
       implicit none
       integer , intent(in) :: ichem
       ! This needs to be saved in SAV file
-      call getmem3d(fcc,jce1,jce2,ice1,ice2,1,kz,'pcp:fcc')
+      call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'pcp:fcc')
       ! Those not. Note the external, internal change.
       call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
       call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')

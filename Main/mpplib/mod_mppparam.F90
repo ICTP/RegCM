@@ -388,6 +388,8 @@ module mod_mppparam
 
     ! Check the results
     if ( jxp < 3 .or. iyp < 3 ) then
+      write(stderr,*) 'CPUS DIM1 = ', cpus_per_dim(1)
+      write(stderr,*) 'CPUS DIM2 = ', cpus_per_dim(2)
       write(stderr,*) 'Cannot have one processor with less than 9 points.'
       write(stderr,*) 'Processor ',myid,' has ',jxp*iyp,' (',jxp,'x',iyp,')'
       call fatal(__FILE__,__LINE__,'Too much processors')

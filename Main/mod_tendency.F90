@@ -783,7 +783,6 @@ module mod_tendency
       ! Call the Holtslag PBL
       call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
-      call exchange_lb(sfs%uvdrag,1,jce1,jce2,ice1,ice2)
       call holtbl
     end if
 
