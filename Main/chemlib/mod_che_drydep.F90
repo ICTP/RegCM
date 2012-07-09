@@ -581,9 +581,10 @@ module mod_che_drydep
                             wk(i,k)*pdepv(i,k,indsp(ib)))*     &
                             egrav*1.D-3/cdsigma(k)
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
-
-            cseddpdiag(j,i,k,indsp(ib)) =  cseddpdiag(j,i,k,indsp(ib))  - settend(i,k) * cdiagf
-
+            if ( ichdiag == 1 ) then
+              cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
+                                            settend(i,k) * cdiagf
+            end if
           end do
           !
           ! option 1 : calculate the tend as flux divergence 
@@ -602,9 +603,13 @@ module mod_che_drydep
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
  
             !diagnostic for settling and drydeposition removal
-            cseddpdiag(j,i,kz,indsp(ib)) =  cseddpdiag(j,i,kz,indsp(ib))  - settend(i,kz) * cdiagf
-            ! dignoctic for dry deposition flux 
-            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + settend(i,kz)*cdzq(j,i,k)*crhob3d(j,i,k)*cdiagf
+            if ( ichdiag == 1 ) then
+              cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
+                                             settend(i,kz) * cdiagf
+            end if
+            ! diagnostic for dry deposition flux 
+            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+                            settend(i,kz)*cdzq(j,i,k)*crhob3d(j,i,k)*cdiagf
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
           else if ( ichdrdepo == 2 ) then
