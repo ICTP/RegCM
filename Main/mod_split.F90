@@ -471,7 +471,7 @@ module mod_split
 
 !=======================================================================
 
-    call exchange_lb(dhsum,1,jdi1,jdi2,idi1,idi2,1,nsplit)
+    call exchange_lb(dhsum,1,jde1,jde2,ide1,ide2,1,nsplit)
 
     do l = 1 , nsplit
       do k = 1 , kz

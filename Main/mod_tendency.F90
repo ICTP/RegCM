@@ -761,8 +761,40 @@ module mod_tendency
 #endif
 
     if ( icup == 1 ) then
-      wrkkuo1(jce1:jce2,:,:) = rsheat(:,:,:)
-      wrkkuo2(jce1:jce2,:,:) = rswat(:,:,:)
+      wrkkuo1(jci1:jci2,ici1:ici2,:) = rsheat(:,:,:)
+      wrkkuo2(jci1:jci2,ici1:ici2,:) = rswat(:,:,:)
+      if ( ma%has_bdyleft ) then
+        wrkkuo1(jce1,ici1:ici2,:) = wrkkuo1(jci1,ici1:ici2,:)
+        wrkkuo2(jce1,ici1:ici2,:) = wrkkuo2(jci1,ici1:ici2,:)
+      end if
+      if ( ma%has_bdyright ) then
+        wrkkuo1(jce2,ici1:ici2,:) = wrkkuo1(jci2,ici1:ici2,:)
+        wrkkuo2(jce2,ici1:ici2,:) = wrkkuo2(jci2,ici1:ici2,:)
+      end if
+      if ( ma%has_bdybottom ) then
+        wrkkuo1(jci1:jci2,ice1,:) = wrkkuo1(jci1:jci2,ici1,:)
+        wrkkuo2(jci1:jci2,ice1,:) = wrkkuo2(jci1:jci2,ici1,:)
+      end if
+      if ( ma%has_bdytop ) then
+        wrkkuo1(jci1:jci2,ice2,:) = wrkkuo1(jci1:jci2,ici2,:)
+        wrkkuo2(jci1:jci2,ice2,:) = wrkkuo2(jci1:jci2,ici2,:)
+      end if
+      if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+        wrkkuo1(jce1,ice1,:) = wrkkuo1(jci1,ici1,:)
+        wrkkuo2(jce1,ice1,:) = wrkkuo2(jci1,ici1,:)
+      end if
+      if ( ma%has_bdyleft .and. ma%has_bdytop ) then
+        wrkkuo1(jce1,ice2,:) = wrkkuo1(jci1,ici2,:)
+        wrkkuo2(jce1,ice2,:) = wrkkuo2(jci1,ici2,:)
+      end if
+      if ( ma%has_bdyright .and. ma%has_bdybottom ) then
+        wrkkuo1(jce2,ice1,:) = wrkkuo1(jci2,ici1,:)
+        wrkkuo2(jce2,ice1,:) = wrkkuo2(jci2,ici1,:)
+      end if
+      if ( ma%has_bdyright .and. ma%has_bdytop ) then
+        wrkkuo1(jce2,ice2,:) = wrkkuo1(jci2,ici2,:)
+        wrkkuo2(jce2,ice2,:) = wrkkuo2(jci2,ici2,:)
+      end if
       call exchange(wrkkuo1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(wrkkuo2,1,jce1,jce2,ice1,ice2,1,kz)
       call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1)
@@ -801,7 +833,7 @@ module mod_tendency
 !
     do k = 1 , kz
       do i = ici1 , ici2
-        do j = jci1, jci2
+        do j = jci1 , jci2
           ! heating rate in deg/sec
           aten%t(j,i,k) = aten%t(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
         end do

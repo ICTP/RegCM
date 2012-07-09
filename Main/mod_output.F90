@@ -177,7 +177,7 @@ module mod_output
     end if
   end if
  
-!     Call surface output
+  ! Call surface output
  
   if ( ifsrf ) then
     if ( ldosrf ) then

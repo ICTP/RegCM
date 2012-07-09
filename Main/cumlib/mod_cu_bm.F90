@@ -236,7 +236,7 @@ module mod_cu_bm
 !     icumbot = bottom level of cumulus clouds
 !     (calculated in cupara and stored for tractend)
       do i = ici1 , ici2
-        do j = jci1 , ici2
+        do j = jci1 , jci2
           icumtop(j,i) = 0
           icumbot(j,i) = 0
         end do

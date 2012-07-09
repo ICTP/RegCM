@@ -497,7 +497,8 @@ module mod_atm_interface
         call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
         call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
         call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
-        call getmem4d(atm%qx,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
+        call getmem4d(atm%qx,jce1-jl,jce2+jr, &
+                             ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                         1,kzp1,'atmstate:tke')
@@ -506,7 +507,8 @@ module mod_atm_interface
         call getmem3d(atm%u,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:u')
         call getmem3d(atm%v,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:v')
         call getmem3d(atm%t,jcross1,jcross2,icross1,icross2,1,kz,'atmstate:t')
-        call getmem4d(atm%qx,jcross1,jcross2,icross1,icross2,1,kz,1,nqx,'atmstate:qx')
+        call getmem4d(atm%qx,jcross1,jcross2, &
+                             icross1,icross2,1,kz,1,nqx,'atmstate:qx')
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call getmem3d(atm%tke, &
                         jcross1,jcross2,icross1,icross2,1,kzp1,'atmstate:tke')

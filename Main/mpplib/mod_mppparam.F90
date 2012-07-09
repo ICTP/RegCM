@@ -404,7 +404,7 @@ module mod_mppparam
       write(stdout,*) 'CPUS DIM1 = ', cpus_per_dim(1)
       write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
     end if
-
+    ! Allocate to something should fit all
     call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
     call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
     call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
@@ -474,12 +474,12 @@ module mod_mppparam
       kzp4 = kz + 4
       iysg = iy * nsg
       jxsg = jx * nsg
-      iym1sg = (iy-1) * nsg
-      jxm1sg = (jx-1) * nsg
-      iym2sg = (iy-2) * nsg
-      jxm2sg = (jx-2) * nsg
-      iym3sg = (iy-3) * nsg
-      jxm3sg = (jx-3) * nsg
+      iym1sg = iym1 * nsg
+      jxm1sg = jxm1 * nsg
+      iym2sg = iym2 * nsg
+      jxm2sg = jxm2 * nsg
+      iym3sg = iym3 * nsg
+      jxm3sg = jxm3 * nsg
       nnsg = nsg*nsg
       jdot1 = 1
       jdot2 = jx
@@ -2547,7 +2547,7 @@ module mod_mppparam
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
-          r8vector1(ib) = ml((jxp-j)+1,i)
+          r8vector1(ib) = ml(jxp-j+1,i)
           ib = ib + 1
         end do
       end do
@@ -2601,7 +2601,7 @@ module mod_mppparam
       jb = 1
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(jb) = ml(j,(iyp-i)+1)
+          r8vector1(jb) = ml(j,iyp-i+1)
           jb = jb + 1
         end do
       end do
@@ -2774,7 +2774,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml((jxp-j)+1,i,k)
+            r8vector1(ib) = ml(jxp-j+1,i,k)
             ib = ib + 1
           end do
         end do
@@ -2836,7 +2836,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(jb) = ml(j,(iyp-i)+1,k)
+            r8vector1(jb) = ml(j,iyp-i+1,k)
             jb = jb + 1
           end do
         end do
@@ -3034,7 +3034,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
+              r8vector1(ib) = ml(jxp-j+1,i,k,n)
               ib = ib + 1
             end do
           end do
@@ -3104,7 +3104,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(jb) = ml(j,(iyp-i)+1,k,n)
+              r8vector1(jb) = ml(j,iyp-i+1,k,n)
               jb = jb + 1
             end do
           end do
@@ -3318,7 +3318,7 @@ module mod_mppparam
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
-          r8vector1(ib) = ml((jxp-j)+1,i)
+          r8vector1(ib) = ml(jxp-j+1,i)
           ib = ib + 1
         end do
       end do
@@ -3348,7 +3348,7 @@ module mod_mppparam
       jb = 1
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(jb) = ml(j,(iyp-i)+1)
+          r8vector1(jb) = ml(j,iyp-i+1)
           jb = jb + 1
         end do
       end do
@@ -3419,7 +3419,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml((jxp-j)+1,i,k)
+            r8vector1(ib) = ml(jxp-j+1,i,k)
             ib = ib + 1
           end do
         end do
@@ -3453,7 +3453,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(jb) = ml(j,(iyp-i)+1,k)
+            r8vector1(jb) = ml(j,iyp-i+1,k)
             jb = jb + 1
           end do
         end do
@@ -3533,7 +3533,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml((jxp-j)+1,i,k,n)
+              r8vector1(ib) = ml(jxp-j+1,i,k,n)
               ib = ib + 1
             end do
           end do
@@ -3571,7 +3571,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(jb) = ml(j,(iyp-i)+1,k,n)
+              r8vector1(jb) = ml(j,iyp-i+1,k,n)
               jb = jb + 1
             end do
           end do
