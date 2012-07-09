@@ -255,9 +255,15 @@ module mod_mppparam
           write(stderr,*) 'Required number of CPUS must be even.'
           call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
         end if
-        dimfac = real(max(iy,jx))/real(iy+jx)
-        cpus_per_dim(1) = int(real(ncpu)*dimfac)
-        cpus_per_dim(2) = ncpu / cpus_per_dim(1)
+        if ( iy > jx ) then
+          dimfac = dble(iy)/dble(iy+jx)
+          cpus_per_dim(2) = (int(dble(ncpu)*dimfac)/2)*2
+          cpus_per_dim(1) = ncpu / cpus_per_dim(2)
+        else
+          dimfac = dble(jx)/dble(iy+jx)
+          cpus_per_dim(1) = (int(dble(ncpu)*dimfac)/2)*2
+          cpus_per_dim(2) = ncpu / cpus_per_dim(1)
+        end if
         imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
         if ( mod(ncpu,imaxcpus) /= 0 ) then
           write(stderr,*) 'Work does not evenly divide.'

@@ -827,6 +827,8 @@ module mod_mtrxclm
             sund_o(j,i) = sund_o(j,i) + real(dtbat)
             sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
           end if
+          pptnc(j,i) = d_zero
+          pptc(j,i)  = d_zero
         end do
       end do
 
@@ -835,7 +837,9 @@ module mod_mtrxclm
       if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
 
         do i = ici1 , ici2
+          ig = global_istart+i-1
           do j = jci1 , jci2
+            jg = global_jstart+j-1
             drag_o(j,i) = 0.0
             evpa_o(j,i) = 0.0
             sena_o(j,i) = 0.0
@@ -929,8 +933,6 @@ module mod_mtrxclm
           end do
         end do
       end if
-      pptnc(:,:) = d_zero
-      pptc(:,:)  = d_zero
     end if  ! end if ivers = 2
   end subroutine interfclm
 !

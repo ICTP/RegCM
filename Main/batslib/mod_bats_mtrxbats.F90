@@ -540,6 +540,8 @@ module mod_bats_mtrxbats
             sund_o(j,i) = sund_o(j,i) + real(dtbat)
             sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
           end if
+          pptnc(j,i) = d_zero
+          pptc(j,i)  = d_zero
         end do
       end do
 
@@ -654,8 +656,6 @@ module mod_bats_mtrxbats
           end do
         end do
       end if
-      pptc(:,:) = d_zero
-      pptnc(:,:) = d_zero
     end if
     call time_end(subroutine_name,idindx)
 !

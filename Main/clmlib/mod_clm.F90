@@ -206,6 +206,7 @@ module mod_clm
     call getmem2d(r2cxlon_all,1,jx,1,iy,'clm:r2cxlon_all')
     call getmem2d(r2cxlatd_all,1,jx,1,iy,'clm:r2cxlatd_all')
     call getmem2d(r2cxlond_all,1,jx,1,iy,'clm:r2cxlond_all')
+
     call getmem2d(c2rtgb,1,jx,1,iy,'clm:c2rtgb')
     call getmem2d(c2rsenht,1,jx,1,iy,'clm:c2rsenht')
     call getmem2d(c2rlatht,1,jx,1,iy,'clm:c2rlatht')
