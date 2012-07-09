@@ -221,7 +221,7 @@ module mod_mppparam
     integer , dimension(2) :: cpus_per_dim
     logical , dimension(2) :: dim_period
     integer , dimension(2) :: isearch
-    integer :: imaxcpus
+    integer :: imaxcpus , imax1 , imax2
     real(dp) :: dimfac
     data dim_period /.false.,.false./
 
@@ -255,19 +255,35 @@ module mod_mppparam
           write(stderr,*) 'Required number of CPUS must be even.'
           call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
         end if
-        if ( iy > jx ) then
-          dimfac = dble(iy)/dble(iy+jx)
-          cpus_per_dim(2) = (int(dble(ncpu)*dimfac)/2)*2
-          cpus_per_dim(1) = ncpu / cpus_per_dim(2)
+        cpus_per_dim(1) = (nint(sqrt(dble(ncpu)))/2)*2
+        if ( iy > int(1.5*dble(jx)) ) then
+          cpus_per_dim(1) = cpus_per_dim(1) - 1
+          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) - 1
+          end do
+        else if ( jx > int(1.5*dble(iy)) ) then
+          cpus_per_dim(1) = cpus_per_dim(1) + 1
+          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          end do
         else
-          dimfac = dble(jx)/dble(iy+jx)
-          cpus_per_dim(1) = (int(dble(ncpu)*dimfac)/2)*2
-          cpus_per_dim(2) = ncpu / cpus_per_dim(1)
+          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          end do
         end if
+        cpus_per_dim(2) = ncpu/cpus_per_dim(1)
         imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
         if ( mod(ncpu,imaxcpus) /= 0 ) then
           write(stderr,*) 'Work does not evenly divide.'
-          write(stderr,*) 'Suggested minimum number of CPUS : ', imaxcpus
+          write(stderr,*) 'I have calculated : '
+          write(stderr,*) 'CPUS DIM1 = ', cpus_per_dim(1)
+          write(stderr,*) 'CPUS DIM2 = ', cpus_per_dim(2)
+          imax1 = ((jx/3)/2)*2
+          imax2 = ((iy/3)/2)*2
+          write(stderr,*) 'Suggested maximum number of CPUS jx: ', imax1
+          write(stderr,*) 'Suggested maximum number of CPUS iy: ', imax2
+          write(stderr,*) 'Suggested ratio per dimension : ', dimfac
+          write(stderr,*) 'Closest number : ' , imaxcpus
           call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
         end if
       end if
@@ -381,6 +397,12 @@ module mod_mppparam
     global_iend = global_istart+iyp-1
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
+
+    if ( myid == 0 ) then
+      write(stdout,*) 'CPUS DIM1 = ', cpus_per_dim(1)
+      write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
+    end if
+
   end subroutine set_nproc
 
   subroutine broadcast_params
