@@ -24,6 +24,7 @@ module mod_cu_kuo
 !
   use mod_dynparam
   use mod_memutil
+  use mod_mppparam
   use mod_cu_common
   use mod_runparams , only : iqv
 
@@ -46,6 +47,8 @@ module mod_cu_kuo
   real(dp) , public , pointer , dimension(:,:,:) :: rsheat , rswat
   real(dp) , public , pointer , dimension(:) :: qwght
   real(dp) , public , pointer , dimension(:,:,:) :: twght , vqflx
+  real(dp) , pointer , dimension(:,:,:) :: wrkkuo1
+  real(dp) , pointer , dimension(:,:,:) :: wrkkuo2
 
   integer , public :: k700
 
@@ -58,6 +61,10 @@ module mod_cu_kuo
     call getmem1d(qwght,1,kz,'cu_kuo:qwght')
     call getmem3d(twght,1,kz,5,kz,1,kz-3,'cu_kuo:twght')
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
+    call getmem3d(wrkkuo1,jce1-ma%jbl1,jce2+ma%jbr1, &
+                          ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo1')
+    call getmem3d(wrkkuo2,jce1-ma%jbl1,jce2+ma%jbr1, &
+                          ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
   end subroutine allocate_mod_cu_kuo
 !
   subroutine cupara(ktau)
@@ -337,21 +344,55 @@ module mod_cu_kuo
 !
   end subroutine cupara
 !
-  subroutine htdiff(wr1,wr2,dxsq,akht1)
+  subroutine htdiff(dxsq,akht1)
     implicit none
 !
     real(dp) , intent(in) :: akht1 , dxsq
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr1
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: wr2
 !
     integer :: i , j , k
 !
+    wrkkuo1(jci1:jci2,ici1:ici2,:) = rsheat(:,:,:)
+    wrkkuo2(jci1:jci2,ici1:ici2,:) = rswat(:,:,:)
+    if ( ma%has_bdyleft ) then
+      wrkkuo1(jce1,ici1:ici2,:) = wrkkuo1(jci1,ici1:ici2,:)
+      wrkkuo2(jce1,ici1:ici2,:) = wrkkuo2(jci1,ici1:ici2,:)
+    end if
+    if ( ma%has_bdyright ) then
+      wrkkuo1(jce2,ici1:ici2,:) = wrkkuo1(jci2,ici1:ici2,:)
+      wrkkuo2(jce2,ici1:ici2,:) = wrkkuo2(jci2,ici1:ici2,:)
+    end if
+    if ( ma%has_bdybottom ) then
+      wrkkuo1(jci1:jci2,ice1,:) = wrkkuo1(jci1:jci2,ici1,:)
+      wrkkuo2(jci1:jci2,ice1,:) = wrkkuo2(jci1:jci2,ici1,:)
+    end if
+    if ( ma%has_bdytop ) then
+      wrkkuo1(jci1:jci2,ice2,:) = wrkkuo1(jci1:jci2,ici2,:)
+      wrkkuo2(jci1:jci2,ice2,:) = wrkkuo2(jci1:jci2,ici2,:)
+    end if
+    if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
+      wrkkuo1(jce1,ice1,:) = wrkkuo1(jci1,ici1,:)
+      wrkkuo2(jce1,ice1,:) = wrkkuo2(jci1,ici1,:)
+    end if
+    if ( ma%has_bdyleft .and. ma%has_bdytop ) then
+      wrkkuo1(jce1,ice2,:) = wrkkuo1(jci1,ici2,:)
+      wrkkuo2(jce1,ice2,:) = wrkkuo2(jci1,ici2,:)
+    end if
+    if ( ma%has_bdyright .and. ma%has_bdybottom ) then
+      wrkkuo1(jce2,ice1,:) = wrkkuo1(jci2,ici1,:)
+      wrkkuo2(jce2,ice1,:) = wrkkuo2(jci2,ici1,:)
+    end if
+    if ( ma%has_bdyright .and. ma%has_bdytop ) then
+      wrkkuo1(jce2,ice2,:) = wrkkuo1(jci2,ici2,:)
+      wrkkuo2(jce2,ice2,:) = wrkkuo2(jci2,ici2,:)
+    end if
+    call exchange(wrkkuo1,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(wrkkuo2,1,jce1,jce2,ice1,ice2,1,kz)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtmdl/dxsq * &
-                   (wr1(j,i-1,k)+wr1(j,i+1,k) + &
-                    wr1(j-1,i,k)+wr1(j+1,i,k)-d_four*wr1(j,i,k))
+                   (wrkkuo1(j,i-1,k)+wrkkuo1(j,i+1,k) + &
+                    wrkkuo1(j-1,i,k)+wrkkuo1(j+1,i,k)-d_four*wrkkuo1(j,i,k))
         end do
       end do
     end do
@@ -360,8 +401,8 @@ module mod_cu_kuo
       do i = ici1 , ici2
         do j = jci1 , jci2
           rswat(j,i,k) = rswat(j,i,k)+akht1*dtmdl/dxsq * &
-                (wr2(j,i-1,k)+wr2(j,i+1,k) + &
-                 wr2(j-1,i,k)+wr2(j+1,i,k)-d_four*wr2(j,i,k))
+                (wrkkuo2(j,i-1,k)+wrkkuo2(j,i+1,k) + &
+                 wrkkuo2(j-1,i,k)+wrkkuo2(j+1,i,k)-d_four*wrkkuo2(j,i,k))
         end do
       end do
     end do

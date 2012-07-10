@@ -56,8 +56,6 @@ module mod_tendency
   real(dp) , pointer , dimension(:,:,:) :: ps4
   real(dp) , pointer , dimension(:,:,:) :: ps_4 
   real(dp) , pointer , dimension(:,:) :: psc , psd , pten
-  real(dp) , pointer , dimension(:,:,:) :: wrkkuo1
-  real(dp) , pointer , dimension(:,:,:) :: wrkkuo2
 
   integer(8) , parameter :: irep = 50
   integer :: iptn ! Total number of internal points
@@ -79,12 +77,6 @@ module mod_tendency
     call getmem2d(psd,jce1-ma%jbl1,jce2+ma%jbr1, &
                       ice1-ma%ibb1,ice2+ma%ibt1,'tendency:psd')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
-    if ( icup == 1 ) then
-      call getmem3d(wrkkuo1,jce1-ma%jbl1,jce2+ma%jbr1, &
-                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo1')
-      call getmem3d(wrkkuo2,jce1-ma%jbl1,jce2+ma%jbr1, &
-                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
-    end if
     iptn = (jcross2-jcross1+1)*(icross2-icross1+1)
   end subroutine allocate_mod_tend
 
@@ -761,43 +753,7 @@ module mod_tendency
 #endif
 
     if ( icup == 1 ) then
-      wrkkuo1(jci1:jci2,ici1:ici2,:) = rsheat(:,:,:)
-      wrkkuo2(jci1:jci2,ici1:ici2,:) = rswat(:,:,:)
-      if ( ma%has_bdyleft ) then
-        wrkkuo1(jce1,ici1:ici2,:) = wrkkuo1(jci1,ici1:ici2,:)
-        wrkkuo2(jce1,ici1:ici2,:) = wrkkuo2(jci1,ici1:ici2,:)
-      end if
-      if ( ma%has_bdyright ) then
-        wrkkuo1(jce2,ici1:ici2,:) = wrkkuo1(jci2,ici1:ici2,:)
-        wrkkuo2(jce2,ici1:ici2,:) = wrkkuo2(jci2,ici1:ici2,:)
-      end if
-      if ( ma%has_bdybottom ) then
-        wrkkuo1(jci1:jci2,ice1,:) = wrkkuo1(jci1:jci2,ici1,:)
-        wrkkuo2(jci1:jci2,ice1,:) = wrkkuo2(jci1:jci2,ici1,:)
-      end if
-      if ( ma%has_bdytop ) then
-        wrkkuo1(jci1:jci2,ice2,:) = wrkkuo1(jci1:jci2,ici2,:)
-        wrkkuo2(jci1:jci2,ice2,:) = wrkkuo2(jci1:jci2,ici2,:)
-      end if
-      if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
-        wrkkuo1(jce1,ice1,:) = wrkkuo1(jci1,ici1,:)
-        wrkkuo2(jce1,ice1,:) = wrkkuo2(jci1,ici1,:)
-      end if
-      if ( ma%has_bdyleft .and. ma%has_bdytop ) then
-        wrkkuo1(jce1,ice2,:) = wrkkuo1(jci1,ici2,:)
-        wrkkuo2(jce1,ice2,:) = wrkkuo2(jci1,ici2,:)
-      end if
-      if ( ma%has_bdyright .and. ma%has_bdybottom ) then
-        wrkkuo1(jce2,ice1,:) = wrkkuo1(jci2,ici1,:)
-        wrkkuo2(jce2,ice1,:) = wrkkuo2(jci2,ici1,:)
-      end if
-      if ( ma%has_bdyright .and. ma%has_bdytop ) then
-        wrkkuo1(jce2,ice2,:) = wrkkuo1(jci2,ici2,:)
-        wrkkuo2(jce2,ice2,:) = wrkkuo2(jci2,ici2,:)
-      end if
-      call exchange(wrkkuo1,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(wrkkuo2,1,jce1,jce2,ice1,ice2,1,kz)
-      call htdiff(wrkkuo1,wrkkuo2,dxsq,akht1)
+      call htdiff(dxsq,akht1)
     end if
 !
 !   Call medium resolution PBL

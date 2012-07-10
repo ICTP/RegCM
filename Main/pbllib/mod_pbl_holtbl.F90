@@ -240,26 +240,11 @@
   if ( ma%has_bdyleft ) then
     uvdrage(jce1,ici1:ici2) = uvdrag(jci1,ici1:ici2)
   end if
-  if ( ma%has_bdyright ) then
-    uvdrage(jce2,ici1:ici2) = uvdrag(jci2,ici1:ici2)
-  end if
   if ( ma%has_bdybottom ) then
     uvdrage(jci1:jci2,ice1) = uvdrag(jci1:jci2,ici1)
   end if
-  if ( ma%has_bdytop ) then
-    uvdrage(jci1:jci2,ice2) = uvdrag(jci1:jci2,ici2)
-  end if
   if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
     uvdrage(jce1,ice1) = uvdrag(jci1,ici1)
-  end if
-  if ( ma%has_bdyleft .and. ma%has_bdytop ) then
-    uvdrage(jce1,ice2) = uvdrag(jci1,ici2)
-  end if
-  if ( ma%has_bdyright .and. ma%has_bdybottom ) then
-    uvdrage(jce2,ice1) = uvdrag(jci2,ici1)
-  end if
-  if ( ma%has_bdyright .and. ma%has_bdytop ) then
-    uvdrage(jce2,ice2) = uvdrag(jci2,ici2)
   end if
 
   call exchange_lb(uvdrage,1,jce1,jce2,ice1,ice2)
@@ -345,33 +330,13 @@
     akzz1(jce1,ici1:ici2,:) = akzz1(jci1,ici1:ici2,:)
     akzz2(jce1,ici1:ici2,:) = akzz2(jci1,ici1:ici2,:)
   end if
-  if ( ma%has_bdyright ) then
-    akzz1(jce2,ici1:ici2,:) = akzz1(jci2,ici1:ici2,:)
-    akzz2(jce2,ici1:ici2,:) = akzz2(jci2,ici1:ici2,:)
-  end if
   if ( ma%has_bdybottom ) then
     akzz1(jci1:jci2,ice1,:) = akzz1(jci1:jci2,ici1,:)
     akzz2(jci1:jci2,ice1,:) = akzz2(jci1:jci2,ici1,:)
   end if
-  if ( ma%has_bdytop ) then
-    akzz1(jci1:jci2,ice2,:) = akzz1(jci1:jci2,ici2,:)
-    akzz2(jci1:jci2,ice2,:) = akzz2(jci1:jci2,ici2,:)
-  end if
   if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
     akzz1(jce1,ice1,:) = akzz1(jci1,ici1,:)
     akzz2(jce1,ice1,:) = akzz2(jci1,ici1,:)
-  end if
-  if ( ma%has_bdyleft .and. ma%has_bdytop ) then
-    akzz1(jce1,ice2,:) = akzz1(jci1,ici2,:)
-    akzz2(jce1,ice2,:) = akzz2(jci1,ici2,:)
-  end if
-  if ( ma%has_bdyright .and. ma%has_bdybottom ) then
-    akzz1(jce2,ice1,:) = akzz1(jci2,ici1,:)
-    akzz2(jce2,ice1,:) = akzz1(jci2,ici1,:)
-  end if
-  if ( ma%has_bdyright .and. ma%has_bdytop ) then
-    akzz1(jce2,ice2,:) = akzz1(jci2,ici2,:)
-    akzz2(jce2,ice2,:) = akzz2(jci2,ici2,:)
   end if
 
   call exchange_lb(akzz1,1,jce1,jce2,ice1,ice2,1,kz)
