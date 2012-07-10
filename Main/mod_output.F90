@@ -61,8 +61,8 @@ module mod_output
 !     this subroutine handles all of the output                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  use mpi
   implicit none
+  include 'mpif.h'
 !
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup

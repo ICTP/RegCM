@@ -57,12 +57,8 @@ module mod_params
 !     this subroutine defines various model parameters.               c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-#ifndef IBM
-  use mpi
-#else 
-  include 'mpif.h'
-#endif 
   implicit none
+  include 'mpif.h'
 !
   real(dp) :: afracl , afracs , bb , cc , chibot , delsig , &
              dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &

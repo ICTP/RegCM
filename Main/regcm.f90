@@ -67,9 +67,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  use mpi
   use mod_dynparam , only : mycomm
   implicit none
+  include 'mpif.h'
   integer :: ierr
   call mpi_abort(mycomm,1,ierr)
 end subroutine myabort

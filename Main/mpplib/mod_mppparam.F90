@@ -19,9 +19,6 @@
 !
 module mod_mppparam
 
-#ifndef IBM
-  use mpi
-#endif
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
@@ -32,9 +29,7 @@ module mod_mppparam
 
   private
 
-#ifdef IBM
   include 'mpif.h'
-#endif
 
   public :: set_nproc , broadcast_params , date_bcast
 

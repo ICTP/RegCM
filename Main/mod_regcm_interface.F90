@@ -39,7 +39,6 @@ module mod_regcm_interface
   use mod_service
   use mod_mppio
   use mod_cloud_s1
-  use mpi
   use mod_sun
 #ifdef CLM
   use perf_mod
@@ -48,6 +47,7 @@ module mod_regcm_interface
   use clm_varsur , only : numdays
 #endif
   implicit none
+  include 'mpif.h'
 !
   private
   public :: RCM_initialize

@@ -147,12 +147,8 @@ module mod_che_dust
 !
     subroutine inidust
 !    
-#ifdef IBM
-      include 'mpif.h'
-#else
-      use mpi
-#endif
       implicit none
+      include 'mpif.h'
 !
       integer :: ierr
       real(dp) , dimension(nats) :: bcly , bslt , bsnd

@@ -102,12 +102,8 @@ module mod_tendency
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-#ifndef IBM
-    use mpi
-#else
-    include 'mpif.h'
-#endif
     implicit none
+    include 'mpif.h'
 !
     real(dp) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
                psasum , pt2bar , pt2tot , ptnbar , maxv ,          &

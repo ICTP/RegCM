@@ -64,12 +64,8 @@ module mod_init
 !
   subroutine init
 !
-#ifndef IBM
-  use mpi
-#else
-  include 'mpif.h'
-#endif
   implicit none
+  include 'mpif.h'
 !
   integer :: i , j , k , n , ist
   real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
