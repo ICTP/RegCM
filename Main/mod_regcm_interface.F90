@@ -243,7 +243,8 @@ module mod_regcm_interface
     character(len=32) :: appdat
 !
 #ifdef DEBUG
-    if ( .true. ) call grid_nc_create('clouds1',cross,zqxn,qqxp)
+    ! if ( .true. ) call grid_nc_create('clouds1',cross,zqxn,qqxp)
+    if ( .true. ) call grid_nc_create('qqx',cross,adf%diffqx,qqxp)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
       !
@@ -259,10 +260,6 @@ module mod_regcm_interface
           end if
         end if
       end if
-      !
-      ! Get SST from ocean model 
-      !
-      
       !
       ! Compute tendencies
       !

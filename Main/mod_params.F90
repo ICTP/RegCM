@@ -1231,9 +1231,9 @@ module mod_params
   endif
 #endif
 !
-  call exchange(mddom%ht,1,jdi1,jdi2,idi1,idi2)
-  call exchange(mddom%msfx,2,jdi1,jdi2,idi1,idi2)
-  call exchange(mddom%msfd,2,jdi1,jdi2,idi1,idi2)
+  call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
+  call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
+  call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
 !
 !-----compute land/water mask on subgrid space
 !

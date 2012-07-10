@@ -149,6 +149,10 @@ module mod_atm_interface
   integer , public , parameter :: one_exchange_point = 1
   integer , public , parameter :: two_exchange_point = 2
 
+#ifdef DEBUG
+  type(grid_nc_var4d) , public :: qqxp
+#endif
+
   contains 
 !
     subroutine setup_model_indexes(lband)

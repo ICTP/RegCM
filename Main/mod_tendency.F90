@@ -902,6 +902,9 @@ module mod_tendency
         end do
       end do
     end if
+#ifdef DEBUG
+    call grid_nc_write(qqxp)
+#endif
 !
 !   apply the nudging boundary conditions:
 !

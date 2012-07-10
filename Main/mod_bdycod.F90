@@ -712,31 +712,31 @@ module mod_bdycod
     end if
 
     if ( ma%has_bdytop ) then
-      call exchange_lr(nue,1,kz)
-      call exchange_lr(nui,1,kz)
-      call exchange_lr(nve,1,kz)
-      call exchange_lr(nvi,1,kz)
+      call exchange_bdy_lr(nue,1,kz)
+      call exchange_bdy_lr(nui,1,kz)
+      call exchange_bdy_lr(nve,1,kz)
+      call exchange_bdy_lr(nvi,1,kz)
     end if
 
     if ( ma%has_bdybottom ) then
-      call exchange_lr(sue,1,kz)
-      call exchange_lr(sui,1,kz)
-      call exchange_lr(sve,1,kz)
-      call exchange_lr(svi,1,kz)
+      call exchange_bdy_lr(sue,1,kz)
+      call exchange_bdy_lr(sui,1,kz)
+      call exchange_bdy_lr(sve,1,kz)
+      call exchange_bdy_lr(svi,1,kz)
     end if
 
     if ( ma%has_bdyleft ) then
-      call exchange_tb(wue,1,kz)
-      call exchange_tb(wui,1,kz)
-      call exchange_tb(wve,1,kz)
-      call exchange_tb(wvi,1,kz)
+      call exchange_bdy_tb(wue,1,kz)
+      call exchange_bdy_tb(wui,1,kz)
+      call exchange_bdy_tb(wve,1,kz)
+      call exchange_bdy_tb(wvi,1,kz)
     end if
 
     if ( ma%has_bdyright ) then
-      call exchange_tb(eue,1,kz)
-      call exchange_tb(eui,1,kz)
-      call exchange_tb(eve,1,kz)
-      call exchange_tb(evi,1,kz)
+      call exchange_bdy_tb(eue,1,kz)
+      call exchange_bdy_tb(eui,1,kz)
+      call exchange_bdy_tb(eve,1,kz)
+      call exchange_bdy_tb(evi,1,kz)
     end if
 
     call time_end(subroutine_name,idindx)
