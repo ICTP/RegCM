@@ -517,8 +517,13 @@ module mod_tendency
 !
 !   Initialize the tendencies
 !
+    aten%u(:,:,:) = d_zero
+    aten%v(:,:,:) = d_zero
     aten%t(:,:,:) = d_zero
     aten%qx(:,:,:,:) = d_zero
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      aten%tke(:,:,:) = d_zero
+    end if
 !
     if ( ichem == 1 ) then 
       ! intialise also tracer tendency  
@@ -688,8 +693,6 @@ module mod_tendency
 !  the diffusion and pbl tendencies of t and qv are stored in
 !  difft and diffqx.
 !
-    aten%u(:,:,:) = d_zero
-    aten%v(:,:,:) = d_zero
 !
 !   call radiative transfer package
 !
@@ -1001,22 +1004,18 @@ module mod_tendency
 !   compute the diffusion terms:
 !   put diffusion and pbl tendencies of u and v in difuu and difuv.
 !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          adf%difuu(j,i,k) = aten%u(j,i,k)
-          adf%difuv(j,i,k) = aten%v(j,i,k)
-        end do
-      end do
-    end do
+    adf%difuu(:,:,:) = aten%u(:,:,:)
+    adf%difuv(:,:,:) = aten%v(:,:,:)
 !
     call diffu_d(adf%difuu,atms%ubd3d,psdot,mddom%msfd,xkc,1)
     call diffu_d(adf%difuv,atms%vbd3d,psdot,mddom%msfd,xkc,1)
 !
-!   compute the horizontal advection terms for u and v:
+!   Reset tendencies for U,V
 !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
+!
+!   compute the horizontal advection terms for u and v:
 !
     call hadv(dot,aten%u,atmx%u,kz)
     call hadv(dot,aten%v,atmx%v,kz)
