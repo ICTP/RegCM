@@ -1083,7 +1083,7 @@ module mod_che_ncio
 
           ! accumulated quantities between two output steps are converted
           ! to deposition/emission mean rate (mg /m2/per day)  
-          cfd = 1000.D0 * 86400.D0 ! from kg/m2/s to mg/m2/day
+          cfd = 1.D6 * 86400.D0 ! from kg/m2/s to mg/m2/day
           cfd2 = dtche / (chemfrq *3600.0D0)
 
           !*** wet deposition from large-scale precip
