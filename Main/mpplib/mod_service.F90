@@ -128,12 +128,8 @@ CONTAINS
   !!< 
   SUBROUTINE activate_debug(level)
 
-#ifndef IBM
-    use mpi
-#else
-    INCLUDE 'mpif.h'  
-#endif
     IMPLICIT NONE
+    INCLUDE 'mpif.h'  
     INTEGER, optional :: LEVEL
     CHARACTER(len=3) ::  np='   '
     CHARACTER(len=9) ::  string
@@ -345,12 +341,8 @@ CONTAINS
 
   SUBROUTINE time_print(iunit,name_of_section)
 
-#ifndef IBM
-    use mpi
-#else
-    INCLUDE 'mpif.h'  
-#endif
     IMPLICIT NONE
+    INCLUDE 'mpif.h'  
     ! arguments:
     CHARACTER (len=*),OPTIONAL :: name_of_section
     INTEGER :: iunit
@@ -531,12 +523,8 @@ CONTAINS
   !!<
 
   SUBROUTINE gather(f_collect,f_sub)
-#ifndef IBM
-    use mpi
-#else
-    INCLUDE 'mpif.h'  
-#endif
     IMPLICIT NONE 
+    INCLUDE 'mpif.h'  
     REAL (kind=8), DIMENSION(:)  :: f_collect 
     REAL (kind=8) :: f_sub
 
@@ -558,12 +546,8 @@ CONTAINS
   !!   ACTION : another gathering routine
   !!<
   SUBROUTINE gather_i(f_collect,f_sub)
-#ifndef IBM
-    use mpi
-#else
-    INCLUDE 'mpif.h'  
-#endif
     IMPLICIT NONE 
+    INCLUDE 'mpif.h'  
     ! assumed shaped array... 
     INTEGER , DIMENSION(:)  :: f_collect 
     INTEGER  :: f_sub
@@ -625,12 +609,8 @@ CONTAINS
   !!<
   SUBROUTINE error_prot(sub,err_code,message,line) 
 
-#ifndef IBM
-    use mpi
-#else
-    INCLUDE 'mpif.h'  
-#endif
     IMPLICIT NONE
+    INCLUDE 'mpif.h'  
     CHARACTER*(*), INTENT(in) :: sub
     INTEGER, INTENT(in) :: err_code
     CHARACTER*(*), OPTIONAL, INTENT(in) :: message
