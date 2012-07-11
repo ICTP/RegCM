@@ -36,10 +36,17 @@ module mod_che_cumtran
     real(dp) :: chiabar , chibbar , deltas , cumfrc
     integer :: i , j , k , kctop , n
 
-    if ( ichdiag == 1 ) chiten0 = chib
+    if ( ichdiag == 1 ) then
+     do j = jci1 , jci2
+        do i = ici1 , ici2 
+         chiten0(j,i,:,:)  = chib(j,i,:,:)
+        end do
+      end do
+    end if 
+
     do n = 1 , ntr
       do j = jci1 , jci2
-        do i = ici1 , ici2
+        do i = ici1 , ici2 
           if ( kcumtop(j,i) > 0 ) then
             deltas = d_zero
             chiabar = d_zero
