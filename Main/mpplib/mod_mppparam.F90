@@ -219,7 +219,6 @@ module mod_mppparam
 
     nproc = ncpu
 
-    if ( i_band == 1 ) dim_period(1) = .true.
     ma%top         = mpi_proc_null
     ma%bottom      = mpi_proc_null
     ma%left        = mpi_proc_null
@@ -237,7 +236,23 @@ module mod_mppparam
       cartesian_communicator = mycomm
       ma%location(1) = 0
       ma%location(2) = 0
+      global_jstart = 1
+      global_istart = 1
+      global_jend = jx
+      global_iend = iy
+      ma%has_bdytop    = .true.
+      ma%has_bdybottom = .true.
+      if ( i_band == 1 ) then
+        ma%left = 0
+        ma%right = 0
+        ma%has_bdyright  = .false.
+        ma%has_bdyleft   = .false.
+      else
+        ma%has_bdyright  = .true.
+        ma%has_bdyleft   = .true.
+      end if
     else
+      if ( i_band == 1 ) dim_period(1) = .true.
       if ( nproc < 4 ) then
         cpus_per_dim(1) = ncpu
         cpus_per_dim(2) = 1
@@ -279,6 +294,7 @@ module mod_mppparam
           call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
         end if
       end if
+
       call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
                            cartesian_communicator,mpierr)
       call mpi_comm_rank(cartesian_communicator,myid,mpierr)
@@ -289,8 +305,6 @@ module mod_mppparam
       isearch(2) = ma%location(2)+1
       if ( isearch(2) < cpus_per_dim(2) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
-      else
-        ma%top = mpi_proc_null
       end if
       isearch(1) = ma%location(1)
       isearch(2) = ma%location(2)-1
@@ -330,38 +344,40 @@ module mod_mppparam
       if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. isearch(2) >= 0 ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
       end if
-    end if
   
-    ma%has_bdytop    = (ma%top    == mpi_proc_null)
-    ma%has_bdybottom = (ma%bottom == mpi_proc_null)
-    ma%has_bdyright  = (ma%right  == mpi_proc_null)
-    ma%has_bdyleft   = (ma%left   == mpi_proc_null)
+      ma%has_bdytop    = (ma%top    == mpi_proc_null)
+      ma%has_bdybottom = (ma%bottom == mpi_proc_null)
+      ma%has_bdyright  = (ma%right  == mpi_proc_null)
+      ma%has_bdyleft   = (ma%left   == mpi_proc_null)
 
-    jxp =  jx/cpus_per_dim(1)
-    iyp =  iy/cpus_per_dim(2)
+      jxp =  jx/cpus_per_dim(1)
+      iyp =  iy/cpus_per_dim(2)
 
-    global_jstart = ma%location(1)*jxp+1
-    global_istart = ma%location(2)*iyp+1
+      global_jstart = ma%location(1)*jxp+1
+      global_istart = ma%location(2)*iyp+1
 
-    if ( ma%has_bdytop ) then
-      if ( mod(iy,iyp) /= 0 ) then
-        global_iend = global_istart+iyp-1
-        if ( global_iend < iy ) then
-          iyp = iy-global_istart+1
-        else
-          iyp = mod(iy,iyp)
+      if ( ma%has_bdytop ) then
+        if ( mod(iy,iyp) /= 0 ) then
+          global_iend = global_istart+iyp-1
+          if ( global_iend < iy ) then
+            iyp = iy-global_istart+1
+          else
+            iyp = mod(iy,iyp)
+          end if
         end if
       end if
-    end if
-    if ( ma%has_bdyright ) then
-      if ( mod(jx,jxp) /= 0 ) then
-        global_jend = global_jstart+jxp-1
-        if ( global_jend < jx ) then
-          jxp = jx-global_jstart+1
-        else
-          jxp = mod(jx,jxp)
+      if ( ma%has_bdyright ) then
+        if ( mod(jx,jxp) /= 0 ) then
+          global_jend = global_jstart+jxp-1
+          if ( global_jend < jx ) then
+            jxp = jx-global_jstart+1
+          else
+            jxp = mod(jx,jxp)
+          end if
         end if
       end if
+      global_jend = global_jstart+jxp-1
+      global_iend = global_istart+iyp-1
     end if
 
     ! Check the results
@@ -373,8 +389,6 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'Too much processors')
     end if
 
-    global_jend = global_jstart+jxp-1
-    global_iend = global_istart+iyp-1
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
 
@@ -383,12 +397,14 @@ module mod_mppparam
       write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
     end if
     ! Allocate to something should fit all
-    call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
-    call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
-    call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
-    call getmem1d(r4vector2,1,nsg*jx*iy*kz,'set_nproc:r4vector2')
-    call getmem1d(i4vector1,1,nsg*jx*iy*kz,'set_nproc:i4vector1')
-    call getmem1d(i4vector2,1,nsg*jx*iy*kz,'set_nproc:i4vector2')
+    if ( nproc > 1 ) then
+      call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
+      call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
+      call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,nsg*jx*iy*kz,'set_nproc:r4vector2')
+      call getmem1d(i4vector1,1,nsg*jx*iy*kz,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,nsg*jx*iy*kz,'set_nproc:i4vector2')
+    end if
   end subroutine set_nproc
 
   subroutine broadcast_params

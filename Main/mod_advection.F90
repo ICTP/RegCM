@@ -555,48 +555,6 @@ module mod_advection
           end do
         end do
       else if ( ind == 2 ) then
-        !
-        ! vertical advection terms for qc 
-        !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( vsv(j,i,2) >= d_zero ) then
-              f2 = f(j,i,1,m)
-            else
-              f2 = f(j,i,2,m)
-            end if
-            ften(j,i,1,m) = ften(j,i,1,m) - vsv(j,i,2)*f2/dsigma(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( vsv(j,i,k+1) >= d_zero ) then
-                f2 = f(j,i,k,m)
-              else
-                f2 = f(j,i,k+1,m)
-              end if
-              if ( vsv(j,i,k) >= d_zero ) then
-                f1 = f(j,i,k-1,m)
-              else
-                f1 = f(j,i,k,m)
-              end if
-              ften(j,i,k,m) = ften(j,i,k,m) - &
-                    (vsv(j,i,k+1)*f2-vsv(j,i,k)*f1)/dsigma(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( vsv(j,i,nk) >= d_zero ) then
-              f1 = f(j,i,nk-1,m)
-            else
-              f1 = f(j,i,nk,m)
-            end if
-            ften(j,i,nk,m) = ften(j,i,nk,m) + vsv(j,i,nk)*f1/dsigma(nk)
-          end do
-        end do
-      else if ( ind == 3 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
             fg(j,i,1) = d_zero
@@ -627,7 +585,7 @@ module mod_advection
             ften(j,i,nk,m) = ften(j,i,nk,m) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
           end do
         end do
-      else if ( ind == 4 ) then
+      else if ( ind == 3 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
             fg(j,i,1) = d_zero

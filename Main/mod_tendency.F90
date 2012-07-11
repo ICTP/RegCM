@@ -583,7 +583,7 @@ module mod_tendency
         call vadv(aten%qx,atm1%qx,kz,iqv,1)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqv,4)
+          call vadv(aten%qx,atm1%qx,kz,iqv,3)
         else
           call vadv(aten%qx,atm1%qx,kz,iqv,1)
         end if
@@ -624,12 +624,12 @@ module mod_tendency
     if ( ipptls == 1 ) then
       call hadv(aten%qx,atmx%qx,kz,iqc,2)
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,iqc,3)
+        call vadv(aten%qx,atm1%qx,kz,iqc,2)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqc,4)
-        else
           call vadv(aten%qx,atm1%qx,kz,iqc,3)
+        else
+          call vadv(aten%qx,atm1%qx,kz,iqc,2)
         end if
       end if
       call pcp
