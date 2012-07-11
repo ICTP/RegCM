@@ -609,7 +609,7 @@ module mod_che_drydep
             end if
             ! diagnostic for dry deposition flux 
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                            settend(i,kz)*cdzq(j,i,k)*crhob3d(j,i,k)*cdiagf
+                            settend(i,kz)*cdzq(j,i,kz)*crhob3d(j,i,kz)*cdiagf
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
           else if ( ichdrdepo == 2 ) then
