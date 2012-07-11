@@ -575,8 +575,8 @@ module mod_split
         end do
       end do
 !
-      call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
-      call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
+      call exchange_rt(uu,1,jde1,jde2,ide1,ide2)
+      call exchange_rt(vv,1,jde1,jde2,ide1,ide2)
 !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -671,8 +671,8 @@ module mod_split
           end do
         end do
 !
-        call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
-        call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
+        call exchange_rt(uu,1,jde1,jde2,ide1,ide2)
+        call exchange_rt(vv,1,jde1,jde2,ide1,ide2)
 !
         do i = ici1 , ici2
           do j = jci1 , jci2

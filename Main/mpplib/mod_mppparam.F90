@@ -199,6 +199,19 @@ module mod_mppparam
   integer , dimension(4) :: window
   integer :: mpierr
 !
+  integer , parameter :: iocpu = 0
+!
+  integer , parameter :: tag_bt = 1
+  integer , parameter :: tag_tb = 2
+  integer , parameter :: tag_lr = 3
+  integer , parameter :: tag_rl = 4
+  integer , parameter :: tag_tlbr = 5
+  integer , parameter :: tag_bltr = 6
+  integer , parameter :: tag_brtl = 7
+  integer , parameter :: tag_trbl = 8
+  integer , parameter :: tag_w = 100
+  integer , parameter :: tag_base = 200
+!
   public :: exchange , exchange_lb , exchange_rt
   public :: exchange_bdy_lr , exchange_bdy_tb
   public :: grid_distribute , grid_collect , grid_fill
@@ -534,7 +547,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -549,7 +562,7 @@ module mod_mppparam
             ib = ib + 1
           end do
         end do
-        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -563,9 +576,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_recv(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -594,7 +607,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -612,7 +625,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -627,9 +640,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_recv(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -662,7 +675,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -683,7 +696,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -699,9 +712,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_recv(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -732,7 +745,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -747,7 +760,7 @@ module mod_mppparam
             ib = ib + 1
           end do
         end do
-        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -761,9 +774,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_recv(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -792,7 +805,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -810,7 +823,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -825,9 +838,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_recv(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -860,7 +873,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -881,7 +894,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -897,9 +910,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_recv(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -930,7 +943,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -945,7 +958,7 @@ module mod_mppparam
             ib = ib + 1
           end do
         end do
-        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -959,9 +972,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_recv(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -990,7 +1003,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1008,7 +1021,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1023,9 +1036,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_recv(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1058,7 +1071,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1079,7 +1092,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1095,9 +1108,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_recv(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -1130,7 +1143,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1147,7 +1160,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1161,9 +1174,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_recv(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1196,7 +1209,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1216,7 +1229,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_send(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1231,9 +1244,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_recv(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1266,7 +1279,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1283,7 +1296,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1297,9 +1310,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_recv(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1332,7 +1345,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1352,7 +1365,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_send(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1367,9 +1380,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_recv(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1402,7 +1415,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1419,7 +1432,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1433,9 +1446,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_recv(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1468,7 +1481,7 @@ module mod_mppparam
       end do
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -1488,7 +1501,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call mpi_send(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_send(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
@@ -1503,9 +1516,9 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_recv(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1536,7 +1549,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1544,7 +1557,7 @@ module mod_mppparam
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
         end if
-        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -1565,7 +1578,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1574,7 +1587,7 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_send(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_collect
@@ -1596,7 +1609,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1605,7 +1618,7 @@ module mod_mppparam
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
         end if
-        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -1629,7 +1642,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1640,7 +1653,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_send(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_3d_collect
@@ -1664,7 +1677,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1674,7 +1687,7 @@ module mod_mppparam
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
         end if
-        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
@@ -1701,7 +1714,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -1714,7 +1727,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_send(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_4d_collect
@@ -1734,7 +1747,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1742,7 +1755,7 @@ module mod_mppparam
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
         end if
-        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -1763,7 +1776,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1772,7 +1785,7 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_send(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_2d_collect
@@ -1794,7 +1807,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1803,7 +1816,7 @@ module mod_mppparam
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
         end if
-        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -1827,7 +1840,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -1838,7 +1851,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_send(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_3d_collect
@@ -1862,7 +1875,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1872,7 +1885,7 @@ module mod_mppparam
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
         end if
-        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
@@ -1899,7 +1912,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -1912,7 +1925,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_send(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_4d_collect
@@ -1932,7 +1945,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1940,7 +1953,7 @@ module mod_mppparam
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
         end if
-        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -1961,7 +1974,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -1970,7 +1983,7 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_send(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_2d_collect
@@ -1992,7 +2005,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -2001,7 +2014,7 @@ module mod_mppparam
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
         end if
-        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -2025,7 +2038,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -2036,7 +2049,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_send(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_3d_collect
@@ -2060,7 +2073,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -2070,7 +2083,7 @@ module mod_mppparam
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
         end if
-        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do n = n1 , n2
@@ -2097,7 +2110,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do n = n1 , n2
@@ -2110,7 +2123,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_send(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_4d_collect
@@ -2132,7 +2145,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2140,7 +2153,7 @@ module mod_mppparam
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
         end if
-        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -2163,7 +2176,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -2174,7 +2187,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_send(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_sub_collect
@@ -2198,7 +2211,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2207,7 +2220,7 @@ module mod_mppparam
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
         end if
-        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,0, &
+        call mpi_recv(r8vector1,lsize,mpi_real8,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -2233,7 +2246,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -2246,7 +2259,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r8vector2,lsize,mpi_real8,0,0, &
+      call mpi_send(r8vector2,lsize,mpi_real8,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_3d_sub_collect
@@ -2268,7 +2281,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2276,7 +2289,7 @@ module mod_mppparam
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
         end if
-        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -2299,7 +2312,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -2310,7 +2323,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_send(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_2d_sub_collect
@@ -2334,7 +2347,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2343,7 +2356,7 @@ module mod_mppparam
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
         end if
-        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,0, &
+        call mpi_recv(r4vector1,lsize,mpi_real4,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -2369,7 +2382,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -2382,7 +2395,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(r4vector2,lsize,mpi_real4,0,0, &
+      call mpi_send(r4vector2,lsize,mpi_real4,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real4_3d_sub_collect
@@ -2404,7 +2417,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2412,7 +2425,7 @@ module mod_mppparam
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
         end if
-        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do i = window(1) , window(2)
@@ -2435,7 +2448,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
@@ -2446,7 +2459,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_send(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_2d_sub_collect
@@ -2470,7 +2483,7 @@ module mod_mppparam
       end do
       ! Receive from other nodes the piece they have
       do icpu = 1 , nproc-1
-        call mpi_recv(window,4,mpi_integer,icpu,0, &
+        call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         isize = (window(2)-window(1)+1)*nsg
         jsize = (window(4)-window(3)+1)*nsg
@@ -2479,7 +2492,7 @@ module mod_mppparam
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
         end if
-        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,0, &
+        call mpi_recv(i4vector1,lsize,mpi_integer,icpu,tag_base, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
         ib = 1
         do k = k1 , k2
@@ -2505,7 +2518,7 @@ module mod_mppparam
       window(2) = window(1)+isize-1
       window(3) = global_jstart+j1-1
       window(4) = window(3)+jsize-1
-      call mpi_send(window,4,mpi_integer,0,0, &
+      call mpi_send(window,4,mpi_integer,iocpu,tag_w, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
@@ -2518,7 +2531,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call mpi_send(i4vector2,lsize,mpi_integer,0,0, &
+      call mpi_send(i4vector2,lsize,mpi_integer,iocpu,tag_base, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine integer_3d_sub_collect
@@ -2527,7 +2540,7 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: isize , jsize , ssize , j , i , ib
+    integer :: isize , jsize , ssize , j , i , ib , ireq
     isize = i2-i1+1
     jsize = j2-j1+1
     if ( ma%right /= mpi_proc_null) then
@@ -2545,10 +2558,11 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%right,tag_rl, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%right,tag_lr, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%right,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -2565,15 +2579,6 @@ module mod_mppparam
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
       end if
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%left,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
-      ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
-          ml(j1-j,i) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -2581,8 +2586,18 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%left,tag_lr, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%left,tag_rl, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j1-j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
@@ -2599,10 +2614,11 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%top,tag_tb, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%top,tag_bt, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%top,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2619,15 +2635,6 @@ module mod_mppparam
       if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottom,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
-      ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
-          ml(j,i1-i) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2635,8 +2642,18 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%bottom,tag_bt, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottom,tag_tb, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i1-i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex
@@ -2653,14 +2670,43 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%topleft,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%topleft,tag_tlbr, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topleft,tag_brtl, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topleft,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
           ml(j1-j,i2+i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r8vector1(ib) = ml(j2-j+1,i)
+          ib = ib + 1
+        end do
+      end do
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%bottomright,tag_brtl, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomright,tag_tlbr, &
+                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j2+j,i1-i) = r8vector2(ib)
           ib = ib + 1
         end do
       end do
@@ -2680,10 +2726,11 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%topright,tag_trbl, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%topright,tag_bltr, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%topright,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -2700,15 +2747,6 @@ module mod_mppparam
       if ( size(r8vector2) < ssize ) then
         call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
       end if
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomleft,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
-      ib = 1
-      do i = 1 , nex
-        do j = 1 , nex
-          ml(j1-j,i1-i) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -2716,35 +2754,18 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,0, &
+      call mpi_irecv(r8vector2,ssize,mpi_real8,ma%bottomleft,tag_bltr, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomleft,tag_trbl, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-    end if
-    if ( ma%bottomright /= mpi_proc_null ) then
-      ssize = nex*nex
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      end if
-      call mpi_recv(r8vector2,ssize,mpi_real8,ma%bottomright,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
-          ml(j2+j,i1-i) = r8vector2(ib)
+          ml(j1-j,i1-i) = r8vector2(ib)
           ib = ib + 1
         end do
       end do
-      ib = 1
-      do i = 1 , nex
-        do j = 1 , nex
-          r8vector1(ib) = ml(j2-j+1,i)
-          ib = ib + 1
-        end do
-      end do
-      call mpi_send(r8vector1,ssize,mpi_real8,ma%bottomright,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
     end if
   end subroutine real8_2d_exchange
 !

@@ -506,7 +506,7 @@ module mod_advection
       real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(dp) :: f1 , f2 , slope
+      real(dp) :: slope
       integer :: i , j , k
 !
       character (len=64) :: subroutine_name='vadv3d4d'
