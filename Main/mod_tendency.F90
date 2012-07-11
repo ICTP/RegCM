@@ -1339,8 +1339,8 @@ module mod_tendency
       ptnbar = ptntot/dble(iptn)
       pt2bar = pt2tot/dble(iptn)
       icons_mpi = 0
-      call mpi_allreduce(total_precip_points,icons_mpi,1,mpi_integer, &
-                         mpi_sum,mycomm,ierr)
+      call mpi_reduce(total_precip_points,icons_mpi,1,mpi_integer, &
+                         mpi_sum,0,mycomm,ierr)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
