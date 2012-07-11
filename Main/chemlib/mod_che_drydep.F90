@@ -724,9 +724,14 @@ module mod_che_drydep
              end if
              ! update chiten
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
+             ! diag dry dep tendency 
+              if ( ichdiag == 1 ) then
+              cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
+                                             ddrem(i) * cdiagf
+              end if
              ! drydep flux diagnostic (accumulated between two outputs time
              ! step) ! the fluc form is calulated in tracbud
-             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / d_two
+             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * cdiagf
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
              drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n)     
