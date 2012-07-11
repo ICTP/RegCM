@@ -138,7 +138,6 @@ module mod_che_chemistry
           xrin(1,ind_N2O5) = chib3d(j,i,k,in2o5)*cfactor/W_N2O5
           xrin(1,ind_SO2)  = chib3d(j,i,k,iso2)*cfactor/W_SO2
           xrin(1,ind_SULF) = chib3d(j,i,k,iso4)*cfactor/W_SULF
-          xrin(1,ind_DMS)  = chib3d(j,i,k,idms)*cfactor/W_DMS
           xrin(1,ind_HCHO) = chib3d(j,i,k,ihcho)*cfactor/W_HCHO
           xrin(1,ind_ALD2) = chib3d(j,i,k,iald2)*cfactor/W_ALD2
           xrin(1,ind_ISOP) = chib3d(j,i,k,iisop)*cfactor/W_ISOP
@@ -207,8 +206,6 @@ module mod_che_chemistry
             (xrout(1,ind_SO2)  - xrin(1,ind_SO2)) *pfact*W_SO2
           chemten(j,i,k,iso4)   = &
             (xrout(1,ind_SULF) - xrin(1,ind_SULF))*pfact*W_SULF
-          chemten(j,i,k,idms)   = &
-            (xrout(1,ind_DMS)  - xrin(1,ind_DMS)) *pfact*W_DMS
           chemten(j,i,k,ihcho)  = &
             (xrout(1,ind_HCHO) - xrin(1,ind_HCHO))*pfact*W_HCHO
           chemten(j,i,k,iald2)  = &
@@ -263,9 +260,6 @@ module mod_che_chemistry
             (xrout(1,ind_hno4) - xrin(1,ind_hno4))*pfact*W_hno4
            chemten(j,i,k,ixo2)  = &
             (xrout(1,ind_xo2) - xrin(1,ind_xo2))*pfact*W_xo2
-
-
-
 
 
         end do ! end i , k loop

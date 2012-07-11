@@ -509,8 +509,8 @@ module mod_che_dust
                    rsfrow(i,n)
             end if
             ! diagnostic source (accumulated)
-            cemtr(jloop,i,idust(n)) = cemtr(jloop,i,idust(n)) + &
-                     rsfrow(i,n)*dtche/2.0D0
+            cemtrac(jloop,i,idust(n)) = cemtrac(jloop,i,idust(n)) + &
+                     rsfrow(i,n)* cdiagf
           end do
           ieff = ieff + 1
         end if

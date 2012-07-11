@@ -68,7 +68,7 @@ module mod_che_common
 !
   integer , pointer , dimension(:) :: isslt , icarb , idust
 !
-  real(dp) , pointer , dimension(:,:,:) :: convcldfra , cemtr , cemtrac , remdrd
+  real(dp) , pointer , dimension(:,:,:) :: convcldfra ,  cemtrac , remdrd
 
 !diagnostic
   real(dp) :: cdiagf
@@ -152,7 +152,6 @@ module mod_che_common
                       'che_common:rxsaq1')
         call getmem4d(rxsaq2,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                       'che_common:rxsaq2')
-        call getmem3d(cemtr,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtr')
         call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                       'che_common:remlsc')
         call getmem4d(remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &

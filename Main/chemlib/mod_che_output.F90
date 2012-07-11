@@ -82,7 +82,7 @@ module mod_che_output
 
       ! put back to zero accumulated variables
 
-      cemtr(:,:,:) = d_zero
+ 
       remdrd(:,:,:) = d_zero
       drydepv(:,:,:) = d_zero
       cemtrac(:,:,:) = d_zero
