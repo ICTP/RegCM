@@ -1000,7 +1000,7 @@ module mod_che_ncio
 
 !============================================================================
 
-    subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,ddsfc,cemtrac,drydepv, &
+    subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,remdrd,cemtrac,drydepv, &
                              chemdiag,cadvhdiag,cadvvdiag,cdifhdiag,        &
                              cconvdiag,cbdydiag,ctbldiag,cseddpdiag,remlsc,remcvc,     &  
                              ext,ssa,asp,aod,tarf,ssrf,talwrf,srlwrf,ps,idate)
@@ -1012,7 +1012,7 @@ module mod_che_ncio
              cbdydiag , ctbldiag , remlsc , remcvc  ,cseddpdiag
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
-                        ddsfc , cemtrac , drydepv , dtrace
+                        remdrd , cemtrac , drydepv , dtrace
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
       real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , aod , &
                                                           talwrf , srlwrf
@@ -1101,7 +1101,7 @@ module mod_che_ncio
                'Error writing wet dep CONV at '//ctime,'CHE FILE ERROR')
 
           !*** dry deposition
-          dumio(:,:,1) = real(ddsfc(o_js:o_je,o_is:o_ie,n)*cfd)
+          dumio(:,:,1) = real(remdrd(o_js:o_je,o_is:o_ie,n)*cfd)
           istatus = nf90_put_var(ncche(n), ichevar(6), &
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok(__FILE__,__LINE__, &

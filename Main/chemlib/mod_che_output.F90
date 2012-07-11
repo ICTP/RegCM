@@ -60,9 +60,12 @@ module mod_che_output
       call grid_collect(dtrace,dtrace_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(wdlsc,wdlsc_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(wdcvc,wdcvc_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(ddsfc,ddsfc_io,jce1,jce2,ice1,ice2,1,ntr)
+      call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(cemtrac,cemtrac_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(drydepv,drydepv_io,jce1,jce2,ice1,ice2,1,ntr)
+
+
+
 
       if (ichdiag > 0) then   
         call grid_collect(chemdiag,chemdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -95,7 +98,7 @@ module mod_che_output
 
       wxaq(:,:,:) = d_zero
       wxsg(:,:,:) = d_zero
-      ddsfc(:,:,:) = d_zero
+
       wdcvc(:,:,:) = d_zero
       wdlsc(:,:,:) = d_zero
 
@@ -125,7 +128,7 @@ module mod_che_output
 
       if ( myid == 0 ) then 
         aeraod_io = sum(aerext_io,3)
-        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,ddsfc_io,   &
+        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,   &
                            cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &
                            cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
                            cbdydiag_io,ctbldiag_io,cseddpdiag_io,remlsc_io,remcvc_io,    &

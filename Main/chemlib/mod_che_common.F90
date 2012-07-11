@@ -51,7 +51,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
   real(dp) , pointer , dimension(:,:,:) :: srclp2
-  real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
+  real(dp) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg , drydepv
 
   real(dp) , pointer , dimension(:,:,:,:) :: chemall,jphoto
@@ -173,7 +173,7 @@ module mod_che_common
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
         call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
         call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
-        call getmem3d(ddsfc,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddsfc')
+ 
         call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
         call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
