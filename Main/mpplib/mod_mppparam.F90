@@ -37,6 +37,7 @@ module mod_mppparam
 
   type model_area
     logical :: bandflag
+    logical :: has_bdy
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     integer , dimension(2) :: location
     integer :: left , right , top , bottom
@@ -264,6 +265,7 @@ module mod_mppparam
         ma%has_bdyright  = .true.
         ma%has_bdyleft   = .true.
       end if
+      ma%has_bdy = .true.
     else
       if ( i_band == 1 ) dim_period(1) = .true.
       if ( nproc < 4 ) then
@@ -362,6 +364,8 @@ module mod_mppparam
       ma%has_bdybottom = (ma%bottom == mpi_proc_null)
       ma%has_bdyright  = (ma%right  == mpi_proc_null)
       ma%has_bdyleft   = (ma%left   == mpi_proc_null)
+      ma%has_bdy       = ( ma%has_bdytop .or. ma%has_bdybottom .or. &
+                           ma%has_bdyright .or. ma%has_bdyleft )
 
       jxp =  jx/cpus_per_dim(1)
       iyp =  iy/cpus_per_dim(2)

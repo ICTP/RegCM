@@ -85,10 +85,9 @@ module mod_bdycod
 !
   contains
 !
-  subroutine allocate_mod_bdycon(iboudy,lband)
+  subroutine allocate_mod_bdycon(iboudy)
     implicit none
     integer , intent(in) :: iboudy
-    logical , intent(in) :: lband
     character (len=64) :: subroutine_name='allocate_mod_bdycon'
     integer :: idindx=0
 !
@@ -121,18 +120,16 @@ module mod_bdycod
     call getmem2d(sve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sve')
     call getmem2d(svi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:svi')
 !
-    if ( .not. lband ) then
-      call getmem2d(wue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wue')
-      call getmem2d(wui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wui')
-      call getmem2d(eue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eue')
-      call getmem2d(eui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eui')
-      call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
-      call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
-      call getmem2d(eve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eve')
-      call getmem2d(evi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:evi')
-    end if
+    call getmem2d(wue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wue')
+    call getmem2d(wui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wui')
+    call getmem2d(eue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eue')
+    call getmem2d(eui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eui')
+    call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
+    call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
+    call getmem2d(eve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eve')
+    call getmem2d(evi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:evi')
+!
     call time_end(subroutine_name,idindx)
-
   end subroutine allocate_mod_bdycon
 !
   subroutine setup_bdycon(hlev)
@@ -769,6 +766,8 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ma%has_bdy ) return
     !
     ! Fill up the boundary value for xxb variables from xxa variables:
     ! if this subroutine is called for the first time, this part
@@ -1237,6 +1236,9 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
+!
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1316,6 +1318,9 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
+!
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1394,6 +1399,9 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
+!
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1513,6 +1521,8 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
 !
     if ( ba%dotflag ) then
       lfc => fcd
@@ -1647,6 +1657,8 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
 !
     if ( ba%dotflag ) then
       lfc => fcd
@@ -1783,6 +1795,8 @@ module mod_bdycod
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
+    if ( .not. ba%havebound ) return
 !
     if ( ba%dotflag ) then
       lfc => fcd
