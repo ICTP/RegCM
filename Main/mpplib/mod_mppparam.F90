@@ -4015,7 +4015,7 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: k1 , k2
-    integer :: ksize , k , ib
+    integer :: ksize , k , ib , ireq
     ksize = k2-k1+1
     if ( ma%right /= mpi_proc_null) then
       if ( size(r8vector1) < ksize ) then
@@ -4029,10 +4029,11 @@ module mod_mppparam
         r8vector1(ib) = ml(jxp,k)
         ib = ib + 1
       end do
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%right,0, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%right,tag_lr, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%right,tag_rl, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ksize,mpi_real8,ma%right,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         ml(jxp+1,k) = r8vector2(ib)
@@ -4046,20 +4047,21 @@ module mod_mppparam
       if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
       end if
-      call mpi_recv(r8vector2,ksize,mpi_real8,ma%left,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
-      ib = 1
-      do k = k1 , k2
-        ml(0,k) = r8vector2(ib)
-        ib = ib + 1
-      end do
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(1,k)
         ib = ib + 1
       end do
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%left,0, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%left,tag_rl, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%left,tag_lr, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(0,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
     end if
   end subroutine real8_bdy_exchange_left_right
 !
@@ -4067,7 +4069,7 @@ module mod_mppparam
     implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml
     integer , intent(in) :: k1 , k2
-    integer :: ksize , k , ib
+    integer :: ksize , k , ib , ireq
     ksize = k2-k1+1
     if ( ma%top /= mpi_proc_null) then
       if ( size(r8vector1) < ksize ) then
@@ -4081,10 +4083,11 @@ module mod_mppparam
         r8vector1(ib) = ml(iyp,k)
         ib = ib + 1
       end do
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%top,0, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%bottom,tag_tb, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%bottom,tag_bt, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
-      call mpi_recv(r8vector2,ksize,mpi_real8,ma%top,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
       do k = k1 , k2
         ml(iyp+1,k) = r8vector2(ib)
@@ -4098,20 +4101,21 @@ module mod_mppparam
       if ( size(r8vector1) < ksize ) then
         call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
       end if
-      call mpi_recv(r8vector2,ksize,mpi_real8,ma%bottom,0, &
-                    cartesian_communicator,mpi_status_ignore,mpierr)
-      ib = 1
-      do k = k1 , k2
-        ml(0,k) = r8vector2(ib)
-        ib = ib + 1
-      end do
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(1,k)
         ib = ib + 1
       end do
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%bottom,0, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%top,tag_bt, &
+                     cartesian_communicator,ireq,mpierr)
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%top,tag_tb, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
+      call mpi_wait(ireq,mpi_status_ignore,mpierr)
+      ib = 1
+      do k = k1 , k2
+        ml(0,k) = r8vector2(ib)
+        ib = ib + 1
+      end do
     end if
   end subroutine real8_bdy_exchange_top_bottom
 !
