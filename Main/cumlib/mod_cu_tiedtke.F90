@@ -3024,7 +3024,7 @@ module mod_cu_tiedtke
           plu(jl,jk) = plu(jl,jk) + zqold(jl) - pqu(jl,jk)
           zbuo = ptu(jl,jk)*(d_one+vtmpc1*pqu(jl,jk)-plu(jl,jk))    &
                  - ptenh(jl,jk)*(d_one+vtmpc1*pqenh(jl,jk)) + d_half
-          if ( zbuo > 0. ) then
+          if ( zbuo > d_zero ) then
             kcbot(jl) = jk
             ldcum(jl) = .true.
           end if

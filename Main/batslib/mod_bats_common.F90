@@ -160,9 +160,8 @@ module mod_bats_common
   real(dp) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
   real(dp) , pointer , dimension(:,:) :: sfps          ! sfs%psb
   real(dp) , pointer , dimension(:,:,:) :: hgt         ! za
-  real(dp) , pointer , dimension(:,:) :: ts            ! ts1
   real(dp) , pointer , dimension(:,:) :: tsf           ! ts0_io
-  real(dp) , pointer , dimension(:,:) :: rho           ! rhox2d
+  real(dp) , pointer , dimension(:,:) :: rhox          ! rhox2d
   integer , pointer , dimension(:,:) :: lmask          ! CLM landmask
 
   contains

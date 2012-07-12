@@ -47,7 +47,7 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,ts1,zpbl)
+  subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -55,7 +55,7 @@ module mod_lm_interface
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: ts1 , zpbl
+    real(dp) , pointer , intent(in) , dimension(:,:) :: zpbl
     xdtsec = dt
     kbats = ksrf
     ntcpl  = idnint(cpldt/dtsec)
@@ -74,7 +74,7 @@ module mod_lm_interface
     call assignpnt(atm%tb3d,tatm)
     call assignpnt(atm%qxb3d,qxatm)
     call assignpnt(atm%thx3d,thatm)
-    call assignpnt(atm%rhox2d,rho)
+    call assignpnt(atm%rhox2d,rhox)
     call assignpnt(atm%za,hgt)
     call assignpnt(sfs%hfx,hfx)
     call assignpnt(sfs%qfx,qfx)
@@ -83,13 +83,11 @@ module mod_lm_interface
     call assignpnt(sfs%psb,sfps)
     call assignpnt(sfs%tga,tground1)
     call assignpnt(sfs%tgb,tground2)
-    call assignpnt(ts1,ts)
     call assignpnt(zpbl,hpbl)
   end subroutine init_bats
 !
 #ifdef CLM
-subroutine init_clm(dt,ksrf,ichem,iemiss,dom,domio,atm,sfs,&
-                      ts1,ts0,zpbl,lm)
+subroutine init_clm(dt,ksrf,ichem,iemiss,dom,domio,atm,sfs,ts0,zpbl,lm)
     implicit none
     real(dp) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
@@ -98,10 +96,10 @@ subroutine init_clm(dt,ksrf,ichem,iemiss,dom,domio,atm,sfs,&
     type(domain_io) , intent(in) :: domio
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , zpbl
+    real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , zpbl
     integer , pointer , intent(in) , dimension(:,:) :: lm
 
-    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,ts1,zpbl)
+    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl)
     call assignpnt(ts0,tsf)
     call assignpnt(domio%ht,htf)
     call assignpnt(domio%lndcat,lndcatf)

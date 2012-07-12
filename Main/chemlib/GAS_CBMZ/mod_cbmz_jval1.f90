@@ -301,7 +301,7 @@ module mod_cbmz_jval1
           fkn = d_one + dble(kn-k) - jfx(i)
 !
 !         TEST WRITE:
-          if ( fkn < 0 .or. fkn > 1 ) then
+          if ( fkn < d_zero .or. fkn > d_one ) then
             if ( iwri == 1 ) then
               write (56,99005) i , k , kn , jfx(i) , fkn
             end if

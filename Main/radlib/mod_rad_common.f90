@@ -119,7 +119,6 @@ module mod_rad_common
     call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'rad:heatrt')
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
-    call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
     if ( irrtm == 0 ) then
       call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
@@ -127,6 +126,7 @@ module mod_rad_common
     end if
 
     if ( ichem == 1 ) then
+      call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
       call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'rad:aerasp')
       call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'rad:aerext')
       call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'rad:aerssa')

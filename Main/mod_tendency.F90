@@ -1340,12 +1340,12 @@ module mod_tendency
       pt2bar = pt2tot/dble(iptn)
       icons_mpi = 0
       call mpi_reduce(total_precip_points,icons_mpi,1,mpi_integer, &
-                         mpi_sum,0,mycomm,ierr)
+                      mpi_sum,0,mycomm,ierr)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
         maxv = dabs(maxval(aten%t))
-        if ( (maxv/dtsec) > 0.01 ) then ! 50 K per hour
+        if ( (maxv/dtsec) > 0.01D0 ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
@@ -1360,7 +1360,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%u))
-        if ( (maxv/dtsec) > 0.005 ) then  ! 25 m/s per hour
+        if ( (maxv/dtsec) > 0.005D0 ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN U :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
@@ -1375,7 +1375,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%v))
-        if ( (maxv/dtsec) > 0.005 ) then  ! 25 m/s per hour
+        if ( (maxv/dtsec) > 0.005D0 ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN V :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
@@ -1390,7 +1390,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%qx(:,:,:,iqv)))
-        if ( (maxv/dtsec) > 0.001 ) then ! 
+        if ( (maxv/dtsec) > 0.001D0 ) then ! 
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
@@ -1405,7 +1405,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%qx(:,:,:,iqc)))
-        if ( (maxv/dtsec) > 0.001 ) then ! 
+        if ( (maxv/dtsec) > 0.001D0 ) then ! 
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz

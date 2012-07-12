@@ -371,8 +371,8 @@ module mod_rad_colmod3
           end if
         end do
         if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(n) = 0
-        if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(n) = 1
-        if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(n) = 2
+        if ( jj1 >  jj0 .and. jj1 >= jj2 ) ioro(n) = 1
+        if ( jj2 >  jj0 .and. jj2 >  jj1 ) ioro(n) = 2
         n = n + 1
       end do
     end do
@@ -416,8 +416,8 @@ module mod_rad_colmod3
       do j = jci1 , jci2
         gasabsnxt(j,i,:,:) = absgasnxt(n,:,:)
         gasabstot(j,i,:,:) = absgastot(n,:,:)
-        gasemstot(j,i,:) = emsgastot(n,:)
-        taucldsp(j,i,:,:) = tauxcl(n,:,:) + tauxci(n,:,:)
+        gasemstot(j,i,:)   = emsgastot(n,:)
+        if ( lchem ) taucldsp(j,i,:,:)  = tauxcl(n,:,:) + tauxci(n,:,:)
         n = n + 1
       end do
     end do
@@ -690,7 +690,8 @@ module mod_rad_colmod3
 !   h2o mass mixing ratio
 !
     do k = 1 , kz
-      h2ommr(:,k) = reshape(dmax1(1.0D-8,qxatms(jci1:jci2,ici1:ici2,k,iqv)),(/npr/))
+      h2ommr(:,k) = reshape(dmax1(1.0D-8, &
+                            qxatms(jci1:jci2,ici1:ici2,k,iqv)),(/npr/))
     end do
     qm1(:,:) = h2ommr(:,:)
 !

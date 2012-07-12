@@ -257,13 +257,13 @@ module mod_bats_zengocn
               delta = deltas(j,i)
               tdelta = tdeltas(j,i)
               ! td is now the 3m bulk SST from the forcing variable
-              td = ts(j,i)
+              td = tground2(j,i)
               !
               ! deep impact of aod on sst
               ! if ( sum(aerext(j,i,:)) <= 1 ) then
-              !   td = ts(j,i) - sum(aerext(j,i,:))*0.8D0
+              !   td = tground2(j,i) - sum(aerext(j,i,:))*0.8D0
               ! else if ( sum(aerext(j,i,:)) > 1 ) then
-              !   td = ts(j,i)- d_one*0.8D0
+              !   td = tground2(j,i)- d_one*0.8D0
               ! end if
               !
               ! rs is the net surface sw flux (sw energy absorbed)
@@ -271,7 +271,7 @@ module mod_bats_zengocn
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
               ! ustar water (with air density ==1)
-              ustarw = d_half*ustar*(rho(j,i)/rhoh2o)**d_half
+              ustarw = d_half*ustar*(rhox(j,i)/rhoh2o)**d_half
               ! lwds =  flwd(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4
               ! q is the skin cooling term inckude net lw flux from
@@ -337,7 +337,7 @@ module mod_bats_zengocn
             evpr(n,j,i)  = lh/wlhv
             ! Back out Drag Coefficient
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
+            drag(n,j,i) = ustar**d_two*rhox(j,i)/uv995
             u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
             v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
             taux(n,j,i) = tau*(uatm(j,i,kz)/uv995) 

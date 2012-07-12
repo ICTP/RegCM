@@ -149,11 +149,11 @@ module mod_pbl_thetal
         fb = fa
       end if
       ! check if the previous timestep works as a solution
-      if ( fs == 0 ) then
+      if ( dabs(fs) < dlowval ) then
         b = tprev
         fb = fs
       end if
-      if ( fb == 0 ) then
+      if ( dabs(fb) < dlowval ) then
         solve_for_t = b
         call getqvqc(solve_for_t,es,outqv,outqc,isice)
         imax = 0
@@ -162,7 +162,7 @@ module mod_pbl_thetal
 
       ! if the initial guesses are out of range, return with a bogus
       ! temperature to flag a failure
-      if ( fa*fb >= 0 ) then
+      if ( fa*fb >= d_zero ) then
         solve_for_t = dum
         solve_for_t = tprev
         call getqvqc(solve_for_t,es,outqv,outqc,isice)
@@ -222,14 +222,14 @@ module mod_pbl_thetal
         d = c
         c = b
 
-        if ( fa*fs < 0 ) then
+        if ( fa*fs < d_zero ) then
           b = s
         else
           a = s
         end if
 
         ! check for convergence; if we converged, return from this function
-        if ( fs == 0 ) then
+        if ( dabs(fs) < dlowval ) then
           b = s
           fb = fs
         end if

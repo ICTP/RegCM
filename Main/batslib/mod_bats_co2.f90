@@ -90,7 +90,7 @@ module mod_bats_co2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
-              if ( apbm(n,j,i) < 0 ) apbm(n,j,i) = d_zero
+              if ( apbm(n,j,i) < d_zero ) apbm(n,j,i) = d_zero
               resps = 0.7D-7*resp(n,j,i)*dexp(0.1D0*(tgrd(n,j,i)-300.0D0)) * &
                       dmin1(d_one,ssw(n,j,i)/(0.6D0*gwmx0(n,j,i)))
               resp(n,j,i) = resp(n,j,i) + (cari(n,j,i)-resps)*dtbat

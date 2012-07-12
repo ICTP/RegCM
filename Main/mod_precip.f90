@@ -123,8 +123,8 @@ module mod_precip
     implicit none
 !
     real(dp) :: dpovg , es , afc , ppa , pptacc , pptkm1 , pptmax ,   &
-               pptnew , qcincld , qcleft , qcw , qs , rdevap , &
-               rh , rhcs , rho , tcel , thog , tk , prainx
+                pptnew , qcincld , qcleft , qcw , qs , rdevap , &
+                rh , rhcs , rho , tcel , thog , tk , prainx
     integer :: i , j , k , kk
 !
 !   
@@ -443,9 +443,9 @@ module mod_precip
 
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
-          cldlwc(j,i,k)  = 0.127D+00 + 6.78D-03*(t3(j,i,k)-tzero) + &
-                         1.29D-04* (t3(j,i,k)-tzero)**d_two  +    &
-                         8.36D-07*(t3(j,i,k)-tzero)**d_three
+          cldlwc(j,i,k) = 0.127D+00 + 6.78D-03*(t3(j,i,k)-tzero) + &
+                          1.29D-04* (t3(j,i,k)-tzero)**d_two  +    &
+                          8.36D-07*(t3(j,i,k)-tzero)**d_three
 
           if ( cldlwc(j,i,k) > 0.3D+00 ) cldlwc(j,i,k) = 0.3D+00
           if ( (t3(j,i,k)-tzero) < -50D+00 ) cldlwc(j,i,k) = 0.001D+00
@@ -455,7 +455,7 @@ module mod_precip
           ! current radiation code, needs further evaluation.
           !TAO: but only apply this parameterization to large scale LWC 
           !if the user specifies it
-          if (iconvlwp == 1) exlwc = cldlwc(j,i,k)
+          if ( iconvlwp == 1 ) exlwc = cldlwc(j,i,k)
           cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(j,i,k)*exlwc) / &
                         dmax1(cldfra(j,i,k)+fcc(j,i,k),0.01D0)
           cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(j,i,k)),fcmax)

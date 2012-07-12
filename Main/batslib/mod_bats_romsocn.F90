@@ -102,7 +102,7 @@ module mod_bats_romsocn
               sent(n,j,i) = sh
               !evpr(n,j,i) = lh/wlhv 
               evpr(n,j,i) = lh/((2.501d0-0.00237d0*tsurf)*1.0d6)
-              drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
+              drag(n,j,i) = ustar**d_two*rhox(j,i)/uv995
               facttq = dlog(z995*d_half)/dlog(z995/zo)
               u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
               v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995

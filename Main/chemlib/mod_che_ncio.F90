@@ -395,7 +395,7 @@ module mod_che_ncio
                     'OC_flux',.false.)
         end if
 
-      where (echemsrc(:,:,:) < 0. ) echemsrc(:,:,:) = d_zero
+      where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
 
       istatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__, &
