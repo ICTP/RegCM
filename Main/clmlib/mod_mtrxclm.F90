@@ -447,8 +447,8 @@ module mod_mtrxclm
           albvl(j,i)  = aldirl(j,i)*landfrac(jg,ig) + &
                         albvl(j,i) *(d_one-landfrac(jg,ig))
         end if
-        aldirs_o(j,i) = real(aldirs(j,i))
-        aldifs_o(j,i) = real(aldifs(j,i))
+        fbat(j,i,aldirs_o) = real(aldirs(j,i))
+        fbat(j,i,aldifs_o) = real(aldifs(j,i))
       end do
     end do
 
@@ -781,51 +781,51 @@ module mod_mtrxclm
       end do
       do i = ici1 , ici2
         do j = jci1 , jci2
-          u10m_o(j,i) = 0.0
-          v10m_o(j,i) = 0.0
-          tg_o(j,i)   = 0.0
-          t2m_o(j,i)  = 0.0
-          q2m_o(j,i)  = 0.0
+          fbat(j,i,u10m_o) = 0.0
+          fbat(j,i,v10m_o) = 0.0
+          fbat(j,i,tg_o)   = 0.0
+          fbat(j,i,t2m_o)  = 0.0
+          fbat(j,i,q2m_o)  = 0.0
           do n = 1 , nnsg
             if ( ldmsk1(n,j,i) /= 0 ) then
-              q2m_s(n,j,i)  = real(q2d(j,i))
-              u10m_s(n,j,i) = real(uatm(j,i,kz))
-              v10m_s(n,j,i) = real(vatm(j,i,kz))
-              tg_s(n,j,i)   = real(tgrd(n,j,i))
-              t2m_s(n,j,i)  = real(taf(n,j,i))
-              q2m_o(j,i)    = q2m_o(j,i) + real(q2d(j,i))
-              u10m_o(j,i)   = u10m_o(j,i) + real(uatm(j,i,kz))
-              v10m_o(j,i)   = v10m_o(j,i) + real(vatm(j,i,kz))
-              t2m_o(j,i)    = t2m_o(j,i) + real(taf(n,j,i))
-              tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
+              fsub(n,j,i,q2m_s)  = real(q2d(j,i))
+              fsub(n,j,i,u10m_s) = real(uatm(j,i,kz))
+              fsub(n,j,i,v10m_s) = real(vatm(j,i,kz))
+              fsub(n,j,i,tg_s)   = real(tgrd(n,j,i))
+              fsub(n,j,i,t2m_s)  = real(taf(n,j,i))
+              fbat(j,i,q2m_o)    = fbat(j,i,q2m_o) + real(q2d(j,i))
+              fbat(j,i,u10m_o)   = fbat(j,i,u10m_o) + real(uatm(j,i,kz))
+              fbat(j,i,v10m_o)   = fbat(j,i,v10m_o) + real(vatm(j,i,kz))
+              fbat(j,i,t2m_o)    = fbat(j,i,t2m_o) + real(taf(n,j,i))
+              fbat(j,i,tg_o)     = fbat(j,i,tg_o) + real(tgrd(n,j,i))
             else if ( ldmsk1(n,j,i) == 0 ) then
-              q2m_s(n,j,i)  = real(q2m(n,j,i))
-              tg_s(n,j,i)   = real(tgrd(n,j,i))
-              u10m_s(n,j,i) = real(u10m(n,j,i))
-              v10m_s(n,j,i) = real(v10m(n,j,i))
-              t2m_s(n,j,i)  = real(t2m(n,j,i))
-              q2m_o(j,i)    = q2m_o(j,i) + real(q2m(n,j,i))
-              u10m_o(j,i)   = u10m_o(j,i) + real(u10m(n,j,i))
-              v10m_o(j,i)   = v10m_o(j,i) + real(v10m(n,j,i))
-              t2m_o(j,i)    = t2m_o(j,i) + real(t2m(n,j,i))
-              tg_o(j,i)     = tg_o(j,i) + real(tgrd(n,j,i))
+              fsub(n,j,i,q2m_s)  = real(q2m(n,j,i))
+              fsub(n,j,i,tg_s)   = real(tgrd(n,j,i))
+              fsub(n,j,i,u10m_s) = real(u10m(n,j,i))
+              fsub(n,j,i,v10m_s) = real(v10m(n,j,i))
+              fsub(n,j,i,t2m_s)  = real(t2m(n,j,i))
+              fbat(j,i,q2m_o)    = fbat(j,i,q2m_o) + real(q2m(n,j,i))
+              fbat(j,i,u10m_o)   = fbat(j,i,u10m_o) + real(u10m(n,j,i))
+              fbat(j,i,v10m_o)   = fbat(j,i,v10m_o) + real(v10m(n,j,i))
+              fbat(j,i,t2m_o)    = fbat(j,i,t2m_o) + real(t2m(n,j,i))
+              fbat(j,i,tg_o)     = fbat(j,i,tg_o) + real(tgrd(n,j,i))
             end if
           end do
-          tgmx_o(j,i) = amax1(tgmx_o(j,i),tg_o(j,i))
-          tgmn_o(j,i) = amin1(tgmn_o(j,i),tg_o(j,i))
-          t2mx_o(j,i) = amax1(t2mx_o(j,i),t2m_o(j,i))
-          t2mn_o(j,i) = amin1(t2mn_o(j,i),t2m_o(j,i))
-          w10x_o(j,i) = amax1(w10x_o(j,i), &
-                        sqrt(u10m_o(j,i)**2.0+v10m_o(j,i)**2.0))
+          fbat(j,i,tgmx_o) = amax1(fbat(j,i,tgmx_o),fbat(j,i,tg_o))
+          fbat(j,i,tgmn_o) = amin1(fbat(j,i,tgmn_o),fbat(j,i,tg_o))
+          fbat(j,i,t2mx_o) = amax1(fbat(j,i,t2mx_o),fbat(j,i,t2m_o))
+          fbat(j,i,t2mn_o) = amin1(fbat(j,i,t2mn_o),fbat(j,i,t2m_o))
+          fbat(j,i,w10x_o) = amax1(fbat(j,i,w10x_o), &
+                        sqrt(fbat(j,i,u10m_o)**2.0+fbat(j,i,v10m_o)**2.0))
           real_4      = real((pptnc(j,i)+pptc(j,i)))
-          pcpx_o(j,i) = amax1(pcpx_o(j,i),real_4)
-          pcpa_o(j,i) = pcpa_o(j,i) + real_4/fdaysrf
-          tavg_o(j,i) = tavg_o(j,i)+t2m_o(j,i)/fdaysrf
+          fbat(j,i,pcpx_o) = amax1(fbat(j,i,pcpx_o),real_4)
+          fbat(j,i,pcpa_o) = fbat(j,i,pcpa_o) + real_4/fdaysrf
+          fbat(j,i,tavg_o) = fbat(j,i,tavg_o)+fbat(j,i,t2m_o)/fdaysrf
           real_4      = real((sfps(j,i)+ptop)*d_10)
-          psmn_o(j,i) = amin1(psmn_o(j,i),real_4)
+          fbat(j,i,psmn_o) = amin1(fbat(j,i,psmn_o),real_4)
           if ( fsw(j,i) > 120.0D0 ) then
-            sund_o(j,i) = sund_o(j,i) + real(dtbat)
-            sunt_o(j,i) = sunt_o(j,i) + real(dtbat)
+            fbat(j,i,sund_o) = fbat(j,i,sund_o) + real(dtbat)
+            fbat(j,i,sunt_o) = fbat(j,i,sunt_o) + real(dtbat)
           end if
           pptnc(j,i) = d_zero
           pptc(j,i)  = d_zero
@@ -840,82 +840,83 @@ module mod_mtrxclm
           ig = global_istart+i-1
           do j = jci1 , jci2
             jg = global_jstart+j-1
-            drag_o(j,i) = 0.0
-            evpa_o(j,i) = 0.0
-            sena_o(j,i) = 0.0
+            fbat(j,i,drag_o) = 0.0
+            fbat(j,i,evpa_o) = 0.0
+            fbat(j,i,sena_o) = 0.0
             do n = 1 , nnsg
               if ( ldmsk1(n,j,i) /= 0 ) then
-                drag_s(n,j,i) = real(uvdrag(j,i))
-                evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
-                sena_s(n,j,i) = real(sena(n,j,i)*wpm2)
-                tpr_s(n,j,i)  = real((prnca(j,i)+prca(j,i))*mmpd)
-                prcv_s(n,j,i) = real(prca(j,i)*mmpd)
-                ps_s(n,j,i)   = real(sfcp(n,j,i)*0.01D0)
-                drag_o(j,i)   = drag_o(j,i) + real(uvdrag(j,i))
-                evpa_o(j,i)   = evpa_o(j,i) + real(evpa(n,j,i))
-                sena_o(j,i)   = sena_o(j,i) + real(sena(n,j,i))
+                fsub(n,j,i,drag_s) = real(uvdrag(j,i))
+                fsub(n,j,i,evpa_s) = real(evpa(n,j,i)*mmpd)
+                fsub(n,j,i,sena_s) = real(sena(n,j,i)*wpm2)
+                fsub(n,j,i,tpr_s)  = real((prnca(j,i)+prca(j,i))*mmpd)
+                fsub(n,j,i,prcv_s) = real(prca(j,i)*mmpd)
+                fsub(n,j,i,ps_s)   = real(sfcp(n,j,i)*0.01D0)
+                fbat(j,i,drag_o)   = fbat(j,i,drag_o) + real(uvdrag(j,i))
+                fbat(j,i,evpa_o)   = fbat(j,i,evpa_o) + real(evpa(n,j,i))
+                fbat(j,i,sena_o)   = fbat(j,i,sena_o) + real(sena(n,j,i))
               else if ( ldmsk1(n,j,i) == 0 ) then
-                drag_s(n,j,i) = real(drag(n,j,i))
-                evpa_s(n,j,i) = real(evpa(n,j,i)*mmpd)
-                sena_s(n,j,i) = real(sena(n,j,i)*wpm2)
-                tpr_s(n,j,i)  = real((prnca(j,i)+prca(j,i))*mmpd)
-                prcv_s(n,j,i) = real(prca(j,i)*mmpd)
-                ps_s(n,j,i)   = real(sfcp(n,j,i)*0.01D0)
-                drag_o(j,i)   = drag_o(j,i) + real(drag(n,j,i))
-                evpa_o(j,i)   = evpa_o(j,i) + real(evpa(n,j,i))
-                sena_o(j,i)   = sena_o(j,i) + real(sena(n,j,i))
+                fsub(n,j,i,drag_s) = real(drag(n,j,i))
+                fsub(n,j,i,evpa_s) = real(evpa(n,j,i)*mmpd)
+                fsub(n,j,i,sena_s) = real(sena(n,j,i)*wpm2)
+                fsub(n,j,i,tpr_s)  = real((prnca(j,i)+prca(j,i))*mmpd)
+                fsub(n,j,i,prcv_s) = real(prca(j,i)*mmpd)
+                fsub(n,j,i,ps_s)   = real(sfcp(n,j,i)*0.01D0)
+                fbat(j,i,drag_o)   = fbat(j,i,drag_o) + real(drag(n,j,i))
+                fbat(j,i,evpa_o)   = fbat(j,i,evpa_o) + real(evpa(n,j,i))
+                fbat(j,i,sena_o)   = fbat(j,i,sena_o) + real(sena(n,j,i))
               end if
             end do
-            tpr_o(j,i)  = real((prnca(j,i)+prca(j,i))*mmpd)
-            evpa_o(j,i) = evpa_o(j,i)*real(mmpd)
-            sena_o(j,i) = sena_o(j,i)*real(wpm2)
-            flwa_o(j,i) = real(flwa(j,i)*wpm2)
-            fswa_o(j,i) = real(fswa(j,i)*wpm2)
-            flwd_o(j,i) = real(flwda(j,i)*wpm2)
-            sina_o(j,i) = real(sina(j,i)*wpm2)
-            prcv_o(j,i) = real(prca(j,i)*mmpd)
-            ps_o(j,i)   = real((sfps(j,i)+ptop)*d_10)
-            zpbl_o(j,i) = real(hpbl(j,i))
-            tlef_o(j,i) = 0.0
-            ssw_o(j,i)  = 0.0
-            rsw_o(j,i)  = 0.0
-            rnos_o(j,i) = 0.0
-            scv_o(j,i)  = 0.0
+            fbat(j,i,tpr_o)  = real((prnca(j,i)+prca(j,i))*mmpd)
+            fbat(j,i,evpa_o) = fbat(j,i,evpa_o)*real(mmpd)
+            fbat(j,i,sena_o) = fbat(j,i,sena_o)*real(wpm2)
+            fbat(j,i,flwa_o) = real(flwa(j,i)*wpm2)
+            fbat(j,i,fswa_o) = real(fswa(j,i)*wpm2)
+            fbat(j,i,flwd_o) = real(flwda(j,i)*wpm2)
+            fbat(j,i,sina_o) = real(sina(j,i)*wpm2)
+            fbat(j,i,prcv_o) = real(prca(j,i)*mmpd)
+            fbat(j,i,ps_o) = real((sfps(j,i)+ptop)*d_10)
+            fbat(j,i,zpbl_o) = real(hpbl(j,i))
+            fbat(j,i,tlef_o) = 0.0
+            fbat(j,i,ssw_o)  = 0.0
+            fbat(j,i,rsw_o)  = 0.0
+            fbat(j,i,rnos_o) = 0.0
+            fbat(j,i,scv_o)  = 0.0
             nnn = 0
             do n = 1 , nnsg
               if ( ldmsk1(n,j,i) /= 0 .and. landmask(jg,ig) /= 3 ) then
-                tlef_o(j,i)   = tlef_o(j,i) + real(c2rtlef(jg,ig))
-                ssw_o(j,i)    = ssw_o(j,i) + real(c2rsm10cm(jg,ig))
-                rsw_o(j,i)    = rsw_o(j,i) + real(c2rsm1m(jg,ig))
+                fbat(j,i,tlef_o)   = fbat(j,i,tlef_o) + real(c2rtlef(jg,ig))
+                fbat(j,i,ssw_o)    = fbat(j,i,ssw_o) + real(c2rsm10cm(jg,ig))
+                fbat(j,i,rsw_o)    = fbat(j,i,rsw_o) + real(c2rsm1m(jg,ig))
                 ! Correct unit of measure of runoff coming from CLM
-                rnos_o(j,i)   = rnos_o(j,i) + real(srfrna(n,j,i)*d_r1000)
-                scv_o(j,i)    = scv_o(j,i) + real(c2rsnowc(jg,ig))
-                tlef_s(n,j,i) = real(c2rtlef(jg,ig))
-                ssw_s(n,j,i)  = real(c2rsm10cm(jg,ig))
-                rsw_s(n,j,i)  = real(c2rsm1m(jg,ig))
-                rnos_s(n,j,i) = real(srfrna(n,j,i)*mmpd)
-                scv_s(n,j,i)  = real(c2rsnowc(jg,ig))
+                fbat(j,i,rnos_o)   = fbat(j,i,rnos_o) + &
+                                     real(srfrna(n,j,i)*d_r1000)
+                fbat(j,i,scv_o)    = fbat(j,i,scv_o) + real(c2rsnowc(jg,ig))
+                fsub(n,j,i,tlef_s) = real(c2rtlef(jg,ig))
+                fsub(n,j,i,ssw_s)  = real(c2rsm10cm(jg,ig))
+                fsub(n,j,i,rsw_s)  = real(c2rsm1m(jg,ig))
+                fsub(n,j,i,rnos_s) = real(srfrna(n,j,i)*mmpd)
+                fsub(n,j,i,scv_s)  = real(c2rsnowc(jg,ig))
                 nnn = nnn + 1
               else
-                tlef_s(n,j,i) = smissval
-                ssw_s(n,j,i)  = smissval
-                rsw_s(n,j,i)  = smissval
-                rnos_s(n,j,i) = smissval
-                scv_s(n,j,i)  = smissval
+                fsub(n,j,i,tlef_s) = smissval
+                fsub(n,j,i,ssw_s)  = smissval
+                fsub(n,j,i,rsw_s)  = smissval
+                fsub(n,j,i,rnos_s) = smissval
+                fsub(n,j,i,scv_s)  = smissval
               end if
             end do
             if ( nnn >= max0(nnsg/2,1) ) then
-              tlef_o(j,i) = tlef_o(j,i)/real(nnn)
-              ssw_o(j,i)  = ssw_o(j,i)/real(nnn)
-              rsw_o(j,i)  = rsw_o(j,i)/real(nnn)
-              rnos_o(j,i) = rnos_o(j,i)/real(nnn)*real(mmpd)
-              scv_o(j,i)  = scv_o(j,i)/real(nnn)
+              fbat(j,i,tlef_o) = fbat(j,i,tlef_o)/real(nnn)
+              fbat(j,i,ssw_o)  = fbat(j,i,ssw_o)/real(nnn)
+              fbat(j,i,rsw_o)  = fbat(j,i,rsw_o)/real(nnn)
+              fbat(j,i,rnos_o) = fbat(j,i,rnos_o)/real(nnn)*real(mmpd)
+              fbat(j,i,scv_o)  = fbat(j,i,scv_o)/real(nnn)
             else
-              tlef_o(j,i) = smissval
-              ssw_o(j,i)  = smissval
-              rsw_o(j,i)  = smissval
-              rnos_o(j,i) = smissval
-              scv_o(j,i)  = smissval
+              fbat(j,i,tlef_o) = smissval
+              fbat(j,i,ssw_o)  = smissval
+              fbat(j,i,rsw_o)  = smissval
+              fbat(j,i,rnos_o) = smissval
+              fbat(j,i,scv_o)  = smissval
             end if
             ! reset accumulation arrays to zero
             do n = 1 , nnsg

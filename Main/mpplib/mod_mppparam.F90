@@ -1149,9 +1149,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
         end if
@@ -1168,9 +1168,9 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
       end if
@@ -1215,10 +1215,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
         end if
@@ -1237,10 +1237,10 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
       end if
@@ -1285,9 +1285,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
         end if
@@ -1304,9 +1304,9 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
       end if
@@ -1351,10 +1351,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
         end if
@@ -1373,10 +1373,10 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
       end if
@@ -1421,9 +1421,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
         end if
@@ -1440,9 +1440,9 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
       end if
@@ -1487,10 +1487,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
         end if
@@ -1509,10 +1509,10 @@ module mod_mppparam
                       cartesian_communicator,mpi_status_ignore,mpierr)
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
       end if
@@ -2151,9 +2151,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
         end if
@@ -2170,9 +2170,9 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
       end if
@@ -2217,10 +2217,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(r8vector1) < lsize ) then
           call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
         end if
@@ -2239,10 +2239,10 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
       end if
@@ -2287,9 +2287,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
         end if
@@ -2306,9 +2306,9 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
       end if
@@ -2353,10 +2353,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(r4vector1) < lsize ) then
           call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
         end if
@@ -2375,10 +2375,10 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
       end if
@@ -2423,9 +2423,9 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
-        lsize = isize*jsize
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
         end if
@@ -2442,9 +2442,9 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
-      lsize = isize*jsize
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
       end if
@@ -2489,10 +2489,10 @@ module mod_mppparam
       do icpu = 1 , nproc-1
         call mpi_recv(window,4,mpi_integer,icpu,tag_w, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-        isize = (window(2)-window(1)+1)*nsg
-        jsize = (window(4)-window(3)+1)*nsg
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        lsize = isize*jsize*ksize
+        lsize = isize*jsize*ksize*nnsg
         if ( size(i4vector1) < lsize ) then
           call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
         end if
@@ -2511,10 +2511,10 @@ module mod_mppparam
         end do
       end do
     else
-      isize = (i2-i1+1)*nsg
-      jsize = (j2-j1+1)*nsg
+      isize = i2-i1+1
+      jsize = j2-j1+1
       ksize = k2-k1+1
-      lsize = isize*jsize*ksize
+      lsize = isize*jsize*ksize*nnsg
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
       end if

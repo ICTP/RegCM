@@ -33,6 +33,58 @@ module mod_bats_common
 
   logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
 
+  integer , parameter :: ps_o     = 1
+  integer , parameter :: u10m_o   = 2
+  integer , parameter :: v10m_o   = 3
+  integer , parameter :: drag_o   = 4
+  integer , parameter :: tg_o     = 5
+  integer , parameter :: tlef_o   = 6
+  integer , parameter :: t2m_o    = 7
+  integer , parameter :: q2m_o    = 8
+  integer , parameter :: ssw_o    = 9
+  integer , parameter :: rsw_o    = 10
+  integer , parameter :: tpr_o    = 11
+  integer , parameter :: evpa_o   = 12
+  integer , parameter :: rnos_o   = 13
+  integer , parameter :: scv_o    = 14
+  integer , parameter :: sena_o   = 15
+  integer , parameter :: flwa_o   = 16
+  integer , parameter :: fswa_o   = 17
+  integer , parameter :: flwd_o   = 18
+  integer , parameter :: sina_o   = 19
+  integer , parameter :: prcv_o   = 20
+  integer , parameter :: zpbl_o   = 21
+  integer , parameter :: aldirs_o = 22
+  integer , parameter :: aldifs_o = 23
+  integer , parameter :: sunt_o   = 24
+  integer , parameter :: tgmx_o   = 25
+  integer , parameter :: tgmn_o   = 26
+  integer , parameter :: t2mx_o   = 27
+  integer , parameter :: t2mn_o   = 28
+  integer , parameter :: tavg_o   = 29
+  integer , parameter :: w10x_o   = 30
+  integer , parameter :: pcpx_o   = 31
+  integer , parameter :: pcpa_o   = 32
+  integer , parameter :: sund_o   = 33
+  integer , parameter :: psmn_o   = 34
+
+  integer , parameter :: ps_s   = 1
+  integer , parameter :: u10m_s = 2
+  integer , parameter :: v10m_s = 3
+  integer , parameter :: drag_s = 4
+  integer , parameter :: tg_s   = 5
+  integer , parameter :: tlef_s = 6
+  integer , parameter :: t2m_s  = 7
+  integer , parameter :: q2m_s  = 8
+  integer , parameter :: ssw_s  = 9
+  integer , parameter :: rsw_s  = 10
+  integer , parameter :: tpr_s  = 11
+  integer , parameter :: evpa_s = 12
+  integer , parameter :: rnos_s = 13
+  integer , parameter :: scv_s  = 14
+  integer , parameter :: sena_s = 15
+  integer , parameter :: prcv_s = 16
+
   integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
   integer(8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(8) :: ntsrf2 ! Number of time step to call BATs 
@@ -72,18 +124,7 @@ module mod_bats_common
 !
   real(sp) , pointer , dimension(:,:,:) :: fbat
 !
-  real(sp) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o , &
-        flwd_o , fswa_o , prcv_o , psmn_o , ps_o , q2m_o , rnos_o , &
-        rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
-        t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
-        v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o , pcpx_o ,   &
-        pcpa_o , tavg_o , sunt_o , sund_o
-!
   real(sp) , pointer , dimension(:,:,:,:) :: fsub
-!
-  real(sp) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
-         ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
-         t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 !
   ! dtskin is difference between skin temp and bulk sst
   real(dp) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
@@ -217,59 +258,8 @@ module mod_bats_common
     call getmem2d(aldirl,jci1,jci2,ici1,ici2,'bats:aldirl')
     call getmem2d(aldirs,jci1,jci2,ici1,ici2,'bats:aldirs')
 
-    call getmem3d(fbat,jce1,jce2,ice1,ice2,1,numbat,'bats:fbat')
-    ps_o => fbat(:,:,1)
-    u10m_o => fbat(:,:,2)
-    v10m_o => fbat(:,:,3)
-    drag_o => fbat(:,:,4)
-    tg_o => fbat(:,:,5)
-    tlef_o => fbat(:,:,6)
-    t2m_o => fbat(:,:,7)
-    q2m_o => fbat(:,:,8)
-    ssw_o => fbat(:,:,9)
-    rsw_o => fbat(:,:,10)
-    tpr_o => fbat(:,:,11)
-    evpa_o => fbat(:,:,12)
-    rnos_o => fbat(:,:,13)
-    scv_o => fbat(:,:,14)
-    sena_o => fbat(:,:,15)
-    flwa_o => fbat(:,:,16)
-    fswa_o => fbat(:,:,17)
-    flwd_o => fbat(:,:,18)
-    sina_o => fbat(:,:,19)
-    prcv_o => fbat(:,:,20)
-    zpbl_o => fbat(:,:,21)
-    aldirs_o => fbat(:,:,22)
-    aldifs_o => fbat(:,:,23)
-    sunt_o => fbat(:,:,24)
-    tgmx_o => fbat(:,:,25)
-    tgmn_o => fbat(:,:,26)
-    t2mx_o => fbat(:,:,27)
-    t2mn_o => fbat(:,:,28)
-    tavg_o => fbat(:,:,29)
-    w10x_o => fbat(:,:,30)
-    pcpx_o => fbat(:,:,31)
-    pcpa_o => fbat(:,:,32)
-    sund_o => fbat(:,:,33)
-    psmn_o => fbat(:,:,34)
-
-    call getmem4d(fsub,1,nnsg,jce1,jce2,ice1,ice2,1,numsub,'bats:fsub')
-    ps_s   => fsub(:,:,:,1)
-    u10m_s => fsub(:,:,:,2)
-    v10m_s => fsub(:,:,:,3)
-    drag_s => fsub(:,:,:,4)
-    tg_s   => fsub(:,:,:,5)
-    tlef_s => fsub(:,:,:,6)
-    t2m_s  => fsub(:,:,:,7)
-    q2m_s  => fsub(:,:,:,8)
-    ssw_s  => fsub(:,:,:,9)
-    rsw_s  => fsub(:,:,:,10)
-    tpr_s  => fsub(:,:,:,11)
-    evpa_s => fsub(:,:,:,12)
-    rnos_s => fsub(:,:,:,13)
-    scv_s  => fsub(:,:,:,14)
-    sena_s => fsub(:,:,:,15)
-    prcv_s => fsub(:,:,:,16)
+    call getmem3d(fbat,jci1,jci2,ici1,ici2,1,numbat,'bats:fbat')
+    call getmem4d(fsub,1,nnsg,jci1,jci2,ici1,ici2,1,numsub,'bats:fsub')
 !
     if ( lakemod == 1 ) then
       call getmem3d(dhlake1,1,nnsg,jci1,jci2,ici1,ici2,'bats:dhlake1')

@@ -78,17 +78,17 @@ module mod_init
   !
   ! Reset the accumulation arrays
   !
-  tgmx_o(:,:) = -1.E30
-  tgmn_o(:,:) =  1.E30
-  t2mx_o(:,:) = -1.E30
-  t2mn_o(:,:) =  1.E30
-  tavg_o(:,:) = 0.0
-  pcpx_o(:,:) = -1.E30
-  w10x_o(:,:) = -1.E30
-  pcpa_o(:,:) = 0.0
-  sund_o(:,:) = 0.0
-  sunt_o(:,:) = 0.0
-  psmn_o (:,:)=  1.E30
+  fbat(:,:,tgmx_o) = -1.E30
+  fbat(:,:,tgmn_o) =  1.E30
+  fbat(:,:,t2mx_o) = -1.E30
+  fbat(:,:,t2mn_o) =  1.E30
+  fbat(:,:,tavg_o) = 0.0
+  fbat(:,:,pcpx_o) = -1.E30
+  fbat(:,:,w10x_o) = -1.E30
+  fbat(:,:,pcpa_o) = 0.0
+  fbat(:,:,sund_o) = 0.0
+  fbat(:,:,sunt_o) = 0.0
+  fbat(:,:,psmn_o) = 1.E30
   !
   ! For an initial run -- not a restart
   !
@@ -391,7 +391,7 @@ module mod_init
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
-          if (idcsst == 1) then
+          if ( idcsst == 1 ) then
             sfs%tga(j,i) = ts1(j,i) + dtskin(j,i)
             sfs%tgb(j,i) = ts1(j,i) + dtskin(j,i)
           else
