@@ -217,8 +217,9 @@ module mod_init
     ! Init the diurnal cycle SST scheme
     !
     if ( idcsst == 1 ) then
-      tdeltas(jci1:jci2,ici1:ici2) = tground2(jci1:jci2,ici1:ici2) - 0.001D0
+      dtskin(:,:) = d_zero
       deltas(:,:) = 0.001D0
+      tdeltas(:,:) = tground2(:,:) - deltas(:,:)
     end if
     !
     ! Inizialize Ozone profiles

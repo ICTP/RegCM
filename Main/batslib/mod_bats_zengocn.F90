@@ -324,26 +324,26 @@ module mod_bats_zengocn
               end if
               ! save the temperature difference and skin layer thickness
               ! for next time step
-              deltas(j,i) = delta
-              tdeltas(j,i) = tdelta
-              dtskin(j,i) = tskin-td
+              deltas(j,i)   = delta
+              tdeltas(j,i)  = tdelta
+              dtskin(j,i)   = tskin-td
               ! now feedback tskin in surface variable
               tground2(j,i) = tskin
             end if ! dcsst
 
-            tgrd(n,j,i) = tground2(j,i)
+            tgrd(n,j,i)  = tground2(j,i)
             tgbrd(n,j,i) = tground2(j,i)
-            sent(n,j,i) = sh
-            evpr(n,j,i) = lh/wlhv
+            sent(n,j,i)  = sh
+            evpr(n,j,i)  = lh/wlhv
             ! Back out Drag Coefficient
-            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
+            drag(n,j,i) = ustar**d_two*rho(j,i)/uv995
             u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
             v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
             taux(n,j,i) = tau*(uatm(j,i,kz)/uv995) 
             tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995) 
-            t2m(n,j,i) = t995 + tzero - dth*facttq
-            q2m(n,j,i) = q995 - dqh*facttq
+            t2m(n,j,i)  = t995 + tzero - dth*facttq
+            q2m(n,j,i)  = q995 - dqh*facttq
             !
             if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)
