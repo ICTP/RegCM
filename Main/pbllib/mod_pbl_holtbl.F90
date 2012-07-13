@@ -237,16 +237,7 @@
     end do
   end do
  
-  if ( ma%has_bdyleft ) then
-    uvdrage(jce1,ici1:ici2) = uvdrag(jci1,ici1:ici2)
-  end if
-  if ( ma%has_bdybottom ) then
-    uvdrage(jci1:jci2,ice1) = uvdrag(jci1:jci2,ici1)
-  end if
-  if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
-    uvdrage(jce1,ice1) = uvdrag(jci1,ici1)
-  end if
-
+  uvdrage(jci1:jci2,ici1:ici2) = uvdrag
   call exchange_lb(uvdrage,1,jce1,jce2,ice1,ice2)
 
   do i = ici1 , ici2
@@ -323,21 +314,6 @@
       end do
     end do
   end do
-
-  ! Fill boundaries
-
-  if ( ma%has_bdyleft ) then
-    akzz1(jce1,ici1:ici2,:) = akzz1(jci1,ici1:ici2,:)
-    akzz2(jce1,ici1:ici2,:) = akzz2(jci1,ici1:ici2,:)
-  end if
-  if ( ma%has_bdybottom ) then
-    akzz1(jci1:jci2,ice1,:) = akzz1(jci1:jci2,ici1,:)
-    akzz2(jci1:jci2,ice1,:) = akzz2(jci1:jci2,ici1,:)
-  end if
-  if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
-    akzz1(jce1,ice1,:) = akzz1(jci1,ici1,:)
-    akzz2(jce1,ice1,:) = akzz2(jci1,ici1,:)
-  end if
 
   call exchange_lb(akzz1,1,jce1,jce2,ice1,ice2,1,kz)
   call exchange_lb(akzz2,1,jce1,jce2,ice1,ice2,1,kz)

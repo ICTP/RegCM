@@ -540,8 +540,8 @@ module mod_split
 !
 !     compute gradient of delh;  output = (work1,work2)
 !
-      xdelh(jce1:jce2,ice1:ice2) = delh(jce1:jce2,ice1:ice2,ns,n0)
-      call exchange_lb(xdelh,1,jce1,jce2,ice1,ice2)
+      xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n0)
+      call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           fac = dx2*mddom%msfx(j,i)
@@ -636,8 +636,8 @@ module mod_split
 !
 !       compute gradient of delh;  output = (work1,work2)
 !
-        xdelh(jce1:jce2,ice1:ice2) = delh(jce1:jce2,ice1:ice2,ns,n1)
-        call exchange_lb(xdelh,1,jce1,jce2,ice1,ice2)
+        xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n1)
+        call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             fac = dx2*mddom%msfx(j,i)
