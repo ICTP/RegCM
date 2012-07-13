@@ -455,7 +455,7 @@ module mod_params
   end if
 !
 #ifdef CLM
-  if ( myid == 0 ) then
+  if ( myid == itallk ) then
     if (nsg /= 1 ) then
       write (6,*) 'Running SUBGRID with CLM: not implemented'
       write (6,*) 'Please set nsg to 1 in regcm.in'
@@ -464,7 +464,7 @@ module mod_params
   end if
 #endif
 
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
 !  
 !-----read in namelist variables:
     read (ipunit, restartparam)
@@ -537,48 +537,48 @@ module mod_params
 !
 !  communicate to all processors 
 !
-  call mpi_bcast(ifrest,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(hspan,1,mpi_integer,0,mycomm,ierr)
-  call date_bcast(idate0,0,mycomm,ierr)
-  call date_bcast(idate1,0,mycomm,ierr)
-  call date_bcast(idate2,0,mycomm,ierr)
+  call mpi_bcast(ifrest,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(hspan,1,mpi_integer,iocpu,mycomm,ierr)
+  call date_bcast(idate0,iocpu,mycomm,ierr)
+  call date_bcast(idate1,iocpu,mycomm,ierr)
+  call date_bcast(idate2,iocpu,mycomm,ierr)
  
-  call mpi_bcast(dtrad,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(dtabem,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(dtsrf,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(dt,1,mpi_real8,0,mycomm,ierr)
+  call mpi_bcast(dtrad,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(dtabem,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(dtsrf,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(dt,1,mpi_real8,iocpu,mycomm,ierr)
  
-  call mpi_bcast(ifsave,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(savfrq,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(ifatm,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(atmfrq,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(ifrad,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(radfrq,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(ifsrf,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(ifsub,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(iflak,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(ifsts,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(srffrq,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(lakfrq,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(ifchem,1,mpi_logical,0,mycomm,ierr)
-  call mpi_bcast(chemfrq,1,mpi_real8,0,mycomm,ierr)
+  call mpi_bcast(ifsave,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(savfrq,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(ifatm,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(atmfrq,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(ifrad,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(radfrq,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(ifsrf,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(ifsub,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(iflak,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(ifsts,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(srffrq,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(lakfrq,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(ifchem,1,mpi_logical,iocpu,mycomm,ierr)
+  call mpi_bcast(chemfrq,1,mpi_real8,iocpu,mycomm,ierr)
  
-  call mpi_bcast(iboudy,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(ibltyp,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(icup,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(igcc,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(ipptls,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iocnflx,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iocncpl,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iocnrough,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(ipgf,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iemiss,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(lakemod,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(ichem,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(iboudy,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(ibltyp,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(icup,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(igcc,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(ipptls,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iocnflx,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iocncpl,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iocnrough,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(ipgf,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iemiss,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(lakemod,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(ichem,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(ntr,1,mpi_integer,iocpu,mycomm,ierr)
 
   ! Force the correct scenario from dattyp in CMIP5
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
     if ( dattyp(4:5) == '26' ) then
       if ( scenario /= 'RCP3PD' .or. scenario /= 'RCP2.6' ) then
         print *, 'Forcing scenario from dattyp to RCP2.6'
@@ -602,134 +602,134 @@ module mod_params
       end if
     end if
   end if
-  call mpi_bcast(scenario,8,mpi_character,0,mycomm,ierr)
-  call mpi_bcast(idcsst,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(idesseas,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iconvlwp,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(irrtm,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(iclimao3,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(scenario,8,mpi_character,iocpu,mycomm,ierr)
+  call mpi_bcast(idcsst,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iseaice,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(idesseas,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iconvlwp,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(irrtm,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(iclimao3,1,mpi_integer,iocpu,mycomm,ierr)
 
 #ifdef CLM
-  call mpi_bcast(dirclm,256,mpi_character,0,mycomm,ierr)
-  call mpi_bcast(imask,1,mpi_integer,0,mycomm,ierr)
-  call mpi_bcast(clmfrq,1,mpi_real8,0,mycomm,ierr)
+  call mpi_bcast(dirclm,256,mpi_character,iocpu,mycomm,ierr)
+  call mpi_bcast(imask,1,mpi_integer,iocpu,mycomm,ierr)
+  call mpi_bcast(clmfrq,1,mpi_real8,iocpu,mycomm,ierr)
 #endif
 
   if (iocncpl == 1) then
-    call mpi_bcast(cpldt,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cplexvars,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(cplinterp,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(cplbdysmooth,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(cpldbglevel,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(cpldt,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cplexvars,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(cplinterp,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(cplbdysmooth,1,mpi_logical,iocpu,mycomm,ierr)
+    call mpi_bcast(cpldbglevel,1,mpi_integer,iocpu,mycomm,ierr)
   end if
 
   if ( ipptls == 1 ) then
-    call mpi_bcast(ncld,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(fcmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(qck1land,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(qck1oce,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(gulland,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(guloce,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(rhmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(rh0oce,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(rh0land,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tc0,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cevap,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(caccr,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cftotmax,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(ncld,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(fcmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(qck1land,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(qck1oce,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(gulland,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(guloce,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(rhmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(rh0oce,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(rh0land,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(tc0,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cevap,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(caccr,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cftotmax,1,mpi_real8,iocpu,mycomm,ierr)
   end if
  
   if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-    call mpi_bcast(shrmin,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(shrmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmin,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmino,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmaxo,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtminx,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmaxx,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(shrmin_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(shrmax_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmin_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmax_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmino_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmaxo_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtminx_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(edtmaxx_ocn,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(pbcmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(mincld,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(htmin,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(htmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(skbmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(dtauc,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(shrmin,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(shrmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmin,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmino,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmaxo,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtminx,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmaxx,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(shrmin_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(shrmax_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmin_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmax_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmino_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmaxo_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtminx_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(edtmaxx_ocn,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(pbcmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(mincld,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(htmin,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(htmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(skbmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(dtauc,1,mpi_real8,iocpu,mycomm,ierr)
   end if
  
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-    call mpi_bcast(minsig,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(elcrit,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(tlcrit,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(entp,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(sigd,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(sigs,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(omtrain,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(omtsnow,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(coeffr,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(coeffs,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cu,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(betae,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(dtmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(alphae,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(damp,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(minsig,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(elcrit,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(tlcrit,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(entp,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(sigd,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(sigs,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(omtrain,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(omtsnow,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(coeffr,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(coeffs,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cu,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(betae,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(dtmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(alphae,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(damp,1,mpi_real8,iocpu,mycomm,ierr)
   end if
  
   if ( icup.eq.5 ) then
     call init_convect_tables
-    call mpi_bcast(iconv,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(entrpen,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(entrscv,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(entrmid,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(entrdd,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cmfctop,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cmfcmax,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cmfcmin,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cmfdeps,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(rhcdd,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cmtcape,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(zdlev,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(cprcon,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(ctrigger,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(nmctop,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(lmfpen,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(lmfscv,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(lmfmid,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(lmfdd,1,mpi_logical,0,mycomm,ierr)
-    call mpi_bcast(lmfdudv,1,mpi_logical,0,mycomm,ierr)
+    call mpi_bcast(iconv,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(entrpen,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(entrscv,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(entrmid,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(entrdd,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cmfctop,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cmfcmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cmfcmin,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cmfdeps,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(rhcdd,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cmtcape,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(zdlev,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cprcon,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(ctrigger,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(nmctop,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(lmfpen,1,mpi_logical,iocpu,mycomm,ierr)
+    call mpi_bcast(lmfscv,1,mpi_logical,iocpu,mycomm,ierr)
+    call mpi_bcast(lmfmid,1,mpi_logical,iocpu,mycomm,ierr)
+    call mpi_bcast(lmfdd,1,mpi_logical,iocpu,mycomm,ierr)
+    call mpi_bcast(lmfdudv,1,mpi_logical,iocpu,mycomm,ierr)
   end if
 
   if ( ibltyp == 2 .or. ibltyp == 99 ) then
-    call mpi_bcast(iuwvadv,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ilenparam,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(atwo,1,mpi_real8,0,mycomm,ierr)
-    call mpi_bcast(rstbl,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(iuwvadv,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ilenparam,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(atwo,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(rstbl,1,mpi_real8,iocpu,mycomm,ierr)
   end if
 
   if ( ichem == 1 ) then
-    call mpi_bcast(chemsimtype,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichremlsc,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichremcvc,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichdrdepo,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichcumtra,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(idirect,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichsolver,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichdustemd,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(ichdiag,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(chemsimtype,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichremlsc,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichremcvc,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichdrdepo,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichcumtra,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(idirect,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichsolver,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichdustemd,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(ichdiag,1,mpi_integer,iocpu,mycomm,ierr)
     call chem_config
 
-    call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(iaerosol,1,mpi_integer,0,mycomm,ierr)  
-    call mpi_bcast(ioxclim,1,mpi_integer,0,mycomm,ierr)
-    call mpi_bcast(igaschem,1,mpi_integer,0,mycomm,ierr)  
+    call mpi_bcast(ntr,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(iaerosol,1,mpi_integer,iocpu,mycomm,ierr)  
+    call mpi_bcast(ioxclim,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(igaschem,1,mpi_integer,iocpu,mycomm,ierr)  
   end if
 !
 !-----------------------------------------------------------------------
@@ -788,7 +788,7 @@ module mod_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! 
-  if ( myid == 0 ) then
+  if ( myid == italk ) then
     write (aline,*) 'starting first checks' 
     call say
     if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
@@ -828,7 +828,7 @@ module mod_params
         write (aline,*) 'Lake frequency needs to be an integer ',&
                         ' multiple of srffrq.'
         call say
-        if (myid == 0) then
+        if ( myid == italk ) then
           call fatal(__FILE__,__LINE__, &
                     'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
         end if
@@ -857,7 +857,7 @@ module mod_params
     doing_restart = .true.
   end if
 
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
     do i = 1 , n_atmvar
       atm_variables(i)%enabled = atm_enablevar(i)
     end do
@@ -941,14 +941,14 @@ module mod_params
 !sb   end lake model mods
 !
 
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
     call read_domain_info
     sigma(:) = mddom_io%sigma(:)
   end if
 
-  call mpi_bcast(ds,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(ptop,1,mpi_real8,0,mycomm,ierr)
-  call mpi_bcast(sigma,kzp1,mpi_real8,0,mycomm,ierr)
+  call mpi_bcast(ds,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(ptop,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(sigma,kzp1,mpi_real8,iocpu,mycomm,ierr)
 
   dx = ds * d_1000
  
@@ -1013,7 +1013,7 @@ module mod_params
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
 !
-  if (myid == 0) then
+  if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then
       write (6,*) 'Error in parameter set.'
       write (6,*) 'Cannot set idate0 == idate1 on restart run'
@@ -1144,14 +1144,14 @@ module mod_params
 
   if (ichem==1) then
     do n = 1 , ntr
-      call mpi_bcast(chtrname(n),5,mpi_character,0,mycomm,ierr)
+      call mpi_bcast(chtrname(n),6,mpi_character,iocpu,mycomm,ierr)
     end do
   end if
 
   write (aline, *) 'Reading in DOMAIN data'
   call say
 
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
     if ( nsg > 1 ) then
       call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
       ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
@@ -1204,7 +1204,7 @@ module mod_params
           '***************************************************'
     print * , ' '
 
-  end if  ! end if (myid == 0)
+  end if  ! end if (myid == iocpu)
 
   call grid_distribute(mddom_io%ht,mddom%ht,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%lndcat,mddom%lndcat,jde1,jde2,ide1,ide2)
@@ -1699,7 +1699,7 @@ module mod_params
 !
 !-----print out the parameters specified in the model.
 !
-  if ( myid == 0 ) then
+  if ( myid == italk ) then
     if ( ibltyp < 0 .or. ibltyp > 2 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if

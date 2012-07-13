@@ -22,6 +22,7 @@ module mod_bats_mppio
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
+  use mod_mppparam
 
   public
 
@@ -40,7 +41,7 @@ module mod_bats_mppio
       implicit none
       integer , intent(in) :: lakemod
       if ( lakemod == 1 ) then
-        if ( myid == 0 ) then
+        if ( myid == iocpu ) then
           call getmem3d(dhlake1_io,1,nnsg,jdot1,jdot2,idot1,idot2, &
                         'bats_mppio:dhlake1_io')
           call getmem3d(idep_io,1,nnsg,jcross1,jcross2,icross1,icross2, &

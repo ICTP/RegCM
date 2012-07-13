@@ -133,7 +133,7 @@ module mod_mppio
   subroutine allocate_mod_mppio
     implicit none
 
-    if (myid == 0) then
+    if ( myid == iocpu ) then
       call allocate_atmstate(atm1_io,ibltyp,.false.,zero_exchange_point)
       call allocate_atmstate(atm2_io,ibltyp,.false.,zero_exchange_point)
       if ( ibltyp == 2 .or. ibltyp == 99 ) then

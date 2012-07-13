@@ -20,6 +20,7 @@
 module mod_che_mppio
 !
   use mod_realkinds
+  use mod_mppparam
   use mod_dynparam
   use mod_memutil
   use mod_mpmessage
@@ -68,7 +69,7 @@ module mod_che_mppio
       lcband = ilcband
 
       if ( lch ) then
-        if (myid == 0) then
+        if ( myid == iocpu ) then
           call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2, &
                         1,kz,1,ntr,'che_mppio:chebdy_io')
           call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2, &

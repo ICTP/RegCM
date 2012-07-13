@@ -83,7 +83,7 @@ module mod_rad_o3blk
 
     if ( iclimao3 == 1 ) then
       call getmem2d(laps,jci1,jci1,ici1,ici2,'mod_o3blk:laps')
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         call getmem1d(asig,1,kzp1,'mod_o3blk:asig')
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
         call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
@@ -204,7 +204,7 @@ module mod_rad_o3blk
       return
     end if
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       if ( ifirst ) then
         alon = real(xlon(jcross1:jcross2,icross1:icross2))
         alat = real(xlat(jcross1:jcross2,icross1:icross2))
@@ -244,7 +244,7 @@ module mod_rad_o3blk
     end if
     dointerp = .false.
     if ( ncid < 0 ) then
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         call init_o3data(infile,ncid,lat,lon,plev)
       else
         ncid = 0
@@ -264,7 +264,7 @@ module mod_rad_o3blk
       ! We need pressure
       laps = real((ps(jci1:jci1,ici1:ici2)))
       call grid_collect(laps,aps,jci1,jci1,ici1,ici2)
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         write (stderr,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
@@ -275,7 +275,7 @@ module mod_rad_o3blk
       end if
     end if
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       tdif = idatex-iref1
       xfac1 = tohours(tdif)
       tdif = idatex-iref2

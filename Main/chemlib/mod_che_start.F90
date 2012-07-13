@@ -263,7 +263,7 @@ module mod_che_start
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
       !    *** regcm.in namelist.  If both are defined then STOP
       if ( iso4 /= 0 .and. isulf /= 0 ) then
-        if ( myid == 0 ) then
+        if ( myid == italk ) then
           write(*,*) "******* ERROR: Defined both SO4 and SULF"
           write(*,*) "*******        in regcm.in              "
           write(*,*) "*******        must choose one b/c they "
@@ -389,7 +389,7 @@ module mod_che_start
 
     call setup_che_bdycon
 
-    if ( myid == 0 ) call init_mod_che_ncio(chemsimtype)
+    if ( myid == iocpu ) call init_mod_che_ncio(chemsimtype)
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     call split_idate(idate1,lyear,lmonth,lday,lhour)

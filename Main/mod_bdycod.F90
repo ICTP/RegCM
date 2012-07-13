@@ -203,7 +203,7 @@ module mod_bdycod
     bdydate1 = idate1
     bdydate2 = idate1
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       if ( bdydate1 == globidate1 ) then
         icbc_date = bdydate1
       else
@@ -385,7 +385,7 @@ module mod_bdycod
     xpsb%b0(:,:) = xpsb%b1(:,:)
     ts0(:,:) = ts1(:,:)
 !
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       bdydate2 = bdydate2 + intbdy
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
       mmrec = icbc_search(bdydate2)
@@ -509,7 +509,7 @@ module mod_bdycod
       call chem_bdyin(dtbdys,intbdy) 
     end if
 
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if

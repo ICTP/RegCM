@@ -22,6 +22,7 @@ module mod_vmodes
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
+  use mod_mppparam
   use mod_service
   use linpack
   use eispack
@@ -469,7 +470,7 @@ module mod_vmodes
 !
 !   output desired arrays
 !
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       call vprntv(sigma,kzp1,'sigma   ')
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = xps

@@ -225,7 +225,7 @@ module mod_init
     ! Inizialize Ozone profiles
     !
     call o3data
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       write (6,*) 'ozone profiles'
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof(3,3,k)
@@ -244,8 +244,8 @@ module mod_init
     !
     xbctime = d_zero
     nbdytime = 0
-    call mpi_bcast(ktau,1,mpi_integer8,0,mycomm,ierr)
-    call date_bcast(idatex,0,mycomm,ierr)
+    call mpi_bcast(ktau,1,mpi_integer8,iocpu,mycomm,ierr)
+    call date_bcast(idatex,iocpu,mycomm,ierr)
 !
     mtau = mtau + ktau
 !
@@ -278,7 +278,7 @@ module mod_init
     end if
     call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici1,1,kz)
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici1,1,kzp1)
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof(3,3,k)
@@ -440,7 +440,7 @@ module mod_init
     !
     ! Report success
     !
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       appdat = tochar(idatex)
       print 99001 , appdat
     end if

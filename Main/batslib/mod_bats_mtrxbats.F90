@@ -22,6 +22,7 @@ module mod_bats_mtrxbats
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iocnflx , iocncpl
+  use mod_mppparam
   use mod_mpmessage
   use mod_constants
   use mod_service
@@ -212,7 +213,7 @@ module mod_bats_mtrxbats
 !   ROMS ocean model
     if ( iocncpl == 1 ) then
       if (ktau > ntcpl) then 
-        if (myid == 0) then 
+        if ( myid == italk ) then 
           print*, "[debug] -- updating RegCM fields with ROMS data ..."
         end if
         ! update SST

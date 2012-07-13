@@ -192,7 +192,7 @@ module mod_mtrxclm
     if ( .not.allocated(clm_fracveg) )  allocate(clm_fracveg(jx,iy))
     if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
     clm_fracveg(:,:) = d_zero
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Broadcast of those in CLM code.
       do i = 1 , iy
         do j = 1 , jx
@@ -319,9 +319,9 @@ module mod_mtrxclm
 ! atmospheric data files are provided, model uses dummy atmospheric
 ! forcing and sets atmospheric grid to land grid.
 
-    if ( myid == 0 ) write (6,*) 'Attempting to make atmospheric grid'
+    if ( myid == iocpu ) write (6,*) 'Attempting to make atmospheric grid'
     call rcmdrv_init()
-    if ( myid == 0 ) write (6,*) 'Successfully  make atmospheric grid'
+    if ( myid == iocpu ) write (6,*) 'Successfully  make atmospheric grid'
 
     ! Initialize radiation and atmosphere variables
     if ( .not. ifrest ) then

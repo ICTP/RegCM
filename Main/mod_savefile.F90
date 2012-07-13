@@ -21,6 +21,7 @@ module mod_savefile
 
   use mod_runparams
   use mod_mpmessage
+  use mod_mppparam
   use mod_atm_interface
   use mod_lm_interface
   use mod_che_interface
@@ -73,7 +74,7 @@ module mod_savefile
     real(8) :: odtsec
     logical :: existing
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       iutrst = 14
       write (fbname, '(a,i10)') 'SAV.', toint10(idate)
       ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
@@ -214,7 +215,7 @@ module mod_savefile
 #ifdef CLM
     integer :: ioff
 #endif
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       if (ltmp) then
         write (fbname, '(a,i10)') 'TMPSAV.', toint10(idate)
       else
@@ -341,7 +342,7 @@ module mod_savefile
     call restFile_write_binary(filer_rest)
     thisclmrest = filer_rest(1:256)
 #endif
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       print *, 'SAV variables written at ', tochar(idate)
 
       if (isavlast > 0) then
@@ -372,7 +373,7 @@ module mod_savefile
     character(32) :: fbname
     integer :: ires
     integer :: ixdim
-    if ( myid /= 0 ) then
+    if ( myid /= iocpu ) then
       return
     end if
     if (ltmp) then

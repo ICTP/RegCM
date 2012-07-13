@@ -73,7 +73,7 @@ module mod_output
 !
   lstartup = .false.
   if ( ktau == 0 .or. doing_restart ) then
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       call mkfile
     end if
     lstartup = .true.
@@ -169,7 +169,7 @@ module mod_output
                           jci1,jci2,ici1,ici2,1,kzp1)
       end if
 !
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         call outatm
       end if
       sfs%rainc(:,:)  = d_zero
@@ -194,7 +194,7 @@ module mod_output
         call grid_collect(ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
       end if
       call grid_collect(fbat,fbat_io,jci1,jci2,ici1,ici2,1,numbat)
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         call outsrf
       end if
       fbat(:,:,sunt_o) = 0.0
@@ -219,7 +219,7 @@ module mod_output
 
       if ( ifsub .and. nsg > 1 ) then
         call subgrid_collect(fsub,fsub_io,jci1,jci2,ici1,ici2,1,numsub)
-        if ( myid == 0 ) then
+        if ( myid == iocpu ) then
           call outsub
         end if
       end if
@@ -233,7 +233,7 @@ module mod_output
       call grid_collect(frad2d,frad2d_io,jci1,jci2,ici1,ici2,1,nrad2d)
       call grid_collect(frad3d,frad3d_io,jci1,jci2,ici1,ici2,1,kz,1,nrad3d)
       call grid_collect(sfs%psa,sfs_io%psa,jci1,jci2,ici1,ici2)
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         call outrad
       end if
     end if
@@ -386,7 +386,7 @@ module mod_output
     end if
   end if
 
-  if ( myid == 0 ) then
+  if ( myid == iocpu ) then
     if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
       if ( .not. lstartup .and. idatex /= idate2 ) then
         call mkfile
@@ -402,7 +402,7 @@ module mod_output
  
   implicit none
 !
-  if (myid /= 0) return
+  if ( myid /= iocpu ) return
 
   print * , ' '
   print * , '******* OPENING NEW OUTPUT FILES : ' , tochar(idatex)

@@ -25,6 +25,7 @@
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqc
+  use mod_mppparam
   use mod_che_common
   use mod_che_indices
   use mod_che_param
@@ -379,7 +380,7 @@
             call chemistry(j,secofday,lyear,lmonth,lday)
           end do
 
-        if (myid == 0) then
+        if ( myid == italk ) then
           print*,'Jvalue max NO2 ',minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
         end if
 

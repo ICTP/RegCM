@@ -21,6 +21,7 @@ module mod_header
 
   use mod_constants
   use mod_realkinds
+  use mod_mppparam
   use mod_date
 
   private
@@ -38,7 +39,7 @@ module mod_header
     implicit none 
     integer , intent(in) :: myid
 
-    if ( myid == 0 )  then 
+    if ( myid == iocpu )  then 
       call date_and_time(values=timearr)
       start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
                    timearr(5)*secph+ timearr(6)*secpm + &
@@ -61,7 +62,7 @@ module mod_header
     character (len=32) :: user='?' 
     character (len=256) :: directory='?'
   
-    if ( myid == 0 )  then 
+    if ( myid == iocpu )  then 
 #ifdef IBM
       hostname='ibm platform '
       user= 'Unknown'
@@ -87,7 +88,7 @@ module mod_header
     integer , intent (in) :: myid
     real(dp) :: finish_time
 
-    if ( myid ==  0 ) then
+    if ( myid == iocpu ) then
 #ifdef IBM
       call fdate_(cdata)
 #else

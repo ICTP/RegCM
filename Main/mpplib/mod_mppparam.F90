@@ -200,7 +200,8 @@ module mod_mppparam
   integer , dimension(4) :: window
   integer :: mpierr
 !
-  integer , parameter :: iocpu = 0
+  integer , public , parameter :: iocpu = 0
+  integer , public , parameter :: italk = 0
 !
   integer , parameter :: tag_bt = 1
   integer , parameter :: tag_tb = 2
@@ -409,7 +410,7 @@ module mod_mppparam
     jxpsg  = jxp * nsg
     iypsg  = iyp * nsg
 
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       write(stdout,*) 'CPUS DIM1 = ', cpus_per_dim(1)
       write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
     end if
@@ -429,48 +430,49 @@ module mod_mppparam
 
     call mpi_barrier(mycomm,mpierr)
 
-    call mpi_bcast(iy,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(jx,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(kz,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nsg,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nveg,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(iy,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(jx,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(kz,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(nsg,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(nveg,1,mpi_integer,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(iproj,6,mpi_character,0,mycomm,mpierr)
-    call mpi_bcast(ds,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(ptop,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(clat,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(clon,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(plat,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(plon,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(truelatl,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(truelath,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(i_band,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(iproj,6,mpi_character,iocpu,mycomm,mpierr)
+    call mpi_bcast(ds,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(ptop,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(clat,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(clon,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(plat,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(plon,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(truelatl,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(truelath,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(i_band,1,mpi_integer,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(domname,64,mpi_character,0,mycomm,mpierr)
+    call mpi_bcast(domname,64,mpi_character,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(ibyte,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(ibyte,1,mpi_integer,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(debug_level,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(dbgfrq,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(debug_level,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(dbgfrq,1,mpi_integer,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(nspgx,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(nspgd,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(high_nudge,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(medium_nudge,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(low_nudge,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(nspgx,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(nspgd,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(high_nudge,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(medium_nudge,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(low_nudge,1,mpi_real8,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(calendar,12,mpi_character,0,mycomm,mpierr)
-    call mpi_bcast(ical,1,mpi_integer,0,mycomm,mpierr)
-    call mpi_bcast(dayspy,1,mpi_real8,0,mycomm,mpierr)
-    call mpi_bcast(dpd,1,mpi_real8,0,mycomm,mpierr)
+    call mpi_bcast(calendar,12,mpi_character,iocpu,mycomm,mpierr)
+    call mpi_bcast(ical,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(dayspy,1,mpi_real8,iocpu,mycomm,mpierr)
+    call mpi_bcast(dpd,1,mpi_real8,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(nsplit,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(nsplit,1,mpi_integer,iocpu,mycomm,mpierr)
 
-    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mycomm,mpierr)
+    call mpi_bcast(ibdyfrq,1,mpi_integer,iocpu,mycomm,mpierr)
 
     ! Setup all convenience dimensions
+    ! The IOCPU has performed this previously.
 
-    if ( myid /= 0) then
+    if ( myid /= iocpu ) then
       iym1 = iy - 1
       iym2 = iy - 2
       iym3 = iy - 3
@@ -542,7 +544,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -600,7 +602,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -666,7 +668,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -740,7 +742,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -798,7 +800,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -864,7 +866,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -938,7 +940,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -996,7 +998,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1062,7 +1064,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -1136,7 +1138,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1200,7 +1202,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1272,7 +1274,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1336,7 +1338,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1408,7 +1410,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1472,7 +1474,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1544,7 +1546,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1602,7 +1604,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1668,7 +1670,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -1742,7 +1744,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1800,7 +1802,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1866,7 +1868,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -1940,7 +1942,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -1998,7 +2000,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -2064,7 +2066,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
         do k = k1 , k2
@@ -2138,7 +2140,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -2202,7 +2204,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -2274,7 +2276,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -2338,7 +2340,7 @@ module mod_mppparam
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -2410,7 +2412,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2
     integer :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
@@ -2474,7 +2476,7 @@ module mod_mppparam
     integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
     integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -4124,7 +4126,7 @@ module mod_mppparam
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
     call grid_collect(a,b,1,jxp,1,iyp)
-    call mpi_bcast(b,iy*jx,mpi_real8,0,cartesian_communicator,mpierr)
+    call mpi_bcast(b,iy*jx,mpi_real8,iocpu,cartesian_communicator,mpierr)
   end subroutine real8_2d_grid_fill
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
@@ -4282,7 +4284,7 @@ module mod_mppparam
       xvar%myny2 = ice2
     end if
     xvar%irec = 1
-    if ( myid /= 0 ) return
+    if ( myid /= iocpu ) return
     istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
     if ( istat /= nf90_noerr ) then
       write(stderr, *) nf90_strerror(istat)
@@ -4326,7 +4328,7 @@ module mod_mppparam
     end if
     call grid_collect(xvar%val,xvar%iobuf, &
                       xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2)
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istart(3) = xvar%irec
       istart(2) = 1
       istart(1) = 1
@@ -4351,7 +4353,7 @@ module mod_mppparam
     implicit none
     type (grid_nc_var2d) , intent(inout) :: xvar
     integer :: istat
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
@@ -4393,7 +4395,7 @@ module mod_mppparam
     end if
     xvar%nz = size(xvar%val,3)
     xvar%irec = 1
-    if ( myid /= 0 ) return
+    if ( myid /= iocpu ) return
     istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
     if ( istat /= nf90_noerr ) then
       write(stderr, *) nf90_strerror(istat)
@@ -4442,7 +4444,7 @@ module mod_mppparam
     end if
     call grid_collect(xvar%val,xvar%iobuf, &
                       xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2,1,xvar%nz)
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istart(4) = xvar%irec
       istart(3) = 1
       istart(2) = 1
@@ -4469,7 +4471,7 @@ module mod_mppparam
     implicit none
     type (grid_nc_var3d) , intent(inout) :: xvar
     integer :: istat
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)
@@ -4512,7 +4514,7 @@ module mod_mppparam
     xvar%nz = size(xvar%val,3)
     xvar%nl = size(xvar%val,4)
     xvar%irec = 1
-    if ( myid /= 0 ) return
+    if ( myid /= iocpu ) return
     istat = nf90_create(trim(xvar%varname)//'.nc',nf90_clobber,xvar%ncid)
     if ( istat /= nf90_noerr ) then
       write(stderr, *) nf90_strerror(istat)
@@ -4568,7 +4570,7 @@ module mod_mppparam
     call grid_collect(xvar%val,xvar%iobuf, &
                       xvar%mynx1,xvar%mynx2,xvar%myny1,xvar%myny2, &
                       1,xvar%nz,1,xvar%nl)
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istart(5) = xvar%irec
       istart(4) = 1
       istart(3) = 1
@@ -4597,7 +4599,7 @@ module mod_mppparam
     implicit none
     type (grid_nc_var4d) , intent(inout) :: xvar
     integer :: istat
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then
         write(stderr, *) nf90_strerror(istat)

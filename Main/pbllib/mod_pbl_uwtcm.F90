@@ -70,6 +70,7 @@ module mod_pbl_uwtcm
   use mod_dynparam
   use mod_constants
   use mod_mpmessage
+  use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc
@@ -136,7 +137,7 @@ module mod_pbl_uwtcm
 
     ! If we are the head processor, output the various parameters
 
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       write(*,*)'***************************************'
       write(*,*)'******** UW TCM Parameters*************'
       write(*,*)'***************************************'

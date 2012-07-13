@@ -209,7 +209,7 @@ module mod_che_dust
                   0.60D0 , 0.00D0 , 0.40D0 , 0.50D0 , 0.00D0 , 0.50D0/
 !
       rd_tex = .false.
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         do itr = 1 , ntr
           aerctl = chtrname(itr)
           if ( aerctl(1:4) == 'DUST' ) then
@@ -221,7 +221,7 @@ module mod_che_dust
 
       call mpi_bcast(rd_tex,1,mpi_logical,0,mycomm,ierr)
 
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         if ( rd_tex ) then
           call read_texture(nats,dustsotex_io)
         end if

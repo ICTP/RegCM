@@ -100,7 +100,7 @@ module mod_che_bdyco
     chbdydate1 = idate1
     chbdydate2 = idate1
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       if ( chbdydate1 == globidate1 ) then
         chbc_date = chbdydate1
       else
@@ -237,7 +237,7 @@ module mod_che_bdyco
 
     chib0(:,:,:,:) = chib1(:,:,:,:)
 
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       write (6,'(a,i10)') 'SEARCH CHBC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then

@@ -754,7 +754,8 @@ module mod_che_drydep
 
 !NEED TO BE FIXED ! CANNOT REACH CLM VARS FROM HERE!
 
-!       jj = j + (jxp*myid)
+!       jj = global_jstart+j-1
+!       ii = global_istart+i-1
 
 !          do i = ici1 , ici2
 !          do n = 1, ntr

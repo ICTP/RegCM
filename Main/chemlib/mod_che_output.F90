@@ -21,6 +21,7 @@ module mod_che_output
 
   use mod_constants
   use mod_mpmessage
+  use mod_mppparam
   use mod_service 
   use mod_dynparam
   use mod_che_common
@@ -126,7 +127,7 @@ module mod_che_output
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
 
-      if ( myid == 0 ) then 
+      if ( myid == iocpu ) then 
         aeraod_io = sum(aerext_io,3)
         call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,   &
                            cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &

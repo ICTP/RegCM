@@ -24,6 +24,7 @@ module mod_che_emission
   use netcdf
   use mod_constants
   use mod_mpmessage
+  use mod_mppparam
   use mod_service 
   use mod_dynparam
   use mod_che_common
@@ -63,7 +64,7 @@ contains
     else
        currmonth = lmonth
     end if
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
        write(*,*)'READ CHEM EMISSION for ', &
             lyear*1000000+lmonth*10000+lday*100+lhour
        ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
@@ -113,7 +114,7 @@ contains
 
 #ifdef CLM
 #if (defined VOC)
-        ! jj = j+(jxp*myid)
+        ! jj = global_jstart+j-1
 #endif
 #endif
 
@@ -152,7 +153,7 @@ contains
         ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
         ! zero when using BATS
 
-        ! jj = j+(jxp*myid) FAB A REVOIRR!
+        ! jj = global_jstart+j-1
         print*, 'bio emission CLM/BVOC option to be fixed'
         stop 
         do itr =1,ntr

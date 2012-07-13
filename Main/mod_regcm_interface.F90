@@ -94,11 +94,11 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       call getarg(0, prgname)
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
+      if ( ierr /= 0 ) then
         write ( 6, * ) 'Parameter initialization not completed'
         write ( 6, * ) 'Usage : '
         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
@@ -112,7 +112,7 @@ module mod_regcm_interface
 
     call memory_init
 !
-    if ( myid == 0 ) then
+    if ( myid == iocpu ) then
       if ( i_band == 1 ) then
         call init_mod_ncio(.true.)
       else
@@ -161,7 +161,7 @@ module mod_regcm_interface
     !
     ! Calculate solar declination angle at startup
     !
-    if (myid == 0) then
+    if ( myid == italk ) then
       write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
     end if
 #ifdef CLM
@@ -276,7 +276,7 @@ module mod_regcm_interface
           !
           ! recalculate solar declination angle if reading bdy
           !
-          if (myid == 0) then
+          if ( myid == italk ) then
             write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
           end if
 #ifdef CLM
@@ -304,8 +304,8 @@ module mod_regcm_interface
       ! Increment execution time
       !
       extime = extime + dtinc
-      if (debug_level > 3) then
-        if (myid == 0) then
+      if ( debug_level > 3 ) then
+        if ( myid == italk ) then
           appdat = tochar(idatex)
           write(6,'(a,a,f12.2)') 'Simulation time: ', appdat, extime
         end if
@@ -342,7 +342,7 @@ module mod_regcm_interface
     call memory_destroy
     call finaltime(myid)
 !
-    if ( myid == 0 ) then
+    if ( myid == italk ) then
       print *, 'RegCM V4 simulation successfully reached end'
     end if
 !

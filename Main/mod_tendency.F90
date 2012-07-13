@@ -266,7 +266,7 @@ module mod_tendency
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atmx%t(j,i,k)  = atm1%t(j,i,k)/sfs%psa(j,i)
+          atmx%t(j,i,k)    = atm1%t(j,i,k)/sfs%psa(j,i)
           atmx%qx(j,i,k,:) = atm1%qx(j,i,k,:)/sfs%psa(j,i)
         end do
       end do
@@ -446,7 +446,7 @@ module mod_tendency
     call grid_collect(ps4,ps_4,jce1,jce2,ice1,ice2,1,4)
 
     if ( ktau /= 0 ) then
-      if ( myid == 0 ) then
+      if ( myid == iocpu ) then
         ptntot = d_zero
         pt2tot = d_zero
         do i = icross1 , icross2
@@ -458,8 +458,8 @@ module mod_tendency
           end do
         end do
       end if
-      call mpi_bcast(ptntot,1,mpi_real8,0,mycomm,ierr)
-      call mpi_bcast(pt2tot,1,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(ptntot,1,mpi_real8,iocpu,mycomm,ierr)
+      call mpi_bcast(pt2tot,1,mpi_real8,iocpu,mycomm,ierr)
     end if
 !
 !   calculate solar zenith angle
@@ -714,7 +714,7 @@ module mod_tendency
         call rrtmg_driver(xyear,eccf,loutrad)
       else
         labsem = (ktau == 0 .or. mod(ktau+1,ntabem) == 0)
-        if ( labsem .and. myid == 0 ) then
+        if ( labsem .and. myid == italk ) then
           write(stdout,*) 'Doing emission/absorbtion calculation...'
         end if
         call colmod3(xyear,eccf,loutrad,labsem)
@@ -1340,7 +1340,7 @@ module mod_tendency
       pt2bar = pt2tot/dble(iptn)
       icons_mpi = 0
       call mpi_reduce(total_precip_points,icons_mpi,1,mpi_integer, &
-                      mpi_sum,0,mycomm,ierr)
+                      mpi_sum,iocpu,mycomm,ierr)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1419,7 +1419,7 @@ module mod_tendency
             end do
           end do
         end if
-        if ( myid == 0 ) then
+        if ( myid == italk ) then
           write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
           write (*,*) 'No more atmosphere here....'
           write (*,*) 'CFL violation detected, so model STOP'
@@ -1429,7 +1429,7 @@ module mod_tendency
           call fatal(__FILE__,__LINE__,'CFL VIOLATION')
         end if
       end if
-      if ( myid == 0 ) then
+      if ( myid == italk ) then
         if ( mod(ktau,irep) == 0 ) then
           appdat = tochar(idatex)
           write(6,99001) appdat , ktau , ptnbar , pt2bar , icons_mpi
