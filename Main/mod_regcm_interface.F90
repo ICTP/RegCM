@@ -113,6 +113,7 @@ module mod_regcm_interface
     call memory_init
 !
     call set_nproc(ncpu)
+    call setup_model_indexes
 !
     if ( myid == iocpu ) then
       if ( ma%bandflag ) then
@@ -122,14 +123,6 @@ module mod_regcm_interface
       end if
     end if
 
-!
-!**********************************************************************
-!
-!   MPI Initialization for model
-!
-!**********************************************************************
-!
-    call mpi_barrier(mycomm,ierr)
 !
 !**********************************************************************
 !

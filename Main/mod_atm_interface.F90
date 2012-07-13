@@ -165,11 +165,11 @@ module mod_atm_interface
       ma%ibt2 = 2
       ma%ibb1 = 1
       ma%ibb2 = 2
-      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyleft ) then
         ma%jbl1 = 0
         ma%jbl2 = 0
       end if
-      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyright ) then
         ma%jbr1 = 0
         ma%jbr2 = 0
       end if
@@ -193,11 +193,11 @@ module mod_atm_interface
       ide2  = iyp
       idi2  = iyp
       idii2 = iyp
-      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyleft ) then
         jdi1 = 2
         jdii1 = 3
       end if
-      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyright ) then
         jdi2 = jxp-1
         jdii2 = jxp-2
       end if
@@ -221,11 +221,11 @@ module mod_atm_interface
       ice2  = iyp
       ici2  = iyp
       icii2 = iyp
-      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyleft ) then
         jci1 = 2
         jcii1 = 3
       end if
-      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
+      if ( ma%has_bdyright ) then
         jce2 = jxp-1
         jci2 = jxp-2
         jcii2 = jxp-3

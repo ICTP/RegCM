@@ -39,6 +39,8 @@ module mod_mppparam
     logical :: bandflag
     logical :: has_bdy
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
+    logical :: has_bdytopleft , has_bdytopright
+    logical :: has_bdybottomleft , has_bdybottomright
     integer , dimension(2) :: location
     integer :: left , right , top , bottom
     integer :: topleft , topright , bottomleft , bottomright
@@ -244,6 +246,15 @@ module mod_mppparam
     ma%topleft     = mpi_proc_null
     ma%topright    = mpi_proc_null
 
+    ma%has_bdyright       = .false.
+    ma%has_bdyleft        = .false.
+    ma%has_bdytop         = .false.
+    ma%has_bdybottom      = .false.
+    ma%has_bdytopleft     = .false.
+    ma%has_bdytopright    = .false.
+    ma%has_bdybottomleft  = .false.
+    ma%has_bdybottomright = .false.
+
     if ( nproc == 1 ) then
       cpus_per_dim(1) = 1
       cpus_per_dim(2) = 1
@@ -259,20 +270,24 @@ module mod_mppparam
       ma%has_bdytop    = .true.
       ma%has_bdybottom = .true.
       if ( ma%bandflag ) then
-        ma%left = 0
-        ma%right = 0
-        ma%has_bdyright  = .false.
-        ma%has_bdyleft   = .false.
+        ma%left  = myid
+        ma%right = myid
       else
-        ma%has_bdyright  = .true.
-        ma%has_bdyleft   = .true.
+        ma%has_bdyright       = .true.
+        ma%has_bdyleft        = .true.
+        ma%has_bdytopleft     = .true.
+        ma%has_bdytopright    = .true.
+        ma%has_bdybottomleft  = .true.
+        ma%has_bdybottomright = .true.
       end if
       ma%has_bdy = .true.
     else
       if ( ma%bandflag ) dim_period(1) = .true.
       if ( nproc < 4 ) then
-        cpus_per_dim(1) = ncpu
-        cpus_per_dim(2) = 1
+        !cpus_per_dim(1) = ncpu
+        !cpus_per_dim(2) = 1
+        cpus_per_dim(1) = 1
+        cpus_per_dim(2) = ncpu
       else if ( nproc >= 4 ) then
         if ( mod(nproc,2) /= 0 ) then
           write(stderr,*) 'Work does not evenly divide.'
@@ -368,6 +383,10 @@ module mod_mppparam
       ma%has_bdyleft   = (ma%left   == mpi_proc_null)
       ma%has_bdy       = ( ma%has_bdytop .or. ma%has_bdybottom .or. &
                            ma%has_bdyright .or. ma%has_bdyleft )
+      ma%has_bdytopleft     = (ma%has_bdytop .and. ma%has_bdyleft)
+      ma%has_bdytopright    = (ma%has_bdytop .and. ma%has_bdyright)
+      ma%has_bdybottomleft  = (ma%has_bdybottom .and. ma%has_bdyleft)
+      ma%has_bdybottomright = (ma%has_bdybottom .and. ma%has_bdyright)
 
       jxp =  jx/cpus_per_dim(1)
       iyp =  iy/cpus_per_dim(2)
@@ -403,7 +422,7 @@ module mod_mppparam
     if ( jxp < 3 .or. iyp < 3 ) then
       write(stderr,*) 'CPUS DIM1 = ', cpus_per_dim(1)
       write(stderr,*) 'CPUS DIM2 = ', cpus_per_dim(2)
-      write(stderr,*) 'Cannot have one processor with less than 9 points.'
+      write(stderr,*) 'Cannot have one processor with less than 3x3 points.'
       write(stderr,*) 'Processor ',myid,' has ',jxp*iyp,' (',jxp,'x',iyp,')'
       call fatal(__FILE__,__LINE__,'Too much processors')
     end if
@@ -4201,59 +4220,43 @@ module mod_mppparam
         pd(j,i) = (pc(j,i)+pc(j,i-1)+pc(j-1,i)+pc(j-1,i-1))*d_rfour
       end do
     end do
-    if ( .not. ma%bandflag ) then
-      !
-      ! Corner points
-      !
-      if ( ma%has_bdyleft .and. ma%has_bdybottom ) then
-        pd(jde1,ide1) = pc(jce1,ice1)
-      end if
-      if ( ma%has_bdyleft .and. ma%has_bdytop ) then
-        pd(jde1,ide2) = pc(jce1,ice2)
-      end if
-      if ( ma%has_bdyright .and. ma%has_bdybottom ) then
-        pd(jde2,ide1) = pc(jce2,ice1)
-      end if
-      if ( ma%has_bdyright .and. ma%has_bdytop ) then
-        pd(jde2,ide2) = pc(jce2,ice2)
-      end if
-      !
-      ! Boundaries
-      !
-      if ( ma%has_bdyleft ) then
-        do i = idi1 , idi2
-          pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = idi1 , idi2
-          pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jdi1 , jdi2
-          pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jdi1 , jdi2
-          pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
-        end do
-      end if
-    else
-      !
-      ! Band (no east and west)
-      !
-      if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
-        end do
-      end if
+    !
+    ! Boundaries
+    !
+    if ( ma%has_bdytop ) then
+      do j = jdi1 , jdi2
+        pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do j = jdi1 , jdi2
+        pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do i = idi1 , idi2
+        pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do i = idi1 , idi2
+        pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
+      end do
+    end if
+    !
+    ! Corner points
+    !
+    if ( ma%has_bdybottomleft ) then
+      pd(jde1,ide1) = pc(jce1,ice1)
+    end if
+    if ( ma%has_bdytopleft ) then
+      pd(jde1,ide2) = pc(jce1,ice2)
+    end if
+    if ( ma%has_bdybottomright ) then
+      pd(jde2,ide1) = pc(jce2,ice1)
+    end if
+    if ( ma%has_bdytopright ) then
+      pd(jde2,ide2) = pc(jce2,ice2)
     end if
   end subroutine psc2psd
 
