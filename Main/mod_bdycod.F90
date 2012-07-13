@@ -51,8 +51,6 @@ module mod_bdycod
   public :: wve , wvi , eve , evi
   public :: sue , sui , nue , nui
   public :: sve , svi , nve , nvi
-  public :: ts0
-  public :: ts1 ! FOR DCSST
 ! fnudge : are the coefficients for the newtonian term.
 ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
@@ -62,7 +60,6 @@ module mod_bdycod
                                          sve , svi , nve , nvi
   real(dp) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(dp) , pointer , dimension(:,:) :: ts0 , ts1
   real(dp) , pointer , dimension(:) :: anudg
   real(dp) , pointer , dimension(:) :: fcx , gcx
   real(dp) , pointer , dimension(:) :: fcd , gcd
@@ -107,27 +104,31 @@ module mod_bdycod
       call getmem2d(efc,1,nbdm,1,kz,'bdycon:fcx')
       call getmem2d(egc,1,nbdm,1,kz,'bdycon:fcx')
     end if
-
-    call getmem2d(ts0,jce1,jce2,ice1,ice2,'bdycon:ts0')
-    call getmem2d(ts1,jce1,jce2,ice1,ice2,'bdycon:ts1')
 !
-    call getmem2d(sue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sue')
-    call getmem2d(sui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sui')
-    call getmem2d(nue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nue')
-    call getmem2d(nui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nui')
-    call getmem2d(nve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nve')
-    call getmem2d(nvi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nvi')
-    call getmem2d(sve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sve')
-    call getmem2d(svi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:svi')
-!
-    call getmem2d(wue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wue')
-    call getmem2d(wui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wui')
-    call getmem2d(eue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eue')
-    call getmem2d(eui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eui')
-    call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
-    call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
-    call getmem2d(eve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eve')
-    call getmem2d(evi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:evi')
+    if ( ma%has_bdytop ) then
+      call getmem2d(nue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nue')
+      call getmem2d(nui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nui')
+      call getmem2d(nve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nve')
+      call getmem2d(nvi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nvi')
+    end if
+    if ( ma%has_bdybottom ) then
+      call getmem2d(sue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sue')
+      call getmem2d(sui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sui')
+      call getmem2d(sve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sve')
+      call getmem2d(svi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:svi')
+    end if
+    if ( ma%has_bdyright ) then
+      call getmem2d(eue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eue')
+      call getmem2d(eui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eui')
+      call getmem2d(eve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eve')
+      call getmem2d(evi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:evi')
+    end if
+    if ( ma%has_bdyleft ) then
+      call getmem2d(wue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wue')
+      call getmem2d(wui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wui')
+      call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
+      call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
+    end if
 !
     call time_end(subroutine_name,idindx)
   end subroutine allocate_mod_bdycon

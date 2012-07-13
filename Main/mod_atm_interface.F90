@@ -140,8 +140,9 @@ module mod_atm_interface
 
   real(dp) , public , pointer , dimension(:,:) :: hgfact
   real(dp) , public , pointer , dimension(:,:) :: psdot
-  real(dp) , public , pointer, dimension(:,:,:) :: dstor
-  real(dp) , public , pointer, dimension(:,:,:) :: hstor
+  real(dp) , public , pointer , dimension(:,:,:) :: dstor
+  real(dp) , public , pointer , dimension(:,:,:) :: hstor
+  real(dp) , public , pointer , dimension(:,:) :: ts0 , ts1
 !
   real(dp) , public , pointer , dimension(:,:,:) :: qdot , omega
 !
@@ -650,6 +651,9 @@ module mod_atm_interface
       call allocate_slice(atms,ibltyp)
 
       call allocate_diffx(adf)
+
+      call getmem2d(ts0,jce1,jce2,ice1,ice2,'atm_interface:ts0')
+      call getmem2d(ts1,jce1,jce2,ice1,ice2,'atm_interface:ts1')
 
       call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'atm_interface:dstor')
       call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'atm_interface:hstor')
