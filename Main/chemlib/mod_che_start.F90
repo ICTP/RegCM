@@ -389,7 +389,7 @@ module mod_che_start
 
     call setup_che_bdycon
 
-    if ( myid == iocpu ) call init_mod_che_ncio(chemsimtype)
+    if ( myid == iocpu ) call init_mod_che_ncio(chemsimtype,ma%bandflag)
 
     call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     call split_idate(idate1,lyear,lmonth,lday,lhour)

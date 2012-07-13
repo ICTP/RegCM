@@ -29,8 +29,6 @@ module mod_che_common
 !
   public
 
-  logical :: lcband
-
   character(len=8)   :: chemsimtype 
   integer , parameter :: nbin = 4
   integer , parameter :: sbin = 2

@@ -166,9 +166,8 @@ module mod_clm
 !
   contains
 !
-  subroutine allocate_mod_clm(lband)
+  subroutine allocate_mod_clm
     implicit none
-    logical , intent(in) :: lband
 
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
     call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')

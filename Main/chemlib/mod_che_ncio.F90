@@ -114,9 +114,10 @@ module mod_che_ncio
 
   contains
 
-    subroutine init_mod_che_ncio(chemsymtype)
+    subroutine init_mod_che_ncio(chemsymtype,lcband)
       implicit none
       character(len=8) , intent(in) :: chemsymtype
+      logical , intent(in) :: lcband
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       if (lcband) then
         o_is = 2

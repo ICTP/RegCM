@@ -91,7 +91,6 @@ module mod_runparams
   integer :: iboudy , ichem , ipgf , ipptls , cplexvars , cplinterp
 
   logical :: ifrest , rfstrt , doing_restart , cplbdysmooth
-  logical :: lband
 
   integer :: kchi , kclo , kcmd , cpldbglevel
 !

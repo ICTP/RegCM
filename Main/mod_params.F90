@@ -445,14 +445,8 @@ module mod_params
   cplinterp = 1           ! interpolation type to exchange data
   cplbdysmooth = .false.  ! applies smoothing to the ground temperature in boundaries
   cpldbglevel = 1         ! debugging level
-
-!---------------------------------------------------------------------
 !
-  if ( i_band == 1 ) then
-    lband = .true.
-  else
-    lband = .false.
-  end if
+!---------------------------------------------------------------------
 !
 #ifdef CLM
   if ( myid == itallk ) then
@@ -738,7 +732,7 @@ module mod_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-  call setup_model_indexes(lband)
+  call setup_model_indexes
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -762,7 +756,7 @@ module mod_params
   call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_bats_romsocn
 #else
-  call allocate_mod_clm(lband)
+  call allocate_mod_clm
 #endif
 
   call allocate_mod_cloud_s1
@@ -778,7 +772,7 @@ module mod_params
   end if
 
   call allocate_mod_che_common(ichem)
-  call allocate_mod_che_mppio(lband)
+  call allocate_mod_che_mppio
   call allocate_mod_che_dust(ichem)
   call allocate_mod_che_bdyco
 !
@@ -982,8 +976,8 @@ module mod_params
 
   ! Calculate boundary areas per processor
 
-  call setup_boundaries(cross,lband,ba_cr)
-  call setup_boundaries(dot,lband,ba_dt)
+  call setup_boundaries(cross,ba_cr)
+  call setup_boundaries(dot,ba_dt)
 
   call set_scenario(scenario)
 

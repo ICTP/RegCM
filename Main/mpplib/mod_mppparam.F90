@@ -234,6 +234,7 @@ module mod_mppparam
 
     nproc = ncpu
 
+    ma%bandflag    = (i_band == 1)
     ma%top         = mpi_proc_null
     ma%bottom      = mpi_proc_null
     ma%left        = mpi_proc_null
@@ -257,7 +258,7 @@ module mod_mppparam
       global_iend = iy
       ma%has_bdytop    = .true.
       ma%has_bdybottom = .true.
-      if ( i_band == 1 ) then
+      if ( ma%bandflag ) then
         ma%left = 0
         ma%right = 0
         ma%has_bdyright  = .false.
@@ -268,7 +269,7 @@ module mod_mppparam
       end if
       ma%has_bdy = .true.
     else
-      if ( i_band == 1 ) dim_period(1) = .true.
+      if ( ma%bandflag ) dim_period(1) = .true.
       if ( nproc < 4 ) then
         cpus_per_dim(1) = ncpu
         cpus_per_dim(2) = 1
@@ -334,30 +335,30 @@ module mod_mppparam
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)
-      if ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) then
+      if ( isearch(1) < cpus_per_dim(1) .or. ma%bandflag ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)+1
-      if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
+      if ( ( isearch(1) < cpus_per_dim(1) .or. ma%bandflag ) .and. &
              isearch(2) < cpus_per_dim(2) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
       end if
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)+1
-      if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. &
+      if ( ( isearch(1) >= 0 .or. ma%bandflag ) .and. &
              isearch(2) < cpus_per_dim(2) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)-1
-      if ( ( isearch(1) < cpus_per_dim(1) .or. i_band == 1 ) .and. &
+      if ( ( isearch(1) < cpus_per_dim(1) .or. ma%bandflag ) .and. &
              isearch(2) >= 0 ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
       end if
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)-1
-      if ( ( isearch(1) >= 0 .or. i_band == 1 ) .and. isearch(2) >= 0 ) then
+      if ( ( isearch(1) >= 0 .or. ma%bandflag ) .and. isearch(2) >= 0 ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
       end if
   

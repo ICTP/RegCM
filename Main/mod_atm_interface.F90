@@ -155,9 +155,8 @@ module mod_atm_interface
 
   contains 
 !
-    subroutine setup_model_indexes(lband)
+    subroutine setup_model_indexes
       implicit none
-      logical , intent(in) :: lband
       ma%jbl1 = 1
       ma%jbl2 = 2
       ma%jbr1 = 1
@@ -166,11 +165,11 @@ module mod_atm_interface
       ma%ibt2 = 2
       ma%ibb1 = 1
       ma%ibb2 = 2
-      if ( ma%has_bdyleft ) then
+      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
         ma%jbl1 = 0
         ma%jbl2 = 0
       end if
-      if ( ma%has_bdyright ) then
+      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
         ma%jbr1 = 0
         ma%jbr2 = 0
       end if
@@ -182,7 +181,6 @@ module mod_atm_interface
         ma%ibb1 = 0
         ma%ibb2 = 0
       end if
-      ma%bandflag = lband
       jde1  = 1
       jdi1  = 1
       jdii1 = 1
@@ -195,11 +193,11 @@ module mod_atm_interface
       ide2  = iyp
       idi2  = iyp
       idii2 = iyp
-      if ( ma%has_bdyleft ) then
+      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
         jdi1 = 2
         jdii1 = 3
       end if
-      if ( ma%has_bdyright ) then
+      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
         jdi2 = jxp-1
         jdii2 = jxp-2
       end if
@@ -223,11 +221,11 @@ module mod_atm_interface
       ice2  = iyp
       ici2  = iyp
       icii2 = iyp
-      if ( ma%has_bdyleft ) then
+      if ( ma%has_bdyleft .and. .not. ma%bandflag ) then
         jci1 = 2
         jcii1 = 3
       end if
-      if ( ma%has_bdyright ) then
+      if ( ma%has_bdyright .and. .not. ma%bandflag ) then
         jce2 = jxp-1
         jci2 = jxp-2
         jcii2 = jxp-3
@@ -266,9 +264,9 @@ module mod_atm_interface
 #endif
     end subroutine setup_model_indexes
 
-    subroutine setup_boundaries(ldot,lband,ba)
+    subroutine setup_boundaries(ldot,ba)
       implicit none
-      logical , intent(in) :: ldot , lband
+      logical , intent(in) :: ldot
       type(bound_area) , intent(out) :: ba
       integer :: ic
       integer :: igbb1 , igbb2 , igbt1 , igbt2
@@ -309,7 +307,7 @@ module mod_atm_interface
       ba%bnorth(:,:) = .false.
       ba%bwest(:,:) = .false.
       ba%beast(:,:) = .false.
-      if ( lband ) then
+      if ( ma%bandflag ) then
         ! Check for South boundary
         do i = i1 , i2
           iglob = global_istart+i-1

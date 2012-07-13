@@ -62,11 +62,8 @@ module mod_che_mppio
     !
     ! This routines allocate all the arrays contained in the module
     !
-    subroutine allocate_mod_che_mppio(ilcband)
+    subroutine allocate_mod_che_mppio
       implicit none
-      logical , intent(in) :: ilcband
-
-      lcband = ilcband
 
       if ( lch ) then
         if ( myid == iocpu ) then

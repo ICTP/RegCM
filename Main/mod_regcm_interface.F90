@@ -112,8 +112,10 @@ module mod_regcm_interface
 
     call memory_init
 !
+    call set_nproc(ncpu)
+!
     if ( myid == iocpu ) then
-      if ( i_band == 1 ) then
+      if ( ma%bandflag ) then
         call init_mod_ncio(.true.)
       else
         call init_mod_ncio(.false.)
@@ -127,8 +129,6 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call set_nproc(ncpu)
-
     call mpi_barrier(mycomm,ierr)
 !
 !**********************************************************************

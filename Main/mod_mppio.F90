@@ -141,7 +141,6 @@ module mod_mppio
       end if
       call allocate_surfstate(sfs_io,.false.)
 
-
       call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
       call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
       call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
