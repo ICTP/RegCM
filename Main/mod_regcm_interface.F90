@@ -237,7 +237,7 @@ module mod_regcm_interface
 !
 #ifdef DEBUG
     ! if ( .true. ) call grid_nc_create('clouds1',cross,zqxn,qqxp)
-    if ( .true. ) call grid_nc_create('qqx',cross,adf%diffqx,qqxp)
+    if ( .true. ) call grid_nc_create('atm1',dot,atm1%u,uuxp)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
       !
@@ -307,7 +307,8 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
-    if ( .true. ) call grid_nc_destroy(qqxp)
+    ! if ( .true. ) call grid_nc_destroy(qqxp)
+    call grid_nc_destroy(uuxp)
 #endif
     call time_print(6,'evolution phase')
 !

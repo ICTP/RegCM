@@ -67,7 +67,7 @@ module mod_tendency
 
     call getmem3d(divl,jce1,jce2,ice1,ice2,1,kz,'tendency:divl')
     call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
-    call getmem3d(phi,jde1-ma%jbl1,jde2,ide1-ma%ibb1,ide2,1,kz,'tendency:phi')
+    call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     call getmem3d(xkc,jde1,jde2,ide1,ide2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jde1,jde2,ide1,ide2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jce1,jce2,ice1,ice2,1,4,'tendency:ps4')
@@ -143,6 +143,9 @@ module mod_tendency
       end do
     end do
 
+#ifdef DEBUG
+    call grid_nc_write(uuxp)
+#endif
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
@@ -857,9 +860,6 @@ module mod_tendency
         end do
       end do
     end if
-#ifdef DEBUG
-    call grid_nc_write(qqxp)
-#endif
 !
 !   apply the nudging boundary conditions:
 !
@@ -1135,7 +1135,7 @@ module mod_tendency
       end do
     end if
 !
-    call exchange_lb(phi,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
 !
 !   compute the geopotential gradient terms:
 !

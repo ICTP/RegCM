@@ -151,6 +151,7 @@ module mod_atm_interface
 
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: qqxp
+  type(grid_nc_var3d) , public :: uuxp
 #endif
 
   contains 
