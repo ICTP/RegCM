@@ -67,8 +67,8 @@ module mod_split
     call getmem3d(dhsum,jde1-ma%jbl1,jde2, &
                         ide1-ma%ibb1,ide2,1,nsplit,'split:dhsum')
     call getmem3d(work,jde1,jde2,ide1,ide2,1,3,'split:work')
-    call getmem2d(uu,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,'split:uu')
-    call getmem2d(vv,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,'split:vv')
+    call getmem2d(uu,jdi1,jdi2+ma%jbr1,idi1,idi2+ma%ibt1,'split:uu')
+    call getmem2d(vv,jdi1,jdi2+ma%jbr1,idi1,idi2+ma%ibt1,'split:vv')
     call getmem3d(uuu,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:uuu')
     call getmem3d(vvv,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:vvv')
     call time_end(subroutine_name,idindx)
@@ -575,8 +575,8 @@ module mod_split
         end do
       end do
 !
-      call exchange_rt(uu,1,jde1,jde2,ide1,ide2)
-      call exchange_rt(vv,1,jde1,jde2,ide1,ide2)
+      call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
+      call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -671,8 +671,8 @@ module mod_split
           end do
         end do
 !
-        call exchange_rt(uu,1,jde1,jde2,ide1,ide2)
-        call exchange_rt(vv,1,jde1,jde2,ide1,ide2)
+        call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
+        call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 !
         do i = ici1 , ici2
           do j = jci1 , jci2
