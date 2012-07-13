@@ -251,7 +251,7 @@ module mod_bdycod
 
     end if
 
-    call date_bcast(bdydate2,0,mycomm,ierr)
+    call date_bcast(bdydate2,iocpu,mycomm,ierr)
     bdydate1 = bdydate2
     !
     ! Send each processor its computing slice
@@ -514,7 +514,7 @@ module mod_bdycod
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
-    call date_bcast(bdydate2,0,mycomm,ierr)
+    call date_bcast(bdydate2,iocpu,mycomm,ierr)
     bdydate1 = bdydate2
 
     call time_end(subroutine_name,idindx)
