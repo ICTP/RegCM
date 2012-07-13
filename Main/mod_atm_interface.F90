@@ -632,8 +632,8 @@ module mod_atm_interface
 !
       call allocate_domain(mddom,.true.)
 
-      call allocate_atmstate(atm1,ibltyp,.true.,two_exchange_point)
-      call allocate_atmstate(atm2,ibltyp,.true.,two_exchange_point)
+      call allocate_atmstate(atm1,ibltyp,.true.,one_exchange_point)
+      call allocate_atmstate(atm2,ibltyp,.true.,one_exchange_point)
       call allocate_atmstate(atmx,ibltyp,.true.,one_exchange_point)
       call allocate_atmstate(atmc,ibltyp,.true.,zero_exchange_point)
       call allocate_atmstate(aten,ibltyp,.true.,zero_exchange_point)
