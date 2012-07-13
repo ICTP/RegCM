@@ -789,7 +789,7 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do i = ici1 , ici2
-            atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
+            atm2%t(jce1,i,k)    = atm1%t(jce1,i,k)
             atm2%qx(jce1,i,k,:) = atm1%qx(jce1,i,k,:)
           end do
         end do
@@ -809,7 +809,7 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do i = ici1 , ici2
-            atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
+            atm2%t(jce2,i,k)    = atm1%t(jce2,i,k)
             atm2%qx(jce2,i,k,:) = atm1%qx(jce2,i,k,:)
           end do
         end do
@@ -823,13 +823,13 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atm2%u(j,ice1,k) = atm1%u(j,ice1,k)/mddom%msfd(j,ice1)
-            atm2%v(j,ice1,k) = atm1%v(j,ice1,k)/mddom%msfd(j,ice1)
+            atm2%u(j,ide1,k) = atm1%u(j,ide1,k)/mddom%msfd(j,ide1)
+            atm2%v(j,ide1,k) = atm1%v(j,ide1,k)/mddom%msfd(j,ide1)
           end do
         end do
         do k = 1 , kz
           do j = jce1 , jce2
-            atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
+            atm2%t(j,ice1,k)    = atm1%t(j,ice1,k)
             atm2%qx(j,ice1,k,:) = atm1%qx(j,ice1,k,:)
           end do
         end do
@@ -846,7 +846,7 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do j = jce1 , jce2
-            atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
+            atm2%t(j,ice2,k)    = atm1%t(j,ice2,k)
             atm2%qx(j,ice2,k,:) = atm1%qx(j,ice2,k,:)
           end do
         end do
@@ -1005,7 +1005,7 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+            atm1%t(jce1,i,k)      = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
             atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
         end do
@@ -1013,7 +1013,7 @@ module mod_bdycod
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+            atm1%t(jce2,i,k)      = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
             atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
         end do
@@ -1021,7 +1021,7 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+            atm1%t(j,ice1,k)      = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
             atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
         end do
@@ -1029,7 +1029,7 @@ module mod_bdycod
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+            atm1%t(j,ice2,k)      = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
             atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
         end do
