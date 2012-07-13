@@ -219,7 +219,7 @@ module mod_init
     if ( idcsst == 1 ) then
       dtskin(:,:) = d_zero
       deltas(:,:) = 0.001D0
-      tdeltas(:,:) = tground2(:,:) - deltas(:,:)
+      tdeltas(:,:) = tground2(jci1:jci2,ici1:ici2) - deltas(:,:)
     end if
     !
     ! Inizialize Ozone profiles
