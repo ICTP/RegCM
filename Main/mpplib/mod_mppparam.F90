@@ -4105,9 +4105,9 @@ module mod_mppparam
         r8vector1(ib) = ml(iyp,k)
         ib = ib + 1
       end do
-      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%bottom,tag_tb, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%top,tag_tb, &
                      cartesian_communicator,ireq,mpierr)
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%bottom,tag_bt, &
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%top,tag_bt, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
@@ -4128,9 +4128,9 @@ module mod_mppparam
         r8vector1(ib) = ml(1,k)
         ib = ib + 1
       end do
-      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%top,tag_bt, &
+      call mpi_irecv(r8vector2,ksize,mpi_real8,ma%bottom,tag_bt, &
                      cartesian_communicator,ireq,mpierr)
-      call mpi_send(r8vector1,ksize,mpi_real8,ma%top,tag_tb, &
+      call mpi_send(r8vector1,ksize,mpi_real8,ma%bottom,tag_tb, &
                     cartesian_communicator,mpi_status_ignore,mpierr)
       call mpi_wait(ireq,mpi_status_ignore,mpierr)
       ib = 1
