@@ -385,7 +385,6 @@ module mod_advection
             ften(j,i,nk) = ften(j,i,nk) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
           end do
         end do
-!
       else if ( ind == 2 ) then
         !
         ! vertical advection terms : interpolate ua or va to full sigma levels

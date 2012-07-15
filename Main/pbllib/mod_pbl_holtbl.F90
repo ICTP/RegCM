@@ -676,7 +676,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + &
+          diffqx(j,i,k,iqc) = diffqx(j,i,k,iqc) + &
                       (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdtpbl*sfcps(j,i)
         end do
       end do

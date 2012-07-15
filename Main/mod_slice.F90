@@ -42,15 +42,30 @@ module mod_slice
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%tb3d(j,i,k) = atm2%t(j,i,k)/sfs%psb(j,i)
-          atms%qxb3d(j,i,k,:) = atm2%qx(j,i,k,:)/sfs%psb(j,i)
-          if ( ichem == 1 ) then
-            do n = 1 , ntr
-              atms%chib3d(j,i,k,n) = chib(j,i,k,n)/sfs%psb(j,i)
-            end do
-          end if
         end do
       end do
     end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)/sfs%psb(j,i)
+            if ( atms%qxb3d(j,i,k,n) < minqx ) atms%qxb3d(j,i,k,n) = d_zero
+          end do
+        end do
+      end do
+    end do
+    if ( ichem == 1 ) then
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atms%chib3d(j,i,k,n) = chib(j,i,k,n)/sfs%psb(j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2

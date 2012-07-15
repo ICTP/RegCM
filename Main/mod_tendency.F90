@@ -738,7 +738,6 @@ module mod_tendency
       call mtrxclm(ktau)
     end if
 #endif
-
     if ( icup == 1 ) then
       call htdiff(dxsq,akht1)
     end if
