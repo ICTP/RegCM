@@ -153,6 +153,9 @@ module mod_atm_interface
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: qqxp
   type(grid_nc_var3d) , public :: uuxp
+  type(grid_nc_var3d) , public :: ttxp
+  type(grid_nc_var3d) , public :: hrxp
+  type(grid_nc_var2d) , public :: psxp
 #endif
 
   contains 
@@ -661,8 +664,8 @@ module mod_atm_interface
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'atm_interface:hgfact')
       call getmem2d(psdot,jde1,jde2,ide1,ide2,'atm_interface:psdot')
       call getmem3d(omega,jce1,jce2,ice1,ice2,1,kz,'atm_interface:omega')
-      call getmem3d(qdot,jde1-ma%jbl1,jde2+ma%jbr1, &
-                         ide1-ma%ibb1,ide2+ma%ibt1,1,kzp1,'atm_interface:qdot')
+      call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
+                         ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
 !

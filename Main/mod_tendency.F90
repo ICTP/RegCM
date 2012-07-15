@@ -336,8 +336,8 @@ module mod_tendency
     omega(:,:,:) = d_zero
 
     do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                          atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                         (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
@@ -351,14 +351,14 @@ module mod_tendency
     ! compute vertical sigma-velocity (qdot):
     !
     do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i)+divl(j,i,k-1) / &
                  (dx2*mddom%msfx(j,i)*mddom%msfx(j,i)))*dsigma(k-1)/sfs%psa(j,i)
          end do
       end do
     end do
-    call exchange(qdot,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(qdot,1,jce1,jce2,ice1,ice2,1,kzp1)
     !
     ! compute omega
     !
