@@ -383,13 +383,13 @@ module mod_dynparam
     kzp4 = kz + 4
     iysg = iy * nsg
     jxsg = jx * nsg
-    iym1sg = (iy-1) * nsg
-    jxm1sg = (jx-1) * nsg
-    iym2sg = (iy-2) * nsg
-    jxm2sg = (jx-2) * nsg
-    iym3sg = (iy-3) * nsg
-    jxm3sg = (jx-3) * nsg
-
+    iym1sg = iym1 * nsg
+    jxm1sg = jxm1 * nsg
+    iym2sg = iym2 * nsg
+    jxm2sg = jxm2 * nsg
+    iym3sg = iym3 * nsg
+    jxm3sg = jxm3 * nsg
+    nnsg = nsg*nsg
     jdot1 = 1
     jdot2 = jx
     jcross1 = 1
@@ -415,7 +415,6 @@ module mod_dynparam
     njout = jout2-jout1+1
     niout = iout2-iout1+1
 
-    nnsg = nsg*nsg
     nveg = 22
 
     if ( i_band.eq.1 ) then
