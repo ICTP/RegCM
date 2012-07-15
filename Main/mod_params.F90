@@ -333,7 +333,7 @@ module mod_params
   cevap = 1.0D-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 ! caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
-  cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
+  cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
   clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
   cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
  
@@ -631,6 +631,8 @@ module mod_params
     call mpi_bcast(tc0,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(cevap,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(caccr,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(clfrcvmax,1,mpi_real8,iocpu,mycomm,ierr)
+    call mpi_bcast(cllwcv,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(cftotmax,1,mpi_real8,iocpu,mycomm,ierr)
   end if
  
@@ -1496,8 +1498,6 @@ module mod_params
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     call allocate_mod_cu_em
-    cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
-    clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
     minorig = kz
     do k = 1 , kz
       if ( hsigma(k) <= minsig ) minorig = kz - k
