@@ -110,12 +110,12 @@
       call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
       call getmem3d(dza,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:dza')
       call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rhohf')
-      call getmem2d(uvdrage,jce1-ma%jbl1,jce2, &
-                            ice1-ma%ibb1,ice2,'mod_holtbl:uvdrage')
-      call getmem3d(akzz1,jce1-ma%jbl1,jce2, &
-                          ice1-ma%ibb1,ice2,1,kz,'mod_holtbl:akzz1')
-      call getmem3d(akzz2,jce1-ma%jbl1,jce2, &
-                          ice1-ma%ibb1,ice2,1,kz,'mod_holtbl:akzz2')
+      call getmem2d(uvdrage,jci1-ma%jbl1,jci2, &
+                            ici1-ma%ibb1,ici2,'mod_holtbl:uvdrage')
+      call getmem3d(akzz1,jci1-ma%jbl1,jci2, &
+                          ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz1')
+      call getmem3d(akzz2,jci1-ma%jbl1,jci2, &
+                          ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz2')
       call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
 
       if ( ichem == 1 ) then
@@ -197,11 +197,11 @@
     do i = ici1 , ici2
       do j = jci1 , jci2
         kzmax = 0.8D0*dza(j,i,k-1)*dzq(j,i,k)*rdtpbl
-        vv(j,i,k) = uatm(j,i,k)*uatm(j,i,k) + vatm(j,i,k)*vatm(j,i,k)
-        ss = ((uatm(j,i,k-1)-uatm(j,i,k))*   &
-              (uatm(j,i,k-1)-uatm(j,i,k))+   &
-              (vatm(j,i,k-1)-vatm(j,i,k))*   &
-              (vatm(j,i,k-1)-vatm(j,i,k)))/  &
+        vv(j,i,k) = uxatm(j,i,k)*uxatm(j,i,k) + vxatm(j,i,k)*vxatm(j,i,k)
+        ss = ((uxatm(j,i,k-1)-uxatm(j,i,k))*   &
+              (uxatm(j,i,k-1)-uxatm(j,i,k))+   &
+              (vxatm(j,i,k-1)-vxatm(j,i,k))*   &
+              (vxatm(j,i,k-1)-vxatm(j,i,k)))/  &
               (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0D-9
         ri = govrth(j,i)*(thvx(j,i,k-1)-thvx(j,i,k))/(ss*dza(j,i,k-1))
         if ( (ri-rc(j,i,k)) >= d_zero ) then
@@ -237,14 +237,11 @@
     end do
   end do
  
-  uvdrage(jci1:jci2,ici1:ici2) = uvdrag
-  call exchange_lb(uvdrage,1,jce1,jce2,ice1,ice2)
-
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! compute friction velocity
-      uflxsfx = uvdrag(j,i)*uatm(j,i,kz)
-      vflxsfx = uvdrag(j,i)*vatm(j,i,kz)
+      uflxsfx = uvdrag(j,i)*uxatm(j,i,kz)
+      vflxsfx = uvdrag(j,i)*vxatm(j,i,kz)
       ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/rhox2d(j,i))
       ! convert surface fluxes to kinematic units
       xhfx(j,i) = hfx(j,i)/(cpd*rhox2d(j,i))
@@ -315,23 +312,23 @@
     end do
   end do
 
-  call exchange_lb(akzz1,1,jce1,jce2,ice1,ice2,1,kz)
-  call exchange_lb(akzz2,1,jce1,jce2,ice1,ice2,1,kz)
+  call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
+  call exchange_lb(akzz2,1,jci1,jci2,ici1,ici2,1,kz)
 
   !
   !   calculate coefficients at dot points for u and v wind
   !
   do k = 2 , kz
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
         betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
                         akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
       end do
     end do
   end do
   do k = 1 , kz
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
         alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
                          akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
       end do
@@ -353,8 +350,8 @@
   ! first compute coefficients of the tridiagonal matrix
   !
   ! Atmosphere top
-  do i = ici1 , ici2
-    do j = jci1 , jci2
+  do i = idii1 , idii2
+    do j = jdii1 , jdii2
       coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
@@ -366,8 +363,8 @@
 
   ! top to bottom
   do k = 2 , kz - 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
         coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
@@ -381,8 +378,11 @@
   end do
 
   ! Nearest to surface
-  do i = ici1 , ici2
-    do j = jci1 , jci2
+  uvdrage(jci1:jci2,ici1:ici2) = uvdrag
+  call exchange_lb(uvdrage,1,jci1,jci2,ici1,ici2)
+
+  do i = idii1 , idii2
+    do j = jdii1 , jdii2
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
@@ -403,16 +403,16 @@
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
   !
-  do i = ici1 , ici2
-    do j = jci1 , jci2
+  do i = idii1 , idii2
+    do j = jdii1 , jdii2
       tpred1(j,i,kz) = coeff1(j,i,kz)
       tpred2(j,i,kz) = coeff2(j,i,kz)
     end do
   end do
  
   do k = kz - 1 , 1 , -1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
       end do
@@ -423,8 +423,8 @@
   !   predicted field
   !
   do k = 1 , kz
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
         uten(j,i,k) = uten(j,i,k) + &
                       (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(j,i)
         vten(j,i,k) = vten(j,i,k) + &

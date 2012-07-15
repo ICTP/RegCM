@@ -271,8 +271,8 @@ module mod_pbl_uwtcm
           tx(k)  = tatm(j,i,k)
           qx(k)  = qxatm(j,i,k,iqv)
           qcx(k) = qxatm(j,i,k,iqc)
-          ux(k)  = uatm(j,i,k)
-          vx(k)  = vatm(j,i,k)
+          ux(k)  = uxatm(j,i,k)
+          vx(k)  = vxatm(j,i,k)
           if ( lchem ) chix(:,k) = chmx(j,i,k,:)
 
           ! if ( tx(k) > tzero ) then

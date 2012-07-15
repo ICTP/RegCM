@@ -91,8 +91,8 @@ module mod_pbl_common
   real(dp) , public , pointer , dimension(:,:,:) :: tuwten    ! uwten%t
   real(dp) , public , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
   real(dp) , public , pointer , dimension(:,:,:,:) :: qxuwten ! uwten%qx
-  real(dp) , public , pointer , dimension(:,:,:) :: uatm      ! atms%ubx3d
-  real(dp) , public , pointer , dimension(:,:,:) :: vatm      ! atms%vbx3d
+  real(dp) , public , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
+  real(dp) , public , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
   real(dp) , public , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
   real(dp) , public , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
   real(dp) , public , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
