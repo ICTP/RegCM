@@ -631,10 +631,11 @@ module mod_params
     call mpi_bcast(tc0,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(cevap,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(caccr,1,mpi_real8,iocpu,mycomm,ierr)
-    call mpi_bcast(clfrcvmax,1,mpi_real8,iocpu,mycomm,ierr)
-    call mpi_bcast(cllwcv,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(cftotmax,1,mpi_real8,iocpu,mycomm,ierr)
   end if
+
+  call mpi_bcast(clfrcvmax,1,mpi_real8,iocpu,mycomm,ierr)
+  call mpi_bcast(cllwcv,1,mpi_real8,iocpu,mycomm,ierr)
  
   if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
     call mpi_bcast(shrmin,1,mpi_real8,iocpu,mycomm,ierr)
