@@ -1,130 +1,130 @@
-  !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  !
-  !    This file is part of ICTP RegCM.
-  !
-  !    ICTP RegCM is free software: you can redistribute it and/or modify
-  !    it under the terms of the GNU General Public License as published by
-  !    the Free Software Foundation, either version 3 of the License, or
-  !    (at your option) any later version.
-  !
-  !    ICTP RegCM is distributed in the hope that it will be useful,
-  !    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  !    GNU General Public License for more details.
-  !
-  !    You should have received a copy of the GNU General Public License
-  !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
-  !
-  !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
    
-  module mod_pbl_holtbl
+module mod_pbl_holtbl
   !
   ! Holtslag planetary boundary layer scheme
   ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
   !
-    use mod_dynparam
-    use mod_runparams , only : ibltyp , iqv , iqc
-    use mod_mppparam
-    use mod_memutil
-    use mod_service
-    use mod_mpmessage
-    use mod_pbl_common
-  !
-    private
-  !
-    public :: allocate_mod_pbl_holtbl , holtbl
-  !
-    real(dp) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
-                                            kvm , kvq ! , cgq
-    real(dp) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
-                                         ustr , xhfx , xqfx , pfcor
-  !
-    real(dp) , pointer , dimension(:,:,:) :: alphak , betak , &
-                          coef1 , coef2 , coef3 , coefe , coeff1 , &
-                          coeff2 , tpred1 , tpred2
-    real(dp) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
-    real(dp) , pointer , dimension(:,:) :: govrth , uvdrage
-    real(dp) , pointer , dimension(:) :: hydf
-  !
-    real(dp) , pointer , dimension(:,:,:) :: dza , thvx
-    real(dp) , pointer , dimension(:,:,:) :: akzz1 , akzz2
-    real(dp) , pointer , dimension(:,:,:) :: rhohf
-  !
-    real(dp) , pointer , dimension(:,:,:) :: ri
-    real(dp) , pointer , dimension(:,:) :: therm
-  !
-  ! minimum eddy diffusivity
-    real(dp) , parameter :: kzo = d_one
-    real(dp) , parameter :: szkm = 1600.0D0
-  ! coef. of proportionality and lower % of bl in sfc layer
-    real(dp) , parameter :: fak = 8.5D0
-    real(dp) , parameter :: sffrac = 0.1D0
-  ! beta coefs. for momentum, stable conditions and heat
-    real(dp) , parameter :: betam = 15.0D0
-    real(dp) , parameter :: betas = 5.0D0
-    real(dp) , parameter :: betah = 15.0D0
-    real(dp) , parameter :: mult = 0.61D0
-    real(dp) , parameter :: ccon = fak*sffrac*vonkar
-    real(dp) , parameter :: gvk = egrav*vonkar
-    real(dp) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
-    real(dp) , parameter :: binm = betam*sffrac
-    real(dp) , parameter :: binh = betah*sffrac
-  ! power in formula for k and critical ri for judging stability
-    real(dp) , parameter :: pink = d_two
-    real(dp) , parameter :: ricr = d_rfour
-  !
-    contains
-  !
-    subroutine allocate_mod_pbl_holtbl(ichem,ichdrdepo)
-      implicit none
-      integer , intent(in) :: ichem , ichdrdepo
+  use mod_dynparam
+  use mod_runparams , only : ibltyp , iqv , iqc
+  use mod_mppparam
+  use mod_memutil
+  use mod_service
+  use mod_mpmessage
+  use mod_pbl_common
+!
+  private
+!
+  public :: allocate_mod_pbl_holtbl , holtbl
+!
+  real(dp) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
+                                          kvm , kvq ! , cgq
+  real(dp) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
+                                       ustr , xhfx , xqfx , pfcor
+!
+  real(dp) , pointer , dimension(:,:,:) :: alphak , betak , &
+                        coef1 , coef2 , coef3 , coefe , coeff1 , &
+                        coeff2 , tpred1 , tpred2
+  real(dp) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
+  real(dp) , pointer , dimension(:,:) :: govrth , uvdrage
+  real(dp) , pointer , dimension(:) :: hydf
+!
+  real(dp) , pointer , dimension(:,:,:) :: dza , thvx
+  real(dp) , pointer , dimension(:,:,:) :: akzz1 , akzz2
+  real(dp) , pointer , dimension(:,:,:) :: rhohf
+!
+  real(dp) , pointer , dimension(:,:,:) :: ri
+  real(dp) , pointer , dimension(:,:) :: therm
+!
+! minimum eddy diffusivity
+  real(dp) , parameter :: kzo = d_one
+  real(dp) , parameter :: szkm = 1600.0D0
+! coef. of proportionality and lower % of bl in sfc layer
+  real(dp) , parameter :: fak = 8.5D0
+  real(dp) , parameter :: sffrac = 0.1D0
+! beta coefs. for momentum, stable conditions and heat
+  real(dp) , parameter :: betam = 15.0D0
+  real(dp) , parameter :: betas = 5.0D0
+  real(dp) , parameter :: betah = 15.0D0
+  real(dp) , parameter :: mult = 0.61D0
+  real(dp) , parameter :: ccon = fak*sffrac*vonkar
+  real(dp) , parameter :: gvk = egrav*vonkar
+  real(dp) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
+  real(dp) , parameter :: binm = betam*sffrac
+  real(dp) , parameter :: binh = betah*sffrac
+! power in formula for k and critical ri for judging stability
+  real(dp) , parameter :: pink = d_two
+  real(dp) , parameter :: ricr = d_rfour
+!
+  contains
+!
+  subroutine allocate_mod_pbl_holtbl(ichem,ichdrdepo)
+    implicit none
+    integer , intent(in) :: ichem , ichdrdepo
 
-      call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
-      call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
-      call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
-      call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
-      call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
-      call getmem3d(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
-      call getmem3d(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
-      call getmem3d(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
-      call getmem3d(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
-      call getmem3d(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
-      call getmem3d(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
-      call getmem3d(kzm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kzm')
-      call getmem3d(rc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rc')
-      call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
-      call getmem2d(govrth,jci1,jci2,ici1,ici2,'mod_holtbl:govrth')
-      call getmem1d(hydf,1,kz,'mod_holtbl:hydf')
-      call getmem2d(therm,jci1,jci2,ici1,ici2,'mod_holtbl:therm')
-      call getmem3d(vv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:vv')
-      call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
-      call getmem3d(kvh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvh')
-      call getmem3d(kvm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvm')
-      call getmem3d(kvq,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvq')
-      call getmem2d(hfxv,jci1,jci2,ici1,ici2,'mod_holtbl:hfxv')
-      call getmem2d(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
-      call getmem2d(obklen,jci1,jci2,ici1,ici2,'mod_holtbl:obklen')
-      call getmem2d(th10,jci1,jci2,ici1,ici2,'mod_holtbl:th10')
-      call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
-      call getmem2d(xhfx,jci1,jci2,ici1,ici2,'mod_holtbl:xhfx')
-      call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
-      call getmem3d(dza,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:dza')
-      call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rhohf')
-      call getmem2d(uvdrage,jci1-ma%jbl1,jci2, &
-                            ici1-ma%ibb1,ici2,'mod_holtbl:uvdrage')
-      call getmem3d(akzz1,jci1-ma%jbl1,jci2, &
-                          ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz1')
-      call getmem3d(akzz2,jci1-ma%jbl1,jci2, &
-                          ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz2')
-      call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
+    call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
+    call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
+    call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
+    call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
+    call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
+    call getmem3d(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
+    call getmem3d(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
+    call getmem3d(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
+    call getmem3d(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
+    call getmem3d(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
+    call getmem3d(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
+    call getmem3d(kzm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kzm')
+    call getmem3d(rc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rc')
+    call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
+    call getmem2d(govrth,jci1,jci2,ici1,ici2,'mod_holtbl:govrth')
+    call getmem1d(hydf,1,kz,'mod_holtbl:hydf')
+    call getmem2d(therm,jci1,jci2,ici1,ici2,'mod_holtbl:therm')
+    call getmem3d(vv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:vv')
+    call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
+    call getmem3d(kvh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvh')
+    call getmem3d(kvm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvm')
+    call getmem3d(kvq,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvq')
+    call getmem2d(hfxv,jci1,jci2,ici1,ici2,'mod_holtbl:hfxv')
+    call getmem2d(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
+    call getmem2d(obklen,jci1,jci2,ici1,ici2,'mod_holtbl:obklen')
+    call getmem2d(th10,jci1,jci2,ici1,ici2,'mod_holtbl:th10')
+    call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
+    call getmem2d(xhfx,jci1,jci2,ici1,ici2,'mod_holtbl:xhfx')
+    call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
+    call getmem3d(dza,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:dza')
+    call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rhohf')
+    call getmem2d(uvdrage,jci1-ma%jbl1,jci2, &
+                          ici1-ma%ibb1,ici2,'mod_holtbl:uvdrage')
+    call getmem3d(akzz1,jci1-ma%jbl1,jci2, &
+                        ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz1')
+    call getmem3d(akzz2,jci1-ma%jbl1,jci2, &
+                        ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz2')
+    call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
 
-      if ( ichem == 1 ) then
-        if ( ichdrdepo == 1 ) then
-          call getmem3d(vdep,jci1,jci2,ici1,ici2,1,ntr,'mod_holtbl:vdep')
-        end if
-        call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
+    if ( ichem == 1 ) then
+      if ( ichdrdepo == 1 ) then
+        call getmem3d(vdep,jci1,jci2,ici1,ici2,1,ntr,'mod_holtbl:vdep')
+      end if
+      call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if
-  end  subroutine allocate_mod_pbl_holtbl
+  end subroutine allocate_mod_pbl_holtbl
 !
   subroutine holtbl
   implicit none
