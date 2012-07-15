@@ -106,7 +106,7 @@ module mod_tendency
     include 'mpif.h'
 !
     real(dp) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
-               psasum , pt2bar , pt2tot , ptnbar , maxv ,          &
+               psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,   &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
@@ -332,7 +332,6 @@ module mod_tendency
     call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -527,10 +526,8 @@ module mod_tendency
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       aten%tke(:,:,:) = d_zero
     end if
-!
     if ( ichem == 1 ) then 
-      ! intialise also tracer tendency  
-      chiten(:,:,:,:) = d_zero
+      chiten(:,:,:,:)  = d_zero
       chiten0(:,:,:,:) = d_zero
     end if 
 !
@@ -1269,17 +1266,19 @@ module mod_tendency
                           gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
           atm1%t(j,i,k) = atmc%t(j,i,k)
           qvas = atmc%qx(j,i,k,iqv)
-          if ( qvas < dlowval ) qvas = minqx
+          lowq = minqx*sfs%psa(j,i)
+          if ( qvas < lowq ) qvas = lowq
           qvbs = omuhf*atm1%qx(j,i,k,iqv) + &
                  gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
-          if ( qvbs < dlowval ) qvbs = minqx
+          lowq = minqx*sfs%psb(j,i)
+          if ( qvbs < lowq ) qvbs = lowq
           atm2%qx(j,i,k,iqv) = qvbs
           atm1%qx(j,i,k,iqv) = qvas
           qcas = atmc%qx(j,i,k,iqc)
-          if ( qcas < dlowval ) qcas = d_zero
+          if ( qcas < minqx*sfs%psa(j,i) ) qcas = d_zero
           qcbs = omu*atm1%qx(j,i,k,iqc) + &
                  gnu*(atm2%qx(j,i,k,iqc)+atmc%qx(j,i,k,iqc))
-          if ( qcbs < dlowval ) qcbs = d_zero
+          if ( qcbs < minqx*sfs%psb(j,i) ) qcbs = d_zero
           atm2%qx(j,i,k,iqc) = qcbs
           atm1%qx(j,i,k,iqc) = qcas
         end do

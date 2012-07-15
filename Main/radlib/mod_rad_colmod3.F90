@@ -35,8 +35,8 @@ module mod_rad_colmod3
 !
 ! Allowed range for cloud fraction
 !
-  real(dp) , parameter :: lowcld = 0.001D0
-  real(dp) , parameter :: hicld  = 0.999D0
+  real(dp) , parameter :: lowcld = 0.00001D0
+  real(dp) , parameter :: hicld  = 0.99999D0
 !
 !   longwave absorption coeff (m**2/g)
 !
