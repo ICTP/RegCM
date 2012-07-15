@@ -4276,16 +4276,24 @@ module mod_mppparam
       xvar%nx = njdot
       xvar%ny = nidot
       xvar%mynx1 = jde1
+      if ( lbound(val,1) > jde1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jde2
+      if ( ubound(val,1) < jde2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ide1
+      if ( lbound(val,2) > ide1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ide2
+      if ( ubound(val,2) < ide2 ) xvar%myny2 = ubound(val,2)
     else
       xvar%nx = njcross
       xvar%ny = nicross
       xvar%mynx1 = jce1
+      if ( lbound(val,1) > jce1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jce2
+      if ( ubound(val,1) < jce2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ice1
+      if ( lbound(val,2) > ice1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ice2
+      if ( ubound(val,2) < ice2 ) xvar%myny2 = ubound(val,2)
     end if
     xvar%irec = 1
     if ( myid /= iocpu ) return
@@ -4386,16 +4394,24 @@ module mod_mppparam
       xvar%nx = njdot
       xvar%ny = nidot
       xvar%mynx1 = jde1
+      if ( lbound(val,1) > jde1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jde2
+      if ( ubound(val,1) < jde2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ide1
+      if ( lbound(val,2) > ide1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ide2
+      if ( ubound(val,2) < ide2 ) xvar%myny2 = ubound(val,2)
     else
       xvar%nx = njcross
       xvar%ny = nicross
       xvar%mynx1 = jce1
+      if ( lbound(val,1) > jce1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jce2
+      if ( ubound(val,1) < jce2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ice1
+      if ( lbound(val,2) > ice1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ice2
+      if ( ubound(val,2) < ice2 ) xvar%myny2 = ubound(val,2)
     end if
     xvar%nz = size(xvar%val,3)
     xvar%irec = 1
@@ -4504,16 +4520,24 @@ module mod_mppparam
       xvar%nx = njdot
       xvar%ny = nidot
       xvar%mynx1 = jde1
+      if ( lbound(val,1) > jde1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jde2
+      if ( ubound(val,1) < jde2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ide1
+      if ( lbound(val,2) > ide1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ide2
+      if ( ubound(val,2) < ide2 ) xvar%myny2 = ubound(val,2)
     else
       xvar%nx = njcross
       xvar%ny = nicross
       xvar%mynx1 = jce1
+      if ( lbound(val,1) > jce1 ) xvar%mynx1 = lbound(val,1)
       xvar%mynx2 = jce2
+      if ( ubound(val,1) < jce2 ) xvar%mynx2 = ubound(val,1)
       xvar%myny1 = ice1
+      if ( lbound(val,2) > ice1 ) xvar%myny1 = lbound(val,2)
       xvar%myny2 = ice2
+      if ( ubound(val,2) < ice2 ) xvar%myny2 = ubound(val,2)
     end if
     xvar%nz = size(xvar%val,3)
     xvar%nl = size(xvar%val,4)
