@@ -79,29 +79,15 @@ module mod_tendency
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     iptn = (jcross2-jcross1+1)*(icross2-icross1+1)
   end subroutine allocate_mod_tend
-
-  subroutine tend
-
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
-!     this subroutine computes the tendencies of the prognostic       c
-!     variables p*, u, v, and t.                                      c
-!                                                                     c
-!     p*u, p*v, p*t ,p*qv, and p*qc stored in main common block.      c
-!                                                                     c
-!     all the two-dimension arrays stored in main common block.       c
-!                                                                     c
-!     east/west boundary conditions stored in common block /bdycod/ . c
-!                                                                     c
-!     north/south boundary conditions stored in common block          c
-!              /bdycod/.                                              c
-!                                                                     c
-!     all the integers stored in common block /param1/.               c
-!                                                                     c
-!     all the constants stored in common block /param1/.              c
+! This subroutine computes the tendencies of the prognostic           c
+! variables p*, u, v, and t.                                          c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
+  subroutine tend
     implicit none
     include 'mpif.h'
 !
@@ -131,9 +117,9 @@ module mod_tendency
            0.000719D0 * dcos(d_two*theta) + &
            0.000077D0 * dsin(d_two*theta)
 #endif
-!
-!   multiply ua and va by inverse of mapscale factor at dot point:
-!
+    !
+    ! multiply ua and va by inverse of mapscale factor at dot point:
+    !
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -260,14 +246,22 @@ module mod_tendency
         end do
       end if
     end if
-   !
-   ! T , QV , QC decouple
-   !
+    !
+    ! T , QV , QC decouple
+    !
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           atmx%t(j,i,k)    = atm1%t(j,i,k)/sfs%psa(j,i)
-          atmx%qx(j,i,k,:) = atm1%qx(j,i,k,:)/sfs%psa(j,i)
+        end do
+      end do
+    end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)/sfs%psa(j,i)
+          end do
         end do
       end do
     end do
@@ -314,18 +308,13 @@ module mod_tendency
       call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
-!
-!=======================================================================
-!
-!
-!   Calculate pdot , calculate decoupled variables at B
-!
+    !
+    ! Calculate pdot , calculate decoupled variables at B
+    !
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psb,psdot)
     call mkslice
-!
-!=======================================================================
-!
+    !
     call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
@@ -339,11 +328,9 @@ module mod_tendency
     if ( ichem == 1 ) then
       call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
-!
-!**********************************************************************
-!
-!     compute the pressure tendency:
-!
+    !
+    ! compute the pressure tendency:
+    !
     pten(:,:)   = d_zero
     qdot(:,:,:) = d_zero
     omega(:,:,:) = d_zero
@@ -360,9 +347,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   compute vertical sigma-velocity (qdot):
-!
+    !
+    ! compute vertical sigma-velocity (qdot):
+    !
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -372,9 +359,9 @@ module mod_tendency
       end do
     end do
     call exchange(qdot,1,jde1,jde2,ide1,ide2,1,kz)
-!
-!   compute omega
-!
+    !
+    ! compute omega
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -390,7 +377,6 @@ module mod_tendency
         end do
       end do
     end do
-!
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
     else if ( iboudy == 1 .or. iboudy == 5 ) then
@@ -407,7 +393,6 @@ module mod_tendency
       end do
     end do
     call exchange_lb(psd,1,jce1,jce2,ice1,ice2)
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
@@ -433,9 +418,9 @@ module mod_tendency
         psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
       end do
     end if
-!
-!   compute bleck (1977) noise parameters:
-!
+    !
+    ! compute bleck (1977) noise parameters:
+    !
     do j = jci1 , jci2
       do i = ici1 , ici2
         ps4(j,i,1) = pten(j,i)
@@ -463,9 +448,9 @@ module mod_tendency
       call mpi_bcast(ptntot,1,mpi_real8,iocpu,mycomm,ierr)
       call mpi_bcast(pt2tot,1,mpi_real8,iocpu,mycomm,ierr)
     end if
-!
-!   calculate solar zenith angle
-!
+    !
+    ! calculate solar zenith angle
+    !
     if ( ktau == 0 .or. ichem == 1 .or. &
       mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
@@ -480,11 +465,11 @@ module mod_tendency
     ! No diffusion of TKE on lower boundary (kzp1)
     !
     xkcf(:,:,:) = d_zero 
-!
-!     compute the horizontal diffusion coefficient and stored in xkc:
-!     the values are calculated at cross points, but they also used
-!     for dot-point variables.
-!
+    !
+    ! compute the horizontal diffusion coefficient and stored in xkc:
+    ! the values are calculated at cross points, but they also used
+    ! for dot-point variables.
+    !
     do k = 2 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -516,9 +501,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   Initialize the tendencies
-!
+    !
+    ! Initialize the tendencies
+    !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
     aten%t(:,:,:) = d_zero
@@ -530,13 +515,18 @@ module mod_tendency
       chiten(:,:,:,:)  = d_zero
       chiten0(:,:,:,:) = d_zero
     end if 
-!
-!   compute the horizontal advection term:
-!
+    !
+    ! Initialize diffusion terms
+    !
+    adf%difft(:,:,:) = d_zero
+    adf%diffqx(:,:,:,:) = d_zero
+    !
+    ! compute the horizontal advection term:
+    !
     call hadv(cross,aten%t,atmx%t,kz)
-!
-!   compute the vertical advection term:
-!
+    !
+    ! compute the vertical advection term:
+    !
     if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
       call vadv(cross,aten%t,atm1%t,kz,1)
     else
@@ -546,9 +536,9 @@ module mod_tendency
         call vadv(cross,aten%t,atm1%t,kz,1)
       end if
     end if
-!
-!   compute the adiabatic term:
-!
+    !
+    ! compute the adiabatic term:
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -559,24 +549,21 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   compute the diffusion term for t and store in difft:
-!
-    adf%difft(:,:,:) = d_zero
-    adf%diffqx(:,:,:,:) = d_zero
-
+    !
+    ! compute the diffusion term for t and store in difft:
+    !
     call diffu_x(adf%difft,atms%tb3d,sfs%psb,xkc,kz)
-!
-!   compute the moisture tendencies:
-!
-!   icup = 1 : kuo-anthes cumulus parameterizaion scheme
-!   icup = 2 : grell cumulus paramterization scheme
-!   icup = 3 : betts-miller (1986)
-!   icup = 4 : emanuel (1991)
-!   icup = 5 : tiedtke (1986)
-!   icup = 99: grell over land, emanuel over ocean
-!   icup = 98: emanuel over land, grell over ocean
-!
+    !
+    ! compute the moisture tendencies for convection
+    !
+    !   icup = 1 : kuo-anthes cumulus parameterizaion scheme
+    !   icup = 2 : grell cumulus paramterization scheme
+    !   icup = 3 : betts-miller (1986)
+    !   icup = 4 : emanuel (1991)
+    !   icup = 5 : tiedtke (1986)
+    !   icup = 99: grell over land, emanuel over ocean
+    !   icup = 98: emanuel over land, grell over ocean
+    !
     call hadv(aten%qx,atmx%qx,kz,iqv,1)
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
@@ -589,15 +576,18 @@ module mod_tendency
         end if
       end if
     end if
-
+    !
     ! Zero out radiative clouds
     !
     cldfra(:,:,:) = d_zero
     cldlwc(:,:,:) = d_zero
-
+    !
     ! conv tracer diagnostic
+    !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    
+    !
+    ! Call cumulus parametrization
+    !
     if ( icup == 1 ) then
       call cupara(ktau)
     end if
@@ -613,14 +603,17 @@ module mod_tendency
     if ( icup == 5 ) then
       call tiedtkedrv(ktau)
     end if
-   
+    !
+    ! save cumulus cloud fraction for chemistry before it is
+    ! overwritten in cldfrac 
+    !
     if ( ichem == 1 .and. ichdiag == 1 ) then
       cconvdiag = cconvdiag + (chiten - chiten0) * cdiagf
     end if
-    ! save cumulus cloud fraction for chemistry before it is
-    ! overwritten in cldfrac 
     if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
-
+    !
+    ! Large scale precipitation
+    !
     if ( ipptls == 1 ) then
       call hadv(aten%qx,atmx%qx,kz,iqc,2)
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
@@ -646,7 +639,9 @@ module mod_tendency
       !
       call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,nqx,kz)
     end if
-!
+    !
+    ! Tracers tendencies
+    !
     if ( ichem == 1 ) then
       !
       ! horizontal and vertical advection + diag
@@ -672,8 +667,10 @@ module mod_tendency
         cadvvdiag = cadvvdiag + (chiten - chiten0) * cdiagf
         chiten0 = chiten
       end if
+      !
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
+      !
       call diffu_x(chiten,chib3d,sfs%psb,xkc,ntr,kz)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cdiagf 
@@ -684,19 +681,13 @@ module mod_tendency
       sod = dble(idatex%second_of_day)
       call tractend2(ktau,xyear,xmonth,xday,sod,calday,declin)
     end if ! ichem
-!
-!----------------------------------------------------------------------
-!  compute the pbl fluxes:
-!  the diffusion and pbl tendencies of t and qv are stored in
-!  difft and diffqx.
-!
-!
-!   call radiative transfer package
-!
+    !
+    ! call radiative transfer package
+    !
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-!
-!     calculate albedo
-!
+      !
+      ! calculate albedo
+      !
 #ifndef CLM
       call albedobats(xmonth)
 #else
@@ -719,18 +710,18 @@ module mod_tendency
     end if
  
 #ifndef CLM
-!
-!   call mtrxbats for surface physics calculations
-!
+    !
+    ! call mtrxbats for surface physics calculations
+    !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       dtbat = dt*d_half*dble(ntsrf)
       if ( ktau == 0 ) dtbat = dt
       call mtrxbats(ktau)
     end if
 #else
-!
-!   call mtrxclm for surface physics calculations
-!
+    !
+    ! call mtrxclm for surface physics calculations
+    !
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
     else
@@ -751,12 +742,10 @@ module mod_tendency
     if ( icup == 1 ) then
       call htdiff(dxsq,akht1)
     end if
-!
-!   Call medium resolution PBL
-!
-!   
+    !
+    ! Call medium resolution PBL
+    !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
       call uwtcm
@@ -769,12 +758,10 @@ module mod_tendency
       call psc2psd(sfs%psb,psdot)
       call holtbl
     end if
-
     if ( ibltyp == 99 ) then
       call check_conserve_qt(holtten%qx,uwten,uwstateb,kz)
       adf%diffqx(:,:,:,:) = adf%diffqx(:,:,:,:) + holtten%qx(:,:,:,:)
     end if
-!
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cdiagf 
     end if
@@ -820,7 +807,8 @@ module mod_tendency
     end if
     !
     ! subtract horizontal diffusion and pbl tendencies from aten%t and
-    ! aten%qx for appling the sponge boundary conditions on t and qv:
+    ! aten%qx for appling the sponge boundary conditions on t and qv.
+    ! Add them again later after bounday calculated
     !
     if ( iboudy == 4 ) then
       do k = 1 , kz
@@ -862,7 +850,6 @@ module mod_tendency
       call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
       call nudge(kz,iqv,ba_cr,xtm1,atm2%qx,iboudy,xqb,aten%qx)
     end if
-!
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
       ! keep nudge_chi for now 
@@ -872,9 +859,9 @@ module mod_tendency
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten0 - chiten) * cdiagf
     end if
-!
-!   forecast t, qv, and qc at tau+1:
-!
+    !
+    ! forecast t, qv, and qc at tau+1:
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -891,9 +878,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   forecast tracer chi at at tau+1:
-!
+    !
+    ! forecast tracer chi at at tau+1:
+    !
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
@@ -905,9 +892,9 @@ module mod_tendency
         end do
       end do
     end if
-!
-!   compute weighted p*t (td) for use in ssi:
-!
+    !
+    ! compute weighted p*t (td) for use in ssi:
+    !
     if ( ipgf == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -999,31 +986,30 @@ module mod_tendency
         end do
       end if
     end if
-!
-!----------------------------------------------------------------------
-!   compute the u and v tendencies:
-!
-!   compute the diffusion terms:
-!   put diffusion and pbl tendencies of u and v in difuu and difuv.
-!
+    !
+    ! compute the u and v tendencies:
+    !
+    !   compute the diffusion terms:
+    !   put diffusion and pbl tendencies of u and v in difuu and difuv.
+    !
     adf%difuu(:,:,:) = aten%u(:,:,:)
     adf%difuv(:,:,:) = aten%v(:,:,:)
-!
+    !
     call diffu_d(adf%difuu,atms%ubd3d,psdot,mddom%msfd,xkc,1)
     call diffu_d(adf%difuv,atms%vbd3d,psdot,mddom%msfd,xkc,1)
-!
-!   Reset tendencies for U,V
-!
+    !
+    ! Reset tendencies for U,V
+    !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
-!
-!   compute the horizontal advection terms for u and v:
-!
+    !
+    ! compute the horizontal advection terms for u and v:
+    !
     call hadv(dot,aten%u,atmx%u,kz)
     call hadv(dot,aten%v,atmx%v,kz)
-!
-!   compute coriolis terms:
-!
+    !
+    ! compute coriolis terms:
+    !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -1034,9 +1020,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   compute pressure gradient terms:
-!
+    !
+    ! compute pressure gradient terms:
+    !
     if ( ipgf == 1 ) then
       do k = 1 , kz
         do i = idi1 , idi2
@@ -1084,9 +1070,9 @@ module mod_tendency
         end do
       end do
     end if
-!
-!   compute geopotential height at half-k levels, cross points:
-!
+    !
+    ! compute geopotential height at half-k levels, cross points:
+    !
     if ( ipgf == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -1136,11 +1122,10 @@ module mod_tendency
         end do
       end do
     end if
-!
     call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
-!
-!   compute the geopotential gradient terms:
-!
+    !
+    ! compute the geopotential gradient terms:
+    !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -1155,29 +1140,29 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   compute the vertical advection terms:
-!
+    !
+    ! compute the vertical advection terms:
+    !
     call vadv(dot,aten%u,atm1%u,kz,2)
     call vadv(dot,aten%v,atm1%v,kz,2)
-!
-!   apply the sponge boundary condition on u and v:
-!
+    !
+    ! apply the sponge boundary condition on u and v:
+    !
     if ( iboudy == 4 ) then
       call sponge(kz,ba_dt,xub,aten%u)
       call sponge(kz,ba_dt,xvb,aten%v)
     end if
-!
-!   apply the nudging boundary conditions:
-!
+    !
+    ! apply the nudging boundary conditions:
+    !
     if ( iboudy == 1 .or. iboudy == 5 ) then
       xtm1 = xbctime - dtsec
       call nudge(kz,ba_dt,xtm1,atm2%u,iboudy,xub,aten%u)
       call nudge(kz,ba_dt,xtm1,atm2%v,iboudy,xvb,aten%v)
     end if
-!
-!   add the diffusion and pbl tendencies to aten%u and aten%v:
-!
+    !
+    ! add the diffusion and pbl tendencies to aten%u and aten%v:
+    !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -1186,9 +1171,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   forecast p*u and p*v at tau+1:
-!
+    !
+    ! forecast p*u and p*v at tau+1:
+    !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -1197,9 +1182,9 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   Couple TKE to ps for use in vertical advection
-!
+    !
+    !  Couple TKE to ps for use in vertical advection
+    !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       do k = 1 , kzp1
         do i = ice1 , ice2
@@ -1215,7 +1200,6 @@ module mod_tendency
         end do
       end do
     end if
-
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Calculate the horizontal advective tendency for TKE
       call hadvtke(uwstatea,atm1,twt,dx4)
@@ -1224,10 +1208,10 @@ module mod_tendency
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if
-!
-!   store the xxa variables in xxb and xxc in xxa:
-!   perform time smoothing operations.
-!
+    !
+    !   store the xxa variables in xxb and xxc in xxa:
+    !   perform time smoothing operations.
+    !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
@@ -1258,7 +1242,6 @@ module mod_tendency
         end do
       end do
     end do
-!
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -1301,21 +1284,19 @@ module mod_tendency
         end do
       end do
     end if
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+psc(j,i))
         sfs%psa(j,i) = psc(j,i)
       end do
     end do
-!
-!   increment elapsed forecast time:
-!
+    !
+    ! increment elapsed forecast time:
+    !
     ktau = ktau + 1
     xbctime = xbctime + dtsec
     nbdytime = nbdytime + ntsec
     idatex = idatex + intmdl
-
     if ( mod(ktau,khour) == 0 ) then
       call split_idate(idatex,xyear,xmonth,xday,xhour)
     end if
@@ -1323,7 +1304,6 @@ module mod_tendency
       nbdytime = 0
       xbctime = d_zero
     end if
-
     if ( ktau == 2 ) then
       dt = dt2
       dtcum  = dt2
@@ -1445,7 +1425,6 @@ module mod_tendency
     end if
 !
     call time_end(subroutine_name,idindx)
-!
   end subroutine tend
 !
 end module mod_tendency
