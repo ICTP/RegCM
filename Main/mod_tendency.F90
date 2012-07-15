@@ -143,9 +143,6 @@ module mod_tendency
       end do
     end do
 
-#ifdef DEBUG
-    call grid_nc_write(uuxp)
-#endif
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,psdot)
     !
@@ -304,6 +301,9 @@ module mod_tendency
     call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
+    end if
 !
     call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
@@ -334,7 +334,7 @@ module mod_tendency
     call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call exchange(atm2%tke,2,jce1,jce2,ice1,ice2,1,kzp1)
+      call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
     if ( ichem == 1 ) then
@@ -643,14 +643,11 @@ module mod_tendency
         call grid_nc_write(qqxp)
       end if
 #endif
-! 
-!     compute the diffusion terms:
-!     the diffusion term for qv is stored in diffqx. before
-!     completing aten%qx computation, do not use diffqx for other
-!     purpose.
-!
+      ! 
+      ! compute the diffusion terms:
+      ! the diffusion term for qx is stored in diffqx.
+      !
       call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,nqx,kz)
-      aten%qx(:,:,:,iqc) = aten%qx(:,:,:,iqc) + adf%diffqx(:,:,:,iqc)
     end if
 !
     if ( ichem == 1 ) then
@@ -778,17 +775,16 @@ module mod_tendency
 
     if ( ibltyp == 99 ) then
       call check_conserve_qt(holtten%qx,uwten,uwstateb,kz)
-      adf%diffqx(:,:,:,iqv) = adf%diffqx(:,:,:,iqv) + holtten%qx(:,:,:,iqv)
-      aten%qx(:,:,:,iqc) = aten%qx(:,:,:,iqc) + holtten%qx(:,:,:,iqc)
+      adf%diffqx(:,:,:,:) = adf%diffqx(:,:,:,:) + holtten%qx(:,:,:,:)
     end if
 !
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cdiagf 
     end if
-!
-!   add ccm radiative transfer package-calculated heating rates to
-!   temperature tendency
-!
+    !
+    ! add ccm radiative transfer package-calculated heating rates to
+    ! temperature tendency
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -797,11 +793,11 @@ module mod_tendency
         end do
       end do
     end do
-!
-!   add horizontal diffusion and pbl tendencies for t and qv to aten%t
-!   and aten%qx for calculating condensational term in subroutine
-!   "condtq".
-!
+    !
+    ! add horizontal diffusion and pbl tendencies for t and qv to aten%t
+    ! and aten%qx for calculating condensational term in subroutine
+    ! "condtq".
+    !
     if ( ipptls == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -810,24 +806,25 @@ module mod_tendency
           end do
         end do
       end do
-!
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%diffqx(j,i,k,n)
+            end do
           end do
         end do
       end do
-!
-!     compute the condensation and precipitation terms for explicit
-!     moisture scheme:
-!
+      !
+      ! compute the condensation and precipitation terms for explicit
+      ! moisture scheme:
+      !
       call condtq(psc)
     end if
-!
-!   subtract horizontal diffusion and pbl tendencies from aten%t and
-!   aten%qx for appling the sponge boundary conditions on t and qv:
-!
+    !
+    ! subtract horizontal diffusion and pbl tendencies from aten%t and
+    ! aten%qx for appling the sponge boundary conditions on t and qv:
+    !
     if ( iboudy == 4 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -860,9 +857,9 @@ module mod_tendency
         end do
       end do
     end if
-!
-!   apply the nudging boundary conditions:
-!
+    !
+    ! apply the nudging boundary conditions:
+    !
     if ( iboudy == 1 .or. iboudy == 5 ) then
       xtm1 = xbctime - dtsec
       call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
@@ -885,7 +882,15 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%t(j,i,k) = atm2%t(j,i,k) + dt*aten%t(j,i,k)
-          atmc%qx(j,i,k,:) = atm2%qx(j,i,k,:) + dt*aten%qx(j,i,k,:)
+        end do
+      end do
+    end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
+          end do
         end do
       end do
     end do
