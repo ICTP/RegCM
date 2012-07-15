@@ -457,7 +457,7 @@ module mod_precip
           !if the user specifies it
           if ( iconvlwp == 1 ) exlwc = cldlwc(j,i,k)
           cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(j,i,k)*exlwc) / &
-                        dmax1(cldfra(j,i,k)+fcc(j,i,k),0.01D0)
+                          dmax1(cldfra(j,i,k)+fcc(j,i,k),0.01D0)
           cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(j,i,k)),fcmax)
         end do
       end do

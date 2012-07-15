@@ -319,8 +319,8 @@ module mod_params
 !------namelist subexparam:
   ncld = 1             ! # of bottom model levels with no clouds (rad only)
   fcmax = 0.80D0       ! Maximum cloud fraction cover (rad only)
-!     qck1land = 0.0005D0  ! Autoconversion Rate for Land
-!     qck1oce  = 0.0005D0  ! Autoconversion Rate for Ocean
+! qck1land = 0.0005D0  ! Autoconversion Rate for Land
+! qck1oce  = 0.0005D0  ! Autoconversion Rate for Ocean
   qck1land = 0.00025D0 ! Autoconversion Rate for Land
   qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
   gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
@@ -1667,11 +1667,11 @@ module mod_params
              mddom%lndcat(j,i) < 15.5D0) then
           qck1(j,i) = qck1oce  ! OCEAN
           cgul(j,i) = guloce   ! OCEAN
-          rh0(j,i) = rh0oce    ! OCEAN
+          rh0(j,i)  = rh0oce    ! OCEAN
         else
           qck1(j,i) = qck1land ! LAND
           cgul(j,i) = gulland  ! LAND
-          rh0(j,i) = rh0land   ! LAND
+          rh0(j,i)  = rh0land   ! LAND
         end if
       end do
     end do
