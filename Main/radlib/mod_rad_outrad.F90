@@ -104,10 +104,6 @@ module mod_rad_outrad
 !
     integer :: i , j , k , n
     real(dp) :: rntim
-
-    if ( n2-n1+1 /= (jci2-jci1+1)*(ici2-ici1+1) ) then
-      call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH IN OUTRAD')
-    end if
 !
 !   total heating rate in deg/s
 !

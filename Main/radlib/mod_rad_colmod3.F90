@@ -33,7 +33,10 @@ module mod_rad_colmod3
 !
   public :: allocate_mod_rad_colmod3 , colmod3
 !
-  real(dp) , parameter :: lowcld = 1.0D-30
+! Allowed range for cloud fraction
+!
+  real(dp) , parameter :: lowcld = 0.001D0
+  real(dp) , parameter :: hicld  = 0.999D0
 !
 !   longwave absorption coeff (m**2/g)
 !
@@ -391,11 +394,6 @@ module mod_rad_colmod3
 !
     effcld(:,1:kz) = cld(:,1:kz)*emis(:,1:kz)
 !
-!   Cloud cover at surface interface always zero (for safety's sake)
-!
-    effcld(:,kzp1) = d_zero
-    cld(:,kzp1) = d_zero
-!
 !   Main radiation driving routine.
 !   NB: All fluxes returned from radctl() have already been converted
 !   to MKS.
@@ -604,8 +602,8 @@ module mod_rad_colmod3
 !
     implicit none
 !
-    integer :: n , i , j , k , k2 , itr , krev , ncldm1
-    real(dp) :: ccvtem , clwtem
+    integer :: n , i , j , k , k2 , itr , krev , kmincld , kmaxcld
+    real(dp) :: clwtem
 !
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
@@ -697,15 +695,20 @@ module mod_rad_colmod3
 !
 !   fractional cloud cover (dependent on relative humidity)
 !
+    !
+    ! Set cloud
+    !   - NOT on the topmost two layers
+    !   - Starting from ncld levels from the surface
+    !
     totcl(:) = d_zero
-    do k = 1 , kz
+    kmaxcld = 3
+    kmincld = kz-ncld
+    do k = kmaxcld , kmincld
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-   
-          ccvtem = d_zero   !cqc mod
-          cld(n,k) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
-          cld(n,k) = dmin1(cld(n,k),0.9999999D0)
+          cld(n,k) = dmax1(cldfra(j,i,k),lowcld)
+          cld(n,k) = dmin1(cld(n,k),hicld)
 !
 !qc       gary's mods for clouds/radiation tie-in to exmois
 !qc       implement here the new formula then multiply by 10e6
@@ -724,10 +727,9 @@ module mod_rad_colmod3
 !
           clwtem = cldlwc(j,i,k) !cqc mod
           deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
-                          pintm1(n,k))/(egrav*pmidm1(n,k))
+                        pintm1(n,k))/(egrav*pmidm1(n,k))
           clwp(n,k) = clwtem*deltaz(n,k)
-          if ( dabs(cld(n,k)) < lowcld ) then
-            cld(n,k) = d_zero
+          if ( cldfra(j,i,k) < lowcld ) then
             clwp(n,k) = d_zero
           end if
           totcl(n) = totcl(n)+clwp(n,k)*d_r1000
@@ -735,7 +737,7 @@ module mod_rad_colmod3
         end do
       end do
     end do
-!   
+!
 !   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !   do k = 1 , kz
 !     do n = 1 , npr
@@ -746,33 +748,6 @@ module mod_rad_colmod3
 !       end if
 !     end do
 !   end do
-!
-!   set cloud fractional cover at top model level = 0
-!
-    cld(:,1:2) = d_zero
-    clwp(:,1:2) = d_zero
-!
-!   set cloud fractional cover at bottom (ncld) model levels = 0
-!
-    ncldm1 = ncld - 1
-    do k = kz - ncldm1 , kz
-      do n = 1 , npr
-        cld(n,k) = d_zero
-        clwp(n,k) = d_zero
-      end do
-    end do
-!
-!   cloud cover (at surface interface always zero)
-!
-    cld(:,kzp1) = d_zero
-!
-!   Give correct range if out of range
-!
-    do k = 1 , kz
-      do n = 1 , npr
-        if ( cld(n,k) > 0.999D0 ) cld(n,k) = 0.999D0
-      end do
-    end do
 !
 !   ground temperature
 !
