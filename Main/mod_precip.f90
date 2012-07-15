@@ -37,12 +37,11 @@ module mod_precip
   real(dp) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
   real(dp) , pointer , dimension(:,:,:) :: t3 , t2 , tten
   real(dp) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
-  real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
+  real(dp) , pointer , dimension(:,:,:) :: radcldf , radlqwc
  
   real(dp) :: qcth , aprdiv
 !
   real(dp) , parameter :: uch = d_1000*regrav*secph
-  real(dp) , parameter :: lowq = 1.0D-8
 !
   real(dp) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
   real(dp) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
@@ -73,14 +72,14 @@ module mod_precip
       end if
     end subroutine allocate_mod_precip
 !
-    subroutine init_precip(atmslice,atm,aten,sfs,pptnc,radcldf,radlqwc)
+    subroutine init_precip(atmslice,atm,aten,sfs,pptnc,cldfra,cldlwc)
       implicit none
       type(slice) , intent(in) :: atmslice
       type(atmstate) , intent(in) :: atm
       type(atmstate) , intent(in) :: aten
       type(surfstate) , intent(in) :: sfs
       real(dp) , pointer , dimension(:,:) :: pptnc
-      real(dp) , pointer , dimension(:,:,:) :: radcldf , radlqwc
+      real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
 
       call assignpnt(atmslice%tb3d,t3)
       call assignpnt(atmslice%pb3d,p3)
@@ -95,8 +94,8 @@ module mod_precip
       call assignpnt(sfs%psb,psf)
       call assignpnt(sfs%rainnc,rainnc)
       call assignpnt(pptnc,lsmrnc)
-      call assignpnt(radcldf,cldfra)
-      call assignpnt(radlqwc,cldlwc)
+      call assignpnt(cldfra,radcldf)
+      call assignpnt(cldlwc,radlqwc)
 
       call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
 
@@ -382,33 +381,31 @@ module mod_precip
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine cldfrac
-!
-    implicit none
-!
-    real(dp) :: exlwc , rh0adj
-    integer :: i , j , k
+      implicit none
+      real(dp) :: exlwc , rh0adj , tcel
+      integer :: i , j , k
 !
 !--------------------------------------------------------------------
 !     1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
-    do k = 1 , kz
-      ! Adjusted relative humidity threshold
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( t3(j,i,k) > tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
-          end if
-          if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
-            fcc(j,i,k) = d_one
-          else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-            fcc(j,i,k) = d_zero
-          else                                   ! partial cloud cover
-            fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                          (rhmax-rh0adj))
-            fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
-          end if !  rh0 threshold
+      do k = 1 , kz
+        ! Adjusted relative humidity threshold
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( t3(j,i,k) >= tc0 ) then
+              rh0adj = rh0(j,i)
+            else ! high cloud (less subgrid variability)
+              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
+            end if
+            if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
+              fcc(j,i,k) = d_one
+            else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
+              fcc(j,i,k) = d_zero
+            else                                   ! partial cloud cover
+              fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                            (rhmax-rh0adj))
+              fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
+            end if !  rh0 threshold
 !---------------------------------------------------------------------
 !         Correction:
 !         Ivan Guettler, 14.10.2010.
@@ -416,53 +413,53 @@ module mod_precip
 !         An Improved Parameterization for Simulating Arctic Cloud Amount
 !         in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
-          if ( p3(j,i,k) >= 75.0D0 ) then
-            ! Clouds below 750hPa
-            if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
-              fcc(j,i,k) = fcc(j,i,k) * &
-                     dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
+            if ( p3(j,i,k) >= 75.0D0 ) then
+              ! Clouds below 750hPa
+              if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
+                fcc(j,i,k) = fcc(j,i,k) * &
+                       dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
+              end if
             end if
-          end if
 !---------------------------------------------------------------------
 !         End of the correction.
 !---------------------------------------------------------------------
+          end do
         end do
       end do
-    end do
 
 !--------------------------------------------------------------------
 !     2.  Combine large-scale and convective fraction and liquid water
 !         to be passed into radiation.
 !--------------------------------------------------------------------
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! Cloud Water Volume
-          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
-
-          ! temperature dependance for convective cloud water content
-          ! in g/m3 (Lemus et al., 1997)
-          cldlwc(j,i,k) = 0.127D+00 + 6.78D-03*(t3(j,i,k)-tzero) + &
-                          1.29D-04* (t3(j,i,k)-tzero)**d_two  +    &
-                          8.36D-07*(t3(j,i,k)-tzero)**d_three
-
-          if ( cldlwc(j,i,k) > 0.3D+00 ) cldlwc(j,i,k) = 0.3D+00
-          if ( (t3(j,i,k)-tzero) < -50D+00 ) cldlwc(j,i,k) = 0.001D+00
-          ! Apply the parameterisation based on temperature to the
-          ! convective fraction AND the large scale clouds :
-          ! the large scale cloud water content is not really used by
-          ! current radiation code, needs further evaluation.
-          !TAO: but only apply this parameterization to large scale LWC 
-          !if the user specifies it
-          if ( iconvlwp == 1 ) exlwc = cldlwc(j,i,k)
-          cldlwc(j,i,k) = (cldfra(j,i,k)*cldlwc(j,i,k)+fcc(j,i,k)*exlwc) / &
-                          dmax1(cldfra(j,i,k)+fcc(j,i,k),0.01D0)
-          cldfra(j,i,k) = dmin1(dmax1(cldfra(j,i,k),fcc(j,i,k)),fcmax)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! Cloud Water Volume
+            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+            exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
+            tcel  = t3(j,i,k)-tzero
+            ! temperature dependance for convective cloud water content
+            ! in g/m3 (Lemus et al., 1997)
+            radlqwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+                            1.29D-04 * tcel**d_two +    &
+                            8.36D-07 * tcel**d_three
+            if ( radlqwc(j,i,k) > 0.3D+00 ) radlqwc(j,i,k) = 0.300D+00
+            if ( radlqwc(j,i,k) < d_zero )  radlqwc(j,i,k) = 0.001D+00
+            if ( tcel < -50D+00 ) radlqwc(j,i,k) = 0.001D+00
+            ! Apply the parameterisation based on temperature to the
+            ! convective fraction AND the large scale clouds :
+            ! the large scale cloud water content is not really used by
+            ! current radiation code, needs further evaluation.
+            !TAO: but only apply this parameterization to large scale LWC 
+            !if the user specifies it
+            if ( iconvlwp == 1 ) exlwc = radlqwc(j,i,k)
+            radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
+                             fcc(j,i,k)*exlwc) / &
+                             dmax1(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
+            radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),fcc(j,i,k)),fcmax)
+          end do
         end do
       end do
-    end do
-   
     end subroutine cldfrac
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -506,8 +503,8 @@ module mod_precip
       do i = ici1 , ici2
         do j = jci1 , jci2
           tmp3 = (t2(j,i,k)+dt*tten(j,i,k))/psc(j,i)
-          qvcs = dmax1((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv))/psc(j,i),lowq)
-          qccs = dmax1((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc))/psc(j,i),dlowval)
+          qvcs = dmax1((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv))/psc(j,i),minqx)
+          qccs = dmax1((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc))/psc(j,i),d_zero)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
@@ -518,7 +515,7 @@ module mod_precip
           else
             satvp = svp4*d_1000*dexp(svp5-svp6/tmp3)
           end if
-          qvs = dmax1(ep2*satvp/(pres-satvp),lowq)
+          qvs = dmax1(ep2*satvp/(pres-satvp),minqx)
           rhc = dmax1(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
