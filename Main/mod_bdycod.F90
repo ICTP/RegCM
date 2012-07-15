@@ -639,7 +639,7 @@ module mod_bdycod
       !
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
-          do i = ide1 , ide2
+          do i = idi1 , idi2
             wue(i,k) = (xub%b0(jde1,i,k)+dtb*xub%bt(jde1,i,k))/psdot(jde1,i)
             wve(i,k) = (xvb%b0(jde1,i,k)+dtb*xvb%bt(jde1,i,k))/psdot(jde1,i)
           end do
@@ -647,7 +647,7 @@ module mod_bdycod
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
-          do i = ide1 , ide2
+          do i = idi1 , idi2
             eue(i,k) = (xub%b0(jde2,i,k)+dtb*xub%bt(jde2,i,k))/psdot(jde2,i)
             eve(i,k) = (xvb%b0(jde2,i,k)+dtb*xvb%bt(jde2,i,k))/psdot(jde2,i)
           end do
@@ -760,9 +760,9 @@ module mod_bdycod
 !
     real(dp) , intent(in) :: xt
 !
-    real(dp) :: qcx , qcint , qvx , qext , qint , vavg
-    integer :: i , j , k
-    real(dp) :: uavg
+    real(dp) :: qcx , qcint , qvx , qext , qint
+    integer :: i , j , k , n
+    real(dp) :: windavg
     character (len=64) :: subroutine_name='bdyval'
     integer :: idindx=0
 !
@@ -790,8 +790,14 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do i = ici1 , ici2
-            atm2%t(jce1,i,k)    = atm1%t(jce1,i,k)
-            atm2%qx(jce1,i,k,:) = atm1%qx(jce1,i,k,:)
+            atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
+          end do
+        end do
+        do n = 1 , nqx
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm2%qx(jce1,i,k,n) = atm1%qx(jce1,i,k,n)
+            end do
           end do
         end do
       end if
@@ -810,8 +816,14 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do i = ici1 , ici2
-            atm2%t(jce2,i,k)    = atm1%t(jce2,i,k)
-            atm2%qx(jce2,i,k,:) = atm1%qx(jce2,i,k,:)
+            atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
+          end do
+        end do
+        do n = 1 , nqx
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm2%qx(jce2,i,k,n) = atm1%qx(jce2,i,k,n)
+            end do
           end do
         end do
       end if
@@ -830,8 +842,14 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do j = jce1 , jce2
-            atm2%t(j,ice1,k)    = atm1%t(j,ice1,k)
-            atm2%qx(j,ice1,k,:) = atm1%qx(j,ice1,k,:)
+            atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
+          end do
+        end do
+        do n = 1 , nqx
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm2%qx(j,ice1,k,n) = atm1%qx(j,ice1,k,n)
+            end do
           end do
         end do
       end if
@@ -847,8 +865,14 @@ module mod_bdycod
         end do
         do k = 1 , kz
           do j = jce1 , jce2
-            atm2%t(j,ice2,k)    = atm1%t(j,ice2,k)
-            atm2%qx(j,ice2,k,:) = atm1%qx(j,ice2,k,:)
+            atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
+          end do
+        end do
+        do n = 1 , nqx
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm2%qx(j,ice2,k,n) = atm1%qx(j,ice2,k,n)
+            end do
           end do
         end do
       end if
@@ -1048,8 +1072,8 @@ module mod_bdycod
           do i = ici1 , ici2
             qext = atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)
             qint = atm1%qx(jci1,i,k,iqv)/sfs%psa(jci1,i)
-            uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-            if ( uavg >= d_zero ) then
+            windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+            if ( windavg >= d_zero ) then
               qvx = qext
             else
               qvx = qint
@@ -1066,8 +1090,8 @@ module mod_bdycod
           do i = ici1 , ici2
             qext = atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)
             qint = atm1%qx(jci2,i,k,iqv)/sfs%psa(jci2,i)
-            uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-            if ( uavg < d_zero ) then
+            windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+            if ( windavg < d_zero ) then
               qvx = qext
             else
               qvx = qint
@@ -1084,8 +1108,8 @@ module mod_bdycod
           do j = jce1 , jce2
             qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
             qint = atm1%qx(j,ici1,k,iqv)/sfs%psa(j,ici1)
-            vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-            if ( vavg >= d_zero ) then
+            windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+            if ( windavg >= d_zero ) then
               qvx = qext
             else
               qvx = qint
@@ -1102,8 +1126,8 @@ module mod_bdycod
           do j = jce1 , jce2
             qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
             qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
-            vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-            if ( vavg < d_zero ) then
+            windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+            if ( windavg < d_zero ) then
               qvx = qext
             else
               qvx = qint
@@ -1129,8 +1153,8 @@ module mod_bdycod
       do k = 1 , kz
         do i = ici1 , ici2
           qcint = atm1%qx(jci1,i,k,iqc)/sfs%psa(jci1,i)
-          uavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-          if ( uavg >= d_zero ) then
+          windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+          if ( windavg >= d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
@@ -1146,8 +1170,8 @@ module mod_bdycod
       do k = 1 , kz
         do i = ici1 , ici2
           qcint = atm1%qx(jci2,i,k,iqc)/sfs%psa(jci2,i)
-          uavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-          if ( uavg < d_zero ) then
+          windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+          if ( windavg < d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
@@ -1163,8 +1187,8 @@ module mod_bdycod
       do k = 1 , kz
         do j = jce1 , jce2
           qcint = atm1%qx(j,ici1,k,iqc)/sfs%psa(j,ici1)
-          vavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-          if ( vavg >= d_zero ) then
+          windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+          if ( windavg >= d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
@@ -1180,8 +1204,8 @@ module mod_bdycod
       do k = 1 , kz
         do j = jce1 , jce2
           qcint = atm1%qx(j,ici2,k,iqc)/sfs%psa(j,ici2)
-          vavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-          if ( vavg < d_zero ) then
+          windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+          if ( windavg < d_zero ) then
             qcx = d_zero
           else
             qcx = qcint
@@ -1190,7 +1214,7 @@ module mod_bdycod
         end do
       end do
     end if
-   
+
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call set_tke_bc(atm1,atm2)
     end if
