@@ -230,7 +230,7 @@ module mod_rad_colmod3
     logical , intent(in) :: lout , labsem
     real(dp) , intent(in) :: eccf
 !
-    integer :: i , j , n , jj0 , jj1 , jj2
+    integer :: i , j , k , n , m , k2 , jj0 , jj1 , jj2
     character (len=64) :: subroutine_name='colmod3'
     integer :: indx = 0
 !
@@ -348,16 +348,13 @@ module mod_rad_colmod3
     rel(:,:) = d_zero
     tm1(:,:) = d_zero
     ioro(:) = -1
-!
-!   radini sets many radiation parameters
-!   radini() must be called before getdat(), because
-!   the co2 mixing ratio set (by the user) in getdat() should
-!   overwrite the default CCM3 co2 mixing ratio set by radini().
-!
+    !
+    ! radini sets many radiation parameters
+    !
     call radini(iyear)
-!
-!   NB: orography types are specified in the following
-!
+    !
+    ! NB: orography types are specified in the following
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -379,25 +376,26 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
-!
+    !
+    ! Copy data from atmosphere
+    !
     call getdat
-!
-!   Cloud particle size and fraction of ice
-!
+    !
+    ! Cloud particle size and fraction of ice
+    !
     call cldefr
-!
-!   Cloud emissivity
-!
+    !
+    ! Cloud emissivity
+    !
     call cldems
-!
-!   Effective cloud cover
-!
+    !
+    ! Effective cloud cover
+    !
     effcld(:,1:kz) = cld(:,1:kz)*emis(:,1:kz)
-!
-!   Main radiation driving routine.
-!   NB: All fluxes returned from radctl() have already been converted
-!   to MKS.
-!
+    !
+    ! Main radiation driving routine.
+    ! NB: All fluxes returned from radctl() have already been converted to MKS.
+    !
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
                 tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
                 rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,   &
@@ -406,29 +404,57 @@ module mod_rad_colmod3
                 adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
                 aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,tauxcl,  &
                 tauxci,labsem)
-!
-!   Save gas emission/absorbtion
-!
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        gasabsnxt(j,i,:,:) = absgasnxt(n,:,:)
-        gasabstot(j,i,:,:) = absgastot(n,:,:)
-        gasemstot(j,i,:)   = emsgastot(n,:)
-        if ( lchem ) taucldsp(j,i,:,:)  = tauxcl(n,:,:) + tauxci(n,:,:)
-        n = n + 1
+    !
+    ! Save gas emission/absorbtion
+    !
+    do m = 1 , 4
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            gasabsnxt(j,i,k,m) = absgasnxt(n,k,m)
+            n = n + 1
+          end do
+        end do
       end do
     end do
-!
-!   subroutine radout() is not included in the ccm3 crm itself
-!   but introduced from the former regcm radiation package
-!   for the output of results from radiation calculations
-!   this subroutine is used also for the coupling with bats
-!
-!   NB:
-!     Names of some output variables (in MKS) have been changed
-!     from those in the CCM2 radiation package.
-!
+    do k = 1 , kzp1
+      do k2 = 1 , kzp1
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            gasabstot(j,i,k2,k) = absgastot(n,k2,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end do
+    do k = 1 , kzp1
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          gasemstot(j,i,k)   = emsgastot(n,k)
+          n = n + 1
+        end do
+      end do
+    end do
+    if ( lchem ) then
+      do m = 1 , nspi
+        do k = 0 , kz
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              taucldsp(j,i,k,m)  = tauxcl(n,k,m) + tauxci(n,k,m)
+              n = n + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    !
+    ! subroutine radout() copies back the data to RegCM for surface
+    ! computations and output purposes.
+    !
     call radout(1,npr,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns, &
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,alb,albc, &
                 fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
@@ -442,14 +468,6 @@ module mod_rad_colmod3
 !
 ! Compute cloud drop size
 !
-!     Output arguments
-!
-! rel    - liquid effective drop size (microns)
-! rei    - ice effective drop size (microns)
-! fice   - fractional ice content within cloud
-! pnrml  - normalized pressure
-! weight - coef. for determining rei as fn of P/PS
-!
 !-----------------------------------------------------------------------
 !
   subroutine cldefr
@@ -457,16 +475,15 @@ module mod_rad_colmod3
 !
     integer :: n , k
     real(dp) :: pnrml , rliq , weight
-!
-!   reimax - maximum ice effective radius
+    ! reimax - maximum ice effective radius
     real(dp) , parameter :: reimax = 30.0D0
-!   rirnge - range of ice radii (reimax - 10 microns)
+    ! rirnge - range of ice radii (reimax - 10 microns)
     real(dp) , parameter :: rirnge = 20.0D0
-!   pirnge - nrmlzd pres range for ice particle changes
+    ! pirnge - nrmlzd pres range for ice particle changes
     real(dp) , parameter :: pirnge = 0.4D0
-!   picemn - normalized pressure below which rei=reimax
+    ! picemn - normalized pressure below which rei=reimax
     real(dp) , parameter :: picemn = 0.4D0
-!   Temperatures in K (263.16 , 243.16)
+    ! Temperatures in K (263.16 , 243.16)
     real(dp) , parameter :: minus10 = wattp-d_10
     real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
     character (len=64) :: subroutine_name='cldefr'
@@ -477,56 +494,43 @@ module mod_rad_colmod3
     totci(:) = d_zero
     do k = 1 , kz
       do n = 1 , npr
-!
-!       Define liquid drop size
-!
+        ! Define liquid drop size
         if ( ioro(n) /= 1 ) then
-!
-!         Effective liquid radius over ocean and sea ice
-!
+          ! Effective liquid radius over ocean and sea ice
           rliq = d_10
         else
-!
-!         Effective liquid radius over land
-!
+          ! Effective liquid radius over land
           rliq = d_five+d_five* & 
                   dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
         end if
-!
+        ! rel : liquid effective drop size (microns)
         rel(n,k) = rliq
 !fil
-!       test radius = d_10
+!       test radius
 !       rel(n,k) = d_10
+!       rei(n,k) = 30.0
 !fil
-!+      rei(n,k) = 30.0
-!
-!       Determine rei as function of normalized pressure
-!
+        ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)
+        ! weight coef. for determining rei as fn of P/PS
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
+        ! rei : ice effective drop size (microns)
         rei(n,k) = reimax - rirnge*weight
-!
-!       Define fractional amount of cloud that is ice
-!
-!       if warmer than -10 degrees C then water phase
-!
+        ! Define fractional amount of cloud that is ice
+        ! if warmer than -10 degrees C then water phase
         if ( tm1(n,k) > minus10 ) fice(n,k) = d_zero
-!
-!       if colder than -10 degrees C but warmer than -30 C mixed phase
-!
+        ! if colder than -10 degrees C but warmer than -30 C mixed phase
+        ! fice : fractional ice content within cloud
         if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) &
           fice(n,k) = (minus10-tm1(n,k))/20.0D0
-!
-!       if colder than -30 degrees C then ice phase
-!
+        !  if colder than -30 degrees C then ice phase
         if ( tm1(n,k) < minus30 ) fice(n,k) = d_one
-!
-!       Turn off ice radiative properties by setting fice = 0.0
+        !  Turn off ice radiative properties by setting fice = 0.0
 !
 !fil    no-ice test
 !       fice(n,k) = d_zero
+!fil
         totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
-!
       end do
     end do
     call time_end(subroutine_name,indx)
@@ -537,88 +541,53 @@ module mod_rad_colmod3
 !
 ! Compute cloud emissivity using cloud liquid water path (g/m**2)
 !
-!     Output arguments
-!
-! emis    - cloud emissivity (fraction)
-!
 !-----------------------------------------------------------------------
 !
   subroutine cldems
     implicit none
-!
-!   kabs    - longwave absorption coeff (m**2/g)
-!   kabsi   - ice absorption coefficient
-!
     integer :: n , k
     real(dp) :: kabs , kabsi
     character (len=64) :: subroutine_name='cldems'
     integer :: indx = 0
-!
     call time_begin(subroutine_name,indx)
-!
     do k = 1 , kz
       do n = 1 , npr
+        ! ice absorption coefficient
         kabsi = 0.005D0 + d_one/rei(n,k)
+        ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(d_one-fice(n,k)) + kabsi*fice(n,k)
+        ! cloud emissivity (fraction)
         emis(n,k) = d_one - dexp(-1.66D0*kabs*clwp(n,k))
       end do
     end do
-!
     call time_end(subroutine_name,indx)
   end subroutine cldems
 !
 !-----------------------------------------------------------------------
 !
-! interface routine for column model that both initializes
-! certain constants and reads external data:
-!
-! o3 mass mixing ratios are read in, but the model also requires the
-! path lengths; they are computed here
-!
-! also, from the cloud input (fraction and liquid water path), the
-! cloud longwave emissivity must be computed; this is done here
-!
-!     output arguments
-!
-! model latitude in radians
-! cloud fraction
-! cloud liquid water path (g/m**2)
-! cosine latitude
-! local time of solar computation
-! o3 mass mixing ratio
-! o3 volume mixing ratio
-! ln(pintm1)
-! pressure at model interfaces
-! pressure at model mid-levels
-! ln(pmidm1)
-! model surface pressure field
-! moisture field
-! atmospheric temperature
-! surface (air)  temperature
+! Interface routine for column model that initializes internal variables
+! A copy if them is performed on local 1D arrays.
 !
 !-----------------------------------------------------------------------
 !
   subroutine getdat
-!
     implicit none
 !
     integer :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
     real(dp) :: clwtem
-!
     real(dp) , parameter :: amd = 28.9644D0
     real(dp) , parameter :: amo = 48.0000D0
     real(dp) , parameter :: vmmr = amo/amd
     logical , save :: ifirst
-!
     character (len=64) :: subroutine_name='getdat'
     integer :: indx = 0
 !
     data ifirst /.true./
 !
     call time_begin(subroutine_name,indx)
-!
-!   Static informations
-!
+    !
+    ! Static informations
+    !
     if ( ifirst ) then
       n = 1
       do i = ici1 , ici2
@@ -628,21 +597,22 @@ module mod_rad_colmod3
           n = n + 1
         end do
       end do
+      if ( iemiss == 1 ) then
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            emsvt1(n) = emsvt(j,i)
+            n = n + 1
+          end do
+        end do
+      else
+        emsvt1(n) = 0.9995.0
+      end if
       ifirst = .false.
     end if
-!
-    if ( iemiss == 1 ) then
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          emsvt1(n) = emsvt(j,i)
-          n = n + 1
-        end do
-      end do
-    end if
-!
-!   Albedoes
-!
+    !
+    ! Albedoes
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -655,9 +625,9 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
-!
-!   Sun elevation
-!
+    !
+    ! Sun elevation
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -666,7 +636,9 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
-
+    !
+    ! Gas concentrations
+    !
     do m = 1 , 4
       do k = 1 , kz
         n = 1
@@ -698,9 +670,9 @@ module mod_rad_colmod3
         end do
       end do
     end do
-!
-!   surface pressure and scaled pressure, from which level are computed
-!
+    !
+    ! Surface pressure and scaled pressure, from which level are computed
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -708,9 +680,9 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
-!
-!   convert pressures from mb to pascals and define interface pressures:
-!
+    !
+    ! convert pressures from mb to pascals and define interface pressures:
+    !
     do k = 1 , kz
       n = 1
       do i = ici1 , ici2
@@ -721,7 +693,6 @@ module mod_rad_colmod3
       end do
     end do
     pmlnm1(:,:) = dlog(pmidm1(:,:))
-
     do k = 1 , kzp1
       n = 1
       do i = ici1 , ici2
@@ -732,9 +703,9 @@ module mod_rad_colmod3
       end do
     end do
     pilnm1(:,:) = dlog(pintm1(:,:))
-!
-!   air temperature and relative humidity
-!
+    !
+    ! Air temperature and relative humidity
+    !
     do k = 1 , kz
       n = 1
       do i = ici1 , ici2
@@ -745,9 +716,9 @@ module mod_rad_colmod3
         end do
       end do
     end do
-!
-!   h2o mass mixing ratio
-!
+    !
+    ! H2O mass mixing ratio
+    !
     do k = 1 , kz
       n = 1
       do i = ici1 , ici2
@@ -758,10 +729,8 @@ module mod_rad_colmod3
       end do
     end do
     qm1(:,:) = h2ommr(:,:)
-!
-!   fractional cloud cover (dependent on relative humidity)
-!
     !
+    ! Fractional cloud cover (dependent on relative humidity)
     ! Set cloud
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
@@ -788,9 +757,10 @@ module mod_rad_colmod3
 !qc       if (tm1(n,k) < t0min) clwtem=clwmin
 !qc       clwtem=clwtem*1.e6
 !
-!         convert liquid water content into liquid water path, i.e.
-!         multiply b deltaz
-!
+          !
+          ! Convert liquid water content into liquid water path, i.e.
+          ! multiply b deltaz
+          !
           clwtem = cldlwc(j,i,k) !cqc mod
           deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
                         pintm1(n,k))/(egrav*pmidm1(n,k))
@@ -805,6 +775,7 @@ module mod_rad_colmod3
     end do
 !
 !   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
+!
 !   do k = 1 , kz
 !     do n = 1 , npr
 !       if ( pintm1(n,k+1) < 40000.0D0 ) then
@@ -815,8 +786,9 @@ module mod_rad_colmod3
 !     end do
 !   end do
 !
-!   ground temperature
-!
+    !
+    ! Ground temperature
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -824,9 +796,9 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
-!
-!   o3 mass and volume mixing ratios
-!
+    !
+    ! O3 mass and volume mixing ratios
+    !
     do k = 1 , kz
       krev = kzp1 - k
       n = 1
@@ -838,7 +810,9 @@ module mod_rad_colmod3
       end do
     end do
     o3vmr(:,:) = o3mmr(:,:)/vmmr
-!
+    !
+    ! Tracers mixing ratios
+    !
     if ( lchem ) then
       do itr = 1 , ntr
         do k = 1 , kz
@@ -852,7 +826,6 @@ module mod_rad_colmod3
         end do
       end do
     end if
-
     call time_end(subroutine_name,indx)
   end subroutine getdat
 !
