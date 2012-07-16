@@ -31,6 +31,7 @@ module mod_rad_outrad
 
   integer , parameter :: nrad2d = 24
   integer , parameter :: nrad3d = 5
+  integer :: npr
 
   real(sp) , pointer , dimension(:,:,:) :: frad2d
   real(sp) , pointer , dimension(:,:,:,:) :: frad3d
@@ -39,11 +40,12 @@ module mod_rad_outrad
 
   subroutine allocate_mod_rad_outrad
     implicit none
+    npr = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem3d(frad2d,jci1,jci2,ici1,ici2,1,nrad2d,'mod_outrad:frad2d')
     call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
-  subroutine radout(n1,n2,lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,   &
+  subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,alb, &
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,  &
                     h2ommr,cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,    &
@@ -86,7 +88,6 @@ module mod_rad_outrad
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 ! fsds     - Flux Shortwave Downwelling Surface
 !
-    integer , intent(in) :: n1 , n2
     logical , intent(in) :: lout ! Preapre data for outfile
     real(dp) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
@@ -104,11 +105,11 @@ module mod_rad_outrad
 !
     integer :: i , j , k , n
     real(dp) :: rntim
-!
-!   total heating rate in deg/s
-!
+    !
+    ! total heating rate in deg/s
+    !
     do k = 1 , kz
-      n = n1
+      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
@@ -120,7 +121,7 @@ module mod_rad_outrad
 !   surface absorbed solar flux in watts/m2
 !   net up longwave flux at the surface
 !
-    n = n1
+    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         srfabswflx(j,i) = frsa(n)
@@ -139,7 +140,7 @@ module mod_rad_outrad
 !   over sparsely vegetated areas in which vegetation and ground
 !   albedo are significantly different
 !
-    n = n1
+    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         totsol(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
@@ -158,7 +159,7 @@ module mod_rad_outrad
     if ( lchem ) then
       rntim = d_one/(d_1000*minph*chfrovrradfr)
       do k = 1 , kz
-        n = n1
+        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
             aerext(j,i,k) = tauxar3d(n,k,8)
@@ -168,7 +169,7 @@ module mod_rad_outrad
           end do
         end do
       end do
-      n = n1
+      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           aertarf(j,i)   = aertarf(j,i)   + aeradfo(n)  * rntim
@@ -183,7 +184,7 @@ module mod_rad_outrad
     if ( ifrad ) then
       if ( lout ) then
         do k = 1 , kz
-          n = n1
+          n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
               frad3d(j,i,k,1) = real(cld(n,k))    ! write
@@ -200,7 +201,7 @@ module mod_rad_outrad
           end do
         end do
 
-        n = n1
+        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
             frad2d(j,i,1) = real(frsa(n))      ! write

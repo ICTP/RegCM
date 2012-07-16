@@ -455,7 +455,7 @@ module mod_rad_colmod3
     ! subroutine radout() copies back the data to RegCM for surface
     ! computations and output purposes.
     !
-    call radout(1,npr,lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns, &
+    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,       &
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,alb,albc, &
                 fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
                 cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,   &
