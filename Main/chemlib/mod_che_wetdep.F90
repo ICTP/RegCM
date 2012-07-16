@@ -552,7 +552,7 @@ module mod_che_wetdep
     real(dp) , intent(in) :: rhoaer ! specific aerosol density
     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
                                                        strappt 
-     real(dp) , dimension(ici1:ici2,kz) , intent(inout)  :: convppt
+     real(dp) , dimension(ici1:ici2,kz) , intent(in)  :: convppt
     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
     real(dp) , dimension(ici1:ici2) ,intent(in) :: pressg
     real(dp) , dimension(kz) ,intent(in) :: shj
@@ -563,7 +563,7 @@ module mod_che_wetdep
     real(dp) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
     real(dp) , dimension(ntr) :: wetrem , wetrem_cvc 
     real(dp) :: wtend
-    integer :: n , k , i, nk
+    integer :: n , k , i, nk,nkh
 
     ! rain out parametrisation 
     ! clmin = non-precipitating cloud
@@ -645,19 +645,27 @@ module mod_che_wetdep
     rhop(:,:,:) = rhoaer
 
     ! convppt is a pseudo-3d array of con prec rate conatining constant rate (equals to surface cumul precipi)  from surface to cumtop.
-    ! inside the cloud, need itnterpolate linearly between the prec rate and o ( top of the cloud) 
-    n=0
+    ! inside the cloud, need itnterpolate linearly between the prec rate and o ( top of the cloud). Consider that half of the convective
+    ! column is cloud .. improve this in the future !  
+    totppt(:,:) = d_zero
     do i=  ici1 , ici2
     if ( kcumtop(j,i) >  0 ) then
-    do k =  kcumtop(j,i) , kcumbot(j,i) 
+    n=0
+    nk=0
+    do k =  kcumtop(j,i) , kz 
       nk = kcumbot(j,i) -  kcumtop(j,i) + 1 
-      convppt(i,k) = (n / nk ) *   convppt(i,kz)
+      nkh = nk / 2      
+      if (n <=  nkh ) then 
+      totppt(i,k) = (dble(n) / dble(nkh)) *   convppt(i,kz)
+      else
+      totppt(i,k)  = convppt(i,kz)
+      end if
       n=n+1
     end do 
     end if 
    end do 
-
-    totppt(:,:) = strappt(:,:) + convppt(:,:)   
+! add the contribution of strat prec
+    totppt(:,:) = strappt(:,:) + totppt(:,:)   
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)
 
     ! calculate the tendency due to wahsout dep here.

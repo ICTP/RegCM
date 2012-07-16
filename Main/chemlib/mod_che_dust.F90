@@ -672,9 +672,10 @@ module mod_che_dust
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
  
-      do nt = 1 , nats
-        do ns = 1 , nsoil
-          do i = il1 , il2
+      do nt = 1 , nats 
+         do i = il1 , il2
+           if (ftex(i,nt) < 1.D-10) cycle
+           do ns = 1 , nsoil
             if ( rc(i) > d_zero .and. ustar(i) /= d_zero ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
               if ( uth <= d_one ) then
