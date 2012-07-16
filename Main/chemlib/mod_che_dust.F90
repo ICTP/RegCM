@@ -40,7 +40,7 @@ module mod_che_dust
   ! dust effective diameter
   real(dp) , dimension(nbin) :: dustbed
   ! has to be calculated from an assumed sub-bin distribution 
-  data dustbed /0.82D0 , 1.8D0 , 3.7D0 , 8.0D0 /   
+  data dustbed /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /   
 
   ! a revoir en fonction d optique
   ! solubility of od dust aer for param of giorgi and chameides
