@@ -663,7 +663,7 @@ module mod_atm_interface
 !
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'atm_interface:hgfact')
       call getmem2d(psdot,jde1,jde2,ide1,ide2,'atm_interface:psdot')
-      call getmem3d(omega,jce1,jce2,ice1,ice2,1,kz,'atm_interface:omega')
+      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'atm_interface:omega')
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
                          ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'atm_interface:qdot')
 

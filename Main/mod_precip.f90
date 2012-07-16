@@ -32,6 +32,7 @@ module mod_precip
   private
 !
 ! Precip sum beginning from top
+!
   real(dp) , pointer , dimension(:,:) :: pptsum
   real(dp) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
   real(dp) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
@@ -65,6 +66,8 @@ module mod_precip
       call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
       call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
       call getmem2d(rh0,jci1,jci2,ici1,ici2,'pcp:rh0')
+      call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
+
       if ( ichem == 1 ) then
         lchem = .true.
         call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'pcp:rembc')
@@ -96,8 +99,6 @@ module mod_precip
       call assignpnt(pptnc,lsmrnc)
       call assignpnt(cldfra,radcldf)
       call assignpnt(cldlwc,radlqwc)
-
-      call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
 
       aprdiv = d_one/dble(ntsrf)
     end subroutine init_precip
@@ -384,9 +385,8 @@ module mod_precip
       implicit none
       real(dp) :: exlwc , rh0adj , tcel
       integer :: i , j , k
-!
 !--------------------------------------------------------------------
-!     1.  Determine large-scale cloud fraction
+! 1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
       do k = 1 , kz
         ! Adjusted relative humidity threshold
@@ -407,11 +407,11 @@ module mod_precip
               fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
             end if !  rh0 threshold
 !---------------------------------------------------------------------
-!         Correction:
-!         Ivan Guettler, 14.10.2010.
-!         Based on: Vavrus, S. and Waliser D., 2008, 
-!         An Improved Parameterization for Simulating Arctic Cloud Amount
-!         in the CCSM3 Climate Model, J. Climate 
+! Correction:
+!   Ivan Guettler, 14.10.2010.
+! Based on: Vavrus, S. and Waliser D., 2008, 
+! An Improved Parameterization for Simulating Arctic Cloud Amount
+! in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
             if ( p3(j,i,k) >= 75.0D0 ) then
               ! Clouds below 750hPa
@@ -421,15 +421,14 @@ module mod_precip
               end if
             end if
 !---------------------------------------------------------------------
-!         End of the correction.
+! End of the correction.
 !---------------------------------------------------------------------
           end do
         end do
       end do
-
 !--------------------------------------------------------------------
-!     2.  Combine large-scale and convective fraction and liquid water
-!         to be passed into radiation.
+! 2.  Combine large-scale and convective fraction and liquid water
+!     to be passed into radiation.
 !--------------------------------------------------------------------
       do k = 1 , kz
         do i = ici1 , ici2

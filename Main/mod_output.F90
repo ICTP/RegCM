@@ -149,7 +149,7 @@ module mod_output
       call grid_collect(atm1%v,atm1_io%v,jde1,jde2,ide1,ide2,1,kz)
       call grid_collect(atm1%t,atm1_io%t,jce1,jce2,ice1,ice2,1,kz)
       call grid_collect(atm1%qx,atm1_io%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-      call grid_collect(omega,omega_io,jce1,jce2,ice1,ice2,1,kz)
+      call grid_collect(omega,omega_io,jci1,jci2,ici1,ici2,1,kz)
       call grid_collect(sfs%psa,sfs_io%psa,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
       call grid_collect(sfs%rainnc,sfs_io%rainnc,jci1,jci2,ici1,ici2)
@@ -276,6 +276,7 @@ module mod_output
       call grid_collect(sfs%psb,sfs_io%psb,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%tga,sfs_io%tga,jce1,jce2,ice1,ice2)
       call grid_collect(sfs%tgb,sfs_io%tgb,jce1,jce2,ice1,ice2)
+
       call grid_collect(sfs%hfx,sfs_io%hfx,jci1,jci2,ici1,ici2)
       call grid_collect(sfs%qfx,sfs_io%qfx,jci1,jci2,ici1,ici2)
       call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
@@ -369,6 +370,7 @@ module mod_output
         call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_collect(remcvc,remcvc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
+
         call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
         call grid_collect(sdeltk2d,sdeltk2d_io,jci1,jci2,ici1,ici2)
         call grid_collect(sdelqk2d,sdelqk2d_io,jci1,jci2,ici1,ici2)
