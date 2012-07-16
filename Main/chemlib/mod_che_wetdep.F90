@@ -678,16 +678,26 @@ module mod_che_wetdep
           ! wet deposition washout diagnostic ( both from conv and large scale)! 
           ! 
           remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf 
-                               
-           
-          ! sum on the vertical to get total surface flux diag fo rain out and washout
-          ! ( already weighted for time average cdiagf !), also change sign convention    
-          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
-          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
-         
         end do
       end do
-    end do
+     end do 
+
+      do n = 1, mbin
+      do i = ici1 , ici2
+      wdlsc(j,i,indp(n)) = d_zero
+      wdcvc(j,i,indp(n)) = d_zero
+      do k = 1,kz
+       ! sum on the vertical to get total surface flux diag fo rain out and washout
+          ! ( already weighted for time average cdiagf !), also change sign convention
+      
+          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
+          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
+
+      end do
+      end do
+      end do
+
+
 
   end subroutine wetdepa
 
