@@ -236,7 +236,7 @@ module mod_rrtmg_driver
 !
     integer :: dyofyr , inflgsw , iceflgsw , liqflgsw , icld , idrv , &
        permuteseed , irng , iplon , k , kj , inflglw , iceflglw ,     &
-       liqflglw
+       liqflglw, n,i,j
     real(dp) :: adjes
 
 !-----------------------------------------------------------------------
