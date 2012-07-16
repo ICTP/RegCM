@@ -403,7 +403,7 @@ module mod_rrtmg_driver
     empty1 = dmissval
     empty2 = dmissval
 
-    call radout(1,npr,lout,solin,sabtp,frsa,clrst,clrss,qrs,     &
+    call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
                 solld,empty1,empty1,empty1,empty1,empty1,empty1,  &
                 empty1,empty1,empty1,empty2,cld_int,clwp_int,abv, &
