@@ -768,7 +768,6 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 !
-    if ( .not. ma%has_bdy ) return
     !
     ! Fill up the boundary value for xxb variables from xxa variables:
     ! if this subroutine is called for the first time, this part
