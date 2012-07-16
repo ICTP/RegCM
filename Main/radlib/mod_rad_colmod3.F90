@@ -606,7 +606,7 @@ module mod_rad_colmod3
           end do
         end do
       else
-        emsvt1(n) = 0.9995.0
+        emsvt1(n) = 0.9995D0
       end if
       ifirst = .false.
     end if
