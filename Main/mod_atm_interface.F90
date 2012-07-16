@@ -624,10 +624,10 @@ module mod_atm_interface
     subroutine allocate_diffx(dx)
       implicit none
       type(diffx) , intent(out) :: dx
-      call getmem3d(dx%difuu,jde1,jde2,ide1,ide2,1,kz,'diffx:difuu')
-      call getmem3d(dx%difuv,jde1,jde2,ide1,ide2,1,kz,'diffx:difuv')
-      call getmem3d(dx%difft,jce1,jce2,ice1,ice2,1,kz,'diffx:difft')
-      call getmem4d(dx%diffqx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'diffx:diffqx')
+      call getmem3d(dx%difuu,jdi1,jdi2,idi1,idi2,1,kz,'diffx:difuu')
+      call getmem3d(dx%difuv,jdi1,jdi2,idi1,idi2,1,kz,'diffx:difuv')
+      call getmem3d(dx%difft,jci1,jci2,ici1,ici2,1,kz,'diffx:difft')
+      call getmem4d(dx%diffqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:diffqx')
     end subroutine allocate_diffx
 !
     subroutine allocate_mod_atm_interface(ibltyp)

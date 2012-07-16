@@ -765,69 +765,43 @@ module mod_tendency
       end do
     end do
     !
-    ! add horizontal diffusion and pbl tendencies for t and qv to aten%t
-    ! and aten%qx for calculating condensational term in subroutine
-    ! "condtq".
+    ! apply the sponge boundary conditions on t and qv.
+    ! We must do this before adding diffusion terms.
+    !
+    if ( iboudy == 4 ) then
+      call sponge(kz,ba_cr,xtb,aten%t)
+      call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+    end if
+    !
+    ! add horizontal diffusion and pbl tendencies for t and qv
+    !
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aten%t(j,i,k) = aten%t(j,i,k) + adf%difft(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+        end do
+      end do
+    end do
+    !
+    ! compute the condensation and precipitation terms for explicit
+    ! moisture scheme:
     !
     if ( ipptls == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%t(j,i,k) = aten%t(j,i,k) + adf%difft(j,i,k)
+            aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + adf%diffqx(j,i,k,iqc)
           end do
         end do
       end do
-      do n = 1 , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%diffqx(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-      !
-      ! compute the condensation and precipitation terms for explicit
-      ! moisture scheme:
-      !
       call condtq(psc)
-    end if
-    !
-    ! subtract horizontal diffusion and pbl tendencies from aten%t and
-    ! aten%qx for appling the sponge boundary conditions on t and qv.
-    ! Add them again later after bounday calculated
-    !
-    if ( iboudy == 4 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%t(j,i,k) = aten%t(j,i,k) - adf%difft(j,i,k)
-          end do
-        end do
-      end do
-      call sponge(kz,ba_cr,xtb,aten%t)
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%t(j,i,k) = aten%t(j,i,k) + adf%difft(j,i,k)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) - adf%diffqx(j,i,k,iqv)
-          end do
-        end do
-      end do
-      call sponge(kz,iqv,ba_cr,xqb,aten%qx)
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
-          end do
-        end do
-      end do
     end if
     !
     ! apply the nudging boundary conditions:
@@ -979,8 +953,14 @@ module mod_tendency
     !   compute the diffusion terms:
     !   put diffusion and pbl tendencies of u and v in difuu and difuv.
     !
-    adf%difuu(:,:,:) = aten%u(:,:,:)
-    adf%difuv(:,:,:) = aten%v(:,:,:)
+    do k = 1 , kz
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          adf%difuu(j,i,k) = aten%u(j,i,k)
+          adf%difuv(j,i,k) = aten%v(j,i,k)
+        end do
+      end do
+    end do
     !
     call diffu_d(adf%difuu,atms%ubd3d,psdot,mddom%msfd,xkc,1)
     call diffu_d(adf%difuv,atms%vbd3d,psdot,mddom%msfd,xkc,1)
