@@ -602,7 +602,7 @@ module mod_rad_colmod3
 !
     implicit none
 !
-    integer :: n , i , j , k , k2 , itr , krev , kmincld , kmaxcld
+    integer :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
     real(dp) :: clwtem
 !
     real(dp) , parameter :: amd = 28.9644D0
@@ -620,76 +620,142 @@ module mod_rad_colmod3
 !   Static informations
 !
     if ( ifirst ) then
-      dlat = reshape(dabs(xlat(jci1:jci2,ici1:ici2)),(/npr/))
-      xptrop = reshape(ptrop(jci1:jci2,ici1:ici2),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          dlat(n) = xlat(j,i)*degrad
+          xptrop(n) = ptrop(j,i)
+          n = n + 1
+        end do
+      end do
       ifirst = .false.
     end if
 !
     if ( iemiss == 1 ) then
-      emsvt1 = reshape(emsvt(jci1:jci2,ici1:ici2),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          emsvt1(n) = emsvt(j,i)
+          n = n + 1
+        end do
+      end do
     end if
 !
 !   Albedoes
 !
-    adirsw = reshape(swdiralb(jci1:jci2,ici1:ici2),(/npr/))
-    adifsw = reshape(swdifalb(jci1:jci2,ici1:ici2),(/npr/))
-    adirlw = reshape(lwdiralb(jci1:jci2,ici1:ici2),(/npr/))
-    adiflw = reshape(lwdifalb(jci1:jci2,ici1:ici2),(/npr/))
-    asw = reshape(swalb(jci1:jci2,ici1:ici2),(/npr/))
-    alw = reshape(lwalb(jci1:jci2,ici1:ici2),(/npr/))
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        adirsw(n) = swdiralb(j,i)
+        adifsw(n) = swdifalb(j,i)
+        adirlw(n) = lwdiralb(j,i)
+        adiflw(n) = lwdifalb(j,i)
+        asw(n)    = swalb(j,i)
+        alw(n)    = lwalb(j,i)
+        n = n + 1
+      end do
+    end do
 !
 !   Sun elevation
 !
-    czen = reshape(coszen(jci1:jci2,ici1:ici2),(/npr/))
-    where ( czen > d_zero )
-      czengt0 = .true.
-    end where
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        czen(n) = coszen(j,i)
+        if ( czen(n) > d_zero ) czengt0(n) = .true.
+        n = n + 1
+      end do
+    end do
 
-    do n = 1 , 4
+    do m = 1 , 4
       do k = 1 , kz
-        absgasnxt(:,k,n) = reshape(gasabsnxt(jci1:jci2,ici1:ici2,k,n),(/npr/))
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            absgasnxt(n,k,m) = gasabsnxt(j,i,k,m)
+            n = n + 1
+          end do
+        end do
       end do
     end do
     do k = 1 , kzp1
       do k2 = 1 , kzp1
-        absgastot(:,k2,k) = reshape(gasabstot(jci1:jci2,ici1:ici2,k2,k),(/npr/))
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            absgastot(n,k2,k) = gasabstot(j,i,k2,k)
+            n = n + 1
+          end do
+        end do
       end do
     end do
     do k = 1 , kzp1
-      emsgastot(:,k) = reshape(gasemstot(jci1:jci2,ici1:ici2,k),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          emsgastot(n,k) = gasemstot(j,i,k)
+          n = n + 1
+        end do
+      end do
     end do
 !
 !   surface pressure and scaled pressure, from which level are computed
 !
-    ps = reshape(((sfps(jci1:jci2,ici1:ici2)+ptp)*d_1000),(/npr/))
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ps(n) = (sfps(j,i)+ptp)*d_1000
+        n = n + 1
+      end do
+    end do
 !
 !   convert pressures from mb to pascals and define interface pressures:
 !
     do k = 1 , kz
-      pmidm1(:,k) = reshape(((sfps(jci1:jci2,ici1:ici2)*hlev(k)+ptp)*d_1000), &
-                            (/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          pmidm1(n,k) = (sfps(j,i)*hlev(k)+ptp)*d_1000
+          n = n + 1
+        end do
+      end do
     end do
     pmlnm1(:,:) = dlog(pmidm1(:,:))
 
     do k = 1 , kzp1
-      pintm1(:,k) = reshape(((sfps(jci1:jci2,ici1:ici2)*flev(k)+ptp)*d_1000), &
-                            (/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          pintm1(n,k) = (sfps(j,i)*flev(k)+ptp)*d_1000
+          n = n + 1
+        end do
+      end do
     end do
     pilnm1(:,:) = dlog(pintm1(:,:))
 !
 !   air temperature and relative humidity
 !
     do k = 1 , kz
-      tm1(:,k) = reshape(tatms(jci1:jci2,ici1:ici2,k),(/npr/))
-      rh1(:,k) = reshape( &
-         dmax1(dmin1(rhatms(jci1:jci2,ici1:ici2,k),nearone),d_zero),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tm1(n,k) = tatms(j,i,k)
+          rh1(n,k) = dmax1(dmin1(rhatms(j,i,k),nearone),d_zero)
+          n = n + 1
+        end do
+      end do
     end do
 !
 !   h2o mass mixing ratio
 !
     do k = 1 , kz
-      h2ommr(:,k) = reshape(dmax1(1.0D-8, &
-                            qxatms(jci1:jci2,ici1:ici2,k,iqv)),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          h2ommr(n,k) = dmax1(minqx,qxatms(j,i,k,iqv))
+          n = n + 1
+        end do
+      end do
     end do
     qm1(:,:) = h2ommr(:,:)
 !
@@ -751,7 +817,13 @@ module mod_rad_colmod3
 !
 !   ground temperature
 !
-    ts = reshape(tground(jci1:jci2,ici1:ici2),(/npr/))
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ts(n) = tground(j,i)
+        n = n + 1
+      end do
+    end do
 !
 !   o3 mass and volume mixing ratios
 !

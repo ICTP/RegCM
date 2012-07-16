@@ -295,11 +295,17 @@ module mod_rrtmg_driver
       asmaer = 0.85D0
       ecaer  = 0.78D0
 
-      asdir = reshape(swdiralb(jci1:jci2,ici1:ici2),(/npr/))
-      asdif = reshape(swdifalb(jci1:jci2,ici1:ici2),(/npr/))
-      aldir = reshape(lwdiralb(jci1:jci2,ici1:ici2),(/npr/))
-      aldif = reshape(lwdifalb(jci1:jci2,ici1:ici2),(/npr/))
-      czen = reshape(coszen(jci1:jci2,ici1:ici2),(/npr/))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          asdir(n) = swdiralb(j,i)
+          asdif(n) = swdifalb(j,i)
+          aldir(n) = lwdiralb(j,i)
+          aldif(n) = lwdifalb(j,i)
+          czen(n)  = coszen(j,i)
+          n = n + 1
+        end do
+      end do
 
       call rrtmg_sw(npr,kth,icld,play,plev,tlay,tlev,tsfc,  &
                     h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr, &
