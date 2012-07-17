@@ -355,7 +355,7 @@ module mod_rad_colmod3
     !
     ! NB: orography types are specified in the following
     !
-    n = 1
+    m = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         jj0 = 0
@@ -370,10 +370,10 @@ module mod_rad_colmod3
             jj0 = jj0 + 1
           end if
         end do
-        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(n) = 0
-        if ( jj1 >  jj0 .and. jj1 >= jj2 ) ioro(n) = 1
-        if ( jj2 >  jj0 .and. jj2 >  jj1 ) ioro(n) = 2
-        n = n + 1
+        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(m) = 0
+        if ( jj1 >  jj0 .and. jj1 >= jj2 ) ioro(m) = 1
+        if ( jj2 >  jj0 .and. jj2 >  jj1 ) ioro(m) = 2
+        m = m + 1
       end do
     end do
     !
