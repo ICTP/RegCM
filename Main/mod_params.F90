@@ -449,7 +449,7 @@ module mod_params
 !---------------------------------------------------------------------
 !
 #ifdef CLM
-  if ( myid == itallk ) then
+  if ( myid == italk ) then
     if (nsg /= 1 ) then
       write (6,*) 'Running SUBGRID with CLM: not implemented'
       write (6,*) 'Please set nsg to 1 in regcm.in'
