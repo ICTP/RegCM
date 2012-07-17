@@ -616,7 +616,7 @@ module mod_tendency
       call pcp
       call cldfrac
 #ifdef DEBUG
-      if ( .false. ) then
+      if ( enable_newmicro ) then
         call microphys(omega,jci1,jci2,ici1,ici2)
         call grid_nc_write(qqxp)
       end if

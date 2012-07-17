@@ -24,6 +24,7 @@ module mod_regcm_interface
   use mod_service
   use mod_che_interface
   use mod_atm_interface
+  use mod_pbl_interface
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -112,6 +113,7 @@ module mod_regcm_interface
 
     call memory_init
 !
+    call header(myid,ncpu)
     call set_nproc(ncpu)
     call setup_model_indexes
 !
@@ -122,15 +124,6 @@ module mod_regcm_interface
         call init_mod_ncio(.false.)
       end if
     end if
-
-!
-!**********************************************************************
-!
-!   RegCM V4 printout header
-!
-!**********************************************************************
-!
-    call header(myid,nproc)
 !
 #ifdef DEBUG 
     call start_debug()
@@ -236,8 +229,7 @@ module mod_regcm_interface
     character(len=32) :: appdat
 !
 #ifdef DEBUG
-    ! if ( .true. ) call grid_nc_create('clouds1',cross,zqxn,qqxp)
-    if ( .true. ) call grid_nc_create('atm1',dot,atm1%u,uuxp)
+    if ( enable_newmicro ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
       !
@@ -307,8 +299,7 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
-    ! if ( .true. ) call grid_nc_destroy(qqxp)
-    call grid_nc_destroy(uuxp)
+    if ( enable_newmicro ) call grid_nc_destroy(qqxp)
 #endif
     call time_print(6,'evolution phase')
 !

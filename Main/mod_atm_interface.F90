@@ -151,11 +151,10 @@ module mod_atm_interface
   integer , public , parameter :: two_exchange_point = 2
 
 #ifdef DEBUG
+  logical , public :: enable_newmicro = .false.
   type(grid_nc_var4d) , public :: qqxp
-  type(grid_nc_var3d) , public :: uuxp
-  type(grid_nc_var3d) , public :: ttxp
-  type(grid_nc_var3d) , public :: hrxp
-  type(grid_nc_var2d) , public :: psxp
+  type(grid_nc_var3d) , public :: nc_3d
+  type(grid_nc_var2d) , public :: nc_2d
 #endif
 
   contains 
