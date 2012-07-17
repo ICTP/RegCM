@@ -394,7 +394,7 @@ module mod_mppparam
       !
       ! Topmost and rightmost processors are doing what's left
       !
-      if ( ma%has_bdytop ) then
+      if ( ma%location(2)+1 == cpus_per_dim(2) ) then
         if ( mod(iy,iyp) /= 0 ) then
           global_iend = global_istart+iyp-1
           if ( global_iend < iy ) then
@@ -404,9 +404,8 @@ module mod_mppparam
           end if
         end if
       end if
-      if ( ma%has_bdyright ) then
+      if ( ma%location(1)+1 == cpus_per_dim(1) ) then
         if ( mod(jx,jxp) /= 0 ) then
-          global_jend = global_jstart+jxp-1
           if ( global_jend < jx ) then
             jxp = jx-global_jstart+1
           else
