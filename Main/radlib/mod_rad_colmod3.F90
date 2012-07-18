@@ -592,7 +592,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dlat(n) = xlat(j,i)*degrad
+          dlat(n) = dabs(xlat(j,i))
           xptrop(n) = ptrop(j,i)
           n = n + 1
         end do

@@ -61,7 +61,7 @@ module mod_rad_tracer
     intent (in) pmid , dlat , xptrop
     intent (out) cfc11 , cfc12 , ch4 , n2o
 !
-!   dlat   - latitude in degrees
+!   dlat   - absolute value of latitude in degrees
 !   xn2o   - pressure scale height for n2o
 !   xch4   - pressure scale height for ch4
 !   xcfc11 - pressure scale height for cfc11
