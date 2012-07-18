@@ -172,12 +172,16 @@ module mod_che_dust
       ! of vertical/horizontal flux): This (bcly) is only effective when Kok
       ! size distribution is option enabled
       ! 
-      data bcly/0.00D0 , 0.004D0 , 0.007D0 , 0.15D0 , 0.15D0 , 0.005D0 , &
-                0.005D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
-      data bsnd/0.90D0 , 0.949D0 , 0.9420D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
+!      data bcly/0.05D0 , 0.10D0 , 0.15D0 , 0.15D0 , 0.15D0 , 0.005D0 , &
+!                0.005D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
+
+      data bcly/12*0.05/
+               
+
+      data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
                 0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
-      data bslt/0.10D0 , 0.047D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
-                0.65D0 , 0.50D0 , 0.50D0 , 0.00D0 , 0.00D0 , 0.00D0/
+      data bslt/0.05D0 , 0.05D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
+                0.65D0 , 0.50D0 , 0.05D0 , 0.00D0 , 0.00D0 , 0.00D0/
 ! 
       data eps/1.0D-7/
 !
@@ -474,10 +478,13 @@ module mod_che_dust
             if ( ichdustemd == 2 ) then 
               if ( clay2row2(i,n,jloop) <= 20 ) then
                 xalphaprop(ieff,n) = d_10**(0.134D0 * &
-                             clay2row2(i,n,jloop)-6.0D0)*0.035D0
+!                             clay2row2(i,n,jloop)-6.0D0)*0.035D0
+                              clay2row2(i,n,jloop)-6.0D0)
+
               else 
                 xalphaprop(ieff,n) = d_10**(-0.1D0 * &
-                             clay2row2(i,n,jloop)-1.2D0)*0.035D0
+!                             clay2row2(i,n,jloop)-1.2D0)*0.035D0
+                               clay2row2(i,n,jloop)-6.0D0)
               end if
             end if  
             do  ns = 1 , nsoil

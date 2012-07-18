@@ -689,9 +689,9 @@ module mod_che_wetdep
       do k = 1,kz
        ! sum on the vertical to get total surface flux diag fo rain out and washout
           ! ( already weighted for time average cdiagf !), also change sign convention
-      
-          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
-          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)
+       ! normalise by psb to get the right flux unit 
+          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
+          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
 
       end do
       end do

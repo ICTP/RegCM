@@ -566,20 +566,19 @@ module mod_che_drydep
       ! dust and sea salt 
       !
       do ib = 1 , mbin
-        ! deposition
+        ! deposition, remember chiten must be normalised by psb and consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            wk(i,k) = (1.0D0/cpsb(j,i)) * &
-                      (ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
-                       ctwt(k,2)*chib(j,i,k-1,indsp(ib)))
+            wk(i,k) =  ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
+                       ctwt(k,2)*chib(j,i,k-1,indsp(ib))
           end do
         end do
         do i = ici1 , ici2
           do k = 2 , kz - 1
             ! do not apply to the first level
             settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
-                            wk(i,k)*pdepv(i,k,indsp(ib)))*     &
-                            egrav*1.D-3/cdsigma(k)
+                            wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)     
+                            
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
               cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
@@ -597,9 +596,9 @@ module mod_che_drydep
           ! 
           if ( ichdrdepo == 1 ) then 
 
-            settend(i,kz) =  (chib(j,i,k,indsp(ib))/cpsb(j,i) * &
-                    ddepv(i,indsp(ib))-wk(i,kz)*pdepv(i,kz,indsp(ib))) * &
-                    egrav*1.D-3/cdsigma(kz)
+            settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
+                              wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz) 
+            
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
  
             !diagnostic for settling and drydeposition removal
@@ -607,9 +606,9 @@ module mod_che_drydep
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
                                              settend(i,kz) * cdiagf
             end if
-            ! diagnostic for dry deposition flux 
+            ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated 
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                            settend(i,kz)*cdzq(j,i,kz)*crhob3d(j,i,kz)*cdiagf
+                                    chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)*  ddepv(i,indsp(ib)) * cdiagf                         
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
           else if ( ichdrdepo == 2 ) then
@@ -618,7 +617,7 @@ module mod_che_drydep
             ! for the BL scheme !
             ! flux 
             cchifxuw(j,i,indsp(ib)) = cchifxuw(j,i,indsp(ib)) - &
-                chib(j,i,k,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
+                chib(j,i,kz,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
@@ -730,8 +729,8 @@ module mod_che_drydep
                                              ddrem(i) * cdiagf
               end if
              ! drydep flux diagnostic (accumulated between two outputs time
-             ! step) ! the fluc form is calulated in tracbud
-             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * cdiagf
+             ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
+             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cdiagf
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
              drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n)     
