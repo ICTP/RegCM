@@ -810,7 +810,7 @@ module mod_che_wetdep
   real(dp) :: schm   ! schmidt number
   real(dp) :: prii
   real(dp) :: priiv 
-  real(dp) :: cfac
+  real(dp) :: cfac,cfaca
   real(dp) :: re  ! reynolds number
   real(dp) :: rr  ! ratio of collected particle radius:collector particle radius
   real(dp) :: st  ! stokes number of collected particles
@@ -855,7 +855,7 @@ module mod_che_wetdep
           !* cunningham slip correction factor and             ****
           !* relaxation time = vg/grav.                        ****
           !********************************************************
-          cfac = d_one + amfp/rhsize(i,k,n) * &
+          cfaca = d_one + amfp/rhsize(i,k,n) * &
                     (aa1+aa2*dexp(-aa3*rhsize(i,k,n)/amfp))
           !*****************************************************
           !* the schmidt number is the ratio of the         ****
@@ -863,7 +863,7 @@ module mod_che_wetdep
           !* brownian diffusivity ===> sc=v/d               ****
           !*****************************************************
           anu = amu/rho(i,k)
-          amob = 6.0D0*mathpi*amu*rhsize(i,k,n)/cfac
+          amob = 6.0D0*mathpi*amu*rhsize(i,k,n)/cfaca
           pdiff = boltzk*t(i,k)/amob
           schm = anu/pdiff 
           !----------------------------------------------------c
@@ -882,8 +882,13 @@ module mod_che_wetdep
             priiv = prii*(rhorain-rho(i,k)) 
             ! cunningham settling slip-correction factor
             ! settling velocity
-            cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
-            vpr = priiv*rrm**d_two*cfac
+            ! FAB : wrong this formulation apply only for small
+            ! particles settling but not for big rain drops (high reynolds)!!
+            ! cf Seinfeld / Vpr would be overestimated 
+            !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
+            ! vpr = priiv*rrm**d_two*cfac
+            ! try with a mean rainfall velcoity of 3 m/s 
+              vpr = 3.D0 
           end if 
           !----------------------------------------------------c
           ! snow scavenging                                    c
