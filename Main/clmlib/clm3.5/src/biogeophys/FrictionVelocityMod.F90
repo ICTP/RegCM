@@ -102,6 +102,7 @@ contains
 !
    real(r8), pointer :: u10(:)         ! 10-m wind (m/s) (for dust model)
    real(r8), pointer :: fv(:)          ! friction velocity (m/s) (for dust model)
+   real(r8), pointer :: vds(:)         ! dry deposition velocity term (m/s) (for SO4 NH4NO3)
 !
 !EOP
 !
@@ -132,6 +133,7 @@ contains
 
    ! Assign local pointers to derived type members (pft-level)
 
+   vds        => clm3%g%l%c%p%pdd%vds
    u10        => clm3%g%l%c%p%pps%u10
    fv         => clm3%g%l%c%p%pps%fv
 
@@ -164,6 +166,16 @@ contains
          ustar(p) = vkc*um(p)/(log(obu(p)/z0m(p))+5._r8-5._r8*z0m(p)/obu(p) &
               +(5._r8*log(zeta(p))+zeta(p)-1._r8))
       end if
+
+      ! Deposition velocity temporary calculation for only aerodynamic  !abt added
+      if (zeta(p) < 0._r8) then
+         vds(p) = 2.e-3_r8*ustar(p) * ( 1._r8 + (300._r8/(-obu(p)))**0.666_r8)
+      else
+         vds(p) = 2.e-3_r8*ustar(p)
+      endif
+
+
+
 
       ! Temperature profile
 

@@ -173,7 +173,7 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/ta/ta_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_194912010600-195003010000.nc'
+            'r1i1p1_199012010600-199103010000.nc'
     else if ( dattyp(1:3) == 'CA_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.

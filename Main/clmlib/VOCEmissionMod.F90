@@ -33,7 +33,7 @@ module VOCEmissionMod
 !-----------------------------------------------------------------------
 
 contains
-
+  
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -67,7 +67,7 @@ contains
     use clm_atmlnd   , only : clm_a2l
     use shr_const_mod, only : SHR_CONST_RGAS
 !abt added below
-    use clm_varvoc   , only : n24,n240,c24,c240,r2cefmap
+    use clm_varvoc
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
     use clm_time_manager, only : get_nstep
     use clm_varctl      , only : nsrest
@@ -176,6 +176,7 @@ contains
     real(r8), parameter :: tm  = 314.0_r8    ! empirical coefficient [K]
     real(r8), parameter :: tstd = 303.0_r8   ! std temperature [K]
     real(r8), parameter :: bet = 0.09_r8     ! beta empirical coefficient [K-1]
+    real(r8), parameter :: scale_factor = 5._r8/7._r8  ! J-F Larmaque's empirical factor
 
 ! These are the values from version of genesis-ibis / 1000.
 ! With DGVM defined, use LPJ's sla [m2 leaf g-1 carbon]
@@ -275,6 +276,12 @@ contains
   ! calculate the gamma factors for each compound
     call gamma_calc (lbp,ubp,num_nolakep,filter_nolakep,gamma_ce,gamma_age,gamma_sm)
 
+
+
+
+
+
+
 !!!abt added above
 
 
@@ -309,7 +316,7 @@ contains
              if(n.eq.1) then
              ! isoprenes: (values received from C. Wiedinmyer)
 
-             epsilon(p) = 0._r8
+               epsilon(p) = 0._r8
                if(r2cefmap(n) == 1) then
                   epsilon(p) = epsilon_iso(g)
                else
@@ -344,7 +351,7 @@ contains
                     epsilon(p) = 22._r8
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 0.3_r8
-             end if
+                 end if
                endif 
 
 !dir$ concurrent
@@ -379,7 +386,7 @@ contains
              elseif(n.eq.4) then
 
 !             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
-             epsilon(p) = 0._r8
+               epsilon(p) = 0._r8                 
 
                if(r2cefmap(n) == 1) then
                   epsilon(p) = epsilon_limo(g)
@@ -426,13 +433,13 @@ contains
                  if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
                     epsilon(p) = 100._r8
                  else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
-                epsilon(p) = 0.1_r8
+                    epsilon(p) = 0.1_r8
                  else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
                     epsilon(p) = 1._r8
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 0.01_r8
-             end if
-              endif 
+                 end if
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -446,6 +453,7 @@ contains
                if(r2cefmap(n) == 1) then
                  epsilon(p) = epsilon_apin(g)
                else
+!abt changed to increase EMISSIONS
                  if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
                   epsilon(p) = 450._r8
                  else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
@@ -455,7 +463,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 2._r8
                  end if
-               endif 
+               endif	 
 
 !dir$ concurrent
 !cdir nodep
@@ -479,7 +487,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 1.5_r8
                  end if
-              endif 
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -502,7 +510,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 1._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -525,7 +533,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 0.3_r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -549,7 +557,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 4.8_r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -572,7 +580,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 0.5_r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -595,7 +603,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 0.9_r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -609,7 +617,7 @@ contains
 
               if(r2cefmap(n) == 1) then
                  epsilon(p) = epsilon_osqt(g)
-          else
+              else
                  if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
                     epsilon(p) = 75._r8
                  else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
@@ -618,8 +626,8 @@ contains
                     epsilon(p) = 85._r8
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 1.4_r8
-          end if
-              endif
+                 end if
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -642,7 +650,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 800._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -666,7 +674,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 80._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -690,7 +698,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 30._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -714,7 +722,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 70._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -738,7 +746,7 @@ contains
                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
                     epsilon(p) = 80._r8
                  end if
-              endif
+              endif			 
 
 !dir$ concurrent
 !cdir nodep
@@ -754,7 +762,7 @@ contains
                  epsilon(p) = epsilon_form(g)
               else
                  epsilon(p) = 70._r8
-              endif
+              endif			 
 
             else
               write(*,*) "ERROR: voc number exceeds available" ; call endrun()
@@ -784,7 +792,6 @@ contains
 !             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
 !abt original above
 
-!             call gamma_calc (n,p,g,gamma_ce,gamma_age,gamma_sm)
              gamma(p) = gamma_ce(p,n) * gamma_age(p,n) * gamma_sm(p)
 
 !dir$ concurrent
@@ -811,16 +818,21 @@ contains
 
           ! calculate the voc flux
 
-          vocflx(p,n) = epsilon(p) * gamma(p) * density
+
+          if(n.eq.1) then
+               vocflx(p,n) = epsilon(p) * gamma(p) * density * scale_factor
+          else
+               vocflx(p,n) = epsilon(p) * gamma(p) * density
+          end if
 
           vocflx_tot(p) = vocflx_tot(p) + vocflx(p,n)
 
           if(n.eq.nvoc) then
-       vocflx_1(p) = vocflx(p,1)
-       vocflx_2(p) = vocflx(p,2)
-       vocflx_3(p) = vocflx(p,3)
-       vocflx_4(p) = vocflx(p,4)
-       vocflx_5(p) = vocflx(p,5)
+             vocflx_1(p) = vocflx(p,1)
+             vocflx_2(p) = vocflx(p,2)
+             vocflx_3(p) = vocflx(p,3)
+             vocflx_4(p) = vocflx(p,4)
+             vocflx_5(p) = vocflx(p,5)
              vocflx_6(p) = vocflx(p,6)    !abt added
              vocflx_7(p) = vocflx(p,7)    !abt added
              vocflx_8(p) = vocflx(p,8)    !abt added
@@ -887,7 +899,7 @@ contains
 !    end do
 
   end subroutine VOCEmission
-
+  
   
 !-----------------------------------------------------------------------
 !BOP
@@ -915,10 +927,9 @@ contains
     use shr_const_mod, only : SHR_CONST_RGAS
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
     use clm_time_manager, only : get_nstep
-!    use clm_varsur   , only : monlai
-    use clm_varvoc   , only : n24,n240,c24,c240,n_start
-    use clm_varvoc   , only : LDF,beta,Anew,Agro,Amat,Aold
+    use clm_varvoc
     use clm_varctl   , only : nsrest
+    use spmdMod      , only : iam
 !
 ! !ARGUMENTS:
     implicit none
@@ -945,17 +956,20 @@ contains
     real(r8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity) (nlevsoi)
     integer , pointer :: pcolumn(:)       ! column index of corresponding pft
     integer , pointer :: pgridcell(:)     ! gridcell index of corresponding pft
-    real(r8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
+!!!    real(r8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
+    real(r8), pointer :: t_ref2m(:)       ! 2meter temperature (Kelvin)  *** buggin
     real(r8), pointer :: fsun(:)          ! sunlit fraction of canopy
     real(r8), pointer :: forc_solad(:,:)  ! direct beam radiation (visible only)
     real(r8), pointer :: forc_solai(:,:)  ! diffuse radiation     (visible only)
-    real(r8), pointer :: t_sum24(:,:)     ! pft vegetation temperature (Kelvin)
-    real(r8), pointer :: t_sum240(:,:)    ! pft vegetation temperature (Kelvin)
-    real(r8), pointer :: p_sum24su(:,:)   ! pft PPFD (sunlit)
-    real(r8), pointer :: p_sum240su(:,:)  ! pft PPFD (sunlit)
-    real(r8), pointer :: p_sum24sh(:,:)   ! pft PPFD (shaded)
-    real(r8), pointer :: p_sum240sh(:,:)  ! pft PPFD (shaded)
-    real(r8), pointer :: monlai(:,:)  ! monthly lai
+    real(r8), pointer :: t_sum24(:)       ! pft vegetation temperature (Kelvin)
+    real(r8), pointer :: t_sum240(:)      ! pft vegetation temperature (Kelvin)
+    real(r8), pointer :: fsd24(:)         ! pft direct radiation averaged avg 24hrs
+    real(r8), pointer :: fsd240(:)        ! pft direct radiation averaged avg 240hrs
+    real(r8), pointer :: fsi24(:)         ! pft indirect radiation averaged avg 24hrs
+    real(r8), pointer :: fsi240(:)        ! pft indirect radiation averaged avg 240hrs
+    real(r8), pointer :: monlai(:,:)      ! monthly lai
+    real(r8), pointer :: fsun24(:)        ! pft vegetation temperature (Kelvin)
+    real(r8), pointer :: fsun240(:)       ! pft vegetation temperature (Kelvin)
 !
 !EOP
 !
@@ -984,11 +998,12 @@ contains
     real(r8) :: alpha_su      ! empirical coefficient (in the sun)
     real(r8) :: Cp_su         ! empirical coefficient (in the sun)
     real(r8) :: Eopt          ! empirical coefficient
-    real(r8) :: Topt          ! empirical coefficient
+    real(r8) :: Topt          ! empirical coefficient	
     real(r8) :: t_24,t_240    ! average temp over 24h and 240h
     real(r8) :: p_240sh,p_240su         ! average PPFD over 24h and 240h
     real(r8) :: p_24su,p_24sh           ! average PPFD over 24h and 240h 
     real(r8) :: p_24,p_240
+    real(r8) :: fsun_24,fsun_240
     integer  :: counter,lev
     integer  :: nstep,dtime             ! step size and timestep number in CLM
 !    real(r8) :: Aold,Agro,Amat,Anew   ! relative emission rate to each canopy fraction (old,grow,mature,new)
@@ -996,8 +1011,8 @@ contains
     real(r8) :: gamma_pt,gamma_sun,gamma_shade
     real(r8) :: gamma_lai,gamma_t,gamma_p
     real(r8) :: wilt(nlevsoi),wilt1(nlevsoi),sm_sum(nlevsoi) ! wilting point,wilt point + del_vol and
-                                                     ! sum of gamma_sm over all soil levels
-
+	                                                     ! sum of gamma_sm over all soil levels
+	
 ! Constants
     real(r8), parameter :: R    = SHR_CONST_RGAS*0.001_r8 ! univ. gas constant [J K-1 mol-1]
     real(r8), parameter :: ct1  = 95.0_r8     ! empirical coefficient [J mol-1]
@@ -1006,10 +1021,12 @@ contains
     real(r8), parameter :: tm   = 314.0_r8    ! empirical coefficient [K]
     real(r8), parameter :: tstd = 303.0_r8    ! std temperature [K]
     real(r8), parameter :: bet  = 0.09_r8     ! beta empirical coefficient [K-1]
-    real(r8), parameter :: Cce  = 0.57_r8     ! sets emission activity to unity at std conditions
+    real(r8), parameter :: Cce  = 0.4_r8     ! sets emission activity to unity at std conditions
     real(r8), parameter :: Psun = 200.0_r8    ! std PPFD for sun portion [umol/m2/s]
     real(r8), parameter :: Psha = 50.0_r8     ! std PPFD for shaded portion [umol/m2/s]
     real(r8), parameter :: del_vol = 0.06     ! empirical paramter
+
+    logical :: WEIGHTED
 
 !-----------------------------------------------------------------------
 
@@ -1034,25 +1051,28 @@ contains
   
   ! Assign local pointers to derived subtypes components (pft-level)
     pgridcell  => clm3%g%l%c%p%gridcell
-    t_veg      => clm3%g%l%c%p%pes%t_veg
+!!    t_veg      => clm3%g%l%c%p%pes%t_veg
+    t_ref2m    => clm3%g%l%c%p%pes%t_ref2m  !** buggin use 2m Temp instead of veg temp ** !!!
     fsun       => clm3%g%l%c%p%pps%fsun
-    rootfr     => clm3%g%l%c%p%pps%rootfr
+    rootfr     => clm3%g%l%c%p%pps%rootfr	
     pcolumn    => clm3%g%l%c%p%column
     t_sum24    => clm3%g%l%c%p%pva%t_sum24
     t_sum240   => clm3%g%l%c%p%pva%t_sum240
-    p_sum24su  => clm3%g%l%c%p%pva%p_sum24su
-    p_sum240su => clm3%g%l%c%p%pva%p_sum240su
-    p_sum24sh  => clm3%g%l%c%p%pva%p_sum24sh
-    p_sum240sh => clm3%g%l%c%p%pva%p_sum240sh
+    fsd24      => clm3%g%l%c%p%pva%fsd24
+    fsd240     => clm3%g%l%c%p%pva%fsd240
+    fsi24      => clm3%g%l%c%p%pva%fsi24
+    fsi240     => clm3%g%l%c%p%pva%fsi240
+    fsun24     => clm3%g%l%c%p%pva%fsun24
+    fsun240    => clm3%g%l%c%p%pva%fsun240
     monlai     => clm3%g%l%c%p%pva%monlai
 
   ! Set some constants (note these are only constant when there isn't enough info)    
-    alpha_su = 0.0027_r8 
-    Cp_su    = 1.066_r8  
-    alpha_sh = 0.0027_r8 
-    Cp_sh    = 1.066_r8 
-    Eopt     = 1.9_r8    
-    Topt     = 312.5_r8   
+    alpha_su = 0.001_r8 
+    Cp_su    = 1.21_r8  
+    alpha_sh = 0.001_r8 
+    Cp_sh    = 1.21_r8  	  
+    Eopt     = 2.26_r8    
+    Topt     = 317._r8   
 
   ! Initialize
     gamma_ce(:,:)  = 0._r8
@@ -1064,36 +1084,34 @@ contains
     p_240su   = 0._r8
     p_24sh    = 0._r8
     p_240sh   = 0._r8
+    fsun_24   = 0._r8
+    fsun_240  = 0._r8
 
   do fp = 1,num_nolakep           !pft loop
       p = filter_nolakep(fp)
       g = pgridcell(p)
       c = pcolumn(p)
 
+
+
+
   ! calculate gamma_ce:  gamma_ce = gamma_pt * LAI * Cce (immediately below if statements
   ! are for calculating temp & light effects on emissions over last 1 and 10 days)
 
-    if(nstep .lt. n240+n_start) then
-      t_sum240(c240,p)    = t_veg(p)
-      t_sum24(c24,p)      = t_veg(p)
-      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
-      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
-    elseif(nstep .ge. n240+n_start) then
-      t_sum240(c240,p)    = t_veg(p)
-      t_sum24(c24,p)      = t_veg(p)
-      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
-      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+    if(nstep .ge. n240+n_start) then
+      t_240     = t_sum240(p) 
+      t_24      = t_sum24(p)  
+      p_240sh   = fsi240(p) 
+      p_240su   = fsd240(p)
+      p_24sh    = fsi24(p) 
+      p_24su    = fsd24(p) 
+      fsun_24   = fsun24(p) 
+      fsun_240  = fsun240(p) 
 
-      t_240   = sum(t_sum240(:,p))/real(n240) 
-      t_24    = sum(t_sum24(:,p))/real(n24)  
-      p_240sh = sum(p_sum240sh(:,p))/real(n240) 
-      p_240su = sum(p_sum240su(:,p))/real(n240) 
-      p_24sh  = sum(p_sum24sh(:,p))/real(n24) 
-      p_24su  = sum(p_sum24su(:,p))/real(n24) 
+      p_240su  = (p_240su + fsun_240  * p_240sh ) * 4.6_r8	
+      p_24su   = (p_24su  + fsun_24   * p_24sh  ) * 4.6_r8	
+      p_24sh   = ((1._r8  - fsun_24)  * p_24sh  ) * 4.6_r8
+      p_240sh  = ((1._r8  - fsun_240) * p_240sh ) * 4.6_r8
 
       alpha_sh = 0.004_r8 - 0.0005_r8*log(p_240sh)
       alpha_su = 0.004_r8 - 0.0005_r8*log(p_240su)
@@ -1104,34 +1122,35 @@ contains
     endif
 
 
-  ! calculate gamma_sm: gamma_sm varies depending on the soil moisture and wilting point
-  ! wilting point calculation from Chen and Dudhia 2001
-    sm_sum(:) = 0._r8    
-    counter   = 0
-    do lev = 1,nlevsoi
-      wilt(lev)  = 0.5_r8*watsat(c,lev)*(200._r8/sucsat(c,lev))**(-1._r8/bsw(c,lev)) 
-      wilt1(lev) = del_vol + wilt(lev)
 
-      if(rootfr(p,lev) > 0._r8) then
-         counter = counter + 1
-         if(h2osoi_vol(c,lev) > wilt1(lev)) then
-            sm_sum(lev) = 1.0
-         elseif(h2osoi_vol(c,lev).lt.wilt1(lev) .and. h2osoi_vol(c,lev).gt.wilt(lev)) then
-            sm_sum(lev) = (h2osoi_vol(c,lev) - wilt(lev))/del_vol
-         elseif(h2osoi_vol(c,lev) < wilt(lev)) then
-            sm_sum(lev) = 0.0
-         endif
-      else
-         sm_sum(lev)   = 0.0
-         gamma_sm(p) = 0.0
-      endif
-    enddo
-    if(sum(rootfr(p,:)) > 0._r8) gamma_sm(p) = sum(sm_sum(:))/counter
+
+   ! calculate gamma_sm: gamma_sm varies depending on the soil moisture and wilting point
+   ! wilting point calculation from Muller 2008
+
+     sm_sum(:) = 0._r8
+     counter   = 0
+     do lev = 1,nlevsoi
+	 wilt(lev)  = 0.5_r8*watsat(c,lev)*(200._r8/sucsat(c,lev))**(-1._r8/bsw(c,lev))
+         wilt1(lev) = del_vol + wilt(lev)
+
+         sm_sum(2)  = (h2osoi_vol(c,lev) - wilt(lev)) / del_vol
+         sm_sum(1)  = rootfr(p,lev) * max(0._r8, min(1._r8, sm_sum(2)) ) + sm_sum(1)
+     enddo
+
+     if(sum(rootfr(p,:)) > 0._r8) then
+          gamma_sm(p) = sm_sum(1)
+     else
+          gamma_sm(p) = 0._r8
+     end if
+     gamma_sm_out(p) = gamma_sm(p)
+  
+
+
 
   ! calculate gamma_age: gamma_age = FnewAnew + FoldAold + FmatAmat + FgroAgro
   ! eqs below hold assuming that timestep in days is less than or equal to the number of days
   ! between budbreak and induction of emission (Guenther 2006)
-    if(pmo == kmo) then
+    if(pmo == kmo .or. monlai(p,1) == monlai(p,2)) then
       Fnew = 0.0_r8
       Fgro = 0.1_r8
       Fmat = 0.8_r8
@@ -1139,14 +1158,14 @@ contains
     elseif(pmo /= kmo) then
       if(monlai(p,1) > monlai(p,2)) then
         Fnew = 0.0_r8
-        Fgro = 0.0_r8
-        Fold = (monlai(p,1)-monlai(p,2))/monlai(p,1)
+	Fgro = 0.0_r8
+	Fold = (monlai(p,1)-monlai(p,2))/monlai(p,1)
         Fmat = 1._r8 - Fold
       elseif(monlai(p,1) < monlai(p,2)) then 
         Fnew = 1._r8 - (monlai(p,1)/monlai(p,2))
         Fmat = monlai(p,1)/monlai(p,2)
         Fgro = 1._r8 - Fnew - Fmat
-        Fold = 0.0_r8
+	Fold = 0.0_r8
       endif
     endif
 
@@ -1155,21 +1174,39 @@ contains
 
   !Calculate light and temperature dependency factor
     if(n.eq.1) then  !isoprene  (Guenther 2006)
-      x     = ((1._r8 /Topt) - (1._r8/t_veg(p))) / 0.00831_r8
+!      x     = ((1._r8 /Topt) - (1._r8/t_veg(p))) / 0.00831_r8
+      x     = ((1._r8 /Topt) - (1._r8/t_ref2m(p))) / 0.00831_r8  !*** buggin USE 2m Temp **!!!!
       upper = exp(ct1*x)*ct2*Eopt
       lower = ct2 - ct1*(1._r8 - exp(ct2*x))
       ct    = upper/lower
       par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
       cl  = alpha_su * Cp_su * par * (1._r8 + alpha_su * alpha_su * par * par)**(-0.5_r8)
-      gamma_sun = cl * ct !gamma = 1 under std temp & light condns
+      gamma_sun = cl * ct * fsun(p) !gamma = 1 under std temp & light condns
       par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
       cl = alpha_sh * Cp_sh * par * (1._r8 + alpha_sh * alpha_sh * par * par)**(-0.5_r8)
-      gamma_shade = ct * cl
+      gamma_shade = ct * cl * (1 - fsun(p))
       gamma_pt      = gamma_sun + gamma_shade !gamma(sun) + gamma(sha)
       gamma_ce(p,n) = Cce * monlai(p,2) * gamma_pt
 
+      gamma_t_out(p)  = ct             !for output
+      gamma_p_out(p)  = gamma_pt/ct    !for output
+      Cpsun_out(p)    = Cp_su
+      Cpsh_out(p)     = Cp_sh
+      alphasu_out(p)  = alpha_su
+      alphash_out(p)  = alpha_sh
+      Topt_out(p)     = Topt
+      Eopt_out(p)     = Eopt
+      t24_out(p)      = t_24
+      t240_out(p)     = t_240
+      p24su_out(p)    = p_24su
+      p24sh_out(p)    = p_24sh
+      p240su_out(p)   = p_240su
+      p240sh_out(p)   = p_240sh
+
+
     else ! non-isoprene (Guenther 2006 and MEGANv2.03)
-      gamma_t   = exp(beta(n) * (t_veg(p) - tstd))
+!!!      gamma_t   = exp(beta_V(n) * (t_veg(p) - tstd))
+      gamma_t   = exp(beta_V(n) * (t_ref2m(p) - tstd))     !*** buggin USE 2m Temp ** !!!
       par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
       cl  = alpha_su * Cp_su * par * (1._r8 + alpha_su * alpha_su * par * par)**(-0.5_r8)
       gamma_sun = cl !gamma = 1 under std temp & light condns
@@ -1183,9 +1220,14 @@ contains
 
   ! Calculate Leaf Age Factor    
     gamma_age(p,n) = Fnew*Anew(n) + Fold*Aold(n) + Fmat*Amat(n) + Fgro*Agro(n)
+    if(n.eq.1) gamma_age_out(p) = gamma_age(p,n)
 
   enddo    !end nvoc loop
   enddo    !end pft loop  
+
+
+
+
 
   end subroutine gamma_calc
 

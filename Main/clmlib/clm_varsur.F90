@@ -51,6 +51,9 @@ module clm_varsur
   real(r8), allocatable :: clm2bats_veg(:,:) ! Only used for RegCM Dust model 
   real(r8), allocatable :: clm_fracveg(:,:)  ! fraction of grid covered by vegetation 
 
+  integer :: cgaschem                        ! Gas-phase chem flag( cgaschem=1 for CBMZ)
+  integer :: caerosol                        ! Flag for sending aerosol vars to RegCM 
+                                             ! particularly clm snow cover and fracveg
 
 ! soil moisture initialization
   real(r8) :: slmo(22)                       ! surface moisture availability in fraction of one

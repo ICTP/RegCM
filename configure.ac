@@ -128,16 +128,28 @@ AC_ARG_ENABLE(sequence,
 )
 
 USECLM="0"
+USEMEGAN="0"
 AC_ARG_ENABLE(clm,
   AC_HELP_STRING([--enable-clm],
                  [Supply this option if you plan on using CLM option.]),
   [USECLM="1"],
 )
 AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
+AC_ARG_ENABLE(megan,
+  AC_HELP_STRING([--enable-megan],
+                 [Supply this option if you plan on using CLM option with MEGAN.]),
+  [USEMEGAN="1"],
+)
 if eval "test x"$USECLM" = x1"; then
   AC_MSG_WARN([Compiling CLM enabled code])
   AM_CPPFLAGS="-DCLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
+  if eval "test x"$USEMEGAN" = x1"; then
+     AC_MSG_WARN([Compiling CLM with MEGAN enabled code])
+     AM_CPPFLAGS="-DVOC $AM_CPPFLAGS"
+     AC_SUBST(AM_CPPFLAGS)
+  fi
+
 fi
 
 AC_ARG_ENABLE(nc4-gzip,

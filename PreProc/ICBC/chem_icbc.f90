@@ -45,14 +45,16 @@ program chem_icbc
   character(256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
   integer :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
-             ichsolver , idirect , ichdustemd
+             ichsolver , idirect , ichdustemd, ichdiag
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
   data doaero /.false./
 !
-  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-    ichcumtra , ichsolver , idirect , ichdustemd
+  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
+         ichcumtra , ichsolver , idirect , ichdustemd , ichdiag
+!  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
+!    ichcumtra , ichsolver , idirect , ichdustemd
 !
   call header('chem_icbc')
 !
@@ -80,6 +82,9 @@ program chem_icbc
     case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
       doaero = .true.
       dooxcl = .true.
+    case ( 'DCCB' )
+      dochem = .true.
+      doaero = .true.
     case default
       write (stderr,*) 'Unknown chemsimtype'
       write (stderr,*) 'Assuming nothing to do for this experiment'

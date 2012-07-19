@@ -91,6 +91,7 @@ module mod_che_drydep
 !
   real(dp) lai(20,15)
   real(dp) z01(20) , z02(20)
+  integer :: kk
 
   data (lai(1,kk), kk = 1, 15)/                    &
            0.1D0 , 0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , &
@@ -635,9 +636,7 @@ module mod_che_drydep
 !
     subroutine drydep_gas(j,ccalday,lmonth,lday,ivegcov,rh10,srad,tsurf, &
                           prec,temp10,wind10,zeff)
-#ifdef CLM
-!     use clm_drydep, only : c2rvdep
-#endif
+
       use mod_che_indices
       implicit none
       integer , intent(in) :: j   
@@ -655,6 +654,12 @@ module mod_che_drydep
       real(dp) , dimension(ici1:ici2) :: icz , ddrem
       real(dp) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(dp) :: kd
+
+#ifdef CLM
+      integer  :: jj, ii
+#endif
+
+
 
       ! Different options for LAI and roughness 
       ! for the moment read from 
@@ -710,9 +715,22 @@ module mod_che_drydep
          drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
          drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
        end if 
+
        ! Finally : gas phase dry dep tendency calculation 
+#ifdef CLM
+       jj = global_jstart+j-1
+#endif
        if ( ichdrdepo == 1 ) then  
          do i = ici1 , ici2
+
+           ! If using CLM then use the dry deposition velocities coming directly
+           ! from internal CLM calculations
+#ifdef CLM
+           if ( ivegcov(i) == 0 ) then
+              ii = global_istart+i-1
+              drydepvg(i,:)  =  cdep_vels(jj,ii,:)
+           end if
+#endif
            do n = 1 , ntr
              kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
              if ( kd*dtche < 25.0D0 ) then
@@ -738,6 +756,15 @@ module mod_che_drydep
          end do
        else if ( ichdrdepo == 2 ) then 
          do i = ici1 , ici2
+
+           ! If using CLM then use the dry deposition velocities coming directly
+           ! from internal CLM calculations
+#ifdef CLM
+           if ( ivegcov(i) == 0 ) then
+              ii = global_istart+i-1
+              drydepvg(i,:)  =  cdep_vels(jj,ii,:)
+           end if
+#endif
            do n = 1 , ntr
              cchifxuw(j,i,n) = cchifxuw(j,i,n) - chib(j,i,kz,n) / &
                                cpsb(j,i) * drydepvg(i,n)
@@ -748,41 +775,6 @@ module mod_che_drydep
          end do
        end if 
 
-! if CLM is used then use directly the clm dry dep module.
-#ifdef CLM
-
-!NEED TO BE FIXED ! CANNOT REACH CLM VARS FROM HERE!
-
-!       jj = global_jstart+j-1
-!       ii = global_istart+i-1
-
-!          do i = ici1 , ici2
-!          do n = 1, ntr
-
-! use clm dry deposition velocity
-!            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
-!             ddrem(i)  =  chib(j,i,kz,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
-!update chiten
-!             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
-!drydep flux diagnostic (accumulated between two outputs time step) 
-!             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / 2 
-!
-!          do i = ici1 , ici2
-!          do n = 1 , ntr
-!
-!! use clm dry deposition velocity
-!            Kd =  c2rvdep(jj,i,itr) / dzq(j,i,kz) !Kd removal rate in s-1
-!             ddrem(i)  =  chib(i,kz,j,n) * (1 -   dexp(-Kd*dtche)) / dtche ! dry dep removal tendency (+)
-!!update chiten
-!             chiten(i,kz,j,n) = chiten(i,kz,j,n) - ddrem(i)
-!!drydep flux diagnostic (accumulated between two outputs time step) 
-!             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i) * dtche / 2 
-!!
-!!          drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n) 
-!          end do
-!          end do
-!          end if
-#endif
 
     end subroutine drydep_gas
 

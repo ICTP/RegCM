@@ -111,7 +111,7 @@ clm_varctl.F90 clm_varpar.F90 clm_varsur.F90 controlMod.F90 \
 decompMod.F90 driver.F90 histFileMod.F90 histFldsMod.F90 initializeMod.F90 \
 iniTimeConst.F90 mkarbinitMod.F90 perf_mod.F90 restFileMod.F90 shr_orb_mod.F90 \
 STATICEcosysDynMod.F90 subgridMod.F90 SurfaceAlbedoMod.F90 surfrdMod.F90 \
-VOCEmissionMod.F90  ncdio.F90 shr_sys_mod.F90 mod_mtrxclm.F90
+VOCEmissionMod.F90  ncdio.F90 shr_sys_mod.F90 mod_mtrxclm.F90 DryDepVelocityMod.F90 clm_drydep.F90
 else
 libclm_a_SOURCES = mod_clm_void.F90
 endif
@@ -255,7 +255,7 @@ accFldsMod.o:  accFldsMod.F90 shr_kind_mod.o clm_varctl.o clm_time_manager.o clm
 accumulMod.o:  accumulMod.F90 shr_kind_mod.o spmdMod.o clm_varctl.o clm_time_manager.o abortutils.o clm_varcon.o ncdio.o nanMod.o shr_const_mod.o decompMod.o misc.h preproc.h
 areaMod.o:  areaMod.F90 clm_varpar.o clm_varsur.o shr_kind_mod.o clm_mct_mod.o spmdMod.o domainMod.o abortutils.o clm_varcon.o nanMod.o shr_const_mod.o decompMod.o misc.h preproc.h
 atmdrvMod.o:  atmdrvMod.F90 shr_kind_mod.o perf_mod.o clm_mct_mod.o spmdMod.o clm_varcon.o shr_const_mod.o decompMod.o clm_varpar.o domainMod.o clm_varctl.o clm_time_manager.o clm_atmlnd.o abortutils.o mod_clm.o fileutils.o ncdio.o areaMod.o surfrdMod.o nanMod.o misc.h preproc.h
-clm_atmlnd.o:  clm_atmlnd.F90 clm_varsur.o shr_kind_mod.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o decompMod.o clm_varpar.o domainMod.o abortutils.o mod_clm.o QSatMod.o areaMod.o nanMod.o misc.h preproc.h
+clm_atmlnd.o:  clm_atmlnd.F90 clm_varsur.o shr_kind_mod.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o decompMod.o clm_varpar.o domainMod.o abortutils.o mod_clm.o QSatMod.o areaMod.o nanMod.o misc.h preproc.h clm_drydep.o
 clm_comp.o:  clm_comp.F90 shr_kind_mod.o shr_orb_mod.o eshr_timemgr_mod.o perf_mod.o driver.o initializeMod.o shr_sys_mod.o clm_varorb.o clm_time_manager.o clm_varctl.o clm_atmlnd.o shr_inputinfo_mod.o mod_clm.o initSurfAlbMod.o misc.h preproc.h
 clm_csmMod.o:  clm_csmMod.F90 shr_kind_mod.o subgridAveMod.o perf_mod.o spmdGathScatMod.o spmdMod.o clmtype.o clm_varcon.o shr_const_mod.o decompMod.o clm_varpar.o shr_sys_mod.o domainMod.o clm_time_manager.o clm_varctl.o RunoffMod.o clm_atmlnd.o abortutils.o ncdio.o nanMod.o misc.h preproc.h
 clm_mct_mod.o:  clm_mct_mod.F90 shr_kind_mod.o m_stdio.o m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_SparseMatrix.o m_List.o m_Rearranger.o m_GlobalSegMap.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o shr_mpi_mod.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_MCTWorld.o m_die.o m_Permuter.o m_MergeSorts.o 
@@ -272,7 +272,9 @@ controlMod.o:  controlMod.F90 clm_varsur.o shr_kind_mod.o CASAMod.o spmdMod.o sh
 decompMod.o:  decompMod.F90 clm_varsur.o shr_kind_mod.o subgridMod.o clm_mct_mod.o spmdMod.o clmtype.o shr_sys_mod.o domainMod.o clm_varctl.o abortutils.o mod_clm.o misc.h preproc.h
 do_close_dispose.o:  do_close_dispose.F90 shr_kind_mod.o clm_csmMod.o clm_time_manager.o misc.h preproc.h
 domainMod.o:  domainMod.F90 shr_kind_mod.o spmdMod.o abortutils.o nanMod.o misc.h preproc.h
-driver.o:  driver.F90 CASAPhenologyMod.o SurfaceAlbedoMod.o pftdynMod.o spmdMod.o clm_varcon.o clmtype.o Biogeophysics1Mod.o CanopyFluxesMod.o VOCEmissionMod.o DGVMMod.o Hydrology2Mod.o restFileMod.o shr_sys_mod.o clm_csmMod.o histFileMod.o RtmMod.o CNBalanceCheckMod.o clm_varctl.o abortutils.o DUSTMod.o mod_clm.o Hydrology1Mod.o BalanceCheckMod.o SurfaceRadiationMod.o shr_kind_mod.o STATICEcosysDynMod.o CASAMod.o perf_mod.o BiogeophysicsLakeMod.o DGVMEcosystemDynMod.o BareGroundFluxesMod.o decompMod.o filterMod.o accFldsMod.o inicFileMod.o DriverInitMod.o clm_time_manager.o HydrologyLakeMod.o clm_atmlnd.o pft2colMod.o ndepFileMod.o Biogeophysics2Mod.o CNEcosystemDynMod.o misc.h preproc.h
+driver.o:  driver.F90 CASAPhenologyMod.o SurfaceAlbedoMod.o pftdynMod.o spmdMod.o clm_varcon.o clmtype.o Biogeophysics1Mod.o CanopyFluxesMod.o VOCEmissionMod.o DGVMMod.o Hydrology2Mod.o restFileMod.o shr_sys_mod.o clm_csmMod.o histFileMod.o RtmMod.o CNBalanceCheckMod.o clm_varctl.o abortutils.o DUSTMod.o mod_clm.o Hydrology1Mod.o BalanceCheckMod.o SurfaceRadiationMod.o shr_kind_mod.o STATICEcosysDynMod.o CASAMod.o perf_mod.o BiogeophysicsLakeMod.o DGVMEcosystemDynMod.o BareGroundFluxesMod.o decompMod.o filterMod.o accFldsMod.o inicFileMod.o DriverInitMod.o clm_time_manager.o HydrologyLakeMod.o clm_atmlnd.o pft2colMod.o ndepFileMod.o Biogeophysics2Mod.o CNEcosystemDynMod.o misc.h preproc.h DryDepVelocityMod.o
+clm_drydep.o : clm_drydep.F90 shr_kind_mod.o spmdMod.o shr_const_mod.o shr_sys_mod.o
+DryDepVelocityMod.o : DryDepVelocityMod.F90 shr_kind_mod.o spmdMod.o clm_varcon.o clmtype.o shr_const_mod.o clm_drydep.o clm_time_manager.o clm_atmlnd.o abortutils.o pftvarcon.o misc.h preproc.h
 eshr_estate_mod.o:  eshr_estate_mod.F90 ESMF_Mod.o shr_string_mod.o shr_sys_mod.o shr_kind_mod.o shr_const_mod.o shr_mpi_mod.o eshr_rc_mod.o 
 eshr_inputinfo_mod.o:  eshr_inputinfo_mod.F90 ESMF_Mod.o eshr_estate_mod.o shr_inputinfo_mod.o shr_kind_mod.o eshr_rc_mod.o 
 eshr_rc_mod.o:  eshr_rc_mod.F90 ESMF_Mod.o shr_sys_mod.o 

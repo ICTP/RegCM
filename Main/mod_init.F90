@@ -473,7 +473,7 @@ module mod_init
   end if
 #ifdef CLM
   call mkslice
-  call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
+  call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)
 #endif
   !
   ! Calculate emission coefficients

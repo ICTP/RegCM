@@ -108,6 +108,7 @@ contains
 !
 ! !USES:
     use clmtype
+    use clm_time_manager, only : get_nstep
 !
 ! !ARGUMENTS:
     implicit none
@@ -227,6 +228,20 @@ contains
              frac_veg_nosno_alb(p) = 0
           end if
 
+
+
+!abt added new variable for use in VOCemissionMod
+#if (defined VOC)
+          if(get_nstep() .eq. 0) then
+             clm3%g%l%c%p%pva%monlai(p,2) = elai(p)
+          else
+             clm3%g%l%c%p%pva%monlai(p,2) = clm3%g%l%c%p%pva%monlai(p,1)
+          end if
+          clm3%g%l%c%p%pva%monlai(p,1) = elai(p)
+#endif
+
+
+
        end do ! end of pft loop
 
     end if  !end of if-doalb block
@@ -315,9 +330,6 @@ contains
     use spmdMod     , only : masterproc, mpicom, MPI_REAL8
     use clm_time_manager, only : get_nstep
     use ncdio       , only : check_ret
-!abt added below
-!    use clm_varsur  , only : monlai
-!abt added above
 !
 ! !ARGUMENTS:
     implicit none
@@ -328,7 +340,7 @@ contains
     integer, intent(in) :: months(2)      ! months to be interpolated (1 to 12)
 !
 ! !REVISION HISTORY:
-! Created by Sam Levis
+! Created by Sam Levis; Modified by A. Tawfik !abt
 !
 !EOP
 !
@@ -367,9 +379,6 @@ contains
              msai(begg:endg,0:numpft), &
              mhgtt(begg:endg,0:numpft), &
              mhgtb(begg:endg,0:numpft), stat=ier)
-!abt added below
-!    allocate(monlai(begp:endp,2))
-!abt above
     if (ier /= 0) then
        write(6,*)subname, 'allocation big error '; call endrun()
     end if
@@ -493,7 +502,6 @@ contains
 
 
        if (masterproc) then
-          call check_ret(nf_close(ncid), subname)
           write (6,*) 'Successfully read monthly vegetation data for'
           write (6,*) 'month ', months(k)
           write (6,*)
@@ -506,8 +514,7 @@ contains
        do p = begp,endp
 
           g = clm3%g%l%c%p%gridcell(p)
-          i = ldecomp%gdc2i(clm3%g%l%c%p%gridcell(p))
-          j = ldecomp%gdc2j(clm3%g%l%c%p%gridcell(p))
+
 
           ! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts
           ! as determined in subroutine surfrd
@@ -531,18 +538,113 @@ contains
           end if
 
 
-!abt added new variable for use in VOCemissionMod
-#if (defined VOC)
-          clm3%g%l%c%p%pva%monlai(p,k) = mlai2t(p,k)
-#endif
 
        end do   ! end of loop over pfts
 
     end do   ! end of loop over months
 
 
+
+
+     !----------------------------------------------
+     !  Get LAI for every month used for Dry Dep
+     !----------------------------------------------
+    do k=1,12   !loop over months and read vegetated data
+
+       if (masterproc) then
+
+          write (6,*) 'Attempting to read monthly vegetation data .....'
+          write (6,*) 'nstep = ',get_nstep(),' All LAI months '
+       end if
+
+       if (single_column) then
+          call scam_setlatlonidx(ncid,scmlat,scmlon,closelat,closelon,closelatidx,closelonidx)
+          beg4d(1) = closelonidx  ; len4d(1) = 1
+          beg4d(2) = closelatidx  ; len4d(2) = 1
+          beg4d(3) = 1            ; len4d(3) = npft_i
+          beg4d(4) = k            ; len4d(4) = 1
+       else
+          beg4d(1) = 1         ; len4d(1) = nlon_i
+          beg4d(2) = 1         ; len4d(2) = nlat_i
+          beg4d(3) = 1         ; len4d(3) = npft_i
+          beg4d(4) = k         ; len4d(4) = 1
+       endif
+
+       allocate(arrayg(lsmlon*lsmlat),arrayl(begg:endg),stat=ier)
+       if (ier /= 0) then
+          write(6,*)subname, 'allocation array error '; call endrun()
+       end if
+
+       do n = nps,npe
+
+          if (masterproc) then
+             beg4d(3) = n          ; len4d(3) = 1
+             beg4d(4) = k          ; len4d(4) = 1
+             if (nps == 0) beg4d(3) = n+1     ! shift by "1" if index starts at zero
+             if (single_column) then
+                beg4d(1) = closelonidx; len4d(1) = 1
+                beg4d(2) = closelatidx; len4d(2) = 1
+             else
+                beg4d(1) = 1         ; len4d(1) = nlon_i
+                beg4d(2) = 1         ; len4d(2) = nlat_i
+             end if
+
+             call check_ret(nf_inq_varid(ncid, 'MONTHLY_LAI', varid), subname)
+             call check_ret(nf_get_vara_double(ncid, varid, beg4d, len4d, arrayg), subname)
+          endif
+          call scatter_data_from_master(arrayl,arrayg,gsMap_lnd_gdc2glo,perm_lnd_gdc2glo,begg,endg)
+          mlai(begg:endg,n) = arrayl(begg:endg)
+
+       enddo
+       deallocate(arrayg,arrayl)
+
+
+
+       ! store data directly in clmtype structure
+       ! only vegetated pfts have nonzero values
+
+       do p = begp,endp
+
+          g = clm3%g%l%c%p%gridcell(p)
+
+          ! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts
+          ! as determined in subroutine surfrd
+
+          ivt = clm3%g%l%c%p%itype(p)
+          if (ivt /= noveg) then     ! vegetated pft
+             do l = 0, numpft
+                if (l == ivt) then
+                   clm3%g%l%c%p%pdd%annlai(k,p) = mlai(g,l)
+                end if
+             end do
+          else                        ! non-vegetated pft
+             clm3%g%l%c%p%pdd%annlai(k,p) = 0._r8
+          end if
+
+       end do   ! end of loop over pfts
+
+    end do   ! end of loop over months
+    if (masterproc) then
+      call check_ret(nf_close(ncid), subname)
+      write (6,*) 'Successfully read monthly vegetation data for'
+      write (6,*) 'All months '
+      write (6,*)
+    end if
+
+
     deallocate(mlai, msai, mhgtt, mhgtb)
+
+    do p = begp,endp
+       clm3%g%l%c%p%pdd%mlaidiff(p)=mlai2t(p,1)-mlai2t(p,2)
+    enddo
+
+
   end subroutine readMonthlyVegetation
+
+
+
+
+
 
 #endif
 

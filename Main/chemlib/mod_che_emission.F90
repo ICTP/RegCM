@@ -78,92 +78,71 @@ contains
   !
   ! Calculation of emission tendency
   !
-#ifdef CLM
-#if (defined VOC)
-  subroutine emis_tend(ktau,j,lmonth,c2r_voc,bvoc_trmask)
-#else
-    subroutine emis_tend(ktau,j,lmonth,declin)
-#endif  
-#else
       !FAB: no dirunal evol for now:  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
       subroutine emis_tend(ktau,j,lmonth,declin)
-#endif
 
         implicit none
 
         integer , intent(in) :: j , lmonth
         integer(8) , intent(in) :: ktau
-        !    real(dp) , intent(in) , dimension(iy) :: coszrs
 
         real(dp) , intent(in) ::declin 
-#ifdef CLM
-#if (defined VOC)
-        real(dp) , intent(in) , dimension(:,:,:) :: c2r_voc
-        integer , intent(in) , dimension(:) :: bvoc_trmask
-#endif
-#endif
-        integer :: i , itr
+        integer  :: i , itr
 
-        ! real(dp) , intent(in) :: declin
-        ! integer :: jj ! Full grid j-component
-        ! integer :: ib , k
+        integer  :: jglob, iglob  ! Full grid i- j-component
         real(dp) :: daylen , fact , maxelev , amp
 
         ! calculate the tendency linked to emissions from emission fluxes
         ! In the future split these calculations in corresponding module  ??
 
-#ifdef CLM
-#if (defined VOC)
-        ! jj = global_jstart+j-1
-#endif
-#endif
 
         ! Modify chemsrc for species that need a dirunal cycle
-
         if (iisop > 0) then 
 
+#if (defined VOC && defined CLM)
+           !overwrite chemsrc for biogenic in case of CLM/BVOC option  
+           ! test if CLM BVOC is activated and overwrite chemsrc.
+           ! Below included in order to include CLM-MEGAN biogenic emission
+           ! into the gas phase chemistry scheme
+           ! bvoc_trmask is used to identify which tracer is also a biogenic
+           ! emission species contained in MEGAN.  If it is included then
+           ! then include MEGAN emissions into the source value
+           ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
+           ! zero when using BATS
+    
+           jglob = global_jstart+j-1
+           if ( bvoc_trmask(iisop) /= 0 ) then
+              do i = ici1, ici2
+                 iglob = global_istart+i-1
+                 if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
+                 chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
+              end do
+           end if
 
+#else
+
+           ! Modify chemsrc for species that need a dirunal cycle
            do i = ici1 , ici2
 
-           daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
-           daylen = daylen*24.0D0/360.0D0
-!!$          ! Maximum sun elevation
-           maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
-           fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-           amp = 12.0D0*mathpi/daylen
+              daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+              daylen = daylen*24.0D0/360.0D0
+              ! Maximum sun elevation
+              maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
+              fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
+              amp = 12.0D0*mathpi/daylen
 
-           tmpsrc(j,i,iisop) =   chemsrc(j,i,iisop)
-           chemsrc(j,i,iisop) =  (amp)*chemsrc(j,i,iisop) * &
-                sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
+              tmpsrc(j,i,iisop)  =  chemsrc(j,i,iisop)
+              chemsrc(j,i,iisop) =  (amp)*chemsrc(j,i,iisop) * &
+                                    sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
 
            end do
+
+
+#endif
+
          
         end if
 
-
-        !overwrite chemsrc for biogenic in case of CLM/BVOC option  
-#ifdef CLM
-#if (defined VOC)
-        ! test if CLM BVOC is activated and overwrite chemsrc.
-        ! Below included in order to include CLM-MEGAN biogenic emission
-        ! into the gas phase chemistry scheme
-        ! bvoc_trmask is used to identify which tracer is also a biogenic
-        ! emission species contained in MEGAN.  If it is included then
-        ! then include MEGAN emissions into the source value
-        ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
-        ! zero when using BATS
-
-        ! jj = global_jstart+j-1
-        print*, 'bio emission CLM/BVOC option to be fixed'
-        stop 
-        do itr =1,ntr
-           if ( bvoc_trmask(itr) /= 0 ) then
-              if ( ktau == 0 ) c2r_voc(jj,:,bvoc_trmask(itr)) = d_zero
-              chemsrc(j,:,itr) = c2r_voc(jj,:,bvoc_trmask(itr))/d_1
-           end if
-        end do
-#endif
-#endif
 
 
         ! add the source term to tracer tendency
@@ -203,10 +182,9 @@ contains
            end if
 
 ! put back isop source to its nominal value 
-          
-         if (iisop > 0) then 
-           chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
-         end if 
+!         if (iisop > 0) then 
+!           chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+!         end if 
 
 
          end subroutine emis_tend

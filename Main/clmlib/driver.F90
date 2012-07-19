@@ -116,6 +116,7 @@ module driver
   use BiogeophysicsLakeMod, only : BiogeophysicsLake
   use SurfaceAlbedoMod    , only : SurfaceAlbedo, Snowage
   use pft2colMod          , only : pft2col
+  use DryDepVelocity      , only : depvel_compute
 #if (defined DGVM)
   use DGVMEcosystemDynMod , only : DGVMEcosystemDyn, DGVMRespiration
   use DGVMMod             , only : lpj, lpjreset, histDGVM, &
@@ -217,6 +218,9 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 
   if (doalb) call interpMonthlyVeg()
 #endif
+
+
+
 
   ! ============================================================================
   ! Loop over clumps
@@ -346,6 +350,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      ! temperature from previous time step.
      ! ============================================================================
 
+
      call t_startf('bgp1')
      call Biogeophysics1(begg, endg, begc, endc, begp, endp, &
                          filter(nc)%num_nolakec, filter(nc)%nolakec, &
@@ -382,6 +387,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      ! Determine lake temperature and surface fluxes
      ! ============================================================================
 
+
      call t_startf('bgplake')
      call BiogeophysicsLake(begc, endc, begp, endp, &
                             filter(nc)%num_lakec, filter(nc)%lakec, &
@@ -404,10 +410,11 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      call DustDryDep(begp, endp)
 #endif
 
+
 #if (defined VOC)
      ! VOC emission (A. Guenther's model)
      call VOCEmission(begp, endp, &
-                      filter(nc)%num_nolakep, filter(nc)%nolakep)
+                      filter(nc)%num_nolakep, filter(nc)%nolakep)    
 #endif
 
 
@@ -417,6 +424,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      ! Determine soil/snow temperatures including ground temperature and
      ! update surface fluxes for new ground temperature.
      ! ============================================================================
+
      call t_startf('bgp2')
      call Biogeophysics2(begc, endc, begp, endp, &
                          filter(nc)%num_nolakec, filter(nc)%nolakec, &
@@ -508,6 +516,13 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 #endif
      call t_stopf('ecosysdyn')
 
+
+     ! ============================================================================
+     ! Dry Deposition of chemical tracers (Wesely (1998) parameterizaion)
+     ! ============================================================================
+     call depvel_compute(begp,endp)
+
+
      ! ============================================================================
      ! Check the energy and water balance, also carbon and nitrogen balance
      ! ============================================================================
@@ -548,6 +563,8 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 !!CSD$ END PARALLEL DO
 #endif
 
+
+
 end subroutine driver1
 
 !-----------------------------------------------------------------------
@@ -556,8 +573,9 @@ end subroutine driver1
 !
 ! !INTERFACE:
 subroutine driver2(caldayp1, declinp1, rstwr)
-  use mod_clm
-  use mod_dynparam
+   use mod_dynparam
+   use mod_clm
+
 !
 ! !ARGUMENTS:
   implicit none
@@ -658,7 +676,6 @@ subroutine driver2(caldayp1, declinp1, rstwr)
 #if (defined DGVM)
   call t_startf('d2dgvm')
   dtime = get_step_size()
-!  dtime = r2cdtime
 
   call get_curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtime))
   if (monp1==1 .and. dayp1==1 .and. secp1==dtime .and. nstep>0)  then
@@ -700,7 +717,8 @@ subroutine driver2(caldayp1, declinp1, rstwr)
   ! ============================================================================
 
   call t_startf('clm_driver_io')
-  if(nstep > 0) call htapes_wrapup()
+!abt  if(nstep > 0) call htapes_wrapup()
+  call htapes_wrapup()
 
   ! ============================================================================
   ! Write to DGVM history buffer if appropriate
@@ -722,7 +740,7 @@ subroutine driver2(caldayp1, declinp1, rstwr)
   else
      write_restart = do_restwrite()
   end if
-     
+
 !abt commented below
 !  if (write_restart) then
 !     filer = restFile_filename(type='netcdf')
@@ -906,8 +924,9 @@ end function do_restwrite
 ! !USES:
     use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
     use clm_varctl  , only : hist_crtinic
-    use mod_clm
+
     use mod_dynparam
+    use mod_clm
 !
 ! !ARGUMENTS:
     implicit none
@@ -938,7 +957,7 @@ end function do_restwrite
 
     ! Set calendar for current, previous, and next time steps
 
-    dtime = get_step_size()
+     dtime = get_step_size()
 
     call get_curr_date (yr  , mon  , day  , mcsec  )
     call get_prev_date (yrm1, monm1, daym1, mcsecm1)

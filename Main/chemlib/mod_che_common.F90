@@ -57,14 +57,14 @@ module mod_che_common
 !
   character(len=6) , pointer , dimension(:) :: chtrname
 !
-  real(dp) , pointer , dimension(:,:) :: chtrdpv
+  real(dp) , pointer , dimension(:,:)   :: chtrdpv
 
-  real(dp) , pointer , dimension(:,:) :: chtrsize
-  real(dp) , pointer , dimension(:) :: chtrsol
+  real(dp) , pointer , dimension(:,:)   :: chtrsize
+  real(dp) , pointer , dimension(:)     :: chtrsol
 
-  real(dp), pointer , dimension(:,:,:) :: cchifxuw
+  real(dp), pointer , dimension(:,:,:)  :: cchifxuw
 !
-  integer , pointer , dimension(:) :: isslt , icarb , idust
+  integer , pointer , dimension(:)      :: isslt , icarb , idust
 !
   real(dp) , pointer , dimension(:,:,:) :: convcldfra ,  cemtrac , remdrd
 
@@ -105,7 +105,12 @@ module mod_che_common
     integer :: nsp
     integer , pointer , dimension(:,:) :: ibnd
   end type cbound_area
-
+#if (defined CLM)
+#if (defined VOC)
+  integer , pointer :: bvoc_trmask(:)    ! Tracer mask that uses MEGAN indices
+#endif
+  real(dp) , pointer :: cvoc_em(:,:), cdep_vels(:,:,:)
+#endif
   type(cbound_area) :: cba_cr
 
   contains
@@ -254,6 +259,28 @@ module mod_che_common
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
         write (aline,*) 'AERO simulation'
         call say
+
+
+      else if ( chemsimtype(1:4) == 'DCCB' ) then 
+        ntr = 45
+        allocate(chtrname(ntr))      
+        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
+                                 'NO2   ','NO    ','CO    ','H2O2  ', &
+                                 'HNO3  ','N2O5  ','HCHO  ','ALD2  ', &
+                                 'ISOP  ','C2H6  ','PAR   ','ACET  ', &
+                                 'MOH   ','OLT   ','OLI   ','TOLUE ', &
+                                 'XYL   ','ETHE  ','PAN   ','CH4   ', &
+                                 'MGLY  ','CRES  ','OPEN  ','ISOPRD', &
+                                 'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
+                                 'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
+                                 'XO2   ','DUST01','DUST02','DUST03', &
+                                 'DUST04','BC_HL ','BC_HB ','OC_HL ', &
+                                 'OC_HB ' /)
+        iaerosol = 1
+        igaschem = 1
+        write (aline,*) 'CBMZ gas-phase + DUST + BC + OC simulation'
+        call say
+
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
         ntr = 37
         allocate(chtrname(ntr))      
@@ -272,6 +299,7 @@ module mod_che_common
         igaschem = 1
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say
+
       else 
         write (aline,*) 'Not a valid chemtype simulation : STOP !'
         call say
@@ -280,6 +308,7 @@ module mod_che_common
         call say
         call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
       end if
+
     end subroutine chem_config
 
 end module mod_che_common

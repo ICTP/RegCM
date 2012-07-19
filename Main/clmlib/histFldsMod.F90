@@ -57,6 +57,9 @@ contains
 #if (defined CASA)
     use CASAMod    , only : nlive, npools
 #endif
+#if (defined VOC)
+    use clm_varvoc
+#endif
 !
 ! !ARGUMENTS:
     implicit none
@@ -93,29 +96,93 @@ contains
 
     ! Temperatures
 
-    call add_fld1d (fname='TSA', units='K',  &
-         avgflag='A', long_name='2m air temperature', &
-         ptr_pft=clm3%g%l%c%p%pes%t_ref2m)
+!    call add_fld1d (fname='TSA', units='K',  &
+!         avgflag='A', long_name='2m air temperature', &
+!         ptr_pft=clm3%g%l%c%p%pes%t_ref2m)
 
-    call add_fld1d (fname='TREFMNAV', units='K',  &
-         avgflag='A', long_name='daily minimum of average 2-m temperature', &
-         ptr_pft=clm3%g%l%c%p%pes%t_ref2m_min)
+!    call add_fld1d (fname='TREFMNAV', units='K',  &
+!         avgflag='A', long_name='daily minimum of average 2-m temperature', &
+!         ptr_pft=clm3%g%l%c%p%pes%t_ref2m_min)
 
-    call add_fld1d (fname='TREFMXAV', units='K',  &
-         avgflag='A', long_name='daily maximum of average 2-m temperature', &
-         ptr_pft=clm3%g%l%c%p%pes%t_ref2m_max)
+!    call add_fld1d (fname='TREFMXAV', units='K',  &
+!         avgflag='A', long_name='daily maximum of average 2-m temperature', &
+!         ptr_pft=clm3%g%l%c%p%pes%t_ref2m_max)
 
-    call add_fld1d (fname='TV', units='K',  &
-         avgflag='A', long_name='vegetation temperature', &
-         ptr_pft=clm3%g%l%c%p%pes%t_veg)
+!    call add_fld1d (fname='TV', units='K',  &
+!         avgflag='A', long_name='vegetation temperature', &
+!         ptr_pft=clm3%g%l%c%p%pes%t_veg)
 
-    call add_fld1d (fname='TG',  units='K',  &
-         avgflag='A', long_name='ground temperature', &
-         ptr_col=clm3%g%l%c%ces%t_grnd)
+!    call add_fld1d (fname='TG',  units='K',  &
+!         avgflag='A', long_name='ground temperature', &
+!         ptr_col=clm3%g%l%c%ces%t_grnd)
 
-    call add_fld1d (fname='TSNOW',  units='K',  &
-         avgflag='I', long_name='snow temperature', &
-         ptr_col=clm3%g%l%c%ces%t_snow, set_lake=spval)
+!---------------- OUTPUT for VOC abt
+#if (defined VOC)
+    call add_fld1d (fname='GAMMAT',  units='unitless',  &
+         avgflag='A', long_name='gamma temperature', &
+         ptr_pft=gamma_t_out)
+
+    call add_fld1d (fname='GAMMAP',  units='unitless',  &
+         avgflag='A', long_name='gamma PAR', &
+         ptr_pft=gamma_p_out)
+
+    call add_fld1d (fname='GAMMASM',  units='unitless', &
+         avgflag='A', long_name='gamma soil water', &
+         ptr_pft=gamma_sm_out)
+
+    call add_fld1d (fname='EOPT',  units='unitless', &
+         avgflag='A', long_name='Eopt', &
+         ptr_pft=Eopt_out)
+    call add_fld1d (fname='TOPT',  units='unitless', &
+         avgflag='A', long_name='Topt', &
+         ptr_pft=Topt_out)
+    call add_fld1d (fname='Asun',  units='unitless', &
+         avgflag='A', long_name='alphasun', &
+         ptr_pft=alphasu_out)
+    call add_fld1d (fname='Ashade',  units='unitless', &
+         avgflag='A', long_name='alpha shaded', &
+         ptr_pft=alphash_out)
+    call add_fld1d (fname='Cpsun',  units='unitless', &
+         avgflag='A', long_name='cp sunlit', &
+         ptr_pft=Cpsun_out)
+    call add_fld1d (fname='Cpshade',  units='unitless', &
+         avgflag='A', long_name='cp shaded', &
+         ptr_pft=Cpsh_out)
+
+    call add_fld1d (fname='T24',  units='K', &
+         avgflag='A', long_name='AVG temp 24hour', &
+         ptr_pft=t24_out)
+
+    call add_fld1d (fname='T240',  units='K', &
+         avgflag='A', long_name='AVG temp 240hour', &
+         ptr_pft=t240_out)
+
+    call add_fld1d (fname='P24su',  units='umol', &
+         avgflag='A', long_name='AVG PAR 24hour', &
+         ptr_pft=p24su_out)
+
+    call add_fld1d (fname='P240su',  units='umol', &
+         avgflag='A', long_name='AVG temp 240hour', &
+         ptr_pft=p240su_out)
+
+    call add_fld1d (fname='P24sh',  units='umol', &
+         avgflag='A', long_name='AVG PAR 24hour', &
+         ptr_pft=p24sh_out)
+
+    call add_fld1d (fname='P240sh',  units='umol', &
+         avgflag='A', long_name='AVG PAR 240hour', &
+         ptr_pft=p240sh_out)
+
+    call add_fld1d (fname='GAMMAAGE',  units='unitless', &
+         avgflag='A', long_name='gamma leaf age factor', &
+         ptr_pft=gamma_age_out)
+#endif
+!---------------- OUTPUT for VOC abt
+
+
+!    call add_fld1d (fname='TSNOW',  units='K',  &
+!         avgflag='I', long_name='snow temperature', &
+!         ptr_col=clm3%g%l%c%ces%t_snow, set_lake=spval)
 
     call add_fld2d (fname='TSOI',  units='K', type2d='levsoi', &
          avgflag='A', long_name='soil temperature', &
@@ -127,9 +194,9 @@ contains
 
     ! Specific humidity
 
-    call add_fld1d (fname='Q2M', units='kg/kg',  &
-         avgflag='A', long_name='2m specific humidity', &
-         ptr_pft=clm3%g%l%c%p%pes%q_ref2m)
+!    call add_fld1d (fname='Q2M', units='kg/kg',  &
+!         avgflag='A', long_name='2m specific humidity', &
+!         ptr_pft=clm3%g%l%c%p%pes%q_ref2m)
 
     ! Surface radiation
 
@@ -173,21 +240,21 @@ contains
          avgflag='A', long_name='diffuse nir reflected solar radiation', &
          ptr_pft=clm3%g%l%c%p%pef%fsr_nir_i)
 
-    call add_fld1d (fname='FSDSVDLN', units='watt/m^2',  &
-         avgflag='A', long_name='direct vis incident solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsds_vis_d_ln)
+!    call add_fld1d (fname='FSDSVDLN', units='watt/m^2',  &
+!         avgflag='A', long_name='direct vis incident solar radiation at local noon', &
+!         ptr_pft=clm3%g%l%c%p%pef%fsds_vis_d_ln)
 
-    call add_fld1d (fname='FSDSNDLN', units='watt/m^2',  &
-         avgflag='A', long_name='direct nir incident solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsds_nir_d_ln)
+!    call add_fld1d (fname='FSDSNDLN', units='watt/m^2',  &
+!         avgflag='A', long_name='direct nir incident solar radiation at local noon', &
+!         ptr_pft=clm3%g%l%c%p%pef%fsds_nir_d_ln)
 
-    call add_fld1d (fname='FSRVDLN', units='watt/m^2',  &
-         avgflag='A', long_name='direct vis reflected solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsr_vis_d_ln)
+!    call add_fld1d (fname='FSRVDLN', units='watt/m^2',  &
+!         avgflag='A', long_name='direct vis reflected solar radiation at local noon', &
+!         ptr_pft=clm3%g%l%c%p%pef%fsr_vis_d_ln)
 
-    call add_fld1d (fname='FSRNDLN', units='watt/m^2',  &
-         avgflag='A', long_name='direct nir reflected solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsr_nir_d_ln)
+!    call add_fld1d (fname='FSRNDLN', units='watt/m^2',  &
+!         avgflag='A', long_name='direct nir reflected solar radiation at local noon', &
+!         ptr_pft=clm3%g%l%c%p%pef%fsr_nir_d_ln)
 
     call add_fld1d (fname='FSA', units='watt/m^2',  &
          avgflag='A', long_name='absorbed solar radiation', &
@@ -235,17 +302,17 @@ contains
          avgflag='A', long_name='heat flux into soil', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd)
 
-    call add_fld1d (fname='FSM',  units='watt/m^2',  &
-         avgflag='A', long_name='snow melt heat flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_snomelt)
+!    call add_fld1d (fname='FSM',  units='watt/m^2',  &
+!         avgflag='A', long_name='snow melt heat flux', &
+!         ptr_col=clm3%g%l%c%cef%eflx_snomelt)
 
-    call add_fld1d (fname='TAUX', units='kg/m/s^2',  &
-         avgflag='A', long_name='zonal surface stress', &
-         ptr_pft=clm3%g%l%c%p%pmf%taux)
+!    call add_fld1d (fname='TAUX', units='kg/m/s^2',  &
+!         avgflag='A', long_name='zonal surface stress', &
+!         ptr_pft=clm3%g%l%c%p%pmf%taux)
 
-    call add_fld1d (fname='TAUY', units='kg/m/s^2',  &
-         avgflag='A', long_name='meridional surface stress', &
-         ptr_pft=clm3%g%l%c%p%pmf%tauy)
+!    call add_fld1d (fname='TAUY', units='kg/m/s^2',  &
+!         avgflag='A', long_name='meridional surface stress', &
+!         ptr_pft=clm3%g%l%c%p%pmf%tauy)
 
     ! Vegetation phenology
 
@@ -253,9 +320,9 @@ contains
           avgflag='A', long_name='exposed one-sided leaf area index', &
          ptr_pft=clm3%g%l%c%p%pps%elai)
 
-    call add_fld1d (fname='ESAI', units='m^2/m^2', &
-          avgflag='A', long_name='exposed one-sided stem area index', &
-         ptr_pft=clm3%g%l%c%p%pps%esai)
+!    call add_fld1d (fname='ESAI', units='m^2/m^2', &
+!          avgflag='A', long_name='exposed one-sided stem area index', &
+!         ptr_pft=clm3%g%l%c%p%pps%esai)
 
     call add_fld1d (fname='LAISUN', units='none', &
          avgflag='A', long_name='sunlit projected leaf area index', &
@@ -269,17 +336,17 @@ contains
          avgflag='A', long_name='total projected leaf area index', &
          ptr_pft=clm3%g%l%c%p%pps%tlai)
 
-    call add_fld1d (fname='TSAI', units='none', &
-         avgflag='A', long_name='total projected stem area index', &
-         ptr_pft=clm3%g%l%c%p%pps%tsai)
+!    call add_fld1d (fname='TSAI', units='none', &
+!         avgflag='A', long_name='total projected stem area index', &
+!         ptr_pft=clm3%g%l%c%p%pps%tsai)
 
-    call add_fld1d (fname='SLASUN', units='m^2/gC', &
-         avgflag='A', long_name='specific leaf area for sunlit canopy, projected area basis', &
-         ptr_pft=clm3%g%l%c%p%pps%slasun, default='inactive')
+!    call add_fld1d (fname='SLASUN', units='m^2/gC', &
+!         avgflag='A', long_name='specific leaf area for sunlit canopy, projected area basis', &
+!         ptr_pft=clm3%g%l%c%p%pps%slasun, default='inactive')
 
-    call add_fld1d (fname='SLASHA', units='m^2/gC', &
-         avgflag='A', long_name='specific leaf area for shaded canopy, projected area basis', &
-         ptr_pft=clm3%g%l%c%p%pps%slasha, default='inactive')
+!    call add_fld1d (fname='SLASHA', units='m^2/gC', &
+!         avgflag='A', long_name='specific leaf area for shaded canopy, projected area basis', &
+!         ptr_pft=clm3%g%l%c%p%pps%slasha, default='inactive')
 
     ! Canopy physiology
 
@@ -291,9 +358,9 @@ contains
          avgflag='A', long_name='shaded leaf stomatal resistance', &
          ptr_pft=clm3%g%l%c%p%pps%rssha, set_lake=spval)
 
-    call add_fld1d (fname='BTRAN', units='unitless',  &
-         avgflag='A', long_name='transpiration beta factor', &
-         ptr_pft=clm3%g%l%c%p%pps%btran, set_lake=spval)
+!    call add_fld1d (fname='BTRAN', units='unitless',  &
+!         avgflag='A', long_name='transpiration beta factor', &
+!         ptr_pft=clm3%g%l%c%p%pps%btran, set_lake=spval)
 
     call add_fld1d (fname='FPSN', units='umol/m2s',  &
          avgflag='A', long_name='photosynthesis', &
@@ -330,63 +397,63 @@ contains
          avgflag='A', long_name='isoprene flux', &
          ptr_pft=clm3%g%l%c%p%pvf%vocflx_1, set_lake=0._r8)
 !abt added below
-    call add_fld1d (fname='METHYLBUT', units='uG/M2/H',  &
-         avgflag='A', long_name='methylbutenol flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_6, set_lake=0._r8)
-    call add_fld1d (fname='APINE', units='uG/M2/H',  &
-         avgflag='A', long_name='alpha-pinene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_7, set_lake=0._r8)
-    call add_fld1d (fname='BPINE', units='uG/M2/H',  &
-         avgflag='A', long_name='beta-pinene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_8, set_lake=0._r8)
-    call add_fld1d (fname='MYRCENE', units='uG/M2/H',  &
-         avgflag='A', long_name='myrcene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_2, set_lake=0._r8)
-    call add_fld1d (fname='SABINENE', units='uG/M2/H',  &
-         avgflag='A', long_name='sabinene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_3, set_lake=0._r8)
-    call add_fld1d (fname='LIMONENE', units='uG/M2/H',  &
-         avgflag='A', long_name='limonene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
-    call add_fld1d (fname='BIOGENCO', units='uG/M2/H',  &
-         avgflag='A', long_name='biogenic co flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_5, set_lake=0._r8)
-    call add_fld1d (fname='OCIMENE', units='uG/M2/H',  &
-         avgflag='A', long_name='ocimene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_9, set_lake=0._r8)
-    call add_fld1d (fname='ACAR', units='uG/M2/H',  &
-         avgflag='A', long_name='A-3carene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_10, set_lake=0._r8)
-    call add_fld1d (fname='OMTP', units='uG/M2/H',  &
-         avgflag='A', long_name='other monoterpenes flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_11, set_lake=0._r8)
-    call add_fld1d (fname='FARN', units='uG/M2/H',  &
-         avgflag='A', long_name='farnicene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_12, set_lake=0._r8)
-    call add_fld1d (fname='BCAR', units='uG/M2/H',  &
-         avgflag='A', long_name='b-caryophyllene flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_13, set_lake=0._r8)
-    call add_fld1d (fname='OSQT', units='uG/M2/H',  &
-         avgflag='A', long_name='other sesquiterpenes flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_14, set_lake=0._r8)
-    call add_fld1d (fname='METHANOL', units='uG/M2/H',  &
-         avgflag='A', long_name='biogenic methanol flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_15, set_lake=0._r8)
-    call add_fld1d (fname='ACETONE', units='uG/M2/H',  &
-         avgflag='A', long_name='acetone flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_16, set_lake=0._r8)
-    call add_fld1d (fname='BIOGENMETH', units='uG/M2/H',  &
-         avgflag='A', long_name='biogenic methane flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_17, set_lake=0._r8)
-    call add_fld1d (fname='BIOGENNOS', units='uG/M2/H',  &
-         avgflag='A', long_name='NO2/N2O/NH3 flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_18, set_lake=0._r8)
-    call add_fld1d (fname='BIOGENACTA', units='uG/M2/H',  &
-         avgflag='A', long_name='biogenic ethanol/acetaldehyde flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_19, set_lake=0._r8)
-    call add_fld1d (fname='BIOGENFORM', units='uG/M2/H',  &
-         avgflag='A', long_name='biogenic formic acid/acetic acid/formaldehyde flux', &
-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_20, set_lake=0._r8)
+!    call add_fld1d (fname='METHYLBUT', units='uG/M2/H',  &
+!         avgflag='A', long_name='methylbutenol flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_6, set_lake=0._r8)
+!    call add_fld1d (fname='APINE', units='uG/M2/H',  &
+!         avgflag='A', long_name='alpha-pinene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_7, set_lake=0._r8)
+!    call add_fld1d (fname='BPINE', units='uG/M2/H',  &
+!         avgflag='A', long_name='beta-pinene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_8, set_lake=0._r8)
+!    call add_fld1d (fname='MYRCENE', units='uG/M2/H',  &
+!         avgflag='A', long_name='myrcene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_2, set_lake=0._r8)
+!    call add_fld1d (fname='SABINENE', units='uG/M2/H',  &
+!         avgflag='A', long_name='sabinene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_3, set_lake=0._r8)
+!    call add_fld1d (fname='LIMONENE', units='uG/M2/H',  &
+!         avgflag='A', long_name='limonene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
+!    call add_fld1d (fname='BIOGENCO', units='uG/M2/H',  &
+!         avgflag='A', long_name='biogenic co flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_5, set_lake=0._r8)
+!    call add_fld1d (fname='OCIMENE', units='uG/M2/H',  &
+!         avgflag='A', long_name='ocimene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_9, set_lake=0._r8)
+!    call add_fld1d (fname='ACAR', units='uG/M2/H',  &
+!         avgflag='A', long_name='A-3carene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_10, set_lake=0._r8)
+!    call add_fld1d (fname='OMTP', units='uG/M2/H',  &
+!         avgflag='A', long_name='other monoterpenes flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_11, set_lake=0._r8)
+!    call add_fld1d (fname='FARN', units='uG/M2/H',  &
+!         avgflag='A', long_name='farnicene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_12, set_lake=0._r8)
+!    call add_fld1d (fname='BCAR', units='uG/M2/H',  &
+!         avgflag='A', long_name='b-caryophyllene flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_13, set_lake=0._r8)
+!    call add_fld1d (fname='OSQT', units='uG/M2/H',  &
+!         avgflag='A', long_name='other sesquiterpenes flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_14, set_lake=0._r8)
+!    call add_fld1d (fname='METHANOL', units='uG/M2/H',  &
+!         avgflag='A', long_name='biogenic methanol flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_15, set_lake=0._r8)
+!    call add_fld1d (fname='ACETONE', units='uG/M2/H',  &
+!         avgflag='A', long_name='acetone flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_16, set_lake=0._r8)
+!    call add_fld1d (fname='BIOGENMETH', units='uG/M2/H',  &
+!         avgflag='A', long_name='biogenic methane flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_17, set_lake=0._r8)
+!    call add_fld1d (fname='BIOGENNOS', units='uG/M2/H',  &
+!         avgflag='A', long_name='NO2/N2O/NH3 flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_18, set_lake=0._r8)
+!    call add_fld1d (fname='BIOGENACTA', units='uG/M2/H',  &
+!         avgflag='A', long_name='biogenic ethanol/acetaldehyde flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_19, set_lake=0._r8)
+!    call add_fld1d (fname='BIOGENFORM', units='uG/M2/H',  &
+!         avgflag='A', long_name='biogenic formic acid/acetic acid/formaldehyde flux', &
+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_20, set_lake=0._r8)
 
 !abt removed below    call add_fld1d (fname='MONOTERP', units='uG/M2/H',  &
 !         avgflag='A', long_name='monoterpene flux', &
@@ -412,25 +479,25 @@ contains
          avgflag='A', long_name='factor limiting ground evap', &
          ptr_col=clm3%g%l%c%cws%soilalpha)
 
-    call add_fld1d (fname='FCOV',  units='unitless',  &
-         avgflag='A', long_name='fractional area with water table at surface', &
-         ptr_col=clm3%g%l%c%cws%fcov)
+!    call add_fld1d (fname='FCOV',  units='unitless',  &
+!         avgflag='A', long_name='fractional area with water table at surface', &
+!         ptr_col=clm3%g%l%c%cws%fcov)
 
     call add_fld1d (fname='ZWT',  units='m',  &
          avgflag='A', long_name='water table depth', &
          ptr_col=clm3%g%l%c%cws%zwt)
 
-    call add_fld1d (fname='WA',  units='mm',  &
-         avgflag='A', long_name='water in the unconfined aquifer', &
-         ptr_col=clm3%g%l%c%cws%wa)
+!    call add_fld1d (fname='WA',  units='mm',  &
+!         avgflag='A', long_name='water in the unconfined aquifer', &
+!         ptr_col=clm3%g%l%c%cws%wa)
 
-    call add_fld1d (fname='WT',  units='mm',  &
-         avgflag='A', long_name='total water storage (unsaturated soil water + groundwater)', &
-         ptr_col=clm3%g%l%c%cws%wt)
+!    call add_fld1d (fname='WT',  units='mm',  &
+!         avgflag='A', long_name='total water storage (unsaturated soil water + groundwater)', &
+!         ptr_col=clm3%g%l%c%cws%wt)
 
-    call add_fld1d (fname='QCHARGE',  units='mm/s',  &
-         avgflag='A', long_name='aquifer recharge rate', &
-         ptr_col=clm3%g%l%c%cws%qcharge)
+!    call add_fld1d (fname='QCHARGE',  units='mm/s',  &
+!         avgflag='A', long_name='aquifer recharge rate', &
+!         ptr_col=clm3%g%l%c%cws%qcharge)
 
     call add_fld1d (fname='H2OSNO',  units='mm',  &
          avgflag='A', long_name='snow depth (liquid water)', &
@@ -464,13 +531,13 @@ contains
          avgflag='A', long_name='infiltration', &
          ptr_col=clm3%g%l%c%cwf%qflx_infl)
 
-    call add_fld1d (fname='QOVER',  units='mm/s',  &
-         avgflag='A', long_name='surface runoff', &
-         ptr_col=clm3%g%l%c%cwf%qflx_surf)
+!    call add_fld1d (fname='QOVER',  units='mm/s',  &
+!         avgflag='A', long_name='surface runoff', &
+!         ptr_col=clm3%g%l%c%cwf%qflx_surf)
 
-    call add_fld1d (fname='QRGWL',  units='mm/s',  &
-         avgflag='A', long_name='surface runoff at glaciers, wetlands, lakes', &
-         ptr_col=clm3%g%l%c%cwf%qflx_qrgwl)
+!    call add_fld1d (fname='QRGWL',  units='mm/s',  &
+!         avgflag='A', long_name='surface runoff at glaciers, wetlands, lakes', &
+!         ptr_col=clm3%g%l%c%cwf%qflx_qrgwl)
 
     call add_fld1d (fname='QDRAI',  units='mm/s',  &
          avgflag='A', long_name='sub-surface drainage', &
@@ -522,59 +589,59 @@ contains
 
     ! Water and energy balance checks
 
-    call add_fld1d (fname='ERRSOI',  units='watt/m^2',  &
-         avgflag='A', long_name='soil/lake energy conservation error', &
-         ptr_col=clm3%g%l%c%cebal%errsoi)
+!    call add_fld1d (fname='ERRSOI',  units='watt/m^2',  &
+!         avgflag='A', long_name='soil/lake energy conservation error', &
+!         ptr_col=clm3%g%l%c%cebal%errsoi)
 
-    call add_fld1d (fname='ERRSEB',  units='watt/m^2',  &
-         avgflag='A', long_name='surface energy conservation error', &
-         ptr_pft=clm3%g%l%c%p%pebal%errseb)
+!    call add_fld1d (fname='ERRSEB',  units='watt/m^2',  &
+!         avgflag='A', long_name='surface energy conservation error', &
+!         ptr_pft=clm3%g%l%c%p%pebal%errseb)
 
-    call add_fld1d (fname='ERRSOL',  units='watt/m^2',  &
-         avgflag='A', long_name='solar radiation conservation error', &
-         ptr_pft=clm3%g%l%c%p%pebal%errsol)
+!    call add_fld1d (fname='ERRSOL',  units='watt/m^2',  &
+!         avgflag='A', long_name='solar radiation conservation error', &
+!         ptr_pft=clm3%g%l%c%p%pebal%errsol)
 
-    call add_fld1d (fname='ERRH2O', units='mm',  &
-         avgflag='A', long_name='total water conservation error', &
-         ptr_col=clm3%g%l%c%cwbal%errh2o)
+!    call add_fld1d (fname='ERRH2O', units='mm',  &
+!         avgflag='A', long_name='total water conservation error', &
+!         ptr_col=clm3%g%l%c%cwbal%errh2o)
 
     ! Atmospheric forcing
 
-    call add_fld1d (fname='RAIN', units='mm/s',  &
-         avgflag='A', long_name='atmospheric rain', &
-         ptr_gcell=clm_a2l%forc_rain)
+!    call add_fld1d (fname='RAIN', units='mm/s',  &
+!         avgflag='A', long_name='atmospheric rain', &
+!         ptr_gcell=clm_a2l%forc_rain)
 
     call add_fld1d (fname='SNOW', units='mm/s',  &
          avgflag='A', long_name='atmospheric snow', &
          ptr_gcell=clm_a2l%forc_snow)
 
-    call add_fld1d (fname='TBOT', units='K',  &
-         avgflag='A', long_name='atmospheric air temperature', &
-         ptr_gcell=clm_a2l%forc_t)
+!    call add_fld1d (fname='TBOT', units='K',  &
+!         avgflag='A', long_name='atmospheric air temperature', &
+!         ptr_gcell=clm_a2l%forc_t)
 
-    call add_fld1d (fname='THBOT', units='K',  &
-         avgflag='A', long_name='atmospheric air potential temperature', &
-         ptr_gcell=clm_a2l%forc_th)
+!    call add_fld1d (fname='THBOT', units='K',  &
+!         avgflag='A', long_name='atmospheric air potential temperature', &
+!         ptr_gcell=clm_a2l%forc_th)
 
-    call add_fld1d (fname='WIND', units='m/s',  &
-         avgflag='A', long_name='atmospheric wind velocity magnitude', &
-         ptr_gcell=clm_a2l%forc_wind)
+!    call add_fld1d (fname='WIND', units='m/s',  &
+!         avgflag='A', long_name='atmospheric wind velocity magnitude', &
+!         ptr_gcell=clm_a2l%forc_wind)
 
-    call add_fld1d (fname='QBOT', units='kg/kg',  &
-         avgflag='A', long_name='atmospheric specific humidity', &
-         ptr_gcell=clm_a2l%forc_q)
+!    call add_fld1d (fname='QBOT', units='kg/kg',  &
+!         avgflag='A', long_name='atmospheric specific humidity', &
+!         ptr_gcell=clm_a2l%forc_q)
 
     call add_fld1d (fname='ZBOT', units='m',  &
          avgflag='A', long_name='atmospheric reference height', &
          ptr_gcell=clm_a2l%forc_hgt)
 
-    call add_fld1d (fname='FLDS', units='watt/m^2',  &
-         avgflag='A', long_name='atmospheric longwave radiation', &
-         ptr_gcell=clm_a2l%forc_lwrad)
+!    call add_fld1d (fname='FLDS', units='watt/m^2',  &
+!         avgflag='A', long_name='atmospheric longwave radiation', &
+!         ptr_gcell=clm_a2l%forc_lwrad)
 
-    call add_fld1d (fname='FSDS', units='watt/m^2',  &
-         avgflag='A', long_name='atmospheric incident solar radiation', &
-         ptr_gcell=clm_a2l%forc_solar)
+!    call add_fld1d (fname='FSDS', units='watt/m^2',  &
+!         avgflag='A', long_name='atmospheric incident solar radiation', &
+!         ptr_gcell=clm_a2l%forc_solar)
 
 #if (defined DGVM)
     ! History output of accumulation variables

@@ -71,7 +71,8 @@ module mod_che_bdyco
     call getmem4d(chebdy,jde1-ma%jbl1,jde2+ma%jbr1, &
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chebdy')
-    call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
+!!!    call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
+    call getmem1d(ichbdy2trac,1,35,'mod_che_bdyco:ichbdytrac')
     call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
     call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
     

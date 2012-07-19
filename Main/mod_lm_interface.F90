@@ -89,15 +89,15 @@ module mod_lm_interface
 #ifdef CLM
 subroutine init_clm(dt,ksrf,ichem,iemiss,dom,domio,atm,sfs,ts0,zpbl,lm)
     implicit none
-    real(dp) , intent(in) :: dt
-    integer(8) , intent(in) :: ksrf
-    integer , intent(in) :: ichem , iemiss
-    type(domain) , intent(in) :: dom
+    real(dp)        , intent(in) :: dt
+    integer(8)      , intent(in) :: ksrf
+    integer         , intent(in) :: ichem , iemiss
+    type(domain)    , intent(in) :: dom
     type(domain_io) , intent(in) :: domio
-    type(slice) , intent(in) :: atm
+    type(slice)     , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: ts0 , zpbl
-    integer , pointer , intent(in) , dimension(:,:) :: lm
+    real(dp)        , pointer , intent(in) , dimension(:,:) :: ts0 , zpbl
+    integer         , pointer , intent(in) , dimension(:,:) :: lm
 
     call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl)
     call assignpnt(ts0,tsf)

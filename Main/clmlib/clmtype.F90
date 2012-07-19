@@ -160,7 +160,7 @@ type, public :: pft_pstate_type
    real(r8), pointer :: sun_faii(:,:) !fraction sun canopy absorbed indirect from indirect
    real(r8), pointer :: sha_faid(:,:) !fraction shade canopy absorbed indirect from direct
    real(r8), pointer :: sha_faii(:,:) !fraction shade canopy absorbed indirect from indirect
-! 4/14/05: PET
+	! 4/14/05: PET
    ! Adding isotope code
    real(r8), pointer :: cisun(:) 		!sunlit intracellular CO2 (Pa)
    real(r8), pointer :: cisha(:) 		!shaded intracellular CO2 (Pa)
@@ -863,14 +863,35 @@ end type pft_vflux_type
 !  Accumulation variables for VOC calc  added abt  !
 !---------------------------------------------------
 type, public :: voc_accum_type
-   real(r8), pointer :: t_sum24(:,:)      !vegetation temperature from past 24hours (K)
-   real(r8), pointer :: t_sum240(:,:)     !vegetation temperature from past 240hours(K)
-   real(r8), pointer :: p_sum24su(:,:)    !PPFD from past 24hours (sunlit)
-   real(r8), pointer :: p_sum240su(:,:)   !PPFD from past 240hours(sunlit)
-   real(r8), pointer :: p_sum24sh(:,:)    !PPFD from past 24hours (shaded)
-   real(r8), pointer :: p_sum240sh(:,:)   !PPFD from past 240hours(shaded)
-   real(r8), pointer :: monlai(:,:)       ! LAI for current and previous month (gridcell,month)
+   real(r8), pointer :: fsun24(:)        ! vegetation temperature from past 24hours (K)
+   real(r8), pointer :: fsun240(:)       ! vegetation temperature from past 240hours(K)
+   real(r8), pointer :: t_sum24(:)       ! vegetation temperature from past 24hours (K)
+   real(r8), pointer :: t_sum240(:)      ! vegetation temperature from past 240hours(K)
+   real(r8), pointer :: fsd24(:)         ! PPFD from past 24hours (sunlit)
+   real(r8), pointer :: fsd240(:)        ! PPFD from past 240hours(sunlit)
+   real(r8), pointer :: fsi24(:)         ! PPFD from past 24hours (shaded)
+   real(r8), pointer :: fsi240(:)        ! PPFD from past 240hours(shaded)
+   real(r8), pointer :: monlai(:,:)      ! LAI for current and previous month (gridcell,month)
+
 end type voc_accum_type
+
+
+
+
+!----------------------------------------------------
+! pft dry dep velocity variables structure
+!----------------------------------------------------
+type, public :: dry_deps_type
+   real(r8), pointer :: drydepvel(:,:)
+   real(r8), pointer :: vds(:)               ! deposition velocity term (m/s) (for dry dep SO4, NH4NO3)
+   real(r8), pointer :: mlaidiff(:)          ! difference between lai month one and month two
+   real(r8), pointer :: rb1(:)               ! aerodynamical resistance (s/m)
+   real(r8), pointer :: annlai(:,:)          ! 12 months of monthly lai from input data set
+
+end type dry_deps_type
+
+
+
 
 !----------------------------------------------------
 ! pft dust flux variables structure
@@ -1665,11 +1686,11 @@ end type model_dflux_type
 type, public :: pft_type
 
    ! g/l/c/p hierarchy, local g/l/c/p cells only
-   integer, pointer :: column(:)        !index into column level quantities
+   integer , pointer :: column(:)        !index into column level quantities
    real(r8), pointer :: wtcol(:)	!weight (relative to column) 
-   integer, pointer :: landunit(:)      !index into landunit level quantities
+   integer , pointer :: landunit(:)      !index into landunit level quantities
    real(r8), pointer :: wtlunit(:)      !weight (relative to landunit) 
-   integer, pointer :: gridcell(:)      !index into gridcell level quantities
+   integer , pointer :: gridcell(:)      !index into gridcell level quantities
    real(r8), pointer :: wtgcell(:)	!weight (relative to gridcell) 
 
    ! topological mapping functionality
@@ -1709,9 +1730,12 @@ type, public :: pft_type
    ! Adding isotope code
    type(pft_cstate_type) :: pc13s       !pft carbon-13 state
    type(pft_cflux_type)  :: pc13f       !pft carbon-13 flux
-   
+
    ! voc accumulation vars !!abt added!!
    type(voc_accum_type)  :: pva         !accumulation variables from VOC calc
+
+   ! dry deposition vars !!abt added!!
+   type(dry_deps_type)   :: pdd         !Dry deposition calc
 
 end type pft_type
 

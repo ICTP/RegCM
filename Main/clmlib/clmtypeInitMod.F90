@@ -17,7 +17,8 @@ module clmtypeInitMod
   use clmtype
   use clm_varpar, only: maxpatch_pft, nlevsno, nlevsoi, numrad, nlevlak, numpft, ndst, nvoc
 !abt added below
-  use clm_varvoc, only: n24,n240
+  use clm_varvoc
+  use clm_drydep, only: n_drydep
 !abt added above
 !
 ! !PUBLIC TYPES:
@@ -127,13 +128,14 @@ contains
 
 #if (defined VOC)
     ! biogenic emission factors                              !abt
-
     call init_gridcell_ef_map_type(begg, endg, clm3%g%gem)   !abt
 
     ! biogenic emission accumulation variables               !abt
-
     call init_voc_accum_type(begp, endp, clm3%g%l%c%p%pva)   !abt
 #endif
+
+    ! pft variables for dry deposition   !abt
+    call init_dry_deps_type(begp, endp, clm3%g%l%c%p%pdd)    !abt
 
     ! pft ecophysiological constants
 
@@ -500,37 +502,37 @@ contains
 
   end subroutine init_energy_balance_type
 
-!------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: init_water_balance_type
-!
-! !INTERFACE:
-  subroutine init_water_balance_type(beg, end, wbal)
-!
-! !DESCRIPTION:
-! Initialize water balance variables
-!
-! !ARGUMENTS:
-    implicit none
-    integer, intent(in) :: beg, end
-    type(water_balance_type), intent(inout):: wbal
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!EOP
-!------------------------------------------------------------------------
-
-    allocate(wbal%begwb(beg:end))
+!------------------------------------------------------------------------ 
+!BOP 
+! 
+! !IROUTINE: init_water_balance_type 
+! 
+! !INTERFACE: 
+  subroutine init_water_balance_type(beg, end, wbal) 
+! 
+! !DESCRIPTION: 
+! Initialize water balance variables 
+! 
+! !ARGUMENTS: 
+    implicit none 
+    integer, intent(in) :: beg, end 
+    type(water_balance_type), intent(inout):: wbal 
+! 
+! !REVISION HISTORY: 
+! Created by Mariana Vertenstein 
+! 
+!EOP 
+!------------------------------------------------------------------------ 
+ 
+    allocate(wbal%begwb(beg:end)) 
     allocate(wbal%endwb(beg:end))
     allocate(wbal%errh2o(beg:end))
-
+ 
     wbal%begwb(beg:end) = nan
     wbal%endwb(beg:end) = nan
     wbal%errh2o(beg:end) = nan
-
-  end subroutine init_water_balance_type
+ 
+  end subroutine init_water_balance_type 
 
 
 !!!!!! abt rcm below
@@ -624,38 +626,107 @@ contains
 !EOP
 !------------------------------------------------------------------------
 
-!    allocate(pva%t_sum24(beg:end,n24))
-!    allocate(pva%t_sum240(beg:end,n240))
-!    allocate(pva%p_sum24su(beg:end,n24))
-!    allocate(pva%p_sum240su(beg:end,n240))
-!    allocate(pva%p_sum24sh(beg:end,n24))
-!    allocate(pva%p_sum240sh(beg:end,n240))
+    allocate(pva%fsun24  (beg:end))
+    allocate(pva%fsun240 (beg:end))
+    allocate(pva%t_sum24 (beg:end))
+    allocate(pva%t_sum240(beg:end))
+    allocate(pva%fsd24   (beg:end))
+    allocate(pva%fsd240  (beg:end))
+    allocate(pva%fsi24   (beg:end))
+    allocate(pva%fsi240  (beg:end))
+    allocate(pva%monlai  (beg:end,2))
+    allocate(gamma_sm_out(beg:end))
+    allocate(gamma_t_out (beg:end))
+    allocate(gamma_p_out (beg:end))
+    allocate(alphasu_out (beg:end))
+    allocate(alphash_out (beg:end))
+    allocate(Cpsun_out   (beg:end))
+    allocate(Cpsh_out    (beg:end))
+    allocate(Topt_out    (beg:end))
+    allocate(Eopt_out    (beg:end))
+    allocate(t24_out     (beg:end))
+    allocate(t240_out    (beg:end))
+    allocate(p24su_out   (beg:end))
+    allocate(p24sh_out   (beg:end))
+    allocate(p240su_out  (beg:end))
+    allocate(p240sh_out  (beg:end))
+    allocate(gamma_age_out(beg:end))
 
-!    pva%t_sum24(beg:end,n24)     = nan
-!    pva%t_sum240(beg:end,n240)   = nan 
-!    pva%p_sum24su(beg:end,n24)   = nan
-!    pva%p_sum240su(beg:end,n240) = nan
-!    pva%p_sum24sh(beg:end,n24)   = nan
-!    pva%p_sum240sh(beg:end,n240) = nan
-
-    allocate(pva%t_sum24(n24,beg:end))
-    allocate(pva%t_sum240(n240,beg:end))
-    allocate(pva%p_sum24su(n24,beg:end))
-    allocate(pva%p_sum240su(n240,beg:end))
-    allocate(pva%p_sum24sh(n24,beg:end))
-    allocate(pva%p_sum240sh(n240,beg:end))
-    allocate(pva%monlai(beg:end,2))
-
-    pva%t_sum24(n24,beg:end)     = nan
-    pva%t_sum240(n240,beg:end)   = nan 
-    pva%p_sum24su(n24,beg:end)   = nan
-    pva%p_sum240su(n240,beg:end) = nan
-    pva%p_sum24sh(n24,beg:end)   = nan
-    pva%p_sum240sh(n240,beg:end) = nan
-    pva%monlai(beg:end,2)        = nan
+    pva%fsun24    (beg:end)   = nan
+    pva%fsun240   (beg:end)   = nan 
+    pva%t_sum24   (beg:end)   = nan
+    pva%t_sum240  (beg:end)   = nan 
+    pva%fsd24     (beg:end)   = nan
+    pva%fsd240    (beg:end)   = nan
+    pva%fsi24     (beg:end)   = nan
+    pva%fsi240    (beg:end)   = nan
+    pva%monlai    (beg:end,:) = nan
+    gamma_sm_out  (beg:end)   = nan   !for output
+    gamma_t_out   (beg:end)   = nan   !for output
+    gamma_p_out   (beg:end)   = nan   !for output
+    Cpsun_out     (beg:end)   = nan
+    Cpsh_out      (beg:end)   = nan
+    alphasu_out   (beg:end)   = nan
+    alphash_out   (beg:end)   = nan
+    Topt_out      (beg:end)   = nan
+    Eopt_out      (beg:end)   = nan
+    t24_out       (beg:end)   = nan
+    t240_out      (beg:end)   = nan
+    p24su_out     (beg:end)   = nan
+    p24sh_out     (beg:end)   = nan
+    p240su_out    (beg:end)   = nan
+    p240sh_out    (beg:end)   = nan
+    gamma_age_out (beg:end)   = nan
 
   end subroutine init_voc_accum_type
 !!!!!! abt rcm above
+
+
+
+
+
+!!!!!! abt rcm below
+!------------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: init_dry_deps_type
+!
+! !INTERFACE:
+  subroutine init_dry_deps_type(beg, end, pdd)
+!
+! !DESCRIPTION:
+! Initialize dry deposition variables
+!
+! !ARGUMENTS:
+    implicit none
+    integer, intent(in) :: beg, end
+    type(dry_deps_type), intent(inout):: pdd
+!
+! !REVISION HISTORY:
+! Created by Ahmed Tawfik
+!
+!EOP
+!------------------------------------------------------------------------
+
+    allocate(pdd%drydepvel(beg:end,n_drydep))
+    allocate(pdd%vds      (beg:end))
+    allocate(pdd%mlaidiff (beg:end))
+    allocate(pdd%rb1      (beg:end))
+    allocate(pdd%annlai   (12,beg:end))
+    
+    pdd%drydepvel     = 0._r8
+    pdd%vds           = 0._r8
+    pdd%mlaidiff      = nan 
+    pdd%annlai        = nan
+    pdd%rb1           = nan 
+
+  end subroutine init_dry_deps_type
+!!!!!! abt rcm above
+
+
+
+
+
 
 !------------------------------------------------------------------------
 !BOP

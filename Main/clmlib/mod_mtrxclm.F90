@@ -36,6 +36,7 @@ module mod_mtrxclm
   use clm_time_manager , only : get_curr_calday
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
                            shr_orb_params
+
   private
 
   public :: mtrxclm
@@ -122,7 +123,7 @@ module mod_mtrxclm
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
+  subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igases,iaeros,ctracers)
 !
     use initializeMod
     use shr_orb_mod
@@ -131,17 +132,27 @@ module mod_mtrxclm
     use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
     use clm_varsur,    only : clm2bats_veg , ht_rcm
     use clm_varsur,    only : clm_fracveg
+    use clm_varsur,    only : cgaschem, caerosol
     use atmdrvMod
     use program_offMod
     use clm_comp
     use clmtype
     use perf_mod
+
+#if (defined VOC)
+    use clm_varpar ,   only : nvoc
+#endif
+    use clm_drydep,    only : seq_drydep_init
+
 !
     implicit none
 !
-    logical , intent(in) :: ifrest
-    type(rcm_time_and_date) , intent(in) :: idate1 , idate2
-    real(8) , intent(in) :: dtrad , dtsrf , dx
+    logical , intent(in)                   :: ifrest
+    type(rcm_time_and_date) , intent(in)   :: idate1 , idate2
+    real(8) , intent(in)                   :: dtrad , dtsrf , dx
+    integer , intent(in), optional         :: igases
+    integer , intent(in), optional         :: iaeros
+    character(len=6), intent(in), optional :: ctracers(*) 
 !
     integer :: i , j , ig , jg , n , mpierr
     integer :: year , month , day , hour
@@ -185,6 +196,11 @@ module mod_mtrxclm
     r2carea = (dx*d_r1000)*(dx*d_r1000)
     ! Set landmask method
     r2cimask = imask
+
+    !chemistry fields
+    cgaschem = igases
+    caerosol = iaeros
+
     ! Set elevation and BATS landuse type (abt added)
     if ( .not.allocated(ht_rcm) )       allocate(ht_rcm(jx,iy))
     if ( .not.allocated(init_tgb) )     allocate(init_tgb(jx,iy))
@@ -192,6 +208,16 @@ module mod_mtrxclm
     if ( .not.allocated(clm_fracveg) )  allocate(clm_fracveg(jx,iy))
     if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
     clm_fracveg(:,:) = d_zero
+
+#if (defined VOC)
+    if(.not.allocated(voc_em)) allocate(voc_em(jx,iy))
+    voc_em(:,:) = 0._r8
+#endif
+    if( igases == 1 ) then
+         if(.not.allocated(dep_vels)) allocate(dep_vels(jx,iy,ntr))
+         dep_vels(:,:,:) = 0._r8
+    end if
+
     if ( myid == iocpu ) then
       ! Broadcast of those in CLM code.
       do i = 1 , iy
@@ -306,6 +332,7 @@ module mod_mtrxclm
 
     call program_off(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_init0()
+    if( igases == 1 ) call seq_drydep_init(ntr, ctracers)
     call clm_init1()
     call clm_init2()
 
@@ -454,10 +481,21 @@ module mod_mtrxclm
 
   end subroutine albedoclm
 !
+!
+!
   subroutine interfclm(ivers,ktau)
     use clmtype
     use clm_varsur , only : landmask , landfrac
     use clm_varsur , only : c2r_allout , omap_i , omap_j
+
+#if (defined VOC)
+    use clm_varsur,  only : cgaschem, caerosol
+    use clm_varpar,  only : nvoc
+    use shr_kind_mod,  only: r8 => shr_kind_r8
+#endif
+    use clm_drydep,  only : c2r_depout, n_drydep
+
+
     implicit none
     !
     ! ivers = 1 : regcm -> clm
@@ -468,6 +506,7 @@ module mod_mtrxclm
 !
     real(8) :: mmpd , wpm2
     integer :: i , j , ic , jc , ib , jg , ig , kk , n , icpu , nnn , nout
+    integer :: idep, iddep
     real(4) :: real_4
 !
     if ( ivers == 1 ) then
@@ -504,12 +543,15 @@ module mod_mtrxclm
 
     else if ( ivers == 2 ) then ! end of ivers = 1
 
-      ic = 0
-      jc = 1
-      if ( ichem == 1 ) then
-        nout = 22
-      else
-        nout = 20
+      ic   = 0
+      jc   = 1
+      idep = 0
+      nout = 20
+      if( ichem == 1 ) then  !Aerosol and/or Chem schemes on
+#if (defined VOC)
+         if(cgaschem == 1)    nout = nout + 1
+#endif
+         if(caerosol == 1)    nout = nout + 2
       end if
       do icpu = 1 , nproc
         do ib = 1 , c2rngc(icpu)
@@ -537,12 +579,37 @@ module mod_mtrxclm
           c2rro_sur(j,i)  = c2r_allout(ib+(18*kk)+ic)
           c2rro_sub(j,i)  = c2r_allout(ib+(19*kk)+ic)
           if ( ichem == 1 ) then
-            c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
-            c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+             if ( cgaschem == 1 .and. caerosol == 1 ) then
+                 !**** Dry deposition velocities from CLM4
+                 do iddep = 1,ntr
+                    dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+                 end do
+                 c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
+                 c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+#if (defined VOC)
+                 voc_em(j,i)    = c2r_allout(ib+(22*kk)+ic)
+#endif
+
+
+             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
+                 !**** Dry deposition velocities from CLM4
+                 do iddep = 1,ntr
+                    dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+                 end do
+                 voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
+           
+
+             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
+                 c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
+                 c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+             end if
+
+
           end if
           jc = jc + 1
         end do
         ic = ic + c2rngc(icpu)*nout
+        if( cgaschem == 1 ) idep = idep + c2rngc(icpu)*n_drydep
       end do
 
       if ( ktau == 0 .and. debug_level == 2 ) then

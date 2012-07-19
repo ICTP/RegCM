@@ -167,6 +167,7 @@ contains
 !
 ! local pointers to implicit inout arguments
 !
+   real(r8), pointer :: rb1(:)         ! boundary layer resistance (s/m)
    real(r8), pointer :: cgrnds(:)      ! deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
    real(r8), pointer :: cgrndl(:)      ! deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
    real(r8), pointer :: t_veg(:)       ! vegetation temperature (Kelvin)
@@ -372,6 +373,7 @@ contains
 
    ! Assign local pointers to derived type members (pft-level)
 
+   rb1            => clm3%g%l%c%p%pdd%rb1    !abt added
    ivt            => clm3%g%l%c%p%itype
    pcolumn        => clm3%g%l%c%p%column
    plandunit      => clm3%g%l%c%p%landunit
@@ -470,6 +472,10 @@ contains
       obuold(p) = 0._r8
       btran(p)  = btran0
    end do
+
+   ! Canopy resistance leaf level abt added
+   rb1(lbp:ubp) = 0._r8
+
 
    ! Effective porosity of soil, partial volume of ice and liquid (needed for btran)
    ! and root resistance factors
@@ -636,6 +642,7 @@ contains
          uaf = um(p)*sqrt( 1._r8/(ram1(p)*um(p)) )
          cf  = 0.01_r8/(sqrt(uaf)*sqrt(dleaf(ivt(p))))
          rb(p)  = 1._r8/(cf*uaf)
+         rb1(p) = rb(p)     !abt added
 
          ! Parameterization for variation of csoilc with canopy density from
          ! X. Zeng, University of Arizona
@@ -737,7 +744,6 @@ contains
 
          efsh   = dc1*(wtga*t_veg(p)-wtg0*t_grnd(c)-wta0(p)*thm(c))
          efe(p) = dc2*(wtgaq*qsatl(p)-wtgq0*qg(c)-wtaq0(p)*forc_q(g))
-         if ( dabs(efe(p)) < 1D-20 ) efe(p) = 0._r8
 
          ! Evaporation flux from foliage
 
@@ -771,7 +777,6 @@ contains
          efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) &
             -wtgq0*qg(c)-wtaq0(p)*forc_q(g))
          qflx_evap_veg(p) = rpp*efpot
-         if ( dabs(qflx_evap_veg(p)) < 1.0D-20 ) qflx_evap_veg(p) = 0._r8
          
          ! Calculation of evaporative potentials (efpot) and
          ! interception losses; flux in kg m**-2 s-1.  ecidif
@@ -780,7 +785,7 @@ contains
          ! sensible heat flux.
 
          ecidif = 0._r8
-         if (dabs(efpot) > 1D-20 .and. btran(p) > btran0) then
+         if (efpot > 0._r8 .and. btran(p) > btran0) then
             qflx_tran_veg(p) = efpot*rppdry
          else
             qflx_tran_veg(p) = 0._r8

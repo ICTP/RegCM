@@ -30,8 +30,6 @@ module accFldsMod
 ! !USES:
   use shr_kind_mod, only: r8 => shr_kind_r8
   use abortutils,   only: endrun
-  use mod_clm
-  use mod_dynparam
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -82,13 +80,65 @@ contains
 
     ! Hourly average of 2m temperature.
 
-!    dtime = get_step_size()
-    dtime = r2cdtime
+    dtime = get_step_size()
 
     call init_accum_field(name='TREFAV', units='K', &
          desc='average over an hour of 2-m temperature', &
          accum_type='timeavg', accum_period=nint(3600._r8/dtime), &
          subgrid_type='pft', numlev=1, init_value=0._r8)
+
+!**** added for VOC accumulation fields
+#if (defined VOC)
+    ! 24hr average of vegetation temperature (heald, 04/06)
+    call init_accum_field (name='T_VEG24', units='K', &
+         desc='24hr average of vegetation temperature', &
+         accum_type='runmean', accum_period=-1, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 240hr average of vegetation temperature (heald, 04/06)
+    call init_accum_field (name='T_VEG240', units='K', &
+         desc='240hr average of vegetation temperature', &
+         accum_type='runmean', accum_period=-10, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 24hr average of direct solar radiation (heald, 04/06)
+    call init_accum_field (name='FSD24', units='W/m2', &
+         desc='24hr average of direct solar radiation', &
+         accum_type='runmean', accum_period=-1, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 240hr average of direct solar radiation (heald, 04/06)
+    call init_accum_field (name='FSD240', units='W/m2', &
+         desc='240hr average of direct solar radiation', &
+         accum_type='runmean', accum_period=-10, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 24hr average of diffuse solar radiation (heald, 04/06)
+    call init_accum_field (name='FSI24', units='W/m2', &
+         desc='24hr average of diffuse solar radiation', &
+         accum_type='runmean', accum_period=-1, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 240hr average of diffuse solar radiation (heald, 04/06)
+    call init_accum_field (name='FSI240', units='W/m2', &
+         desc='240hr average of diffuse solar radiation', &
+         accum_type='runmean', accum_period=-10, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 24hr average of fraction of canopy that is sunlit (heald, 04/06)
+    call init_accum_field (name='FSUN24', units='fraction', &
+         desc='24hr average of diffuse solar radiation', &
+         accum_type='runmean', accum_period=-1, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+    ! 240hr average of fraction of canopy that is sunlit (heald, 04/06)
+    call init_accum_field (name='FSUN240', units='fraction', &
+         desc='240hr average of diffuse solar radiation', &
+         accum_type='runmean', accum_period=-10, &
+         subgrid_type='pft', numlev=1, init_value=0._r8)
+
+#endif
+
 
 #if (defined DGVM)
     ! 30-day average of 2m temperature.
@@ -187,6 +237,24 @@ contains
     real(r8), pointer :: frmf(:)             ! leaf maintenance respiration  (umol CO2 /m**2 /s)
     real(r8), pointer :: fpsn(:)             ! photosynthesis (umol CO2 /m**2 /s)
     real(r8), pointer :: t_ref2m(:)          ! 2 m height surface air temperature (Kelvin)
+#if (defined VOC)
+    ! heald (04/06): variables to be accumulated for VOC emissions
+    real(r8), pointer :: t_veg(:)            ! pft vegetation temperature (Kelvin)
+    real(r8), pointer :: forc_solad(:,:)     ! direct beam radiation (visible only)
+    real(r8), pointer :: forc_solai(:,:)     ! diffuse radiation     (visible only)
+    real(r8), pointer :: fsun(:)             ! sunlit fraction of canopy
+    real(r8), pointer :: elai(:)             ! one-sided leaf area index with burying by snow
+    ! heald (04/06): accumulated variables for VOC emissions
+    real(r8), pointer :: t_veg24(:)          ! 24hr average vegetation temperature (K)
+    real(r8), pointer :: t_veg240(:)         ! 240hr average vegetation temperature (Kelvin)
+    real(r8), pointer :: fsd24(:)            ! 24hr average of direct beam radiation
+    real(r8), pointer :: fsd240(:)           ! 240hr average of direct beam radiation
+    real(r8), pointer :: fsi24(:)            ! 24hr average of diffuse beam radiation
+    real(r8), pointer :: fsi240(:)           ! 240hr average of diffuse beam radiation
+    real(r8), pointer :: fsun24(:)           ! 24hr average of sunlit fraction of canopy
+    real(r8), pointer :: fsun240(:)          ! 240hr average of sunlit fraction of canopy
+    real(r8), pointer :: elai_p(:)           ! leaf area index average over timestep
+#endif
 !
 ! local pointers to implicit out arguments
 !
@@ -233,6 +301,10 @@ contains
     forc_t => clm_a2l%forc_t
     forc_rain => clm_a2l%forc_rain
     forc_snow => clm_a2l%forc_snow
+#if (defined VOC)
+    forc_solad => clm_a2l%forc_solad        ! (heald 04/06)
+    forc_solai => clm_a2l%forc_solai        ! (heald 04/06)
+#endif
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -254,14 +326,25 @@ contains
     agdd5            => clm3%g%l%c%p%pdgvs%agdd5
     agddtw           => clm3%g%l%c%p%pdgvs%agddtw
     agdd             => clm3%g%l%c%p%pdgvs%agdd
+#if (defined VOC)
+    t_veg24          => clm3%g%l%c%p%pva%t_sum24           ! (heald 04/06)
+    t_veg240         => clm3%g%l%c%p%pva%t_sum240          ! (heald 04/06)
+    fsd24            => clm3%g%l%c%p%pva%fsd24             ! (heald 04/06)
+    fsd240           => clm3%g%l%c%p%pva%fsd240            ! (heald 04/06)
+    fsi24            => clm3%g%l%c%p%pva%fsi24             ! (heald 04/06)
+    fsi240           => clm3%g%l%c%p%pva%fsi240            ! (heald 04/06)
+    fsun24           => clm3%g%l%c%p%pva%fsun24            ! (heald 04/06)
+    fsun240          => clm3%g%l%c%p%pva%fsun240           ! (heald 04/06)
+!!!    t_veg            => clm3%g%l%c%p%pes%t_veg             ! (heald 04/06)
+    t_veg            => clm3%g%l%c%p%pes%t_ref2m  !!** buggin use 2m temp       ! (heald 04/06)
+    fsun             => clm3%g%l%c%p%pps%fsun              ! (heald 04/06)
+#endif
+
 
     ! Determine calendar information
 
-!abt rcm    dtime = get_step_size()
-!           nstep = get_nstep()
-
-    dtime = r2cdtime
-    nstep = r2cnstep
+    dtime = get_step_size()
+    nstep = get_nstep()
 
     call get_curr_date (year, month, day, secs)
 
@@ -309,6 +392,49 @@ contains
           t_ref2m_min(p) = spval
        endif
     end do
+
+
+#if (defined VOC)
+    ! Accumulate and extract T_VEG24 & T_VEG240 (heald 04/06)
+    do p = begp,endp
+       rbufslp(p) = t_veg(p)
+    end do
+    call update_accum_field  ('T_VEG24', rbufslp, nstep)
+    call extract_accum_field ('T_VEG24', t_veg24, nstep)
+    call update_accum_field  ('T_VEG240', rbufslp, nstep)
+    call extract_accum_field ('T_VEG240', t_veg240, nstep)
+
+    ! Accumulate and extract forc_solad24 & forc_solad240 (heald 04/06)
+    do p = begp,endp
+       g = pgridcell(p)
+       rbufslp(p) = forc_solad(g,1)
+    end do
+    call update_accum_field  ('FSD240', rbufslp, nstep)
+    call extract_accum_field ('FSD240', fsd240, nstep)
+    call update_accum_field  ('FSD24', rbufslp, nstep)
+    call extract_accum_field ('FSD24', fsd24, nstep)
+
+    ! Accumulate and extract forc_solai24 & forc_solai240 (heald 04/06)
+    do p = begp,endp
+       g = pgridcell(p)
+       rbufslp(p) = forc_solai(g,1)
+    end do
+    call update_accum_field  ('FSI24', rbufslp, nstep)
+    call extract_accum_field ('FSI24', fsi24, nstep)
+    call update_accum_field  ('FSI240', rbufslp, nstep)
+    call extract_accum_field ('FSI240', fsi240, nstep)
+
+    ! Accumulate and extract fsun24 & fsun240 (heald 04/06)
+    do p = begp,endp
+       rbufslp(p) = fsun(p)
+    end do
+    call update_accum_field  ('FSUN24', rbufslp, nstep)
+    call extract_accum_field ('FSUN24', fsun24, nstep)
+    call update_accum_field  ('FSUN240', rbufslp, nstep)
+    call extract_accum_field ('FSUN240', fsun240, nstep)
+#endif
+
+
 
 #if (defined DGVM)
     ! Accumulate and extract TDA
@@ -502,8 +628,7 @@ contains
 
     ! Determine time step
 
-!abt rcm    nstep = get_nstep()
-    nstep = r2cdtime
+    nstep = get_nstep()
 
 
     ! Initialize 2m ref temperature max and min values

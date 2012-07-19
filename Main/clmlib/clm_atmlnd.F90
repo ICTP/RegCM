@@ -19,6 +19,9 @@ module clm_atmlnd
   use nanMod      , only : nan
   use spmdMod     , only : masterproc
   use abortutils,   only : endrun
+
+  use clm_varpar  , only : nvoc
+  use clm_drydep  , only : n_drydep
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -91,6 +94,10 @@ type lnd2atm_type
   real(r8), pointer :: sm10cm(:)         !soil moisture of top 10cm
   real(r8), pointer :: frac_sno(:)       !fraction ground covered by snow
   real(r8), pointer :: frac_veg_nosno(:) !fraction veg with no snow
+  real(r8), pointer :: vdrydep(:,:)      !dry deposition velocity
+#if (defined VOC)
+  real(r8), pointer :: voc2rcm(:,:) !transfer to chem scheme
+#endif
 !abt rcm above
 #if (defined DUST || defined  PROGSSLT )
   real(r8), pointer :: ram1(:)         !aerodynamical resistance (s/m)
@@ -273,6 +280,10 @@ end subroutine init_atm2lnd_type
   allocate(l2a%tgrnd(beg:end))
   allocate(l2a%frac_sno(beg:end))
   allocate(l2a%frac_veg_nosno(beg:end))
+#if (defined VOC)
+  allocate(l2a%voc2rcm(beg:end,nvoc))
+#endif
+  allocate(l2a%vdrydep(beg:end,n_drydep))
 !abt rcm above
 
 
@@ -314,6 +325,10 @@ end subroutine init_atm2lnd_type
   l2a%tgrnd(beg:end)      = ival
   l2a%frac_sno(beg:end)   = ival
   l2a%frac_veg_nosno(beg:end)      = ival
+#if (defined VOC)
+  l2a%voc2rcm(beg:end,1:nvoc) = ival
+#endif
+  l2a%vdrydep(beg:end,:) = ival
 !abt rcm above
 #if (defined DUST || defined  PROGSSLT )
   l2a%ram1(beg:end) = ival
@@ -1024,6 +1039,8 @@ end subroutine clm_mapl2a
 !abt added below
   use clm_varcon  , only : denh2o
   use clm_varpar  , only : nlevsoi
+  use mod_dynparam
+  use clm_varsur  , only : cgaschem
 !abt added above
 !
 ! !ARGUMENTS:
@@ -1283,6 +1300,27 @@ end subroutine clm_mapl2a
      call c2g(begc, endc, begl, endl, begg, endg, cptr%cwf%qflx_drain, &
           clm_l2a%qflx_drain,c2l_scale_type= 'unity', l2g_scale_type='unity')
 
+#if (defined VOC)
+     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, nvoc, &
+           pptr%pvf%vocflx, clm_l2a%voc2rcm, &
+           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+     ! convert from ug/m2/h to kg/m2/s
+     clm_l2a%voc2rcm(:,:) = clm_l2a%voc2rcm(:,:)*1.e-9_r8/(3600._r8)
+
+
+     where(clm_l2a%voc2rcm.ne.clm_l2a%voc2rcm)
+        clm_l2a%voc2rcm = 0._r8
+     endwhere
+#endif
+
+     if( cgaschem == 1 ) then
+        !For dry deposition velocity
+        call p2g(begp, endp, begc, endc, begl, endl, begg, endg, n_drydep, &
+           pptr%pdd%drydepvel, clm_l2a%vdrydep, &
+           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+     end if
+
+
      deallocate(temp_sm10cm)
      deallocate(temp_sm1m)
      deallocate(temp_smtot)
@@ -1318,6 +1356,7 @@ end subroutine clm_map2gcell
   use domainMod        , only : adomain,ldomain
   use clm_varsur
   use clm_varpar       , only : lsmlon,lsmlat
+  use clm_drydep       , only : c2r_depout
   use mod_clm
   use mod_dynparam
 !
@@ -1344,8 +1383,10 @@ end subroutine clm_map2gcell
   integer :: begl,endl,begp,endp
   real(r8),allocatable :: c2r_all(:)    ! used to capture all c2r vars 
   integer ,allocatable :: displace(:)   ! used for gathering
+  real(r8),allocatable :: dry_local(:)  ! used to capture all c2r vars
   integer :: numg,numl,numc,nump        ! proc totals
   integer :: nout                       ! number of vars going to regcm
+  integer :: iv                         ! index run
 !------------------------------------------------------------------------------
 
     ! Determine clump bounds for this processor
@@ -1364,16 +1405,24 @@ end subroutine clm_map2gcell
      call get_proc_global(numg,numl,numc,nump) 
 
      nt = endg-begg+1
+     nout = 20
      if( ichem == 1 ) then  !Aerosol scheme on
-       nout = 22
-       allocate(c2r_all(nt*nout))
-       if ( .not. allocated(c2r_allout) ) allocate(c2r_allout(numg*nout))
-     else
-       nout = 20
-       allocate(c2r_all(nt*nout))
-       if ( .not. allocated(c2r_allout) ) allocate(c2r_allout(numg*nout))
+#if (defined VOC)
+       if(cgaschem == 1)    nout = nout + 1
+#endif
+       if(caerosol == 1)    nout = nout + 2
      end if
-     allocate(displace(npes))
+     if ( .not. allocated(c2r_all)    ) allocate(c2r_all(nt*nout))
+     if ( .not. allocated(c2r_allout) ) allocate(c2r_allout(numg*nout))
+     if ( .not. allocated(displace)   ) allocate(displace(npes))
+
+     !** Used for dry deposition
+     !** for chemistry on only
+     if( cgaschem == 1 ) then
+        if(.not.allocated(dry_local))  allocate(dry_local(nt*n_drydep))
+        if(.not.allocated(c2r_depout)) allocate(c2r_depout(numg * n_drydep))
+     end if
+
 
 !!!!!! below is transfering variables from CLM to RegCM !!!
 !!!!!!!!!!!!!!!!!!! by c2r* variables !!!!!!!!!!!!!!!!!!!!!
@@ -1406,14 +1455,38 @@ end subroutine clm_map2gcell
         c2r_all(nn+17*nt) = clm_l2a%qflx_infl(n)*(24._r8 * 3600._r8)
         c2r_all(nn+18*nt) = clm_l2a%qflx_surf(n)*(24._r8 * 3600._r8)
         c2r_all(nn+19*nt) = clm_l2a%qflx_drain(n)*(24._r8 * 3600._r8)
-        if( ichem == 1 ) then  !Aerosol scheme on
-          c2r_all(nn+20*nt) = clm_l2a%frac_sno(n)
-          c2r_all(nn+21*nt) = clm_l2a%frac_veg_nosno(n)
+
+        if(    ichem == 1 ) then
+        if( caerosol == 1 ) then
+           c2r_all(nn+20*nt) = clm_l2a%frac_sno(n)
+           c2r_all(nn+21*nt) = clm_l2a%frac_veg_nosno(n)
         end if
+        end if
+
+#if (defined VOC)
+        if( cgaschem == 1 ) then
+          if( caerosol == 1 ) then  !Aerosol scheme on
+            c2r_all(nn+22*nt)   = clm_l2a%voc2rcm(n,1)
+          else
+            c2r_all(nn+20*nt)   = clm_l2a%voc2rcm(n,1)
+          end if
+        end if
+#endif
+
+	!***** Dry deposition
+	!** for chemistry on only
+	if( cgaschem == 1 ) then
+          do iv=1,n_drydep
+            dry_local(nn + (nt*(iv-1))) =  clm_l2a%vdrydep(n,iv)
+          end do
+        end if
+
         
     enddo !gridcell
     enddo !nclumps
 
+
+    !****** Gather CLM variables to the RegCM grid
     do nc = 1,npes
       if(nc.eq.1) then
         displace(nc) = 0
@@ -1430,8 +1503,28 @@ end subroutine clm_map2gcell
     call mpi_allgatherv(c2r_all(1),nn*nout,MPI_REAL8,c2r_allout, &
                         c2rngc*nout,displace,MPI_REAL8,mpicom,ierr)     
     
+
+
+    !****** Gather Dry Dep CLM variables to the RegCM grid
+    !** for chemistry on only
+    if(cgaschem == 1) then
+      do nc = 1,npes
+        if(nc.eq.1) then
+          displace(nc) = 0
+        else
+          displace(nc) = displace(nc-1) + c2rngc(nc-1)*n_drydep
+        endif
+      enddo
+      call mpi_allgatherv(dry_local(1),nn*n_drydep,MPI_REAL8, &
+                          c2r_depout, c2rngc*n_drydep, displace, &
+                          MPI_REAL8,mpicom,ierr)
+      deallocate(dry_local)
+    end if
+
+
     deallocate(c2r_all,displace)        
-!!!!!!!new code above
+
+
 
 end subroutine clm2rcm
 

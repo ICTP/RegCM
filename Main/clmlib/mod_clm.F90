@@ -138,6 +138,11 @@ module mod_clm
   real(dp) , pointer , dimension(:,:) :: c2rro_sub
   real(dp) , pointer , dimension(:,:) :: c2rfracsno      
   real(dp) , pointer , dimension(:,:) :: c2rfvegnosno 
+#if (defined VOC)
+  real(dp) , pointer , dimension(:,:) :: voc_em
+#endif
+  real(dp) , pointer , dimension(:,:,:) :: dep_vels
+
   integer , pointer , dimension(:,:) :: c2rprocmap
   integer , pointer , dimension(:) :: c2rngc
   integer , pointer , dimension(:) :: c2rdisps
@@ -166,8 +171,12 @@ module mod_clm
 !
   contains
 !
-  subroutine allocate_mod_clm
+  subroutine allocate_mod_clm(n_tr, igases)
+
     implicit none
+
+    integer, intent(in) :: igases
+    integer, intent(in) :: n_tr
 
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
     call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')
@@ -233,6 +242,10 @@ module mod_clm
     call getmem2d(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
     call getmem2d(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
     call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
+#if (defined VOC)
+    call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
+#endif
+    if( igases == 1 ) call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')
 
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')

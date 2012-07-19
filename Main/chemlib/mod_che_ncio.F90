@@ -226,11 +226,10 @@ module mod_che_ncio
       real(dp) , dimension(:) , allocatable :: emtimeval
       integer , dimension(4) :: istart , icount
       integer :: year, month 
-! FAB: remember for now, we have 1 emission file containing all monthly
-! emission for the whole simulation period
-! change that in the future.,
 
- 
+      ! FAB: remember for now, we have 1 emission file containing all monthly
+      ! emission for the whole simulation period 
+      ! change that in the future.,
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
       print *, 'Opening ch. emission file ', trim(aername)
@@ -273,7 +272,6 @@ module mod_che_ncio
 
       !*** intialized in start_chem
       !*** Advice record counter
-!      recc = recc + 1
       istart(1) = 1
       istart(2) = 1
       istart(3) = 1
@@ -283,18 +281,19 @@ module mod_che_ncio
       icount(3) = 1
       icount(4) = 1
 
+      ! CO emission                  
       if ( ico /= 0 ) then
           call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.)
           print*, 'FAB emis testco','ico', maxval(echemsrc)
       end if
 
       ! NO emission                  
-       if ( ino /= 0 ) then
+      if ( ino /= 0 ) then
           call rvar(ncid,istart,icount,ino,echemsrc, &
                     'NO_flux',.false.)
-        end if
+      end if
 
-!!$        ! HCHO emission                  
+      ! HCHO emission                  
         if ( ihcho /= 0 ) then
            call rvar(ncid,istart,icount,ihcho,echemsrc, &
              'HCHO_flux',.false.)
@@ -311,10 +310,10 @@ module mod_che_ncio
         end if
 
         !NH3
-        if ( iNH3 /= 0 ) then
-          call rvar(ncid,istart,icount,inh3,echemsrc, &
-                    'NH3_flux',.false.)
-        end if
+!        if ( iNH3 /= 0 ) then
+!          call rvar(ncid,istart,icount,inh3,echemsrc, &
+!                    'NH3_flux',.false.)
+!        end if
         ! CH4
         if ( ich4 /= 0 ) then
           call rvar(ncid,istart,icount,ich4,echemsrc, &
@@ -342,10 +341,12 @@ module mod_che_ncio
           call rvar(ncid,istart,icount,iolt,echemsrc, &
                     'OLT_flux',.false.)
         end if
-!!$        ! Internal Alkene
-        if ( ioli /= 0 ) then
-           call rvar(ncid,istart,icount,ioli,echemsrc,'OLI_flux',.false.)
-        end if
+
+        ! Internal Alkene
+!        if ( ioli /= 0 ) then
+!           call rvar(ncid,istart,icount,ioli,echemsrc,'OLI_flux',.false.)
+!        end if
+
         ! Isoprene
         if ( iisop /= 0 ) then
           call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.)
@@ -355,16 +356,18 @@ module mod_che_ncio
           echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
           echemsrc(:,:,io3) = d_zero
         end if
+
         ! Toluene
         if ( itolue /= 0 ) then
             call rvar(ncid,istart,icount,itolue,echemsrc, &
                       'TOL_flux',.false.)
-          end if
-!!$        ! Xylene
+        end if
+
+        ! Xylene
         if ( ixyl /= 0 ) then
             call rvar(ncid,istart,icount,ixyl,echemsrc, &
                       'XYL_flux',.true.)
-          end if
+        end if
         ! Acetaldehyde
         if ( iald2 /= 0 ) then
           call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.)
@@ -546,7 +549,7 @@ module mod_che_ncio
         ofname = trim(dirout)//pthsep//trim(domname)// &
                    '_'//trim(fbname)//'.nc'
 
-        write (aline, *) 'Opening new output file ', trim(ofname)
+        write (aline, *) 'Opening new output file ', trim(ofname), noutf, ntr
         call say
 
         call createfile_withname(ofname,ncid)

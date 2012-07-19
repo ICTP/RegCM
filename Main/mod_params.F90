@@ -721,8 +721,9 @@ module mod_params
     call mpi_bcast(ichsolver,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(ichdustemd,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(ichdiag,1,mpi_integer,iocpu,mycomm,ierr)
-    call chem_config
 
+
+    call chem_config
     call mpi_bcast(ntr,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(iaerosol,1,mpi_integer,iocpu,mycomm,ierr)  
     call mpi_bcast(ioxclim,1,mpi_integer,iocpu,mycomm,ierr)
@@ -737,13 +738,21 @@ module mod_params
 !
 
   call allocate_mod_runparams
+
   call allocate_mod_atm_interface(ibltyp)
+
   call allocate_mod_tend
+
   call allocate_mod_bdycon(iboudy)
+
   call allocate_mod_pbl_common(ichem)
+
   call allocate_mod_cu_common(ichem)
+
   call allocate_mod_precip(ichem)
+
   call allocate_mod_split
+
   call allocate_mod_mppio
 
   call allocate_mod_bats_common(ichem,idcsst,lakemod)
@@ -751,7 +760,7 @@ module mod_params
   call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_bats_romsocn
 #else
-  call allocate_mod_clm
+  call allocate_mod_clm(ntr,igaschem)
 #endif
 
   call allocate_mod_cloud_s1
@@ -989,12 +998,20 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
                      sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
+#ifdef CLM
+    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
+                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
+                   twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
+                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
+                   icumtop,icumbot,taucldsp,voc_em,dep_vels)
+#else
     call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
                    mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
                    twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
                    sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
                    icumtop,icumbot,taucldsp)
- end if
+#endif
+  end if
   call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &
                 sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)

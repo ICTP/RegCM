@@ -49,6 +49,7 @@ module mod_che_start
   !--------------------------------------------------------------------------
 
   subroutine start_chem (ifrest,idate1,intbdy,dtbdys)
+
     implicit none
     logical , intent(in) :: ifrest
     type(rcm_time_and_date) , intent(in) :: idate1
@@ -133,8 +134,8 @@ module mod_che_start
     !    *** used as a surface emission from MEGAN and not
     !    *** from inventory (see surftnd.F for use)
 
-#if (defined VOC)
-    if ( ibvoc == 1 ) then
+#if (defined VOC && defined CLM)
+    if ( igaschem == 1 ) then
       if ( .not. allocated(bvoc_trmask)) allocate(bvoc_trmask(ntr))
       bvoc_trmask(:) = 0
     end if
@@ -272,20 +273,17 @@ module mod_che_start
         call fatal(__FILE__,__LINE__,'CHEM CANNOT START')
       end if
 
+
+#if (defined VOC && defined CLM)
       !abt *** Added below to determine which MEGAN biogenic emission species
       !    *** will be passed to the gas phase mechanism
       !    *** commented out lines correspond to species not advected but
       !    *** potentially used in chemistry mechanism.
       !    *** Uncomment to give potential to advect    
-!!$
-!!$#if (defined VOC)
-!!$   if ( ibvoc == 1 ) then
-!!$     if ( chtrname(itr) == 'ISOP'  ) bvoc_trmask(itr) = 1
-!!$     if ( chtrname(itr) == 'APIN'  ) bvoc_trmask(itr) = 7
-!!$     if ( chtrname(itr) == 'LIMO'  ) bvoc_trmask(itr) = 4
-!!$   end if
-!!$#endif
-!!$   !abt above added 
+      if ( igaschem == 1 ) then
+        if ( chtrname(itr) == 'ISOP'  ) bvoc_trmask(itr) = 1
+      end if
+#endif
 
     end do
 
@@ -360,6 +358,38 @@ module mod_che_start
         ichbdy2trac(22) = iso2
         ichbdy2trac(23) = iso4
         ichbdy2trac(24) = idms
+      case ('DCCB')
+        ichbdy2trac(1)  = io3
+        ichbdy2trac(2)  = ino
+        ichbdy2trac(3)  = ino2
+        ichbdy2trac(4)  = ihno3
+        ichbdy2trac(5)  = in2o5
+        ichbdy2trac(6)  = ih2o2
+        ichbdy2trac(7)  = ich4
+        ichbdy2trac(8)  = ico
+        ichbdy2trac(9)  = ihcho
+        ichbdy2trac(10) = imoh
+        ichbdy2trac(11) = ieoh
+        ichbdy2trac(12) = iethe
+        ichbdy2trac(13) = ic2h6
+        ichbdy2trac(14) = iald2
+        ichbdy2trac(15) = iacet
+        ichbdy2trac(16) = ioli
+        ichbdy2trac(17) = iolt
+        ichbdy2trac(18) = ic3h8
+        ichbdy2trac(19) = iisop
+        ichbdy2trac(20) = itolue
+        ichbdy2trac(21) = ipan
+        ichbdy2trac(22) = iso2
+        ichbdy2trac(23) = iso4
+        ichbdy2trac(24) = idms
+        do i = 1 , ibin
+          ichbdy2trac(i+24) = idust(i)
+        end do
+        ichbdy2trac(ibin+24+1)  = ibchb
+        ichbdy2trac(ibin+24+2)  = ibchl
+        ichbdy2trac(ibin+24+3)  = iochb
+        ichbdy2trac(ibin+24+4)  = iochl
     end select
 
     if ( idust(1) > 0 ) then

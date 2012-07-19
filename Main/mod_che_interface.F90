@@ -40,19 +40,27 @@ module mod_che_interface
 !
   contains 
 !
+#if (defined CLM)
+  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
+                       mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,   &
+                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
+                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,    &
+                       icutop,icubot,taucldsp,voc_em,dep_vels)
+#else
   subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
                        mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,   &
                        twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
                        sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,    &
                        icutop,icubot,taucldsp)
+#endif
 
     ! this routine define the pointer interface between the chem module and
     ! the rest of the model
     ! It also call startchem which is the chemistry initialisation routine
 
     implicit none
-    logical, intent(in) :: ifrest
-    integer , intent(in) :: idirect
+    logical, intent(in)   :: ifrest
+    integer , intent(in)  :: idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad,dx 
 
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
@@ -61,14 +69,18 @@ module mod_che_interface
              sdelqk2d , ssw2da , twt , sfracv2d , sfracb2d , sfracs2d
     real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
     real(dp), pointer, dimension(:,:,:,:) :: taucldsp
-    integer , pointer , dimension(:,:) :: icutop , icubot, iveg
-    type(slice) , intent(in) :: atms
-    type(domain), intent(in):: mddom
-    type (surfstate) , intent(in) :: sfs
-    type(bound_area) , intent(in) :: ba_cr
-    real(dp) , pointer , dimension(:) :: a , anudg
+    integer , pointer , dimension(:,:)  :: icutop , icubot, iveg
+    type(slice) , intent(in)            :: atms
+    type(domain), intent(in)            :: mddom
+    type (surfstate) , intent(in)       :: sfs
+    type(bound_area) , intent(in)       :: ba_cr
+    real(dp) , pointer , dimension(:)   :: a , anudg
     real(dp) , pointer , dimension(:,:) :: coszrs
     real(dp) :: ptop
+
+#if (defined CLM)
+    real(dp), pointer :: voc_em(:,:), dep_vels(:,:,:)
+#endif
 
     ichdir = idirect
 
@@ -133,6 +145,11 @@ module mod_che_interface
     cba_cr%ne = ba_cr%ne
     cba_cr%nw = ba_cr%nw
     cba_cr%nsp = ba_cr%nsp
+
+#if (defined CLM)
+    call assignpnt(voc_em,cvoc_em)
+    call assignpnt(dep_vels,cdep_vels)
+#endif
 
   end subroutine init_chem
 !

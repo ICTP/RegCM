@@ -62,6 +62,7 @@ module mod_wrtoxd
   character(len=8) , pointer , dimension(:) :: aespec
 
   character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(8) :: aedccb
   character(len=8) , target , dimension(4) :: aesslt
   character(len=8) , target , dimension(5) :: aecarb
   character(len=8) , target , dimension(2) :: aesulf
@@ -94,6 +95,7 @@ module mod_wrtoxd
   data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
                 'DST01', 'DST02', 'DST03', 'DST04' /
+  data aedccb / 'CB1' , 'CB2' , 'OC1' , 'OC2' ,'DST01', 'DST02', 'DST03', 'DST04' /
 
   integer :: ioc2 , isoa
   integer :: isslt1 , isslt2 , isslt3 , isslt4
@@ -152,6 +154,11 @@ module mod_wrtoxd
         sum_sslt_bins = .true.
         sum_soa_to_oc2 = .true.
       case ( 'CBMZ' )
+        dochem = .true.
+      case ( 'DCCB' )
+        naesp = 8
+        aespec => aedccb
+        doaero = .true.
         dochem = .true.
       case default
         call die('init_outoxd','Unknown chemsimtype')
