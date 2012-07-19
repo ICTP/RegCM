@@ -882,11 +882,7 @@ module mod_che_wetdep
             priiv = prii*(rhorain-rho(i,k)) 
             ! cunningham settling slip-correction factor
             ! settling velocity
-            if ( (aa3r*rrm/amfp) > 50.0 ) then
-              cfac = d_zero
-            else
-              cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
-            end if
+            cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
             vpr = priiv*rrm**d_two*cfac
           end if 
           !----------------------------------------------------c
@@ -919,7 +915,6 @@ module mod_che_wetdep
 
           ! reynolds number: 
           re = rrm*vpr*rho(i,k)/amu
-          if ( re < 1.D-10) re = 1.D-10
           ! stokes number of collected particles: 
           st = d_two*pdepv(i,k,indp(n))/egrav*(vpr - &
                pdepv(i,k,indp(n)))/(d_two*rrm)
