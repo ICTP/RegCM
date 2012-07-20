@@ -42,7 +42,6 @@ module mod_che_dust
   ! has to be calculated from an assumed sub-bin distribution 
   data dustbed /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /   
 
-  ! a revoir en fonction d optique
   ! solubility of od dust aer for param of giorgi and chameides
   real(dp) , dimension(nbin) ::  soldust
   data  soldust /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 / 
@@ -170,14 +169,15 @@ module mod_che_dust
       ! marticorena et al., 1997 soil size parameter.
       ! change also the clay/sand/sil percentage (used to calculate the ratio
       ! of vertical/horizontal flux): This (bcly) is only effective when Kok
-      ! size distribution is option enabled
+      ! size distribution is option enabled. 
+      ! Values are derived from Laurent et al. typical ranged adapted for our USDA texture types. 
       ! 
-!      data bcly/0.05D0 , 0.10D0 , 0.15D0 , 0.15D0 , 0.15D0 , 0.005D0 , &
-!                0.005D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
+      data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
+                3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
 
-      data bcly/12*0.05/
+!      data bcly/12*0.05/
                
-
+! bsnd and bslt are not really used after / the data here are not consistent with clay.
       data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
                 0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
       data bslt/0.05D0 , 0.05D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
@@ -357,7 +357,6 @@ module mod_che_dust
 !   * calculate of ustar01(d) using iversen and white (1982)     ****
 !   * for smoth surface:                                         ****
 !   * coded by :                                                 ****
-!   * ashraf s. zakey, 2003                                      ****
 !   * dum    : particle diameter [um]                            ****
 !   * ustar0 : threshold frication velocity [m/s]                ****
 !   *****************************************************************
@@ -397,7 +396,6 @@ module mod_che_dust
 !
 !   *****************************************************************
 !   *                                                            ****
-!   * modified by a.s.zakey, nov.2003                            ****
 !   * y. shao, 13 june 2000                                      ****
 !   * calculate ustar0(d) using shao and lu (2000) for uncovered ****
 !   * dry surface                                                ****
@@ -422,9 +420,7 @@ module mod_che_dust
 !   *                                                   ******
 !   * this scheme based on marticorena and bergametti,  ******
 !   * 1995; gong et al.,(2003); alfaro et al.,(1997)    ******
-!   *                                                   ******
-!   * the modification coded by:                        ******
-!   * ashraf s. zakey                                   ******
+!   * Zakey et al., 2006                                                  ******
 !   **********************************************************
 ! 
     subroutine sfflux(jloop,ivegcov,vegfrac,ustarnd,z0,soilw, &
@@ -665,10 +661,8 @@ module mod_che_dust
       real(dp), dimension(ilg,nbin,nats):: rsfrowt
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
-      !
+      ! basically this const is a tuning parameter
       !data const /d_one/
-      !data const /d_half/
-      data const /0.4D0/
       data beta  /16300.0D0/
   
       p1 = d_zero
@@ -678,6 +672,12 @@ module mod_che_dust
       fsoil1(:,:) = d_zero
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
+
+      if ( ichdustemd == 1 ) then
+        const = 0.4D0
+      else if (  ichdustemd == 2 ) then 
+        const =0.15D0
+      end if 
  
       do nt = 1 , nats 
          do i = il1 , il2
