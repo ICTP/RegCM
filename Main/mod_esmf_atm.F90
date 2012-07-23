@@ -100,6 +100,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_constants, only : d_zero
+      use mod_dynparam , only : mycomm
 !
       implicit none
 !
@@ -175,6 +176,8 @@
 !-----------------------------------------------------------------------
 !
       call RCM_SetGridArrays()
+!      call MPI_Barrier(models(Iatmos)%comm, rc)
+!      call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states and load initial data
@@ -634,12 +637,19 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n, rc
+      integer :: i, j, k, n, rc
       integer :: localPet, petCount, comm, localDECount
+      integer :: unmapped(nproc), mapped(nproc)
+      integer, dimension(2) :: cpus_per_dim
+      integer, allocatable :: set1(:), set2(:) 
+      real*8 :: dimfac
       character (len=40) :: name
+      character (len=100) :: fmt_123
 !
       type(ESMF_Field) :: grdField
+      type(ESMF_DELayout) :: delayout
       type(ESMF_StaggerLoc) :: staggerLoc
+      type(ESMF_Decomp_Flag) :: decompflag(2)
       real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
 !
 !-----------------------------------------------------------------------
@@ -661,13 +671,93 @@
       do n = 1, nNest(Iatmos)
 !
 !-----------------------------------------------------------------------
+!     Calculate number of CPUs in each direction 
+!-----------------------------------------------------------------------
+!
+      if ( nproc < 4 ) then
+        cpus_per_dim(1) = 1
+        cpus_per_dim(2) = nproc
+      else if ( nproc >= 4 ) then
+        cpus_per_dim(1) = (nint(sqrt(dble(nproc)))/2)*2
+        if ( iy > int(1.5*dble(jx)) ) then
+          cpus_per_dim(1) = cpus_per_dim(1) - 1
+          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) - 1
+          end do
+        else if ( jx > int(1.5*dble(iy)) ) then
+          cpus_per_dim(1) = cpus_per_dim(1) + 1
+          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          end do
+        else
+          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
+            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          end do
+        end if
+        cpus_per_dim(2) = nproc/cpus_per_dim(1)
+      end if
+!
+!-----------------------------------------------------------------------
+!     Calculate DE layout 
+!-----------------------------------------------------------------------
+!
+      unmapped = (/ (i, i=0, nproc-1) /)
+      mapped = unmapped
+!
+      if (.not. allocated(set1)) then
+        allocate(set1(cpus_per_dim(1)))
+        allocate(set2(cpus_per_dim(1)))
+      end if
+!
+      do i = 1, cpus_per_dim(1)
+        set2(i) = (i*cpus_per_dim(2))-1
+        set1(i) = nproc-cpus_per_dim(1)+i-1
+        mapped(set1(i)+1) = set2(i)
+      end do
+!
+      k = 1
+      do i = 1, cpus_per_dim(1)
+        do j = 1, cpus_per_dim(1)
+          if (set1(i) .eq. set2(j)) then
+            set1(i) = -1
+          end if
+        end do
+
+        if ((set1(i) > 0) .and. (set2(i) < nproc-cpus_per_dim(1))) then
+          mapped(set2(i)+1) = set1(k)
+        else
+          k = k+1
+          if (k <= cpus_per_dim(1)) then
+            mapped(set2(i)+1) = set1(k)
+          end if
+        end if
+
+        k = k+1
+      end do
+!
+      if (localPet == 0) then
+        write(fmt_123, fmt="('(A8, ', I3, 'I4)')") nproc
+        write(*,fmt=trim(fmt_123)) " PET/RAW", unmapped
+        write(*,fmt=trim(fmt_123)) " PET/MAP", mapped
+      end if
+!
+!-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
 !
+      decompflag = (/ ESMF_DECOMP_RESTLAST, ESMF_DECOMP_RESTLAST /)
+!
+      delayout = ESMF_DELayoutCreate(petMap=mapped, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (                &
                                         minIndex=(/ 1, 1 /),            &
-                                        maxIndex=(/ jx, iy /),          &
-                                        regDecomp=(/nproc,1/),          &
+                                        !maxIndex=(/ jx, iy /),          &
+                                        maxIndex=(/ iy, jx /),          &
+                                        !regDecomp=cpus_per_dim,         &
+                                        regDecomp=(/ cpus_per_dim(2), cpus_per_dim(1) /), &
+                                        decompflag=decompflag,          &
+                                        !delayout=delayout,              &
                                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -784,8 +874,10 @@
                    lbound(mddom%dlon, dim=2), ubound(mddom%dlon, dim=2)
 !        end if 
 !
-        ptrX = mddom%dlon
-        ptrY = mddom%dlat
+        ptrX = transpose(mddom%dlon)
+        ptrY = transpose(mddom%dlat)
+        !ptrX = mddom%dlon
+        !ptrY = mddom%dlat
       else if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
 !        if (cpl_dbglevel > 0) then
           write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
@@ -793,8 +885,14 @@
                    lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
 !        end if
 !
-        ptrX = mddom%xlon
-        ptrY = mddom%xlat
+        ptrX = transpose(mddom%xlon)
+        ptrY = transpose(mddom%xlat)
+        !ptrX = mddom%xlon
+        !ptrY = mddom%xlat
+      if (localPet == 0) then
+      call print_matrix_r8(ptrX, 1, 1, localPet, 6, "PTR/ATM/GRD/X/"//name)
+      call print_matrix_r8(ptrY, 1, 1, localPet, 6, "PTR/ATM/GRD/Y/"//name)
+      end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -1111,6 +1209,7 @@
       use mod_bats_common
       use mod_dynparam, only : kz, ici1, ici2, jci1, jci2
       use mod_constants, only : wlhv
+      use mod_mppparam, only : ma
 !
       implicit none
 !
@@ -1124,7 +1223,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, id, n, rc, localDECount
+      integer :: i, j, k, ii, jj, id, n, rc, localDECount
       integer, dimension(2) :: dims
       logical :: flag
       character (len=40) :: name
@@ -1149,19 +1248,19 @@
 !     Create export state fields 
 !-----------------------------------------------------------------------
 !
-      do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
+      do k = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
 !
 !-----------------------------------------------------------------------
 !     Debug: write size of pointers    
 !-----------------------------------------------------------------------
 !
-      name = trim(adjustl(models(Iatmos)%dataExport(i,n)%name))
+      name = trim(adjustl(models(Iatmos)%dataExport(k,n)%name))
       if (cpl_dbglevel > 1) then
         write(*,50) localPet, 0, adjustl("PTR/ATM/EXP/"//name),         &
-                    lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=1),  &
-                    ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=1),  &
-                    lbound(models(Iatmos)%dataExport(i,n)%ptr, dim=2),  &
-                    ubound(models(Iatmos)%dataExport(i,n)%ptr, dim=2)
+                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
+                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
+                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=2),  &
+                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=2)
       end if
 !
 !-----------------------------------------------------------------------
@@ -1179,23 +1278,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(sfps, dim=1), ubound(sfps, dim=1),             &
                   lbound(sfps, dim=2), ubound(sfps, dim=2)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jce1, jce2, ice1, ice2 
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) =                    &
-                    (sfps(1:jxp,:)+ptop)*d_10
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-1,1:iym1) =              &
-                    (sfps(1:jxp-1,:)+ptop)*d_10
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) 
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,1:iym1) =                    &
-                    (sfps(1:jxp,:)+ptop)*d_10
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym1)
+      do i = ice1, ice2
+        do j = jce1, jce2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = (sfps(j,i)+ptop)*d_10
+        end do
+      end do
 !
 !-----------------------------------------------------------------------
 !     Surface (2m) air temperature (K)
@@ -1206,28 +1297,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(t2m, dim=2), ubound(t2m, dim=2),               &
                   lbound(t2m, dim=3), ubound(t2m, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = t2m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = t2m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = t2m(1,:,:)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = t2m(1,j,i)
+        end do
+      end do
 !
 !-----------------------------------------------------------------------
 !     Surface (2m) specific humidity (kg/kg)
@@ -1238,28 +1316,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(q2m, dim=2), ubound(q2m, dim=2),               &
                   lbound(q2m, dim=3), ubound(q2m, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = q2m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = q2m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = q2m(1,:,:)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = q2m(1,j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Shortwave radiation (W/m2) 
@@ -1270,29 +1335,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(fsw, dim=1), ubound(fsw, dim=1),               &
                   lbound(fsw, dim=2), ubound(fsw, dim=2)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = fsw(2:,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     fsw(1:jxp-2,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = fsw(:,2:iym2)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i)
+        end do
+      end do
 !
 !-----------------------------------------------------------------------
 !     Downward longwave radiation (W/m2) 
@@ -1303,29 +1354,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(flwd, dim=1), ubound(flwd, dim=1),             &
                   lbound(flwd, dim=2), ubound(flwd, dim=2)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = flwd(2:,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     flwd(1:jxp-2,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = flwd(:,2:iym2)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = flwd(j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Net longwave radiation (W/m2) 
@@ -1336,29 +1373,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(flw, dim=1), ubound(flw, dim=1),               &
                   lbound(flw, dim=2), ubound(flw, dim=2)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = flw(2:,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     flw(1:jxp-2,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = flw(:,2:iym2)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = flw(j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Sensible heat flux (W/m2) 
@@ -1369,29 +1392,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(sent, dim=2), ubound(sent, dim=2),             &
                   lbound(sent, dim=3), ubound(sent, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = sent(1,2:,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     sent(1,1:jxp-2,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = sent(1,:,2:iym2)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = sent(1,j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Latent heat flux (W/m2) 
@@ -1402,30 +1411,16 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(evpr, dim=2), ubound(evpr, dim=2),             &
                   lbound(evpr, dim=3), ubound(evpr, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = evpr(1,:,:)*wlhv
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     evpr(1,:,:)*wlhv
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = evpr(1,:,:)*wlhv
-      end if
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)*wlhv 
+        end do
+      end do
 !
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
-!          
 !-----------------------------------------------------------------------
 !     Precipitation (m/s)
 !-----------------------------------------------------------------------
@@ -1435,28 +1430,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(totpr, dim=1), ubound(totpr, dim=1),           &
                   lbound(totpr, dim=2), ubound(totpr, dim=2)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = totpr 
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = totpr
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = totpr
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = totpr(j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Surface (10m) U-wind speed (m/s)
@@ -1467,28 +1449,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(u10m, dim=2), ubound(u10m, dim=2),             &
                   lbound(u10m, dim=3), ubound(u10m, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = u10m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = u10m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = u10m(1,:,:)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = u10m(1,j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Surface (10 m) V-wind speed (m/s)
@@ -1499,28 +1468,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(v10m, dim=2), ubound(v10m, dim=2),             &
                   lbound(v10m, dim=3), ubound(v10m, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = v10m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = v10m(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = v10m(1,:,:)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = v10m(1,j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Net freshwater flux (m/s) 
@@ -1531,29 +1487,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(evpr, dim=2), ubound(evpr, dim=2),             &
                   lbound(evpr, dim=3), ubound(evpr, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = evpr(1,:,:)-totpr
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     evpr(1,:,:)-totpr
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = evpr(1,:,:)-totpr
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)-totpr(j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Net heat flux (W/m2) 
@@ -1564,34 +1506,18 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(evpr, dim=2), ubound(evpr, dim=2),             &
                   lbound(evpr, dim=3), ubound(evpr, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) =                   &
-                     fsw(2:,2:iym2)-sent(1,2:,2:iym2)-                  &
-                     evpr(1,:,:)*wlhv-flw(2:,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) =              &
-                     fsw(1:jxp-2,2:iym2)-sent(1,1:jxp-2,2:iym2)-        &
-                     evpr(1,:,:)*wlhv-flw(1:jxp-2,2:iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) =                    &
-                     fsw(:,2:iym2)-sent(1,:,2:iym2)-                    &
-                     evpr(1,:,:)*wlhv-flw(:,2:iym2)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                       models(Iatmos)%dataExport(i,n)%ptr(:,2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                       models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                       models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i)-             &
+                                                  sent(1,j,i)-          &
+                                                  evpr(1,j,i)*wlhv-     &
+                                                  fsw(j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Surface (10m) U-wind stress (Pa) 
@@ -1602,28 +1528,15 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(taux, dim=2), ubound(taux, dim=2),             &
                   lbound(taux, dim=3), ubound(taux, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = taux(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = taux(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = taux(1,:,:)
-      end if
-!
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = taux(1,j,i)
+        end do
+      end do
 !          
 !-----------------------------------------------------------------------
 !     Surface (10m) V-wind stress (Pa) 
@@ -1634,28 +1547,56 @@
       write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
                   lbound(tauy, dim=2), ubound(tauy, dim=2),             &
                   lbound(tauy, dim=3), ubound(tauy, dim=3)
+      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
+                  jci1, jci2, ici1, ici2
       end if
 !
-      if (localPet .eq. 0) then
-      models(Iatmos)%dataExport(i,n)%ptr(2:,2:iym2) = tauy(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(1,:) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(2,:)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-      models(Iatmos)%dataExport(i,n)%ptr(1:jxp-2,2:iym2) = tauy(1,:,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp-1,:) =                     &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      models(Iatmos)%dataExport(i,n)%ptr(jxp,:) =                       &
-                     models(Iatmos)%dataExport(i,n)%ptr(jxp-2,:)
-      else
-      models(Iatmos)%dataExport(i,n)%ptr(:,2:iym2) = tauy(1,:,:)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = tauy(1,j,i)
+        end do
+      end do
+      end select
+!
+!-----------------------------------------------------------------------
+!     Fill domain boundaries with data   
+!-----------------------------------------------------------------------
+!
+      select case (trim(adjustl(name)))
+      case ('Pair')
+      if (ma%has_bdytop) then
+        models(Iatmos)%dataExport(k,n)%ptr(ice2+1,:) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(ice2,:)
       end if
 !
-      models(Iatmos)%dataExport(i,n)%ptr(:,iym1) =                      &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,iy) =                        &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,iym2)
-      models(Iatmos)%dataExport(i,n)%ptr(:,1) =                         &
-                     models(Iatmos)%dataExport(i,n)%ptr(:,2)
+      if (ma%has_bdyright) then
+        models(Iatmos)%dataExport(k,n)%ptr(:,jce2+1) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(:,jce2)
+      end if
+      case default
+      if (ma%has_bdytop) then
+        models(Iatmos)%dataExport(k,n)%ptr(ici2+1,:) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(ici2,:)
+        models(Iatmos)%dataExport(k,n)%ptr(ici2+2,:) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(ici2,:)
+      end if
+!
+      if (ma%has_bdyright) then
+        models(Iatmos)%dataExport(k,n)%ptr(:,jci2+1) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(:,jci2)
+        models(Iatmos)%dataExport(k,n)%ptr(:,jci2+2) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(:,jci2)
+      end if
+!
+      if (ma%has_bdybottom) then
+        models(Iatmos)%dataExport(k,n)%ptr(ici1-1,:) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(ici1,:)
+      end if
+!
+      if (ma%has_bdyleft) then
+        models(Iatmos)%dataExport(k,n)%ptr(:,jci1-1) =                  &
+                       models(Iatmos)%dataExport(k,n)%ptr(:,jci1)
+      end if
       end select
 !
 !-----------------------------------------------------------------------
@@ -1675,7 +1616,7 @@
             localPet
 !
       open (unit=99, file = trim(outfile)) 
-      call print_matrix_r8(models(Iatmos)%dataExport(i,n)%ptr,          &
+      call print_matrix_r8(models(Iatmos)%dataExport(k,n)%ptr,          &
                            1, 1, localPet, 99, "PTR/ATM/EXP")
       close(99)
       end if
@@ -1694,7 +1635,7 @@
             models(Iatmos)%time%day,                                    &
             models(Iatmos)%time%hour
 !
-      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
+      call ESMF_FieldWrite(models(Iatmos)%dataExport(k,n)%field,        &
                            trim(adjustl(outfile)),                      &
                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

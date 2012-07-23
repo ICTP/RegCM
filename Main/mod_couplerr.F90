@@ -789,7 +789,7 @@
             models(i)%dataImport(5,j)%long_name = &
             'net longwave radiation flux'
             models(i)%dataImport(5,j)%units = 'Celsius m/s'
-            models(i)%dataImport(5,j)%scale_factor = -Hscale2
+            models(i)%dataImport(5,j)%scale_factor = Hscale2 !-Hscale2
             models(i)%dataImport(5,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(6,j)%fid = 6
@@ -809,7 +809,7 @@
             models(i)%dataImport(7,j)%long_name = &
             'latent heat flux'
             models(i)%dataImport(7,j)%units = 'Celsius m/s'
-            models(i)%dataImport(7,j)%scale_factor = -Hscale2
+            models(i)%dataImport(7,j)%scale_factor = Hscale2
             models(i)%dataImport(7,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(8,j)%fid = 8
@@ -819,7 +819,7 @@
             models(i)%dataImport(8,j)%long_name = &
             'sensible heat flux'
             models(i)%dataImport(8,j)%units = 'Celsius m/s'
-            models(i)%dataImport(8,j)%scale_factor = -Hscale2
+            models(i)%dataImport(8,j)%scale_factor = Hscale2
             models(i)%dataImport(8,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(9,j)%fid = 9

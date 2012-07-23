@@ -191,6 +191,9 @@
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
+ iocncpl =          0,  ! Activates RegCM-ROMS coupled model
+                        !   0 => no coupling
+                        !   1 => coupling activated
    iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
                         !   1 => (0.0065*ustar*ustar)/egrav
                         !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar
@@ -361,5 +364,19 @@
                     !        landmask and perform a weighted average over
                     !        ocean/land gridcells; for example:
                     ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
+ /
+!
+! Coupled model parameters
+!
+ &cplparam
+ cpldt        = 10800., ! Coupling time step in sec. 
+ cpldbglevel  = 1,      ! Debug level
+                        ! 1 => basic output
+                        ! 2 => grid information of each component is written
+                        !      to VTK file
+                        ! 3 => exchange fields are written to netcdf file at
+                        !      each coupling time step 
+                        ! 4 => exchange fields are written to a ASCII file at
+                        !      each coupling time step
  /
 ! ####################################################################
