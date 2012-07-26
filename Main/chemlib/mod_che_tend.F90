@@ -356,13 +356,13 @@
       if ( igaschem == 1 ) then
         ! fix the interface for this variable
         ! no effect of cumulus scavenging now
-        checum = d_zero
+!        checum = d_zero
         chevap = d_zero
-!        do j = jci1 , jci2        
-!          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),checum(:,:,j), &
-!                      cremrat(j,:,:),chevap(:,:,j),dtche,rho(:,:,j),  &
-!                      chib(j,:,:,:),iym3,psurf(:,j))
-!        end do
+        do j = jci1 , jci2        
+          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j), &
+                      prec(:,:,j),convprec(:,:,j),chevap(:,:,j),dtche,rho(:,:,j),  &
+                      chib(j,:,:,:),psurf(:,j))
+        end do
       end if
       !
       ! Gas phase solver 
