@@ -176,8 +176,6 @@
 !-----------------------------------------------------------------------
 !
       call RCM_SetGridArrays()
-!      call MPI_Barrier(models(Iatmos)%comm, rc)
-!      call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states and load initial data
@@ -675,89 +673,44 @@
 !-----------------------------------------------------------------------
 !
       if ( nproc < 4 ) then
-        cpus_per_dim(1) = 1
-        cpus_per_dim(2) = nproc
+        cpus_per_dim(2) = 1
+        cpus_per_dim(1) = nproc
       else if ( nproc >= 4 ) then
-        cpus_per_dim(1) = (nint(sqrt(dble(nproc)))/2)*2
+        cpus_per_dim(2) = (nint(sqrt(dble(nproc)))/2)*2
         if ( iy > int(1.5*dble(jx)) ) then
-          cpus_per_dim(1) = cpus_per_dim(1) - 1
-          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) - 1
+          cpus_per_dim(2) = cpus_per_dim(2) - 1
+          do while ( mod(nproc,cpus_per_dim(2)) /= 0 )
+            cpus_per_dim(2) = cpus_per_dim(2) - 1
           end do
         else if ( jx > int(1.5*dble(iy)) ) then
-          cpus_per_dim(1) = cpus_per_dim(1) + 1
-          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          cpus_per_dim(2) = cpus_per_dim(2) + 1
+          do while ( mod(nproc,cpus_per_dim(2)) /= 0 )
+            cpus_per_dim(2) = cpus_per_dim(2) + 1
           end do
         else
-          do while ( mod(nproc,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) + 1
+          do while ( mod(nproc,cpus_per_dim(2)) /= 0 )
+            cpus_per_dim(2) = cpus_per_dim(2) + 1
           end do
         end if
-        cpus_per_dim(2) = nproc/cpus_per_dim(1)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Calculate DE layout 
-!-----------------------------------------------------------------------
-!
-      unmapped = (/ (i, i=0, nproc-1) /)
-      mapped = unmapped
-!
-      if (.not. allocated(set1)) then
-        allocate(set1(cpus_per_dim(1)))
-        allocate(set2(cpus_per_dim(1)))
-      end if
-!
-      do i = 1, cpus_per_dim(1)
-        set2(i) = (i*cpus_per_dim(2))-1
-        set1(i) = nproc-cpus_per_dim(1)+i-1
-        mapped(set1(i)+1) = set2(i)
-      end do
-!
-      k = 1
-      do i = 1, cpus_per_dim(1)
-        do j = 1, cpus_per_dim(1)
-          if (set1(i) .eq. set2(j)) then
-            set1(i) = -1
-          end if
-        end do
-
-        if ((set1(i) > 0) .and. (set2(i) < nproc-cpus_per_dim(1))) then
-          mapped(set2(i)+1) = set1(k)
-        else
-          k = k+1
-          if (k <= cpus_per_dim(1)) then
-            mapped(set2(i)+1) = set1(k)
-          end if
-        end if
-
-        k = k+1
-      end do
-!
-      if (localPet == 0) then
-        write(fmt_123, fmt="('(A8, ', I3, 'I4)')") nproc
-        write(*,fmt=trim(fmt_123)) " PET/RAW", unmapped
-        write(*,fmt=trim(fmt_123)) " PET/MAP", mapped
+        cpus_per_dim(1) = nproc/cpus_per_dim(2)
       end if
 !
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
+!
+!     ESMF is basically using a right handed coordinate system, and 
+!     using the Fortran way of using the smallest stride to the first 
+!     dimension but RegCM not. The order of dimension is reversed
+!     because of this limitation. 
 !-----------------------------------------------------------------------
 !
       decompflag = (/ ESMF_DECOMP_RESTLAST, ESMF_DECOMP_RESTLAST /)
 !
-      delayout = ESMF_DELayoutCreate(petMap=mapped, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
       models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (                &
                                         minIndex=(/ 1, 1 /),            &
-                                        !maxIndex=(/ jx, iy /),          &
                                         maxIndex=(/ iy, jx /),          &
-                                        !regDecomp=cpus_per_dim,         &
-                                        regDecomp=(/ cpus_per_dim(2), cpus_per_dim(1) /), &
+                                        regDecomp=cpus_per_dim,         &
                                         decompflag=decompflag,          &
-                                        !delayout=delayout,              &
                                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -868,31 +821,19 @@
 !-----------------------------------------------------------------------
 !
       if (models(Iatmos)%mesh(i,n)%gtype == Idot) then
-!        if (cpl_dbglevel > 0) then
-          write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
-                   lbound(mddom%dlon, dim=1), ubound(mddom%dlon, dim=1),&
-                   lbound(mddom%dlon, dim=2), ubound(mddom%dlon, dim=2)
-!        end if 
+        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
+                 lbound(mddom%dlon, dim=1), ubound(mddom%dlon, dim=1),&
+                 lbound(mddom%dlon, dim=2), ubound(mddom%dlon, dim=2)
 !
         ptrX = transpose(mddom%dlon)
         ptrY = transpose(mddom%dlat)
-        !ptrX = mddom%dlon
-        !ptrY = mddom%dlat
       else if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
-!        if (cpl_dbglevel > 0) then
-          write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
-                   lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),&
-                   lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
-!        end if
+        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
+                 lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),&
+                 lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
 !
         ptrX = transpose(mddom%xlon)
         ptrY = transpose(mddom%xlat)
-        !ptrX = mddom%xlon
-        !ptrY = mddom%xlat
-      if (localPet == 0) then
-      call print_matrix_r8(ptrX, 1, 1, localPet, 6, "PTR/ATM/GRD/X/"//name)
-      call print_matrix_r8(ptrY, 1, 1, localPet, 6, "PTR/ATM/GRD/Y/"//name)
-      end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -1341,7 +1282,7 @@
 !
       do i = ici1, ici2
         do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i)
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i) 
         end do
       end do
 !
@@ -1398,7 +1339,7 @@
 !
       do i = ici1, ici2
         do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = sent(1,j,i)
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = sena(1,j,i)
         end do
       end do
 !          
@@ -1417,7 +1358,7 @@
 !
       do i = ici1, ici2
         do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)*wlhv 
+        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)*wlhv
         end do
       end do
 !
@@ -1515,7 +1456,7 @@
         models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i)-             &
                                                   sent(1,j,i)-          &
                                                   evpr(1,j,i)*wlhv-     &
-                                                  fsw(j,i)
+                                                  flw(j,i)
         end do
       end do
 !          
@@ -1676,7 +1617,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, id, n, rc
+      integer :: i, j, k, m, n, id, rc
       integer :: localPet, petCount, comm, localDECount
       character (len=40) :: name
       character (len=100) :: outfile
@@ -1706,8 +1647,8 @@
 !     Get import fields 
 !-----------------------------------------------------------------------
 !
-      do i = 1, size(models(Iatmos)%dataImport(:,n), dim=1)
-      name = models(Iatmos)%dataImport(i,n)%name
+      do k = 1, size(models(Iatmos)%dataImport(:,n), dim=1)
+      name = models(Iatmos)%dataImport(k,n)%name
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -1722,9 +1663,9 @@
 !     Get pointer
 !-----------------------------------------------------------------------
 ! 
-      do j = 0, localDECount-1
-      call ESMF_FieldGet (models(Iatmos)%dataImport(i,n)%field,         &
-                          localDE=j,                                    &
+      do m = 0, localDECount-1
+      call ESMF_FieldGet (models(Iatmos)%dataImport(k,n)%field,         &
+                          localDE=m,                                    &
                           farrayPtr=ptr,                                &
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1734,7 +1675,7 @@
 !-----------------------------------------------------------------------
 !
       if (cpl_dbglevel > 1) then
-        write(*,60) localPet, j, adjustl("PTR/ATM/IMP/"//name),         &
+        write(*,60) localPet, m, adjustl("PTR/ATM/IMP/"//name),         &
                     lbound(ptr, dim=1), ubound(ptr, dim=1),             &
                     lbound(ptr, dim=2), ubound(ptr, dim=2)
       end if
@@ -1743,35 +1684,43 @@
 !     Put data to RCM variable
 !-----------------------------------------------------------------------
 !
-      scale_factor = models(Iatmos)%dataImport(i,n)%scale_factor
-      add_offset = models(Iatmos)%dataImport(i,n)%add_offset
+      scale_factor = models(Iatmos)%dataImport(k,n)%scale_factor
+      add_offset = models(Iatmos)%dataImport(k,n)%add_offset
 !
       select case (trim(adjustl(name)))
       case('SST')      
       if (cpl_dbglevel > 1) then
-        write(*,60) localPet, j, adjustl("DAT/ATM/IMP/"//name),         &
+        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
                     lbound(sst2d, dim=1), ubound(sst2d, dim=1),         &
                     lbound(sst2d, dim=2), ubound(sst2d, dim=2)
       end if
 !
-      where (ptr .ge. MISSING_R8) 
-        sst2d = MISSING_R8 
-      elsewhere
-        sst2d = (ptr*scale_factor)+add_offset
-      endwhere   
+      do i = ici1, ici2
+        do j = jci1, jci2
+          if (ptr(i,j) .ge. MISSING_R8) then
+            sst2d(j,i) = MISSING_R8
+          else
+            sst2d(j,i) = (ptr(i,j)*scale_factor)+add_offset
+          end if
+        end do
+      end do
 #ifdef ROMSICE
       case('Hice')      
       if (cpl_dbglevel > 1) then
-        write(*,60) localPet, j, adjustl("DAT/ATM/IMP/"//name),         &
+        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
                     lbound(hice2d, dim=1), ubound(hice2d, dim=1),       &
                     lbound(hice2d, dim=2), ubound(hice2d, dim=2)
       end if
 !
-      where (ptr .ge. MISSING_R8)
-        hice2d = MISSING_R8
-      elsewhere
-        hice2d = (ptr*scale_factor)+add_offset
-      endwhere
+      do i = ici1, ici2
+        do j = jci1, jci2
+          if (ptr(i,j) .ge. MISSING_R8) then
+            hice2d(j,i) = MISSING_R8
+          else
+            hice2d(j,i) = (ptr(i,j)*scale_factor)+add_offset
+          end if
+        end do
+      end do
 #endif
       end select
       end do
@@ -1811,7 +1760,7 @@
             models(Iatmos)%time%day,                                    &
             models(Iatmos)%time%hour
 !
-      call ESMF_FieldWrite(models(Iatmos)%dataImport(i,n)%field,        &
+      call ESMF_FieldWrite(models(Iatmos)%dataImport(k,n)%field,        &
                            trim(adjustl(outfile)),                      &
                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

@@ -1,3 +1,13 @@
-# config file for coupled RegCM model
-# PET distribution of gridded components 1 (RegCM) and 2 (ROMS), respectively
-PETs: 32 28
+# Configuration file for coupled model
+# ------------------------------------------------
+# PET distribution of gridded components (M N) 
+# M : RegCM (32)
+# N : ROMS  (24)
+# ------------------------------------------------
+PETs: 6 2 
+# -------------------------------------------------------
+# Bulk flux algorithm is activated or not in ROMS?
+# 0 : not avtivated
+# 1 : activated (with BULK_FLUX)
+# -------------------------------------------------------
+Bulk: 1
