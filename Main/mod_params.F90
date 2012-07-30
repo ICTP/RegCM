@@ -905,14 +905,16 @@ module mod_params
   ktau = 0
 
   khour = 3600_8/idnint(dtsec)
-  kbdy = nbdyfrq/idnint(dtsec)
-  katm = natmfrq/idnint(dtsec)
-  ksrf = nsrffrq/idnint(dtsec)
-  ksts = khour*24
-  krad = nradfrq/idnint(dtsec)
-  kche = nchefrq/idnint(dtsec)
-  kdbg = ndbgfrq/idnint(dtsec)
-  ksav = nsavfrq/idnint(dtsec)
+  krep  = khour*3
+  kbdy  = nbdyfrq/idnint(dtsec)
+  katm  = natmfrq/idnint(dtsec)
+  ksrf  = nsrffrq/idnint(dtsec)
+  ksts  = khour*24
+  krad  = nradfrq/idnint(dtsec)
+  kche  = nchefrq/idnint(dtsec)
+  kdbg  = ndbgfrq/idnint(dtsec)
+  ksav  = nsavfrq/idnint(dtsec)
+
   fdaysrf = real(secpd/dtsrf)
 
   mtau = idnint((hspan*secph)/dt)

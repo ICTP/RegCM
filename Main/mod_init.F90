@@ -304,7 +304,7 @@ module mod_init
       call grid_distribute(tbase_io,tbase,jci1,jci2,ici1,ici2,1,kz)
       call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
     end if
-    if ( icup==4 .or. icup==99 .or. icup==98 ) then
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
       call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
     end if
 
@@ -446,7 +446,7 @@ module mod_init
     !
     if ( myid == italk ) then
       appdat = tochar(idatex)
-      print 99001 , appdat
+      print *, 'Successfully read restart file at time = ', appdat
     end if
     !
     ! End of restart phase
@@ -543,10 +543,6 @@ module mod_init
   end if
 !
   call time_end(subroutine_name,idindx)
-!
-! Formats for printout
-!
-99001 format ('Successfully read restart file at time = ', a)
 !
   end subroutine init
 !

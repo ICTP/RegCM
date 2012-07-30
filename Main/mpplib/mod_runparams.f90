@@ -51,7 +51,7 @@ module mod_runparams
   ! How many steps for an hour (updates date fields Y m d H)
   integer(8) :: khour
   ! Output k values for I/O operations.
-  integer(8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf
+  integer(8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf , krep
   ! Seconds counter in between boundary conditions read
   integer(8) :: nbdytime
   ! Step counters to activate surface and radiation schemes

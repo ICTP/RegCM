@@ -188,11 +188,7 @@ module mod_rad_outrad
           do i = ici1 , ici2
             do j = jci1 , jci2
               frad3d(j,i,k,1) = real(cld(n,k))    ! write
-              if (clwp(j,k) > dlowval) then
-                frad3d(j,i,k,2) = real(clwp(n,k)) ! write
-              else
-                frad3d(j,i,k,2) = slowval
-              end if
+              frad3d(j,i,k,2) = real(clwp(n,k))   ! write
               frad3d(j,i,k,3) = real(qrs(n,k))    ! write
               frad3d(j,i,k,4) = real(qrl(n,k))    ! write
               frad3d(j,i,k,5) = real(h2ommr(n,k)) ! skip

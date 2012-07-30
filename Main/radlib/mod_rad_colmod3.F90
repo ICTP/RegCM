@@ -407,37 +407,39 @@ module mod_rad_colmod3
     !
     ! Save gas emission/absorbtion
     !
-    do m = 1 , 4
-      do k = 1 , kz
+    if ( labsem ) then
+      do m = 1 , 4
+        do k = 1 , kz
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              gasabsnxt(j,i,k,m) = absgasnxt(n,k,m)
+              n = n + 1
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kzp1
+        do k2 = 1 , kzp1
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              gasabstot(j,i,k2,k) = absgastot(n,k2,k)
+              n = n + 1
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kzp1
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            gasabsnxt(j,i,k,m) = absgasnxt(n,k,m)
+            gasemstot(j,i,k)   = emsgastot(n,k)
             n = n + 1
           end do
         end do
       end do
-    end do
-    do k = 1 , kzp1
-      do k2 = 1 , kzp1
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            gasabstot(j,i,k2,k) = absgastot(n,k2,k)
-            n = n + 1
-          end do
-        end do
-      end do
-    end do
-    do k = 1 , kzp1
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          gasemstot(j,i,k)   = emsgastot(n,k)
-          n = n + 1
-        end do
-      end do
-    end do
+    end if
     if ( lchem ) then
       do m = 1 , nspi
         do k = 0 , kz

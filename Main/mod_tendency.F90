@@ -57,7 +57,6 @@ module mod_tendency
   real(dp) , pointer , dimension(:,:,:) :: ps_4 
   real(dp) , pointer , dimension(:,:) :: psc , pten
 
-  integer(8) , parameter :: irep = 50
   integer :: iptn ! Total number of internal points
 
   contains
@@ -689,10 +688,7 @@ module mod_tendency
       if ( irrtm == 1 ) then
         call rrtmg_driver(xyear,eccf,loutrad)
       else
-        labsem = (ktau == 0 .or. mod(ktau+1,ntabem) == 0)
-        if ( labsem .and. myid == italk ) then
-          write(stdout,*) 'Doing emission/absorbtion calculation...'
-        end if
+        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
         call colmod3(xyear,eccf,loutrad,labsem)
       end if
     end if
@@ -1389,14 +1385,14 @@ module mod_tendency
         end if
       end if
       if ( myid == italk ) then
-        if ( mod(ktau,irep) == 0 ) then
+        if ( mod(ktau,krep) == 0 ) then
           appdat = tochar(idatex)
-          write(6,99001) appdat , ktau , ptnbar , pt2bar , icons_mpi
+          write(stdout,'(a23,a,i16)') appdat , ', ktau   = ', ktau
+          write(stdout,'(a,2E12.5)') '$$$ 1st, 2nd time deriv of ps   = ', &
+                ptnbar , pt2bar
+          write(stdout,'(a,i7)') '$$$  no. of points w/convection = ', icons_mpi
         end if
       end if
-
-99001 format (a23,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
-             ',  no. of points w/convection = ',i7)
     end if
 !
     call time_end(subroutine_name,idindx)
