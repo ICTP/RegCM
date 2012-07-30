@@ -90,7 +90,7 @@ module mod_wrtoxd
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
-  data aesulf / 'SO2' , 'SO463' /
+  data aesulf / 'SO2' , 'SO4' /
   data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
   data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' ,       &
