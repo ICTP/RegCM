@@ -336,6 +336,7 @@ module mod_output
       call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
       call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
       call grid_collect(ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
+
 #ifndef CLM
       if ( lakemod == 1 ) then
         call subgrid_collect(eta,eta_io,jci1,jci2,ici1,ici2)

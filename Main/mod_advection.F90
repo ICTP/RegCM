@@ -94,22 +94,18 @@ module mod_advection
 !     This subroutines computes the horizontal flux-divergence terms. c
 !     second-order difference is used.                                c
 !                                                                     c
-!     ldot   : cross/dot variable flagg                               c
+!     ldot   : cross/dot variable flag                                c
 !                                                                     c
 !     ften   : is the tendency for variable 'f'.                      c
 !                                                                     c
 !     f      : is p*f.                                                c
 !                                                                     c
-!     jstart : is the j'th slice of f anf ften to start               c
-!                                                                     c
-!     jsstop : is the j'th slice of f anf ften to stop                c
+!     nk     : is the number of vertical levels to work (kz/kzp1)     c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine hadv3d(ldot,ften,f,nk)
-!
       implicit none
-!
       logical , intent(in) :: ldot ! Cross/dot flag
       integer , intent (in) :: nk
       real(dp) , pointer , intent (in) , dimension(:,:,:) :: f
@@ -119,7 +115,7 @@ module mod_advection
       integer :: i , j , k
 !
       character (len=64) :: subroutine_name='hadv3d'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -168,11 +164,9 @@ module mod_advection
         end do
       end if
       call time_end(subroutine_name,idindx)
-!
     end subroutine hadv3d
 !
     subroutine hadv3d4d(ften,f,nk,m,ind)
-!
       implicit none
 !
       integer , intent (in) :: ind , nk , m

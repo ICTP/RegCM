@@ -134,7 +134,9 @@ module mod_savefile
         read (iutrst) deltas_io
         read (iutrst) tdeltas_io
       end if
-      read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
+      if ( irrtm == 0 ) then
+        read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
+      end if
       if ( ipptls == 1 ) then
         read (iutrst) fcc_io
       end if
@@ -265,7 +267,9 @@ module mod_savefile
         write (iutsav) deltas_io
         write (iutsav) tdeltas_io
       end if
-      write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
+      if ( irrtm == 0 ) then
+        write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
+      end if
       if ( ipptls == 1 ) then
         write (iutsav) fcc_io
       end if

@@ -259,16 +259,23 @@ module mod_init
     call grid_distribute(atm2_io%t,atm2%t,jce1,jce2,ice1,ice2,1,kz)
     call grid_distribute(atm2_io%qx,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      call grid_distribute(atm1_io%tke,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm2_io%tke,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+    end if
+
     call grid_distribute(sfs_io%psa,sfs%psa,jce1,jce2,ice1,ice2)
     call grid_distribute(sfs_io%psb,sfs%psb,jce1,jce2,ice1,ice2)
     call grid_distribute(sfs_io%tga,sfs%tga,jce1,jce2,ice1,ice2)
     call grid_distribute(sfs_io%tgb,sfs%tgb,jce1,jce2,ice1,ice2)
+
     call grid_distribute(sfs_io%hfx,sfs%hfx,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%qfx,sfs%qfx,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%rainc,sfs%rainc,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%rainnc,sfs%rainnc,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%tgbb,sfs%tgbb,jci1,jci2,ici1,ici2)
+    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jci1,jci2,ici1,ici2)
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
@@ -278,18 +285,12 @@ module mod_init
     end if
     call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+!
     if ( myid == italk ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof(3,3,k)
       end do
-    end if
-
-    ! Scatter of the UW variables read in from the restart file
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call grid_distribute(atm1_io%tke,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
-      call grid_distribute(atm2_io%tke,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
-      call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
     end if
 !
     if ( iocnflx == 2 ) then
@@ -312,7 +313,7 @@ module mod_init
       call grid_distribute(gasabstot_io,gasabstot, &
                            jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
       call grid_distribute(gasemstot_io,gasemstot,jci1,jci2,ici1,ici2,1,kzp1)
-    end if ! irrtm test
+    end if
 
     call subgrid_distribute(tlef_io,tlef,jci1,jci2,ici1,ici2)
     call subgrid_distribute(ssw_io,ssw,jci1,jci2,ici1,ici2)
@@ -366,12 +367,22 @@ module mod_init
     end do
 #endif
 !
+    if ( idcsst == 1 ) then
+      call grid_distribute(dtskin_io,dtskin,jci1,jci2,ici1,ici2)
+      call grid_distribute(deltas_io,deltas,jci1,jci2,ici1,ici2)
+      call grid_distribute(tdeltas_io,tdeltas,jci1,jci2,ici1,ici2)
+    end if
+
+    call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
+    call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
+
     if ( ichem == 1 ) then
       call grid_distribute(chia_io,chia,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(chib_io,chib,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remlsc_io,remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remcvc_io,remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,ntr)
+
       call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
       call grid_distribute(sdeltk2d_io,sdeltk2d,jci1,jci2,ici1,ici2)
       call grid_distribute(sdelqk2d_io,sdelqk2d,jci1,jci2,ici1,ici2)
@@ -381,11 +392,6 @@ module mod_init
       call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
     end if
 
-    if ( idcsst == 1 ) then
-      call grid_distribute(dtskin_io,dtskin,jci1,jci2,ici1,ici2)
-      call grid_distribute(deltas_io,deltas,jci1,jci2,ici1,ici2)
-      call grid_distribute(tdeltas_io,tdeltas,jci1,jci2,ici1,ici2)
-    end if
     !
     ! Update ground temperature on Ocean/Lakes
     !
@@ -426,8 +432,6 @@ module mod_init
       end do
     end do
 !
-    call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
-    call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
     !
     ! Setup all timeseps for a restart
     !
