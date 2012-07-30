@@ -82,7 +82,7 @@ module mod_rad_o3blk
     call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
 
     if ( iclimao3 == 1 ) then
-      call getmem2d(laps,jci1,jci1,ici1,ici2,'mod_o3blk:laps')
+      call getmem2d(laps,jci1,jci2,ici1,ici2,'mod_o3blk:laps')
       if ( myid == iocpu ) then
         call getmem1d(asig,1,kzp1,'mod_o3blk:asig')
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
@@ -262,8 +262,8 @@ module mod_rad_o3blk
 
     if ( dointerp ) then
       ! We need pressure
-      laps = real((ps(jci1:jci1,ici1:ici2)))
-      call grid_collect(laps,aps,jci1,jci1,ici1,ici2)
+      laps = real((ps(jci1:jci2,ici1:ici2)))
+      call grid_collect(laps,aps,jci1,jci2,ici1,ici2)
       if ( myid == iocpu ) then
         write (stderr,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
@@ -285,7 +285,7 @@ module mod_rad_o3blk
       xfac2 = d_one-xfac1
       ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
     end if
-    call grid_distribute(ozone,o3prof,jci1,jci1,ici1,ici2,1,kzp1)
+    call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
   end subroutine read_o3data
 !
   subroutine inextmon(iyear,imon)
