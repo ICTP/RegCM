@@ -721,8 +721,6 @@ module mod_params
     call mpi_bcast(ichsolver,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(ichdustemd,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(ichdiag,1,mpi_integer,iocpu,mycomm,ierr)
-
-
     call chem_config
     call mpi_bcast(ntr,1,mpi_integer,iocpu,mycomm,ierr)
     call mpi_bcast(iaerosol,1,mpi_integer,iocpu,mycomm,ierr)  

@@ -136,7 +136,6 @@ module mod_che_start
 
 #if (defined VOC && defined CLM)
     if ( igaschem == 1 ) then
-      if ( .not. allocated(bvoc_trmask)) allocate(bvoc_trmask(ntr))
       bvoc_trmask(:) = 0
     end if
 #endif

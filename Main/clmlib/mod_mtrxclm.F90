@@ -541,7 +541,7 @@ module mod_mtrxclm
       nout = 20
       if ( ichem == 1 ) then  !Aerosol and/or Chem schemes on
 #if (defined VOC)
-        if ( gaschem  == 1 ) nout = nout + 1
+        if ( cgaschem == 1 ) nout = nout + 1
 #endif
         if ( caerosol == 1 ) nout = nout + 2
       end if

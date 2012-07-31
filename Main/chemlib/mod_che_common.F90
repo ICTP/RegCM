@@ -107,9 +107,11 @@ module mod_che_common
   end type cbound_area
 #if (defined CLM)
 #if (defined VOC)
-  integer , pointer :: bvoc_trmask(:)    ! Tracer mask that uses MEGAN indices
+  ! Tracer mask that uses MEGAN indices
+  integer , pointer , dimension(:) :: bvoc_trmask
+  real(dp) , pointer , dimension(:,:) :: cvoc_em
 #endif
-  real(dp) , pointer :: cvoc_em(:,:), cdep_vels(:,:,:)
+  real(dp) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
   type(cbound_area) :: cba_cr
 
@@ -197,11 +199,12 @@ module mod_che_common
                         ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
           call getmem4d(cbdydiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
-
-         call getmem4d(cseddpdiag,jce1,jce2, &
+          call getmem4d(cseddpdiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
-
-        end if 
+        end if
+#if (defined VOC && defined CLM)
+        call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
+#endif
       end if
     end subroutine allocate_mod_che_common
 !
