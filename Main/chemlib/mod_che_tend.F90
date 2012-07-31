@@ -72,7 +72,8 @@
       real(dp) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap , checum
+      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
+!      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
 
       integer :: i , j , ibin , k
       integer(8) :: kchsolv
@@ -359,9 +360,9 @@
 !        checum = d_zero
         chevap = d_zero
         do j = jci1 , jci2        
-          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j), &
-                      prec(:,:,j),convprec(:,:,j),chevap(:,:,j),dtche,rho(:,:,j),  &
-                      chib(j,:,:,:),psurf(:,j))
+          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
+                      prec(:,:,j),convprec(:,:,j),chevap(:,:,j), &
+                      dtche,rho(:,:,j),chib(j,:,:,:),psurf(:,j))
         end do
       end if
       !

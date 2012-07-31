@@ -877,7 +877,8 @@ module mod_che_wetdep
   real(dp) :: schm   ! schmidt number
   real(dp) :: prii
   real(dp) :: priiv 
-  real(dp) :: cfac,cfaca
+  ! real(dp) :: cfac
+  real(dp) :: cfaca
   real(dp) :: re  ! reynolds number
   real(dp) :: rr  ! ratio of collected particle radius:collector particle radius
   real(dp) :: st  ! stokes number of collected particles
@@ -893,9 +894,9 @@ module mod_che_wetdep
 
   ! Cunningham slip correction factor parameters for rain
 
-  real(dp) , parameter :: aa1r = 1.249D0
-  real(dp) , parameter :: aa2r = 0.42D0
-  real(dp) , parameter :: aa3r = 0.87D0
+  !real(dp) , parameter :: aa1r = 1.249D0
+  !real(dp) , parameter :: aa2r = 0.42D0
+  !real(dp) , parameter :: aa3r = 0.87D0
   real(dp) , parameter :: rhorain = 1000.0D0
   real(dp) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
  

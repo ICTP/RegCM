@@ -78,115 +78,91 @@ contains
   !
   ! Calculation of emission tendency
   !
-      !FAB: no dirunal evol for now:  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
-      subroutine emis_tend(ktau,j,lmonth,declin)
+  !FAB: no dirunal evol for now:
+  ! subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+  subroutine emis_tend(ktau,j,lmonth,declin)
+    implicit none
 
-        implicit none
+    integer , intent(in) :: j , lmonth
+    integer(8) , intent(in) :: ktau
 
-        integer , intent(in) :: j , lmonth
-        integer(8) , intent(in) :: ktau
-
-        real(dp) , intent(in) ::declin 
-        integer  :: i , itr
-
-        integer  :: jglob, iglob  ! Full grid i- j-component
-        real(dp) :: daylen , fact , maxelev , amp
-
-        ! calculate the tendency linked to emissions from emission fluxes
-        ! In the future split these calculations in corresponding module  ??
-
-
-        ! Modify chemsrc for species that need a dirunal cycle
-        if (iisop > 0) then 
+    real(dp) , intent(in) ::declin 
+    integer  :: i , itr
 
 #if (defined VOC && defined CLM)
-           !overwrite chemsrc for biogenic in case of CLM/BVOC option  
-           ! test if CLM BVOC is activated and overwrite chemsrc.
-           ! Below included in order to include CLM-MEGAN biogenic emission
-           ! into the gas phase chemistry scheme
-           ! bvoc_trmask is used to identify which tracer is also a biogenic
-           ! emission species contained in MEGAN.  If it is included then
-           ! then include MEGAN emissions into the source value
-           ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
-           ! zero when using BATS
-    
-           jglob = global_jstart+j-1
-           if ( bvoc_trmask(iisop) /= 0 ) then
-              do i = ici1, ici2
-                 iglob = global_istart+i-1
-                 if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
-                 chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
-              end do
-           end if
-
-#else
-
-           ! Modify chemsrc for species that need a dirunal cycle
-           do i = ici1 , ici2
-
-              daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
-              daylen = daylen*24.0D0/360.0D0
-              ! Maximum sun elevation
-              maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
-              fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-              amp = 12.0D0*mathpi/daylen
-
-              tmpsrc(j,i,iisop)  =  chemsrc(j,i,iisop)
-              chemsrc(j,i,iisop) =  (amp)*chemsrc(j,i,iisop) * &
-                                    sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
-
-           end do
-
-
+    integer  :: jglob, iglob  ! Full grid i- j-component
 #endif
+    real(dp) :: daylen , fact , maxelev , amp
 
-         
-        end if
-
-
-
-        ! add the source term to tracer tendency
-
-        if ( ichdrdepo /= 2 ) then  
-
-           do itr = 1 , ntr
-              do i = ici1 , ici2
-                 if ( chtrname(itr)(1:4).ne.'DUST' .or. &
-                      chtrname(itr)(1:4).ne.'SSALT' ) then 
-
-                    chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                         chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
-
-                    ! diagnostic for source, cumul
-                    cemtrac(j,i,itr) = cemtrac(j,i,itr) + &
-                         chemsrc(j,i,itr)*cdiagf
-                 end if
-              end do
-           end do
-
-        elseif ( ichdrdepo ==2) then
-
-           do itr = 1 , ntr
-              do i = ici1 , ici2
-                 if ( chtrname(itr)(1:4).ne.'DUST' .or. &
-                      chtrname(itr)(1:4).ne.'SSALT' ) then 
-
-                    !then emission is injected in the PBL scheme
-                    cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
-                    ! diagnostic for source, cumul
-                    cemtrac(j,i,itr) = cemtrac(j,i,itr) + &
-                         chemsrc(j,i,itr)*cdiagf
-                  end if 
-                 end do
-              end do
-           end if
-
-! put back isop source to its nominal value 
-!         if (iisop > 0) then 
-!           chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
-!         end if 
-
-
-         end subroutine emis_tend
-         !
-       end module mod_che_emission
+    ! calculate the tendency linked to emissions from emission fluxes
+    ! In the future split these calculations in corresponding module  ??
+    ! Modify chemsrc for species that need a dirunal cycle
+    if ( iisop > 0 ) then 
+#if (defined VOC && defined CLM)
+      !overwrite chemsrc for biogenic in case of CLM/BVOC option  
+      ! test if CLM BVOC is activated and overwrite chemsrc.
+      ! Below included in order to include CLM-MEGAN biogenic emission
+      ! into the gas phase chemistry scheme
+      ! bvoc_trmask is used to identify which tracer is also a biogenic
+      ! emission species contained in MEGAN.  If it is included then
+      ! then include MEGAN emissions into the source value
+      ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
+      ! zero when using BATS
+      jglob = global_jstart+j-1
+      if ( bvoc_trmask(iisop) /= 0 ) then
+        do i = ici1, ici2
+          iglob = global_istart+i-1
+          if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
+          chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
+        end do
+      end if
+#else
+      ! Modify chemsrc for species that need a dirunal cycle
+      do i = ici1 , ici2
+        daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+        daylen = daylen*24.0D0/360.0D0
+        ! Maximum sun elevation
+        maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
+        fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
+        amp = 12.0D0*mathpi/daylen
+        tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+        chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
+                             sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
+      end do
+#endif
+    end if
+    !
+    ! add the source term to tracer tendency
+    !
+    if ( ichdrdepo /= 2 ) then  
+      do itr = 1 , ntr
+        do i = ici1 , ici2
+          if ( chtrname(itr)(1:4).ne.'DUST' .or. &
+               chtrname(itr)(1:4).ne.'SSALT' ) then 
+            chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+            chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
+            ! diagnostic for source, cumul
+            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cdiagf
+          end if
+        end do
+      end do
+    elseif ( ichdrdepo ==2) then
+      do itr = 1 , ntr
+        do i = ici1 , ici2
+          if ( chtrname(itr)(1:4).ne.'DUST' .or. &
+               chtrname(itr)(1:4).ne.'SSALT' ) then 
+            !then emission is injected in the PBL scheme
+            cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
+            ! diagnostic for source, cumul
+            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cdiagf
+          end if 
+        end do
+      end do
+    end if
+    ! put back isop source to its nominal value 
+    !  if ( iisop > 0 ) then 
+    !    chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+    !  end if 
+  end subroutine emis_tend
+!
+end module mod_che_emission
