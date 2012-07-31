@@ -1,6 +1,6 @@
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/Master/ocean_coupler.F roms-3.5/Master/ocean_coupler.F
---- roms-3.5f/Master/ocean_coupler.F	2012-04-02 16:43:26.362489000 +0200
-+++ roms-3.5/Master/ocean_coupler.F	2012-07-28 14:16:41.812769000 +0200
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/Master/ocean_coupler.F roms-ice-200320012/Master/ocean_coupler.F
+--- roms-icef-200320012/Master/ocean_coupler.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/Master/ocean_coupler.F	2012-07-28 14:19:33.338651000 +0200
 @@ -119,4 +119,659 @@
  # endif
  
@@ -661,10 +661,41 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
 +      END SUBROUTINE PRINT_MATRIX_R8
 +#endif
        END MODULE ocean_coupler_mod
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Nonlinear/main3d.F roms-3.5/ROMS/Nonlinear/main3d.F
---- roms-3.5f/ROMS/Nonlinear/main3d.F	2012-04-02 16:40:57.039631000 +0200
-+++ roms-3.5/ROMS/Nonlinear/main3d.F	2012-06-24 17:01:20.651346000 +0200
-@@ -75,6 +75,9 @@
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Modules/mod_scalars.F roms-ice-200320012/ROMS/Modules/mod_scalars.F
+--- roms-icef-200320012/ROMS/Modules/mod_scalars.F	2012-03-22 13:07:06.340437000 +0100
++++ roms-ice-200320012/ROMS/Modules/mod_scalars.F	2012-07-02 12:46:17.858915000 +0200
+@@ -1301,6 +1301,19 @@
+ !    lmd_r1        Fraction of total radiance for wavelength band 1 as
+ !                    a function of the Jerlov water type.
+ !
++#ifdef CAS
++        real(r8), dimension(6) :: lmd_mu1 =                             &
++     &            (/ 0.35_r8, 0.6_r8, 1.0_r8, 1.5_r8, 1.4_r8,           &
++     &              0.033_r8 /)
++ 
++        real(r8), dimension(6) :: lmd_mu2 =                             &
++     &            (/ 23.0_r8, 20.0_r8, 17.0_r8, 14.0_r8, 7.9_r8,        &
++     &               15.0_r8 /)
++ 
++        real(r8), dimension(6) :: lmd_r1 =                              &
++     &            (/ 0.58_r8, 0.62_r8, 0.67_r8, 0.77_r8, 0.78_r8,       &
++     &               0.53_r8 /)
++#else
+         real(r8), dimension(5) :: lmd_mu1 =                             &
+      &            (/ 0.35_r8, 0.6_r8, 1.0_r8, 1.5_r8, 1.4_r8 /)
+ 
+@@ -1310,6 +1323,7 @@
+         real(r8), dimension(5) :: lmd_r1 =                              &
+      &            (/ 0.58_r8, 0.62_r8, 0.67_r8, 0.77_r8, 0.78_r8 /)
+ #endif
++#endif
+ 
+ #ifdef LMD_MIXING
+ !
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Nonlinear/main3d.F roms-ice-200320012/ROMS/Nonlinear/main3d.F
+--- roms-icef-200320012/ROMS/Nonlinear/main3d.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Nonlinear/main3d.F	2012-06-30 19:47:52.808873000 +0200
+@@ -85,6 +85,9 @@
  # ifdef AIR_OCEAN
        USE ocean_coupler_mod, ONLY : ocn2atm_coupling
  # endif
@@ -674,7 +705,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  # ifdef WAVES_OCEAN
        USE ocean_coupler_mod, ONLY : ocn2wav_coupling
  # endif
-@@ -279,6 +282,25 @@
+@@ -296,6 +299,24 @@
          END DO
  # endif
  
@@ -688,8 +719,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
 +!$OMP PARALLEL DO PRIVATE(thread,subs,tile) SHARED(ng,numthreads)
 +          DO thread=0,numthreads-1
 +            subs=NtileX(ng)*NtileE(ng)/numthreads
-+            !DO tile=subs*thread,subs*(thread+1)-1,+1
-+            DO tile=subs*(thread+1)-1,subs*thread,-1
++            DO tile=subs*thread,subs*(thread+1)-1,+1
 +              CALL atm2ocn_coupling (ng, TILE)
 +            END DO
 +          END DO
@@ -700,10 +730,63 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  # ifdef WAVES_OCEAN
  !
  !-----------------------------------------------------------------------
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/def_his.F roms-3.5/ROMS/Utility/def_his.F
---- roms-3.5f/ROMS/Utility/def_his.F	2012-04-02 16:41:29.237546000 +0200
-+++ roms-3.5/ROMS/Utility/def_his.F	2012-05-02 20:52:36.024705000 +0200
-@@ -1190,6 +1190,28 @@
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/SeaIce/ice_mk.h roms-ice-200320012/ROMS/SeaIce/ice_mk.h
+--- roms-icef-200320012/ROMS/SeaIce/ice_mk.h	2012-04-19 14:31:34.505686000 +0200
++++ roms-ice-200320012/ROMS/SeaIce/ice_mk.h	2012-07-26 08:56:46.912073000 +0200
+@@ -93,7 +93,9 @@
+      &                      FORCES(ng) % qao_n,                         &
+      &                      FORCES(ng) % p_e_n,                         &
+      &                      FORCES(ng) % snow_n,                        &
++#ifdef BULK_FLUXES
+      &                      FORCES(ng) % rain,                          &
++#endif
+      &                      FORCES(ng) % stflx)
+ #ifdef PROFILE
+       CALL wclock_off (ng, iNLM, 44)
+@@ -134,7 +136,9 @@
+      &                        qai_n, qao_n,                             &
+      &                        p_e_n,                                    &
+      &                        snow_n,                                   &
++#ifdef BULK_FLUXES
+      &                        rain,                                     &
++#endif
+      &                        stflx)
+ !***********************************************************************
+ !
+@@ -302,7 +306,9 @@
+       real(r8), intent(in) :: qao_n(LBi:,LBj:)
+       real(r8), intent(in) :: p_e_n(LBi:,LBj:)
+       real(r8), intent(in) :: snow_n(LBi:,LBj:)
++#ifdef BULK_FLUXES
+       real(r8), intent(in) :: rain(LBi:,LBj:)
++#endif
+       real(r8), intent(out) :: stflx(LBi:,LBj:,:)
+ #else
+ # ifdef MASKING
+@@ -360,7 +366,9 @@
+       real(r8), intent(in) :: qao_n(LBi:UBi,LBj:UBj)
+       real(r8), intent(in) :: p_e_n(LBi:UBi,LBj:UBj)
+       real(r8), intent(in) :: snow_n(LBi:UBi,LBj:UBj)
++#ifdef BULK_FLUXES
+       real(r8), intent(in) :: rain(LBi:UBi,LBj:UBj)
++#endif
+       real(r8), intent(out) :: stflx(LBi:UBi,LBj:UBj,NT(ng))
+ #endif
+ 
+@@ -818,7 +826,8 @@
+ #endif
+ 
+ ! Test for case of rainfall on snow/ice and assume 100% drainage
+-#ifndef NCEP_FLUXES
++!#ifndef NCEP_FLUXES
++#ifdef BULK_FLUXES
+             IF (rain(i,j).gt.0._r8.AND.snow_n(i,j).EQ.0._r8) THEN
+               stflx(i,j,isalt) = stflx(i,j,isalt) -                       &
+      &                           ai(i,j,linew)*rain(i,j)*0.001_r8
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Utility/def_his.F roms-ice-200320012/ROMS/Utility/def_his.F
+--- roms-icef-200320012/ROMS/Utility/def_his.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Utility/def_his.F	2012-06-30 19:47:52.842877000 +0200
+@@ -1581,6 +1581,28 @@
            IF (exit_flag.ne.NoError) RETURN
          END IF
  # endif
@@ -732,7 +815,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  # if defined BULK_FLUXES || defined ECOSIM
  !
  !  Define surface winds.
-@@ -2441,6 +2463,13 @@
+@@ -3334,6 +3356,13 @@
              got_var(idPair)=.TRUE.
              HIS(ng)%Vid(idPair)=var_id(i)
  # endif
@@ -746,7 +829,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  # if defined BULK_FLUXES || defined ECOSIM
            ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idUair))) THEN
              got_var(idUair)=.TRUE.
-@@ -2858,6 +2887,16 @@
+@@ -3907,6 +3936,16 @@
            RETURN
          END IF
  # endif
@@ -763,9 +846,9 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  # if defined BULK_FLUXES || defined ECOSIM
          IF (.not.got_var(idUair).and.Hout(idUair,ng)) THEN
            IF (Master) WRITE (stdout,60) TRIM(Vname(1,idUair)),          &
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/get_date.F roms-3.5/ROMS/Utility/get_date.F
---- roms-3.5f/ROMS/Utility/get_date.F	2012-04-02 16:41:28.631521000 +0200
-+++ roms-3.5/ROMS/Utility/get_date.F	2012-05-02 20:52:36.030694000 +0200
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Utility/get_date.F roms-ice-200320012/ROMS/Utility/get_date.F
+--- roms-icef-200320012/ROMS/Utility/get_date.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Utility/get_date.F	2012-07-02 12:48:39.803103000 +0200
 @@ -284,6 +284,10 @@
       &         (/ 1,32,61,92,122,153,183,214,245,275,306,336,367 /)
  
@@ -836,76 +919,75 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  !
  !  The reference time is for a climatological simulation with 365.25
  !  days in every year.
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/inp_par.F roms-3.5/ROMS/Utility/inp_par.F
---- roms-3.5f/ROMS/Utility/inp_par.F	2012-04-02 16:41:26.773399000 +0200
-+++ roms-3.5/ROMS/Utility/inp_par.F	2012-05-02 20:52:36.042700000 +0200
-@@ -105,7 +105,11 @@
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Utility/inp_par.F roms-ice-200320012/ROMS/Utility/inp_par.F
+--- roms-icef-200320012/ROMS/Utility/inp_par.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Utility/inp_par.F	2012-06-30 19:47:52.856878000 +0200
+@@ -112,7 +112,11 @@
  !  input parameters to all nodes.
  !
  !!    CALL my_getarg (1, Iname)
-+#  ifdef REGCM_COUPLING 
++# ifdef REGCM_COUPLING 
 +      IF (Master) CALL my_getarg (2, Iname)
-+#  else
++# else 
        IF (Master) CALL my_getarg (1, Iname)
-+#  endif
++# endif
        CALL mp_bcasts (1, model, Iname)
        OPEN (inp, FILE=TRIM(Iname), FORM='formatted', STATUS='old',      &
       &      ERR=20)
-@@ -2219,6 +2223,24 @@
-             END IF
-             Npts=load_l(Nval, Cval, Ngrids, Hout(idPair,:))
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Utility/read_phypar.F roms-ice-200320012/ROMS/Utility/read_phypar.F
+--- roms-icef-200320012/ROMS/Utility/read_phypar.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Utility/read_phypar.F	2012-07-02 12:47:43.349844000 +0200
+@@ -1465,6 +1465,24 @@
+               END IF
+               Npts=load_l(Nval, Cval, Ngrids, Hout(idPair,:))
  # endif
 +# ifdef REGCM_COUPLING
 +# if defined BULK_FLUXES || defined ECOSIM || (defined SHORTWAVE && defined ANA_SRFLUX)
-+          ELSE IF (TRIM(KeyWord).eq.'Hout(idTair)') THEN
-+            IF (idTair.eq.0) THEN
-+              IF (Master) WRITE (out,280) 'idTair'
-+              exit_flag=5
-+              RETURN
-+            END IF
-+            Npts=load_l(Nval, Cval, Ngrids, Hout(idTair,:))
-+          ELSE IF (TRIM(KeyWord).eq.'Hout(idQair)') THEN
-+            IF (idQair.eq.0) THEN
-+              IF (Master) WRITE (out,280) 'idQair'
-+              exit_flag=5
-+              RETURN
-+            END IF
-+            Npts=load_l(Nval, Cval, Ngrids, Hout(idQair,:))
++            CASE ('Hout(idTair)')         
++              IF (idTair.eq.0) THEN
++                IF (Master) WRITE (out,280) 'idTair'
++                exit_flag=5
++                RETURN
++              END IF
++              Npts=load_l(Nval, Cval, Ngrids, Hout(idTair,:))
++            CASE ('Hout(idQair)')         
++              IF (idQair.eq.0) THEN
++                IF (Master) WRITE (out,280) 'idQair'
++                exit_flag=5
++                RETURN
++              END IF
++              Npts=load_l(Nval, Cval, Ngrids, Hout(idQair,:))
 +# endif
 +# endif
  # if defined BULK_FLUXES || defined ECOSIM
-           ELSE IF (TRIM(KeyWord).eq.'Hout(idUair)') THEN
-             IF (idUair.eq.0) THEN
-@@ -2228,7 +2250,7 @@
-             END IF
-             Npts=load_l(Nval, Cval, Ngrids, Hout(idUair,:))
-           ELSE IF (TRIM(KeyWord).eq.'Hout(idVair)') THEN
--            IF (idPair.eq.0) THEN
-+            IF (idVair.eq.0) THEN
-               IF (Master) WRITE (out,280) 'idVair'
-               exit_flag=5
-               RETURN
-@@ -4407,6 +4429,16 @@
-      &       'Hout(idPair)',                                            &
-      &       'Write out surface air pressure.'
+             CASE ('Hout(idUair)')
+               IF (idUair.eq.0) THEN
+@@ -3633,12 +3651,21 @@
+ # if defined LMD_SKPP || defined SOLAR_SOURCE
+           WRITE (out,120) lmd_Jwt(ng), 'lmd_Jwt',                       &
+      &          'Jerlov water type.'
++#ifdef CAS
++          IF ((lmd_Jwt(ng).lt.1).or.(lmd_Jwt(ng).gt.6)) THEN
++            WRITE (out,260) 'lmd_Jwt = ', lmd_Jwt(ng),                  &
++     &            'It must between one and six.'
++            exit_flag=5
++            RETURN
++          END IF
++#else
+           IF ((lmd_Jwt(ng).lt.1).or.(lmd_Jwt(ng).gt.5)) THEN
+             WRITE (out,260) 'lmd_Jwt = ', lmd_Jwt(ng),                  &
+      &            'It must between one and five.'
+             exit_flag=5
+             RETURN
+           END IF
++#endif
  # endif
-+# ifdef REGCM_COUPLING
-+#if defined BULK_FLUXES || defined ECOSIM || (defined SHORTWAVE && defined ANA_SRFLUX)
-+          IF (Hout(idTair,ng)) WRITE (out,170) Hout(idTair,ng),         &
-+     &       'Hout(idTair)',                                            &
-+     &       'Write out surface air temperature.'
-+          IF (Hout(idQair,ng)) WRITE (out,170) Hout(idQair,ng),         &
-+     &       'Hout(idQair)',                                            &
-+     &       'Write out surface air humidity.'
-+# endif
-+# endif
- # if defined BULK_FLUXES || defined ECOSIM
-           IF (Hout(idUair,ng)) WRITE (out,170) Hout(idUair,ng),         &
-      &       'Hout(idUair)',                                            &
-diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/wrt_his.F roms-3.5/ROMS/Utility/wrt_his.F
---- roms-3.5f/ROMS/Utility/wrt_his.F	2012-04-02 16:41:29.652568000 +0200
-+++ roms-3.5/ROMS/Utility/wrt_his.F	2012-05-02 20:52:36.049696000 +0200
-@@ -1032,6 +1032,54 @@
+ # ifdef BODYFORCE
+           WRITE (out,130) levsfrc(ng), 'levsfrc',                       &
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Utility/wrt_his.F roms-ice-200320012/ROMS/Utility/wrt_his.F
+--- roms-icef-200320012/ROMS/Utility/wrt_his.F	2012-03-07 14:07:10.000000000 +0100
++++ roms-ice-200320012/ROMS/Utility/wrt_his.F	2012-06-30 19:47:52.874888000 +0200
+@@ -2259,6 +2259,54 @@
          END IF
        END IF
  # endif

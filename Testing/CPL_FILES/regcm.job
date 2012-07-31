@@ -1,9 +1,10 @@
 #!/bin/bash
 
-#PBS -N regcm.cpl 
+#PBS -N test 
 #PBS -l walltime=24:00:00
-#PBS -q esp 
-#PBS -l nodes=5:ppn=12
+##PBS -l nodes=5:ppn=12
+#PBS -l nodes=60
+#PBS -q esp
 
 # load required modules
 . /etc/profile.d/modules.sh
@@ -12,8 +13,8 @@ module load openmpi/1.5.3/intel/2011
 module load netcdf/4.1.2/intel/2011
 
 # definition of shared library
-export LD_LIBRARY_PATH=/home/uturunco/progs/esmf_5_2_0rp2/install_dir/lib/libO/Linux.intel.64.openmpi.default:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=$ESMF_LIB:${LD_LIBRARY_PATH}
 
 # run coupled model
 cd /home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice
-mpirun --mca btl_openib_eager_limit 65000 --mca btl_sm_eager_limit 1000000 ./Bin/regcmMPI regcm.in_CAS50km cas.in > regcmout.txt
+mpirun ./Bin/regcmMPI regcm.in_CAS50km cas.in > regcmout.txt

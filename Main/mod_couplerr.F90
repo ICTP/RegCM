@@ -210,7 +210,8 @@
       real*8, parameter :: rho0 = 1025.0d0
       real*8, parameter :: Hscale = rho0*Cp
       real*8, parameter :: Hscale2 = 1.0d0/(rho0*Cp)
-      real*8, parameter :: day2sec=1.0d0/86400.0d0
+      real*8, parameter :: day2sec = 1.0d0/86400.0d0
+      real*8, parameter :: mm2m = 1.0d0/1000.0d0
 !
       contains
 !
@@ -861,7 +862,7 @@
             models(i)%dataImport(1,j)%long_name = &
             'surface freshwater (E-P) flux'
             models(i)%dataImport(1,j)%units = 'm/s'
-            models(i)%dataImport(1,j)%scale_factor = day2sec 
+            models(i)%dataImport(1,j)%scale_factor = day2sec*mm2m 
             models(i)%dataImport(1,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(2,j)%fid = 2
