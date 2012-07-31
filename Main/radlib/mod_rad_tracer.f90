@@ -980,7 +980,7 @@ module mod_rad_tracer
                          func(uco222(j,k),betac1) +  &
                          func(uco223(j,k),betac2)) * &
               tw(4)*tcfc3*tcfc6*emplnk(1,j)
-!       total trace gas emissivity
+!     total trace gas emissivity
       emstrc(j,k) = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
                     ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
                     eco21 + eco22

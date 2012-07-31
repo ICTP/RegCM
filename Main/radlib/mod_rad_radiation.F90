@@ -1874,7 +1874,6 @@ module mod_rad_radiation
                   ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
                   uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,uptype)
 !
-!
 !     Compute total emissivity:
 !
       call radems(n1,n2,pint,emsgastot)
@@ -1882,7 +1881,7 @@ module mod_rad_radiation
 !     Compute total absorptivity:
 !
       call radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
-
+!
     end if
 !
 !   Find the lowest and highest level cloud for each grid point
@@ -3350,7 +3349,7 @@ module mod_rad_radiation
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
         if ( lchem .and. idirect > 0 ) then
           do kn = 1 , 4
-            xuinpl (n,k2,kn) =  uinpl(n,kn)
+            xuinpl(n,k2,kn) = uinpl(n,kn)
           end do
         end if
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
@@ -3728,7 +3727,7 @@ module mod_rad_radiation
                tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
                tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
                tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
-               dtp , dtz , xpnew , rsum , u , uc , uc1 , troco2
+               dtp , dtz , xpnew , rsum , uc , uc1 , troco2
     real(dp) , dimension(4) :: term1 , term2 , term3 , term4 , term5
     real(dp) , dimension(4) :: emis
     real(dp) :: xterm6 , xterm9
@@ -3782,7 +3781,7 @@ module mod_rad_radiation
 !       For the p type continuum
 !
         uc = s2c(n,k) + 2.0D-3*plh2o(n,k)
-        u = plh2o(n,k)
+        ux(n) = plh2o(n,k)
 !
 !       Apply scaling factor for 500-800 continuum
 !
@@ -3812,27 +3811,27 @@ module mod_rad_radiation
         a31 = 1.07D0 - 1.00D-3*dtp + 1.475D-5*dtp*dtp
         a21 = 1.3870D0 + 3.80D-3*dtz - 7.8D-6*dtz*dtz
         a22 = d_one - 1.21D-3*dtp - 5.33D-6*dtp*dtp
-        a23 = 0.9D0 + 2.62D0*dsqrt(u)
+        a23 = 0.9D0 + 2.62D0*dsqrt(ux(n))
         corfac = a31*(a11+((a21*a22)/a23))
         t1t4 = term1(1)*term4(1)
         t2t5 = term2(1)*term5(1)
-        a = t1t4 + t2t5/(d_one+t2t5*dsqrt(u)*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*u)
-        rsum = dexp(-a*(dsqrt(u)+fwk*u))
+        a = t1t4 + t2t5/(d_one+t2t5*dsqrt(ux(n))*corfac)
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+        rsum = dexp(-a*(dsqrt(ux(n))+fwk*ux(n)))
         emis(1) = (d_one-rsum)*term3(1)
 !       trem1  = rsum
 !
 !       emis(2)  1200 - 2200 cm-1   vibration-rotation band
 !
         a41 = 1.75D0 - 3.96D-3*dtz
-        a51 = 1.00D0 + 1.3D0*dsqrt(u)
+        a51 = 1.00D0 + 1.3D0*dsqrt(ux(n))
         a61 = 1.00D0 + 1.25D-3*dtp + 6.25D-5*dtp*dtp
         corfac = 0.3D0*(d_one+(a41)/(a51))*a61
         t1t4 = term1(3)*term4(3)
         t2t5 = term2(3)*term5(3)
-        a = t1t4 + t2t5/(d_one+t2t5*dsqrt(u)*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*u)
-        rsum = dexp(-a*(dsqrt(u)+fwk*u))
+        a = t1t4 + t2t5/(d_one+t2t5*dsqrt(ux(n))*corfac)
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+        rsum = dexp(-a*(dsqrt(ux(n))+fwk*ux(n)))
         emis(2) = (d_one-rsum)*term3(3)
 !       trem7 = rsum
 !
@@ -3847,7 +3846,7 @@ module mod_rad_radiation
           psi = dexp(psi)
           ubar = w(n,k)*phi
           ubar = (ubar*1.66D0)*r80257
-          xpnew = u/w(n,k)
+          xpnew = ux(n)/w(n,k)
           pbar = xpnew*(psi/phi)
           cf812 = cfa1 + ((d_one-cfa1)/(d_one+ubar*pbar*d_10))
           g1 = (realk(l)*pbar)/(d_two*st(l))
@@ -3870,14 +3869,14 @@ module mod_rad_radiation
 !       emis(4)   500 -  800 cm-1   rotation band overlap with co2
 !
         k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty(n)-d_10) * &
-                 (dty(n)-d_10))*dsqrt(u))
-        k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*dsqrt(u))
+                 (dty(n)-d_10))*dsqrt(ux(n)))
+        k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*dsqrt(ux(n)))
         xterm9 = coefi(1,1) + coefi(2,1)*dtx(n) *        &
                 (d_one+c18*dtx(n)*(d_one+c20*dtx(n) *   &
                 (d_one+c22*dtx(n)*(d_one+c24*dtx(n)))))
-        fwk = fwcoef + fwc1/(d_one+fwc2*u)
-        tr1 = dexp(-(k21*(dsqrt(u)+fc1*fwk*u)))
-        tr2 = dexp(-(k22*(dsqrt(u)+fc1*fwk*u)))
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+        tr1 = dexp(-(k21*(dsqrt(ux(n))+fc1*fwk*ux(n))))
+        tr2 = dexp(-(k22*(dsqrt(ux(n))+fc1*fwk*ux(n))))
         tr3 = dexp(-((coefh(1,1)+coefh(2,1)*dtx(n))*uc1))
         tr4 = dexp(-((coefh(1,2)+coefh(2,2)*dtx(n))*uc1))
         tr7 = tr1*tr3

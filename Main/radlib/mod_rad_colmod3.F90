@@ -434,7 +434,7 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            gasemstot(j,i,k)   = emsgastot(n,k)
+            gasemstot(j,i,k) = emsgastot(n,k)
             n = n + 1
           end do
         end do
