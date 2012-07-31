@@ -143,7 +143,6 @@ module mod_mtrxclm
     use clm_varpar ,   only : nvoc
 #endif
     use clm_drydep,    only : seq_drydep_init
-
 !
     implicit none
 !
@@ -210,12 +209,10 @@ module mod_mtrxclm
     clm_fracveg(:,:) = d_zero
 
 #if (defined VOC)
-    if(.not.allocated(voc_em)) allocate(voc_em(jx,iy))
-    voc_em(:,:) = 0._r8
+    voc_em(:,:) = d_zero
 #endif
-    if( igases == 1 ) then
-         if(.not.allocated(dep_vels)) allocate(dep_vels(jx,iy,ntr))
-         dep_vels(:,:,:) = 0._r8
+    if ( igases == 1 ) then
+      dep_vels(:,:,:) = d_zero
     end if
 
     if ( myid == iocpu ) then
@@ -332,7 +329,7 @@ module mod_mtrxclm
 
     call program_off(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_init0()
-    if( igases == 1 ) call seq_drydep_init(ntr, ctracers)
+    if ( igases == 1 ) call seq_drydep_init(ntr, ctracers)
     call clm_init1()
     call clm_init2()
 
@@ -368,7 +365,7 @@ module mod_mtrxclm
     ! Initialize ldmsk1 now that clm has determined the land sea mask
     ! Initialize accumulation variables at zero
 
-    if ( .not.ifrest ) then
+    if ( .not. ifrest ) then
       do n = 1 , nnsg
         do i = ici1 , ici2
           ig = global_istart+i-1
@@ -478,23 +475,18 @@ module mod_mtrxclm
         fbat(j,i,aldifs_o) = real(aldifs(j,i))
       end do
     end do
-
   end subroutine albedoclm
-!
-!
 !
   subroutine interfclm(ivers,ktau)
     use clmtype
     use clm_varsur , only : landmask , landfrac
     use clm_varsur , only : c2r_allout , omap_i , omap_j
+    use clm_varsur,  only : cgaschem, caerosol
 
 #if (defined VOC)
-    use clm_varsur,  only : cgaschem, caerosol
     use clm_varpar,  only : nvoc
-    use shr_kind_mod,  only: r8 => shr_kind_r8
 #endif
     use clm_drydep,  only : c2r_depout, n_drydep
-
 
     implicit none
     !
@@ -547,11 +539,11 @@ module mod_mtrxclm
       jc   = 1
       idep = 0
       nout = 20
-      if( ichem == 1 ) then  !Aerosol and/or Chem schemes on
+      if ( ichem == 1 ) then  !Aerosol and/or Chem schemes on
 #if (defined VOC)
-         if(cgaschem == 1)    nout = nout + 1
+        if ( gaschem  == 1 ) nout = nout + 1
 #endif
-         if(caerosol == 1)    nout = nout + 2
+        if ( caerosol == 1 ) nout = nout + 2
       end if
       do icpu = 1 , nproc
         do ib = 1 , c2rngc(icpu)
@@ -579,37 +571,33 @@ module mod_mtrxclm
           c2rro_sur(j,i)  = c2r_allout(ib+(18*kk)+ic)
           c2rro_sub(j,i)  = c2r_allout(ib+(19*kk)+ic)
           if ( ichem == 1 ) then
-             if ( cgaschem == 1 .and. caerosol == 1 ) then
-                 !**** Dry deposition velocities from CLM4
-                 do iddep = 1,ntr
-                    dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
-                 end do
-                 c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
-                 c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+            if ( cgaschem == 1 .and. caerosol == 1 ) then
+              !**** Dry deposition velocities from CLM4
+              do iddep = 1 , ntr
+                dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+              end do
+              c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
+              c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
 #if (defined VOC)
-                 voc_em(j,i)    = c2r_allout(ib+(22*kk)+ic)
+              voc_em(j,i)       = c2r_allout(ib+(22*kk)+ic)
 #endif
-
-
-             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
-                 !**** Dry deposition velocities from CLM4
-                 do iddep = 1,ntr
-                    dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
-                 end do
-                 voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
-           
-
-             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
-                 c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
-                 c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
-             end if
-
-
+            else if ( cgaschem == 1 .and. caerosol /= 1 ) then
+              !**** Dry deposition velocities from CLM4
+              do iddep = 1 , ntr
+                dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+              end do
+#if (defined VOC)
+              voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
+#endif
+            else if ( cgaschem /= 1 .and. caerosol == 1 ) then
+              c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
+              c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+            end if
           end if
           jc = jc + 1
         end do
         ic = ic + c2rngc(icpu)*nout
-        if( cgaschem == 1 ) idep = idep + c2rngc(icpu)*n_drydep
+        if ( cgaschem == 1 ) idep = idep + c2rngc(icpu)*n_drydep
       end do
 
       if ( ktau == 0 .and. debug_level == 2 ) then

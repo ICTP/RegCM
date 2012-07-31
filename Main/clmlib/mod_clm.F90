@@ -138,9 +138,7 @@ module mod_clm
   real(dp) , pointer , dimension(:,:) :: c2rro_sub
   real(dp) , pointer , dimension(:,:) :: c2rfracsno      
   real(dp) , pointer , dimension(:,:) :: c2rfvegnosno 
-#if (defined VOC)
   real(dp) , pointer , dimension(:,:) :: voc_em
-#endif
   real(dp) , pointer , dimension(:,:,:) :: dep_vels
 
   integer , pointer , dimension(:,:) :: c2rprocmap
@@ -171,7 +169,7 @@ module mod_clm
 !
   contains
 !
-  subroutine allocate_mod_clm(n_tr, igases)
+  subroutine allocate_mod_clm(n_tr,igases)
 
     implicit none
 
@@ -245,7 +243,9 @@ module mod_clm
 #if (defined VOC)
     call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
 #endif
-    if( igases == 1 ) call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')
+    if ( igases == 1 ) then
+      call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')
+    end if
 
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')

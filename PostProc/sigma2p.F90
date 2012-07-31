@@ -33,7 +33,7 @@ program sigma2p
 
   implicit none
 
-  integer , parameter :: np = 11
+  integer , parameter :: np = 8
   real(4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
@@ -80,7 +80,7 @@ program sigma2p
   data make_rh /.false./
   data make_hgt /.false./
 
-  data plevs /1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100./
+  data plevs /1000.,925.,850.,700.,500.,300.,200.,100./
 
   call getarg(0, prgname)
   numarg = iargc( )
