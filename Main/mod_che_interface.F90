@@ -147,7 +147,9 @@ module mod_che_interface
     cba_cr%nsp = ba_cr%nsp
 
 #if (defined CLM)
+#if (defined VOC)
     call assignpnt(voc_em,cvoc_em)
+#endif
     call assignpnt(dep_vels,cdep_vels)
 #endif
 
