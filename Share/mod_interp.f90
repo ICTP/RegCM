@@ -28,7 +28,7 @@ module mod_interp
 
   private
 
-  public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr
+  public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
 
   real(sp) :: alatmn , alatmx , alonmn , alonmx
   real(sp) :: glatmn , glatmx , glonmn , glonmx
@@ -629,10 +629,10 @@ module mod_interp
         jd1dr(i,j) = ndr
         id1dl(i,j) = mdl
         jd1dl(i,j) = ndl
-        dd1xa(i,j) = dista
-        dd1xb(i,j) = distb
-        dd1xc(i,j) = distc
-        dd1xd(i,j) = distd
+        dd1xa(i,j) = (1.0/dista)**2.0
+        dd1xb(i,j) = (1.0/distb)**2.0
+        dd1xc(i,j) = (1.0/distc)**2.0
+        dd1xd(i,j) = (1.0/distd)**2.0
       end do
     end do
     write (stdout,*) 'Done.'

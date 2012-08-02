@@ -265,8 +265,10 @@ module mod_sst_gnmnc
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
 
-  if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' .and. &
-       ssttyp(1:3) /= 'HA_' .and. ssttyp(1:3) /= 'CS_' ) then
+  if ( ssttyp(1:3) /= 'CA_' .and. ssttyp(1:3) /= 'CN_' .and. &
+       ssttyp(1:3) /= 'CS_' .and. ssttyp(1:3) /= 'GF_' .and. &
+       ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'EC_' .and. &
+       ssttyp(1:3) /= 'HA_' ) then
     call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
 !   GET LATITUDE AND LONGITUDE
@@ -275,7 +277,7 @@ module mod_sst_gnmnc
     istatus = nf90_get_var(inet1,lonid,glon)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
   else
-    if ( ssttyp(1:3) == 'HA_' .or. ssttyp(1:3) == 'CS_' ) then
+    if ( ssttyp(1:3) /= 'CN_' .and. ssttyp(1:3) /= 'IP_' ) then
       call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
       call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
       call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
@@ -338,8 +340,10 @@ module mod_sst_gnmnc
   do k = 1 , nsteps
 
     call gnmnc_sst(idate)
-    if ( ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'CN_' .or. &
-         ssttyp(1:3) == 'HA_' .or. ssttyp(1:3) == 'CS_' ) then
+    if ( ssttyp(1:3) == 'CA_' .or. ssttyp(1:3) == 'CN_' .or. &
+         ssttyp(1:3) == 'CS_' .or. ssttyp(1:3) == 'GF_' .or. &
+         ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'EC_' .or. &
+         ssttyp(1:3) == 'HA_' ) then
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
     else
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)

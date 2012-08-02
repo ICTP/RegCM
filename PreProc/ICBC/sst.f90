@@ -35,6 +35,7 @@ program sst
   use mod_sst_ersst
   use mod_sst_fvgcm
   use mod_sst_gnmnc
+  use mod_sst_gnhnc
 
   implicit none
 
@@ -125,6 +126,13 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
+  else if ( ssttyp == 'MP_RF' .or. ssttyp == 'MP_45' .or. &
+            ssttyp == 'MP_85' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnhnc
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)

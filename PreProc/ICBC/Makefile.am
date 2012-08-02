@@ -7,7 +7,7 @@ bin_PROGRAMS = sst icbc chem_icbc
 
 sst_SOURCES = mod_sst_eh5om.f90 mod_sst_ersst.F90 mod_sst_fvgcm.f90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
-              mod_header.F90 sst.f90
+              mod_sst_gnhnc.F90 mod_header.F90 sst.f90
 icbc_SOURCES = mod_vectutil.f90 mod_ecwcp.f90 mod_eh5om.F90 mod_ein.F90 \
                mod_era40.F90 mod_erahi.f90 mod_fvgcm.f90 mod_grid.F90  \
                mod_ncep.F90 mod_nest.F90 mod_write.F90 mod_header.F90 \
@@ -61,9 +61,10 @@ mod_sst_eh5om.o mod_sst_eh5om.mod: mod_sst_eh5om.f90 mod_realkinds.mod mod_stdio
 mod_sst_ersst.o mod_sst_ersst.mod: mod_sst_ersst.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
 mod_sst_fvgcm.o mod_sst_fvgcm.mod: mod_sst_fvgcm.f90 mod_realkinds.mod mod_stdio.mod mod_message.mod mod_dynparam.mod mod_interp.mod mod_sst_grid.mod
 mod_sst_gnmnc.o mod_sst_gnmnc.mod: mod_sst_gnmnc.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
+mod_sst_gnhnc.o mod_sst_gnhnc.mod: mod_sst_gnhnc.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
 mod_sst_grid.o mod_sst_grid.mod: mod_sst_grid.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_message.mod mod_nchelper.mod mod_domain.mod
 mod_uvrot.o mod_uvrot.mod: mod_uvrot.f90 mod_constants.mod mod_realkinds.mod
 mod_vectutil.o mod_vectutil.mod: mod_vectutil.f90 mod_realkinds.mod mod_stdio.mod
 mod_write.o mod_write.mod: mod_write.F90 mod_realkinds.mod mod_dynparam.mod mod_grid.mod mod_memutil.mod mod_message.mod mod_nchelper.mod
 mod_wrtoxd.o mod_wrtoxd.mod: mod_wrtoxd.F90 mod_dynparam.mod mod_date.mod mod_grid.mod mod_realkinds.mod mod_memutil.mod mod_message.mod mod_stdio.mod mod_nchelper.mod
-sst.o sst.mod: sst.f90 mod_header.mod mod_dynparam.mod mod_memutil.mod mod_stdio.mod mod_message.mod mod_sst_grid.mod mod_sst_1deg.mod mod_sst_eh5om.mod mod_sst_ersst.mod mod_sst_fvgcm.mod mod_sst_gnmnc.mod
+sst.o sst.mod: sst.f90 mod_header.mod mod_dynparam.mod mod_memutil.mod mod_stdio.mod mod_message.mod mod_sst_grid.mod mod_sst_1deg.mod mod_sst_eh5om.mod mod_sst_ersst.mod mod_sst_fvgcm.mod mod_sst_gnmnc.mod mod_sst_gnhnc.mod

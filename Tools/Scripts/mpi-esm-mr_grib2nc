@@ -1,0 +1,45 @@
+#!/bin/bash
+
+startmon=253
+basedate="1948-12-01 00:00:00 UTC"
+nyears=5
+orig=/home/netapp-clima/cordex/MPI-ESM-MR/HIST
+dest=/home/netapp-clima/cordex/MPI_test/HIST
+
+endmon=$(( $startmon + 12*$nyears ))
+
+for (( mon = $startmon; mon <= $endmon; mon ++ ))
+do
+  date1=`date +"%Y%m%d0000" --date "$basedate + $mon months"`
+  date2=`date +"%Y%m%d0000" --date "$basedate + $(( $mon + 1 )) months"`
+  echo Processing ${date1}-${date2}
+  outname=6hrLev_MPI-ESM-MR_historical_r1i1p1_${date1}-${date2}.nc
+  f1=hist_r1i1p1-MR_eh6_rcm_c5_$mon.grb
+  f2=hist_r1i1p1-MR_eh6_rcm_c5_133_$mon.grb
+  f3=hist_r1i1p1-MR_eh6_rcm_etc_$mon.grb
+  # First extract winds and process them
+  tmpfile=`basename $f1 .grb`.nc
+  cdo -f nc4 -z zip -t echam6 chname,t,ta -chname,u,ua -chname,v,va \
+      -sp2gp -dv2uv $orig/$f1 $tmpfile
+  for var in ta ua va
+  do
+    cdo selname,$var -settunits,days -setreftime,1859-12-01,00:00:00 \
+        -setcalendar,standard $tmpfile $dest/$var/${var}_$outname
+  done
+  rm -f $tmpfile
+  tmpfile=`basename $f2 .grb`.nc
+  cdo -t echam6 -f nc4 -z zip chname,q,hus -copy $orig/$f2 $tmpfile
+  for var in hus aps
+  do
+    cdo selname,$var -settunits,days -setreftime,1859-12-01,00:00:00 \
+        -setcalendar,standard $tmpfile $dest/$var/${var}_$outname
+  done
+  rm -f $tmpfile
+  tmpfile=`basename $f3 .grb`.nc
+  cdo -t echam6 -f nc4 -z zip chname,tsw,tos -copy $orig/$f3 $tmpfile
+  cdo selname,tos -settunits,days -setreftime,1859-12-01,00:00:00 \
+        -setcalendar,standard $tmpfile $dest/../SST/tos_$outname
+  rm -f $tmpfile
+done
+
+echo "Done."

@@ -76,6 +76,8 @@ module mod_gn6hnc
   real(sp) , pointer , dimension(:) :: ak , bk
   real(sp) , pointer , dimension(:) :: glat , gltemp
   real(sp) , pointer , dimension(:) :: glon
+  real(sp) , pointer , dimension(:,:) :: glat2
+  real(sp) , pointer , dimension(:,:) :: glon2
   real(sp) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                            uvar , vvar , pp3d , &
                                            vwork
@@ -121,6 +123,9 @@ module mod_gn6hnc
   character(64) :: csirbase1 = '_6hrLev_CSIRO-Mk3-6-0_historical'
   character(64) :: csirbase2 = '_6hrLev_CSIRO-Mk3-6-0_rcp'
   character(64) :: csirbase3 = '_r1i1p1_'
+  character(64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
+  character(64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
+  character(64) :: mpiebase3 = '_r1i1p1_'
 
   character(3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
@@ -142,6 +147,8 @@ module mod_gn6hnc
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , '   '/)
   character(3) , target , dimension(nvars) :: csirvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+  character(3) , target , dimension(nvars) :: mpievars = &
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
 
   character(4) , dimension(nvars) :: ccsmfname = &
                          (/'air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres'/)
@@ -159,7 +166,7 @@ module mod_gn6hnc
 !
     implicit none
 !
-    integer :: istatus , ivar1 , inet1 , jdim , j , k
+    integer :: istatus , ivar1 , inet1 , jdim , i , j , k
     character(256) :: pathaddname
     real(8) :: dp0
 !
@@ -204,6 +211,12 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/CSIRO-MK36/RF/ta/ta_6hrLev_CSIRO-Mk3-6-0_historical_'// &
             'r1i1p1_195001010600-195101010000.nc'
+    else if ( dattyp(1:3) == 'MP_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
+      pathaddname = trim(inpglob)// &
+            '/MPI-ESM-MR/HIST/ta/ta_6hrLev_MPI-ESM-MR_historical_'// &
+            'r1i1p1_197001010000-197002010000.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
@@ -320,6 +333,41 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
       call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
+    else if ( dattyp(1:3) == 'MP_' ) then
+      istatus = nf90_inq_varid(inet1,'hyam',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read hyam var')
+      istatus = nf90_inq_varid(inet1,'hybm',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+            '/MPI-ESM-MR/fixed/geosp_fx_MPI-ESM-MR_historical_r1i1p1.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'geosp',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find geosporog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'CA_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
@@ -343,6 +391,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'IP_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
@@ -366,6 +425,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'GF_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
@@ -394,6 +464,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'CN_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
@@ -422,6 +503,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'CS_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
@@ -450,6 +542,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
@@ -479,12 +582,17 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error read geo var')
       ! Transform geopotential to elevation
       zsvar(:,:) = zsvar(:,:)/real(egrav)
-      ! We need latitude south/north, in file is north/south
-      do j = 1 , nlat
-        gltemp(nlat-j+1) = glat(j)
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
       end do
-      glat(:) = gltemp(:)
-      call relmem1d(gltemp)
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     end if
 
     istatus = nf90_close(inet1)
@@ -536,7 +644,7 @@ module mod_gn6hnc
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
-              dattyp(1:3) == 'CN_' ) then
+              dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'MP_' ) then
       call setcal(itimes(1), gregorian)
     else
       call setcal(itimes(1), noleap)
@@ -563,7 +671,6 @@ module mod_gn6hnc
     implicit none
 !
     type(rcm_time_and_date) , intent(in) :: idate
-!
 !
     call readgn6hnc(idate)
     write (stderr,*) 'Read in fields at Date: ', tochar(idate)
@@ -595,6 +702,11 @@ module mod_gn6hnc
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
+      if ( dattyp(1:3) == 'MP_' ) then
+        ! Calculate HGT on model hybrid sigma levels
+        call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
+      end if
+
       ! Calculate HGT on Pressure levels
       call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 
@@ -606,8 +718,17 @@ module mod_gn6hnc
     end if
  
     ! Horizontal interpolation on RegCM grid
-    call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
-    call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
+    if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
+         dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
+         dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
+         dattyp(1:3) /= 'EC_' ) then
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
+    else ! Gaussian grid
+      call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,nlon,nlat,npl,3)
+      call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,nlon,nlat,npl,2)
+    end if
+
     ! Rotate winds
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
  
@@ -766,7 +887,6 @@ module mod_gn6hnc
         call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
         call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
         call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
-        if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
         do it = 1 , timlen
@@ -864,7 +984,6 @@ module mod_gn6hnc
           call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
           call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
           call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
-          if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
           do it = 1 , pstimlen
@@ -921,7 +1040,6 @@ module mod_gn6hnc
           call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
           call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
           call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
-          if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
           do it = 1 , pstimlen
@@ -1225,6 +1343,36 @@ module mod_gn6hnc
             end if
           end do
           varname => csirvars
+        else if ( dattyp(1:3) == 'MP_' ) then
+          ! monthly files, one for each variable
+          y1 = year
+          m1 = month
+          y2 = y1
+          m2 = m1 + 1
+          if ( m2 > 12 ) then
+            m2 = 1
+            y2 = y2 + 1
+          end if
+          do i = 1 , nfiles
+            if ( mpievars(i) /= 'XXX' ) then
+              if ( dattyp(4:4) == 'R' ) then
+                write (inname,99008) 'RF',pthsep,trim(mpievars(i)), pthsep, &
+                  trim(mpievars(i)), trim(mpiebase1)//trim(mpiebase3), &
+                  y1, m1, '010000-', y2, m2, '010000.nc'
+              else
+                write (inname,99008) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
+                  pthsep, trim(mpievars(i)), pthsep, trim(mpievars(i)), &
+                  trim(mpiebase2)//dattyp(4:5)//trim(mpiebase3), &
+                  y1, m1, '010000-', y2, m2, '010000.nc'
+              end if
+              pathaddname = trim(inpglob)//'/MPI-ESM-MR/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
+            end if
+          end do
+          varname => mpievars
         end if
       end if
 
@@ -1240,7 +1388,6 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
       call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
       call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
-      if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
       istatus = nf90_get_var(inet(1),timid,xtimes)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
       do it = 1 , timlen
@@ -1319,6 +1466,13 @@ module mod_gn6hnc
         end do
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
+      else if ( dattyp(1:3) == 'MP_' ) then
+        ! Data on hybrid sigma P levels
+        do k = 1, klev
+          pp3d(:,:,k) = ak(k) + bk(k)*psvar(:,:)
+        end do
+        psvar(:,:) = psvar(:,:)*0.01
+        pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
                 dattyp(1:3) == 'CS_' ) then
         do k = 1, klev
@@ -1362,6 +1516,7 @@ module mod_gn6hnc
 99005   format (a,a,a,a,a,a,i0.4,a,i0.4,a)
 99006   format (a,a,i0.4,a,a,a,i0.4,a)
 99007   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
+99008   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 
   end subroutine readgn6hnc
 !
