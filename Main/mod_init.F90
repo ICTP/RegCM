@@ -158,8 +158,8 @@ module mod_init
     !
 #ifndef CLM
     if ( lakemod == 1 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( islake(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
               sfs%tga(j,i) = icetemp
