@@ -1,6 +1,6 @@
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/Master/ocean_coupler.F roms-3.5/Master/ocean_coupler.F
 --- roms-3.5f/Master/ocean_coupler.F	2012-04-02 16:43:26.362489000 +0200
-+++ roms-3.5/Master/ocean_coupler.F	2012-07-28 14:16:41.812769000 +0200
++++ roms-3.5/Master/ocean_coupler.F	2012-07-28 14:25:34.315448000 +0200
 @@ -119,4 +119,659 @@
  # endif
  
@@ -661,9 +661,50 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
 +      END SUBROUTINE PRINT_MATRIX_R8
 +#endif
        END MODULE ocean_coupler_mod
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Nonlinear/bulk_flux.F roms-3.5/ROMS/Nonlinear/bulk_flux.F
+--- roms-3.5f/ROMS/Nonlinear/bulk_flux.F	2012-04-02 16:40:56.450595000 +0200
++++ roms-3.5/ROMS/Nonlinear/bulk_flux.F	2012-08-02 14:58:21.223956000 +0200
+@@ -401,10 +401,19 @@
+ !  is assumed constant, but it is a function of latitude varying from
+ !  1.0 at poles to 0.5 at the equator).
+ !
++#  ifdef SPECIFIC_HUMIDITY
++!  specific humidity in units of kg/kg
++          vap_p=PairM*RH/(1.0_r8+0.378_r8*RH)            
++#  else
++      IF(RH.lt.2.0_r8) THEN                             
+           cff=(0.7859_r8+0.03477_r8*TairC(i))/                          &
+      &        (1.0_r8+0.00412_r8*TairC(i))
+           e_sat=10.0_r8**cff   ! saturation vapor pressure (hPa or mbar)
+           vap_p=e_sat*RH       ! water vapor pressure (hPa or mbar)
++      ELSE                                               
++          vap_p=0.001_r8*PairM*RH/(1.0_r8+0.000378_r8*RH) 
++      ENDIF                                               
++#  endif
+           cff2=TairK(i)*TairK(i)*TairK(i)
+           cff1=cff2*TairK(i)
+           LRad(i,j)=-emmiss*StefBo*                                     &
+@@ -468,12 +477,17 @@
+ !
+ !  Compute specific humidity, Q (kg/kg).
+ !
++#if defined CORE_FORCING || defined SPECIFIC_HUMIDITY
++! Incoming humidity is specific humidity in (kg/kg)
++          Q(i)=RH
++#else
+           IF (RH.lt.2.0_r8) THEN                       !RH fraction
+             cff=cff*RH                                 !Vapor pres (mb)
+             Q(i)=0.62197_r8*(cff/(PairM-0.378_r8*cff)) !Spec hum (kg/kg)
+           ELSE          !RH input was actually specific humidity in g/kg
+             Q(i)=RH/1000.0_r8                          !Spec Hum (kg/kg)
+           END IF
++#endif
+ !
+ !  Compute water saturation vapor pressure (mb), using Teten formula.
+ !
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Nonlinear/main3d.F roms-3.5/ROMS/Nonlinear/main3d.F
 --- roms-3.5f/ROMS/Nonlinear/main3d.F	2012-04-02 16:40:57.039631000 +0200
-+++ roms-3.5/ROMS/Nonlinear/main3d.F	2012-06-24 17:01:20.651346000 +0200
++++ roms-3.5/ROMS/Nonlinear/main3d.F	2012-07-28 14:25:34.319456000 +0200
 @@ -75,6 +75,9 @@
  # ifdef AIR_OCEAN
        USE ocean_coupler_mod, ONLY : ocn2atm_coupling
@@ -702,7 +743,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  !-----------------------------------------------------------------------
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/def_his.F roms-3.5/ROMS/Utility/def_his.F
 --- roms-3.5f/ROMS/Utility/def_his.F	2012-04-02 16:41:29.237546000 +0200
-+++ roms-3.5/ROMS/Utility/def_his.F	2012-05-02 20:52:36.024705000 +0200
++++ roms-3.5/ROMS/Utility/def_his.F	2012-07-28 14:25:34.339457000 +0200
 @@ -1190,6 +1190,28 @@
            IF (exit_flag.ne.NoError) RETURN
          END IF
@@ -765,7 +806,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
            IF (Master) WRITE (stdout,60) TRIM(Vname(1,idUair)),          &
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/get_date.F roms-3.5/ROMS/Utility/get_date.F
 --- roms-3.5f/ROMS/Utility/get_date.F	2012-04-02 16:41:28.631521000 +0200
-+++ roms-3.5/ROMS/Utility/get_date.F	2012-05-02 20:52:36.030694000 +0200
++++ roms-3.5/ROMS/Utility/get_date.F	2012-07-28 14:25:34.342458000 +0200
 @@ -284,6 +284,10 @@
       &         (/ 1,32,61,92,122,153,183,214,245,275,306,336,367 /)
  
@@ -838,7 +879,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  !  days in every year.
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/inp_par.F roms-3.5/ROMS/Utility/inp_par.F
 --- roms-3.5f/ROMS/Utility/inp_par.F	2012-04-02 16:41:26.773399000 +0200
-+++ roms-3.5/ROMS/Utility/inp_par.F	2012-05-02 20:52:36.042700000 +0200
++++ roms-3.5/ROMS/Utility/inp_par.F	2012-07-28 14:25:34.354452000 +0200
 @@ -105,7 +105,11 @@
  !  input parameters to all nodes.
  !
@@ -904,7 +945,7 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
       &       'Hout(idUair)',                                            &
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-3.5f/ROMS/Utility/wrt_his.F roms-3.5/ROMS/Utility/wrt_his.F
 --- roms-3.5f/ROMS/Utility/wrt_his.F	2012-04-02 16:41:29.652568000 +0200
-+++ roms-3.5/ROMS/Utility/wrt_his.F	2012-05-02 20:52:36.049696000 +0200
++++ roms-3.5/ROMS/Utility/wrt_his.F	2012-07-28 14:25:34.358460000 +0200
 @@ -1032,6 +1032,54 @@
          END IF
        END IF
