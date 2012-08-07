@@ -321,45 +321,65 @@ module mod_mppparam
       ma%has_bdy = .true.
     else
       if ( ma%bandflag ) dim_period(1) = .true.
-      if ( nproc < 4 ) then
-        cpus_per_dim(1) = ncpu
-        cpus_per_dim(2) = 1
-      else if ( nproc >= 4 ) then
-        if ( mod(nproc,2) /= 0 ) then
-          write(stderr,*) 'Work does not evenly divide.'
-          write(stderr,*) 'Required number of CPUS must be even.'
-          call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
-        end if
-        cpus_per_dim(1) = (nint(sqrt(dble(ncpu)))/2)*2
-        if ( iy > int(1.5*dble(jx)) ) then
-          cpus_per_dim(1) = cpus_per_dim(1) - 1
-          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) - 1
-          end do
-        else if ( jx > int(1.5*dble(iy)) ) then
-          cpus_per_dim(1) = cpus_per_dim(1) + 1
-          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) + 1
-          end do
+      if ( njxcpus > 0 .or. niycpus > 0 ) then
+        ! Force just the number of CPUs in J direction
+        if ( njxcpus > 0 .and. niycpus <= 0 ) then
+          cpus_per_dim(1) = njxcpus
+          cpus_per_dim(2) = ncpu/njxcpus
+        else if ( njxcpus <= 0 .and. niycpus > 0 ) then
+          cpus_per_dim(2) = niycpus
+          cpus_per_dim(1) = ncpu/niycpus
         else
-          do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
-            cpus_per_dim(1) = cpus_per_dim(1) + 1
-          end do
+          cpus_per_dim(1) = njxcpus
+          cpus_per_dim(2) = niycpus
         end if
-        cpus_per_dim(2) = ncpu/cpus_per_dim(1)
-        imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
-        if ( mod(ncpu,imaxcpus) /= 0 ) then
-          write(stderr,*) 'Work does not evenly divide.'
-          write(stderr,*) 'I have calculated : '
-          write(stderr,*) 'CPUS DIM1 = ', cpus_per_dim(1)
-          write(stderr,*) 'CPUS DIM2 = ', cpus_per_dim(2)
-          imax1 = ((jx/3)/2)*2
-          imax2 = ((iy/3)/2)*2
-          write(stderr,*) 'Suggested maximum number of CPUS jx: ', imax1
-          write(stderr,*) 'Suggested maximum number of CPUS iy: ', imax2
-          write(stderr,*) 'Suggested ratio per dimension : ', dimfac
-          write(stderr,*) 'Closest number : ' , imaxcpus
-          call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
+        if ( cpus_per_dim(1) * cpus_per_dim(2) /= ncpu ) then
+          write (stderr,*) 'Requested ', cpus_per_dim(1), 'x', &
+                           cpus_per_dim(2), ' CPUS'
+          write (stderr,*) 'Available from MPI commandline ', ncpu
+          call fatal(__FILE__,__LINE__,'CPU/RCPU mismatch')
+        end if
+      else
+        if ( nproc < 4 ) then
+          cpus_per_dim(1) = ncpu
+          cpus_per_dim(2) = 1
+        else if ( nproc >= 4 ) then
+          if ( mod(nproc,2) /= 0 ) then
+            write(stderr,*) 'Work does not evenly divide.'
+            write(stderr,*) 'Required number of CPUS must be even.'
+            call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
+          end if
+          cpus_per_dim(1) = (nint(sqrt(dble(ncpu)))/2)*2
+          if ( iy > int(1.5*dble(jx)) ) then
+            cpus_per_dim(1) = cpus_per_dim(1) - 1
+            do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+              cpus_per_dim(1) = cpus_per_dim(1) - 1
+            end do
+          else if ( jx > int(1.5*dble(iy)) ) then
+            cpus_per_dim(1) = cpus_per_dim(1) + 1
+            do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+              cpus_per_dim(1) = cpus_per_dim(1) + 1
+            end do
+          else
+            do while ( mod(ncpu,cpus_per_dim(1)) /= 0 )
+              cpus_per_dim(1) = cpus_per_dim(1) + 1
+            end do
+          end if
+          cpus_per_dim(2) = ncpu/cpus_per_dim(1)
+          imaxcpus = cpus_per_dim(1)*cpus_per_dim(2)
+          if ( mod(ncpu,imaxcpus) /= 0 ) then
+            write(stderr,*) 'Work does not evenly divide.'
+            write(stderr,*) 'I have calculated : '
+            write(stderr,*) 'CPUS DIM1 = ', cpus_per_dim(1)
+            write(stderr,*) 'CPUS DIM2 = ', cpus_per_dim(2)
+            imax1 = ((jx/3)/2)*2
+            imax2 = ((iy/3)/2)*2
+            write(stderr,*) 'Suggested maximum number of CPUS jx: ', imax1
+            write(stderr,*) 'Suggested maximum number of CPUS iy: ', imax2
+            write(stderr,*) 'Suggested ratio per dimension : ', dimfac
+            write(stderr,*) 'Closest number : ' , imaxcpus
+            call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
+          end if
         end if
       end if
 
@@ -501,6 +521,8 @@ module mod_mppparam
     call mpi_bcast(jx,1,mpi_integer,iocpu,mycomm,mpierr)
     call mpi_bcast(kz,1,mpi_integer,iocpu,mycomm,mpierr)
     call mpi_bcast(nsg,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(njxcpus,1,mpi_integer,iocpu,mycomm,mpierr)
+    call mpi_bcast(niycpus,1,mpi_integer,iocpu,mycomm,mpierr)
     call mpi_bcast(nveg,1,mpi_integer,iocpu,mycomm,mpierr)
 
     call mpi_bcast(iproj,6,mpi_character,iocpu,mycomm,mpierr)

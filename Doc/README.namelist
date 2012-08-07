@@ -15,6 +15,12 @@
  nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
                 ! no subgridding is performed. CLM does NOT work as of now with
                 ! subgridding enabled.
+ njxcpus = -1,  ! Number of CPUS to be used in the jx (lon) dimension.
+                ! If <=0 , the executable will try to figure out a suitable
+                ! decomposition.
+ niycpus = -1,  ! Number of CPUS to be used in the iy (lat) dimension.
+                ! If <=0 , the executable will try to figure out a suitable
+                ! decomposition.
  /
 !
 ! DOMAIN geolocation Stanza
@@ -71,13 +77,13 @@
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
                              !          ERSST, ERSKT, CCSST, CA_XX,
                              !          HA_XX, EC_XX, IP_XX, GF_XX,
-                             !          CN_XX
+                             !          CN_XX, MP_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
                              !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX
+                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
                              ! with XX for CMIP5 datasets in RF, 26, 45, 85
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation

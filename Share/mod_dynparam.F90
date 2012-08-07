@@ -232,6 +232,7 @@ module mod_dynparam
   integer :: mycomm
   integer :: nproc
   integer :: myid
+  integer :: njxcpus , niycpus
   integer :: iyp , jxp
   integer :: iypsg , jxpsg
 
@@ -341,12 +342,12 @@ module mod_dynparam
     integer , intent(out) :: ierr
     integer :: gdate1 , gdate2
 
+    namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                    plon , truelatl, truelath , i_band
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
                   fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , &
                   fudge_lak,  fudge_lak_s , h2opct , h2ohgt , dirter , inpter
-    namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg
     namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
@@ -360,6 +361,8 @@ module mod_dynparam
 !
     dsmax = d_zero
     dsmin = d_zero
+    njxcpus = -1
+    niycpus = -1
 
     read(ipunit, dimparam, err=101)
 
