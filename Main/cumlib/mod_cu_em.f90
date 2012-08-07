@@ -64,7 +64,8 @@ module mod_cu_em
 !
     integer , parameter :: ntra = 0
 !
-    real(dp) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
+    real(dp) :: akclth , cbmf , pret , qprime , tprime , wd , prainx , &
+                totwat , totq
     real(dp) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
     real(dp) , dimension(kz,1) :: ftra , tra
@@ -95,6 +96,17 @@ module mod_cu_em
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                      kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,          &
                      tprime,qprime,cbmf,kbase,ktop)
+        if ( myid == 0 .and. (iflag == 1 .or. iflag == 4) ) then
+          totq = d_zero
+          totwat = d_zero
+          do k = 1 , kz
+            totwat = totwat + dflev(k)*fq(k)
+            totq = totq + dflev(k)*qcup(k)
+          end do
+          print *, 'QXINT=', sfcps(j,i)*regrav*totwat
+          print *, 'QINT=', sfcps(j,i)*regrav*totq
+          print *, 'PREC =', pret
+        end if
    
         cbmf2d(j,i) = cbmf
    

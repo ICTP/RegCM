@@ -75,7 +75,7 @@ module mod_cu_tiedtke
   real(dp) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
 
   real(dp) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
-        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec
+        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude
 
   real(dp) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx
@@ -83,6 +83,8 @@ module mod_cu_tiedtke
   real(dp) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , xpg
   integer , pointer , dimension(:) :: kctop , kcbot
+
+  real(dp) , public , pointer , dimension(:,:,:) :: q_detr
 
   integer :: nipoi
 
@@ -113,6 +115,7 @@ module mod_cu_tiedtke
     call getmem2d(pxim1,1,nipoi,1,kz,'mod_cu_tiedtke:pxim1')
     call getmem2d(pxite,1,nipoi,1,kz,'mod_cu_tiedtke:pxite')
     call getmem2d(papp1,1,nipoi,1,kz,'mod_cu_tiedtke:papp1')
+    call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
@@ -125,6 +128,8 @@ module mod_cu_tiedtke
     call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
+
+    call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_tiedtke:q_detr')
 
   end subroutine allocate_mod_cu_tiedtke
 !
@@ -242,7 +247,7 @@ module mod_cu_tiedtke
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
-                pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
+                pssfc,paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -279,6 +284,7 @@ module mod_cu_tiedtke
             vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
             qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
             qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
+            q_detr(j,i,k) = zlude(ii,k)
             if ( lchem ) then
               tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
               ! build for chemistry 3d table of constant precipitation rate
@@ -315,7 +321,7 @@ module mod_cu_tiedtke
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec,    &
                     pqtec,pqhfla,papp1,paphp1,pgeo,prsfc,pssfc,     &
-                    paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
+                    paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -349,19 +355,20 @@ module mod_cu_tiedtke
   real(dp) , dimension(kbdim,klevp1) :: paphp1
   real(dp) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
-         pxim1 , pxite , pxlm1 , pxlte , pxtec
+         pxim1 , pxite , pxlm1 , pxlte , pxtec , zlude
   real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prsfc ,    &
                                 pssfc , ptopmax
   integer , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(dp) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
   intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , pxite ,   &
               pxlm1 , pxlte , pxtm1
+  intent(out) :: zlude
   intent (inout) ptopmax
 !
   integer , dimension(kbdim) :: itopec2
   integer :: ilevmin , it , jk , jl , jt
   logical , dimension(kbdim) :: locum
-  real(dp) , dimension(kbdim,klev) :: zlu , zlude , zmfd , zmfu ,    &
+  real(dp) , dimension(kbdim,klev) :: zlu , zmfd , zmfu ,    &
          zqp1 , zqsat , zqu , zqude , ztp1 , ztu , ztvp1 , zup1 ,   &
          zvp1 , zxp1
   real(dp) , dimension(kbdim) :: zrain , ztopmax
