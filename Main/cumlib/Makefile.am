@@ -22,7 +22,7 @@ vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 noinst_LIBRARIES = libcum.a
 libcum_a_SOURCES = mod_cu_common.f90 mod_cu_bm.F90 mod_cu_em.f90 \
                    mod_cu_grell.F90 mod_cu_kuo.F90 mod_cu_tables.f90 \
-                   mod_cu_tiedtke.F90
+                   mod_cu_tiedtke.F90 mod_cu_tiedtke_38r2.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -60,3 +60,4 @@ mod_cu_grell.o mod_cu_grell.mod: mod_cu_grell.F90 mod_dynparam.mod mod_memutil.m
 mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 mod_dynparam.mod mod_memutil.mod mod_cu_common.mod mod_runparams.mod mod_mppparam.mod
 mod_cu_tables.o mod_cu_tables.mod: mod_cu_tables.f90 mod_realkinds.mod mod_constants.mod
 mod_cu_tiedtke.o mod_cu_tiedtke.mod: mod_cu_tiedtke.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_memutil.mod mod_constants.mod mod_cu_common.mod mod_cu_tables.mod mod_service.mod mod_runparams.mod
+mod_cu_tiedtke_38r2.o mod_cu_tiedtke_38r2.mod: mod_cu_tiedtke_38r2.F90 mod_realkinds.mod mod_constants.mod

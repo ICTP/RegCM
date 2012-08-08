@@ -30,7 +30,7 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_constants.o mod_constants.mod: mod_constants.F90
+mod_constants.o mod_constants.mod: mod_constants.F90 mod_realkinds.mod
 mod_date.o mod_date.mod: mod_date.f90 mod_realkinds.mod mod_stdio.mod mod_message.mod
 mod_domain.o mod_domain.mod: mod_domain.F90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_nchelper.mod mod_stdio.mod mod_message.mod
 mod_dynparam.o mod_dynparam.mod: mod_dynparam.F90 mod_constants.mod mod_date.mod mod_realkinds.mod
