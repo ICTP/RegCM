@@ -7,8 +7,171 @@ module mod_cu_tiedtke_38r2
   real(dp) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
   real(dp) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
   real(dp) , parameter :: zqmax = 0.5D0
+  integer :: njkt2 = 2
 
   contains
+!
+!----------------------------------------------------------------------
+!          M.TIEDTKE         E.C.M.W.F.     12/89
+!          PURPOSE
+!          -------
+!          THIS ROUTINE INTERPOLATES LARGE-SCALE FIELDS OF T,Q ETC.
+!          TO HALF LEVELS (I.E. GRID FOR MASSFLUX SCHEME),
+!          DETERMINES LEVEL OF MAXIMUM VERTICAL VELOCITY
+!          AND INITIALIZES VALUES FOR UPDRAFTS AND DOWNDRAFTS
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUMASTR*.
+!          METHOD.
+!          --------
+!          FOR EXTRAPOLATION TO HALF LEVELS SEE TIEDTKE(1989)
+!     PARAMETER     DESCRIPTION                                   UNITS 
+!     ---------     -----------                                   ----- 
+!     INPUT PARAMETERS (INTEGER): 
+!    *KIDIA*        START POINT 
+!    *KFDIA*        END POINT 
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET 
+!    *KTDIA*        START OF THE VERTICAL LOOP 
+!    *KLEV*         NUMBER OF LEVELS 
+!    INPUT PARAMETERS (REAL): 
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K 
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG 
+!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG 
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)       M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)       M/S
+!    *PVERVEL*      VERTICAL VELOCITY                             PA/S
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                   M2/S2
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS             PA
+!    *PAP*          PROVISIONAL PRESSURE ON FULL LEVELS             PA
+!    OUTPUT PARAMETERS (INTEGER):
+!    *KLWMIN*       LEVEL OF MAXIMUM VERTICAL VELOCITY 
+!    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
+!                        KLAB=2 FOR CONDENSATION LEVEL
+!    OUTPUT PARAMETERS (REAL):
+!    *PTENH*        ENV. TEMPERATURE (T+1) ON HALF LEVELS         K
+!    *PQENH*        ENV. SPEC. HUMIDITY (T+1) ON HALF LEVELS    KG/KG
+!    *PQSENH*       ENV. SPEC. SATURATION HUMIDITY (T+1)
+!                   ON HALF LEVELS                              KG/KG
+!    *PTU*          TEMPERATURE IN UPDRAFTS                       K
+!    *PQU*          SPEC. HUMIDITY IN UPDRAFTS                  KG/KG
+!    *PTD*          TEMPERATURE IN DOWNDRAFTS                     K
+!    *PQU*          SPEC. HUMIDITY IN DOWNDRAFTS                KG/KG
+!    *PUU*          U-VELOCITY IN UPDRAFTS                       M/S
+!    *PVU*          V-VELOCITY IN UPDRAFTS                       M/S
+!    *PUD*          U-VELOCITY IN DOWNDRAFTS                     M/S
+!    *PVD*          V-VELOCITY IN DOWNDRAFTS                     M/S
+!    *PLU*          LIQUID WATER CONTENT IN UPDRAFTS            KG/KG
+!          EXTERNALS
+!          ---------
+!          *CUADJTQ* TO SPECIFY QS AT HALF LEVELS
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!             05-02-11 : Optimisation (NJKT2) P. BECHTOLD
+!----------------------------------------------------------------------
+!
+  subroutine cuinin(kidia,kfdia,klon,ktdia,klev,pten,pqen,pqsen,puen,pven, &
+                    pvervel,pgeo,paph,pap,klwmin,klab,ptenh,pqenh,pqsenh,  &
+                    pgeoh,ptu,pqu,ptd,pqd,puu,pvu,pud,pvd,plu)  
+    implicit none
+
+    integer , intent(in) :: klon 
+    integer , intent(in) :: klev 
+    integer , intent(in) :: kidia 
+    integer , intent(in) :: kfdia 
+    integer :: ktdia ! argument not used
+    real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , pqsen , &
+                     puen , pven , pvervel , pgeo , pap
+    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    integer , dimension(klon) , intent(out) :: klwmin
+    integer , dimension(klon,klev) , intent(out) :: klab
+    real(dp) , dimension(klon,klev) , intent(out) :: pqenh , ptu , pqu , &
+                     ptd , pqd , puu , pvu , pud , pvd , plu
+    real(dp) , dimension(klon,klev) , intent(inout) :: ptenh , pqsenh
+
+    real(dp) , dimension(klon) :: zwmax , zph
+    logical , dimension(klon) :: llflag
+    integer :: icall , ik , jk , jl
+    real(dp) :: zalfa , zzs
+    !
+    ! 1. specify large scale parameters at half levels
+    !    adjust temperature fields if staticly unstable
+    !    find level of maximum vertical velocity
+    !
+    zalfa = log(d_two)
+    do jk = 2 , klev
+      do jl = kidia , kfdia
+        ptenh(jl,jk) = (max(cpd*pten(jl,jk-1)+pgeo(jl,jk-1), &
+                        cpd*pten(jl,jk)+pgeo(jl,jk))-pgeoh(jl,jk))*rcpd  
+        pqenh(jl,jk) = pqen(jl,jk-1)
+        pqsenh(jl,jk) = pqsen(jl,jk-1)
+        zph(jl) = paph(jl,jk)
+        llflag(jl) = .true.
+      end do
+      if ( jk >= klev-1 .or. jk < njkt2 ) cycle
+      ik = jk
+      if ( lphylin ) then
+        icall = 0
+        call cuadjtqs(kidia,kfdia,klon,ktdia,klev,ik, &
+                      zph,ptenh,pqsenh,llflag,icall)  
+      else
+        icall = 3
+        call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik, &
+                     zph,ptenh,pqsenh,llflag,icall)  
+      end if
+      do jl = kidia , kfdia
+        pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1)) + &
+                          (pqsenh(jl,jk)-pqsen(jl,jk-1))  
+        pqenh(jl,jk) = max(pqenh(jl,jk),d_zero)
+      end do
+    end do
+    do jl = kidia , kfdia
+      ptenh(jl,klev) = (cpd*pten(jl,klev)+pgeo(jl,klev)-pgeoh(jl,klev))*rcpd
+      pqenh(jl,klev) = pqen(jl,klev)
+      ptenh(jl,1) = pten(jl,1)
+      pqenh(jl,1) = pqen(jl,1)
+      klwmin(jl) = klev
+      zwmax(jl) = d_zero
+    end do
+    do jk = klev-1 , 2 , -1
+      do jl = kidia , kfdia
+        zzs = max(cpd*ptenh(jl,jk)  +pgeoh(jl,jk) , &
+                  cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))  
+        ptenh(jl,jk) = (zzs-pgeoh(jl,jk))*rcpd
+      end do
+    end do
+    do jk = klev , 3 , -1
+!dir$ ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        if ( pvervel(jl,jk) < zwmax(jl) ) then
+          zwmax(jl) = pvervel(jl,jk)
+          klwmin(jl) = jk
+        end if
+      end do
+    end do
+    !
+    ! 2.0 initialize values for updrafts and downdrafts
+    !
+    do jk = 1 , klev
+      ik = jk-1
+      if ( jk == 1 ) ik = 1
+      do jl = kidia , kfdia
+        ptu(jl,jk) = ptenh(jl,jk)
+        ptd(jl,jk) = ptenh(jl,jk)
+        pqu(jl,jk) = pqenh(jl,jk)
+        pqd(jl,jk) = pqenh(jl,jk)
+        plu(jl,jk) = d_zero
+        puu(jl,jk) = puen(jl,ik)
+        pud(jl,jk) = puen(jl,ik)
+        pvu(jl,jk) = pven(jl,ik)
+        pvd(jl,jk) = pven(jl,ik)
+        klab(jl,jk) = 0
+      end do
+    end do
+  end subroutine cuinin
 !
 !-------------------------------------------------------------------------
 !
