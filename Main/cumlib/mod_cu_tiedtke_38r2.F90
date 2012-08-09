@@ -1143,6 +1143,77 @@ module mod_cu_tiedtke_38r2
     end if
   end subroutine cududv
 !
+!          P. Bechtold         E.C.M.W.F.     07/03
+!          PURPOSE.
+!          --------
+!          SOLVES BIDIAGONAL SYSTEM
+!          FOR IMPLICIT SOLUTION OF ADVECTION EQUATION
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUDUDV* AND CUDTDQ.
+!          IT RETURNS UPDATED VALUE OF QUANTITY
+!          METHOD.
+!          --------
+!          NUMERICAL RECIPES (Cambridge Press)
+!          DERIVED FROM TRIDIAGONAL ALGORIHM WITH C=0.
+!          (ONLY ONE FORWARD SUBSTITUTION NECESSARY)
+!          M  x  U  = R
+!          ELEMENTS OF MATRIX M ARE STORED IN VECTORS A, B, C
+!          (  B(kctop-1)    C(kctop-1)    0          0        )
+!          (  A(kctop)      B(kctop)      C(kctop)   0        )
+!          (  0             A(jk)         B(jk)      C(jk)    )
+!          (  0             0             A(klev)    B(klev)  )
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!    INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KLEV*         NUMBER OF LEVELS
+!    *KCTOP*        CLOUD TOP LEVELS
+!    INPUT PARAMETERS (REAL):
+!    *PA, PB*       VECTORS CONTAINING DIAGONAL ELEMENTS
+!    *PR*           RHS VECTOR CONTAINING "CONSTANTS"
+!    OUTPUT PARAMETERS (REAL):
+!    *PU*            SOLUTION VECTOR = UPDATED VALUE OF QUANTITY
+!          EXTERNALS
+!          ---------
+!          NONE
+!----------------------------------------------------------------------
+!
+  subroutine cubidiag(kidia,kfdia,klon,klev,kctop,ld_lcumask,pa,pb,pr,pu)
+    implicit none
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , dimension(klon) , intent(in) :: kctop
+    logical , dimension(klon,klev) , intent(in) :: ld_lcumask
+    real(dp) , dimension(klon,klev) , intent(in) :: pa , pb , pr
+    real(dp) , dimension(klon,klev) , intent(out) :: pu
+    integer :: jk , jl
+    real(dp) :: zbet
+    real(dp) , parameter :: eps = 1.0D-35
+
+    pu(:,:) = d_zero
+    !
+    ! Forward substitution
+    !
+    do jk = 2 , klev
+      do jl = kidia , kfdia
+        if ( ld_lcumask(jl,jk) ) then
+          if ( jk == kctop(jl)-1 ) then
+            zbet = d_one/(pb(jl,jk)+eps)
+            pu(jl,jk) = pr(jl,jk) * zbet
+          else if ( jk > kctop(jl)-1 ) then
+            zbet = d_one/(pb(jl,jk)+eps)
+            pu(jl,jk) = (pr(jl,jk)-pa(jl,jk)*pu(jl,jk-1))*zbet
+          end if
+        end if
+      end do
+    end do
+  end subroutine cubidiag
+!
 !-------------------------------------------------------------------------
 !
 ! **   *SATUR* -  COMPUTES SPECIFIC HUMIDITY AT SATURATION
