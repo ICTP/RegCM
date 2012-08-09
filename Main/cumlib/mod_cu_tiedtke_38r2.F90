@@ -13,7 +13,13 @@ module mod_cu_tiedtke_38r2
                                             !  convection
   real(dp) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
                                             !  buoyant convection 1/(m)
+  real(dp) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
+                                            !  for updrafts etc
+  real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
   real(dp) , parameter :: zqmax = 0.5D0
+
+  logical , public :: lmfmid    ! True if midlevel convection is switched on
+
   integer :: njkt2 = 2
 
   contains
@@ -1420,19 +1426,130 @@ module mod_cu_tiedtke_38r2
       end if
     end if
   end subroutine satur
+!
+!----------------------------------------------------------------------
+!
+!          M.TIEDTKE         E.C.M.W.F.     12/89
+!          PURPOSE.
+!          --------
+!          THIS ROUTINE CALCULATES CLOUD BASE VALUES
+!          FOR MIDLEVEL CONVECTION
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUASC*.
+!          INPUT ARE ENVIRONMENTAL VALUES T,Q ETC
+!          IT RETURNS CLOUDBASE VALUES FOR MIDLEVEL CONVECTION
+!          METHOD.
+!          --------
+!          S. TIEDTKE (1989)
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KK*           ACTUAL LEVEL
+!    INPUT PARAMETERS (REAL):
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG
+!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG
+!    *PVERVEL*      VERTICAL VELOCITY                             PA/S
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                   M2/S2
+!    *PLRAIN*       RAIN WATER CONTENT IN UPDRAFTS                KG/KG
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    UPDATED PARAMETERS (INTEGER):
+!    *KTYPE*        TYPE OF CONVECTION
+!                       1 = PENETRATIVE CONVECTION
+!                       2 = SHALLOW CONVECTION
+!                       3 = MIDLEVEL CONVECTION
+!    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
+!                        KLAB=2 FOR CLOUD LEVELS
+!    *KCBOT*        CLOUD BASE LEVEL
+!    OUTPUT PARAMETERS (REAL):
+!    *PMFU*         MASSFLUX IN UPDRAFTS                          KG/(M2*S)
+!    *PMFUB*        MASSFLUX IN UPDRAFTS AT CLOUD BASE            KG/(M2*S)
+!    *PENTR*        FRACTIONAL MASS ENTRAINMENT RATE               1/M
+!    *PTU*          TEMPERATURE IN UPDRAFTS                         K
+!    *PQU*          SPEC. HUMIDITY IN UPDRAFTS                    KG/KG
+!    *PLU*          LIQUID WATER CONTENT IN UPDRAFTS              KG/KG
+!    *PMFUS*        FLUX OF DRY STATIC ENERGY IN UPDRAFTS          J/(M2*S)
+!    *PMFUQ*        FLUX OF SPEC. HUMIDITY IN UPDRAFTS            KG/(M2*S)
+!    *PMFUL*        FLUX OF LIQUID WATER IN UPDRAFTS              KG/(M2*S)
+!    *PDMFUP*       FLUX DIFFERENCE OF PRECIP. IN UPDRAFTS        KG/(M2*S)
+!          EXTERNALS
+!          ---------
+!          NONE
+!----------------------------------------------------------------------
+!
+  subroutine cubasmcn(kidia,kfdia,klon,ktdia,klev,kk,pten,pqen,pqsen, &
+                      pvervel,pgeo,pgeoh,ldcum,ktype,klab,kcbot,pmfu, &
+                      pmfub,plrain,ptu,pqu,plu,pmfus,pmfuq,pmful,pdmfup)
+    implicit none
 
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer :: ktdia ! argument not used
+    integer ,  intent(in) :: kk
+    real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , &
+                 pqsen , pvervel , pgeo
+    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh
+    logical , dimension(klon) , intent(in) :: ldcum
+    integer , dimension(klon) , intent(out) :: ktype , kcbot
+    integer , dimension(klon,klev) , intent(inout) :: klab
+    real(dp) , dimension(klon,klev) , intent(out) :: pmfu , plrain , ptu , &
+                pqu , plu , pmfus , pmfuq , pmful , pdmfup
+    real(dp) , dimension(klon) , intent(out) :: pmfub
+    integer :: jl
+    real(dp) :: zzzmb
+
+    !
+    ! 1. Calculate entrainment and detrainment rates
+    !
+!dir$ ivdep
+!ocl novrec
+    do jl = kidia , kfdia
+      if ( .not. ldcum(jl) .and. klab(jl,kk+1) == 0 ) then
+        if ( lmfmid .and. pgeo(jl,kk) > 5000.0D0 .and. &
+                          pgeo(jl,kk) < 1.D5 .and.     &
+                          pqen(jl,kk) > 0.80D0*pqsen(jl,kk) ) then  
+          ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/cpd
+          pqu(jl,kk+1) = pqen(jl,kk)
+          plu(jl,kk+1) = d_zero
+          zzzmb = max(rmfcmin,-pvervel(jl,kk)/egrav)
+          zzzmb = min(zzzmb,rmfcmax)
+          pmfub(jl) = zzzmb
+          pmfu(jl,kk+1) = pmfub(jl)
+          pmfus(jl,kk+1) = pmfub(jl)*(cpd*ptu(jl,kk+1)+pgeoh(jl,kk+1))
+          pmfuq(jl,kk+1) = pmfub(jl)*pqu(jl,kk+1)
+          pmful(jl,kk+1) = d_zero
+          pdmfup(jl,kk+1) = d_zero
+          plrain(jl,kk+1) = d_zero
+          kcbot(jl) = kk
+          klab(jl,kk+1) = 1
+          ktype(jl) = 3
+        end if
+      end if
+    end do
+  end subroutine cubasmcn
+!
+!-----------------------------------------------------------------------------
+!
   real(dp) function minj(x,y)
     implicit none
     real(dp) , intent(in) :: x , y
     minj = y - d_half*(dabs(x-y)-(x-y))
   end function minj
-
   real(dp) function maxj(x,y)
     implicit none
     real(dp) , intent(in) :: x , y
     maxj = y + d_half*(dabs(x-y)+(x-y))
   end function maxj
-
   real(dp) function foedelta(ptare)
     implicit none
     real(dp) , intent(in) :: ptare
