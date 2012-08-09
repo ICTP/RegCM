@@ -67,6 +67,7 @@ module mod_lm_interface
     if ( idesseas == 1 ) ldesseas  = .true.
     if ( iseaice  == 1 ) lseaice   = .true.
     call assignpnt(dom%xlat,xlat)
+    call assignpnt(dom%xlon,xlon)
     call assignpnt(dom%lndcat,lndcat)
     call assignpnt(dom%ht,ht)
     call assignpnt(atm%ubx3d,uatm)
@@ -103,7 +104,6 @@ subroutine init_clm(dt,ksrf,ichem,iemiss,dom,domio,atm,sfs,ts0,zpbl,lm)
     call assignpnt(ts0,tsf)
     call assignpnt(domio%ht,htf)
     call assignpnt(domio%lndcat,lndcatf)
-    call assignpnt(dom%xlon,xlon)
     call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif
