@@ -2,15 +2,107 @@ module mod_cu_tiedtke_38r2
 
   use mod_constants
 
-  integer , parameter :: n_vmass = 0       ! Using or not vector mass
-  logical , parameter :: lphylin = .false. ! Linearized physics is activated ?
-  real(dp) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
-  real(dp) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
-  real(dp) , parameter :: rmfsoluv = 1.0D0 ! Mass flux solver for momentum
+  private
+
+  integer , parameter :: n_vmass = 0        ! Using or not vector mass
+  logical , parameter :: lphylin = .false.  ! Linearized physics is activated ?
+  real(dp) , parameter :: rlpal1 = 0.15D0   ! Smoothing coefficient
+  real(dp) , parameter :: rlpal2 = 20.0D0   ! Smoothing coefficient
+  real(dp) , parameter :: rmfsoluv = 1.0D0  ! Mass flux solver for momentum
+  real(dp) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
+                                            !  convection
+  real(dp) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
+                                            !  buoyant convection 1/(m)
   real(dp) , parameter :: zqmax = 0.5D0
   integer :: njkt2 = 2
 
   contains
+!
+!          M.TIEDTKE         E.C.M.W.F.     12/89
+!          P.BECHTOLD        E.C.M.W.F.     06/07
+!          P.BECHTOLD        E.C.M.W.F.     03/12
+!          PURPOSE.
+!          --------
+!          THIS ROUTINE CALCULATES ENTRAINMENT/DETRAINMENT RATES
+!          FOR UPDRAFTS IN CUMULUS PARAMETERIZATION
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUASC*.
+!          INPUT ARE ENVIRONMENTAL VALUES T,Q ETC
+!          AND UPDRAFT VALUES T,Q ETC
+!          IT RETURNS ENTRAINMENT/DETRAINMENT RATES
+!          METHOD.
+!          --------
+!          TURBULENT ENTRAINMENT IS SIMULATED BY A CONSTANT
+!          MULTIPLIED BY A VERTICAL SCALING FUNCTION
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KLEV*         NUMBER OF LEVELS
+!    *KK*           CURRENT LEVEL
+!    *KCBOT*        CLOUD BASE LEVEL
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
+!    INPUT PARAMETERS (REAL):
+!    *PQSEN*        SATURATION SPEC. HUMIDITY                   KG/KG
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS          PA
+!    *PGEOH*        PROVISIONAL GEOPOTENTIAL ON HALF LEVELS      PA
+!    *PMFU*         MASSFLUX IN UPDRAFTS                        KG/(M2*S)
+!    OUTPUT PARAMETERS (REAL):
+!    *PDMFEN*       ENTRAINMENT RATE                            KG/(M2*S)
+!    *PDMFDE*       DETRAINMENT RATE                            KG/(M2*S)
+!          EXTERNALS
+!          ---------
+!          NONE
+!----------------------------------------------------------------------
+!
+  subroutine cuentr(kidia,kfdia,klon,klev,kk,kcbot,ktype,ldcum,ldwork, &
+                    pqsen,paph,pgeoh,pmfu,pdmfen,pdmfde)
+    implicit none
+
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer , intent(in) :: kk
+    integer , dimension(klon) , intent(in) :: kcbot , ktype
+    logical , dimension(klon) , intent(in) :: ldcum
+    logical , intent(in) :: ldwork
+    real(dp) , dimension(klon,klev) , intent(in) :: pqsen , pmfu
+    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    real(dp) , dimension(klon) , intent(out) :: pdmfen , pdmfde
+    logical :: llo1
+    integer :: jl
+    real(dp) , dimension(klon) :: zentr
+    real(dp) :: zdz , zmf
+    !
+    ! 1. Calculate entrainment and detrainment rates
+    !
+    if ( ldwork ) then
+      do jl = kidia , kfdia
+        pdmfen(jl) = d_zero
+        pdmfde(jl) = d_zero
+        zentr(jl) = d_zero
+      end do
+      !
+      ! 1.1 Specify entrainment rates
+      !
+      do jl = kidia , kfdia
+        if ( ldcum(jl) ) then
+          zdz = (pgeoh(jl,kk)-pgeoh(jl,kk+1))*regrav
+          zmf = pmfu(jl,kk+1)*zdz
+          llo1 = kk < kcbot(jl)
+          if ( llo1 ) then
+            pdmfen(jl) = zentr(jl)*zmf
+            pdmfde(jl) = detrpen*zmf
+          end if
+        end if
+      end do
+    end if
+  end subroutine cuentr
 !
 !----------------------------------------------------------------------
 !          M.TIEDTKE         E.C.M.W.F.     12/89
