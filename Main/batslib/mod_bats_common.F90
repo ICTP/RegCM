@@ -144,6 +144,7 @@ module mod_bats_common
   data ldesseas /.false./
 
   real(dp) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
+  real(dp) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
   real(dp) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(dp) , pointer , dimension(:,:) :: ht            ! mddom%ht
   real(dp) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d

@@ -163,7 +163,6 @@ module mod_clm
   ! 2 meter specific humidity
   real(dp) , pointer , dimension(:,:) :: q2d
 
-  real(dp) , pointer , dimension(:,:) :: xlon     ! mddom%xlon
   real(dp) , pointer , dimension(:,:) :: htf      ! mddom_io%ht
   real(dp) , pointer , dimension(:,:) :: lndcatf  ! mddom_io%lndcat
 !
