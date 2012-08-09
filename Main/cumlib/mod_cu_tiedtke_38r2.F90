@@ -3,9 +3,10 @@ module mod_cu_tiedtke_38r2
   use mod_constants
 
   integer , parameter :: n_vmass = 0       ! Using or not vector mass
-  logical , parameter :: lphylin = .false. ! linearized physics is activated ?
+  logical , parameter :: lphylin = .false. ! Linearized physics is activated ?
   real(dp) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
   real(dp) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
+  real(dp) , parameter :: rmfsoluv = 1.0D0 ! Mass flux solver for momentum
   real(dp) , parameter :: zqmax = 0.5D0
   integer :: njkt2 = 2
 
@@ -923,6 +924,224 @@ module mod_cu_tiedtke_38r2
       end if
     end if
   end subroutine cuadjtq
+!
+!**** *CUDUDV* - UPDATES U AND V TENDENCIES,
+!                DOES GLOBAL DIAGNOSTIC OF DISSIPATION
+!          M.TIEDTKE         E.C.M.W.F.     7/86 MODIF. 12/89
+!          P.BECHTOLD        E.C.M.W.F.    11/02/05 IMPLICIT SOLVER
+!**   INTERFACE.
+!     ----------
+!          *CUDUDV* IS CALLED FROM *CUMASTR*
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KTYPE*        TYPE OF CONVECTION
+!                       1 = PENETRATIVE CONVECTION
+!                       2 = SHALLOW CONVECTION
+!                       3 = MIDLEVEL CONVECTION
+!    *KCBOT*        CLOUD BASE LEVEL
+!    *KCTOP*        CLOUD TOP LEVEL
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
+!    INPUT PARAMETERS (REAL):
+!    *PTSPHY*       TIME STEP FOR THE PHYSICS                      S
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS            PA
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)       M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)       M/S
+!    *PMFU*         MASSFLUX UPDRAFTS                             KG/(M2*S)
+!    *PMFD*         MASSFLUX DOWNDRAFTS                           KG/(M2*S)
+!    *PUU*          U-VELOCITY IN UPDRAFTS                         M/S
+!    *PUD*          U-VELOCITY IN DOWNDRAFTS                       M/S
+!    *PVU*          V-VELOCITY IN UPDRAFTS                         M/S
+!    *PVD*          V-VELOCITY IN DOWNDRAFTS                       M/S
+!    UPDATED PARAMETERS (REAL):
+!    *PTENU*        TENDENCY OF U-COMP. OF WIND                    M/S2
+!    *PTENV*        TENDENCY OF V-COMP. OF WIND                    M/S2
+!            METHOD
+!            -------
+!       EXPLICIT UPSTREAM AND IMPLICIT SOLUTION OF VERTICAL ADVECTION
+!       DEPENDING ON VALUE OF RMFSOLUV:
+!       0=EXPLICIT 0-1 SEMI-IMPLICIT >=1 IMPLICIT
+!
+!       FOR EXPLICIT SOLUTION: ONLY ONE SINGLE ITERATION
+!       FOR IMPLICIT SOLUTION: FIRST IMPLICIT SOLVER, THEN EXPLICIT SOLVER
+!                              TO CORRECT TENDENCIES BELOW CLOUD BASE
+!
+!            EXTERNALS
+!            ---------
+!            CUBIDIAG
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!----------------------------------------------------------------------
+!
+  subroutine cududv(kidia,kfdia,klon,ktdia,klev,ktopm2,ktype,kcbot,kctop, &
+                    ldcum,ptsphy,paph,puen,pven,pmfu,pmfd,puu,pud,pvu,    &
+                    pvd,ptenu,ptenv)
+    implicit none
+
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer , intent(in) :: ktdia 
+    integer , intent(in) :: ktopm2
+    integer , dimension(klon) , intent(in) :: ktype , kcbot , kctop
+    logical , dimension(klon) , intent(in) :: ldcum
+    real(dp) , intent(in) :: ptsphy
+    real(dp) , dimension(klon,klev+1) , intent(in) :: paph
+    real(dp) , dimension(klon,klev) , intent(in) :: puen , pven , &
+             pmfu , pmfd , puu , pud , pvu , pvd
+    real(dp) , dimension(klon,klev) , intent(inout) :: ptenu , ptenv
+
+    real(dp) , dimension(klon,klev) :: zuen , zven , zmfuu , zmfdu , &
+             zmfuv , zmfdv , zdudt , zdvdt , zdp , zb ,  zr1 ,  zr2
+    logical , dimension(klon,klev) :: llcumbas
+    integer :: ik , ikb , jk , jl
+    real(dp) :: zzp , ztsphy
+    real(dp) , parameter :: zimp = d_one-rmfsoluv
+
+    ztsphy = d_one/ptsphy
+
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        if ( ldcum(jl) ) then
+          zuen(jl,jk) = puen(jl,jk)
+          zven(jl,jk) = pven(jl,jk)
+          zdp(jl,jk) = egrav/(paph(jl,jk+0)-paph(jl,jk))
+        end if
+      end do
+    end do
+    !
+    ! 1.0 Calculate fluxes and update u and v tendencies
+    !
+    do jk = ktopm2 , klev
+      ik = jk-1
+      do jl = kidia , kfdia
+        if ( ldcum(jl) ) then
+          zmfuu(jl,jk) = pmfu(jl,jk)*(puu(jl,jk)-zimp*zuen(jl,ik))
+          zmfuv(jl,jk) = pmfu(jl,jk)*(pvu(jl,jk)-zimp*zven(jl,ik))
+          zmfdu(jl,jk) = pmfd(jl,jk)*(pud(jl,jk)-zimp*zuen(jl,ik))
+          zmfdv(jl,jk) = pmfd(jl,jk)*(pvd(jl,jk)-zimp*zven(jl,ik))
+        end if
+      end do
+    end do
+    !
+    ! Linear fluxes below cloud
+    !
+    if ( dabs(rmfsoluv) < dlowval ) then
+      do jk = ktopm2 , klev
+!dir$ ivdep
+!ocl novrec
+        do jl = kidia , kfdia
+          if ( ldcum(jl) .and. jk > kcbot(jl) ) then
+            ikb = kcbot(jl)
+            zzp = ((paph(jl,klev+1)-paph(jl,jk))/(paph(jl,klev+1)-paph(jl,ikb)))
+            if ( ktype(jl) == 3 ) then
+              zzp = zzp*zzp
+            end if
+            zmfuu(jl,jk) = zmfuu(jl,ikb)*zzp
+            zmfuv(jl,jk) = zmfuv(jl,ikb)*zzp
+            zmfdu(jl,jk) = zmfdu(jl,ikb)*zzp
+            zmfdv(jl,jk) = zmfdv(jl,ikb)*zzp
+          end if
+        end do
+      end do
+    end if
+    !
+    ! 1.2 Compute tendencies
+    !
+    do jk = ktopm2 , klev
+      if ( jk < klev ) then
+        ik = jk+1
+        do jl = kidia , kfdia
+          if ( ldcum(jl) ) then
+            zdudt(jl,jk) = zdp(jl,jk) * &
+                      (zmfuu(jl,ik)-zmfuu(jl,jk)+zmfdu(jl,ik)-zmfdu(jl,jk))
+            zdvdt(jl,jk) = zdp(jl,jk) * &
+                      (zmfuv(jl,ik)-zmfuv(jl,jk)+zmfdv(jl,ik)-zmfdv(jl,jk))
+          end if
+        end do
+      else
+        do jl = kidia , kfdia
+          if ( ldcum(jl) ) then
+            zdudt(jl,jk) = -zdp(jl,jk)*(zmfuu(jl,jk)+zmfdu(jl,jk))
+            zdvdt(jl,jk) = -zdp(jl,jk)*(zmfuv(jl,jk)+zmfdv(jl,jk))
+          end if
+        end do
+      end if
+    end do
+
+    if ( dabs(rmfsoluv) < dlowval ) then
+      !
+      ! 1.3 Update tendencies
+      !
+      do jk = ktopm2 , klev
+        do jl = kidia , kfdia
+          if ( ldcum(jl) ) then
+            ptenu(jl,jk) = ptenu(jl,jk)+zdudt(jl,jk)
+            ptenv(jl,jk) = ptenv(jl,jk)+zdvdt(jl,jk)
+          end if
+        end do
+      end do
+    else
+      !
+      ! 1.6 Implicit solution
+      !
+      ! Fill bi-diagonal matrix vectors a=k-1, b=k;
+      ! reuse zmfuu=a and zb=b;
+      ! zdudt and zdvdt correspond to the rhs ("constants") of the equation
+      ! the solution is in zr1 and zr2
+      !
+      llcumbas(:,:) = .false.
+      zb(:,:) = d_one
+      zmfuu(:,:) = d_zero
+      !
+      ! Fill vectors a, b and rhs
+      !
+      do jk = ktopm2 , klev
+        ik = jk+1
+        do jl = kidia , kfdia
+          llcumbas(jl,jk) = ldcum(jl) .and. jk >= kctop(jl)-1
+          if ( llcumbas(jl,jk) ) then
+            zzp = rmfsoluv*zdp(jl,jk)*ptsphy
+            zmfuu(jl,jk) = -zzp*(pmfu(jl,jk)+pmfd(jl,jk))
+            zdudt(jl,jk) = zdudt(jl,jk)*ptsphy+zuen(jl,jk)
+            zdvdt(jl,jk) = zdvdt(jl,jk)*ptsphy+zven(jl,jk)
+            ! zdudt(jl,jk) = (ptenu(jl,jk)+zdudt(jl,jk))*ptsphy+zuen(jl,jk)
+            ! zdvdt(jl,jk) = (ptenv(jl,jk)+zdvdt(jl,jk))*ptsphy+zven(jl,jk)
+            if ( jk<klev ) then
+              zb(jl,jk) = d_one+zzp*(pmfu(jl,ik)+pmfd(jl,ik))
+            else
+              zb(jl,jk) = d_one
+            end if
+          end if
+        end do
+      end do
+      !
+      call cubidiag(kidia,kfdia,klon,klev,kctop,llcumbas,zmfuu,zb,zdudt,zr1)
+      call cubidiag(kidia,kfdia,klon,klev,kctop,llcumbas,zmfuu,zb,zdvdt,zr2)
+      !
+      ! Compute tendencies
+      !
+      do jk = ktopm2 , klev
+        do jl = kidia , kfdia
+          if ( llcumbas(jl,jk) ) then
+            ptenu(jl,jk) = ptenu(jl,jk)+(zr1(jl,jk)-zuen(jl,jk))*ztsphy
+            ptenv(jl,jk) = ptenv(jl,jk)+(zr2(jl,jk)-zven(jl,jk))*ztsphy
+            ! ptenu(jl,jk) = (zr1(jl,jk)-zuen(jl,jk))*ztsphy
+            ! ptenv(jl,jk) = (zr2(jl,jk)-zven(jl,jk))*ztsphy
+          end if
+        end do
+      end do
+    end if
+  end subroutine cududv
 !
 !-------------------------------------------------------------------------
 !
