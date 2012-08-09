@@ -173,12 +173,228 @@ module mod_cu_tiedtke_38r2
     end do
   end subroutine cuinin
 !
+!**   *CUADJTQS* - SIMPLIFIED VERSION OF MOIST ADJUSTMENT
+!     J.F. MAHFOUF      ECMWF
+!     PURPOSE.
+!     --------
+!     TO PRODUCE T,Q AND L VALUES FOR CLOUD ASCENT
+!     INTERFACE
+!     ---------
+!     THIS ROUTINE IS CALLED FROM SUBROUTINES:
+!       *COND*
+!       *CUBMADJ*
+!       *CUBMD*
+!       *CONDAD*
+!       *CUBMADJAD*
+!       *CUBMDAD*
+!     INPUT ARE UNADJUSTED T AND Q VALUES,
+!     IT RETURNS ADJUSTED VALUES OF T AND Q
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KK*           LEVEL
+!    *KCALL*        DEFINES CALCULATION AS
+!                      KCALL=0  ENV. T AND QS IN*CUINI*
+!                      KCALL=1  CONDENSATION IN UPDRAFTS  (E.G. CUBASE, CUASC)
+!                      KCALL=2  EVAPORATION IN DOWNDRAFTS (E.G. CUDLFS,CUDDRAF)
+!     INPUT PARAMETERS (LOGICAL):
+!    *LDLAND*       LAND-SEA MASK (.TRUE. FOR LAND POINTS)
+!     INPUT PARAMETERS (REAL):
+!    *PSP*          PRESSURE                                        PA
+!     UPDATED PARAMETERS (REAL):
+!    *PT*           TEMPERATURE                                     K
+!    *PQ*           SPECIFIC HUMIDITY                             KG/KG
+!          MODIFICATIONS
+!          -------------
+!          D.SALMOND & M.HAMRUD ECMWF       99-06-04   Optimisation
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!----------------------------------------------------------------------
+!
+  subroutine cuadjtqs(kidia,kfdia,klon,ktdia,klev,kk,psp,pt,pq,ldflag,kcall)
+    implicit none
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer :: ktdia ! argument not used
+    integer , intent(in) :: kk
+    real(dp) , dimension(klon) , intent(in) :: psp
+    real(dp) , dimension(klon,klev) , intent(inout) :: pt , pq
+    logical , dimension(klon) , intent(in) :: ldflag
+    integer , intent(in) :: kcall
+
+    real(dp) , dimension(klon) :: z3es , z4es , z5alcp , zaldcp
+    integer :: jl
+    real(dp) :: zqmax , zqp , zcond , zcond1 , ztarg , zcor , &
+                zqsat , zfoeew , z2s
+    !
+    ! calculate condensation and adjust t and q accordingly
+    !
+    ! ice-water thermodynamical functions
+    !
+    do jl = kidia , kfdia
+      if ( pt(jl,kk) > tzero ) then
+        z3es(jl) = c3les
+        z4es(jl) = c4les
+        z5alcp(jl) = c5alvcp
+        zaldcp(jl) = wlhvocp
+      else
+        z3es(jl) = c3ies
+        z4es(jl) = c4ies
+        z5alcp(jl) = c5alscp
+        zaldcp(jl) = wlhsocp
+      end if
+    end do
+
+    if ( kcall == 1 ) then
+!dir$    ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        if ( ldflag(jl) ) then
+          zqp = d_one/psp(jl)
+          ztarg = pt(jl,kk)
+          zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+          zqsat = zqp*zfoeew
+          if ( zqsat > zqmax ) then
+            zqsat = zqmax
+          end if
+          zcor = d_one/(d_one-retv*zqsat)
+          zqsat = zqsat*zcor
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+          zcond = max(zcond,d_zero)
+          ! if ( dabs(zcond) > dlowval ) then
+          pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond
+          pq(jl,kk) = pq(jl,kk)-zcond
+          ztarg = pt(jl,kk)
+          zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+          zqsat = zqp*zfoeew
+          if ( zqsat > zqmax ) then
+            zqsat = zqmax
+          end if
+          zcor = d_one/(d_one-retv*zqsat)
+          zqsat = zqsat*zcor
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+          if ( dabs(zcond) < dlowval ) zcond1 = d_zero
+          pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
+          pq(jl,kk) = pq(jl,kk)-zcond1
+          ! end if
+        end if
+      end do
+    end if
+
+    if ( kcall == 2 ) then
+!dir$    ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        if ( ldflag(jl) ) then
+          zqp = d_one/psp(jl)
+          ztarg = pt(jl,kk)
+          zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+          zqsat = zqp*zfoeew
+          if ( zqsat > zqmax ) then
+            zqsat = zqmax
+          end if
+          zcor = d_one/(d_one-retv*zqsat)
+          zqsat = zqsat*zcor
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+          zcond = min(zcond,d_zero)
+          ! if ( dabs(zcond) > dlowval ) then
+          pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond
+          pq(jl,kk) = pq(jl,kk)-zcond
+          ztarg = pt(jl,kk)
+          zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+          zqsat = zqp*zfoeew
+          if ( zqsat > zqmax ) then
+            zqsat = zqmax
+          end if
+          zcor = d_one/(d_one-retv*zqsat)
+          zqsat = zqsat*zcor
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+          if ( dabs(zcond) < dlowval ) zcond1 = d_zero
+          pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
+          pq(jl,kk) = pq(jl,kk)-zcond1
+          ! end if
+        end if
+      end do
+    end if
+
+    if ( kcall == 0 ) then
+!dir$    ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        zqp = d_one/psp(jl)
+        ztarg = pt(jl,kk)
+        zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+        zqsat = zqp*zfoeew
+        if ( zqsat > zqmax ) then
+          zqsat = zqmax
+        end if
+        zcor = d_one/(d_one-retv*zqsat)
+        zqsat = zqsat*zcor
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+        pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
+        pq(jl,kk) = pq(jl,kk)-zcond1
+        ztarg = pt(jl,kk)
+        zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+        zqsat = zqp*zfoeew
+        if ( zqsat > zqmax ) then
+          zqsat = zqmax
+        end if
+        zcor = d_one/(d_one-retv*zqsat)
+        zqsat = zqsat*zcor
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+        pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
+        pq(jl,kk) = pq(jl,kk)-zcond1
+      end do
+    end if
+
+    if ( kcall == 4 ) then
+!dir$    ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        zqp = d_one/psp(jl)
+        ztarg = pt(jl,kk)
+        zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+        zqsat = zqp*zfoeew
+        if ( zqsat > zqmax ) then
+          zqsat = zqmax
+        end if
+        zcor = d_one/(d_one-retv*zqsat)
+        zqsat = zqsat*zcor
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+        pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond
+        pq(jl,kk) = pq(jl,kk)-zcond
+        ztarg = pt(jl,kk)
+        zfoeew = c2es*exp(z3es(jl)*(ztarg-tzero)/(ztarg-z4es(jl)))
+        zqsat = zqp*zfoeew
+        if ( zqsat > zqmax ) then
+          zqsat = zqmax
+        end if
+        zcor = d_one/(d_one-retv*zqsat)
+        zqsat = zqsat*zcor
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
+        pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
+        pq(jl,kk) = pq(jl,kk)-zcond1
+      end do
+    end if
+  end subroutine cuadjtqs
+!
 !-------------------------------------------------------------------------
-!
+!**   *CUADJTQ* - MOIST ADJUSTMENT
 !          M.TIEDTKE         E.C.M.W.F.     12/89
-!
-! SUBROUTINE CUADJTQ
-!
 !          MODIFICATIONS
 !          -------------
 !          D.SALMOND         CRAY(UK))      12/8/91
