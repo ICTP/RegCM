@@ -16,9 +16,12 @@ module mod_cu_tiedtke_38r2
   real(dp) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
                                             !  for updrafts etc
   real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
+  real(dp) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
+                                            !   downdrafts at lfs
   real(dp) , parameter :: zqmax = 0.5D0
 
   logical , public :: lmfmid    ! True if midlevel convection is switched on
+  logical , public :: lmfdd     ! True if cumulus downdraft is switched on
 
   integer :: njkt2 = 2
 
@@ -1537,6 +1540,215 @@ module mod_cu_tiedtke_38r2
       end if
     end do
   end subroutine cubasmcn
+!
+!----------------------------------------------------------------------
+!
+!          THIS ROUTINE CALCULATES LEVEL OF FREE SINKING FOR
+!          CUMULUS DOWNDRAFTS AND SPECIFIES T,Q,U AND V VALUES
+!          M.TIEDTKE         E.C.M.W.F.    12/86 MODIF. 12/89
+!          PURPOSE.
+!          --------
+!          TO PRODUCE LFS-VALUES FOR CUMULUS DOWNDRAFTS
+!          FOR MASSFLUX CUMULUS PARAMETERIZATION
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUMASTR*.
+!          INPUT ARE ENVIRONMENTAL VALUES OF T,Q,U,V,P,PHI
+!          AND UPDRAFT VALUES T,Q,U AND V AND ALSO
+!          CLOUD BASE MASSFLUX AND CU-PRECIPITATION RATE.
+!          IT RETURNS T,Q,U AND V VALUES AND MASSFLUX AT LFS.
+!          METHOD.
+!          CHECK FOR NEGATIVE BUOYANCY OF AIR OF EQUAL PARTS OF
+!          MOIST ENVIRONMENTAL AIR AND CLOUD AIR.
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KCBOT*        CLOUD BASE LEVEL
+!    *KCTOP*        CLOUD TOP LEVEL
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDLAND*       LAND SEA MASK (.TRUE. FOR LAND)
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
+!    INPUT PARAMETERS (REAL):
+!    *PTENH*        ENV. TEMPERATURE (T+1) ON HALF LEVELS          K
+!    *PQENH*        ENV. SPEC. HUMIDITY (T+1) ON HALF LEVELS     KG/KG
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)      M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)      M/S
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K
+!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                  M2/S2
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS           PA
+!    *PTU*          TEMPERATURE IN UPDRAFTS                        K
+!    *PQU*          SPEC. HUMIDITY IN UPDRAFTS                   KG/KG
+!    *PLU*          LIQUID WATER CONTENT IN UPDRAFTS             KG/KG
+!    *PUU*          U-VELOCITY IN UPDRAFTS                        M/S
+!    *PVU*          V-VELOCITY IN UPDRAFTS                        M/S
+!    *PMFUB*        MASSFLUX IN UPDRAFTS AT CLOUD BASE           KG/(M2*S)
+!    UPDATED PARAMETERS (REAL):
+!    *PRFL*         PRECIPITATION RATE                           KG/(M2*S)
+!    OUTPUT PARAMETERS (REAL):
+!    *PTD*          TEMPERATURE IN DOWNDRAFTS                      K
+!    *PQD*          SPEC. HUMIDITY IN DOWNDRAFTS                 KG/KG
+!    *PMFD*         MASSFLUX IN DOWNDRAFTS                       KG/(M2*S)
+!    *PMFDS*        FLUX OF DRY STATIC ENERGY IN DOWNDRAFTS       J/(M2*S)
+!    *PMFDQ*        FLUX OF SPEC. HUMIDITY IN DOWNDRAFTS         KG/(M2*S)
+!    *PDMFDP*       FLUX DIFFERENCE OF PRECIP. IN DOWNDRAFTS     KG/(M2*S)
+!    OUTPUT PARAMETERS (INTEGER):
+!    *KDTOP*        TOP LEVEL OF DOWNDRAFTS
+!    OUTPUT PARAMETERS (LOGICAL):
+!    *LDDRAF*       .TRUE. IF DOWNDRAFTS EXIST
+!          EXTERNALS
+!          ---------
+!          *CUADJTQ* FOR CALCULATING WET BULB T AND Q AT LFS
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!             99-06-04 : Optimisation        D.SALMOND
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!        P. Lopez      20-Jun-2007 CY32R2 Bug correction in latent heat
+!                                         when LPHYLIN=T.
+!----------------------------------------------------------------------
+!
+  subroutine cudlfsn(kidia,kfdia,klon,ktdia,klev,kcbot,kctop,ldland,ldcum, &
+                     ptenh,pqenh,puen,pven,pten,pqsen,pgeo,pgeoh,paph,ptu, &
+                     pqu,plu,puu,pvu,pmfub,prfl,ptd,pqd,pmfd,pmfds,pmfdq,  &
+                     pdmfdp,kdtop,lddraf)
+    implicit none
+
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer :: ktdia ! argument not used
+    integer , dimension(klon) :: kcbot , kctop  ! argument not used
+    logical , dimension(klon) :: ldland , ldcum ! argument not used
+    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh ,  &
+               puen , pven , pten , pqsen , pgeo , ptu , pqu , plu , &
+               puu , pvu
+    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
+    real(dp) , dimension(klon) , intent(in) :: pmfub
+    real(dp) , dimension(klon) , intent(inout) :: prfl
+    real(dp) , dimension(klon,klev) , intent(inout) :: pmfd
+    real(dp) , dimension(klon,klev) , intent(out) :: ptd , pqd , pmfds , &
+               pmfdq , pdmfdp
+    integer , dimension(klon) , intent(out) :: kdtop
+    logical , dimension(klon) , intent(out) :: lddraf
+    integer , dimension(klon) :: ikhsmin
+    real(dp) , dimension(klon,klev) :: ztenwb , zqenwb
+    real(dp) , dimension(klon) :: zcond , zph , zhsmin
+    logical , dimension(klon) :: llo2
+
+    integer :: icall , ik , ike , is , jk , jl
+    real(dp) :: zbuo , zhsk , zmftop , zoealfa , zoelhm , zqtest , &
+                ztarg , zttest
+    !
+    ! 1. Set default values for downdrafts
+    !
+    do jl = kidia , kfdia
+      lddraf(jl) = .false.
+      kdtop(jl) = klev+1
+      ikhsmin(jl) = klev+1
+      zhsmin(jl) = 1.0D8
+    end do
+
+    if ( lmfdd ) then
+      !
+      ! 2. Determine level of free sinking:
+      !    downdrafts shall start at model level of minimum
+      !    of saturation moist static energy or below respectively
+      !    For every point and proceed as follows:
+      !      (1) determine level of minimum of hs
+      !      (2) determine wet bulb environmental t and q
+      !      (3) do mixing with cumulus cloud air
+      !      (4) check for negative buoyancy
+      !      (5) if buoyancy>0 repeat (2) to (4) for next level below
+      !    The assumption is that air of downdrafts is mixture
+      !    of 50% cloud air + 50% environmental air at wet bulb
+      !    temperature (i.e. which became saturated due to
+      !    evaporation of rain and cloud water)
+      !
+      do jk = 3 , klev-2
+        if ( lphylin ) then
+          do jl = kidia , kfdia
+            ztarg = pten(jl,jk)
+            zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
+            zoelhm  = zoealfa*wlhv+(d_one-zoealfa)*wlhs
+            zhsk = cpd*pten(jl,jk)+pgeo(jl,jk)+zoelhm*pqsen(jl,jk)
+            if ( zhsk < zhsmin(jl) ) then
+              zhsmin(jl) = zhsk
+              ikhsmin(jl) = jk
+            end if
+          end do
+        else
+          do jl = kidia , kfdia
+            zhsk=cpd*pten(jl,jk)+pgeo(jl,jk)+foelhmcu(pten(jl,jk))*pqsen(jl,jk)
+            if ( zhsk < zhsmin(jl) ) then
+              zhsmin(jl) = zhsk
+              ikhsmin(jl) = jk
+            end if
+          end do
+        end if
+      end do
+      ike = klev-3
+      do jk = 3 , ike
+        !
+        ! 2.1 Calculate wet-bulb temperature and moisture
+        !     for environmental air in *cuadjtq*
+        !
+        is = 0
+        do jl = kidia , kfdia
+          ztenwb(jl,jk) = ptenh(jl,jk)
+          zqenwb(jl,jk) = pqenh(jl,jk)
+          zph(jl) = paph(jl,jk)
+          llo2(jl) = ldcum(jl) .and. prfl(jl) > d_zero .and. &
+                     .not. lddraf(jl) .and. &
+                     (jk < kcbot(jl) .and. jk > kctop(jl) ) .and. &
+                     jk >= ikhsmin(jl)
+          if ( llo2(jl) )then
+            is = is+1
+          end if
+        end do
+        if ( is == 0 ) cycle
+        ik = jk
+        icall = 2
+        call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik, &
+                     zph,ztenwb,zqenwb,llo2,icall)
+        !
+        ! 2.2 Do mixing of cumulus and environmental air
+        !     and check for negative buoyancy.
+        !     Then set values for downdraft at lfs.
+        !
+!dir$ ivdep
+!ocl novrec
+        do jl = kidia , kfdia
+          if ( llo2(jl) ) then
+            zttest = d_half*(ptu(jl,jk)+ztenwb(jl,jk))
+            zqtest = d_half*(pqu(jl,jk)+zqenwb(jl,jk))
+            zbuo = zttest*(d_one+retv*zqtest) - &
+                   ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
+            zcond(jl) = pqenh(jl,jk)-zqenwb(jl,jk)
+            zmftop = -rmfdeps*pmfub(jl)
+            if ( zbuo < d_zero .and. prfl(jl) > 10.0D0*zmftop*zcond(jl)) then
+              kdtop(jl) = jk
+              lddraf(jl) = .true.
+              ptd(jl,jk) = zttest
+              pqd(jl,jk) = zqtest
+              pmfd(jl,jk) = zmftop
+              pmfds(jl,jk) = pmfd(jl,jk)*(rcpd*ptd(jl,jk)+pgeoh(jl,jk))
+              pmfdq(jl,jk) = pmfd(jl,jk)*pqd(jl,jk)
+              pdmfdp(jl,jk-1) = -d_half*pmfd(jl,jk)*zcond(jl)
+              prfl(jl) = prfl(jl)+pdmfdp(jl,jk-1)
+            end if
+          end if
+        end do
+      end do
+    end if
+  end subroutine cudlfsn
 !
 !-----------------------------------------------------------------------------
 !
