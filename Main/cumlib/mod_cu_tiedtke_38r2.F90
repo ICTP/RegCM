@@ -21,6 +21,8 @@ module mod_cu_tiedtke_38r2
   real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
   real(dp) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
                                             !   downdrafts at lfs
+  real(dp) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
+                                            ! *vdf....*
   real(dp) , parameter :: zqmax = 0.5D0
 
   logical , public :: lmfmid    ! True if midlevel convection is switched on
@@ -130,18 +132,18 @@ module mod_cu_tiedtke_38r2
 !          METHOD.
 !          --------
 !          FOR EXTRAPOLATION TO HALF LEVELS SEE TIEDTKE(1989)
-!     PARAMETER     DESCRIPTION                                   UNITS 
-!     ---------     -----------                                   ----- 
-!     INPUT PARAMETERS (INTEGER): 
-!    *KIDIA*        START POINT 
-!    *KFDIA*        END POINT 
-!    *KLON*         NUMBER OF GRID POINTS PER PACKET 
-!    *KTDIA*        START OF THE VERTICAL LOOP 
-!    *KLEV*         NUMBER OF LEVELS 
-!    INPUT PARAMETERS (REAL): 
-!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K 
-!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG 
-!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG 
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    INPUT PARAMETERS (REAL):
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG
+!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG
 !    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)       M/S
 !    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)       M/S
 !    *PVERVEL*      VERTICAL VELOCITY                             PA/S
@@ -150,7 +152,7 @@ module mod_cu_tiedtke_38r2
 !    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS             PA
 !    *PAP*          PROVISIONAL PRESSURE ON FULL LEVELS             PA
 !    OUTPUT PARAMETERS (INTEGER):
-!    *KLWMIN*       LEVEL OF MAXIMUM VERTICAL VELOCITY 
+!    *KLWMIN*       LEVEL OF MAXIMUM VERTICAL VELOCITY
 !    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
 !                        KLAB=2 FOR CONDENSATION LEVEL
 !    OUTPUT PARAMETERS (REAL):
@@ -179,13 +181,13 @@ module mod_cu_tiedtke_38r2
 !
   subroutine cuinin(kidia,kfdia,klon,ktdia,klev,pten,pqen,pqsen,puen,pven, &
                     pvervel,pgeo,paph,pap,klwmin,klab,ptenh,pqenh,pqsenh,  &
-                    pgeoh,ptu,pqu,ptd,pqd,puu,pvu,pud,pvd,plu)  
+                    pgeoh,ptu,pqu,ptd,pqd,puu,pvu,pud,pvd,plu)
     implicit none
 
-    integer , intent(in) :: klon 
-    integer , intent(in) :: klev 
-    integer , intent(in) :: kidia 
-    integer , intent(in) :: kfdia 
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
     integer :: ktdia ! argument not used
     real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , pqsen , &
                      puen , pven , pvervel , pgeo , pap
@@ -209,7 +211,7 @@ module mod_cu_tiedtke_38r2
     do jk = 2 , klev
       do jl = kidia , kfdia
         ptenh(jl,jk) = (max(cpd*pten(jl,jk-1)+pgeo(jl,jk-1), &
-                        cpd*pten(jl,jk)+pgeo(jl,jk))-pgeoh(jl,jk))*rcpd  
+                        cpd*pten(jl,jk)+pgeo(jl,jk))-pgeoh(jl,jk))*rcpd
         pqenh(jl,jk) = pqen(jl,jk-1)
         pqsenh(jl,jk) = pqsen(jl,jk-1)
         zph(jl) = paph(jl,jk)
@@ -220,15 +222,15 @@ module mod_cu_tiedtke_38r2
       if ( lphylin ) then
         icall = 0
         call cuadjtqs(kidia,kfdia,klon,ktdia,klev,ik, &
-                      zph,ptenh,pqsenh,llflag,icall)  
+                      zph,ptenh,pqsenh,llflag,icall)
       else
         icall = 3
         call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik, &
-                     zph,ptenh,pqsenh,llflag,icall)  
+                     zph,ptenh,pqsenh,llflag,icall)
       end if
       do jl = kidia , kfdia
         pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1)) + &
-                          (pqsenh(jl,jk)-pqsen(jl,jk-1))  
+                          (pqsenh(jl,jk)-pqsen(jl,jk-1))
         pqenh(jl,jk) = max(pqenh(jl,jk),d_zero)
       end do
     end do
@@ -243,7 +245,7 @@ module mod_cu_tiedtke_38r2
     do jk = klev-1 , 2 , -1
       do jl = kidia , kfdia
         zzs = max(cpd*ptenh(jl,jk)  +pgeoh(jl,jk) , &
-                  cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))  
+                  cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))
         ptenh(jl,jk) = (zzs-pgeoh(jl,jk))*rcpd
       end do
     end do
@@ -509,7 +511,7 @@ module mod_cu_tiedtke_38r2
 !          J.HAGUE                          03-01-13   MASS Vector Functions
 !          J.HAGUE                          03-07-07   More MASS V.F.
 !        M.Hamrud              01-Oct-2003 CY28 Cleaning
-!        J.Hague & D.Salmond   22-Nov-2005 Optimisations 
+!        J.Hague & D.Salmond   22-Nov-2005 Optimisations
 !          PURPOSE.
 !          --------
 !          TO PRODUCE T,Q AND L VALUES FOR CLOUD ASCENT
@@ -543,7 +545,7 @@ module mod_cu_tiedtke_38r2
 !     UPDATED PARAMETERS (REAL):
 !    *PT*           TEMPERATURE                                     K
 !    *PQ*           SPECIFIC HUMIDITY                             KG/KG
-!          EXTERNALS   
+!          EXTERNALS
 !          ---------
 !          3 LOOKUP TABLES ( TLUCUA, TLUCUB, TLUCUC )
 !          FOR CONDENSATION CALCULATIONS.
@@ -1094,7 +1096,7 @@ module mod_cu_tiedtke_38r2
     integer , intent(in) :: klev
     integer , intent(in) :: kidia
     integer , intent(in) :: kfdia
-    integer , intent(in) :: ktdia 
+    integer , intent(in) :: ktdia
     integer , intent(in) :: ktopm2
     integer , dimension(klon) , intent(in) :: ktype , kcbot , kctop
     logical , dimension(klon) , intent(in) :: ldcum
@@ -1322,12 +1324,12 @@ module mod_cu_tiedtke_38r2
 !
 ! **   *SATUR* -  COMPUTES SPECIFIC HUMIDITY AT SATURATION
 !       J.F. MAHFOUF       E.C.M.W.F.     15/05/96
-!       Modified J. HAGUE          13/01/03 MASS Vector Functions       
+!       Modified J. HAGUE          13/01/03 MASS Vector Functions
 !       PURPOSE.
 !       --------
 !       SPECIFIC HUMIDITY AT SATURATION IS USED BY THE
 !       DIAGNOSTIC CLOUD SCHEME TO COMPUTE RELATIVE HUMIDITY
-!       AND LIQUID WATER CONTENT  
+!       AND LIQUID WATER CONTENT
 !       INTERFACE
 !       ---------
 !       THIS ROUTINE IS CALLED FROM *CALLPAR*.
@@ -1350,17 +1352,17 @@ module mod_cu_tiedtke_38r2
 !      *PQSAT*         SATURATION SPECIFIC HUMIDITY                 KG/KG
 !-------------------------------------------------------------------------
 !
-  subroutine satur(kidia,kfdia,klon,ktdia,klev,paprsf,pt,pqsat,kflag)  
+  subroutine satur(kidia,kfdia,klon,ktdia,klev,paprsf,pt,pqsat,kflag)
     implicit none
 
-    integer , intent(in) :: klon 
-    integer , intent(in) :: klev 
-    integer , intent(in) :: kidia 
-    integer , intent(in) :: kfdia 
-    integer , intent(in) :: ktdia 
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
+    integer , intent(in) :: ktdia
     real(dp) , dimension(klon,klev) , intent(in) :: paprsf , pt
     real(dp) , dimension(klon,klev) , intent(out) :: pqsat
-    integer , intent(in) :: kflag 
+    integer , intent(in) :: kflag
     integer :: jk , jl , jlen
 
     real(dp) :: zcor , zew , zfoeew , zqmax , zqs , ztarg
@@ -1466,7 +1468,7 @@ module mod_cu_tiedtke_38r2
 !    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                   M2/S2
 !    *PLRAIN*       RAIN WATER CONTENT IN UPDRAFTS                KG/KG
 !    INPUT PARAMETERS (LOGICAL):
-!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
 !    UPDATED PARAMETERS (INTEGER):
 !    *KTYPE*        TYPE OF CONVECTION
 !                       1 = PENETRATIVE CONVECTION
@@ -1523,7 +1525,7 @@ module mod_cu_tiedtke_38r2
       if ( .not. ldcum(jl) .and. klab(jl,kk+1) == 0 ) then
         if ( lmfmid .and. pgeo(jl,kk) > 5000.0D0 .and. &
                           pgeo(jl,kk) < 1.D5 .and.     &
-                          pqen(jl,kk) > 0.80D0*pqsen(jl,kk) ) then  
+                          pqen(jl,kk) > 0.80D0*pqsen(jl,kk) ) then
           ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/cpd
           pqu(jl,kk+1) = pqen(jl,kk)
           plu(jl,kk+1) = d_zero
@@ -1820,10 +1822,10 @@ module mod_cu_tiedtke_38r2
                       pmfd,pmfds,pmfdq,pdmfdp,pdmfde,pmfdde_rate,pkined)
     implicit none
 
-    integer , intent(in) :: klon 
-    integer , intent(in) :: klev 
-    integer , intent(in) :: kidia 
-    integer , intent(in) :: kfdia 
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
     integer :: ktdia ! argument not used
     logical , dimension(klon) , intent(in) :: lddraf
     real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
@@ -1848,7 +1850,7 @@ module mod_cu_tiedtke_38r2
     itopde = njkt3
     !
     ! 1. Calculate moist descent for cumulus downdraft by
-    !      (a) Calculating entrainment/detrainment rates, 
+    !      (a) Calculating entrainment/detrainment rates,
     !          including organized entrainment dependent on
     !          negative buoyancy and assuming
     !          linear decrease of massflux in pbl
@@ -1901,7 +1903,7 @@ module mod_cu_tiedtke_38r2
             zdmfen(jl) = zdmfen(jl)+zzentr
             zdmfen(jl) = max(zdmfen(jl),0.3D0*pmfd(jl,jk-1))
             zdmfen(jl) = max(zdmfen(jl),-0.75D0*pmfu(jl,jk) - &
-                                 (pmfd(jl,jk-1)-zdmfde(jl)))  
+                                 (pmfd(jl,jk-1)-zdmfde(jl)))
             zdmfen(jl) = min(zdmfen(jl),d_zero)
           end if
           pdmfde(jl,jk) = zdmfen(jl)-zdmfde(jl)
@@ -1964,10 +1966,10 @@ module mod_cu_tiedtke_38r2
           zdkbuo = zdz*zbuoyv*zfacbuo
           if ( zdmfen(jl) < d_zero )then
             zdken = min(d_one,(d_one+z_cwdrag) * &
-                               zdmfen(jl)/min(-rmfcmin,pmfd(jl,jk-1)))  
+                               zdmfen(jl)/min(-rmfcmin,pmfd(jl,jk-1)))
           else
             zdken = min(d_one,(d_one+z_cwdrag) * &
-                               zdmfde(jl)/min(-rmfcmin,pmfd(jl,jk-1)))  
+                               zdmfde(jl)/min(-rmfcmin,pmfd(jl,jk-1)))
           end if
           pkined(jl,jk) = max(d_zero,(pkined(jl,jk-1) * &
                                      (d_one-zdken)+zdkbuo)/(d_one+zdken))
@@ -1975,6 +1977,283 @@ module mod_cu_tiedtke_38r2
       end do
     end do
   end subroutine cuddrafn
+!
+!**** *CUSTRAT* - COMPUTES T,Q TENDENCIES FOR STRATOCUMULUS
+!                 CONVECTION
+!     M.TIEDTKE      E.C.M.W.F.    4/89 MODIF. 12/89
+!     PURPOSE.
+!     --------
+!           THIS ROUTINE DOES THE PARAMETERIZATION OF BOUNDARY-LAYER
+!     MIXING BY ENHANCED VERTICAL DIFFUSION OF SENSIBLE HEAT
+!     AND MOISTURE FOR THE CASE OF STRATOCUMULUS CONVECTION.
+!     THE SCHEME IS ONLY APPLIED IN THE BOUNDARY-LAYER AND ONLY
+!     WHEN NEITHER PENETRATIVE NOR SHALLOW CONVECTION ARE ACTIVATED.
+!**   INTERFACE.
+!     ----------
+!           THIS ROUTINE IS CALLED FROM *CUCALL*:
+!     IT TAKES ITS INPUT FROM THE LONG-TERM STORAGE:
+!     T,Q AT (T-1) AS WELL AS THE PROVISIONAL T,Q TENDENCIES AND
+!     RETURNS ITS OUTPUT TO THE SAME SPACE:
+!       MODIFIED TENDENCIES OF T AND Q
+!     METHOD.
+!     -------
+!           ENHANCED VERTICAL DIFFUSION OF MOISTURE AND SENSIBLE
+!     HEAT OCCURS, WHENEVER
+!        1. LIFTED SURFACE AIR IS BUOYANT AND
+!        2. CONDENSATION LEVEL EXISTS FOR FREE CONVECTION
+!     THEN THE EXCHANGE COEFFICIENT IS AS FOLLOWS;
+!         K=C1 IN CLOUD LAYER
+!         K=C1*F(RH) AT CLOUD TOP (TOP ENTRAINMENT)
+!     THE MATRIX INVERSION IS PERFORMED ANALOGOUSLY TO ROUTINE *VDIFF*
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!C     INPUT PARAMETERS (REAL)
+!    *PTSPHY*       TIME STEP FOR THE PHYSICS                       S
+!    *PAP*          PROVISIONAL PRESSURE ON FULL LEVELS            PA
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS            PA
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG
+!    *PQSAT*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG
+!    *PENTH*        INCREMENT OF DRY STATIC ENERGY                 J/(KG*S)
+!    UPDATED PARAMETERS (REAL):
+!    *PTENT*        TEMPERATURE TENDENCY                           K/S
+!    *PTENQ*        MOISTURE TENDENCY                             KG/(KG S)
+!     EXTERNALS.
+!     ----------
+!          *CUADJTQ* ADJUST T AND Q DUE TO CONDENSATION IN ASCENT
+!     Modifications.
+!     --------------
+!     G. Mozdzynski 2000-11-29: Corrections required for reproducibility
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!----------------------------------------------------------------------
+!
+  subroutine custrat(kidia,kfdia,klon,ktdia,klev,ldcum,ptsphy,pap,paph, &
+                     pgeo,pten,pqen,pqsat,penth,ptent,ptenq)
+    implicit none
+
+    integer , intent(in) :: klon 
+    integer , intent(in) :: klev 
+    integer , intent(in) :: kidia 
+    integer , intent(in) :: kfdia 
+    integer :: ktdia ! argument not used
+    logical , dimension(klon) , intent(in) :: ldcum
+    real(dp) , intent(in) :: ptsphy 
+    real(dp) , dimension(klon,klev) , intent(in) :: pap , pgeo , pten , &
+               pqen , pqsat
+    real(dp) , dimension(klon,klev+1) , intent(in) :: paph
+    real(dp) , dimension(klon,klev) , intent(out) :: penth
+    real(dp) , dimension(klon,klev) , intent(inout) :: ptent , ptenq
+    real(dp) , dimension(klon,klev) :: ztc , zqc , zcf , zcptgz , ztdif , &
+               zqdif , zebs
+    real(dp) , dimension(klon,klev+1) :: zap
+    real(dp) , dimension(klon) :: zcpts , zqs , ztcoe , zqold , zpp
+    integer , dimension(klon,klev) :: ilab
+    logical , dimension(klon) :: llflag , llo2 , llbl
+    integer :: icall , ik , ilevh , jk , jl
+    real(dp) :: zbuo , zcons1 , zcons2 , zcons3 , zdisc , zdqdt , zdtdt , &
+                zfac , zkdiff1 , zkdiff2 , zqdp , ztmst , ztpfac1 , ztpfac2  
+    !
+    ! 1. Physical constants and parameters.
+    !
+    ztpfac1 = rvdifts
+    ztpfac2 = d_one/ztpfac1
+    zkdiff1 = 10.0D0
+    zkdiff2 = 2.5D0
+    ztmst = ptsphy
+    zcons1 = ztpfac1*ztmst*egrav**d_two/(d_half*rgas)
+    zcons2 = d_one/ztmst
+    zcons3 = ztmst*cpd
+    ilevh = klev/2
+    !
+    ! 2. Preliminary computations.
+    !
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        zcptgz(jl,jk) = pgeo(jl,jk)+pten(jl,jk)*cpd
+        zcf(jl,jk) = d_zero
+        ilab(jl,jk) = 0
+      end do
+    end do
+    !
+    ! 3. Determine exchange coefficients therefore
+    !      (a) Lift surface air, check for buoyancy and set flag
+    !      (b) Then define diffusion coefficients,i.e.
+    !          k=c1 for cloud layer
+    !          k=c1*f(rh) for cloud top (top entrainment)
+    !
+    do jl = kidia , kfdia
+      ztc(jl,klev) = pten(jl,klev)+0.25D0
+      zqc(jl,klev) = pqen(jl,klev)
+      if ( .not. ldcum(jl) ) then
+        ilab(jl,klev) = 1
+      else
+        ilab(jl,klev) = 0
+      end if
+      llo2(jl) = .false.
+      llbl(jl) = .true.
+    end do
+
+    do jk = klev-1 , ilevh , -1
+      do jl = kidia , kfdia
+        if ( pap(jl,jk) < 0.9D0*paph(jl,klev+1) ) llbl(jl) = .false.
+      end do
+      do jl = kidia , kfdia
+        if ( llbl(jl) ) then
+          ztc(jl,jk) = (ztc(jl,jk+1)*cpd+pgeo(jl,jk+1)-pgeo(jl,jk))/cpd
+          zqc(jl,jk) = zqc(jl,jk+1)
+          if ( ilab(jl,jk+1) > 0 ) then
+            llflag(jl) = .true.
+          else
+            llflag(jl) = .false.
+          end if
+          zap(jl,jk) = pap(jl,jk)
+          zpp(jl) = pap(jl,jk)
+          zqold(jl) = zqc(jl,jk)
+        end if
+      end do
+      do jl = kidia , kfdia
+        if ( .not.llbl(jl) ) llflag(jl) = .false.
+      end do
+      ik = jk
+      icall = 1
+      call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik,zpp,ztc,zqc,llflag,icall)
+      do jl = kidia , kfdia
+        if ( llbl(jl) ) then
+          if ( dabs(zqc(jl,jk)-zqold(jl)) > dlowval ) then
+            ilab(jl,jk) = 2
+          end if
+        end if
+      end do
+!dir$ ivdep
+!ocl novrec
+      do jl = kidia , kfdia
+        if ( llbl(jl) ) then
+          zbuo = ztc(jl,jk)*(d_one+retv*zqc(jl,jk)) - &
+                             pten(jl,jk)*(d_one+retv*pqen(jl,jk))  
+          if ( zbuo < d_zero ) ilab(jl,jk) = 0
+          if ( zbuo > d_zero .and. &
+               ilab(jl,jk) == 0 .and. ilab(jl,jk+1) == 1) ilab(jl,jk) = 1  
+          if ( ilab(jl,jk) == 2 ) llo2(jl) = .true.
+        end if
+      end do
+    end do
+
+    do jl = kidia , kfdia
+      llbl(jl) = .true.
+    end do
+
+    do jk = klev-1 , ilevh , -1
+      do jl = kidia , kfdia
+        if ( pap(jl,jk) < 0.9D0*paph(jl,klev+1) ) llbl(jl) = .false.
+      end do
+      do jl = kidia , kfdia
+        if ( llbl(jl) ) then
+          if ( ilab(jl,jk) == 2 ) then
+            zcf(jl,jk) = zkdiff1
+            if ( ilab(jl,klev-2) == 0 ) then
+              zcf(jl,jk) = zkdiff2
+            end if
+          else
+            zcf(jl,jk) = d_zero
+          end if
+          if ( zcf(jl,jk+1) > d_zero .and. ilab(jl,jk) == 0 ) then
+            zcf(jl,jk) = zcf(jl,jk+1)*5.0D0 *                             &
+                         max(pqen(jl,jk+1)/pqsat(jl,jk+1)-0.8D0,d_zero) * &
+                         max(pqen(jl,jk+1)/pqsat(jl,jk+1)-pqen(jl,jk) /   &
+                         pqsat(jl,jk),d_zero)  
+            llbl(jl) = .false.
+          end if
+        end if
+      end do
+    end do
+    !
+    ! 4.7 Exchange coefficients.
+    !
+    do jk = ilevh , klev-1
+      do jl = kidia , kfdia
+        zcf(jl,jk) = zcf(jl,jk)*zcons1*paph(jl,jk+1) / &
+                     ((pgeo(jl,jk)-pgeo(jl,jk+1)) *    &
+                      (pten(jl,jk)+pten(jl,jk+1)))  
+      end do
+    end do
+    !
+    ! 4.8 Dummy surface values of t and q at surface
+    !
+    do jl = kidia , kfdia
+      zcpts(jl) = ztpfac2*zcptgz(jl,klev)
+      zqs(jl) = ztpfac2*pqen(jl,klev)
+    end do
+    !
+    ! 5. Solution of the vertical diffusion equation.
+    !
+    !  5.1 Setting of right hand sides.
+    !
+    do jk = ilevh , klev
+      do jl = kidia , kfdia
+        ztdif(jl,jk) = ztpfac2*zcptgz(jl,jk)
+        zqdif(jl,jk) = ztpfac2*pqen(jl,jk)
+      end do
+    end do
+    !
+    !  5.2 Top layer elimination.
+    !
+    do jl = kidia , kfdia
+      ztcoe(jl) = zcf(jl,ilevh)
+      zqdp = d_one/(paph(jl,ilevh+1)-paph(jl,ilevh))
+      zdisc = d_one/(d_one+zcf(jl,ilevh)*zqdp)
+      zebs(jl,ilevh) = zdisc*(zcf(jl,ilevh)*zqdp)
+      zqdif(jl,ilevh) = zdisc*zqdif(jl,ilevh)
+      ztdif(jl,ilevh) = zdisc*ztdif(jl,ilevh)
+    end do
+    !
+    !  5.3 Elimination for layers below
+    !
+    do jk = ilevh+1 , klev
+      do jl = kidia , kfdia
+        zqdp = d_one/(paph(jl,jk+1)-paph(jl,jk))
+        zfac = ztcoe(jl)*zqdp
+        ztcoe(jl) = zcf(jl,jk)
+        zdisc = d_one/(d_one+zfac*(d_one-zebs(jl,jk-1))+zcf(jl,jk)*zqdp)
+        zebs(jl,jk) = zdisc*(zcf(jl,jk)*zqdp)
+        zqdif(jl,jk) = zdisc*(zqdif(jl,jk)+zfac*zqdif(jl,jk-1))
+        ztdif(jl,jk) = zdisc*(ztdif(jl,jk)+zfac*ztdif(jl,jk-1))
+      end do
+    end do
+    do jl = kidia , kfdia
+      zqdif(jl,klev) = zqdif(jl,klev)+(zebs(jl,klev)*zqs(jl))
+      ztdif(jl,klev) = ztdif(jl,klev)+(zebs(jl,klev)*zcpts(jl))
+    end do
+    !
+    !  5.5 Back-substitution.
+    !
+    do jk = klev-1 , ilevh , -1
+      do jl = kidia , kfdia
+        zqdif(jl,jk) = zqdif(jl,jk)+(zebs(jl,jk)*zqdif(jl,jk+1))
+        ztdif(jl,jk) = ztdif(jl,jk)+(zebs(jl,jk)*ztdif(jl,jk+1))
+      end do
+    end do
+    !
+    ! 6. Incrementation of t and q tendencies.
+    !
+    do jk = ilevh , klev
+      do jl = kidia , kfdia
+        zdqdt = (zqdif(jl,jk)-ztpfac2*pqen(jl,jk))*zcons2
+        ptenq(jl,jk) = ptenq(jl,jk)+zdqdt
+        zdtdt = (ztdif(jl,jk)-ztpfac2*zcptgz(jl,jk))/zcons3
+        ptent(jl,jk) = ptent(jl,jk)+zdtdt
+        penth(jl,jk) = (ztdif(jl,jk)-ztpfac2*zcptgz(jl,jk))*zcons2
+      end do
+    end do
+  end subroutine custrat
 !
 !-----------------------------------------------------------------------------
 !
