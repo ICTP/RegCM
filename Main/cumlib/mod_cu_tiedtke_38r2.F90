@@ -1,6 +1,7 @@
 module mod_cu_tiedtke_38r2
 
   use mod_constants
+  use mod_dynparam
 
   private
 
@@ -13,6 +14,8 @@ module mod_cu_tiedtke_38r2
                                             !  convection
   real(dp) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
                                             !  buoyant convection 1/(m)
+  real(dp) , parameter :: entrdd = 3.0D-4   ! Average entrainment rate
+                                            !  for downdrafts
   real(dp) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
                                             !  for updrafts etc
   real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
@@ -23,7 +26,7 @@ module mod_cu_tiedtke_38r2
   logical , public :: lmfmid    ! True if midlevel convection is switched on
   logical , public :: lmfdd     ! True if cumulus downdraft is switched on
 
-  integer :: njkt2 = 2
+  integer , parameter :: njkt2 = 2
 
   contains
 !
@@ -1749,6 +1752,229 @@ module mod_cu_tiedtke_38r2
       end do
     end if
   end subroutine cudlfsn
+!
+!          THIS ROUTINE CALCULATES CUMULUS DOWNDRAFT DESCENT
+!          M.TIEDTKE         E.C.M.W.F.    12/86 MODIF. 12/89
+!          PURPOSE.
+!          --------
+!          TO PRODUCE THE VERTICAL PROFILES FOR CUMULUS DOWNDRAFTS
+!          (I.E. T,Q,U AND V AND FLUXES)
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUMASTR*.
+!          INPUT IS T,Q,P,PHI,U,V AT HALF LEVELS.
+!          IT RETURNS FLUXES OF S,Q AND EVAPORATION RATE
+!          AND U,V AT LEVELS WHERE DOWNDRAFT OCCURS
+!          METHOD.
+!          --------
+!          CALCULATE MOIST DESCENT FOR ENTRAINING/DETRAINING PLUME BY
+!          A) MOVING AIR DRY-ADIABATICALLY TO NEXT LEVEL BELOW AND
+!          B) CORRECTING FOR EVAPORATION TO OBTAIN SATURATED STATE.
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    INPUT PARAMETERS (LOGICAL):
+!    *LDDRAF*       .TRUE. IF DOWNDRAFTS EXIST
+!    INPUT PARAMETERS (REAL):
+!    *PTENH*        ENV. TEMPERATURE (T+1) ON HALF LEVELS          K
+!    *PQENH*        ENV. SPEC. HUMIDITY (T+1) ON HALF LEVELS     KG/KG
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)      M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)      M/S
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                  M2/S2
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS           PA
+!    *PMFU*         MASSFLUX UPDRAFTS                           KG/(M2*S)
+!    UPDATED PARAMETERS (REAL):
+!    *PRFL*         PRECIPITATION RATE                           KG/(M2*S)
+!    OUTPUT PARAMETERS (REAL):
+!    *PTD*          TEMPERATURE IN DOWNDRAFTS                      K
+!    *PQD*          SPEC. HUMIDITY IN DOWNDRAFTS                 KG/KG
+!    *PMFD*         MASSFLUX IN DOWNDRAFTS                       KG/(M2*S)
+!    *PMFDS*        FLUX OF DRY STATIC ENERGY IN DOWNDRAFTS       J/(M2*S)
+!    *PMFDQ*        FLUX OF SPEC. HUMIDITY IN DOWNDRAFTS         KG/(M2*S)
+!    *PDMFDP*       FLUX DIFFERENCE OF PRECIP. IN DOWNDRAFTS     KG/(M2*S)
+!    *PMFDDE_RATE*  DOWNDRAFT DETRAINMENT RATE                   KG/(M2*S)
+!    *PKINED*       DOWNDRAFT KINETIC ENERGY                     M2/S2
+!          EXTERNALS
+!          ---------
+!          *CUADJTQ* FOR ADJUSTING T AND Q DUE TO EVAPORATION IN
+!          SATURATED DESCENT
+!          REFERENCE
+!          ---------
+!          (TIEDTKE,1989)
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!             03-08-28 : Clean-up detrainment rates   P. BECHTOLD
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!
+!----------------------------------------------------------------------
+!
+  subroutine cuddrafn(kidia,kfdia,klon,ktdia,klev,lddraf,ptenh,pqenh, &
+                      puen,pven,pgeo,pgeoh,paph,prfl,ptd,pqd,pmfu,    &
+                      pmfd,pmfds,pmfdq,pdmfdp,pdmfde,pmfdde_rate,pkined)
+    implicit none
+
+    integer , intent(in) :: klon 
+    integer , intent(in) :: klev 
+    integer , intent(in) :: kidia 
+    integer , intent(in) :: kfdia 
+    integer :: ktdia ! argument not used
+    logical , dimension(klon) , intent(in) :: lddraf
+    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
+               puen , pven , pgeo , pmfu
+    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
+    real(dp) , dimension(klon) , intent(inout) :: prfl
+    real(dp) , dimension(klon,klev) , intent(inout) :: ptd , pqd , &
+               pmfd , pmfds , pmfdq
+    real(dp) , dimension(klon,klev) , intent(out) :: pdmfdp , pdmfde , &
+               pmfdde_rate , pkined
+    real(dp) , dimension(klon) :: zdmfen , zdmfde , zcond , zoentr , zbuoy
+    real(dp) , dimension(klon) :: zph
+    logical , dimension(klon) :: llo2
+    integer :: icall , ik , is , njkt3 , itopde , jk , jl
+    real(dp) :: zbuo , zbuoyz , zbuoyv , zdmfdp , zdz , zentr , zmfdqk ,  &
+                zmfdsk , zqdde , zqeen , zrain , zsdde , zseen , zzentr , &
+                zdkbuo , zdken
+    real(dp) , parameter :: zfacbuo = d_half/(d_one+d_half)
+    real(dp) , parameter :: z_cwdrag = (3.0D0/8.0D0)*0.506D0/0.2D0
+
+    njkt3 = kz-2
+    itopde = njkt3
+    !
+    ! 1. Calculate moist descent for cumulus downdraft by
+    !      (a) Calculating entrainment/detrainment rates, 
+    !          including organized entrainment dependent on
+    !          negative buoyancy and assuming
+    !          linear decrease of massflux in pbl
+    !      (b) Doing moist descent - evaporative cooling
+    !          and moistening is calculated in *cuadjtq*
+    !      (c) Checking for negative buoyancy and
+    !          specifying final t,q,u,v and downward fluxes
+    !
+    do jl = kidia , kfdia
+      zoentr(jl) = d_zero
+      zbuoy(jl) = d_zero
+      zdmfen(jl) = d_zero
+      zdmfde(jl) = d_zero
+      pdmfde(jl,:) = d_zero
+      pmfdde_rate(jl,:) = d_zero
+      pkined(jl,:) = d_zero
+    end do
+
+    do jk = 3 , klev
+      is = 0
+      do jl = kidia , kfdia
+        zph(jl) = paph(jl,jk)
+        llo2(jl) = lddraf(jl) .and. pmfd(jl,jk-1) < d_zero
+        if ( llo2(jl) ) then
+          is = is+1
+        end if
+      end do
+      if ( is == 0 ) cycle
+      do jl = kidia , kfdia
+        if ( llo2(jl) ) then
+          zentr = entrdd*pmfd(jl,jk-1)*(pgeoh(jl,jk-1)-pgeoh(jl,jk))*regrav
+          zdmfen(jl) = zentr
+          zdmfde(jl) = zentr
+        end if
+      end do
+      if ( jk > itopde ) then
+        do jl = kidia , kfdia
+          if ( llo2(jl) ) then
+            zdmfen(jl) = d_zero
+            zdmfde(jl) = pmfd(jl,itopde)*(paph(jl,jk)-paph(jl,jk-1)) / &
+                                         (paph(jl,klev+1)-paph(jl,itopde))
+          end if
+        end do
+      end if
+      if ( jk <= itopde ) then
+        do jl = kidia , kfdia
+          if ( llo2(jl) ) then
+            zdz = -(pgeoh(jl,jk-1)-pgeoh(jl,jk))*regrav
+            zzentr = zoentr(jl)*zdz*pmfd(jl,jk-1)
+            zdmfen(jl) = zdmfen(jl)+zzentr
+            zdmfen(jl) = max(zdmfen(jl),0.3D0*pmfd(jl,jk-1))
+            zdmfen(jl) = max(zdmfen(jl),-0.75D0*pmfu(jl,jk) - &
+                                 (pmfd(jl,jk-1)-zdmfde(jl)))  
+            zdmfen(jl) = min(zdmfen(jl),d_zero)
+          end if
+          pdmfde(jl,jk) = zdmfen(jl)-zdmfde(jl)
+        end do
+      end if
+      do jl = kidia , kfdia
+        if ( llo2(jl) ) then
+          pmfd(jl,jk) = pmfd(jl,jk-1)+zdmfen(jl)-zdmfde(jl)
+          zseen = (cpd*ptenh(jl,jk-1)+pgeoh(jl,jk-1))*zdmfen(jl)
+          zqeen = pqenh(jl,jk-1)*zdmfen(jl)
+          zsdde = (cpd*ptd(jl,jk-1)+pgeoh(jl,jk-1))*zdmfde(jl)
+          zqdde = pqd(jl,jk-1)*zdmfde(jl)
+          zmfdsk = pmfds(jl,jk-1)+zseen-zsdde
+          zmfdqk = pmfdq(jl,jk-1)+zqeen-zqdde
+          pqd(jl,jk) = zmfdqk*(d_one/min(-rmfcmin,pmfd(jl,jk)))
+          ptd(jl,jk) = (zmfdsk*(d_one/min(-rmfcmin, &
+                                           pmfd(jl,jk)))-pgeoh(jl,jk))/cpd
+          ptd(jl,jk) = min(400.0D0,ptd(jl,jk))
+          ptd(jl,jk) = max(100.0D0,ptd(jl,jk))
+          zcond(jl) = pqd(jl,jk)
+        end if
+      end do
+      ik = jk
+      icall = 2
+      call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik,zph,ptd,pqd,llo2,icall)
+      do jl = kidia , kfdia
+        if ( llo2(jl) ) then
+          zcond(jl) = zcond(jl)-pqd(jl,jk)
+          zbuo = ptd(jl,jk)*(d_one+retv*pqd(jl,jk)) - &
+                             ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
+          if ( prfl(jl) > d_zero .and. pmfu(jl,jk) > d_zero ) then
+            zrain = prfl(jl)/pmfu(jl,jk)
+            zbuo = zbuo-ptd(jl,jk)*zrain
+          end if
+          if ( zbuo >= d_zero .or. prfl(jl) <= (pmfd(jl,jk)*zcond(jl)) ) then
+            pmfd(jl,jk) = d_zero
+            zbuo = d_zero
+          end if
+          pmfds(jl,jk) = (cpd*ptd(jl,jk)+pgeoh(jl,jk))*pmfd(jl,jk)
+          pmfdq(jl,jk) = pqd(jl,jk)*pmfd(jl,jk)
+          zdmfdp = -pmfd(jl,jk)*zcond(jl)
+          pdmfdp(jl,jk-1) = zdmfdp
+          prfl(jl) = prfl(jl)+zdmfdp
+          !
+          ! Compute organized entrainment for use at next level
+          !
+          zbuoyz = zbuo/ptenh(jl,jk)
+          zbuoyv = zbuoyz
+          zbuoyz = min(zbuoyz,d_zero)
+          zdz = -(pgeo(jl,jk-1)-pgeo(jl,jk))
+          zbuoy(jl) = zbuoy(jl)+zbuoyz*zdz
+          zoentr(jl) = egrav*zbuoyz*d_half/(d_one+zbuoy(jl))
+          !
+          ! Store downdraught detrainment rates
+          !
+          pmfdde_rate(jl,jk) = -zdmfde(jl)
+          !
+          ! Compute kinetic energy
+          !
+          zdkbuo = zdz*zbuoyv*zfacbuo
+          if ( zdmfen(jl) < d_zero )then
+            zdken = min(d_one,(d_one+z_cwdrag) * &
+                               zdmfen(jl)/min(-rmfcmin,pmfd(jl,jk-1)))  
+          else
+            zdken = min(d_one,(d_one+z_cwdrag) * &
+                               zdmfde(jl)/min(-rmfcmin,pmfd(jl,jk-1)))  
+          end if
+          pkined(jl,jk) = max(d_zero,(pkined(jl,jk-1) * &
+                                     (d_one-zdken)+zdkbuo)/(d_one+zdken))
+        end if
+      end do
+    end do
+  end subroutine cuddrafn
 !
 !-----------------------------------------------------------------------------
 !
