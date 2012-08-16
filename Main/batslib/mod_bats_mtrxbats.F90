@@ -34,7 +34,6 @@ module mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_mppio
   use mod_bats_zengocn
-  use mod_bats_romsocn
 
   private
 
@@ -209,17 +208,6 @@ module mod_bats_mtrxbats
     if ( llake ) then
       call lakedrv
     endif
-
-!   ROMS ocean model
-    if ( iocncpl == 1 ) then
-      if (ktau > ntcpl) then 
-        if ( myid == italk ) then 
-          print*, "[debug] -- updating RegCM fields with ROMS data ..."
-        end if
-        ! update SST
-        call romsocndrv
-      end if
-    end if
 
 !   Accumulate quantities for energy and moisture budgets
 

@@ -25,11 +25,10 @@
 !
       use ESMF
 !
-      use mod_regcm_interface
-      use mod_atm_interface
       use mod_couplerr
-      use mod_runparams
-      use mod_dynparam
+      use mod_regcm_interface, only : RCM_initialize,                   &
+                                      RCM_run,                          &
+                                      RCM_finalize
 !
       implicit none
       private
@@ -38,9 +37,9 @@
 !     Public subroutines 
 !-----------------------------------------------------------------------
 !
-      public  :: RCM_SetServices
-      public  :: RCM_SetRun
-      public  :: RCM_SetFinalize
+      public :: RCM_SetServices
+      public :: RCM_SetRun
+      public :: RCM_SetFinalize
 !
       contains
 !
@@ -94,14 +93,6 @@
 !
       subroutine RCM_SetInitialize(comp, importState, exportState,      &
                                    clock, rc)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_constants, only : d_zero
-      use mod_dynparam , only : mycomm
-!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -151,25 +142,6 @@
 !-----------------------------------------------------------------------
 !
       call RCM_SetClock(clock)
-!
-!-----------------------------------------------------------------------
-!     Run atmospheric model for only one time step (dt) to get initial
-!     output from BATS to feed ocean model
-!-----------------------------------------------------------------------
-!
-      call RCM_run(d_zero, dtsec)
-!
-!-----------------------------------------------------------------------
-!     Update model clock 
-!-----------------------------------------------------------------------
-!
-      call ESMF_TimeIntervalSet(dtrun, s_r8=dtsec, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      call ESMF_ClockAdvance(models(Iatmos)%clock,                      &
-                             timeStep=dtrun,                            &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set-up grid and load coordinate data 
@@ -255,7 +227,7 @@
 !     Debug: write current time
 !-----------------------------------------------------------------------
 !
-      if ((cpldbglevel > 0) .and. (localPet == 0)) then
+      if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
       write(*,20)localPet,'Current Time',trim(models(Iatmos)%time%stamp)
       end if
 !
@@ -306,14 +278,6 @@
       timepass = timeend-timestr1
 !
 !-----------------------------------------------------------------------
-!     Get import data
-!-----------------------------------------------------------------------
-!
-      if (dt3 .gt. cplTimeStep) then 
-        call RCM_GetImportData()
-      end if
-!
-!-----------------------------------------------------------------------
 !     Run RCM
 !-----------------------------------------------------------------------
 !
@@ -340,12 +304,6 @@
 !
       call ESMF_VMBarrier(models(Iatmos)%vm, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Put export data
-!-----------------------------------------------------------------------
-!
-      call RCM_PutExportData(localPet)
 !
 !-----------------------------------------------------------------------
 !     Formats 
@@ -391,9 +349,6 @@
 !     Call ESMF finalize routines
 !-----------------------------------------------------------------------
 !
-      call ESMF_ClockDestroy(clock, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
       call ESMF_StateDestroy(importState, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       call ESMF_StateDestroy(exportState, rc=rc)
@@ -436,7 +391,8 @@
 !     Imported modules 
 !-----------------------------------------------------------------------
 !
-      use mod_date 
+      use mod_runparams, only : idate0, idate1, idate2, dtsec 
+      use mod_runparams, only : split_idate
 !
       implicit none
 !
@@ -628,7 +584,15 @@
 !
       end subroutine RCM_SetClock
 !
-      subroutine RCM_SetGridArrays ()
+      subroutine RCM_SetGridArrays()
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_atm_interface, only : mddom
+      use mod_dynparam, only : iy, jx, nproc 
+!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -639,13 +603,9 @@
       integer :: localPet, petCount, comm, localDECount
       integer :: unmapped(nproc), mapped(nproc)
       integer, dimension(2) :: cpus_per_dim
-      integer, allocatable :: set1(:), set2(:) 
-      real*8 :: dimfac
       character (len=40) :: name
       character (len=100) :: fmt_123
 !
-      type(ESMF_Field) :: grdField
-      type(ESMF_DELayout) :: delayout
       type(ESMF_StaggerLoc) :: staggerLoc
       type(ESMF_Decomp_Flag) :: decompflag(2)
       real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
@@ -718,7 +678,7 @@
 !     Debug: print DistGrid
 !-----------------------------------------------------------------------
 !
-      if (cpldbglevel > 1) then
+      if (cpl_dbglevel > 1) then
       call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -810,26 +770,25 @@
 !-----------------------------------------------------------------------
 !
       name = GRIDDES(models(Iatmos)%mesh(i,n)%gtype)
-!      if (cpl_dbglevel > 0) then
-        write(*,30) localPet, j, adjustl("PTR/ATM/GRD/"//name),         &
-                    lbound(ptrX, dim=1), ubound(ptrX, dim=1),           &
-                    lbound(ptrX, dim=2), ubound(ptrX, dim=2)
-!      end if
+!
+      write(*,30) localPet, j, adjustl("PTR/ATM/GRD/"//name),           &
+                  lbound(ptrX, dim=1), ubound(ptrX, dim=1),             &
+                  lbound(ptrX, dim=2), ubound(ptrX, dim=2)
 !
 !-----------------------------------------------------------------------
 !     Fill the pointers    
 !-----------------------------------------------------------------------
 !
       if (models(Iatmos)%mesh(i,n)%gtype == Idot) then
-        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
-                 lbound(mddom%dlon, dim=1), ubound(mddom%dlon, dim=1),&
+        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),         &
+                 lbound(mddom%dlon, dim=1), ubound(mddom%dlon, dim=1),  &
                  lbound(mddom%dlon, dim=2), ubound(mddom%dlon, dim=2)
 !
         ptrX = transpose(mddom%dlon)
         ptrY = transpose(mddom%dlat)
       else if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
-        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),       &
-                 lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),&
+        write(*,30) localPet, j, adjustl("DAT/ATM/GRD/"//name),         &
+                 lbound(mddom%xlon, dim=1), ubound(mddom%xlon, dim=1),  &
                  lbound(mddom%xlon, dim=2), ubound(mddom%xlon, dim=2)
 !
         ptrX = transpose(mddom%xlon)
@@ -861,7 +820,7 @@
 !     Write ESMF Grid in VTK format (debug) 
 !-----------------------------------------------------------------------
 !
-      if (cpldbglevel > 1) then
+      if (cpl_dbglevel > 1) then
       print*, '[debug] -- write grid information to file '//            &
       '>atmos_'//trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iatmos)%grid(n),                    &
@@ -895,7 +854,7 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_bats_common
+      use mod_runparams, only : cpldt, cplexvars, cplinterp, cplbdysmooth
 !
       implicit none
 !
@@ -909,10 +868,9 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, id, n, rc, localDECount
-      integer :: haloL(2), haloU(2)
       logical :: flag
       character (len=40) :: name
+      integer :: i, j, id, n, rc, localDECount
       type(ESMF_StaggerLoc) :: staggerLoc
 !
 !-----------------------------------------------------------------------
@@ -938,21 +896,6 @@
       end if
 !
 !-----------------------------------------------------------------------
-!     Set halo regions 
-!-----------------------------------------------------------------------
-!
-      if (localPet .eq. 0) then      
-        haloL = (/ 0,0 /)
-        haloU = (/ 1,0 /)
-      else if (localPet .eq. models(Iatmos)%nproc-1) then
-        haloL = (/ 1,0 /)
-        haloU = (/ 0,0 /)
-      else
-        haloL = (/ 1,0 /)
-        haloU = (/ 1,0 /)           
-      end if
-!
-!-----------------------------------------------------------------------
 !     Create field 
 !-----------------------------------------------------------------------
 !
@@ -961,8 +904,6 @@
                                   models(Iatmos)%grid(n),               &
                                   models(Iatmos)%arrSpec(n),            &
                                   staggerloc=staggerLoc,                &
-                                  !totalLWidth=haloL,                    &
-                                  !totalUWidth=haloU,                    &
                                   name=trim(name),                      &
                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1105,7 +1046,6 @@
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      name = 'exchange variable mode'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
                              value=cplexvars,                           &
@@ -1129,7 +1069,7 @@
       name = 'debug level'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
-                             value=cpldbglevel,                         &
+                             value=cpl_dbglevel,                         &
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -1140,655 +1080,5 @@
       rc = ESMF_SUCCESS
 !
       end subroutine RCM_SetStates
-!
-      subroutine RCM_PutExportData (localPet)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_bats_common
-      use mod_dynparam, only : kz, ici1, ici2, jci1, jci2
-      use mod_constants, only : wlhv
-      use mod_mppparam, only : ma
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(in) :: localPet
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer :: i, j, k, ii, jj, id, n, rc, localDECount
-      integer, dimension(2) :: dims
-      logical :: flag
-      character (len=40) :: name
-      character (len=100) :: outfile
-      real(sp), allocatable, dimension(:,:) :: urot, vrot
-!
-      type(ESMF_StaggerLoc) :: staggerLoc
-!
-!-----------------------------------------------------------------------
-!     Initialize the import and export fields 
-!-----------------------------------------------------------------------
-!
-      do n = 1, nNest(Iatmos)
-!
-!-----------------------------------------------------------------------
-!     Rotate wind components (u and v) to earth coordinates 
-!-----------------------------------------------------------------------
-!
-!      call calc_uvmet (u10m_o, v10m_o, urot, vrot, localPet) 
-!
-!-----------------------------------------------------------------------
-!     Create export state fields 
-!-----------------------------------------------------------------------
-!
-      do k = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
-!
-!-----------------------------------------------------------------------
-!     Debug: write size of pointers    
-!-----------------------------------------------------------------------
-!
-      name = trim(adjustl(models(Iatmos)%dataExport(k,n)%name))
-      if (cpl_dbglevel > 1) then
-        write(*,50) localPet, 0, adjustl("PTR/ATM/EXP/"//name),         &
-                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
-                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
-                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=2),  &
-                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=2)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Fill pointers with data 
-!-----------------------------------------------------------------------
-!
-      select case (trim(adjustl(name)))
-!
-!-----------------------------------------------------------------------
-!     Surface atmospheric pressure (mb)
-!-----------------------------------------------------------------------
-!
-      case ('Pair')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(sfps, dim=1), ubound(sfps, dim=1),             &
-                  lbound(sfps, dim=2), ubound(sfps, dim=2)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jce1, jce2, ice1, ice2 
-      end if
-!
-      do i = ice1, ice2
-        do j = jce1, jce2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = (sfps(j,i)+ptop)*d_10
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Surface (2m) air temperature (K)
-!-----------------------------------------------------------------------
-!
-      case ('Tair')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(t2m, dim=2), ubound(t2m, dim=2),               &
-                  lbound(t2m, dim=3), ubound(t2m, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = t2m(1,j,i)
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Surface (2m) specific humidity (kg/kg)
-!-----------------------------------------------------------------------
-!           
-      case ('Qair')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(q2m, dim=2), ubound(q2m, dim=2),               &
-                  lbound(q2m, dim=3), ubound(q2m, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = q2m(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Shortwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Swrad')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(fsw, dim=1), ubound(fsw, dim=1),               &
-                  lbound(fsw, dim=2), ubound(fsw, dim=2)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i) 
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Downward longwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lwrad_down')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(flwd, dim=1), ubound(flwd, dim=1),             &
-                  lbound(flwd, dim=2), ubound(flwd, dim=2)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = flwd(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net longwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lwrad')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(flw, dim=1), ubound(flw, dim=1),               &
-                  lbound(flw, dim=2), ubound(flw, dim=2)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = flw(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Sensible heat flux (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Shflx')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(sent, dim=2), ubound(sent, dim=2),             &
-                  lbound(sent, dim=3), ubound(sent, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = sena(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Latent heat flux (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lhflx')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(evpr, dim=2), ubound(evpr, dim=2),             &
-                  lbound(evpr, dim=3), ubound(evpr, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)*wlhv
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Precipitation (m/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Rain')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(totpr, dim=1), ubound(totpr, dim=1),           &
-                  lbound(totpr, dim=2), ubound(totpr, dim=2)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = totpr(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) U-wind speed (m/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Uwind')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(u10m, dim=2), ubound(u10m, dim=2),             &
-                  lbound(u10m, dim=3), ubound(u10m, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = u10m(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10 m) V-wind speed (m/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Vwind')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(v10m, dim=2), ubound(v10m, dim=2),             &
-                  lbound(v10m, dim=3), ubound(v10m, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = v10m(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net freshwater flux (m/s) 
-!-----------------------------------------------------------------------
-! 
-      case ('EminP')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(evpr, dim=2), ubound(evpr, dim=2),             &
-                  lbound(evpr, dim=3), ubound(evpr, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = evpr(1,j,i)-totpr(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net heat flux (W/m2) 
-!-----------------------------------------------------------------------
-!
-      case ('NHeat')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(evpr, dim=2), ubound(evpr, dim=2),             &
-                  lbound(evpr, dim=3), ubound(evpr, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = fsw(j,i)-             &
-                                                  sent(1,j,i)-          &
-                                                  evpr(1,j,i)*wlhv-     &
-                                                  flw(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) U-wind stress (Pa) 
-!-----------------------------------------------------------------------
-!
-      case ('Ustr')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(taux, dim=2), ubound(taux, dim=2),             &
-                  lbound(taux, dim=3), ubound(taux, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = taux(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) V-wind stress (Pa) 
-!-----------------------------------------------------------------------
-!
-      case ('Vstr')
-      if (cpl_dbglevel > 1) then
-      write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),           &
-                  lbound(tauy, dim=2), ubound(tauy, dim=2),             &
-                  lbound(tauy, dim=3), ubound(tauy, dim=3)
-      write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),           &
-                  jci1, jci2, ici1, ici2
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-        models(Iatmos)%dataExport(k,n)%ptr(i,j) = tauy(1,j,i)
-        end do
-      end do
-      end select
-!
-!-----------------------------------------------------------------------
-!     Fill domain boundaries with data   
-!-----------------------------------------------------------------------
-!
-      select case (trim(adjustl(name)))
-      case ('Pair')
-      if (ma%has_bdytop) then
-        models(Iatmos)%dataExport(k,n)%ptr(ice2+1,:) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(ice2,:)
-      end if
-!
-      if (ma%has_bdyright) then
-        models(Iatmos)%dataExport(k,n)%ptr(:,jce2+1) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jce2)
-      end if
-      case default
-      if (ma%has_bdytop) then
-        models(Iatmos)%dataExport(k,n)%ptr(ici2+1,:) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(ici2,:)
-        models(Iatmos)%dataExport(k,n)%ptr(ici2+2,:) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(ici2,:)
-      end if
-!
-      if (ma%has_bdyright) then
-        models(Iatmos)%dataExport(k,n)%ptr(:,jci2+1) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jci2)
-        models(Iatmos)%dataExport(k,n)%ptr(:,jci2+2) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jci2)
-      end if
-!
-      if (ma%has_bdybottom) then
-        models(Iatmos)%dataExport(k,n)%ptr(ici1-1,:) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(ici1,:)
-      end if
-!
-      if (ma%has_bdyleft) then
-        models(Iatmos)%dataExport(k,n)%ptr(:,jci1-1) =                  &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jci1)
-      end if
-      end select
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to ASCII file    
-!-----------------------------------------------------------------------
-!
-      if (cpldbglevel > 3) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
-            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-            'atm_export',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour,                                   &
-            localPet
-!
-      open (unit=99, file = trim(outfile)) 
-      call print_matrix_r8(models(Iatmos)%dataExport(k,n)%ptr,          &
-                           1, 1, localPet, 99, "PTR/ATM/EXP")
-      close(99)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to file
-!-----------------------------------------------------------------------
-!
-      if (cpldbglevel > 2) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
-            'atm_export',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
-!
-      call ESMF_FieldWrite(models(Iatmos)%dataExport(k,n)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      end if
-!
-      end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Format definition 
-!-----------------------------------------------------------------------
-!     
- 50   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
-!
-!-----------------------------------------------------------------------
-!     Set return flag to success
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
-!
-      end subroutine RCM_PutExportData
-!
-      subroutine RCM_GetImportData
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-#ifdef ROMSICE
-      use mod_bats_romsocn, only : sst2d, hice2d
-#else
-      use mod_bats_romsocn, only : sst2d
-#endif
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer :: i, j, k, m, n, id, rc
-      integer :: localPet, petCount, comm, localDECount
-      character (len=40) :: name
-      character (len=100) :: outfile
-      real*8 :: scale_factor, add_offset
-!
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
-!
-!-----------------------------------------------------------------------
-!     Query Virtual Machine (VM) environment for the MPI
-!     communicator handle     
-!-----------------------------------------------------------------------
-!  
-      call ESMF_VMGet (models(Iatmos)%vm,                               &
-                       localPet=localPet,                               &
-                       petCount=petCount,                               &
-                       mpiCommunicator=comm,                            &
-                       rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Loop over number of nested/composed meshs 
-!-----------------------------------------------------------------------
-!
-      do n = 1, nNest(Iatmos)
-!
-!-----------------------------------------------------------------------
-!     Get import fields 
-!-----------------------------------------------------------------------
-!
-      do k = 1, size(models(Iatmos)%dataImport(:,n), dim=1)
-      name = models(Iatmos)%dataImport(k,n)%name
-!
-!-----------------------------------------------------------------------
-!     Get number of local DEs
-!-----------------------------------------------------------------------
-! 
-      call ESMF_GridGet (models(Iatmos)%grid(n),                        &
-                         localDECount=localDECount,                     &
-                         rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get pointer
-!-----------------------------------------------------------------------
-! 
-      do m = 0, localDECount-1
-      call ESMF_FieldGet (models(Iatmos)%dataImport(k,n)%field,         &
-                          localDE=m,                                    &
-                          farrayPtr=ptr,                                &
-                          rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Debug: write size of pointers    
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("PTR/ATM/IMP/"//name),         &
-                    lbound(ptr, dim=1), ubound(ptr, dim=1),             &
-                    lbound(ptr, dim=2), ubound(ptr, dim=2)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Put data to RCM variable
-!-----------------------------------------------------------------------
-!
-      scale_factor = models(Iatmos)%dataImport(k,n)%scale_factor
-      add_offset = models(Iatmos)%dataImport(k,n)%add_offset
-!
-      select case (trim(adjustl(name)))
-      case('SST')      
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
-                    lbound(sst2d, dim=1), ubound(sst2d, dim=1),         &
-                    lbound(sst2d, dim=2), ubound(sst2d, dim=2)
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-          if (ptr(i,j) .ge. MISSING_R8) then
-            sst2d(j,i) = MISSING_R8
-          else
-            sst2d(j,i) = (ptr(i,j)*scale_factor)+add_offset
-          end if
-        end do
-      end do
-#ifdef ROMSICE
-      case('Hice')      
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
-                    lbound(hice2d, dim=1), ubound(hice2d, dim=1),       &
-                    lbound(hice2d, dim=2), ubound(hice2d, dim=2)
-      end if
-!
-      do i = ici1, ici2
-        do j = jci1, jci2
-          if (ptr(i,j) .ge. MISSING_R8) then
-            hice2d(j,i) = MISSING_R8
-          else
-            hice2d(j,i) = (ptr(i,j)*scale_factor)+add_offset
-          end if
-        end do
-      end do
-#endif
-      end select
-      end do
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to ASCII file    
-!-----------------------------------------------------------------------
-!
-      if (cpldbglevel > 3) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
-            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-            'atm_import',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour,                                   &
-            localPet
-!
-      open (unit=99, file = trim(outfile))
-      call print_matrix_r8(ptr, 1, 1, localPet, 99, "PTR/ATM/IMP")
-      close(99)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to NetCDF file
-!-----------------------------------------------------------------------
-!
-      if (cpldbglevel > 2) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
-            'atm_import',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
-!
-      call ESMF_FieldWrite(models(Iatmos)%dataImport(k,n)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Nullify pointer to make sure that it does not point on a random 
-!     part in the memory 
-!-----------------------------------------------------------------------
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
-      end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Format definition 
-!-----------------------------------------------------------------------
-!
- 60   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
-!
-!-----------------------------------------------------------------------
-!     Set return flag to success.
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
-!
-      end subroutine RCM_GetImportData
 !
       end module mod_esmf_atm

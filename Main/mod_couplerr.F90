@@ -163,9 +163,8 @@
 !
       character(ESMF_MAXSTR) :: config_fname="regcm.rc"
 !
-      integer :: cpl_dtsec, cpl_exvars, cpl_interp, cpl_dbglevel
-      logical :: cpl_bdysmooth
-      integer :: ibulk
+      integer :: cpl_dtsec, cpl_dbglevel
+      integer :: ibulk, iregrid
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -210,7 +209,7 @@
       real*8, parameter :: rho0 = 1025.0d0
       real*8, parameter :: Hscale = rho0*Cp
       real*8, parameter :: Hscale2 = 1.0d0/(rho0*Cp)
-      real*8, parameter :: day2sec = 1.0d0/86400.0d0
+      real*8, parameter :: day2s = 1.0d0/86400.0d0
       real*8, parameter :: mm2m = 1.0d0/1000.0d0
 !
       contains
@@ -300,11 +299,21 @@
           end if
 
           ! read Bulk option
-          call ESMF_ConfigFindLabel(cf, 'Bulk:', rc=rc)
+          call ESMF_ConfigFindLabel(cf, 'BulkFlux:', rc=rc)
           if (rc /= ESMF_SUCCESS) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
           call ESMF_ConfigGetAttribute(cf, ibulk, rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+
+          ! read interpolation type option
+          call ESMF_ConfigFindLabel(cf, 'ConservativeRegrid:', rc=rc)
+          if (rc /= ESMF_SUCCESS) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
+          call ESMF_ConfigGetAttribute(cf, iregrid, rc=rc)
           if (rc /= ESMF_SUCCESS) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
           end if
@@ -603,7 +612,7 @@
             models(i)%dataExport(2,j)%name = 'Tair'
             models(i)%dataExport(2,j)%long_name = &
             'Surface Air Temperature'
-            models(i)%dataExport(2,j)%units = 'Celsius'             
+            models(i)%dataExport(2,j)%units = 'Kelvin'             
 !
             models(i)%dataExport(3,j)%fid = 3
             models(i)%dataExport(3,j)%gtype = Icross
@@ -615,15 +624,23 @@
 !
             models(i)%dataExport(4,j)%fid = 4
             models(i)%dataExport(4,j)%gtype = Icross
-            models(i)%dataExport(4,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(4,j)%itype = Ibilin
+            else
+            models(i)%dataExport(4,j)%itype = Iconsv
+            end if 
             models(i)%dataExport(4,j)%name = 'Swrad'
             models(i)%dataExport(4,j)%long_name = &
             'solar shortwave radiation flux'
-            models(i)%dataExport(4,j)%units = 'Celsius m/s'
+            models(i)%dataExport(4,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(5,j)%fid = 5
             models(i)%dataExport(5,j)%gtype = Icross
-            models(i)%dataExport(5,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(5,j)%itype = Ibilin
+            else
+            models(i)%dataExport(5,j)%itype = Iconsv
+            end if
             models(i)%dataExport(5,j)%name = 'Lwrad'
             models(i)%dataExport(5,j)%long_name = &
             'net longwave radiation flux'
@@ -631,7 +648,11 @@
 !
             models(i)%dataExport(6,j)%fid = 6
             models(i)%dataExport(6,j)%gtype = Icross
-            models(i)%dataExport(6,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(6,j)%itype = Ibilin
+            else
+            models(i)%dataExport(6,j)%itype = Iconsv
+            end if
             models(i)%dataExport(6,j)%name = 'Lwrad_down'
             models(i)%dataExport(6,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -639,7 +660,11 @@
 !
             models(i)%dataExport(7,j)%fid = 7
             models(i)%dataExport(7,j)%gtype = Icross
-            models(i)%dataExport(7,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(7,j)%itype = Ibilin
+            else
+            models(i)%dataExport(7,j)%itype = Iconsv
+            end if
             models(i)%dataExport(7,j)%name = 'Lhflx'
             models(i)%dataExport(7,j)%long_name = &
             'latent heat flux'
@@ -647,7 +672,11 @@
 !
             models(i)%dataExport(8,j)%fid = 8
             models(i)%dataExport(8,j)%gtype = Icross
-            models(i)%dataExport(8,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(8,j)%itype = Ibilin
+            else
+            models(i)%dataExport(8,j)%itype = Iconsv
+            end if
             models(i)%dataExport(8,j)%name = 'Shflx'
             models(i)%dataExport(8,j)%long_name = &
             'sensible heat flux'
@@ -655,7 +684,11 @@
 !
             models(i)%dataExport(9,j)%fid = 9
             models(i)%dataExport(9,j)%gtype = Icross
-            models(i)%dataExport(9,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(9,j)%itype = Ibilin
+            else
+            models(i)%dataExport(9,j)%itype = Iconsv
+            end if
             models(i)%dataExport(9,j)%name = 'Rain'
             models(i)%dataExport(9,j)%long_name = &
             'rain fall rate'
@@ -681,27 +714,39 @@
 !
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
+            if (iregrid == 0) then
             models(i)%dataExport(1,j)%itype = Ibilin
+            else
+            models(i)%dataExport(1,j)%itype = Iconsv
+            end if
             models(i)%dataExport(1,j)%name = 'EminP'
             models(i)%dataExport(1,j)%long_name = &
             'surface freshwater (E-P) flux'
-            models(i)%dataExport(1,j)%units = 'm/s'
+            models(i)%dataExport(1,j)%units ='kilogram meter-2 second-1'
 !
             models(i)%dataExport(2,j)%fid = 2
             models(i)%dataExport(2,j)%gtype = Icross
+            if (iregrid == 0) then
             models(i)%dataExport(2,j)%itype = Ibilin
+            else
+            models(i)%dataExport(2,j)%itype = Iconsv
+            end if
             models(i)%dataExport(2,j)%name = 'NHeat'
             models(i)%dataExport(2,j)%long_name = &
             'surface net heat flux'
-            models(i)%dataExport(2,j)%units = 'degC m/s'
+            models(i)%dataExport(2,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(3,j)%fid = 3
             models(i)%dataExport(3,j)%gtype = Icross
-            models(i)%dataExport(3,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataExport(3,j)%itype = Ibilin
+            else
+            models(i)%dataExport(3,j)%itype = Iconsv
+            end if
             models(i)%dataExport(3,j)%name = 'Swrad'
             models(i)%dataExport(3,j)%long_name = &
             'solar shortwave radiation flux'
-            models(i)%dataExport(3,j)%units = 'W/m2'
+            models(i)%dataExport(3,j)%units = 'watt meter-2'
 !
             models(i)%dataExport(4,j)%fid = 4
             models(i)%dataExport(4,j)%gtype = Icross
@@ -745,7 +790,7 @@
             models(i)%dataImport(1,j)%itype = Ibilin
             models(i)%dataImport(1,j)%name = 'Pair'
             models(i)%dataImport(1,j)%long_name = 'Surface Pressure'
-            models(i)%dataImport(1,j)%units = 'milibar'
+            models(i)%dataImport(1,j)%units = 'hPa'
             models(i)%dataImport(1,j)%scale_factor = 1.0d0
             models(i)%dataImport(1,j)%add_offset = 0.0d0
 !
@@ -775,7 +820,11 @@
 !
             models(i)%dataImport(4,j)%fid = 4
             models(i)%dataImport(4,j)%gtype = Icross
-            models(i)%dataImport(4,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(4,j)%itype = Ibilin
+            else
+            models(i)%dataImport(4,j)%itype = Iconsv
+            end if
             models(i)%dataImport(4,j)%name = 'Swrad'
             models(i)%dataImport(4,j)%long_name = &
             'solar shortwave radiation flux'
@@ -785,7 +834,11 @@
 !
             models(i)%dataImport(5,j)%fid = 5
             models(i)%dataImport(5,j)%gtype = Icross
-            models(i)%dataImport(5,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(5,j)%itype = Ibilin
+            else
+            models(i)%dataImport(5,j)%itype = Iconsv
+            end if
             models(i)%dataImport(5,j)%name = 'Lwrad'
             models(i)%dataImport(5,j)%long_name = &
             'net longwave radiation flux'
@@ -795,7 +848,11 @@
 !
             models(i)%dataImport(6,j)%fid = 6
             models(i)%dataImport(6,j)%gtype = Icross
-            models(i)%dataImport(6,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(6,j)%itype = Ibilin
+            else
+            models(i)%dataImport(6,j)%itype = Iconsv
+            end if
             models(i)%dataImport(6,j)%name = 'Lwrad_down'
             models(i)%dataImport(6,j)%long_name = &
             'downwelling longwave radiation flux'
@@ -805,7 +862,11 @@
 !
             models(i)%dataImport(7,j)%fid = 7
             models(i)%dataImport(7,j)%gtype = Icross
-            models(i)%dataImport(7,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(7,j)%itype = Ibilin
+            else
+            models(i)%dataImport(7,j)%itype = Iconsv
+            end if
             models(i)%dataImport(7,j)%name = 'Lhflx'
             models(i)%dataImport(7,j)%long_name = &
             'latent heat flux'
@@ -815,7 +876,11 @@
 !
             models(i)%dataImport(8,j)%fid = 8
             models(i)%dataImport(8,j)%gtype = Icross
-            models(i)%dataImport(8,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(8,j)%itype = Ibilin
+            else
+            models(i)%dataImport(8,j)%itype = Iconsv
+            end if
             models(i)%dataImport(8,j)%name = 'Shflx'
             models(i)%dataImport(8,j)%long_name = &
             'sensible heat flux'
@@ -825,12 +890,16 @@
 !
             models(i)%dataImport(9,j)%fid = 9
             models(i)%dataImport(9,j)%gtype = Icross
-            models(i)%dataImport(9,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(9,j)%itype = Ibilin
+            else
+            models(i)%dataImport(9,j)%itype = Iconsv
+            end if
             models(i)%dataImport(9,j)%name = 'Rain'
             models(i)%dataImport(9,j)%long_name = &
             'rain fall rate'
             models(i)%dataImport(9,j)%units ='kilogram meter-2 second-1'
-            models(i)%dataImport(9,j)%scale_factor = day2sec
+            models(i)%dataImport(9,j)%scale_factor = 1.0d0
             models(i)%dataImport(9,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(10,j)%fid = 10
@@ -857,17 +926,25 @@
 !
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
+            if (iregrid == 0) then
             models(i)%dataImport(1,j)%itype = Ibilin
+            else
+            models(i)%dataImport(1,j)%itype = Iconsv
+            end if
             models(i)%dataImport(1,j)%name = 'EminP'
             models(i)%dataImport(1,j)%long_name = &
             'surface freshwater (E-P) flux'
             models(i)%dataImport(1,j)%units = 'm/s'
-            models(i)%dataImport(1,j)%scale_factor = day2sec*mm2m 
+            models(i)%dataImport(1,j)%scale_factor = day2s*mm2m 
             models(i)%dataImport(1,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(2,j)%fid = 2
             models(i)%dataImport(2,j)%gtype = Icross
+            if (iregrid == 0) then
             models(i)%dataImport(2,j)%itype = Ibilin
+            else
+            models(i)%dataImport(2,j)%itype = Iconsv
+            end if
             models(i)%dataImport(2,j)%name = 'NHeat'
             models(i)%dataImport(2,j)%long_name = &
             'surface net heat flux'
@@ -877,7 +954,11 @@
 !
             models(i)%dataImport(3,j)%fid = 3
             models(i)%dataImport(3,j)%gtype = Icross
-            models(i)%dataImport(3,j)%itype = Ibilin !Iconsv
+            if (iregrid == 0) then
+            models(i)%dataImport(3,j)%itype = Ibilin
+            else
+            models(i)%dataImport(3,j)%itype = Iconsv
+            end if
             models(i)%dataImport(3,j)%name = 'Swrad'
             models(i)%dataImport(3,j)%long_name = &
             'solar shortwave radiation flux'
@@ -891,7 +972,7 @@
             models(i)%dataImport(4,j)%name = 'Ustr'
             models(i)%dataImport(4,j)%long_name = &
             'u component of surface momentum flux'
-            models(i)%dataImport(4,j)%units = 'm2/s2'
+            models(i)%dataImport(4,j)%units = 'Pa'
             models(i)%dataImport(4,j)%scale_factor = 1.0d0/rho0
             models(i)%dataImport(4,j)%add_offset = 0.0d0
 !
@@ -901,7 +982,7 @@
             models(i)%dataImport(5,j)%name = 'Vstr'
             models(i)%dataImport(5,j)%long_name = &
             'v component of surface momentum flux'
-            models(i)%dataImport(5,j)%units = 'm2/s2'
+            models(i)%dataImport(5,j)%units = 'Pa'
             models(i)%dataImport(5,j)%scale_factor = 1.0d0/rho0
             models(i)%dataImport(5,j)%add_offset = 0.0d0
             end if
@@ -976,36 +1057,6 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Get parameter for list of exchange variables
-!-----------------------------------------------------------------------
-!
-      call ESMF_AttributeGet (models(i)%stateExport,                    &
-                              name='exchange variable mode',            &
-                              value=cpl_exvars,                         &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get parameter for interpolation type 
-!-----------------------------------------------------------------------
-!
-      call ESMF_AttributeGet (models(i)%stateExport,                    &
-                              name='interpolation type',                &
-                              value=cpl_interp,                         &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Get parameter for boundary smoothing 
-!-----------------------------------------------------------------------
-!
-      call ESMF_AttributeGet (models(i)%stateExport,                    &
-                              name='boundary smoothing',                &
-                              value=cpl_bdysmooth,                      &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
 !     Get parameter for debugging 
 !-----------------------------------------------------------------------
 !
@@ -1023,9 +1074,6 @@
 !
       if (cpl_dbglevel > 0) then
         write(*, 30) localPet, 'COUPLED MODEL TIME STEP', cpl_dtsec
-!        write(*, 30) localPet, 'EXCHANGE VARIABLE MODE ', cpl_exvars
-!        write(*, 30) localPet, 'INTERPOLATION MODE     ', cpl_interp
-!        write(*, 20) localPet, 'BOUNDARY SMOOTHING     ', cpl_bdysmooth
         write(*, 30) localPet, 'DEBUG LEVEL            ', cpl_dbglevel
       end if
 !
@@ -1238,66 +1286,6 @@
 !
       return
       end subroutine print_matrix_r8      
-!
-      subroutine calc_uvmet (u, v, urot, vrot, localPet)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_dynparam, only : iproj, truelatl, truelath
-      use mod_atm_interface, only : mddom
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      real(sp), dimension(:,:), intent(in) :: u, v
-      integer, intent(in) :: localPet
-      real(sp), dimension(:,:), intent(inout) :: urot, vrot
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      real(dp) :: cone
-      real(dp) :: PI, RAD_PER_DEG
-!
-!-----------------------------------------------------------------------
-!     Calculate parameters 
-!-----------------------------------------------------------------------
-!
-      PI = atan(1.0d0)*4.0d0
-      RAD_PER_DEG = PI/180.0d0 
-
-      cone = 1.0d0
-!
-      if (iproj .eq. 'LAMCON') then !  Lambert Conformal mapping
-        if (abs(truelatl-truelath) > 0.1d0) then
-          cone = (log(cos(truelatl*RAD_PER_DEG))-                      &
-                  log(cos(truelath*RAD_PER_DEG)))/                     &
-                 (log(tan((90.0d0-abs(truelatl))*RAD_PER_DEG*0.5d0))-  &
-                  log(tan((90.0d0-abs(truelath))*RAD_PER_DEG*0.5d0)))
-        else
-          cone = dsin(abs(truelatl)*RAD_PER_DEG)
-        end if
-      end if
-!
-      write(*, fmt="(A3, 5I8)") "U--", localPet,                        &
-                            lbound(u, dim=1),                           &
-                            ubound(u, dim=1),                           &
-                            lbound(u, dim=2),                           &
-                            ubound(u, dim=2)
-      write(*, fmt="(A3, 5I8)") "D--", localPet,                        &
-                            lbound(mddom%xlon, dim=1),                  &
-                            ubound(mddom%xlon, dim=1),                  &
-                            lbound(mddom%xlon, dim=2),                  &
-                            ubound(mddom%xlon, dim=2)
-
-      return
-      end subroutine calc_uvmet
 !
       subroutine print_size_r8 (field, localPet, header)
       implicit none

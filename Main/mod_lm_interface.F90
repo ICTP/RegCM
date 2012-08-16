@@ -40,7 +40,6 @@ module mod_lm_interface
   use mod_bats_leaftemp
   use mod_bats_mtrxbats
   use mod_bats_zengocn
-  use mod_bats_romsocn
 #endif
 !
   public

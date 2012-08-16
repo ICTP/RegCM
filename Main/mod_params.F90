@@ -143,8 +143,7 @@ module mod_params
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
 
-  namelist /cplparam/ cpldt, cplexvars, cplinterp, &
-    cplbdysmooth, cpldbglevel 
+  namelist /cplparam/ cpldt, cpldbglevel
 !
   call time_begin(subroutine_name,idindx)
 !
@@ -422,17 +421,6 @@ module mod_params
   imask = 1
 #endif
 !------namelist cplparam ;
-! cplexvars:
-! 1 = atm -> ocn : tair, pair, qair, uwind, vwind, rain, swrad, lwrad_down
-!     ocn -> atm : sst
-! 2 = atm -> ocn : tair, pair, qair, uwind, vwind, rain, swrad, lwrad 
-!     ocn -> atm : sst
-!
-! cplinterp:
-! 0 = no interpolation (grids are identical)
-! 1 = bilinear interpolation
-! 2 = bilinear + conservative (for only heat fluxes)
-!
 ! cpldbglevel:
 ! 0 = no debugging
 ! 1 = only informative print
@@ -441,9 +429,6 @@ module mod_params
 ! 4 = previous + write exchange fileds into ASCII
 !
   cpldt = 21600.0D0       ! coupling time step in seconds (seconds)
-  cplexvars = 1           ! configuration for exchange variables
-  cplinterp = 1           ! interpolation type to exchange data
-  cplbdysmooth = .false.  ! applies smoothing to the ground temperature in boundaries
   cpldbglevel = 1         ! debugging level
 !
 !---------------------------------------------------------------------
@@ -612,9 +597,6 @@ module mod_params
 
   if (iocncpl == 1) then
     call mpi_bcast(cpldt,1,mpi_real8,iocpu,mycomm,ierr)
-    call mpi_bcast(cplexvars,1,mpi_integer,iocpu,mycomm,ierr)
-    call mpi_bcast(cplinterp,1,mpi_integer,iocpu,mycomm,ierr)
-    call mpi_bcast(cplbdysmooth,1,mpi_logical,iocpu,mycomm,ierr)
     call mpi_bcast(cpldbglevel,1,mpi_integer,iocpu,mycomm,ierr)
   end if
 
@@ -756,7 +738,6 @@ module mod_params
   call allocate_mod_bats_common(ichem,idcsst,lakemod)
 #ifndef CLM
   call allocate_mod_bats_mppio(lakemod)
-  call allocate_mod_bats_romsocn
 #else
   call allocate_mod_clm(ntr,igaschem)
 #endif

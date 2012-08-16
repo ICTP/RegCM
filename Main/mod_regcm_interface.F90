@@ -47,6 +47,10 @@ module mod_regcm_interface
   use spmdMod, only: mpicom
   use clm_varsur , only : numdays
 #endif
+#ifdef ESMFCPL
+  use mod_update, only: ocn_put => RCM_PutExportData
+  use mod_update, only: ocn_get => RCM_GetImportData
+#endif
   implicit none
   include 'mpif.h'
 !
@@ -250,6 +254,16 @@ module mod_regcm_interface
         end if
       end if
       !
+      ! Get information from ocean model
+      !
+#ifdef ESMFCPL
+      if ( iocncpl == 1 ) then
+        if (ktau > ntcpl) then 
+          call ocn_get(myid)
+        end if
+      end if
+#endif
+      !
       ! Compute tendencies
       !
       call tend
@@ -289,6 +303,14 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
+      !
+      ! Send information to ocean model
+      !
+#ifdef ESMFCPL
+      if ( iocncpl == 1 ) then
+        call ocn_put(myid)
+      end if
+#endif
       !
       ! Increment execution time
       !
