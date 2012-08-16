@@ -1,13 +1,30 @@
+# --------------------------------------------------------
 # Configuration file for coupled model
-# ------------------------------------------------
-# PET distribution of gridded components (M N) 
+# --------------------------------------------------------
+# --------------------------------------------------------
+# PET distribution of gridded components (M x N) 
 # M : RegCM (32)
 # N : ROMS  (24)
-# ------------------------------------------------
-PETs: 6 2 
-# -------------------------------------------------------
-# Bulk flux algorithm is activated or not in ROMS?
-# 0 : not avtivated
-# 1 : activated (with BULK_FLUX)
-# -------------------------------------------------------
-Bulk: 1
+#
+# Note: M x N must be equal to total number of CPU used 
+# in job submission script and N must be equal to 
+# NtileI x NtileJ in ROMS namelist file (*.in)
+# --------------------------------------------------------
+PETs: 32 32 
+# --------------------------------------------------------
+# Bulk-flux algorithm is activated in ROMS or not?
+# 0 : not avtivated (do not use with SEA-ICE module!)
+# 1 : activated
+#
+# Note: The BULK_FLUX must be included into CPP file (*.h)
+# to set Bulk parameter as one (1)
+# --------------------------------------------------------
+BulkFlux: 1
+# --------------------------------------------------------
+# Enables to use conservative type regridding for flux
+# variables (such as heat flux, fresh water flux etc.).
+# 0 : uses bilinear interpolation for all fields 
+# 1 : uses conservative type interpolation for fluxes and
+#     bilinear type for other variables
+# --------------------------------------------------------
+ConservativeRegrid: 0
