@@ -692,6 +692,29 @@ diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS 
  
  #ifdef LMD_MIXING
  !
+diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Nonlinear/bulk_flux.F roms-ice-200320012/ROMS/Nonlinear/bulk_flux.F
+--- roms-icef-200320012/ROMS/Nonlinear/bulk_flux.F	2012-04-12 15:35:56.791514000 +0200
++++ roms-ice-200320012/ROMS/Nonlinear/bulk_flux.F	2012-08-13 20:53:31.035105000 +0200
+@@ -966,7 +966,9 @@
+      &                                     (blk_Cpa*diffh))
+           Hsr=rain(i,j)*wet_bulb*blk_Cpw*                               &
+      &        ((TseaC(i)-TairC(i))+(Qsea(i)-Q(i))*Hlv(i,j)/blk_Cpa)
++# ifndef REGCM_COUPLING
+           SHeat(i,j)=(Hs+Hsr)
++# endif
+ # ifdef MASKING
+           SHeat(i,j)=SHeat(i,j)*rmask(i,j)
+ # endif
+@@ -980,7 +982,9 @@
+           upvel=-1.61_r8*Wstar(i)*Qstar(i)-                             &
+      &          (1.0_r8+1.61_r8*Q(i))*Wstar(i)*Tstar(i)/TairK(i)
+           Hlw=rhoAir(i)*Hlv(i,j)*upvel*Q(i)
++# ifndef REGCM_COUPLING
+           LHeat(i,j)=(Hl+Hlw)
++# endif
+ # ifdef ENHANCED_LHF_TRANSFER
+           LHeat(i,j)=LHeat(i,j)*1.07_r8
+ # endif
 diff --exclude=Linux-ifort.mk --exclude=.svn --exclude=.svnignore --exclude=CVS -Naur roms-icef-200320012/ROMS/Nonlinear/main3d.F roms-ice-200320012/ROMS/Nonlinear/main3d.F
 --- roms-icef-200320012/ROMS/Nonlinear/main3d.F	2012-03-07 14:07:10.000000000 +0100
 +++ roms-ice-200320012/ROMS/Nonlinear/main3d.F	2012-06-30 19:47:52.808873000 +0200

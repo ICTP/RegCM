@@ -190,15 +190,10 @@ mod_vmodes.o: mod_vmodes.F90 mod_runparams.mod mod_memutil.mod mod_mpmessage.mod
 #
 if DO_COMPILE_LIBESMF
 mod_couplerr.o: mod_couplerr.F90 mod_realkinds.mod
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_esmf_atm.o: mod_esmf_atm.F90 mod_runparams.mod mod_dynparam.mod mod_date.mod mod_regcm_interface.o mod_atm_interface.o mod_couplerr.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_esmf_ocn.o: mod_esmf_ocn.F90 mod_dynparam.mod mod_mppparam.mod mod_constants.mod mod_atm_interface.o mod_couplerr.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_esmf_cpl.o: mod_esmf_cpl.F90 mod_couplerr.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-mod_update.o: mod_update.F90 mod_dynparam.mod mod_mppparam.mod mod_constants.mod mod_bats_common.mod mod_atm_interface.o mod_couplerr.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
+mod_update.o: mod_update.F90 mod_runparams.mod mod_dynparam.mod mod_mppparam.mod mod_constants.mod mod_bats_common.mod mod_atm_interface.o mod_couplerr.o
 regcm_esmf.o: regcm_esmf.F90 mod_couplerr.o mod_esmf_atm.o mod_esmf_ocn.o mod_esmf_cpl.o mod_update.mod
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 else

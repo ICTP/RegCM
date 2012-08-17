@@ -125,7 +125,8 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, ierr, subs, tile, n 
+      integer :: localPet, petCount, tile, n
+      !integer :: localPet, petCount, ierr, subs, tile, n 
       integer :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
@@ -218,8 +219,8 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      logical, save :: first = .true.
-      integer :: localPet, petCount, comm, ng, rc2
+      !logical, save :: first = .true.
+      integer :: localPet, petCount, comm !, ng, rc2
 !
       type(ESMF_Time) :: currTime
 !
@@ -527,13 +528,6 @@
 !     Set start time
 !-----------------------------------------------------------------------
 !
-      !if (all(LastRec)) then
-      !  MyStartTime = minval(tdays)
-      !else
-      !  MyStartTime = minval(tdays)-                                    &
-      !               (REAL(minval(nRST),r8)*minval(dt)*sec2day)
-      !  print*, "OCN Model is restarted - Start: ", MyStartTime, " days"
-      !end if
       MyStartTime = minval(tdays)
       call caldate (r_date, MyStartTime, str_year, yday, str_month,     &
                     str_day, hour)
@@ -1034,7 +1028,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, id, ng, tile, rc
+      integer :: i, j, id, ng, rc !, tile , rc !, ii, jj, id
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
@@ -1489,7 +1483,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, id, ng, rc
+      integer :: i, j, ii, jj, ng, rc !, id
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     

@@ -72,14 +72,14 @@
 !-----------------------------------------------------------------------
 !
       do i = 1, nModels 
-        if (i == Iatmos) then
-          str1 = 'Gridded Component I - Atmosphere' 
-        else if (i == Iocean) then
-          str1 = 'Gridded Component II - Ocean' 
-        end if
-        models(i)%comp = ESMF_GridCompCreate(name=trim(str1),           &
-                                        petList=models(i)%petList,      &
-                                        rc=rc)
+      if (i == Iatmos) then
+        str1 = 'Gridded Component I - Atmosphere' 
+      else if (i == Iocean) then
+        str1 = 'Gridded Component II - Ocean' 
+      end if
+      models(i)%comp = ESMF_GridCompCreate(name=trim(str1),             &
+                                           petList=models(i)%petList,   &
+                                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
 !

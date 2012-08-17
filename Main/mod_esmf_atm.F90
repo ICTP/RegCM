@@ -854,7 +854,7 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_runparams, only : cpldt, cplexvars, cplinterp, cplbdysmooth
+      use mod_runparams, only : cpldt, cpldbglevel
 !
       implicit none
 !
@@ -1046,30 +1046,10 @@
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=cplexvars,                           &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      name = 'interpolation type'
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=cplinterp,                           &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      name = 'boundary smoothing'
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=cplbdysmooth,                        &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
       name = 'debug level'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
-                             value=cpl_dbglevel,                         &
+                             value=cpldbglevel,                         &
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
