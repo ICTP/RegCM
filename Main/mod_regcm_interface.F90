@@ -234,11 +234,11 @@ module mod_regcm_interface
 !
 #ifdef DEBUG
     if ( enable_newmicro ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
-    call grid_nc_create('qxatm',cross,atm1%qx,nc_4d)
+    ! call grid_nc_create('qxatm',cross,atm1%qx,nc_4d)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
 #ifdef DEBUG
-      call grid_nc_write(nc_4d)
+      ! call grid_nc_write(nc_4d)
 #endif
       !
       ! Refined start
@@ -326,7 +326,7 @@ module mod_regcm_interface
 #ifdef DEBUG
     call stop_debug()
     if ( enable_newmicro ) call grid_nc_destroy(qqxp)
-    call grid_nc_destroy(nc_4d)
+    ! call grid_nc_destroy(nc_4d)
 #endif
     call time_print(6,'evolution phase')
 !
