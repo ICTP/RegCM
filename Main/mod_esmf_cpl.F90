@@ -397,11 +397,19 @@
       did = models(Iocean)%dataImport(vid,1)%gtype
 !
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        print*, 'Init Forward - ',                                      &
-                trim(models(Iocean)%dataImport(vid,1)%name), ' / ',     &
-                trim(itemNamesExportF(i)), ' / ',                       &
-                trim(GRIDDES(sid)), ' --> ',                            &
-                trim(GRIDDES(did))
+      if (itype == Iconsv) then
+      write(*,50) trim(models(Iocean)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(itemNamesExportF(i)),                            &
+                  trim(GRIDDES(did)),                                   &
+                  'conservative'
+      else
+      write(*,50) trim(models(Iocean)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(itemNamesExportF(i)),                            &
+                  trim(GRIDDES(did)),                                   &
+                  'bilnear'
+      end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -526,11 +534,19 @@
       did = models(Iatmos)%dataImport(vid,1)%gtype
 !
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        print*, 'Init Backward - ',                                     &
-        trim(models(Iatmos)%dataImport(vid,1)%name), ' / ',             &
-        trim(itemNamesExportB(i)), ' / ',                               &
-        trim(GRIDDES(did)), ' --> ',                                    &
-        trim(GRIDDES(sid))
+      if (itype == Iconsv) then
+      write(*,60) trim(itemNamesExportB(i)),                            &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(models(Iatmos)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(did)),                                   &
+                  'conservative'
+      else
+      write(*,60) trim(itemNamesExportB(i)),                            &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(models(Iatmos)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(did)),                                   &
+                  'bilnear'
+      end if
       end if
 !     
 !-----------------------------------------------------------------------
@@ -589,6 +605,10 @@
 !
  30   format(' PET (', I2, ') - Import Item (',I2,') = ',A)
  40   format(' PET (', I2, ') - Export Item (',I2,') = ',A)
+ 50   format(' INT FORWARD  ATM: ',A,' / ',A,' --> ',                   &
+                           'OCN: ',A,' / ',A,' (',A,')')
+ 60   format(' INT BACKWARD OCN: ',A,' / ',A,' --> ',                   &
+                           'ATM: ',A,' / ',A,' (',A,')')
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -718,11 +738,19 @@
       did = models(Iocean)%dataImport(vid,1)%gtype
 !
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        print*, 'Run Forward  - ',                                      &
-                trim(models(Iocean)%dataImport(vid,1)%name), ' / ',     &
-                trim(itemNamesImportF(i)), ' / ',                       &
-                trim(GRIDDES(sid)), ' --> ',                            &
-                trim(GRIDDES(did))
+      if (itype == Iconsv) then
+      write(*,70) trim(models(Iocean)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(itemNamesExportF(i)),                            &
+                  trim(GRIDDES(did)),                                   &
+                  'conservative'
+      else
+      write(*,70) trim(models(Iocean)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(itemNamesExportF(i)),                            &
+                  trim(GRIDDES(did)),                                   &
+                  'bilnear'
+      end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -797,11 +825,19 @@
       did = models(Iatmos)%dataImport(vid,1)%gtype
 !
       if ((cpl_dbglevel > 0) .and. (localPet == 0)) then
-        print*, 'Run Backward  - ',                                     &
-        trim(models(Iatmos)%dataImport(vid,1)%name), ' / ',             &
-        trim(itemNamesImportB(i)), ' / ',                               &
-        trim(GRIDDES(did)), ' --> ',                                    &
-        trim(GRIDDES(sid))
+      if (itype == Iconsv) then
+      write(*,80) trim(itemNamesImportB(i)),                            &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(models(Iatmos)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(did)),                                   &
+                  'conservative'
+      else
+      write(*,80) trim(itemNamesImportB(i)),                            &
+                  trim(GRIDDES(sid)),                                   &
+                  trim(models(Iatmos)%dataImport(vid,1)%name),          &
+                  trim(GRIDDES(did)),                                   &
+                  'bilnear'
+      end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -825,6 +861,15 @@
 !
       end do
       end if
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 70   format(' RUN FORWARD  ATM: ',A,' / ',A,' --> ',                   &
+                           'OCN: ',A,' / ',A,' (',A,')')
+ 80   format(' RUN BACKWARD OCN: ',A,' / ',A,' --> ',                   &
+                           'ATM: ',A,' / ',A,' (',A,')')
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

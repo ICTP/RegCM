@@ -88,9 +88,9 @@ module mod_runparams
   real(dp) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
   real(dp) :: xkhmax , xkhz
 
-  integer :: iboudy , ichem , ipgf , ipptls , cplexvars , cplinterp
+  integer :: iboudy , ichem , ipgf , ipptls
 
-  logical :: ifrest , rfstrt , doing_restart , cplbdysmooth
+  logical :: ifrest , rfstrt , doing_restart
 
   integer :: kchi , kclo , kcmd , cpldbglevel
 !

@@ -393,6 +393,7 @@
 !
       use mod_runparams, only : idate0, idate1, idate2, dtsec 
       use mod_runparams, only : split_idate
+      use mod_runparams, only : cpldt, cpldbglevel
 !
       implicit none
 !
@@ -592,6 +593,7 @@
 !
       use mod_atm_interface, only : mddom
       use mod_dynparam, only : iy, jx, nproc 
+      use mod_runparams, only : cpldt, cpldbglevel
 !
       implicit none
 !
@@ -678,7 +680,7 @@
 !     Debug: print DistGrid
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel > 1) then
+      if (cpldbglevel > 1) then
       call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -717,6 +719,7 @@
                                     distgrid=models(Iatmos)%distGrid(n),&
                                     gridEdgeLWidth=(/0,0/),             &
                                     gridEdgeUWidth=(/0,0/),             &
+                                    indexflag=ESMF_INDEX_GLOBAL,        &
                                     name="atm_grid",                    &
                                     rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -811,7 +814,7 @@
 !     Validate Grid 
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel > 1) then
+      if (cpldbglevel > 1) then
       call ESMF_GridValidate(models(Iatmos)%grid(n), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
@@ -820,7 +823,7 @@
 !     Write ESMF Grid in VTK format (debug) 
 !-----------------------------------------------------------------------
 !
-      if (cpl_dbglevel > 1) then
+      if (cpldbglevel > 1) then
       print*, '[debug] -- write grid information to file '//            &
       '>atmos_'//trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iatmos)%grid(n),                    &
