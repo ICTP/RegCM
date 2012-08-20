@@ -115,6 +115,9 @@ module mod_params
     ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
     irrtm , iclimao3
 
+  namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
+    iceflglw , liqflglw , icld , irng , idrv
+
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
     gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
     tc0 , cllwcv , clfrcvmax , cftotmax
@@ -313,7 +316,18 @@ module mod_params
   iconvlwp = 1
   irrtm = 0
   iclimao3 = 0
+!----------------------------------------------------------------------
+!-----rrtm radiation namelist param:
 !
+  inflgsw  = 2
+  iceflgsw = 3
+  liqflgsw = 1
+  inflglw  = 2
+  iceflglw = 3
+  liqflglw = 1
+  idrv = 0
+  icld  = 1
+  irng = 1
 !----------------------------------------------------------------------
 !------namelist subexparam:
   ncld = 1             ! # of bottom model levels with no clouds (rad only)
@@ -492,7 +506,11 @@ module mod_params
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
-      print * , 'param: UWPARAM namelist READ IN'
+      print * , 'UWPARAM namelist READ IN'
+    end if
+    if ( irrtm == 1 ) then
+      read (ipunit, rrtmparam)
+      print * , 'RRTMPARAM namelist READ IN'
     end if
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
@@ -614,6 +632,18 @@ module mod_params
     call mpi_bcast(cevap,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(caccr,1,mpi_real8,iocpu,mycomm,ierr)
     call mpi_bcast(cftotmax,1,mpi_real8,iocpu,mycomm,ierr)
+  end if
+
+  if ( irrtm == 1 ) then
+    call mpi_bcast(inflgsw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(iceflgsw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(liqflgsw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(inflglw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(iceflglw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(liqflglw,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(idrv,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(icld,1,mpi_integer,iocpu,mycomm,ierr)
+    call mpi_bcast(irng,1,mpi_integer,iocpu,mycomm,ierr)
   end if
 
   call mpi_bcast(clfrcvmax,1,mpi_real8,iocpu,mycomm,ierr)

@@ -234,9 +234,7 @@ module mod_rrtmg_driver
 !
 !   local variables
 !
-    integer :: dyofyr , inflgsw , iceflgsw , liqflgsw , icld , idrv , &
-       permuteseed , irng , iplon , k , kj , inflglw , iceflglw ,     &
-       liqflglw , n , i , j
+    integer :: dyofyr , permuteseed , iplon , k , kj , n , i , j
     real(dp) :: adjes
 
 !-----------------------------------------------------------------------
@@ -249,32 +247,8 @@ module mod_rrtmg_driver
     dyofyr = 0
     adjes = eccf
 
-    ! options for optical properties of cloud calculation
-
-    ! inflgsw  = 0 : use the optical properties calculated in perp_dat_rrtm
-    !                (same as standard radiation)
-    ! inflgsw  = 2 : use RRTM option to calculate cloud optical prperties
-    !                from water path and cloud drop radius
-    ! check the diferent param available in rrtmg_rad (iceflgsw / liqflgsw
-    ! should be nameliste interactive) 
-    inflgsw  = 2 
-    iceflgsw = 3
-    liqflgsw = 1
-
-    ! IN LW : optical depth is calculated internally 
     ! from water path and cloud radius / tauc_LW is not requested
-    inflglw  = 2
-    iceflglw = 3
-    liqflglw = 1
     tauc_lw = dlowval
-    !
-    ! McICA parameteres
-    icld  = 1 ! Cloud Overlapp hypothesis ( should be interactive) 
-    !
-    irng = 1 ! mersenne twister random generator for McICA
-
-    ! Cloud Overlapp hypothesis flag ( return if 0)
-
     call prep_dat_rrtm(iyear,inflgsw)
 
     !
