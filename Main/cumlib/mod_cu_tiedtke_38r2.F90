@@ -23,10 +23,12 @@ module mod_cu_tiedtke_38r2
                                             !   downdrafts at lfs
   real(dp) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
                                             ! *vdf....*
+  real(dp) , parameter :: rmfsoltq = 1.0D0  ! Mass flux solver for T and q
   real(dp) , parameter :: zqmax = 0.5D0
 
-  logical , public :: lmfmid    ! True if midlevel convection is switched on
-  logical , public :: lmfdd     ! True if cumulus downdraft is switched on
+  logical , public :: lmfmid    ! True if midlevel convection is on
+  logical , public :: lmfdd     ! True if cumulus downdraft is on
+  logical , public :: lepcld    ! True if prognostic cloud scheme is on
 
   integer , parameter :: njkt2 = 2
 
@@ -2254,6 +2256,229 @@ module mod_cu_tiedtke_38r2
       end do
     end do
   end subroutine custrat
+
+  subroutine cudtdqn(kidia,kfdia,klon,ktdia,klev,ktopm2,ktype,kctop,kdtop, &
+                     ldcum,lddraf,ptsphy,paph,pgeoh,pgeo,pten,ptenh,pqen,  &
+                     pqenh,pqsen,plglac,plude,pmfu,pmfd,pmfus,pmfds,pmfuq, &
+                     pmfdq,pmful,pdmfup,pdpmel,ptent,ptenq,penth)
+    implicit none
+
+    integer , intent(in) :: klon 
+    integer , intent(in) :: klev 
+    integer , intent(in) :: kidia 
+    integer , intent(in) :: kfdia 
+    integer :: ktdia ! argument not used
+    integer , intent(in) :: ktopm2 
+    integer , dimension(klon) , intent(in) :: ktype
+    integer , dimension(klon) , intent(in) :: kctop
+    integer , dimension(klon) , intent(in) :: kdtop
+    logical , dimension(klon) , intent(inout) :: ldcum
+    logical , dimension(klon) , intent(in) :: lddraf
+    real(dp) , intent(in)    :: ptsphy 
+    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    real(dp) , dimension(klon,klev) , intent(in) :: pgeo , pten , pqen , &
+         ptenh , pqenh , pqsen , plglac , pmfu , pmfd , pmfus , pmfds ,  &
+         pmfuq , pmfdq , pmful , pdmfup , pdpmel
+    real(dp) , dimension(klon,klev) , intent(inout) :: plude , ptent , ptenq
+    real(dp) , dimension(klon,klev) , intent(out) :: penth
+
+    logical :: lltest
+    integer :: jk , ik , jl
+    real(dp) :: ztsphy , zorcpd , zalv , zoealfa , ztarg , &
+                zzp , zgq , zgs , zgh , zs , zq
+    real(dp) , dimension(klon,klev) :: zmfus , zmfuq , zmfds , zmfdq
+    real(dp) , dimension(klon,klev) :: zdtdt , zdqdt , zdp , zb , zr1 , zr2
+    logical , dimension(klon,klev) :: llcumbas
+
+    real(dp) , parameter :: zimp = 1.0D0 - rmfsoltq
+
+    !
+    ! 1.0 Setup and initializations
+    !
+    ztsphy = d_one/ptsphy
+
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        penth(jl,jk) = d_zero
+      end do
+    end do
+    !
+    ! mass-flux approach switched on for deep convection only
+    ! in the tangent-linear and adjoint versions
+    !
+    do jl = kidia , kfdia
+      if ( ktype(jl) /= 1 .and. lphylin ) ldcum(jl) = .false.
+    end do
+    !
+    ! zero detrained liquid water if diagnostic cloud scheme to be used
+    !
+    ! this means that detrained liquid water will be evaporated in the 
+    ! cloud environment and not fed directly into a cloud liquid water 
+    ! variable
+
+    !lltest = (.not.lepcld.and..not.lencld2).or.(lphylin.and..not.lencld2)
+    lltest = .not. lepcld .or. lphylin
+
+    if ( lltest ) then
+      do jk = 1 , klev
+        do jl = kidia , kfdia
+          plude(jl,jk) = d_zero
+        end do
+      end do
+    end if
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        if ( ldcum(jl) ) then
+          zdp(jl,jk) = rgas/(paph(jl,jk+1)-paph(jl,jk))
+          zmfus(jl,jk) = pmfus(jl,jk)
+          zmfds(jl,jk) = pmfds(jl,jk)
+          zmfuq(jl,jk) = pmfuq(jl,jk)
+          zmfdq(jl,jk) = pmfdq(jl,jk)
+        end if
+      end do
+    end do
+    !
+    if ( rmfsoltq > d_zero ) then
+      !
+      ! 2.0 Recompute convective fluxes if implicit
+      !
+      do jk = ktopm2 , klev
+        ik = jk-1
+!dir$ ivdep
+!ocl novrec
+        do jl = kidia , kfdia
+          if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
+            !
+            ! Compute interpolating coefficients zgs and zgq for
+            ! half-level values
+            !
+            zgq = (pqenh(jl,jk)-pqen(jl,ik))/pqsen(jl,jk)
+            zgh = cpd*pten(jl,jk)+pgeo(jl,jk)
+            zgs = (cpd*(ptenh(jl,jk)-pten(jl,ik))+pgeoh(jl,jk)-pgeo(jl,ik))/zgh
+            !
+            ! half-level environmental values for s and q
+            !
+            zs = cpd*(zimp*pten(jl,ik)+zgs*pten(jl,jk)) + &
+                 pgeo(jl,ik)+zgs*pgeo(jl,jk)
+            zq = zimp*pqen(jl,ik)+zgq*pqsen(jl,jk)
+            zmfus(jl,jk) = pmfus(jl,jk)-pmfu(jl,jk)*zs
+            zmfuq(jl,jk) = pmfuq(jl,jk)-pmfu(jl,jk)*zq
+            if ( lddraf(jl) .and. jk >= kdtop(jl) ) then
+              zmfds(jl,jk) = pmfds(jl,jk)-pmfd(jl,jk)*zs
+              zmfdq(jl,jk) = pmfdq(jl,jk)-pmfd(jl,jk)*zq
+            end if
+          end if
+        end do
+      end do
+    end if
+    !
+    ! 3.0 Compute tendencies
+    !
+    do jk = ktopm2 , klev
+      if ( jk < klev ) then
+        do jl = kidia , kfdia
+          if ( ldcum(jl) ) then
+            if ( lphylin ) then
+              ztarg = pten(jl,jk)
+              zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
+              zalv = zoealfa*wlhv+(d_one-zoealfa)*wlhs
+            else
+              zalv = foelhmcu(pten(jl,jk))
+            end if
+            zdtdt(jl,jk) = zdp(jl,jk)*rcpd*(zmfus(jl,jk+1)-zmfus(jl,jk) + &
+                                            zmfds(jl,jk+1)-zmfds(jl,jk) + &
+                                  wlhf*plglac(jl,jk)-wlhf*pdpmel(jl,jk) - &
+                                      zalv*(pmful(jl,jk+1)-pmful(jl,jk) - &
+                                            plude(jl,jk)-pdmfup(jl,jk)))  
+            zdqdt(jl,jk) = zdp(jl,jk)*(zmfuq(jl,jk+1)-zmfuq(jl,jk) + &
+                                       zmfdq(jl,jk+1)-zmfdq(jl,jk) + &
+                                       pmful(jl,jk+1)-pmful(jl,jk) - &
+                                       plude(jl,jk)-pdmfup(jl,jk))  
+          end if
+        end do
+      else
+        do jl = kidia , kfdia
+          if ( ldcum(jl) ) then
+            if ( lphylin ) then
+              ztarg = pten(jl,jk)
+              zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_zero)
+              zalv = zoealfa*wlhv+(d_one-zoealfa)*wlhs
+            else
+              zalv = foelhmcu(pten(jl,jk))
+            end if
+            zdtdt(jl,jk) = -zdp(jl,jk)*rcpd*(zmfus(jl,jk)+zmfds(jl,jk) + &
+                         wlhf*pdpmel(jl,jk)-zalv*(pmful(jl,jk)+pdmfup(jl,jk)))  
+            zdqdt(jl,jk) = -zdp(jl,jk)*(zmfuq(jl,jk)+zmfdq(jl,jk) + &
+                                       (pmful(jl,jk)+pdmfup(jl,jk)))  
+          end if
+        end do
+      end if
+    end do
+    if ( dabs(rmfsoltq) < dlowval ) then
+      !
+      ! 3.1 Update tendencies
+      !
+      do jk = ktopm2 , klev
+        do jl = kidia , kfdia
+          if( ldcum(jl) ) then
+            ptent(jl,jk) = ptent(jl,jk)+zdtdt(jl,jk)
+            ptenq(jl,jk) = ptenq(jl,jk)+zdqdt(jl,jk)
+            penth(jl,jk) = zdtdt(jl,jk)*cpd
+          end if
+        end do
+      end do
+    else
+      !
+      ! 3.2 Implicit solution
+      !
+      ! fill bi-diagonal matrix vectors a=k-1, b=k, c=k+1;
+      ! reuse zmfus=a
+      ! zdtdt and zdqdt correspond to the rhs ("constants") of the equation
+      ! the solution is in zr1 and zr2
+      llcumbas(:,:) = .false.
+      zb(:,:) = d_one
+      zmfus(:,:) = d_zero
+      !
+      ! fill vectors a, b and rhs
+      !
+      do jk = ktopm2 , klev
+        ik = jk+1
+        do jl = kidia , kfdia
+          llcumbas(jl,jk) = ldcum(jl) .and. jk >= kctop(jl)-1
+          if ( llcumbas(jl,jk) ) then
+            zzp = rmfsoltq*zdp(jl,jk)*ptsphy
+            zmfus(jl,jk) = -zzp*(pmfu(jl,jk)+pmfd(jl,jk))
+            zdtdt(jl,jk) = zdtdt(jl,jk)*ptsphy+pten(jl,jk)
+            zdqdt(jl,jk) = zdqdt(jl,jk)*ptsphy+pqen(jl,jk)
+            ! zdtdt(jl,jk) = (zdtdt(jl,jk)+ptent(jl,jk))*ptsphy+pten(jl,jk)
+            ! zdqdt(jl,jk) = (zdqdt(jl,jk)+ptenq(jl,jk))*ptsphy+pqen(jl,jk)
+            if ( jk < klev ) then
+              zb(jl,jk) = d_one+zzp*(pmfu(jl,ik)+pmfd(jl,ik))
+            else
+              zb(jl,jk) = d_one
+            end if
+          end if
+        end do
+      end do
+
+      call cubidiag(kidia,kfdia,klon,klev,kctop,llcumbas,zmfus,zb,zdtdt,zr1)
+      call cubidiag(kidia,kfdia,klon,klev,kctop,llcumbas,zmfus,zb,zdqdt,zr2)
+      !
+      ! Compute tendencies
+      !
+      do jk = ktopm2 , klev
+        do jl = kidia , kfdia
+          if ( llcumbas(jl,jk) ) then
+            ptent(jl,jk) = ptent(jl,jk)+(zr1(jl,jk)-pten(jl,jk))*ztsphy
+            ptenq(jl,jk) = ptenq(jl,jk)+(zr2(jl,jk)-pqen(jl,jk))*ztsphy
+            ! ptent(jl,jk)=(zr1(jl,jk)-pten(jl,jk))*ztsphy
+            ! ptenq(jl,jk)=(zr2(jl,jk)-pqen(jl,jk))*ztsphy
+            penth(jl,jk) = (zr1(jl,jk)-pten(jl,jk))*ztsphy
+          end if
+        end do
+      end do
+    end if
+  end subroutine cudtdqn
 !
 !-----------------------------------------------------------------------------
 !
