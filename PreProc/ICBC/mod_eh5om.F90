@@ -76,6 +76,7 @@ module mod_eh5om
   real(dp) :: offset , xscale
   character(4) , dimension(100) :: yr_a2
   character(4) , dimension(61) :: yr_rf
+  character(4) :: namepart
   integer :: year , month , day , hour
 !
   data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &
@@ -155,130 +156,87 @@ module mod_eh5om
   end if
   numx = nint((lon1-lon0)/1.875) + 1
   numy = nint((lat1-lat0)/1.875) + 1
-  if ( numx /= ilon .or. numy /= jlat ) then
-    if ( day /= 1 .or. hour /= 0 ) then
-      if ( dattyp == 'EH5RF' ) then
-        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
-               yr_rf(year-1940)//chmon(month)
-      else if ( dattyp == 'EH5A2' ) then
-        finm = 'A2/'//yr_a2(year-2000)//'/'//'EH_A2'//              &
-               yr_a2(year-2000)//chmon(month)
-      else if ( dattyp == 'EH5B1' ) then
-        finm = 'B1/'//yr_a2(year-2000)//'/'//'EH_B1'//              &
-               yr_a2(year-2000)//chmon(month)
-      else if ( dattyp == 'EHA1B' ) then
-        finm = 'A1B/'//yr_a2(year-2000)//'/'//'E_A1B'//             &
-               yr_a2(year-2000)//chmon(month)
-      else
-        call die('geteh5om','ERROR IN geteh5om',1)
-      end if
-    else if ( month /= 1 ) then
-      if ( dattyp == 'EH5RF' ) then
-        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
-               yr_rf(year-1940)//chmon(month-1)
-      else if ( dattyp == 'EH5A2' ) then
-        finm = 'A2/'//yr_a2(year-2000)//'/'//'EH_A2'//              &
-               yr_a2(year-2000)//chmon(month-1)
-      else if ( dattyp == 'EH5B1' ) then
-        finm = 'B1/'//yr_a2(year-2000)//'/'//'EH_B1'//              &
-               yr_a2(year-2000)//chmon(month-1)
-      else if ( dattyp == 'EHA1B' ) then
-        finm = 'A1B/'//yr_a2(year-2000)//'/'//'E_A1B'//             &
-               yr_a2(year-2000)//chmon(month-1)
-      else
-        call die('geteh5om','ERROR IN geteh5om',1)
-      end if
-    else if ( dattyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//                &
-             yr_rf(year-1940)//chmon(12)
-    else if ( dattyp == 'EH5A2' ) then
-      if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
-               yr_rf(year-1940)//chmon(12)
-      else
-        finm = 'A2/'//yr_a2(year-2000)//'/'//'EH_A2'//              &
-               yr_a2(year-2000)//chmon(12)
-      end if
-    else if ( dattyp == 'EH5B1' ) then
-      if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
-               yr_rf(year-1940)//chmon(12)
-      else
-        finm = 'B1/'//yr_a2(year-2000)//'/'//'EH_B1'//              &
-               yr_a2(year-2000)//chmon(12)
-      end if
-    else if ( dattyp == 'EHA1B' ) then
-      if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
-               yr_rf(year-1940)//chmon(12)
-      else
-        finm = 'A1B/'//yr_a2(year-2000)//'/'//'E_A1B'//             &
-               yr_a2(year-2000)//chmon(12)
-      end if
+  ! Non Global dataset
+  if ( dattyp == 'EHA1B' ) then
+    if ( numx /= ilon .or. numy /= jlat ) then
+      namepart = 'EH'
     else
-      call die('geteh5om','ERROR IN geteh5om',1)
-    end if
-  else if ( day /= 1 .or. hour /= 0 ) then
-    if ( dattyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//                &
-             yr_rf(year-1940)//chmon(month)
-    else if ( dattyp == 'EH5A2' ) then
-      finm = 'A2/'//yr_a2(year-2000)//'/'//'EHgA2'//                &
-             yr_a2(year-2000)//chmon(month)
-    else if ( dattyp == 'EH5B1' ) then
-      finm = 'B1/'//yr_a2(year-2000)//'/'//'EHgB1'//                &
-             yr_a2(year-2000)//chmon(month)
-    else if ( dattyp == 'EHA1B' ) then
-      finm = 'A1B/'//yr_a2(year-2000)//'/'//'EgA1B'//               &
-             yr_a2(year-2000)//chmon(month)
-    else
-      call die('geteh5om','ERROR IN geteh5om',1)
-    end if
-  else if ( month /= 1 ) then
-    if ( dattyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
-             yr_rf(year-1940)//chmon(month-1)
-    else if ( dattyp == 'EH5A2' ) then
-      finm = 'A2/'//yr_a2(year-2000)//'/'//'EHgA2'//               &
-             yr_a2(year-2000)//chmon(month-1)
-    else if ( dattyp == 'EH5B1' ) then
-      finm = 'B1/'//yr_a2(year-2000)//'/'//'EHgB1'//               &
-             yr_a2(year-2000)//chmon(month-1)
-    else if ( dattyp == 'EHA1B' ) then
-      finm = 'A1B/'//yr_a2(year-2000)//'/'//'EgA1B'//              &
-             yr_a2(year-2000)//chmon(month-1)
-    else
-      call die('geteh5om','ERROR IN geteh5om',1)
-    end if
-  else if ( dattyp == 'EH5RF' ) then
-    finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'// &
-                  yr_rf(year-1940)//chmon(12)
-  else if ( dattyp == 'EH5A2' ) then
-    if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
-             yr_rf(year-1940)//chmon(12)
-    else
-      finm = 'A2/'//yr_a2(year-2000)//'/'//'EHgA2'//               &
-             yr_a2(year-2000)//chmon(12)
-    end if
-  else if ( dattyp == 'EH5B1' ) then
-    if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
-             yr_rf(year-1940)//chmon(12)
-    else
-      finm = 'B1/'//yr_a2(year-2000)//'/'//'EHgB1'//               &
-             yr_a2(year-2000)//chmon(12)
-    end if
-  else if ( dattyp == 'EHA1B' ) then
-    if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
-             yr_rf(year-1940)//chmon(12)
-    else
-      finm = 'A1B/'//yr_a2(year-2000)//'/'//'EgA1B'//              &
-             yr_a2(year-2000)//chmon(12)
+      namepart = 'Eg'
     end if
   else
-    call die('geteh5om','ERROR IN geteh5om',1)
+    if ( numx /= ilon .or. numy /= jlat ) then
+      namepart = 'EH_'
+    else
+      namepart = 'EHg'
+    end if
+  end if
+  ! Any Normal month, inside the month
+  if ( day /= 1 .or. hour /= 0 ) then
+    if ( dattyp == 'EH5RF' ) then
+      finm = 'RF/'//yr_rf(year-1940)//'/'//trim(namepart)//'RF'//  &
+             yr_rf(year-1940)//chmon(month)
+    else if ( dattyp == 'EH5A2' ) then
+      finm = 'A2/'//yr_a2(year-2000)//'/'//trim(namepart)//'A2'//  &
+             yr_a2(year-2000)//chmon(month)
+    else if ( dattyp == 'EH5B1' ) then
+      finm = 'B1/'//yr_a2(year-2000)//'/'//trim(namepart)//'B1'//  &
+             yr_a2(year-2000)//chmon(month)
+    else if ( dattyp == 'EHA1B' ) then
+      finm = 'A1B/'//yr_a2(year-2000)//'/'//trim(namepart)//'A1B'// &
+             yr_a2(year-2000)//chmon(month)
+    else
+      call die('geteh5om','ERROR IN geteh5om',1)
+    end if
+  ! Day 1 and hour 0 , but NOT January
+  !   (First time is in previous month file)
+  else if ( month /= 1 ) then
+    if ( dattyp == 'EH5RF' ) then
+      finm = 'RF/'//yr_rf(year-1940)//'/'//trim(namepart)//'RF'//    &
+             yr_rf(year-1940)//chmon(month-1)
+    else if ( dattyp == 'EH5A2' ) then
+      finm = 'A2/'//yr_a2(year-2000)//'/'//trim(namepart)//'A2'//    &
+             yr_a2(year-2000)//chmon(month-1)
+    else if ( dattyp == 'EH5B1' ) then
+      finm = 'B1/'//yr_a2(year-2000)//'/'//trim(namepart)//'B1'//    &
+             yr_a2(year-2000)//chmon(month-1)
+    else if ( dattyp == 'EHA1B' ) then
+      finm = 'A1B/'//yr_a2(year-2000)//'/'//trim(namepart)//'A1B'//  &
+             yr_a2(year-2000)//chmon(month-1)
+    else
+      call die('geteh5om','ERROR IN geteh5om',1)
+    end if
+  else ! First of january at 00:00:00
+    if ( dattyp == 'EH5RF' ) then
+      if ( year == 2001 ) then
+        finm = 'RF/'//'2000'//'/'//'EHgRF'//'2000'//chmon(12)
+      else
+        finm = 'RF/'//yr_rf(year-1940)//'/'//trim(namepart)//'RF'//   &
+               yr_rf(year-1940)//chmon(12)
+      end if
+    else if ( dattyp == 'EH5A2' ) then
+      if ( year == 2001 ) then
+        finm = 'RF/'//'2000'//'/'//'EHgRF'//'2000'//chmon(12)
+      else
+        finm = 'A2/'//yr_a2(year-2000)//'/'//trim(namepart)//'A2'//   &
+               yr_a2(year-2000)//chmon(12)
+      end if
+    else if ( dattyp == 'EH5B1' ) then
+      if ( year == 2001 ) then
+        finm = 'RF/'//'2000'//'/'//'EHgRF'//'2000'//chmon(12)
+      else
+        finm = 'B1/'//yr_a2(year-2000)//'/'//trim(namepart)//'B1'//   &
+               yr_a2(year-2000)//chmon(12)
+      end if
+    else if ( dattyp == 'EHA1B' ) then
+      if ( year == 2001 ) then
+        finm = 'RF/'//'2000'//'/'//'EHgRF'//'2000'//chmon(12)
+      else
+        finm = 'A1B/'//yr_a2(year-2000)//'/'//trim(namepart)//'A1B'// &
+               yr_a2(year-2000)//chmon(12)
+      end if
+    else
+      call die('geteh5om','ERROR IN geteh5om',1)
+    end if
   end if
   do k = 1 , klev*3
     do j = 1 , jlat
