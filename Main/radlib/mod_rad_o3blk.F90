@@ -316,7 +316,7 @@ module mod_rad_o3blk
     integer :: iret
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) nf90_strerror(iret) , o3file
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
     call readvar1d(ncid,'latitude',lat)
