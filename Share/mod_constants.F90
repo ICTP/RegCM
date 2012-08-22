@@ -129,8 +129,10 @@ module mod_constants
   real(dp) , parameter :: c5alscp = c5ies*wlhs*rcpd
   real(dp) , parameter :: wlhvocp = wlhv*rcpd
   real(dp) , parameter :: wlhsocp = wlhs*rcpd
+  real(dp) , parameter :: wlhfocp = wlhf*rcpd
   real(dp) , parameter :: cpowlhv = cpd/wlhv
   real(dp) , parameter :: cpowlhs = cpd/wlhs
+  real(dp) , parameter :: cpowlhf = cpd/wlhf
   real(dp) , parameter :: rtice = tzero-23.0D+00
   real(dp) , parameter :: rtwat = tzero
   real(dp) , parameter :: mpcrt = rtice+(rtwat-rtice)/sqrt(2.0D+00)

@@ -6,7 +6,6 @@ module mod_cu_tiedtke_38r2
   private
 
   integer , parameter :: n_vmass = 0        ! Using or not vector mass
-  logical , parameter :: lphylin = .false.  ! Linearized physics is activated ?
   real(dp) , parameter :: rlpal1 = 0.15D0   ! Smoothing coefficient
   real(dp) , parameter :: rlpal2 = 20.0D0   ! Smoothing coefficient
   real(dp) , parameter :: rmfsoluv = 1.0D0  ! Mass flux solver for momentum
@@ -33,15 +32,21 @@ module mod_cu_tiedtke_38r2
   real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
   real(dp) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
                                             ! downdrafts at lfs
+  real(dp) , parameter :: rdepths = 2.4D4   ! Maximum allowed cloud thickness
+                                            ! for shallow cloud depth (Pa)
   real(dp) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
                                             ! *vdf....*
   real(dp) , parameter :: rmfsoltq = 1.0D0  ! Mass flux solver for T and q
   real(dp) , parameter :: zqmax = 0.5D0
+  real(dp) , parameter :: rlmin = 1.0D-8
 
-  logical , public :: lmfmid    ! True if midlevel convection is on
-  logical , public :: lmfdd     ! True if cumulus downdraft is on
-  logical , public :: lepcld    ! True if prognostic cloud scheme is on
+  logical , public :: lphylin = .false.  ! Linearized physics is activated ?
+  logical , public :: lmfmid  ! True if midlevel convection is on
+  logical , public :: lmfdd   ! True if cumulus downdraft is on
+  logical , public :: lepcld  ! True if prognostic cloud scheme is on
+  logical , public :: lmfdudv ! True if cumulus friction is on
 
+  integer , parameter :: njkt1 = 2
   integer , parameter :: njkt2 = 2
 
   contains
@@ -2401,7 +2406,7 @@ module mod_cu_tiedtke_38r2
     do jk = 1 , klev
       do jl = kidia , kfdia
         if ( ldcum(jl) ) then
-          zdp(jl,jk) = rgas/(paph(jl,jk+1)-paph(jl,jk))
+          zdp(jl,jk) = egrav/(paph(jl,jk+1)-paph(jl,jk))
           zmfus(jl,jk) = pmfus(jl,jk)
           zmfds(jl,jk) = pmfds(jl,jk)
           zmfuq(jl,jk) = pmfuq(jl,jk)
@@ -2663,9 +2668,9 @@ module mod_cu_tiedtke_38r2
     ! Specify constants
     !
     ztmst = ptsphy
-    zcons1a = cpd/(wlhf*rgas*rtaumel)
-    ! zcons2 = d_one/(rgas*ztmst)
-    zcons2 = rmfcfl/(rgas*ztmst)
+    zcons1a = cpd/(wlhf*egrav*rtaumel)
+    ! zcons2 = d_one/(egrav*ztmst)
+    zcons2 = rmfcfl/(egrav*ztmst)
     !
     ! 1.0 Determine final convective fluxes
     !
@@ -2893,6 +2898,570 @@ module mod_cu_tiedtke_38r2
       end do
     end do
   end subroutine cuflxn
+!
+!          THIS ROUTINE CALCULATES CLOUD BASE FIELDS
+!          CLOUD BASE HEIGHT AND CLOUD TOP HEIGHT
+!          A. Pier Siebesma   KNMI ********      
+!          modified C Jakob (ECMWF) (01/2001) 
+!          modified P Bechtold (ECMWF) (08/2002) 
+!          (include cycling over levels to find unstable departure/base level+
+!           mixed layer properties +w Trigger)
+!          PURPOSE.
+!          --------
+!          TO PRODUCE CLOUD BASE AND CLOUD TOP VALUES FOR CU-PARAMETRIZATION
+!          INTERFACE
+!          ---------
+!          THIS ROUTINE IS CALLED FROM *CUMASTR*.
+!          INPUT ARE ENVIRONM. VALUES OF T,Q,P,PHI AT HALF LEVELS.
+!          IT RETURNS CLOUD FIELDS VALUES AND FLAGS AS FOLLOWS;
+!                 KLAB=0 FOR STABLE LAYERS
+!                 KLAB=1 FOR SUBCLOUD LEVELS
+!                 KLAB=2 FOR CLOUD LEVELS LEVEL
+!          METHOD.
+!          --------
+!          LIFT SURFACE AIR DRY-ADIABATICALLY TO CLOUD TOP
+!          (ENTRAINING PLUME, WITH ENTRAINMENT PROPORTIONAL TO (1/Z))
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    INPUT PARAMETERS (REAL):
+! not used at the moment because we want to use linear intepolation
+! for fields on the half levels.
+!    *PTENH*        ENV. TEMPERATURE (T+1) ON HALF LEVELS           K
+!    *PQENH*        ENV. SPEC. HUMIDITY (T+1) ON HALF LEVELS      KG/KG
+!    *PQHFL*        MOISTURE FLUX (EXCEPT FROM SNOW EVAP.)        KG/(SM2)
+!    *PAHFS*        SENSIBLE HEAT FLUX                            W/M2
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                   M2/S2
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS             PA
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)       K
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG
+!    *PQSEN*        PROVISIONAL ENVIRONMENT SATU. HUMIDITY (T+1)  KG/KG
+!    *PGEO*         GEOPOTENTIAL                                  M2/S2
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)       M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)       M/S
+!    *PQHFL*        MOISTURE FLUX (EXCEPT FROM SNOW EVAP.)        KG/(SM2)
+!    *PAHFS*        SENSIBLE HEAT FLUX                            W/M2
+!    UPDATED PARAMETERS (REAL):
+!    *PTU*          TEMPERATURE IN UPDRAFTS                         K
+!    *PQU*          SPEC. HUMIDITY IN UPDRAFTS                    KG/KG
+!    *PLU*          LIQUID WATER CONTENT IN UPDRAFTS              KG/KG
+!    *PUU*          U-VELOCITY IN UPDRAFTS                         M/S
+!    *PVU*          V-VELOCITY IN UPDRAFTS                         M/S
+!    UPDATED PARAMETERS (INTEGER):
+!    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
+!                        KLAB=2 FOR CLOUD LEVELS
+!    OUTPUT PARAMETERS (LOGICAL):
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    *LDSC*         FLAG: .TRUE. IF BL-CLOUDS EXIST
+!    OUTPUT PARAMETERS (INTEGER):
+!    *KCBOT*       CLOUD BASE LEVEL !    
+!    *KCTOP*       CLOUD TOP LEVEL = HEIGHEST HALF LEVEL 
+!                  WITH A NON-ZERO CLOUD UPDRAFT.
+!    *KBOTSC*      CLOUD BASE LEVEL OF BL-CLOUDS
+!    *KDPL*        DEPARTURE LEVEL
+!    *PCAPE*       PSEUDOADIABATIQUE max CAPE (J/KG)
+!          EXTERNALS
+!          ---------
+!          *CUADJTQ* FOR ADJUSTING T AND Q DUE TO CONDENSATION IN ASCENT
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!             02-11-02 : Use fixed last possible departure level and 
+!                        last updraft computation level for bit-reproducibility
+!                                            D.Salmond &  J. Hague
+!             03-07-03 : Tuning for p690     J. Hague
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!----------------------------------------------------------------------
+!
+  subroutine cubasen(kidia,kfdia,klon,ktdia,klev,ldland,ptenh,pqenh,   &
+                     pgeoh,paph,pqhfl,pahfs,pten,pqen,pqsen,pgeo,puen, &
+                     pven,ptu,pqu,plu,puu,pvu,pwubase,klab,ldcum,ldsc, &
+                     kcbot,kbotsc,kctop,kdpl,pcape)
+    implicit none
+
+    integer , intent(in) :: klon 
+    integer , intent(in) :: klev 
+    integer , intent(in) :: kidia 
+    integer , intent(in) :: kfdia 
+    integer :: ktdia ! argument not used
+    logical , dimension(klon) , intent(in) :: ldland
+    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
+              pten , pqen , pqsen , pgeo , puen , pven
+    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph , &
+              pqhfl , pahfs
+    real(dp) , dimension(klon,klev) , intent(inout) :: ptu , pqu , &
+              plu , puu , pvu
+    real(dp) , dimension(klon) , intent(out) :: pwubase , pcape
+    integer , dimension(klon,klev) , intent(inout) :: klab
+    logical , dimension(klon) , intent(inout) :: ldcum
+    logical , dimension(klon) , intent(out) :: ldsc
+    integer , dimension(klon) , intent(inout) :: kcbot
+    integer , dimension(klon) , intent(out) :: kbotsc , kctop , kdpl
+
+    integer , dimension(klon) ::  ictop , icbot , ibotsc , idpl
+    integer , dimension(klon,klev) :: ilab
+    logical , dimension(klon) :: ll_ldbase , llgo_on , lldeep , lldcum , &
+             lldsc , llfirst , llresetjl
+    logical :: llreset
+    integer :: icall , ik , ikb , is , jk , jl , jkk , jkt1 , jkt2 , jkt , jkb
+    real(dp) , dimension(klon,klev) :: zs , zsuh , zwu2h , zbuoh , zlu , &
+             zqu , ztu , zuu , zvu , zcape
+    real(dp) , dimension(klon,klev+1) :: zsenh , zqenh
+    real(dp) ,dimension(klon) :: zqold , zph , zmix , zdz , zcbase , &
+             ztven1 , ztvu1 , zdtvtrig
+    real(dp) :: zrho      ! density at surface (kg/m^3) 
+    real(dp) :: zkhvfl    ! surface buoyancy flux (k m/s)
+    real(dp) :: zws       ! sigma_w at lowest model halflevel (m/s)
+    real(dp) :: zqexc     ! humidity excess at lowest model halflevel (kg/kg)
+    real(dp) :: ztexc     ! temperature excess at lowest model halflevel (k)
+    real(dp) :: zeps      ! fractional entrainment rate   [m^-1]
+    real(dp) :: ztvenh    ! environment virtual temperature at half levels (k)  
+    real(dp) :: ztvuh     ! updraft virtual temperature at half levels     (k)
+    real(dp) :: zlglac    ! updraft liquid water frozen in one layer
+    real(dp) :: zqsu , zcor , zdq , zalfaw , zfacw , zfaci , zfac ,  &
+                zesdp , zdqsdt , zdtdp , zdp ,zpdifftop ,zpdiffbot , &
+                zsf , zqf , zbuof , zz , ztmp
+    real(dp) :: ztven2 , ztvu2 ! pseudoadiabatique t_v
+    real(dp) :: zwork1 , zwork2 ! work arrays for t and w perturbations
+
+    real(dp) , parameter :: zc2 = 0.55D0
+    real(dp) , parameter :: zaw = 1.0D0
+    real(dp) , parameter :: zbw = 1.0D0
+    real(dp) , parameter :: zepsadd = 1.D-4
+    !
+    ! 0. Initialize fields
+    !
+    do jl = kidia , kfdia
+      pwubase(jl) = d_zero
+      llgo_on(jl) = .true.
+      llfirst(jl) = .true.
+      kdpl(jl) = klev
+    end do
+
+    jkt1 = njkt1
+    jkt2 = njkt2
+
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        ztu(jl,jk) = ptu(jl,jk)
+        zqu(jl,jk) = pqu(jl,jk)
+        zlu(jl,jk) = plu(jl,jk)
+        zuu(jl,jk) = puu(jl,jk)
+        zvu(jl,jk) = pvu(jl,jk)
+        ilab(jl,jk) = klab(jl,jk)
+        zcape(jl,jk) = d_zero
+      end do
+    end do
+    !
+    ! 1.1 Prepare fields on half levels by linear interpolation
+    !     of specific humidity and static energy
+    !
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        zwu2h(jl,jk) = d_zero
+        zs(jl,jk) = cpd*pten(jl,jk) + pgeo(jl,jk)
+        zqenh(jl,jk) = pqenh(jl,jk)
+        zsenh(jl,jk) = cpd*ptenh(jl,jk)+pgeoh(jl,jk)
+      end do
+    end do
+    do jkk = klev , jkt1 , -1 ! big external loop for level testing:
+      !
+      ! find first departure level that produces deepest cloud top
+      ! or take surface level for shallow convection and sc
+      ! 1.2  Initialise fields at departure half model level
+      !
+      is = 0
+      do jl = kidia , kfdia
+        if ( llgo_on(jl) ) then
+          is = is+1
+          idpl(jl) = jkk      ! departure level
+          icbot(jl) = jkk     ! cloud base level for conv., (-1 if not found)
+          ibotsc(jl) = klev-1 ! base level for sc-clouds  , (-1 if not found)
+          ictop(jl)  = klev-1 ! cloud top for convection (-1 if not found)
+          lldcum(jl) = .false.    ! on exit: true if cloudbase=found
+          lldsc (jl) = .false.    ! on exit: true if cloudbase=found
+          ll_ldbase(jl) = .false. ! on exit: true if cloudbase=found
+          zdtvtrig(jl) = d_zero
+          zuu(jl,jkk) = puen(jl,jkk)*(paph(jl,jkk+1)-paph(jl,jkk))
+          zvu(jl,jkk) = pven(jl,jkk)*(paph(jl,jkk+1)-paph(jl,jkk))
+        end if 
+      end do
+
+      if ( is /= 0 ) then
+        if ( jkk == klev ) then
+          do jl = kidia , kfdia
+            if ( llgo_on(jl) ) then
+              zrho = paph(jl,jkk+1)/(rgas*(pten(jl,jkk) * &
+                     (d_one+retv*pqen(jl,jkk))))
+              zkhvfl = (pahfs(jl,jkk+1)*rcpd + &
+                       retv*pten(jl,jkk)*pqhfl(jl,jkk+1))/zrho
+              zws = 0.001D0 - 1.5D0*vonkar*zkhvfl * &
+                    (pgeoh(jl,klev)-pgeoh(jl,klev+1))/pten(jl,klev)
+              if ( zkhvfl < d_zero ) then
+                zws = 1.2D0*zws**.3333D0
+                ilab(jl,jkk) = 1
+                ztexc = max(-1.5D0*pahfs(jl,jkk+1)/(zrho*zws*cpd),d_zero)
+                zqexc = max(-1.5D0*pqhfl(jl,jkk+1)/(zrho*zws),d_zero)
+                zqu(jl,jkk) = zqenh(jl,jkk) + zqexc
+                zsuh(jl,jkk) = zsenh(jl,jkk) + cpd*ztexc
+                ztu(jl,jkk) = (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
+                zlu(jl,jkk) = d_zero
+                zwu2h(jl,jkk) = zws**d_two
+                !
+                !  Determine buoyancy at lowest half level
+                !
+                ztvenh = (d_one+retv*zqenh(jl,jkk)) * &
+                         (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd  
+                ztvuh = (d_one+retv*zqu(jl,jkk))*ztu(jl,jkk)
+                zbuoh(jl,jkk) = (ztvuh-ztvenh)*egrav/ztvenh
+              else
+                llgo_on(jl) = .false.      ! non-convective point
+              end if
+            end if
+          end do
+        else
+          do jl = kidia , kfdia
+            if ( llgo_on(jl) ) then
+              zrho = paph(jl,jkk+1)/(rgas*(pten(jl,jkk) * &
+                     (d_one+retv*pqen(jl,jkk))))
+              ilab(jl,jkk) = 1
+              ztexc = 0.2D0
+              zqexc = 1.D-4
+              zqu(jl,jkk) = zqenh(jl,jkk) + zqexc
+              zsuh(jl,jkk) = zsenh(jl,jkk) + cpd*ztexc
+              ztu(jl,jkk) = (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
+              zlu(jl,jkk) = d_zero
+              ! construct mixed layer for parcels emanating in lowest 60 hpa
+              if ( paph(jl,klev+1)-paph(jl,jkk-1) < 60.D2 ) then
+                zqu(jl,jkk)  = d_zero
+                zsuh(jl,jkk) = d_zero
+                zwork1       = d_zero
+                do jk = jkk+1 , jkk-1 , -1
+                  if ( zwork1 < 50.D2 ) then
+                    zwork2 = paph(jl,jk)-paph(jl,jk-1)
+                    zwork1 = zwork1+zwork2
+                    zqu(jl,jkk) = zqu(jl,jkk) + zqenh(jl,jk)*zwork2
+                    zsuh(jl,jkk) = zsuh(jl,jkk)+zsenh(jl,jk)*zwork2
+                  end if
+                end do
+                zqu(jl,jkk) = zqu(jl,jkk) / zwork1+zqexc
+                zsuh(jl,jkk) = zsuh(jl,jkk)/zwork1+cpd*ztexc
+                ztu(jl,jkk) = (zsuh(jl,jkk)-pgeoh(jl,jkk))*rcpd+ztexc
+              end if
+              zwu2h(jl,jkk) = d_one
+              !
+              !  determine buoyancy at lowest half level
+              !
+              ztvenh = (d_one+retv*zqenh(jl,jkk)) * &
+                       (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd  
+              ztvuh = (d_one+retv*zqu(jl,jkk))*ztu(jl,jkk)
+              zbuoh(jl,jkk) = (ztvuh-ztvenh)*egrav/ztvenh
+            end if
+          end do
+        end if
+      end if
+      !
+      ! 2.0 Do ascent in subcloud and layer,
+      !     check for existence of condensation level,
+      !     adjust t,q and l accordingly in *cuadjtq*,
+      !     check for buoyancy and set flags
+      !
+      !
+      ! 1.2  Do the vertical ascent until velocity becomes negative
+      !
+      do jk = jkk-1 , jkt2 , -1
+        is = 0
+        if ( jkk == klev ) then ! 1/z mixing for shallow
+          do jl = kidia , kfdia
+            if ( llgo_on(jl) ) then
+              is = is+1
+              zdz(jl) = (pgeoh(jl,jk) - pgeoh(jl,jk+1))*regrav
+              zeps = zc2/((pgeoh(jl,jk)-pgeoh(jl,klev+1))*regrav) + zepsadd
+              zmix(jl) = d_half*zdz(jl)*zeps
+              zqf = (pqenh(jl,jk+1) + pqenh(jl,jk))*d_half
+              zsf = (zsenh(jl,jk+1) + zsenh(jl,jk))*d_half
+              ztmp = d_one/(d_one+zmix(jl))
+              zqu(jl,jk) = (zqu(jl,jk+1)*(d_one-zmix(jl)) + &
+                           d_two*zmix(jl)*zqf) * ztmp  
+              zsuh(jl,jk) = (zsuh(jl,jk+1)*(d_one-zmix(jl)) + &
+                            d_two*zmix(jl)*zsf) * ztmp  
+              zqold(jl) = zqu(jl,jk)
+              ztu(jl,jk) = (zsuh(jl,jk)-pgeoh(jl,jk))*rcpd
+              zph(jl) = paph(jl,jk)
+            end if
+          end do
+        else
+          do jl = kidia , kfdia
+            if ( llgo_on(jl) ) then
+              is = is+1
+              zdz(jl) = (pgeoh(jl,jk) - pgeoh(jl,jk+1))*regrav
+              zqf = (pqenh(jl,jk+1) + pqenh(jl,jk))*d_half
+              zsf = (zsenh(jl,jk+1) + zsenh(jl,jk))*d_half
+              zmix(jl) = 0.4D0*entrorg*zdz(jl) * &
+                         min(d_one,(pqsen(jl,jk)/pqsen(jl,klev))**d_three)
+              zqu(jl,jk) = zqu(jl,jk+1)*(d_one-zmix(jl))+ zqf*zmix(jl)
+              zsuh(jl,jk) = zsuh(jl,jk+1)*(d_one-zmix(jl))+ zsf*zmix(jl)
+              zqold(jl) = zqu(jl,jk)
+              ztu(jl,jk) = (zsuh(jl,jk)-pgeoh(jl,jk))*rcpd
+              zph(jl) = paph(jl,jk)
+            end if
+          end do
+        end if
+        if ( is == 0 ) exit
+        ik = jk
+        icall = 1
+        call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik,zph,ztu,zqu,llgo_on,icall)
+!dir$ ivdep
+!ocl novrec
+        do jl = kidia , kfdia
+          if ( llgo_on(jl) ) then
+            !
+            ! Add condensation to water
+            !
+            zdq = max(zqold(jl)-zqu(jl,jk),d_zero)
+            zlu(jl,jk) = zlu(jl,jk+1)+zdq
+            !
+            ! Freezing
+            !
+            zlglac = zdq*((d_one-foealfcu(ztu(jl,jk))) - &
+                          (d_one-foealfcu(ztu(jl,jk+1))))  
+            !
+            ! Pseudo-microphysics
+            !
+            if ( jkk==klev ) then  ! no precip for shallow
+              zlu(jl,jk) = min(zlu(jl,jk),5.D-3)
+              !
+              ! Chose a more pseudo-adiabatic formulation as original
+              ! overestimates water loading effect and therefore strongly
+              ! underestimates cloud thickness
+              !
+            else 
+              zlu(jl,jk) = d_half*zlu(jl,jk) 
+            end if
+            !
+            ! Update dry static energy after condensation + freezing
+            !
+            zsuh(jl,jk) = cpd*(ztu(jl,jk)+wlhfocp*zlglac)+pgeoh(jl,jk)
+            !
+            ! Buoyancy on half and full levels
+            !
+            ztvuh = (d_one+retv*zqu(jl,jk)-zlu(jl,jk)) * &
+                    ztu(jl,jk)+wlhfocp*zlglac  
+            ztvenh = (d_one+retv*zqenh(jl,jk)) * &
+                     (zsenh(jl,jk)-pgeoh(jl,jk))*rcpd  
+            zbuoh(jl,jk) = (ztvuh-ztvenh)*egrav/ztvenh
+            zbuof = (zbuoh(jl,jk) + zbuoh(jl,jk+1))*d_half
+            !
+            ! Solve kinetic energy equation
+            !
+            ztmp = d_one/(d_one+d_two*zbw*zmix(jl))
+            zwu2h(jl,jk) = (zwu2h(jl,jk+1)*(d_one-d_two*zbw*zmix(jl)) + &
+                           d_two*zaw*zbuof*zdz(jl)) * ztmp  
+            !
+            ! Compute pseudoadiabatique cape for diagnostics
+            !
+            ztvu2 = ztu(jl,jk)   *(d_one+retv*zqu(jl,jk))
+            ztven2 = ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
+            if ( jk == jkk-1 ) then
+              ztvu1(jl) = ztvu2
+              ztven1(jl) = ztven2
+            end if
+            zbuof = (ztvu2+ztvu1(jl)-ztven1(jl)-ztven2)/ztven2
+            zbuof = zbuof*zdz(jl)*egrav
+            zcape(jl,jkk) = zcape(jl,jkk) + max(d_zero,zbuof)
+            ztvu1(jl) = ztvu2
+            ztven1(jl) = ztven2
+            !
+            ! First layer with liquid water - find exact cloud base
+            !
+            if ( zlu(jl,jk) > d_zero .and. ilab(jl,jk+1) == 1 ) then
+              ik = jk+1
+              zqsu = foeewm(ztu(jl,ik))/paph(jl,ik)
+              zqsu = min(d_half,zqsu)
+              zcor = d_one/(d_one-retv*zqsu)
+              zqsu = zqsu*zcor
+              zdq = min(d_zero,zqu(jl,ik)-zqsu)
+              zalfaw = foealfa(ztu(jl,ik))
+              zfacw = c5les/((ztu(jl,ik)-c4les)**d_two)
+              zfaci = c5ies/((ztu(jl,ik)-c4ies)**d_two)
+              zfac = zalfaw*zfacw+(d_one-zalfaw)*zfaci
+              zesdp = foeewm(ztu(jl,ik))/paph(jl,ik)
+              zcor = d_one/(d_one-retv*zesdp)
+              zdqsdt = zfac*zcor*zqsu
+              zdtdp = rgas*ztu(jl,ik)/(cpd*paph(jl,ik))
+              zdp = zdq/(zdqsdt*zdtdp)
+              zcbase(jl) = paph(jl,ik)+zdp
+              !
+              ! Chose nearest half level as cloud base
+              !
+              zpdifftop = zcbase(jl)-paph(jl,jk)
+              zpdiffbot = paph(jl,jk+1)-zcbase(jl)
+              if ( zpdifftop > zpdiffbot .and. &
+                   zwu2h(jl,jk+1) > d_zero ) then
+                jkb = min(klev-1,jk+1)
+                ilab(jl,jkb) = 2 
+                ilab(jl,jk)  = 2
+                ll_ldbase(jl) = .true.
+                lldsc(jl)     = .true.
+                ibotsc(jl) = jkb
+                icbot(jl)  = jkb
+                zlu(jl,jk+1) = rlmin
+              else if ( zpdifftop <= zpdiffbot .and. &
+                        zwu2h(jl,jk) > d_zero) then
+                ilab(jl,jk) = 2
+                ll_ldbase(jl) = .true.
+                lldsc(jl)     = .true.
+                ibotsc(jl) = jk
+                icbot(jl)  = jk
+              end if
+              jkb = icbot(jl)
+            end if
+            !
+            ! Decide on presence of convection, cloud base and
+            ! cloud top based on kinetic energy
+            !
+            if ( zwu2h(jl,jk) < d_zero ) then
+              llgo_on(jl) = .false.             
+              if ( zlu(jl,jk+1) > d_zero ) then
+                ictop(jl) = jk
+                lldcum(jl) = .true.
+              else
+                lldcum(jl) = .false.
+              end if
+            else
+              if ( zlu(jl,jk) > d_zero ) then
+                ilab(jl,jk) = 2
+              else
+                ilab(jl,jk) = 1
+              end if
+            end if
+          end if
+        end do
+        if ( lmfdudv .and. jkk == klev ) then
+          do jl = kidia , kfdia
+            if ( .not. ll_ldbase(jl) .and. llgo_on(jl) ) then
+              zuu(jl,jkk) = zuu(jl,jkk)+puen(jl,jk)*(paph(jl,jk+1)-paph(jl,jk))
+              zvu(jl,jkk) = zvu(jl,jkk)+pven(jl,jk)*(paph(jl,jk+1)-paph(jl,jk))
+            end if
+          end do
+        end if
+        ! if ( is == 0 ) exit
+      end do
+      if ( jkk == klev ) then
+        !
+        ! Set values for departure level for pbl clouds = first model level
+        !
+        do jl = kidia , kfdia
+          ldsc(jl) = lldsc(jl)
+          if ( ldsc(jl) ) then
+            kbotsc(jl) = ibotsc(jl)
+          else
+            kbotsc(jl) = -1
+          end if
+          llgo_on(jl) = .false.
+          jkt = ictop(jl)
+          jkb = icbot(jl)
+          lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) > rdepths
+          if ( lldeep(jl) ) lldcum(jl) = .false. ! no deep allowed for klev
+          lldeep(jl) = .false. ! for deep convection start only at level klev-1
+                               ! and form mixed layer, so go on
+          ! test further for deep convective columns as not yet found
+          if ( lldeep(jl) ) llfirst(jl) = .false.
+          llgo_on(jl) = .not. lldeep(jl)
+          if ( lldcum(jl) ) then
+            kcbot(jl) = icbot(jl)
+            kctop(jl) = ictop(jl)
+            kdpl(jl)  = idpl(jl)
+            ldcum(jl) = lldcum(jl)
+            pwubase(jl) = sqrt(max(zwu2h(jl,jkb),d_zero))
+          else
+            kctop(jl) = -1
+            kcbot(jl) = -1
+            kdpl(jl) = klev-1
+            ldcum(jl) = .false.
+            pwubase(jl) = d_zero
+          end if
+        end do
+        do jk = klev , 1 , -1
+          do jl = kidia , kfdia
+            jkt = ictop(jl)
+            if ( jk >= jkt ) then
+              klab(jl,jk) = ilab(jl,jk)
+              ptu(jl,jk) = ztu(jl,jk)
+              pqu(jl,jk) = zqu(jl,jk)
+              plu(jl,jk) = zlu(jl,jk)
+            end if
+          end do
+        end do
+      end if
+      if ( jkk < klev ) then
+        llreset = .false.
+        do jl = kidia , kfdia
+          if ( .not. lldeep(jl) ) then
+            jkt = ictop(jl)
+            jkb = icbot(jl)
+            ! test on cloud thickness and buoyancy
+            lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) >= rdepths 
+            ! lldeep(jl)=paph(jl,jkb)-paph(jl,jkt)>=rdepths &
+            !            .and. zdtvtrig(jl)>0._jprb
+          end if
+          llresetjl(jl) = lldeep(jl) .and. llfirst(jl)
+          llreset = llreset .or. llresetjl(jl)
+        end do
+        if ( llreset ) then
+          do jk = klev , 1 , -1
+            do jl = kidia , kfdia
+              ! keep first departure level that produces deep cloud
+              ! if ( lldeep(jl) .and. llfirst(jl) ) then 
+              if ( llresetjl(jl) ) then 
+                jkt = ictop(jl)
+                jkb = idpl(jl)
+                if ( jk <= jkb .and. jk >= jkt ) then
+                  klab(jl,jk) = ilab(jl,jk)
+                  ptu(jl,jk) = ztu(jl,jk)
+                  pqu(jl,jk) = zqu(jl,jk)
+                  plu(jl,jk) = zlu(jl,jk)
+                else 
+                  klab(jl,jk) = 1
+                  ptu(jl,jk) = ptenh(jl,jk)
+                  pqu(jl,jk) = pqenh(jl,jk)
+                  plu(jl,jk) = d_zero
+                end if
+                if ( jk < jkt ) klab(jl,jk) = 0
+              end if
+            end do
+          end do
+        end if
+        do jl = kidia , kfdia
+          if ( lldeep(jl) .and. llfirst(jl) ) then
+            kdpl(jl)   = idpl(jl)
+            kctop(jl)  = ictop(jl)
+            kcbot(jl)  = icbot(jl)
+            ldcum(jl)  = lldcum(jl)
+            ldsc(jl)   = .false.
+            kbotsc(jl) = -1
+            jkb = kcbot(jl)
+            pwubase(jl) = sqrt(max(zwu2h(jl,jkb),d_zero))
+            ! No initialization of wind for deep here, this is done in
+            ! cuini and cuascn
+            llfirst(jl) = .false.
+          end if
+          llgo_on(jl) = .not. lldeep(jl)
+        end do
+      end if
+    end do ! end of big loop for search of departure level     
+    !
+    ! Chose maximum cape value
+    !
+    do jl = kidia , kfdia
+      pcape(jl) = maxval(zcape(jl,:))
+    end do
+  end subroutine cubasen
 !
 !-----------------------------------------------------------------------------
 !
