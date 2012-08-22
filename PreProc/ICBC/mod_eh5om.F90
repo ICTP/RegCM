@@ -189,31 +189,31 @@ module mod_eh5om
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
     else if ( dattyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(year-1941)//'/'//'EH_RF'//                &
-             yr_rf(year-1941)//chmon(12)
+      finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//                &
+             yr_rf(year-1940)//chmon(12)
     else if ( dattyp == 'EH5A2' ) then
       if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1941)//'/'//'EH_RF'//              &
-               yr_rf(year-1941)//chmon(12)
+        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
+               yr_rf(year-1940)//chmon(12)
       else
-        finm = 'A2/'//yr_a2(year-2001)//'/'//'EH_A2'//              &
-               yr_a2(year-2001)//chmon(12)
+        finm = 'A2/'//yr_a2(year-2000)//'/'//'EH_A2'//              &
+               yr_a2(year-2000)//chmon(12)
       end if
     else if ( dattyp == 'EH5B1' ) then
       if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1941)//'/'//'EH_RF'//              &
-               yr_rf(year-1941)//chmon(12)
+        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
+               yr_rf(year-1940)//chmon(12)
       else
-        finm = 'B1/'//yr_a2(year-2001)//'/'//'EH_B1'//              &
-               yr_a2(year-2001)//chmon(12)
+        finm = 'B1/'//yr_a2(year-2000)//'/'//'EH_B1'//              &
+               yr_a2(year-2000)//chmon(12)
       end if
     else if ( dattyp == 'EHA1B' ) then
       if ( year == 2001 ) then
-        finm = 'RF/'//yr_rf(year-1941)//'/'//'EH_RF'//              &
-               yr_rf(year-1941)//chmon(12)
+        finm = 'RF/'//yr_rf(year-1940)//'/'//'EH_RF'//              &
+               yr_rf(year-1940)//chmon(12)
       else
-        finm = 'A1B/'//yr_a2(year-2001)//'/'//'E_A1B'//             &
-               yr_a2(year-2001)//chmon(12)
+        finm = 'A1B/'//yr_a2(year-2000)//'/'//'E_A1B'//             &
+               yr_a2(year-2000)//chmon(12)
       end if
     else
       call die('geteh5om','ERROR IN geteh5om',1)
@@ -251,31 +251,31 @@ module mod_eh5om
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
   else if ( dattyp == 'EH5RF' ) then
-    finm = 'RF/'//yr_rf(year-1941)//'/'//'EHgRF'// &
-                  yr_rf(year-1941)//chmon(12)
+    finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'// &
+                  yr_rf(year-1940)//chmon(12)
   else if ( dattyp == 'EH5A2' ) then
     if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1941)//'/'//'EHgRF'//               &
-             yr_rf(year-1941)//chmon(12)
+      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
+             yr_rf(year-1940)//chmon(12)
     else
-      finm = 'A2/'//yr_a2(year-2001)//'/'//'EHgA2'//               &
-             yr_a2(year-2001)//chmon(12)
+      finm = 'A2/'//yr_a2(year-2000)//'/'//'EHgA2'//               &
+             yr_a2(year-2000)//chmon(12)
     end if
   else if ( dattyp == 'EH5B1' ) then
     if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1941)//'/'//'EHgRF'//               &
-             yr_rf(year-1941)//chmon(12)
+      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
+             yr_rf(year-1940)//chmon(12)
     else
-      finm = 'B1/'//yr_a2(year-2001)//'/'//'EHgB1'//               &
-             yr_a2(year-2001)//chmon(12)
+      finm = 'B1/'//yr_a2(year-2000)//'/'//'EHgB1'//               &
+             yr_a2(year-2000)//chmon(12)
     end if
   else if ( dattyp == 'EHA1B' ) then
     if ( year == 2001 ) then
-      finm = 'RF/'//yr_rf(year-1941)//'/'//'EHgRF'//               &
-             yr_rf(year-1941)//chmon(12)
+      finm = 'RF/'//yr_rf(year-1940)//'/'//'EHgRF'//               &
+             yr_rf(year-1940)//chmon(12)
     else
-      finm = 'A1B/'//yr_a2(year-2001)//'/'//'EgA1B'//              &
-             yr_a2(year-2001)//chmon(12)
+      finm = 'A1B/'//yr_a2(year-2000)//'/'//'EgA1B'//              &
+             yr_a2(year-2000)//chmon(12)
     end if
   else
     call die('geteh5om','ERROR IN geteh5om',1)
