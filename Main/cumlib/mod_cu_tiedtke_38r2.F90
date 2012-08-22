@@ -734,9 +734,9 @@ module mod_cu_tiedtke_38r2
       end if
 
       if ( kcall == 5 ) then  ! same as 4 but with ldflag all true
+        if ( n_vmass <= 0 )  then ! not using vector mass
 !dir$    ivdep
 !ocl novrec
-        if ( n_vmass <= 0 )  then ! not using vector mass
           do jl = kidia , kfdia
             zqp = d_one/psp(jl)
             zqsat = foeewm(pt(jl,kk))*zqp
@@ -818,8 +818,9 @@ module mod_cu_tiedtke_38r2
       end if
 
       if ( kcall == 3 ) then
-!dir$    ivdep !ocl novrec
         if ( n_vmass <= 0 ) then ! not using vector mass
+!dir$    ivdep
+!ocl novrec
           do jl = kidia , kfdia
             zqp = d_one/psp(jl)
             zqsat = foeewmcu(pt(jl,kk))*zqp
@@ -2421,8 +2422,8 @@ module mod_cu_tiedtke_38r2
       !
       do jk = ktopm2 , klev
         ik = jk-1
-!dir$ ivdep
-!ocl novrec
+!dir$   ivdep
+!ocl    novrec
         do jl = kidia , kfdia
           if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
             !
@@ -2692,9 +2693,9 @@ module mod_cu_tiedtke_38r2
     !
     ktopm2 = 2
     do jk = ktopm2 , klev
-!dir$ ivdep
-!ocl novrec
       ikb = min(jk+1,klev)
+!dir$ ivdep
+!ocl  novrec
       do jl = kidia , kfdia
         pmflxr(jl,jk) = d_zero
         pmflxs(jl,jk) = d_zero
@@ -2901,9 +2902,9 @@ module mod_cu_tiedtke_38r2
 !
 !          THIS ROUTINE CALCULATES CLOUD BASE FIELDS
 !          CLOUD BASE HEIGHT AND CLOUD TOP HEIGHT
-!          A. Pier Siebesma   KNMI ********      
-!          modified C Jakob (ECMWF) (01/2001) 
-!          modified P Bechtold (ECMWF) (08/2002) 
+!          A. Pier Siebesma   KNMI ********
+!          modified C Jakob (ECMWF) (01/2001)
+!          modified P Bechtold (ECMWF) (08/2002)
 !          (include cycling over levels to find unstable departure/base level+
 !           mixed layer properties +w Trigger)
 !          PURPOSE.
@@ -2956,11 +2957,11 @@ module mod_cu_tiedtke_38r2
 !    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
 !                        KLAB=2 FOR CLOUD LEVELS
 !    OUTPUT PARAMETERS (LOGICAL):
-!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
 !    *LDSC*         FLAG: .TRUE. IF BL-CLOUDS EXIST
 !    OUTPUT PARAMETERS (INTEGER):
-!    *KCBOT*       CLOUD BASE LEVEL !    
-!    *KCTOP*       CLOUD TOP LEVEL = HEIGHEST HALF LEVEL 
+!    *KCBOT*       CLOUD BASE LEVEL !
+!    *KCTOP*       CLOUD TOP LEVEL = HEIGHEST HALF LEVEL
 !                  WITH A NON-ZERO CLOUD UPDRAFT.
 !    *KBOTSC*      CLOUD BASE LEVEL OF BL-CLOUDS
 !    *KDPL*        DEPARTURE LEVEL
@@ -2971,7 +2972,7 @@ module mod_cu_tiedtke_38r2
 !          MODIFICATIONS
 !          -------------
 !             92-09-21 : Update to Cy44      J.-J. MORCRETTE
-!             02-11-02 : Use fixed last possible departure level and 
+!             02-11-02 : Use fixed last possible departure level and
 !                        last updraft computation level for bit-reproducibility
 !                                            D.Salmond &  J. Hague
 !             03-07-03 : Tuning for p690     J. Hague
@@ -2984,10 +2985,10 @@ module mod_cu_tiedtke_38r2
                      kcbot,kbotsc,kctop,kdpl,pcape)
     implicit none
 
-    integer , intent(in) :: klon 
-    integer , intent(in) :: klev 
-    integer , intent(in) :: kidia 
-    integer , intent(in) :: kfdia 
+    integer , intent(in) :: klon
+    integer , intent(in) :: klev
+    integer , intent(in) :: kidia
+    integer , intent(in) :: kfdia
     integer :: ktdia ! argument not used
     logical , dimension(klon) , intent(in) :: ldland
     real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
@@ -3014,13 +3015,13 @@ module mod_cu_tiedtke_38r2
     real(dp) , dimension(klon,klev+1) :: zsenh , zqenh
     real(dp) ,dimension(klon) :: zqold , zph , zmix , zdz , zcbase , &
              ztven1 , ztvu1 , zdtvtrig
-    real(dp) :: zrho      ! density at surface (kg/m^3) 
+    real(dp) :: zrho      ! density at surface (kg/m^3)
     real(dp) :: zkhvfl    ! surface buoyancy flux (k m/s)
     real(dp) :: zws       ! sigma_w at lowest model halflevel (m/s)
     real(dp) :: zqexc     ! humidity excess at lowest model halflevel (kg/kg)
     real(dp) :: ztexc     ! temperature excess at lowest model halflevel (k)
     real(dp) :: zeps      ! fractional entrainment rate   [m^-1]
-    real(dp) :: ztvenh    ! environment virtual temperature at half levels (k)  
+    real(dp) :: ztvenh    ! environment virtual temperature at half levels (k)
     real(dp) :: ztvuh     ! updraft virtual temperature at half levels     (k)
     real(dp) :: zlglac    ! updraft liquid water frozen in one layer
     real(dp) :: zqsu , zcor , zdq , zalfaw , zfacw , zfaci , zfac ,  &
@@ -3089,7 +3090,7 @@ module mod_cu_tiedtke_38r2
           zdtvtrig(jl) = d_zero
           zuu(jl,jkk) = puen(jl,jkk)*(paph(jl,jkk+1)-paph(jl,jkk))
           zvu(jl,jkk) = pven(jl,jkk)*(paph(jl,jkk+1)-paph(jl,jkk))
-        end if 
+        end if
       end do
 
       if ( is /= 0 ) then
@@ -3116,7 +3117,7 @@ module mod_cu_tiedtke_38r2
                 !  Determine buoyancy at lowest half level
                 !
                 ztvenh = (d_one+retv*zqenh(jl,jkk)) * &
-                         (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd  
+                         (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd
                 ztvuh = (d_one+retv*zqu(jl,jkk))*ztu(jl,jkk)
                 zbuoh(jl,jkk) = (ztvuh-ztvenh)*egrav/ztvenh
               else
@@ -3158,7 +3159,7 @@ module mod_cu_tiedtke_38r2
               !  determine buoyancy at lowest half level
               !
               ztvenh = (d_one+retv*zqenh(jl,jkk)) * &
-                       (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd  
+                       (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd
               ztvuh = (d_one+retv*zqu(jl,jkk))*ztu(jl,jkk)
               zbuoh(jl,jkk) = (ztvuh-ztvenh)*egrav/ztvenh
             end if
@@ -3187,9 +3188,9 @@ module mod_cu_tiedtke_38r2
               zsf = (zsenh(jl,jk+1) + zsenh(jl,jk))*d_half
               ztmp = d_one/(d_one+zmix(jl))
               zqu(jl,jk) = (zqu(jl,jk+1)*(d_one-zmix(jl)) + &
-                           d_two*zmix(jl)*zqf) * ztmp  
+                           d_two*zmix(jl)*zqf) * ztmp
               zsuh(jl,jk) = (zsuh(jl,jk+1)*(d_one-zmix(jl)) + &
-                            d_two*zmix(jl)*zsf) * ztmp  
+                            d_two*zmix(jl)*zsf) * ztmp
               zqold(jl) = zqu(jl,jk)
               ztu(jl,jk) = (zsuh(jl,jk)-pgeoh(jl,jk))*rcpd
               zph(jl) = paph(jl,jk)
@@ -3229,7 +3230,7 @@ module mod_cu_tiedtke_38r2
             ! Freezing
             !
             zlglac = zdq*((d_one-foealfcu(ztu(jl,jk))) - &
-                          (d_one-foealfcu(ztu(jl,jk+1))))  
+                          (d_one-foealfcu(ztu(jl,jk+1))))
             !
             ! Pseudo-microphysics
             !
@@ -3240,8 +3241,8 @@ module mod_cu_tiedtke_38r2
               ! overestimates water loading effect and therefore strongly
               ! underestimates cloud thickness
               !
-            else 
-              zlu(jl,jk) = d_half*zlu(jl,jk) 
+            else
+              zlu(jl,jk) = d_half*zlu(jl,jk)
             end if
             !
             ! Update dry static energy after condensation + freezing
@@ -3251,9 +3252,9 @@ module mod_cu_tiedtke_38r2
             ! Buoyancy on half and full levels
             !
             ztvuh = (d_one+retv*zqu(jl,jk)-zlu(jl,jk)) * &
-                    ztu(jl,jk)+wlhfocp*zlglac  
+                    ztu(jl,jk)+wlhfocp*zlglac
             ztvenh = (d_one+retv*zqenh(jl,jk)) * &
-                     (zsenh(jl,jk)-pgeoh(jl,jk))*rcpd  
+                     (zsenh(jl,jk)-pgeoh(jl,jk))*rcpd
             zbuoh(jl,jk) = (ztvuh-ztvenh)*egrav/ztvenh
             zbuof = (zbuoh(jl,jk) + zbuoh(jl,jk+1))*d_half
             !
@@ -3261,7 +3262,7 @@ module mod_cu_tiedtke_38r2
             !
             ztmp = d_one/(d_one+d_two*zbw*zmix(jl))
             zwu2h(jl,jk) = (zwu2h(jl,jk+1)*(d_one-d_two*zbw*zmix(jl)) + &
-                           d_two*zaw*zbuof*zdz(jl)) * ztmp  
+                           d_two*zaw*zbuof*zdz(jl)) * ztmp
             !
             ! Compute pseudoadiabatique cape for diagnostics
             !
@@ -3304,7 +3305,7 @@ module mod_cu_tiedtke_38r2
               if ( zpdifftop > zpdiffbot .and. &
                    zwu2h(jl,jk+1) > d_zero ) then
                 jkb = min(klev-1,jk+1)
-                ilab(jl,jkb) = 2 
+                ilab(jl,jkb) = 2
                 ilab(jl,jk)  = 2
                 ll_ldbase(jl) = .true.
                 lldsc(jl)     = .true.
@@ -3326,7 +3327,7 @@ module mod_cu_tiedtke_38r2
             ! cloud top based on kinetic energy
             !
             if ( zwu2h(jl,jk) < d_zero ) then
-              llgo_on(jl) = .false.             
+              llgo_on(jl) = .false.
               if ( zlu(jl,jk+1) > d_zero ) then
                 ictop(jl) = jk
                 lldcum(jl) = .true.
@@ -3406,7 +3407,7 @@ module mod_cu_tiedtke_38r2
             jkt = ictop(jl)
             jkb = icbot(jl)
             ! test on cloud thickness and buoyancy
-            lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) >= rdepths 
+            lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) >= rdepths
             ! lldeep(jl)=paph(jl,jkb)-paph(jl,jkt)>=rdepths &
             !            .and. zdtvtrig(jl)>0._jprb
           end if
@@ -3417,8 +3418,8 @@ module mod_cu_tiedtke_38r2
           do jk = klev , 1 , -1
             do jl = kidia , kfdia
               ! keep first departure level that produces deep cloud
-              ! if ( lldeep(jl) .and. llfirst(jl) ) then 
-              if ( llresetjl(jl) ) then 
+              ! if ( lldeep(jl) .and. llfirst(jl) ) then
+              if ( llresetjl(jl) ) then
                 jkt = ictop(jl)
                 jkb = idpl(jl)
                 if ( jk <= jkb .and. jk >= jkt ) then
@@ -3426,7 +3427,7 @@ module mod_cu_tiedtke_38r2
                   ptu(jl,jk) = ztu(jl,jk)
                   pqu(jl,jk) = zqu(jl,jk)
                   plu(jl,jk) = zlu(jl,jk)
-                else 
+                else
                   klab(jl,jk) = 1
                   ptu(jl,jk) = ptenh(jl,jk)
                   pqu(jl,jk) = pqenh(jl,jk)
@@ -3454,7 +3455,7 @@ module mod_cu_tiedtke_38r2
           llgo_on(jl) = .not. lldeep(jl)
         end do
       end if
-    end do ! end of big loop for search of departure level     
+    end do ! end of big loop for search of departure level
     !
     ! Chose maximum cape value
     !
