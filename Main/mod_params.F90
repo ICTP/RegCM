@@ -506,6 +506,9 @@ module mod_params
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
+      !Set ichdrdepo to a default value of 2; the UW--chem coupling
+      !requires this
+      ichdrdepo = 2
       print * , 'UWPARAM namelist READ IN'
     end if
     if ( irrtm == 1 ) then
