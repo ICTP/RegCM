@@ -22,6 +22,7 @@ module mod_che_output
   use mod_constants
   use mod_mpmessage
   use mod_mppparam
+  use mod_runparams
   use mod_service 
   use mod_dynparam
   use mod_che_common
@@ -65,9 +66,6 @@ module mod_che_output
       call grid_collect(cemtrac,cemtrac_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(drydepv,drydepv_io,jce1,jce2,ice1,ice2,1,ntr)
 
-
-
-
       if (ichdiag > 0) then   
         call grid_collect(chemdiag,chemdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_collect(cadvhdiag,cadvhdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -80,6 +78,9 @@ module mod_che_output
         call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_collect(cseddpdiag,cseddpdiag_io, &
                           jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          call grid_collect(cchifxuw,ccuwdiag_io,jce1,jce2,ice1,ice2,1,ntr)
+        end if
       end if
 
       call outche2(idatex) 
@@ -129,10 +130,11 @@ module mod_che_output
 
       if ( myid == iocpu ) then 
         aeraod_io = sum(aerext_io,3)
-        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,   &
+        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,  &
                            cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &
                            cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
-                           cbdydiag_io,ctbldiag_io,cseddpdiag_io,remlsc_io,remcvc_io,    &
+                           cbdydiag_io,ctbldiag_io,cseddpdiag_io,          &
+                           ccuwdiag_io,remlsc_io,remcvc_io,                &
                            aerext_io,aerssa_io,aerasp_io,aeraod_io,        &
                            aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io,&
                            cpsb_io,idatex)

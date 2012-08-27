@@ -1006,15 +1006,17 @@ module mod_che_ncio
 !============================================================================
 
     subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,remdrd,cemtrac,drydepv, &
-                             chemdiag,cadvhdiag,cadvvdiag,cdifhdiag,        &
-                             cconvdiag,cbdydiag,ctbldiag,cseddpdiag,remlsc,remcvc,     &  
-                             ext,ssa,asp,aod,tarf,ssrf,talwrf,srlwrf,ps,idate)
+                             chemdiag,cadvhdiag,cadvvdiag,cdifhdiag,         &
+                             cconvdiag,cbdydiag,ctbldiag,cseddpdiag,         &
+                             ccuwdiag,remlsc,remcvc,ext,ssa,asp,aod,tarf,    &
+                             ssrf,talwrf,srlwrf,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
       real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , &
              chemdiag , cadvhdiag , cadvvdiag , cdifhdiag , cconvdiag , &
              cbdydiag , ctbldiag , remlsc , remcvc  ,cseddpdiag
+      real(dp) , pointer , dimension(:,:,:) , intent(in) :: ccuwdiag
       real(dp) , pointer , dimension(:,:) , intent(in) :: ps
       real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         remdrd , cemtrac , drydepv , dtrace
@@ -1227,7 +1229,7 @@ module mod_che_ncio
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
             if ( ibltyp == 2 .or. ibltyp == 99 ) then
               do k = 1 , kz
-                dumio(:,:,1) = real(cchifxuw(o_js:o_je,o_is:o_ie,n))
+                dumio(:,:,1) = real(ccuwdiag(o_js:o_je,o_is:o_ie,n))
               end do
               istatus = nf90_put_var(ncche(n), ichevar(20), &
                                      dumio, istart, icount)

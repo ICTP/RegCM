@@ -788,7 +788,7 @@ module mod_params
   end if
 
   call allocate_mod_che_common(ichem)
-  call allocate_mod_che_mppio
+  call allocate_mod_che_mppio(ibltyp)
   call allocate_mod_che_dust(ichem)
   call allocate_mod_che_bdyco
 !
