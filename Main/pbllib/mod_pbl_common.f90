@@ -170,11 +170,11 @@ module mod_pbl_common
       ! To be used in vertical advection scheme
       call getmem3d(dotqdot,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:dotqdot')
       call getmem3d(ftmp,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:ftmp')
-      if(ichem == 1)then
+      if ( ichem == 1 ) then
         lchem = .true. 
         call getmem4d(chiuwten,jci1,jci2,ici1,ici2, &
                                1,kz,1,ntr,'pbl_common:chiuwten')
-!       call getmem3d(chifxuw,jci1,jci2,ici1,ici2,1,ntr,'pbl_common:chifxuw')
+        call getmem3d(chifxuw,jci1,jci2,ici1,ici2,1,ntr,'pbl_common:chifxuw')
       end if
     end if
   end subroutine allocate_mod_pbl_common

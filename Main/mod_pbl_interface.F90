@@ -144,8 +144,7 @@ module mod_pbl_interface
       ! TODO: may want to calcuate rmdr here following holtbl
       if ( lchem ) then
         chten(jci1:jci2,ici1:ici2,:,:) = &
-                  chten(jci1:jci2,jci1:jci2,:,:) +   &
-                  chiuwten(jci1:jci2,ici1:ici2,:,:)
+              chten(jci1:jci2,ici1:ici2,:,:)+chiuwten(jci1:jci2,ici1:ici2,:,:)
       end if
 
       if ( .not. bRegridWinds ) then

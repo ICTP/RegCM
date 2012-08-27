@@ -79,7 +79,7 @@ module mod_che_output
         call grid_collect(cseddpdiag,cseddpdiag_io, &
                           jce1,jce2,ice1,ice2,1,kz,1,ntr)
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call grid_collect(cchifxuw,ccuwdiag_io,jce1,jce2,ice1,ice2,1,ntr)
+          call grid_collect(cchifxuw,ccuwdiag_io,jci1,jci2,ici1,ici2,1,ntr)
         end if
       end if
 
