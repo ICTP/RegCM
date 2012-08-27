@@ -1228,11 +1228,19 @@ module mod_che_ncio
             call check_ok(__FILE__,__LINE__, &
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
             if ( ibltyp == 2 .or. ibltyp == 99 ) then
-              do k = 1 , kz
-                dumio(:,:,1) = real(ccuwdiag(o_js:o_je,o_is:o_ie,n))
-              end do
+              !TAO: Re-set istart/icount, since ccuwdiag is a 2D variable
+              !and the previous istart/icount setting was for 3D variables
+              istart(4) = 1
+              istart(3) = icherec
+              istart(2) = 1
+              istart(1) = 1
+              icount(4) = 1
+              icount(3) = 1
+              icount(2) = o_ni
+              icount(1) = o_nj
+              dumio(:,:,1) = real(ccuwdiag(o_js:o_je,o_is:o_ie,n))
               istatus = nf90_put_var(ncche(n), ichevar(20), &
-                                     dumio, istart, icount)
+                                     dumio(:,:,1), istart, icount)
               call check_ok(__FILE__,__LINE__, &
                            'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
             end if
