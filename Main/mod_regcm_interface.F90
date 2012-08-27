@@ -240,6 +240,7 @@ module mod_regcm_interface
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
+      if ( myid == 0 ) print *, 'TSI : ', solar_irradiance( )
       !
       ! Refined start
       !

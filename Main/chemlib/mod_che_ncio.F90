@@ -793,9 +793,6 @@ module mod_che_ncio
           ichevar = -1
           ichevar(1) = itvar
           ichevar(2) = illtpvar(5)
-
-         
-
           call ch_addvara(ncid,chevarnam,chevarnam, &
                     'atmosphere_mixing_ratio_of_tracer', &
                     'Tracers mixing ratios','kg kg-1', &
@@ -862,12 +859,16 @@ module mod_che_ncio
                     'bdy. cond. tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(18))
-
             call ch_addvara(ncid,chevarnam,'sedddp_tend', &
                     'sedim. ddep. tend', &
                     'chem tendency','kg kg-1 s-1', &
                     tzyx,.false.,ichevar(19))
-             
+            if ( ibltyp == 2 .or. ibltyp == 99 ) then
+              call ch_addvara(ncid,chevarnam,'chifxuw', &
+                      'UWpbl. net flux', &
+                      'chem tendency','kg kg-1 s-1', &
+                      tyx,.false.,ichevar(20))
+            end if
           end if
 
          else if ( itr == noutf ) then 
@@ -1216,8 +1217,7 @@ module mod_che_ncio
             call check_ok(__FILE__,__LINE__, &
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
 
-
-             do k = 1 , kz
+            do k = 1 , kz
               dumio(:,:,k) = real(cseddpdiag(o_js:o_je,o_is:o_ie,k,n) / &
                                   ps(o_js:o_je,o_is:o_ie))
             end do
@@ -1225,9 +1225,16 @@ module mod_che_ncio
                                    dumio, istart, icount)
             call check_ok(__FILE__,__LINE__, &
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
-
+            if ( ibltyp == 2 .or. ibltyp == 99 ) then
+              do k = 1 , kz
+                dumio(:,:,1) = real(cchifxuw(o_js:o_je,o_is:o_ie,n))
+              end do
+              istatus = nf90_put_var(ncche(n), ichevar(20), &
+                                     dumio, istart, icount)
+              call check_ok(__FILE__,__LINE__, &
+                           'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
+            end if
           end if 
-
 
           !closing
           istatus = nf90_sync(ncche(n))
