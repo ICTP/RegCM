@@ -1254,18 +1254,16 @@ module mod_gn6hnc
                   trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
                   y1, '010100-', y2, '123123.nc'
               else
-              if (year*1000000+month*10000+day*100+hour == 2006010100) then
-                ! use modified file (r45 first time step is added to hist last time step)
+                if (year*1000000+month*10000+day*100+hour == 2006010100) then
+                  write (inname,99005) 'RF',pthsep,trim(gfdlvars(i)), pthsep, &
+                    trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
+                    2001, '010100-', 2005, '123123.nc'
+                else
                   write (inname,99005) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
-                  trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
-                  2006, '010100-', 2010, '123123_fixed.nc'
-              else
-                write (inname,99005) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
-                  trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
-                  y1, '010100-', y2, '123123.nc'
-              end if
+                    pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
+                    trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
+                    y1, '010100-', y2, '123123.nc'
+                end if
               end if
               pathaddname = trim(inpglob)//'/GFDL-ESM2M/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
