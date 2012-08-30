@@ -1210,6 +1210,23 @@ module mod_date
           call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
         end if
         iunit = uhrs
+      else if (cunit(1:7) == 'minutes') then
+        ! Unit is minutes since reference
+        if (len_trim(cunit) >= 32) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 29) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 26) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = umin
       else if (cunit(1:7) == 'seconds') then
         ! Unit is seconds since reference
         if (len_trim(cunit) >= 32) then
@@ -1250,6 +1267,8 @@ module mod_date
           call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
         end if
         iunit = uday
+      else
+        call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
 
       if ( safeccal(1:6) == 'noleap' .or.   &
