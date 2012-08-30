@@ -52,7 +52,7 @@ module mod_ch_icbc
   real(sp) :: prcm , pmpi , pmpj
   real(sp) :: r4pt
   integer :: ism
-  type (rcm_time_and_date) :: iref1 , iref2
+  type (rcm_time_and_date) , save :: iref1 , iref2
   
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
