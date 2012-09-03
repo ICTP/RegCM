@@ -172,10 +172,7 @@ module mod_sst_gnhnc
   fidate1 = timeval2date(work1(1),cunit,ccal)
 
   idateo = monfirst(globidate1)
-  idatef = monfirst(globidate2)
-  if (idatef < globidate2) then
-    idatef = nextmon(idatef)
-  end if
+  idatef = globidate2
   tdif = idatef-idateo
   nsteps = tohours(tdif)/6 + 1
   write (stdout,*) 'NSTEPS = ', nsteps
