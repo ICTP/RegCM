@@ -49,7 +49,7 @@ out_dir="$RCMINPDIR"
 ###############################################################################
 
 #GENERATE WEIGHTS
-file_list=(`ls ${data_dir}/HIST*.nc`)
+file_list=(`ls ${data_dir}/*.nc`)
 
 $CDO gencon,$REGCM_dir/REGCM_grid.nc -setgrid,$CMIP5_dir/CMIP5_grid.nc \
       ${file_list[0]} remapweights.nc
