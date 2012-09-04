@@ -25,16 +25,18 @@ module mod_date
 
   private
 
-  integer(8) , parameter :: i8spw = 604800_8
-  integer(8) , parameter :: i8spd = 86400_8
-  integer(8) , parameter :: i8mpd = 1440_8
-  integer(8) , parameter :: i8hpd = 24_8
-  integer(8) , parameter :: i8sph = 3600_8
-  integer(8) , parameter :: i8spm = 60_8
-  integer(8) , parameter :: i8mph = 60_8
-  integer(8) , parameter :: i8mpy = 12_8
-  integer(8) , parameter :: i8mpc = 1200_8
-  integer(8) , parameter :: i8ypc = 100_8
+  integer , parameter :: ik8 = selected_int_kind(18)
+
+  integer(kind=ik8) , parameter :: i8spw = 604800_8
+  integer(kind=ik8) , parameter :: i8spd = 86400_8
+  integer(kind=ik8) , parameter :: i8mpd = 1440_8
+  integer(kind=ik8) , parameter :: i8hpd = 24_8
+  integer(kind=ik8) , parameter :: i8sph = 3600_8
+  integer(kind=ik8) , parameter :: i8spm = 60_8
+  integer(kind=ik8) , parameter :: i8mph = 60_8
+  integer(kind=ik8) , parameter :: i8mpy = 12_8
+  integer(kind=ik8) , parameter :: i8mpc = 1200_8
+  integer(kind=ik8) , parameter :: i8ypc = 100_8
 
   integer , public , parameter :: gregorian = 1
   integer , public , parameter :: noleap    = 2
@@ -62,7 +64,7 @@ module mod_date
   end type rcm_time_and_date
 
   type rcm_time_interval
-    integer(8) :: ival = 0
+    integer(kind=ik8) :: ival = 0
     integer :: iunit = usec
   end type rcm_time_interval
 
@@ -81,7 +83,7 @@ module mod_date
 
   interface assignment(=) 
     module procedure initfromintdt , initfromtypedt
-    module procedure initfromintit , initfromtypeit
+    module procedure initfromintit , initfromdbleit , initfromtypeit
   end interface assignment(=)
 
   interface operator(==)
@@ -378,6 +380,14 @@ module mod_date
     x%ival = i
     x%iunit = usec
   end subroutine initfromintit
+
+  subroutine initfromdbleit(x, d)
+    implicit none
+    type (rcm_time_interval) , intent(out) :: x
+    real(dp) , intent(in) :: d
+    x%ival = d
+    x%iunit = usec
+  end subroutine initfromdbleit
 
   subroutine set_caltype(x, y)
     implicit none
@@ -678,31 +688,37 @@ module mod_date
     type (rcm_time_and_date) :: z
     type (iadate) :: d
     real(dp) :: dm
-    integer :: tmp
+    integer(ik8) :: tmp
     z = x
-    tmp = int(y%ival)
+    tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day+tmp
-        if ( z%second_of_day >= 86400 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = mod(z%second_of_day, 86400)
-          z%days_from_reference = z%days_from_reference + tmp
+        tmp = tmp + z%second_of_day
+        z%second_of_day = mod(tmp, i8spd)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp-i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference + tmp
       case (umin)
-        z%second_of_day = z%second_of_day+(tmp*60)
-        if ( z%second_of_day >= 86400 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = mod(z%second_of_day, 86400)
-          z%days_from_reference = z%days_from_reference + tmp
+        tmp = tmp*i8spm+z%second_of_day
+        z%second_of_day = mod(tmp, i8spd)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp-i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference + tmp
       case (uhrs)
-        z%second_of_day = z%second_of_day+(tmp*3600)
-        if ( z%second_of_day >= 86400 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = mod(z%second_of_day, 86400)
-          z%days_from_reference = z%days_from_reference + tmp
+        tmp = tmp*i8sph+z%second_of_day
+        z%second_of_day = mod(tmp, i8spd)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp-i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference + tmp
       case (uday)
         z%days_from_reference = z%days_from_reference + tmp
       case (umnt)
@@ -828,31 +844,37 @@ module mod_date
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
     type (iadate) :: d
-    integer :: tmp
+    integer(kind=ik8) :: tmp
     z = x
-    tmp = int(y%ival)
+    tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day-tmp
+        tmp = tmp - z%second_of_day
+        z%second_of_day = mod(tmp,i8spd)
         if ( z%second_of_day < 0 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = 86400-mod(z%second_of_day,86400)
-          z%days_from_reference = z%days_from_reference + tmp
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp+i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference - tmp
       case (umin)
-        z%second_of_day = z%second_of_day-(tmp*60)
+        tmp = tmp*i8spm - z%second_of_day
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day < 0 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = 86400-mod(z%second_of_day,86400)
-          z%days_from_reference = z%days_from_reference + tmp
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp+i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference - tmp
       case (uhrs)
-        z%second_of_day = z%second_of_day-(tmp*3600)
+        tmp = tmp*i8sph - z%second_of_day
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day < 0 ) then
-          tmp = z%second_of_day/86400
-          z%second_of_day = 86400-mod(z%second_of_day,86400)
-          z%days_from_reference = z%days_from_reference + tmp
+          z%second_of_day = i8spd+z%second_of_day
+          tmp = tmp+i8spd
         end if
+        tmp = tmp/i8spd
+        z%days_from_reference = z%days_from_reference - tmp
       case (uday)
         z%days_from_reference = z%days_from_reference - tmp
       case (umnt)
@@ -1180,7 +1202,7 @@ module mod_date
     safeccal = ccal
 
     if (csave == cunit) then
-      z = idint(xval)
+      z = xval
       z%iunit = iunit
       dd = dref + z
       if (iunit == uday) then
@@ -1192,7 +1214,7 @@ module mod_date
       end if
     else
       csave = cunit
-      z = idint(xval)
+      z = xval
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
         if (len_trim(cunit) >= 30) then
@@ -1270,7 +1292,6 @@ module mod_date
       else
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
-
       if ( safeccal(1:6) == 'noleap' .or.   &
            safeccal(1:8) == 'days_365' .or. &
            safeccal(1:7) == '365_day' ) then
