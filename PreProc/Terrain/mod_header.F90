@@ -32,7 +32,9 @@ module mod_header
   integer(ik4) :: hostnm
   integer(ik4) :: ihost, idir
   integer(ik4) :: getcwd
+  integer(ik4) , dimension(8) :: tval
   character (len=32) :: cdata='?'
+  character (len=5) :: czone='?'
   character (len=32) :: hostname='?' 
   character (len=32) :: user='?' 
   character (len=128) :: directory='?'
@@ -45,15 +47,15 @@ module mod_header
 #ifdef IBM
     hostname='ibm platform '
     user= 'Unknown'
-    call fdate_(cdata)
 #else
     Ihost = hostnm(hostname)
     call getlog(user)
-    call fdate(cdata)
 #endif 
+    call date_and_time(zone=czone,values=tval)
+    Idir = getcwd(directory)
 
-    Idir=getcwd(directory)
-
+    write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+       tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
     write(stdout,*) ": this run start at  : ",trim(cdata)
     write(stdout,*) ": it is submitted by : ",trim(user)
     write(stdout,*) ": it is running on   : ",trim(hostname)

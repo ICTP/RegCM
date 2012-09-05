@@ -30,8 +30,10 @@ module mod_header
   public :: whoami , header , finaltime
 
   integer(ik4) , parameter :: nrite=6
-  character (len=24) :: cdata='?'
+  character (len=32) :: cdata='?'
+  character (len=5) :: czone='?'
   integer(ik4) :: clock_count , clock_rate , clock_max
+  integer(ik4) , dimension(8) :: tval
   real(rk8) :: start_time
 
   contains
@@ -65,14 +67,15 @@ module mod_header
 #ifdef IBM
       hostname='ibm platform '
       user= 'Unknown'
-      call fdate_(cdata)
 #else
       ihost = hostnm(hostname)
       call getlog(user)
-      call fdate(cdata)
 #endif 
       idir = getcwd(directory)
-      write (nrite,*) ": this run start at  : ",cdata
+      call date_and_time(zone=czone,values=tval)
+      write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+            tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
+      write (nrite,*) ": this run start at  : ",trim(cdata)
       write (nrite,*) ": it is submitted by : ",trim(user)
       write (nrite,*) ": it is running on   : ",trim(hostname)
       write (nrite,*) ": it is using        : ",nproc, &
@@ -88,14 +91,12 @@ module mod_header
     real(rk8) :: finish_time
 
     if ( myid == iocpu ) then
-#ifdef IBM
-      call fdate_(cdata)
-#else
-      call fdate(cdata)
-#endif 
       call system_clock(clock_count,clock_rate,clock_max)
       finish_time = dble(clock_count)
-      write (nrite,*) ': this run stops at  : ', cdata
+      call date_and_time(zone=czone,values=tval)
+      write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+            tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
+      write (nrite,*) ': this run stops at  : ', trim(cdata)
       write (nrite,*) ': Total elapsed seconds of run : ', &
                 (finish_time - start_time)/dble(clock_rate)
     end if
