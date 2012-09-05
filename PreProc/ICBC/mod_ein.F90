@@ -19,9 +19,9 @@
 
 module mod_ein
 
-  use netcdf
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_stdio
   use mod_memutil
   use mod_grid
@@ -35,30 +35,31 @@ module mod_ein
   use mod_vectutil
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 
-  integer :: inlev , klev , jlat , ilon
+  integer(ik4) :: inlev , klev , jlat , ilon
 
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(sp) :: xres
-  real(sp) , pointer , dimension(:,:,:) :: b2
-  real(sp) , pointer , dimension(:,:,:) :: d2
-  real(sp) , pointer , dimension(:) :: glat
-  real(sp) , pointer , dimension(:) :: glon
-  real(sp) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rk4) :: xres
+  real(rk4) , pointer , dimension(:,:,:) :: b2
+  real(rk4) , pointer , dimension(:,:,:) :: d2
+  real(rk4) , pointer , dimension(:) :: glat
+  real(rk4) , pointer , dimension(:) :: glon
+  real(rk4) , pointer , dimension(:) :: sigma1 , sigmar
   integer(2) , pointer , dimension(:,:,:) :: work
 
-  integer , dimension(5,4) :: inet5
-  integer , dimension(5,4) :: ivar5
-  real(dp) , dimension(5,4) :: xoff , xscl
+  integer(ik4) , dimension(5,4) :: inet5
+  integer(ik4) , dimension(5,4) :: ivar5
+  real(rk8) , dimension(5,4) :: xoff , xscl
 
   public :: getein , headerein
 
@@ -138,13 +139,13 @@ module mod_ein
   character(5) , intent(in) :: dattyp
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
+  integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
   character(24) :: inname
   character(256) :: pathaddname
   character(1) , dimension(5) :: varname
-  real(dp) :: xadd , xscale
-  integer , dimension(10) :: icount , istart
-  integer :: year , month , day , hour
+  real(rk8) :: xadd , xscale
+  integer(ik4) , dimension(10) :: icount , istart
+  integer(ik4) :: year , month , day , hour
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -450,8 +451,8 @@ module mod_ein
   subroutine headerein(ires)
   implicit none
 !
-  integer , intent(in) :: ires
-  integer :: i , j , k , kr
+  integer(ik4) , intent(in) :: ires
+  integer(ik4) :: i , j , k , kr
 
   klev = 23
   inlev = 37

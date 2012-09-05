@@ -17,12 +17,9 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.mod $(REGCM_ROOT)/Share:.
+vpath %.o $(REGCM_ROOT)/Share:.
 
 include $(REGCM_ROOT)/makeinc
-
-vpath %.F90 $(REGCM_ROOT)/PreProc/Terrain:.
-vpath %.f90 $(REGCM_ROOT)/PreProc/Terrain:.
 
 bin_PROGRAMS = sigma2p GrADSNcPlot GrADSNcPrepare average regrid
 sigma2p_SOURCES = sigma2p.F90 mod_derived.f90
@@ -41,12 +38,6 @@ regrid: regrid.sh
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 distclean-local:
 	rm -f *.mod *__genmod.*
 
@@ -55,7 +46,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-GrADSNcPlot.o GrADSNcPlot.mod: GrADSNcPlot.F90 mod_projections.mod mod_date.mod mod_message.mod mod_nchelper.mod
-GrADSNcPrepare.o GrADSNcPrepare.mod: GrADSNcPrepare.F90 mod_projections.mod mod_date.mod mod_message.mod mod_nchelper.mod
-mod_derived.o mod_derived.mod: mod_derived.f90 mod_constants.mod mod_realkinds.mod
-sigma2p.o sigma2p.mod: sigma2p.F90 mod_realkinds.mod mod_constants.mod mod_message.mod mod_vertint.mod mod_derived.mod mod_nchelper.mod
+GrADSNcPlot.o : GrADSNcPlot.F90 mod_intkinds.o mod_realkinds.o mod_projections.o mod_date.o mod_message.o mod_nchelper.o
+GrADSNcPrepare.o : GrADSNcPrepare.F90 mod_intkinds.o mod_realkinds.o mod_projections.o mod_date.o mod_message.o mod_nchelper.o
+mod_derived.o : mod_derived.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
+sigma2p.o : sigma2p.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o mod_vertint.o mod_derived.o mod_nchelper.o

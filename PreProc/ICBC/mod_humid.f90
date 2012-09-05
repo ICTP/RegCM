@@ -19,32 +19,33 @@
 
 module mod_humid
 
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
 !
-  real(sp) , parameter :: rt0 = real(rtzero)
-  real(sp) , parameter :: t0 = real(tzero)
-  real(sp) , parameter :: slh0 = real(lh0)
-  real(sp) , parameter :: slh1 = real(lh1)
-  real(sp) , parameter :: slsvp1 = real(lsvp1)
-  real(sp) , parameter :: slsvp2 = real(lsvp2)
-  real(sp) , parameter :: sep2 = real(ep2)
+  real(rk4) , parameter :: rt0 = real(rtzero)
+  real(rk4) , parameter :: t0 = real(tzero)
+  real(rk4) , parameter :: slh0 = real(lh0)
+  real(rk4) , parameter :: slh1 = real(lh1)
+  real(rk4) , parameter :: slsvp1 = real(lsvp1)
+  real(rk4) , parameter :: slsvp2 = real(lsvp2)
+  real(rk4) , parameter :: sep2 = real(ep2)
 
   contains
 
   subroutine humid1(t,q,ps,ptop,sigma,ni,nj,nk)
   implicit none
 !
-  integer :: ni , nj , nk
-  real(sp) :: ps
-  real(dp) :: ptop
-  real(sp) , dimension(ni,nj,nk) :: q , t
-  real(sp) , dimension(nk) :: sigma
+  integer(ik4) :: ni , nj , nk
+  real(rk4) :: ps
+  real(rk8) :: ptop
+  real(rk4) , dimension(ni,nj,nk) :: q , t
+  real(rk4) , dimension(nk) :: sigma
   intent (in) ni , nj , nk , ps , ptop , sigma , t
   intent (inout) q
 !
-  real(sp) :: lh , p , qs , pt , satvp
-  integer :: i , j , k
+  real(rk4) :: lh , p , qs , pt , satvp
+  integer(ik4) :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
 !
@@ -67,16 +68,16 @@ module mod_humid
   subroutine humid1_o(t,q,ps,sigma,ptop,im,jm,km)
   implicit none
 !
-  integer :: im , jm , km
-  real(dp) :: ptop
-  real(sp) , dimension(im,jm) :: ps
-  real(sp) , dimension(im,jm,km) :: q , t
-  real(sp) , dimension(km) :: sigma
+  integer(ik4) :: im , jm , km
+  real(rk8) :: ptop
+  real(rk4) , dimension(im,jm) :: ps
+  real(rk4) , dimension(im,jm,km) :: q , t
+  real(rk4) , dimension(km) :: sigma
   intent (in) im , jm , km , ps , ptop , sigma , t
   intent (inout) q
 !
-  real(sp) :: lh , p , qs , satvp , pt
-  integer :: i , j , k
+  real(rk4) :: lh , p , qs , satvp , pt
+  integer(ik4) :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
 !     DATA ON SIGMA LEVELS
@@ -101,13 +102,13 @@ module mod_humid
   subroutine humid1fv(t,q,p3d,ni,nj,nk)
   implicit none
 !
-  integer :: ni , nj , nk
-  real(sp) , dimension(ni,nj,nk) :: p3d , q , t
+  integer(ik4) :: ni , nj , nk
+  real(rk4) , dimension(ni,nj,nk) :: p3d , q , t
   intent (in) ni , nj , nk , p3d , t
   intent (inout) q
 !
-  real(sp) :: lh , qs , satvp
-  integer :: i , j , k
+  real(rk4) :: lh , qs , satvp
+  integer(ik4) :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
 !
@@ -133,16 +134,16 @@ module mod_humid
   subroutine humid2(t,q,ps,ptop,sigma,ni,nj,nk)
   implicit none
 !
-  integer :: ni , nj , nk
-  real(dp) :: ptop
-  real(sp) , dimension(ni,nj) :: ps
-  real(sp) , dimension(ni,nj,nk) :: q , t
-  real(sp) , dimension(nk) :: sigma
+  integer(ik4) :: ni , nj , nk
+  real(rk8) :: ptop
+  real(rk4) , dimension(ni,nj) :: ps
+  real(rk4) , dimension(ni,nj,nk) :: q , t
+  real(rk4) , dimension(nk) :: sigma
   intent (in) ni , nj , nk , ps , ptop , sigma , t
   intent (inout) q
 !
-  real(sp) :: lh , p , qs , pt , satvp
-  integer :: i , j , k
+  real(rk4) :: lh , p , qs , pt , satvp
+  integer(ik4) :: i , j , k
 !
 !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
 !

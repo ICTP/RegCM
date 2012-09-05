@@ -24,6 +24,8 @@ end subroutine myabort
 
 program sst
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_header
   use mod_dynparam
   use mod_memutil
@@ -39,7 +41,7 @@ program sst
 
   implicit none
 
-  integer :: ierr
+  integer(ik4) :: ierr
   character(256) :: namelistfile , prgname
   character(256) :: terfile
 

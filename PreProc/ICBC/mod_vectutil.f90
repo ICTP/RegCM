@@ -19,6 +19,7 @@
 
 module mod_vectutil
 
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
 
@@ -28,12 +29,12 @@ module mod_vectutil
   implicit none
 !
   character(2) :: cvar
-  integer :: iy , jx , np
-  real(sp) , dimension(jx,iy,np) :: var
+  integer(ik4) :: iy , jx , np
+  real(rk4) , dimension(jx,iy,np) :: var
   intent (in) cvar , iy , jx , np , var
 !
-  integer :: i , j , k
-  real(sp) :: smax , smin
+  integer(ik4) :: i , j , k
+  real(rk4) :: smax , smin
 !
   do k = 1 , np
     smax = -1.E8
@@ -53,12 +54,12 @@ module mod_vectutil
   subroutine p1p2(pd,px,ni,nj)
   implicit none
 !
-  integer :: ni , nj
-  real(sp) , dimension(ni,nj) :: pd , px
+  integer(ik4) :: ni , nj
+  real(rk4) , dimension(ni,nj) :: pd , px
   intent (in) ni , nj , px
   intent (out) pd
 !
-  integer :: i , j , ni1 , nj1
+  integer(ik4) :: i , j , ni1 , nj1
 !
 !     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
 !     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -95,12 +96,12 @@ module mod_vectutil
   subroutine p1p2_band(pd,px,ni,nj)
   implicit none
 !
-  integer :: ni , nj
-  real(sp) , dimension(ni,nj) :: pd , px
+  integer(ik4) :: ni , nj
+  real(rk4) , dimension(ni,nj) :: pd , px
   intent (in) ni , nj , px
   intent (out) pd
 !
-  integer :: i , j , nj1 , im1
+  integer(ik4) :: i , j , nj1 , im1
 !
 !     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
 !     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -131,13 +132,13 @@ module mod_vectutil
   subroutine top2btm(x,nlon1,nlat1,nlev1)
   implicit none
 !
-  integer :: nlat1 , nlev1 , nlon1
-  real(sp) , dimension(nlon1,nlat1,nlev1) :: x
+  integer(ik4) :: nlat1 , nlev1 , nlon1
+  real(rk4) , dimension(nlon1,nlat1,nlev1) :: x
   intent (in) nlat1 , nlev1 , nlon1
   intent (inout) x
 !
-  integer :: i , j , k , kr
-  real(sp) , dimension(nlev1) :: work
+  integer(ik4) :: i , j , k , kr
+  real(rk4) , dimension(nlev1) :: work
 !
   do i = 1 , nlon1
     do j = 1 , nlat1

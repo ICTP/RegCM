@@ -19,39 +19,40 @@
 
 module mod_ch_icbc
 
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_stdio
   use mod_dynparam
   use mod_grid
   use mod_wrtoxd
   use mod_interp
   use mod_date
-  use mod_realkinds
   use mod_memutil
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 !
-  integer :: chilon , chjlat , chilev
+  integer(ik4) :: chilon , chjlat , chilev
 
-  real(sp) , pointer , dimension(:) :: cht42lon
-  real(sp) , pointer , dimension(:) :: cht42lat
-  real(sp) , pointer , dimension(:) :: cht42hyam , cht42hybm
+  real(rk4) , pointer , dimension(:) :: cht42lon
+  real(rk4) , pointer , dimension(:) :: cht42lat
+  real(rk4) , pointer , dimension(:) :: cht42hyam , cht42hybm
 !
 ! Oxidant climatology variables
 !
-  real(sp) :: p0
-  real(sp) , pointer , dimension(:,:) :: pchem_3
-  real(sp) , pointer , dimension(:,:,:,:) :: chv3
-  real(sp) , pointer , dimension(:,:) :: xps
-  real(sp) , pointer , dimension(:,:,:,:) :: xinp
-  real(sp) , pointer , dimension(:,:,:,:) :: chv4_1
-  real(sp) , pointer , dimension(:,:,:,:) :: chv4_2
+  real(rk4) :: p0
+  real(rk4) , pointer , dimension(:,:) :: pchem_3
+  real(rk4) , pointer , dimension(:,:,:,:) :: chv3
+  real(rk4) , pointer , dimension(:,:) :: xps
+  real(rk4) , pointer , dimension(:,:,:,:) :: xinp
+  real(rk4) , pointer , dimension(:,:,:,:) :: chv4_1
+  real(rk4) , pointer , dimension(:,:,:,:) :: chv4_2
 
-  real(sp) :: prcm , pmpi , pmpj
-  real(sp) :: r4pt
-  integer :: ism
+  real(rk4) :: prcm , pmpi , pmpj
+  real(rk4) :: r4pt
+  integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
   
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
@@ -62,11 +63,11 @@ module mod_ch_icbc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: imonmidd
-    integer :: ivarid , idimid
-    integer :: nyear , month , nday , nhour
+    integer(ik4) :: ivarid , idimid
+    integer(ik4) :: nyear , month , nday , nhour
     character(len=256) :: chfilename
-    integer :: ncid , istatus
-    integer :: im1 , im2
+    integer(ik4) :: ncid , istatus
+    integer(ik4) :: im1 , im2
 
     call split_idate(idate,nyear,month,nday,nhour)
     imonmidd = monmiddle(idate)
@@ -147,12 +148,12 @@ module mod_ch_icbc
   subroutine get_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: nyear , month , nday , nhour
+    integer(ik4) :: nyear , month , nday , nhour
     logical :: doread
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
-    real(sp) :: xfac1 , xfac2 , odist
-    integer :: im1 , im2, n
+    real(rk4) :: xfac1 , xfac2 , odist
+    integer(ik4) :: im1 , im2, n
 
     call split_idate(idate,nyear,month,nday,nhour)
     imonmidd = monmiddle(idate)
@@ -197,11 +198,11 @@ module mod_ch_icbc
 
   subroutine read2m(im1,im2)
     implicit none
-    integer , intent(in) :: im1 , im2
-    integer :: i , is , j , k , l , k0
+    integer(ik4) , intent(in) :: im1 , im2
+    integer(ik4) :: i , is , j , k , l , k0
     character(len=256) :: chfilename
-    real(sp) :: wt1 , wt2
-    integer :: ncid , istatus , ivarid
+    real(rk4) :: wt1 , wt2
+    integer(ik4) :: ncid , istatus , ivarid
 
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
@@ -322,14 +323,14 @@ module mod_ch_icbc
 
   integer function inextmon(im)
     implicit none
-    integer , intent(in) :: im
+    integer(ik4) , intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer function iprevmon(im)
     implicit none
-    integer , intent(in) :: im
+    integer(ik4) , intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12
   end function iprevmon

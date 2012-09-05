@@ -19,8 +19,9 @@
 
 module mod_uvrot
 
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
 
   contains
 
@@ -28,19 +29,19 @@ module mod_uvrot
                     pollat,lgtype)
   implicit none
 !
-  real(dp) :: clat , clon , gridfc , pollat , pollon
-  integer :: iy , jx , ll
+  real(rk8) :: clat , clon , gridfc , pollat , pollon
+  integer(ik4) :: iy , jx , ll
   character(6) :: lgtype
-  real(sp) , dimension(jx,iy) :: dlat , dlon
-  real(sp) , dimension(jx,iy,ll) :: u , v
+  real(rk4) , dimension(jx,iy) :: dlat , dlon
+  real(rk4) , dimension(jx,iy,ll) :: u , v
   intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
               lgtype , ll , pollat , pollon
   intent (inout) u , v
 !
-  real(dp) :: cosdel , d , polcphi , pollam , polphi , polsphi ,    &
+  real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,    &
           sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
           zphi , zrla , zrlap
-  integer :: i , j , l
+  integer(ik4) :: i , j , l
 !
 !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
 !
@@ -132,19 +133,19 @@ module mod_uvrot
                       pollon,pollat,lgtype)
   implicit none
 !
-  real(dp) :: clat , clon , gridfc , pollat , pollon
-  integer :: iy , jx , ll
+  real(rk8) :: clat , clon , gridfc , pollat , pollon
+  integer(ik4) :: iy , jx , ll
   character(6) :: lgtype
-  real(sp) , dimension(jx,iy) :: dlat , dlon
-  real(sp) , dimension(jx,iy,ll) :: u , v
+  real(rk4) , dimension(jx,iy) :: dlat , dlon
+  real(rk4) , dimension(jx,iy,ll) :: u , v
   intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,  &
               lgtype , ll , pollat , pollon
   intent (inout) u , v
 !
-  real(dp) :: cosdel , d , polcphi , pollam , polphi , polsphi ,   &
+  real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,   &
           sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
           zphi , zrla , zrlap
-  integer :: i , j , l
+  integer(ik4) :: i , j , l
 !
 !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
 !

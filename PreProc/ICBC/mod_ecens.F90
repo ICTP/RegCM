@@ -19,9 +19,9 @@
 
 module mod_ecens
 
-  use netcdf
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_stdio
   use mod_memutil
   use mod_grid
@@ -35,48 +35,49 @@ module mod_ecens
   use mod_vectutil
   use mod_message
   use mod_nchelper
+  use netcdf
 
   implicit none
 
   private
 
-  integer :: mlev , nlat , nlon , ntime
-  integer , parameter :: nplev = 18
+  integer(ik4) :: mlev , nlat , nlon , ntime
+  integer(ik4) , parameter :: nplev = 18
 
-  real(sp) , pointer , dimension(:) :: vlat
-  real(sp) , pointer , dimension(:) :: rlat
-  real(sp) , pointer , dimension(:) :: vlon
-  real(sp) , pointer , dimension(:) :: ak , bk
-  real(sp) , pointer , dimension(:,:,:) :: work
+  real(rk4) , pointer , dimension(:) :: vlat
+  real(rk4) , pointer , dimension(:) :: rlat
+  real(rk4) , pointer , dimension(:) :: vlon
+  real(rk4) , pointer , dimension(:) :: ak , bk
+  real(rk4) , pointer , dimension(:,:,:) :: work
 
-  real(sp) , pointer , dimension(:,:,:) :: bb
-  real(sp) , pointer , dimension(:,:,:) :: b2
-  real(sp) , pointer , dimension(:,:,:) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
-  real(sp) , pointer , dimension(:,:,:) :: pp3d , z1
+  real(rk4) , pointer , dimension(:,:,:) :: bb
+  real(rk4) , pointer , dimension(:,:,:) :: b2
+  real(rk4) , pointer , dimension(:,:,:) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:,:) :: pp3d , z1
 
-  real(sp) , pointer , dimension(:,:) :: zs2
-  real(sp) , pointer , dimension(:,:) :: ps2
-  real(sp) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-  real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(sp) , pointer , dimension(:,:,:) :: up , vp
-  real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(sp) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk4) , pointer , dimension(:,:) :: zs2
+  real(rk4) , pointer , dimension(:,:) :: ps2
+  real(rk4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+  real(rk4) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rk4) , pointer , dimension(:,:,:) :: up , vp
+  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
 
-  real(sp) , dimension(nplev) :: pplev , sigmar
+  real(rk4) , dimension(nplev) :: pplev , sigmar
 
-  integer :: mdlver , ensnum
-  integer , parameter :: ibctime = 6
-  integer , dimension(5) :: inet5, ivar5
-  integer , dimension(4) :: icount , istart
+  integer(ik4) :: mdlver , ensnum
+  integer(ik4) , parameter :: ibctime = 6
+  integer(ik4) , dimension(5) :: inet5, ivar5
+  integer(ik4) , dimension(4) :: icount , istart
   type(rcm_time_and_date) , save :: ilastdate
   type(rcm_time_and_date) , pointer , dimension(:) :: enstime
-  real(dp) , pointer , dimension(:) :: xtime
+  real(rk8) , pointer , dimension(:) :: xtime
   character(len=256) :: pathaddname , fname
   character(len=4) :: ensbase = 'f8qe'
   type(rcm_time_and_date) , save :: fmon
-  integer :: ifmon
+  integer(ik4) :: ifmon
 
   public :: getecens , headerecens
 
@@ -85,7 +86,7 @@ module mod_ecens
   subroutine getecens(idate)
   implicit none
   type(rcm_time_and_date) :: idate
-  integer :: i , j , k
+  integer(ik4) :: i , j , k
 !
   call ecens_6hour(idate)
 
@@ -176,7 +177,7 @@ module mod_ecens
 !
   type(rcm_time_and_date) :: fmon
   type(rcm_time_interval) :: tdif
-  integer :: i , inet , it , j , kkrec , istatus , ivar , jdim
+  integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar , jdim
   logical :: lfirst
   character(6) , dimension(5) :: varname
   character(6) , dimension(5) :: vfname
@@ -285,8 +286,8 @@ module mod_ecens
   subroutine headerecens
   implicit none
 !
-  integer :: j , k
-  integer :: istatus , inet , jdim , ivar
+  integer(ik4) :: j , k
+  integer(ik4) :: istatus , inet , jdim , ivar
 !
   read (dattyp(4:4),'(i1)') mdlver
   read (dattyp(5:5),'(i1)') ensnum

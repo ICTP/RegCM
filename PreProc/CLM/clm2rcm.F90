@@ -24,7 +24,8 @@ end subroutine myabort
 
 program clm2rcm
  
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_nclib
   use mod_dynparam
   use mod_message
@@ -33,54 +34,54 @@ program clm2rcm
   use mod_date
   use mod_clm3grid
   use mod_memutil
-  use mod_realkinds
   use mod_stdio
   use mod_domain
   use mod_nchelper
+  use netcdf
 
   implicit none
 !
-  real(sp) , parameter :: vmisdat=-9999.0
-  integer , parameter :: ndim = 3
+  real(rk4) , parameter :: vmisdat=-9999.0
+  integer(ik4) , parameter :: ndim = 3
   logical , parameter :: bvoc = .false.
 !
-  integer :: istatus , ncid , incin , idum
-  integer , dimension(4) :: idims
-  integer , dimension(4) :: ivdims
-  integer :: ldim , ivar
+  integer(ik4) :: istatus , ncid , incin , idum
+  integer(ik4) , dimension(4) :: idims
+  integer(ik4) , dimension(4) :: ivdims
+  integer(ik4) :: ldim , ivar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
-  real(sp) , pointer , dimension(:) :: yiy
-  real(sp) , pointer , dimension(:) :: xjx
-  real(sp) :: hptop , xmiss
-  real(dp) , dimension(1) :: xdate
-  integer , dimension(2) :: ihvar
-  integer , dimension(2) :: illvar
-  integer , dimension(2) :: izvar
-  integer , dimension(4) :: icount , istart
-  integer , dimension(1) :: istart1 , icount1
-  integer , dimension(3) :: iadim
+  real(rk4) , pointer , dimension(:) :: yiy
+  real(rk4) , pointer , dimension(:) :: xjx
+  real(rk4) :: hptop , xmiss
+  real(rk8) , dimension(1) :: xdate
+  integer(ik4) , dimension(2) :: ihvar
+  integer(ik4) , dimension(2) :: illvar
+  integer(ik4) , dimension(2) :: izvar
+  integer(ik4) , dimension(4) :: icount , istart
+  integer(ik4) , dimension(1) :: istart1 , icount1
+  integer(ik4) , dimension(3) :: iadim
   character(64) , dimension(nfld) :: lnam
   character(64) :: cdum
   character(64) , dimension(nfld) :: units
-  real(sp) , dimension(3) :: varmax , varmin
-  real(dp) :: xhr
-  real(sp) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(sp) :: pxerr , pmax
-  real(sp) , pointer , dimension(:) :: glat , glon , zlat ,      &
+  real(rk4) , dimension(3) :: varmax , varmin
+  real(rk8) :: xhr
+  real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
+  real(rk4) :: pxerr , pmax
+  real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
-  real(sp) , pointer , dimension(:,:) :: mpu
-  real(sp) , pointer , dimension(:,:,:) :: regxyz
-  real(sp) , pointer , dimension(:,:,:,:) :: regyxzt , zoom , dumw
-  real(sp) , pointer , dimension(:,:) :: landmask , sandclay
-  integer :: ipathdiv , ierr
-  integer :: i , iz , it , j , k , l , kmax , ipnt
-  integer :: jotyp , idin , idout , ifield , ifld , imap
+  real(rk4) , pointer , dimension(:,:) :: mpu
+  real(rk4) , pointer , dimension(:,:,:) :: regxyz
+  real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom , dumw
+  real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
+  integer(ik4) :: ipathdiv , ierr
+  integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
+  integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
   character(256) :: namelistfile , prgname
   character(256) :: inpfile , terfile , checkfile
   character(256) :: outfil_nc
   character(64) :: csdate , cldim
-  integer , dimension(8) :: ilevs
+  integer(ik4) , dimension(8) :: ilevs
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/

@@ -19,10 +19,10 @@
 
 module mod_eh5om
 
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_stdio
-  use netcdf
   use mod_grid
   use mod_memutil
   use mod_write
@@ -34,28 +34,29 @@ module mod_eh5om
   use mod_uvrot
   use mod_vectutil
   use mod_message
+  use netcdf
 
   private
 
-  integer , parameter :: klev = 17 , jlat = 96 , ilon = 192
-  integer , parameter :: mlev = 31
+  integer(ik4) , parameter :: klev = 17 , jlat = 96 , ilon = 192
+  integer(ik4) , parameter :: mlev = 31
 
-  real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(sp) , dimension(jlat) :: glat
-  real(sp) , dimension(ilon) :: glon
-  real(sp) , dimension(klev) :: sigma1 , sigmar
+  real(rk4) , dimension(jlat) :: glat
+  real(rk4) , dimension(ilon) :: glon
+  real(rk4) , dimension(klev) :: sigma1 , sigmar
 
-  real(sp) , dimension(mlev+1) :: hyai , hybi
-  real(sp) , dimension(mlev) :: hyam , hybm
+  real(rk4) , dimension(mlev+1) :: hyai , hybi
+  real(rk4) , dimension(mlev) :: hyam , hybm
 
   integer(4) , dimension(10) :: icount , istart
 
@@ -70,14 +71,14 @@ module mod_eh5om
 !
   character(3) , dimension(12) :: chmon
   character(21) :: finm
-  integer :: i , i2 , ii , j , j2 , k , nrec , numx , numy
+  integer(ik4) :: i , i2 , ii , j , j2 , k , nrec , numx , numy
   integer(2) , dimension(ilon,jlat) :: itmp
   logical :: there
-  real(dp) :: offset , xscale
+  real(rk8) :: offset , xscale
   character(4) , dimension(100) :: yr_a2
   character(4) , dimension(61) :: yr_rf
   character(4) :: namepart
-  integer :: year , month , day , hour
+  integer(ik4) :: year , month , day , hour
 !
   data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &
              '1947' , '1948' , '1949' , '1950' , '1951' , '1952' ,  &
@@ -426,7 +427,7 @@ module mod_eh5om
   subroutine headermpi
   implicit none
 !
-  integer :: i , k , kr
+  integer(ik4) :: i , k , kr
 !
   glat(1) = -88.5719985961914
   glat(2) = -86.7229995727539

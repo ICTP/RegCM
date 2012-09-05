@@ -19,6 +19,7 @@
 
 module mod_clm3grid
 
+  use mod_intkinds
   use mod_realkinds
 
   contains
@@ -28,20 +29,20 @@ module mod_clm3grid
                        istart,icount)
   implicit none
 !
-  real(sp) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
+  real(rk4) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
           xlonmax , xlonmin
-  integer :: nlat , nlev , nlon , ntim
-  real(sp) , dimension(nlat) :: glat
-  real(sp) , dimension(nlon) :: glon
-  integer , dimension(4) :: icount , istart
+  integer(ik4) :: nlat , nlev , nlon , ntim
+  real(rk4) , dimension(nlat) :: glat
+  real(rk4) , dimension(nlon) :: glon
+  integer(ik4) , dimension(4) :: icount , istart
   intent (in) glat1 , glat2 , nlat , nlev , nlon , ntim
   intent (out) glat , glon , icount , istart
   intent (inout) glon1 , glon2 , xlatmax , xlatmin , xlonmax ,      &
                  xlonmin
 !
-  integer :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
+  integer(ik4) :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
              ilonmin , j
-  real(sp) :: dlat , dlon
+  real(rk4) :: dlat , dlon
  
 !     dlon = 360./nlon
 !     dlat = 180./nlat
@@ -92,17 +93,17 @@ module mod_clm3grid
  
   implicit none
 !
-  integer :: nlat , nlon
-  real(sp) , dimension(nlat) :: glat
-  real(sp) , dimension(nlon) :: glon
-  integer , dimension(4) :: icount , istart
-  real(sp) , dimension(icount(2)) :: zlat
-  real(sp) , dimension(icount(3)) :: zlev
-  real(sp) , dimension(icount(1)) :: zlon
+  integer(ik4) :: nlat , nlon
+  real(rk4) , dimension(nlat) :: glat
+  real(rk4) , dimension(nlon) :: glon
+  integer(ik4) , dimension(4) :: icount , istart
+  real(rk4) , dimension(icount(2)) :: zlat
+  real(rk4) , dimension(icount(3)) :: zlev
+  real(rk4) , dimension(icount(1)) :: zlon
   intent (in) glat , glon , icount , istart , nlat , nlon
   intent (out) zlat , zlev , zlon
 !
-  integer :: i , j , k
+  integer(ik4) :: i , j , k
 ! 
   do i = 1 , icount(1)
     zlon(i) = glon(i+istart(1)-1)
@@ -141,19 +142,19 @@ module mod_clm3grid
  
   implicit none
 !
-  integer :: iy , jx , nlati , nloni , nt , nz
-  real(sp) :: vmisdat , xming
-  real(sp) , dimension(nloni,nlati,nz,nt) :: mti
-  real(sp) , dimension(nlati) :: lati
-  real(sp) , dimension(iy,jx) :: lato , lono
-  real(sp) , dimension(nloni) :: loni
-  real(sp) , dimension(iy,jx,nz,nt) :: mto
+  integer(ik4) :: iy , jx , nlati , nloni , nt , nz
+  real(rk4) :: vmisdat , xming
+  real(rk4) , dimension(nloni,nlati,nz,nt) :: mti
+  real(rk4) , dimension(nlati) :: lati
+  real(rk4) , dimension(iy,jx) :: lato , lono
+  real(rk4) , dimension(nloni) :: loni
+  real(rk4) , dimension(iy,jx,nz,nt) :: mto
   intent (in) mti , iy , jx , lati , lato , loni , lono , nlati ,   &
               nloni , nt , nz , vmisdat , xming
   intent (out) mto
 !
-  integer :: i , ip , ipp1 , j , jq , jqp1 , k , l
-  real(sp) :: lon360 , p , q , temp1 , temp2 , xind , yind
+  integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , k , l
+  real(rk4) :: lon360 , p , q , temp1 , temp2 , xind , yind
 !
   do j = 1 , jx
     do i = 1 , iy
@@ -220,14 +221,14 @@ module mod_clm3grid
   subroutine maskme(landmask,vals,vmisdat,nlon,nlat,nlev,ntim)
   implicit none
 !
-  integer :: nlat , nlev , nlon , ntim
-  real(sp) :: vmisdat
-  real(sp) , dimension(nlon,nlat) :: landmask
-  real(sp) , dimension(nlon,nlat,nlev,ntim) :: vals
+  integer(ik4) :: nlat , nlev , nlon , ntim
+  real(rk4) :: vmisdat
+  real(rk4) , dimension(nlon,nlat) :: landmask
+  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) landmask , nlat , nlev , nlon , ntim , vmisdat
   intent (inout) vals
 !
-  integer :: i , j , k , l
+  integer(ik4) :: i , j , k , l
 !
   do l = 1 , ntim
     do k = 1 , nlev

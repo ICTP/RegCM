@@ -25,12 +25,12 @@ module mod_grid
 
   private
 
-  real(sp) , public :: clatx , clonx
+  real(rk4) , public :: clatx , clonx
 
-  real(sp) , public , pointer , dimension(:,:) :: xlat, xlon
-  real(sp) , public , pointer , dimension(:) :: xlat1d
-  real(sp) , public , pointer , dimension(:) :: xlon1d
-  real(sp) , public , pointer , dimension(:) :: sigx
+  real(rk4) , public , pointer , dimension(:,:) :: xlat, xlon
+  real(rk4) , public , pointer , dimension(:) :: xlat1d
+  real(rk4) , public , pointer , dimension(:) :: xlon1d
+  real(rk4) , public , pointer , dimension(:) :: sigx
 
   public :: init_domain
 

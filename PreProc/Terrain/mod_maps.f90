@@ -19,27 +19,28 @@
 
 module mod_maps
 
+  use mod_intkinds
   use mod_realkinds
   use mod_memutil
 
-  real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon ,     &
+  real(rk4) , pointer , dimension(:,:) :: coriol , dlat , dlon ,     &
                    dmap , htgrid , lndout , mask , dpth , snowam ,  &
                    texout , xlat , xlon , xmap
-  real(sp) , pointer , dimension(:,:,:) :: frac_tex
+  real(rk4) , pointer , dimension(:,:,:) :: frac_tex
 
-  real(sp) , pointer , dimension(:,:) :: coriol_s , dlat_s ,   &
+  real(rk4) , pointer , dimension(:,:) :: coriol_s , dlat_s ,   &
                       dlon_s , dmap_s , htgrid_s , lndout_s ,  &
                       mask_s , dpth_s , snowam_s , texout_s ,  &
                       xlat_s , xlon_s , xmap_s
-  real(sp) , pointer , dimension(:,:,:) :: frac_tex_s
+  real(rk4) , pointer , dimension(:,:,:) :: frac_tex_s
 
-  real(dp) , pointer , dimension(:) :: sigma
+  real(rk8) , pointer , dimension(:) :: sigma
 
   contains
 
   subroutine prepare_grid(iy,jx,kz,ntex)
     implicit none
-    integer , intent(in) :: iy , jx , kz , ntex
+    integer(ik4) , intent(in) :: iy , jx , kz , ntex
     call getmem1d(sigma,1,kz+1,'maps:sigma')
     call getmem2d(coriol,1,iy,1,jx,'maps:coriol')
     call getmem2d(xlat,1,iy,1,jx,'maps:xlat')
@@ -59,7 +60,7 @@ module mod_maps
 
   subroutine prepare_subgrid(iysg,jxsg,ntex)
     implicit none
-    integer , intent(in) :: iysg , jxsg , ntex
+    integer(ik4) , intent(in) :: iysg , jxsg , ntex
     call getmem2d(coriol_s,1,iysg,1,jxsg,'maps:coriol_s')
     call getmem2d(xlat_s,1,iysg,1,jxsg,'maps:xlat_s')
     call getmem2d(xlon_s,1,iysg,1,jxsg,'maps:xlon_s')

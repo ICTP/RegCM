@@ -19,7 +19,7 @@
 
 module mod_sst_ersst
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -28,6 +28,7 @@ module mod_sst_ersst
   use mod_message
   use mod_memutil
   use mod_nchelper
+  use netcdf
 
   private
 
@@ -53,19 +54,19 @@ module mod_sst_ersst
 
   implicit none
 !
-  integer :: ilon , jlat
-  integer , parameter :: idtbc = 6
+  integer(ik4) :: ilon , jlat
+  integer(ik4) , parameter :: idtbc = 6
 !
-  integer :: it
-  integer :: istatus , inet
-  integer :: year , month , day , hour , isyear
-  integer :: dimi , vari
-  real(sp) , pointer , dimension(:) :: lati
-  real(sp) , pointer , dimension(:) :: loni
-  integer :: ierrec , nsteps
+  integer(ik4) :: it
+  integer(ik4) :: istatus , inet
+  integer(ik4) :: year , month , day , hour , isyear
+  integer(ik4) :: dimi , vari
+  real(rk4) , pointer , dimension(:) :: lati
+  real(rk4) , pointer , dimension(:) :: loni
+  integer(ik4) :: ierrec , nsteps
   type(rcm_time_and_date) :: idate , ierastart
   type(rcm_time_interval) :: tdiff , itbc
-  real(sp) , pointer , dimension(:,:) :: sst
+  real(rk4) , pointer , dimension(:,:) :: sst
   character(len=256) :: inpfile
   logical :: lfirst
 
@@ -206,18 +207,18 @@ module mod_sst_ersst
     use netcdf
     implicit none
 !
-    integer , intent(in) :: it , ilon , jlat , inet , itype
+    integer(ik4) , intent(in) :: it , ilon , jlat , inet , itype
     logical , intent(inout) :: lfirst
-    real(sp) , dimension(ilon,jlat) ,intent(out) :: sst
+    real(rk4) , dimension(ilon,jlat) ,intent(out) :: sst
 !
-    integer :: i , j
+    integer(ik4) :: i , j
     character(4) , dimension(2) :: varname
     integer(2) , dimension(ilon,jlat) :: work
-    integer :: istatus
+    integer(ik4) :: istatus
 !
-    integer , save :: ivar
-    real(dp) , save :: xadd , xscale , xmiss
-    integer , dimension(3) , save :: icount , istart
+    integer(ik4) , save :: ivar
+    real(rk8) , save :: xadd , xscale , xmiss
+    integer(ik4) , dimension(3) , save :: icount , istart
 !
 ! This is the latitude, longitude dimension of the grid to be read.
 ! This corresponds to the lat and lon dimension variables in the

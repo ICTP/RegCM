@@ -29,15 +29,15 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(dp) :: clat , clon , ds , truelath , truelatl , xn
-  integer :: idot , iy , jx
-  real(sp) , dimension(iy,jx) :: coriol , smap , xlat , xlon
+  real(rk8) :: clat , clon , ds , truelath , truelatl , xn
+  integer(ik4) :: idot , iy , jx
+  real(rk4) , dimension(iy,jx) :: coriol , smap , xlat , xlon
   intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
               truelatl
   intent (out) coriol , smap , xlat , xlon , xn
 !
-  real(dp) :: cntri , cntrj
-  integer :: i , j
+  real(rk8) :: cntri , cntrj
+  integer(ik4) :: i , j
 !
   cntrj = dble(jx+idot)/d_two
   cntri = dble(iy+idot)/d_two
@@ -64,14 +64,14 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(dp) :: clat , clon , delx
-  integer :: idot , iy , jx
-  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(rk8) :: clat , clon , delx
+  integer(ik4) :: idot , iy , jx
+  real(rk4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(dp) :: cntrj , cntri
-  integer :: i , j
+  real(rk8) :: cntrj , cntri
+  integer(ik4) :: i , j
 !
   cntrj = dble(jx+idot)/d_two
   cntri = dble(iy+idot)/d_two
@@ -98,14 +98,14 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(dp) :: clat , clon , delx
-  integer :: idot , iy , jx
-  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(rk8) :: clat , clon , delx
+  integer(ik4) :: idot , iy , jx
+  real(rk4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(dp) :: cntri , cntrj
-  integer :: i , j
+  real(rk8) :: cntri , cntrj
+  integer(ik4) :: i , j
 !
   cntrj = dble(jx+idot)/d_two
   cntri = dble(iy+idot)/d_two
@@ -134,14 +134,14 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(dp) :: clat , clon , ds , pollat , pollon
-  integer :: idot , iy , jx
-  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(rk8) :: clat , clon , ds , pollat , pollon
+  integer(ik4) :: idot , iy , jx
+  real(rk4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , ds , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(dp) :: cntri , cntrj
-  integer :: i , j
+  real(rk8) :: cntri , cntrj
+  integer(ik4) :: i , j
 !
   cntrj = dble(jx+idot)/d_two
   cntri = dble(iy+idot)/d_two

@@ -24,6 +24,8 @@ end subroutine myabort
 
 program chem_icbc
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_date
   use mod_grid
@@ -40,11 +42,11 @@ program chem_icbc
 !
   type(rcm_time_and_date) :: idate , iodate
   type(rcm_time_interval) :: tdif , tbdy
-  integer :: nnn , nsteps
-  integer :: ierr
+  integer(ik4) :: nnn , nsteps
+  integer(ik4) :: ierr
   character(256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
-  integer :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
+  integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
              ichsolver , idirect , ichdustemd, ichdiag
   logical :: dochem , dooxcl , doaero
   data dochem /.false./

@@ -17,17 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_realkinds
+module mod_intkinds
 !
   public
 
   ! Kind helpers
-  integer , parameter :: rk16 = selected_real_kind(P=27,R=2400)
-  integer , parameter :: rk8 = selected_real_kind(P=13,R=300)
-  integer , parameter :: rk4 = selected_real_kind(P= 6,R=37)
+  integer , parameter :: ik8 = selected_int_kind(R=18)
+  integer , parameter :: ik4 = selected_int_kind(R=9)
+  integer , parameter :: ik2 = selected_int_kind(R=4)
+  integer , parameter :: ik1 = selected_int_kind(R=2)
 
-  ! Back compatibility
-  integer , parameter :: dp = rk8
-  integer , parameter :: sp = rk4
-
-end module mod_realkinds
+end module mod_intkinds

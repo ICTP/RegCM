@@ -19,22 +19,23 @@
 
 module mod_derived
 
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
 
   private
 
-  real(sp) , parameter :: rt0 = real(rtzero)
-  real(sp) , parameter :: t0 = real(tzero)
-  real(sp) , parameter :: srgas = real(rgas)
-  real(sp) , parameter :: slh0 = real(lh0)
-  real(sp) , parameter :: slh1 = real(lh1)
-  real(sp) , parameter :: slsvp1 = real(lsvp1)
-  real(sp) , parameter :: slsvp2 = real(lsvp2)
-  real(sp) , parameter :: sep2 = real(ep2)
-  real(sp) , parameter :: segrav = real(egrav)
-  real(sp) , parameter :: srovg = real(rovg)
-  real(sp) , parameter :: slrate = real(lrate)
+  real(rk4) , parameter :: rt0 = real(rtzero)
+  real(rk4) , parameter :: t0 = real(tzero)
+  real(rk4) , parameter :: srgas = real(rgas)
+  real(rk4) , parameter :: slh0 = real(lh0)
+  real(rk4) , parameter :: slh1 = real(lh1)
+  real(rk4) , parameter :: slsvp1 = real(lsvp1)
+  real(rk4) , parameter :: slsvp2 = real(lsvp2)
+  real(rk4) , parameter :: sep2 = real(ep2)
+  real(rk4) , parameter :: segrav = real(egrav)
+  real(rk4) , parameter :: srovg = real(rovg)
+  real(rk4) , parameter :: slrate = real(lrate)
 
   public :: calc_rh , calc_hgt , calc_slpres
 
@@ -42,13 +43,13 @@ module mod_derived
 
   subroutine calc_rh(t,q,preslv,im,jm,kp)
     implicit none
-    integer , intent(in) :: im , jm , kp
-    real(sp) , dimension(im,jm,kp) , intent(in) :: t
-    real(sp) , dimension(kp) , intent(in) :: preslv
-    real(sp) , dimension(im,jm,kp) , intent(inout) :: q
-    integer :: i , j , k
-    real(sp) :: hl , satvp , qs
-    real(sp) , parameter :: qmin = 0.0 ! minimum value of specific humidity
+    integer(ik4) , intent(in) :: im , jm , kp
+    real(rk4) , dimension(im,jm,kp) , intent(in) :: t
+    real(rk4) , dimension(kp) , intent(in) :: preslv
+    real(rk4) , dimension(im,jm,kp) , intent(inout) :: q
+    integer(ik4) :: i , j , k
+    real(rk4) :: hl , satvp , qs
+    real(rk4) , parameter :: qmin = 0.0 ! minimum value of specific humidity
     do k = 1 , kp
       do j = 1 , jm
         do i = 1 , im
@@ -66,12 +67,12 @@ module mod_derived
 !
   subroutine calc_hgt(hp,tp,ps,topo,plev,im,jm,kp)
     implicit none
-    integer , intent(in) :: im , jm , kp
-    real(sp) , dimension(im,jm,kp) , intent(out) :: hp
-    real(sp) , dimension(im,jm,kp) , intent(in) :: tp
-    real(sp) , dimension(im,jm) , intent(in) :: ps , topo
-    real(sp) , dimension(kp) , intent(in) :: plev
-    integer :: i , j , k
+    integer(ik4) , intent(in) :: im , jm , kp
+    real(rk4) , dimension(im,jm,kp) , intent(out) :: hp
+    real(rk4) , dimension(im,jm,kp) , intent(in) :: tp
+    real(rk4) , dimension(im,jm) , intent(in) :: ps , topo
+    real(rk4) , dimension(kp) , intent(in) :: plev
+    integer(ik4) :: i , j , k
     do k = 1 , kp
       do j = 1 , jm
         do i = 1 , im
@@ -91,13 +92,13 @@ module mod_derived
 !
   subroutine calc_slpres(h,t,ps,ht,slp,plev,im,jm,kp)
     implicit none
-    integer , intent(in) :: im , jm , kp
-    real(sp) , dimension(im,jm,kp) , intent(in) :: t , h
-    real(sp) , dimension(im,jm) , intent(in) :: ht , ps
-    real(sp) , dimension(im,jm) , intent(out) :: slp
-    real(sp) , dimension(kp) , intent(in) :: plev
-    integer :: i , j , kbc
-    real(sp) :: tsfc
+    integer(ik4) , intent(in) :: im , jm , kp
+    real(rk4) , dimension(im,jm,kp) , intent(in) :: t , h
+    real(rk4) , dimension(im,jm) , intent(in) :: ht , ps
+    real(rk4) , dimension(im,jm) , intent(out) :: slp
+    real(rk4) , dimension(kp) , intent(in) :: plev
+    integer(ik4) :: i , j , kbc
+    real(rk4) :: tsfc
 !
     do j = 1 , jm
       do i = 1 , im

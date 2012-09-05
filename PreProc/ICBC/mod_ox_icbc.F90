@@ -19,38 +19,39 @@
 
 module mod_ox_icbc
 
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_grid
   use mod_wrtoxd
   use mod_interp
   use mod_date
-  use mod_realkinds
   use mod_nchelper
+  use netcdf
 
   private
 !
-  integer :: nyear , month , nday , nhour
-  integer :: k , l
-  integer :: k0
+  integer(ik4) :: nyear , month , nday , nhour
+  integer(ik4) :: k , l
+  integer(ik4) :: k0
 
-  integer , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 26 , oxitime = 12
-  real(sp) , dimension(oxilon) :: oxt42lon
-  real(sp) , dimension(oxjlat) :: oxt42lat
-  real(sp) , dimension(oxilev) :: oxt42hyam , oxt42hybm
+  integer(ik4) , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 26 , oxitime = 12
+  real(rk4) , dimension(oxilon) :: oxt42lon
+  real(rk4) , dimension(oxjlat) :: oxt42lat
+  real(rk4) , dimension(oxilev) :: oxt42hyam , oxt42hybm
 !
 ! Oxidant climatology variables
 !
-  real(sp) :: p0 , r4pt
-  real(sp) , dimension(oxilon,oxjlat) :: xps
-  real(sp) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
-  real(sp) , dimension(oxilon,oxjlat,oxitime) :: xps2
-  real(sp) , pointer , dimension(:,:) :: poxid_3
-  real(sp) , pointer , dimension(:,:,:,:) :: oxv3
+  real(rk4) :: p0 , r4pt
+  real(rk4) , dimension(oxilon,oxjlat) :: xps
+  real(rk4) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
+  real(rk4) , dimension(oxilon,oxjlat,oxitime) :: xps2
+  real(rk4) , pointer , dimension(:,:) :: poxid_3
+  real(rk4) , pointer , dimension(:,:,:,:) :: oxv3
 
-  real(sp) :: prcm , pmpi , pmpj
-  integer :: ncid , istatus
+  real(rk4) :: prcm , pmpi , pmpj
+  integer(ik4) :: ncid , istatus
 
   public :: header_ox_icbc , get_ox_icbc , close_ox_icbc
 
@@ -60,7 +61,7 @@ module mod_ox_icbc
 
   subroutine header_ox_icbc
     implicit none
-    integer :: ivarid , istatus , is
+    integer(ik4) :: ivarid , istatus , is
 
     r4pt = real(ptop)
 
@@ -108,13 +109,13 @@ module mod_ox_icbc
   subroutine get_ox_icbc(idate)
     implicit none
 !
-    integer :: i , is , j , k , k0
+    integer(ik4) :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) , dimension(oxilon,oxjlat,oxilev) :: xinp
-    real(sp) :: wt1 , wt2
+    real(rk4) , dimension(oxilon,oxjlat,oxilev) :: xinp
+    real(rk4) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
-    integer :: m1 , m2
+    integer(ik4) :: m1 , m2
 
     d1 = monfirst(idate)
     d2 = nextmon(d1)

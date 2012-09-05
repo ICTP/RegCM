@@ -19,6 +19,7 @@
 
 module mod_vertint
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_constants
@@ -26,14 +27,14 @@ module mod_vertint
 !
   private
 
-  real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
+  real(rk4) , parameter :: rgas2 = real(rgas/2.0D0)
   ! lrate is defined as a positive constant.
-  real(sp) , parameter :: rglrog = real(rgas*lrate*regrav)
-  real(sp) , parameter :: b1 = -real(egrav/lrate)
-  real(sp) , parameter :: rbltop = real(bltop)
-  real(sp) , parameter :: psccm = 100.0
+  real(rk4) , parameter :: rglrog = real(rgas*lrate*regrav)
+  real(rk4) , parameter :: b1 = -real(egrav/lrate)
+  real(rk4) , parameter :: rbltop = real(bltop)
+  real(rk4) , parameter :: psccm = 100.0
 !
-  integer , parameter :: maxnlev = 100
+  integer(ik4) , parameter :: maxnlev = 100
 
   public :: intlin , intlin_o , intgtb , intlog , intlog_o
   public :: intpsn , intv0 , intv1 , intv2 , intv3
@@ -43,17 +44,17 @@ module mod_vertint
   subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(sp) , dimension(im,jm,km) :: f , p3d
-  real(sp) , dimension(im,jm,kp) :: fp
-  real(sp) , dimension(kp) :: p
-  real(sp) , dimension(im,jm) :: ps
+  integer(ik4) :: im , jm , km , kp
+  real(rk4) , dimension(im,jm,km) :: f , p3d
+  real(rk4) , dimension(im,jm,kp) :: fp
+  real(rk4) , dimension(kp) :: p
+  real(rk4) , dimension(im,jm) :: ps
   intent (in) f , im , jm , km , kp , p , p3d , ps
   intent (out) fp
 !
-  integer :: i , j , k , k1 , kp1 , n
-  real(sp) , dimension(maxnlev) :: sig
-  real(sp) :: sigp , w1 , wp
+  integer(ik4) :: i , j , k , k1 , kp1 , n
+  real(rk4) , dimension(maxnlev) :: sig
+  real(rk4) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -100,18 +101,18 @@ module mod_vertint
   subroutine intlin_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(dp) :: ptop
-  real(sp) , dimension(im,jm,km) :: f
-  real(sp) , dimension(im,jm,kp) :: fp
-  real(sp) , dimension(kp) :: p
-  real(sp) , dimension(im,jm) :: pstar
-  real(sp) , dimension(km) :: sig
+  integer(ik4) :: im , jm , km , kp
+  real(rk8) :: ptop
+  real(rk4) , dimension(im,jm,km) :: f
+  real(rk4) , dimension(im,jm,kp) :: fp
+  real(rk4) , dimension(kp) :: p
+  real(rk4) , dimension(im,jm) :: pstar
+  real(rk4) , dimension(km) :: sig
   intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
   intent (out) fp
 !
-  integer :: i , j , k , k1 , kp1 , n
-  real(sp) :: sigp , w1 , wp
+  integer(ik4) :: i , j , k , k1 , kp1 , n
+  real(rk4) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -146,15 +147,15 @@ module mod_vertint
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
   implicit none
 !
-  integer :: ni , nj , nlev1
-  real(sp) , dimension(ni,nj) :: pa , tlayer , za , zrcm
-  real(sp) , dimension(nlev1) :: sccm
-  real(sp) , dimension(ni,nj,nlev1) :: tp , zp
+  integer(ik4) :: ni , nj , nlev1
+  real(rk4) , dimension(ni,nj) :: pa , tlayer , za , zrcm
+  real(rk4) , dimension(nlev1) :: sccm
+  real(rk4) , dimension(ni,nj,nlev1) :: tp , zp
   intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
   intent (out) pa , za
   intent (inout) tlayer
 !
-  integer :: i , j , k , kb , kt
+  integer(ik4) :: i , j , k , kb , kt
 !
 !     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
 !     TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
@@ -207,17 +208,17 @@ module mod_vertint
   subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(sp) , dimension(im,jm,km) :: f , p3d
-  real(sp) , dimension(im,jm,kp) :: fp
-  real(sp) , dimension(kp) :: p
-  real(sp) , dimension(im,jm) :: ps
+  integer(ik4) :: im , jm , km , kp
+  real(rk4) , dimension(im,jm,km) :: f , p3d
+  real(rk4) , dimension(im,jm,kp) :: fp
+  real(rk4) , dimension(kp) :: p
+  real(rk4) , dimension(im,jm) :: ps
   intent (in) f , im , jm , km , kp , p , p3d , ps
   intent (out) fp
 !
-  real(sp) :: sigp , w1 , wp
-  integer :: i , j , k , k1 , kp1 , kbc , n
-  real(sp) , dimension(maxnlev) :: sig
+  real(rk4) :: sigp , w1 , wp
+  integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+  real(rk4) , dimension(maxnlev) :: sig
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -275,18 +276,18 @@ module mod_vertint
   subroutine intlog_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(dp) :: ptop
-  real(sp) , dimension(im,jm,km) :: f
-  real(sp) , dimension(im,jm,kp) :: fp
-  real(sp) , dimension(kp) :: p
-  real(sp) , dimension(im,jm) :: pstar
-  real(sp) , dimension(km) :: sig
+  integer(ik4) :: im , jm , km , kp
+  real(rk8) :: ptop
+  real(rk4) , dimension(im,jm,km) :: f
+  real(rk4) , dimension(im,jm,kp) :: fp
+  real(rk4) , dimension(kp) :: p
+  real(rk4) , dimension(im,jm) :: pstar
+  real(rk4) , dimension(km) :: sig
   intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
   intent (out) fp
 !
-  real(sp) :: sigp , w1 , wp
-  integer :: i , j , k , k1 , kp1 , kbc , n
+  real(rk4) :: sigp , w1 , wp
+  integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -334,14 +335,14 @@ module mod_vertint
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
   implicit none
 !
-  integer :: ni , nj
-  real(dp) :: pt
-  real(sp) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
+  integer(ik4) :: ni , nj
+  real(rk8) :: pt
+  real(rk4) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
   intent (in) ni , nj , pa , pt , tlayer , za , zrcm
   intent (out) psrcm
 !
-  real(sp) :: tb
-  integer :: i , j
+  real(rk4) :: tb
+  integer(ik4) :: i , j
 !
 !     EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
 !     USE TLAYER CALCULATED IN INTGTB.
@@ -364,18 +365,18 @@ module mod_vertint
   subroutine intv0(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
 !
-    integer :: kccm , krcm , ni , nj
-    real(dp) :: pt
-    real(sp) , dimension(ni,nj,kccm) :: fccm
-    real(sp) , dimension(ni,nj,krcm) :: frcm
-    real(sp) , dimension(ni,nj) :: psrcm
-    real(sp) , dimension(kccm) :: sccm
-    real(sp) , dimension(krcm) :: srcm
+    integer(ik4) :: kccm , krcm , ni , nj
+    real(rk8) :: pt
+    real(rk4) , dimension(ni,nj,kccm) :: fccm
+    real(rk4) , dimension(ni,nj,krcm) :: frcm
+    real(rk4) , dimension(ni,nj) :: psrcm
+    real(rk4) , dimension(kccm) :: sccm
+    real(rk4) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(sp) :: dp1 , pt1 , rc , rc1 , sc
-    integer :: i , j , k , k1 , kp1 , n
+    real(rk4) :: dp1 , pt1 , rc , rc1 , sc
+    integer(ik4) :: i , j , k , k1 , kp1 , n
 
 !
 !   INTV0 IS FOR VERTICAL INTERPOLATION OF TRACER WHERE THE TRACER HAS
@@ -413,18 +414,18 @@ module mod_vertint
   subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
 !
-    integer :: kccm , krcm , ni , nj
-    real(dp) :: pt
-    real(sp) , dimension(ni,nj,kccm) :: fccm
-    real(sp) , dimension(ni,nj,krcm) :: frcm
-    real(sp) , dimension(ni,nj) :: psrcm
-    real(sp) , dimension(kccm) :: sccm
-    real(sp) , dimension(krcm) :: srcm
+    integer(ik4) :: kccm , krcm , ni , nj
+    real(rk8) :: pt
+    real(rk4) , dimension(ni,nj,kccm) :: fccm
+    real(rk4) , dimension(ni,nj,krcm) :: frcm
+    real(rk4) , dimension(ni,nj) :: psrcm
+    real(rk4) , dimension(kccm) :: sccm
+    real(rk4) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(sp) :: dp1 , pt1 , rc , rc1 , sc
-    integer :: i , j , k , k1 , kp1 , n
+    real(rk4) :: dp1 , pt1 , rc , rc1 , sc
+    integer(ik4) :: i , j , k , k1 , kp1 , n
 
 !
 !   INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -463,18 +464,18 @@ module mod_vertint
   subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
 !
-    integer :: kccm , krcm , ni , nj
-    real(dp) :: pt
-    real(sp) , dimension(ni,nj,kccm) :: fccm
-    real(sp) , dimension(ni,nj,krcm) :: frcm
-    real(sp) , dimension(ni,nj) :: psrcm
-    real(sp) , dimension(kccm) :: sccm
-    real(sp) , dimension(krcm) :: srcm
+    integer(ik4) :: kccm , krcm , ni , nj
+    real(rk8) :: pt
+    real(rk4) , dimension(ni,nj,kccm) :: fccm
+    real(rk4) , dimension(ni,nj,krcm) :: frcm
+    real(rk4) , dimension(ni,nj) :: psrcm
+    real(rk4) , dimension(kccm) :: sccm
+    real(rk4) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(sp) :: a1 , dp1 , pt1 , rc , rc1 , sc
-    integer :: i , j , k , k1 , kp1 , n
+    real(rk4) :: a1 , dp1 , pt1 , rc , rc1 , sc
+    integer(ik4) :: i , j , k , k1 , kp1 , n
 !
 !   INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !   LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -515,16 +516,16 @@ module mod_vertint
   subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
     implicit none
 !
-    integer :: kccm , ni , nj
-    real(dp) :: ptop
-    real(sp) , dimension(ni,nj,kccm) :: fccm
-    real(sp) , dimension(ni,nj) :: fsccm , psrccm
-    real(sp) , dimension(kccm) :: sccm
+    integer(ik4) :: kccm , ni , nj
+    real(rk8) :: ptop
+    real(rk4) , dimension(ni,nj,kccm) :: fccm
+    real(rk4) , dimension(ni,nj) :: fsccm , psrccm
+    real(rk4) , dimension(kccm) :: sccm
     intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
     intent (out) fsccm
 !
-    real(sp) :: a1 , rc , rc1 , sc
-    integer :: i , j , k , k1 , kp1
+    real(rk4) :: a1 , rc , rc1 , sc
+    integer(ik4) :: i , j , k , k1 , kp1
 !
 !   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
 !   IS LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,

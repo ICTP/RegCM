@@ -19,14 +19,15 @@
 
 module mod_block
   
-  use mod_stdio
+  use mod_intkinds
   use mod_realkinds
+  use mod_stdio
   use mod_message
   use mod_constants
 
-  real(dp) :: grdlnmn , grdltmn , grdlnma , grdltma
-  real(dp) :: xmaxlat , xmaxlon , xminlat , xminlon
-  integer :: nlatin , nlonin
+  real(rk8) :: grdlnmn , grdltmn , grdlnma , grdltma
+  real(rk8) :: xmaxlat , xmaxlon , xminlat , xminlon
+  integer(ik4) :: nlatin , nlonin
   logical :: lonwrap , lcrosstime
 
   contains
@@ -34,10 +35,10 @@ module mod_block
   subroutine mxmnll(iy,jx,xlon,xlat,iband)
   implicit none
 !
-  integer :: iy , jx , iband
-  real(sp) , dimension(iy,jx) :: xlat , xlon
+  integer(ik4) :: iy , jx , iband
+  real(rk4) , dimension(iy,jx) :: xlat , xlon
   intent (in) iy , jx , xlat , xlon , iband
-  real(dp) :: xtstlon1 , xtstlon2
+  real(rk8) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !

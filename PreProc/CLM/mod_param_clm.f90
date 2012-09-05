@@ -19,6 +19,7 @@
 
 module mod_param_clm
 
+  use mod_intkinds
   use mod_realkinds
   use mod_message
   use mod_stdio
@@ -27,7 +28,7 @@ module mod_param_clm
 !
   integer, private :: k
 
-  integer , parameter :: nfld = 18 , npft = 17 , nsoi = 10 ,        &
+  integer(ik4) , parameter :: nfld = 18 , npft = 17 , nsoi = 10 ,        &
                          ipft = 1 , ilai = 2 , isai = 3 , itop = 4 ,&
                          ibot = 5 , ilak = 6 , iwtl = 7 , iglc = 8 ,&
                          iurb = 9 , isnd = 10 , icly = 11 ,         &
@@ -35,10 +36,10 @@ module mod_param_clm
                          ifma = 14 , iapin = 16 , ibpin = 17 ,      &
                          imbo = 18
 !
-  real(sp) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
-  integer , dimension(nfld) :: nlat , nlev , nlon , ntim
+  real(rk4) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
+  integer(ik4) , dimension(nfld) :: nlat , nlev , nlon , ntim
 !     ** glev_st = soil level depths
-  real(sp) , dimension(nsoi) :: glev_st
+  real(rk4) , dimension(nsoi) :: glev_st
   character(256) , dimension(nfld) :: infil
   character(64) , dimension(nfld) :: vnam
   character(64) :: vnam_lm , vnam_st
@@ -221,18 +222,18 @@ module mod_param_clm
  
   implicit none
 !
-  real(sp) :: xlatmax , xlatmin , xlonmax , xlonmin
-  integer :: kz , ndim , nx , ny
-  integer , dimension(ndim) :: iadim
-  real(sp) , dimension(ndim) :: varmax , varmin
-  real(sp) , dimension(ny,nx) :: xlat , xlon
-  real(sp) , dimension(ny) :: xlat1d
-  real(sp) , dimension(nx) :: xlon1d
+  real(rk4) :: xlatmax , xlatmin , xlonmax , xlonmin
+  integer(ik4) :: kz , ndim , nx , ny
+  integer(ik4) , dimension(ndim) :: iadim
+  real(rk4) , dimension(ndim) :: varmax , varmin
+  real(rk4) , dimension(ny,nx) :: xlat , xlon
+  real(rk4) , dimension(ny) :: xlat1d
+  real(rk4) , dimension(nx) :: xlon1d
   intent (in) kz , ndim , nx , ny , xlat , xlon
   intent (out) iadim , varmax , varmin , xlat1d , xlatmax , xlatmin ,&
                xlon1d , xlonmax , xlonmin
 !
-  integer :: i , j
+  integer(ik4) :: i , j
 !
   varmin(1) = minval(xlon)
   varmin(2) = minval(xlat)
@@ -259,12 +260,12 @@ module mod_param_clm
   subroutine comp(fields,bvoc)
   implicit none
 !
-  integer :: fields
+  integer(ik4) :: fields
   logical :: bvoc
   intent (in) bvoc
   intent (out) fields
 !
-  integer :: numcompounds
+  integer(ik4) :: numcompounds
  
   if ( bvoc ) then
  50     continue

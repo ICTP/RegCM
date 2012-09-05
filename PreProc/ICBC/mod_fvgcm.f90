@@ -19,9 +19,10 @@
 
 module mod_fvgcm
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_realkinds
   use mod_message
   use mod_grid
   use mod_write
@@ -35,28 +36,28 @@ module mod_fvgcm
 
   private
 
-  integer , parameter :: nlev = 18 , nlat = 181 , nlon = 288
+  integer(ik4) , parameter :: nlev = 18 , nlat = 181 , nlon = 288
 
-  real(sp) , dimension(nlev+1) :: ak , bk
-  real(sp) , dimension(nlev) :: pplev , sigma1 , sigmar
-  real(sp) , dimension(nlat) :: vlat
-  real(sp) , dimension(nlon) :: vlon
+  real(rk4) , dimension(nlev+1) :: ak , bk
+  real(rk4) , dimension(nlev) :: pplev , sigma1 , sigmar
+  real(rk4) , dimension(nlat) :: vlat
+  real(rk4) , dimension(nlon) :: vlon
 
-  real(sp) , target , dimension(nlon,nlat,nlev*4+1) :: bb
-  real(sp) , target , dimension(nlon,nlat,nlev*3) :: b2
-  real(sp) , target , dimension(nlon,nlat,nlev*2) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , target , dimension(nlon,nlat,nlev*4+1) :: bb
+  real(rk4) , target , dimension(nlon,nlat,nlev*3) :: b2
+  real(rk4) , target , dimension(nlon,nlat,nlev*2) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , dimension(nlon,nlat) :: zs2
-  real(sp) , dimension(nlon,nlat,nlev) :: pp3d , z1
+  real(rk4) , dimension(nlon,nlat) :: zs2
+  real(rk4) , dimension(nlon,nlat,nlev) :: pp3d , z1
 
-  real(sp) , pointer , dimension(:,:) :: ps2
-  real(sp) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-  real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(sp) , pointer , dimension(:,:,:) :: up , vp
-  real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(sp) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk4) , pointer , dimension(:,:) :: ps2
+  real(rk4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+  real(rk4) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rk4) , pointer , dimension(:,:,:) :: up , vp
+  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: getfvgcm , headerfv
 
@@ -70,13 +71,13 @@ module mod_fvgcm
   character(3) , dimension(12) :: chmon
   character(20) :: finm , fips
   character(5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
-  integer :: i , i2 , ii , j , j2 , k , mrec , nrec , numx , numy
+  integer(ik4) :: i , i2 , ii , j , j2 , k , mrec , nrec , numx , numy
   integer(2) , dimension(288,181) :: itmp
-  real(dp) :: offset , xscale
-  real(sp) , dimension(288,181) :: temp
+  real(rk8) :: offset , xscale
+  real(rk4) , dimension(288,181) :: temp
   logical :: there
   character(4) , dimension(30) :: yr_a2 , yr_rf
-  integer :: year , month , day , hour
+  integer(ik4) :: year , month , day , hour
 !
   data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/
   data pn_rf/'PS_RF'/ , pn_a2/'PS_A2'/
@@ -373,7 +374,7 @@ module mod_fvgcm
 
   implicit none
 !
-  integer :: i , j , k , kr
+  integer(ik4) :: i , j , k , kr
 !
   do j = 1 , nlat
     vlat(j) = float(j-1) - 90.0

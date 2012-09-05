@@ -58,6 +58,8 @@ program terrain
 !  and analyzes heights and landuse values to a given grid.
 !
 !---------------------------------------------------------------------
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_constants
   use mod_maps
@@ -77,19 +79,19 @@ program terrain
 !
   character(256) :: char_lnd , char_tex , char_lak
   character(256) :: namelistfile , prgname , outname
-  integer :: i , j , k , ierr , i0 , j0 , m , n
+  integer(ik4) :: i , j , k , ierr , i0 , j0 , m , n
   logical :: ibndry
-  real(dp) :: clong , hsum , have , dsinm
-  integer :: ntypec , ntypec_s
+  real(rk8) :: clong , hsum , have , dsinm
+  integer(ik4) :: ntypec , ntypec_s
 !
   data ibndry /.true./
-  real(dp) :: jumpsize , apara , bpara , func , funcprev
-  real(dp) , pointer , dimension(:) :: alph , dsig
-  real(dp) :: psig , zsig , pstar
-  integer :: icount
-  integer , parameter :: maxiter = 1000000
-  real(dp) , parameter :: conv_crit = 0.00001D0
-  real(sp) , pointer , dimension(:) :: s_sigma
+  real(rk8) :: jumpsize , apara , bpara , func , funcprev
+  real(rk8) , pointer , dimension(:) :: alph , dsig
+  real(rk8) :: psig , zsig , pstar
+  integer(ik4) :: icount
+  integer(ik4) , parameter :: maxiter = 1000000
+  real(rk8) , parameter :: conv_crit = 0.00001D0
+  real(rk4) , pointer , dimension(:) :: s_sigma
 !
   call header(1)
 !

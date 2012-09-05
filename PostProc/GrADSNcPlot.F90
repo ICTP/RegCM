@@ -23,11 +23,14 @@ subroutine myabort
 end subroutine myabort
 
 program ncplot
-  use netcdf
+
+  use mod_intkinds
+  use mod_realkinds
   use mod_projections
   use mod_date
   use mod_message
   use mod_nchelper
+  use netcdf
 
   implicit none
 
@@ -37,38 +40,38 @@ program ncplot
   character(64) :: vardesc , timeunit , timecal
   character(16) :: varunit
   character(16) :: dimdesc
-  integer :: numarg , istatus , ncid
+  integer(ik4) :: numarg , istatus , ncid
   type(rcm_time_and_date) :: idate1 , idate2
   type(rcm_time_interval) :: tdif
-  integer :: delta
+  integer(ik4) :: delta
   character(3) , dimension(12) :: cmon
 
   character(256) :: charatt
   character(6) :: iproj
-  real(8) :: clat , clon , plat , plon , ds , centeri , centerj
-  real(4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(8) , dimension(2) :: trlat
-  real(4) , allocatable , dimension(:,:) :: xlat , xlon
-  real(4) , allocatable , dimension(:) :: level , tmplon
-  real(8) , allocatable , dimension(:) :: times
-  real(8) :: time1
-  real(4) , allocatable , dimension(:,:) :: rin , rjn , ruv
+  real(rk8) :: clat , clon , plat , plon , ds , centeri , centerj
+  real(rk4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
+  real(rk8) , dimension(2) :: trlat
+  real(rk4) , allocatable , dimension(:,:) :: xlat , xlon
+  real(rk4) , allocatable , dimension(:) :: level , tmplon
+  real(rk8) , allocatable , dimension(:) :: times
+  real(rk8) :: time1
+  real(rk4) , allocatable , dimension(:,:) :: rin , rjn , ruv
   logical , allocatable , dimension(:) :: lvarflag
-  integer , allocatable , dimension(:) :: dimids
-  integer :: ndims , nvars , natts , udimid , totvars
-  integer :: ivarid , idimid , xtype
-  integer :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
-  integer :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(4) :: alat , alon , angle
-  integer :: i , j
-  integer :: year , month , day , hour
+  integer(ik4) , allocatable , dimension(:) :: dimids
+  integer(ik4) :: ndims , nvars , natts , udimid , totvars
+  integer(ik4) :: ivarid , idimid , xtype
+  integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
+  integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
+  real(rk4) :: alat , alon , angle
+  integer(ik4) :: i , j
+  integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , lsigma , ldepth
   logical :: is_model_output = .false.
 #ifdef __PGI
-  integer , external :: iargc
+  integer(ik4) , external :: iargc
 #endif
 #ifdef IBM
-  integer , external :: iargc
+  integer(ik4) , external :: iargc
 #endif
 
   data cmon /'jan','feb','mar','apr','may','jun', &

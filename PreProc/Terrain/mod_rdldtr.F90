@@ -27,9 +27,9 @@ module mod_rdldtr
 
   private
 
-  real(sp) , dimension(:,:) , pointer :: readbuf
-  real(sp) , dimension(:) , pointer :: copybuf
-  real(sp) , dimension(:,:) , pointer :: values
+  real(rk4) , dimension(:,:) , pointer :: readbuf
+  real(rk4) , dimension(:) , pointer :: copybuf
+  real(rk4) , dimension(:,:) , pointer :: values
 
   public :: values , read_ncglob
 
@@ -55,16 +55,16 @@ module mod_rdldtr
     use netcdf
     implicit none
     character(len=*) , intent(in) :: cfile , cvar
-    integer , intent(in) :: iires , iores , imeth
+    integer(ik4) , intent(in) :: iires , iores , imeth
     logical , intent(in) :: lreg
-    integer :: ncid , ivar , istatus
-    integer :: nlat , nlon , itl
-    integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
-    integer , dimension(2) :: istart, icount
-    integer :: nlogb , nlagb , hnlogb , hnlagb , nfrac
-    integer , parameter :: secpd = 3600
-    integer , parameter :: secpm = 60
-    real(dp) :: delta
+    integer(ik4) :: ncid , ivar , istatus
+    integer(ik4) :: nlat , nlon , itl
+    integer(ik4) :: i , j , iosec , inpsec , iopsec , ifrac , ireg
+    integer(ik4) , dimension(2) :: istart, icount
+    integer(ik4) :: nlogb , nlagb , hnlogb , hnlagb , nfrac
+    integer(ik4) , parameter :: secpd = 3600
+    integer(ik4) , parameter :: secpm = 60
+    real(rk8) :: delta
 
     if ( iores <= 0 ) then
       iosec = iires
@@ -226,13 +226,13 @@ module mod_rdldtr
 !
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
-    integer , intent(in) :: ni , nj , isize 
-    real(sp) , dimension(isize*isize) , intent(out) :: copybuf
-    real(sp) , dimension(ni,nj) , intent(in) :: readbuf
-    integer , intent(in) :: i , j
+    integer(ik4) , intent(in) :: ni , nj , isize 
+    real(rk4) , dimension(isize*isize) , intent(out) :: copybuf
+    real(rk4) , dimension(ni,nj) , intent(in) :: readbuf
+    integer(ik4) , intent(in) :: i , j
     logical , intent(in) :: lwrap
-    integer :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
-    integer :: ib , jb
+    integer(ik4) :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
+    integer(ik4) :: ib , jb
 
     hsize = isize / 2
     imin = i - hsize
@@ -262,10 +262,10 @@ module mod_rdldtr
 !
   function mpindex(x)
     implicit none
-    real(sp) , dimension(:) , intent(in) :: x
-    integer :: mpindex
-    integer , dimension(32) :: cnt
-    integer :: i
+    real(rk4) , dimension(:) , intent(in) :: x
+    integer(ik4) :: mpindex
+    integer(ik4) , dimension(32) :: cnt
+    integer(ik4) :: i
 
     do i = 1 , 32
       cnt(i) = sum(int(x)/i, int(x) == i)
@@ -278,8 +278,8 @@ module mod_rdldtr
 !
   recursive subroutine qsort(a)
     implicit none 
-    real(sp) , dimension(:) , intent(in out) :: a
-    integer :: np , isplit
+    real(rk4) , dimension(:) , intent(in out) :: a
+    integer(ik4) :: np , isplit
  
     np = size(a)
     if (np > 1) then
@@ -291,10 +291,10 @@ module mod_rdldtr
  
   subroutine partition(a, marker)
     implicit none 
-    real(sp) , dimension(:) , intent(inout) :: a
-    integer , intent(out) :: marker
-    integer :: np , left , right
-    real(sp) :: temp , pivot
+    real(rk4) , dimension(:) , intent(inout) :: a
+    integer(ik4) , intent(out) :: marker
+    integer(ik4) :: np , left , right
+    real(rk4) :: temp , pivot
  
     np = size(a)
     pivot = (a(1) + a(np))/2.0E0

@@ -23,56 +23,58 @@ subroutine myabort
 end subroutine myabort
 
 program sigma2p
-  use netcdf
+
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_message
   use mod_vertint
   use mod_derived
   use mod_nchelper
+  use netcdf
 
   implicit none
 
-  integer , parameter :: np = 11
-  real(4) , dimension(np) :: plevs
+  integer(ik4) , parameter :: np = 11
+  real(rk4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
   character(128) :: attname , dimname , varname
-  integer :: numarg , istatus , ncid , ncout
+  integer(ik4) :: numarg , istatus , ncid , ncout
 
-  integer , allocatable , dimension(:) :: dimids , dimlen
-  real(sp) , allocatable , dimension(:) :: sigma
-  real(sp) , allocatable , dimension(:,:,:) :: xvar
-  real(sp) , allocatable , dimension(:,:,:) :: pvar , tapvar , qapvar , hapvar
-  real(sp) , allocatable , dimension(:,:) :: ps , topo , mslp
-  real(sp) , allocatable , dimension(:) :: avar
+  integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
+  real(rk4) , allocatable , dimension(:) :: sigma
+  real(rk4) , allocatable , dimension(:,:,:) :: xvar
+  real(rk4) , allocatable , dimension(:,:,:) :: pvar , tapvar , qapvar , hapvar
+  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslp
+  real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
-  real(sp) , allocatable , dimension(:) :: apvar
-  real(dp) , allocatable , dimension(:) :: times
+  real(rk4) , allocatable , dimension(:) :: apvar
+  real(rk8) , allocatable , dimension(:) :: times
   logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
-  integer , allocatable , dimension(:) :: varsize
-  integer , allocatable , dimension(:) :: intscheme
-  integer , allocatable , dimension(:) :: nvdims
-  integer , allocatable , dimension(:,:) :: dimsize
-  integer , allocatable , dimension(:) :: istart , icount
-  integer :: ndims , nvars , natts , udimid , nvatts
-  integer :: ivarid , idimid , xtype
-  integer :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer :: ipsvarid , ishvarid
-  integer :: jx , iy , kz , nt
-  real(dp) :: ptop
-  integer , dimension(4) :: tdimids
-  integer , dimension(3) :: psdimids
-  integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
-  integer :: tvarid , qvarid , irhvar , ihgvar , imslpvar
+  integer(ik4) , allocatable , dimension(:) :: varsize
+  integer(ik4) , allocatable , dimension(:) :: intscheme
+  integer(ik4) , allocatable , dimension(:) :: nvdims
+  integer(ik4) , allocatable , dimension(:,:) :: dimsize
+  integer(ik4) , allocatable , dimension(:) :: istart , icount
+  integer(ik4) :: ndims , nvars , natts , udimid , nvatts
+  integer(ik4) :: ivarid , idimid , xtype
+  integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
+  integer(ik4) :: ipsvarid , ishvarid
+  integer(ik4) :: jx , iy , kz , nt
+  real(rk8) :: ptop
+  integer(ik4) , dimension(4) :: tdimids
+  integer(ik4) , dimension(3) :: psdimids
+  integer(ik4) :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
+  integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar
   logical :: has_t , has_q
   logical :: make_rh , make_hgt
-  integer :: n3d , ip3d
+  integer(ik4) :: n3d , ip3d
 #ifdef __PGI
-  integer , external :: iargc
+  integer(ik4) , external :: iargc
 #endif
 #ifdef IBM 
-  integer , external :: iargc
+  integer(ik4) , external :: iargc
 #endif
 
   data has_t /.false./

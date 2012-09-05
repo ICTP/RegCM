@@ -19,6 +19,7 @@
 
 module mod_header
 
+  use mod_intkinds
   use mod_stdio
 
   contains
@@ -26,11 +27,11 @@ module mod_header
   subroutine header(myid)
   implicit none 
 !
-  integer , intent(in) :: myid
+  integer(ik4) , intent(in) :: myid
 !
-  integer :: hostnm
-  integer :: ihost, idir
-  integer :: getcwd
+  integer(ik4) :: hostnm
+  integer(ik4) :: ihost, idir
+  integer(ik4) :: getcwd
   character (len=32) :: cdata='?'
   character (len=32) :: hostname='?' 
   character (len=32) :: user='?' 

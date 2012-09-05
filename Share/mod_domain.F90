@@ -30,17 +30,17 @@ module mod_domain
   private
 
   type domain_io
-    real(dp) , pointer , dimension(:) :: sigma
-    real(dp) , pointer , dimension(:,:) :: xlat
-    real(dp) , pointer , dimension(:,:) :: xlon
-    real(dp) , pointer , dimension(:,:) :: dlat
-    real(dp) , pointer , dimension(:,:) :: dlon
-    real(dp) , pointer , dimension(:,:) :: ht
-    real(dp) , pointer , dimension(:,:) :: mask
-    real(dp) , pointer , dimension(:,:) :: lndcat
-    real(dp) , pointer , dimension(:,:) :: msfx
-    real(dp) , pointer , dimension(:,:) :: msfd
-    real(dp) , pointer , dimension(:,:) :: coriol
+    real(rk8) , pointer , dimension(:) :: sigma
+    real(rk8) , pointer , dimension(:,:) :: xlat
+    real(rk8) , pointer , dimension(:,:) :: xlon
+    real(rk8) , pointer , dimension(:,:) :: dlat
+    real(rk8) , pointer , dimension(:,:) :: dlon
+    real(rk8) , pointer , dimension(:,:) :: ht
+    real(rk8) , pointer , dimension(:,:) :: mask
+    real(rk8) , pointer , dimension(:,:) :: lndcat
+    real(rk8) , pointer , dimension(:,:) :: msfx
+    real(rk8) , pointer , dimension(:,:) :: msfd
+    real(rk8) , pointer , dimension(:,:) :: coriol
   end type domain_io
 
   type (domain_io) :: mddom_io
@@ -57,7 +57,7 @@ module mod_domain
 
   subroutine read_domain_type(ncid)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     call check_domain(ncid)
     call allocate_domain( )
     call read_var1d_static(ncid,'sigma',mddom_io%sigma)
@@ -76,18 +76,18 @@ module mod_domain
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
                                lndcat,msfx,msfd,coriol)
     implicit none
-    integer , intent(in) :: ncid
-    real(dp) , pointer , dimension(:) , intent(out) :: sigma
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(dp) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    integer(ik4) , intent(in) :: ncid
+    real(rk8) , pointer , dimension(:) , intent(out) :: sigma
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: xlat
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: xlon
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: dlat
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: dlon
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: ht
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: mask
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfx
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfd
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -105,20 +105,20 @@ module mod_domain
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
                                       lndcat,msfx,msfd,coriol,ltrans)
     implicit none
-    integer , intent(in) :: ncid
-    real(sp) , pointer , dimension(:) , intent(out) :: sigma
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(sp) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , pointer , dimension(:) , intent(out) :: sigma
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlon
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlon
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: ht
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: mask
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     logical , intent(in) , optional :: ltrans
-    real(sp) , pointer , dimension(:,:) :: dum
+    real(rk4) , pointer , dimension(:,:) :: dum
     logical :: dotrans
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
@@ -201,14 +201,14 @@ module mod_domain
 
   subroutine check_domain(ncid,lmod)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     logical , optional :: lmod
-    integer :: istatus
-    integer :: idimid , ivarid
-    integer :: iyy , jxx , kzz , kcheck
+    integer(ik4) :: istatus
+    integer(ik4) :: idimid , ivarid
+    integer(ik4) :: iyy , jxx , kzz , kcheck
     character(6) :: proj
     logical :: lh
-    real(sp) :: dsx , iclat , iclon , ptsp
+    real(rk4) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
     if ( present(lmod) ) lh = lmod

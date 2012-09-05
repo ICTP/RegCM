@@ -19,13 +19,14 @@
 
 module mod_sst_eh5om
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_message
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
+  use netcdf
 
   private
 
@@ -50,21 +51,21 @@ module mod_sst_eh5om
 
   implicit none
 !
-  integer , parameter :: ilon = 192 , jlat = 96
-  integer , parameter :: idtbc = 6
+  integer(ik4) , parameter :: ilon = 192 , jlat = 96
+  integer(ik4) , parameter :: idtbc = 6
 !
-  integer :: it_base
+  integer(ik4) :: it_base
   integer(2) , dimension(ilon,jlat) :: ivar
-  real(dp) :: offset , xscale
-  real(sp) , dimension(ilon,jlat) :: sst
+  real(rk8) :: offset , xscale
+  real(rk4) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , ieh5ostart
-  integer :: a1 , a2 , a3 , a4 , a5 , a6 , a7 , a8 , a9 , &
+  integer(ik4) :: a1 , a2 , a3 , a4 , a5 , a6 , a7 , a8 , a9 , &
              a10  , a11 , a12 , a13 , a14 , g1 , g2 , i1
   type(rcm_time_interval) :: tdiff , itbc
-  integer :: ieh5orec , nsteps
-  integer :: i , it , j
-  real(sp) , dimension(jlat) :: lati
-  real(sp) , dimension(ilon) :: loni
+  integer(ik4) :: ieh5orec , nsteps
+  integer(ik4) :: i , it , j
+  real(rk4) , dimension(jlat) :: lati
+  real(rk4) , dimension(ilon) :: loni
   logical :: there
 !
 !

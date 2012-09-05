@@ -19,9 +19,11 @@
 
 module mod_ensemble
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_memutil
   use mod_constants
+!
 !------------------------------------------------------------------------------
 !
 ! Routines to implement the ensembling method of 
@@ -32,7 +34,7 @@ module mod_ensemble
 !
   private
 
-  real(dp) , public :: dHumidfrac , dSSTfrac
+  real(rk8) , public :: dHumidfrac , dSSTfrac
   logical , public :: bDoSSTEnsemble , bDoHumidEnsemble
 
   interface randify
@@ -42,7 +44,7 @@ module mod_ensemble
 
   public :: randify
 
-  integer , dimension(:) , pointer :: seed
+  integer(ik4) , dimension(:) , pointer :: seed
 
   contains
 !
@@ -57,13 +59,13 @@ module mod_ensemble
 !
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
-    integer , intent(in) :: imax , jmax , kmax
-    real(dp) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
-    real(dp) , intent(in) :: dFrac
+    integer(ik4) , intent(in) :: imax , jmax , kmax
+    real(rk8) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
+    real(rk8) , intent(in) :: dFrac
 
-    real(dp) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
-    integer :: i
-    integer :: nseed , clock
+    real(rk8) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
+    integer(ik4) :: i
+    integer(ik4) :: nseed , clock
 
     ! initialize the random number generator with the current clock time
     ! get the size of the seed array
@@ -120,14 +122,14 @@ module mod_ensemble
 !
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
-    integer , intent(in) :: imax , jmax
-    real(dp) , dimension(imax,jmax) , intent(inout) :: dVariable2D
-    real(dp) , intent(in) :: dFrac
+    integer(ik4) , intent(in) :: imax , jmax
+    real(rk8) , dimension(imax,jmax) , intent(inout) :: dVariable2D
+    real(rk8) , intent(in) :: dFrac
 
     real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
-    integer :: i
-    integer :: nseed , clock
-    integer , dimension(:) , pointer :: seed
+    integer(ik4) :: i
+    integer(ik4) :: nseed , clock
+    integer(ik4) , dimension(:) , pointer :: seed
 
     ! initialize the random number generator with the current clock time
     ! get the size of the seed array

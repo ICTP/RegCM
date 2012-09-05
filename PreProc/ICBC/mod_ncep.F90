@@ -19,8 +19,9 @@
 
 module mod_ncep
 
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_stdio
   use mod_grid
   use mod_write
@@ -37,27 +38,27 @@ module mod_ncep
 
   private
 
-  integer , parameter :: klev = 13 , jlat = 73 , ilon = 144
+  integer(ik4) , parameter :: klev = 13 , jlat = 73 , ilon = 144
 
-  real(sp) , dimension(ilon,jlat) :: psvar
-  real(sp) , dimension(jlat) :: glat
-  real(sp) , dimension(ilon) :: glon
-  real(sp) , dimension(klev) :: sigma1 , sigmar
+  real(rk4) , dimension(ilon,jlat) :: psvar
+  real(rk4) , dimension(jlat) :: glat
+  real(rk4) , dimension(ilon) :: glon
+  real(rk4) , dimension(klev) :: sigma1 , sigmar
 
-  real(sp) , dimension(ilon,jlat,klev) :: wvar
+  real(rk4) , dimension(ilon,jlat,klev) :: wvar
 
-  real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
   integer(2) , pointer , dimension(:,:,:) :: work
   
-  real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  integer :: year , month , day , hour
+  integer(ik4) :: year , month , day , hour
 
   public :: getncep , headernc
 
@@ -66,7 +67,7 @@ module mod_ncep
   subroutine getncep(idate,itype)
   implicit none
 !
-  integer , intent(in) :: itype
+  integer(ik4) , intent(in) :: itype
   type(rcm_time_and_date) , intent(in) :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
@@ -144,14 +145,14 @@ module mod_ncep
 !
   type(rcm_time_and_date) , intent (in) :: idate , idate0
 !
-  integer :: i , ilev , inet , it , j , kkrec , m , k , nlev , istatus
+  integer(ik4) :: i , ilev , inet , it , j , kkrec , m , k , nlev , istatus
   character(21) :: inname
   character(256) :: pathaddname
   character(5) , dimension(7) :: varname
-  real(dp) :: xadd , xscale
-  integer , dimension(10) , save :: icount , istart
-  integer , dimension(7) , save :: inet7 , ivar7
-  real(dp) , dimension(7) , save :: xoff , xscl
+  real(rk8) :: xadd , xscale
+  integer(ik4) , dimension(10) , save :: icount , istart
+  integer(ik4) , dimension(7) , save :: inet7 , ivar7
+  real(rk8) , dimension(7) , save :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -350,15 +351,15 @@ module mod_ncep
 !
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , ii , ilev , inet , it , j , jj , kkrec , m , nlev , istatus
+  integer(ik4) :: i , ii , ilev , inet , it , j , jj , kkrec , m , nlev , istatus
   character(24) :: inname
   character(256) :: pathaddname
   character(5) , dimension(7) :: varname
-  integer :: iii , jjj
-  real(dp) :: xadd , xscale
-  integer , dimension(10) :: icount , istart
-  integer , dimension(7) :: inet7 , ivar7
-  real(dp) , dimension(7) :: xoff , xscl
+  integer(ik4) :: iii , jjj
+  real(rk8) :: xadd , xscale
+  integer(ik4) , dimension(10) :: icount , istart
+  integer(ik4) , dimension(7) :: inet7 , ivar7
+  real(rk8) , dimension(7) :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -627,7 +628,7 @@ module mod_ncep
   subroutine headernc
   implicit none
 !
-  integer :: i , j , k , kr
+  integer(ik4) :: i , j , k , kr
 !
 !     X X X X X   SET 1 :PARAMETERS FOR NCEP/NCAR REALALYSIS DATASET X
 !     X X A1

@@ -19,28 +19,29 @@
 
 module mod_write
 
+  use mod_intkinds
   use mod_realkinds
-  use netcdf
   use mod_dynparam
   use mod_grid
   use mod_memutil
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 
-  integer :: ncout
+  integer(ik4) :: ncout
   character(256) :: ofname
   type(rcm_time_and_date) , save :: irefdate
-  integer :: itime
-  integer , dimension(4) :: idims
-  integer , dimension(8) :: ivar
+  integer(ik4) :: itime
+  integer(ik4) , dimension(4) :: idims
+  integer(ik4) , dimension(8) :: ivar
 
-  real(sp) , pointer , dimension(:,:) :: ps4 , ts4
-  real(sp) , pointer , dimension(:,:,:) :: h4 , q4
-  real(sp) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(sp) , pointer , dimension(:) :: yiy
-  real(sp) , pointer , dimension(:) :: xjx
+  real(rk4) , pointer , dimension(:,:) :: ps4 , ts4
+  real(rk4) , pointer , dimension(:,:,:) :: h4 , q4
+  real(rk4) , pointer , dimension(:,:,:) :: t4 , u4 , v4
+  real(rk4) , pointer , dimension(:) :: yiy
+  real(rk4) , pointer , dimension(:) :: xjx
 
   public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4
   public :: init_output , close_output , newfile , writef
@@ -64,7 +65,7 @@ module mod_write
 
   subroutine close_output
     implicit none
-    integer :: istatus
+    integer(ik4) :: istatus
     if (ncout > 0) then
       istatus = nf90_close(ncout)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -75,13 +76,13 @@ module mod_write
   subroutine newfile(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: ipnt , istatus
-    integer , dimension(2) :: izvar
-    integer , dimension(2) :: ihvar
-    integer , dimension(3) :: ihdims
-    integer , dimension(6) :: illvar
+    integer(ik4) :: ipnt , istatus
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(3) :: ihdims
+    integer(ik4) , dimension(6) :: illvar
     character(64) :: csdate
-    real(sp) :: hptop
+    real(rk4) :: hptop
 
     if (ncout > 0) then
       istatus = nf90_close(ncout)
@@ -246,10 +247,10 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdiff
-    integer :: istatus
-    integer , dimension(1) :: istart1 , icount1
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: xdate
+    integer(ik4) :: istatus
+    integer(ik4) , dimension(1) :: istart1 , icount1
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: xdate
 !
     istart1(1) = itime
     icount1(1) = 1

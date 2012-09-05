@@ -20,6 +20,7 @@
 module mod_message
 
   use mod_stdio
+  use mod_intkinds
 
   private
 !
@@ -28,7 +29,7 @@ module mod_message
 
   public :: setup_mesg , die , aline , say , note , cry , fatal , checkalloc
 
-  integer :: iprank = 0
+  integer(ik4) :: iprank = 0
 
   interface die
     module procedure die0
@@ -41,7 +42,7 @@ module mod_message
 
   subroutine setup_mesg(ipid)
     implicit none
-    integer :: ipid
+    integer(ik4) :: ipid
     iprank = ipid
   end subroutine setup_mesg
 
@@ -69,7 +70,7 @@ module mod_message
   subroutine fatal(filename,line,str)
     implicit none
     character(*) , intent(in) :: filename , str
-    integer , intent(in) :: line
+    integer(ik4) , intent(in) :: line
 !
     write (cline,'(i8)') line
     write (aline,*) '-------------- FATAL CALLED ---------------'
@@ -87,7 +88,7 @@ module mod_message
 
   subroutine checkalloc(ival,filename,line,arg)
     implicit none
-    integer , intent(in) :: ival , line
+    integer(ik4) , intent(in) :: ival , line
     character(*) , intent(in) :: filename , arg
     if ( ival /= 0 ) then
       write (cline,'(i8)') line
@@ -115,7 +116,7 @@ module mod_message
   subroutine die2(msg,msg1,ier1)
     implicit none
     character (len=*) , intent(in) :: msg , msg1
-    integer , intent(in) :: ier1
+    integer(ik4) , intent(in) :: ier1
     external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , ': ', ier1
     call myabort
@@ -124,7 +125,7 @@ module mod_message
   subroutine die4(msg,msg1,ier1,msg2,ier2)
     implicit none
     character (len=*) , intent(in) :: msg , msg1 , msg2
-    integer , intent(in) :: ier1 , ier2
+    integer(ik4) , intent(in) :: ier1 , ier2
     external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , &
                            ': ', ier1 , ' : ', msg2 , ': ', ier2

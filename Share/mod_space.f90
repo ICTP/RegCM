@@ -19,6 +19,7 @@
 
 module mod_space
 
+  use mod_intkinds
   use mod_realkinds
   use mod_date , only : rcm_time_and_date
 
@@ -34,8 +35,8 @@ module mod_space
   public :: getspc1d , getspc2d , getspc3d , getspc4d , getspc5d
 
   type bounds
-    integer :: low
-    integer :: high
+    integer(ik4) :: low
+    integer(ik4) :: high
   end type bounds
 
   type sarr1d
@@ -43,7 +44,7 @@ module mod_space
   end type sarr1d
  
   type iarr1d
-    integer , pointer , dimension(:) :: space => null()
+    integer(ik4) , pointer , dimension(:) :: space => null()
   end type iarr1d
  
   type larr1d
@@ -51,11 +52,11 @@ module mod_space
   end type larr1d
 
   type r4arr1d
-    real(sp) , pointer , dimension(:) :: space => null()
+    real(rk4) , pointer , dimension(:) :: space => null()
   end type r4arr1d
 
   type r8arr1d
-    real(dp) , pointer , dimension(:) :: space => null()
+    real(rk8) , pointer , dimension(:) :: space => null()
   end type r8arr1d
 
   type rtarr1d
@@ -67,7 +68,7 @@ module mod_space
   end type sarr2d
 
   type iarr2d
-    integer , pointer , dimension(:,:) :: space => null()
+    integer(ik4) , pointer , dimension(:,:) :: space => null()
   end type iarr2d
  
   type larr2d
@@ -75,11 +76,11 @@ module mod_space
   end type larr2d
 
   type r4arr2d
-    real(sp) , pointer , dimension(:,:) :: space => null()
+    real(rk4) , pointer , dimension(:,:) :: space => null()
   end type r4arr2d
 
   type r8arr2d
-    real(dp) , pointer , dimension(:,:) :: space => null()
+    real(rk8) , pointer , dimension(:,:) :: space => null()
   end type r8arr2d
 
   type sarr3d
@@ -87,7 +88,7 @@ module mod_space
   end type sarr3d
  
   type iarr3d
-    integer , pointer , dimension(:,:,:) :: space => null()
+    integer(ik4) , pointer , dimension(:,:,:) :: space => null()
   end type iarr3d
  
   type larr3d
@@ -95,11 +96,11 @@ module mod_space
   end type larr3d
 
   type r4arr3d
-    real(sp) , pointer , dimension(:,:,:) :: space => null()
+    real(rk4) , pointer , dimension(:,:,:) :: space => null()
   end type r4arr3d
 
   type r8arr3d
-    real(dp) , pointer , dimension(:,:,:) :: space => null()
+    real(rk8) , pointer , dimension(:,:,:) :: space => null()
   end type r8arr3d
 
   type sarr4d
@@ -107,7 +108,7 @@ module mod_space
   end type sarr4d
  
   type iarr4d
-    integer , pointer , dimension(:,:,:,:) :: space => null()
+    integer(ik4) , pointer , dimension(:,:,:,:) :: space => null()
   end type iarr4d
  
   type larr4d
@@ -115,11 +116,11 @@ module mod_space
   end type larr4d
 
   type r4arr4d
-    real(sp) , pointer , dimension(:,:,:,:) :: space => null()
+    real(rk4) , pointer , dimension(:,:,:,:) :: space => null()
   end type r4arr4d
 
   type r8arr4d
-    real(dp) , pointer , dimension(:,:,:,:) :: space => null()
+    real(rk8) , pointer , dimension(:,:,:,:) :: space => null()
   end type r8arr4d
 
   type sarr5d
@@ -127,7 +128,7 @@ module mod_space
   end type sarr5d
  
   type iarr5d
-    integer , pointer , dimension(:,:,:,:,:) :: space => null()
+    integer(ik4) , pointer , dimension(:,:,:,:,:) :: space => null()
   end type iarr5d
  
   type larr5d
@@ -135,11 +136,11 @@ module mod_space
   end type larr5d
 
   type r4arr5d
-    real(sp) , pointer , dimension(:,:,:,:,:) :: space => null()
+    real(rk4) , pointer , dimension(:,:,:,:,:) :: space => null()
   end type r4arr5d
 
   type r8arr5d
-    real(dp) , pointer , dimension(:,:,:,:,:) :: space => null()
+    real(rk8) , pointer , dimension(:,:,:,:,:) :: space => null()
   end type r8arr5d
 
   interface getspc1d
@@ -188,7 +189,7 @@ module mod_space
   subroutine getspc1d_larr(a,b,istat)
     type (larr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_larr
@@ -196,7 +197,7 @@ module mod_space
   subroutine getspc1d_sarr(a,b,istat)
     type (sarr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_sarr
@@ -204,7 +205,7 @@ module mod_space
   subroutine getspc1d_iarr(a,b,istat)
     type (iarr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_iarr
@@ -212,7 +213,7 @@ module mod_space
   subroutine getspc1d_r4arr(a,b,istat)
     type (r4arr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_r4arr
@@ -220,7 +221,7 @@ module mod_space
   subroutine getspc1d_r8arr(a,b,istat)
     type (r8arr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_r8arr
@@ -228,7 +229,7 @@ module mod_space
   subroutine getspc1d_rtarr(a,b,istat)
     type (rtarr1d) , intent(inout) :: a
     type (bounds) , intent(in) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_rtarr
@@ -236,7 +237,7 @@ module mod_space
   subroutine getspc2d_larr(a,b,istat)
     type (larr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_larr
@@ -244,7 +245,7 @@ module mod_space
   subroutine getspc2d_sarr(a,b,istat)
     type (sarr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_sarr
@@ -252,7 +253,7 @@ module mod_space
   subroutine getspc2d_iarr(a,b,istat)
     type (iarr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_iarr
@@ -260,7 +261,7 @@ module mod_space
   subroutine getspc2d_r4arr(a,b,istat)
     type (r4arr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_r4arr
@@ -268,7 +269,7 @@ module mod_space
   subroutine getspc2d_r8arr(a,b,istat)
     type (r8arr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_r8arr
@@ -276,7 +277,7 @@ module mod_space
   subroutine getspc3d_larr(a,b,istat)
     type (larr3d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(3) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
@@ -285,7 +286,7 @@ module mod_space
   subroutine getspc3d_sarr(a,b,istat)
     type (sarr3d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(3) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
@@ -294,7 +295,7 @@ module mod_space
   subroutine getspc3d_iarr(a,b,istat)
     type (iarr3d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(3) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
@@ -303,7 +304,7 @@ module mod_space
   subroutine getspc3d_r4arr(a,b,istat)
     type (r4arr3d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(3) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
@@ -312,7 +313,7 @@ module mod_space
   subroutine getspc3d_r8arr(a,b,istat)
     type (r8arr3d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(3) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
@@ -321,7 +322,7 @@ module mod_space
   subroutine getspc4d_larr(a,b,istat)
     type (larr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
@@ -330,7 +331,7 @@ module mod_space
   subroutine getspc4d_sarr(a,b,istat)
     type (sarr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
@@ -339,7 +340,7 @@ module mod_space
   subroutine getspc4d_iarr(a,b,istat)
     type (iarr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
@@ -348,7 +349,7 @@ module mod_space
   subroutine getspc4d_r4arr(a,b,istat)
     type (r4arr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
@@ -357,7 +358,7 @@ module mod_space
   subroutine getspc4d_r8arr(a,b,istat)
     type (r8arr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
@@ -366,7 +367,7 @@ module mod_space
   subroutine getspc5d_larr(a,b,istat)
     type (larr5d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(5) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
@@ -376,7 +377,7 @@ module mod_space
   subroutine getspc5d_sarr(a,b,istat)
     type (sarr5d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(5) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
@@ -386,7 +387,7 @@ module mod_space
   subroutine getspc5d_iarr(a,b,istat)
     type (iarr5d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(5) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
@@ -396,7 +397,7 @@ module mod_space
   subroutine getspc5d_r4arr(a,b,istat)
     type (r4arr5d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(5) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
@@ -406,7 +407,7 @@ module mod_space
   subroutine getspc5d_r8arr(a,b,istat)
     type (r8arr5d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(5) ::  b
-    integer , intent(out) :: istat
+    integer(ik4) , intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &

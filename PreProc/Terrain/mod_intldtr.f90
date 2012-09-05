@@ -19,6 +19,7 @@
 
 module mod_intldtr
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
 !
@@ -26,11 +27,11 @@ module mod_intldtr
 !
   public :: interp , filter1plakes
 !
-  real(dp) , dimension(4,4) :: c
-  real(dp) , dimension(16,16) :: wt
-  integer , parameter :: maxbins = 20
-  integer , dimension(maxbins) :: bincnt
-  real(dp) , dimension(maxbins) :: bmindist
+  real(rk8) , dimension(4,4) :: c
+  real(rk8) , dimension(16,16) :: wt
+  integer(ik4) , parameter :: maxbins = 20
+  integer(ik4) , dimension(maxbins) :: bincnt
+  real(rk8) , dimension(maxbins) :: bmindist
   logical , dimension(2,maxbins) :: lndwt
 !
   data wt/1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 4*0.0D0 , -3.0D0 ,   &
@@ -64,9 +65,9 @@ module mod_intldtr
 !
   function inear(x,m,lwrap)
   implicit none
-  integer :: inear
-  real(dp) , intent(in) :: x
-  integer , intent(in) :: m
+  integer(ik4) :: inear
+  real(rk8) , intent(in) :: x
+  integer(ik4) , intent(in) :: m
   logical , intent(in) :: lwrap
   if (.not. lwrap) then
     inear = min(max(nint(x),1),m)
@@ -83,17 +84,17 @@ module mod_intldtr
 !
   function jnear(y,n)
   implicit none
-  integer :: jnear
-  real(dp) , intent(in) :: y
-  integer , intent(in) :: n
+  integer(ik4) :: jnear
+  real(rk8) , intent(in) :: y
+  integer(ik4) , intent(in) :: n
   jnear = min(max(nint(y),1),n)
   end function jnear
 !
   function ifloor(x,m,lwrap)
   implicit none
-  integer :: ifloor
-  real(dp) , intent(in) :: x
-  integer , intent(in) :: m
+  integer(ik4) :: ifloor
+  real(rk8) , intent(in) :: x
+  integer(ik4) , intent(in) :: m
   logical , intent(in) :: lwrap
   if (.not. lwrap) then
     ifloor = min(max(floor(x),1),m)
@@ -110,36 +111,36 @@ module mod_intldtr
 !
   function jfloor(y,n)
   implicit none
-  integer :: jfloor
-  real(dp) , intent(in) :: y
-  integer , intent(in) :: n
+  integer(ik4) :: jfloor
+  real(rk8) , intent(in) :: y
+  integer(ik4) , intent(in) :: n
   jfloor = min(max(floor(y),1),n)
   end function jfloor
 !
   function nearpoint(x,y,m,n,grid,lwrap)
   implicit none
-  real(dp) :: nearpoint
-  integer :: m , n
-  real(dp) :: x , y
+  real(rk8) :: nearpoint
+  integer(ik4) :: m , n
+  real(rk8) :: x , y
   logical :: lwrap
-  real(sp) , dimension(m,n) :: grid
+  real(rk4) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
   nearpoint = dble(grid(inear(x,m,lwrap),jnear(y,n)))
   end function nearpoint
 !
   function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
   implicit none
-  real(dp) :: mostaround
-  integer , intent(in) :: m , n , nbox , ibnty
-  real(dp) , intent(in) :: x , y
+  real(rk8) :: mostaround
+  integer(ik4) , intent(in) :: m , n , nbox , ibnty
+  real(rk8) , intent(in) :: x , y
   logical , intent(in) :: lwrap
-  real(sp) , intent(in) , dimension(m,n) :: grid
-  real(dp) , intent(in) :: h2opct
+  real(rk4) , intent(in) , dimension(m,n) :: grid
+  real(rk8) , intent(in) :: h2opct
 !
-  real(dp) , dimension(nbox*nbox) :: binval , bindist
-  real(dp) :: dist , rx , ry , wtp
-  integer :: ii0 , jj0 , ii , jj
-  integer :: totpoints , i , j , lastc , hbox
+  real(rk8) , dimension(nbox*nbox) :: binval , bindist
+  real(rk8) :: dist , rx , ry , wtp
+  integer(ik4) :: ii0 , jj0 , ii , jj
+  integer(ik4) :: totpoints , i , j , lastc , hbox
 
   hbox = nbox / 2
   totpoints = nbox*nbox
@@ -193,16 +194,16 @@ module mod_intldtr
 !
   function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
   implicit none
-  real(dp) :: pctaround
-  integer :: m , n , ival , nbox
-  real(dp) :: x , y , rx , ry
+  real(rk8) :: pctaround
+  integer(ik4) :: m , n , ival , nbox
+  real(rk8) :: x , y , rx , ry
   logical :: lwrap
-  real(sp) , dimension(m,n) :: grid
+  real(rk4) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y , ival
 !
-  integer :: ii0 , jj0 , ii , jj
-  integer :: i , j
-  real(dp) :: pc
+  integer(ik4) :: ii0 , jj0 , ii , jj
+  integer(ik4) :: i , j
+  real(rk8) :: pc
 
   pctaround = d_zero
   pc = dble(nbox*nbox)
@@ -226,16 +227,16 @@ module mod_intldtr
 
   implicit none
 !
-  real(dp) :: bilinear
-  integer :: m , n
-  real(dp) :: x , y
+  real(rk8) :: bilinear
+  integer(ik4) :: m , n
+  real(rk8) :: x , y
   logical :: lwrap
-  real(sp) , dimension(m,n) :: grid
+  real(rk4) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
 !
-  real(dp) :: dx, dy, p12, p03
-  real(dp) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
-  integer :: i0, j0, i1, j1, i2, j2, i3, j3
+  real(rk8) :: dx, dy, p12, p03
+  real(rk8) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
+  integer(ik4) :: i0, j0, i1, j1, i2, j2, i3, j3
 !
 !-----bilinear interpolation among four grid values
 !
@@ -281,16 +282,16 @@ module mod_intldtr
  
   implicit none
 !
-  real(dp) :: bicubic
-  integer :: m , n
-  real(dp) :: x , y
+  real(rk8) :: bicubic
+  integer(ik4) :: m , n
+  real(rk8) :: x , y
   logical :: lwrap
-  real(sp) , dimension(m,n) :: grid
+  real(rk4) , dimension(m,n) :: grid
   intent (in) grid , m , n , x , y , lwrap
 !
-  real(dp) , dimension(4) :: f , f1 , f12 , f2
-  real(dp) :: xl , xu , yl , yu
-  integer :: i , ii , j , mm , nn , im , imp1 , imn1
+  real(rk8) , dimension(4) :: f , f1 , f12 , f2
+  real(rk8) :: xl , xu , yl , yu
+  integer(ik4) :: i , ii , j , mm , nn , im , imp1 , imn1
 
   mm = int(x)
   nn = int(y)
@@ -337,13 +338,13 @@ module mod_intldtr
   subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
   implicit none
 !
-  real(dp) :: a , x1 , x1l , x1u , x2 , x2l , x2u
-  real(dp) , dimension(4) :: y , y1 , y12 , y2
+  real(rk8) :: a , x1 , x1l , x1u , x2 , x2l , x2u
+  real(rk8) , dimension(4) :: y , y1 , y12 , y2
   intent (in) x1 , x1l , x1u , x2 , x2l , x2u , y , y1 , y12 , y2
   intent (out) a
 !
-  integer :: i
-  real(dp) :: t , u
+  integer(ik4) :: i
+  real(rk8) :: t , u
 !
   call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
   t = (x1-x1l)/(x1u-x1l)
@@ -357,13 +358,13 @@ module mod_intldtr
   subroutine bcucof(y,y1,y2,y12,d1,d2)
   implicit none
 !
-  real(dp) :: d1 , d2
-  real(dp) , dimension(4) :: y , y1 , y12 , y2
+  real(rk8) :: d1 , d2
+  real(rk8) , dimension(4) :: y , y1 , y12 , y2
   intent (in) d1 , d2 , y , y1 , y12 , y2
 !
-  real(dp) , dimension(16) :: cl , x
-  real(dp) :: d1d2 , xx
-  integer :: i , j , k , l
+  real(rk8) , dimension(16) :: cl , x
+  real(rk8) :: d1d2 , xx
+  integer(ik4) :: i , j , k , l
 
   d1d2 = d1*d2
   do i = 1 , 4
@@ -398,18 +399,18 @@ module mod_intldtr
 
   implicit none
 !
-  integer , intent(in) :: iy , jx , iniy , injx , ntypec , itype
-  real(sp) , intent(in) , dimension(iy, jx) :: xlat , xlon
-  real(sp) , intent(in) , dimension(injx, iniy) :: imt
-  real(dp) , intent(in) :: milat , milon
+  integer(ik4) , intent(in) :: iy , jx , iniy , injx , ntypec , itype
+  real(rk4) , intent(in) , dimension(iy, jx) :: xlat , xlon
+  real(rk4) , intent(in) , dimension(injx, iniy) :: imt
+  real(rk8) , intent(in) :: milat , milon
   logical , intent(in) :: lwrap , lcross
-  integer , intent(in) , optional :: ival
-  integer , intent(in) , optional :: ibnty
-  real(dp) , intent(in) , optional :: h2opct
-  real(sp) , intent(out) , dimension(iy, jx) :: omt
+  integer(ik4) , intent(in) , optional :: ival
+  integer(ik4) , intent(in) , optional :: ibnty
+  real(rk8) , intent(in) , optional :: h2opct
+  real(rk4) , intent(out) , dimension(iy, jx) :: omt
 !
-  integer :: nbox , ii , jj
-  real(dp) :: xx , yy , rinc
+  integer(ik4) :: nbox , ii , jj
+  real(rk8) :: xx , yy , rinc
 !
   rinc = 60.0D0/dble(ntypec)
 !
@@ -496,14 +497,14 @@ module mod_intldtr
 
   subroutine filter1plakes(iy,jx,omt)
     implicit none
-    integer , intent(in) :: iy , jx
-    real(sp) , intent(out) , dimension(iy, jx) :: omt
-    integer , dimension(maxbins) :: cnt
-    integer , dimension(9) :: around
-    integer , parameter :: ilake = 14
-    integer , parameter :: iocn = 15
-    integer , parameter :: minlak = 2*ilake
-    integer :: i , j , ii , jj , ip , jp , k , mpindex
+    integer(ik4) , intent(in) :: iy , jx
+    real(rk4) , intent(out) , dimension(iy, jx) :: omt
+    integer(ik4) , dimension(maxbins) :: cnt
+    integer(ik4) , dimension(9) :: around
+    integer(ik4) , parameter :: ilake = 14
+    integer(ik4) , parameter :: iocn = 15
+    integer(ik4) , parameter :: minlak = 2*ilake
+    integer(ik4) :: i , j , ii , jj , ip , jp , k , mpindex
 
     do i = 1 , iy
       do j = 1 , jx

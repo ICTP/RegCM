@@ -19,33 +19,34 @@
 
 module mod_hgt
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_message
-  use mod_realkinds
 
-  real(sp) , private , parameter :: segrav = real(egrav)
-  real(sp) , private , parameter :: srgas = real(rgas)
-  real(sp) , private , parameter :: srovg = real(rovg)
-  real(sp) , private , parameter :: slrate = real(lrate)
-  real(sp) , private , parameter :: salam = real(alam)
+  real(rk4) , private , parameter :: segrav = real(egrav)
+  real(rk4) , private , parameter :: srgas = real(rgas)
+  real(rk4) , private , parameter :: srovg = real(rovg)
+  real(rk4) , private , parameter :: slrate = real(lrate)
+  real(rk4) , private , parameter :: salam = real(alam)
 
-  integer , private , parameter :: maxnlev = 100
+  integer(ik4) , private , parameter :: maxnlev = 100
   contains
 
   subroutine hydrost(h,t,phis,ps,ptop,sigmaf,sigmah,dsigma,ni,nj,nk)
   implicit none
 !
-  integer :: ni , nj , nk
-  real(dp) :: ptop
-  real(sp) , dimension(nk) :: dsigma , sigmah
-  real(sp) , dimension(ni,nj,nk) :: h , t
-  real(sp) , dimension(ni,nj) :: phis , ps
-  real(sp) , dimension(nk+1) :: sigmaf
+  integer(ik4) :: ni , nj , nk
+  real(rk8) :: ptop
+  real(rk4) , dimension(nk) :: dsigma , sigmah
+  real(rk4) , dimension(ni,nj,nk) :: h , t
+  real(rk4) , dimension(ni,nj) :: phis , ps
+  real(rk4) , dimension(nk+1) :: sigmaf
   intent (in) ni , nj , nk , phis , ps , ptop , sigmaf , sigmah , t
   intent (inout) dsigma , h
 !
-  integer :: i , j , k , k1 , k2
-  real(sp) :: pf , tbar , pt
+  integer(ik4) :: i , j , k , k1 , k2
+  real(rk4) :: pf , tbar , pt
 !
 !     ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
 !     THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
@@ -98,18 +99,18 @@ module mod_hgt
 !
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(sp) , dimension(im,jm,km) :: h , p3d , t
-  real(sp) , dimension(im,jm,kp) :: hp
-  real(sp) , dimension(im,jm) :: ht , ps
-  real(sp) , dimension(kp) :: p
+  integer(ik4) :: im , jm , km , kp
+  real(rk4) , dimension(im,jm,km) :: h , p3d , t
+  real(rk4) , dimension(im,jm,kp) :: hp
+  real(rk4) , dimension(im,jm) :: ht , ps
+  real(rk4) , dimension(kp) :: p
   intent (in) h , ht , im , jm , km , kp , p , p3d , ps , t
   intent (out) hp
 !
-  real(sp) :: psfc , temp , wb , wt
-  integer :: i , j , k , kb , kbc , kt , n
-  real(sp) , dimension(maxnlev+1) :: psig
-  real(sp) , dimension(maxnlev) :: sig
+  real(rk4) :: psfc , temp , wb , wt
+  integer(ik4) :: i , j , k , kb , kbc , kt , n
+  real(rk4) , dimension(maxnlev+1) :: psig
+  real(rk4) , dimension(maxnlev) :: sig
 !
   if ( km > maxnlev ) then
     call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
@@ -183,19 +184,19 @@ module mod_hgt
 !
   implicit none
 !
-  integer :: im , jm , km , kp
-  real(dp) :: ptop
-  real(sp) , dimension(im,jm,km) :: h , t
-  real(sp) , dimension(im,jm,kp) :: hp
-  real(sp) , dimension(im,jm) :: ht , pstar
-  real(sp) , dimension(kp) :: p
-  real(sp) , dimension(km) :: sig
+  integer(ik4) :: im , jm , km , kp
+  real(rk8) :: ptop
+  real(rk4) , dimension(im,jm,km) :: h , t
+  real(rk4) , dimension(im,jm,kp) :: hp
+  real(rk4) , dimension(im,jm) :: ht , pstar
+  real(rk4) , dimension(kp) :: p
+  real(rk4) , dimension(km) :: sig
   intent (in) h , ht , im , jm , km , kp , p , pstar , ptop , sig , t
   intent (out) hp
 !
-  real(sp) :: psfc , temp , wb , wt , pt
-  integer :: i , j , k , kb , kbc , kt , n
-  real(sp) , dimension(100) :: psig
+  real(rk4) :: psfc , temp , wb , wt , pt
+  integer(ik4) :: i , j , k , kb , kbc , kt , n
+  real(rk4) , dimension(100) :: psig
 !
   pt = real(ptop)
   kbc = 1
@@ -245,14 +246,14 @@ module mod_hgt
   subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
   implicit none
 !
-  integer :: im , jm , km
-  real(sp) , dimension(im,jm,km) :: h , p3d , t
-  real(sp) , dimension(im,jm) :: ht , ps
+  integer(ik4) :: im , jm , km
+  real(rk4) , dimension(im,jm,km) :: h , p3d , t
+  real(rk4) , dimension(im,jm) :: ht , ps
   intent (in) ht , im , jm , km , p3d , ps , t
   intent (inout) h
 !
-  real(sp) :: tbar
-  integer :: i , j , k
+  real(rk4) :: tbar
+  integer(ik4) :: i , j , k
 !
   do j = 1 , jm
     do i = 1 , im
@@ -282,16 +283,16 @@ module mod_hgt
   subroutine htsig_o(t,h,pstar,ht,sig,ptop,im,jm,km)
   implicit none
 !
-  integer :: im , jm , km
-  real(dp) :: ptop
-  real(sp) , dimension(im,jm,km) :: h , t
-  real(sp) , dimension(im,jm) :: ht , pstar
-  real(sp) , dimension(km) :: sig
+  integer(ik4) :: im , jm , km
+  real(rk8) :: ptop
+  real(rk4) , dimension(im,jm,km) :: h , t
+  real(rk4) , dimension(im,jm) :: ht , pstar
+  real(rk4) , dimension(km) :: sig
   intent (in) ht , im , jm , km , pstar , ptop , sig , t
   intent (inout) h
 !
-  real(sp) :: tbar , pt
-  integer :: i , j , k
+  real(rk4) :: tbar , pt
+  integer(ik4) :: i , j , k
 !
   pt = real(ptop)
   do j = 1 , jm
@@ -314,13 +315,13 @@ module mod_hgt
 !
   subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(sp) , dimension(im,jm,km) , intent(in) :: h , t
-    real(sp) , dimension(im,jm) , intent(in) :: ht , slp
-    real(sp) , dimension(im,jm) , intent(out) :: ps
-    integer :: kbc , i , j  , k
-    real(sp) :: tsfc
-    real(sp) , parameter :: blhgt = 1000.0
+    integer(ik4) , intent(in) :: im , jm , km
+    real(rk4) , dimension(im,jm,km) , intent(in) :: h , t
+    real(rk4) , dimension(im,jm) , intent(in) :: ht , slp
+    real(rk4) , dimension(im,jm) , intent(out) :: ps
+    integer(ik4) :: kbc , i , j  , k
+    real(rk4) :: tsfc
+    real(rk4) , parameter :: blhgt = 1000.0
 
     do j = 1 , jm
       kbc = km
@@ -341,14 +342,14 @@ module mod_hgt
   subroutine psig(t,h,p3d,ps,ht,im,jm,km)
   implicit none
 !
-  integer :: im , jm , km
-  real(sp) , dimension(im,jm,km) :: h , p3d , t
-  real(sp) , dimension(im,jm) :: ht , ps
+  integer(ik4) :: im , jm , km
+  real(rk4) , dimension(im,jm,km) :: h , p3d , t
+  real(rk4) , dimension(im,jm) :: ht , ps
   intent (in) ht , im , jm , km , h , t , ps
   intent (inout) p3d
 !
-  real(sp) :: tbar
-  integer :: i , j , k
+  real(rk4) :: tbar
+  integer(ik4) :: i , j , k
 !
   do j = 1 , jm
     do i = 1 , im

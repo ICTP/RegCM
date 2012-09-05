@@ -19,6 +19,7 @@
 
 module mod_spline
 
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
 
@@ -35,19 +36,19 @@ module mod_spline
     subroutine spline(x,y,yp1,ypn,y2)
       implicit none
 !    
-      integer , parameter :: nmax = 100
+      integer(ik4) , parameter :: nmax = 100
 !    
       ! Arrays of tabulated function in ascending order by x with y = f(x)
-      real(dp) , dimension(:) , intent(in)  :: x , y
+      real(rk8) , dimension(:) , intent(in)  :: x , y
       ! Specified derivatives at x(1) and x(n)
       ! Values > 1E30 signals second derivative zero
-      real(dp) , intent(in) :: yp1 , ypn
+      real(rk8) , intent(in) :: yp1 , ypn
       ! Output array of second derivatives
-      real(dp) , dimension(:) , intent(out) :: y2
+      real(rk8) , dimension(:) , intent(out) :: y2
 !    
-      integer :: n , i , k
-      real(dp) :: p , qn , sig , un
-      real(dp) , dimension(nmax) :: u
+      integer(ik4) :: n , i , k
+      real(rk8) :: p , qn , sig , un
+      real(rk8) , dimension(nmax) :: u
 
       n = size(x,1)
       if ( yp1 > 0.99D30 ) then
@@ -84,16 +85,16 @@ module mod_spline
       implicit none
 !
       ! Arrays of tabulated function in ascending order by xa with ya = f(xa)
-      real(dp) , dimension(:) , intent(in) :: xa , ya
+      real(rk8) , dimension(:) , intent(in) :: xa , ya
       ! Array of second derivatives
-      real(dp) , dimension(:) , intent(in) :: y2a
+      real(rk8) , dimension(:) , intent(in) :: y2a
       ! Ascissa endpoint of integration
-      real(dp) , intent(in) :: x
+      real(rk8) , intent(in) :: x
       ! Output value
-      real(dp) , intent(out) :: yi
+      real(rk8) , intent(out) :: yi
 !
-      real(dp) :: a , a2 , b , b2 , h , xx
-      integer :: n , khi , klo
+      real(rk8) :: a , a2 , b , b2 , h , xx
+      integer(ik4) :: n , khi , klo
 !
       n = size(xa,1)
       yi = d_zero
@@ -122,16 +123,16 @@ module mod_spline
       implicit none
 !
       ! Arrays of tabulated function values in ascending xa order
-      real(dp) , dimension(:) , intent(in) :: xa , ya
+      real(rk8) , dimension(:) , intent(in) :: xa , ya
       ! Arrays of second derivatives 
-      real(dp) , dimension(:) , intent(in) :: y2a
+      real(rk8) , dimension(:) , intent(in) :: y2a
       ! Abscissa of interpolation
-      real(dp) , intent(in) :: x
+      real(rk8) , intent(in) :: x
       ! Output value
-      real(dp) , intent(out) :: y
+      real(rk8) , intent(out) :: y
 !
-      real(dp) :: a , b , h
-      integer :: n , k , khi , klo
+      real(rk8) :: a , b , h
+      integer(ik4) :: n , k , khi , klo
 !
       n = size(xa,1)
       klo = 1

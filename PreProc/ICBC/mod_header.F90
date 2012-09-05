@@ -18,6 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_header
+
+  use mod_intkinds
   use mod_stdio
 
   contains
@@ -25,14 +27,14 @@ module mod_header
   subroutine header(myname)
   implicit none 
   character (len=*) , intent(in) :: myname
-  integer :: ihost , idir
-  integer :: hostnm
-  integer :: getcwd
+  integer(ik4) :: ihost , idir
+  integer(ik4) :: hostnm
+  integer(ik4) :: getcwd
   character (len=24) :: cdata = '?'
   character (len=32) :: hostname = '?' 
   character (len=32) :: user = '?' 
   character (len=256) :: directory = '?'
-  integer , parameter :: nrite = stdout
+  integer(ik4) , parameter :: nrite = stdout
   
 
   write (nrite,99002)  myname 
@@ -62,7 +64,7 @@ module mod_header
 
   subroutine finaltime(myid)
     implicit none
-    integer , intent (in) :: myid
+    integer(ik4) , intent (in) :: myid
     character (len=24) :: cdata = '?'
 
     if ( myid ==  0 ) then

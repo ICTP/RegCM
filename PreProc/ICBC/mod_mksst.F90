@@ -19,25 +19,26 @@
 
 module mod_mksst
 
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
-  use netcdf
   use mod_grid
   use mod_memutil
   use mod_constants
   use mod_dynparam
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 
   logical :: lopen , lhasice
-  integer :: ncst , ntime
-  integer , dimension(3) :: ivar
+  integer(ik4) :: ncst , ntime
+  integer(ik4) , dimension(3) :: ivar
   type(rcm_time_and_date) , dimension(:) , pointer :: itime
-  real(sp) , dimension(:,:) , pointer :: work1 , work2
-  real(sp) , dimension(:,:) , pointer :: work3 , work4
-  real(dp) , dimension(:) , pointer :: xtime
+  real(rk4) , dimension(:,:) , pointer :: work1 , work2
+  real(rk4) , dimension(:,:) , pointer :: work3 , work4
+  real(rk8) , dimension(:) , pointer :: xtime
 
   data lopen/.false./
   character(256) :: sstfile
@@ -50,15 +51,15 @@ module mod_mksst
 !
   subroutine readsst(tsccm, idate)
     implicit none
-    real(sp) , dimension(jx,iy) , intent(inout) :: tsccm
+    real(rk4) , dimension(jx,iy) , intent(inout) :: tsccm
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: istatus , idimid , itvar
-    integer , dimension(3) :: istart , icount
+    integer(ik4) :: istatus , idimid , itvar
+    integer(ik4) , dimension(3) :: istart , icount
     character(64) :: timeunits , timecal
-    integer :: i , j , irec
-    integer :: iyy , im , id , ih
+    integer(ik4) :: i , j , irec
+    integer(ik4) :: iyy , im , id , ih
     type(rcm_time_interval) :: ks1 , ks2
-    real(sp) :: wt
+    real(rk4) :: wt
 
     call split_idate(idate,iyy,im,id,ih)
 
@@ -215,12 +216,12 @@ module mod_mksst
     end if
   end subroutine readsst
 
-  real(sp) function nearn(jp,ip,sst)
+  real(rk4) function nearn(jp,ip,sst)
     implicit none
-    integer , intent(in) :: jp , ip
-    real(sp) , dimension(:,:) , intent(in) :: sst
-    real(sp) :: wt , wtsum
-    integer :: i , j , nr , np
+    integer(ik4) , intent(in) :: jp , ip
+    real(rk4) , dimension(:,:) , intent(in) :: sst
+    real(rk4) :: wt , wtsum
+    integer(ik4) :: i , j , nr , np
     nr = 1
     np = -1
     nearn = 0.0
@@ -245,7 +246,7 @@ module mod_mksst
 
   subroutine closesst
     implicit none
-    integer :: istatus
+    integer(ik4) :: istatus
     istatus = nf90_close(ncst)
   end subroutine closesst
 !

@@ -19,36 +19,37 @@
 
 module mod_ae_icbc
 
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_grid
   use mod_wrtoxd
   use mod_interp
   use mod_date
-  use mod_realkinds
   use mod_nchelper
+  use netcdf
 
   private
 !
-  integer , parameter :: aeilon = 144 , aejlat = 96 , aeilev = 26 , aeitime = 12
-  real(sp) , dimension(aeilon) :: aet42lon
-  real(sp) , dimension(aejlat) :: aet42lat
-  real(sp) , dimension(aeilev) :: aet42hyam , aet42hybm
+  integer(ik4) , parameter :: aeilon = 144 , aejlat = 96 , aeilev = 26 , aeitime = 12
+  real(rk4) , dimension(aeilon) :: aet42lon
+  real(rk4) , dimension(aejlat) :: aet42lat
+  real(rk4) , dimension(aeilev) :: aet42hyam , aet42hybm
 !
 ! Oxidant climatology variables
 !
-  real(sp) :: p0 , r4pt
-  real(sp) , dimension(aeilon,aejlat) :: xps
-  real(sp) , pointer , dimension(:,:,:,:,:) :: aev2
-  real(sp) , dimension(aeilon,aejlat,aeitime) :: xps2
-  real(sp) , pointer , dimension(:,:) :: paeid_3
-  real(sp) , pointer , dimension(:,:,:,:) :: aev3
-  integer :: iyear
+  real(rk4) :: p0 , r4pt
+  real(rk4) , dimension(aeilon,aejlat) :: xps
+  real(rk4) , pointer , dimension(:,:,:,:,:) :: aev2
+  real(rk4) , dimension(aeilon,aejlat,aeitime) :: xps2
+  real(rk4) , pointer , dimension(:,:) :: paeid_3
+  real(rk4) , pointer , dimension(:,:,:,:) :: aev3
+  integer(ik4) :: iyear
   character(len=8) , dimension(4) :: scendir
 
-  real(sp) :: prcm , pmpi , pmpj
-  integer :: ncid , istatus , iscen
+  real(rk4) :: prcm , pmpi , pmpj
+  integer(ik4) :: ncid , istatus , iscen
 
   public :: header_ae_icbc , get_ae_icbc , close_ae_icbc
 
@@ -60,8 +61,8 @@ module mod_ae_icbc
   subroutine header_ae_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: ivarid , istatus , is
-    integer :: nyear , month , nday , nhour
+    integer(ik4) :: ivarid , istatus , is
+    integer(ik4) :: nyear , month , nday , nhour
     character(len=256) :: aefilename
 
     call split_idate(idate,nyear,month,nday,nhour)
@@ -131,14 +132,14 @@ module mod_ae_icbc
     implicit none
 !
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: i , l , is , j , k , k0
-    real(sp) , dimension(aeilon,aejlat,aeilev) :: xinp
-    real(sp) :: wt1 , wt2
+    integer(ik4) :: i , l , is , j , k , k0
+    real(rk4) , dimension(aeilon,aejlat,aeilev) :: xinp
+    real(rk4) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
-    integer :: m1 , m2
-    integer :: ivarid , istatus
-    integer :: nyear , month , nday , nhour
+    integer(ik4) :: m1 , m2
+    integer(ik4) :: ivarid , istatus
+    integer(ik4) :: nyear , month , nday , nhour
     character(len=256) :: aefilename
 
     call split_idate(idate,nyear,month,nday,nhour)

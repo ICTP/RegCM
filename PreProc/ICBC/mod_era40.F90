@@ -19,9 +19,9 @@
 
 module mod_era40
 
-  use netcdf
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_stdio
   use mod_memutil
   use mod_grid
@@ -35,32 +35,33 @@ module mod_era40
   use mod_vectutil
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 
-  integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
+  integer(ik4) , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
-  real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , target , dimension(ilon,jlat,4*3+1) :: s2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
-  real(sp) , pointer , dimension(:,:,:) :: s3
+  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk4) , target , dimension(ilon,jlat,4*3+1) :: s2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:,:) :: s3
 
-  real(sp) , dimension(ilon,jlat,klev) :: wvar
+  real(rk4) , dimension(ilon,jlat,klev) :: wvar
 
-  real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-  real(sp) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
-  real(sp) , pointer , dimension(:,:) :: snw
-  real(sp) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
-  real(sp) , pointer , dimension(:,:) :: snow
+  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk4) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
+  real(rk4) , pointer , dimension(:,:) :: snw
+  real(rk4) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
+  real(rk4) , pointer , dimension(:,:) :: snow
 
-  real(sp) , dimension(jlat) :: glat
-  real(sp) , dimension(ilon) :: glon
-  real(sp) , dimension(klev) :: sigma1 , sigmar
+  real(rk4) , dimension(jlat) :: glat
+  real(rk4) , dimension(ilon) :: glon
+  real(rk4) , dimension(klev) :: sigma1 , sigmar
 
   public :: getera40 , headerera
 
@@ -138,17 +139,17 @@ module mod_era40
   character(5) , intent(in) :: dattyp
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , inet , ivar , it , j , k , k4 , kkrec , istatus
-  integer :: year , month , day , hour
+  integer(ik4) :: i , inet , ivar , it , j , k , k4 , kkrec , istatus
+  integer(ik4) :: year , month , day , hour
   character(24) :: inname
   character(256) :: pathaddname
   integer(2) , dimension(ilon,jlat,klev) :: work
-  real(dp) :: xadd , xscale
+  real(rk8) :: xadd , xscale
 
-  integer , dimension(10) , save :: icount , istart
-  real(dp) , dimension(5,4) , save :: xoff , xscl
-  integer , dimension(5,4) , save :: inet6
-  integer , dimension(5,4) , save :: ivar6
+  integer(ik4) , dimension(10) , save :: icount , istart
+  real(rk8) , dimension(5,4) , save :: xoff , xscl
+  integer(ik4) , dimension(5,4) , save :: inet6
+  integer(ik4) , dimension(5,4) , save :: ivar6
   character(5) , dimension(5) :: varname
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -359,7 +360,7 @@ module mod_era40
   subroutine headerera
   implicit none
 !
-  integer :: i , j , k , kr
+  integer(ik4) :: i , j , k , kr
 !
   sigmar(1) = .001
   sigmar(2) = .002

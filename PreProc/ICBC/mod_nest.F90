@@ -19,6 +19,7 @@
 
 module mod_nest
 
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -41,42 +42,42 @@ module mod_nest
 
   public :: get_nest , headernest
 
-  integer , parameter :: np = 15
+  integer(ik4) , parameter :: np = 15
 
-  integer :: nrec
+  integer(ik4) :: nrec
 
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
-  real(sp) , pointer , dimension(:,:,:) :: z1
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:,:) :: z1
 
-  real(sp) , pointer , dimension(:,:,:) :: b2
-  real(sp) , pointer , dimension(:,:,:) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b2
+  real(rk4) , pointer , dimension(:,:,:) :: d2
 
-  real(sp) , pointer , dimension(:,:,:) :: q , t
-  real(sp) , pointer , dimension(:,:,:) :: u , v
-  real(sp) , pointer , dimension(:,:) :: ps
-  real(sp) , pointer , dimension(:,:) :: ht_in
-  real(sp) , pointer , dimension(:,:) :: xlat_in , xlon_in
+  real(rk4) , pointer , dimension(:,:,:) :: q , t
+  real(rk4) , pointer , dimension(:,:,:) :: u , v
+  real(rk4) , pointer , dimension(:,:) :: ps
+  real(rk4) , pointer , dimension(:,:) :: ht_in
+  real(rk4) , pointer , dimension(:,:) :: xlat_in , xlon_in
 
-  real(sp) , pointer , dimension(:,:,:) :: h3 , q3 , t3
-  real(sp) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk4) , pointer , dimension(:,:,:) :: h3 , q3 , t3
+  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
  
-  real(sp) , pointer , dimension(:,:,:) :: hp , qp , tp
-  real(sp) , pointer , dimension(:,:,:) :: up , vp
+  real(rk4) , pointer , dimension(:,:,:) :: hp , qp , tp
+  real(rk4) , pointer , dimension(:,:,:) :: up , vp
 
-  real(sp) , dimension(np) :: plev , sigmar
-  real(sp) , pointer , dimension(:) :: sig
+  real(rk4) , dimension(np) :: plev , sigmar
+  real(rk4) , pointer , dimension(:) :: sig
 
-  integer :: iy_in , jx_in , kz_in
+  integer(ik4) :: iy_in , jx_in , kz_in
   character(6) :: iproj_in
-  real(dp) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
+  real(rk8) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
 !
   character(14) :: fillin
   character(256) :: inpfile
 !
-  integer :: ncinp
+  integer(ik4) :: ncinp
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
-  real(dp) , dimension(:) , pointer :: xtimes
+  real(rk8) , dimension(:) , pointer :: xtimes
   character(64) :: timeunits , timecal
 !
   contains
@@ -87,8 +88,8 @@ module mod_nest
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  integer :: i , istatus , ivarid , idimid , irec
-  integer , dimension(4) :: istart , icount
+  integer(ik4) :: i , istatus , ivarid , idimid , irec
+  integer(ik4) , dimension(4) :: istart , icount
   type(rcm_time_and_date) :: imf
 !
   if (.not. associated(b2)) then
@@ -243,10 +244,10 @@ module mod_nest
   use netcdf
   implicit none
 !
-  real(dp) :: xsign
-  integer :: i , k , istatus , idimid , ivarid
+  real(rk8) :: xsign
+  integer(ik4) :: i , k , istatus , idimid , ivarid
   type(rcm_time_and_date) :: imf
-  real(sp) , dimension(2) :: trlat
+  real(rk4) , dimension(2) :: trlat
 !
   plev(1) = 50.
   plev(2) = 70.

@@ -19,6 +19,7 @@
 
 module mod_write
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_nchelper
@@ -36,28 +37,28 @@ module mod_write
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lndfudge , texfudge , lakfudge
-    integer , intent(in) :: ntype
-    real(sp) , dimension(:) , pointer , intent(in) :: sigma
-    real(sp) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
-    real(sp) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
-    real(sp) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
-    real(sp) , dimension(:,:) , pointer , intent(in) :: mask
-    real(sp) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
-    real(sp) , dimension(:,:) , pointer , intent(in) :: snowam
-    real(sp) , dimension(:,:) , pointer , intent(in) :: dpth
-    real(sp) , dimension(:,:) , pointer , intent(in) :: texout
-    real(sp) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
+    integer(ik4) , intent(in) :: ntype
+    real(rk4) , dimension(:) , pointer , intent(in) :: sigma
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: mask
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: snowam
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: dpth
+    real(rk4) , dimension(:,:) , pointer , intent(in) :: texout
+    real(rk4) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
 
-    integer :: ncid , incstat
-    integer :: nx , ny , nz , ipnt
-    integer , dimension(4) :: idims
-    integer , dimension(2) :: ihvar
-    integer , dimension(2) :: izvar
-    integer , dimension(16) :: ivar
+    integer(ik4) :: ncid , incstat
+    integer(ik4) :: nx , ny , nz , ipnt
+    integer(ik4) , dimension(4) :: idims
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(16) :: ivar
     character(len=128) :: cdum
-    real(sp) :: hptop
-    real(sp) , pointer , dimension(:) :: yiy
-    real(sp) , pointer , dimension(:) :: xjx
+    real(rk4) :: hptop
+    real(rk4) , pointer , dimension(:) :: yiy
+    real(rk4) , pointer , dimension(:) :: xjx
 
     hptop = real(ptop * 10.0D0)
 

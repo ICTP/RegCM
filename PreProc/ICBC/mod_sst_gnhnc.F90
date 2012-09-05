@@ -19,7 +19,7 @@
 
 module mod_sst_gnhnc
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -28,20 +28,21 @@ module mod_sst_gnhnc
   use mod_interp
   use mod_message
   use mod_nchelper
+  use netcdf
 
   private
 
-  integer :: ilon , jlat 
+  integer(ik4) :: ilon , jlat 
 !
-  integer :: inet1
-  integer , dimension(2) :: ivar2
-  integer :: timlen
-  integer :: timid
-  integer :: istatus
-  integer , dimension(3) :: istart , icount
-  real(dp) , pointer ::  work1(:)
-  real(sp) , pointer , dimension (:, :) :: work2
-  real(sp) , pointer , dimension(:,:) :: sst
+  integer(ik4) :: inet1
+  integer(ik4) , dimension(2) :: ivar2
+  integer(ik4) :: timlen
+  integer(ik4) :: timid
+  integer(ik4) :: istatus
+  integer(ik4) , dimension(3) :: istart , icount
+  real(rk8) , pointer ::  work1(:)
+  real(rk4) , pointer , dimension (:, :) :: work2
+  real(rk4) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) , save :: fidate1
   character(64) :: cunit , ccal
   character(256) :: inpfile
@@ -65,14 +66,14 @@ module mod_sst_gnhnc
 
   implicit none
 !
-  real(sp) , pointer , dimension(:) :: glat
-  real(sp) , pointer , dimension(:) :: glon
-  real(sp) , pointer , dimension(:,:) :: glat2
-  real(sp) , pointer , dimension(:,:) :: glon2
+  real(rk4) , pointer , dimension(:) :: glat
+  real(rk4) , pointer , dimension(:) :: glon
+  real(rk4) , pointer , dimension(:,:) :: glat2
+  real(rk4) , pointer , dimension(:,:) :: glon2
   type(rcm_time_and_date) :: idate , idatef , idateo
   type(rcm_time_interval) :: tdif
-  integer :: i , j , k , nsteps , latid , lonid
-  integer :: year , month , day , hour , y1 , y2 , m1 , m2
+  integer(ik4) :: i , j , k , nsteps , latid , lonid
+  integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
 !
   call split_idate(globidate1, year, month, day, hour)  
   y1 = year
@@ -199,8 +200,8 @@ module mod_sst_gnhnc
   implicit none
 
   type(rcm_time_and_date) , intent (in) :: idate
-  integer :: it , i , j
-  integer :: year , month , day , hour , y1 , y2 , m1 , m2
+  integer(ik4) :: it , i , j
+  integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
   type(rcm_time_interval) :: tdif
 
   istart(3) = 1

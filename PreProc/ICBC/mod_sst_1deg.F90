@@ -19,7 +19,7 @@
 
 module mod_sst_1deg
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -27,12 +27,13 @@ module mod_sst_1deg
   use mod_interp
   use mod_nchelper
   use mod_message
+  use netcdf
 
   private
 
   public :: sst_1deg
 
-  integer :: year , month , day , hour
+  integer(ik4) :: year , month , day , hour
 
   contains
 
@@ -64,14 +65,14 @@ module mod_sst_1deg
 
   implicit none
 !
-  integer , parameter :: ilon = 360 , jlat = 180
+  integer(ik4) , parameter :: ilon = 360 , jlat = 180
 !
-  real(sp) , dimension(ilon,jlat) :: sst , ice
-  integer :: i , j , k , iwk , nrec
-  integer :: nsteps
+  real(rk4) , dimension(ilon,jlat) :: sst , ice
+  integer(ik4) :: i , j , k , iwk , nrec
+  integer(ik4) :: nsteps
   type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
-  real(sp) , dimension(jlat) :: lati
-  real(sp) , dimension(ilon) :: loni
+  real(rk4) , dimension(jlat) :: lati
+  real(rk4) , dimension(ilon) :: loni
   character(256) :: inpfile
   logical :: there
 !
@@ -259,21 +260,21 @@ module mod_sst_1deg
   subroutine sst_mn(idate,idate0,ilon,jlat,sst,pathaddname)
   implicit none
 !
-  integer , intent(in) :: ilon , jlat
+  integer(ik4) , intent(in) :: ilon , jlat
   type(rcm_time_and_date) :: idate , idate0
   character(256) , intent(in) :: pathaddname
 !
-  real(sp) , dimension(ilon,jlat) :: sst
+  real(rk4) , dimension(ilon,jlat) :: sst
   intent (out) :: sst
 !
-  integer :: i , it , j , n
+  integer(ik4) :: i , it , j , n
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
-  integer :: istatus
+  integer(ik4) :: istatus
 !
-  integer , dimension(10) , save :: icount , istart
-  integer , save :: inet , ivar
-  real(dp) , save :: xadd , xscale
+  integer(ik4) , dimension(10) , save :: icount , istart
+  integer(ik4) , save :: inet , ivar
+  real(rk8) , save :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -331,20 +332,20 @@ module mod_sst_1deg
   subroutine ice_mn(idate,idate0,ilon,jlat,ice,pathaddname)
   implicit none
 !
-  integer , intent(in) :: ilon , jlat
+  integer(ik4) , intent(in) :: ilon , jlat
   type(rcm_time_and_date) :: idate , idate0
   character(256) , intent(in) :: pathaddname
-  real(sp) , dimension(ilon,jlat) :: ice
+  real(rk4) , dimension(ilon,jlat) :: ice
   intent (out) :: ice
 !
-  integer :: i , it , j , n
+  integer(ik4) :: i , it , j , n
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
-  integer :: istatus
+  integer(ik4) :: istatus
 !
-  integer , dimension(10) , save :: icount , istart
-  integer , save :: inet , ivar
-  real(dp) , save :: xadd , xscale
+  integer(ik4) , dimension(10) , save :: icount , istart
+  integer(ik4) , save :: inet , ivar
+  real(rk8) , save :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -402,19 +403,19 @@ module mod_sst_1deg
   implicit none
 !
   type(rcm_time_and_date) , intent(in) :: idate
-  integer , intent(in) :: kkk , ilon , jlat
+  integer(ik4) , intent(in) :: kkk , ilon , jlat
   character(256) , intent(in) :: pathaddname
 !
-  real(sp) , dimension(ilon,jlat) , intent(out) :: sst
+  real(rk4) , dimension(ilon,jlat) , intent(out) :: sst
 !
-  integer :: i , j , n
+  integer(ik4) :: i , j , n
   character(3) :: varname
-  integer :: istatus
+  integer(ik4) :: istatus
   integer(2) , dimension(ilon,jlat) :: work , work1
 !
-  integer , dimension(10) , save :: icount , istart
-  integer , save :: inet , ivar
-  real(dp) , save :: xadd , xscale
+  integer(ik4) , dimension(10) , save :: icount , istart
+  integer(ik4) , save :: inet , ivar
+  real(rk8) , save :: xadd , xscale
   character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -497,19 +498,19 @@ module mod_sst_1deg
   implicit none
 !
   type(rcm_time_and_date) , intent(in) :: idate
-  integer , intent(in) :: kkk , ilon , jlat
+  integer(ik4) , intent(in) :: kkk , ilon , jlat
   character(256) , intent(in) :: pathaddname
 !
-  real(sp) , dimension(ilon,jlat) , intent(out) :: ice
+  real(rk4) , dimension(ilon,jlat) , intent(out) :: ice
 !
-  integer :: i , j , n
+  integer(ik4) :: i , j , n
   character(4) :: varname
   integer(2) , dimension(ilon,jlat) :: work , work1
-  integer :: istatus
+  integer(ik4) :: istatus
 !
-  integer , dimension(10) , save :: icount , istart
-  integer , save :: inet , ivar
-  real(dp) , save :: xadd , xscale
+  integer(ik4) , dimension(10) , save :: icount , istart
+  integer(ik4) , save :: inet , ivar
+  real(rk8) , save :: xadd , xscale
   character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.

@@ -19,9 +19,10 @@
 
 module mod_erahi
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_realkinds
   use mod_message
   use mod_stdio
   use mod_grid
@@ -36,26 +37,29 @@ module mod_erahi
 
   private
 
-  integer , parameter :: nlev1 = 60 , nlats = 160 , nlons = 320 , nlev2 = 18
+  integer(ik4) , parameter :: nlev1 = 60
+  integer(ik4) , parameter :: nlats = 160
+  integer(ik4) , parameter :: nlons = 320
+  integer(ik4) , parameter :: nlev2 = 18
 
-  real(sp) , dimension(nlev1+1) :: ak , bk
-  real(sp) , dimension(nlev2) :: pplev , sigma1 , sigmar
-  real(sp) , dimension(nlats) :: slat
-  real(sp) , dimension(nlons) :: slon
+  real(rk4) , dimension(nlev1+1) :: ak , bk
+  real(rk4) , dimension(nlev2) :: pplev , sigma1 , sigmar
+  real(rk4) , dimension(nlats) :: slat
+  real(rk4) , dimension(nlons) :: slon
 
-  real(sp) , dimension(nlons,nlats) :: lsm , ps2 , zs2
-  real(sp) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
-  real(sp) , dimension(nlons,nlats,nlev1) :: pp3d , z1
+  real(rk4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+  real(rk4) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
+  real(rk4) , dimension(nlons,nlats,nlev1) :: pp3d , z1
 
-  real(sp) , target , dimension(nlons,nlats,nlev2*3) :: b2
-  real(sp) , target , dimension(nlons,nlats,nlev2*2) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , target , dimension(nlons,nlats,nlev2*3) :: b2
+  real(rk4) , target , dimension(nlons,nlats,nlev2*2) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(sp) , pointer , dimension(:,:,:) :: up , vp
-  real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(sp) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk4) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rk4) , pointer , dimension(:,:,:) :: up , vp
+  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: geterahi , headerehi
 
@@ -67,9 +71,9 @@ module mod_erahi
   type(rcm_time_and_date) , intent(in) :: idate
 !
   character(256) :: finame
-  integer :: i , j , k , nrec
+  integer(ik4) :: i , j , k , nrec
   logical :: there
-  real(sp) :: slonmax , slonmin , xlonmax , xlonmin
+  real(rk4) :: slonmax , slonmin , xlonmax , xlonmin
 !
   if ( idate == globidate1 ) then
     xlonmin = 400.
@@ -214,7 +218,7 @@ module mod_erahi
   subroutine headerehi
   implicit none
 !
-  integer :: i , k , kr
+  integer(ik4) :: i , k , kr
 !
   slat(1) = -89.142
   slat(2) = -88.029

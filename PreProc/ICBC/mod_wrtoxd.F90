@@ -39,24 +39,24 @@ module mod_wrtoxd
   public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc
   public :: write_ch_icbc , write_ox_icbc , write_ae_icbc
 
-  integer :: ncoutch , ncoutox , ncoutae
+  integer(ik4) :: ncoutch , ncoutox , ncoutae
   character(256) :: ofname
   type(rcm_time_and_date) , save :: irefdate
-  integer :: itimech , itimeox , itimeae
-  integer , dimension(4) :: idims
-  integer :: istatus
+  integer(ik4) :: itimech , itimeox , itimeae
+  integer(ik4) , dimension(4) :: idims
+  integer(ik4) :: istatus
 
-  integer , parameter :: nchsp = 25
-  integer , parameter :: noxsp = 5
-  integer :: naesp
+  integer(ik4) , parameter :: nchsp = 25
+  integer(ik4) , parameter :: noxsp = 5
+  integer(ik4) :: naesp
 
-  integer , dimension(nchsp+1) :: ichvar
-  integer , dimension(noxsp+1) :: ioxvar
-  integer , pointer , dimension(:) :: iaevar
+  integer(ik4) , dimension(nchsp+1) :: ichvar
+  integer(ik4) , dimension(noxsp+1) :: ioxvar
+  integer(ik4) , pointer , dimension(:) :: iaevar
 
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
-  real(sp), dimension (nchsp ) ::  mw
+  real(rk4), dimension (nchsp ) ::  mw
    
 
   character(len=8) , pointer , dimension(:) :: aespec
@@ -69,9 +69,9 @@ module mod_wrtoxd
   character(len=8) , target , dimension(7) :: aesuca
   character(len=8) , target , dimension(15) :: aeaero
 
-  real(sp) , pointer , dimension(:,:,:,:) :: chv4
-  real(sp) , pointer , dimension(:,:,:,:) :: oxv4
-  real(sp) , pointer , dimension(:,:,:,:) :: aev4
+  real(rk4) , pointer , dimension(:,:,:,:) :: chv4
+  real(rk4) , pointer , dimension(:,:,:,:) :: oxv4
+  real(rk4) , pointer , dimension(:,:,:,:) :: aev4
   
   character(len=128) :: buffer
 
@@ -97,8 +97,8 @@ module mod_wrtoxd
                 'DST01', 'DST02', 'DST03', 'DST04' /
   data aedccb / 'CB1' , 'CB2' , 'OC1' , 'OC2' ,'DST01', 'DST02', 'DST03', 'DST04' /
 
-  integer :: ioc2 , isoa
-  integer :: isslt1 , isslt2 , isslt3 , isslt4
+  integer(ik4) :: ioc2 , isoa
+  integer(ik4) :: isslt1 , isslt2 , isslt3 , isslt4
   data ncoutch /-1/
   data ncoutox /-1/
   data ncoutae /-1/
@@ -115,7 +115,7 @@ module mod_wrtoxd
     implicit none
     character(len=8) , intent(in) :: chemsimtype
     logical :: doaero , dochem , dooxcl
-    integer :: i
+    integer(ik4) :: i
     data doaero /.false./
     data dochem /.false./
     data dooxcl /.false./
@@ -216,13 +216,13 @@ module mod_wrtoxd
   subroutine newfile_ch_icbc(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: i , ipnt , istatus
-    integer , dimension(2) :: izvar
-    integer , dimension(2) :: ihvar
-    integer , dimension(2) :: illvar
-    real(sp) , pointer , dimension(:) :: xjx , yiy
+    integer(ik4) :: i , ipnt , istatus
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(2) :: illvar
+    real(rk4) , pointer , dimension(:) :: xjx , yiy
     character(64) :: csdate
-    real(sp) :: hptop
+    real(rk4) :: hptop
 
     if (ncoutch > 0) then
       istatus = nf90_close(ncoutch)
@@ -298,13 +298,13 @@ module mod_wrtoxd
   subroutine newfile_ox_icbc(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: i , ipnt , istatus
-    integer , dimension(2) :: izvar
-    integer , dimension(2) :: ihvar
-    integer , dimension(2) :: illvar
-    real(sp) , pointer , dimension(:) :: xjx , yiy
+    integer(ik4) :: i , ipnt , istatus
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(2) :: illvar
+    real(rk4) , pointer , dimension(:) :: xjx , yiy
     character(64) :: csdate
-    real(sp) :: hptop
+    real(rk4) :: hptop
 
     if (ncoutox > 0) then
       istatus = nf90_close(ncoutox)
@@ -380,14 +380,14 @@ module mod_wrtoxd
   subroutine newfile_ae_icbc(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: i , ipnt , istatus
-    integer , dimension(2) :: izvar
-    integer , dimension(2) :: ihvar
-    integer , dimension(2) :: illvar
-    real(sp) , pointer , dimension(:) :: xjx , yiy
+    integer(ik4) :: i , ipnt , istatus
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(2) :: illvar
+    real(rk4) , pointer , dimension(:) :: xjx , yiy
     character(len=64) :: csdate
     character(len=6) :: specname
-    real(sp) :: hptop
+    real(rk4) :: hptop
 
     if (ncoutae > 0) then
       istatus = nf90_close(ncoutae)
@@ -479,10 +479,10 @@ module mod_wrtoxd
   subroutine write_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: i , istatus
-    integer , dimension(1) :: istart1 , icount1
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: xdate
+    integer(ik4) :: i , istatus
+    integer(ik4) , dimension(1) :: istart1 , icount1
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdif
 !
     istart1(1) = itimech
@@ -516,10 +516,10 @@ module mod_wrtoxd
   subroutine write_ox_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: i , istatus
-    integer , dimension(1) :: istart1 , icount1
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: xdate
+    integer(ik4) :: i , istatus
+    integer(ik4) , dimension(1) :: istart1 , icount1
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdif
 !
     istart1(1) = itimeox
@@ -553,10 +553,10 @@ module mod_wrtoxd
   subroutine write_ae_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: i , istatus
-    integer , dimension(1) :: istart1 , icount1
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: xdate
+    integer(ik4) :: i , istatus
+    integer(ik4) , dimension(1) :: istart1 , icount1
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdif
 !
     istart1(1) = itimeae

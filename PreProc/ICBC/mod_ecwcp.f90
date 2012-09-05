@@ -19,31 +19,32 @@
 
 module mod_ecwcp
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_stdio
-  use mod_realkinds
   use mod_message
 
   private
 
-  integer , parameter :: nlev = 15 , jlat = 64 , ilon = 128
+  integer(ik4) , parameter :: nlev = 15 , jlat = 64 , ilon = 128
 
-  real(sp) , dimension(jlat) :: hlat
-  real(sp) , dimension(ilon) :: hlon
-  real(sp) , dimension(nlev) :: sigma1 , sigmar
+  real(rk4) , dimension(jlat) :: hlat
+  real(rk4) , dimension(ilon) :: hlon
+  real(rk4) , dimension(nlev) :: sigma1 , sigmar
 
-  real(sp) , dimension(ilon,jlat,nlev) :: w1
+  real(rk4) , dimension(ilon,jlat,nlev) :: w1
 
-  real(sp) , target , dimension(ilon,jlat,nlev*3) :: b2
-  real(sp) , target , dimension(ilon,jlat,nlev*2) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , target , dimension(ilon,jlat,nlev*3) :: b2
+  real(rk4) , target , dimension(ilon,jlat,nlev*2) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , pointer , dimension(:,:,:) :: t1 , q1 , h1
-  real(sp) , pointer , dimension(:,:,:) :: u1 , v1
-  real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(sp) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk4) , pointer , dimension(:,:,:) :: t1 , q1 , h1
+  real(rk4) , pointer , dimension(:,:,:) :: u1 , v1
+  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: getecwcp , headerec
 
@@ -64,8 +65,8 @@ module mod_ecwcp
   type(rcm_time_and_date) , intent(in) :: idate
 !
   character(12) , dimension(12,5) :: finm
-  integer :: i , j , k , nrec
-  integer :: year , month , day , hour
+  integer(ik4) :: i , j , k , nrec
+  integer(ik4) :: year , month , day , hour
   logical :: there
 !
   data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &
@@ -181,7 +182,7 @@ module mod_ecwcp
   subroutine headerec
   implicit none
 !
-  integer :: i , k , kr
+  integer(ik4) :: i , k , kr
 !
   hlat(1) = -87.8638
   hlat(2) = -85.0965

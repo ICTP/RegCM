@@ -68,7 +68,7 @@ module mod_nchelper
 
   logical , public , parameter :: do_transpose = .true.
   logical , public , parameter :: no_transpose = .false.
-  integer :: incstat
+  integer(ik4) :: incstat
 
   contains
 !
@@ -86,12 +86,12 @@ module mod_nchelper
   subroutine add_common_global_params(ncid,prgname)
     implicit none
 
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: prgname
 
     character(256) :: history
-    real(sp) , dimension(2) :: trlat
-    integer , dimension(8) :: tvals
+    real(rk4) , dimension(2) :: trlat
+    integer(ik4) , dimension(8) :: tvals
 
     incstat = nf90_put_att(ncid, nf90_global, 'title',  &
                'ICTP Regional Climatic model V4')
@@ -145,13 +145,13 @@ module mod_nchelper
 
   subroutine define_horizontal_coord(ncid,nx,ny,xjx,yiy,idims,ihvar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) :: nx , ny
-    integer , intent(in) , dimension(:) :: idims
-    integer , dimension(2) , intent(out) :: ihvar
-    real(sp) , pointer , dimension(:) , intent(out) :: xjx
-    real(sp) , pointer , dimension(:) , intent(out) :: yiy
-    integer :: i , j
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) :: nx , ny
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , dimension(2) , intent(out) :: ihvar
+    real(rk4) , pointer , dimension(:) , intent(out) :: xjx
+    real(rk4) , pointer , dimension(:) , intent(out) :: yiy
+    integer(ik4) :: i , j
 
     call getmem1d(yiy,1,ny,'mod_write:yiy')
     call getmem1d(xjx,1,nx,'mod_write:xjx')
@@ -187,9 +187,9 @@ module mod_nchelper
 
   subroutine define_vertical_coord(ncid,idims,izvar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(out) , dimension(2) :: izvar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(out) , dimension(2) :: izvar
 
     incstat = nf90_def_var(ncid, 'sigma', nf90_float, idims(3), izvar(1))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable sigma')
@@ -224,10 +224,10 @@ module mod_nchelper
 
   subroutine define_cross_geolocation_coord(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , dimension(:) , intent(in) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , dimension(:) , intent(in) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable xlat')
@@ -261,10 +261,10 @@ module mod_nchelper
 
   subroutine define_dot_geolocation_coord(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'dlat', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dlat')
@@ -298,10 +298,10 @@ module mod_nchelper
 
   subroutine define_topo_and_mask(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
 
     incstat = nf90_def_var(ncid, 'topo', nf90_float, idims(1:2), ivar(ipnt))
@@ -341,10 +341,10 @@ module mod_nchelper
 
   subroutine define_landuse(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'landuse', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable landuse')
@@ -393,10 +393,10 @@ module mod_nchelper
 
   subroutine define_mapfactor_and_coriolis(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'xmap', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable xmap')
@@ -452,10 +452,10 @@ module mod_nchelper
 
   subroutine define_initial_snow(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'snowam', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable snowam')
@@ -478,11 +478,11 @@ module mod_nchelper
 
   subroutine define_lakedepth(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
-    real(sp) , parameter :: fillv = 0.0
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
+    real(rk4) , parameter :: fillv = 0.0
 
     incstat = nf90_def_var(ncid, 'dhlake', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dhlake')
@@ -506,10 +506,10 @@ module mod_nchelper
 
   subroutine define_textures(ncid,idims,ipnt,ivar)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
-    integer , dimension(:) , intent(out) :: ivar
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'texture', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable texture')
@@ -576,10 +576,10 @@ module mod_nchelper
 
   subroutine write_vertical_coord(ncid,sigma,ptop,izvar)
     implicit none
-    integer , intent(in) :: ncid
-    real(sp) , dimension(:) , intent(in) :: sigma
-    real(sp) , intent(in) :: ptop
-    integer , intent(in) , dimension(2) :: izvar
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: sigma
+    real(rk4) , intent(in) :: ptop
+    integer(ik4) , intent(in) , dimension(2) :: izvar
     incstat = nf90_put_var(ncid, izvar(1), sigma)
     call checkncerr(incstat,__FILE__,__LINE__,'Error variable sigma write')
     incstat = nf90_put_var(ncid, izvar(2), ptop)
@@ -588,9 +588,9 @@ module mod_nchelper
 
   subroutine write_horizontal_coord(ncid,xjx,yiy,ihvar)
     implicit none
-    integer , intent(in) :: ncid
-    real(sp) , dimension(:) , intent(in) :: xjx , yiy
-    integer , intent(in) , dimension(2) :: ihvar
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: xjx , yiy
+    integer(ik4) , intent(in) , dimension(2) :: ihvar
     incstat = nf90_put_var(ncid, ihvar(1), xjx)
     call checkncerr(incstat,__FILE__,__LINE__,'Error variable jx write')
     incstat = nf90_put_var(ncid, ihvar(2), yiy)
@@ -599,11 +599,11 @@ module mod_nchelper
 
   subroutine write_var2d_static(ncid,vnam,values,ipnt,ivar,ltranspose)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) :: vnam
-    real(sp) , dimension(:,:) , intent(in) :: values
-    integer , intent(inout) :: ipnt
-    integer , intent(in) , dimension(:) :: ivar
+    real(rk4) , dimension(:,:) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
     logical , intent(in) :: ltranspose
     if ( ltranspose ) then
       incstat = nf90_put_var(ncid, ivar(ipnt), transpose(values))
@@ -621,15 +621,15 @@ module mod_nchelper
 
   subroutine write_var3d_static(ncid,vnam,values,ipnt,ivar,ltranspose)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(sp) , dimension(:,:,:) , intent(in) :: values
-    integer , intent(inout) :: ipnt
-    integer , intent(in) , dimension(:) :: ivar
+    real(rk4) , dimension(:,:,:) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
     logical , intent(in) :: ltranspose
-    integer :: nk , k
-    integer , dimension(3) :: istart
-    integer , dimension(3) :: icount
+    integer(ik4) :: nk , k
+    integer(ik4) , dimension(3) :: istart
+    integer(ik4) , dimension(3) :: icount
     istart(1) = 1
     istart(2) = 1
     if (ltranspose) then
@@ -661,10 +661,10 @@ module mod_nchelper
 
   subroutine read_var1d_static_single(ncid,vnam,values)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(sp) , pointer , dimension(:) :: values
-    integer :: ivarid
+    real(rk4) , pointer , dimension(:) :: values
+    integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
@@ -673,10 +673,10 @@ module mod_nchelper
 
   subroutine read_var2d_static_single(ncid,vnam,values)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(sp) , pointer , dimension(:,:) :: values
-    integer :: ivarid
+    real(rk4) , pointer , dimension(:,:) :: values
+    integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
@@ -685,10 +685,10 @@ module mod_nchelper
 
   subroutine read_var1d_static_double(ncid,vnam,values)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(dp) , pointer , dimension(:) :: values
-    integer :: ivarid
+    real(rk8) , pointer , dimension(:) :: values
+    integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
@@ -697,10 +697,10 @@ module mod_nchelper
 
   subroutine read_var2d_static_double(ncid,vnam,values)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(dp) , pointer , dimension(:,:) :: values
-    integer :: ivarid
+    real(rk8) , pointer , dimension(:,:) :: values
+    integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
@@ -709,10 +709,10 @@ module mod_nchelper
 
   subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
     implicit none
-    integer , intent(in) :: ncid
-    integer , intent(in) :: nx , ny , nz
-    integer , intent(inout) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) :: nx , ny , nz
+    integer(ik4) , intent(inout) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
     incstat = nf90_def_dim(ncid, 'jx', nx, idims(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension jx')
     incstat = nf90_def_dim(ncid, 'iy', ny, idims(ipnt+1))
@@ -724,11 +724,11 @@ module mod_nchelper
 
   subroutine add_dimension(ncid,dnam,nd,ipnt,idims)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: dnam
-    integer , intent(in) :: nd
-    integer , intent(inout) , dimension(:) :: idims
-    integer , intent(inout) :: ipnt
+    integer(ik4) , intent(in) :: nd
+    integer(ik4) , intent(inout) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
     incstat = nf90_def_dim(ncid, dnam, nd, idims(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension '//dnam)
     ipnt = ipnt + 1
@@ -737,7 +737,7 @@ module mod_nchelper
   subroutine createfile_withname(fname,ncid)
     implicit none
     character(len=*) , intent(in) :: fname
-    integer , intent(out) :: ncid
+    integer(ik4) , intent(out) :: ncid
 #ifdef NETCDF4_HDF5
     incstat = nf90_create(fname, &
              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
@@ -751,7 +751,7 @@ module mod_nchelper
   subroutine openfile_withname(fname,ncid)
     implicit none
     character(len=*) , intent(in) :: fname
-    integer , intent(out) :: ncid
+    integer(ik4) , intent(out) :: ncid
     incstat = nf90_open(fname, nf90_nowrite, ncid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error open NetCDF input '//trim(fname))
@@ -759,10 +759,10 @@ module mod_nchelper
 
   subroutine check_dims(ncid)
     implicit none
-    integer , intent(in) :: ncid
-    integer :: istatus
-    integer :: idimid
-    integer :: iyy , jxx , kzz
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) :: istatus
+    integer(ik4) :: idimid
+    integer(ik4) :: iyy , jxx , kzz
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
@@ -794,7 +794,7 @@ module mod_nchelper
 
   subroutine checkncerr(ival,filename,line,arg)
     implicit none
-    integer , intent(in) :: ival , line
+    integer(ik4) , intent(in) :: ival , line
     character(len=8) :: cline
     character(*) , intent(in) :: filename , arg
     if ( ival /= nf90_noerr ) then

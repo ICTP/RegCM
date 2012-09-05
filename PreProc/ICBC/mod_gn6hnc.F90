@@ -26,6 +26,7 @@ module mod_gn6hnc
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -46,53 +47,53 @@ module mod_gn6hnc
   private
 
   ! Dimension of input read from input files
-  integer :: nlon , nlat , klev
+  integer(ik4) :: nlon , nlat , klev
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
-  integer , parameter :: nipl = 18
-  real(sp) , target , dimension(nipl) :: fplev = &
+  integer(ik4) , parameter :: nipl = 18
+  real(rk4) , target , dimension(nipl) :: fplev = &
    (/  30.0,   50.0,   70.0,  100.0,  150.0,  200.0,  250.0, &
       300.0,  350.0,  420.0,  500.0,  600.0,  700.0,  780.0, &
       850.0,  920.0,  960.0, 1000.0 /)
 
-  integer :: npl , nrhlev
-  real(sp) , pointer , dimension(:) :: pplev
-  real(sp) , pointer , dimension(:) :: sigmar
+  integer(ik4) :: npl , nrhlev
+  real(rk4) , pointer , dimension(:) :: pplev
+  real(rk4) , pointer , dimension(:) :: sigmar
 
   ! Whole space
-  real(sp) , pointer , dimension(:,:,:) :: b2
-  real(sp) , pointer , dimension(:,:,:) :: d2
-  real(sp) , pointer , dimension(:,:,:) :: b3
-  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:,:) :: b2
+  real(rk4) , pointer , dimension(:,:,:) :: d2
+  real(rk4) , pointer , dimension(:,:,:) :: b3
+  real(rk4) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(sp) , pointer :: up(:,:,:) , vp(:,:,:)
-  real(sp) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk4) , pointer :: up(:,:,:) , vp(:,:,:)
+  real(rk4) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
 
   ! Input space
-  real(sp) :: p0
-  real(sp) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
-  real(sp) , pointer , dimension(:) :: ak , bk
-  real(sp) , pointer , dimension(:) :: glat , gltemp
-  real(sp) , pointer , dimension(:) :: glon
-  real(sp) , pointer , dimension(:,:) :: glat2
-  real(sp) , pointer , dimension(:,:) :: glon2
-  real(sp) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
+  real(rk4) :: p0
+  real(rk4) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
+  real(rk4) , pointer , dimension(:) :: ak , bk
+  real(rk4) , pointer , dimension(:) :: glat , gltemp
+  real(rk4) , pointer , dimension(:) :: glon
+  real(rk4) , pointer , dimension(:,:) :: glat2
+  real(rk4) , pointer , dimension(:,:) :: glon2
+  real(rk4) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                            uvar , vvar , pp3d , &
                                            vwork
-  integer :: timlen , pstimlen
+  integer(ik4) :: timlen , pstimlen
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
-  real(dp) , pointer , dimension(:) :: xtimes
+  real(rk8) , pointer , dimension(:) :: xtimes
 
   ! Shared by netcdf I/O routines
-  integer , dimension(4) :: icount , istart
+  integer(ik4) , dimension(4) :: icount , istart
   ! We will need 6 files (is just one for CAM2)
-  integer , parameter :: nvars = 6
-  integer , parameter :: nfiles = nvars
-  integer , dimension(nvars) :: inet
-  integer , dimension(nvars) :: ivar
+  integer(ik4) , parameter :: nvars = 6
+  integer(ik4) , parameter :: nfiles = nvars
+  integer(ik4) , dimension(nvars) :: inet
+  integer(ik4) , dimension(nvars) :: ivar
 
   public :: get_gn6hnc , headgn6hnc
 
@@ -166,7 +167,7 @@ module mod_gn6hnc
 !
     implicit none
 !
-    integer :: istatus , ivar1 , inet1 , jdim , i , j , k
+    integer(ik4) :: istatus , ivar1 , inet1 , jdim , i , j , k
     character(256) :: pathaddname
     real(8) :: dp0
 !
@@ -780,16 +781,16 @@ module mod_gn6hnc
 !
     type(rcm_time_and_date) , intent(in) :: idate
 !
-    integer :: istatus
-    integer :: i , it , itps , j , k , timid , imon1 , iyear1 , imon2 , iyear2
+    integer(ik4) :: istatus
+    integer(ik4) :: i , it , itps , j , k , timid , imon1 , iyear1 , imon2 , iyear2
     character(256) :: inname
 
-    integer :: kkrec
+    integer(ik4) :: kkrec
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
-    integer :: year , month , day , hour , y1 , y2 , m1 , m2
-    integer :: fyear , fmonth , fday , fhour
+    integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
+    integer(ik4) :: fyear , fmonth , fday , fhour
 !
 !
     call split_idate(idate,year,month,day,hour)

@@ -1,7 +1,7 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.mod $(REGCM_ROOT)/Share:.
+vpath %.o $(REGCM_ROOT)/Share:.
 
 bin_PROGRAMS = sst icbc chem_icbc
 
@@ -22,12 +22,6 @@ chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ox_icbc.F90 mod_ae_icbc.F90 \
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 clean-local:
 	rm -f *.mod *__genmod.*
 
@@ -36,35 +30,35 @@ distclean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-chem_icbc.o chem_icbc.mod: chem_icbc.f90 mod_dynparam.mod mod_date.mod mod_grid.mod mod_wrtoxd.mod mod_header.mod mod_ch_icbc.mod mod_ox_icbc.mod mod_ae_icbc.mod mod_memutil.mod
-icbc.o icbc.mod: icbc.f90 mod_dynparam.mod mod_message.mod mod_header.mod mod_stdio.mod mod_memutil.mod mod_mksst.mod mod_date.mod mod_grid.mod mod_date.mod mod_ecwcp.mod mod_eh5om.mod mod_ein.mod mod_era40.mod mod_erahi.mod mod_ecens.mod mod_fvgcm.mod mod_ncep.mod mod_nest.mod mod_gn6hnc.mod mod_write.mod
-mod_ch_icbc.o mod_ch_icbc.mod: mod_ch_icbc.F90 mod_dynparam.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_memutil.mod mod_message.mod mod_nchelper.mod mod_stdio.mod
-mod_ox_icbc.o mod_ox_icbc.mod: mod_ox_icbc.F90 mod_dynparam.mod mod_memutil.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_nchelper.mod
-mod_ae_icbc.o mod_ae_icbc.mod: mod_ae_icbc.F90 mod_dynparam.mod mod_memutil.mod mod_grid.mod mod_wrtoxd.mod mod_interp.mod mod_date.mod mod_realkinds.mod mod_nchelper.mod
-mod_ecens.o mod_ecens.mod: mod_ecens.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_memutil.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_nchelper.mod
-mod_ecwcp.o mod_ecwcp.mod: mod_ecwcp.f90 mod_dynparam.mod mod_memutil.mod mod_stdio.mod mod_realkinds.mod mod_message.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod
-mod_eh5om.o mod_eh5om.mod: mod_eh5om.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_grid.mod mod_memutil.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod
-mod_ein.o mod_ein.mod: mod_ein.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_memutil.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_nchelper.mod
-mod_era40.o mod_era40.mod: mod_era40.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_memutil.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_nchelper.mod
-mod_erahi.o mod_erahi.mod: mod_erahi.f90 mod_dynparam.mod mod_memutil.mod mod_realkinds.mod mod_message.mod mod_stdio.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod
-mod_fvgcm.o mod_fvgcm.mod: mod_fvgcm.f90 mod_dynparam.mod mod_memutil.mod mod_realkinds.mod mod_message.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod
-mod_gn6hnc.o mod_gn6hnc.mod: mod_gn6hnc.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_constants.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_nchelper.mod
-mod_grid.o mod_grid.mod: mod_grid.F90 mod_memutil.mod mod_realkinds.mod mod_stdio.mod mod_message.mod mod_nchelper.mod mod_domain.mod mod_dynparam.mod
-mod_header.o mod_header.mod: mod_header.F90 mod_stdio.mod
-mod_hgt.o mod_hgt.mod: mod_hgt.F90 mod_constants.mod mod_message.mod mod_realkinds.mod
-mod_humid.o mod_humid.mod: mod_humid.f90 mod_constants.mod mod_realkinds.mod
-mod_mksst.o mod_mksst.mod: mod_mksst.F90 mod_realkinds.mod mod_stdio.mod mod_grid.mod mod_memutil.mod mod_constants.mod mod_dynparam.mod mod_message.mod mod_nchelper.mod
-mod_ncep.o mod_ncep.mod: mod_ncep.F90 mod_dynparam.mod mod_realkinds.mod mod_stdio.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_memutil.mod mod_nchelper.mod mod_grid.mod
-mod_nest.o mod_nest.mod: mod_nest.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_constants.mod mod_date.mod mod_grid.mod mod_write.mod mod_interp.mod mod_vertint.mod mod_hgt.mod mod_humid.mod mod_mksst.mod mod_uvrot.mod mod_vectutil.mod mod_message.mod mod_memutil.mod mod_nchelper.mod
-mod_sst_1deg.o mod_sst_1deg.mod: mod_sst_1deg.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_sst_grid.mod mod_interp.mod mod_nchelper.mod mod_message.mod
-mod_sst_eh5om.o mod_sst_eh5om.mod: mod_sst_eh5om.f90 mod_realkinds.mod mod_stdio.mod mod_message.mod mod_dynparam.mod mod_sst_grid.mod mod_interp.mod
-mod_sst_ersst.o mod_sst_ersst.mod: mod_sst_ersst.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
-mod_sst_fvgcm.o mod_sst_fvgcm.mod: mod_sst_fvgcm.f90 mod_realkinds.mod mod_stdio.mod mod_message.mod mod_dynparam.mod mod_interp.mod mod_sst_grid.mod
-mod_sst_gnmnc.o mod_sst_gnmnc.mod: mod_sst_gnmnc.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
-mod_sst_gnhnc.o mod_sst_gnhnc.mod: mod_sst_gnhnc.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_sst_grid.mod mod_interp.mod mod_message.mod mod_nchelper.mod
-mod_sst_grid.o mod_sst_grid.mod: mod_sst_grid.F90 mod_realkinds.mod mod_stdio.mod mod_dynparam.mod mod_memutil.mod mod_message.mod mod_nchelper.mod mod_domain.mod
-mod_uvrot.o mod_uvrot.mod: mod_uvrot.f90 mod_constants.mod mod_realkinds.mod
-mod_vectutil.o mod_vectutil.mod: mod_vectutil.f90 mod_realkinds.mod mod_stdio.mod
-mod_write.o mod_write.mod: mod_write.F90 mod_realkinds.mod mod_dynparam.mod mod_grid.mod mod_memutil.mod mod_message.mod mod_nchelper.mod
-mod_wrtoxd.o mod_wrtoxd.mod: mod_wrtoxd.F90 mod_dynparam.mod mod_date.mod mod_grid.mod mod_realkinds.mod mod_memutil.mod mod_message.mod mod_stdio.mod mod_nchelper.mod
-sst.o sst.mod: sst.f90 mod_header.mod mod_dynparam.mod mod_memutil.mod mod_stdio.mod mod_message.mod mod_sst_grid.mod mod_sst_1deg.mod mod_sst_eh5om.mod mod_sst_ersst.mod mod_sst_fvgcm.mod mod_sst_gnmnc.mod mod_sst_gnhnc.mod
+chem_icbc.o : chem_icbc.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ox_icbc.o mod_ae_icbc.o mod_memutil.o
+icbc.o : icbc.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ecwcp.o mod_eh5om.o mod_ein.o mod_era40.o mod_erahi.o mod_ecens.o mod_fvgcm.o mod_ncep.o mod_nest.o mod_gn6hnc.o mod_write.o
+mod_ch_icbc.o : mod_ch_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_interp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_stdio.o
+mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_interp.o mod_date.o mod_nchelper.o
+mod_ae_icbc.o : mod_ae_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_interp.o mod_date.o mod_nchelper.o
+mod_ecens.o : mod_ecens.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
+mod_ecwcp.o : mod_ecwcp.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
+mod_eh5om.o : mod_eh5om.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_memutil.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o
+mod_ein.o : mod_ein.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
+mod_era40.o : mod_era40.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
+mod_erahi.o : mod_erahi.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_stdio.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
+mod_fvgcm.o : mod_fvgcm.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
+mod_gn6hnc.o : mod_gn6hnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_constants.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
+mod_grid.o : mod_grid.F90 mod_intkinds.o mod_realkinds.o mod_intkinds.o mod_memutil.o mod_stdio.o mod_message.o mod_nchelper.o mod_domain.o mod_dynparam.o
+mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o
+mod_hgt.o : mod_hgt.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o
+mod_humid.o : mod_humid.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
+mod_mksst.o : mod_mksst.F90 mod_realkinds.o mod_stdio.o mod_grid.o mod_memutil.o mod_constants.o mod_dynparam.o mod_message.o mod_nchelper.o
+mod_ncep.o : mod_ncep.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_grid.o
+mod_nest.o : mod_nest.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_constants.o mod_date.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o
+mod_sst_1deg.o : mod_sst_1deg.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_sst_grid.o mod_interp.o mod_nchelper.o mod_message.o
+mod_sst_eh5om.o : mod_sst_eh5om.f90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o mod_dynparam.o mod_sst_grid.o mod_interp.o
+mod_sst_ersst.o : mod_sst_ersst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_sst_grid.o mod_interp.o mod_message.o mod_nchelper.o
+mod_sst_fvgcm.o : mod_sst_fvgcm.f90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o mod_dynparam.o mod_interp.o mod_sst_grid.o
+mod_sst_gnmnc.o : mod_sst_gnmnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_interp.o mod_message.o mod_nchelper.o
+mod_sst_gnhnc.o : mod_sst_gnhnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_interp.o mod_message.o mod_nchelper.o
+mod_sst_grid.o : mod_sst_grid.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_message.o mod_nchelper.o mod_domain.o
+mod_uvrot.o : mod_uvrot.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
+mod_vectutil.o : mod_vectutil.f90 mod_intkinds.o mod_realkinds.o mod_stdio.o
+mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_grid.o mod_memutil.o mod_message.o mod_nchelper.o
+mod_wrtoxd.o : mod_wrtoxd.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_grid.o mod_memutil.o mod_message.o mod_stdio.o mod_nchelper.o
+sst.o : sst.f90 mod_intkinds.o mod_realkinds.o mod_header.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_sst_grid.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_gnmnc.o mod_sst_gnhnc.o

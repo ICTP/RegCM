@@ -19,10 +19,11 @@
 
 module mod_interp
  
-  use mod_memutil
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_message
+  use mod_memutil
 
   use mod_constants , only : degrad , earthrad
 
@@ -30,18 +31,18 @@ module mod_interp
 
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
 
-  real(sp) :: alatmn , alatmx , alonmn , alonmx
-  real(sp) :: glatmn , glatmx , glonmn , glonmx
+  real(rk4) :: alatmn , alatmx , alonmn , alonmx
+  real(rk4) :: glatmn , glatmx , glonmn , glonmx
 
-  integer :: imxmn = 0
-  integer :: lcross = 0
-  integer :: ldot = 0
+  integer(ik4) :: imxmn = 0
+  integer(ik4) :: lcross = 0
+  integer(ik4) :: ldot = 0
 
-  real(sp) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(sp) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
-  integer , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
+  real(rk4) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
+  real(rk4) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  integer(ik4) , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
                                        jc1dl , jc1dr , jc1ul , jc1ur
-  integer , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
+  integer(ik4) , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
                                        jd1dl , jd1dr , jd1ul , jd1ur
 
   contains
@@ -51,18 +52,18 @@ module mod_interp
   subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx,nflds)
   implicit none
 !
-  integer :: iy , jx , nflds , nlati , nloni
-  real(sp) , dimension(nloni,nlati,nflds) :: fin
-  real(sp) , dimension(nlati) :: lati
-  real(sp) , dimension(iy,jx) :: lato , lono
-  real(sp) , dimension(nloni) :: loni
-  real(sp) , dimension(iy,jx,nflds) :: fout
+  integer(ik4) :: iy , jx , nflds , nlati , nloni
+  real(rk4) , dimension(nloni,nlati,nflds) :: fin
+  real(rk4) , dimension(nlati) :: lati
+  real(rk4) , dimension(iy,jx) :: lato , lono
+  real(rk4) , dimension(nloni) :: loni
+  real(rk4) , dimension(iy,jx,nflds) :: fout
   intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
               nlati , nloni
   intent (out) fout
 !
-  real(sp) :: bas , lon360 , p , q , xsum , xind , yind
-  integer :: i , ip , ipp1 , j , jq , jqp1 , l
+  real(rk4) :: bas , lon360 , p , q , xsum , xind , yind
+  integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , l
   logical :: lg
 !
 !
@@ -156,17 +157,17 @@ module mod_interp
   subroutine bilinx2(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
   implicit none
 !
-  integer :: iy , jx , llev , nlat , nlon
-  real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(nlon,nlat,llev) :: b2
-  real(sp) , dimension(jx,iy,llev) :: b3
-  real(sp) , dimension(nlat) :: hlat
-  real(sp) , dimension(nlon) :: hlon
+  integer(ik4) :: iy , jx , llev , nlat , nlon
+  real(rk4) , dimension(jx,iy) :: alat , alon
+  real(rk4) , dimension(nlon,nlat,llev) :: b2
+  real(rk4) , dimension(jx,iy,llev) :: b3
+  real(rk4) , dimension(nlat) :: hlat
+  real(rk4) , dimension(nlon) :: hlon
   intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev , nlat , nlon
   intent (out) b3
 !
-  real(sp) :: ave , p1 , p2 , q1 , q2
-  integer :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
+  real(rk4) :: ave , p1 , p2 , q1 , q2
+  integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
 !
 !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
 !     BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
@@ -310,17 +311,17 @@ module mod_interp
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
   implicit none
 !
-  integer :: iy , jx , nlat , nlon
-  real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(jx,iy) :: b3
-  real(sp) , dimension(nlon,nlat) :: glat , glon
-  real(sp) , dimension(nlon,nlat) :: b2
+  integer(ik4) :: iy , jx , nlat , nlon
+  real(rk4) , dimension(jx,iy) :: alat , alon
+  real(rk4) , dimension(jx,iy) :: b3
+  real(rk4) , dimension(nlon,nlat) :: glat , glon
+  real(rk4) , dimension(nlon,nlat) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(sp) :: dist , dista , distb , distc , distd
-  real(sp) :: v1 , v2 , v3 , v4 , wg
-  integer :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
+  real(rk4) :: dist , dista , distb , distc , distd
+  real(rk4) :: v1 , v2 , v3 , v4 , wg
+  integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
@@ -501,17 +502,17 @@ module mod_interp
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
   implicit none
 !
-  integer :: iy , jx , nlat , nlon
-  real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(jx,iy) :: b3
-  real(sp) , dimension(nlon,nlat) :: glat , glon
-  real(sp) , dimension(nlon,nlat) :: b2
+  integer(ik4) :: iy , jx , nlat , nlon
+  real(rk4) , dimension(jx,iy) :: alat , alon
+  real(rk4) , dimension(jx,iy) :: b3
+  real(rk4) , dimension(nlon,nlat) :: glat , glon
+  real(rk4) , dimension(nlon,nlat) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(sp) :: dist , dista , distb , distc , distd
-  real(sp) :: v1 , v2 , v3 , v4 , wg
-  integer :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
+  real(rk4) :: dist , dista , distb , distc , distd
+  real(rk4) :: v1 , v2 , v3 , v4 , wg
+  integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
@@ -693,16 +694,16 @@ module mod_interp
   subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
   implicit none
 !
-  integer :: iy , jx , nlat , nlev , nlon , nf
-  real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(jx,iy,nlev*nf) :: b3
-  real(sp) , dimension(nlon,nlat) :: glat , glon
-  real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
+  integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
+  real(rk4) , dimension(jx,iy) :: alat , alon
+  real(rk4) , dimension(jx,iy,nlev*nf) :: b3
+  real(rk4) , dimension(nlon,nlat) :: glat , glon
+  real(rk4) , dimension(nlon,nlat,nlev*nf) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
               nlev , nlon , nf
   intent (out) b3
 !
-  integer :: k , l , kin
+  integer(ik4) :: k , l , kin
 !
   do l = 1 , nf
     do k = 1 , nlev
@@ -719,16 +720,16 @@ module mod_interp
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
   implicit none
 !
-  integer :: iy , jx , nlat , nlev , nlon , nf
-  real(sp) , dimension(jx,iy) :: alat , alon
-  real(sp) , dimension(jx,iy,nlev*nf) :: b3
-  real(sp) , dimension(nlon,nlat) :: glat , glon
-  real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
+  integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
+  real(rk4) , dimension(jx,iy) :: alat , alon
+  real(rk4) , dimension(jx,iy,nlev*nf) :: b3
+  real(rk4) , dimension(nlon,nlat) :: glat , glon
+  real(rk4) , dimension(nlon,nlat,nlev*nf) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
               nlev , nlon , nf
   intent (out) b3
 !
-  integer :: k , l , kin
+  integer(ik4) :: k , l , kin
 !
   do l = 1 , nf
     do k = 1 , nlev
@@ -740,10 +741,10 @@ module mod_interp
  
   end subroutine cressmdt
 !
-  real(sp) function gcdist(lat1,lon1,lat2,lon2)
+  real(rk4) function gcdist(lat1,lon1,lat2,lon2)
     implicit none
-    real(sp) , intent(in) :: lat1 , lon1 , lat2, lon2
-    real(dp) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
+    real(rk4) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
 
     clat1 = cos(dble(lat1)*degrad)
     slat1 = sin(dble(lat1)*degrad)

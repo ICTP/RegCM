@@ -1,7 +1,7 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.mod $(REGCM_ROOT)/Share:.
+vpath %.o $(REGCM_ROOT)/Share:.
 
 bin_PROGRAMS = clm2rcm
 clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
@@ -13,12 +13,6 @@ clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 clean-local:
 	rm -f *.mod *__genmod.*
 
@@ -27,8 +21,8 @@ distclean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-clm2rcm.o clm2rcm.mod: clm2rcm.F90 mod_nclib.mod mod_dynparam.mod mod_message.mod mod_grid.mod mod_param_clm.mod mod_date.mod mod_clm3grid.mod mod_memutil.mod mod_realkinds.mod mod_stdio.mod mod_domain.mod mod_nchelper.mod
-mod_clm3grid.o mod_clm3grid.mod: mod_clm3grid.f90 mod_realkinds.mod
-mod_grid.o mod_grid.mod: mod_grid.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod
-mod_nclib.o mod_nclib.mod: mod_nclib.f90 mod_memutil.mod mod_message.mod mod_stdio.mod mod_realkinds.mod
-mod_param_clm.o mod_param_clm.mod: mod_param_clm.f90 mod_realkinds.mod mod_message.mod mod_stdio.mod
+clm2rcm.o : clm2rcm.F90 mod_intkinds.o mod_realkinds.o mod_nclib.o mod_dynparam.o mod_message.o mod_grid.o mod_param_clm.o mod_date.o mod_clm3grid.o mod_memutil.o mod_realkinds.o mod_stdio.o mod_domain.o mod_nchelper.o
+mod_clm3grid.o : mod_clm3grid.f90 mod_intkinds.o mod_realkinds.o
+mod_grid.o : mod_grid.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o
+mod_nclib.o : mod_nclib.f90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_message.o mod_stdio.o
+mod_param_clm.o : mod_param_clm.f90 mod_intkinds.o mod_realkinds.o mod_message.o mod_stdio.o

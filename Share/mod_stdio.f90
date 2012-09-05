@@ -19,10 +19,12 @@
 
 module mod_stdio
 !
+  use mod_intkinds
+
   private
 
-  integer , public , parameter :: stdin = 5
-  integer , public , parameter :: stdout = 6
-  integer , public , parameter :: stderr = 0
+  integer(ik4) , public , parameter :: stdin = 5
+  integer(ik4) , public , parameter :: stdout = 6
+  integer(ik4) , public , parameter :: stderr = 0
 
 end module mod_stdio

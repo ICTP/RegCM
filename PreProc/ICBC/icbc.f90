@@ -117,6 +117,9 @@ program icbc
 !   have just provided EMOSLIB library for LINUX PGI5 and IBM AIX.     !
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_message
   use mod_header
@@ -140,11 +143,11 @@ program icbc
 
   implicit none
 !
-  integer :: nnn
+  integer(ik4) :: nnn
   type(rcm_time_and_date) :: idate , iodate
   type(rcm_time_interval) :: tdiff , tbdy
-  integer :: nsteps
-  integer :: ierr
+  integer(ik4) :: nsteps
+  integer(ik4) :: ierr
   character(256) :: namelistfile, prgname
 !
   call header('icbc')

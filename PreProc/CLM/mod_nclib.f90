@@ -19,11 +19,12 @@
 
 module mod_nclib
 
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_memutil
   use mod_message
   use mod_stdio
-  use mod_realkinds
+  use netcdf
 
   contains
 
@@ -44,15 +45,15 @@ module mod_nclib
 
   implicit none
 
-  integer , intent (in) :: ndim
+  integer(ik4) , intent (in) :: ndim
   character(256), intent(in) :: filnam
-  real(sp) , dimension(ndim) :: phymin , phymax
-  integer , intent (out) :: ierr , cdfid
+  real(rk4) , dimension(ndim) :: phymin , phymax
+  integer(ik4) , intent (out) :: ierr , cdfid
 
-  integer , parameter :: maxdim = 4
+  integer(ik4) , parameter :: maxdim = 4
   character(64) :: attnam
   character(1)  :: chrid(maxdim)
-  integer :: k
+  integer(ik4) :: k
   data chrid /'x','y','z','a'/
 
 !     create the netCDF file
@@ -97,10 +98,10 @@ module mod_nclib
   implicit none
 
   character(256) , intent(in) :: filnam
-  integer , intent(in) :: ndim
-  integer , intent(out) :: cdfid
-  integer , intent(out) :: ierr
-  real(sp) , dimension(ndim) , intent (in) :: varmin , varmax
+  integer(ik4) , intent(in) :: ndim
+  integer(ik4) , intent(out) :: cdfid
+  integer(ik4) , intent(out) :: ierr
+  real(rk4) , dimension(ndim) , intent (in) :: varmin , varmax
 
   call crecdf (filnam,cdfid,varmin,varmax,3,ierr)
 
@@ -124,8 +125,8 @@ module mod_nclib
   implicit none
 
 !     Argument declarations.
-  integer , intent(in) :: cdfid
-  integer , intent(out) :: ierr
+  integer(ik4) , intent(in) :: cdfid
+  integer(ik4) , intent(out) :: ierr
 
 !     Close requested file.
   ierr = nf90_close(cdfid)
@@ -157,30 +158,30 @@ module mod_nclib
 
   implicit none
 
-  integer , intent(in) :: cdfid , ie , je , ke
+  integer(ik4) , intent(in) :: cdfid , ie , je , ke
   character(64) :: varnam , lname , vunit
-  real(sp) , dimension(ie,je,ke) , intent(in) :: arr
-  real(sp) , dimension(ie) , intent(in) :: xlon1d
-  real(sp) , dimension(je) , intent(in) :: xlat1d
-  real(sp) , dimension(ke) , intent(in) :: sigh
-  integer , dimension(3) , intent(in) :: iadim
-  real(sp) , dimension(3) , intent (in) :: vvarmin , vvarmax
-  real(dp) , intent(in) :: vtstep
-  real(sp) , intent(in) :: offset , factor , vmisdat
-  integer , intent(in) :: izstag , iotype
+  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
+  real(rk4) , dimension(ie) , intent(in) :: xlon1d
+  real(rk4) , dimension(je) , intent(in) :: xlat1d
+  real(rk4) , dimension(ke) , intent(in) :: sigh
+  integer(ik4) , dimension(3) , intent(in) :: iadim
+  real(rk4) , dimension(3) , intent (in) :: vvarmin , vvarmax
+  real(rk8) , intent(in) :: vtstep
+  real(rk4) , intent(in) :: offset , factor , vmisdat
+  integer(ik4) , intent(in) :: izstag , iotype
 
 !     declarations needed for netcdf-stuff
 
-  real(sp) , dimension(3) :: varmin , varmax , varstg
-  integer , dimension(3) :: vardim
-  real(sp) :: tstep
-  integer :: idtest , it , ndims
-  real(sp) :: rfac
+  real(rk4) , dimension(3) :: varmin , varmax , varstg
+  integer(ik4) , dimension(3) :: vardim
+  real(rk4) :: tstep
+  integer(ik4) :: idtest , it , ndims
+  real(rk4) :: rfac
 
 ! *********** declare some auxiliary variables **********
 
-  integer :: i , k , iputlev
-  integer :: ievar , jevar , kevar
+  integer(ik4) :: i , k , iputlev
+  integer(ik4) :: ievar , jevar , kevar
 
 !     convert real*8 input variables to real*4 variables
   do i = 1 , 3
@@ -256,14 +257,14 @@ module mod_nclib
 
   implicit none
 
-  integer , intent(in) :: cdfid , ie , je , ke , ndim
-  integer , dimension(ndim) , intent(in) :: vardim
-  real(sp) , dimension(ie) :: xlon1d
-  real(sp) , dimension(je) :: xlat1d
-  real(sp) , dimension(ke) :: sigh
-  integer , intent(out) :: ierr
+  integer(ik4) , intent(in) :: cdfid , ie , je , ke , ndim
+  integer(ik4) , dimension(ndim) , intent(in) :: vardim
+  real(rk4) , dimension(ie) :: xlon1d
+  real(rk4) , dimension(je) :: xlat1d
+  real(rk4) , dimension(ke) :: sigh
+  integer(ik4) , intent(out) :: ierr
 
-  integer :: ncvid
+  integer(ik4) :: ncvid
 
   ierr = 0
 
@@ -349,23 +350,23 @@ module mod_nclib
 
   implicit none
 
-  integer , intent(in) :: cdfid , ievar , jevar , ie , je , ke , k ,&
+  integer(ik4) , intent(in) :: cdfid , ievar , jevar , ie , je , ke , k ,&
                           level
   character(64) , intent(in) :: varnam
-  real(sp) , dimension(ie,je,ke) , intent(in) :: arr
-  real(sp) , intent(in) :: vmisdat , rfac , offset
-  integer , intent(out) :: ierr
-  real(dp) , intent(in) :: time
+  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
+  real(rk4) , intent(in) :: vmisdat , rfac , offset
+  integer(ik4) , intent(out) :: ierr
+  real(rk8) , intent(in) :: time
 
   integer(2) , dimension(ie*je*ke) :: dat
-  real(sp) :: misdat
-  real(dp) :: timeval
-  real(dp) , dimension(2) :: dvrange
-  integer , dimension(4) :: corner , edgeln , did , vardim
-  integer :: ndims , ntime
-  integer :: idtime , idvar , iflag
-  integer :: i , j , ik , ij
-  integer , dimension(1) :: istart
+  real(rk4) :: misdat
+  real(rk8) :: timeval
+  real(rk8) , dimension(2) :: dvrange
+  integer(ik4) , dimension(4) :: corner , edgeln , did , vardim
+  integer(ik4) :: ndims , ntime
+  integer(ik4) :: idtime , idvar , iflag
+  integer(ik4) :: i , j , ik , ij
+  integer(ik4) , dimension(1) :: istart
  
   integer(2) , parameter :: shfill = -32767_2
   ierr = 0
@@ -496,25 +497,25 @@ module mod_nclib
 
   implicit none
 
-  integer , parameter :: maxdim = 4
+  integer(ik4) , parameter :: maxdim = 4
 
-  integer , intent(in) :: cdfid , ndim , iotype
+  integer(ik4) , intent(in) :: cdfid , ndim , iotype
   character(64) , intent(in) :: varnam , clname , clunits
-  integer , dimension(ndim) :: vardim
-  real(sp) , dimension(ndim) :: varmin , varmax
-  real(sp) , intent(in) :: xscale , offset , misdat
-  integer , intent(out) :: ierr
+  integer(ik4) , dimension(ndim) :: vardim
+  real(rk4) , dimension(ndim) :: varmin , varmax
+  real(rk4) , intent(in) :: xscale , offset , misdat
+  integer(ik4) , intent(out) :: ierr
 
   character(64) :: dimnam , dimchk
   character(64) , dimension(10) :: dimnams
   character(5) , dimension(maxdim) :: rdim
-  integer , dimension(10) :: dimvals
-  integer , dimension(maxdim) :: did
-  integer :: numdims , numvars , numgats , dimulim
-  integer :: id , idtime , i , k , ik
-  integer :: idcoor
-  real(sp) , dimension(2) :: vrange
-  real(dp) , dimension(2) :: dvrange
+  integer(ik4) , dimension(10) :: dimvals
+  integer(ik4) , dimension(maxdim) :: did
+  integer(ik4) :: numdims , numvars , numgats , dimulim
+  integer(ik4) :: id , idtime , i , k , ik
+  integer(ik4) :: idcoor
+  real(rk4) , dimension(2) :: vrange
+  real(rk8) , dimension(2) :: dvrange
   character(64) , dimension(maxdim) :: long_name
   character(64) , dimension(maxdim) :: units
   integer(2) , parameter :: shfill = -32767_2
@@ -726,25 +727,25 @@ module mod_nclib
 
   implicit none
 
-  integer , intent(in) :: cdfid
+  integer(ik4) , intent(in) :: cdfid
   character(64) , intent(in) :: varnam
-  real(dp) , intent(in) :: time
-  integer , intent(in) :: k , level , ievar , jevar , ie ,  je , ke
-  real(sp) , dimension(ie,je,ke) , intent(in) :: arr
-  integer , intent(out) :: ierr
-  integer , dimension(1) :: istart
+  real(rk8) , intent(in) :: time
+  integer(ik4) , intent(in) :: k , level , ievar , jevar , ie ,  je , ke
+  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
+  integer(ik4) , intent(out) :: ierr
+  integer(ik4) , dimension(1) :: istart
 
 !     Declaration of local variables
 
-  real(sp), dimension(ie*je*ke) :: dat
-  real(sp) :: misdat
-  real(dp) :: timeval
-  real(dp) , dimension(2) :: dvrange
+  real(rk4), dimension(ie*je*ke) :: dat
+  real(rk4) :: misdat
+  real(rk8) :: timeval
+  real(rk8) , dimension(2) :: dvrange
 
-  integer , dimension(4) :: corner , edgeln , did , vardim
-  integer :: ndims , ntime
-  integer :: idtime , idvar , iflag
-  integer :: i , j , ik , ij
+  integer(ik4) , dimension(4) :: corner , edgeln , did , vardim
+  integer(ik4) :: ndims , ntime
+  integer(ik4) :: idtime , idvar , iflag
+  integer(ik4) :: i , j , ik , ij
 
   ij = 0
   do j = 1 , jevar
@@ -861,21 +862,21 @@ module mod_nclib
 
   implicit none
 
-  integer , parameter :: maxdim = 4
+  integer(ik4) , parameter :: maxdim = 4
 
-  integer , intent(in) :: cdfid
-  integer , intent(out) :: ndim
+  integer(ik4) , intent(in) :: cdfid
+  integer(ik4) , intent(out) :: ndim
   character(64), intent(in) :: varnam
   integer, dimension(4) , intent(out) :: vardim
-  real(sp) , intent(out) :: misdat
-  integer , intent(out) :: ierr
+  real(rk4) , intent(out) :: misdat
+  integer(ik4) , intent(out) :: ierr
 
   character(64) , dimension(maxdim) :: dimnam
   character(64) :: vnam
-  integer :: id , i , k
-  integer :: ndims , nvars , ngatts , recdim
-  integer , dimension(maxdim) :: dimsiz
-  integer :: vartyp , nvatts
+  integer(ik4) :: id , i , k
+  integer(ik4) :: ndims , nvars , ngatts , recdim
+  integer(ik4) , dimension(maxdim) :: dimsiz
+  integer(ik4) :: vartyp , nvatts
 
 !     inquire for number of dimensions
   ierr = nf90_inquire(cdfid,ndims,nvars,ngatts,recdim)
@@ -969,19 +970,19 @@ module mod_nclib
 
   implicit none
 
-  integer , intent(in) :: cdfid
+  integer(ik4) , intent(in) :: cdfid
   character(64) , intent(in) :: varnam
-  integer , intent(out) :: ndim
+  integer(ik4) , intent(out) :: ndim
   integer, dimension(4) , intent(out) :: vardim
-  real(sp) , intent(out) :: misdat
-  integer , intent(out) :: ierr
+  real(rk4) , intent(out) :: misdat
+  integer(ik4) , intent(out) :: ierr
 
   character(64), dimension(10) :: dimnam
   character(64) :: vnam
-  integer :: id , i , k
-  integer :: ndims , nvars , ngatts , recdim
-  integer , dimension(10) :: dimsiz
-  integer :: vartyp , nvatts
+  integer(ik4) :: id , i , k
+  integer(ik4) :: ndims , nvars , ngatts , recdim
+  integer(ik4) , dimension(10) :: dimsiz
+  integer(ik4) :: vartyp , nvatts
 
   ierr = 0
 
@@ -1067,15 +1068,15 @@ module mod_nclib
  
   implicit none
 !
-  integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
+  integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
   character(64) :: lnam , units , vnam
-  real(sp) , dimension(nlon,nlat,nlev,ntim) :: vals
+  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1
 !
-  integer , dimension(4) :: icount , istart
-  integer :: iflag , invarid
+  integer(ik4) , dimension(4) :: icount , istart
+  integer(ik4) :: iflag , invarid
 !
   istart(1) = nlon1
   icount(1) = nlon
@@ -1114,18 +1115,18 @@ module mod_nclib
  
   implicit none
 !
-  integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
+  integer(ik4) :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
              nlev , nlev1 , nlon , nlon1 , ntim , ntim1
   character(64) :: lnam , units , vnam
-  real(sp) , dimension(nlon,nlat,nlev,ntim) :: vals
+  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
               nlev1 , nlon , nlon1 , ntim , ntim1
   intent (out) vals
 !
-  integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
+  integer(ik4) :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
              l , ll , nlat2 , nlev2 , nlon2 , ntim2
-  integer , dimension(4) :: icount , istart
-  real(sp) , pointer , dimension(:,:,:,:) :: vals1 , vals2
+  integer(ik4) , dimension(4) :: icount , istart
+  real(rk4) , pointer , dimension(:,:,:,:) :: vals1 , vals2
 ! 
   istart(1) = 1
   icount(1) = nglon
@@ -1206,19 +1207,19 @@ module mod_nclib
  
   implicit none
 !
-  integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
+  integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
   character(64) :: lnam
   character(64) :: units
   character(64) :: vnam
-  real(sp) , dimension(nlon,nlat,nlev,ntim) :: vals
+  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1
   intent (out) vals
 !
-  integer , dimension(4) :: icount , istart
-  integer , dimension(2) :: icount1 , istart1
-  integer :: iflag , invarid
+  integer(ik4) , dimension(4) :: icount , istart
+  integer(ik4) , dimension(2) :: icount1 , istart1
+  integer(ik4) :: iflag , invarid
 !
   istart1(1) = nlon1
   icount1(1) = nlon

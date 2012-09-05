@@ -19,6 +19,7 @@
 
 module mod_sst_fvgcm
 
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_message
@@ -48,15 +49,15 @@ module mod_sst_fvgcm
 
   implicit none
 !
-  integer , parameter :: ilon = 192 , jlat = 145
+  integer(ik4) , parameter :: ilon = 192 , jlat = 145
 !
-  integer :: i , it , j , k , nsteps
-  real(sp) , dimension(jlat) :: lati
-  real(sp) , dimension(ilon) :: loni
-  real(sp) , dimension(ilon,jlat) :: temp
-  real(sp) , dimension(ilon,jlat) :: sst
+  integer(ik4) :: i , it , j , k , nsteps
+  real(rk4) , dimension(jlat) :: lati
+  real(rk4) , dimension(ilon) :: loni
+  real(rk4) , dimension(ilon,jlat) :: temp
+  real(rk4) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , idateo , idatef
-  integer :: year , month , day , hour
+  integer(ik4) :: year , month , day , hour
   logical :: there
 !
 

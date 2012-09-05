@@ -19,25 +19,26 @@
 
 module mod_grid
 
-  use netcdf
-  use mod_memutil
+  use mod_intkinds
   use mod_realkinds
+  use mod_memutil
   use mod_stdio
   use mod_message
   use mod_nchelper
   use mod_domain
+  use netcdf
 
   private
 
-  real(sp) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
-  real(sp) , public , pointer , dimension(:,:) :: topogm , mask , landuse
-  real(sp) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(sp) , public , pointer , dimension(:,:) :: b3pd
-  real(sp) , public , pointer , dimension(:) :: dsigma , sigma2
-  real(sp) , public , pointer , dimension(:) :: sigmaf
-  real(dp) , public :: delx
-  integer , public :: i0 , i1 , j0 , j1
-  real(dp) , public :: lat0 , lat1 , lon0 , lon1
+  real(rk4) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
+  real(rk4) , public , pointer , dimension(:,:) :: topogm , mask , landuse
+  real(rk4) , public , pointer , dimension(:,:) :: pa , tlayer , za
+  real(rk4) , public , pointer , dimension(:,:) :: b3pd
+  real(rk4) , public , pointer , dimension(:) :: dsigma , sigma2
+  real(rk4) , public , pointer , dimension(:) :: sigmaf
+  real(rk8) , public :: delx
+  integer(ik4) , public :: i0 , i1 , j0 , j1
+  real(rk8) , public :: lat0 , lat1 , lon0 , lon1
 
   public :: init_grid
 
@@ -45,7 +46,7 @@ module mod_grid
 
   subroutine init_grid(nx,ny,nz)
     implicit none
-    integer , intent(in) :: nx , ny , nz
+    integer(ik4) , intent(in) :: nx , ny , nz
     call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
     call getmem2d(dlat,1,nx,1,ny,'mod_grid:dlat')
@@ -66,10 +67,10 @@ module mod_grid
   subroutine read_domain_info
     use mod_dynparam
     implicit none
-    integer :: istatus
-    integer :: incin
+    integer(ik4) :: istatus
+    integer(ik4) :: incin
     character(256) :: fname
-    integer :: k
+    integer(ik4) :: k
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm,mask,landuse)

@@ -19,7 +19,7 @@
 
 module mod_sst_grid
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
@@ -27,19 +27,20 @@ module mod_sst_grid
   use mod_message
   use mod_nchelper
   use mod_domain
+  use netcdf
 
   private
 
-  integer :: ncid
-  integer , dimension(4) :: idims
-  integer , dimension(4) :: ivar
+  integer(ik4) :: ncid
+  integer(ik4) , dimension(4) :: idims
+  integer(ik4) , dimension(4) :: ivar
   type (rcm_time_and_date) , save :: refdate
-  integer :: itime
+  integer(ik4) :: itime
 
-  real(sp) , public , pointer , dimension(:,:) :: sstmm , icemm
-  real(sp) , public , pointer , dimension(:,:) :: xlat , xlon
-  real(sp) , pointer , dimension(:,:) :: topo , mask
-  real(sp) , pointer , dimension(:) :: sigma
+  real(rk4) , public , pointer , dimension(:,:) :: sstmm , icemm
+  real(rk4) , public , pointer , dimension(:,:) :: xlat , xlon
+  real(rk4) , pointer , dimension(:,:) :: topo , mask
+  real(rk4) , pointer , dimension(:) :: sigma
 
   public :: init_grid , read_domain_info , open_sstfile , &
             close_sstfile , writerec
@@ -60,7 +61,7 @@ module mod_sst_grid
   subroutine read_domain_info(terfile)
     implicit none
     character(256) , intent(in) :: terfile
-    integer :: istatus , incin
+    integer(ik4) :: istatus , incin
     call openfile_withname(terfile,incin)
     call read_domain(incin,sigma,xlat,xlon,ht=topo,mask=mask,ltrans=.true.)
     istatus = nf90_close(incin)
@@ -71,17 +72,17 @@ module mod_sst_grid
   subroutine open_sstfile(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: istatus
+    integer(ik4) :: istatus
     character(256) :: sstname
     character(64) :: csdate
-    real(sp) :: hptop
-    integer , dimension(2) :: izvar
-    integer , dimension(2) :: ihvar
-    integer , dimension(4) :: illvar
-    integer , dimension(3) :: ixdims
-    real(sp) , pointer , dimension(:) :: yiy
-    real(sp) , pointer , dimension(:) :: xjx
-    integer :: ipnt
+    real(rk4) :: hptop
+    integer(ik4) , dimension(2) :: izvar
+    integer(ik4) , dimension(2) :: ihvar
+    integer(ik4) , dimension(4) :: illvar
+    integer(ik4) , dimension(3) :: ixdims
+    real(rk4) , pointer , dimension(:) :: yiy
+    real(rk4) , pointer , dimension(:) :: xjx
+    integer(ik4) :: ipnt
 
     refdate = idate1
     csdate = tochar(refdate)
@@ -165,7 +166,7 @@ module mod_sst_grid
 
   subroutine close_sstfile
     implicit none
-    integer :: istatus
+    integer(ik4) :: istatus
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error closing output file')
   end subroutine close_sstfile
@@ -174,10 +175,10 @@ module mod_sst_grid
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     logical , intent(in) :: lice
-    integer :: istatus
-    integer , dimension(1) :: istart1 , icount1
-    integer , dimension(3) :: istart , icount
-    real(dp) , dimension(1) :: xdate
+    integer(ik4) :: istatus
+    integer(ik4) , dimension(1) :: istart1 , icount1
+    integer(ik4) , dimension(3) :: istart , icount
+    real(rk8) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdiff
 
     istart(3) = itime

@@ -19,6 +19,7 @@
 !
 module mod_dynparam
 
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_date
@@ -27,30 +28,30 @@ module mod_dynparam
 !
 ! PARAMETER definitions
 !
-  integer , parameter :: ipunit = 255
+  integer(ik4) , parameter :: ipunit = 255
 !
 !################### GRID DIMENSION ####################################
 !
 
 ! Point in Y (latitude) direction
 
-  integer :: iy
+  integer(ik4) :: iy
 
 ! Point in X (longitude) direction
 
-  integer :: jx
+  integer(ik4) :: jx
 
 ! Point in vertical
 
-  integer :: kz
+  integer(ik4) :: kz
 
 ! If not 14 , 18 or 23 (precalculated), hint for custom calculation
 
-  real(dp) :: dsmax , dsmin
+  real(rk8) :: dsmax , dsmin
 
 ! Sub grid decomposition
 
-  integer :: nsg
+  integer(ik4) :: nsg
 
 ! Projection
 !
@@ -63,7 +64,7 @@ module mod_dynparam
  
 ! Control flag for tropical band option.
  
-  integer :: i_band
+  integer(ik4) :: i_band
 
 ! Control flag for creating bathymetry for lake model
 !    (Hostetler, etal. 1991, 1993a,b, 1995)
@@ -77,50 +78,50 @@ module mod_dynparam
 
 ! Grid point horizontal resolution in km
 
-  real(dp) :: ds
+  real(rk8) :: ds
 
 ! Pressure of model top in cbar
 
-  real(dp) :: ptop
+  real(rk8) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-  real(dp) :: clat
+  real(rk8) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-  real(dp) :: clon
+  real(rk8) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-  real(dp) :: plat
+  real(rk8) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-  real(dp) :: plon
+  real(rk8) :: plon
 
 ! Lambert / Polar Cone factor
 
-  real(dp) :: xcone
+  real(rk8) :: xcone
 
 ! Lambert true latitude (low latitude side)
 
-  real(dp) :: truelatl
+  real(rk8) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-  real(dp) :: truelath
+  real(rk8) :: truelath
 
 !###################### I/O control flag ###############################
 
 ! Number of bytes in reclen. Usually 4
 
-  integer :: ibyte
+  integer(ik4) :: ibyte
 
 ! Set amount of printout (still unused, sorry)
 
-  integer :: debug_level
-  integer :: dbgfrq
+  integer(ik4) :: debug_level
+  integer(ik4) :: dbgfrq
 
 !###################### I/O control flag ###############################
 
@@ -128,17 +129,17 @@ module mod_dynparam
 ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
 ! on the boundary sponge or relaxation boundary conditions.
 !
-  integer :: nspgx
-  integer :: nspgd
+  integer(ik4) :: nspgx
+  integer(ik4) :: nspgd
 
 ! Nudge control coefficients
-  real(dp) :: high_nudge
-  real(dp) :: medium_nudge
-  real(dp) :: low_nudge
+  real(rk8) :: high_nudge
+  real(rk8) :: medium_nudge
+  real(rk8) :: low_nudge
 
 ! Number od split exp modes
 
-  integer :: nsplit
+  integer(ik4) :: nsplit
 
 ! Type of global analysis datasets used in Pre processing
 !
@@ -156,91 +157,91 @@ module mod_dynparam
 
 ! Land Surface Legend number
 
-  integer :: nveg
+  integer(ik4) :: nveg
 !
 ! Tracer parameters: number of tracers
 
-  integer :: ntr = 0  ! Total number of chemical tracers
+  integer(ik4) :: ntr = 0  ! Total number of chemical tracers
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
 !    calculated from above or should be considered as fixed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer :: iym1
-  integer :: iym2
-  integer :: iym3
-  integer :: jxm1
-  integer :: jxm2
-  integer :: jxm3
-  integer :: kzm1
-  integer :: kzm2
-  integer :: kzp1
-  integer :: kzp2
-  integer :: kzp3
-  integer :: kzp4
-  integer :: iysg
-  integer :: jxsg
-  integer :: iym1sg
-  integer :: jxm1sg
-  integer :: iym2sg
-  integer :: jxm2sg
-  integer :: iym3sg
-  integer :: jxm3sg
-  integer :: nnsg
-  integer :: nspgv
-  integer :: nspgp
+  integer(ik4) :: iym1
+  integer(ik4) :: iym2
+  integer(ik4) :: iym3
+  integer(ik4) :: jxm1
+  integer(ik4) :: jxm2
+  integer(ik4) :: jxm3
+  integer(ik4) :: kzm1
+  integer(ik4) :: kzm2
+  integer(ik4) :: kzp1
+  integer(ik4) :: kzp2
+  integer(ik4) :: kzp3
+  integer(ik4) :: kzp4
+  integer(ik4) :: iysg
+  integer(ik4) :: jxsg
+  integer(ik4) :: iym1sg
+  integer(ik4) :: jxm1sg
+  integer(ik4) :: iym2sg
+  integer(ik4) :: jxm2sg
+  integer(ik4) :: iym3sg
+  integer(ik4) :: jxm3sg
+  integer(ik4) :: nnsg
+  integer(ik4) :: nspgv
+  integer(ik4) :: nspgp
 !
-  integer :: njcross , njdot , njout
-  integer :: nicross , nidot , niout
+  integer(ik4) :: njcross , njdot , njout
+  integer(ik4) :: nicross , nidot , niout
 !
-  integer :: jcross1 , icross1
-  integer :: jcross2 , icross2
-  integer :: jdot1 , idot1
-  integer :: jdot2 , idot2
-  integer :: jout1 , iout1
-  integer :: jout2 , iout2
+  integer(ik4) :: jcross1 , icross1
+  integer(ik4) :: jcross2 , icross2
+  integer(ik4) :: jdot1 , idot1
+  integer(ik4) :: jdot2 , idot2
+  integer(ik4) :: jout1 , iout1
+  integer(ik4) :: jout2 , iout2
 !
   ! D stands for DOT
-  integer :: ide1 , ide2 ! External i (included bdy) (latitude)
-  integer :: jde1 , jde2 ! External j (included bdy) (longitude)
-  integer :: idi1 , idi2 ! Internal (excluded first and last line) i
-  integer :: jdi1 , jdi2 ! Internal (excluded first and last column) j
-  integer :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
-  integer :: jdii1 , jdii2 ! Internal (excluded 2 lines and cols) j
+  integer(ik4) :: ide1 , ide2 ! External i (included bdy) (latitude)
+  integer(ik4) :: jde1 , jde2 ! External j (included bdy) (longitude)
+  integer(ik4) :: idi1 , idi2 ! Internal (excluded first and last line) i
+  integer(ik4) :: jdi1 , jdi2 ! Internal (excluded first and last column) j
+  integer(ik4) :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
+  integer(ik4) :: jdii1 , jdii2 ! Internal (excluded 2 lines and cols) j
 
   ! C stands for CROSS
-  integer :: ice1 , ice2 ! External (included bdy) i (latitude)
-  integer :: jce1 , jce2 ! External (included bdy) j (longitude)
-  integer :: ici1 , ici2 ! Internal (excluded first and last line) i
-  integer :: jci1 , jci2 ! Internal (excluded first and last column) j
-  integer :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
-  integer :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
+  integer(ik4) :: ice1 , ice2 ! External (included bdy) i (latitude)
+  integer(ik4) :: jce1 , jce2 ! External (included bdy) j (longitude)
+  integer(ik4) :: ici1 , ici2 ! Internal (excluded first and last line) i
+  integer(ik4) :: jci1 , jci2 ! Internal (excluded first and last column) j
+  integer(ik4) :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
+  integer(ik4) :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
 
   ! J index Dot points Full Domain  = jde1 : begin , jde2 : end
   ! I index Cross points Internal Domain = ici1 : begin , ici2 : end
 
   ! Global reference in global grid jx*iy of dot points
   ! The CROSS grid is contained within
-  integer :: global_istart
-  integer :: global_iend
-  integer :: global_jstart
-  integer :: global_jend
+  integer(ik4) :: global_istart
+  integer(ik4) :: global_iend
+  integer(ik4) :: global_jstart
+  integer(ik4) :: global_jend
 
 !####################### MPI parameters ################################
 
-  integer :: mycomm
-  integer :: nproc
-  integer :: myid
-  integer :: njxcpus , niycpus
-  integer :: iyp , jxp
-  integer :: iypsg , jxpsg
+  integer(ik4) :: mycomm
+  integer(ik4) :: nproc
+  integer(ik4) :: myid
+  integer(ik4) :: njxcpus , niycpus
+  integer(ik4) :: iyp , jxp
+  integer(ik4) :: iypsg , jxpsg
 
 !####################### MPI parameters ################################
 
 ! Surface minimum H2O percent to be considered water
 
-  real(dp) :: h2opct
+  real(rk8) :: h2opct
 
 ! Allow water pixels to have an elevation
 
@@ -273,32 +274,32 @@ module mod_dynparam
 ! Days per year and degrees per day
 
   character(12) :: calendar
-  integer :: ical
-  real(dp) :: dayspy
-  real(dp) :: half_dayspy
-  real(dp) :: sixteenth_dayspy
-  real(dp) :: dpd
+  integer(ik4) :: ical
+  real(rk8) :: dayspy
+  real(rk8) :: half_dayspy
+  real(rk8) :: sixteenth_dayspy
+  real(rk8) :: dpd
 
 ! Fixed dimensions
 
-  integer , parameter :: numsts = 10
-  integer , parameter :: numbat = 24 + numsts
-  integer , parameter :: numsub = 16
+  integer(ik4) , parameter :: numsts = 10
+  integer(ik4) , parameter :: numbat = 24 + numsts
+  integer(ik4) , parameter :: numsub = 16
 
-  integer , parameter :: mpy = 12         ! Months per Year
+  integer(ik4) , parameter :: mpy = 12         ! Months per Year
 
 ! Number of Soil texture categories, leave it to 17
 
-  integer , parameter :: ntex = 17 
-  integer , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
+  integer(ik4) , parameter :: ntex = 17 
+  integer(ik4) , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
 ! Maximum number of depths in lake model
 
-  integer , parameter :: ndpmax = 400 ! This means 400 m max depth
+  integer(ik4) , parameter :: ndpmax = 400 ! This means 400 m max depth
 
 ! Number of bins in solar spectra
 
-  integer , parameter :: nspi = 19
+  integer(ik4) , parameter :: nspi = 19
 
 ! Shall we use this to port?
 
@@ -314,33 +315,33 @@ module mod_dynparam
 ! Model output control parameters
 
   logical :: ifsave
-  real(dp) :: savfrq
+  real(rk8) :: savfrq
 
   logical :: ifatm
-  real(dp) :: atmfrq
+  real(rk8) :: atmfrq
 
   logical :: ifrad
-  real(dp) :: radfrq
+  real(rk8) :: radfrq
 
   logical :: ifsrf
   logical :: ifsub
   logical :: ifsts
   logical :: iflak
-  real(dp) :: lakfrq
-  real(dp) :: srffrq
+  real(rk8) :: lakfrq
+  real(rk8) :: srffrq
 
   logical :: ifchem
-  real(dp) :: chemfrq
+  real(rk8) :: chemfrq
 
-  integer :: ibdyfrq
+  integer(ik4) :: ibdyfrq
 
   contains
 
   subroutine initparam(filename, ierr)
     implicit none
     character (len=*) , intent(in) :: filename
-    integer , intent(out) :: ierr
-    integer :: gdate1 , gdate2
+    integer(ik4) , intent(out) :: ierr
+    integer(ik4) :: gdate1 , gdate2
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
@@ -517,7 +518,7 @@ module mod_dynparam
 
   subroutine init_globwindow(lat0,lon0,lat1,lon1)
     implicit none
-    real(dp) , intent(out) :: lat0 , lat1 , lon0 , lon1
+    real(rk8) , intent(out) :: lat0 , lat1 , lon0 , lon1
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
     lat0 = 0.0D0

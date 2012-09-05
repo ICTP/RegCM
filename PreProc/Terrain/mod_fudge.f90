@@ -19,15 +19,16 @@
 
 module mod_fudge
 
-  use mod_stdio
+  use mod_intkinds
   use mod_realkinds
+  use mod_stdio
   use mod_message
 
   private
 
   public :: lndfudge , texfudge , lakfudge
 
-  integer , parameter :: iunit = 777
+  integer(ik4) , parameter :: iunit = 777
 
   contains
 
@@ -37,12 +38,12 @@ module mod_fudge
 !
   character(*) :: char_lnd
   logical :: fudge , there
-  integer :: iy , jx
-  real(sp) , dimension(iy,jx) :: htgrid , lndout
+  integer(ik4) :: iy , jx
+  real(rk4) , dimension(iy,jx) :: htgrid , lndout
   intent (in) char_lnd , fudge , iy , jx
   intent (inout) htgrid , lndout
 !
-  integer :: i , j
+  integer(ik4) :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
   if ( fudge ) then
@@ -190,13 +191,13 @@ module mod_fudge
 !
   character(*) :: char_tex
   logical :: fudge, there
-  integer :: iy , jx
-  real(sp) , dimension(iy,jx) :: htgrid , texout
+  integer(ik4) :: iy , jx
+  real(rk4) , dimension(iy,jx) :: htgrid , texout
   intent (in) char_tex , fudge , iy , jx
   intent (out) htgrid
   intent (inout) texout
 !
-  integer :: i , j
+  integer(ik4) :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
   if ( fudge ) then
@@ -324,12 +325,12 @@ module mod_fudge
 !
   character(*) :: char_lak
   logical :: fudge , there
-  integer :: iy , jx
-  real(sp) , dimension(iy,jx) :: dpth , lnd
+  integer(ik4) :: iy , jx
+  real(rk4) , dimension(iy,jx) :: dpth , lnd
   intent (in) char_lak , fudge , iy , jx , lnd
   intent (inout) dpth
 !
-  integer :: i , j
+  integer(ik4) :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
   if ( fudge ) then
