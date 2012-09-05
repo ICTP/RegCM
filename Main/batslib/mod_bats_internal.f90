@@ -19,40 +19,41 @@
 
 module mod_bats_internal
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
 !
   private
 
-  real(dp) , pointer , dimension(:,:,:) :: gwatr , rnof , rsubsr , rsubss , &
+  real(rk8) , pointer , dimension(:,:,:) :: gwatr , rnof , rsubsr , rsubss , &
         rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr
-  real(dp) , pointer , dimension(:,:,:) :: sold
-  real(dp) , pointer , dimension(:,:,:) :: bb , bcoef , cc , depann , depdiu , &
+  real(rk8) , pointer , dimension(:,:,:) :: sold
+  real(rk8) , pointer , dimension(:,:,:) :: bb , bcoef , cc , depann , depdiu , &
         deprat , fct2 , hs , rscsa , rscsd , ska , skd , sks , swtrta , swtrtd
-  real(dp) , pointer , dimension(:,:,:) :: cari
-  real(dp) , pointer , dimension(:,:,:) :: lfta , lftb
-  real(dp) , pointer , dimension(:,:,:) :: lftra , lftrs
-  real(dp) , pointer , dimension(:,:,:) :: cdrd , vpdc
-  real(dp) , pointer , dimension(:,:,:) :: rppq , efe
-  real(dp) , pointer , dimension(:,:,:) :: dcd , etrc
-  real(dp) , pointer , dimension(:,:,:) :: qsatld
-  real(dp) , pointer , dimension(:,:,:) :: dels
-  real(dp) , pointer , dimension(:,:,:) :: efpot , tbef
-  real(dp) , pointer , dimension(:,:,:) :: fsol0 , fsold
-  real(dp) , pointer , dimension(:,:,:) :: radf , rmini
-  real(dp) , pointer , dimension(:,:,:) :: trup , trupd
-  real(dp) , pointer , dimension(:,:,:) :: cdrmin , dlstaf
-  real(dp) , pointer , dimension(:,:,:) :: rib , rib1
-  real(dp) , pointer , dimension(:,:,:) :: apbm , prcp
-  real(dp) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
-  real(dp) , pointer , dimension(:,:,:) :: sts , zh
-  real(dp) , pointer , dimension(:,:,:) :: bfc , bsw
-  real(dp) , pointer , dimension(:,:,:) :: evmx0 , fdry , fwet
-  real(dp) , pointer , dimension(:,:,:) :: gwmx0 , gwmx1 , gwmx2
-  real(dp) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
-  real(dp) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
-  real(dp) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,     &
+  real(rk8) , pointer , dimension(:,:,:) :: cari
+  real(rk8) , pointer , dimension(:,:,:) :: lfta , lftb
+  real(rk8) , pointer , dimension(:,:,:) :: lftra , lftrs
+  real(rk8) , pointer , dimension(:,:,:) :: cdrd , vpdc
+  real(rk8) , pointer , dimension(:,:,:) :: rppq , efe
+  real(rk8) , pointer , dimension(:,:,:) :: dcd , etrc
+  real(rk8) , pointer , dimension(:,:,:) :: qsatld
+  real(rk8) , pointer , dimension(:,:,:) :: dels
+  real(rk8) , pointer , dimension(:,:,:) :: efpot , tbef
+  real(rk8) , pointer , dimension(:,:,:) :: fsol0 , fsold
+  real(rk8) , pointer , dimension(:,:,:) :: radf , rmini
+  real(rk8) , pointer , dimension(:,:,:) :: trup , trupd
+  real(rk8) , pointer , dimension(:,:,:) :: cdrmin , dlstaf
+  real(rk8) , pointer , dimension(:,:,:) :: rib , rib1
+  real(rk8) , pointer , dimension(:,:,:) :: apbm , prcp
+  real(rk8) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
+  real(rk8) , pointer , dimension(:,:,:) :: sts , zh
+  real(rk8) , pointer , dimension(:,:,:) :: bfc , bsw
+  real(rk8) , pointer , dimension(:,:,:) :: evmx0 , fdry , fwet
+  real(rk8) , pointer , dimension(:,:,:) :: gwmx0 , gwmx1 , gwmx2
+  real(rk8) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
+  real(rk8) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
+  real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,     &
          cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,       &
          etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,     &
          fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,      &
@@ -60,13 +61,13 @@ module mod_bats_internal
          tm , uaf , vspda , wata , watr , watt , watu , wta , xlai , &
          xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,   &
          zlgsno , zlgveg , zlgdis
-  real(dp) , pointer , dimension(:,:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
+  real(rk8) , pointer , dimension(:,:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
          wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
          wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
-  real(dp) , pointer , dimension(:,:,:) :: ribl , ribn
-  real(dp) , pointer , dimension(:,:) :: usw , vsw , flwa , flwda , fswa , &
+  real(rk8) , pointer , dimension(:,:,:) :: ribl , ribn
+  real(rk8) , pointer , dimension(:,:) :: usw , vsw , flwa , flwda , fswa , &
          sina , svga
-  integer , pointer , dimension(:,:,:) :: lveg
+  integer(ik4) , pointer , dimension(:,:,:) :: lveg
 !
   public :: gwatr , rnof , rsubsr , rsubss , rsubst , rsur , sold ,     &
             wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr  , bb ,    &

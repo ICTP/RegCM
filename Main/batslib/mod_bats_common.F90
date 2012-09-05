@@ -21,121 +21,122 @@ module mod_bats_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
   use mod_bats_param
   use mod_bats_internal
 !
-  real(dp) :: xdtsec ! Atmosferic Model dt in seconds
-  real(dp) :: dtbat  ! BATS1e internal timestep
-  real(dp) :: dtlake ! Lake model internal timestep
+  real(rk8) :: xdtsec ! Atmosferic Model dt in seconds
+  real(rk8) :: dtbat  ! BATS1e internal timestep
+  real(rk8) :: dtlake ! Lake model internal timestep
 
   logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
 
-  integer , parameter :: ps_o     = 1
-  integer , parameter :: u10m_o   = 2
-  integer , parameter :: v10m_o   = 3
-  integer , parameter :: drag_o   = 4
-  integer , parameter :: tg_o     = 5
-  integer , parameter :: tlef_o   = 6
-  integer , parameter :: t2m_o    = 7
-  integer , parameter :: q2m_o    = 8
-  integer , parameter :: ssw_o    = 9
-  integer , parameter :: rsw_o    = 10
-  integer , parameter :: tpr_o    = 11
-  integer , parameter :: evpa_o   = 12
-  integer , parameter :: rnos_o   = 13
-  integer , parameter :: scv_o    = 14
-  integer , parameter :: sena_o   = 15
-  integer , parameter :: flwa_o   = 16
-  integer , parameter :: fswa_o   = 17
-  integer , parameter :: flwd_o   = 18
-  integer , parameter :: sina_o   = 19
-  integer , parameter :: prcv_o   = 20
-  integer , parameter :: zpbl_o   = 21
-  integer , parameter :: aldirs_o = 22
-  integer , parameter :: aldifs_o = 23
-  integer , parameter :: sunt_o   = 24
-  integer , parameter :: tgmx_o   = 25
-  integer , parameter :: tgmn_o   = 26
-  integer , parameter :: t2mx_o   = 27
-  integer , parameter :: t2mn_o   = 28
-  integer , parameter :: tavg_o   = 29
-  integer , parameter :: w10x_o   = 30
-  integer , parameter :: pcpx_o   = 31
-  integer , parameter :: pcpa_o   = 32
-  integer , parameter :: sund_o   = 33
-  integer , parameter :: psmn_o   = 34
+  integer(ik4) , parameter :: ps_o     = 1
+  integer(ik4) , parameter :: u10m_o   = 2
+  integer(ik4) , parameter :: v10m_o   = 3
+  integer(ik4) , parameter :: drag_o   = 4
+  integer(ik4) , parameter :: tg_o     = 5
+  integer(ik4) , parameter :: tlef_o   = 6
+  integer(ik4) , parameter :: t2m_o    = 7
+  integer(ik4) , parameter :: q2m_o    = 8
+  integer(ik4) , parameter :: ssw_o    = 9
+  integer(ik4) , parameter :: rsw_o    = 10
+  integer(ik4) , parameter :: tpr_o    = 11
+  integer(ik4) , parameter :: evpa_o   = 12
+  integer(ik4) , parameter :: rnos_o   = 13
+  integer(ik4) , parameter :: scv_o    = 14
+  integer(ik4) , parameter :: sena_o   = 15
+  integer(ik4) , parameter :: flwa_o   = 16
+  integer(ik4) , parameter :: fswa_o   = 17
+  integer(ik4) , parameter :: flwd_o   = 18
+  integer(ik4) , parameter :: sina_o   = 19
+  integer(ik4) , parameter :: prcv_o   = 20
+  integer(ik4) , parameter :: zpbl_o   = 21
+  integer(ik4) , parameter :: aldirs_o = 22
+  integer(ik4) , parameter :: aldifs_o = 23
+  integer(ik4) , parameter :: sunt_o   = 24
+  integer(ik4) , parameter :: tgmx_o   = 25
+  integer(ik4) , parameter :: tgmn_o   = 26
+  integer(ik4) , parameter :: t2mx_o   = 27
+  integer(ik4) , parameter :: t2mn_o   = 28
+  integer(ik4) , parameter :: tavg_o   = 29
+  integer(ik4) , parameter :: w10x_o   = 30
+  integer(ik4) , parameter :: pcpx_o   = 31
+  integer(ik4) , parameter :: pcpa_o   = 32
+  integer(ik4) , parameter :: sund_o   = 33
+  integer(ik4) , parameter :: psmn_o   = 34
 
-  integer , parameter :: ps_s   = 1
-  integer , parameter :: u10m_s = 2
-  integer , parameter :: v10m_s = 3
-  integer , parameter :: drag_s = 4
-  integer , parameter :: tg_s   = 5
-  integer , parameter :: tlef_s = 6
-  integer , parameter :: t2m_s  = 7
-  integer , parameter :: q2m_s  = 8
-  integer , parameter :: ssw_s  = 9
-  integer , parameter :: rsw_s  = 10
-  integer , parameter :: tpr_s  = 11
-  integer , parameter :: evpa_s = 12
-  integer , parameter :: rnos_s = 13
-  integer , parameter :: scv_s  = 14
-  integer , parameter :: sena_s = 15
-  integer , parameter :: prcv_s = 16
+  integer(ik4) , parameter :: ps_s   = 1
+  integer(ik4) , parameter :: u10m_s = 2
+  integer(ik4) , parameter :: v10m_s = 3
+  integer(ik4) , parameter :: drag_s = 4
+  integer(ik4) , parameter :: tg_s   = 5
+  integer(ik4) , parameter :: tlef_s = 6
+  integer(ik4) , parameter :: t2m_s  = 7
+  integer(ik4) , parameter :: q2m_s  = 8
+  integer(ik4) , parameter :: ssw_s  = 9
+  integer(ik4) , parameter :: rsw_s  = 10
+  integer(ik4) , parameter :: tpr_s  = 11
+  integer(ik4) , parameter :: evpa_s = 12
+  integer(ik4) , parameter :: rnos_s = 13
+  integer(ik4) , parameter :: scv_s  = 14
+  integer(ik4) , parameter :: sena_s = 15
+  integer(ik4) , parameter :: prcv_s = 16
 
   integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
   integer(8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(8) :: ntsrf2 ! Number of time step to call BATs 
 
   ! How many soil model steps for a day
-  real(sp) :: fdaysrf
+  real(rk4) :: fdaysrf
 
-  real(dp) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
+  real(rk8) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
          drag , evpr , gwet , ldew , q2m , sfcp , trnof , &
          srnof , rsw , snag , sncv , sent , sfice , ssw , &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl, &
          taux, tauy
 !
-  real(dp) :: rdnnsg
-  real(sp) :: rrnnsg
+  real(rk8) :: rdnnsg
+  real(rk4) :: rrnnsg
 !
-  real(dp) , pointer , dimension(:,:) :: flw , fsw , fracd , &
+  real(rk8) , pointer , dimension(:,:) :: flw , fsw , fracd , &
          solis , czen , aemiss
-  real(dp) , pointer , dimension(:,:) :: albvl , albvs , albvsd , &
+  real(rk8) , pointer , dimension(:,:) :: albvl , albvs , albvsd , &
          aldifl , aldifs , aldirl , aldirs , sabveg
 !
-  real(dp) , pointer , dimension(:,:) :: coszrs
+  real(rk8) , pointer , dimension(:,:) :: coszrs
 !
-  real(dp) , pointer , dimension(:,:) :: flwd , pptc , pptnc , &
+  real(rk8) , pointer , dimension(:,:) :: flwd , pptc , pptnc , &
          prca , prnca , sinc , solvd , solvs , totpr
 !
-  real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
+  real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
-  integer , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
-  integer , pointer , dimension(:,:) :: iveg , ldmsk
+  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
+  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
 !
-  real(dp) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
+  real(rk8) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
         srfrna
 !
-  real(dp) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
+  real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
 !
-  real(sp) , pointer , dimension(:,:,:) :: fbat
+  real(rk4) , pointer , dimension(:,:,:) :: fbat
 !
-  real(sp) , pointer , dimension(:,:,:,:) :: fsub
+  real(rk4) , pointer , dimension(:,:,:,:) :: fsub
 !
   ! dtskin is difference between skin temp and bulk sst
-  real(dp) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
+  real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   ! Lake model
-  real(dp) , pointer , dimension(:,:,:) :: dhlake1
-  integer , pointer , dimension(:,:,:) :: idep
-  real(dp) , pointer , dimension(:,:,:) :: eta
-  real(dp) , pointer , dimension(:,:,:) :: hi
-  real(dp) , pointer , dimension(:,:,:) :: aveice
-  real(dp) , pointer , dimension(:,:,:) :: hsnow
-  real(dp) , pointer , dimension(:,:,:,:) :: tlak
+  real(rk8) , pointer , dimension(:,:,:) :: dhlake1
+  integer(ik4) , pointer , dimension(:,:,:) :: idep
+  real(rk8) , pointer , dimension(:,:,:) :: eta
+  real(rk8) , pointer , dimension(:,:,:) :: hi
+  real(rk8) , pointer , dimension(:,:,:) :: aveice
+  real(rk8) , pointer , dimension(:,:,:) :: hsnow
+  real(rk8) , pointer , dimension(:,:,:,:) :: tlak
 !
   data lchem  /.false./
   data lemiss /.false./
@@ -143,33 +144,33 @@ module mod_bats_common
   data llake  /.false./
   data ldesseas /.false./
 
-  real(dp) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
-  real(dp) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
-  real(dp) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
-  real(dp) , pointer , dimension(:,:) :: ht            ! mddom%ht
-  real(dp) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
-  real(dp) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
-  real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
-  real(dp) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
-  real(dp) , pointer , dimension(:,:,:,:) :: qxatm     ! atms%qxb3d
-  real(dp) , pointer , dimension(:,:) :: hpbl          ! zpbl
-  real(dp) , pointer , dimension(:,:) :: hfx           ! sfs%hfx
-  real(dp) , pointer , dimension(:,:) :: qfx           ! sfs%qfx
-  real(dp) , pointer , dimension(:,:) :: uvdrag        ! sfs%uvdrag
-  real(dp) , pointer , dimension(:,:) :: tgbb          ! sfs%tgbb
-  real(dp) , pointer , dimension(:,:) :: tground1      ! sfs%tga
-  real(dp) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
-  real(dp) , pointer , dimension(:,:) :: sfps          ! sfs%psb
-  real(dp) , pointer , dimension(:,:,:) :: hgt         ! za
-  real(dp) , pointer , dimension(:,:) :: tsf           ! ts0_io
-  real(dp) , pointer , dimension(:,:) :: rhox          ! rhox2d
-  integer , pointer , dimension(:,:) :: lmask          ! CLM landmask
+  real(rk8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
+  real(rk8) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
+  real(rk8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
+  real(rk8) , pointer , dimension(:,:) :: ht            ! mddom%ht
+  real(rk8) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
+  real(rk8) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
+  real(rk8) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
+  real(rk8) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
+  real(rk8) , pointer , dimension(:,:,:,:) :: qxatm     ! atms%qxb3d
+  real(rk8) , pointer , dimension(:,:) :: hpbl          ! zpbl
+  real(rk8) , pointer , dimension(:,:) :: hfx           ! sfs%hfx
+  real(rk8) , pointer , dimension(:,:) :: qfx           ! sfs%qfx
+  real(rk8) , pointer , dimension(:,:) :: uvdrag        ! sfs%uvdrag
+  real(rk8) , pointer , dimension(:,:) :: tgbb          ! sfs%tgbb
+  real(rk8) , pointer , dimension(:,:) :: tground1      ! sfs%tga
+  real(rk8) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
+  real(rk8) , pointer , dimension(:,:) :: sfps          ! sfs%psb
+  real(rk8) , pointer , dimension(:,:,:) :: hgt         ! za
+  real(rk8) , pointer , dimension(:,:) :: tsf           ! ts0_io
+  real(rk8) , pointer , dimension(:,:) :: rhox          ! rhox2d
+  integer(ik4) , pointer , dimension(:,:) :: lmask          ! CLM landmask
 
   contains
 
     subroutine allocate_mod_bats_common(ichem,idcsst,lakemod)
       implicit none
-      integer , intent(in) :: ichem , idcsst , lakemod
+      integer(ik4) , intent(in) :: ichem , idcsst , lakemod
 
       rrnnsg = 1.0/real(nnsg)
       rdnnsg = d_one/dble(nnsg)

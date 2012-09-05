@@ -19,6 +19,7 @@
  
 module mod_bats_co2
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
@@ -63,9 +64,9 @@ module mod_bats_co2
   subroutine co2
     implicit none
 !
-    integer :: n , i , j
-    real(dp) :: rap , resps , rsp , rt , rcar
-    real(dp) , parameter :: rmp = 800.0D0
+    integer(ik4) :: n , i , j
+    real(rk8) :: rap , resps , rsp , rt , rcar
+    real(rk8) , parameter :: rmp = 800.0D0
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -120,14 +121,14 @@ module mod_bats_co2
   function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
 !
-    real(dp) :: rm , t , tg , vf , xlai , xlsai
-    real(dp) :: carbon
+    real(rk8) :: rm , t , tg , vf , xlai , xlsai
+    real(rk8) :: carbon
     intent (in) rm , tg , vf , xlai , xlsai
 !
-    real(dp) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+    real(rk8) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
                cco2i , ccold , gt , p , pm , pml , rt , w , &
                wd , wp , xk , xkb , xl
-    integer :: it
+    integer(ik4) :: it
 !
 !====================================================================
 !   this fn is not in si - vf (radn) and rm (res) handed in are in si
@@ -191,22 +192,22 @@ module mod_bats_co2
 
     contains
 
-      real(dp) function g(t,tmx,sl)
+      real(rk8) function g(t,tmx,sl)
         implicit none
-        real(dp) , intent(in) :: t , tmx , sl
+        real(rk8) , intent(in) :: t , tmx , sl
         g = dexp(sl*(d_one/tmx-d_one/t)) / &
             (d_one+(dexp(sl*(d_one/tmx-d_one/t)*6.0D0)))*5.0D-3*t
       end function g
       ! temperature dependence of dark respiration
-      real(dp) function r(t)
+      real(rk8) function r(t)
         implicit none
-        real(dp) , intent(in) :: t
+        real(rk8) , intent(in) :: t
         r = dexp(30.0D0-9.0D3/t)
       end function r
       ! light dependence of photosynthesis
-      real(dp) function e(xl,a,pml)
+      real(rk8) function e(xl,a,pml)
         implicit none
-        real(dp) , intent(in) :: xl , a , pml
+        real(rk8) , intent(in) :: xl , a , pml
         e = a*xl/(d_one+(a*xl/pml)**d_two)**d_half
       end function e
   end function carbon

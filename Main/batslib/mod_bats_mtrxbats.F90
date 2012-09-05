@@ -19,6 +19,7 @@
  
 module mod_bats_mtrxbats
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iocnflx , iocncpl
@@ -40,18 +41,18 @@ module mod_bats_mtrxbats
   !
   ! Solar flux partitioned at wavelength of 0.7micr
   !
-  real(dp) , parameter :: fsol1 = 0.5D0
-  real(dp) , parameter :: fsol2 = 0.5D0
+  real(rk8) , parameter :: fsol1 = 0.5D0
+  real(rk8) , parameter :: fsol2 = 0.5D0
   !
   ! Short and long wave albedo for new snow
   !
-  real(dp) , parameter :: snal0 = 0.95D0
-  real(dp) , parameter :: snal1 = 0.65D0
+  real(rk8) , parameter :: snal0 = 0.95D0
+  real(rk8) , parameter :: snal1 = 0.65D0
   !
   ! Short and long wave albedo for sea ice
   !
-  real(dp) , parameter :: sical0 = 0.6D0
-  real(dp) , parameter :: sical1 = 0.4D0
+  real(rk8) , parameter :: sical0 = 0.6D0
+  real(rk8) , parameter :: sical1 = 0.4D0
   !
 
   public :: interf , initb , mtrxbats , albedobats
@@ -183,7 +184,7 @@ module mod_bats_mtrxbats
 !
     integer(8) , intent(in) :: ktau
     character (len=64) :: subroutine_name='mtrxbats'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -230,10 +231,10 @@ module mod_bats_mtrxbats
   subroutine initb
     implicit none
 ! 
-    integer :: i , is , itex , j , n , nlveg
+    integer(ik4) :: i , is , itex , j , n , nlveg
 !
     character (len=64) :: subroutine_name='initb'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -287,17 +288,17 @@ module mod_bats_mtrxbats
 !
     implicit none
 !
-    integer , intent (in) :: ivers
+    integer(ik4) , intent (in) :: ivers
     integer(8) , intent(in) :: ktau
 !
-    real(dp) :: facb , facs , fact , factuv , facv , fracb ,  &
+    real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
                 fracs , fracv , hl , mmpd , rh0 , satvp ,     &
                 solvt , wpm2 , p0 , qs0 , ts0
-    integer :: i , j , n , nnn
-    real(sp) :: real_4
+    integer(ik4) :: i , j , n , nnn
+    real(rk4) :: real_4
 !
     character (len=64) :: subroutine_name='interf'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
  
@@ -675,17 +676,17 @@ module mod_bats_mtrxbats
 !
   subroutine albedobats(imon)
     implicit none
-    integer , intent (in) :: imon
+    integer(ik4) , intent (in) :: imon
 !
-    real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
+    real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet
-    real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
+    real(rk8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
-    integer :: kolour , n , i , j
+    integer(ik4) :: kolour , n , i , j
     character (len=64) :: subroutine_name='albedobats'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -905,8 +906,8 @@ module mod_bats_mtrxbats
 !
   subroutine soilbc
     implicit none
-    real(dp) :: ck , dmax , dmin , dmnor , phi0 , tweak1
-    integer :: itex , n , i , j
+    real(rk8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+    integer(ik4) :: itex , n , i , j
 !
 !   ================================================================
 !   new soils data as a fn of texture make porosity, soil suction,
@@ -917,7 +918,7 @@ module mod_bats_mtrxbats
 !   ===============================================================
 !
     character (len=64) :: subroutine_name='soilbc'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
  

@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libbats.a
 libbats_a_SOURCES = mod_bats_common.F90 mod_bats_param.f90 mod_bats_bndry.F90 \
@@ -41,12 +41,6 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 distclean-local:
 	rm -f *.mod
 
@@ -55,14 +49,14 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_bats_bndry.o mod_bats_bndry.mod: mod_bats_bndry.F90 mod_dynparam.mod mod_realkinds.mod mod_service.mod mod_bats_common.mod mod_bats_leaftemp.mod mod_bats_drag.mod mod_bats_internal.mod
-mod_bats_co2.o mod_bats_co2.mod: mod_bats_co2.f90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod mod_bats_leaftemp.mod mod_bats_internal.mod
-mod_bats_common.o mod_bats_common.mod: mod_bats_common.F90 mod_realkinds.mod mod_memutil.mod mod_dynparam.mod mod_bats_param.mod mod_bats_internal.mod
-mod_bats_drag.o mod_bats_drag.mod: mod_bats_drag.F90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod mod_bats_internal.mod
-mod_bats_internal.o mod_bats_internal.mod: mod_bats_internal.f90 mod_realkinds.mod mod_memutil.mod mod_dynparam.mod
-mod_bats_lake.o mod_bats_lake.mod: mod_bats_lake.F90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod mod_bats_internal.mod mod_bats_mppio.mod
-mod_bats_leaftemp.o mod_bats_leaftemp.mod: mod_bats_leaftemp.f90 mod_realkinds.mod mod_dynparam.mod mod_memutil.mod mod_bats_common.mod mod_bats_internal.mod
-mod_bats_mppio.o mod_bats_mppio.mod: mod_bats_mppio.F90 mod_realkinds.mod mod_dynparam.mod mod_bats_common.mod mod_mppparam.mod
-mod_bats_mtrxbats.o mod_bats_mtrxbats.mod: mod_bats_mtrxbats.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_constants.mod mod_service.mod mod_bats_common.mod mod_bats_internal.mod mod_bats_leaftemp.mod mod_bats_lake.mod mod_bats_bndry.mod mod_bats_drag.mod mod_bats_mppio.mod mod_bats_zengocn.mod mod_runparams.mod mod_mppparam.mod
-mod_bats_param.o mod_bats_param.mod: mod_bats_param.f90 mod_realkinds.mod
-mod_bats_zengocn.o mod_bats_zengocn.mod: mod_bats_zengocn.F90 mod_realkinds.mod mod_dynparam.mod mod_service.mod mod_bats_common.mod mod_runparams.mod
+mod_bats_bndry.o : mod_bats_bndry.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_service.o mod_bats_common.o mod_bats_leaftemp.o mod_bats_drag.o mod_bats_internal.o
+mod_bats_co2.o : mod_bats_co2.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_leaftemp.o mod_bats_internal.o
+mod_bats_common.o : mod_bats_common.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o mod_bats_param.o mod_bats_internal.o
+mod_bats_drag.o : mod_bats_drag.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o
+mod_bats_internal.o : mod_bats_internal.f90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o
+mod_bats_lake.o : mod_bats_lake.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o mod_bats_mppio.o
+mod_bats_leaftemp.o : mod_bats_leaftemp.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_bats_common.o mod_bats_internal.o
+mod_bats_mppio.o : mod_bats_mppio.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_mppparam.o
+mod_bats_mtrxbats.o : mod_bats_mtrxbats.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_constants.o mod_service.o mod_bats_common.o mod_bats_internal.o mod_bats_leaftemp.o mod_bats_lake.o mod_bats_bndry.o mod_bats_drag.o mod_bats_mppio.o mod_bats_zengocn.o mod_runparams.o mod_mppparam.o
+mod_bats_param.o : mod_bats_param.f90 mod_intkinds.o mod_realkinds.o
+mod_bats_zengocn.o : mod_bats_zengocn.F90 mod_realkinds.o mod_dynparam.o mod_service.o mod_bats_common.o mod_runparams.o

@@ -18,7 +18,7 @@
 !!        use mod_service 
 !!    and having declared the two following local variables: 
 !!        character (len=64) :: sub='name_of_your_subroutine' 
-!!        integer :: indx=0
+!!        integer(ik4) :: indx=0
 !!    and as a first instruction
 !!        call time_begin(subroutine_name,indx)
 !!
@@ -55,6 +55,7 @@
 !!<
 MODULE mod_service
 
+  use mod_intkinds
   use mod_realkinds
 
 #ifdef DEBUG
@@ -73,32 +74,32 @@ MODULE mod_service
 !! 
 
   TYPE timing_info
-     INTEGER :: n_of_time
+     INTEGER(ik4) :: n_of_time
      CHARACTER (len=64) :: name_of_section
-     REAL (kind=8) :: total_time
-     INTEGER :: total_size
+     REAL (rk8) :: total_time
+     INTEGER(ik4) :: total_size
   END TYPE timing_info
 
   TYPE (timing_info) , DIMENSION (100) :: info_serial,info_comm
-  REAL (kind=8)  :: time_et(100),time_bt(100) 
-  INTEGER :: n_of_ENTRY=0
-  INTEGER :: nrite=6
+  REAL (rk8)  :: time_et(100),time_bt(100) 
+  INTEGER(ik4) :: n_of_ENTRY=0
+  INTEGER(ik4) :: nrite=6
 
   CHARACTER (len=120) :: errmsg   !! a string where to compose an error message
 
   !! some global variable for debugging purposes 
   !! set by prepare_debug, start_debug and stop_debug subroutines
 
-  INTEGER :: ndebug=28 !! unit for debugging files..
-  INTEGER :: Nlevel=0  !! level of depth in printing calling tree.. 
+  INTEGER(ik4) :: ndebug=28 !! unit for debugging files..
+  INTEGER(ik4) :: Nlevel=0  !! level of depth in printing calling tree.. 
   LOGICAL :: ldebug=.FALSE. !! if true debug is enabled ( set by activate_debug)
-!  INTEGER :: debug_level=0  !! Level of information to be printed out 
+!  INTEGER(ik4) :: debug_level=0  !! Level of information to be printed out 
 
 !!! 
 
-  INTEGER, PRIVATE :: node=0,mxnode=1
-  INTEGER, PRIVATE :: called
-  INTEGER, PRIVATE, ALLOCATABLE :: a_tmp(:)
+  INTEGER(ik4), PRIVATE :: node=0,mxnode=1
+  INTEGER(ik4), PRIVATE :: called
+  INTEGER(ik4), PRIVATE, ALLOCATABLE :: a_tmp(:)
   LOGICAL,PRIVATE :: called_mpi=.TRUE.
 
   !! interface for write_info subroutine
@@ -130,12 +131,12 @@ CONTAINS
 
     IMPLICIT NONE
     INCLUDE 'mpif.h'  
-    INTEGER, optional :: LEVEL
+    INTEGER(ik4), optional :: LEVEL
     CHARACTER(len=3) ::  np='   '
     CHARACTER(len=9) ::  string
     CHARACTER (len=64) :: sub='activate_debug'
-    INTEGER :: ierr1,idum
-    INTEGER,EXTERNAL :: intstr
+    INTEGER(ik4) :: ierr1,idum
+    INTEGER(ik4),EXTERNAL :: intstr
 
     ! check if MPI is on.
     called_mpi=.FALSE.
@@ -193,9 +194,9 @@ CONTAINS
   SUBROUTINE start_debug(level,sub,line)
 
     IMPLICIT NONE
-    INTEGER, OPTIONAL, INTENT(in) :: LEVEL
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: LEVEL
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
     CHARACTER(len=80) :: string='   '
     CHARACTER(len=64) :: substr='not specified'
     CHARACTER(len=8)  :: sline =' no spec'
@@ -232,9 +233,9 @@ CONTAINS
   SUBROUTINE STOP_debug(level,sub,line)
 
     IMPLICIT NONE
-    INTEGER, OPTIONAL :: LEVEL
+    INTEGER(ik4), OPTIONAL :: LEVEL
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
     CHARACTER(len=80) :: string=' '
     CHARACTER(len=64) :: substr=' not specified'
     CHARACTER(len=8)  :: sline =' no spec'
@@ -263,7 +264,7 @@ CONTAINS
   !!<
   SUBROUTINE time_begin(name,indx)
     IMPLICIT NONE
-    INTEGER, INTENT(INOUT) :: indx
+    INTEGER(ik4), INTENT(INOUT) :: indx
     CHARACTER (len=64) :: name
     CHARACTER (len=64) :: stringa='                                      '
 
@@ -294,8 +295,8 @@ CONTAINS
   SUBROUTINE time_end(name_of_section,indx,isize)
     IMPLICIT NONE
     CHARACTER (len=64) ::  name_of_section
-    INTEGER, INTENT(IN) :: indx
-    INTEGER, OPTIONAL :: isize
+    INTEGER(ik4), INTENT(IN) :: indx
+    INTEGER(ik4), OPTIONAL :: isize
     REAL (Kind=8)  :: time_CALL
     CHARACTER (len=64)  :: stringa=' '
 
@@ -345,17 +346,17 @@ CONTAINS
     INCLUDE 'mpif.h'  
     ! arguments:
     CHARACTER (len=*),OPTIONAL :: name_of_section
-    INTEGER :: iunit
+    INTEGER(ik4) :: iunit
     ! local variables:  
-    INTEGER :: ENTRY
-    INTEGER :: imin,imax
-    INTEGER :: i,test,len
-    REAL (kind=8)  :: avg,xmin,xmax
-    REAL (kind=8)  , ALLOCATABLE :: array_tmp(:)
-    INTEGER , ALLOCATABLE :: array_entries(:)
+    INTEGER(ik4) :: ENTRY
+    INTEGER(ik4) :: imin,imax
+    INTEGER(ik4) :: i,test,len
+    REAL (rk8)  :: avg,xmin,xmax
+    REAL (rk8)  , ALLOCATABLE :: array_tmp(:)
+    INTEGER(ik4) , ALLOCATABLE :: array_entries(:)
     LOGICAL :: L_TIMES_on_PE=.FALSE.
     LOGICAL :: L_ENTRY=.TRUE.
-    INTEGER :: ierr1
+    INTEGER(ik4) :: ierr1
     REAL(dp):: total_comm_time=0.0D0
     REAL    :: avg_value
     CHARACTER (len=128) :: name
@@ -502,7 +503,7 @@ CONTAINS
   !!<
   SUBROUTINE time_reset
     IMPLICIT NONE 
-    INTEGER :: ENTRY
+    INTEGER(ik4) :: ENTRY
 
     DO ENTRY=1,100
        info_serial(ENTRY)%n_of_time=0
@@ -525,10 +526,10 @@ CONTAINS
   SUBROUTINE gather(f_collect,f_sub)
     IMPLICIT NONE 
     INCLUDE 'mpif.h'  
-    REAL (kind=8), DIMENSION(:)  :: f_collect 
-    REAL (kind=8) :: f_sub
+    REAL (rk8), DIMENSION(:)  :: f_collect 
+    REAL (rk8) :: f_sub
 
-    INTEGER :: ierr,nword_send,nword_receive
+    INTEGER(ik4) :: ierr,nword_send,nword_receive
     Nword_send=1
     Nword_receive=Nword_send
     CALL MPI_Allgather(f_sub,Nword_send,MPI_DOUBLE_PRECISION,f_collect, &
@@ -549,9 +550,9 @@ CONTAINS
     IMPLICIT NONE 
     INCLUDE 'mpif.h'  
     ! assumed shaped array... 
-    INTEGER , DIMENSION(:)  :: f_collect 
-    INTEGER  :: f_sub
-    INTEGER :: ierr,nword_send,nword_receive
+    INTEGER(ik4) , DIMENSION(:)  :: f_collect 
+    INTEGER(ik4)  :: f_sub
+    INTEGER(ik4) :: ierr,nword_send,nword_receive
 
     Nword_send=1
     Nword_receive=Nword_send
@@ -569,10 +570,10 @@ CONTAINS
   !!   ACTION : compute average, maximum and minimum of array and indices
   !!<
   SUBROUTINE av_max_MIN(array,avg,xmax,indx_max,xmin,indx_min) 
-    INTEGER :: indx_min,indx_max,n_elements
-    REAL (kind=8)    :: xmax,xmin,avg
-    REAL (kind=8), DIMENSION(:) :: array
-    INTEGER :: i
+    INTEGER(ik4) :: indx_min,indx_max,n_elements
+    REAL (rk8)    :: xmax,xmin,avg
+    REAL (rk8), DIMENSION(:) :: array
+    INTEGER(ik4) :: i
 
     xmax=0.0
     xmin=1.e6
@@ -612,12 +613,12 @@ CONTAINS
     IMPLICIT NONE
     INCLUDE 'mpif.h'  
     CHARACTER*(*), INTENT(in) :: sub
-    INTEGER, INTENT(in) :: err_code
+    INTEGER(ik4), INTENT(in) :: err_code
     CHARACTER*(*), OPTIONAL, INTENT(in) :: message
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
     ! local
     CHARACTER(len=11) :: error_TYPE
-    INTEGER :: ierr 
+    INTEGER(ik4) :: ierr 
 
     error_TYPE = 'Error'
 
@@ -670,8 +671,8 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
     CHARACTER*(*), INTENT(in) :: variable
-    INTEGER, INTENT (in) :: value
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4), INTENT (in) :: value
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
 
     IF (PRESENT(line)) THEN 
        WRITE(ndebug+node,'(A20,'':at line'',I6,A,i10)') &
@@ -693,8 +694,8 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
     CHARACTER*(*), INTENT(in) :: variable
-    REAL(kind=8), INTENT (in) :: value
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    REAL(rk8), INTENT (in) :: value
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
 
     IF (PRESENT(line)) THEN 
        WRITE(ndebug+node,'(A20,'':at line'',I6,A,F20.10)') &
@@ -717,7 +718,7 @@ CONTAINS
     CHARACTER*(*), INTENT(in) :: variable
     CHARACTER(len=10)  :: sub_e='e_alloca'
     CHARACTER(len=80)  :: string=' ' 
-    INTEGER, OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
 
     IF (PRESENT(line)) THEN 
        WRITE(ndebug+node,'(A20,'':at line'',I6,A24,A)') & 
@@ -744,14 +745,14 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER*(*), OPTIONAL, INTENT(in) :: name_of_variable
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    REAL(kind=8),            INTENT(in) :: variable
-    INTEGER,       OPTIONAL, INTENT(in) :: line
+    REAL(rk8),            INTENT(in) :: variable
+    INTEGER(ik4),       OPTIONAL, INTENT(in) :: line
     CHARACTER(len=10) :: varia
     CHARACTER(len=20) :: subro
     CHARACTER(len=7) :: sline
     CHARACTER(len=36) :: string
 
-    INTEGER(8) i_addr
+    INTEGER(ik4)(8) i_addr
     string='    '
     subro= '    '
     varia= '    '
@@ -780,14 +781,14 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER*(*), OPTIONAL, INTENT(in) :: name_of_variable
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER,            INTENT(in) :: variable
-    INTEGER,       OPTIONAL, INTENT(in) :: line
+    INTEGER(ik4),            INTENT(in) :: variable
+    INTEGER(ik4),       OPTIONAL, INTENT(in) :: line
     CHARACTER(len=10) :: varia
     CHARACTER(len=20) :: subro
     CHARACTER(len=7) :: sline
     CHARACTER(len=36) :: string
 
-    INTEGER(8) i_addr
+    INTEGER(ik8) i_addr
     string='    '
     subro= '    '
     varia= '    '
@@ -815,7 +816,7 @@ CONTAINS
   FUNCTION len_strim (string) RESULT (len_trim_RESULT)
     IMPLICIT NONE 
     CHARACTER  (len=*), INTENT(IN) :: string
-    INTEGER :: len_trim_RESULT,k
+    INTEGER(ik4) :: len_trim_RESULT,k
 
     len_trim_RESULT =0 
     DO k= LEN(string),1,-1
@@ -855,19 +856,19 @@ CONTAINS
   SUBROUTINE time_begin(sname,indx)
     IMPLICIT NONE
     CHARACTER (len=64), INTENT(IN) :: sname
-    INTEGER, INTENT(IN) :: indx
+    INTEGER(ik4), INTENT(IN) :: indx
   END SUBROUTINE time_begin
 
   SUBROUTINE time_end(sname,indx,isize)
     IMPLICIT NONE
     CHARACTER (len=64), INTENT(IN) :: sname
-    INTEGER, INTENT(IN) :: indx
-    INTEGER, INTENT(IN),  OPTIONAL :: isize
+    INTEGER(ik4), INTENT(IN) :: indx
+    INTEGER(ik4), INTENT(IN),  OPTIONAL :: isize
   END SUBROUTINE time_end
 
   SUBROUTINE time_print(iunit,sname)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: iunit
+    INTEGER(ik4), INTENT(IN) :: iunit
     CHARACTER (len=*), INTENT(IN) :: sname
   END SUBROUTINE time_print
 

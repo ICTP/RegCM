@@ -19,8 +19,9 @@
  
 module mod_bats_bndry
 !
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_service
   use mod_bats_common
   use mod_bats_leaftemp
@@ -31,10 +32,10 @@ module mod_bats_bndry
 !
   public :: bndry
 !
-  real(dp) , parameter :: minsigf = 0.001D+00
-  real(dp) , parameter :: lowsice = 1.0D-22
-  real(dp) , parameter :: rainsnowtemp = 2.2D0
-  real(dp) , parameter :: xnu = twopi/secpd
+  real(rk8) , parameter :: minsigf = 0.001D+00
+  real(rk8) , parameter :: lowsice = 1.0D-22
+  real(rk8) , parameter :: rainsnowtemp = 2.2D0
+  real(rk8) , parameter :: xnu = twopi/secpd
 !
   contains
 !
@@ -83,11 +84,11 @@ module mod_bats_bndry
   subroutine bndry
     implicit none
 !
-    real(dp) :: fact , qsatd , rai
-    integer :: n , i , j
+    real(rk8) :: fact , qsatd , rai
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='bndry'
-    integer :: idindx = 0
-    real(dp) , parameter :: minwrat = 1.0D-04
+    integer(ik4) :: idindx = 0
+    real(rk8) , parameter :: minwrat = 1.0D-04
 !
     call time_begin(subroutine_name,idindx)
    
@@ -276,9 +277,9 @@ module mod_bats_bndry
 !
   subroutine vcover
     implicit none
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='vcover'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -322,9 +323,9 @@ module mod_bats_bndry
 !
   subroutine drip
     implicit none
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='drip'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -370,11 +371,11 @@ module mod_bats_bndry
   subroutine tseaice
     implicit none
 !
-    real(dp) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
+    real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
                 rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss , wtt
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='tseaice'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -504,11 +505,11 @@ module mod_bats_bndry
   subroutine water
     implicit none
 !
-    real(dp) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
+    real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                evmxt , rap , vakb , wtg2c , xxkb
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='water'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -771,11 +772,11 @@ module mod_bats_bndry
   subroutine snow
     implicit none
 !
-    real(dp) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
-    integer :: n , i , j
+    real(rk8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
+    integer(ik4) :: n , i , j
 !
     character (len=64) :: subroutine_name='snow'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -887,16 +888,16 @@ module mod_bats_bndry
 !
   subroutine tgrund
     implicit none
-    real(dp) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
+    real(rk8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
              depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,  &
              tbef , tg , tinc , wtas , wtax , wtd , wtds
-    real(dp) :: dtbat2 , rdtbat2 , xlexp , xnua
-    integer :: n , i , j
+    real(rk8) :: dtbat2 , rdtbat2 , xlexp , xnua
+    integer(ik4) :: n , i , j
     character (len=64) :: subroutine_name='tgrund'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
-    real(dp) , parameter :: xkperi = 1.4D-6
-    real(dp) , parameter :: t3 = 271.0D0 ! permafrost temperature
+    real(rk8) , parameter :: xkperi = 1.4D-6
+    real(rk8) , parameter :: t3 = 271.0D0 ! permafrost temperature
 !
     call time_begin(subroutine_name,idindx)
 ! 
@@ -1064,20 +1065,20 @@ module mod_bats_bndry
 
     function fsk(x)
       implicit none
-      real(dp) :: fsk
-      real(dp) , intent(in) :: x
+      real(rk8) :: fsk
+      real(rk8) , intent(in) :: x
       fsk = (2.9D-7*x+4.0D-9)/(((d_one-0.6D0*x)*x+0.09D0)*(0.23D0+x))
     end function fsk
     function fsc(x)
       implicit none
-      real(dp) :: fsc
-      real(dp) , intent(in) :: x
+      real(rk8) :: fsc
+      real(rk8) , intent(in) :: x
       fsc = (0.23D0+x)*4.186D6
     end function fsc
     function fct1(x)
       implicit none
-      real(dp) :: fct1
-      real(dp) , intent(in) :: x
+      real(rk8) :: fct1
+      real(rk8) , intent(in) :: x
       fct1 = wlhf*d_rfour*1.414D0/x
     end function fct1
 ! 

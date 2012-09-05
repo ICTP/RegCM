@@ -22,6 +22,7 @@
 !
 module mod_bats_lake
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
@@ -33,18 +34,18 @@ module mod_bats_lake
   public :: initlake , lakedrv
   public :: lakesav_i , lakesav_o
 !
-  real(dp) , dimension(ndpmax) :: de , dnsty , tt , ttx
+  real(rk8) , dimension(ndpmax) :: de , dnsty , tt , ttx
 !
   ! surface thickness
-  real(dp) , parameter :: surf = d_one
+  real(rk8) , parameter :: surf = d_one
   ! vertical grid spacing in m
-  real(dp) , parameter :: dz = surf
+  real(rk8) , parameter :: dz = surf
   ! minimum ice depth in mm: less that this is removed
-  real(dp) , parameter :: iceminh = d_10
+  real(rk8) , parameter :: iceminh = d_10
   ! reference hgt in mm for latent heat removal from ice
-  real(dp) , parameter :: href = d_two * iceminh
+  real(rk8) , parameter :: href = d_two * iceminh
   ! steepness factor of latent heat removal
-  real(dp) , parameter :: steepf = 1.0D0  ! Tuning needed !
+  real(rk8) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
   contains
 !
@@ -53,7 +54,7 @@ module mod_bats_lake
   subroutine initlake
     implicit none
 ! 
-    integer :: i, j, n
+    integer(ik4) :: i, j, n
 !
     hi     = 0.01D0
     aveice = d_zero
@@ -108,9 +109,9 @@ module mod_bats_lake
   subroutine lakedrv
     implicit none
 !
-    real(dp) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
+    real(rk8) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
                 xl , evp , toth
-    integer :: i , j , n
+    integer(ik4) :: i , j , n
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -175,25 +176,25 @@ module mod_bats_lake
                   prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
     implicit none
 !
-    real(dp) :: dtlake , evl , aveice , hsen , hsnow , flw , &
+    real(rk8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
                prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
-    real(dp) , dimension(ndpmax) :: tprof
-    integer :: ndpt
+    real(rk8) , dimension(ndpmax) :: tprof
+    integer(ik4) :: ndpt
     intent (in) hsen , ql , tl , vl , zl
     intent (in) ndpt , eta
     intent (out) tgl
     intent (inout) evl , aveice , hsnow
     intent (inout) tprof
 !
-    real(dp) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
+    real(rk8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
 !
     ! zo: surface roughness length
-    real(dp) , parameter :: zo = 0.001D0
-    real(dp) , parameter :: z2 = d_two
-    real(dp) , parameter :: tcutoff = -0.001D0
-    real(dp) , parameter :: twatui = 1.78D0
+    real(rk8) , parameter :: zo = 0.001D0
+    real(rk8) , parameter :: z2 = d_two
+    real(rk8) , parameter :: tcutoff = -0.001D0
+    real(rk8) , parameter :: twatui = 1.78D0
     logical , parameter :: lfreeze = .false.
-    integer , parameter :: kmin = 1
+    integer(ik4) , parameter :: kmin = 1
 !
     ! interpolate winds at z1 m to 2m via log wind profile
     u2 = vl*dlog(z2/zo)/dlog(zl/zo)
@@ -254,13 +255,13 @@ module mod_bats_lake
 
     implicit none
 !
-    integer , intent (in) :: ndpt
-    real(dp) , intent (in) :: dtlake , u2 , xl
-    real(dp) , dimension(ndpmax) , intent (in) :: tprof
+    integer(ik4) , intent (in) :: ndpt
+    real(rk8) , intent (in) :: dtlake , u2 , xl
+    real(rk8) , dimension(ndpmax) , intent (in) :: tprof
 !
-    real(dp) :: demax , demin , dpdz , ks , n2 , po
-    real(dp) :: zmax , rad , ri , ws , z
-    integer :: k
+    real(rk8) :: demax , demin , dpdz , ks , n2 , po
+    real(rk8) :: zmax , rad , ri , ws , z
+    integer(ik4) :: k
 !
     ! demin molecular diffusion of heat in water
     demin = hdmw
@@ -340,12 +341,12 @@ module mod_bats_lake
 !
     implicit none
 !
-    integer , intent(in) :: ndpt
-    real(dp) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
-    real(dp) , dimension(ndpmax) , intent(inout) :: tprof
+    integer(ik4) , intent(in) :: ndpt
+    real(rk8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
+    real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
 !
-    real(dp) :: bot , dt1 , dt2 , top
-    integer :: k
+    real(rk8) :: bot , dt1 , dt2 , top
+    integer(ik4) :: k
 
     ! Computes temperature profile
     ! solve differential equations of heat transfer
@@ -385,11 +386,11 @@ module mod_bats_lake
 !
     implicit none
 !
-    integer , intent(in) :: ndpt , kmin
-    real(dp) , intent(inout) , dimension(ndpmax) :: tprof
+    integer(ik4) , intent(in) :: ndpt , kmin
+    real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
 !
-    real(dp) :: avet , avev , tav , vol
-    integer :: k , k2
+    real(rk8) :: avet , avev , tav , vol
+    integer(ik4) :: k , k2
 ! 
     ! Simulates convective mixing
     tt(kmin:ndpt) = tprof(kmin:ndpt)
@@ -430,41 +431,41 @@ module mod_bats_lake
   subroutine ice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
 
     implicit none
-    real(dp) :: ea , evl , hi , aveice , hs , fsw , &
+    real(rk8) :: ea , evl , hi , aveice , hs , fsw , &
                ld , prec , tac , u2 , dtx
-    real(dp) , dimension(ndpmax) :: tprof
+    real(rk8) , dimension(ndpmax) :: tprof
     intent (in) dtx , ea , ld , prec , tac , u2
     intent (out) evl
     intent (inout) hi , aveice , hs , fsw , tprof
 !
-    real(dp) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
+    real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
                t2 , tf , theta , rho , xlexpc
-    real(dp) :: xea , xeb , xec
-    integer :: nits
+    real(rk8) :: xea , xeb , xec
+    integer(ik4) :: nits
 !
-    real(dp) , parameter :: isurf = 0.6D0
+    real(rk8) , parameter :: isurf = 0.6D0
     ! attenuation coeff for ice in visible band (m-1)
-    real(dp) , parameter :: lami1 = 1.5D0
+    real(rk8) , parameter :: lami1 = 1.5D0
     ! attenuation coeff for ice in infrared band (m-1)
-    real(dp) , parameter :: lami2 = 20.0D0
+    real(rk8) , parameter :: lami2 = 20.0D0
     ! attenuation coeff for snow in visible band (m-1)
-    real(dp) , parameter :: lams1 = 6.0D0
+    real(rk8) , parameter :: lams1 = 6.0D0
     ! attenuation coeff for snow in infrared band (m-1)
-    real(dp) , parameter :: lams2 = 20.0D0
+    real(rk8) , parameter :: lams2 = 20.0D0
     ! thermal conductivity of ice (W/m/C)
-    real(dp) , parameter :: ki = 2.3D0
+    real(rk8) , parameter :: ki = 2.3D0
     ! thermal conductivity of snow (W/m/C)
-    real(dp) , parameter :: ks = 0.31D0
+    real(rk8) , parameter :: ks = 0.31D0
     ! standard atmospheric pressure (hPa) ????
-    real(dp) , parameter :: atm = 950.0D0
+    real(rk8) , parameter :: atm = 950.0D0
     ! heat flux from water to ice (w/m2) ???
-    real(dp) , parameter :: qw = 1.389D0
+    real(rk8) , parameter :: qw = 1.389D0
     ! latent heat of fusion (J/kg)
-    real(dp) , parameter :: li = 334.0D03
+    real(rk8) , parameter :: li = 334.0D03
     ! drag coefficient for the turbulent momentum flux.
-    real(dp) , parameter :: cd = 0.001D0
+    real(rk8) , parameter :: cd = 0.001D0
     ! Maximum exponent
-    real(dp) , parameter :: minexp = -25.0D0
+    real(rk8) , parameter :: minexp = -25.0D0
 !
 
     if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
@@ -584,28 +585,28 @@ module mod_bats_lake
 
     function t4(x)
       implicit none
-      real(dp) :: t4
-      real(dp) , intent(in) :: x
+      real(rk8) :: t4
+      real(rk8) , intent(in) :: x
       t4 = (x+tzero)**d_four
     end function t4
     ! Computes air vapor pressure as a function of temp (in K)
     function tr1(x)
       implicit none
-      real(dp) :: tr1
-      real(dp) , intent(in) :: x
+      real(rk8) :: tr1
+      real(rk8) , intent(in) :: x
       tr1 = d_one - (tboil/(x+tzero))
     end function tr1
     function eomb(x)
       implicit none
-      real(dp) :: eomb
-      real(dp) , intent(in) :: x
+      real(rk8) :: eomb
+      real(rk8) , intent(in) :: x
       eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
              -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
      end function eomb
     function f(x)
       implicit none
-      real(dp) :: f
-      real(dp) , intent(in) :: x
+      real(rk8) :: f
+      real(rk8) , intent(in) :: x
       f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
           - d_one/khat*(qpen+tf-x)
     end function f
@@ -616,10 +617,10 @@ module mod_bats_lake
 !
   subroutine lakesav_o(iutl)
     implicit none
-    integer :: iutl
+    integer(ik4) :: iutl
     intent (in) iutl
 !
-    integer :: i , j , k , n
+    integer(ik4) :: i , j , k , n
 !
     write (iutl) idep_io
     do i = icross1 , icross2
@@ -639,10 +640,10 @@ module mod_bats_lake
 !
   subroutine lakesav_i(iutl)
     implicit none
-    integer :: iutl
+    integer(ik4) :: iutl
     intent (in) iutl
 !
-    integer :: i , j , k , n
+    integer(ik4) :: i , j , k , n
 !
     idep_io   = 0
     hi_io     = 0.01D0

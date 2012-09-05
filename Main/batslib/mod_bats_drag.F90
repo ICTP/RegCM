@@ -19,6 +19,7 @@
  
 module mod_bats_drag
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
@@ -49,8 +50,8 @@ module mod_bats_drag
 ! 
   implicit none
 !
-  real(dp) :: dthdz , u1 , u2 , zatild
-  integer :: n , i , j
+  real(rk8) :: dthdz , u1 , u2 , zatild
+  integer(ik4) :: n , i , j
   !
   !=======================================================================
   !     1.   get neutral drag coefficient
@@ -167,8 +168,8 @@ module mod_bats_drag
 !
   implicit none
 !
-  real(dp) :: asigf , cdb , cds , cdv , frab , fras , frav
-  integer :: n , i , j
+  real(rk8) :: asigf , cdb , cds , cdv , frab , fras , frav
+  integer(ik4) :: n , i , j
 !
   call depth
 !
@@ -222,8 +223,8 @@ module mod_bats_drag
 !
   implicit none
 !
-  real(dp) :: age
-  integer :: n , i , j
+  real(rk8) :: age
+  integer(ik4) :: n , i , j
 ! 
   do i = ici1 , ici2
     do j = jci1 , jci2

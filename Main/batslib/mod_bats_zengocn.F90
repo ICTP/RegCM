@@ -22,6 +22,7 @@ module mod_bats_zengocn
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
+    use mod_intkinds
     use mod_realkinds
     use mod_dynparam
     use mod_service
@@ -34,27 +35,27 @@ module mod_bats_zengocn
 !
 ! Module Constants
 !
-    real(dp) , parameter :: r1e6 = 1.0D-6
-    real(dp) , parameter :: a1 = 0.28D+00
-    real(dp) , parameter :: a2 = 0.27D+00
-    real(dp) , parameter :: a3 = 0.45D+00
-    real(dp) , parameter :: b1 = 71.5D+00
-    real(dp) , parameter :: b2 = 2.8D+00
-    real(dp) , parameter :: b3 = 0.07D+00
-    real(dp) , parameter :: alphaw = 0.207D-06
-    real(dp) , parameter :: nuw = 1.004D-06
-    real(dp) , parameter :: kw = 0.60D0
-    real(dp) , parameter :: nu = 0.3D0
-    real(dp) , parameter :: d = 3.0D0 ! reference depth for bulk SST
+    real(rk8) , parameter :: r1e6 = 1.0D-6
+    real(rk8) , parameter :: a1 = 0.28D+00
+    real(rk8) , parameter :: a2 = 0.27D+00
+    real(rk8) , parameter :: a3 = 0.45D+00
+    real(rk8) , parameter :: b1 = 71.5D+00
+    real(rk8) , parameter :: b2 = 2.8D+00
+    real(rk8) , parameter :: b3 = 0.07D+00
+    real(rk8) , parameter :: alphaw = 0.207D-06
+    real(rk8) , parameter :: nuw = 1.004D-06
+    real(rk8) , parameter :: kw = 0.60D0
+    real(rk8) , parameter :: nu = 0.3D0
+    real(rk8) , parameter :: d = 3.0D0 ! reference depth for bulk SST
 !
     ! nu / thermal diffusivity
-    real(dp) , parameter :: pr = 0.71D0   ! Prandtl number
+    real(rk8) , parameter :: pr = 0.71D0   ! Prandtl number
 !
-    real(dp) , parameter :: z10 = d_10    ! m  (reference height)
-    real(dp) , parameter :: zbeta = d_one ! -  (in computing W_*)
+    real(rk8) , parameter :: z10 = d_10    ! m  (reference height)
+    real(rk8) , parameter :: zbeta = d_one ! -  (in computing W_*)
 !
-    real(dp) , parameter :: zetat = 0.465D0
-    real(dp) , parameter :: zetam = 1.574D0
+    real(rk8) , parameter :: zetat = 0.465D0
+    real(rk8) , parameter :: zetam = 1.574D0
 !
     logical :: lfirst_call
 !
@@ -71,22 +72,22 @@ module mod_bats_zengocn
 !
     integer(8) , intent(in) :: ktau
 !
-    real(dp) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
+    real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                 t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
-    real(dp) :: dthv , hq , ht , hu , obu , qstar , rb , xdens , &
+    real(rk8) :: dthv , hq , ht , hu , obu , qstar , rb , xdens , &
                 th , thv , thvstar , tstar , um , visa , zot , wc , &
                 xlv , zeta , zoq
-    integer :: i , j , n , nconv
+    integer(ik4) :: i , j , n , nconv
 #ifdef CLM
-    integer :: ii , jj
+    integer(ik4) :: ii , jj
 #endif
-!   real(dp) :: lwds , lwus
-    real(dp) :: rs , rd , td , tdelta , delta
-    real(dp) :: q , ustarw , fd , l , phidl , aa , bb , lamb
-    real(dp) :: dtstend , dts , fs , tskin , dtsst
+!   real(rk8) :: lwds , lwus
+    real(rk8) :: rs , rd , td , tdelta , delta
+    real(rk8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
+    real(rk8) :: dtstend , dts , fs , tskin , dtsst
 !
     character (len=64) :: subroutine_name='zengocndrv'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     do i = ici1 , ici2
@@ -365,10 +366,10 @@ module mod_bats_zengocn
     function psi(k,zeta)
       implicit none
 !
-      integer , intent(in) :: k
-      real(dp) , intent(in) :: zeta
+      integer(ik4) , intent(in) :: k
+      real(rk8) , intent(in) :: zeta
 !
-      real(dp) :: chik , psi
+      real(rk8) :: chik , psi
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
@@ -386,8 +387,8 @@ module mod_bats_zengocn
     function qsat(t,p)
       implicit none
 !
-      real(dp) , intent (in) :: p , t
-      real(dp) :: qsat
+      real(rk8) , intent (in) :: p , t
+      real(rk8) :: qsat
 !
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
 !
@@ -399,11 +400,11 @@ module mod_bats_zengocn
 !
       implicit none
 !
-      real(dp) , intent (in) :: ustar , visa
-      real(dp) , intent (out) :: zoq , zot
-      real(dp) , intent (inout) :: zo
+      real(rk8) , intent (in) :: ustar , visa
+      real(rk8) , intent (out) :: zoq , zot
+      real(rk8) , intent (inout) :: zo
 !
-      real(dp) :: re , xtq
+      real(rk8) :: re , xtq
 !
       if ( iocnrough == 2 ) then
         zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
@@ -466,17 +467,17 @@ module mod_bats_zengocn
 !
     implicit none
 !
-    real(dp) , intent (in) :: hgt , q , t , u , zi , ts , ps
-    real(dp) , intent (out) :: alh , ash , tau , u10
-    real(dp) , intent (inout) :: dqh , dth , qs , ustar , zo
+    real(rk8) , intent (in) :: hgt , q , t , u , zi , ts , ps
+    real(rk8) , intent (out) :: alh , ash , tau , u10
+    real(rk8) , intent (inout) :: dqh , dth , qs , ustar , zo
 !
-    real(dp) :: dthv , hq , ht , hu , obu , qstar , rb , rho , &
+    real(rk8) :: dthv , hq , ht , hu , obu , qstar , rb , rho , &
                th , thv , thvstar , tstar , um , visa , zot , wc , &
                xlv , zeta , zoq
-    integer :: nconv
+    integer(ik4) :: nconv
 !
     character (len=64) :: subroutine_name='zengocn'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -634,10 +635,10 @@ module mod_bats_zengocn
     function psi(k,zeta)
       implicit none
 !
-      integer , intent(in) :: k
-      real(dp) , intent(in) :: zeta
+      integer(ik4) , intent(in) :: k
+      real(rk8) , intent(in) :: zeta
 !
-      real(dp) :: chik , psi
+      real(rk8) :: chik , psi
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
@@ -655,8 +656,8 @@ module mod_bats_zengocn
     function qsat(t,p)
       implicit none
 !
-      real(dp) , intent (in) :: p , t
-      real(dp) :: qsat
+      real(rk8) , intent (in) :: p , t
+      real(rk8) :: qsat
 !
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
 !
@@ -668,11 +669,11 @@ module mod_bats_zengocn
 !
       implicit none
 !
-      real(dp) , intent (in) :: ustar , visa
-      real(dp) , intent (out) :: zoq , zot
-      real(dp) , intent (inout) :: zo
+      real(rk8) , intent (in) :: ustar , visa
+      real(rk8) , intent (out) :: zoq , zot
+      real(rk8) , intent (inout) :: zo
 !
-      real(dp) :: re , xtq
+      real(rk8) :: re , xtq
 !
       if ( iocnrough == 2 ) then
         zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar

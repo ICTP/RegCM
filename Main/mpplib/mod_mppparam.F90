@@ -19,6 +19,7 @@
 !
 module mod_mppparam
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
@@ -32,12 +33,12 @@ module mod_mppparam
   include 'mpif.h'
 #ifdef MPI_SERIAL
   integer mpi_status_ignore(mpi_status_size)
-  integer , parameter :: mpi_proc_null = -2
+  integer(ik4) , parameter :: mpi_proc_null = -2
 #endif
 
   public :: set_nproc , broadcast_params , date_bcast
 
-  integer :: cartesian_communicator
+  integer(ik4) :: cartesian_communicator
 
   type model_area
     logical :: bandflag
@@ -45,59 +46,59 @@ module mod_mppparam
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     logical :: has_bdytopleft , has_bdytopright
     logical :: has_bdybottomleft , has_bdybottomright
-    integer , dimension(2) :: location
-    integer :: left , right , top , bottom
-    integer :: topleft , topright , bottomleft , bottomright
-    integer :: ibt1 , ibt2 , ibb1 , ibb2
-    integer :: jbl1 , jbl2 , jbr1 , jbr2
+    integer(ik4) , dimension(2) :: location
+    integer(ik4) :: left , right , top , bottom
+    integer(ik4) :: topleft , topright , bottomleft , bottomright
+    integer(ik4) :: ibt1 , ibt2 , ibb1 , ibb2
+    integer(ik4) :: jbl1 , jbl2 , jbr1 , jbr2
   end type model_area
 
   type grid_nc_var2d
     character(len=64) :: varname
-    integer :: irec = -1
-    integer :: ncid = -1
-    integer :: varid = 1
-    integer :: nx = 0
-    integer :: ny = 0
-    integer :: mynx1 = 0
-    integer :: mynx2 = 0
-    integer :: myny1 = 0
-    integer :: myny2 = 0
-    real(dp) , pointer , dimension(:,:) :: val => null()
-    real(dp) , pointer , dimension(:,:) :: iobuf => null()
+    integer(ik4) :: irec = -1
+    integer(ik4) :: ncid = -1
+    integer(ik4) :: varid = 1
+    integer(ik4) :: nx = 0
+    integer(ik4) :: ny = 0
+    integer(ik4) :: mynx1 = 0
+    integer(ik4) :: mynx2 = 0
+    integer(ik4) :: myny1 = 0
+    integer(ik4) :: myny2 = 0
+    real(rk8) , pointer , dimension(:,:) :: val => null()
+    real(rk8) , pointer , dimension(:,:) :: iobuf => null()
   end type grid_nc_var2d
 
   type grid_nc_var3d
     character(len=64) :: varname
-    integer :: irec = -1
-    integer :: ncid = -1
-    integer :: varid = 1
-    integer :: nx = 0
-    integer :: ny = 0
-    integer :: mynx1 = 0
-    integer :: mynx2 = 0
-    integer :: myny1 = 0
-    integer :: myny2 = 0
-    integer :: nz = 0
-    real(dp) , pointer , dimension(:,:,:) :: val => null()
-    real(dp) , pointer , dimension(:,:,:) :: iobuf => null()
+    integer(ik4) :: irec = -1
+    integer(ik4) :: ncid = -1
+    integer(ik4) :: varid = 1
+    integer(ik4) :: nx = 0
+    integer(ik4) :: ny = 0
+    integer(ik4) :: mynx1 = 0
+    integer(ik4) :: mynx2 = 0
+    integer(ik4) :: myny1 = 0
+    integer(ik4) :: myny2 = 0
+    integer(ik4) :: nz = 0
+    real(rk8) , pointer , dimension(:,:,:) :: val => null()
+    real(rk8) , pointer , dimension(:,:,:) :: iobuf => null()
   end type grid_nc_var3d
 
   type grid_nc_var4d
     character(len=64) :: varname
-    integer :: irec = -1
-    integer :: ncid = -1
-    integer :: varid = 1
-    integer :: nx = 0
-    integer :: ny = 0
-    integer :: mynx1 = 0
-    integer :: mynx2 = 0
-    integer :: myny1 = 0
-    integer :: myny2 = 0
-    integer :: nz = 0
-    integer :: nl = 0
-    real(dp) , pointer , dimension(:,:,:,:) :: val => null()
-    real(dp) , pointer , dimension(:,:,:,:) :: iobuf => null()
+    integer(ik4) :: irec = -1
+    integer(ik4) :: ncid = -1
+    integer(ik4) :: varid = 1
+    integer(ik4) :: nx = 0
+    integer(ik4) :: ny = 0
+    integer(ik4) :: mynx1 = 0
+    integer(ik4) :: mynx2 = 0
+    integer(ik4) :: myny1 = 0
+    integer(ik4) :: myny2 = 0
+    integer(ik4) :: nz = 0
+    integer(ik4) :: nl = 0
+    real(rk8) , pointer , dimension(:,:,:,:) :: val => null()
+    real(rk8) , pointer , dimension(:,:,:,:) :: iobuf => null()
   end type grid_nc_var4d
 
   public :: grid_nc_var2d , grid_nc_var3d , grid_nc_var4d
@@ -197,28 +198,28 @@ module mod_mppparam
   public :: model_area
   type(model_area) , public :: ma
 !
-  real(dp) , pointer , dimension(:) :: r8vector1
-  real(dp) , pointer , dimension(:) :: r8vector2
-  real(sp) , pointer , dimension(:) :: r4vector1
-  real(sp) , pointer , dimension(:) :: r4vector2
-  integer , pointer , dimension(:) :: i4vector1
-  integer , pointer , dimension(:) :: i4vector2
-  integer , dimension(4) :: window
-  integer :: mpierr
+  real(rk8) , pointer , dimension(:) :: r8vector1
+  real(rk8) , pointer , dimension(:) :: r8vector2
+  real(rk4) , pointer , dimension(:) :: r4vector1
+  real(rk4) , pointer , dimension(:) :: r4vector2
+  integer(ik4) , pointer , dimension(:) :: i4vector1
+  integer(ik4) , pointer , dimension(:) :: i4vector2
+  integer(ik4) , dimension(4) :: window
+  integer(ik4) :: mpierr
 !
-  integer , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
-  integer , public , parameter :: italk = 0 ! Who is doing the print ?
+  integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
+  integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
 !
-  integer , parameter :: tag_bt = 1     ! FROM bottom TO top
-  integer , parameter :: tag_tb = 2     ! FROM top TO bottom
-  integer , parameter :: tag_lr = 3     ! FROM left TO right
-  integer , parameter :: tag_rl = 4     ! FROM right TO left
-  integer , parameter :: tag_brtl = 5   ! FROM bottomrigth TO topleft
-  integer , parameter :: tag_tlbr = 6   ! FROM topleft TO bottomright
-  integer , parameter :: tag_bltr = 7   ! FROM bottomleft TO topright
-  integer , parameter :: tag_trbl = 8   ! FROM topright TO bottomleft
-  integer , parameter :: tag_w = 100    ! The global indexes from the cpu
-  integer , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
+  integer(ik4) , parameter :: tag_bt = 1     ! FROM bottom TO top
+  integer(ik4) , parameter :: tag_tb = 2     ! FROM top TO bottom
+  integer(ik4) , parameter :: tag_lr = 3     ! FROM left TO right
+  integer(ik4) , parameter :: tag_rl = 4     ! FROM right TO left
+  integer(ik4) , parameter :: tag_brtl = 5   ! FROM bottomrigth TO topleft
+  integer(ik4) , parameter :: tag_tlbr = 6   ! FROM topleft TO bottomright
+  integer(ik4) , parameter :: tag_bltr = 7   ! FROM bottomleft TO topright
+  integer(ik4) , parameter :: tag_trbl = 8   ! FROM topright TO bottomleft
+  integer(ik4) , parameter :: tag_w = 100    ! The global indexes from the cpu
+  integer(ik4) , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
 !
   public :: exchange , exchange_lb , exchange_rt
   public :: exchange_bdy_lr , exchange_bdy_tb
@@ -233,43 +234,43 @@ module mod_mppparam
                           recvbuf, recvcount, recvtype, source, recvtag, &
                           comm, status, ierror)
     implicit none
-    real(8) , dimension(:) :: sendbuf , recvbuf
-    integer :: sendcount , sendtype , dest , sendtag
-    integer :: recvcount , recvtype , source , recvtag , comm
-    integer :: status(mpi_status_size)
-    integer :: ierror
+    real(rk8) , dimension(:) :: sendbuf , recvbuf
+    integer(ik4) :: sendcount , sendtype , dest , sendtag
+    integer(ik4) :: recvcount , recvtype , source , recvtag , comm
+    integer(ik4) :: status(mpi_status_size)
+    integer(ik4) :: ierror
   end subroutine mpi_sendrecv
 
   subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
                              comm_cart,ierror)
     implicit none
-    integer :: comm_old , ndims , comm_cart , ierror
-    integer , dimension(:) :: dims
+    integer(ik4) :: comm_old , ndims , comm_cart , ierror
+    integer(ik4) , dimension(:) :: dims
     logical :: reorder
     logical , dimension(:) :: periods
   end subroutine mpi_cart_create
   
   subroutine mpi_cart_coords(comm,rank,maxdims,coords,ierror)
     implicit none
-    integer :: comm , rank , maxdims , ierror
-    integer , dimension(:) :: coords
+    integer(ik4) :: comm , rank , maxdims , ierror
+    integer(ik4) , dimension(:) :: coords
   end subroutine mpi_cart_coords
 
   subroutine mpi_cart_rank(comm,coords,rank,ierror)
     implicit none
-    integer :: comm , rank , ierror
-    integer , dimension(:) :: coords
+    integer(ik4) :: comm , rank , ierror
+    integer(ik4) , dimension(:) :: coords
   end subroutine mpi_cart_rank
 #endif
 
   subroutine set_nproc(ncpu)
     implicit none
-    integer , intent(in) :: ncpu
-    integer , dimension(2) :: cpus_per_dim
+    integer(ik4) , intent(in) :: ncpu
+    integer(ik4) , dimension(2) :: cpus_per_dim
     logical , dimension(2) :: dim_period
-    integer , dimension(2) :: isearch
-    integer :: imaxcpus , imax1 , imax2
-    real(dp) :: dimfac
+    integer(ik4) , dimension(2) :: isearch
+    integer(ik4) :: imaxcpus , imax1 , imax2
+    real(rk8) :: dimfac
     data dim_period /.false.,.false./
 
     nproc = ncpu
@@ -615,9 +616,9 @@ module mod_mppparam
 
   subroutine date_bcast(x,from,comm,mpierr)
     type (rcm_time_and_date) , intent(inout) :: x
-    integer , intent(in) :: from , comm
-    integer , intent(out) :: mpierr
-    integer :: lerr
+    integer(ik4) , intent(in) :: from , comm
+    integer(ik4) , intent(out) :: mpierr
+    integer(ik4) :: lerr
     mpierr = 0
     call mpi_bcast(x%calendar,1,mpi_integer,from,comm,lerr)
     mpierr = mpierr+lerr
@@ -629,10 +630,10 @@ module mod_mppparam
 !
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -687,10 +688,10 @@ module mod_mppparam
 !
   subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -753,10 +754,10 @@ module mod_mppparam
 !
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -827,10 +828,10 @@ module mod_mppparam
 !
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(sp) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(sp) , pointer , dimension(:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -885,10 +886,10 @@ module mod_mppparam
 !
   subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -951,10 +952,10 @@ module mod_mppparam
 !
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1025,10 +1026,10 @@ module mod_mppparam
 !
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    integer , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    integer , pointer , dimension(:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1083,10 +1084,10 @@ module mod_mppparam
 !
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1149,10 +1150,10 @@ module mod_mppparam
 !
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1223,10 +1224,10 @@ module mod_mppparam
 !
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1287,10 +1288,10 @@ module mod_mppparam
 !
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1359,10 +1360,10 @@ module mod_mppparam
 !
   subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1423,10 +1424,10 @@ module mod_mppparam
 !
   subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1495,10 +1496,10 @@ module mod_mppparam
 !
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1559,10 +1560,10 @@ module mod_mppparam
 !
   subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    integer , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1631,10 +1632,10 @@ module mod_mppparam
 !
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1689,10 +1690,10 @@ module mod_mppparam
 !
   subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1755,10 +1756,10 @@ module mod_mppparam
 !
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -1829,10 +1830,10 @@ module mod_mppparam
 !
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(sp) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -1887,10 +1888,10 @@ module mod_mppparam
 !
   subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -1953,10 +1954,10 @@ module mod_mppparam
 !
   subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -2027,10 +2028,10 @@ module mod_mppparam
 !
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2085,10 +2086,10 @@ module mod_mppparam
 !
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2151,10 +2152,10 @@ module mod_mppparam
 !
   subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , nsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do n = n1 , n2
@@ -2225,10 +2226,10 @@ module mod_mppparam
 !
   subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2289,10 +2290,10 @@ module mod_mppparam
 !
   subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2361,10 +2362,10 @@ module mod_mppparam
 !
   subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2425,10 +2426,10 @@ module mod_mppparam
 !
   subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2497,10 +2498,10 @@ module mod_mppparam
 !
   subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2
-    integer :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
@@ -2561,10 +2562,10 @@ module mod_mppparam
 !
   subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    integer , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
-    integer , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
@@ -2633,9 +2634,9 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: isize , jsize , ssize , j , i , ib , ireq
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib , ireq
     isize = i2-i1+1
     jsize = j2-j1+1
     if ( ma%bandflag ) then
@@ -2910,9 +2911,9 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: isize , jsize , ksize , ssize , j , i , k , ib , ireq
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , ireq
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -3228,10 +3229,10 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: isize , jsize , ksize , nsize , ssize
-    integer :: j , i , k , n , ib , ireq
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib , ireq
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -3588,9 +3589,9 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: isize , jsize , ssize , j , i , ib
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     if ( ma%bandflag ) then
@@ -3714,9 +3715,9 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: isize , jsize , ksize , ssize , j , i , k , ib
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -3857,9 +3858,9 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -4017,9 +4018,9 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: isize , jsize , ssize , j , i , ib
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     if ( ma%bandflag ) then
@@ -4143,9 +4144,9 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: isize , jsize , ksize , ssize , j , i , k , ib
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -4286,9 +4287,9 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ml
-    integer , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -4446,9 +4447,9 @@ module mod_mppparam
 !
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: k1 , k2
-    integer :: ksize , k , ib , ireq
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: k1 , k2
+    integer(ik4) :: ksize , k , ib , ireq
     ksize = k2-k1+1
     if ( ma%bandflag ) then
       if ( size(r8vector1) < ksize ) then
@@ -4535,9 +4536,9 @@ module mod_mppparam
 !
   subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ml
-    integer , intent(in) :: k1 , k2
-    integer :: ksize , k , ib , ireq
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    integer(ik4) , intent(in) :: k1 , k2
+    integer(ik4) :: ksize , k , ib , ireq
     ksize = k2-k1+1
     if ( ma%top /= mpi_proc_null) then
       if ( size(r8vector1) < ksize ) then
@@ -4589,8 +4590,8 @@ module mod_mppparam
 !
   subroutine real8_2d_grid_fill(a,b)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in) :: a
-    real(dp) , pointer , dimension(:,:) , intent(out) :: b
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: b
     call grid_collect(a,b,1,jxp,1,iyp)
     call mpi_bcast(b,iy*jx,mpi_real8,iocpu,cartesian_communicator,mpierr)
   end subroutine real8_2d_grid_fill
@@ -4604,9 +4605,9 @@ module mod_mppparam
 !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ux , vx
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ud , vd
-    integer :: i , j
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ux , vx
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ud , vd
+    integer(ik4) :: i , j
 
     ! TODO:  It might make sense to encapsulate the following code
     ! in to a standard routine, since this boundary sending code is
@@ -4655,9 +4656,9 @@ module mod_mppparam
 !
   subroutine psc2psd(pc,pd)
     implicit none
-    real(dp) , pointer , dimension(:,:) , intent(in)  :: pc
-    real(dp) , pointer , dimension(:,:) , intent(out) :: pd
-    integer :: i , j
+    real(rk8) , pointer , dimension(:,:) , intent(in)  :: pc
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: pd
+    integer(ik4) :: i , j
     !
     ! Internal points
     !
@@ -4710,10 +4711,10 @@ module mod_mppparam
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
-    real(dp) , pointer , dimension(:,:) , intent(in) :: val
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: val
     type (grid_nc_var2d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(3) :: idims
+    integer(ik4) :: istat
+    integer(ik4) , dimension(3) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -4779,8 +4780,8 @@ module mod_mppparam
   subroutine grid_nc_write_var2d(xvar)
     implicit none
     type (grid_nc_var2d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(3) :: istart , icount
+    integer(ik4) :: istat
+    integer(ik4) , dimension(3) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -4810,7 +4811,7 @@ module mod_mppparam
   subroutine grid_nc_destroy_var2d(xvar)
     implicit none
     type (grid_nc_var2d) , intent(inout) :: xvar
-    integer :: istat
+    integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then
@@ -4828,10 +4829,10 @@ module mod_mppparam
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: val
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: val
     type (grid_nc_var3d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(4) :: idims
+    integer(ik4) :: istat
+    integer(ik4) , dimension(4) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -4903,8 +4904,8 @@ module mod_mppparam
   subroutine grid_nc_write_var3d(xvar)
     implicit none
     type (grid_nc_var3d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(4) :: istart , icount
+    integer(ik4) :: istat
+    integer(ik4) , dimension(4) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -4936,7 +4937,7 @@ module mod_mppparam
   subroutine grid_nc_destroy_var3d(xvar)
     implicit none
     type (grid_nc_var3d) , intent(inout) :: xvar
-    integer :: istat
+    integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then
@@ -4954,10 +4955,10 @@ module mod_mppparam
     implicit none
     character(len=*) , intent(in) :: varname
     logical , intent(in) :: ldot
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: val
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: val
     type (grid_nc_var4d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(5) :: idims
+    integer(ik4) :: istat
+    integer(ik4) , dimension(5) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -5036,8 +5037,8 @@ module mod_mppparam
   subroutine grid_nc_write_var4d(xvar)
     implicit none
     type (grid_nc_var4d) , intent(inout) :: xvar
-    integer :: istat
-    integer , dimension(5) :: istart , icount
+    integer(ik4) :: istat
+    integer(ik4) , dimension(5) :: istart , icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -5072,7 +5073,7 @@ module mod_mppparam
   subroutine grid_nc_destroy_var4d(xvar)
     implicit none
     type (grid_nc_var4d) , intent(inout) :: xvar
-    integer :: istat
+    integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
       if ( istat /= nf90_noerr ) then

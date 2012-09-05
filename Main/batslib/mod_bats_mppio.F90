@@ -19,6 +19,7 @@
 
 module mod_bats_mppio
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
@@ -26,20 +27,20 @@ module mod_bats_mppio
 
   public
 
-  integer , pointer , dimension(:,:,:) :: idep_io
-  real(dp) , pointer , dimension(:,:,:) :: dhlake1_io
-  real(dp) , pointer , dimension(:,:,:) :: eta_io
-  real(dp) , pointer , dimension(:,:,:) :: hi_io
-  real(dp) , pointer , dimension(:,:,:) :: aveice_io
-  real(dp) , pointer , dimension(:,:,:) :: hsnow_io
-  real(dp) , pointer , dimension(:,:,:) :: evl_io
-  real(dp) , pointer , dimension(:,:,:,:) :: tlak_io
+  integer(ik4) , pointer , dimension(:,:,:) :: idep_io
+  real(rk8) , pointer , dimension(:,:,:) :: dhlake1_io
+  real(rk8) , pointer , dimension(:,:,:) :: eta_io
+  real(rk8) , pointer , dimension(:,:,:) :: hi_io
+  real(rk8) , pointer , dimension(:,:,:) :: aveice_io
+  real(rk8) , pointer , dimension(:,:,:) :: hsnow_io
+  real(rk8) , pointer , dimension(:,:,:) :: evl_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: tlak_io
 
   contains
 
     subroutine allocate_mod_bats_mppio(lakemod)
       implicit none
-      integer , intent(in) :: lakemod
+      integer(ik4) , intent(in) :: lakemod
       if ( lakemod == 1 ) then
         if ( myid == iocpu ) then
           call getmem3d(dhlake1_io,1,nnsg,jdot1,jdot2,idot1,idot2, &

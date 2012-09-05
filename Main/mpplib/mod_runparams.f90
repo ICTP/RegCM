@@ -19,6 +19,7 @@
 
 module mod_runparams
 
+  use mod_intkinds
   use mod_realkinds
   use mod_date
   use mod_dynparam
@@ -26,23 +27,23 @@ module mod_runparams
 
   implicit none
 
-  integer , public , parameter :: nqx = 2
-  integer , public , parameter :: iqv = 1
-  integer , public , parameter :: iqc = 2
+  integer(ik4) , public , parameter :: nqx = 2
+  integer(ik4) , public , parameter :: iqv = 1
+  integer(ik4) , public , parameter :: iqc = 2
 
   type(rcm_time_and_date) , save :: idate0 , idate1 , idate2
 
   type(rcm_time_and_date) , save :: idatex
-  integer :: xyear , xmonth , xday , xhour
+  integer(ik4) :: xyear , xmonth , xday , xhour
 
   type(rcm_time_and_date) , save :: bdydate1 , bdydate2
 
   type(rcm_time_interval) , save :: intmdl
   type(rcm_time_interval) , save :: intbdy
 
-  real(dp) :: declin , deltmx
-  real(dp) :: xbctime
-  real(dp) :: calday , twodt
+  real(rk8) :: declin , deltmx
+  real(rk8) :: xbctime
+  real(rk8) :: calday , twodt
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
   integer(8) :: ktau
@@ -58,53 +59,53 @@ module mod_runparams
   integer(8) :: ntsrf , ntrad
   ! Model timestep in seconds (real and integer)
   integer(8) :: ntsec
-  real(dp) :: dtsec
+  real(rk8) :: dtsec
   ! Internal count for how many SRF outputs every LAK output
-  integer :: klak
+  integer(ik4) :: klak
   ! Internal count for how many SRF outputs per day
   integer(8) :: ksts , kstsoff
   !
   ! Cumulus scheme index
-  integer :: icup
+  integer(ik4) :: icup
   ! Closure index for Grell
-  integer :: igcc
+  integer(ik4) :: igcc
   ! Boundary layer index
-  integer :: ibltyp
+  integer(ik4) :: ibltyp
   ! Lake model activation index
-  integer :: lakemod
+  integer(ik4) :: lakemod
   ! Diurnal cycle SST index
-  integer :: idcsst
+  integer(ik4) :: idcsst
   ! Sea Ice scheme index
-  integer :: iseaice
+  integer(ik4) :: iseaice
   ! Seasonal albedo for desert index
-  integer :: idesseas
+  integer(ik4) :: idesseas
   ! Ocean model switch indexes
-  integer :: iocnrough , iocnflx , iocncpl
+  integer(ik4) :: iocnrough , iocnflx , iocncpl
   ! Radiation switch controls
-  integer :: idirect , iemiss
+  integer(ik4) :: idirect , iemiss
 !
-  real(dp) :: dt , dt2 , dtbdys
-  real(dp) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(dp) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
-  real(dp) :: xkhmax , xkhz
+  real(rk8) :: dt , dt2 , dtbdys
+  real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
+  real(rk8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
+  real(rk8) :: xkhmax , xkhz
 
-  integer :: iboudy , ichem , ipgf , ipptls
+  integer(ik4) :: iboudy , ichem , ipgf , ipptls
 
   logical :: ifrest , rfstrt , doing_restart
 
-  integer :: kchi , kclo , kcmd , cpldbglevel
+  integer(ik4) :: kchi , kclo , kcmd , cpldbglevel
 !
-  real(dp) :: akht1 , akht2
+  real(rk8) :: akht1 , akht2
 
-  real(dp) , pointer , dimension(:) :: dtau
-  real(dp) , pointer , dimension(:) :: hsigma , dsigma , qcon
-  real(dp) , pointer , dimension(:) :: sigma
-  real(dp) , pointer , dimension(:,:) :: twt
+  real(rk8) , pointer , dimension(:) :: dtau
+  real(rk8) , pointer , dimension(:) :: hsigma , dsigma , qcon
+  real(rk8) , pointer , dimension(:) :: sigma
+  real(rk8) , pointer , dimension(:,:) :: twt
 
   character(len=8) :: scenario
 
   integer, private  :: ierr 
-  real(dp) , private :: total_allocation_size
+  real(rk8) , private :: total_allocation_size
 
   data total_allocation_size /d_zero/
   data doing_restart /.false./
@@ -122,19 +123,19 @@ module mod_runparams
   end subroutine allocate_mod_runparams
 !
   logical function iswater(a)
-    real(dp) , intent(in) :: a
+    real(rk8) , intent(in) :: a
     iswater = .false.
     if (a > 13.5D0 .and. a < 15.5D0) iswater = .true.
   end function
 !
   logical function isocean(a)
-    real(dp) , intent(in) :: a
+    real(rk8) , intent(in) :: a
     isocean = .false.
     if (a > 14.5D0 .and. a < 15.5D0) isocean = .true.
   end function
 !
   logical function islake(a)
-    real(dp) , intent(in) :: a
+    real(rk8) , intent(in) :: a
     islake = .false.
     if (a > 13.5D0 .and. a < 14.5D0) islake = .true.
   end function

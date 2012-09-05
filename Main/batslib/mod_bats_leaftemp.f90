@@ -23,6 +23,7 @@ module mod_bats_leaftemp
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
@@ -90,10 +91,10 @@ module mod_bats_leaftemp
 !
   implicit none
 !
-  real(dp) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
+  real(rk8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
            & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
            & xxkb
-  integer :: iter , itfull , itmax , n , i , j
+  integer(ik4) :: iter , itfull , itmax , n , i , j
   !
   !=======================================================================
   ! 1.   setup information
@@ -374,9 +375,9 @@ module mod_bats_leaftemp
 !
   implicit none
 !
-  real(dp) :: difzen , g , radfi , seas , vpdf , rilmax
-  integer :: il , ilmax , n , i , j
-  real(dp) , dimension(10) :: rad , radd
+  real(rk8) :: difzen , g , radfi , seas , vpdf , rilmax
+  integer(ik4) :: il , ilmax , n , i , j
+  real(rk8) , dimension(10) :: rad , radd
 !
 !     ***** seasonal temperature factor
 !     ***** g is average leaf crosssection per unit lai
@@ -478,7 +479,7 @@ module mod_bats_leaftemp
 !
   subroutine frawat
     implicit none
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -527,8 +528,8 @@ module mod_bats_leaftemp
 !
   subroutine root
     implicit none
-    real(dp) :: bneg , rotf , trsmx , wlttb , wltub , wmli
-    integer :: n , i , j
+    real(rk8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
+    integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -569,10 +570,10 @@ module mod_bats_leaftemp
 !
   subroutine satur(qsat,t,p)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) :: p , qsat , t
+    real(rk8) , pointer , dimension(:,:,:) :: p , qsat , t
     intent (in) p , t
     intent (out) qsat
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -602,8 +603,8 @@ module mod_bats_leaftemp
   subroutine lfdrag
     implicit none
 !
-    real(dp) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
-    integer :: n , i , j
+    real(rk8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
+    integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -667,7 +668,7 @@ module mod_bats_leaftemp
 !
   subroutine condch
     implicit none
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     !
     !     csoilc = constant drag coefficient for soil under canopy
     !     symbols used for weights are:   wt : weight
@@ -714,7 +715,7 @@ module mod_bats_leaftemp
 !
   subroutine condcq
     implicit none
-    integer :: n , i , j
+    integer(ik4) :: n , i , j
     !
     !     symbols used for weights are:   wt : weight
     !     a : air
@@ -761,8 +762,8 @@ module mod_bats_leaftemp
 !
   subroutine deriv
     implicit none
-    real(dp) :: dne , hfl , xkb
-    integer :: n , i , j
+    real(rk8) :: dne , hfl , xkb
+    integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -788,10 +789,10 @@ module mod_bats_leaftemp
     end do
   end subroutine deriv
 !
-  real(dp) function fseas(x,ic)
+  real(rk8) function fseas(x,ic)
     implicit none
-    real(dp) , intent(in) :: x
-    integer , intent(in) :: ic
+    real(rk8) , intent(in) :: x
+    integer(ik4) , intent(in) :: ic
     logical , parameter :: lcrop_cutoff = .false.
     if ( lcrop_cutoff ) then
       if ( ic == 1 ) then ! Crop cutoff

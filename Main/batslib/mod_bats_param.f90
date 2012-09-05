@@ -19,20 +19,21 @@
 !
 module mod_bats_param
 !
+  use mod_intkinds
   use mod_realkinds
 
   public
 !
-  real(dp) , dimension(8) :: solour
-  real(dp) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &
+  real(rk8) , dimension(8) :: solour
+  real(rk8) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &
                              deptv , depuv , displa , fc , freza ,  &
                              frezu , rough , rsmin , sai , seasf ,  &
                              sqrtdi , mfcv , xla , xlai0 , rootf ,  &
                              slmo
-  real(dp) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
+  real(rk8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                              xmosuc , xmowil
-  integer , dimension(22) :: iexsol , kolsol
-  real(dp) , parameter :: aarea = 0.02D0
+  integer(ik4) , dimension(22) :: iexsol , kolsol
+  real(rk8) , parameter :: aarea = 0.02D0
   ! 0.005 ccm specific
   ! 0.01  high
   ! 0.04  Antartic
