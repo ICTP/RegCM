@@ -67,10 +67,7 @@ program ncprepare
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth
   logical :: is_model_output = .false.
-#ifdef __PGI
-  integer(ik4) , external :: iargc
-#endif
-#ifdef IBM
+#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
   integer(ik4) , external :: iargc
 #endif
 

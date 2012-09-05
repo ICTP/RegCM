@@ -70,10 +70,7 @@ program sigma2p
   logical :: has_t , has_q
   logical :: make_rh , make_hgt
   integer(ik4) :: n3d , ip3d
-#ifdef __PGI
-  integer(ik4) , external :: iargc
-#endif
-#ifdef IBM 
+#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
   integer(ik4) , external :: iargc
 #endif
 
