@@ -18,14 +18,14 @@
 !-----------------------------------------------------------------------
 !
       type ESM_Time
-        integer :: year                 
-        integer :: month                
-        integer :: day                  
-        integer :: hour                 
-        integer :: minute               
-        integer :: second               
-        integer :: yday              
-        integer :: zone             
+        integer(ik4) :: year                 
+        integer(ik4) :: month                
+        integer(ik4) :: day                  
+        integer(ik4) :: hour                 
+        integer(ik4) :: minute               
+        integer(ik4) :: second               
+        integer(ik4) :: yday              
+        integer(ik4) :: zone             
         character (len=30) :: stamp
       end type ESM_Time
 !
@@ -34,9 +34,9 @@
 !-----------------------------------------------------------------------
 !
       type ESM_Field
-        integer :: fid
-        integer :: gtype        
-        integer :: itype
+        integer(ik4) :: fid
+        integer(ik4) :: gtype        
+        integer(ik4) :: itype
         character (len=40) :: name
         character (len=80) :: long_name
         character (len=80) :: units
@@ -53,8 +53,8 @@
 !-----------------------------------------------------------------------
 !
       type ESM_Mesh
-        integer :: gid
-        integer :: gtype
+        integer(ik4) :: gid
+        integer(ik4) :: gtype
         type(ESM_Field) :: lat
         type(ESM_Field) :: lon
         type(ESM_Field) :: mask
@@ -65,10 +65,10 @@
 !-----------------------------------------------------------------------
 !
       type ESM_Model
-        integer :: mid 
-        integer :: comm
+        integer(ik4) :: mid 
+        integer(ik4) :: comm
         type(ESMF_VM) :: vm 
-        integer :: nproc
+        integer(ik4) :: nproc
         integer, allocatable :: petList(:) 
         type(ESMF_GridComp) :: comp
         type(ESM_Mesh), allocatable :: mesh(:,:)        
@@ -76,8 +76,8 @@
         type(ESMF_DELayout), allocatable :: deLayout(:) 
         type(ESMF_DistGrid), allocatable :: distGrid(:)
         type(ESMF_ArraySpec), allocatable :: arrSpec(:)
-        integer :: nExport
-        integer :: nImport
+        integer(ik4) :: nExport
+        integer(ik4) :: nImport
         type(ESM_Field), allocatable :: dataExport(:,:)
         type(ESM_Field), allocatable :: dataImport(:,:)
         type(ESMF_State) :: stateExport
@@ -108,14 +108,14 @@
 !     Number of nested grid in each model 
 !-----------------------------------------------------------------------
 !
-      integer :: nNest(nModels)
+      integer(ik4) :: nNest(nModels)
 !
 !-----------------------------------------------------------------------
 !     Gridded model indices
 !-----------------------------------------------------------------------
 !
-      integer :: Iatmos  = 1
-      integer :: Iocean  = 2
+      integer(ik4) :: Iatmos  = 1
+      integer(ik4) :: Iocean  = 2
 !
 !-----------------------------------------------------------------------
 !     Staggered grid point indices
@@ -129,23 +129,23 @@
 !-----------------------------------------------------------------------
 !
       character(len=6) :: GRIDDES(4) = (/ "CROSS", "DOT", "U", "V" /)
-      integer :: Icross  = 1
-      integer :: Idot    = 2
-      integer :: Iupoint = 3
-      integer :: Ivpoint = 4
+      integer(ik4) :: Icross  = 1
+      integer(ik4) :: Idot    = 2
+      integer(ik4) :: Iupoint = 3
+      integer(ik4) :: Ivpoint = 4
 !
 !-----------------------------------------------------------------------
 !     Interpolation type        
 !-----------------------------------------------------------------------
 !
-      integer :: Ibilin = 1 
-      integer :: Iconsv = 2
+      integer(ik4) :: Ibilin = 1 
+      integer(ik4) :: Iconsv = 2
 !
 !-----------------------------------------------------------------------
 !     Variables for coupling (direction, import and export variables)  
 !-----------------------------------------------------------------------
 !
-      integer :: DIRECTION
+      integer(ik4) :: DIRECTION
 !
       integer, parameter :: FORWARD_ON   = 1
       integer, parameter :: FORWARD_OFF  = 0
@@ -163,8 +163,8 @@
 !
       character(ESMF_MAXSTR) :: config_fname="regcm.rc"
 !
-      integer :: cpl_dtsec, cpl_dbglevel
-      integer :: ibulk, iregrid
+      integer(ik4) :: cpl_dtsec, cpl_dbglevel
+      integer(ik4) :: ibulk, iregrid
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -232,7 +232,7 @@
 !
 !**********************************************************************
 !
-      integer :: i, j, k, nPets, petNum1, petNum2
+      integer(ik4) :: i, j, k, nPets, petNum1, petNum2
       character(100) :: fmt_123 
       logical :: file_exists
 !
@@ -1011,8 +1011,8 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: iarr(6)
-      integer :: i, nitems, petCount, localPet, comm, mysec, rc
+      integer(ik4) :: iarr(6)
+      integer(ik4) :: i, nitems, petCount, localPet, comm, mysec, rc
       character(len=80) :: timeString, name
 !
 !-----------------------------------------------------------------------
@@ -1201,7 +1201,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i
+      integer(ik4) :: i
 !     
 !-----------------------------------------------------------------------
 !     Find index of specified field
@@ -1231,7 +1231,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i
+      integer(ik4) :: i
 !     
 !-----------------------------------------------------------------------
 !     Find index of specified mesh 
@@ -1262,7 +1262,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, imin, imax, jmin, jmax
+      integer(ik4) :: i, j, imin, imax, jmin, jmax
       character(100) :: fmt_123
 !
 !-----------------------------------------------------------------------
@@ -1294,7 +1294,7 @@
 !     Imported variable declarations 
 !-----------------------------------------------------------------------
 !
-      real(dp), intent(in) :: field(:,:) 
+      real(rk8), intent(in) :: field(:,:) 
       integer, intent(in) :: localPet
       character(len=*), intent(in) :: header
 !

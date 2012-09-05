@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libcum.a
 libcum_a_SOURCES = mod_cu_common.f90 mod_cu_bm.F90 mod_cu_em.f90 \
@@ -39,12 +39,6 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 distclean-local:
 	rm -f *.mod
 
@@ -53,11 +47,11 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_cu_bm.o mod_cu_bm.mod: mod_cu_bm.F90 mod_dynparam.mod mod_realkinds.mod mod_memutil.mod mod_cu_common.mod mod_runparams.mod
-mod_cu_common.o mod_cu_common.mod: mod_cu_common.f90 mod_dynparam.mod mod_memutil.mod mod_realkinds.mod mod_runparams.mod
-mod_cu_em.o mod_cu_em.mod: mod_cu_em.f90 mod_dynparam.mod mod_memutil.mod mod_cu_common.mod mod_runparams.mod
-mod_cu_grell.o mod_cu_grell.mod: mod_cu_grell.F90 mod_dynparam.mod mod_memutil.mod mod_service.mod mod_cu_common.mod mod_runparams.mod
-mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 mod_dynparam.mod mod_memutil.mod mod_cu_common.mod mod_runparams.mod mod_mppparam.mod
-mod_cu_tables.o mod_cu_tables.mod: mod_cu_tables.f90 mod_realkinds.mod mod_constants.mod
-mod_cu_tiedtke.o mod_cu_tiedtke.mod: mod_cu_tiedtke.F90 mod_realkinds.mod mod_dynparam.mod mod_mpmessage.mod mod_memutil.mod mod_constants.mod mod_cu_common.mod mod_cu_tables.mod mod_service.mod mod_runparams.mod
-mod_cu_tiedtke_38r2.o mod_cu_tiedtke_38r2.mod: mod_cu_tiedtke_38r2.F90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod
+mod_cu_bm.o : mod_cu_bm.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_cu_common.o mod_runparams.o
+mod_cu_common.o : mod_cu_common.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_runparams.o
+mod_cu_em.o : mod_cu_em.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_cu_common.o mod_runparams.o
+mod_cu_grell.o : mod_cu_grell.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_service.o mod_cu_common.o mod_runparams.o
+mod_cu_kuo.o : mod_cu_kuo.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_cu_common.o mod_runparams.o mod_mppparam.o
+mod_cu_tables.o : mod_cu_tables.f90 mod_realkinds.o mod_constants.o
+mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_memutil.o mod_constants.o mod_cu_common.o mod_cu_tables.o mod_service.o mod_runparams.o
+mod_cu_tiedtke_38r2.o : mod_cu_tiedtke_38r2.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o

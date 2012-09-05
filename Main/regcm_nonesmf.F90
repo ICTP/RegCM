@@ -31,9 +31,9 @@ program regcm
   implicit none
   include 'mpif.h'
 !
-  real(dp) :: timestr, timeend
+  real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
-  integer :: ierr
+  integer(ik4) :: ierr
 !
 !**********************************************************************
 !

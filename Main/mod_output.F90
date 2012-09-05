@@ -42,7 +42,7 @@ module mod_output
 
   private
 
-  integer :: iolak
+  integer(ik4) :: iolak
   logical :: lskipsrf , lskiprad , lskipche
 
   public :: output , mkfile
@@ -67,7 +67,7 @@ module mod_output
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
   character (len=64) :: subroutine_name='output'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 !
   call time_begin(subroutine_name,idindx)
 !
@@ -499,7 +499,7 @@ module mod_output
   implicit none
 !
 !   character (len=64) :: subroutine_name='outrad'
-!   integer :: idindx=0
+!   integer(ik4) :: idindx=0
 ! 
   call writerec_rad(4,12,frad3d_io,frad2d_io,sfs_io%psa,idatex)
 

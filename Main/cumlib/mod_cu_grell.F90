@@ -19,6 +19,8 @@
 
 module mod_cu_grell
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_service 
@@ -27,34 +29,34 @@ module mod_cu_grell
  
   private
 
-  real(dp) , parameter :: xacact = -0.99999D0
-  real(dp) , parameter :: tcrit = 50.0D0
-  real(dp) , parameter :: c0 = 0.002D0
-  real(dp) :: alsixt
-  real(dp) , dimension(2) :: ae , be
-  real(dp) , pointer , dimension(:,:,:) :: outq , outt , p , po ,  &
+  real(rk8) , parameter :: xacact = -0.99999D0
+  real(rk8) , parameter :: tcrit = 50.0D0
+  real(rk8) , parameter :: c0 = 0.002D0
+  real(rk8) :: alsixt
+  real(rk8) , dimension(2) :: ae , be
+  real(rk8) , pointer , dimension(:,:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
-  real(dp) , pointer , dimension(:,:,:) :: dby , dbyo , dellah ,       &
+  real(rk8) , pointer , dimension(:,:,:) :: dby , dbyo , dellah ,       &
               dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
-  real(dp) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
-  integer , pointer , dimension(:,:) :: kdet
-  integer , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , kds , ktop
-  real(dp) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
+  real(rk8) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
+  integer(ik4) , pointer , dimension(:,:) :: kdet
+  integer(ik4) , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , kds , ktop
+  real(rk8) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
               edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 !
-  real(dp) , public , pointer , dimension(:,:,:) :: mflx
+  real(rk8) , public , pointer , dimension(:,:,:) :: mflx
 !
-  real(dp) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
+  real(rk8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
               edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
               htmin2d
-  integer , public , pointer , dimension(:,:) :: kbmax2d
+  integer(ik4) , public , pointer , dimension(:,:) :: kbmax2d
 !
   public :: allocate_mod_cu_grell , cuparan
 !
@@ -185,13 +187,13 @@ module mod_cu_grell
 !
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
-    real(dp) :: pkdcut , pkk , prainx , us , vs
-    integer :: i , j , k , jp1 , kk
+    real(rk8) :: pkdcut , pkk , prainx , us , vs
+    integer(ik4) :: i , j , k , jp1 , kk
 !
     character (len=64) :: subroutine_name='cuparan'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -374,16 +376,16 @@ module mod_cu_grell
 !
     implicit none
 !
-    real(dp) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
+    real(rk8) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , e , eo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
                tvbar , tvbaro , xk
-    integer :: i , j , k , iph , ipho , kbcono , kclth , kk , lpt
+    integer(ik4) :: i , j , k , iph , ipho , kbcono , kclth , kk , lpt
 !
     character (len=64) :: subroutine_name='cup'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
@@ -1163,15 +1165,15 @@ module mod_cu_grell
 !
        implicit none
 !
-       integer , intent (in) :: ke
-       real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
-       integer , intent(in) , pointer , dimension(:,:) :: ks
-       integer , intent(out) , pointer , dimension(:,:) :: kt
+       integer(ik4) , intent (in) :: ke
+       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
+       integer(ik4) , intent(in) , pointer , dimension(:,:) :: ks
+       integer(ik4) , intent(out) , pointer , dimension(:,:) :: kt
 !
-       integer :: i , j , k
-       real(dp) :: x
+       integer(ik4) :: i , j , k
+       real(rk8) :: x
        character (len=64) :: subroutine_name='minimi'
-       integer :: idindx=0
+       integer(ik4) :: idindx=0
 !
        call time_begin(subroutine_name,idindx)
 !
@@ -1194,15 +1196,15 @@ module mod_cu_grell
 !
       implicit none
 !
-      integer , intent (in) :: ks , ke
-      real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
-      integer , intent(out) , pointer , dimension(:,:) :: imax
+      integer(ik4) , intent (in) :: ks , ke
+      real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
+      integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
 !
-      integer :: i , j , k
-      real(dp) :: x , xar
+      integer(ik4) :: i , j , k
+      real(rk8) :: x , xar
 !
       character (len=64) :: subroutine_name='maximi1'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
       do i = ici1 , ici2
@@ -1226,16 +1228,16 @@ module mod_cu_grell
 !
       implicit none
 !
-      integer , intent (in) :: ks
-      real(dp) , intent(in) , pointer , dimension(:,:,:) :: array
-      integer , intent(in) , pointer , dimension(:,:) :: ke
-      integer , intent(out) , pointer , dimension(:,:) :: imax
+      integer(ik4) , intent (in) :: ks
+      real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
+      integer(ik4) , intent(in) , pointer , dimension(:,:) :: ke
+      integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
 !
-      integer :: i , j , k
-      real(dp) :: x , xar
+      integer(ik4) :: i , j , k
+      real(rk8) :: x , xar
 !
       character (len=64) :: subroutine_name='maximi2'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
       do i = ici1 , ici2

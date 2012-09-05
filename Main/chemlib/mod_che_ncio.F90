@@ -19,6 +19,7 @@
 !
 module mod_che_ncio
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_nchelper
   use mod_dynparam
@@ -37,19 +38,19 @@ module mod_che_ncio
 
   public :: chbc_ivar,n_chbcvar,n_aebcvar
 
-  integer :: istatus
-  integer :: recc
+  integer(ik4) :: istatus
+  integer(ik4) :: recc
 
-  integer , parameter :: n_chevar = 20
-   integer , parameter :: n_oxbcvar = 5
-  integer , parameter :: n_optvar = 10
-  integer , parameter :: n_chbcvar = 25
-  integer :: n_aebcvar
-  integer :: ichin  , iaein, ioxin
+  integer(ik4) , parameter :: n_chevar = 20
+   integer(ik4) , parameter :: n_oxbcvar = 5
+  integer(ik4) , parameter :: n_optvar = 10
+  integer(ik4) , parameter :: n_chbcvar = 25
+  integer(ik4) :: n_aebcvar
+  integer(ik4) :: ichin  , iaein, ioxin
 
-  integer , dimension(:) , pointer :: ncche     
-  integer , dimension(n_chevar) :: ichevar
-  integer , dimension(n_optvar) ::ioptvar 
+  integer(ik4) , dimension(:) , pointer :: ncche     
+  integer(ik4) , dimension(n_chevar) :: ichevar
+  integer(ik4) , dimension(n_optvar) ::ioptvar 
 
   character(len=8) , dimension(n_chbcvar) :: chbcname
   character(len=8) , dimension(n_oxbcvar) :: oxbcname
@@ -61,33 +62,33 @@ module mod_che_ncio
   character(len=8) , target , dimension(12) :: aeaero
 
   character(len=8) , pointer , dimension(:) :: aebcname
-  integer , dimension(n_chbcvar) :: chbc_ivar
-  integer , dimension(n_oxbcvar) :: oxbc_ivar
+  integer(ik4) , dimension(n_chbcvar) :: chbc_ivar
+  integer(ik4) , dimension(n_oxbcvar) :: oxbc_ivar
 
-  integer , dimension(:) , pointer :: aebc_ivar
+  integer(ik4) , dimension(:) , pointer :: aebc_ivar
   
   type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
   type(rcm_time_and_date) , save :: icherefdate
-  integer , dimension(9) :: idims 
-  integer ::idmin , icherec , ioptrec
-  integer :: ibcrec , ibcnrec
-  real(dp) :: tpd , cfd
-  real(dp) :: rpt
+  integer(ik4) , dimension(9) :: idims 
+  integer(ik4) ::idmin , icherec , ioptrec
+  integer(ik4) :: ibcrec , ibcnrec
+  real(rk8) :: tpd , cfd
+  real(rk8) :: rpt
 
-  integer :: o_is
-  integer :: o_ie
-  integer :: o_js
-  integer :: o_je
-  integer :: o_ni
-  integer :: o_nj
-  integer :: o_nz
+  integer(ik4) :: o_is
+  integer(ik4) :: o_ie
+  integer(ik4) :: o_js
+  integer(ik4) :: o_je
+  integer(ik4) :: o_ni
+  integer(ik4) :: o_nj
+  integer(ik4) :: o_nz
   logical :: lwrap  
   character(256) :: dname , icbcname
-  real(sp) , dimension(:,:) , pointer :: ioxlat
-  real(sp) , dimension(:,:) , pointer :: ioxlon
-  real(sp) , dimension(:,:) , pointer :: iotopo
-  real(sp) , dimension(:,:) , pointer :: iomask
-  real(sp) , dimension(:,:,:) , pointer :: dumio
+  real(rk4) , dimension(:,:) , pointer :: ioxlat
+  real(rk4) , dimension(:,:) , pointer :: ioxlon
+  real(rk4) , dimension(:,:) , pointer :: iotopo
+  real(rk4) , dimension(:,:) , pointer :: iomask
+  real(rk4) , dimension(:,:,:) , pointer :: dumio
 
   data ichin   /-1/
   data iaein   /-1/
@@ -178,15 +179,15 @@ module mod_che_ncio
 
     subroutine read_texture(nats,texture)
       implicit none
-      integer , intent(in) :: nats
-      real(dp) , pointer , dimension(:,:,:) , intent(out) :: texture
+      integer(ik4) , intent(in) :: nats
+      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: texture
 
-      integer :: ivarid
-      integer :: i , j , n
-      integer :: idmin
-      integer , dimension(3) :: istart , icount
+      integer(ik4) :: ivarid
+      integer(ik4) :: i , j , n
+      integer(ik4) :: idmin
+      integer(ik4) , dimension(3) :: istart , icount
       character(256) :: dname
-      real(sp), dimension(jx,iy) ::  toto
+      real(rk4), dimension(jx,iy) ::  toto
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       istatus = nf90_open(dname, nf90_nowrite, idmin)
@@ -218,14 +219,14 @@ module mod_che_ncio
 
     subroutine read_emission(lyear,lmonth,echemsrc)
       implicit none
-      integer , intent(in) :: lyear , lmonth
-      real(dp) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      integer(ik4) , intent(in) :: lyear , lmonth
+      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       character(256) :: aername
-      integer :: n,ncid , itvar, idimid, chmnrec
+      integer(ik4) :: n,ncid , itvar, idimid, chmnrec
       character(64) ::chemi_timeunits
-      real(dp) , dimension(:) , allocatable :: emtimeval
-      integer , dimension(4) :: istart , icount
-      integer :: year, month 
+      real(rk8) , dimension(:) , allocatable :: emtimeval
+      integer(ik4) , dimension(4) :: istart , icount
+      integer(ik4) :: year, month 
 
       ! FAB: remember for now, we have 1 emission file containing all monthly
       ! emission for the whole simulation period 
@@ -410,17 +411,17 @@ module mod_che_ncio
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,cnb,cnc,cnd)
       implicit none
-      integer , intent(in) :: ncid
-      integer , dimension(4) , intent(in) :: istart , icount
-      real(dp) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      integer(ik4) , intent(in) :: ncid
+      integer(ik4) , dimension(4) , intent(in) :: istart , icount
+      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb
       character(len=*) , intent(in) , optional :: cnc
       character(len=*) , intent(in) , optional :: cnd
-      integer :: ivarid 
-      real(sp) , dimension(jx,iy) :: toto
-      integer :: i , j , ind
+      integer(ik4) :: ivarid 
+      real(rk4) , dimension(jx,iy) :: toto
+      integer(ik4) :: i , j , ind
 
       istatus = nf90_inq_varid(ncid, cna, ivarid)
       call check_ok(__FILE__,__LINE__, &
@@ -500,19 +501,19 @@ module mod_che_ncio
       character(32) :: fbname
       character(16) :: fterr
       character(256) :: ofname
-      real(sp) :: hptop
-      real(sp) , dimension(iysg) :: yiy
-      real(sp) , dimension(jxsg) :: xjx
-      integer :: ncid
-      integer , dimension(3) :: izvar
-      integer , dimension(2) :: ivvar
-      integer , dimension(5) :: illtpvar
-      integer :: itvar , i , j
-      integer :: noutf
+      real(rk4) :: hptop
+      real(rk4) , dimension(iysg) :: yiy
+      real(rk4) , dimension(jxsg) :: xjx
+      integer(ik4) :: ncid
+      integer(ik4) , dimension(3) :: izvar
+      integer(ik4) , dimension(2) :: ivvar
+      integer(ik4) , dimension(5) :: illtpvar
+      integer(ik4) :: itvar , i , j
+      integer(ik4) :: noutf
       character(len=129) :: cdum
 
-      integer , dimension(9) :: tyx
-      integer , dimension(9) :: tzyx
+      integer(ik4) , dimension(9) :: tyx
+      integer(ik4) , dimension(9) :: tzyx
           
       character(len=36) :: ctime
 
@@ -952,16 +953,16 @@ module mod_che_ncio
 
     subroutine ch_addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss,ivar)
       implicit none
-      integer , intent(in) :: ncid
+      integer(ik4) , intent(in) :: ncid
       character(3) , intent(in) :: ctype
       character(len=*) , intent(in) :: vname
       character(len=*) , intent(in) :: vst , vln , vuni
-      integer , dimension(5) , intent(in) :: idims
+      integer(ik4) , dimension(5) , intent(in) :: idims
       logical , intent(in) :: lmiss
-      integer , intent(out) :: ivar
+      integer(ik4) , intent(out) :: ivar
       character(64) :: cdum
-      real(sp) , parameter :: fillv = +1E+20
-      integer :: i , ndims
+      real(rk4) , parameter :: fillv = +1E+20
+      integer(ik4) :: i , ndims
        
       ndims = 0
       do i = 1 , 5
@@ -1013,22 +1014,22 @@ module mod_che_ncio
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
-      real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: chia , &
+      real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: chia , &
              chemdiag , cadvhdiag , cadvvdiag , cdifhdiag , cconvdiag , &
              cbdydiag , ctbldiag , remlsc , remcvc  ,cseddpdiag
-      real(dp) , pointer , dimension(:,:,:) , intent(in) :: ccuwdiag
-      real(dp) , pointer , dimension(:,:) , intent(in) :: ps
-      real(dp) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
+      real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ccuwdiag
+      real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
+      real(rk8) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         remdrd , cemtrac , drydepv , dtrace
-      real(dp) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
-      real(dp) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , aod , &
+      real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
+      real(rk8) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , aod , &
                                                           talwrf , srlwrf
-      integer :: n , k , noutf
-      integer , dimension(5) :: istart , icount
-      real(dp) , dimension(1) :: nctime
+      integer(ik4) :: n , k , noutf
+      integer(ik4) , dimension(5) :: istart , icount
+      real(rk8) , dimension(1) :: nctime
       type(rcm_time_interval) :: tdif
       character(len=36) :: ctime
-      real(dp) :: cfd2
+      real(rk8) :: cfd2
 
       noutf = ntr
 
@@ -1363,8 +1364,8 @@ module mod_che_ncio
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       character(10) :: ctime
-      integer :: ibcid , idimid , itvar , i , chkdiff
-      real(dp) , dimension(:) , allocatable :: icbc_nctime
+      integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
+      real(rk8) , dimension(:) , allocatable :: icbc_nctime
       character(64) :: icbc_timeunits , icbc_timecal
 
       call close_chbc
@@ -1460,10 +1461,10 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(dp) , dimension (:,:,:,:), intent(out) :: chebdio 
-      integer , dimension(4) :: istart , icount
-      real(sp) , dimension(jx,iy,kz) :: xread
-      integer :: i , j , k, n , iafter
+      real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio 
+      integer(ik4) , dimension(4) :: istart , icount
+      real(rk4) , dimension(jx,iy,kz) :: xread
+      integer(ik4) :: i , j , k, n , iafter
       istart(4) = ibcrec
       istart(3) = 1
       istart(2) = 1
@@ -1540,7 +1541,7 @@ module mod_che_ncio
     subroutine check_ok(f,l,m1,mf)
       implicit none
       character(*) , intent(in) :: f, m1 , mf
-      integer , intent(in) :: l
+      integer(ik4) , intent(in) :: l
       if (istatus /= nf90_noerr) then
         write (6,*) trim(m1)
         write (6,*) nf90_strerror(istatus)

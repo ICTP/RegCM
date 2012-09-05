@@ -65,6 +65,7 @@
 
 module mod_pbl_uwtcm
 
+  use mod_intkinds
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
@@ -77,56 +78,56 @@ module mod_pbl_uwtcm
 
   private
 
-  real(dp) , parameter , public :: nuk = 5.0D0 ! multiplier for kethl
-  integer , public :: ktmin = 3
+  real(rk8) , parameter , public :: nuk = 5.0D0 ! multiplier for kethl
+  integer(ik4) , public :: ktmin = 3
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls
-  real(dp) , parameter :: xfr = 0.1D0
+  real(rk8) , parameter :: xfr = 0.1D0
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
-  real(dp) , parameter :: aone = 1.9D0*xfr
+  real(rk8) , parameter :: aone = 1.9D0*xfr
   ! b1/2**(3/2) from Mellor and Yamada (1982)
-  real(dp) , parameter :: czero = 5.869D0
-  real(dp) , parameter :: rcrit = 0.3D0
-  real(dp) , parameter :: etal =  0.085D0
+  real(rk8) , parameter :: czero = 5.869D0
+  real(rk8) , parameter :: rcrit = 0.3D0
+  real(rk8) , parameter :: etal =  0.085D0
 
   ! These two parameters can be set in the regcm.in file, so don't set them
   ! here as it will overwrite the values read in from the regcm.in file.
   ! Settable model constants that need default values set
-  real(dp) :: rstbl = 1.5D0
-  real(dp) :: atwo = 15.0D0
+  real(rk8) :: rstbl = 1.5D0
+  real(rk8) :: atwo = 15.0D0
         
   ! Variables that hold frequently-done calculations
-  real(dp) :: rcp , rczero
+  real(rk8) :: rcp , rczero
 
   ! local variables on full levels
-  real(dp) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
+  real(rk8) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
                  bouyan , rdza , dza , svs , presfl , exnerfl ,   &
                  shear , rexnerfl , rcldb , epop , sm , sh, kchi
 
   ! local variables on half levels
-  real(dp) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
+  real(rk8) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
                  zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
                  rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2
-  real(dp) , pointer , dimension(:,:) :: chix, chixs
+  real(rk8) , pointer , dimension(:,:) :: chix, chixs
 
-  integer , pointer , dimension(:) :: isice , ktop , kbot
+  integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
 
   ! local scalars
-  real(dp) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
+  real(rk8) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
               dvdz , rvls , thv0 , dthv , psbx , templ , temps ,     &
               cell , thgb , pblx , ustxsq , qfxx , hfxx , dth ,      &
               uvdragx , thvflx , kh0 , q0s
-  real(dp) , pointer , dimension(:) :: chifxx
+  real(rk8) , pointer , dimension(:) :: chifxx
 
-  integer :: kpbl2dx  ! Top of PBL
-  integer :: kmix2dx  ! Top of mixed layer (decoupled layer)
+  integer(ik4) :: kpbl2dx  ! Top of PBL
+  integer(ik4) :: kmix2dx  ! Top of mixed layer (decoupled layer)
 
-  integer :: imethod , itbound , ilenparam , iuwvadv
+  integer(ik4) :: imethod , itbound , ilenparam , iuwvadv
 
   public :: init_mod_pbl_uwtcm , uwtcm , rstbl , atwo , ilenparam , iuwvadv
 
@@ -231,9 +232,9 @@ module mod_pbl_uwtcm
   subroutine uwtcm
     implicit none
 
-    integer ::  i , j , k, itr
-    integer :: ilay ! layer index
-    integer :: iconv , iteration
+    integer(ik4) ::  i , j , k, itr
+    integer(ik4) :: ilay ! layer index
+    integer(ik4) :: iconv , iteration
 
     !Main do loop
     iloop: &
@@ -747,12 +748,12 @@ module mod_pbl_uwtcm
     ! see http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
     ! Written and validated by Travis A. O'Brien 01/04/11
     implicit none
-    integer , intent(in) :: n
-    real(dp) , dimension(n) , intent(in) :: a , b , c , v
-    real(dp) , dimension(n) , intent(out) :: x
-    real(dp) , dimension(n) :: bp , vp
-    real(dp) :: m
-    integer :: i
+    integer(ik4) , intent(in) :: n
+    real(rk8) , dimension(n) , intent(in) :: a , b , c , v
+    real(rk8) , dimension(n) , intent(out) :: x
+    real(rk8) , dimension(n) :: bp , vp
+    real(rk8) :: m
+    integer(ik4) :: i
 
     bp(1) = b(1)
     vp(1) = v(1)
@@ -773,11 +774,11 @@ module mod_pbl_uwtcm
 
   subroutine n2(thlxin,qwxin,kmax)
     implicit none
-    integer , intent(in) :: kmax
-    real(dp) , intent(in) , dimension(kmax) :: thlxin , qwxin
+    integer(ik4) , intent(in) :: kmax
+    real(rk8) , intent(in) , dimension(kmax) :: thlxin , qwxin
     ! local variables
-    real(dp) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
-    integer :: k
+    real(rk8) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
+    integer(ik4) :: k
 
     kloop: &
     do k = 2 , kmax
@@ -813,13 +814,13 @@ module mod_pbl_uwtcm
   subroutine my(kmax,iconv)
     ! see gb01 and mbg02
     implicit none
-    integer , intent(in) :: kmax , iconv
+    integer(ik4) , intent(in) :: kmax , iconv
     ! local variables
-    real(dp) :: gh , a1ob1 , delthvl , elambda , bige , biga
-    real(dp) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
+    real(rk8) :: gh , a1ob1 , delthvl , elambda , bige , biga
+    real(rk8) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
                             a2 = 0.74D0 , b2 = 10.1D0
-    integer :: k , ilay
-    real(dp) :: kthmax
+    integer(ik4) :: k , ilay
+    real(rk8) :: kthmax
 
     a1ob1 = a1/b1
 
@@ -909,11 +910,11 @@ module mod_pbl_uwtcm
     ! see mbg02
     implicit none
     ! input variables
-    integer , intent(in) :: kmax
-    integer , intent(out) :: iconv
+    integer(ik4) , intent(in) :: kmax
+    integer(ik4) , intent(out) :: iconv
     ! local variables
-    integer :: istabl , ibeg , ilay , nlev , k , itemp
-    real(dp) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
+    integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp
+    real(rk8) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
                 elambda , bige , biga , entnnll , tbbls , lambdal
 
     ! find noncontiguous convectively unstable layers
@@ -1105,9 +1106,9 @@ module mod_pbl_uwtcm
   ! Modified from Buck (1981), J. App. Met. v 20
   function esatw(p,t)
     implicit none
-    real(dp) , intent(in) :: p , t
-    real(dp) :: esatw
-    real(dp) :: dum , arg , tdum
+    real(rk8) , intent(in) :: p , t
+    real(rk8) :: esatw
+    real(rk8) :: dum , arg , tdum
     ! Limit T to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of T and QV from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -1124,9 +1125,9 @@ module mod_pbl_uwtcm
   ! Modified from Buck (1981), J. App. Met. v 20
   function esati(p,t)
     implicit none
-    real(dp) , intent(in) :: p , t
-    real(dp) :: esati
-    real(dp) :: dum , arg , tdum
+    real(rk8) , intent(in) :: p , t
+    real(rk8) :: esati
+    real(rk8) :: dum , arg , tdum
     ! Limit T to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of T and QV from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -1141,14 +1142,14 @@ module mod_pbl_uwtcm
   subroutine pblhgt_tao(kmax,iconv)
     implicit none
     ! input variables
-    integer , intent(in) :: kmax
-    integer , intent(out) :: iconv
+    integer(ik4) , intent(in) :: kmax
+    integer(ik4) , intent(out) :: iconv
 
-    real(dp) , dimension(kmax) :: ktimesz
-    real(dp) :: lambda
+    real(rk8) , dimension(kmax) :: ktimesz
+    real(rk8) :: lambda
     logical , dimension(kmax) :: isSaturated1D , isStable1D , isBelow7001D
     logical :: foundlayer
-    integer :: k
+    integer(ik4) :: k
 
     isSaturated1D = .false.
     isStable1D = .false.

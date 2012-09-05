@@ -17,6 +17,6 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_clm_void
+module mod_clm_void
 
-      end module mod_clm_void
+end module mod_clm_void

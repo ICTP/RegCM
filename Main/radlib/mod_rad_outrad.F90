@@ -19,6 +19,8 @@
 
 module mod_rad_outrad
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
   use mod_rad_common
@@ -29,12 +31,12 @@ module mod_rad_outrad
   public :: allocate_mod_rad_outrad , radout
   public :: nrad2d , nrad3d
 
-  integer , parameter :: nrad2d = 24
-  integer , parameter :: nrad3d = 5
-  integer :: npr
+  integer(ik4) , parameter :: nrad2d = 24
+  integer(ik4) , parameter :: nrad3d = 5
+  integer(ik4) :: npr
 
-  real(sp) , pointer , dimension(:,:,:) :: frad2d
-  real(sp) , pointer , dimension(:,:,:,:) :: frad3d
+  real(rk4) , pointer , dimension(:,:,:) :: frad2d
+  real(rk4) , pointer , dimension(:,:,:,:) :: frad3d
 
   contains
 
@@ -89,13 +91,13 @@ module mod_rad_outrad
 ! fsds     - Flux Shortwave Downwelling Surface
 !
     logical , intent(in) :: lout ! Preapre data for outfile
-    real(dp) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
+    real(rk8) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
                 fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,      &
                 solld , sols , solsd , totcf , totcl , totci , abv , sol
-    real(dp) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
-    real(dp) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
-    real(dp) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
+    real(rk8) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
+    real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
+    real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
     intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&
                 clwp , firtp , frla , frsa , fsds , fsnirt ,      &
                 fsnirtsq , fsnrtc , h2ommr , qrl , qrs , sabtp ,  &
@@ -103,8 +105,8 @@ module mod_rad_outrad
                 totcf , totcl , totci , aeradfo , aeradfos,       &
                 aerlwfo , aerlwfos
 !
-    integer :: i , j , k , n
-    real(dp) :: rntim
+    integer(ik4) :: i , j , k , n
+    real(rk8) :: rntim
     !
     ! total heating rate in deg/s
     !

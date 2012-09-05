@@ -21,8 +21,9 @@
 !
 ! Tendency and budget for tracer transport and chemicals
 !
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_dynparam
   use mod_runparams , only : iqv , iqc
   use mod_mppparam
@@ -52,31 +53,31 @@
 !
     subroutine tractend2(ktau,lyear,lmonth,lday,secofday,calday,declin)
       implicit none
-      integer , intent(in) :: lmonth , lday , lyear
-      real(dp), intent(in) :: secofday,calday,declin
-      integer(8) , intent(in) :: ktau
+      integer(ik4) , intent(in) :: lmonth , lday , lyear
+      real(rk8), intent(in) :: secofday,calday,declin
+      integer(ik8) , intent(in) :: ktau
 !
-      real(dp) :: facb , facs , fact , facv , pres10 , qsat10 , &
+      real(rk8) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   satvp , shu10 , u10 , v10
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
+      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
                                                       convprec
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
-      integer , dimension(ici1:ici2,jci1:jci2) :: ivegcov
-      real(dp) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
-      real(dp) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
-      real(dp) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
+      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
+      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
+      integer(ik4) , dimension(ici1:ici2,jci1:jci2) :: ivegcov
+      real(rk8) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
+      real(rk8) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
+      real(rk8) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
                  srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
                  hsurf
-      real(dp) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
-      real(dp) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
+      real(rk8) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
+      real(rk8) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
-!      real(dp) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
+      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
+!      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
 
-      integer :: i , j , ibin , k
-      integer(8) :: kchsolv
+      integer(ik4) :: i , j , ibin , k
+      integer(ik8) :: kchsolv
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS

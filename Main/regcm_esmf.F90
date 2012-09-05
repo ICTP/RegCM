@@ -37,7 +37,7 @@
 !-----------------------------------------------------------------------
 !
       logical :: first
-      integer :: i, j, localPet, petCount, comm, rc
+      integer(ik4) :: i, j, localPet, petCount, comm, rc
       character (len=80) :: str1, str2
 !
 !-----------------------------------------------------------------------

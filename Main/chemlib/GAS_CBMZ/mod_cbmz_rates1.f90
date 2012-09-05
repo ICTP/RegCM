@@ -19,6 +19,7 @@
 
 module mod_cbmz_rates1
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_cbmz_chemvars
@@ -121,21 +122,21 @@ module mod_cbmz_rates1
 !
       implicit none
       ! Reaction counters
-      integer :: nr1
+      integer(ik4) :: nr1
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: j
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: cgamma(c_kvec) ! General vector variable
+      integer(ik4) :: j
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: cgamma(c_kvec) ! General vector variable
       ! temperature K
-      real(dp) :: tempx
+      real(rk8) :: tempx
       ! density, molec/cm3
-      real(dp) :: denx
+      real(rk8) :: denx
       ! Function: 3-bodyreaction rate cm3-sec
-    !  real(dp) :: bod
+    !  real(rk8) :: bod
       ! Function: RNO3 yield from RO2+NO
-    !  real(dp) :: ytn
+    !  real(rk8) :: ytn
 
       kk = 1
       !
@@ -415,9 +416,9 @@ module mod_cbmz_rates1
 !
       implicit none
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: j , ij
+      integer(ik4) :: j , ij
 !
 !   hvrate(kk, 56)    Interpolated hv rates averaged over time interval.
 !                                      (sec-1)
@@ -432,18 +433,18 @@ module mod_cbmz_rates1
 !   zen(kk)           Zenith angle (degrees) (90=horizon)
 !
       ! Interp hv over time interval
-      real(dp) :: hvrate(c_kvec,56)
+      real(rk8) :: hvrate(c_kvec,56)
       ! j-value output from jval2.f
-      real(dp) :: jval(56)
+      real(rk8) :: jval(56)
       ! Partition btwen time intervals
-      real(dp) :: fhvint
+      real(rk8) :: fhvint
       ! Counter for time intervals
-      integer :: ihour
+      integer(ik4) :: ihour
       ! Number of time intervals
-      integer :: ihvint
+      integer(ik4) :: ihvint
       ! Species index for hv array
-      integer :: jc
-      real(dp) :: xhouro
+      integer(ik4) :: jc
+      real(rk8) :: xhouro
 !
       kk = 1
       !
@@ -564,31 +565,31 @@ module mod_cbmz_rates1
 !
 ! Output reaction rate in cm3-sec
 !
-    real(dp) function bod(u,b,c,d,e,tempx,denx)
+    real(rk8) function bod(u,b,c,d,e,tempx,denx)
 !
       implicit none
 !
       ! ko(300) = Low pressure limit at 300 K.
-      real(dp) , intent(in) :: b
+      real(rk8) , intent(in) :: b
       ! exponent for temperature, -n in JPL.
-      real(dp) , intent(in) :: c
+      real(rk8) , intent(in) :: c
       ! kinf(300), High pressure limit at 300 K
-      real(dp) , intent(in) :: d
+      real(rk8) , intent(in) :: d
       ! exponent for temperature, -m in JPL.
-      real(dp) , intent(in) :: e
+      real(rk8) , intent(in) :: e
       ! Fc, base for log-T-P adjustment (0.6)
-      real(dp) , intent(in) :: u
+      real(rk8) , intent(in) :: u
       ! temperature K
-      real(dp) , intent(in) :: tempx
+      real(rk8) , intent(in) :: tempx
       ! density, molec/cm3
-      real(dp) , intent(in) :: denx
+      real(rk8) , intent(in) :: denx
 !
       ! Interim parameter
-      real(dp) :: f1
+      real(rk8) :: f1
       ! Interim parameter
-      real(dp) :: f2
+      real(rk8) :: f2
       ! Interim parameter
-      real(dp) :: ee
+      real(rk8) :: ee
 !
 !     f1 = b*(tempx**c)*denx
 !     f2 = f1 / (d*(tempx**e))
@@ -622,20 +623,20 @@ module mod_cbmz_rates1
 !
 ! -------------------------------------------------------------------
 !
-    real(dp) function ytn(c,tempx,denx)
+    real(rk8) function ytn(c,tempx,denx)
 !
       implicit none
       ! Number of carbon atoms in RO2
-      real(dp) , intent(in) :: c
+      real(rk8) , intent(in) :: c
       ! temperature K
-      real(dp) , intent(in) :: tempx
+      real(rk8) , intent(in) :: tempx
       ! density, molec/cm3
-      real(dp) , intent(in) :: denx
+      real(rk8) , intent(in) :: denx
 !
-      real(dp) :: x
-      real(dp) :: y
-      real(dp) :: z
-      real(dp) , parameter :: par = 4.3D-25
+      real(rk8) :: x
+      real(rk8) :: y
+      real(rk8) :: z
+      real(rk8) , parameter :: par = 4.3D-25
 
       x = par*tempx*dexp(1.08D0*c)*denx*(300.0D0/tempx)**5.05D0
       y = 0.384D0*(300.0D0/tempx)**4.16D0

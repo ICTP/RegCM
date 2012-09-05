@@ -70,7 +70,7 @@ module mod_bats_zengocn
 !
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                 t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi

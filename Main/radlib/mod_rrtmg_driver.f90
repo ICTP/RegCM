@@ -22,6 +22,7 @@
 
 module mod_rrtmg_driver
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
@@ -43,53 +44,53 @@ module mod_rrtmg_driver
 !
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
-  real(dp) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
+  real(rk8) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
          clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,  &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
          asdif , aldir , aldif , czen , dlat , xptrop
 
-  real(dp) , pointer , dimension(:,:) :: qrs , qrl , clwp_int ,     &
+  real(rk8) , pointer , dimension(:,:) :: qrs , qrl , clwp_int ,     &
          cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr , &
          ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  &
          ccl4vmr , reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , &
          rei , rel,cldf , lwhr , lwhrc , duflx_dt , duflxc_dt
 
-  real(dp) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
+  real(rk8) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
          swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,       &
          swddiruviflx , swddifuviflx , swddirpirflx , swddifpirflx ,     &
          swdvisflx
 
-  real(dp) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
+  real(rk8) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
          asmcmcl , fsfcmcl , ciwpmcl , clwpmcl 
-  real(dp) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
+  real(rk8) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
          ciwpmcl_lw , clwpmcl_lw
 
-  real(dp) , pointer , dimension(:) :: aeradfo , aeradfos
-  real(dp) , pointer , dimension(:) :: aerlwfo , aerlwfos
-  real(dp) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
+  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
+  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
+  real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
          cfc11mmr , cfc12mmr , deltaz
 
-  integer , pointer , dimension(:) :: ioro
+  integer(ik4) , pointer , dimension(:) :: ioro
 
   ! spectral dependant quantities
 
-  real(dp) , pointer , dimension(:,:,:) :: tauaer , ssaaer , asmaer , ecaer
+  real(rk8) , pointer , dimension(:,:,:) :: tauaer , ssaaer , asmaer , ecaer
   ! tauc = in-cloud optical depth
   ! ssac = in-cloud single scattering albedo (non-delta scaled)
   ! asmc = in-cloud asymmetry parameter (non-delta scaled)
   ! fsfc = in-cloud forward scattering fraction (non-delta scaled)
-  real(dp) , pointer , dimension(:,:,:) :: tauc , ssac , asmc , fsfc
-  real(dp) , pointer , dimension(:,:) :: emis_surf
-  real(dp) , pointer , dimension(:,:,:) :: tauc_lw
-  real(dp) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer :: npr , kth , ktf , kclimf , kclimh
+  real(rk8) , pointer , dimension(:,:,:) :: tauc , ssac , asmc , fsfc
+  real(rk8) , pointer , dimension(:,:) :: emis_surf
+  real(rk8) , pointer , dimension(:,:,:) :: tauc_lw
+  real(rk8) , pointer , dimension(:,:,:) :: tauaer_lw
+  integer(ik4) :: npr , kth , ktf , kclimf , kclimh
 
   contains
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-    integer :: k
+    integer(ik4) :: k
 
     npr = (jci2-jci1+1)*(ici2-ici1+1)
 
@@ -228,14 +229,14 @@ module mod_rrtmg_driver
   subroutine rrtmg_driver(iyear,eccf,lout)
     implicit none
 
-    integer , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear
     logical, intent(in) :: lout
-    real(dp), intent(in) :: eccf
+    real(rk8), intent(in) :: eccf
 !
 !   local variables
 !
-    integer :: dyofyr , permuteseed , iplon , k , kj , n , i , j
-    real(dp) :: adjes
+    integer(ik4) :: dyofyr , permuteseed , iplon , k , kj , n , i , j
+    real(rk8) :: adjes
 
 !-----------------------------------------------------------------------
 
@@ -390,12 +391,12 @@ module mod_rrtmg_driver
 !
     implicit none
 !
-    integer , intent(in) :: iyear , inflagsw
-    real(dp) :: ccvtem , clwtem , w1 , w2
-    integer :: i , j , k , kj , ncldm1 , ns , n , jj0 , jj1 , jj2
-    real(dp) , parameter :: lowcld = 1.0D-30
-    real(dp) , parameter :: verynearone = 0.999999D0
-    real(dp) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
+    integer(ik4) , intent(in) :: iyear , inflagsw
+    real(rk8) :: ccvtem , clwtem , w1 , w2
+    integer(ik4) :: i , j , k , kj , ncldm1 , ns , n , jj0 , jj1 , jj2
+    real(rk8) , parameter :: lowcld = 1.0D-30
+    real(rk8) , parameter :: verynearone = 0.999999D0
+    real(rk8) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
 !
 !   Set index for cloud particle properties based on the wavelength,
 !   according to A. Slingo (1989) equations 1-3:
@@ -433,13 +434,13 @@ module mod_rrtmg_driver
 !   bbari    - b coefficient for extinction o
 !
     integer, dimension (nbndsw) :: indsl
-    real(dp) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
+    real(rk8) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
                                 cbarl , dbari , dbarl , ebari , ebarl , &
                                 fbari , fbarl
-    real(dp) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
+    real(rk8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli 
 
-    real(dp) , parameter :: c287 = 0.287D+00
+    real(rk8) , parameter :: c287 = 0.287D+00
 !
     data abarl / 2.817D-02 ,  2.682D-02 , 2.264D-02 , 1.281D-02/
     data bbarl / 1.305D+00 ,  1.346D+00 , 1.454D+00 , 1.641D+00/
@@ -834,24 +835,24 @@ module mod_rrtmg_driver
   subroutine cldefr_rrtm(t,rel,rei,fice,pmid)
     implicit none
 !
-    real(dp) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
+    real(rk8) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
     intent (in) pmid , t
     intent (out) fice , rei , rel
 !
-    integer :: k , n
-    real(dp) :: pnrml , rliq , weight
+    integer(ik4) :: k , n
+    real(rk8) :: pnrml , rliq , weight
 !
 !   reimax - maximum ice effective radius
-    real(dp) , parameter :: reimax = 30.0D0
+    real(rk8) , parameter :: reimax = 30.0D0
 !   rirnge - range of ice radii (reimax - 10 microns)
-    real(dp) , parameter :: rirnge = 20.0D0
+    real(rk8) , parameter :: rirnge = 20.0D0
 !   pirnge - nrmlzd pres range for ice particle changes
-    real(dp) , parameter :: pirnge = 0.4D0
+    real(rk8) , parameter :: pirnge = 0.4D0
 !   picemn - normalized pressure below which rei=reimax
-    real(dp) , parameter :: picemn = 0.4D0
+    real(rk8) , parameter :: picemn = 0.4D0
 !   Temperatures in K (263.16 , 243.16)
-    real(dp) , parameter :: minus10 = wattp-d_10
-    real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
+    real(rk8) , parameter :: minus10 = wattp-d_10
+    real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
 !
     do k = 1 , kz
       do n = 1 , npr

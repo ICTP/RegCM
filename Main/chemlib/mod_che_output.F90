@@ -19,6 +19,8 @@
 
 module mod_che_output
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_mpmessage
   use mod_mppparam
@@ -45,9 +47,9 @@ module mod_che_output
       ! but are outputed if CHE is active !
       ! that is why they need to pass as argument here (an other option
       ! would be to define an interface)!! 
-      real(dp) , pointer , dimension(:,:,:)  :: aerext , aerssa , &
+      real(rk8) , pointer , dimension(:,:,:)  :: aerext , aerssa , &
                                               aerasp
-      real(dp) , pointer , dimension(:,:)  :: aertarf , aersrrf , &
+      real(rk8) , pointer , dimension(:,:)  :: aertarf , aersrrf , &
                                               aertalwrf , aersrlwrf            
  
       call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)

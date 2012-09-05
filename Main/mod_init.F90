@@ -51,8 +51,8 @@ module mod_init
 !
   public :: init
 !
-  real(dp) , parameter :: tlp = 50.0D0
-  real(dp) , parameter :: ts00 = 288.0D0
+  real(rk8) , parameter :: tlp = 50.0D0
+  real(rk8) , parameter :: ts00 = 288.0D0
 !
   contains
 !
@@ -67,12 +67,12 @@ module mod_init
   implicit none
   include 'mpif.h'
 !
-  integer :: i , j , k , n , ist
-  real(dp) :: hg1 , hg2 , hg3 , hg4 , hgmax
+  integer(ik4) :: i , j , k , n , ist
+  real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  integer :: ierr
+  integer(ik4) :: ierr
   character (len=64) :: subroutine_name='init'
-  integer :: idindx = 0
+  integer(ik4) :: idindx = 0
 !
   call time_begin(subroutine_name,idindx)
   !

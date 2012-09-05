@@ -21,6 +21,7 @@ module mod_pbl_common
 !
 ! Storage parameters and constants related to the boundary layer
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
@@ -29,105 +30,105 @@ module mod_pbl_common
 !
   private
 
-  real(dp) , public , pointer ,  dimension(:,:) :: rhox2d
+  real(rk8) , public , pointer ,  dimension(:,:) :: rhox2d
 !
-  integer , public , pointer , dimension(:,:) :: kpbl
-  real(dp) , public , pointer , dimension(:,:) :: zpbl
+  integer(ik4) , public , pointer , dimension(:,:) :: kpbl
+  real(rk8) , public , pointer , dimension(:,:) :: zpbl
 !
   type tcm_state
     !
     ! TKE*ps (m^2/s^2 * cb)
     !
-    real(dp) , pointer , dimension(:,:,:) :: tkeps
+    real(rk8) , pointer , dimension(:,:,:) :: tkeps
     !
     ! Coupled TKE Advective Tendency (m^2/s^3 * cb) 
     !
-    real(dp) , pointer , dimension(:,:,:) :: advtke
+    real(rk8) , pointer , dimension(:,:,:) :: advtke
     !
     ! Vertical momentum diffusivity (m^2/s)
     !
-    real(dp) , pointer , dimension(:,:,:) :: kzm
+    real(rk8) , pointer , dimension(:,:,:) :: kzm
     !
     ! Vertical scalar diffusivity (m^2/s)
     !
-    real(dp) , pointer , dimension(:,:,:) :: kth
+    real(rk8) , pointer , dimension(:,:,:) :: kth
     !
     ! Boundary layer height (m)
     !
-    real(dp) , pointer , dimension(:,:) :: zpbl
+    real(rk8) , pointer , dimension(:,:) :: zpbl
     !
     ! Surface layer TKE (m^2/s^2)
     !
-    real(dp) , pointer , dimension(:,:) :: srftke
+    real(rk8) , pointer , dimension(:,:) :: srftke
     !
   end type tcm_state
 
   public :: tcm_state
 
-  integer , public :: kmxpbl
+  integer(ik4) , public :: kmxpbl
 
   !
   ! Pointers to point to the TCM's state variable
   !
   type(tcm_state) , public :: uwstatea , uwstateb
 
-  real(dp) , public :: dtpbl ! dt
-  real(dp) , public :: rdtpbl ! 1/dt
-  real(dp) , public :: dttke ! TKE time step
-  real(dp) , public :: tkemin
-  real(dp) , public , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
-  real(dp) , public , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
+  real(rk8) , public :: dtpbl ! dt
+  real(rk8) , public :: rdtpbl ! 1/dt
+  real(rk8) , public :: dttke ! TKE time step
+  real(rk8) , public :: tkemin
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
+  real(rk8) , public , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
 
   !
   ! Specific instances of the model's state variables (at the b time step)
   !
-  real(dp) , public , pointer , dimension(:,:,:) :: uten      ! aten%u
-  real(dp) , public , pointer , dimension(:,:,:) :: vten      ! aten%v
-  real(dp) , public , pointer , dimension(:,:,:) :: tten      ! aten%t
-  real(dp) , public , pointer , dimension(:,:,:) :: tketen    ! aten%tke
-  real(dp) , public , pointer , dimension(:,:,:,:) :: qxten   ! aten%qx
-  real(dp) , public , pointer , dimension(:,:,:) :: uuwten    ! uwten%u
-  real(dp) , public , pointer , dimension(:,:,:) :: vuwten    ! uwten%v
-  real(dp) , public , pointer , dimension(:,:,:) :: tuwten    ! uwten%t
-  real(dp) , public , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
-  real(dp) , public , pointer , dimension(:,:,:,:) :: qxuwten ! uwten%qx
-  real(dp) , public , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
-  real(dp) , public , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
-  real(dp) , public , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
-  real(dp) , public , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
-  real(dp) , public , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
-  real(dp) , public , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
-  real(dp) , public , pointer , dimension(:,:,:) :: tkests    ! atms%tke
-  real(dp) , public , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
-  real(dp) , public , pointer , dimension(:,:,:) :: zq        ! atms%zq
-  real(dp) , public , pointer , dimension(:,:,:) :: za        ! atms%za
-  real(dp) , public , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
-  real(dp) , public , pointer , dimension(:,:,:) :: difft     ! adf%difft
-  real(dp) , public , pointer , dimension(:,:,:,:) :: diffqx  ! adf%diffqx
-  real(dp) , public , pointer , dimension(:,:,:) :: radheatrt ! heatrt
-  real(dp) , public , pointer , dimension(:,:,:,:) :: diagqx  ! holtten%qx
-  real(dp) , public , pointer , dimension(:,:,:,:) :: chmx    ! chib
-  real(dp) , public , pointer , dimension(:,:,:,:) :: chten   ! chiten
-  real(dp) , public , pointer , dimension(:,:,:) :: drmr      ! remdrd
-  real(dp) , public , pointer , dimension(:,:) :: sfcpd       ! psdot
-  real(dp) , public , pointer , dimension(:,:) :: sfcps       ! sfs%psb
-  real(dp) , public , pointer , dimension(:,:) :: tg          ! sfs%tgb
-  real(dp) , public , pointer , dimension(:,:) :: qfx         ! sfs%qfx
-  real(dp) , public , pointer , dimension(:,:) :: hfx         ! sfs%hfx
-  real(dp) , public , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
-  real(dp) , public , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
-  real(dp) , public , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
-  integer , public , pointer , dimension(:,:) :: landmsk      ! ldmsk
-  real(dp) , public , pointer , dimension(:) :: hlev          ! a
-  real(dp) , public , pointer , dimension(:) :: flev          ! sigma
-  real(dp) , public , pointer , dimension(:) :: dlev          ! dsigma
-  real(dp) , public :: ptp                                    ! ptop
+  real(rk8) , public , pointer , dimension(:,:,:) :: uten      ! aten%u
+  real(rk8) , public , pointer , dimension(:,:,:) :: vten      ! aten%v
+  real(rk8) , public , pointer , dimension(:,:,:) :: tten      ! aten%t
+  real(rk8) , public , pointer , dimension(:,:,:) :: tketen    ! aten%tke
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: qxten   ! aten%qx
+  real(rk8) , public , pointer , dimension(:,:,:) :: uuwten    ! uwten%u
+  real(rk8) , public , pointer , dimension(:,:,:) :: vuwten    ! uwten%v
+  real(rk8) , public , pointer , dimension(:,:,:) :: tuwten    ! uwten%t
+  real(rk8) , public , pointer , dimension(:,:,:) :: tkeuwten  ! uwten%tke
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: qxuwten ! uwten%qx
+  real(rk8) , public , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
+  real(rk8) , public , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
+  real(rk8) , public , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
+  real(rk8) , public , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
+  real(rk8) , public , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
+  real(rk8) , public , pointer , dimension(:,:,:) :: tkests    ! atms%tke
+  real(rk8) , public , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
+  real(rk8) , public , pointer , dimension(:,:,:) :: zq        ! atms%zq
+  real(rk8) , public , pointer , dimension(:,:,:) :: za        ! atms%za
+  real(rk8) , public , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
+  real(rk8) , public , pointer , dimension(:,:,:) :: difft     ! adf%difft
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: diffqx  ! adf%diffqx
+  real(rk8) , public , pointer , dimension(:,:,:) :: radheatrt ! heatrt
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: diagqx  ! holtten%qx
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: chmx    ! chib
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: chten   ! chiten
+  real(rk8) , public , pointer , dimension(:,:,:) :: drmr      ! remdrd
+  real(rk8) , public , pointer , dimension(:,:) :: sfcpd       ! psdot
+  real(rk8) , public , pointer , dimension(:,:) :: sfcps       ! sfs%psb
+  real(rk8) , public , pointer , dimension(:,:) :: tg          ! sfs%tgb
+  real(rk8) , public , pointer , dimension(:,:) :: qfx         ! sfs%qfx
+  real(rk8) , public , pointer , dimension(:,:) :: hfx         ! sfs%hfx
+  real(rk8) , public , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
+  real(rk8) , public , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
+  real(rk8) , public , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
+  integer(ik4) , public , pointer , dimension(:,:) :: landmsk      ! ldmsk
+  real(rk8) , public , pointer , dimension(:) :: hlev          ! a
+  real(rk8) , public , pointer , dimension(:) :: flev          ! sigma
+  real(rk8) , public , pointer , dimension(:) :: dlev          ! dsigma
+  real(rk8) , public :: ptp                                    ! ptop
 
-  real(dp) , public , pointer , dimension(:,:) :: depvel       ! chtrdpv
+  real(rk8) , public , pointer , dimension(:,:) :: depvel       ! chtrdpv
   character(len=6) , public , pointer , dimension(:) :: chname ! chtrname
   logical , public :: lchem , lchdrydepo
 
-  real(dp) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
+  real(rk8) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
 
   data lchem /.false./
   data lchdrydepo /.false./
@@ -158,7 +159,7 @@ module mod_pbl_common
 
   subroutine allocate_mod_pbl_common(ichem)
     implicit none
-    integer , intent(in) :: ichem
+    integer(ik4) , intent(in) :: ichem
     call getmem2d(kpbl,jci1,jci2,ici1,ici2,'pbl_common:kpbl')
     call getmem2d(zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
     !

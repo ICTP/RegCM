@@ -60,37 +60,37 @@ module mod_params
   implicit none
   include 'mpif.h'
 !
-  real(dp) :: afracl , afracs , bb , cc , chibot , delsig , &
+  real(rk8) :: afracl , afracs , bb , cc , chibot , delsig , &
              dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
              qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
              wkp1 , xbot , xtop , xx , yy
-  real(dp) :: gulland , guloce , mincld , qck1land , qck1oce , &
+  real(rk8) :: gulland , guloce , mincld , qck1land , qck1oce , &
              rh0land , rh0oce , skbmax , clfrcvmax
-  real(dp) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
+  real(rk8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
              edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
-  real(dp) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
+  real(rk8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
              edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
-  integer :: kbmax
-  real(dp) , dimension(nsplit) :: dtsplit
-  integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
-  integer :: hspan
+  integer(ik4) :: kbmax
+  real(rk8) , dimension(nsplit) :: dtsplit
+  integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
+  integer(ik4) :: hspan
   logical , dimension(n_atmvar) :: atm_enablevar
   logical , dimension(n_srfvar) :: srf_enablevar
   logical , dimension(n_stsvar) :: sts_enablevar
   logical , dimension(n_subvar) :: sub_enablevar
   logical , dimension(n_radvar) :: rad_enablevar
   logical , dimension(n_lakvar) :: lak_enablevar
-  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
-  integer(8) :: nbdyfrq
-  integer :: n , len_path
-  integer :: ierr
+  integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
+  integer(ik8) :: nbdyfrq
+  integer(ik4) :: n , len_path
+  integer(ik4) :: ierr
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
 #ifndef CLM
-  real(dp) :: clmfrq
+  real(rk8) :: clmfrq
 #endif
   character (len=64) :: subroutine_name='param'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 !
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.

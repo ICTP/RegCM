@@ -182,7 +182,7 @@ module mod_bats_mtrxbats
 !
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
     character (len=64) :: subroutine_name='mtrxbats'
     integer(ik4) :: idindx=0
 !
@@ -289,7 +289,7 @@ module mod_bats_mtrxbats
     implicit none
 !
     integer(ik4) , intent (in) :: ivers
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
                 fracs , fracv , hl , mmpd , rh0 , satvp ,     &

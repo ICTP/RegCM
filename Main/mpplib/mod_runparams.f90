@@ -46,24 +46,24 @@ module mod_runparams
   real(rk8) :: calday , twodt
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
-  integer(8) :: ktau
+  integer(ik8) :: ktau
   ! Final number of step for THIS run
-  integer(8) :: mtau
+  integer(ik8) :: mtau
   ! How many steps for an hour (updates date fields Y m d H)
-  integer(8) :: khour
+  integer(ik8) :: khour
   ! Output k values for I/O operations.
-  integer(8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf , krep
+  integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf , krep
   ! Seconds counter in between boundary conditions read
-  integer(8) :: nbdytime
+  integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes
-  integer(8) :: ntsrf , ntrad
+  integer(ik8) :: ntsrf , ntrad
   ! Model timestep in seconds (real and integer)
-  integer(8) :: ntsec
+  integer(ik8) :: ntsec
   real(rk8) :: dtsec
   ! Internal count for how many SRF outputs every LAK output
   integer(ik4) :: klak
   ! Internal count for how many SRF outputs per day
-  integer(8) :: ksts , kstsoff
+  integer(ik8) :: ksts , kstsoff
   !
   ! Cumulus scheme index
   integer(ik4) :: icup

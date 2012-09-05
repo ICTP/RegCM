@@ -21,6 +21,7 @@ module mod_che_dust
 !
 ! DUST module
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
@@ -33,27 +34,27 @@ module mod_che_dust
 
   implicit none
 ! 
-  real(dp) , dimension(nbin,2) ::  dustbsiz
+  real(rk8) , dimension(nbin,2) ::  dustbsiz
   ! Fix the actual dust aerosol bin size: diameter in microm
   data  dustbsiz / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
                    2.50D0,  5.00D0, 20.00D0 /
   ! dust effective diameter
-  real(dp) , dimension(nbin) :: dustbed
+  real(rk8) , dimension(nbin) :: dustbed
   ! has to be calculated from an assumed sub-bin distribution 
   data dustbed /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /   
 
   ! solubility of od dust aer for param of giorgi and chameides
-  real(dp) , dimension(nbin) ::  soldust
+  real(rk8) , dimension(nbin) ::  soldust
   data  soldust /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 / 
 
   ! Basic dust aerosol density (ACE-2 ) in kg/m3
-  real(dp) , parameter :: rhodust = 2650.0D0
+  real(rk8) , parameter :: rhodust = 2650.0D0
 !
-  integer , parameter :: nsoil = 152
-  integer , parameter :: mode = 3
-  integer , parameter :: jsoilm = 1 
-  integer , parameter :: jfs = 1 
-  integer , parameter :: ust = 1
+  integer(ik4) , parameter :: nsoil = 152
+  integer(ik4) , parameter :: mode = 3
+  integer(ik4) , parameter :: jsoilm = 1 
+  integer(ik4) , parameter :: jfs = 1 
+  integer(ik4) , parameter :: ust = 1
 !
 
 !choice of emission distribution 1= alfaro/gomes
@@ -64,38 +65,38 @@ module mod_che_dust
 ! define the aerosol distribution at the emission and the corresponding 
 ! weighting factors in fuction of bin sizes
 !
-  integer , parameter :: isize = 12
-  real(dp) , parameter :: d1 = 1.5D0
-  real(dp) , parameter :: d2 = 6.7D0
-  real(dp) , parameter :: d3 = 14.2D0
-  real(dp) , parameter :: sigma1 = 1.7D0 
-  real(dp) , parameter :: sigma2 = 1.2D0
-  real(dp) , parameter :: sigma3 = 1.5D0
+  integer(ik4) , parameter :: isize = 12
+  real(rk8) , parameter :: d1 = 1.5D0
+  real(rk8) , parameter :: d2 = 6.7D0
+  real(rk8) , parameter :: d3 = 14.2D0
+  real(rk8) , parameter :: sigma1 = 1.7D0 
+  real(rk8) , parameter :: sigma2 = 1.2D0
+  real(rk8) , parameter :: sigma3 = 1.5D0
 
   ! corresponding binding energies/
-  real(dp) , parameter  :: e1 = 3.61D0
-  real(dp) , parameter  :: e2 = 3.52D0
-  real(dp) , parameter  :: e3 = 3.46D0
+  real(rk8) , parameter  :: e1 = 3.61D0
+  real(rk8) , parameter  :: e2 = 3.52D0
+  real(rk8) , parameter  :: e3 = 3.46D0
   !        
-  real(dp) , dimension(isize) :: frac1 , frac2 , frac3 , frac
-  real(dp) , dimension(2,isize) :: aerosize       
+  real(rk8) , dimension(isize) :: frac1 , frac2 , frac3 , frac
+  real(rk8) , dimension(2,isize) :: aerosize       
 
   ! parameter for alternative Kok emission distribution
-  real(dp), parameter :: d = 3.4D0
-  real(dp), parameter :: sigmas = 3.0D0
+  real(rk8), parameter :: d = 3.4D0
+  real(rk8), parameter :: sigmas = 3.0D0
   ! Normalization constant
-  real(dp), parameter :: cv = 12.62D0    
-  real(dp), parameter :: lambda = 12.0D0       
+  real(rk8), parameter :: cv = 12.62D0    
+  real(rk8), parameter :: lambda = 12.0D0       
 
   ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
   ! in each texture type.
 
-  real(dp) , pointer, dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
-  real(dp) , pointer,  dimension(:,:) :: clayrow2 , sandrow2
-  real(dp) , pointer,  dimension(:,:,:,:) :: srel2d
-  real(dp) , pointer , dimension(:,:,:) :: dustsotex
+  real(rk8) , pointer, dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
+  real(rk8) , pointer,  dimension(:,:) :: clayrow2 , sandrow2
+  real(rk8) , pointer,  dimension(:,:,:,:) :: srel2d
+  real(rk8) , pointer , dimension(:,:,:) :: dustsotex
   ! Name of variable changed ! SC. 06.10.2010
-  real(dp) , dimension(nsoil) :: dp_array
+  real(rk8) , dimension(nsoil) :: dp_array
   !
   ! Initialise sub bin aerosol distribution 
   !
@@ -105,13 +106,13 @@ module mod_che_dust
        2.56D-06 , 5.12D-06 , 5.12D-06 , 10.4D-06 , 10.24D-06 ,      &
        20.48D-06 , 20.48D-06 , 40.6D-06/
 !
-  integer :: ilg
+  integer(ik4) :: ilg
 
   contains 
 !
     subroutine allocate_mod_che_dust(ichem)
       implicit none
-      integer , intent(in) :: ichem
+      integer(ik4) , intent(in) :: ichem
       if ( ichem == 1 ) then
         call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
         call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')
@@ -149,19 +150,19 @@ module mod_che_dust
       implicit none
       include 'mpif.h'
 !
-      integer :: ierr
-      real(dp) , dimension(nats) :: bcly , bslt , bsnd
-      real(dp) :: deldp , eps , stotal , xk , xl , xm , xn
-      integer :: i , j , n , nm , ns , nt , itr
-      real(dp) , dimension(3,12) :: mmd , pcent , sigma
-      real(dp) , dimension(iy,nsoil,nats) :: srel
-      real(dp) , dimension(nsoil) :: ss
+      integer(ik4) :: ierr
+      real(rk8) , dimension(nats) :: bcly , bslt , bsnd
+      real(rk8) :: deldp , eps , stotal , xk , xl , xm , xn
+      integer(ik4) :: i , j , n , nm , ns , nt , itr
+      real(rk8) , dimension(3,12) :: mmd , pcent , sigma
+      real(rk8) , dimension(iy,nsoil,nats) :: srel
+      real(rk8) , dimension(nsoil) :: ss
       logical :: rd_tex 
       character(6) :: aerctl
-      real(dp) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
+      real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
              asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
 #ifdef __PGI 
-      real(dp) , external :: derf
+      real(rk8) , external :: derf
 #endif
       !
       ! FAB update 
@@ -361,16 +362,16 @@ module mod_che_dust
 !   * ustar0 : threshold frication velocity [m/s]                ****
 !   *****************************************************************
 !
-    real(dp) function ustart01(rhodust,dum,rhair)
+    real(rk8) function ustart01(rhodust,dum,rhair)
       implicit none
 !
-      real(dp) , parameter :: a2 = 0.129D0 , c1 = 0.006D0 , c2 = 1.928D0 , &
+      real(rk8) , parameter :: a2 = 0.129D0 , c1 = 0.006D0 , c2 = 1.928D0 , &
                               c3 = 0.0858D0 , c4 = -0.0617D0 , c5 = 2.5D0 ,&
                               y1 = 1331.647D0 , y2 = 1.561228D0 ,          &
                               y3 = 0.38194D0
 !
-      real(dp) , intent(in) :: dum , rhair , rhodust
-      real(dp) :: dm , rep , term , term1 , term2
+      real(rk8) , intent(in) :: dum , rhair , rhodust
+      real(rk8) :: dm , rep , term , term1 , term2
 ! 
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
@@ -381,10 +382,10 @@ module mod_che_dust
                  a2*term/dsqrt(c2*(rep**0.092D0)-d_one),rep > d_10)
     contains
 !
-      real(dp) function cvmgt(val1,val2,cond)
+      real(rk8) function cvmgt(val1,val2,cond)
         implicit none
         logical , intent(in) :: cond
-        real(dp) , intent(in) :: val1 , val2
+        real(rk8) , intent(in) :: val1 , val2
         if ( cond ) then
           cvmgt = val1
         else
@@ -403,11 +404,11 @@ module mod_che_dust
 !   * ustar0: threshold friction velocity       [cm/s]           ****
 !   *****************************************************************
 ! 
-    real(dp) function ustart0(rhodust,dum,rhoa)
+    real(rk8) function ustart0(rhodust,dum,rhoa)
       implicit none
-      real(dp) , intent(in) :: dum , rhoa , rhodust
-      real(dp) , parameter :: agamma = 3.0D-4 , f = 0.0123D0
-      real(dp) :: dm , sigma
+      real(rk8) , intent(in) :: dum , rhoa , rhodust
+      real(rk8) , parameter :: agamma = 3.0D-4 , f = 0.0123D0
+      real(rk8) :: dm , sigma
       sigma = rhodust/rhoa
       dm = dum*1.0D-2
       ustart0 = f*(sigma*egrav*dm+agamma/(rhoa*dm))
@@ -428,19 +429,19 @@ module mod_che_dust
 ! 
       implicit none
 !
-      integer , intent(in) :: jloop
-      integer , intent(in) , dimension(ici1:ici2) ::  ivegcov
-      real(dp) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
+      integer(ik4) , intent(in) :: jloop
+      integer(ik4) , intent(in) , dimension(ici1:ici2) ::  ivegcov
+      real(rk8) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
                 surfwd , vegfrac , z0 , ustarnd
-      real(dp) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
-      real(dp) , intent(in) , dimension(nbin,2) :: trsize
+      real(rk8) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
+      real(rk8) , intent(in) , dimension(nbin,2) :: trsize
 !
-      real(dp) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
+      real(rk8) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
                 xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
-      real(dp) , dimension(ilg,nbin) :: xrsfrow
-      real(dp) , dimension(ilg,nats) :: xftex , xalphaprop
-      real(dp) , dimension(ilg,nsoil,nats) :: xsrel2d
-      integer :: i , ieff , n , ns
+      real(rk8) , dimension(ilg,nbin) :: xrsfrow
+      real(rk8) , dimension(ilg,nats) :: xftex , xalphaprop
+      real(rk8) , dimension(ilg,nsoil,nats) :: xsrel2d
+      integer(ik4) :: i , ieff , n , ns
 ! 
       rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
@@ -525,21 +526,21 @@ module mod_che_dust
                            clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
       implicit none
 !
-      integer :: il1 , il2
-      real(dp) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
+      integer(ik4) :: il1 , il2
+      real(rk8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd , snowfrac
-      real(dp) , dimension(ilg,nbin) :: rsfrow
-      real(dp) , dimension(ilg,nats) :: ftex , alphaprop
-      real(dp) , dimension(ilg,nsoil,nats) :: srel
-      real(dp) , dimension(nbin,2) :: trsize
+      real(rk8) , dimension(ilg,nbin) :: rsfrow
+      real(rk8) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rk8) , dimension(ilg,nsoil,nats) :: srel
+      real(rk8) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
 !
-      real(dp) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(dp) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
+      real(rk8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
+      real(rk8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
                   umin , ustarns , uth , utmin , x , xz , ym , z0s
-      integer :: i
-      real(dp) , dimension(ilg) :: ustar
-      real(dp) , dimension(ilg,nsoil) :: utheff
+      integer(ik4) :: i
+      real(rk8) , dimension(ilg) :: ustar
+      real(rk8) , dimension(ilg,nsoil) :: utheff
 !
       data umin/15.0D0/
       data xz/0.25D0/ , br/202.0D0/ , ym/0.16D0/ , sigr/1.45D0/
@@ -621,13 +622,13 @@ module mod_che_dust
 ! 
     subroutine uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
       implicit none
-      integer :: il1 , il2 , nsoil , ust
-      real(dp) :: rhodust
-      real(dp) , dimension(ilg) :: roarow
-      real(dp) , dimension(ilg,nsoil) :: utheff
+      integer(ik4) :: il1 , il2 , nsoil , ust
+      real(rk8) :: rhodust
+      real(rk8) , dimension(ilg) :: roarow
+      real(rk8) , dimension(ilg,nsoil) :: utheff
       intent (in) il1 , il2 , nsoil , ust
       intent (out) utheff
-      integer :: n , i
+      integer(ik4) :: n , i
       do n = 1 , nsoil
         do i = il1 , il2
           if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
@@ -641,24 +642,24 @@ module mod_che_dust
  
       implicit none
 !
-      integer :: il1 , il2
-      real(dp) :: rhodust , uth
-      real(dp) , dimension(ilg) :: rc ,ustar, roarow , vegfrac , snowfrac
-      real(dp) , dimension(ilg,nbin) :: rsfrow
-      real(dp) , dimension(ilg,nats) :: ftex , alphaprop
-      real(dp) , dimension(ilg,nsoil,nats) :: srel
-      real(dp) , dimension(nbin,2) :: trsize
-      real(dp) , dimension(ilg,nsoil) :: utheff
+      integer(ik4) :: il1 , il2
+      real(rk8) :: rhodust , uth
+      real(rk8) , dimension(ilg) :: rc ,ustar, roarow , vegfrac , snowfrac
+      real(rk8) , dimension(ilg,nbin) :: rsfrow
+      real(rk8) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rk8) , dimension(ilg,nsoil,nats) :: srel
+      real(rk8) , dimension(nbin,2) :: trsize
+      real(rk8) , dimension(ilg,nsoil) :: utheff
       intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
                    trsize , ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
 !
-!     real(dp) :: beffect
-      real(dp) :: beta , const, p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
-      real(dp) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
-      integer :: i , k , n , nt , ns
-      real(dp) , dimension(ilg,isize,nats) :: rsfrowsub
-      real(dp), dimension(ilg,nbin,nats):: rsfrowt
+!     real(rk8) :: beffect
+      real(rk8) :: beta , const, p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
+      real(rk8) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
+      integer(ik4) :: i , k , n , nt , ns
+      real(rk8) , dimension(ilg,isize,nats) :: rsfrowsub
+      real(rk8), dimension(ilg,nbin,nats):: rsfrowt
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
       ! basically this const is a tuning parameter

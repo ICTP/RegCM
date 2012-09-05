@@ -23,20 +23,21 @@ module mod_rad_scenarios
 !
 !     ftp://crgd.atmos.uiuc.edu/pub/post-sres
 !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
-  use mod_realkinds
 !
   private
 !
   public :: set_scenario , cgas
 !
-  integer , parameter :: nsc = 9
+  integer(ik4) , parameter :: nsc = 9
   character(len=8) , dimension(nsc) :: scenarios
 !
-  real(dp) , dimension(10,1850:2100) :: cgas
+  real(rk8) , dimension(10,1850:2100) :: cgas
 !
-  integer :: i , j
+  integer(ik4) :: i , j
 !
 ! SRES and RCP Scenarios
 !

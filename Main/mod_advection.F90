@@ -44,28 +44,28 @@ module mod_advection
     module procedure vadv4d
   end interface vadv
 
-  real(dp) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
-  real(dp) , pointer , dimension(:,:,:) :: va   ! V wind * ps
-  real(dp) , pointer , dimension(:,:) :: ps     ! Surface pressure
-  real(dp) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
-  real(dp) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
-  real(dp) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
-  integer , pointer , dimension(:,:) :: kpbl   ! Top of PBL
+  real(rk8) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
+  real(rk8) , pointer , dimension(:,:,:) :: va   ! V wind * ps
+  real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
+  real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
+  real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
+  real(rk8) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
+  integer(ik4) , pointer , dimension(:,:) :: kpbl   ! Top of PBL
 !
 ! working space used to store the interlated values in vadv.
 !
-  real(dp) , pointer , dimension(:,:,:) :: fg
+  real(rk8) , pointer , dimension(:,:,:) :: fg
 
-  real(dp) , parameter :: c287 = 0.287D+00
+  real(rk8) , parameter :: c287 = 0.287D+00
 !
 ! relaxed upstream scheme factors
 !
-  real(dp) , parameter :: fact1 = 0.60D0
+  real(rk8) , parameter :: fact1 = 0.60D0
 !hy
-! real(dp) , parameter :: fact1 = 0.75D0
+! real(rk8) , parameter :: fact1 = 0.75D0
 !hy
-  real(dp) , parameter :: fact2 = d_one - fact1
-  real(dp) , parameter :: falow = 1.0D-8
+  real(rk8) , parameter :: fact2 = d_one - fact1
+  real(rk8) , parameter :: falow = 1.0D-8
 !
   contains
 
@@ -74,8 +74,8 @@ module mod_advection
       type(domain) , intent(in) :: dom
       type(surfstate), intent(in) :: sfs
       type(atmstate) , intent(in) :: atm
-      real(dp) , pointer , dimension(:,:,:) :: vertvel
-      integer , pointer , dimension(:,:) :: kpbltop
+      real(rk8) , pointer , dimension(:,:,:) :: vertvel
+      integer(ik4) , pointer , dimension(:,:) :: kpbltop
 
       call assignpnt(atm%u,ua)
       call assignpnt(atm%v,va)
@@ -107,15 +107,15 @@ module mod_advection
     subroutine hadv3d(ldot,ften,f,nk)
       implicit none
       logical , intent(in) :: ldot ! Cross/dot flag
-      integer , intent (in) :: nk
-      real(dp) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:) :: ften
+      integer(ik4) , intent (in) :: nk
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 !
-      real(dp) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      integer :: i , j , k
+      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      integer(ik4) :: i , j , k
 !
       character (len=64) :: subroutine_name='hadv3d'
-      integer :: idindx = 0
+      integer(ik4) :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -169,16 +169,16 @@ module mod_advection
     subroutine hadv3d4d(ften,f,nk,m,ind)
       implicit none
 !
-      integer , intent (in) :: ind , nk , m
-      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4) , intent (in) :: ind , nk , m
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(dp) :: fx1 , fx2 , fy1 , fy2
-      real(dp) :: ucmona , ucmonb , vcmona , vcmonb
-      integer :: i , j , k
+      real(rk8) :: fx1 , fx2 , fy1 , fy2
+      real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
+      integer(ik4) :: i , j , k
 !
       character (len=64) :: subroutine_name='hadv3d4d'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -245,16 +245,16 @@ module mod_advection
 !
     subroutine hadv4d(ften,f,nk)
       implicit none
-      integer , intent (in) :: nk
-      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4) , intent (in) :: nk
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(dp) :: fx1 , fx2 , fy1 , fy2
-      real(dp) :: ucmona , ucmonb , vcmona , vcmonb
-      integer :: i , j , k , n
+      real(rk8) :: fx1 , fx2 , fy1 , fy2
+      real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
+      integer(ik4) :: i , j , k , n
 !
       character (len=64) :: subroutine_name='hadv4d'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
       do n = 1 , ntr
@@ -321,15 +321,15 @@ module mod_advection
       implicit none
 !
       logical , intent(in) :: ldot
-      integer , intent(in) :: ind , nk
-      real(dp) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:) :: ften
+      integer(ik4) , intent(in) :: ind , nk
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 !
-      real(dp) :: slope
-      integer :: i , j , k
+      real(rk8) :: slope
+      integer(ik4) :: i , j , k
 !
       character (len=64) :: subroutine_name='vadv3d'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
 !----------------------------------------------------------------------
 !
@@ -495,15 +495,15 @@ module mod_advection
 !
       implicit none
 !
-      integer , intent(in) :: ind , m , nk
-      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4) , intent(in) :: ind , m , nk
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(dp) :: slope
-      integer :: i , j , k
+      real(rk8) :: slope
+      integer(ik4) :: i , j , k
 !
       character (len=64) :: subroutine_name='vadv3d4d'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
 !----------------------------------------------------------------------
 !
@@ -651,15 +651,15 @@ module mod_advection
 !
       implicit none
 !
-      integer , intent(in) :: ind , nk
-      real(dp) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(dp) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4) , intent(in) :: ind , nk
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(dp) :: slope
-      integer :: i , j , k , n
+      real(rk8) :: slope
+      integer(ik4) :: i , j , k , n
 !
       character (len=64) :: subroutine_name='vadv4d'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
 !----------------------------------------------------------------------
 !

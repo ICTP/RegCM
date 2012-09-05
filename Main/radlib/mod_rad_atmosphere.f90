@@ -19,34 +19,35 @@
 
 module mod_rad_atmosphere
 
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
 
   private
 
-  integer , public , parameter :: itropical = 1
-  integer , public , parameter :: imidlatsummer = 2
-  integer , public , parameter :: imidlatwinter = 3
-  integer , public , parameter :: ipolarsummer = 4
-  integer , public , parameter :: ipolarwinter = 5
+  integer(ik4) , public , parameter :: itropical = 1
+  integer(ik4) , public , parameter :: imidlatsummer = 2
+  integer(ik4) , public , parameter :: imidlatwinter = 3
+  integer(ik4) , public , parameter :: ipolarsummer = 4
+  integer(ik4) , public , parameter :: ipolarwinter = 5
 
-  integer , public , parameter :: istdatm_hgtkm = 1  ! HGT in km
-  integer , public , parameter :: istdatm_prsmb = 2  ! PRESS in hPa
-  integer , public , parameter :: istdatm_tempk = 3  ! TEMP in K
-  integer , public , parameter :: istdatm_airdn = 4  ! RHO in kg/m^3
-  integer , public , parameter :: istdatm_qdens = 5  ! Q in kg/m^3
-  integer , public , parameter :: istdatm_ozone = 6  ! Ozone in kg/m^3
+  integer(ik4) , public , parameter :: istdatm_hgtkm = 1  ! HGT in km
+  integer(ik4) , public , parameter :: istdatm_prsmb = 2  ! PRESS in hPa
+  integer(ik4) , public , parameter :: istdatm_tempk = 3  ! TEMP in K
+  integer(ik4) , public , parameter :: istdatm_airdn = 4  ! RHO in kg/m^3
+  integer(ik4) , public , parameter :: istdatm_qdens = 5  ! Q in kg/m^3
+  integer(ik4) , public , parameter :: istdatm_ozone = 6  ! Ozone in kg/m^3
 
-  integer , public , parameter :: n_atmzones = 5
-  integer , public , parameter :: n_atmparms = 6
-  integer , public , parameter :: n_atmlevls = 31
-  integer , public , parameter :: n_preflev  = 31
-  integer , public , parameter :: n_prehlev  = 30
-  integer :: ip , il , iz
-  real(dp) , dimension(n_atmparms,n_atmlevls,n_atmzones) :: stdatm
-  real(dp) , dimension(n_prehlev) :: stdplevh
-  real(dp) , dimension(n_preflev) :: stdplevf
+  integer(ik4) , public , parameter :: n_atmzones = 5
+  integer(ik4) , public , parameter :: n_atmparms = 6
+  integer(ik4) , public , parameter :: n_atmlevls = 31
+  integer(ik4) , public , parameter :: n_preflev  = 31
+  integer(ik4) , public , parameter :: n_prehlev  = 30
+  integer(ik4) :: ip , il , iz
+  real(rk8) , dimension(n_atmparms,n_atmlevls,n_atmzones) :: stdatm
+  real(rk8) , dimension(n_prehlev) :: stdplevh
+  real(rk8) , dimension(n_preflev) :: stdplevf
   public :: stdplevf , stdplevh , stdatm_val
 
 !-------------------------------------------------------------------------------
@@ -243,15 +244,15 @@ module mod_rad_atmosphere
 !
    contains
 
-     real(dp) function stdatm_val(jday,lat,plev,ival)
+     real(rk8) function stdatm_val(jday,lat,plev,ival)
        implicit none
-       real(dp) , intent(in) :: jday
-       real(dp) , intent(in) :: lat
-       real(dp) , intent(in) :: plev
-       integer , intent(in) :: ival
-       integer :: k , kp1 , kp2
-       real(dp) :: wts1 , wts2 , wtp1 , wtp2
-       real(dp) :: vs1 , vs2
+       real(rk8) , intent(in) :: jday
+       real(rk8) , intent(in) :: lat
+       real(rk8) , intent(in) :: plev
+       integer(ik4) , intent(in) :: ival
+       integer(ik4) :: k , kp1 , kp2
+       real(rk8) :: wts1 , wts2 , wtp1 , wtp2
+       real(rk8) :: vs1 , vs2
 
        stdatm_val = dmissval
 
@@ -287,19 +288,19 @@ module mod_rad_atmosphere
        end if
      end function stdatm_val
 
-     real(dp) function winter_wgt(jday)
+     real(rk8) function winter_wgt(jday)
        implicit none
-       real(dp) , intent(in) :: jday
-       real(dp) :: dis
+       real(rk8) , intent(in) :: jday
+       real(rk8) :: dis
        dis = ((half_dayspy-jday-sixteenth_dayspy+d_one)/dayspy)*mathpi
        winter_wgt = dsin(dis)**d_two
      end function winter_wgt
 
      integer function find_klev(plev,izone)
        implicit none
-       integer , intent(in) :: izone
-       real(dp) , intent(in) :: plev
-       integer :: k
+       integer(ik4) , intent(in) :: izone
+       real(rk8) , intent(in) :: plev
+       integer(ik4) :: k
        find_klev = 1
        do k = 2 , n_atmlevls
          find_klev = k-1
@@ -307,10 +308,10 @@ module mod_rad_atmosphere
        end do
      end function find_klev
 
-     real(dp) function plev_wgt(k,plev,izone)
+     real(rk8) function plev_wgt(k,plev,izone)
        implicit none
-       integer , intent(in) :: k , izone
-       real(dp) , intent(in) :: plev
+       integer(ik4) , intent(in) :: k , izone
+       real(rk8) , intent(in) :: plev
        if ( plev >= stdatm(istdatm_prsmb,k,izone) ) then
          plev_wgt = d_one
        else if ( plev <= stdatm(istdatm_prsmb,k+1,izone) ) then

@@ -109,10 +109,10 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, comm
-      integer :: i, j, n, itype, vid, sid, did
+      integer(ik4) :: localPet, petCount, comm
+      integer(ik4) :: i, j, n, itype, vid, sid, did
 !
-      integer :: itemCount
+      integer(ik4) :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
@@ -635,8 +635,8 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: i, j, itype, vid, sid, did
-      integer :: localPet, petCount, comm
+      integer(ik4) :: i, j, itype, vid, sid, did
+      integer(ik4) :: localPet, petCount, comm
 !
       type(ESMF_Field) :: dstField, srcField
 !
@@ -897,7 +897,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j
+      integer(ik4) :: i, j
 !
 !-----------------------------------------------------------------------
 !     Call ESMF finalize routines

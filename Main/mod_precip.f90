@@ -33,24 +33,24 @@ module mod_precip
 !
 ! Precip sum beginning from top
 !
-  real(dp) , pointer , dimension(:,:) :: pptsum
-  real(dp) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
-  real(dp) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
-  real(dp) , pointer , dimension(:,:,:) :: t3 , t2 , tten
-  real(dp) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
-  real(dp) , pointer , dimension(:,:,:) :: radcldf , radlqwc
+  real(rk8) , pointer , dimension(:,:) :: pptsum
+  real(rk8) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
+  real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
+  real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten
+  real(rk8) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
+  real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
  
-  real(dp) :: qcth , aprdiv
+  real(rk8) :: qcth , aprdiv
 !
-  real(dp) , parameter :: uch = d_1000*regrav*secph
+  real(rk8) , parameter :: uch = d_1000*regrav*secph
 !
-  real(dp) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
-  real(dp) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
-  real(dp) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
+  real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
+  real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
+  real(rk8) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
   ! TAO 2/8/11:
   ! Flag for using convective liquid water path as the large-scale
   ! liquid water path (iconvlwp=1)
-  integer , public :: iconvlwp
+  integer(ik4) , public :: iconvlwp
   logical :: lchem = .false.
 !
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -59,7 +59,7 @@ module mod_precip
 !
     subroutine allocate_mod_precip(ichem)
       implicit none
-      integer , intent(in) :: ichem
+      integer(ik4) , intent(in) :: ichem
       ! This needs to be saved in SAV file
       call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'pcp:fcc')
       ! Those not. Note the external, internal change.
@@ -81,8 +81,8 @@ module mod_precip
       type(atmstate) , intent(in) :: atm
       type(atmstate) , intent(in) :: aten
       type(surfstate) , intent(in) :: sfs
-      real(dp) , pointer , dimension(:,:) :: pptnc
-      real(dp) , pointer , dimension(:,:,:) :: cldfra , cldlwc
+      real(rk8) , pointer , dimension(:,:) :: pptnc
+      real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
 
       call assignpnt(atmslice%tb3d,t3)
       call assignpnt(atmslice%pb3d,p3)
@@ -122,10 +122,10 @@ module mod_precip
 
     implicit none
 !
-    real(dp) :: dpovg , es , afc , ppa , pptacc , pptkm1 , pptmax ,   &
+    real(rk8) :: dpovg , es , afc , ppa , pptacc , pptkm1 , pptmax ,   &
                 pptnew , qcincld , qcleft , qcw , qs , rdevap , &
                 rh , rhcs , rho , tcel , thog , tk , prainx
-    integer :: i , j , k , kk
+    integer(ik4) :: i , j , k , kk
 !
 !   
 !--------------------------------------------------------------------
@@ -383,8 +383,8 @@ module mod_precip
 !
     subroutine cldfrac
       implicit none
-      real(dp) :: exlwc , rh0adj , tcel
-      integer :: i , j , k
+      real(rk8) :: exlwc , rh0adj , tcel
+      integer(ik4) :: i , j , k
 !--------------------------------------------------------------------
 ! 1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
@@ -484,16 +484,16 @@ module mod_precip
 !
     implicit none
 !
-    real(dp) , pointer , dimension(:,:) , intent(in) :: psc
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: psc
 !
 !   rhc    - Relative humidity at ktau+1
 !   rh0adj - Adjusted relative humidity threshold at ktau+1
 !   fccc   - Cloud fraction at ktau+1
 !
-    real(dp) :: qccs , qvcs , tmp1 , tmp2 , tmp3
-    real(dp) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
+    real(rk8) :: qccs , qvcs , tmp1 , tmp2 , tmp3
+    real(rk8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
                r1 , rh0adj , rhc , satvp
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
     !     1.  Compute t, qv, and qc at tau+1 without condensational term

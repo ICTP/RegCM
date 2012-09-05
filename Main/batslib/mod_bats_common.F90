@@ -86,9 +86,9 @@ module mod_bats_common
   integer(ik4) , parameter :: sena_s = 15
   integer(ik4) , parameter :: prcv_s = 16
 
-  integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
-  integer(8) :: ntcpl  ! Number of time step to call ROMS update 
-  integer(8) :: ntsrf2 ! Number of time step to call BATs 
+  integer(ik8) :: kbats  ! Step frequency in calling BATS1e LSM
+  integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
+  integer(ik8) :: ntsrf2 ! Number of time step to call BATs 
 
   ! How many soil model steps for a day
   real(rk4) :: fdaysrf

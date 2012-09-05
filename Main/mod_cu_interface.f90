@@ -38,22 +38,22 @@ module mod_cu_interface
                            sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma, &
                            qcon,cldfra,cldlwc)
     implicit none
-    real(dp) , intent(in) :: dtsec
-    integer(8) , intent(in) :: ntsrf
-    integer , intent(in) :: ichem
+    real(rk8) , intent(in) :: dtsec
+    integer(ik8) , intent(in) :: ntsrf
+    integer(ik4) , intent(in) :: ichem
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
-    real(8) , pointer , intent(in) , dimension(:,:,:,:) :: chiten
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chiten
 
 
     type(surfstate) , intent(in) :: sfs
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: qdot
-    real(dp) , pointer , intent(in) , dimension(:,:) :: pptc
-    integer , pointer , intent(in) , dimension(:,:) :: ldmsk
-    real(dp) , pointer , intent(in) , dimension(:) :: sigma , hsigma
-    real(dp) , pointer , intent(in) , dimension(:) :: dsigma , qcon
-    real(dp) , pointer , dimension(:,:,:) :: cldlwc , cldfra
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: qdot
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
+    real(rk8) , pointer , intent(in) , dimension(:) :: sigma , hsigma
+    real(rk8) , pointer , intent(in) , dimension(:) :: dsigma , qcon
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
     if ( ichem == 1 ) lchem = .true.
     dtcum  = dtsec

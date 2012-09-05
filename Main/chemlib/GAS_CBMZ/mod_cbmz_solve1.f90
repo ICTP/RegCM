@@ -19,6 +19,7 @@
 
 module mod_cbmz_solve1
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_cbmz_chemmech
@@ -322,13 +323,13 @@ module mod_cbmz_solve1
 !
       implicit none
       ! Chem index
-      integer :: ic , ic1 , ic2 , ic3
+      integer(ik4) :: ic , ic1 , ic2 , ic3
       ! Chem local index
-      integer :: is
+      integer(ik4) :: is
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , ii
+      integer(ik4) :: i , ii
 !
       ! Species list passed to chemsolve
       integer ncsol(c_cdim)
@@ -604,44 +605,44 @@ module mod_cbmz_solve1
       ! Species list passed to chemsolve
       integer, intent(inout) :: ncsol(c_cdim)
       ! Chem index
-      integer :: ic , icc , ics , ics2
+      integer(ik4) :: ic , icc , ics , ics2
       ! Chem local index
-      integer :: is , iss , iscs
+      integer(ik4) :: is , iss , iscs
       ! chem index - pair and multi
-      integer :: icr1 , icr2 , isr1 , isr2 , icpair
+      integer(ik4) :: icr1 , icr2 , isr1 , isr2 , icpair
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Chem species counters
-      integer :: nc , nc2 , ncc , nsol , nsolv
+      integer(ik4) :: nc , nc2 , ncc , nsol , nsolv
       ! Reaction counters
-      integer :: nr
+      integer(ik4) :: nr
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , ii
+      integer(ik4) :: i , ii
 
-      real(dp) :: calpha(c_kvec) ! General vector variable
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: cgamma(c_kvec) ! General vector variable
+      real(rk8) :: calpha(c_kvec) ! General vector variable
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: cgamma(c_kvec) ! General vector variable
 
-      real(dp) :: stoicx            ! stoichiometry sum
+      real(rk8) :: stoicx            ! stoichiometry sum
 
-      integer :: ncsolv(c_cdim) ! Species number (ic) for species in solver
-      integer :: nssolv(c_cdim) ! Pair group number (is) for spec. in solver
+      integer(ik4) :: ncsolv(c_cdim) ! Species number (ic) for species in solver
+      integer(ik4) :: nssolv(c_cdim) ! Pair group number (is) for spec. in solver
 
       ! Flag for exponential decay solution
       logical :: llexpo(c_kvec)
       ! Flag for completion of expo deca
       logical :: doneexpo(c_kvec)
       ! For back-Euler solution
-      real(dp) :: ax(100,100), bx(100), xx(100)
-      real(dp) :: xpair
+      real(rk8) :: ax(100,100), bx(100), xx(100)
+      real(rk8) :: xpair
 !     net pair group  production w/ cons. mass.
       ! Summed factor for multi group
-      real(dp) :: xmulti
+      real(rk8) :: xmulti
 !     net multi group  production w/ cons. mass.
       ! Rate of self-reaction
-      real(dp) :: rself(c_kvec, 20)
+      real(rk8) :: rself(c_kvec, 20)
       ! flag for self-reaction
       logical :: lself
 !
@@ -1863,11 +1864,11 @@ module mod_cbmz_solve1
 
     subroutine brreac(nr)
       implicit none
-      integer , intent(in) :: nr
+      integer(ik4) , intent(in) :: nr
       ! chem index - pair and multi
-      integer :: icr1 , icr2
+      integer(ik4) :: icr1 , icr2
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
 !
       kk=1
       !
@@ -1935,17 +1936,17 @@ module mod_cbmz_solve1
       subroutine brpro(nr)
 !
       implicit none
-      integer , intent(in) :: nr
+      integer(ik4) , intent(in) :: nr
       ! Chem index
-      integer :: ic , ic1 , ic2
+      integer(ik4) :: ic , ic1 , ic2
       ! chem index - pair and multi
-      integer :: icpair
+      integer(ik4) :: icpair
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , n
+      integer(ik4) :: i , n
 !
-      real(dp) :: stoicx            ! stoichiometry sum
+      real(rk8) :: stoicx            ! stoichiometry sum
 !
       kk=1
       !
@@ -2145,21 +2146,21 @@ module mod_cbmz_solve1
      subroutine excorr(ic1)
 !
       implicit none
-      integer , intent(in) :: ic1
+      integer(ik4) , intent(in) :: ic1
       ! Chem index
-      integer :: ic , ics
+      integer(ik4) :: ic , ics
       ! Chem local index
-      integer :: is
+      integer(ik4) :: is
       ! Chem index
-      integer :: icx
+      integer(ik4) :: icx
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Reaction counters
-      integer :: nr , np
+      integer(ik4) :: nr , np
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , ii , n
+      integer(ik4) :: i , ii , n
 !
 ! LOCAL VARIABLES
 !
@@ -2173,15 +2174,15 @@ module mod_cbmz_solve1
 !              Adjusted for each  indiv. reactc_ion(molec/cm3/timestep)
 !
       ! Exchange reaction sum  mol/cm3
-      real(dp) :: ratex(c_kvec)
+      real(rk8) :: ratex(c_kvec)
       ! Exchange undo rate mol/cm3
-      real(dp) :: undo(c_kvec)
+      real(rk8) :: undo(c_kvec)
       ! Index for number of ex vars
-      integer :: nex
+      integer(ik4) :: nex
 
-      real(dp) :: calpha(c_kvec) ! General vector variable
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
+      real(rk8) :: calpha(c_kvec) ! General vector variable
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
 !
       kk = 1
 !
@@ -2419,49 +2420,49 @@ module mod_cbmz_solve1
     subroutine noxsolve(ic1,ic2,ic3)
 !
       implicit none
-      integer , intent(in) :: ic1 , ic2 , ic3
+      integer(ik4) , intent(in) :: ic1 , ic2 , ic3
       ! Chem index
-      integer :: ic
+      integer(ik4) :: ic
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
 !
 ! LOCAL VARIABLES
 ! xnox     NOx concentration (NO+NO2) molec/cm3
 ! xox      Ox concentration  (O3+NO2) molec/cm3
 
       ! NOx, molec/cm3
-      real(dp) :: xnox(c_kvec)
+      real(rk8) :: xnox(c_kvec)
       !  Ox, molec/cm3
-      real(dp) :: xox(c_kvec)
+      real(rk8) :: xox(c_kvec)
 
       ! Prior Ox for write
-      real(dp) :: oxox
+      real(rk8) :: oxox
       ! Ox source for write
-      real(dp) :: sourcox
+      real(rk8) :: sourcox
       ! Ox sink  for write
-      real(dp) :: sinkox
+      real(rk8) :: sinkox
 
       ! Quadratic parameter for write
-      real(dp) :: xk2
+      real(rk8) :: xk2
       ! Quadratic parameter for write
-      real(dp) :: xk2n
+      real(rk8) :: xk2n
       ! Quadratic parameter for write
-      real(dp) :: xrln
+      real(rk8) :: xrln
       ! Quadratic parameter for write
-      real(dp) :: xjn
+      real(rk8) :: xjn
       ! Quadratic parameter for write
-      real(dp) :: xjnx
+      real(rk8) :: xjnx
       ! Quadratic parameter for write
-      real(dp) :: xrpn
+      real(rk8) :: xrpn
       ! Sum pans for write
-      real(dp) :: pansum
+      real(rk8) :: pansum
       ! Sum hno2 hno4 for write
-      real(dp) :: hnosum
+      real(rk8) :: hnosum
 !
  
-     real(dp) :: calpha(c_kvec) ! General vector variable
-   real(dp) :: cbeta(c_kvec)  ! General vector variable
-   real(dp) :: cgamma(c_kvec) ! General vector variable
+     real(rk8) :: calpha(c_kvec) ! General vector variable
+   real(rk8) :: cbeta(c_kvec)  ! General vector variable
+   real(rk8) :: cgamma(c_kvec) ! General vector variable
 
 
      kk=1
@@ -2721,19 +2722,19 @@ module mod_cbmz_solve1
     subroutine ohsolve(ic1,ic2,ic3)
 !
       implicit none
-      integer , intent(in) :: ic1 , ic2 , ic3
+      integer(ik4) , intent(in) :: ic1 , ic2 , ic3
       ! Chem index
-      integer :: ic  , icc , ics
+      integer(ik4) :: ic  , icc , ics
       ! Chem local index
-      integer :: is
+      integer(ik4) :: is
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Reaction counters
-      integer :: nr
+      integer(ik4) :: nr
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i
+      integer(ik4) :: i
 !
 ! LOCAL VARIABLES:
 !
@@ -2748,27 +2749,27 @@ module mod_cbmz_solve1
 ! oddhfac(kk)       Calculated factor for updating OH:
 !                        (OH = OHp*oddhfac)
 !
-      real(dp) :: calpha(c_kvec) ! General vector variable
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: cgamma(c_kvec) ! General vector variable
+      real(rk8) :: calpha(c_kvec) ! General vector variable
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: cgamma(c_kvec) ! General vector variable
 
-      real(dp) :: foh(c_kvec) 
+      real(rk8) :: foh(c_kvec) 
       ! OH/HO2 from prior iteration
-      real(dp) :: foh1(c_kvec)
+      real(rk8) :: foh1(c_kvec)
       ! Factor for updating OH
-      real(dp) :: oddhfac(c_kvec)
+      real(rk8) :: oddhfac(c_kvec)
 
       ! Factor for updating OH - w/RO
-      real(dp) :: oddhfac1(c_kvec)
+      real(rk8) :: oddhfac1(c_kvec)
       ! Factor for updating OH - w/o
-      real(dp) :: oddhfac2(c_kvec)
+      real(rk8) :: oddhfac2(c_kvec)
       ! Weighing Factor for oddhfac 1
-      real(dp) :: oddhro2f(c_kvec)
+      real(rk8) :: oddhro2f(c_kvec)
 
       ! Species list passed to chemsolve
-      integer :: ncsol(c_cdim)
+      integer(ik4) :: ncsol(c_cdim)
       ! Function to return chem index ic
-!      integer :: namechem
+!      integer(ik4) :: namechem
 !
       kk = 1
       !
@@ -3400,14 +3401,14 @@ module mod_cbmz_solve1
     subroutine setgeom(ic)
 !
       implicit none
-      integer , intent(in) :: ic
+      integer(ik4) , intent(in) :: ic
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! Minimum value for geo. avg. parameter
-      real(dp) :: geomin
-      real(dp) :: calpha(c_kvec) ! General vector variable
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: cgamma(c_kvec) ! General vector variable
+      real(rk8) :: geomin
+      real(rk8) :: calpha(c_kvec) ! General vector variable
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: cgamma(c_kvec) ! General vector variable
 !
       kk = 1
       !
@@ -3519,22 +3520,22 @@ module mod_cbmz_solve1
 !
        implicit none
        ! chem index - pair and multi
-       integer :: icr
+       integer(ik4) :: icr
        ! Reaction counters
-       integer :: nr
+       integer(ik4) :: nr
        ! indices used for species categories
-       integer :: icat1 , icat2
+       integer(ik4) :: icat1 , icat2
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i
-       real(dp) :: calpha(c_kvec) ! General vector variable
-       real(dp) :: cbeta(c_kvec)  ! General vector variable
-       real(dp) :: cgamma(c_kvec) ! General vector variable
+       integer(ik4) :: i
+       real(rk8) :: calpha(c_kvec) ! General vector variable
+       real(rk8) :: cbeta(c_kvec)  ! General vector variable
+       real(rk8) :: cgamma(c_kvec) ! General vector variable
  
-       real(dp) :: foh(c_kvec)        ! OH/HO2.
+       real(rk8) :: foh(c_kvec)        ! OH/HO2.
 
-       integer :: nspecial(40)
+       integer(ik4) :: nspecial(40)
        ! (ic1,ic2,ic3,ic9,ic10 ic4)
        ! (O3  NO2 NO  OH  HO2  NO3)
 !
@@ -3747,17 +3748,17 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer :: ic , ic1 , ic2 , iic , icc , ics
+       integer(ik4) :: ic , ic1 , ic2 , iic , icc , ics
        ! Aqueous counters
-       integer :: neq
+       integer(ik4) :: neq
        ! Reaction counters
-       integer :: nr , nrh
+       integer(ik4) :: nr , nrh
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i
+       integer(ik4) :: i
 !
-       real(dp) :: calpha(c_kvec) ! General vector variable
+       real(rk8) :: calpha(c_kvec) ! General vector variable
 !
        kk = 1
        !
@@ -3950,13 +3951,13 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer :: ic , ic1 , ic2 , ics
+       integer(ik4) :: ic , ic1 , ic2 , ics
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i
+       integer(ik4) :: i
 !
-       real(dp) :: calpha(c_kvec) ! General vector variable
+       real(rk8) :: calpha(c_kvec) ! General vector variable
 
        kk = 1
        !
@@ -4079,12 +4080,12 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer :: ic , ic1 , ic2 , ics
+       integer(ik4) :: ic , ic1 , ic2 , ics
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i
-       real(dp) :: calpha(c_kvec) ! General vector variable
+       integer(ik4) :: i
+       real(rk8) :: calpha(c_kvec) ! General vector variable
 !
        kk = 1
        !
@@ -4203,15 +4204,15 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer :: ic , ic1
+       integer(ik4) :: ic , ic1
        ! Reaction counters
-       integer :: nr , nr1
+       integer(ik4) :: nr , nr1
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i , j
+       integer(ik4) :: i , j
 
-       real(dp) :: calpha(c_kvec) ! General vector variable
+       real(rk8) :: calpha(c_kvec) ! General vector variable
 
        if ( c_nnrro2 == 0 ) return
        !
@@ -4319,38 +4320,38 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer :: ic
+       integer(ik4) :: ic
        ! Chem index
-       integer :: ich , icq
+       integer(ik4) :: ich , icq
        ! aquasolve ion counter
-       integer :: ionsum
+       integer(ik4) :: ionsum
        ! Aquasolve chem index
-       integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
+       integer(ik4) :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
        ! Aqueous counters
-       integer :: neq
+       integer(ik4) :: neq
        ! Reaction counters
-       integer :: nrh , nrq
+       integer(ik4) :: nrh , nrq
        ! Vectorization counters
-       integer :: kk
+       integer(ik4) :: kk
        ! General counters
-       integer :: i
+       integer(ik4) :: i
        ! 1/[H+]
-       real(dp) :: xhinv(c_kvec)
+       real(rk8) :: xhinv(c_kvec)
        ! 1/[OH]
-       real(dp) :: xohinv(c_kvec)
+       real(rk8) :: xohinv(c_kvec)
        ! 1/Kw =1/[H+][OH-}
-       real(dp) :: xkwinv(c_kvec)
+       real(rk8) :: xkwinv(c_kvec)
        ! Test for LWC>0 in loop
-       real(dp) :: xtest
+       real(rk8) :: xtest
        ! Variable for write statement
-       real(dp) :: xxx1
+       real(rk8) :: xxx1
        ! Variable for write statement
-       real(dp) :: xxx2
+       real(rk8) :: xxx2
 !
-       real(dp) :: calpha(c_kvec) ! General vector variable
-       real(dp) :: cbeta(c_kvec)  ! General vector variable
-       real(dp) :: cgamma(c_kvec) ! General vector variable
-       real(dp) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
+       real(rk8) :: calpha(c_kvec) ! General vector variable
+       real(rk8) :: cbeta(c_kvec)  ! General vector variable
+       real(rk8) :: cgamma(c_kvec) ! General vector variable
+       real(rk8) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
 !
        kk=1
        !

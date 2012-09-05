@@ -19,8 +19,9 @@
 
 module mod_header
 
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_mppparam
   use mod_date
 
@@ -28,16 +29,16 @@ module mod_header
 
   public :: whoami , header , finaltime
 
-  integer , parameter :: nrite=6
+  integer(ik4) , parameter :: nrite=6
   character (len=24) :: cdata='?'
-  integer , dimension(8) :: timearr
-  real(dp) :: start_time
+  integer(ik4) , dimension(8) :: timearr
+  real(rk8) :: start_time
 
   contains
 
   subroutine whoami(myid)
     implicit none 
-    integer , intent(in) :: myid
+    integer(ik4) , intent(in) :: myid
 
     if ( myid == iocpu )  then 
       call date_and_time(values=timearr)
@@ -54,10 +55,10 @@ module mod_header
 
   subroutine header(myid,nproc)
     implicit none 
-    integer , intent(in) :: myid , nproc
-    integer :: ihost , idir
-    integer :: hostnm
-    integer :: getcwd
+    integer(ik4) , intent(in) :: myid , nproc
+    integer(ik4) :: ihost , idir
+    integer(ik4) :: hostnm
+    integer(ik4) :: getcwd
     character (len=32) :: hostname='?' 
     character (len=32) :: user='?' 
     character (len=256) :: directory='?'
@@ -85,8 +86,8 @@ module mod_header
 
   subroutine finaltime(myid)
     implicit none
-    integer , intent (in) :: myid
-    real(dp) :: finish_time
+    integer(ik4) , intent (in) :: myid
+    real(rk8) :: finish_time
 
     if ( myid == iocpu ) then
 #ifdef IBM

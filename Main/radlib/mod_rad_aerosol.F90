@@ -19,6 +19,7 @@
 
 module mod_rad_aerosol
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_constants
@@ -35,17 +36,17 @@ module mod_rad_aerosol
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
 !
-  integer , parameter :: ncoefs = 5  ! Number of coefficients
-  integer , parameter :: nwav = 19
-  integer , parameter :: nih = 8
+  integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
+  integer(ik4) , parameter :: nwav = 19
+  integer(ik4) , parameter :: nih = 8
 !
-  real(dp) , parameter :: d10e5  = 1.0D+05
-  real(dp) , parameter :: d10e4  = 1.0D+04
-  real(dp) , parameter :: minimum_aerosol = 1.0D-14
-  real(dp) , parameter :: minimum_utaer   = 1.0D-10
-  real(dp) , parameter :: minimum_waer   = 1.0D-30
-  real(dp) , parameter :: minimum_gaer   = 1.0D-20
-  real(dp) , parameter :: fiveothree  = d_five/d_three
+  real(rk8) , parameter :: d10e5  = 1.0D+05
+  real(rk8) , parameter :: d10e4  = 1.0D+04
+  real(rk8) , parameter :: minimum_aerosol = 1.0D-14
+  real(rk8) , parameter :: minimum_utaer   = 1.0D-10
+  real(rk8) , parameter :: minimum_waer   = 1.0D-30
+  real(rk8) , parameter :: minimum_gaer   = 1.0D-20
+  real(rk8) , parameter :: fiveothree  = d_five/d_three
 !
 ! kscoef  - specific extinction (m2/g)
 ! wscoef  - single partical albedo
@@ -57,32 +58,32 @@ module mod_rad_aerosol
 ! wsdust  - single partical albedo dust
 ! gsdust  - asymmetry parameter dust
 !
-  integer , private :: ii , jj ! coefficient index
+  integer(ik4) , private :: ii , jj ! coefficient index
 !
-  real(dp) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
+  real(rk8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
             gsoc_hl , ksbase , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
             wsbase , wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl
-  real(dp) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
-  real(dp) , dimension(nwav,2,nih) :: ksslt , wsslt , gsslt
-  real(dp) , dimension(nspi,4) :: gsdust , ksdust , wsdust
-  real(dp) , dimension(nspi,2) :: gssslt , kssslt , wssslt
+  real(rk8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
+  real(rk8) , dimension(nwav,2,nih) :: ksslt , wsslt , gsslt
+  real(rk8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
+  real(rk8) , dimension(nspi,2) :: gssslt , kssslt , wssslt
   !
-  real(dp) , dimension(8) :: rhp
+  real(rk8) , dimension(8) :: rhp
 !
 ! Aerosol mass mixing ratio
 !
-  real(dp) , pointer , dimension(:,:,:) :: aermm
+  real(rk8) , pointer , dimension(:,:,:) :: aermm
 !
 ! Background aerosol mass mixing ratio
 !
-  real(dp) , pointer , dimension(:,:) :: aermmb
+  real(rk8) , pointer , dimension(:,:) :: aermmb
 !
 ! Aerosol optical properties (for the mixing) 
 !
-  real(dp) , pointer , dimension(:,:,:) :: ftota3d ,   &
+  real(rk8) , pointer , dimension(:,:,:) :: ftota3d ,   &
                  gtota3d , tauasc3d , tauxar3d
 !
-  real(dp) , pointer , dimension(:,:) :: ftota ,  &
+  real(rk8) , pointer , dimension(:,:) :: ftota ,  &
          gtota , tauasc , tauxar
 !
 ! Work arrays for aeroppt (aerosol individual optical properties SW)
@@ -97,16 +98,16 @@ module mod_rad_aerosol
 ! faer          - Aerosol forward scattered fraction
 !
 !
-  real(dp) , pointer , dimension(:,:) :: aermtot , aervtot
-  real(dp) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
-  real(dp) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
-  real(dp) , dimension(4) :: prop
-  integer :: ll , mm , nn
-  integer :: npoints
+  real(rk8) , pointer , dimension(:,:) :: aermtot , aervtot
+  real(rk8) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
+  real(rk8) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
+  real(rk8) , dimension(4) :: prop
+  integer(ik4) :: ll , mm , nn
+  integer(ik4) :: npoints
 !
 ! Aersol LW optical properties
 !
-  real(dp) , pointer , dimension(:,:,:) ::  aertrlw 
+  real(rk8) , pointer , dimension(:,:,:) ::  aertrlw 
 !
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -504,7 +505,7 @@ module mod_rad_aerosol
 ! 
   subroutine allocate_mod_rad_aerosol(ichem)
     implicit none
-    integer , intent(in) :: ichem
+    integer(ik4) , intent(in) :: ichem
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
     call getmem3d(ftota3d,1,npoints,0,kz,1,nspi,'aerosol:ftota3d')
@@ -566,9 +567,9 @@ module mod_rad_aerosol
 ! 
     implicit none
 !
-    integer , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2
 !   Radiation level interface pressures (dynes/cm2)
-    real(dp) , intent(in) , pointer , dimension(:,:) :: pint
+    real(rk8) , intent(in) , pointer , dimension(:,:) :: pint
 !
 !-----------------------------------------------------------------------
 !
@@ -580,8 +581,8 @@ module mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 ! 
-    real(dp) :: gvis , kaervs , omgvis , rhfac , tauvis
-    integer :: n , k , mxaerl
+    real(rk8) :: gvis , kaervs , omgvis , rhfac , tauvis
+    integer(ik4) :: n , k , mxaerl
 !
     data kaervs /5.3012D0/        ! multiplication factor for kaer
     data omgvis /0.999999D0/
@@ -625,13 +626,13 @@ module mod_rad_aerosol
 !
 !   Interface pressure, relative humidity
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , intent(in) , pointer , dimension(:,:) :: pint
-    real(dp) , intent(in) , pointer , dimension(:,:,:) :: aermmr
-    real(dp) , intent(in) , pointer , dimension(:,:) :: rh
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , intent(in) , pointer , dimension(:,:) :: pint
+    real(rk8) , intent(in) , pointer , dimension(:,:,:) :: aermmr
+    real(rk8) , intent(in) , pointer , dimension(:,:) :: rh
 !
-    integer :: n , l , ibin , jbin , itr , k , k1, k2 , ns
-    real(dp) :: path , uaerdust , qabslw , rh0
+    integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns
+    real(rk8) :: path , uaerdust , qabslw , rh0
 !
     if ( .not. lchem ) then
       tauxar(:,:) = d_zero

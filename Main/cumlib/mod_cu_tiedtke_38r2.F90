@@ -1,44 +1,46 @@
 module mod_cu_tiedtke_38r2
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_dynparam
 
   private
 
-  integer , parameter :: n_vmass = 0        ! Using or not vector mass
-  real(dp) , parameter :: rlpal1 = 0.15D0   ! Smoothing coefficient
-  real(dp) , parameter :: rlpal2 = 20.0D0   ! Smoothing coefficient
-  real(dp) , parameter :: rmfsoluv = 1.0D0  ! Mass flux solver for momentum
-  real(dp) , parameter :: rcucov = 0.05D0   ! Convective cloud cover for rain
+  integer(ik4) , parameter :: n_vmass = 0        ! Using or not vector mass
+  real(rk8) , parameter :: rlpal1 = 0.15D0   ! Smoothing coefficient
+  real(rk8) , parameter :: rlpal2 = 20.0D0   ! Smoothing coefficient
+  real(rk8) , parameter :: rmfsoluv = 1.0D0  ! Mass flux solver for momentum
+  real(rk8) , parameter :: rcucov = 0.05D0   ! Convective cloud cover for rain
                                             ! evporation
-  real(dp) , parameter :: rcpecons = 5.44D-4/rgas
+  real(rk8) , parameter :: rcpecons = 5.44D-4/rgas
                                             ! Coefficient for rain evaporation
                                             ! below cloud
-  real(dp) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
+  real(rk8) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
                                             ! Relaxation time for melting of
                                             ! snow
-  real(dp) , parameter :: rhebc = 0.8D0     ! Critical relative humidity below
+  real(rk8) , parameter :: rhebc = 0.8D0     ! Critical relative humidity below
                                             ! cloud at which evaporation starts
-  real(dp) , parameter :: rmfcfl = 5.0D0    ! Massflux multiple of cfl stability
+  real(rk8) , parameter :: rmfcfl = 5.0D0    ! Massflux multiple of cfl stability
                                             ! criterium
-  real(dp) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
+  real(rk8) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
                                             ! convection
-  real(dp) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
+  real(rk8) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
                                             ! buoyant convection 1/(m)
-  real(dp) , parameter :: entrdd = 3.0D-4   ! Average entrainment rate
+  real(rk8) , parameter :: entrdd = 3.0D-4   ! Average entrainment rate
                                             ! for downdrafts
-  real(dp) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
+  real(rk8) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
                                             ! for updrafts etc
-  real(dp) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
-  real(dp) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
+  real(rk8) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
+  real(rk8) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
                                             ! downdrafts at lfs
-  real(dp) , parameter :: rdepths = 2.4D4   ! Maximum allowed cloud thickness
+  real(rk8) , parameter :: rdepths = 2.4D4   ! Maximum allowed cloud thickness
                                             ! for shallow cloud depth (Pa)
-  real(dp) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
+  real(rk8) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
                                             ! *vdf....*
-  real(dp) , parameter :: rmfsoltq = 1.0D0  ! Mass flux solver for T and q
-  real(dp) , parameter :: zqmax = 0.5D0
-  real(dp) , parameter :: rlmin = 1.0D-8
+  real(rk8) , parameter :: rmfsoltq = 1.0D0  ! Mass flux solver for T and q
+  real(rk8) , parameter :: zqmax = 0.5D0
+  real(rk8) , parameter :: rlmin = 1.0D-8
 
   logical , public :: lphylin = .false.  ! Linearized physics is activated ?
   logical , public :: lmfmid  ! True if midlevel convection is on
@@ -46,8 +48,8 @@ module mod_cu_tiedtke_38r2
   logical , public :: lepcld  ! True if prognostic cloud scheme is on
   logical , public :: lmfdudv ! True if cumulus friction is on
 
-  integer , parameter :: njkt1 = 2
-  integer , parameter :: njkt2 = 2
+  integer(ik4) , parameter :: njkt1 = 2
+  integer(ik4) , parameter :: njkt2 = 2
 
   contains
 !
@@ -96,21 +98,21 @@ module mod_cu_tiedtke_38r2
                     pqsen,paph,pgeoh,pmfu,pdmfen,pdmfde)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer , intent(in) :: kk
-    integer , dimension(klon) , intent(in) :: kcbot , ktype
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) , intent(in) :: kk
+    integer(ik4) , dimension(klon) , intent(in) :: kcbot , ktype
     logical , dimension(klon) , intent(in) :: ldcum
     logical , intent(in) :: ldwork
-    real(dp) , dimension(klon,klev) , intent(in) :: pqsen , pmfu
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
-    real(dp) , dimension(klon) , intent(out) :: pdmfen , pdmfde
+    real(rk8) , dimension(klon,klev) , intent(in) :: pqsen , pmfu
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    real(rk8) , dimension(klon) , intent(out) :: pdmfen , pdmfde
     logical :: llo1
-    integer :: jl
-    real(dp) , dimension(klon) :: zentr
-    real(dp) :: zdz , zmf
+    integer(ik4) :: jl
+    real(rk8) , dimension(klon) :: zentr
+    real(rk8) :: zdz , zmf
     !
     ! 1. Calculate entrainment and detrainment rates
     !
@@ -203,24 +205,24 @@ module mod_cu_tiedtke_38r2
                     pgeoh,ptu,pqu,ptd,pqd,puu,pvu,pud,pvd,plu)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , pqsen , &
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    real(rk8) , dimension(klon,klev) , intent(in) :: pten , pqen , pqsen , &
                      puen , pven , pvervel , pgeo , pap
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
-    integer , dimension(klon) , intent(out) :: klwmin
-    integer , dimension(klon,klev) , intent(out) :: klab
-    real(dp) , dimension(klon,klev) , intent(out) :: pqenh , ptu , pqu , &
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    integer(ik4) , dimension(klon) , intent(out) :: klwmin
+    integer(ik4) , dimension(klon,klev) , intent(out) :: klab
+    real(rk8) , dimension(klon,klev) , intent(out) :: pqenh , ptu , pqu , &
                      ptd , pqd , puu , pvu , pud , pvd , plu
-    real(dp) , dimension(klon,klev) , intent(inout) :: ptenh , pqsenh
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptenh , pqsenh
 
-    real(dp) , dimension(klon) :: zwmax , zph
+    real(rk8) , dimension(klon) :: zwmax , zph
     logical , dimension(klon) :: llflag
-    integer :: icall , ik , jk , jl
-    real(dp) :: zalfa , zzs
+    integer(ik4) :: icall , ik , jk , jl
+    real(rk8) :: zalfa , zzs
     !
     ! 1. specify large scale parameters at half levels
     !    adjust temperature fields if staticly unstable
@@ -343,20 +345,20 @@ module mod_cu_tiedtke_38r2
 !
   subroutine cuadjtqs(kidia,kfdia,klon,ktdia,klev,kk,psp,pt,pq,ldflag,kcall)
     implicit none
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    integer , intent(in) :: kk
-    real(dp) , dimension(klon) , intent(in) :: psp
-    real(dp) , dimension(klon,klev) , intent(inout) :: pt , pq
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: kk
+    real(rk8) , dimension(klon) , intent(in) :: psp
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pt , pq
     logical , dimension(klon) , intent(in) :: ldflag
-    integer , intent(in) :: kcall
+    integer(ik4) , intent(in) :: kcall
 
-    real(dp) , dimension(klon) :: z3es , z4es , z5alcp , zaldcp
-    integer :: jl
-    real(dp) :: zqmax , zqp , zcond , zcond1 , ztarg , zcor , &
+    real(rk8) , dimension(klon) :: z3es , z4es , z5alcp , zaldcp
+    integer(ik4) :: jl
+    real(rk8) :: zqmax , zqp , zcond , zcond1 , ztarg , zcor , &
                 zqsat , zfoeew , z2s
     !
     ! calculate condensation and adjust t and q accordingly
@@ -574,29 +576,29 @@ module mod_cu_tiedtke_38r2
   subroutine cuadjtq(kidia,kfdia,klon,ktdia,klev,kk,psp,pt,pq,ldflag,kcall)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    integer , intent(in) :: kk
-    real(dp) , dimension(klon) , intent(in) :: psp
-    real(dp) , dimension(klon,klev) , intent(inout) :: pt , pq
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: kk
+    real(rk8) , dimension(klon) , intent(in) :: psp
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pt , pq
     logical , dimension(klon) , intent(in) :: ldflag
-    integer , intent(in) :: kcall
-    integer :: jl , jlen
+    integer(ik4) , intent(in) :: kcall
+    integer(ik4) :: jl , jlen
 
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp0
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp1
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp2
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp3
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp4
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp5
-    real(dp) , dimension(kfdia-kidia+1) :: ztmp6
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp0
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp1
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp2
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp3
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp4
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp5
+    real(rk8) , dimension(kfdia-kidia+1) :: ztmp6
 
-    real(dp) :: z1s , z2s , zcond , zcond1 , zcor , zfoeewi , zfoeewl , &
+    real(rk8) :: z1s , z2s , zcond , zcond1 , zcor , zfoeewi , zfoeewl , &
                 zoealfa , zqsat , ztarg , zqp
-    real(dp) :: zl , zi , zf
+    real(rk8) :: zl , zi , zf
 
 !dir$ vfunction exphf
 
@@ -1112,26 +1114,26 @@ module mod_cu_tiedtke_38r2
                     pvd,ptenu,ptenv)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer , intent(in) :: ktdia
-    integer , intent(in) :: ktopm2
-    integer , dimension(klon) , intent(in) :: ktype , kcbot , kctop
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) , intent(in) :: ktdia
+    integer(ik4) , intent(in) :: ktopm2
+    integer(ik4) , dimension(klon) , intent(in) :: ktype , kcbot , kctop
     logical , dimension(klon) , intent(in) :: ldcum
-    real(dp) , intent(in) :: ptsphy
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph
-    real(dp) , dimension(klon,klev) , intent(in) :: puen , pven , &
+    real(rk8) , intent(in) :: ptsphy
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph
+    real(rk8) , dimension(klon,klev) , intent(in) :: puen , pven , &
              pmfu , pmfd , puu , pud , pvu , pvd
-    real(dp) , dimension(klon,klev) , intent(inout) :: ptenu , ptenv
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptenu , ptenv
 
-    real(dp) , dimension(klon,klev) :: zuen , zven , zmfuu , zmfdu , &
+    real(rk8) , dimension(klon,klev) :: zuen , zven , zmfuu , zmfdu , &
              zmfuv , zmfdv , zdudt , zdvdt , zdp , zb ,  zr1 ,  zr2
     logical , dimension(klon,klev) :: llcumbas
-    integer :: ik , ikb , jk , jl
-    real(dp) :: zzp , ztsphy
-    real(dp) , parameter :: zimp = d_one-rmfsoluv
+    integer(ik4) :: ik , ikb , jk , jl
+    real(rk8) :: zzp , ztsphy
+    real(rk8) , parameter :: zimp = d_one-rmfsoluv
 
     ztsphy = d_one/ptsphy
 
@@ -1309,17 +1311,17 @@ module mod_cu_tiedtke_38r2
 !
   subroutine cubidiag(kidia,kfdia,klon,klev,kctop,ld_lcumask,pa,pb,pr,pu)
     implicit none
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , dimension(klon) , intent(in) :: kctop
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , dimension(klon) , intent(in) :: kctop
     logical , dimension(klon,klev) , intent(in) :: ld_lcumask
-    real(dp) , dimension(klon,klev) , intent(in) :: pa , pb , pr
-    real(dp) , dimension(klon,klev) , intent(out) :: pu
-    integer :: jk , jl
-    real(dp) :: zbet
-    real(dp) , parameter :: eps = 1.0D-35
+    real(rk8) , dimension(klon,klev) , intent(in) :: pa , pb , pr
+    real(rk8) , dimension(klon,klev) , intent(out) :: pu
+    integer(ik4) :: jk , jl
+    real(rk8) :: zbet
+    real(rk8) , parameter :: eps = 1.0D-35
 
     pu(:,:) = d_zero
     !
@@ -1375,22 +1377,22 @@ module mod_cu_tiedtke_38r2
   subroutine satur(kidia,kfdia,klon,ktdia,klev,paprsf,pt,pqsat,kflag)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer , intent(in) :: ktdia
-    real(dp) , dimension(klon,klev) , intent(in) :: paprsf , pt
-    real(dp) , dimension(klon,klev) , intent(out) :: pqsat
-    integer , intent(in) :: kflag
-    integer :: jk , jl , jlen
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) , intent(in) :: ktdia
+    real(rk8) , dimension(klon,klev) , intent(in) :: paprsf , pt
+    real(rk8) , dimension(klon,klev) , intent(out) :: pqsat
+    integer(ik4) , intent(in) :: kflag
+    integer(ik4) :: jk , jl , jlen
 
-    real(dp) :: zcor , zew , zfoeew , zqmax , zqs , ztarg
-    real(dp) :: zalfa , zfoeewl , zfoeewi
-    real(dp) , dimension(kidia:kfdia) :: z_exparg1
-    real(dp) , dimension(kidia:kfdia) :: z_exparg2
-    real(dp) , dimension(kidia:kfdia) :: z_expout1
-    real(dp) , dimension(kidia:kfdia) :: z_expout2
+    real(rk8) :: zcor , zew , zfoeew , zqmax , zqs , ztarg
+    real(rk8) :: zalfa , zfoeewl , zfoeewi
+    real(rk8) , dimension(kidia:kfdia) :: z_exparg1
+    real(rk8) , dimension(kidia:kfdia) :: z_exparg2
+    real(rk8) , dimension(kidia:kfdia) :: z_expout1
+    real(rk8) , dimension(kidia:kfdia) :: z_expout2
 
 !dir$ vfunction exphf
 
@@ -1518,23 +1520,23 @@ module mod_cu_tiedtke_38r2
                       pmfub,plrain,ptu,pqu,plu,pmfus,pmfuq,pmful,pdmfup)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    integer ,  intent(in) :: kk
-    real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , &
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) ,  intent(in) :: kk
+    real(rk8) , dimension(klon,klev) , intent(in) :: pten , pqen , &
                  pqsen , pvervel , pgeo
-    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: pgeoh
     logical , dimension(klon) , intent(in) :: ldcum
-    integer , dimension(klon) , intent(out) :: ktype , kcbot
-    integer , dimension(klon,klev) , intent(inout) :: klab
-    real(dp) , dimension(klon,klev) , intent(out) :: pmfu , plrain , ptu , &
+    integer(ik4) , dimension(klon) , intent(out) :: ktype , kcbot
+    integer(ik4) , dimension(klon,klev) , intent(inout) :: klab
+    real(rk8) , dimension(klon,klev) , intent(out) :: pmfu , plrain , ptu , &
                 pqu , plu , pmfus , pmfuq , pmful , pdmfup
-    real(dp) , dimension(klon) , intent(out) :: pmfub
-    integer :: jl
-    real(dp) :: zzzmb
+    real(rk8) , dimension(klon) , intent(out) :: pmfub
+    integer(ik4) :: jl
+    real(rk8) :: zzzmb
 
     !
     ! 1. Calculate entrainment and detrainment rates
@@ -1645,31 +1647,31 @@ module mod_cu_tiedtke_38r2
                      pdmfdp,kdtop,lddraf)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    integer , dimension(klon) :: kcbot , kctop  ! argument not used
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) , dimension(klon) :: kcbot , kctop  ! argument not used
     logical , dimension(klon) :: ldland , ldcum ! argument not used
-    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh ,  &
+    real(rk8) , dimension(klon,klev) , intent(in) :: ptenh , pqenh ,  &
                puen , pven , pten , pqsen , pgeo , ptu , pqu , plu , &
                puu , pvu
-    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
-    real(dp) , dimension(klon) , intent(in) :: pmfub
-    real(dp) , dimension(klon) , intent(inout) :: prfl
-    real(dp) , dimension(klon,klev) , intent(inout) :: pmfd
-    real(dp) , dimension(klon,klev) , intent(out) :: ptd , pqd , pmfds , &
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
+    real(rk8) , dimension(klon) , intent(in) :: pmfub
+    real(rk8) , dimension(klon) , intent(inout) :: prfl
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pmfd
+    real(rk8) , dimension(klon,klev) , intent(out) :: ptd , pqd , pmfds , &
                pmfdq , pdmfdp
-    integer , dimension(klon) , intent(out) :: kdtop
+    integer(ik4) , dimension(klon) , intent(out) :: kdtop
     logical , dimension(klon) , intent(out) :: lddraf
-    integer , dimension(klon) :: ikhsmin
-    real(dp) , dimension(klon,klev) :: ztenwb , zqenwb
-    real(dp) , dimension(klon) :: zcond , zph , zhsmin
+    integer(ik4) , dimension(klon) :: ikhsmin
+    real(rk8) , dimension(klon,klev) :: ztenwb , zqenwb
+    real(rk8) , dimension(klon) :: zcond , zph , zhsmin
     logical , dimension(klon) :: llo2
 
-    integer :: icall , ik , ike , is , jk , jl
-    real(dp) :: zbuo , zhsk , zmftop , zoealfa , zoelhm , zqtest , &
+    integer(ik4) :: icall , ik , ike , is , jk , jl
+    real(rk8) :: zbuo , zhsk , zmftop , zoealfa , zoelhm , zqtest , &
                 ztarg , zttest
     !
     ! 1. Set default values for downdrafts
@@ -1842,29 +1844,29 @@ module mod_cu_tiedtke_38r2
                       pmfd,pmfds,pmfdq,pdmfdp,pdmfde,pmfdde_rate,pkined)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
     logical , dimension(klon) , intent(in) :: lddraf
-    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
+    real(rk8) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
                puen , pven , pgeo , pmfu
-    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
-    real(dp) , dimension(klon) , intent(inout) :: prfl
-    real(dp) , dimension(klon,klev) , intent(inout) :: ptd , pqd , &
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph
+    real(rk8) , dimension(klon) , intent(inout) :: prfl
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptd , pqd , &
                pmfd , pmfds , pmfdq
-    real(dp) , dimension(klon,klev) , intent(out) :: pdmfdp , pdmfde , &
+    real(rk8) , dimension(klon,klev) , intent(out) :: pdmfdp , pdmfde , &
                pmfdde_rate , pkined
-    real(dp) , dimension(klon) :: zdmfen , zdmfde , zcond , zoentr , zbuoy
-    real(dp) , dimension(klon) :: zph
+    real(rk8) , dimension(klon) :: zdmfen , zdmfde , zcond , zoentr , zbuoy
+    real(rk8) , dimension(klon) :: zph
     logical , dimension(klon) :: llo2
-    integer :: icall , ik , is , njkt3 , itopde , jk , jl
-    real(dp) :: zbuo , zbuoyz , zbuoyv , zdmfdp , zdz , zentr , zmfdqk ,  &
+    integer(ik4) :: icall , ik , is , njkt3 , itopde , jk , jl
+    real(rk8) :: zbuo , zbuoyz , zbuoyv , zdmfdp , zdz , zentr , zmfdqk ,  &
                 zmfdsk , zqdde , zqeen , zrain , zsdde , zseen , zzentr , &
                 zdkbuo , zdken
-    real(dp) , parameter :: zfacbuo = d_half/(d_one+d_half)
-    real(dp) , parameter :: z_cwdrag = (3.0D0/8.0D0)*0.506D0/0.2D0
+    real(rk8) , parameter :: zfacbuo = d_half/(d_one+d_half)
+    real(rk8) , parameter :: z_cwdrag = (3.0D0/8.0D0)*0.506D0/0.2D0
 
     njkt3 = kz-2
     itopde = njkt3
@@ -2060,26 +2062,26 @@ module mod_cu_tiedtke_38r2
                      pgeo,pten,pqen,pqsat,penth,ptent,ptenq)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
     logical , dimension(klon) , intent(in) :: ldcum
-    real(dp) , intent(in) :: ptsphy
-    real(dp) , dimension(klon,klev) , intent(in) :: pap , pgeo , pten , &
+    real(rk8) , intent(in) :: ptsphy
+    real(rk8) , dimension(klon,klev) , intent(in) :: pap , pgeo , pten , &
                pqen , pqsat
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph
-    real(dp) , dimension(klon,klev) , intent(out) :: penth
-    real(dp) , dimension(klon,klev) , intent(inout) :: ptent , ptenq
-    real(dp) , dimension(klon,klev) :: ztc , zqc , zcf , zcptgz , ztdif , &
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph
+    real(rk8) , dimension(klon,klev) , intent(out) :: penth
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptent , ptenq
+    real(rk8) , dimension(klon,klev) :: ztc , zqc , zcf , zcptgz , ztdif , &
                zqdif , zebs
-    real(dp) , dimension(klon,klev+1) :: zap
-    real(dp) , dimension(klon) :: zcpts , zqs , ztcoe , zqold , zpp
-    integer , dimension(klon,klev) :: ilab
+    real(rk8) , dimension(klon,klev+1) :: zap
+    real(rk8) , dimension(klon) :: zcpts , zqs , ztcoe , zqold , zpp
+    integer(ik4) , dimension(klon,klev) :: ilab
     logical , dimension(klon) :: llflag , llo2 , llbl
-    integer :: icall , ik , ilevh , jk , jl
-    real(dp) :: zbuo , zcons1 , zcons2 , zcons3 , zdisc , zdqdt , zdtdt , &
+    integer(ik4) :: icall , ik , ilevh , jk , jl
+    real(rk8) :: zbuo , zcons1 , zcons2 , zcons3 , zdisc , zdqdt , zdtdt , &
                 zfac , zkdiff1 , zkdiff2 , zqdp , ztmst , ztpfac1 , ztpfac2
     !
     ! 1. Physical constants and parameters.
@@ -2341,34 +2343,34 @@ module mod_cu_tiedtke_38r2
                      pmfdq,pmful,pdmfup,pdpmel,ptent,ptenq,penth)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    integer , intent(in) :: ktopm2
-    integer , dimension(klon) , intent(in) :: ktype
-    integer , dimension(klon) , intent(in) :: kctop
-    integer , dimension(klon) , intent(in) :: kdtop
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: ktopm2
+    integer(ik4) , dimension(klon) , intent(in) :: ktype
+    integer(ik4) , dimension(klon) , intent(in) :: kctop
+    integer(ik4) , dimension(klon) , intent(in) :: kdtop
     logical , dimension(klon) , intent(inout) :: ldcum
     logical , dimension(klon) , intent(in) :: lddraf
-    real(dp) , intent(in)    :: ptsphy
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
-    real(dp) , dimension(klon,klev) , intent(in) :: pgeo , pten , pqen , &
+    real(rk8) , intent(in)    :: ptsphy
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    real(rk8) , dimension(klon,klev) , intent(in) :: pgeo , pten , pqen , &
          ptenh , pqenh , pqsen , plglac , pmfu , pmfd , pmfus , pmfds ,  &
          pmfuq , pmfdq , pmful , pdmfup , pdpmel
-    real(dp) , dimension(klon,klev) , intent(inout) :: plude , ptent , ptenq
-    real(dp) , dimension(klon,klev) , intent(out) :: penth
+    real(rk8) , dimension(klon,klev) , intent(inout) :: plude , ptent , ptenq
+    real(rk8) , dimension(klon,klev) , intent(out) :: penth
 
     logical :: lltest
-    integer :: jk , ik , jl
-    real(dp) :: ztsphy , zorcpd , zalv , zoealfa , ztarg , &
+    integer(ik4) :: jk , ik , jl
+    real(rk8) :: ztsphy , zorcpd , zalv , zoealfa , ztarg , &
                 zzp , zgq , zgs , zgh , zs , zq
-    real(dp) , dimension(klon,klev) :: zmfus , zmfuq , zmfds , zmfdq
-    real(dp) , dimension(klon,klev) :: zdtdt , zdqdt , zdp , zb , zr1 , zr2
+    real(rk8) , dimension(klon,klev) :: zmfus , zmfuq , zmfds , zmfdq
+    real(rk8) , dimension(klon,klev) :: zdtdt , zdqdt , zdp , zb , zr1 , zr2
     logical , dimension(klon,klev) :: llcumbas
 
-    real(dp) , parameter :: zimp = 1.0D0 - rmfsoltq
+    real(rk8) , parameter :: zimp = 1.0D0 - rmfsoltq
 
     !
     ! 1.0 Setup and initializations
@@ -2633,35 +2635,35 @@ module mod_cu_tiedtke_38r2
                     pmflxr,pmflxs,prain,pmfdde_rate)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
-    real(dp) , intent(in)    :: ptsphy
-    real(dp) , dimension(klon,klev) , intent(in) :: pten , pqen , ptenh , &
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    real(rk8) , intent(in)    :: ptsphy
+    real(rk8) , dimension(klon,klev) , intent(in) :: pten , pqen , ptenh , &
              pqenh , pap
-    real(dp) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
-    real(dp) , dimension(klon,klev) , intent(inout) :: pqsen
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph , pgeoh
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pqsen
     logical , dimension(klon) :: ldland ! argument not used
     logical , dimension(klon) , intent(in) :: ldcum
-    integer , dimension(klon) , intent(in) :: kcbot , kctop , kdtop
-    integer , intent(out) :: ktopm2
-    integer , dimension(klon) , intent(inout) :: ktype
+    integer(ik4) , dimension(klon) , intent(in) :: kcbot , kctop , kdtop
+    integer(ik4) , intent(out) :: ktopm2
+    integer(ik4) , dimension(klon) , intent(inout) :: ktype
     logical , dimension(klon) , intent(inout) :: lddraf
-    real(dp) , dimension(klon,klev) , intent(inout) :: pmfu , pmfd , &
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pmfu , pmfd , &
            pmfus , pmfds , pmfuq , pmfdq , pmful , pdmfup , pdmfdp , &
            plglac , pmfdde_rate
-    real(dp) , dimension(klon,klev) , intent(out) :: plude , pdpmel
-    real(dp) , dimension(klon,klev+1) , intent(out) :: pmflxr , pmflxs
-    real(dp) , dimension(klon) , intent(out) :: prain
+    real(rk8) , dimension(klon,klev) , intent(out) :: plude , pdpmel
+    real(rk8) , dimension(klon,klev+1) , intent(out) :: pmflxr , pmflxs
+    real(rk8) , dimension(klon) , intent(out) :: prain
 
-    real(dp) , dimension(klon) :: zrhebc
-    integer :: ik , ikb , jk , jl
-    integer , dimension(klon) :: idbas
+    real(rk8) , dimension(klon) :: zrhebc
+    integer(ik4) :: ik , ikb , jk , jl
+    integer(ik4) , dimension(klon) :: idbas
     logical :: llddraf
 
-    real(dp) :: zalfaw , zcons1 , zcons1a , zcons2 , zdenom , zdrfl ,  &
+    real(rk8) :: zalfaw , zcons1 , zcons1a , zcons2 , zdenom , zdrfl ,  &
        zdrfl1 , zfac , zfoeewi , zfoeewl , zoealfa , zoeewm , zoelhm , &
        zpdr , zpds , zrfl , zrfln , zrmin , zrnew , zsnmlt , ztarg ,   &
        ztmst , zzp
@@ -2985,55 +2987,55 @@ module mod_cu_tiedtke_38r2
                      kcbot,kbotsc,kctop,kdpl,pcape)
     implicit none
 
-    integer , intent(in) :: klon
-    integer , intent(in) :: klev
-    integer , intent(in) :: kidia
-    integer , intent(in) :: kfdia
-    integer :: ktdia ! argument not used
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
     logical , dimension(klon) , intent(in) :: ldland
-    real(dp) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
+    real(rk8) , dimension(klon,klev) , intent(in) :: ptenh , pqenh , &
               pten , pqen , pqsen , pgeo , puen , pven
-    real(dp) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph , &
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: pgeoh , paph , &
               pqhfl , pahfs
-    real(dp) , dimension(klon,klev) , intent(inout) :: ptu , pqu , &
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptu , pqu , &
               plu , puu , pvu
-    real(dp) , dimension(klon) , intent(out) :: pwubase , pcape
-    integer , dimension(klon,klev) , intent(inout) :: klab
+    real(rk8) , dimension(klon) , intent(out) :: pwubase , pcape
+    integer(ik4) , dimension(klon,klev) , intent(inout) :: klab
     logical , dimension(klon) , intent(inout) :: ldcum
     logical , dimension(klon) , intent(out) :: ldsc
-    integer , dimension(klon) , intent(inout) :: kcbot
-    integer , dimension(klon) , intent(out) :: kbotsc , kctop , kdpl
+    integer(ik4) , dimension(klon) , intent(inout) :: kcbot
+    integer(ik4) , dimension(klon) , intent(out) :: kbotsc , kctop , kdpl
 
-    integer , dimension(klon) ::  ictop , icbot , ibotsc , idpl
-    integer , dimension(klon,klev) :: ilab
+    integer(ik4) , dimension(klon) ::  ictop , icbot , ibotsc , idpl
+    integer(ik4) , dimension(klon,klev) :: ilab
     logical , dimension(klon) :: ll_ldbase , llgo_on , lldeep , lldcum , &
              lldsc , llfirst , llresetjl
     logical :: llreset
-    integer :: icall , ik , ikb , is , jk , jl , jkk , jkt1 , jkt2 , jkt , jkb
-    real(dp) , dimension(klon,klev) :: zs , zsuh , zwu2h , zbuoh , zlu , &
+    integer(ik4) :: icall , ik , ikb , is , jk , jl , jkk , jkt1 , jkt2 , jkt , jkb
+    real(rk8) , dimension(klon,klev) :: zs , zsuh , zwu2h , zbuoh , zlu , &
              zqu , ztu , zuu , zvu , zcape
-    real(dp) , dimension(klon,klev+1) :: zsenh , zqenh
-    real(dp) ,dimension(klon) :: zqold , zph , zmix , zdz , zcbase , &
+    real(rk8) , dimension(klon,klev+1) :: zsenh , zqenh
+    real(rk8) ,dimension(klon) :: zqold , zph , zmix , zdz , zcbase , &
              ztven1 , ztvu1 , zdtvtrig
-    real(dp) :: zrho      ! density at surface (kg/m^3)
-    real(dp) :: zkhvfl    ! surface buoyancy flux (k m/s)
-    real(dp) :: zws       ! sigma_w at lowest model halflevel (m/s)
-    real(dp) :: zqexc     ! humidity excess at lowest model halflevel (kg/kg)
-    real(dp) :: ztexc     ! temperature excess at lowest model halflevel (k)
-    real(dp) :: zeps      ! fractional entrainment rate   [m^-1]
-    real(dp) :: ztvenh    ! environment virtual temperature at half levels (k)
-    real(dp) :: ztvuh     ! updraft virtual temperature at half levels     (k)
-    real(dp) :: zlglac    ! updraft liquid water frozen in one layer
-    real(dp) :: zqsu , zcor , zdq , zalfaw , zfacw , zfaci , zfac ,  &
+    real(rk8) :: zrho      ! density at surface (kg/m^3)
+    real(rk8) :: zkhvfl    ! surface buoyancy flux (k m/s)
+    real(rk8) :: zws       ! sigma_w at lowest model halflevel (m/s)
+    real(rk8) :: zqexc     ! humidity excess at lowest model halflevel (kg/kg)
+    real(rk8) :: ztexc     ! temperature excess at lowest model halflevel (k)
+    real(rk8) :: zeps      ! fractional entrainment rate   [m^-1]
+    real(rk8) :: ztvenh    ! environment virtual temperature at half levels (k)
+    real(rk8) :: ztvuh     ! updraft virtual temperature at half levels     (k)
+    real(rk8) :: zlglac    ! updraft liquid water frozen in one layer
+    real(rk8) :: zqsu , zcor , zdq , zalfaw , zfacw , zfaci , zfac ,  &
                 zesdp , zdqsdt , zdtdp , zdp ,zpdifftop ,zpdiffbot , &
                 zsf , zqf , zbuof , zz , ztmp
-    real(dp) :: ztven2 , ztvu2 ! pseudoadiabatique t_v
-    real(dp) :: zwork1 , zwork2 ! work arrays for t and w perturbations
+    real(rk8) :: ztven2 , ztvu2 ! pseudoadiabatique t_v
+    real(rk8) :: zwork1 , zwork2 ! work arrays for t and w perturbations
 
-    real(dp) , parameter :: zc2 = 0.55D0
-    real(dp) , parameter :: zaw = 1.0D0
-    real(dp) , parameter :: zbw = 1.0D0
-    real(dp) , parameter :: zepsadd = 1.D-4
+    real(rk8) , parameter :: zc2 = 0.55D0
+    real(rk8) , parameter :: zaw = 1.0D0
+    real(rk8) , parameter :: zbw = 1.0D0
+    real(rk8) , parameter :: zepsadd = 1.D-4
     !
     ! 0. Initialize fields
     !
@@ -3466,173 +3468,173 @@ module mod_cu_tiedtke_38r2
 !
 !-----------------------------------------------------------------------------
 !
-  real(dp) function minj(x,y)
+  real(rk8) function minj(x,y)
     implicit none
-    real(dp) , intent(in) :: x , y
+    real(rk8) , intent(in) :: x , y
     minj = y - d_half*(dabs(x-y)-(x-y))
   end function minj
-  real(dp) function maxj(x,y)
+  real(rk8) function maxj(x,y)
     implicit none
-    real(dp) , intent(in) :: x , y
+    real(rk8) , intent(in) :: x , y
     maxj = y + d_half*(dabs(x-y)+(x-y))
   end function maxj
-  real(dp) function foedelta(ptare)
+  real(rk8) function foedelta(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foedelta = max(d_zero,sign(d_one,ptare-tzero))
   end function foedelta
-  real(dp) function foeew(ptare)
+  real(rk8) function foeew(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeew = c2es*exp((c3les*foedelta(ptare) + &
             c3ies*(d_one-foedelta(ptare)))*(ptare-tzero) / &
             (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare)))))
   end function foeew
-  real(dp) function foede(ptare)
+  real(rk8) function foede(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foede = (foedelta(ptare)*c5alvcp+(d_one-foedelta(ptare))*c5alscp) / &
        (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**d_two
   end function foede
-  real(dp) function foedesu(ptare)
+  real(rk8) function foedesu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foedesu = (foedelta(ptare)*c5les+(d_one-foedelta(ptare))*c5ies) / &
          (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**d_two
   end function foedesu
-  real(dp) function foelh(ptare)
+  real(rk8) function foelh(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foelh = foedelta(ptare)*wlhv + (d_one-foedelta(ptare))*wlhs
   end function foelh
-  real(dp) function foeldcp(ptare)
+  real(rk8) function foeldcp(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeldcp = foedelta(ptare)*wlhvocp + (d_one-foedelta(ptare))*wlhsocp
   end function foeldcp
-  real(dp) function foealfa(ptare)
+  real(rk8) function foealfa(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foealfa = min(d_one,((max(rtice,min(rtwat,ptare))-rtice) * &
                   rtwat_rtice_r)**d_two)
   end function foealfa
-  real(dp) function foeewm(ptare)
+  real(rk8) function foeewm(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeewm = c2es*(foealfa(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les))+ &
           (d_one-foealfa(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
   end function foeewm
-  real(dp) function foedem(ptare)
+  real(rk8) function foedem(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foedem = foealfa(ptare)*c5alvcp*(d_one/(ptare-c4les)**d_two) + &
             (d_one-foealfa(ptare))*c5alscp*(d_one/(ptare-c4ies)**d_two)
   end function foedem
-  real(dp) function foeldcpm(ptare)
+  real(rk8) function foeldcpm(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeldcpm = foealfa(ptare)*wlhvocp+(d_one-foealfa(ptare))*wlhsocp
   end function foeldcpm
-  real(dp) function foelhm(ptare)
+  real(rk8) function foelhm(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foelhm = foealfa(ptare)*wlhv+(d_one-foealfa(ptare))*wlhs
   end function foelhm
-  real(dp) function foetb(ptare)
+  real(rk8) function foetb(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foetb = foealfa(ptare)*c3les*(tzero-c4les)*(d_one/(ptare-c4les)**d_two)+ &
       (d_one-foealfa(ptare))*c3ies*(tzero-c4ies)*(d_one/(ptare-c4ies)**d_two)
   end function foetb
-  real(dp) function foealfcu(ptare)
+  real(rk8) function foealfcu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foealfcu = min(d_one, &
            ((max(rtice,min(rtwat,ptare))-rtice)*rtwat_rtice_r)**d_two)
   end function foealfcu
-  real(dp) function foeewmcu(ptare)
+  real(rk8) function foeewmcu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeewmcu = c2es*(foealfcu(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les))+ &
             (d_one-foealfcu(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
   end function foeewmcu
-  real(dp) function foedemcu(ptare)
+  real(rk8) function foedemcu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foedemcu = foealfcu(ptare)*c5alvcp*(d_one/(ptare-c4les)**d_two) + &
            (d_one-foealfcu(ptare))*c5alscp*(d_one/(ptare-c4ies)**d_two)
   end function foedemcu
-  real(dp) function foeldcpmcu(ptare)
+  real(rk8) function foeldcpmcu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeldcpmcu = foealfcu(ptare)*wlhvocp+(d_one-foealfcu(ptare))*wlhsocp
   end function foeldcpmcu
-  real(dp) function foelhmcu(ptare)
+  real(rk8) function foelhmcu(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foelhmcu = foealfcu(ptare)*wlhv+(d_one-foealfcu(ptare))*wlhs
   end function foelhmcu
-  real(dp) function foeewmo(ptare)
+  real(rk8) function foeewmo(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeewmo = c2es*exp(c3les*(ptare-tzero)/(ptare-c4les))
   end function foeewmo
-  real(dp) function foeeliq(ptare)
+  real(rk8) function foeeliq(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeeliq = c2es*exp(c3les*(ptare-tzero)/(ptare-c4les))
   end function foeeliq
-  real(dp) function foeeice(ptare)
+  real(rk8) function foeeice(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeeice = c2es*exp(c3ies*(ptare-tzero)/(ptare-c4ies))
   end function foeeice
-  real(dp) function foeles_v(ptare)
+  real(rk8) function foeles_v(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeles_v = c3les*(ptare-tzero)/(ptare-c4les)
   end function foeles_v
-  real(dp) function foeies_v(ptare)
+  real(rk8) function foeies_v(ptare)
     implicit none
-    real(dp) , intent(in) :: ptare
+    real(rk8) , intent(in) :: ptare
     foeies_v = c3ies*(ptare-tzero)/(ptare-c4ies)
   end function foeies_v
-  real(dp) function foeewm_v(ptare,exp1,exp2)
+  real(rk8) function foeewm_v(ptare,exp1,exp2)
     implicit none
-    real(dp) , intent(in) :: ptare , exp1 , exp2
+    real(rk8) , intent(in) :: ptare , exp1 , exp2
     foeewm_v = c2es*(foealfa(ptare)*exp1+(d_one-foealfa(ptare))*exp2)
   end function foeewm_v
-  real(dp) function foeewmcu_v(ptare,exp1,exp2)
+  real(rk8) function foeewmcu_v(ptare,exp1,exp2)
     implicit none
-    real(dp) , intent(in) :: ptare , exp1 , exp2
+    real(rk8) , intent(in) :: ptare , exp1 , exp2
     foeewmcu_v = c2es*(foealfcu(ptare)*exp1+(d_one-foealfcu(ptare))*exp2)
   end function foeewmcu_v
   subroutine vdiv(z,x,y,n)
     implicit none
-    real(dp) , dimension(:) , intent(out) :: z
-    real(dp) , dimension(:) , intent(in) :: x , y
-    integer , intent(in) :: n
-    integer :: i
+    real(rk8) , dimension(:) , intent(out) :: z
+    real(rk8) , dimension(:) , intent(in) :: x , y
+    integer(ik4) , intent(in) :: n
+    integer(ik4) :: i
     do i = 1 , n
       z(i) = x(i)/y(i)
     end do
   end subroutine vdiv
   subroutine vexp(y,x,n)
     implicit none
-    real(dp) , dimension(:) , intent(out) :: y
-    real(dp) , dimension(:) , intent(in) :: x
-    integer , intent(in) :: n
-    integer :: i
+    real(rk8) , dimension(:) , intent(out) :: y
+    real(rk8) , dimension(:) , intent(in) :: x
+    integer(ik4) , intent(in) :: n
+    integer(ik4) :: i
     do i = 1 , n
       y(i) = dexp(x(i))
     end do
   end subroutine vexp
   subroutine vrec(y,x,n)
     implicit none
-    real(dp) , dimension(:) , intent(out) :: y
-    real(dp) , dimension(:) , intent(in) :: x
-    integer , intent(in) :: n
-    integer :: i
+    real(rk8) , dimension(:) , intent(out) :: y
+    real(rk8) , dimension(:) , intent(in) :: x
+    integer(ik4) , intent(in) :: n
+    integer(ik4) :: i
     do i = 1 , n
       y(i) = d_one/x(i)
     end do

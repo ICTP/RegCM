@@ -125,9 +125,9 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, tile, n
-      !integer :: localPet, petCount, ierr, subs, tile, n 
-      integer :: LBi, UBi, LBj, UBj
+      integer(ik4) :: localPet, petCount, tile, n
+      !integer(ik4) :: localPet, petCount, ierr, subs, tile, n 
+      integer(ik4) :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
 !     Call ROMS initialization routines
@@ -220,7 +220,7 @@
 !-----------------------------------------------------------------------
 !
       !logical, save :: first = .true.
-      integer :: localPet, petCount, comm !, ng, rc2
+      integer(ik4) :: localPet, petCount, comm !, ng, rc2
 !
       type(ESMF_Time) :: currTime
 !
@@ -359,7 +359,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 ! 
-      integer :: i, n
+      integer(ik4) :: i, n
 !
 !-----------------------------------------------------------------------
 !     Terminate ROMS execution.  Close all NetCDF files.
@@ -431,18 +431,18 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: ref_year,   str_year,   end_year
-      integer :: ref_month,  str_month,  end_month
-      integer :: ref_day,    str_day,    end_day
-      integer :: ref_hour,   str_hour,   end_hour
-      integer :: ref_minute, str_minute, end_minute
-      integer :: ref_second, str_second, end_second
+      integer(ik4) :: ref_year,   str_year,   end_year
+      integer(ik4) :: ref_month,  str_month,  end_month
+      integer(ik4) :: ref_day,    str_day,    end_day
+      integer(ik4) :: ref_hour,   str_hour,   end_hour
+      integer(ik4) :: ref_minute, str_minute, end_minute
+      integer(ik4) :: ref_second, str_second, end_second
 !
-      integer :: ng, myTimeStep
+      integer(ik4) :: ng, myTimeStep
       real(r8) :: MyStartTime, MyStopTime
       real(r8) :: hour, minute, yday
       character (len=80) :: name
-      integer :: rc
+      integer(ik4) :: rc
 !
 !-----------------------------------------------------------------------
 !     Create gridded component clock 
@@ -688,13 +688,13 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, n, tile, rc 
-      integer :: localPet, petCount, comm, localDECount
-      integer :: IstrR, IendR, JstrR, JendR
-      integer :: IstrU, IendU, JstrU, JendU     
-      integer :: IstrV, IendV, JstrV, JendV     
-      integer :: staggerEdgeLWidth(2)
-      integer :: staggerEdgeUWidth(2)
+      integer(ik4) :: i, j, ii, jj, n, tile, rc 
+      integer(ik4) :: localPet, petCount, comm, localDECount
+      integer(ik4) :: IstrR, IendR, JstrR, JendR
+      integer(ik4) :: IstrU, IendU, JstrU, JendU     
+      integer(ik4) :: IstrV, IendV, JstrV, JendV     
+      integer(ik4) :: staggerEdgeLWidth(2)
+      integer(ik4) :: staggerEdgeUWidth(2)
       integer, allocatable :: deBlockList(:,:,:)
       character(len=40) :: name
 !
@@ -1028,14 +1028,14 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, id, ng, rc !, tile , rc !, ii, jj, id
-      integer :: localPet, petCount, comm, localDECount
-      integer :: IstrR, IendR, JstrR, JendR
-      integer :: IstrU, IendU, JstrU, JendU     
-      integer :: IstrV, IendV, JstrV, JendV
-      integer :: staggerEdgeLWidth(2)
-      integer :: staggerEdgeUWidth(2)
-      integer :: TLW(2), TUW(2)
+      integer(ik4) :: i, j, id, ng, rc !, tile , rc !, ii, jj, id
+      integer(ik4) :: localPet, petCount, comm, localDECount
+      integer(ik4) :: IstrR, IendR, JstrR, JendR
+      integer(ik4) :: IstrU, IendU, JstrU, JendU     
+      integer(ik4) :: IstrV, IendV, JstrV, JendV
+      integer(ik4) :: staggerEdgeLWidth(2)
+      integer(ik4) :: staggerEdgeUWidth(2)
+      integer(ik4) :: TLW(2), TUW(2)
       integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
       character (len=40) :: name
 !
@@ -1323,9 +1323,9 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, k, ng
-      integer :: IstrR, IendR, JstrR, JendR
-      integer :: LBi, UBi, LBj, UBj
+      integer(ik4) :: i, j, k, ng
+      integer(ik4) :: IstrR, IendR, JstrR, JendR
+      integer(ik4) :: LBi, UBi, LBj, UBj
       character (len=80) :: name
       character (len=100) :: outfile
 !
@@ -1483,12 +1483,12 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, ng, rc !, id
-      integer :: localPet, petCount, comm, localDECount
-      integer :: IstrR, IendR, JstrR, JendR
-      integer :: IstrU, IendU, JstrU, JendU     
-      integer :: IstrV, IendV, JstrV, JendV
-      integer :: LBi, UBi, LBj, UBj
+      integer(ik4) :: i, j, ii, jj, ng, rc !, id
+      integer(ik4) :: localPet, petCount, comm, localDECount
+      integer(ik4) :: IstrR, IendR, JstrR, JendR
+      integer(ik4) :: IstrU, IendU, JstrU, JendU     
+      integer(ik4) :: IstrV, IendV, JstrV, JendV
+      integer(ik4) :: LBi, UBi, LBj, UBj
       character (len=40) :: name
       character (len=100) :: outfile
       real*8 :: scale_factor, add_offset

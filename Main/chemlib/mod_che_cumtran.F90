@@ -21,8 +21,9 @@ module mod_che_cumtran
 !
 ! Tracer convective transport
 !
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_che_common
 !
   private
@@ -33,8 +34,8 @@ module mod_che_cumtran
 !
   subroutine cumtran
     implicit none
-    real(dp) :: chiabar , chibbar , deltas , cumfrc
-    integer :: i , j , k , kctop , n
+    real(rk8) :: chiabar , chibbar , deltas , cumfrc
+    integer(ik4) :: i , j , k , kctop , n
 
     if ( ichdiag == 1 ) then
      do j = jci1 , jci2

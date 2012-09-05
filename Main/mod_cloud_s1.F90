@@ -31,58 +31,58 @@ module mod_cloud_s1
 
   private
 
-  integer , parameter :: nmax = 5
+  integer(ik4) , parameter :: nmax = 5
   
 
-  real(dp) , parameter :: ptsphy = 1000.0
-  real(dp) , parameter :: lvl = 2.50E6
-  real(dp) , parameter :: lvs = 2.83E6
-  real(dp) , parameter :: dpotdz = -1.0E-3
-  real(dp) , parameter :: vervel = 0.0015
-  real(dp) , parameter :: qrad = 1.0E-2
-  real(dp) :: w2 
-  real(dp) :: w1
+  real(rk8) , parameter :: ptsphy = 1000.0
+  real(rk8) , parameter :: lvl = 2.50E6
+  real(rk8) , parameter :: lvs = 2.83E6
+  real(rk8) , parameter :: dpotdz = -1.0E-3
+  real(rk8) , parameter :: vervel = 0.0015
+  real(rk8) , parameter :: qrad = 1.0E-2
+  real(rk8) :: w2 
+  real(rk8) :: w1
  
-  real(dp) , pointer , dimension(:,:,:) :: pres   ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: zt     ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: zeta   ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: dzeta  ! from atms
-  real(dp) , pointer , dimension(:,:,:,:) :: zqxx ! from atms
-  real(dp) , pointer , dimension(:,:,:) :: rhob3d ! from atms added by R
-  real(dp) , pointer , dimension(:,:,:) :: omega  ! from atms added by R
-  real(dp) , pointer , dimension(:,:,:) :: heatrt ! added by R
+  real(rk8) , pointer , dimension(:,:,:) :: pres   ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zt     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zeta   ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: dzeta  ! from atms
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: rhob3d ! from atms added by R
+  real(rk8) , pointer , dimension(:,:,:) :: omega  ! from atms added by R
+  real(rk8) , pointer , dimension(:,:,:) :: heatrt ! added by R
 
 
-  integer , parameter :: nqx = 5
+  integer(ik4) , parameter :: nqx = 5
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
 
-  real(dp) , pointer , dimension(:,:,:) :: ztl
-  real(dp) , pointer , dimension(:,:,:) :: dqsatdt
-  real(dp) , pointer , dimension(:,:,:) :: satvp
-  real(dp) , pointer , dimension(:,:,:,:) :: wvflux
-  real(dp) , pointer , dimension(:,:,:,:) :: vqx
-  real(dp) , pointer , dimension(:,:,:,:) :: zqx
-  real(dp) , pointer , dimension(:,:,:) :: zqxfg
-  real(dp) , public  , pointer, dimension(:,:,:,:) :: zqxn
-  real(dp) , pointer , dimension(:,:,:) :: zfallsink
-  real(dp) , pointer , dimension(:,:,:) :: zfallsrce
-  real(dp) , pointer , dimension(:,:,:) :: zfluxq
-  real(dp) , pointer , dimension(:,:,:) :: zratio
-  real(dp) , pointer , dimension(:,:,:) :: zsinksum
-  real(dp) , pointer , dimension(:,:,:,:) :: zqlhs
-  real(dp) , pointer , dimension(:,:,:,:) :: zsolqa
-  real(dp) , pointer , dimension(:,:,:,:) :: zsolqb
-  real(dp) , pointer , dimension(:,:,:) :: totalw1
-  real(dp) , pointer , dimension(:,:,:) :: totalw2
-  real(dp) , pointer , dimension(:,:,:) :: diff
-  real(dp) , pointer , dimension(:,:) :: zfrzmax
-  integer , pointer , dimension(:) :: kphase                     ! marker for water phase of each species
+  real(rk8) , pointer , dimension(:,:,:) :: ztl
+  real(rk8) , pointer , dimension(:,:,:) :: dqsatdt
+  real(rk8) , pointer , dimension(:,:,:) :: satvp
+  real(rk8) , pointer , dimension(:,:,:,:) :: wvflux
+  real(rk8) , pointer , dimension(:,:,:,:) :: vqx
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqx
+  real(rk8) , pointer , dimension(:,:,:) :: zqxfg
+  real(rk8) , public  , pointer, dimension(:,:,:,:) :: zqxn
+  real(rk8) , pointer , dimension(:,:,:) :: zfallsink
+  real(rk8) , pointer , dimension(:,:,:) :: zfallsrce
+  real(rk8) , pointer , dimension(:,:,:) :: zfluxq
+  real(rk8) , pointer , dimension(:,:,:) :: zratio
+  real(rk8) , pointer , dimension(:,:,:) :: zsinksum
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqlhs
+  real(rk8) , pointer , dimension(:,:,:,:) :: zsolqa
+  real(rk8) , pointer , dimension(:,:,:,:) :: zsolqb
+  real(rk8) , pointer , dimension(:,:,:) :: totalw1
+  real(rk8) , pointer , dimension(:,:,:) :: totalw2
+  real(rk8) , pointer , dimension(:,:,:) :: diff
+  real(rk8) , pointer , dimension(:,:) :: zfrzmax
+  integer(ik4) , pointer , dimension(:) :: kphase                     ! marker for water phase of each species
                                                                  ! 0=vapour, 1=liquid, 2=ice  
-  integer , pointer , dimension(:) :: imelt                      ! marks melting linkage for ice categories
+  integer(ik4) , pointer , dimension(:) :: imelt                      ! marks melting linkage for ice categories
                                                                  ! ice->liquid, snow->rain
-  integer , pointer , dimension(:,:,:,:) :: jindex1
-  integer , pointer , dimension(:,:,:) :: jindex2
+  integer(ik4) , pointer , dimension(:,:,:,:) :: jindex1
+  integer(ik4) , pointer , dimension(:,:,:) :: jindex2
    
 
 
@@ -136,37 +136,37 @@ module mod_cloud_s1
 
   subroutine microphys(omega,jstart,jend,istart,iend)
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega  !added by R
+    integer(ik4) , intent(in) :: jstart , jend , istart , iend
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega  !added by R
 
-    integer :: i , j , k , n
-    integer :: iqi , iql , iqr , iqs , iqv , jn , jo , kautoconv
+    integer(ik4) :: i , j , k , n
+    integer(ik4) :: iqi , iql , iqr , iqs , iqv , jn , jo , kautoconv
     logical :: lmicro
-    real(dp) :: zcond , zdtdp , zexplicit
-    real(dp) :: zfrz
-    real(dp) :: alpha1 !coefficient autoconversion
-    real(dp) :: slht !sublimation latent heat 
-    real(dp) :: ralsdcp
-    real(dp) :: ralvdcp
-    real(dp) :: zrldcp
+    real(rk8) :: zcond , zdtdp , zexplicit
+    real(rk8) :: zfrz
+    real(rk8) :: alpha1 !coefficient autoconversion
+    real(rk8) :: slht !sublimation latent heat 
+    real(rk8) :: ralsdcp
+    real(rk8) :: ralvdcp
+    real(rk8) :: zrldcp
 !
     ! local real variables for autoconversion rate constants
-    real(dp) , parameter :: zauto_rate_khair = 0.355D0  ! microphysical terms
-    real(dp) , parameter :: zauto_expon_khair = 1.47D0
-    real(dp) , parameter :: zauto_rate_sundq = 0.5D-3
-    real(dp) , parameter :: zauto_rate_kesl = 1.D-3         !giusto!
-    real(dp) , parameter :: zauto_rate_klepi = 0.5D-3
-    real(dp) , parameter :: zautocrit = 5.D-4               !giusto!
-    real(dp) , parameter :: zt0 = 273.16
-    real(dp) , parameter :: zepsec = 1.E-10
-    real(dp) , parameter :: qi0 = 1.0E-3 !g g^(-1)
-    real(dp) , parameter :: vlht = 2260. !kJ/kg evaporation latent heat  
-    real(dp) , parameter :: rcpd =  1005. !J/(kg·K) Cp_dry (dry air calorific capacity at constant pressure) 
+    real(rk8) , parameter :: zauto_rate_khair = 0.355D0  ! microphysical terms
+    real(rk8) , parameter :: zauto_expon_khair = 1.47D0
+    real(rk8) , parameter :: zauto_rate_sundq = 0.5D-3
+    real(rk8) , parameter :: zauto_rate_kesl = 1.D-3         !giusto!
+    real(rk8) , parameter :: zauto_rate_klepi = 0.5D-3
+    real(rk8) , parameter :: zautocrit = 5.D-4               !giusto!
+    real(rk8) , parameter :: zt0 = 273.16
+    real(rk8) , parameter :: zepsec = 1.E-10
+    real(rk8) , parameter :: qi0 = 1.0E-3 !g g^(-1)
+    real(rk8) , parameter :: vlht = 2260. !kJ/kg evaporation latent heat  
+    real(rk8) , parameter :: rcpd =  1005. !J/(kg·K) Cp_dry (dry air calorific capacity at constant pressure) 
  
 
     ! local real constants for evaporation
-    real(dp) , parameter :: kevap = 0.100D-02    !! Raindrop evap rate coef
-    real(dp) , parameter :: rlmin = 1.D-8
+    real(rk8) , parameter :: kevap = 0.100D-02    !! Raindrop evap rate coef
+    real(rk8) , parameter :: rlmin = 1.D-8
  
      
     ! Define species tags, hard wire for now
@@ -619,28 +619,28 @@ module mod_cloud_s1
  
     contains
 
-     real(dp) function dqsatdtc(zt,satc)
+     real(rk8) function dqsatdtc(zt,satc)
        implicit none
-       real(dp) , intent(in) :: satc , zt
+       real(rk8) , intent(in) :: satc , zt
        dqsatdtc = satc*(6150.0D0/(zt**d_two))
      end function dqsatdtc
       
-     real(dp) function dqsatdtw(zt,satw)
+     real(rk8) function dqsatdtw(zt,satw)
        implicit none
-       real(dp) , intent(in) :: satw , zt
+       real(rk8) , intent(in) :: satw , zt
        dqsatdtw = satw*(4097.99D0/((zt-32.15D0)**d_two))
      end function dqsatdtw
 
-     real(dp) function satc(zt,xp)
+     real(rk8) function satc(zt,xp)
        implicit none
-       real(dp) , intent(in) :: xp , zt
+       real(rk8) , intent(in) :: xp , zt
        ! saturation mixing ratio in hPa
        satc = (3.79D0/xp)*dexp(22.514D0-6150.0D0/zt) 
      end function satc
 
-     real(dp) function satw(zt,xp)
+     real(rk8) function satw(zt,xp)
        implicit none
-       real(dp) , intent(in) :: xp , zt
+       real(rk8) , intent(in) :: xp , zt
        ! saturation mixing ratio in hPa
        satw = (3.79D0/xp)*dexp(17.5D0*(zt-tzero)/(zt-32.15D0))
      end function satw
@@ -649,12 +649,12 @@ module mod_cloud_s1
 
   subroutine lubksb(jstart,jend,istart,iend,aam,indx,bbm)
     implicit none
-    integer , intent(in) :: jstart , jend , istart , iend
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: aam
-    integer , pointer , intent(in) , dimension(:,:,:) :: indx
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: bbm
-    integer :: i , j , ii , jj , k , ll , m
-    real(dp) :: xsum
+    integer(ik4) , intent(in) :: jstart , jend , istart , iend
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: aam
+    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: indx
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: bbm
+    integer(ik4) :: i , j , ii , jj , k , ll , m
+    real(rk8) :: xsum
 
     ! SOLVES THE SET OF N LINEAR EQUATIONS A * X = B.
     ! HERE A IS INPUT, NOT AS THE MATRIX A BUT RATHER AS
@@ -702,13 +702,13 @@ module mod_cloud_s1
   subroutine ludcmp(jstart,jend,istart,iend,aam,indx)
     implicit none
 !
-    integer , intent(in) :: jstart , jend , istart , iend
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
-    integer , pointer , intent(out) , dimension(:,:,:) :: indx
+    integer(ik4) , intent(in) :: jstart , jend , istart , iend
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
+    integer(ik4) , pointer , intent(out) , dimension(:,:,:) :: indx
 !
-    real(dp) :: aamax , dum , xsum
-    integer :: i , j , k , imax , n , m
-    real(dp) , dimension(nmax) :: vv
+    real(rk8) :: aamax , dum , xsum
+    integer(ik4) :: i , j , k , imax , n , m
+    real(rk8) , dimension(nmax) :: vv
 !
     do j = jstart , jend
       do i = istart , iend

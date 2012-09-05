@@ -43,17 +43,17 @@ module mod_savefile
   public :: read_savefile
   public :: write_savefile
 
-  integer :: isavlast
-  integer :: iutrst
-  integer :: ncsave
+  integer(ik4) :: isavlast
+  integer(ik4) :: iutrst
+  integer(ik4) :: ncsave
 
-  integer , dimension(2) :: idimcross2d
-  integer , dimension(2) :: idimdot2d
-  integer , dimension(3) :: idimcross3d
-  integer , dimension(3) :: idimdot3d
-  integer , dimension(1) :: idimsigmafull
-  integer , dimension(1) :: idimsigmahalf
-  integer , dimension(3) :: idimsubgridcross2d
+  integer(ik4) , dimension(2) :: idimcross2d
+  integer(ik4) , dimension(2) :: idimdot2d
+  integer(ik4) , dimension(3) :: idimcross3d
+  integer(ik4) , dimension(3) :: idimdot3d
+  integer(ik4) , dimension(1) :: idimsigmafull
+  integer(ik4) , dimension(1) :: idimsigmahalf
+  integer(ik4) , dimension(3) :: idimsubgridcross2d
 
 #ifdef CLM
   character(len=256) :: thisclmrest
@@ -70,8 +70,8 @@ module mod_savefile
     type (rcm_time_and_date) , intent(in) :: idate
     character(256) :: ffin
     character(16) :: fbname
-    integer(8) :: idt1 , idt2
-    real(8) :: odtsec
+    integer(ik8) :: idt1 , idt2
+    real(rk8) :: odtsec
     logical :: existing
 
     if ( myid == iocpu ) then
@@ -210,12 +210,12 @@ module mod_savefile
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     logical , intent(in) :: ltmp
-    integer , parameter :: iutsav = 52
+    integer(ik4) , parameter :: iutsav = 52
     character(256) :: ffout
     character(32) :: fbname
     logical :: existing
 #ifdef CLM
-    integer :: ioff
+    integer(ik4) :: ioff
 #endif
     if ( myid == iocpu ) then
       if (ltmp) then
@@ -375,8 +375,8 @@ module mod_savefile
     logical , intent(in) :: ltmp
     character(256) :: ffout
     character(32) :: fbname
-    integer :: ires
-    integer :: ixdim
+    integer(ik4) :: ires
+    integer(ik4) :: ixdim
     if ( myid /= iocpu ) then
       return
     end if

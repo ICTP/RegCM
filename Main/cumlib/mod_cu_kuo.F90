@@ -22,6 +22,8 @@ module mod_cu_kuo
 ! This module implements Kuo cumulus parameterization scheme.
 ! The basic method follows Anthes and Keyser (1979) and Kuo (1983).
 !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_mppparam
@@ -38,19 +40,19 @@ module mod_cu_kuo
 ! dlt    : temperature difference used to allow over shooting.
 ! cdscld : critical cloud depth in delta sigma.
 !
-  real(dp) , parameter :: qdcrit = 3.0D-7
-  real(dp) , parameter :: pert   = 1.0D0
-  real(dp) , parameter :: perq   = 1.0D-3
-  real(dp) , parameter :: dlt    = 3.0D0
-  real(dp) , parameter :: cdscld = 0.3D0
+  real(rk8) , parameter :: qdcrit = 3.0D-7
+  real(rk8) , parameter :: pert   = 1.0D0
+  real(rk8) , parameter :: perq   = 1.0D-3
+  real(rk8) , parameter :: dlt    = 3.0D0
+  real(rk8) , parameter :: cdscld = 0.3D0
 !
-  real(dp) , public , pointer , dimension(:,:,:) :: rsheat , rswat
-  real(dp) , public , pointer , dimension(:) :: qwght
-  real(dp) , public , pointer , dimension(:,:,:) :: twght , vqflx
-  real(dp) , pointer , dimension(:,:,:) :: wrkkuo1
-  real(dp) , pointer , dimension(:,:,:) :: wrkkuo2
+  real(rk8) , public , pointer , dimension(:,:,:) :: rsheat , rswat
+  real(rk8) , public , pointer , dimension(:) :: qwght
+  real(rk8) , public , pointer , dimension(:,:,:) :: twght , vqflx
+  real(rk8) , pointer , dimension(:,:,:) :: wrkkuo1
+  real(rk8) , pointer , dimension(:,:,:) :: wrkkuo2
 
-  integer , public :: k700
+  integer(ik4) , public :: k700
 
   contains
 !
@@ -74,17 +76,17 @@ module mod_cu_kuo
 !
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
-    real(dp) :: akclth , apcnt , arh , c301 , dalr ,    &
+    real(rk8) :: akclth , apcnt , arh , c301 , dalr ,    &
                deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
                eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
                psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
                sca , siglcl , suma , sumb , t1 , tdmax , tlcl , &
                tmax , tmean , ttconv , ttp , ttsum , xsav , zlcl
-    integer :: i , j , k , kbase , kbaseb , kclth , kk , ktop
-    real(dp) , dimension(kz) :: seqt
-    real(dp) , dimension(kz) :: tmp3
+    integer(ik4) :: i , j , k , kbase , kbaseb , kclth , kk , ktop
+    real(rk8) , dimension(kz) :: seqt
+    real(rk8) , dimension(kz) :: tmp3
 !
 !----------------------------------------------------------------------
 !
@@ -347,9 +349,9 @@ module mod_cu_kuo
   subroutine htdiff(dxsq,akht1)
     implicit none
 !
-    real(dp) , intent(in) :: akht1 , dxsq
+    real(rk8) , intent(in) :: akht1 , dxsq
 !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
 !
     wrkkuo1(jci1:jci2,ici1:ici2,:) = rsheat(:,:,:)
     wrkkuo2(jci1:jci2,ici1:ici2,:) = rswat(:,:,:)

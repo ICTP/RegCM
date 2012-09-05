@@ -38,13 +38,13 @@ module mod_vmodes
   public :: tau , varpa1
   public :: hydroc , hydros
 
-  real(dp) :: xps , pd
-  real(dp) , pointer , dimension(:,:) :: a0
-  real(dp) , pointer , dimension(:) ::  sigmah , tbarh , hbar
-  real(dp) , pointer , dimension(:,:) :: zmatx , zmatxr
-  real(dp) , pointer , dimension(:,:) :: tau
-  real(dp) , pointer , dimension(:,:) :: varpa1
-  real(dp) , pointer , dimension(:,:) :: hydroc , hydros
+  real(rk8) :: xps , pd
+  real(rk8) , pointer , dimension(:,:) :: a0
+  real(rk8) , pointer , dimension(:) ::  sigmah , tbarh , hbar
+  real(rk8) , pointer , dimension(:,:) :: zmatx , zmatxr
+  real(rk8) , pointer , dimension(:,:) :: tau
+  real(rk8) , pointer , dimension(:,:) :: varpa1
+  real(rk8) , pointer , dimension(:,:) :: hydroc , hydros
 !
   contains
 
@@ -87,26 +87,26 @@ module mod_vmodes
 !
     logical , intent(in) :: lstand
 !
-    real(dp) , dimension(2) :: det
-    integer :: ier , k , k1 , k2 , l , mm , numerr
+    real(rk8) , dimension(2) :: det
+    integer(ik4) :: ier , k , k1 , k2 , l , mm , numerr
     logical :: lhydro , lprint , lsigma
-    real(dp) :: ps2 , x
-    real(dp) , dimension(kz) :: work
-    real(dp) , dimension(1) :: pps
-    real(dp) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
+    real(rk8) :: ps2 , x
+    real(rk8) , dimension(kz) :: work
+    real(rk8) , dimension(1) :: pps
+    real(rk8) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
                    e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
-    real(dp) , dimension(kzp1,kz) :: w3
-    integer , dimension(kz) :: iw2
-    real(dp) , dimension(kzp1) :: tbarf , thetaf
-    real(dp) , dimension(kz) :: thetah , tweigh
-    real(dp) :: alpha1 , alpha2
-    real(dp) , dimension(kz) :: cpfac , sdsigma , hweigh
-    real(dp) , dimension(kzp1,kzp1) :: varpa2
-    real(dp) , dimension(kz,kz) :: hydror
+    real(rk8) , dimension(kzp1,kz) :: w3
+    integer(ik4) , dimension(kz) :: iw2
+    real(rk8) , dimension(kzp1) :: tbarf , thetaf
+    real(rk8) , dimension(kz) :: thetah , tweigh
+    real(rk8) :: alpha1 , alpha2
+    real(rk8) , dimension(kz) :: cpfac , sdsigma , hweigh
+    real(rk8) , dimension(kzp1,kzp1) :: varpa2
+    real(rk8) , dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
 !
     character (len=64) :: subroutine_name='vmodes'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     a1 = d_zero
@@ -518,12 +518,12 @@ module mod_vmodes
     subroutine vchekt
       implicit none
 !
-      real(dp) :: ds1 , ds2 , g1 , g2 , tb
-      integer :: k
+      real(rk8) :: ds1 , ds2 , g1 , g2 , tb
+      integer(ik4) :: k
       logical :: lstab
 !
       character (len=64) :: subroutine_name='vchekt'
-      integer :: idindx=0
+      integer(ik4) :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
       lstab = .true.
@@ -552,11 +552,11 @@ module mod_vmodes
     subroutine vtlaps
       implicit none
 !
-      real(dp) , parameter :: tstrat = 218.15D0
-      real(dp) , parameter :: zstrat = 10769.0D0
+      real(rk8) , parameter :: tstrat = 218.15D0
+      real(rk8) , parameter :: zstrat = 10769.0D0
 !
-      real(dp) :: p0 , fac , p , z
-      integer :: k
+      real(rk8) :: p0 , fac , p , z
+      integer(ik4) :: k
 !
       p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
@@ -576,8 +576,8 @@ module mod_vmodes
     subroutine vorder
       implicit none
 !
-      real(dp) :: hmax
-      integer :: k , kmax , l
+      real(rk8) :: hmax
+      integer(ik4) :: k , kmax , l
 !
       kmax = 1
       do k = 1 , kz
@@ -613,8 +613,8 @@ module mod_vmodes
     subroutine vnorml
       implicit none
 !
-      real(dp) :: a , v , zmax
-      integer :: k , kmax , l
+      real(rk8) :: a , v , zmax
+      integer(ik4) :: k , kmax , l
 !
       kmax = 1
       do l = 1 , kz
@@ -643,10 +643,10 @@ module mod_vmodes
     subroutine vcheke
       implicit none
 !
-      real(dp) , parameter :: tol = 1.0D-9
+      real(rk8) , parameter :: tol = 1.0D-9
 !
-      real(dp) :: emax
-      integer :: n , nimag , numneg
+      real(rk8) :: emax
+      integer(ik4) :: n , nimag , numneg
 !
       numneg = 0
       emax = d_zero
@@ -680,7 +680,7 @@ module mod_vmodes
     implicit none
 !
     character(8) :: aname
-    integer :: ier , numerr
+    integer(ik4) :: ier , numerr
     intent (in) aname , ier
     intent (inout) numerr
 !
@@ -698,10 +698,10 @@ module mod_vmodes
   subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
     implicit none
 !
-    integer :: na , nv , n , ier
-    integer , dimension(n) :: ip
-    real(dp) :: a(n,n) , v(n,n) , work(n) , d(2)
-    integer :: i , j
+    integer(ik4) :: na , nv , n , ier
+    integer(ik4) , dimension(n) :: ip
+    real(rk8) :: a(n,n) , v(n,n) , work(n) , d(2)
+    integer(ik4) :: i , j
 !
 !   08/23/91 Version 1.0
 !   12/10/92 Updated to correct bugs
@@ -709,7 +709,7 @@ module mod_vmodes
 !   Uses subroutines sgefa/sgedi from library linpack
 !
     character (len=64) :: subroutine_name='invmtrx'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     if ( n /= na .or. n /= nv ) then
@@ -736,11 +736,11 @@ module mod_vmodes
   subroutine vprntv(a,n,nam)
     implicit none
 !
-    integer :: n
+    integer(ik4) :: n
     character(8) :: nam
-    real(dp) , dimension(n) :: a
+    real(rk8) , dimension(n) :: a
     intent (in) a , n , nam
-    integer :: k
+    integer(ik4) :: k
     print * , nam
     do k = 1 , n
       print *, a(k)
@@ -750,11 +750,11 @@ module mod_vmodes
   subroutine vprntm(a,n1,n2,nam)
     implicit none
 !
-    integer :: n1 , n2
+    integer(ik4) :: n1 , n2
     character(8) :: nam
-    real(dp) , dimension(n1,n2) :: a
+    real(rk8) , dimension(n1,n2) :: a
     intent (in) a , n1 , n2 , nam
-    integer :: k , l
+    integer(ik4) :: k , l
     print * , nam
     do k = 1 , n1
       print * , k , (a(k,l),l=1,n2)

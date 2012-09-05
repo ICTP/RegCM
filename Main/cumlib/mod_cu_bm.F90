@@ -19,8 +19,9 @@
  
 module mod_cu_bm
 
-  use mod_dynparam
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_memutil
   use mod_cu_common
   use mod_runparams , only : iqv
@@ -60,21 +61,21 @@ module mod_cu_bm
 
   private
 
-  integer , parameter :: itb = 100
-  integer , parameter :: jtb = 150
+  integer(ik4) , parameter :: itb = 100
+  integer(ik4) , parameter :: jtb = 150
 
-  real(dp) :: pl
-  real(dp) , pointer , dimension(:,:,:) :: tbase
-  real(dp) , pointer , dimension(:,:) :: cldefi
-  real(dp) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
+  real(rk8) :: pl
+  real(rk8) , pointer , dimension(:,:,:) :: tbase
+  real(rk8) , pointer , dimension(:,:) :: cldefi
+  real(rk8) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
                                            tmod , tref , z0
-  real(dp) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
+  real(rk8) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
          fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,       &
          thvref , tk , trefk
-  real(dp) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , p , &
+  real(rk8) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , p , &
          pbot , prtop , psp , xsm , thbt , thesp , ths , tthbt , tthes
-  integer , pointer , dimension(:,:) :: ifbuoy , ip300 , lbot , ltop , ml
-  integer , pointer , dimension(:) :: kdp , nbotd , nbots , ndpthd ,      &
+  integer(ik4) , pointer , dimension(:,:) :: ifbuoy , ip300 , lbot , ltop , ml
+  integer(ik4) , pointer , dimension(:) :: kdp , nbotd , nbots , ndpthd ,      &
          ndpths , ntopd , ntops , ideep , ishal , jdeep , jshal
 
   public :: bmpara , lutbl , allocate_mod_cu_bm
@@ -84,7 +85,7 @@ module mod_cu_bm
 !
   subroutine allocate_mod_cu_bm
     implicit none
-    integer :: intall
+    integer(ik4) :: intall
     call getmem3d(tbase,jci1,jci2,ici1,ici2,1,kz,'cu_bm:tbase')
     call getmem2d(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem1d(apek,1,kz,'cu_bm:apek')
@@ -146,70 +147,70 @@ module mod_cu_bm
 
   subroutine bmpara(ktau)
     implicit none
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
-    real(dp) , parameter :: h1 = 1.0D0
-    real(dp) , parameter :: h3000 = 3000.0D0
-    real(dp) , parameter :: h10e5 = 100000.0D0
-    real(dp) , parameter :: d608 = 0.608D0
-    real(dp) , parameter :: dm2859 = -rgas/cpd
-    real(dp) , parameter :: epsq = 2.0D-12
-    real(dp) , parameter :: row = d_1000
-    real(dp) , parameter :: t1 = tzero+1.0D0
-    real(dp) , parameter :: stresh = 1.10D0
-    real(dp) , parameter :: stabs = 1.0D0
-    real(dp) , parameter :: stabd = 0.90D0
-    real(dp) , parameter :: rhf = 0.20D0
-    real(dp) , parameter :: pmn = 6500.0D0
-    real(dp) , parameter :: epsdn = 1.05D0
-    real(dp) , parameter :: epsth = 6.0D00
-    real(dp) , parameter :: pbm = 30000.0D0
-    real(dp) , parameter :: pqm = 20000.0D0
-    real(dp) , parameter :: pone = 2500.0D0
-    real(dp) , parameter :: pfrz = 15000.0D0
-    real(dp) , parameter :: pshu = 45000.0D0
-    real(dp) , parameter :: zno = 750.0D0
-    real(dp) , parameter :: zsh = 3999.0D0
-    real(dp) , parameter :: fss = 0.60D0
-    real(dp) , parameter :: efimn = 0.20D0
-    real(dp) , parameter :: efmnt = 0.70D0
-    real(dp) , parameter :: fcc1 = 0.50D0
-    real(dp) , parameter :: fcp = h1 - fcc1
-    real(dp) , parameter :: dspbfl = -3875.0D0
-    real(dp) , parameter :: dsp0fl = -5875.0D0
-    real(dp) , parameter :: dsptfl = -1875.0D0
-    real(dp) , parameter :: fsl = 1.0D0
-    real(dp) , parameter :: dspbfs = -3875.0D0
-    real(dp) , parameter :: dsp0fs = -5875.0D0
-    real(dp) , parameter :: dsptfs = -1875.0D0
-    real(dp) , parameter :: dspbsl = dspbfl*fsl
-    real(dp) , parameter :: dsp0sl = dsp0fl*fsl
-    real(dp) , parameter :: dsptsl = dsptfl*fsl
-    real(dp) , parameter :: dspbss = dspbfs*fss
-    real(dp) , parameter :: dsp0ss = dsp0fs*fss
-    real(dp) , parameter :: dsptss = dsptfs*fss
-    real(dp) , parameter :: epsntp = 0.0010D0
-    real(dp) , parameter :: efifc = 5.0D0
-    real(dp) , parameter :: avgefi = (efimn+1.0D0)*d_half
-    real(dp) , parameter :: dspc = -3000.0D0
-    real(dp) , parameter :: epsp = 1.0D-7
-    real(dp) , parameter :: stefi = avgefi
-    real(dp) , parameter :: slopbl = (dspbfl-dspbsl)/(h1-efimn)
-    real(dp) , parameter :: slop0l = (dsp0fl-dsp0sl)/(h1-efimn)
-    real(dp) , parameter :: sloptl = (dsptfl-dsptsl)/(h1-efimn)
-    real(dp) , parameter :: slopbs = (dspbfs-dspbss)/(h1-efimn)
-    real(dp) , parameter :: slop0s = (dsp0fs-dsp0ss)/(h1-efimn)
-    real(dp) , parameter :: slopts = (dsptfs-dsptss)/(h1-efimn)
-    real(dp) , parameter :: slope = (h1-efmnt)/(h1-efimn)
-    real(dp) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
-    real(dp) , parameter :: cporng = d_one/dm2859
-    real(dp) , parameter :: elocp = wlhv/cpd
-    real(dp) , parameter :: cprlg = cpd/(row*egrav*wlhv)
+    real(rk8) , parameter :: h1 = 1.0D0
+    real(rk8) , parameter :: h3000 = 3000.0D0
+    real(rk8) , parameter :: h10e5 = 100000.0D0
+    real(rk8) , parameter :: d608 = 0.608D0
+    real(rk8) , parameter :: dm2859 = -rgas/cpd
+    real(rk8) , parameter :: epsq = 2.0D-12
+    real(rk8) , parameter :: row = d_1000
+    real(rk8) , parameter :: t1 = tzero+1.0D0
+    real(rk8) , parameter :: stresh = 1.10D0
+    real(rk8) , parameter :: stabs = 1.0D0
+    real(rk8) , parameter :: stabd = 0.90D0
+    real(rk8) , parameter :: rhf = 0.20D0
+    real(rk8) , parameter :: pmn = 6500.0D0
+    real(rk8) , parameter :: epsdn = 1.05D0
+    real(rk8) , parameter :: epsth = 6.0D00
+    real(rk8) , parameter :: pbm = 30000.0D0
+    real(rk8) , parameter :: pqm = 20000.0D0
+    real(rk8) , parameter :: pone = 2500.0D0
+    real(rk8) , parameter :: pfrz = 15000.0D0
+    real(rk8) , parameter :: pshu = 45000.0D0
+    real(rk8) , parameter :: zno = 750.0D0
+    real(rk8) , parameter :: zsh = 3999.0D0
+    real(rk8) , parameter :: fss = 0.60D0
+    real(rk8) , parameter :: efimn = 0.20D0
+    real(rk8) , parameter :: efmnt = 0.70D0
+    real(rk8) , parameter :: fcc1 = 0.50D0
+    real(rk8) , parameter :: fcp = h1 - fcc1
+    real(rk8) , parameter :: dspbfl = -3875.0D0
+    real(rk8) , parameter :: dsp0fl = -5875.0D0
+    real(rk8) , parameter :: dsptfl = -1875.0D0
+    real(rk8) , parameter :: fsl = 1.0D0
+    real(rk8) , parameter :: dspbfs = -3875.0D0
+    real(rk8) , parameter :: dsp0fs = -5875.0D0
+    real(rk8) , parameter :: dsptfs = -1875.0D0
+    real(rk8) , parameter :: dspbsl = dspbfl*fsl
+    real(rk8) , parameter :: dsp0sl = dsp0fl*fsl
+    real(rk8) , parameter :: dsptsl = dsptfl*fsl
+    real(rk8) , parameter :: dspbss = dspbfs*fss
+    real(rk8) , parameter :: dsp0ss = dsp0fs*fss
+    real(rk8) , parameter :: dsptss = dsptfs*fss
+    real(rk8) , parameter :: epsntp = 0.0010D0
+    real(rk8) , parameter :: efifc = 5.0D0
+    real(rk8) , parameter :: avgefi = (efimn+1.0D0)*d_half
+    real(rk8) , parameter :: dspc = -3000.0D0
+    real(rk8) , parameter :: epsp = 1.0D-7
+    real(rk8) , parameter :: stefi = avgefi
+    real(rk8) , parameter :: slopbl = (dspbfl-dspbsl)/(h1-efimn)
+    real(rk8) , parameter :: slop0l = (dsp0fl-dsp0sl)/(h1-efimn)
+    real(rk8) , parameter :: sloptl = (dsptfl-dsptsl)/(h1-efimn)
+    real(rk8) , parameter :: slopbs = (dspbfs-dspbss)/(h1-efimn)
+    real(rk8) , parameter :: slop0s = (dsp0fs-dsp0ss)/(h1-efimn)
+    real(rk8) , parameter :: slopts = (dsptfs-dsptss)/(h1-efimn)
+    real(rk8) , parameter :: slope = (h1-efmnt)/(h1-efimn)
+    real(rk8) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
+    real(rk8) , parameter :: cporng = d_one/dm2859
+    real(rk8) , parameter :: elocp = wlhv/cpd
+    real(rk8) , parameter :: cprlg = cpd/(row*egrav*wlhv)
     logical , parameter :: unis = .false.
     logical , parameter :: unil = .true.
     logical , parameter :: oct90 = .true.
 !
-    real(dp) :: ak , akclth , apekl , avrgt , avrgtl , cell , &
+    real(rk8) :: ak , akclth , apekl , avrgt , avrgtl , cell , &
                cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
                dpmix , dqref , drheat , dsp , dsp0k , dspbk , dsptk , &
                dst , dstq , dtdeta , dthem , ee , efi , es , fefi ,   &
@@ -220,7 +221,7 @@ module mod_cu_bm
                rhl , rotsum , rtbar , smix , stabdl , sumde , sumdp , &
                sumdt , tauk , tcorr , tdpt , thskl , thtpk , thvmkl , &
                tkl , tlcl , trfkl , tskl , ztop
-    integer :: i , j , iconss , iter , ivi , k , kb , kbaseb ,    &
+    integer(ik4) :: i , j , iconss , iter , ivi , k , kb , kbaseb ,    &
                kclth , khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
                lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
                n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
@@ -1060,20 +1061,20 @@ module mod_cu_bm
 !
     implicit none
 !
-    real(dp) , parameter :: eps = 2.0D-12 ! little number
+    real(rk8) , parameter :: eps = 2.0D-12 ! little number
 
 !
-    real(dp) :: ptop
+    real(rk8) :: ptop
     intent (in) ptop
 !
-    real(dp) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
+    real(rk8) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
                sqsk , sthek , th , the0k
-    real(dp) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
+    real(rk8) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
                thenew , theold , tnew , told , y2p , y2t
-    integer :: kp , kpm , kpm1 , kth , kthm , kthm1
-    real(dp) , parameter :: thl = 210.0D0
-    real(dp) , parameter :: thh = 385.0D0
-    real(dp) , parameter :: ph = 105000.0D0
+    integer(ik4) :: kp , kpm , kpm1 , kth , kthm , kthm1
+    real(rk8) , parameter :: thl = 210.0D0
+    real(rk8) , parameter :: thh = 385.0D0
+    real(rk8) , parameter :: ph = 105000.0D0
 !
 !   coarse look-up table for saturation point
 !
@@ -1203,17 +1204,17 @@ module mod_cu_bm
  
     implicit none
 !
-    integer :: nnew , nold
-    real(dp) , dimension(nold) :: xold , yold , y2
-    real(dp) , dimension(nnew) :: xnew, ynew
+    integer(ik4) :: nnew , nold
+    real(rk8) , dimension(nold) :: xold , yold , y2
+    real(rk8) , dimension(nnew) :: xnew, ynew
     intent (in) nnew , nold , xnew , xold , yold
     intent (out) ynew
     intent (inout) y2
 !
-    real(dp) , dimension(nold-2) :: p , q
-    real(dp) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+    real(rk8) , dimension(nold-2) :: p , q
+    real(rk8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
                dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
-    integer :: k , k1 , k2 , kold , noldm1
+    integer(ik4) :: k , k1 , k2 , kold , noldm1
 !
 !-----------------------------------------------------------------------
 !
@@ -1313,12 +1314,12 @@ module mod_cu_bm
  
     implicit none
 !
-    real(dp) :: pi , press , qs , rl , tgs , thetae
-    real(dp) :: tpfc
+    real(rk8) :: pi , press , qs , rl , tgs , thetae
+    real(rk8) :: tpfc
     intent (in) pi , press , rl , tgs , thetae
     intent (inout) qs
 !
-    real(dp) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
+    real(rk8) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
 !
 !   iteratively extract temperature from equivalent potential temperature.
 !

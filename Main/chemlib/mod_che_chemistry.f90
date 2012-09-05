@@ -19,6 +19,7 @@
 
 module mod_che_chemistry
   
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_constants
@@ -33,7 +34,7 @@ module mod_che_chemistry
   use mod_cbmz_main1
   private
 
-  real(dp) , parameter :: dtchsolv = 900.0D0
+  real(rk8) , parameter :: dtchsolv = 900.0D0
 ! 
 
   public :: chemistry , dtchsolv
@@ -41,7 +42,7 @@ module mod_che_chemistry
 
 
 
-  real(dp) , parameter :: kb = 1.380658D-19
+  real(rk8) , parameter :: kb = 1.380658D-19
 
   contains
 
@@ -49,12 +50,12 @@ module mod_che_chemistry
 
       implicit none
 
-      integer , intent(in) :: j
-      integer , intent(in) :: lyear , lmonth , lday
-      real(dp) , intent(in) :: secofday 
+      integer(ik4) , intent(in) :: j
+      integer(ik4) , intent(in) :: lyear , lmonth , lday
+      real(rk8) , intent(in) :: secofday 
 
-      real(dp) :: cfactor , pfact
-      integer :: i , k , kbl , kab ,ic
+      real(rk8) :: cfactor , pfact
+      integer(ik4) :: i , k , kbl , kab ,ic
 
       time = dtchsolv
       idate = (lyear-1900)*10000+lmonth*100+lday

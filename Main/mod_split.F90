@@ -36,25 +36,25 @@ module mod_split
 !
   public :: allocate_mod_split , spinit , splitf
 !
-  real(dp) , pointer , dimension(:) :: aam
-  real(dp) , pointer , dimension(:) :: an
-  real(dp) , pointer , dimension(:,:) :: am
-  real(dp) , pointer , dimension(:,:,:) :: uuu , vvv
+  real(rk8) , pointer , dimension(:) :: aam
+  real(rk8) , pointer , dimension(:) :: an
+  real(rk8) , pointer , dimension(:,:) :: am
+  real(rk8) , pointer , dimension(:,:,:) :: uuu , vvv
 !
-  real(dp) , pointer , dimension(:,:,:) :: ddsum
-  real(dp) , pointer , dimension(:,:,:) :: dhsum
-  real(dp) , pointer , dimension(:,:,:,:) :: deld
-  real(dp) , pointer , dimension(:,:,:,:) :: delh
-  real(dp) , pointer , dimension(:,:,:) :: work
-  real(dp) , pointer , dimension(:,:) :: uu , vv
-  real(dp) , pointer , dimension(:,:) :: xdelh
+  real(rk8) , pointer , dimension(:,:,:) :: ddsum
+  real(rk8) , pointer , dimension(:,:,:) :: dhsum
+  real(rk8) , pointer , dimension(:,:,:,:) :: deld
+  real(rk8) , pointer , dimension(:,:,:,:) :: delh
+  real(rk8) , pointer , dimension(:,:,:) :: work
+  real(rk8) , pointer , dimension(:,:) :: uu , vv
+  real(rk8) , pointer , dimension(:,:) :: xdelh
 !
   contains 
 !
   subroutine allocate_mod_split
     implicit none
     character (len=64) :: subroutine_name='allocate_mod_split'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
     call getmem1d(aam,1,nsplit,'split:aam')
@@ -78,11 +78,11 @@ module mod_split
 !
   subroutine spinit
     implicit none
-    real(dp) :: eps , eps1 , fac , pdlog
-    integer :: i , ijlx , j , k , l , n , ns
+    real(rk8) :: eps , eps1 , fac , pdlog
+    integer(ik4) :: i , ijlx , j , k , l , n , ns
     logical :: lstand
     character (len=64) :: subroutine_name='spinit'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -237,10 +237,10 @@ module mod_split
 !
   subroutine splitf
     implicit none
-    real(dp) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
-    integer :: i , j , k , l , n
+    real(rk8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
+    integer(ik4) :: i , j , k , l , n
     character (len=64) :: subroutine_name='splitf'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -501,10 +501,10 @@ module mod_split
   subroutine spstep
     implicit none
 !
-    real(dp) :: dtau2 , fac
-    integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
+    real(rk8) :: dtau2 , fac
+    integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
     character (len=64) :: subroutine_name='spstep'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !

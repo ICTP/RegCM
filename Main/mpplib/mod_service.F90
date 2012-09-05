@@ -829,7 +829,7 @@ CONTAINS
   END FUNCTION len_strim
  
   double precision function timer()
-  integer(8) C,R,M
+  integer(ik8) C,R,M
     CALL SYSTEM_CLOCK (COUNT=C, COUNT_RATE=R, COUNT_MAX=M)
     timer= dble(C)/dble(R)
     return

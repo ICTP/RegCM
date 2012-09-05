@@ -19,6 +19,7 @@
 
 module mod_cbmz_main1
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_cbmz_boxvars
@@ -119,7 +120,7 @@ module mod_cbmz_main1
     subroutine chemmain
 !
       implicit none
-      integer :: kk , ic ! Standard counters
+      integer(ik4) :: kk , ic ! Standard counters
       !
       ! Index for vector arrays, =1 unless vector loop entered
       !

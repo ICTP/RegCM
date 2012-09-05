@@ -19,6 +19,7 @@
 
 module mod_cbmz_init1
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_mpmessage
@@ -37,7 +38,7 @@ module mod_cbmz_init1
 !
 !    4-2009: error with ifort, but not with -C compile option.
 !      indices c_noh, etc. are written incorrectly, possibly related to
-!       warning message about real(dp) :: in COMMON.
+!       warning message about real(rk8) :: in COMMON.
 !
 !     Nov 2007 addition: save net RP stoich for tracers.
 !  NOTE CHANGES:  rbchemmech.EXT, quadinit.f
@@ -124,50 +125,50 @@ module mod_cbmz_init1
 !
       implicit none
       ! Chem index
-      integer :: ic , ic1 , ic2 , ic3 , icc , ics , icc1 , icc2 , icc3
+      integer(ik4) :: ic , ic1 , ic2 , ic3 , icc , ics , icc1 , icc2 , icc3
       ! Chem index
-      integer :: icp
+      integer(ik4) :: icp
       ! chem index - pair and multi
-      integer :: icr1 , icr2
+      integer(ik4) :: icr1 , icr2
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Chem species counters
-      integer :: nc , nc1 , nc2 , ncf , nn , nne,nsolv,nsol
+      integer(ik4) :: nc , nc1 , nc2 , ncf , nn , nne,nsolv,nsol
       ! Reaction counters
-      integer :: nr , nrh , nrq , nrqq , np
+      integer(ik4) :: nr , nrh , nrq , nrqq , np
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , j , ii , iii , n
+      integer(ik4) :: i , j , ii , iii , n
 !
       ! dummy input character variable
       character(len=8) :: tdum(5)
       ! dummy vbl to identify READ
       character(len=4) :: titl
       ! dummy input integer variable
-      integer :: ndum(5)
+      integer(ik4) :: ndum(5)
       ! dummy input real variable
       real :: xdum(5)
       !  caspair(ic,2)  Array to identify linked pair in cascade solver;
       ! 2nd species is linked in pair chain to 1st
       ! used to establish pair chain array (nppair)
       ! Array to ID paired species
-      integer :: caspair(c_cdim,2)
+      integer(ik4) :: caspair(c_cdim,2)
       ! Index for species number in cascade
-      integer :: ncas
+      integer(ik4) :: ncas
       ! Integer for spec. number in caspair
-      integer :: ncasp
+      integer(ik4) :: ncasp
       !
       !  lcastest: Flag set to true when species is read in cascade.
       ! Flag to check species in cascade
       logical :: lcastest(c_cdim)
       !
       ! Counter for number of lumped species
-      integer :: nlump
+      integer(ik4) :: nlump
       ! General counter
-      integer :: jj
+      integer(ik4) :: jj
       ! Added reaction counter (nr in chemlocal)
-      integer :: nnr
+      integer(ik4) :: nnr
 
 !
       ! Set vector variable for non-vectorized case
@@ -1992,7 +1993,7 @@ module mod_cbmz_init1
     integer function namechem(titl)
       implicit none
       character(len=8) , intent(in) :: titl
-      integer :: i
+      integer(ik4) :: i
       namechem = 0
       if ( titl == '        ' ) return
       do i = 1 , c_nchem2
@@ -2086,19 +2087,19 @@ module mod_cbmz_init1
 !
       implicit none
       ! Chem index
-      integer :: ic , ic1 , ic2 , icc
+      integer(ik4) :: ic , ic1 , ic2 , icc
       ! Chem local index
-      integer :: is
+      integer(ik4) :: is
       ! Chem index
-      integer :: icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
+      integer(ik4) :: icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
       ! Reaction counters
-      integer :: nr , nrx
+      integer(ik4) :: nr , nrx
       ! indices used for species categories
-      integer :: icat1 , icat2 , icatp
+      integer(ik4) :: icat1 , icat2 , icatp
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , j , ii , n
+      integer(ik4) :: i , j , ii , n
 !
 ! LOCAL VARIABLES
 ! lloss        Local: Flag for identifying exchange loss reaction
@@ -2113,11 +2114,11 @@ module mod_cbmz_init1
       ! Flag for id exchange production reaction
       logical :: lpro
       ! Counter for odd hydrogen RO2 only
-      real(dp) :: xoddhx
+      real(rk8) :: xoddhx
       ! Counter for odd hydrogen w/o RO2
-      real(dp) :: xoddhx2
+      real(rk8) :: xoddhx2
       ! Counter for odd nitrogen
-      real(dp) :: xpronox
+      real(rk8) :: xpronox
       ! Counter for product reactions
       integer nrp
       !
@@ -3178,30 +3179,30 @@ module mod_cbmz_init1
 
     subroutine chemwrit(kw)
       implicit none
-      integer , intent(in) :: kw
+      integer(ik4) , intent(in) :: kw
 
       ! Chem index
-      integer :: ic
+      integer(ik4) :: ic
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Chem species counters
-      integer :: nc , nc1 , nc2 , ncf , nn
+      integer(ik4) :: nc , nc1 , nc2 , ncf , nn
       ! Reaction counters
-      integer :: nr , nrh , nrq , nrqq
+      integer(ik4) :: nr , nrh , nrq , nrqq
       ! Vectorization counters
-      integer :: kk
+      integer(ik4) :: kk
       ! General counters
-      integer :: i , j
+      integer(ik4) :: i , j
 
-      real(dp) :: calpha(c_kvec) ! General vector variable
-      real(dp) :: cbeta(c_kvec)  ! General vector variable
-      real(dp) :: cgamma(c_kvec) ! General vector variable
+      real(rk8) :: calpha(c_kvec) ! General vector variable
+      real(rk8) :: cbeta(c_kvec)  ! General vector variable
+      real(rk8) :: cgamma(c_kvec) ! General vector variable
       ! 'SUM' name for output
       character(len=8) :: tsum
       ! Gas phase concentration
-      real(dp) :: xcgas
+      real(rk8) :: xcgas
       ! Aqueous   concentration
-      real(dp) :: acquacon
+      real(rk8) :: acquacon
 !
       if ( kw <= 0 ) return
       kk = 1
@@ -3391,48 +3392,48 @@ module mod_cbmz_init1
 
       ! Name of specified chem species
       character(len=8) , intent(in) :: titl
-      integer , intent(in) :: kw
+      integer(ik4) , intent(in) :: kw
 
       ! Chem index
-      integer :: ic , icc , ics
+      integer(ik4) :: ic , icc , ics
       ! Aqueous counters
-      integer :: neq
+      integer(ik4) :: neq
       ! Reaction counters
-      integer :: nr , nrh , nrq
+      integer(ik4) :: nr , nrh , nrq
       ! Vectorization counters
-      integer :: kk 
+      integer(ik4) :: kk 
       ! General counters
-      integer :: i , n
+      integer(ik4) :: i , n
 
       ! Gas phase concentration
-      real(dp) :: xcgas
+      real(rk8) :: xcgas
       ! Aqueous   concentration
-      real(dp) :: acquacon
+      real(rk8) :: acquacon
       ! Dimensionless Henry coefficient
-      real(dp) :: xcoeff
+      real(rk8) :: xcoeff
       ! Droplet diffusion factor
-      real(dp) :: xcoeff2
+      real(rk8) :: xcoeff2
       ! Chem. reaction rate molec/cm3/step
-      real(dp) :: tpro
+      real(rk8) :: tpro
       ! Species production  molec/cm3/step
-      real(dp) :: xpro
+      real(rk8) :: xpro
       ! Stoichiometry for spec. production
-      real(dp) :: stopro
+      real(rk8) :: stopro
 !
       ! Chem. reaction loss molec/cm3/step
-      real(dp) :: tloss
+      real(rk8) :: tloss
       ! Species loss rate   molec/cm3/step
-      real(dp) :: xloss
+      real(rk8) :: xloss
       ! Stoichiometry for species loss
-      real(dp) :: stoloss
+      real(rk8) :: stoloss
 !
       ! Net production minus loss /cm3/step
-      real(dp) :: tnetpro
+      real(rk8) :: tnetpro
       ! Change in species conc molec/cm3
-      real(dp) :: tdelta
+      real(rk8) :: tdelta
 !
       ! counter for  aqueous  spec
-      integer :: neq1
+      integer(ik4) :: neq1
 !
       if ( kw <= 0 ) return
       kk = 1

@@ -19,6 +19,8 @@
 
 module mod_che_start 
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
   use mod_che_common
@@ -40,7 +42,7 @@ module mod_che_start
 
   private
 
-  real(dp) , parameter :: solso4 = 0.9D0
+  real(rk8) , parameter :: solso4 = 0.9D0
 
   public  :: start_chem
 
@@ -55,8 +57,8 @@ module mod_che_start
     type(rcm_time_and_date) , intent(in) :: idate1
     type(rcm_time_interval) , intent(in) :: intbdy
     real (dp) , intent(in) :: dtbdys
-    integer :: i , j , k , itr , ibin , jbin , kbin
-    integer :: lyear , lmonth , lday , lhour
+    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin
+    integer(ik4) :: lyear , lmonth , lday , lhour
 
     ! A : Intialise chemistry tracer indices         
 

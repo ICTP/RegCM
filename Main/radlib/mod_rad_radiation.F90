@@ -19,6 +19,8 @@
  
 module mod_rad_radiation
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
   use mod_service
@@ -35,106 +37,106 @@ module mod_rad_radiation
   private
 
 ! Maximum total cloud fraction for radiation model
-  real(dp) , public :: cftotmax
+  real(rk8) , public :: cftotmax
 
   public :: allocate_mod_rad_radiation , radini , radctl
 
-  integer :: npoints
+  integer(ik4) :: npoints
 
-  real(dp) , pointer , dimension(:) :: co2plk , dtx , dty
-  real(dp) , pointer , dimension(:) :: xptrop , dlat
-  real(dp) , pointer , dimension(:) :: tco2 , th2o , to3 , xsum
-  real(dp) , pointer , dimension(:,:) :: co2ems , emstrc , h2oems , o3ems
-  real(dp) , pointer , dimension(:,:) :: dbvtit , pnmsq , term6 , term9
-  real(dp) , pointer , dimension(:) :: abstrc , dw , pnew , to3co2 , ux
-  real(dp) , pointer , dimension(:,:) :: emplnk , pinpl , uinpl , winpl , tbar
-  real(dp) , pointer , dimension(:,:,:) :: bplnk
-  real(dp) , pointer , dimension(:) :: diralb , difalb
-  real(dp) , pointer , dimension(:,:,:) :: absnxt , abstot , xuinpl
-  real(dp) , pointer , dimension(:,:) :: emstot
+  real(rk8) , pointer , dimension(:) :: co2plk , dtx , dty
+  real(rk8) , pointer , dimension(:) :: xptrop , dlat
+  real(rk8) , pointer , dimension(:) :: tco2 , th2o , to3 , xsum
+  real(rk8) , pointer , dimension(:,:) :: co2ems , emstrc , h2oems , o3ems
+  real(rk8) , pointer , dimension(:,:) :: dbvtit , pnmsq , term6 , term9
+  real(rk8) , pointer , dimension(:) :: abstrc , dw , pnew , to3co2 , ux
+  real(rk8) , pointer , dimension(:,:) :: emplnk , pinpl , uinpl , winpl , tbar
+  real(rk8) , pointer , dimension(:,:,:) :: bplnk
+  real(rk8) , pointer , dimension(:) :: diralb , difalb
+  real(rk8) , pointer , dimension(:,:,:) :: absnxt , abstot , xuinpl
+  real(rk8) , pointer , dimension(:,:) :: emstot
 !
 ! Trace gas variables
 !
 ! bch4     - pressure factor for ch4
-  real(dp) , pointer , dimension(:,:) :: bch4
+  real(rk8) , pointer , dimension(:,:) :: bch4
 ! bn2o0   - pressure factor for n2o
-  real(dp) , pointer , dimension(:,:) :: bn2o0
+  real(rk8) , pointer , dimension(:,:) :: bn2o0
 ! bn2o1   - pressure factor for n2o
-  real(dp) , pointer , dimension(:,:) :: bn2o1
+  real(rk8) , pointer , dimension(:,:) :: bn2o1
 ! co2em   - Layer co2 normalized planck funct. derivative
-  real(dp) , pointer , dimension(:,:) :: co2em
+  real(rk8) , pointer , dimension(:,:) :: co2em
 ! co2t    - Prs wghted temperature path
-  real(dp) , pointer , dimension(:,:) :: co2t
+  real(rk8) , pointer , dimension(:,:) :: co2t
 ! h2otr   - H2o trnmsn for o3 overlap
-  real(dp) , pointer , dimension(:,:) :: h2otr
+  real(rk8) , pointer , dimension(:,:) :: h2otr
 ! ucfc11  - CFC11 path length
-  real(dp) , pointer , dimension(:,:) :: ucfc11
+  real(rk8) , pointer , dimension(:,:) :: ucfc11
 ! ucfc12  - CFC12 path length
-  real(dp) , pointer , dimension(:,:) :: ucfc12
+  real(rk8) , pointer , dimension(:,:) :: ucfc12
 ! un2o0   - N2O path length
-  real(dp) , pointer , dimension(:,:) :: un2o0
+  real(rk8) , pointer , dimension(:,:) :: un2o0
 ! un2o1   - N2O path length (hot band)
-  real(dp) , pointer , dimension(:,:) :: un2o1
+  real(rk8) , pointer , dimension(:,:) :: un2o1
 ! uch4    - CH4 path length
-  real(dp) , pointer , dimension(:,:) :: uch4
+  real(rk8) , pointer , dimension(:,:) :: uch4
 ! uco211  - CO2 9.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco211
+  real(rk8) , pointer , dimension(:,:) :: uco211
 ! uco212  - CO2 9.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco212
+  real(rk8) , pointer , dimension(:,:) :: uco212
 ! uco213  - CO2 9.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco213
+  real(rk8) , pointer , dimension(:,:) :: uco213
 ! uco221  - CO2 10.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco221
+  real(rk8) , pointer , dimension(:,:) :: uco221
 ! uco222  - CO2 10.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco222
+  real(rk8) , pointer , dimension(:,:) :: uco222
 ! uco223  - CO2 10.4 micron band path length
-  real(dp) , pointer , dimension(:,:) :: uco223
+  real(rk8) , pointer , dimension(:,:) :: uco223
 ! uptype   - continuum path length
-  real(dp) , pointer , dimension(:,:) :: uptype
+  real(rk8) , pointer , dimension(:,:) :: uptype
 !
 ! plol     - Ozone prs wghted path length
 ! plos     - Ozone path length
-  real(dp) , pointer , dimension(:,:) :: plol , plos
+  real(rk8) , pointer , dimension(:,:) :: plol , plos
 ! tplnka   - Planck fnctn level temperature
-  real(dp) , pointer , dimension(:,:) :: tplnka
+  real(rk8) , pointer , dimension(:,:) :: tplnka
 ! tint    - Interface temperature
 ! tint4   - Interface temperature**4
-  real(dp) , pointer , dimension(:,:) :: tint , tint4
+  real(rk8) , pointer , dimension(:,:) :: tint , tint4
 ! tlayr   - Level temperature
 ! tlayr4  - Level temperature**4
-  real(dp) , pointer , dimension(:,:) :: tlayr , tlayr4
+  real(rk8) , pointer , dimension(:,:) :: tlayr , tlayr4
 ! w       - H2o path
-  real(dp) , pointer , dimension(:,:) :: w
+  real(rk8) , pointer , dimension(:,:) :: w
 ! dbvtly   - Level drvtv plnck fnctn for o3
-  real(dp) , pointer , dimension(:,:) :: dbvtly
+  real(rk8) , pointer , dimension(:,:) :: dbvtly
 ! s2c     - H2o cont amount
 ! s2t     - H2o cont temperature
-  real(dp) , pointer , dimension(:,:) :: s2c , s2t
+  real(rk8) , pointer , dimension(:,:) :: s2c , s2t
 ! co2eml  - Interface co2 normalized planck funct. deriv.
-  real(dp) , pointer , dimension(:,:) :: co2eml
+  real(rk8) , pointer , dimension(:,:) :: co2eml
 ! ful     - Total upwards longwave flux
 ! fsul    - Clear sky upwards longwave flux
 ! fdl     - Total downwards longwave flux
 ! fsdl    - Clear sky downwards longwv flux
 ! rtclrsf - d_one/tclrsf(n,k)
-  real(dp) , pointer , dimension(:,:) :: fdl , fsdl , fsul , ful
-  real(dp) , pointer , dimension(:,:) :: fdl0 , fsdl0 , fsul0 , ful0
-  real(dp) , pointer , dimension(:,:) :: rtclrsf
-  real(dp) , pointer , dimension(:) :: taugab , tauray
+  real(rk8) , pointer , dimension(:,:) :: fdl , fsdl , fsul , ful
+  real(rk8) , pointer , dimension(:,:) :: fdl0 , fsdl0 , fsul0 , ful0
+  real(rk8) , pointer , dimension(:,:) :: rtclrsf
+  real(rk8) , pointer , dimension(:) :: taugab , tauray
 ! tmp     - Temporary
 ! delt    - Diff t**4 mid layer to top interface
 ! delt1   - Diff t**4 lower intrfc to mid layer
 ! tplnke  - Planck fnctn temperature
-  real(dp) , pointer , dimension(:) :: delt , delt1 , tmp , tplnke
+  real(rk8) , pointer , dimension(:) :: delt , delt1 , tmp , tplnke
 ! s       - Flx integral sum
-  real(dp) , pointer , dimension(:,:,:) :: s , s0
+  real(rk8) , pointer , dimension(:,:,:) :: s , s0
 ! fclb4   - Sig t**4 for cld bottom interfc
 ! fclt4   - Sig t**4 for cloud top interfc
-  real(dp) , pointer , dimension(:,:) :: fclb4 , fclt4
+  real(rk8) , pointer , dimension(:,:) :: fclb4 , fclt4
 ! klov    - Cloud lowest level index
 ! khiv    - Cloud highest level index
 ! khivm   - khiv(n) - 1
-  integer , pointer , dimension(:) :: khiv , khivm , klov
+  integer(ik4) , pointer , dimension(:) :: khiv , khivm , klov
   logical , pointer , dimension(:) :: seldo , done , start
 !
 !     These arrays are defined for kz model layers; 0 refers to the
@@ -166,7 +168,7 @@ module mod_rad_radiation
 ! uco2     - Layer absorber amount of co2
 ! uo2      - Layer absorber amount of  o2
 !
-  real(dp) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,    &
+  real(rk8) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,    &
         explay , flxdiv , totfld , wcl , gcl , fcl , &
         wci , gci , fci , uh2o , uo3 , uco2 , uo2
 !
@@ -184,13 +186,13 @@ module mod_rad_radiation
 ! fswup    - Spectrally summed up flux
 ! fswdn    - Spectrally summed down flux
 !
-  real(dp) , pointer , dimension(:,:) :: rupdir , rupdif , rdndif , &
+  real(rk8) , pointer , dimension(:,:) :: rupdir , rupdif , rdndif , &
         exptdn , tottrn , fluxup , fluxdn , pflx , fswup , fswdn
 !
 ! abplnk1 - non-nearest layer Plack factor
 ! abplnk2 - nearest layer factor
 !
-  real(dp) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
+  real(rk8) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
 !
 ! zenfac   - Square root of cos solar zenith angle
 ! solflx   - Solar flux in current interval
@@ -199,7 +201,7 @@ module mod_rad_radiation
 ! utco2    - Total column  absorber amount of co2
 ! uto2     - Total column  absorber amount of  o2
 !
-  real(dp) , pointer , dimension(:) :: solflx , utco2 , uth2o ,   &
+  real(rk8) , pointer , dimension(:) :: solflx , utco2 , uth2o ,   &
          uto2 , uto3 , x0fsnsc ,  x0fsntc , zenfac
 !
 !   o3mmr    - Ozone mass mixing ratio
@@ -214,38 +216,38 @@ module mod_rad_radiation
 !   ch4      - methane mass mixing ratio
 !   n2o      - nitrous oxide mass mixing ratio
 !
-  real(dp) , pointer , dimension(:) :: fslwdcs
-  real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
+  real(rk8) , pointer , dimension(:) :: fslwdcs
+  real(rk8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr , rh
-  real(dp) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
+  real(rk8) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
 !
-  real(dp) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
-  real(dp) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
-  real(dp) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
+  real(rk8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
+  real(rk8) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
+  real(rk8) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
              c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
              c28 , c29 , c30 , c31 , c8 , c9 , cfa1
-  real(dp) :: co2vmr
-  real(dp) , dimension(3,4) :: coefa , coefc , coefe
-  real(dp) , dimension(4,4) :: coefb , coefd
-  real(dp) , dimension(6,2) :: coeff , coefi
-  real(dp) , dimension(2,4) :: coefg , coefh
-  real(dp) , dimension(3,2) :: coefj , coefk
+  real(rk8) :: co2vmr
+  real(rk8) , dimension(3,4) :: coefa , coefc , coefe
+  real(rk8) , dimension(4,4) :: coefb , coefd
+  real(rk8) , dimension(6,2) :: coeff , coefi
+  real(rk8) , dimension(2,4) :: coefg , coefh
+  real(rk8) , dimension(3,2) :: coefj , coefk
 !
-  real(dp) , parameter :: verynearone = 0.999999D0
+  real(rk8) , parameter :: verynearone = 0.999999D0
 !
 ! r80257   - Conversion factor for h2o pathlength
-  real(dp) , parameter :: r80257 = d_one/8.0257D-04
-  real(dp) , parameter :: r293 = d_one/293.0D0
-  real(dp) , parameter :: r250 = d_one/250.0D0
+  real(rk8) , parameter :: r80257 = d_one/8.0257D-04
+  real(rk8) , parameter :: r293 = d_one/293.0D0
+  real(rk8) , parameter :: r250 = d_one/250.0D0
 ! r3205    - Line width factor for o3 (see R&Di)
-  real(dp) , parameter :: r3205 = d_one/0.3205D0
-  real(dp) , parameter :: r300 = d_one/300.0D0
+  real(rk8) , parameter :: r3205 = d_one/0.3205D0
+  real(rk8) , parameter :: r300 = d_one/300.0D0
 ! r2sslp   - 1/2 of rsslp
-  real(dp) , parameter :: r2sslp = d_one/(d_two*sslp)
+  real(rk8) , parameter :: r2sslp = d_one/(d_two*sslp)
 ! r296   - Inverse stand temp for h2o continuum
-  real(dp) , parameter :: r296 = d_one/296.0D0
+  real(rk8) , parameter :: r296 = d_one/296.0D0
 ! repsil - Inver ratio mol weight h2o to dry air
-  real(dp) , parameter :: repsil = d_one/ep2
+  real(rk8) , parameter :: repsil = d_one/ep2
 !
 ! Initialize further longwave constants referring to far wing
 ! correction; R&D refers to:
@@ -254,35 +256,35 @@ module mod_rad_radiation
 ! Emissivity and Absorptivity Formulation for Water Vapor
 ! Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
 !
-  real(dp) , parameter :: fwcoef = 0.1D0      ! See eq(33) R&D
-  real(dp) , parameter :: fwc1 = 0.30D0       ! See eq(33) R&D
-  real(dp) , parameter :: fwc2 = 4.5D0        ! See eq(33) and eq(34) in R&D
-  real(dp) , parameter :: fc1 = 2.6D0         ! See eq(34) R&D
+  real(rk8) , parameter :: fwcoef = 0.1D0      ! See eq(33) R&D
+  real(rk8) , parameter :: fwc1 = 0.30D0       ! See eq(33) R&D
+  real(rk8) , parameter :: fwc2 = 4.5D0        ! See eq(33) and eq(34) in R&D
+  real(rk8) , parameter :: fc1 = 2.6D0         ! See eq(34) R&D
 !
 ! Initialize ozone data.
 !
-  real(dp) , parameter :: v0 = 22.4136D0  ! Volume of a gas at stp (m**3/kmol)
-  real(dp) , parameter :: p0 = 0.1D0*sslp ! Standard pressure (pascals)
+  real(rk8) , parameter :: v0 = 22.4136D0  ! Volume of a gas at stp (m**3/kmol)
+  real(rk8) , parameter :: p0 = 0.1D0*sslp ! Standard pressure (pascals)
 !
 ! Constants for ozone path integrals (multiplication by 100 for unit
 ! conversion to cgs from mks):
 !
-  real(dp) , parameter :: cplos = v0/(amd*egrav)*d_100
-  real(dp) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
+  real(rk8) , parameter :: cplos = v0/(amd*egrav)*d_100
+  real(rk8) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
 ! v_raytau_xx - Constants for new bands
 ! v_abo3_xx   - Constants for new bands
 !
-  real(dp) , parameter :: v_raytau_35 = 0.155208D0
-  real(dp) , parameter :: v_raytau_64 = 0.0392D0
-  real(dp) , parameter :: v_abo3_35   = 2.4058030D+01
-  real(dp) , parameter :: v_abo3_64   = 2.210D+01
+  real(rk8) , parameter :: v_raytau_35 = 0.155208D0
+  real(rk8) , parameter :: v_raytau_64 = 0.0392D0
+  real(rk8) , parameter :: v_abo3_35   = 2.4058030D+01
+  real(rk8) , parameter :: v_abo3_64   = 2.210D+01
 !
 ! delta    - Pressure (atmospheres) for stratos. h2o limit
 ! o2mmr    - O2 mass mixing ratio
 !
-  real(dp) , parameter :: delta = 1.70D-3
-  real(dp) , parameter :: o2mmr = 0.23143D0
+  real(rk8) , parameter :: delta = 1.70D-3
+  real(rk8) , parameter :: o2mmr = 0.23143D0
 !
 ! Minimum total transmission below which no layer computation are done:
 !
@@ -291,10 +293,10 @@ module mod_rad_radiation
 ! gray    - Rayleigh asymetry parameter
 ! fray    - Rayleigh forward scattered fraction
 !
-  real(dp) , parameter :: trmin = 1.0D-3
-  real(dp) , parameter :: wray = 0.999999D0
-  real(dp) , parameter :: gray = 0.0D0
-  real(dp) , parameter :: fray = 0.1D0
+  real(rk8) , parameter :: trmin = 1.0D-3
+  real(rk8) , parameter :: wray = 0.999999D0
+  real(rk8) , parameter :: gray = 0.0D0
+  real(rk8) , parameter :: fray = 0.1D0
 ! 
 ! A. Slingo's data for cloud particle radiative properties
 ! (from 'A GCM Parameterization for the Shortwave Properties of Water
@@ -319,7 +321,7 @@ module mod_rad_radiation
 ! ebari    - e coefficient for asymmetry parameter
 ! fbari    - f coefficient for asymmetry parameter
 !
-  real(dp) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
+  real(rk8) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
                              cbarl , dbari , dbarl , ebari , ebarl , &
                              fbari , fbarl
 !
@@ -338,7 +340,7 @@ module mod_rad_radiation
 ! po2      - Weight of o2  in spectral interval
 ! nirwgt   - Weight for intervals to simulate satellite filter
 !
-  real(dp) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
+  real(rk8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
                                 frcsol , nirwgt , pco2 , ph2o , &
                                 po2 , raytau , wavmax , wavmin
 !
@@ -662,14 +664,14 @@ module mod_rad_radiation
   subroutine radini(iyear)
 !
     implicit none
-    integer , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear
 !
 !   iband  - H2O band index
 !
-    integer :: iband
+    integer(ik4) :: iband
 
     character (len=64) :: subroutine_name='radini'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -818,25 +820,25 @@ module mod_rad_radiation
 !   qrl     - Longwave cooling rate
 !   flwds   - Surface down longwave flux
 !
-    integer , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
-    real(dp) , intent(in) :: eccf
-    real(dp) , pointer , dimension(:) :: alb , albc , emsvt , &
+    real(rk8) , intent(in) :: eccf
+    real(rk8) , pointer , dimension(:) :: alb , albc , emsvt , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
             sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
             aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , adiflw ,   &
             asw , alw , abv , sol , czen
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgastot
-    real(dp) , pointer , dimension(:,:) , intent(out) :: emsgastot
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(dp) , pointer , dimension(:,:) :: cld , effcld , piln , pint
-    real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-    real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
+    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint
+    real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
+    real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
-    real(dp) , pointer , dimension(:,:,:) :: aermmr
-    real(dp) , pointer , dimension(:,:) :: o3vmr
+    real(rk8) , pointer , dimension(:,:,:) :: aermmr
+    real(rk8) , pointer , dimension(:,:) :: o3vmr
     intent (out) alb , albc , abv , sol , tauxcl , tauxci
     intent (out) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
@@ -860,10 +862,10 @@ module mod_rad_radiation
 !   o3vmr    - Ozone volume mixing ratio
 !   eccf     - Earth/sun distance factor
 !
-    integer :: n , k
+    integer(ik4) :: n , k
 !
     character (len=64) :: subroutine_name='radctl'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -1082,16 +1084,16 @@ module mod_rad_radiation
 ! 
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) :: eccf
-    real(dp) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) :: eccf
+    real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
              fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , &
              solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
              alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(dp) , pointer , dimension(:,:) :: cld , pint
-    real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-    real(dp) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
+    real(rk8) , pointer , dimension(:,:) :: cld , pint
+    real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
+    real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
              qrs , rei , rel
     intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
            adirsw , adifsw , adirlw , adiflw , asw , alw
@@ -1175,17 +1177,17 @@ module mod_rad_radiation
 ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
 !-----------------------------------------------------------------------
 !
-    real(dp) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
+    real(rk8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
                dbarii , dbarli , ebarii , ebarli , fbarii , fbarli ,  &
                h2ostr , path , pdel , psf , pthco2 , pthh2o , ptho2 , &
                ptho3 , xptop , rdenom , sqrco2 , tmp1 , tmp1i ,       &
                tmp1l , tmp2 , tmp2i , tmp2l , tmp3i , tmp3l ,         &
                trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
-    integer :: n , indxsl , k , ns
+    integer(ik4) :: n , indxsl , k , ns
 !
     character (len=64) :: subroutine_name='radcsw'
     logical :: lzero = .false.
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -1816,28 +1818,28 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
-    real(dp) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
+    real(rk8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
                o3vmr , pmid , pmln , qnm , qrl , tnm
-    real(dp) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
-    real(dp) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
-    real(dp) , pointer , dimension(:,:) :: emsgastot
-    real(dp) , pointer , dimension(:) :: emsvt , flns , flnsc , flnt , &
+    real(rk8) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
+    real(rk8) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
+    real(rk8) , pointer , dimension(:,:) :: emsgastot
+    real(rk8) , pointer , dimension(:) :: emsvt , flns , flnsc , flnt , &
                flntc , flwds , fslwdcs , ts
-    real(dp), pointer , dimension(:) :: aerlwfo , aerlwfos
+    real(rk8), pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , emsvt
     intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo , aerlwfos
     intent (inout) tclrsf
 !
 !---------------------------Local variables-----------------------------
 !
-    real(dp) :: absbt , bk1 , bk2 , tmp1
-    integer :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
+    real(rk8) :: absbt , bk1 , bk2 , tmp1
+    integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
                km3 , km4 , ns , irad , nradaer
 !
     character (len=64) :: subroutine_name='radclw'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -2257,8 +2259,8 @@ module mod_rad_radiation
 
       integer function intmax(imax)
         implicit none
-        integer , pointer , dimension(:) , intent(in) :: imax
-        integer :: i , n , is , ie , mx
+        integer(ik4) , pointer , dimension(:) , intent(in) :: imax
+        integer(ik4) :: i , n , is , ie , mx
         is = lbound(imax,1)
         ie = ubound(imax,1)
         intmax = is
@@ -2305,11 +2307,11 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , intent(in) :: trayoslp
-    real(dp) , pointer , dimension(:) , intent(in) :: czen
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , intent(in) :: trayoslp
+    real(rk8) , pointer , dimension(:) , intent(in) :: czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    integer , intent(in) :: ns
+    integer(ik4) , intent(in) :: ns
     logical , intent(in) :: lzero
 !
 !---------------------------Local variables-----------------------------
@@ -2332,13 +2334,13 @@ module mod_rad_radiation
 ! rdirexp  - Layer direct ref times exp transmission
 ! tdnmexp  - Total transmission minus exp transmission
 !
-    real(dp) :: alp , amg , apg , arg , extins , ftot ,   &
+    real(rk8) :: alp , amg , apg , arg , extins , ftot ,   &
                gam , gs , gtot , lm , ne , rdenom , rdirexp , &
                tautot , tdnmexp , ts , ue , ws , wtot
-    integer :: n , k
+    integer(ik4) :: n , k
 !
     character (len=64) :: subroutine_name='radclw'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !-----------------------------------------------------------------------
@@ -2530,13 +2532,13 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: lzero
-    real(dp) , pointer , dimension(:) , intent(in) :: czen
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
+    real(rk8) , pointer , dimension(:) , intent(in) :: czen
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(dp) :: trayoslp
-    integer :: ns
+    real(rk8) :: trayoslp
+    integer(ik4) :: ns
     intent (in) trayoslp , ns
 !
 !---------------------------Local variables-----------------------------
@@ -2587,14 +2589,14 @@ module mod_rad_radiation
 ! amg      - Alp - gam
 ! apg      - Alp + gam
 !
-    real(dp) :: alp , amg , apg , arg , extins , ftot ,        &
+    real(rk8) :: alp , amg , apg , arg , extins , ftot ,        &
                gam , gs , gtot , lm , ne , rdenom , rdirexp , &
                taucsc , tautot , tdnmexp , ts , ue , ws ,     &
                wt , wtau , wtot
-    integer :: n , k
+    integer(ik4) :: n , k
 !
     character (len=64) :: subroutine_name='radded'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !-----------------------------------------------------------------------
@@ -2890,11 +2892,11 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
       piln , pmln
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: absgastot
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3028,7 +3030,7 @@ module mod_rad_radiation
 ! dbvtit   - Intrfc drvtv plnck fnctn for o3
 ! dbvt     - Planck fnctn tmp derivative for o3
 !
-    real(dp) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
+    real(rk8) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
                absbnd , alphat , beta , cf812 , corfac , denom ,      &
                dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
                et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
@@ -3041,14 +3043,14 @@ module mod_rad_radiation
                dpnm , dtyp15 , dtyp15sq , f1sqwp , f2co2 , f3co2 ,    &
                fwk , fwku , rbeta7 , sqrtu , t1co2 , to3h2o ,         &
                tpatha , trab2 , trab4 , trab6 , u7 , uc1 , uc
-    real(dp) , dimension(6) :: abso
-    real(dp) , dimension(4) :: emm , o3emm , term1 , term2 , &
+    real(rk8) , dimension(6) :: abso
+    real(rk8) , dimension(4) :: emm , o3emm , term1 , term2 , &
                term3 , term4 , term5 , zinpl , temh2o
-    real(dp) , dimension(2) :: r2st , term7 , term8 , trline
-    integer :: n , iband , k , k1 , k2 , kn , wvl
+    real(rk8) , dimension(2) :: r2st , term7 , term8 , trline
+    integer(ik4) :: n , iband , k , k1 , k2 , kn , wvl
 !
     character (len=64) :: subroutine_name='radabs'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
 !-----------------------------------------------------------------------
     call time_begin(subroutine_name,indx)
@@ -3586,9 +3588,9 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , pointer , dimension(:,:) , intent(in) :: pint
-    real(dp) , pointer , dimension(:,:) , intent(out) :: emsgastot
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: pint
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3717,7 +3719,7 @@ module mod_rad_radiation
 ! th2o    - h2o overlap factor
 ! to3     - o3 overlap factor
 !
-    real(dp) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
+    real(rk8) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
                absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
                exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
                g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
@@ -3728,14 +3730,14 @@ module mod_rad_radiation
                tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
                tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
                dtp , dtz , xpnew , rsum , uc , uc1 , troco2
-    real(dp) , dimension(4) :: term1 , term2 , term3 , term4 , term5
-    real(dp) , dimension(4) :: emis
-    real(dp) :: xterm6 , xterm9
-    real(dp) , dimension(2) :: term7 , term8 , trline
-    integer :: n , k , kk , iband , l
+    real(rk8) , dimension(4) :: term1 , term2 , term3 , term4 , term5
+    real(rk8) , dimension(4) :: emis
+    real(rk8) :: xterm6 , xterm9
+    real(rk8) , dimension(2) :: term7 , term8 , trline
+    integer(ik4) :: n , k , kk , iband , l
 !
     character (len=64) :: subroutine_name='radems'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
 !-----------------------------------------------------------------------
     call time_begin(subroutine_name,indx)
@@ -3993,16 +3995,16 @@ module mod_rad_radiation
   subroutine radoz2(n1,n2,o3vmr,pint)
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , pointer , dimension(:,:) :: o3vmr
-    real(dp) , pointer , dimension(:,:) :: pint
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:,:) :: o3vmr
+    real(rk8) , pointer , dimension(:,:) :: pint
     intent (in) o3vmr , pint
 !
 !-----------------------------------------------------------------------
 !
-    integer :: n , k
+    integer(ik4) :: n , k
     character (len=64) :: subroutine_name='radoz2'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -4042,9 +4044,9 @@ module mod_rad_radiation
 !
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , pointer , dimension(:) , intent(in) :: ts
-    real(dp) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:) , intent(in) :: ts
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
       qnm , piln , pint
 !
 !---------------------------Local variables-----------------------------
@@ -4058,10 +4060,10 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-    real(dp) :: dpnm , dpnmsq , dy , rtnm
-    integer :: n , k
+    real(rk8) :: dpnm , dpnmsq , dy , rtnm
+    integer(ik4) :: n , k
     character (len=64) :: subroutine_name='radtpl'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -4161,17 +4163,17 @@ module mod_rad_radiation
                     pintrd,plco2,plh2o,tclrsf,o3mmr)
     implicit none
 !
-    integer , intent(in) :: n1 , n2
-    real(dp) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
            plh2o , tclrsf
-    real(dp) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
+    real(rk8) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
            pmidrd
     intent (in) cld , h2ommr , o3vmr , pint , pmid
     intent (out) o3mmr , plco2 , pmidrd
     intent (inout) pintrd , plh2o , tclrsf
 !
-    real(dp) :: cpwpl , vmmr
-    integer :: n , k
+    real(rk8) :: cpwpl , vmmr
+    integer(ik4) :: n , k
 !
 !------------------------------Arguments--------------------------------
 !
@@ -4210,7 +4212,7 @@ module mod_rad_radiation
 !   Publishing Company, New York  p. 57, p. 62,63.
 !
     character (len=64) :: subroutine_name='radinp'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
     !
@@ -4255,57 +4257,57 @@ module mod_rad_radiation
     call time_end(subroutine_name,indx)
   end subroutine radinp
 !
-  real(dp) function xalpha(w,uu,g,e)
+  real(rk8) function xalpha(w,uu,g,e)
     implicit none
-    real(dp) , intent(in) :: w , uu , g , e
+    real(rk8) , intent(in) :: w , uu , g , e
     xalpha = 0.75D0*w*uu*((d_one+g*(d_one-w))/(d_one-e*e*uu*uu))
   end function xalpha
-  real(dp) function xgamma(w,uu,g,e)
+  real(rk8) function xgamma(w,uu,g,e)
     implicit none
-    real(dp) , intent(in) :: w , uu , g , e
+    real(rk8) , intent(in) :: w , uu , g , e
     xgamma = (w*d_half)*((3.0D0*g*(d_one-w)*uu*uu+d_one)/(d_one-e*e*uu*uu))
   end function xgamma
-  real(dp) function el(w,g)
+  real(rk8) function el(w,g)
     implicit none
-    real(dp) , intent(in) :: w , g
+    real(rk8) , intent(in) :: w , g
     el = dsqrt(3.0D0*(d_one-w)*(d_one-w*g))
   end function el
-  real(dp) function taus(w,f,t)
+  real(rk8) function taus(w,f,t)
     implicit none
-    real(dp) , intent(in) :: w , f , t
+    real(rk8) , intent(in) :: w , f , t
     taus = (d_one-w*f)*t
   end function taus
-  real(dp) function omgs(w,f)
+  real(rk8) function omgs(w,f)
     implicit none
-    real(dp) , intent(in) :: w , f
+    real(rk8) , intent(in) :: w , f
     omgs = (d_one-f)*w/(d_one-w*f)
   end function omgs
-  real(dp) function asys(g,f)
+  real(rk8) function asys(g,f)
     implicit none
-    real(dp) , intent(in) :: g , f
+    real(rk8) , intent(in) :: g , f
     asys = (g-f)/(d_one-f)
   end function asys
-  real(dp) function f_u(w,g,e)
+  real(rk8) function f_u(w,g,e)
     implicit none
-    real(dp) , intent(in) :: w , g , e
+    real(rk8) , intent(in) :: w , g , e
     f_u = 1.50D0*(d_one-w*g)/e
   end function f_u
-  real(dp) function f_n(uu,et)
+  real(rk8) function f_n(uu,et)
     implicit none
-    real(dp) , intent(in) :: uu , et
+    real(rk8) , intent(in) :: uu , et
     f_n = ((uu+d_one)*(uu+d_one)/et)-((uu-d_one)*(uu-d_one)*et)
   end function f_n
-  real(dp) function dbvt(t)
+  real(rk8) function dbvt(t)
 !   Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
-    real(dp) , intent(in) :: t
+    real(rk8) , intent(in) :: t
     dbvt = (-2.8911366682D-4 + (2.3771251896D-6+1.1305188929D-10*t)*t) /  &
             (d_one+(-6.1364820707D-3+1.5550319767D-5*t)*t)
   end function dbvt
-  real(dp) function fo3(ux,vx)
+  real(rk8) function fo3(ux,vx)
 !   an absorption function factor
     implicit none
-    real(dp) , intent(in) :: ux , vx
+    real(rk8) , intent(in) :: ux , vx
     fo3 = ux/dsqrt(d_four+ux*(d_one+vx))
   end function fo3
 !

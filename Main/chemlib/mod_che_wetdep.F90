@@ -21,6 +21,7 @@ module mod_che_wetdep
 
 ! This module contains routines for wet scavenging of gas and aerosols
  
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
@@ -58,108 +59,108 @@ module mod_che_wetdep
 !
     integer, intent(in) :: j               ! longitude index
     ! surf geopotential (m2/s2)
-    real(dp), dimension(ici1:ici2) , intent(in) :: phis1
+    real(rk8), dimension(ici1:ici2) , intent(in) :: phis1
     ! midpoint geopot convert (m) to (km)
-    real(dp), dimension(ici1:ici2,kz) , intent(in) :: zmid1
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: zmid1
     ! temperature (K)
-    real(dp), dimension(ici1:ici2,kz) , intent(in) :: tfld1
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: tfld1
     ! dq/dt for convection (kg/kg/s) converted to (1/s) below
-    ! real(dp), dimension(ici1:ici2,kz) , intent(in) :: cmfdqr1
+    ! real(rk8), dimension(ici1:ici2,kz) , intent(in) :: cmfdqr1
     ! rainwater formation tendency kg/kg/s1 converted to   (1/s) : PASSED by cremrat already
-    !real(dp), dimension(ici1:ici2,kz) , intent(in) :: nrain1
+    !real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nrain1
     ! precip rate mm/s (=kg/m2/s), stratif and convec / grid level already ,  converted next to 1/s  
-    real(dp), dimension(ici1:ici2,kz) , intent(in) :: strappt, convppt
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: strappt, convppt
     ! evaporation (kg/kg/s) convert to (1/s) below
-    real(dp), dimension(ici1:ici2,kz) , intent(in) :: nevapr1
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nevapr1
     ! time step ( s )
-    real(dp), intent(in) :: delt
+    real(rk8), intent(in) :: delt
     ! total atms density (kg/m3) convert to (#/cm^3) below
-    real(dp), dimension(ici1:ici2,kz) , intent(in) :: xhnm1
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: xhnm1
     ! exported species ( mmr )
-    real(dp), dimension(ici1:ici2,kz,ntr) , intent(in) :: qin1
+    real(rk8), dimension(ici1:ici2,kz,ntr) , intent(in) :: qin1
     ! Pressure ( cb )
-    real(dp), dimension(ici1:ici2) , intent(in) :: ps2
+    real(rk8), dimension(ici1:ici2) , intent(in) :: ps2
 !
-    real(dp) :: phis(ici1:ici2)        ! surf geopotential (m2/s2)
-    real(dp) :: zmid(ici1:ici2,kz)     ! midpoint geopot convert (m) to (km)
-    real(dp) :: tfld(ici1:ici2,kz)     ! temperature (K)
-    real(dp) :: cmfdqr(ici1:ici2,kz)   ! dq/dt for convection (1/s) 
-    real(dp) :: nrain(ici1:ici2,kz)    ! stratoform precip (1/s)
-    real(dp) :: nevapr(ici1:ici2,kz)   ! evaporation (1/s)
-    real(dp) :: xhnm(ici1:ici2,kz)     ! total atms density (#/cm^3)
-    real(dp) :: qin(ici1:ici2,kz,ntr)  ! exported species ( mmr )
-    real(dp) :: temp_dep(ici1:ici2)    ! temp var of wet dep rate
+    real(rk8) :: phis(ici1:ici2)        ! surf geopotential (m2/s2)
+    real(rk8) :: zmid(ici1:ici2,kz)     ! midpoint geopot convert (m) to (km)
+    real(rk8) :: tfld(ici1:ici2,kz)     ! temperature (K)
+    real(rk8) :: cmfdqr(ici1:ici2,kz)   ! dq/dt for convection (1/s) 
+    real(rk8) :: nrain(ici1:ici2,kz)    ! stratoform precip (1/s)
+    real(rk8) :: nevapr(ici1:ici2,kz)   ! evaporation (1/s)
+    real(rk8) :: xhnm(ici1:ici2,kz)     ! total atms density (#/cm^3)
+    real(rk8) :: qin(ici1:ici2,kz,ntr)  ! exported species ( mmr )
+    real(rk8) :: temp_dep(ici1:ici2)    ! temp var of wet dep rate
                                        ! (centibars_tracer/sec)
-     real(dp) :: temp_rain(ici1:ici2), temp_wash (ici1:ici2)   ! temp var of wet dep rate
+     real(rk8) :: temp_rain(ici1:ici2), temp_wash (ici1:ici2)   ! temp var of wet dep rate
                                        ! (centibars_tracer/sec)
-    real(dp) :: vmr_hno3(ici1:ici2,kz) ! volume mixing ratio
-    real(dp) :: vmr_h2o2(ici1:ici2,kz) ! volume mixing ratio
+    real(rk8) :: vmr_hno3(ici1:ici2,kz) ! volume mixing ratio
+    real(rk8) :: vmr_h2o2(ici1:ici2,kz) ! volume mixing ratio
     ! Effective henry's law constant (1/s)
-    real(dp) :: het_rates(ici1:ici2,kz,ntr)
+    real(rk8) :: het_rates(ici1:ici2,kz,ntr)
 
     ! mean diameter of rain drop (cm)
-    real(dp) , parameter :: xrm = 0.189D0
+    real(rk8) , parameter :: xrm = 0.189D0
     ! mean rain drop terminal velocity (cm/s)
-    real(dp) , parameter :: xum = 748.D0
+    real(rk8) , parameter :: xum = 748.D0
     ! kinetic viscosity (cm^2/s)
-    real(dp) , parameter :: xvv = 6.18D-2
+    real(rk8) , parameter :: xvv = 6.18D-2
     ! mass transport coefficient (cm/s)
-    real(dp) , parameter :: xdg = 0.112D0
+    real(rk8) , parameter :: xdg = 0.112D0
     ! reference temperature (k)
-    real(dp) , parameter :: t0 = 298.0D0
-    real(dp) , parameter :: xph0 = 1.D-5 ! cloud [h+]
+    real(rk8) , parameter :: t0 = 298.0D0
+    real(rk8) , parameter :: xph0 = 1.D-5 ! cloud [h+]
     ! saturation factor for hno3 in clouds 
-    real(dp) , parameter :: satf_hno3 = 0.016D0
+    real(rk8) , parameter :: satf_hno3 = 0.016D0
     ! saturation factor for hno3 in clouds 
-    real(dp) , parameter :: satf_h2o2 = 0.016D0
+    real(rk8) , parameter :: satf_h2o2 = 0.016D0
     ! saturation factor for hno3 in clouds 
-    real(dp) , parameter :: satf_ch2o = 0.1D0
+    real(rk8) , parameter :: satf_ch2o = 0.1D0
     ! (atmospheres/deg k/cm^3)
-    real(dp) , parameter :: const0 = boltzk * 1.D-6
+    real(rk8) , parameter :: const0 = boltzk * 1.D-6
     ! hno3 dissociation constant
-    real(dp) , parameter :: hno3_diss = 15.4D0
+    real(rk8) , parameter :: hno3_diss = 15.4D0
     ! geometry factor (surf area/volume = geo_fac/diameter)
-    real(dp) , parameter :: geo_fac = 6.0D0
+    real(rk8) , parameter :: geo_fac = 6.0D0
     ! mass of background atmosphere (amu)
-    real(dp) , parameter :: mass_air = 29.0D0
+    real(rk8) , parameter :: mass_air = 29.0D0
     ! mass of water vapor (amu)
-    real(dp) , parameter :: mass_h2o = 18.0D0
-    real(dp) , parameter :: h2o_mol = 1.D3/mass_h2o   ! (gm/mol water)
-    real(dp) , parameter :: km2cm = 1.D5              ! convert km to cm
-    real(dp) , parameter :: m2km = 1.D-3              ! convert m to km
-    real(dp) , parameter :: cm3_2_m3 = 1.D-6          ! convert cm^3 to m^3
-    real(dp) , parameter :: m3_2_cm3 = 1.D6           ! convert m^3 to cm^3
-    real(dp) , parameter :: liter_per_gram = 1.D-3
+    real(rk8) , parameter :: mass_h2o = 18.0D0
+    real(rk8) , parameter :: h2o_mol = 1.D3/mass_h2o   ! (gm/mol water)
+    real(rk8) , parameter :: km2cm = 1.D5              ! convert km to cm
+    real(rk8) , parameter :: m2km = 1.D-3              ! convert m to km
+    real(rk8) , parameter :: cm3_2_m3 = 1.D-6          ! convert cm^3 to m^3
+    real(rk8) , parameter :: m3_2_cm3 = 1.D6           ! convert m^3 to cm^3
+    real(rk8) , parameter :: liter_per_gram = 1.D-3
     ! (liter/gm/mol*(m/cm)^3)
-    real(dp), parameter :: avo2 = navgdr * liter_per_gram * cm3_2_m3
+    real(rk8), parameter :: avo2 = navgdr * liter_per_gram * cm3_2_m3
 
-    integer :: ktop   ! index of top model layer that can have clouds
-    integer :: i , k , kk , itr ! indicies
-    real(dp) :: xkgm         ! mass flux on rain drop
-    real(dp) :: all1 , all2  ! work variables
-    real(dp) :: stay         ! fraction of layer traversed by falling drop
+    integer(ik4) :: ktop   ! index of top model layer that can have clouds
+    integer(ik4) :: i , k , kk , itr ! indicies
+    real(rk8) :: xkgm         ! mass flux on rain drop
+    real(rk8) :: all1 , all2  ! work variables
+    real(rk8) :: stay         ! fraction of layer traversed by falling drop
                              ! in timestep delt
-    real(dp) :: xeqca1 , xeqca2 , xca1 , xca2 , xdtm
-    real(dp) :: xxx1 , xxx2 , yhno3 , yh2o2
-    real(dp) , dimension(ici1:ici2) :: xk0 , work1 , work2 , work3 , zsurf
-    real(dp) , dimension(kz) :: xgas1, xgas2
-    real(dp) , dimension(ici1:ici2) :: tmp0_rates , tmp1_rates
+    real(rk8) :: xeqca1 , xeqca2 , xca1 , xca2 , xdtm
+    real(rk8) :: xxx1 , xxx2 , yhno3 , yh2o2
+    real(rk8) , dimension(ici1:ici2) :: xk0 , work1 , work2 , work3 , zsurf
+    real(rk8) , dimension(kz) :: xgas1, xgas2
+    real(rk8) , dimension(ici1:ici2) :: tmp0_rates , tmp1_rates
     ! layer depth about interfaces (cm)
-    real(dp) , dimension(ici1:ici2,kz) :: delz
+    real(rk8) , dimension(ici1:ici2,kz) :: delz
     ! hno3 concentration (molecules/cm^3)
-    real(dp) , dimension(ici1:ici2,kz) :: xhno3
+    real(rk8) , dimension(ici1:ici2,kz) :: xhno3
     ! h2o2 concentration (molecules/cm^3)
-    real(dp) , dimension(ici1:ici2,kz) :: xh2o2
+    real(rk8) , dimension(ici1:ici2,kz) :: xh2o2
     ! liquid rain water content in a grid cell (gm/m^3)
-    real(dp) , dimension(ici1:ici2,kz) :: xliq
+    real(rk8) , dimension(ici1:ici2,kz) :: xliq
     ! conversion rate of water vapor into rain water (molecules/cm^3/s)
-    real(dp) , dimension(ici1:ici2,kz) :: rain
-    real(dp) , dimension(ici1:ici2,kz) :: xhen_hno3 , xhen_h2o2 , xhen_ch2o , &
+    real(rk8) , dimension(ici1:ici2,kz) :: rain
+    real(rk8) , dimension(ici1:ici2,kz) :: xhen_hno3 , xhen_h2o2 , xhen_ch2o , &
         xhen_ch3ooh , xhen_ch3co3h , xhen_ch3cocho , xhen_xooh , xhen_onitr , &
         xhen_ho2no2 , xhen_glyald , xhen_ch3cho , xhen_mvk , xhen_macr
-    real(dp) , dimension(ici1:ici2,kz) :: xhen_nh3 , xhen_ch3cooh
-    real(dp) , dimension(ici1:ici2,kz,2) :: tmp_hetrates
-    real(dp) , dimension(ici1:ici2,kz) :: precip
+    real(rk8) , dimension(ici1:ici2,kz) :: xhen_nh3 , xhen_ch3cooh
+    real(rk8) , dimension(ici1:ici2,kz,2) :: tmp_hetrates
+    real(rk8) , dimension(ici1:ici2,kz) :: precip
 
     !-----------------------------------------------------------------
     !  Initialize rainout array
@@ -613,32 +614,32 @@ module mod_che_wetdep
                      pressg,shj,rho,strappt,convppt,pdepv)
     implicit none
 !
-    integer , intent(in) :: j , mbin
-    integer , dimension(mbin) , intent(in) :: indp
-    real(dp) , dimension(mbin) , intent(in) :: beffdiam
-    real(dp) , intent(in) :: rhoaer ! specific aerosol density
-    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
+    integer(ik4) , intent(in) :: j , mbin
+    integer(ik4) , dimension(mbin) , intent(in) :: indp
+    real(rk8) , dimension(mbin) , intent(in) :: beffdiam
+    real(rk8) , intent(in) :: rhoaer ! specific aerosol density
+    real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
                                                        strappt 
-     real(dp) , dimension(ici1:ici2,kz) , intent(in)  :: convppt
-    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
-    real(dp) , dimension(ici1:ici2) ,intent(in) :: pressg
-    real(dp) , dimension(kz) ,intent(in) :: shj
-    real(dp) , dimension(ici1:ici2,kz,ntr) , intent (in) :: pdepv
+     real(rk8) , dimension(ici1:ici2,kz) , intent(in)  :: convppt
+    real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
+    real(rk8) , dimension(ici1:ici2) ,intent(in) :: pressg
+    real(rk8) , dimension(kz) ,intent(in) :: shj
+    real(rk8) , dimension(ici1:ici2,kz,ntr) , intent (in) :: pdepv
     ! size of the aerosol bin
     ! index of the correponding aerosol in the chi table
-    real(dp) , dimension(ici1:ici2,kz) :: totppt
-    real(dp) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
-    real(dp) , dimension(ntr) :: wetrem , wetrem_cvc 
-    real(dp) :: wtend
-    integer :: n , k , i, nk,nkh
+    real(rk8) , dimension(ici1:ici2,kz) :: totppt
+    real(rk8) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
+    real(rk8) , dimension(ntr) :: wetrem , wetrem_cvc 
+    real(rk8) :: wtend
+    integer(ik4) :: n , k , i, nk,nkh
 
     ! rain out parametrisation 
     ! clmin = non-precipitating cloud
     ! conversion threshold, clmin=0.01g/m3
-    real(dp) , parameter :: clmin = 0.01D0
+    real(rk8) , parameter :: clmin = 0.01D0
     ! remcum= removal rate for cumulus
     ! cloud scavenging (s-1)
-    real(dp) , parameter :: remcum = 1.0D-3
+    real(rk8) , parameter :: remcum = 1.0D-3
 
     do n = 1 , mbin
       ! wet deposition term
@@ -772,23 +773,23 @@ module mod_che_wetdep
                    rhop,wetdep,colef)
     implicit none 
  
-    integer , intent(in) :: mbin
-    real(dp) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhsize , rhop
-    real(dp) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
+    integer(ik4) , intent(in) :: mbin
+    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhsize , rhop
+    real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
     ! care ,ntr dimension
-    real(dp) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
-    real(dp) , dimension(ici1:ici2) , intent(in) :: pressg
-    real(dp) , dimension(kz) , intent(in) :: shj
-    real(dp) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef , wetdep 
+    real(rk8) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
+    real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
+    real(rk8) , dimension(kz) , intent(in) :: shj
+    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef , wetdep 
 
     ! index of the correponding aerosol in the chi table
-    integer , dimension(mbin) , intent(in) :: indp
+    integer(ik4) , dimension(mbin) , intent(in) :: indp
 
-    real(dp) :: dm , tl , rrm
-    integer :: i , n , k
+    real(rk8) :: dm , tl , rrm
+    integer(ik4) :: i , n , k
 
-    real(dp) , parameter :: bcrain = 0.5D0
-    real(dp) , parameter :: bcsnow = 0.8D0
+    real(rk8) , parameter :: bcrain = 0.5D0
+    real(rk8) , parameter :: bcsnow = 0.8D0
 
     !----------------------------------------------------------------------c
     ! call to compute collection efficiency coefficients                   c
@@ -861,44 +862,44 @@ module mod_che_wetdep
   ! 
   implicit none
 
-  integer , intent(in) :: mbin
-  integer , dimension(mbin) , intent(in) :: indp 
-  real(dp) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
-  real(dp) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
-  real(dp) , dimension(ici1:ici2) , intent(in) :: pressg
-  real(dp) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
-  real(dp) , dimension(kz) , intent(in) :: shj
+  integer(ik4) , intent(in) :: mbin
+  integer(ik4) , dimension(mbin) , intent(in) :: indp 
+  real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
+  real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
+  real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
+  real(rk8) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
+  real(rk8) , dimension(kz) , intent(in) :: shj
   ! collection efficiency
-  real(dp) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef
+  real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef
 !
-  real(dp) :: pdiff
-  real(dp) :: amu , anu !dynamic viscosity of air
-  real(dp) :: amfp   ! mean molecular free path
-  real(dp) :: schm   ! schmidt number
-  real(dp) :: prii
-  real(dp) :: priiv 
-  ! real(dp) :: cfac
-  real(dp) :: cfaca
-  real(dp) :: re  ! reynolds number
-  real(dp) :: rr  ! ratio of collected particle radius:collector particle radius
-  real(dp) :: st  ! stokes number of collected particles
-  real(dp) :: vr
-  real(dp) :: sstar 
-  real(dp) :: amob 
-  real(dp) :: colimp , pre
-  real(dp) :: vpr ! average settling velocity
-  real(dp) :: rrm ! mass mean raindrop radius (for rain)
+  real(rk8) :: pdiff
+  real(rk8) :: amu , anu !dynamic viscosity of air
+  real(rk8) :: amfp   ! mean molecular free path
+  real(rk8) :: schm   ! schmidt number
+  real(rk8) :: prii
+  real(rk8) :: priiv 
+  ! real(rk8) :: cfac
+  real(rk8) :: cfaca
+  real(rk8) :: re  ! reynolds number
+  real(rk8) :: rr  ! ratio of collected particle radius:collector particle radius
+  real(rk8) :: st  ! stokes number of collected particles
+  real(rk8) :: vr
+  real(rk8) :: sstar 
+  real(rk8) :: amob 
+  real(rk8) :: colimp , pre
+  real(rk8) :: vpr ! average settling velocity
+  real(rk8) :: rrm ! mass mean raindrop radius (for rain)
                   ! characteristic capture length (for snow)
-  real(dp) :: alpha
-  integer :: n , k , i
+  real(rk8) :: alpha
+  integer(ik4) :: n , k , i
 
   ! Cunningham slip correction factor parameters for rain
 
-  !real(dp) , parameter :: aa1r = 1.249D0
-  !real(dp) , parameter :: aa2r = 0.42D0
-  !real(dp) , parameter :: aa3r = 0.87D0
-  real(dp) , parameter :: rhorain = 1000.0D0
-  real(dp) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
+  !real(rk8) , parameter :: aa1r = 1.249D0
+  !real(rk8) , parameter :: aa2r = 0.42D0
+  !real(rk8) , parameter :: aa3r = 0.87D0
+  real(rk8) , parameter :: rhorain = 1000.0D0
+  real(rk8) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
  
   colef(:,:,:) = d_zero
 

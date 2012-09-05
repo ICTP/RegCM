@@ -25,6 +25,7 @@
 
 module mod_che_bdyco
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
@@ -47,12 +48,12 @@ module mod_che_bdyco
 
   type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
 
-  real(dp) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , &
+  real(rk8) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , &
                                              chebdy , oxcl
-  real(dp) , pointer , dimension(:,:) :: cefc , cegc
-  integer , pointer , dimension(:) :: ichbdy2trac
+  real(rk8) , pointer , dimension(:,:) :: cefc , cegc
+  integer(ik4) , pointer , dimension(:) :: ichbdy2trac
    
-  integer :: cnbdm
+  integer(ik4) :: cnbdm
 
   contains
 !
@@ -87,14 +88,14 @@ module mod_che_bdyco
   subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     implicit none
     logical :: ifrest
-    integer :: datefound , i , j , k , ierr,n, after
+    integer(ik4) :: datefound , i , j , k , ierr,n, after
     real (dp) :: dtbdys
     character(len=32) :: appdat
     type (rcm_time_and_date) :: idate1, chbc_date
     type(rcm_time_interval)::  intbdy
     
     character (len=64) :: subroutine_name='che_init_bdy'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
@@ -223,13 +224,13 @@ module mod_che_bdyco
   subroutine chem_bdyin(dtbdys,intbdy)
     implicit none
     type(rcm_time_interval) :: intbdy
-    real(dp) , intent(in) :: dtbdys
-    integer :: i , j , k , n , mmrec, after
+    real(rk8) , intent(in) :: dtbdys
+    integer(ik4) :: i , j , k , n , mmrec, after
     character(len=32) :: appdat
-    integer :: lyear , lmonth , lday , lhour
+    integer(ik4) :: lyear , lmonth , lday , lhour
 
     character (len=64) :: subroutine_name='chem_bdyin'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
   
@@ -298,12 +299,12 @@ module mod_che_bdyco
 
   subroutine chem_bdyval(xt,ktau)
     implicit none
-    integer(8) , intent(in) :: ktau
-    real(dp) , intent(in) :: xt
+    integer(ik8) , intent(in) :: ktau
+    real(rk8) , intent(in) :: xt
 !
-    integer :: itr , j , k , i
+    integer(ik4) :: itr , j , k , i
     character (len=64) :: subroutine_name='chem_bdyval'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -432,18 +433,18 @@ module mod_che_bdyco
   !
   subroutine nudge_chi(nk,cba,xt,f,ften)
     implicit none
-    integer , intent(in) :: nk
-    real(dp) , intent(in) :: xt
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    integer(ik4) , intent(in) :: nk
+    real(rk8) , intent(in) :: xt
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(cbound_area), intent(in) :: cba   
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
-    real(dp) :: xf , xg
-    real(dp), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
+    real(rk8) :: xf , xg
+    real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
 
-    integer :: i , j , k , ib , i1 , i2 , j1 , j2
+    integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge3d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -541,8 +542,8 @@ module mod_che_bdyco
 !
   subroutine setup_che_bdycon
     implicit none
-    integer :: n , k
-    real(dp) :: fnudge , gnudge
+    integer(ik4) :: n , k
+    real(rk8) :: fnudge , gnudge
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
@@ -558,8 +559,8 @@ module mod_che_bdyco
 !
   function xfune(mm,kk)
     implicit none
-    real(dp) :: xfune
-    integer , intent(in) :: mm , kk
+    real(rk8) :: xfune
+    integer(ik4) , intent(in) :: mm , kk
     xfune = dexp(-dble(mm-2)/canudg(kk))
   end function xfune
 !

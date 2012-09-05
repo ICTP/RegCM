@@ -22,6 +22,8 @@ module mod_pbl_holtbl
   ! Holtslag planetary boundary layer scheme
   ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
   !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : ibltyp , iqv , iqc
   use mod_mppparam
@@ -34,50 +36,50 @@ module mod_pbl_holtbl
 !
   public :: allocate_mod_pbl_holtbl , holtbl
 !
-  real(dp) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
+  real(rk8) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
                                           kvm , kvq ! , cgq
-  real(dp) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
+  real(rk8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
                                        ustr , xhfx , xqfx , pfcor
 !
-  real(dp) , pointer , dimension(:,:,:) :: alphak , betak , &
+  real(rk8) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
-  real(dp) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
-  real(dp) , pointer , dimension(:,:) :: govrth , uvdrage
-  real(dp) , pointer , dimension(:) :: hydf
+  real(rk8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
+  real(rk8) , pointer , dimension(:,:) :: govrth , uvdrage
+  real(rk8) , pointer , dimension(:) :: hydf
 !
-  real(dp) , pointer , dimension(:,:,:) :: dza , thvx
-  real(dp) , pointer , dimension(:,:,:) :: akzz1 , akzz2
-  real(dp) , pointer , dimension(:,:,:) :: rhohf
+  real(rk8) , pointer , dimension(:,:,:) :: dza , thvx
+  real(rk8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
+  real(rk8) , pointer , dimension(:,:,:) :: rhohf
 !
-  real(dp) , pointer , dimension(:,:,:) :: ri
-  real(dp) , pointer , dimension(:,:) :: therm
+  real(rk8) , pointer , dimension(:,:,:) :: ri
+  real(rk8) , pointer , dimension(:,:) :: therm
 !
 ! minimum eddy diffusivity
-  real(dp) , parameter :: kzo = d_one
-  real(dp) , parameter :: szkm = 1600.0D0
+  real(rk8) , parameter :: kzo = d_one
+  real(rk8) , parameter :: szkm = 1600.0D0
 ! coef. of proportionality and lower % of bl in sfc layer
-  real(dp) , parameter :: fak = 8.5D0
-  real(dp) , parameter :: sffrac = 0.1D0
+  real(rk8) , parameter :: fak = 8.5D0
+  real(rk8) , parameter :: sffrac = 0.1D0
 ! beta coefs. for momentum, stable conditions and heat
-  real(dp) , parameter :: betam = 15.0D0
-  real(dp) , parameter :: betas = 5.0D0
-  real(dp) , parameter :: betah = 15.0D0
-  real(dp) , parameter :: mult = 0.61D0
-  real(dp) , parameter :: ccon = fak*sffrac*vonkar
-  real(dp) , parameter :: gvk = egrav*vonkar
-  real(dp) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
-  real(dp) , parameter :: binm = betam*sffrac
-  real(dp) , parameter :: binh = betah*sffrac
+  real(rk8) , parameter :: betam = 15.0D0
+  real(rk8) , parameter :: betas = 5.0D0
+  real(rk8) , parameter :: betah = 15.0D0
+  real(rk8) , parameter :: mult = 0.61D0
+  real(rk8) , parameter :: ccon = fak*sffrac*vonkar
+  real(rk8) , parameter :: gvk = egrav*vonkar
+  real(rk8) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
+  real(rk8) , parameter :: binm = betam*sffrac
+  real(rk8) , parameter :: binh = betah*sffrac
 ! power in formula for k and critical ri for judging stability
-  real(dp) , parameter :: pink = d_two
-  real(dp) , parameter :: ricr = d_rfour
+  real(rk8) , parameter :: pink = d_two
+  real(rk8) , parameter :: ricr = d_rfour
 !
   contains
 !
   subroutine allocate_mod_pbl_holtbl(ichem,ichdrdepo)
     implicit none
-    integer , intent(in) :: ichem , ichdrdepo
+    integer(ik4) , intent(in) :: ichem , ichdrdepo
 
     call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
     call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
@@ -129,12 +131,12 @@ module mod_pbl_holtbl
   subroutine holtbl
   implicit none
 !
-  real(dp) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
+  real(rk8) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
              vflxsfx
-  integer :: i , j , k , itr
+  integer(ik4) :: i , j , k , itr
   character (len=64) :: subroutine_name='holtbl'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 !
   call time_begin(subroutine_name,idindx)
 !
@@ -876,12 +878,12 @@ module mod_pbl_holtbl
   subroutine blhnew
   implicit none
 !
-  real(dp) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
+  real(rk8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
              zl , zm , zp , zzh , zzhnew , zzhnew2
-  integer :: i , j , k , k2
+  integer(ik4) :: i , j , k , k2
   character (len=64) :: subroutine_name='blhnew'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 !
   call time_begin(subroutine_name,idindx)
 !

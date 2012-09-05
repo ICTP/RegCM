@@ -59,8 +59,8 @@ module mod_regcm_interface
   public :: RCM_run
   public :: RCM_finalize
 
-  real(dp) :: dtinc
-  real(dp) :: extime
+  real(rk8) :: dtinc
+  real(rk8) :: extime
 
   data extime /d_zero/
   contains
@@ -69,7 +69,7 @@ module mod_regcm_interface
     implicit none
     integer, intent(in), optional :: mpiCommunicator
 !
-    integer :: ncpu, ierr
+    integer(ik4) :: ncpu, ierr
     character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
@@ -228,8 +228,8 @@ module mod_regcm_interface
 !
   subroutine RCM_run(timestr, timeend)
     implicit none
-    real(dp) , intent(in) :: timestr   ! starting time-step
-    real(dp) , intent(in) :: timeend   ! ending   time-step
+    real(rk8) , intent(in) :: timestr   ! starting time-step
+    real(rk8) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 !
 #ifdef DEBUG

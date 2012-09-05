@@ -109,7 +109,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: localPet, petCount, ierr
+      integer(ik4) :: localPet, petCount, ierr
 !
       type(ESMF_TimeInterval) :: dtrun     
 !
@@ -180,7 +180,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: localPet, petCount, comm
+      integer(ik4) :: localPet, petCount, comm
       real*8 :: timestr1, timestr2, timeend, timepass
 !
       type(ESMF_Time) :: currTime
@@ -337,7 +337,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 ! 
-      integer :: i, n
+      integer(ik4) :: i, n
 !
 !-----------------------------------------------------------------------
 !     Call RCM finalize routines
@@ -407,14 +407,14 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: ref_year,   str_year,   end_year
-      integer :: ref_month,  str_month,  end_month
-      integer :: ref_day,    str_day,    end_day
-      integer :: ref_hour,   str_hour,   end_hour
-      integer :: ref_minute, str_minute, end_minute
-      integer :: ref_second, str_second, end_second
+      integer(ik4) :: ref_year,   str_year,   end_year
+      integer(ik4) :: ref_month,  str_month,  end_month
+      integer(ik4) :: ref_day,    str_day,    end_day
+      integer(ik4) :: ref_hour,   str_hour,   end_hour
+      integer(ik4) :: ref_minute, str_minute, end_minute
+      integer(ik4) :: ref_second, str_second, end_second
       character (len=80) :: name
-      integer :: rc
+      integer(ik4) :: rc
 !
 !-----------------------------------------------------------------------
 !     Create gridded component clock 
@@ -601,9 +601,9 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, k, n, rc
-      integer :: localPet, petCount, comm, localDECount
-      integer :: unmapped(nproc), mapped(nproc)
+      integer(ik4) :: i, j, k, n, rc
+      integer(ik4) :: localPet, petCount, comm, localDECount
+      integer(ik4) :: unmapped(nproc), mapped(nproc)
       integer, dimension(2) :: cpus_per_dim
       character (len=40) :: name
       character (len=100) :: fmt_123
@@ -873,7 +873,7 @@
 !
       logical :: flag
       character (len=40) :: name
-      integer :: i, j, id, n, rc, localDECount
+      integer(ik4) :: i, j, id, n, rc, localDECount
       type(ESMF_StaggerLoc) :: staggerLoc
 !
 !-----------------------------------------------------------------------

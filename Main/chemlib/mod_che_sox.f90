@@ -19,6 +19,8 @@
 
 module mod_che_sox
   
+  use mod_intkinds
+  use mod_realkinds
   use mod_che_bdyco
   use mod_constants
   use mod_dynparam
@@ -35,17 +37,17 @@ module mod_che_sox
     subroutine chemsox(j,wl,fracloud,fracum,rho,ttb)
      implicit none
 !
-     integer , intent(in) :: j
-     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
-     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
-     real(dp) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
+     integer(ik4) , intent(in) :: j
+     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
+     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
+     real(rk8) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
                  clmin , remcum , oh1int , so2_rate , krembc
-     real(dp) , dimension(ntr) ::  wetrem , wetrem_cvc
-     real(dp) , dimension(ici1:ici2,kz) :: caircell , so2_snk , concmin
-     real(dp) :: rk_com(ici1:ici2,kz,100)
-     real(dp) :: h2o2mol
+     real(rk8) , dimension(ntr) ::  wetrem , wetrem_cvc
+     real(rk8) , dimension(ici1:ici2,kz) :: caircell , so2_snk , concmin
+     real(rk8) :: rk_com(ici1:ici2,kz,100)
+     real(rk8) :: h2o2mol
 
-     integer :: i , k
+     integer(ik4) :: i , k
 
 !FAB 
      caircell(:,:) = 1.D-6 * rho(:,:)/amdk * navgdr
@@ -298,10 +300,10 @@ module mod_che_sox
 ! 
    subroutine chemrate(caircell,temp,rk_com) 
      implicit none
-     real(dp) , dimension(ici1:ici2,kz) , intent(in) :: caircell , temp
-     real(dp) , dimension(ici1:ici2,kz,100) , intent(out) ::  rk_com
-     real(dp) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
-     integer :: i , k
+     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: caircell , temp
+     real(rk8) , dimension(ici1:ici2,kz,100) , intent(out) ::  rk_com
+     real(rk8) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
+     integer(ik4) :: i , k
 
      rk_com(:,:,:) = d_zero
      do k = 1 , kz
@@ -341,26 +343,26 @@ module mod_che_sox
 
      contains
 
-     real(dp) function troe(cair_mlc,te,rk0,rnn,rki,rmm)
+     real(rk8) function troe(cair_mlc,te,rk0,rnn,rki,rmm)
        implicit none
-       real(dp) , intent(in) ::  cair_mlc, te, rnn, rmm
-       real(dp) , intent(inout) :: rk0 , rki
-       real(dp) :: expo
+       real(rk8) , intent(in) ::  cair_mlc, te, rnn, rmm
+       real(rk8) , intent(inout) :: rk0 , rki
+       real(rk8) :: expo
        rk0 = rk0*cair_mlc*(te/300.0D0)**(-rnn)
        rki = rki*(te/300.0D0)**(-rmm)
        expo= d_one/(d_one + (dlog10(rk0/rki))**d_two)
        troe  = (rk0*rki/(rk0+rki))*0.6D0**expo
      end function troe
   
-     real(dp) function arr(aa,bb,te)
+     real(rk8) function arr(aa,bb,te)
        implicit none
-       real(dp), intent(in) :: aa , bb , te   
+       real(rk8), intent(in) :: aa , bb , te   
        arr = aa*dexp(bb/te)
      end function arr 
 
-     real(dp) function abr(aa,bb,te)
+     real(rk8) function abr(aa,bb,te)
        implicit none
-       real(dp), intent(in) ::  aa , bb , te
+       real(rk8), intent(in) ::  aa , bb , te
        abr = aa*dexp(bb*(d_one/te - 0.0033557D0))
      end function abr 
 

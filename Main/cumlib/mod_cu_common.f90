@@ -21,59 +21,60 @@ module mod_cu_common
 !
 ! Storage and constants related to cumulus convection schemes.
 !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_realkinds
   use mod_runparams
 
   public
 !
-  real(dp) :: clfrcv ! Cloud fractional cover for convective precip
-  real(dp) :: cllwcv ! Cloud liquid water content for convective precip.
-  real(dp) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
+  real(rk8) :: cllwcv ! Cloud liquid water content for convective precip.
+  real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
-  integer , pointer , dimension(:,:) :: cucontrol ! which scheme to use
+  integer(ik4) , pointer , dimension(:,:) :: cucontrol ! which scheme to use
 
   ! Grell shared parameters for tracers removal
-  integer , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
+  integer(ik4) , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
 
 !
-  real(dp) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
-  real(dp) , pointer , dimension(:,:,:) :: hgt    ! za
-  real(dp) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
-  real(dp) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
-  real(dp) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
-  real(dp) , pointer , dimension(:,:,:,:) :: pvqxtm ! atm1%qx
-  real(dp) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
-  real(dp) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
-  real(dp) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
-  real(dp) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
-  real(dp) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
-  real(dp) , pointer , dimension(:,:,:,:) :: qxas ! atms%qxb3d
-  real(dp) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
-  real(dp) , pointer , dimension(:,:,:) :: tten   ! aten%t
-  real(dp) , pointer , dimension(:,:,:) :: uten   ! aten%u
-  real(dp) , pointer , dimension(:,:,:) :: vten   ! aten%v
-  real(dp) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
-  real(dp) , pointer , dimension(:,:,:,:) :: tchiten  ! chiten 
-  real(dp) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
-  real(dp) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
-  real(dp) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
-  real(dp) , pointer , dimension(:,:,:) :: convpr ! prec rate ( used in chem) 
-  real(dp) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
-  real(dp) , pointer , dimension(:,:,:) :: svv    ! qdot
-  real(dp) , pointer , dimension(:,:) :: lmpcpc   ! pptc
-  integer , pointer , dimension(:,:) :: lmask    ! ldmsk
-  real(dp) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
-  real(dp) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
+  real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
+  real(rk8) , pointer , dimension(:,:,:) :: hgt    ! za
+  real(rk8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
+  real(rk8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
+  real(rk8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
+  real(rk8) , pointer , dimension(:,:,:,:) :: pvqxtm ! atm1%qx
+  real(rk8) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
+  real(rk8) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
+  real(rk8) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
+  real(rk8) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
+  real(rk8) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
+  real(rk8) , pointer , dimension(:,:,:,:) :: qxas ! atms%qxb3d
+  real(rk8) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
+  real(rk8) , pointer , dimension(:,:,:) :: tten   ! aten%t
+  real(rk8) , pointer , dimension(:,:,:) :: uten   ! aten%u
+  real(rk8) , pointer , dimension(:,:,:) :: vten   ! aten%v
+  real(rk8) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
+  real(rk8) , pointer , dimension(:,:,:,:) :: tchiten  ! chiten 
+  real(rk8) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
+  real(rk8) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
+  real(rk8) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
+  real(rk8) , pointer , dimension(:,:,:) :: convpr ! prec rate ( used in chem) 
+  real(rk8) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
+  real(rk8) , pointer , dimension(:,:,:) :: svv    ! qdot
+  real(rk8) , pointer , dimension(:,:) :: lmpcpc   ! pptc
+  integer(ik4) , pointer , dimension(:,:) :: lmask    ! ldmsk
+  real(rk8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
+  real(rk8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
 
-  real(dp) , pointer , dimension(:) :: flev , hlev , dflev , wlev
+  real(rk8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon
-  real(dp) :: dtmdl
-  real(dp) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
+  real(rk8) :: dtmdl
+  real(rk8) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
 
   logical :: lchem
-  integer :: total_precip_points
+  integer(ik4) :: total_precip_points
 
   data lchem /.false./
 
@@ -81,7 +82,7 @@ module mod_cu_common
 !
   subroutine allocate_mod_cu_common(ichem)
     implicit none
-    integer , intent(in) :: ichem
+    integer(ik4) , intent(in) :: ichem
     if ( icup == 99 .or. icup == 98) then
       call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
     end if

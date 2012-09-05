@@ -51,13 +51,13 @@ module mod_tendency
 
   public :: allocate_mod_tend , tend
 
-  real(dp) , pointer , dimension(:,:,:) :: divl
-  real(dp) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi
-  real(dp) , pointer , dimension(:,:,:) :: ps4
-  real(dp) , pointer , dimension(:,:,:) :: ps_4 
-  real(dp) , pointer , dimension(:,:) :: psc , pten
+  real(rk8) , pointer , dimension(:,:,:) :: divl
+  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi
+  real(rk8) , pointer , dimension(:,:,:) :: ps4
+  real(rk8) , pointer , dimension(:,:,:) :: ps_4 
+  real(rk8) , pointer , dimension(:,:) :: psc , pten
 
-  integer :: iptn ! Total number of internal points
+  integer(ik4) :: iptn ! Total number of internal points
 
   contains
 
@@ -88,17 +88,17 @@ module mod_tendency
     implicit none
     include 'mpif.h'
 !
-    real(dp) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
+    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,   &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
-    integer :: i , itr , j , k , lev , n , ii , jj , kk
-    integer :: ierr , icons_mpi
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk
+    integer(ik4) :: ierr , icons_mpi
     logical :: loutrad , labsem
     character (len=32) :: appdat
     character (len=64) :: subroutine_name='tend'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !

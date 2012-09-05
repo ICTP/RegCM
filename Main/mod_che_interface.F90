@@ -60,26 +60,26 @@ module mod_che_interface
 
     implicit none
     logical, intent(in)   :: ifrest
-    integer , intent(in)  :: idirect
-    real(dp) , intent(in) :: dt , chemfrq , dtrad,dx 
+    integer(ik4) , intent(in)  :: idirect
+    real(rk8) , intent(in) :: dt , chemfrq , dtrad,dx 
 
-    real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
-    real(dp), pointer, dimension(:,:,:),intent(in) :: fcc
-    real(dp), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
+    real(rk8) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
+    real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
+    real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
              sdelqk2d , ssw2da , twt , sfracv2d , sfracb2d , sfracs2d
-    real(dp), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
-    real(dp), pointer, dimension(:,:,:,:) :: taucldsp
-    integer , pointer , dimension(:,:)  :: icutop , icubot, iveg
+    real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
+    real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
+    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot, iveg
     type(slice) , intent(in)            :: atms
     type(domain), intent(in)            :: mddom
     type (surfstate) , intent(in)       :: sfs
     type(bound_area) , intent(in)       :: ba_cr
-    real(dp) , pointer , dimension(:)   :: a , anudg
-    real(dp) , pointer , dimension(:,:) :: coszrs
-    real(dp) :: ptop
+    real(rk8) , pointer , dimension(:)   :: a , anudg
+    real(rk8) , pointer , dimension(:,:) :: coszrs
+    real(rk8) :: ptop
 
 #if (defined CLM)
-    real(dp), pointer :: voc_em(:,:), dep_vels(:,:,:)
+    real(rk8), pointer :: voc_em(:,:), dep_vels(:,:,:)
 #endif
 
     ichdir = idirect

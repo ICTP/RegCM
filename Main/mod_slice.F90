@@ -35,8 +35,8 @@ module mod_slice
   subroutine mkslice
     implicit none
 !
-    real(dp) :: cell , pres , satvp
-    integer :: i , j , k , n
+    real(rk8) :: cell , pres , satvp
+    integer(ik4) :: i , j , k , n
 !
     do k = 1 , kz
       do i = ice1 , ice2

@@ -21,6 +21,7 @@ module mod_che_drydep
 !
 ! Chemical and aerosol surface emission and dry deposition
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
@@ -39,22 +40,22 @@ module mod_che_drydep
 !
 ! Dynamic Viscosity Parameters
 !
-  real(dp) , parameter :: a1 = 145.8D0
-  real(dp) , parameter :: a2 = 1.5D0
-  real(dp) , parameter :: a3 = 110.4D0
+  real(rk8) , parameter :: a1 = 145.8D0
+  real(rk8) , parameter :: a2 = 1.5D0
+  real(rk8) , parameter :: a3 = 110.4D0
 !
 ! Molecular Free Path calculation parameters
 !
-  real(dp) , parameter :: c1 = 6.54D-8
-  real(dp) , parameter :: c2 = 1.818D-5
-  real(dp) , parameter :: c3 = 1.013D5
-  real(dp) , parameter :: c4 = 293.15D0
+  real(rk8) , parameter :: c1 = 6.54D-8
+  real(rk8) , parameter :: c2 = 1.818D-5
+  real(rk8) , parameter :: c3 = 1.013D5
+  real(rk8) , parameter :: c4 = 293.15D0
 !
 ! Cunningham slip correction factor parameters
 !
-  real(dp) , parameter :: aa1 = 1.257D0
-  real(dp) , parameter :: aa2 = 0.4D0
-  real(dp) , parameter :: aa3 = 1.1D0
+  real(rk8) , parameter :: aa1 = 1.257D0
+  real(rk8) , parameter :: aa2 = 0.4D0
+  real(rk8) , parameter :: aa3 = 1.1D0
 !
 ! Only one cover type per grid cell for now 
 !
@@ -66,7 +67,7 @@ module mod_che_drydep
 !
 ! threshold of rainfall intensity to activate water covered canopy option
 !
-  real(dp), parameter :: rainthr = 0.1D0
+  real(rk8), parameter :: rainthr = 0.1D0
 !
 ! DATA section for the Zhang drydep scheme
 !
@@ -89,9 +90,9 @@ module mod_che_drydep
 !
 !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
 !
-  real(dp) lai(20,15)
-  real(dp) z01(20) , z02(20)
-  integer :: kk
+  real(rk8) lai(20,15)
+  real(rk8) z01(20) , z02(20)
+  integer(ik4) :: kk
 
   data (lai(1,kk), kk = 1, 15)/                    &
            0.1D0 , 0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , &
@@ -205,16 +206,16 @@ module mod_che_drydep
 !
 ! Zhang stomatal resistance parameters
 !
-  real(dp) :: tmin(20) , tmax(20)
-  real(dp) :: rsminz(20) , brs(20)
-  real(dp) :: topt(20) , bvpd(20)
-  real(dp) :: psi1(20) , psi2(20)
-  real(dp) :: rac1(20) , rac2(20)
-  real(dp) :: rgo(20) , rcutdO(20)
-  real(dp) :: rcutwO(20) , rcutdS(20)
-  real(dp) :: rgs(20) , sdmax(20)  
-  real(dp) :: mw(31) , rm(31)
-  real(dp) :: alphaz(31) , betaz(31) 
+  real(rk8) :: tmin(20) , tmax(20)
+  real(rk8) :: rsminz(20) , brs(20)
+  real(rk8) :: topt(20) , bvpd(20)
+  real(rk8) :: psi1(20) , psi2(20)
+  real(rk8) :: rac1(20) , rac2(20)
+  real(rk8) :: rgo(20) , rcutdO(20)
+  real(rk8) :: rcutwO(20) , rcutdS(20)
+  real(rk8) :: rgs(20) , sdmax(20)  
+  real(rk8) :: mw(31) , rm(31)
+  real(rk8) :: alphaz(31) , betaz(31) 
 
   data tmin /  5.0D0,    5.0D0,   -5.0D0,   -5.0D0,    0.0D0, &
                0.0D0,    5.0D0, -999.0D0,   -5.0D0,    5.0D0, &
@@ -351,35 +352,35 @@ module mod_che_drydep
 !
       implicit none
 !
-      integer , intent(in) :: j , mbin
-      integer , intent(in) , dimension(mbin) :: indsp
-      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(dp) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
+      integer(ik4) , intent(in) :: j , mbin
+      integer(ik4) , intent(in) , dimension(mbin) :: indsp
+      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
-      real(dp) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
-      real(dp) , dimension(kz) , intent(in) :: shj
-      real(dp) , dimension(mbin) , intent(in) :: beffdiam
-      real(dp) , intent(in) :: rhop 
+      real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
+      real(rk8) , dimension(kz) , intent(in) :: shj
+      real(rk8) , dimension(mbin) , intent(in) :: beffdiam
+      real(rk8) , intent(in) :: rhop 
 
 ! output table to be passed out. Care dimension is ntr  
 
-      real(dp) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
-      real(dp) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
+      real(rk8) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
+      real(rk8) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
 !
-      real(dp) :: amfp , amob , eb , eim , ein , frx1
-      real(dp) :: pre , prii , priiv , r1 , st
-      real(dp) , dimension(ici1:ici2,kz) :: amu
-      real(dp) , dimension(ici1:ici2) :: anu , schm
-      real(dp) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , pdiff , &
+      real(rk8) :: amfp , amob , eb , eim , ein , frx1
+      real(rk8) :: pre , prii , priiv , r1 , st
+      real(rk8) , dimension(ici1:ici2,kz) :: amu
+      real(rk8) , dimension(ici1:ici2) :: anu , schm
+      real(rk8) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , pdiff , &
                   rhsize , taurel
-      real(dp) , dimension(ici1:ici2,luc) :: ra , ustar
-      real(dp) , dimension(ici1:ici2,luc,mbin) :: rs
-      real(dp), dimension(ici1:ici2,kz) :: wk, settend
-      real(dp) , dimension(mbin) :: avesize
-      integer :: i , k , kcov , l , n , ib
+      real(rk8) , dimension(ici1:ici2,luc) :: ra , ustar
+      real(rk8) , dimension(ici1:ici2,luc,mbin) :: rs
+      real(rk8), dimension(ici1:ici2,kz) :: wk, settend
+      real(rk8) , dimension(mbin) :: avesize
+      integer(ik4) :: i , k , kcov , l , n , ib
 !
       character (len=64) :: subroutine_name='drydep_aero'
-      integer :: idindx = 0
+      integer(ik4) :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 
@@ -639,21 +640,21 @@ module mod_che_drydep
 
       use mod_che_indices
       implicit none
-      integer , intent(in) :: j   
-      real(dp) , intent(in) :: ccalday
+      integer(ik4) , intent(in) :: j   
+      real(rk8) , intent(in) :: ccalday
       integer, intent(in) :: lmonth , lday 
-      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(dp) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
+      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(rk8) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
-      real(dp),  dimension(ici1:ici2,ntr) :: drydepvg
+      real(rk8),  dimension(ici1:ici2,ntr) :: drydepvg
 
-      integer :: n , i , im , iday_m , kcov
-      real(dp) , dimension(ici1:ici2,luc) :: ustar, resa
-      real(dp) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
-      real(dp) , dimension(ngasd,ici1:ici2,luc) :: vdg
-      real(dp) , dimension(ici1:ici2) :: icz , ddrem
-      real(dp) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
-      real(dp) :: kd
+      integer(ik4) :: n , i , im , iday_m , kcov
+      real(rk8) , dimension(ici1:ici2,luc) :: ustar, resa
+      real(rk8) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
+      real(rk8) , dimension(ngasd,ici1:ici2,luc) :: vdg
+      real(rk8) , dimension(ici1:ici2) :: icz , ddrem
+      real(rk8) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
+      real(rk8) :: kd
 
 #ifdef CLM
       integer  :: jj, ii
@@ -784,24 +785,24 @@ module mod_che_drydep
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
-      integer , dimension(ici1:ici2) , intent(in) :: ivegcov
-      real(dp) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
-      real(dp) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
-      real(dp) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
+      integer(ik4) , dimension(ici1:ici2) , intent(in) :: ivegcov
+      real(rk8) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
+      real(rk8) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
+      real(rk8) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
 !
-      integer :: i , j       
-      real(dp) :: vp , tsv
-      real(dp) :: z , zl , ww
-      real(dp) :: ptemp2 , es , qs
-      real(dp) :: wvpm , vptemp , tsw , mol
-      real(dp) :: z0water , dthv , cun , zdl
-      real(dp) :: psiu , psit , x , y
-      real(dp) :: thstar , rib , dtemp , tbar
-      real(dp) :: ustarsq , utstar , kui
-      real(dp) :: ratioz , logratio , asq
-      real(dp) :: aa , cm , ch , fm , fh    
-      real(dp) , dimension(ici1:ici2) :: zz0
-      real(dp) , parameter :: z10 = 10.0D0
+      integer(ik4) :: i , j       
+      real(rk8) :: vp , tsv
+      real(rk8) :: z , zl , ww
+      real(rk8) :: ptemp2 , es , qs
+      real(rk8) :: wvpm , vptemp , tsw , mol
+      real(rk8) :: z0water , dthv , cun , zdl
+      real(rk8) :: psiu , psit , x , y
+      real(rk8) :: thstar , rib , dtemp , tbar
+      real(rk8) :: ustarsq , utstar , kui
+      real(rk8) :: ratioz , logratio , asq
+      real(rk8) :: aa , cm , ch , fm , fh    
+      real(rk8) , dimension(ici1:ici2) :: zz0
+      real(rk8) , parameter :: z10 = 10.0D0
   
       !======================================================================
       ! ****************************************************
@@ -953,36 +954,36 @@ module mod_che_drydep
 
       implicit none
 
-      integer , intent(in) :: igas
-      integer , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(dp) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
+      integer(ik4) , intent(in) :: igas
+      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
+      real(rk8) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
                                                prec , sd , t2
-      real(dp) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
-      real(dp) , intent(in) , dimension(ici1:ici2,luc) :: ustar
-      real(dp) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
+      real(rk8) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
+      real(rk8) , intent(in) , dimension(ici1:ici2,luc) :: ustar
+      real(rk8) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
 !
-      integer :: i , j , kcov , ig
-      real(dp) :: rst , wst , rac , rgs_f
-      real(dp) :: rdu , rdv , rgo_f
-      real(dp) :: rcuto_f , rcuts_f 
-      real(dp) :: ww1 , ww2 , ww3
-      real(dp) :: rdm , rdn , rv , rn
-      real(dp) :: ratio , sv , fv , fvv
-      real(dp) :: pardir , pardif 
-      real(dp) :: tmaxk , tmink
-      real(dp) :: pshad , psun , rshad , rsun
-      real(dp) :: gshad , gsun , fsun , fshad
-      real(dp) :: gspar , temps !C
-      real(dp) :: bt , gt , gw , ryx
-      real(dp) :: es , d0 , gd , psi
-      real(dp) :: coedew , dq , usmin
-      real(dp) :: fsnow , rsnows
-      real(dp) :: dgas , di , vi
-      real(dp) :: dvh2o , rstom
-      real(dp) :: rcut , rg
+      integer(ik4) :: i , j , kcov , ig
+      real(rk8) :: rst , wst , rac , rgs_f
+      real(rk8) :: rdu , rdv , rgo_f
+      real(rk8) :: rcuto_f , rcuts_f 
+      real(rk8) :: ww1 , ww2 , ww3
+      real(rk8) :: rdm , rdn , rv , rn
+      real(rk8) :: ratio , sv , fv , fvv
+      real(rk8) :: pardir , pardif 
+      real(rk8) :: tmaxk , tmink
+      real(rk8) :: pshad , psun , rshad , rsun
+      real(rk8) :: gshad , gsun , fsun , fshad
+      real(rk8) :: gspar , temps !C
+      real(rk8) :: bt , gt , gw , ryx
+      real(rk8) :: es , d0 , gd , psi
+      real(rk8) :: coedew , dq , usmin
+      real(rk8) :: fsnow , rsnows
+      real(rk8) :: dgas , di , vi
+      real(rk8) :: dvh2o , rstom
+      real(rk8) :: rcut , rg
       logical :: is_dew , is_rain
-      real(dp) , parameter :: dair = 0.369D0 * 29.0D0 + 6.29D0
-      real(dp) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
+      real(rk8) , parameter :: dair = 0.369D0 * 29.0D0 + 6.29D0
+      real(rk8) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
 
       do j = 1 , luc
         do i = ici1 , ici2

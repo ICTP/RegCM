@@ -39,23 +39,23 @@ module mod_pbl_interface
                       remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,   &
                       sigma,dsigma,ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
-    integer , intent(in) :: ichem , ichdrydepo
+    integer(ik4) , intent(in) :: ichem , ichdrydepo
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
     type (slice) , intent(in) :: atms
     type (diffx) , intent(in) :: adf
     type (domain) , intent(in) :: mddom
     type (surfstate) , intent(in) :: sfs
-    real(dp) , pointer , dimension(:,:,:) :: heatrt
-    real(dp) , pointer , dimension(:,:,:,:) :: chiten
-    real(dp) , pointer , dimension(:,:,:) :: cchifxuw
-    real(dp) , pointer , dimension(:,:,:) :: remdrd
-    integer , pointer , dimension(:,:) :: ldmsk
-    real(dp) , pointer , dimension(:,:) :: psdot
-    real(dp) , pointer , dimension(:) :: hsigma
-    real(dp) , pointer , dimension(:) :: sigma
-    real(dp) , pointer , dimension(:) :: dsigma
-    real(dp) :: dt , ptop
-    real(dp) , pointer , dimension(:,:) :: chtrdpv
+    real(rk8) , pointer , dimension(:,:,:) :: heatrt
+    real(rk8) , pointer , dimension(:,:,:,:) :: chiten
+    real(rk8) , pointer , dimension(:,:,:) :: cchifxuw
+    real(rk8) , pointer , dimension(:,:,:) :: remdrd
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk
+    real(rk8) , pointer , dimension(:,:) :: psdot
+    real(rk8) , pointer , dimension(:) :: hsigma
+    real(rk8) , pointer , dimension(:) :: sigma
+    real(rk8) , pointer , dimension(:) :: dsigma
+    real(rk8) :: dt , ptop
+    real(rk8) , pointer , dimension(:,:) :: chtrdpv
     character(len=6) , pointer , dimension(:) :: chtrname
 
     ptp = ptop
@@ -215,13 +215,13 @@ module mod_pbl_interface
 
   subroutine hadvtke(tcmstate,atm,twt,dxx)
     implicit none
-    real(dp) , intent(in) :: dxx
+    real(rk8) , intent(in) :: dxx
     type(atmstate) , intent(in) :: atm
     type(tcm_state) , intent(inout) :: tcmstate
-    real(dp) , pointer , dimension(:,:) :: twt
+    real(rk8) , pointer , dimension(:,:) :: twt
     character (len=64) :: subroutine_name='hadvtke'
-    integer :: idindx = 0
-    integer :: i , k , j
+    integer(ik4) :: idindx = 0
+    integer(ik4) :: i , k , j
 !
     call time_begin(subroutine_name,idindx)
 
@@ -270,13 +270,13 @@ module mod_pbl_interface
 
   subroutine vadvtke(tcmstate,qdot,ind)
     implicit none
-    integer , intent(in) :: ind
+    integer(ik4) , intent(in) :: ind
     type(tcm_state) :: tcmstate
-    real(dp) , dimension(:,:,:) , pointer , intent(in) :: qdot
+    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: qdot
     character (len=64) :: subroutine_name='vadvtke'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
 !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
 
     call time_begin(subroutine_name,idindx)
         
@@ -365,11 +365,11 @@ module mod_pbl_interface
     implicit none
     type(atmstate) , intent(in) :: tcmtend
     type(tcm_state) :: tcmstate
-    real(dp) , dimension(:,:,:,:) , intent(in) :: rcmqxten
-    integer , intent(in) :: kmax
-    real(dp) , dimension(kmax) :: rho1d , rhobydpdz1d
-    real(dp) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
-    integer :: i , j , k
+    real(rk8) , dimension(:,:,:,:) , intent(in) :: rcmqxten
+    integer(ik4) , intent(in) :: kmax
+    real(rk8) , dimension(kmax) :: rho1d , rhobydpdz1d
+    real(rk8) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
+    integer(ik4) :: i , j , k
 
     do k = 1 , kzm1
       do j = jci1 , jci2
@@ -406,7 +406,7 @@ module mod_pbl_interface
   !  uwtcm()
   subroutine set_tracer_surface_fluxes()
   implicit none 
-  integer :: itr
+  integer(ik4) :: itr
 
     !Set the variable chifxuw to be the net flux for each tracer
     ! (dummy declaration below -- declared and allocated in mod_pbl_common.F90)

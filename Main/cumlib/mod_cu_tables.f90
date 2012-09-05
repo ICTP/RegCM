@@ -19,6 +19,7 @@
 
 module mod_cu_tables
 
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
 
@@ -43,10 +44,10 @@ module mod_cu_tables
 
   logical :: lookupoverflow = .false.      ! preset with false
   
-  real(dp) :: tlucua(jptlucu1:jptlucu2)    ! table - e_s*rgas/rwat
-  real(dp) :: tlucub(jptlucu1:jptlucu2)    ! table - for derivative calculation
-  real(dp) :: tlucuc(jptlucu1:jptlucu2)    ! table - l/cp
-  real(dp) :: tlucuaw(jptlucu1:jptlucu2)   ! table
+  real(rk8) :: tlucua(jptlucu1:jptlucu2)    ! table - e_s*rgas/rwat
+  real(rk8) :: tlucub(jptlucu1:jptlucu2)    ! table - for derivative calculation
+  real(rk8) :: tlucuc(jptlucu1:jptlucu2)    ! table - l/cp
+  real(rk8) :: tlucuaw(jptlucu1:jptlucu2)   ! table
 
 !------------------------------------------------------------------------------
 
@@ -54,24 +55,24 @@ contains
 
   subroutine init_convect_tables
 
-    real(dp), parameter :: zavl1 = -6096.9385_dp
-    real(dp), parameter :: zavl2 =    21.2409642_dp
-    real(dp), parameter :: zavl3 =    -2.711193_dp
-    real(dp), parameter :: zavl4 =     1.673952_dp
-    real(dp), parameter :: zavl5 =     2.433502_dp 
+    real(rk8), parameter :: zavl1 = -6096.9385_dp
+    real(rk8), parameter :: zavl2 =    21.2409642_dp
+    real(rk8), parameter :: zavl3 =    -2.711193_dp
+    real(rk8), parameter :: zavl4 =     1.673952_dp
+    real(rk8), parameter :: zavl5 =     2.433502_dp 
 
-    real(dp), parameter :: zavi1 = -6024.5282_dp
-    real(dp), parameter :: zavi2 =    29.32707_dp
-    real(dp), parameter :: zavi3 =     1.0613868_dp
-    real(dp), parameter :: zavi4 =    -1.3198825_dp
-    real(dp), parameter :: zavi5 =    -0.49382577_dp        
+    real(rk8), parameter :: zavi1 = -6024.5282_dp
+    real(rk8), parameter :: zavi2 =    29.32707_dp
+    real(rk8), parameter :: zavi3 =     1.0613868_dp
+    real(rk8), parameter :: zavi4 =    -1.3198825_dp
+    real(rk8), parameter :: zavi5 =    -0.49382577_dp        
 
-    real(dp) :: z5alvcp, z5alscp, zalvdcp, zalsdcp
-    real(dp) :: ztt, zldcp
-    real(dp) :: zcvm3, zcvm4, zcvm5
-    real(dp) :: zavm1, zavm2, zavm3, zavm4, zavm5
+    real(rk8) :: z5alvcp, z5alscp, zalvdcp, zalsdcp
+    real(rk8) :: ztt, zldcp
+    real(rk8) :: zcvm3, zcvm4, zcvm5
+    real(rk8) :: zavm1, zavm2, zavm3, zavm4, zavm5
 
-    integer :: it
+    integer(ik4) :: it
 
     z5alvcp = c5les*wlhv/cpd
     z5alscp = c5ies*wlhs/cpd

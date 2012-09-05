@@ -56,19 +56,19 @@ module mod_bdycod
   public :: fnudge , gnudge
   public :: anudg
 !
-  real(dp) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
+  real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
-  real(dp) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
+  real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(dp) , pointer , dimension(:) :: anudg
-  real(dp) , pointer , dimension(:) :: fcx , gcx
-  real(dp) , pointer , dimension(:) :: fcd , gcd
-  real(dp) , pointer , dimension(:) :: lfc , lgc
-  real(dp) , pointer , dimension(:,:) :: efc , egc
-  real(dp) , pointer , dimension(:) :: wgtd
-  real(dp) , pointer , dimension(:) :: wgtx
-  real(dp) :: fnudge , gnudge
-  integer :: nbdm
+  real(rk8) , pointer , dimension(:) :: anudg
+  real(rk8) , pointer , dimension(:) :: fcx , gcx
+  real(rk8) , pointer , dimension(:) :: fcd , gcd
+  real(rk8) , pointer , dimension(:) :: lfc , lgc
+  real(rk8) , pointer , dimension(:,:) :: efc , egc
+  real(rk8) , pointer , dimension(:) :: wgtd
+  real(rk8) , pointer , dimension(:) :: wgtx
+  real(rk8) :: fnudge , gnudge
+  integer(ik4) :: nbdm
 !
   interface nudge
     module procedure nudge4d , nudge3d , nudge2d
@@ -84,9 +84,9 @@ module mod_bdycod
 !
   subroutine allocate_mod_bdycon(iboudy)
     implicit none
-    integer , intent(in) :: iboudy
+    integer(ik4) , intent(in) :: iboudy
     character (len=64) :: subroutine_name='allocate_mod_bdycon'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
@@ -135,10 +135,10 @@ module mod_bdycod
 !
   subroutine setup_bdycon(hlev)
     implicit none
-    real(dp) , pointer , dimension(:) , intent(in) :: hlev
-    integer :: n , k
+    real(rk8) , pointer , dimension(:) , intent(in) :: hlev
+    integer(ik4) :: n , k
     character (len=64) :: subroutine_name='setup_bdycon'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -193,11 +193,11 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer :: datefound , i , j , k , ierr
+    integer(ik4) :: datefound , i , j , k , ierr
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     character (len=64) :: subroutine_name='init_bdy'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
@@ -371,11 +371,11 @@ module mod_bdycod
   subroutine bdyin
     implicit none
 !
-    integer :: i , j , k , n , mmrec
-    integer :: ierr
+    integer(ik4) :: i , j , k , n , mmrec
+    integer(ik4) :: ierr
     character(len=32) :: appdat
     character (len=64) :: subroutine_name='bdyin'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -536,12 +536,12 @@ module mod_bdycod
 !
   subroutine bdyuv(iboudy,dtb)
 !
-    real(dp) , intent(in) :: dtb
-    integer , intent(in) :: iboudy
+    real(rk8) , intent(in) :: dtb
+    integer(ik4) , intent(in) :: iboudy
 !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     character (len=64) :: subroutine_name='bdyuv'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -758,13 +758,13 @@ module mod_bdycod
 !
     implicit none
 !
-    real(dp) , intent(in) :: xt
+    real(rk8) , intent(in) :: xt
 !
-    real(dp) :: qcx , qcint , qvx , qext , qint
-    integer :: i , j , k , n
-    real(dp) :: windavg
+    real(rk8) :: qcx , qcint , qvx , qext , qint
+    integer(ik4) :: i , j , k , n
+    real(rk8) :: windavg
     character (len=64) :: subroutine_name='bdyval'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1248,16 +1248,16 @@ module mod_bdycod
 !
     implicit none
 !
-    integer , intent(in) :: nk , m
+    integer(ik4) , intent(in) :: nk , m
     type(bound_area) , intent(in) :: ba
     type(v3dbound) , intent(in) :: bnd
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
-    integer :: i , j , k
-    integer :: ib , i1 , i2 , j1 , j2
-    real(dp) , pointer , dimension(:) :: wg
+    integer(ik4) :: i , j , k
+    integer(ik4) :: ib , i1 , i2 , j1 , j2
+    real(rk8) , pointer , dimension(:) :: wg
     character (len=64) :: subroutine_name='sponge4d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1330,16 +1330,16 @@ module mod_bdycod
 !
     implicit none
 !
-    integer , intent(in) :: nk
+    integer(ik4) , intent(in) :: nk
     type(bound_area) , intent(in) :: ba
     type(v3dbound) , intent(in) :: bnd
-    real(dp) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
 !
-    integer :: i , j , k
-    integer :: ib , i1 , i2 , j1 , j2
-    real(dp) , pointer , dimension(:) :: wg
+    integer(ik4) :: i , j , k
+    integer(ik4) :: ib , i1 , i2 , j1 , j2
+    real(rk8) , pointer , dimension(:) :: wg
     character (len=64) :: subroutine_name='sponge3d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1414,13 +1414,13 @@ module mod_bdycod
 !
     type(bound_area) , intent(in) :: ba
     type(v2dbound) , intent(in) :: bnd
-    real(dp) , pointer , intent(inout) , dimension(:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
 !
-    integer :: i , j , i1 , i2 , j1 , j2
-    integer :: ib
-    real(dp) , pointer , dimension(:) :: wg
+    integer(ik4) :: i , j , i1 , i2 , j1 , j2
+    integer(ik4) :: ib
+    real(rk8) , pointer , dimension(:) :: wg
     character (len=64) :: subroutine_name='sponge2d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1486,8 +1486,8 @@ module mod_bdycod
 !
   function xfun(mm,ldot)
     implicit none
-    real(dp) :: xfun
-    integer , intent(in) :: mm
+    real(rk8) :: xfun
+    integer(ik4) , intent(in) :: mm
     logical , intent(in) :: ldot
     if ( ldot ) then
       xfun = dble(nspgd-mm)/dble(nspgd-2)
@@ -1498,8 +1498,8 @@ module mod_bdycod
 !
   function xfune(mm,kk)
     implicit none
-    real(dp) :: xfune
-    integer , intent(in) :: mm , kk
+    real(rk8) :: xfune
+    integer(ik4) , intent(in) :: mm , kk
     xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
 !
@@ -1532,17 +1532,17 @@ module mod_bdycod
 !
     implicit none
 !
-    integer , intent(in) :: ibdy , nk , m
-    real(dp) , intent(in) :: xt
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    integer(ik4) , intent(in) :: ibdy , nk , m
+    real(rk8) , intent(in) :: xt
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
-    real(dp) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
-    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
-    integer :: i , j , k , ib , i1 , i2 , j1 , j2
+    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge4d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1668,17 +1668,17 @@ module mod_bdycod
 !
     implicit none
 !
-    integer , intent(in) :: ibdy , nk
-    real(dp) , intent(in) :: xt
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: f
+    integer(ik4) , intent(in) :: ibdy , nk
+    real(rk8) , intent(in) :: xt
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
-    real(dp) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
 !
-    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
-    integer :: i , j , k , ib , i1 , i2 , j1 , j2
+    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge3d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1806,17 +1806,17 @@ module mod_bdycod
 !
     implicit none
 !
-    integer , intent(in) :: ibdy
-    real(dp) , intent(in) :: xt
-    real(dp) , pointer , intent(in) , dimension(:,:) :: f
+    integer(ik4) , intent(in) :: ibdy
+    real(rk8) , intent(in) :: xt
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
-    real(dp) , pointer , intent(inout) , dimension(:,:) :: ften
+    real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
 !
-    real(dp) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
-    integer :: i , j , ib , i1 , i2 , j1 , j2
+    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer(ik4) :: i , j , ib , i1 , i2 , j1 , j2
     character (len=64) :: subroutine_name='nudge2d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !

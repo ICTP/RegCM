@@ -68,9 +68,10 @@
 
 subroutine myabort
   use mod_dynparam , only : mycomm
+  use mod_intkinds
   implicit none
   include 'mpif.h'
-  integer :: ierr
+  integer(ik4) :: ierr
   call mpi_abort(mycomm,1,ierr)
 end subroutine myabort
 

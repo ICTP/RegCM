@@ -19,6 +19,7 @@
 
 module mod_cbmz_jval1
 
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_dynparam
@@ -32,22 +33,22 @@ module mod_cbmz_jval1
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
       implicit none
 !
-      real(dp) , dimension(22,40) :: hvmat
-      real(dp) , dimension(22) :: jparam
-      real(dp) , dimension(80,510,56) :: jarray
-      real(dp) , dimension(56) :: jval
-      integer , dimension(22) :: nhv
+      real(rk8) , dimension(22,40) :: hvmat
+      real(rk8) , dimension(22) :: jparam
+      real(rk8) , dimension(80,510,56) :: jarray
+      real(rk8) , dimension(56) :: jval
+      integer(ik4) , dimension(22) :: nhv
       intent (in) hvmat , jarray , jparam , nhv
       intent (inout) jval
 !
-      real(dp) , dimension(56) :: cfac , jfaerz , jfsur
-      real(dp) :: falt , fzen , x
-      real(dp) :: fkn
-      integer :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
+      real(rk8) , dimension(56) :: cfac , jfaerz , jfsur
+      real(rk8) :: falt , fzen , x
+      real(rk8) :: fkn
+      integer(ik4) :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
                  ig22 , ij , im , iwri , iy , izen , j , jaer , jalb ,  &
                  jc , jcld , jct , jtem , k , kn
-      real(dp) , dimension(20,56) :: jfrac
-      real(dp) , dimension(20) :: jfx
+      real(rk8) , dimension(20,56) :: jfrac
+      real(rk8) , dimension(20) :: jfx
 !
 !     This Subroutine takes jparams (zenith, altitude, etc.)
 !     and generates jvals from table, for up to 56 species.
@@ -696,19 +697,19 @@ module mod_cbmz_jval1
     subroutine readhv(lsin,nhv,hvmat,hvmatb,jarray)
       implicit none
 !
-      integer :: lsin
-      real(dp) , dimension(22,40) :: hvmat
-      real(dp) , dimension(22) :: hvmatb
-      real(dp) , dimension(80,510,56) :: jarray
-      integer , dimension(22) :: nhv
+      integer(ik4) :: lsin
+      real(rk8) , dimension(22,40) :: hvmat
+      real(rk8) , dimension(22) :: hvmatb
+      real(rk8) , dimension(80,510,56) :: jarray
+      integer(ik4) , dimension(22) :: nhv
       intent (in) lsin
       intent (inout) hvmat , hvmatb , jarray , nhv
 !
       character(4) :: aaa
-      real(dp) , dimension(22) :: hvmatz
-      integer :: i , ig , iwri , iz , j , jaer , jalb , jc , jcld ,     &
+      real(rk8) , dimension(22) :: hvmatz
+      integer(ik4) :: i , ig , iwri , iz , j , jaer , jalb , jc , jcld ,     &
                  jct , jtem , k , m , n , nmax
-      real(dp) :: x , y
+      real(rk8) :: x , y
 !
 !     Output matrix:  jarray(k,ig,jc) for
 !     k=cases:  k=1 base case, k>1 adjustment factors

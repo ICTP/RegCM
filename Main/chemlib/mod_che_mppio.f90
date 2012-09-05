@@ -19,6 +19,7 @@
 
 module mod_che_mppio
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_mppparam
   use mod_dynparam
@@ -30,32 +31,32 @@ module mod_che_mppio
 !
   public
 
-  real(dp) , pointer , dimension(:,:,:) :: cemtrac_io , wxaq_io , wxsg_io
-  real(dp) , pointer , dimension(:,:,:) :: remdrd_io
-  real(dp) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
-  real(dp) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
+  real(rk8) , pointer , dimension(:,:,:) :: cemtrac_io , wxaq_io , wxsg_io
+  real(rk8) , pointer , dimension(:,:,:) :: remdrd_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
+  real(rk8) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
                                            wdcvc_io , wdlsc_io, drydepv_io
-  real(8) , pointer , dimension(:,:,:) :: aerasp_io , aerext_io , aerssa_io
-  real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io , &
+  real(rk8) , pointer , dimension(:,:,:) :: aerasp_io , aerext_io , aerssa_io
+  real(rk8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io , &
                                         aertalwrf_io , aersrlwrf_io , aeraod_io
-  real(dp) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
+  real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
                                          sdelqk2d_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
-  real(dp) , pointer , dimension(:,:,:) :: chemsrc_io
-  real(dp) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io , &
+  real(rk8) , pointer , dimension(:,:,:) :: chemsrc_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io , &
     cadvhdiag_io , cadvvdiag_io , cdifhdiag_io , cconvdiag_io , cbdydiag_io ,  &
     ctbldiag_io , cseddpdiag_io
-  real(dp) , pointer , dimension(:,:,:) :: ccuwdiag_io
+  real(rk8) , pointer , dimension(:,:,:) :: ccuwdiag_io
 
 !
 ! Boundary conditions arrays
 !
-  real(dp) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , &
+  real(rk8) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , &
                                              chebdy_io1 , oxcl_io
-  real(dp) , pointer , dimension(:,:,:) :: dustsotex_io
+  real(rk8) , pointer , dimension(:,:,:) :: dustsotex_io
 !
-  real(dp), pointer, dimension (:,:) :: cpsb_io
+  real(rk8), pointer, dimension (:,:) :: cpsb_io
 
 !---------- DATA init section--------------------------------------------
 
@@ -65,7 +66,7 @@ module mod_che_mppio
     !
     subroutine allocate_mod_che_mppio(ibltyp)
       implicit none
-      integer , intent(in) :: ibltyp
+      integer(ik4) , intent(in) :: ibltyp
 
       if ( lch ) then
         if ( myid == iocpu ) then

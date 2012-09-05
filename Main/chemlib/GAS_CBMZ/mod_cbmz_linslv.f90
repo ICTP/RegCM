@@ -19,6 +19,7 @@
 
 module mod_cbmz_linslv
 
+  use mod_intkinds
   use mod_realkinds
 
   private
@@ -66,15 +67,15 @@ module mod_cbmz_linslv
    
       implicit none
 !
-      integer :: n
-      real(dp) , dimension(100,100) :: a
-      real(dp) , dimension(100) :: b , x
+      integer(ik4) :: n
+      real(rk8) , dimension(100,100) :: a
+      real(rk8) , dimension(100) :: b , x
       intent (inout) a
 !
-      real(dp) :: div , smax
-      integer :: i , j , jp , jp1 , k , kr , krm1 , krmax , krp1
-      integer , dimension(100) :: ipa
-      real(dp) , dimension(100) :: s
+      real(rk8) :: div , smax
+      integer(ik4) :: i , j , jp , jp1 , k , kr , krm1 , krmax , krp1
+      integer(ik4) , dimension(100) :: ipa
+      real(rk8) , dimension(100) :: s
 !
       do kr = 1 , n
         do k = 1 , n
@@ -118,16 +119,16 @@ module mod_cbmz_linslv
 
       implicit none
 !
-      integer :: n
-      real(dp) , dimension(100,100) :: a
-      real(dp) , dimension(100) :: b , x
-      integer , dimension(100) :: ipa
+      integer(ik4) :: n
+      real(rk8) , dimension(100,100) :: a
+      real(rk8) , dimension(100) :: b , x
+      integer(ik4) , dimension(100) :: ipa
       intent (in) a , b , ipa , n
       intent (inout) x
 !
-      integer :: i , ii , iip1 , ip , ip1 , j
-      real(dp) , dimension(100) :: s
-      real(dp) :: summ
+      integer(ik4) :: i , ii , iip1 , ip , ip1 , j
+      real(rk8) , dimension(100) :: s
+      real(rk8) :: summ
 !
       do i = 1 , n
         s(i) = b(i)

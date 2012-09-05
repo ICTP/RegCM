@@ -19,6 +19,7 @@
 
 module mod_che_seasalt
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_constants
@@ -27,16 +28,16 @@ module mod_che_seasalt
   private
 
   ! sea-salt density
-  real(dp) , parameter :: rhosslt = 1000.
-  real(dp) , dimension(sbin,2) :: ssltbsiz
+  real(rk8) , parameter :: rhosslt = 1000.
+  real(rk8) , dimension(sbin,2) :: ssltbsiz
 
   data ssltbsiz /0.05D0, 1.0D0, 1.0D0, 10.0D0/
 !
-  real(dp) , dimension(sbin) :: ssltbed
+  real(rk8) , dimension(sbin) :: ssltbed
 
 
  ! solubility of od dust aer for param of giorgi and chameides
-  real(dp) , dimension(sbin) :: solsslt
+  real(rk8) , dimension(sbin) :: solsslt
 
   data ssltbed /0.6D0, 6.0D0/
   data solsslt /0.8D0, 0.8D0/ 
@@ -65,22 +66,22 @@ module mod_che_seasalt
 
     implicit none
 
-    integer , intent(in) :: j
-    integer , dimension(ici1:ici2) :: ivegcov
-    real(dp) , dimension(ici1:ici2) :: wind10
-    real(dp) , dimension(ici1:ici2,sbin) , intent(out) :: seasalt_flx
+    integer(ik4) , intent(in) :: j
+    integer(ik4) , dimension(ici1:ici2) :: ivegcov
+    real(rk8) , dimension(ici1:ici2) :: wind10
+    real(rk8) , dimension(ici1:ici2,sbin) , intent(out) :: seasalt_flx
 
-    real(dp) :: dumu10
-    real(dp) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
-    real(dp) , dimension(ici1:ici2,2) :: qflxm , qflxn
-    real(dp) :: seasalt_emfac_mascor , seasalt_emfac_numcor
-    real(dp) :: seasalt_emfac_masacc , seasalt_emfac_numacc
-    integer :: modeptr_coarseas
-    integer :: modeptr_accum 
-    integer :: i , iflg , ib
+    real(rk8) :: dumu10
+    real(rk8) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
+    real(rk8) , dimension(ici1:ici2,2) :: qflxm , qflxn
+    real(rk8) :: seasalt_emfac_mascor , seasalt_emfac_numcor
+    real(rk8) :: seasalt_emfac_masacc , seasalt_emfac_numacc
+    integer(ik4) :: modeptr_coarseas
+    integer(ik4) :: modeptr_accum 
+    integer(ik4) :: i , iflg , ib
 
-    real(dp) :: specmw_seasalt_amode
-    real(dp) :: dum_mw
+    real(rk8) :: specmw_seasalt_amode
+    real(rk8) :: dum_mw
 
     specmw_seasalt_amode = 1.0D0
     modeptr_coarseas = 1
@@ -176,26 +177,26 @@ module mod_che_seasalt
                           dpdryhi_cm,emitfact_numb,emitfact_mass)
     implicit none
 
-    integer , intent(in) :: ireduce_smallr_emit
-    real(dp) , intent(in) :: dpdrylo_cm , dpdryhi_cm
-    real(dp) , intent(out) :: emitfact_numb , emitfact_mass
+    integer(ik4) , intent(in) :: ireduce_smallr_emit
+    real(rk8) , intent(in) :: dpdrylo_cm , dpdryhi_cm
+    real(rk8) , intent(out) :: emitfact_numb , emitfact_mass
 
-    integer :: nsub_bin , isub_bin
-    real(dp) :: drydens , drydens_f
-    real(dp) :: relhum
-    real(dp) :: rdry_star , sigmag_star
-    real(dp) :: dumsum_na , dumsum_ma 
-    real(dp) :: rdrylowermost , rdryuppermost 
-    real(dp) :: rdrylo , rdryhi
-    real(dp) :: alnrdrylo , dlnrdry
-    real(dp) :: rdrybb , rwetbb
-    real(dp) :: rdryaa , rwetaa 
-    real(dp) :: rdry_cm , rwet_cm
-    real(dp) :: rdry , rwet , drwet
-    real(dp) :: dum,xmdry , dumb,dumexpb
-    real(dp) :: dumadjust , df0dlnrdry
-    real(dp) :: df0drwet 
-    real(dp) :: df0dlnrdry_star
+    integer(ik4) :: nsub_bin , isub_bin
+    real(rk8) :: drydens , drydens_f
+    real(rk8) :: relhum
+    real(rk8) :: rdry_star , sigmag_star
+    real(rk8) :: dumsum_na , dumsum_ma 
+    real(rk8) :: rdrylowermost , rdryuppermost 
+    real(rk8) :: rdrylo , rdryhi
+    real(rk8) :: alnrdrylo , dlnrdry
+    real(rk8) :: rdrybb , rwetbb
+    real(rk8) :: rdryaa , rwetaa 
+    real(rk8) :: rdry_cm , rwet_cm
+    real(rk8) :: rdry , rwet , drwet
+    real(rk8) :: dum,xmdry , dumb,dumexpb
+    real(rk8) :: dumadjust , df0dlnrdry
+    real(rk8) :: df0drwet 
+    real(rk8) :: df0dlnrdry_star
 
     !************************************************************
     !*  c1-c4 are constants for sea-salt hygroscopi!growth  ****
@@ -203,10 +204,10 @@ module mod_che_seasalt
     !* (1997)                                                ****
     !************************************************************
 
-    real(dp) , parameter :: c1 = 0.7674D0
-    real(dp) , parameter :: c2 = 3.079D0
-    real(dp) , parameter :: c3 = 2.573D-11
-    real(dp) , parameter :: c4 = -1.424D0
+    real(rk8) , parameter :: c1 = 0.7674D0
+    real(rk8) , parameter :: c2 = 3.079D0
+    real(rk8) , parameter :: c3 = 2.573D-11
+    real(rk8) , parameter :: c4 = -1.424D0
 
     !************************************************************
     !*  dry particle density (g/cm3)                          ***

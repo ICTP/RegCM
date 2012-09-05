@@ -19,6 +19,7 @@
 
 module mod_che_carbonaer
   
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_constants
@@ -31,41 +32,41 @@ module mod_che_carbonaer
   ! Parameter usefull for wet and dry deposition of carbon aerosol 
   ! densities in kg/m3
 
-  real(dp) , public , parameter :: rhobc   = 2000.0D0
-  real(dp) , public , parameter :: rhooc   = 1200.0D0
-  real(dp) , public , parameter :: rhobchl = 1600.0D0
-  real(dp) , public , parameter :: rhoochl = 1200.0D0
+  real(rk8) , public , parameter :: rhobc   = 2000.0D0
+  real(rk8) , public , parameter :: rhooc   = 1200.0D0
+  real(rk8) , public , parameter :: rhobchl = 1600.0D0
+  real(rk8) , public , parameter :: rhoochl = 1200.0D0
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? ) 
-  real(dp) , public , parameter :: reffbc   = 0.05D0
-  real(dp) , public , parameter :: reffbchl = 0.3D0
-  real(dp) , public , parameter :: reffoc   = 0.2D0
-  real(dp) , public , parameter :: reffochl = 0.3D0
+  real(rk8) , public , parameter :: reffbc   = 0.05D0
+  real(rk8) , public , parameter :: reffbchl = 0.3D0
+  real(rk8) , public , parameter :: reffoc   = 0.2D0
+  real(rk8) , public , parameter :: reffochl = 0.3D0
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.
-  real(dp) , parameter :: chagct = 1.15D0 * 86400.0D0
+  real(rk8) , parameter :: chagct = 1.15D0 * 86400.0D0
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
-  real(dp) , parameter :: solbc = 0.05D0
-  real(dp) , parameter :: solbchl = 0.8D0
-  real(dp) , parameter :: soloc = 0.05D0
-  real(dp) , parameter :: solochl = 0.8D0
+  real(rk8) , parameter :: solbc = 0.05D0
+  real(rk8) , parameter :: solbchl = 0.8D0
+  real(rk8) , parameter :: soloc = 0.05D0
+  real(rk8) , parameter :: solochl = 0.8D0
   public :: aging_carb , solbc , solbchl , soloc , solochl
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(dp) , public , dimension(5) :: carbed
+  real(rk8) , public , dimension(5) :: carbed
 
   contains
 
     subroutine aging_carb(j)
       implicit none
       integer, intent(in) :: j
-      integer :: i , k
-      real(dp) :: agingtend1 , agingtend2
+      integer(ik4) :: i , k
+      real(rk8) :: agingtend1 , agingtend2
       !
       ! aging o carbon species : Conversion from hydrophobic to 
       ! hydrophilic: Carbonaceopus species time constant

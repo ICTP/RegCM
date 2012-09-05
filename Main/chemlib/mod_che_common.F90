@@ -19,6 +19,7 @@
 
 module mod_che_common
 
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_mppparam
@@ -30,49 +31,49 @@ module mod_che_common
   public
 
   character(len=8)   :: chemsimtype 
-  integer , parameter :: nbin = 4
-  integer , parameter :: sbin = 2
-  integer , parameter :: maxntr = 40 
+  integer(ik4) , parameter :: nbin = 4
+  integer(ik4) , parameter :: sbin = 2
+  integer(ik4) , parameter :: maxntr = 40 
 
   ! chemistry nameliste option
-  integer , public :: ichcumtra , ichdrdepo , ichremcvc , &
+  integer(ik4) , public :: ichcumtra , ichdrdepo , ichremcvc , &
                       ichremlsc , ichsursrc , ichsolver , &
                       ichdustemd , ichdiag
   ! usefull flags
-  integer :: iaerosol , igaschem , ioxclim
+  integer(ik4) :: iaerosol , igaschem , ioxclim
   
   ! tracer variables
 
-  real(dp) , pointer , dimension(:,:,:,:) :: chi
-  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten 
+  real(rk8) , pointer , dimension(:,:,:,:) :: chi
+  real(rk8) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten 
 !
-  real(dp) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
-  real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
-  real(dp) , pointer , dimension(:,:,:) :: srclp2
-  real(dp) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
+  real(rk8) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
+  real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
+  real(rk8) , pointer , dimension(:,:,:) :: srclp2
+  real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg , drydepv
 
-  real(dp) , pointer , dimension(:,:,:,:) :: chemall,jphoto
-  integer , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
+  real(rk8) , pointer , dimension(:,:,:,:) :: chemall,jphoto
+  integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
   character(len=6) , pointer , dimension(:) :: chtrname
 !
-  real(dp) , pointer , dimension(:,:)   :: chtrdpv
+  real(rk8) , pointer , dimension(:,:)   :: chtrdpv
 
-  real(dp) , pointer , dimension(:,:)   :: chtrsize
-  real(dp) , pointer , dimension(:)     :: chtrsol
+  real(rk8) , pointer , dimension(:,:)   :: chtrsize
+  real(rk8) , pointer , dimension(:)     :: chtrsol
 
-  real(dp), pointer , dimension(:,:,:)  :: cchifxuw
+  real(rk8), pointer , dimension(:,:,:)  :: cchifxuw
 !
-  integer , pointer , dimension(:)      :: isslt , icarb , idust
+  integer(ik4) , pointer , dimension(:)      :: isslt , icarb , idust
 !
-  real(dp) , pointer , dimension(:,:,:) :: convcldfra ,  cemtrac , remdrd
+  real(rk8) , pointer , dimension(:,:,:) :: convcldfra ,  cemtrac , remdrd
 
 !diagnostic
-  real(dp) :: cdiagf
-  real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
+  real(rk8) :: cdiagf
+  real(rk8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(dp) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
+  real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
           cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag , cseddpdiag 
 
 
@@ -81,19 +82,19 @@ module mod_che_common
 !   the pointer targets are defined in mod_che_interface
 !*****************************************************************************
 
-  real(dp) :: ccalday , crdxsq
-  real(dp) , pointer , dimension(:,:,:,:) ::chib3d
-  real(dp) , pointer , dimension(:,:,:,:) :: cqxb3d
-  real(dp) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
+  real(rk8) :: ccalday , crdxsq
+  real(rk8) , pointer , dimension(:,:,:,:) ::chib3d
+  real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
+  real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
          crhob3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
          cconvpr
-  real(dp) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
+  real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
          cssw2da , cvegfrac , csol2d , csdeltk2d , csdelqk2d , ctwt , &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
-  real(dp) , pointer , dimension(:) :: hlev , cdsigma , canudg
-  real(dp) , pointer , dimension(:,:) :: czen
-  real(dp) :: chptop
-  real(dp) , pointer , dimension(:,:,:,:) :: ctaucld
+  real(rk8) , pointer , dimension(:) :: hlev , cdsigma , canudg
+  real(rk8) , pointer , dimension(:,:) :: czen
+  real(rk8) :: chptop
+  real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
   type cbound_area
     logical :: dotflag
     logical :: havebound
@@ -101,17 +102,17 @@ module mod_che_common
     logical , pointer , dimension(:,:) :: bnorth
     logical , pointer , dimension(:,:) :: beast
     logical , pointer , dimension(:,:) :: bwest
-    integer :: ns , nn , ne , nw
-    integer :: nsp
-    integer , pointer , dimension(:,:) :: ibnd
+    integer(ik4) :: ns , nn , ne , nw
+    integer(ik4) :: nsp
+    integer(ik4) , pointer , dimension(:,:) :: ibnd
   end type cbound_area
 #if (defined CLM)
 #if (defined VOC)
   ! Tracer mask that uses MEGAN indices
-  integer , pointer , dimension(:) :: bvoc_trmask
-  real(dp) , pointer , dimension(:,:) :: cvoc_em
+  integer(ik4) , pointer , dimension(:) :: bvoc_trmask
+  real(rk8) , pointer , dimension(:,:) :: cvoc_em
 #endif
-  real(dp) , pointer , dimension(:,:,:) :: cdep_vels
+  real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
   type(cbound_area) :: cba_cr
 
@@ -120,7 +121,7 @@ module mod_che_common
     subroutine allocate_mod_che_common(ichem)
       implicit none
 
-      integer , intent(in) :: ichem
+      integer(ik4) , intent(in) :: ichem
 
       if ( ichem == 1 ) lch = .true.
 

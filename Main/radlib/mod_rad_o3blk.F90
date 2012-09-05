@@ -19,6 +19,8 @@
 
 module mod_rad_o3blk
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_date
   use mod_interp
@@ -35,15 +37,15 @@ module mod_rad_o3blk
 
   public :: allocate_mod_rad_o3blk , o3data , read_o3data
 
-  real(dp) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
+  real(rk8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                               ppsum , ppwin , ppwrk
-  real(dp) , dimension(32) :: ppwrkh
-  real(dp) , pointer , dimension(:) :: prlevh
+  real(rk8) , dimension(32) :: ppwrkh
+  real(rk8) , pointer , dimension(:) :: prlevh
 
-  real(sp) , pointer , dimension(:,:) :: alon , alat , aps , laps
-  real(sp) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(sp) , pointer , dimension(:) :: asig
-  real(dp) , pointer , dimension(:,:,:) :: ozone
+  real(rk4) , pointer , dimension(:,:) :: alon , alat , aps , laps
+  real(rk4) , pointer , dimension(:,:,:) :: ozone1 , ozone2
+  real(rk4) , pointer , dimension(:) :: asig
+  real(rk8) , pointer , dimension(:,:,:) :: ozone
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
              9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
@@ -103,8 +105,8 @@ module mod_rad_o3blk
   subroutine o3data
     implicit none
 !
-    integer :: i , j , jj , k , kj
-    real(dp) :: pb1 , pb2 , pt1 , pt2
+    integer(ik4) :: i , j , jj , k , kj
+    real(rk8) :: pb1 , pb2 , pt1 , pt2
 !
     do k = 1 , 31
       ppann(k) = ppsum(k)
@@ -171,25 +173,25 @@ module mod_rad_o3blk
   subroutine read_o3data(idatex,scenario,xlat,xlon,ps,ptop,sigma)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
-    real(dp) , pointer , dimension(:,:) :: xlat , xlon , ps
-    real(dp) , pointer , dimension(:) :: sigma
-    real(dp) , intent(in) :: ptop
+    real(rk8) , pointer , dimension(:,:) :: xlat , xlon , ps
+    real(rk8) , pointer , dimension(:) :: sigma
+    real(rk8) , intent(in) :: ptop
     character(len=8) , intent(in) :: scenario
 !
     character(len=64) :: infile
     logical , save :: ifirst
     logical :: dointerp
-    real(sp) , dimension(72,37,24) :: xozone1 , xozone2
-    real(sp) , dimension(njcross,nicross,24) :: yozone
-    real(sp) , save , dimension(37) :: lat
-    real(sp) , save , dimension(72) :: lon
-    real(sp) , save , dimension(24) :: plev
-    real(dp) :: xfac1 , xfac2 , odist
+    real(rk4) , dimension(72,37,24) :: xozone1 , xozone2
+    real(rk4) , dimension(njcross,nicross,24) :: yozone
+    real(rk4) , save , dimension(37) :: lat
+    real(rk4) , save , dimension(72) :: lon
+    real(rk4) , save , dimension(24) :: plev
+    real(rk8) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
-    integer :: iyear , imon , iday , ihour
-    integer , save :: ncid = -1
-    integer :: im1 , iy1 , im2 , iy2
-    integer , save :: ism , isy
+    integer(ik4) :: iyear , imon , iday , ihour
+    integer(ik4) , save :: ncid = -1
+    integer(ik4) :: im1 , iy1 , im2 , iy2
+    integer(ik4) , save :: ism , isy
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
@@ -290,7 +292,7 @@ module mod_rad_o3blk
 !
   subroutine inextmon(iyear,imon)
     implicit none
-    integer , intent(inout) :: iyear , imon
+    integer(ik4) , intent(inout) :: iyear , imon
     imon = imon + 1
     if ( imon > 12 ) then
       imon = 1
@@ -300,7 +302,7 @@ module mod_rad_o3blk
 !
   subroutine iprevmon(iyear,imon)
     implicit none
-    integer , intent(inout) :: iyear , imon
+    integer(ik4) , intent(inout) :: iyear , imon
     imon = imon - 1
     if ( imon < 1 ) then
       imon = 12
@@ -311,9 +313,9 @@ module mod_rad_o3blk
   subroutine init_o3data(o3file,ncid,lat,lon,plev)
     implicit none
     character(len=*) , intent(in) :: o3file
-    integer , intent(out) :: ncid
-    real(sp) , intent(out) , dimension(:) :: lat , lon , plev
-    integer :: iret
+    integer(ik4) , intent(out) :: ncid
+    real(rk4) , intent(out) , dimension(:) :: lat , lon , plev
+    integer(ik4) :: iret
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret) , o3file
@@ -327,13 +329,13 @@ module mod_rad_o3blk
 
   subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
     implicit none
-    integer , intent(in) :: ncid , iyear , imon
+    integer(ik4) , intent(in) :: ncid , iyear , imon
     character(len=*) , intent(in) :: vname
-    real(sp) , intent(out) , dimension(:,:,:) :: val
-    real(dp) , save :: xscale , xfact
-    integer , save :: ilastncid , icvar
-    integer , save , dimension(4) :: istart , icount
-    integer :: iret , irec
+    real(rk4) , intent(out) , dimension(:,:,:) :: val
+    real(rk8) , save :: xscale , xfact
+    integer(ik4) , save :: ilastncid , icvar
+    integer(ik4) , save , dimension(4) :: istart , icount
+    integer(ik4) :: iret , irec
     data ilastncid /-1/
     data icvar /-1/
     data xscale /1.0D0/
@@ -370,10 +372,10 @@ module mod_rad_o3blk
 
   subroutine readvar1d(ncid,vname,val)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(sp) , intent(out) , dimension(:) :: val
-    integer :: icvar , iret
+    real(rk4) , intent(out) , dimension(:) :: val
+    integer(ik4) :: icvar , iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret)

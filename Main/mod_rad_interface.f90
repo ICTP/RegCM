@@ -40,31 +40,31 @@ module mod_rad_interface
                       albvl,emiss,sinc,solvs,solvd,fsw,flw,flwd,ldmsk1, &
                       chia,chtrname)
     implicit none
-    integer , intent(in) :: ichem
-    real(dp) , intent(in) :: ptop
-    real(dp) , pointer , dimension(:) :: a , sigma
+    integer(ik4) , intent(in) :: ichem
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , pointer , dimension(:) :: a , sigma
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfs
     type(domain) , intent(in) :: mddom
-    real(dp) , pointer , intent(in) , dimension(:,:) :: sabveg
-    real(dp) , pointer , intent(in) , dimension(:,:) :: solis
-    real(dp) , pointer , intent(in) , dimension(:,:) :: coszrs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: aldirs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: aldifs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: aldirl
-    real(dp) , pointer , intent(in) , dimension(:,:) :: aldifl
-    real(dp) , pointer , intent(in) , dimension(:,:) :: albvs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: albvl
-    real(dp) , pointer , intent(in) , dimension(:,:) :: emiss
-    real(dp) , pointer , intent(in) , dimension(:,:) :: twt
-    real(dp) , pointer , intent(in) , dimension(:,:) :: sinc
-    real(dp) , pointer , intent(in) , dimension(:,:) :: solvs
-    real(dp) , pointer , intent(in) , dimension(:,:) :: solvd
-    real(dp) , pointer , intent(in) , dimension(:,:) :: fsw
-    real(dp) , pointer , intent(in) , dimension(:,:) :: flw
-    real(dp) , pointer , intent(in) , dimension(:,:) :: flwd
-    integer , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: chia
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sabveg
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solis
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: emiss
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: twt
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sinc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
+    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
     character(len=6) , pointer , intent(in) , dimension(:) :: chtrname
 
     if ( ichem == 1 ) lchem = .true.
@@ -102,10 +102,10 @@ module mod_rad_interface
 !
   subroutine init_rad_clm(sols,soll,solsd,solld)
     implicit none
-    real(dp) , pointer , intent(in) , dimension(:,:) :: sols
-    real(dp) , pointer , intent(in) , dimension(:,:) :: soll
-    real(dp) , pointer , intent(in) , dimension(:,:) :: solsd
-    real(dp) , pointer , intent(in) , dimension(:,:) :: solld
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sols
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: soll
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solsd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solld
     call assignpnt(sols,solswdir)
     call assignpnt(soll,sollwdir)
     call assignpnt(solsd,solswdif)

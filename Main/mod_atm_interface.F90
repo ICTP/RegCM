@@ -38,75 +38,75 @@ module mod_atm_interface
 !     timesteps and all the 2d variables and constants
 !
   type domain
-    real(dp) , pointer , dimension(:,:) :: ht
-    real(dp) , pointer , dimension(:,:) :: lndcat
-    real(dp) , pointer , dimension(:,:) :: xlat
-    real(dp) , pointer , dimension(:,:) :: xlon
-    real(dp) , pointer , dimension(:,:) :: dlat
-    real(dp) , pointer , dimension(:,:) :: dlon
-    real(dp) , pointer , dimension(:,:) :: msfx
-    real(dp) , pointer , dimension(:,:) :: msfd
-    real(dp) , pointer , dimension(:,:) :: coriol
+    real(rk8) , pointer , dimension(:,:) :: ht
+    real(rk8) , pointer , dimension(:,:) :: lndcat
+    real(rk8) , pointer , dimension(:,:) :: xlat
+    real(rk8) , pointer , dimension(:,:) :: xlon
+    real(rk8) , pointer , dimension(:,:) :: dlat
+    real(rk8) , pointer , dimension(:,:) :: dlon
+    real(rk8) , pointer , dimension(:,:) :: msfx
+    real(rk8) , pointer , dimension(:,:) :: msfd
+    real(rk8) , pointer , dimension(:,:) :: coriol
   end type domain
 
   type atmstate
-    real(dp) , pointer , dimension(:,:,:) :: u
-    real(dp) , pointer , dimension(:,:,:) :: v
-    real(dp) , pointer , dimension(:,:,:) :: t
-    real(dp) , pointer , dimension(:,:,:,:) :: qx
-    real(dp) , pointer , dimension(:,:,:) :: tke
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
+    real(rk8) , pointer , dimension(:,:,:) :: tke
   end type atmstate
 
   type surfstate
-    real(dp) , pointer , dimension(:,:) :: psa
-    real(dp) , pointer , dimension(:,:) :: psb
-    real(dp) , pointer , dimension(:,:) :: tga
-    real(dp) , pointer , dimension(:,:) :: tgb
-    real(dp) , pointer , dimension(:,:) :: rainc
-    real(dp) , pointer , dimension(:,:) :: rainnc
-    real(dp) , pointer , dimension(:,:) :: hfx
-    real(dp) , pointer , dimension(:,:) :: qfx
-    real(dp) , pointer , dimension(:,:) :: tgbb
-    real(dp) , pointer , dimension(:,:) :: uvdrag
+    real(rk8) , pointer , dimension(:,:) :: psa
+    real(rk8) , pointer , dimension(:,:) :: psb
+    real(rk8) , pointer , dimension(:,:) :: tga
+    real(rk8) , pointer , dimension(:,:) :: tgb
+    real(rk8) , pointer , dimension(:,:) :: rainc
+    real(rk8) , pointer , dimension(:,:) :: rainnc
+    real(rk8) , pointer , dimension(:,:) :: hfx
+    real(rk8) , pointer , dimension(:,:) :: qfx
+    real(rk8) , pointer , dimension(:,:) :: tgbb
+    real(rk8) , pointer , dimension(:,:) :: uvdrag
   end type surfstate
 
   type slice
-    real(dp) , pointer , dimension(:,:,:) :: tb3d
-    real(dp) , pointer , dimension(:,:,:) :: thx3d
-    real(dp) , pointer , dimension(:,:,:) :: pb3d
-    real(dp) , pointer , dimension(:,:,:) :: rhob3d
-    real(dp) , pointer , dimension(:,:,:) :: ubx3d
-    real(dp) , pointer , dimension(:,:,:) :: vbx3d
-    real(dp) , pointer , dimension(:,:,:) :: ubd3d
-    real(dp) , pointer , dimension(:,:,:) :: vbd3d
-    real(dp) , pointer , dimension(:,:,:) :: rhb3d
-    real(dp) , pointer , dimension(:,:,:) :: qsb3d
-    real(dp) , pointer , dimension(:,:,:,:) :: qxb3d
-    real(dp) , pointer , dimension(:,:,:) :: zq
-    real(dp) , pointer , dimension(:,:,:) :: za
-    real(dp) , pointer , dimension(:,:,:) :: dzq
-    real(dp) , pointer , dimension(:,:) :: rhox2d
-    real(dp) , pointer , dimension(:,:,:) :: tkeb3d
-    real(dp) , pointer , dimension(:,:,:,:) :: chib3d
+    real(rk8) , pointer , dimension(:,:,:) :: tb3d
+    real(rk8) , pointer , dimension(:,:,:) :: thx3d
+    real(rk8) , pointer , dimension(:,:,:) :: pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: rhob3d
+    real(rk8) , pointer , dimension(:,:,:) :: ubx3d
+    real(rk8) , pointer , dimension(:,:,:) :: vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: ubd3d
+    real(rk8) , pointer , dimension(:,:,:) :: vbd3d
+    real(rk8) , pointer , dimension(:,:,:) :: rhb3d
+    real(rk8) , pointer , dimension(:,:,:) :: qsb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxb3d
+    real(rk8) , pointer , dimension(:,:,:) :: zq
+    real(rk8) , pointer , dimension(:,:,:) :: za
+    real(rk8) , pointer , dimension(:,:,:) :: dzq
+    real(rk8) , pointer , dimension(:,:) :: rhox2d
+    real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
 
   type diffx
-    real(dp) , pointer , dimension(:,:,:) :: difft
-    real(dp) , pointer , dimension(:,:,:) :: difuu
-    real(dp) , pointer , dimension(:,:,:) :: difuv
-    real(dp) , pointer , dimension(:,:,:,:) :: diffqx
+    real(rk8) , pointer , dimension(:,:,:) :: difft
+    real(rk8) , pointer , dimension(:,:,:) :: difuu
+    real(rk8) , pointer , dimension(:,:,:) :: difuv
+    real(rk8) , pointer , dimension(:,:,:,:) :: diffqx
   end type diffx
 
   type v3dbound
-    real(dp) , pointer , dimension(:,:,:) :: b0
-    real(dp) , pointer , dimension(:,:,:) :: b1
-    real(dp) , pointer , dimension(:,:,:) :: bt
+    real(rk8) , pointer , dimension(:,:,:) :: b0
+    real(rk8) , pointer , dimension(:,:,:) :: b1
+    real(rk8) , pointer , dimension(:,:,:) :: bt
   end type v3dbound
 
   type v2dbound
-    real(dp) , pointer , dimension(:,:) :: b0
-    real(dp) , pointer , dimension(:,:) :: b1
-    real(dp) , pointer , dimension(:,:) :: bt
+    real(rk8) , pointer , dimension(:,:) :: b0
+    real(rk8) , pointer , dimension(:,:) :: b1
+    real(rk8) , pointer , dimension(:,:) :: bt
   end type v2dbound
 
   type bound_area
@@ -116,9 +116,9 @@ module mod_atm_interface
     logical , pointer , dimension(:,:) :: bnorth
     logical , pointer , dimension(:,:) :: beast
     logical , pointer , dimension(:,:) :: bwest
-    integer :: ns , nn , ne , nw
-    integer :: nsp
-    integer , pointer , dimension(:,:) :: ibnd
+    integer(ik4) :: ns , nn , ne , nw
+    integer(ik4) :: nsp
+    integer(ik4) , pointer , dimension(:,:) :: ibnd
   end type bound_area
 
   public :: atmstate , domain , surfstate , slice
@@ -138,17 +138,17 @@ module mod_atm_interface
   public :: allocate_surfstate , allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
-  real(dp) , public , pointer , dimension(:,:) :: hgfact
-  real(dp) , public , pointer , dimension(:,:) :: psdot
-  real(dp) , public , pointer , dimension(:,:,:) :: dstor
-  real(dp) , public , pointer , dimension(:,:,:) :: hstor
-  real(dp) , public , pointer , dimension(:,:) :: ts0 , ts1
+  real(rk8) , public , pointer , dimension(:,:) :: hgfact
+  real(rk8) , public , pointer , dimension(:,:) :: psdot
+  real(rk8) , public , pointer , dimension(:,:,:) :: dstor
+  real(rk8) , public , pointer , dimension(:,:,:) :: hstor
+  real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
 !
-  real(dp) , public , pointer , dimension(:,:,:) :: qdot , omega
+  real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
 !
-  integer , public , parameter :: zero_exchange_point = 0
-  integer , public , parameter :: one_exchange_point = 1
-  integer , public , parameter :: two_exchange_point = 2
+  integer(ik4) , public , parameter :: zero_exchange_point = 0
+  integer(ik4) , public , parameter :: one_exchange_point = 1
+  integer(ik4) , public , parameter :: two_exchange_point = 2
 
 #ifdef DEBUG
   logical , public :: enable_newmicro = .false.
@@ -273,10 +273,10 @@ module mod_atm_interface
       implicit none
       logical , intent(in) :: ldot
       type(bound_area) , intent(out) :: ba
-      integer :: ic
-      integer :: igbb1 , igbb2 , igbt1 , igbt2
-      integer :: jgbl1 , jgbl2 , jgbr1 , jgbr2
-      integer :: i , j , i1 , i2 , j1 , j2 , iglob , jglob
+      integer(ik4) :: ic
+      integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
+      integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
+      integer(ik4) :: i , j , i1 , i2 , j1 , j2 , iglob , jglob
 
       ba%dotflag = ldot
       call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
@@ -434,7 +434,7 @@ module mod_atm_interface
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
       type(v3dbound) , intent(out) :: xb
-      integer , intent(in) :: ke
+      integer(ik4) , intent(in) :: ke
       logical , intent(in) :: ldot
       if ( ldot ) then
         call getmem3d(xb%b0,jde1-ma%jbl1,jde2+ma%jbr1, &
@@ -477,10 +477,10 @@ module mod_atm_interface
     subroutine allocate_atmstate(atm,ibltyp,lpar,exchange_points)
       implicit none
       logical , intent(in) :: lpar
-      integer , intent(in) :: ibltyp
-      integer , intent(in) :: exchange_points
+      integer(ik4) , intent(in) :: ibltyp
+      integer(ik4) , intent(in) :: exchange_points
       type(atmstate) , intent(out) :: atm
-      integer :: ib , it , jr , jl
+      integer(ik4) :: ib , it , jr , jl
       if ( exchange_points == zero_exchange_point ) then
         ib = 0
         it = 0
@@ -588,7 +588,7 @@ module mod_atm_interface
     subroutine allocate_slice(ax,ibltyp)
       implicit none
       type(slice) , intent(out) :: ax
-      integer , intent(in) :: ibltyp
+      integer(ik4) , intent(in) :: ibltyp
       call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
@@ -633,7 +633,7 @@ module mod_atm_interface
     subroutine allocate_mod_atm_interface(ibltyp)
 !
       implicit none
-      integer , intent(in) :: ibltyp
+      integer(ik4) , intent(in) :: ibltyp
 !
       call allocate_domain(mddom,.true.)
 

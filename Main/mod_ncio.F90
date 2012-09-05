@@ -26,12 +26,12 @@ module mod_ncio
   use mod_nchelper
   use mod_domain
 !
-  integer , parameter :: n_atmvar = 14
-  integer , parameter :: n_srfvar = 26
-  integer , parameter :: n_subvar = 16
-  integer , parameter :: n_radvar = 18
-  integer , parameter :: n_lakvar = 16
-  integer , parameter :: n_stsvar = 13
+  integer(ik4) , parameter :: n_atmvar = 14
+  integer(ik4) , parameter :: n_srfvar = 26
+  integer(ik4) , parameter :: n_subvar = 16
+  integer(ik4) , parameter :: n_radvar = 18
+  integer(ik4) , parameter :: n_lakvar = 16
+  integer(ik4) , parameter :: n_stsvar = 13
 
   type output_variable
     character(len=8) :: vname
@@ -268,62 +268,62 @@ module mod_ncio
   public :: writerec_atm , writerec_srf , writerec_sub , &
             writerec_rad , writerec_lak , writerec_sts
 !
-  integer :: idmin , isdmin , ibcin , ncatm , ncsrf , ncsts , &
+  integer(ik4) :: idmin , isdmin , ibcin , ncatm , ncsrf , ncsts , &
              ncsub , ncrad , nclak
-  integer :: istatus
-  integer :: ibcrec , ibcnrec
-  integer :: iatmrec , isrfrec , istsrec , isubrec , iradrec , ilakrec
-  integer , dimension(n_atmvar) :: iatmvar
-  integer , dimension(n_srfvar) :: isrfvar
-  integer , dimension(n_stsvar) :: istsvar
-  integer , dimension(n_subvar) :: isubvar
-  integer , dimension(n_radvar) :: iradvar
-  integer , dimension(n_lakvar) :: ilakvar
+  integer(ik4) :: istatus
+  integer(ik4) :: ibcrec , ibcnrec
+  integer(ik4) :: iatmrec , isrfrec , istsrec , isubrec , iradrec , ilakrec
+  integer(ik4) , dimension(n_atmvar) :: iatmvar
+  integer(ik4) , dimension(n_srfvar) :: isrfvar
+  integer(ik4) , dimension(n_stsvar) :: istsvar
+  integer(ik4) , dimension(n_subvar) :: isubvar
+  integer(ik4) , dimension(n_radvar) :: iradvar
+  integer(ik4) , dimension(n_lakvar) :: ilakvar
   character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  integer , dimension(7) :: icbc_ivar
-  real(dp) :: tpd
-  real(dp) :: xns2d
-  real(sp) :: xns2r
+  integer(ik4) , dimension(7) :: icbc_ivar
+  real(rk8) :: tpd
+  real(rk8) :: xns2d
+  real(rk4) :: xns2r
   type(rcm_time_and_date) , save :: cordex_refdate
 
   ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
   ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is ntimes
   ! DIM9 is ntr ,  DIM10 is depth for lake
-  integer , dimension(10) :: idims
+  integer(ik4) , dimension(10) :: idims
 
-  integer :: o_is
-  integer :: o_ie
-  integer :: o_js
-  integer :: o_je
-  integer :: o_ni
-  integer :: o_nj
-  integer :: o_isg
-  integer :: o_ieg
-  integer :: o_jsg
-  integer :: o_jeg
-  integer :: o_nig
-  integer :: o_njg
-  integer :: o_nz
+  integer(ik4) :: o_is
+  integer(ik4) :: o_ie
+  integer(ik4) :: o_js
+  integer(ik4) :: o_je
+  integer(ik4) :: o_ni
+  integer(ik4) :: o_nj
+  integer(ik4) :: o_isg
+  integer(ik4) :: o_ieg
+  integer(ik4) :: o_jsg
+  integer(ik4) :: o_jeg
+  integer(ik4) :: o_nig
+  integer(ik4) :: o_njg
+  integer(ik4) :: o_nz
   logical :: lwrap , lmaskfill
 
-  real(sp) , dimension(:,:) , pointer :: ioxlat
-  real(sp) , dimension(:,:) , pointer :: ioxlon
-  real(sp) , dimension(:,:) , pointer :: iotopo
-  real(sp) , dimension(:,:) , pointer :: iomask
-  real(sp) , dimension(:,:) , pointer :: iolnds
-  real(sp) , dimension(:,:) , pointer :: ioxlat_s
-  real(sp) , dimension(:,:) , pointer :: ioxlon_s
-  real(sp) , dimension(:,:) , pointer :: iotopo_s
-  real(sp) , dimension(:,:) , pointer :: iomask_s
-  real(sp) , dimension(:,:) , pointer :: subio
-  real(sp) , dimension(:,:,:) , pointer :: dumio
-  real(sp) , dimension(:,:) , pointer :: sp2d
-  real(sp) , dimension(:,:) , pointer :: sp2d1
-  real(sp) , dimension(:,:,:) , pointer :: atmsrfmask
-  real(sp) , dimension(:,:) , pointer :: atmsrfsum
+  real(rk4) , dimension(:,:) , pointer :: ioxlat
+  real(rk4) , dimension(:,:) , pointer :: ioxlon
+  real(rk4) , dimension(:,:) , pointer :: iotopo
+  real(rk4) , dimension(:,:) , pointer :: iomask
+  real(rk4) , dimension(:,:) , pointer :: iolnds
+  real(rk4) , dimension(:,:) , pointer :: ioxlat_s
+  real(rk4) , dimension(:,:) , pointer :: ioxlon_s
+  real(rk4) , dimension(:,:) , pointer :: iotopo_s
+  real(rk4) , dimension(:,:) , pointer :: iomask_s
+  real(rk4) , dimension(:,:) , pointer :: subio
+  real(rk4) , dimension(:,:,:) , pointer :: dumio
+  real(rk4) , dimension(:,:) , pointer :: sp2d
+  real(rk4) , dimension(:,:) , pointer :: sp2d1
+  real(rk4) , dimension(:,:,:) , pointer :: atmsrfmask
+  real(rk4) , dimension(:,:) , pointer :: atmsrfsum
 
-  integer , dimension(numbat) :: lak_fbats
+  integer(ik4) , dimension(numbat) :: lak_fbats
 
   data lmaskfill /.false./
   data idmin   /-1/
@@ -352,10 +352,10 @@ contains
 
   function ivarname_lookup(ctype,sname)
     implicit none
-    integer :: ivarname_lookup
+    integer(ik4) :: ivarname_lookup
     character(3) , intent(in) :: ctype
     character(len=*) , intent(in) :: sname
-    integer :: i
+    integer(ik4) :: i
 
     ivarname_lookup = -1
 
@@ -485,8 +485,8 @@ contains
   subroutine read_domain_lake(hlake)
     implicit none
 
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake
-    integer :: n , ivarid
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake
+    integer(ik4) :: n , ivarid
 
     if (idmin < 0) then
       write (6,*) 'Error : Domain file not in open state'
@@ -505,12 +505,12 @@ contains
   subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
     implicit none
 
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ht1
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: lnd1
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: xlat1
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: xlon1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon1
 
-    integer :: ivarid
+    integer(ik4) :: ivarid
     
     if ( nsg > 1 ) then
       write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
@@ -550,8 +550,8 @@ contains
 
   subroutine read_subdomain_lake(hlake1)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: hlake1
-    integer :: ivarid
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake1
+    integer(ik4) :: ivarid
     if (isdmin < 0) then
       write (6,*) 'Error : Subdom file not in open state'
       call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE')
@@ -604,8 +604,8 @@ contains
   subroutine open_icbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
     character(10) :: ctime
-    integer :: idimid , itvar , i , chkdiff
-    real(dp) , dimension(:) , allocatable :: icbc_nctime
+    integer(ik4) :: idimid , itvar , i , chkdiff
+    real(rk8) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
 
     call close_icbc
@@ -670,14 +670,14 @@ contains
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
     implicit none
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: u
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: v
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: t
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: qv
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ps
-    real(dp) , pointer , dimension(:,:) , intent(out) :: ts
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: u
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: v
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: t
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: qv
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ps
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ts
 
-    integer , dimension(4) :: istart , icount
+    integer(ik4) , dimension(4) :: istart , icount
 
     istart(3) = ibcrec
     istart(2) = 1
@@ -720,7 +720,7 @@ contains
 
   subroutine close_common(ncid, ctype)
     implicit none
-    integer , intent(inout) :: ncid
+    integer(ik4) , intent(inout) :: ncid
     character(3) , intent(in) :: ctype
     if (ncid >= 0) then
       istatus = nf90_close(ncid)
@@ -737,27 +737,27 @@ contains
     character(32) :: fbname , ctime
     character(16) :: fterr
     character(256) :: ofname
-    real(dp) :: hptop
-    real(dp) :: rdum1
-    real(dp) , dimension(2) :: rdum2
-    real(dp) , dimension(iysg) :: yiy
-    real(dp) , dimension(jxsg) :: xjx
-    real(sp) , dimension(ndpmax) :: depth
-    integer :: ncid
-    integer , dimension(3) :: izvar
-    integer , dimension(2) :: ivvar
-    integer , dimension(4) :: isrvvar
-    integer , dimension(5) :: illtpvar
-    integer :: itvar , imapvar , i , j
+    real(rk8) :: hptop
+    real(rk8) :: rdum1
+    real(rk8) , dimension(2) :: rdum2
+    real(rk8) , dimension(iysg) :: yiy
+    real(rk8) , dimension(jxsg) :: xjx
+    real(rk4) , dimension(ndpmax) :: depth
+    integer(ik4) :: ncid
+    integer(ik4) , dimension(3) :: izvar
+    integer(ik4) , dimension(2) :: ivvar
+    integer(ik4) , dimension(4) :: isrvvar
+    integer(ik4) , dimension(5) :: illtpvar
+    integer(ik4) :: itvar , imapvar , i , j
 
-    integer , dimension(5) :: tyx
-    integer , dimension(5) :: tzyx
-    integer , dimension(5) :: t10yx
-    integer , dimension(5) :: t2yx
-    integer , dimension(5) :: tlyx
-    integer , dimension(5) :: tcyx
-    integer , dimension(5) :: tczyx
-    integer , dimension(5) :: tdyx
+    integer(ik4) , dimension(5) :: tyx
+    integer(ik4) , dimension(5) :: tzyx
+    integer(ik4) , dimension(5) :: t10yx
+    integer(ik4) , dimension(5) :: t2yx
+    integer(ik4) , dimension(5) :: tlyx
+    integer(ik4) , dimension(5) :: tcyx
+    integer(ik4) , dimension(5) :: tczyx
+    integer(ik4) , dimension(5) :: tdyx
     character(len=128) :: cdum
 
     if (ctype == 'ATM') then
@@ -1355,22 +1355,22 @@ contains
 
   subroutine addvara(ncid,ctype,idims,lmiss,nvar)
     implicit none
-    integer , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid
     character(3) , intent(in) :: ctype
-    integer , dimension(5) , intent(in) :: idims
+    integer(ik4) , dimension(5) , intent(in) :: idims
     logical , intent(in) :: lmiss
-    integer , intent(in) :: nvar
+    integer(ik4) , intent(in) :: nvar
 
     character(len=8)   :: vname
     character(len=128) :: vst , vln
     character(len=16)  :: vuni , vmeth
     logical :: lreq
-    integer :: ivar
+    integer(ik4) :: ivar
     character(64) :: cmethodpnt , cmethodmax , cmethodmin
     character(64) :: cmethodsum , cmethodmean
     character(len=128) :: cdum
 
-    integer :: i , ndims
+    integer(ik4) :: i , ndims
 
     ndims = 0
     do i = 1 , 5
@@ -1518,11 +1518,11 @@ contains
   subroutine writerec_sts(fbat, idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
-    integer :: ivar
-    integer :: n
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(2) :: nctime
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: fbat
+    integer(ik4) :: ivar
+    integer(ik4) :: n
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -1602,12 +1602,12 @@ contains
   subroutine writerec_srf(fbat, mask , idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
-    integer , pointer , dimension(:,:) , intent(in) :: mask
-    integer :: ivar
-    integer :: n
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(2) :: nctime
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: fbat
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: mask
+    integer(ik4) :: ivar
+    integer(ik4) :: n
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     logical :: lskip
     character(len=36) :: ctime
@@ -1728,11 +1728,11 @@ contains
   subroutine writerec_sub(fsub, idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
-    integer :: ivar
-    integer :: n , nxb , nyb
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: nctime
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
+    integer(ik4) :: ivar
+    integer(ik4) :: n , nxb , nyb
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
     logical :: lskip
@@ -1821,14 +1821,14 @@ contains
   subroutine writerec_rad(nrad3d,nrad2d,frad3d,frad2d,ps,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , intent(in) :: nrad3d , nrad2d
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: frad3d
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: frad2d
-    real(dp) , pointer , dimension(:,:) , intent(in) :: ps
-    integer :: ivar
-    integer :: n
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: nctime
+    integer(ik4) , intent(in) :: nrad3d , nrad2d
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: frad3d
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: frad2d
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
+    integer(ik4) :: ivar
+    integer(ik4) :: n
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -1898,23 +1898,23 @@ contains
                           tgb,swt,mask,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: u
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: v
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: omega
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: t
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: qx
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tke
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: kth
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: kzm
-    real(dp) , pointer , dimension(:,:) , intent(in) :: ps
-    real(dp) , pointer , dimension(:,:) , intent(in) :: rc
-    real(dp) , pointer , dimension(:,:) , intent(in) :: rnc
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: tgb
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: swt
-    integer , pointer , dimension(:,:,:) , intent(in) :: mask
-    integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: nctime
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: u
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: v
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: qx
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: tke
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: kth
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: kzm
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: rc
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: rnc
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: tgb
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: swt
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mask
+    integer(ik4) :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2228,15 +2228,15 @@ contains
   subroutine writerec_lak(fbat,evl,aveice,hsnow,tlake,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    real(sp) , pointer , dimension(:,:,:) , intent(in) :: fbat
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: evl
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: aveice
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: hsnow
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
-    integer :: ivar
-    integer :: n
-    integer , dimension(4) :: istart , icount
-    real(dp) , dimension(1) :: nctime
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: fbat
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: evl
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: aveice
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: hsnow
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
+    integer(ik4) :: ivar
+    integer(ik4) :: n
+    integer(ik4) , dimension(4) :: istart , icount
+    real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2317,7 +2317,7 @@ contains
   subroutine check_ok(f,l,m1,mf)
     implicit none
     character(*) , intent(in) :: f, m1 , mf
-    integer , intent(in) :: l
+    integer(ik4) , intent(in) :: l
     if (istatus /= nf90_noerr) then 
       write (6,*) trim(m1)
       write (6,*) nf90_strerror(istatus)
@@ -2339,9 +2339,9 @@ contains
 
   subroutine reorder_2_3(m1,m2)
     implicit none
-    real(sp) , pointer , dimension(:,:) , intent(in) :: m1
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: m2
-    integer :: i , j , ii , jj , n
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: m1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: m2
+    integer(ik4) :: i , j , ii , jj , n
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -2358,10 +2358,10 @@ contains
 
   subroutine reorder_3_2(m2,m1,m)
     implicit none
-    integer , intent(in) :: m
-    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: m2
-    real(sp) , pointer , dimension(:,:) , intent(out) :: m1
-    integer :: i , ii , j , jj , n
+    integer(ik4) , intent(in) :: m
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: m2
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: m1
+    integer(ik4) :: i , ii , j , jj , n
     do j = 1 , o_njg
       do i = 1 , o_nig
         jj = mod(j,nsg)

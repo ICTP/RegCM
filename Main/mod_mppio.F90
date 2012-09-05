@@ -29,84 +29,84 @@ module mod_mppio
   use mod_memutil
   use mod_mpmessage
 !
-  integer , pointer , dimension(:,:,:) :: ldmsk1_io
-  integer , pointer , dimension(:,:,:) :: iveg1_io
-  integer , pointer , dimension(:,:) :: iveg_io
-  integer , pointer , dimension(:,:) :: ldmsk_io
+  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1_io
+  integer(ik4) , pointer , dimension(:,:,:) :: iveg1_io
+  integer(ik4) , pointer , dimension(:,:) :: iveg_io
+  integer(ik4) , pointer , dimension(:,:) :: ldmsk_io
 
-  real(dp) , pointer , dimension(:,:,:) :: ldew_io
-  real(dp) , pointer , dimension(:,:,:) :: gwet_io
-  real(dp) , pointer , dimension(:,:,:) :: snag_io
-  real(dp) , pointer , dimension(:,:,:) :: sncv_io
-  real(dp) , pointer , dimension(:,:,:) :: sfice_io
-  real(dp) , pointer , dimension(:,:,:) :: rsw_io
-  real(dp) , pointer , dimension(:,:,:) :: ssw_io
-  real(dp) , pointer , dimension(:,:,:) :: tsw_io
-  real(dp) , pointer , dimension(:,:,:) :: taf_io
-  real(dp) , pointer , dimension(:,:,:) :: tgrd_io
-  real(dp) , pointer , dimension(:,:,:) :: tgbrd_io
-  real(dp) , pointer , dimension(:,:,:) :: tlef_io
-  real(dp) , pointer , dimension(:,:,:) :: emiss_io
+  real(rk8) , pointer , dimension(:,:,:) :: ldew_io
+  real(rk8) , pointer , dimension(:,:,:) :: gwet_io
+  real(rk8) , pointer , dimension(:,:,:) :: snag_io
+  real(rk8) , pointer , dimension(:,:,:) :: sncv_io
+  real(rk8) , pointer , dimension(:,:,:) :: sfice_io
+  real(rk8) , pointer , dimension(:,:,:) :: rsw_io
+  real(rk8) , pointer , dimension(:,:,:) :: ssw_io
+  real(rk8) , pointer , dimension(:,:,:) :: tsw_io
+  real(rk8) , pointer , dimension(:,:,:) :: taf_io
+  real(rk8) , pointer , dimension(:,:,:) :: tgrd_io
+  real(rk8) , pointer , dimension(:,:,:) :: tgbrd_io
+  real(rk8) , pointer , dimension(:,:,:) :: tlef_io
+  real(rk8) , pointer , dimension(:,:,:) :: emiss_io
 
-  real(dp) , pointer , dimension(:,:,:) :: ht1_io
-  real(dp) , pointer , dimension(:,:,:) :: lndcat1_io
-  real(dp) , pointer , dimension(:,:,:) :: xlat1_io
-  real(dp) , pointer , dimension(:,:,:) :: xlon1_io
+  real(rk8) , pointer , dimension(:,:,:) :: ht1_io
+  real(rk8) , pointer , dimension(:,:,:) :: lndcat1_io
+  real(rk8) , pointer , dimension(:,:,:) :: xlat1_io
+  real(rk8) , pointer , dimension(:,:,:) :: xlon1_io
 !
-  real(dp) , pointer , dimension(:,:) :: flw_io
-  real(dp) , pointer , dimension(:,:) :: flwd_io
-  real(dp) , pointer , dimension(:,:) :: fsw_io
-  real(dp) , pointer , dimension(:,:) :: sabveg_io
-  real(dp) , pointer , dimension(:,:) :: sinc_io
-  real(dp) , pointer , dimension(:,:) :: solis_io
-  real(dp) , pointer , dimension(:,:) :: solvd_io
-  real(dp) , pointer , dimension(:,:) :: solvs_io
+  real(rk8) , pointer , dimension(:,:) :: flw_io
+  real(rk8) , pointer , dimension(:,:) :: flwd_io
+  real(rk8) , pointer , dimension(:,:) :: fsw_io
+  real(rk8) , pointer , dimension(:,:) :: sabveg_io
+  real(rk8) , pointer , dimension(:,:) :: sinc_io
+  real(rk8) , pointer , dimension(:,:) :: solis_io
+  real(rk8) , pointer , dimension(:,:) :: solvd_io
+  real(rk8) , pointer , dimension(:,:) :: solvs_io
 
-  real(dp) , pointer , dimension(:,:) :: dtskin_io
-  real(dp) , pointer , dimension(:,:) :: tdeltas_io
-  real(dp) , pointer , dimension(:,:) :: deltas_io
+  real(rk8) , pointer , dimension(:,:) :: dtskin_io
+  real(rk8) , pointer , dimension(:,:) :: tdeltas_io
+  real(rk8) , pointer , dimension(:,:) :: deltas_io
 
-  integer , pointer , dimension(:,:) :: kpbl_io
-  real(dp) , pointer , dimension(:,:) :: zpbl_io
+  integer(ik4) , pointer , dimension(:,:) :: kpbl_io
+  real(rk8) , pointer , dimension(:,:) :: zpbl_io
 !
-  real(sp) , pointer , dimension(:,:,:) :: fbat_io
-  real(sp) , pointer , dimension(:,:,:,:) :: fsub_io
-  real(sp) , pointer , dimension(:,:,:) :: frad2d_io
-  real(sp) , pointer , dimension(:,:,:,:) :: frad3d_io
+  real(rk4) , pointer , dimension(:,:,:) :: fbat_io
+  real(rk4) , pointer , dimension(:,:,:,:) :: fsub_io
+  real(rk4) , pointer , dimension(:,:,:) :: frad2d_io
+  real(rk4) , pointer , dimension(:,:,:,:) :: frad3d_io
 
-  real(dp) , pointer , dimension(:,:) :: cbmf2d_io
-  real(dp) , pointer , dimension(:,:,:) :: fcc_io
-  real(dp) , pointer , dimension(:,:,:) :: rsheat_io
-  real(dp) , pointer , dimension(:,:,:) :: rswat_io
+  real(rk8) , pointer , dimension(:,:) :: cbmf2d_io
+  real(rk8) , pointer , dimension(:,:,:) :: fcc_io
+  real(rk8) , pointer , dimension(:,:,:) :: rsheat_io
+  real(rk8) , pointer , dimension(:,:,:) :: rswat_io
 
-  real(dp) , pointer , dimension(:,:,:,:) :: gasabsnxt_io
-  real(dp) , pointer , dimension(:,:,:,:) :: gasabstot_io
-  real(dp) , pointer , dimension(:,:,:) :: gasemstot_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: gasabsnxt_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: gasabstot_io
+  real(rk8) , pointer , dimension(:,:,:) :: gasemstot_io
 
-  real(dp) , pointer , dimension(:,:,:) :: heatrt_io
-  real(dp) , pointer , dimension(:,:,:) :: o3prof_io
+  real(rk8) , pointer , dimension(:,:,:) :: heatrt_io
+  real(rk8) , pointer , dimension(:,:,:) :: o3prof_io
 
-  real(dp) , pointer , dimension(:,:,:) :: dstor_io
-  real(dp) , pointer , dimension(:,:,:) :: hstor_io
+  real(rk8) , pointer , dimension(:,:,:) :: dstor_io
+  real(rk8) , pointer , dimension(:,:,:) :: hstor_io
 
-  real(dp) , pointer , dimension(:,:) :: ps0_io
-  real(dp) , pointer , dimension(:,:) :: ps1_io
-  real(dp) , pointer , dimension(:,:) :: ts0_io
-  real(dp) , pointer , dimension(:,:) :: ts1_io
+  real(rk8) , pointer , dimension(:,:) :: ps0_io
+  real(rk8) , pointer , dimension(:,:) :: ps1_io
+  real(rk8) , pointer , dimension(:,:) :: ts0_io
+  real(rk8) , pointer , dimension(:,:) :: ts1_io
 
-  real(dp) , pointer , dimension(:,:,:) :: qb0_io
-  real(dp) , pointer , dimension(:,:,:) :: qb1_io
-  real(dp) , pointer , dimension(:,:,:) :: tb0_io
-  real(dp) , pointer , dimension(:,:,:) :: tb1_io
-  real(dp) , pointer , dimension(:,:,:) :: ub0_io
-  real(dp) , pointer , dimension(:,:,:) :: ub1_io
-  real(dp) , pointer , dimension(:,:,:) :: vb0_io
-  real(dp) , pointer , dimension(:,:,:) :: vb1_io
+  real(rk8) , pointer , dimension(:,:,:) :: qb0_io
+  real(rk8) , pointer , dimension(:,:,:) :: qb1_io
+  real(rk8) , pointer , dimension(:,:,:) :: tb0_io
+  real(rk8) , pointer , dimension(:,:,:) :: tb1_io
+  real(rk8) , pointer , dimension(:,:,:) :: ub0_io
+  real(rk8) , pointer , dimension(:,:,:) :: ub1_io
+  real(rk8) , pointer , dimension(:,:,:) :: vb0_io
+  real(rk8) , pointer , dimension(:,:,:) :: vb1_io
 
-  real(dp) , pointer , dimension(:,:) :: cldefi_io
+  real(rk8) , pointer , dimension(:,:) :: cldefi_io
 
-  real(dp) , pointer , dimension(:,:,:) :: omega_io
-  real(dp) , pointer , dimension(:,:,:) :: tbase_io
+  real(rk8) , pointer , dimension(:,:,:) :: omega_io
+  real(rk8) , pointer , dimension(:,:,:) :: tbase_io
 
   type(atmstate) :: atm1_io
   type(atmstate) :: atm2_io
@@ -114,15 +114,15 @@ module mod_mppio
   type(tcm_state) :: tcmstate_io
 
 #ifdef CLM
-  real(dp) , pointer , dimension(:,:) :: sols2d_io
-  real(dp) , pointer , dimension(:,:) :: soll2d_io
-  real(dp) , pointer , dimension(:,:) :: solsd2d_io
-  real(dp) , pointer , dimension(:,:) :: solld2d_io
-  real(dp) , pointer , dimension(:,:) :: aldifl2d_io
-  real(dp) , pointer , dimension(:,:) :: aldirs2d_io
-  real(dp) , pointer , dimension(:,:) :: aldirl2d_io
-  real(dp) , pointer , dimension(:,:) :: aldifs2d_io
-  real(dp) , pointer , dimension(:,:) :: lndcat2d_io
+  real(rk8) , pointer , dimension(:,:) :: sols2d_io
+  real(rk8) , pointer , dimension(:,:) :: soll2d_io
+  real(rk8) , pointer , dimension(:,:) :: solsd2d_io
+  real(rk8) , pointer , dimension(:,:) :: solld2d_io
+  real(rk8) , pointer , dimension(:,:) :: aldifl2d_io
+  real(rk8) , pointer , dimension(:,:) :: aldirs2d_io
+  real(rk8) , pointer , dimension(:,:) :: aldirl2d_io
+  real(rk8) , pointer , dimension(:,:) :: aldifs2d_io
+  real(rk8) , pointer , dimension(:,:) :: lndcat2d_io
 #endif
 !
 !---------- DATA init section--------------------------------------------

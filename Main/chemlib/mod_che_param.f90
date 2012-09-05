@@ -19,25 +19,26 @@
 
 module mod_che_param
 
+  use mod_intkinds
   use mod_realkinds
 
   public
 !
   logical :: lch
-  integer :: ichdir
-  integer :: ichaer
+  integer(ik4) :: ichdir
+  integer(ik4) :: ichaer
 
-  real(dp) :: chfrq , rafrq , dtche
+  real(rk8) :: chfrq , rafrq , dtche
 
-  real(dp) , pointer , dimension(:) :: chlevs
+  real(rk8) , pointer , dimension(:) :: chlevs
 !
   !FAB : temporaire car defini dans les modules de deposts
-  real(dp) , dimension(22) :: aest , arye
+  real(rk8) , dimension(22) :: aest , arye
   ! Stokes parameters
 
-  real(dp) , dimension(12) :: cxmopor
-  real(dp) , dimension(22) :: cdepuv , crough
-  integer , dimension(22) :: ciexsol
+  real(rk8) , dimension(12) :: cxmopor
+  real(rk8) , dimension(22) :: cdepuv , crough
+  integer(ik4) , dimension(22) :: ciexsol
   !
   !FAB : redefine soil prop. similar to bats for chemistry externalisation.
   ! think about an interface! 

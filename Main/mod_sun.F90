@@ -30,9 +30,9 @@ module mod_sun
 !
    private
 !
-   real(dp) , dimension(3,1610:2008) :: tsi
-   real(dp) , parameter :: tsifac = 0.9965D0
-   integer :: ii , jj
+   real(rk8) , dimension(3,1610:2008) :: tsi
+   real(rk8) , parameter :: tsifac = 0.9965D0
+   integer(ik4) :: ii , jj
 
    public :: solar1 , zenitm , solar_irradiance
 !
@@ -255,13 +255,13 @@ module mod_sun
 
     implicit none
 !
-    real(dp) :: decdeg
-    real(dp) :: theta
+    real(rk8) :: decdeg
+    real(rk8) :: theta
 !
 !----------------------------------------------------------------------
 !
     character (len=64) :: subroutine_name='solar1'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     calday = yeardayfrac(idatex)
@@ -300,13 +300,13 @@ module mod_sun
 !
     implicit none
 !
-    real(dp) , pointer , intent (out), dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent (out), dimension(:,:) :: coszrs
 !
-    integer :: i , j
-    real(dp) :: omga , tlocap , xt24
+    integer(ik4) :: i , j
+    real(rk8) :: omga , tlocap , xt24
     character (len=64) :: subroutine_name='zenitm'
-    real(dp) :: xxlat
-    integer :: idindx=0
+    real(rk8) :: xxlat
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -329,10 +329,10 @@ module mod_sun
     call time_end(subroutine_name,idindx)
   end subroutine zenitm
 !
-  real(dp) function solar_irradiance( )
+  real(rk8) function solar_irradiance( )
     implicit none
-    integer :: iyear
-    real(dp) :: w1 , w2
+    integer(ik4) :: iyear
+    real(rk8) :: w1 , w2
     if ( xmonth > 6 .and. xday > 15 ) then
       w1 = calday/dayspy-0.5
       w2 = d_one-w1

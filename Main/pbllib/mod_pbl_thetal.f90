@@ -19,28 +19,29 @@
 
 module mod_pbl_thetal
 
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
+  use mod_constants
 
   private
 
-  real(dp) :: myp , mythetal , myqt , myexner , mylovcp
+  real(rk8) :: myp , mythetal , myqt , myexner , mylovcp
 
   logical :: bderiv
 
-  real(dp) , parameter :: mymaxdiff = 1.0d-3
-  real(dp) , parameter :: delta = 1.0d-8
-  real(dp) , parameter :: trange = 20.0D0
+  real(rk8) , parameter :: mymaxdiff = 1.0d-3
+  real(rk8) , parameter :: delta = 1.0d-8
+  real(rk8) , parameter :: trange = 20.0D0
 
   public :: solve_for_t
 
   contains
 
-  real(dp) function zerofunc(t,isice)
+  real(rk8) function zerofunc(t,isice)
     implicit none
-    real(dp) , intent(in) :: t
-    real(dp) :: qc , qv , locp , es
-    integer , intent(in) :: isice
+    real(rk8) , intent(in) :: t
+    real(rk8) :: qc , qv , locp , es
+    integer(ik4) , intent(in) :: isice
 
     if ( isice == 0 ) then
       es = esatw(myp,t)
@@ -70,25 +71,25 @@ module mod_pbl_thetal
   ! Determine temperature from the liquid water potential temperature,
   ! total water, and pressure.
 
-  real(dp) function solve_for_t(thetal,qt,p,tprev,qtprev, &
+  real(rk8) function solve_for_t(thetal,qt,p,tprev,qtprev, &
                                 qcprev,thlprev,imax,      &
                                 imethod,isice,outqc,outqv)
     implicit none
-    real(dp) , intent(in) :: thetal , qt , p , tprev , qtprev , &
+    real(rk8) , intent(in) :: thetal , qt , p , tprev , qtprev , &
                              qcprev , thlprev
-    integer , intent(in) :: imethod , isice
-    integer , intent(inout) :: imax
-    real(dp) , intent(out) :: outqc , outqv
-    real(dp) :: a , b , c , d , s , dum
-    real(dp) :: fa , fb , fc , fs
-    real(dp) :: smb , bmc , cmd
-    real(dp) :: temps , templ , rvls
-    real(dp) :: dthetal , dqt , qvprev , deltat , es , qcthresh
-    real(dp) :: tempqv , tempqc , tempt , tempes
+    integer(ik4) , intent(in) :: imethod , isice
+    integer(ik4) , intent(inout) :: imax
+    real(rk8) , intent(out) :: outqc , outqv
+    real(rk8) :: a , b , c , d , s , dum
+    real(rk8) :: fa , fb , fc , fs
+    real(rk8) :: smb , bmc , cmd
+    real(rk8) :: temps , templ , rvls
+    real(rk8) :: dthetal , dqt , qvprev , deltat , es , qcthresh
+    real(rk8) :: tempqv , tempqc , tempt , tempes
     logical :: mflag
-    integer :: i , iteration , itqt , itqtsupp
-    integer , parameter :: itmax = 6
-    integer , parameter :: itmin = 3
+    integer(ik4) :: i , iteration , itqt , itqtsupp
+    integer(ik4) , parameter :: itmax = 6
+    integer(ik4) , parameter :: itmin = 3
 
     ! set some interal module variables
     mythetal = thetal
@@ -441,9 +442,9 @@ bigloop : &
   ! modified from buck (1981), j. app. met. v 20
   function esatw(p,t)
     implicit none
-    real(dp) , intent(in) :: p , t
-    real(dp) :: esatw
-    real(dp) :: dum , arg , tdum
+    real(rk8) , intent(in) :: p , t
+    real(rk8) :: esatw
+    real(rk8) :: dum , arg , tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -460,9 +461,9 @@ bigloop : &
   ! modified from buck (1981), j. app. met. v 20
   function esati(p,t)
     implicit none
-    real(dp) , intent(in) :: p , t
-    real(dp) :: esati
-    real(dp) :: dum , arg , tdum
+    real(rk8) , intent(in) :: p , t
+    real(rk8) :: esati
+    real(rk8) :: dum , arg , tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -476,8 +477,8 @@ bigloop : &
 
   subroutine swap(a,b)
     implicit none
-    real(dp) , intent(inout) :: a , b
-    real(dp) :: c
+    real(rk8) , intent(inout) :: a , b
+    real(rk8) :: c
     c = a
     a = b
     b = c
@@ -485,9 +486,9 @@ bigloop : &
 
   subroutine getqvqc(t,es,qv,qc,isice)
     implicit none
-    real(dp) , intent(in) :: t
-    real(dp) , intent(out) :: es , qv , qc
-    integer , intent(in) :: isice
+    real(rk8) , intent(in) :: t
+    real(rk8) , intent(out) :: es , qv , qc
+    integer(ik4) , intent(in) :: isice
     if ( isice == 0 ) then
       es = esatw(myp,t)
       mylovcp = wlhvocp

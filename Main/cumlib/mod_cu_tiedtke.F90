@@ -19,6 +19,7 @@
  
 module mod_cu_tiedtke
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
@@ -39,54 +40,54 @@ module mod_cu_tiedtke
             cmtcape , zdlev
 !
   ! evaporation coefficient for kuo0
-  real(dp) , pointer , dimension(:) :: cevapcu
+  real(rk8) , pointer , dimension(:) :: cevapcu
 
-  real(dp) , parameter :: centrmax = 3.0D-4
+  real(rk8) , parameter :: centrmax = 3.0D-4
 
-  real(dp) :: entrpen      ! entrainment rate for penetrative convection
-  real(dp) :: entrscv      ! entrainment rate for shallow convection
-  real(dp) :: entrmid      ! entrainment rate for midlevel convection
-  real(dp) :: entrdd       ! entrainment rate for cumulus downdrafts
-  real(dp) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
-  real(dp) :: cmtcape      ! CAPE adjustment timescale parameter
-  real(dp) :: zdlev        ! Restrict rainfall up to this elevation
-  real(dp) :: cmfcmax      ! maximum massflux value allowed for
-  real(dp) :: cmfcmin      ! minimum massflux value (for safety)
-  real(dp) :: cmfdeps      ! fractional massflux for downdrafts at lfs
-  real(dp) :: rhcdd        ! relative saturation in downdrafts
-  real(dp) :: cprcon       ! coefficients for determining conversion
+  real(rk8) :: entrpen      ! entrainment rate for penetrative convection
+  real(rk8) :: entrscv      ! entrainment rate for shallow convection
+  real(rk8) :: entrmid      ! entrainment rate for midlevel convection
+  real(rk8) :: entrdd       ! entrainment rate for cumulus downdrafts
+  real(rk8) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
+  real(rk8) :: cmtcape      ! CAPE adjustment timescale parameter
+  real(rk8) :: zdlev        ! Restrict rainfall up to this elevation
+  real(rk8) :: cmfcmax      ! maximum massflux value allowed for
+  real(rk8) :: cmfcmin      ! minimum massflux value (for safety)
+  real(rk8) :: cmfdeps      ! fractional massflux for downdrafts at lfs
+  real(rk8) :: rhcdd        ! relative saturation in downdrafts
+  real(rk8) :: cprcon       ! coefficients for determining conversion
                            ! from cloud water to rain
-  real(dp) :: ctrigger     ! coefficients for triggering convection
+  real(rk8) :: ctrigger     ! coefficients for triggering convection
 
-  integer :: iconv
-  integer :: nmctop    !  max. level for cloud base of mid level conv.
+  integer(ik4) :: iconv
+  integer(ik4) :: nmctop    !  max. level for cloud base of mid level conv.
   logical :: lmfpen    !  true if penetrative convection is switched on
   logical :: lmfscv    !  true if shallow convection is switched on
   logical :: lmfmid    !  true if midlevel convection is switched on
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
 
-  integer , pointer , dimension(:,:) :: ilab
-  integer , pointer , dimension(:) :: ktype
+  integer(ik4) , pointer , dimension(:,:) :: ilab
+  integer(ik4) , pointer , dimension(:) :: ktype
 
   logical , pointer , dimension(:) :: ldland
 
-  real(dp) :: ztmx
-  real(dp) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
+  real(rk8) :: ztmx
+  real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
 
-  real(dp) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
+  real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude
 
-  real(dp) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
+  real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx
 
-  real(dp) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
+  real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , xpg
-  integer , pointer , dimension(:) :: kctop , kcbot
+  integer(ik4) , pointer , dimension(:) :: kctop , kcbot
 
-  real(dp) , public , pointer , dimension(:,:,:) :: q_detr
+  real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
 
-  integer :: nipoi
+  integer(ik4) :: nipoi
 
   contains
 !
@@ -138,13 +139,13 @@ module mod_cu_tiedtke
   subroutine tiedtkedrv(ktau)
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 
 !   local variables
-    integer :: i , j , k , ii , kclth
-    real(dp) :: akclth
+    integer(ik4) :: i , j , k , ii , kclth
+    real(rk8) :: akclth
     character (len=64) :: subroutine_name='tiedtkedrv'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
     !
     call time_begin(subroutine_name,idindx)
 
@@ -348,34 +349,34 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
-  integer , dimension(kbdim,klev) :: ilab
-  integer , dimension(kbdim) :: ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim,klev) :: ilab
+  integer(ik4) , dimension(kbdim) :: ktype
   logical , dimension(kbdim) :: ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
          pxim1 , pxite , pxlm1 , pxlte , pxtec , zlude
-  real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prsfc ,    &
+  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prsfc ,    &
                                 pssfc , ptopmax
-  integer , dimension(kbdim) , intent(out) :: kctop , kcbot
-  real(dp) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
+  integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
   intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , pxite ,   &
               pxlm1 , pxlte , pxtm1
   intent(out) :: zlude
   intent (inout) ptopmax
 !
-  integer , dimension(kbdim) :: itopec2
-  integer :: ilevmin , it , jk , jl , jt
+  integer(ik4) , dimension(kbdim) :: itopec2
+  integer(ik4) :: ilevmin , it , jk , jl , jt
   logical , dimension(kbdim) :: locum
-  real(dp) , dimension(kbdim,klev) :: zlu , zmfd , zmfu ,    &
+  real(rk8) , dimension(kbdim,klev) :: zlu , zmfd , zmfu ,    &
          zqp1 , zqsat , zqu , zqude , ztp1 , ztu , ztvp1 , zup1 ,   &
          zvp1 , zxp1
-  real(dp) , dimension(kbdim) :: zrain , ztopmax
-  real(dp) :: zxip1 , zxlp1
-  real(dp) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
+  real(rk8) , dimension(kbdim) :: zrain , ztopmax
+  real(rk8) :: zxip1 , zxlp1
+  real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
   character (len=64) :: subroutine_name='cucall'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -578,40 +579,40 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
-  integer , dimension(kbdim,klev) :: ilab
-  integer , dimension(kbdim) :: kcbot , kctop , ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim,klev) :: ilab
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
                                 prsfc , pssfc
-  real(dp) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+  real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
          pxen , pxtec
-  real(dp) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
   intent (in) pqhfla
   intent (inout) ktype , ldcum , pmfd
 !
-  integer , dimension(kbdim) :: ictop0 , idtop , ihmin , ilwmin
-  integer :: ikb , it , it1 , itopm2 , jk , jl , jt
+  integer(ik4) , dimension(kbdim) :: ictop0 , idtop , ihmin , ilwmin
+  integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
   logical :: llo1 , lo
   logical , dimension(kbdim) :: loddraf
-  real(dp) :: zalvdcp , zalvs , zb , zbi , zcons2 , zcor , zdepth ,  &
+  real(rk8) :: zalvdcp , zalvs , zb , zbi , zcons2 , zcor , zdepth ,  &
              zdhdz , zdqmin , zdqsdt , zdz , zeps , zes , zfac ,    &
              zgam , zhhat , zhsat , zmfmax , zpbmpt , zqalv ,       &
              zqsat , zqst1 , zqumqe , zrh , zro , ztau , zzz
-  real(dp) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
+  real(rk8) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                 zhcbase , zheat , zhmin , zmfub ,   &
                                 zmfub1 , zrfl , zsfl
-  real(dp) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+  real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
          zdmfup , zdpmel , zgeoh , zhhatt , zmfdq , zmfds , zmful , &
          zmfuq , zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , &
          zuu , zvd , zvu , zxenh
-  real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+  real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
   character (len=64) :: subroutine_name='cumastr'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -1079,40 +1080,40 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
-  integer , dimension(kbdim,klev) :: ilab
-  integer , dimension(kbdim) :: kcbot , kctop , ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim,klev) :: ilab
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
                                 prsfc , pssfc
-  real(dp) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+  real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
          pxen , pxtec
-  real(dp) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
   intent (in) pqhfla
   intent (inout) ktype , ldcum , pmfd
 !
-  integer , dimension(kbdim) :: ictop0 , idtop , ilwmin
-  integer :: ikb , it , it1 , itopm2 , jk , jl , jt
+  integer(ik4) , dimension(kbdim) :: ictop0 , idtop , ilwmin
+  integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
   logical :: llo1 , lo
   logical , dimension(kbdim) :: loddraf
-  real(dp) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
+  real(rk8) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
              zdz , zeps , zes , zfac , zgam , zhhat , zhsat ,       &
              zmfmax , zpbmpt , zqalv , zqsat , zqst1 , zqumqe ,     &
              zro , ztau , zzz
-  real(dp) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
+  real(rk8) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                 zhcbase , zheat , zmfub , zmfub1 ,  &
                                 zrfl , zsfl
-  real(dp) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+  real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
          zdmfup , zdpmel , zgeoh , zmfdq , zmfds , zmful , zmfuq ,  &
          zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , zuu ,   &
          zvd , zvu , zxenh
-  real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+  real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
   character (len=64) :: subroutine_name='cumastrh'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
   !
   call time_begin(subroutine_name,idindx)
 !
@@ -1524,38 +1525,38 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
-  integer , dimension(kbdim,klev) :: ilab
-  integer , dimension(kbdim) :: kcbot , kctop , ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim,klev) :: ilab
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
                                 prsfc , pssfc
-  real(dp) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+  real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
          pxen , pxtec
-  real(dp) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
   intent (in) pqhfla
   intent (inout) ktype , ldcum , pmfd
 !
-  integer , dimension(kbdim) :: ictop0 , idtop , ilwmin
-  integer :: ikb , it , it1 , itopm2 , jk , jl , jt
+  integer(ik4) , dimension(kbdim) :: ictop0 , idtop , ilwmin
+  integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
   logical :: llo1 , lo
   logical , dimension(kbdim) :: loddraf
-  real(dp) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
+  real(rk8) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
              zeps , zes , zfac , zgam , zhhat , zhsat , zmfmax ,    &
              zpbmpt , zqalv , zqsat , zqst1 , zqumqe , zzz
-  real(dp) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+  real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
          zdmfup , zdpmel , zgeoh , zmfdq , zmfds , zmful , zmfuq ,  &
          zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , zuu ,   &
          zvd , zvu , zxenh
-  real(dp) , dimension(kbdim) :: zdqcv , zdqpbl , zentr , zhcbase ,  &
+  real(rk8) , dimension(kbdim) :: zdqcv , zdqpbl , zentr , zhcbase ,  &
                                 zmfub , zmfub1 , zrfl , zsfl
-  real(dp) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+  real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
   character (len=64) :: subroutine_name='cumastrt'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -1867,17 +1868,17 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , kproma , ktrac , klevm1 , klevp1
-  integer , dimension(kbdim,klev) :: klab
-  integer , dimension(kbdim) :: klwmin
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfdp ,       &
+  integer(ik4) , intent(in) :: kbdim , klev , kproma , ktrac , klevm1 , klevp1
+  integer(ik4) , dimension(kbdim,klev) :: klab
+  integer(ik4) , dimension(kbdim) :: klwmin
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfdp ,       &
          pdmfup , pdpmel , pgeo , pgeoh , plu , plude , pmfd ,      &
          pmfdq , pmfds , pmfu , pmfuq , pmfus , pqd , pqen , pqenh ,&
          pqsen , pqsenh , pqu , pqude , ptd , pten , ptenh , ptu ,  &
          ptven , pud , puen , puu , pvd , pven , pverv , pvu ,      &
          pxen , pxenh
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtd , &
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtd , &
          pxten , pxtenh , pxtu
   intent (in) paphp1 , pgeo , pqen , pqsen , pten , ptven , puen , &
               pven , pverv , pxen , pxten
@@ -1888,12 +1889,12 @@ module mod_cu_tiedtke
   intent (inout) pcpcu , pcpen , pgeoh , pqenh , pqsenh , ptenh ,   &
                  pxtenh
 !
-  integer :: icall , ik , jk , jl , jt
+  integer(ik4) :: icall , ik , jk , jl , jt
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zarg , zcpm , zzs
-  real(dp) , dimension(kbdim) :: zph , zwmax
+  real(rk8) :: zarg , zcpm , zzs
+  real(rk8) , dimension(kbdim) :: zph , zwmax
   character (len=64) :: subroutine_name='cumini'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -2080,20 +2081,20 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac , &
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac , &
              klevm1
-  integer , dimension(kbdim) :: kcbot , kctop , kctop0 , khmin ,    &
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , kctop0 , khmin ,    &
                                 klwmin , ktype
-  integer , dimension(kbdim,klev) :: klab
+  integer(ik4) , dimension(kbdim,klev) :: klab
   logical , dimension(kbdim) :: ldcum , ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
          pgeoh , phhatt , plu , plude , pmfu , pmful , pmfuq ,      &
          pmfus , pqen , pqenh , pqsen , pqsenh , pqte , pqu ,       &
          pqude , pten , ptenh , ptu , puen , puu , pven , pverv ,   &
          pvu
-  real(dp) , dimension(kbdim) :: pentr , phcbase , pmfub
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
+  real(rk8) , dimension(kbdim) :: pentr , phcbase , pmfub
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
          pxtu
   intent (in) ldland , pcpcu , phcbase , phhatt , pqsenh , pxtenh
   intent (inout) kcbot , kctop , kctop0 , klab , ktype , ldcum ,    &
@@ -2101,20 +2102,20 @@ module mod_cu_tiedtke
                  pmfus , pmfuxt , pqu , pqude , ptu , puu , pvu ,   &
                  pxtu
 !
-  integer :: icall , ik , ikb , ikt , jk , jl , jt
+  integer(ik4) :: icall , ik , ikb , ikt , jk , jl , jt
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zalvs , zbuo , zbuoyz , zcons2 , zdmfdu ,      &
+  real(rk8) :: zalvs , zbuo , zbuoyz , zcons2 , zdmfdu ,      &
              zdmfeu , zdnoprc , zdprho , zdrodz , zdt , zdz , zfac ,&
              zga , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,     &
              zmfusk , zmfuxtk , zmse , znevn , zodmax , zprcon ,    &
              zqcod , zqeen , zqude , zscde , zscod , zseen ,        &
              ztglace , zxteen , zxtude , zz , zzdmf
-  real(dp) , dimension(kbdim) :: zbuoy , zdmfde , zdmfen , zmfuu ,   &
+  real(rk8) , dimension(kbdim) :: zbuoy , zdmfde , zdmfen , zmfuu ,   &
                                 zmfuv , zpbase , zph , zqold
-  real(dp) , dimension(kbdim,klev) :: zodetr , zoentr
+  real(rk8) , dimension(kbdim,klev) :: zodetr , zoentr
 !
   character (len=64) :: subroutine_name='cuasc'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !----------------------------------------------------------------------
@@ -2588,18 +2589,18 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
-  integer , dimension(kbdim) :: kcbot , kctop , kctop0 , klwmin ,   &
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , kctop0 , klwmin ,   &
                                 ktype
-  integer , dimension(kbdim,klev) :: klab
+  integer(ik4) , dimension(kbdim,klev) :: klab
   logical , dimension(kbdim) :: ldcum , ldland
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
          pgeoh , plu , plude , pmfu , pmful , pmfuq , pmfus , pqen ,&
          pqenh , pqsen , pqte , pqu , pqude , pten , ptenh , ptu ,  &
          puen , puu , pven , pverv , pvu
-  real(dp) , dimension(kbdim) :: pentr , pmfub
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
+  real(rk8) , dimension(kbdim) :: pentr , pmfub
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
          pxtu
   intent (in) ldland , pcpcu , pxtenh
   intent (out) pqude
@@ -2607,16 +2608,16 @@ module mod_cu_tiedtke
                  plude , pmfu , pmfub , pmful , pmfuq , pmfus ,     &
                  pmfuxt , pqu , ptu , puu , pvu , pxtu
 !
-  integer :: icall , ik , jk , jl , jt
+  integer(ik4) :: icall , ik , jk , jl , jt
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zbuo , zcons2 , zdmfdu , zdmfeu , zdnoprc ,    &
+  real(rk8) :: zbuo , zcons2 , zdmfdu , zdmfeu , zdnoprc ,    &
              zfac , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,    &
              zmfusk , zmfuxtk , zprcon , zqeen , zqude , zscde ,    &
              zseen , ztglace , zxteen , zxtude , zz , zzdmf
-  real(dp) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
+  real(rk8) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
                                 zpbase , zph , zqold
   character (len=64) :: subroutine_name='cuasct'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -2960,24 +2961,24 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma
-  integer , dimension(kbdim) :: kcbot
-  integer , dimension(kbdim,klev) :: klab
+  integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma
+  integer(ik4) , dimension(kbdim) :: kcbot
+  integer(ik4) , dimension(kbdim,klev) :: klab
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klevp1) :: paph
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pgeoh , plu , pqenh ,  &
+  real(rk8) , dimension(kbdim,klevp1) :: paph
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pgeoh , plu , pqenh ,  &
          pqu , ptenh , ptu , puen , puu , pven , pvu
   intent (in) paph , pcpcu , pgeoh , pqenh , ptenh , puen , pven
   intent (inout) kcbot , klab , ldcum , plu , pqu , ptu , puu , pvu
 !
 ! Local variables
 !
-  integer :: icall , ik , ikb , is , jk , jl
+  integer(ik4) :: icall , ik , ikb , is , jk , jl
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zbuo , zz
-  real(dp) , dimension(kbdim) :: zph , zqold
+  real(rk8) :: zbuo , zz
+  real(rk8) , dimension(kbdim) :: zph , zqold
   character (len=64) :: subroutine_name='cubase'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3102,26 +3103,26 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , kk , klev , kproma , ktrac
-  integer , dimension(kbdim) :: kcbot , ktype
-  integer , dimension(kbdim,klev) :: klab
+  integer(ik4) , intent(in) :: kbdim , kk , klev , kproma , ktrac
+  integer(ik4) , dimension(kbdim) :: kcbot , ktype
+  integer(ik4) , dimension(kbdim,klev) :: klab
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klev) :: pcpen , pdmfup , pgeo , pgeoh ,&
+  real(rk8) , dimension(kbdim,klev) :: pcpen , pdmfup , pgeo , pgeoh ,&
          plu , pmfu , pmful , pmfuq , pmfus , pqen , pqsen , pqu ,  &
          pten , ptu , puen , puu , pven , pverv , pvu
-  real(dp) , dimension(kbdim) :: pentr , pmfub , pmfuu , pmfuv
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtu
+  real(rk8) , dimension(kbdim) :: pentr , pmfub , pmfuu , pmfuv
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtu
   intent (in) ldcum , pcpen , pgeo , pgeoh , pqen , pqsen , pten , &
               puen , pven , pverv , pxten
   intent (out) kcbot , ktype , pdmfup , pentr , plu , pmfu , pmful ,&
                pmfuq , pmfus , pmfuu , pmfuv , pmfuxt
   intent (inout) klab , pmfub , pqu , ptu , puu , pvu , pxtu
 !
-  integer :: jl , jt
+  integer(ik4) :: jl , jt
   logical , dimension(kbdim) :: llo3
-  real(dp) :: zzzmb
+  real(rk8) :: zzzmb
   character (len=64) :: subroutine_name='cubasmc'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3209,29 +3210,29 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
   logical , dimension(kbdim) :: lddraf
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
          pmfdq , pmfds , pqd , pqenh , ptd , ptenh , pud , puen ,   &
          pvd , pven
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh
-  real(dp) , dimension(kbdim) :: prfl
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh
+  real(rk8) , dimension(kbdim) :: prfl
   intent (in) lddraf , paphp1 , pcpcu , pgeoh , pqenh , ptenh , &
               puen , pven , pxtenh
   intent (out) pdmfdp
   intent (inout) pmfd , pmfdq , pmfds , pmfdxt , pqd , prfl , ptd , &
                  pud , pvd , pxtd
 !
-  integer :: icall , ik , is , itopde , jk , jl , jt
+  integer(ik4) :: icall , ik , is , itopde , jk , jl , jt
   logical :: llo1
   logical , dimension(kbdim) :: llo2
-  real(dp) :: zbuo , zdmfdp , zentr , zmfdqk , zmfdsk , zmfduk ,     &
+  real(rk8) :: zbuo , zdmfdp , zentr , zmfdqk , zmfdsk , zmfduk ,     &
              zmfdvk , zmfdxtk , zqdde , zqeen , zsdde , zseen ,     &
              zxtdde , zxteen
-  real(dp) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
+  real(rk8) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
   character (len=64) :: subroutine_name='cuddraf'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3381,29 +3382,29 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
-  integer , dimension(kbdim) :: kcbot , kctop , kdtop
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , kdtop
   logical , dimension(kbdim) :: ldcum , lddraf
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
          pmfdq , pmfds , pqd , pqenh , pqu , ptd , ptenh , ptu ,    &
          pud , puen , puu , pvd , pven , pvu
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh , &
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh , &
          pxtu
-  real(dp) , dimension(kbdim) :: pmfub , prfl
+  real(rk8) , dimension(kbdim) :: pmfub , prfl
   intent (in) kcbot , kctop , ldcum , paphp1 , pcpcu , pgeoh , &
               pmfub , pqenh , pqu , ptenh , ptu , puen , puu , &
               pven , pvu , pxtenh , pxtu
   intent (out) kdtop , pmfdq , pmfds , pmfdxt , pud , pvd
   intent (inout) lddraf , pdmfdp , pmfd , pqd , prfl , ptd , pxtd
 !
-  integer :: icall , ik , is , jk , jl , jt , ke
+  integer(ik4) :: icall , ik , is , jk , jl , jt , ke
   logical , dimension(kbdim) :: llo2 , llo3
-  real(dp) :: zbuo , zmftop , zqtest , zttest
-  real(dp) , dimension(kbdim) :: zcond , zph
-  real(dp) , dimension(kbdim,klev) :: zqenwb , ztenwb
+  real(rk8) :: zbuo , zmftop , zqtest , zttest
+  real(rk8) , dimension(kbdim) :: zcond , zph
+  real(rk8) , dimension(kbdim,klev) :: zqenwb , ztenwb
   character (len=64) :: subroutine_name='cudlf'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3533,27 +3534,27 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2 , ktrac
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2 , ktrac
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: paprc , paprs , prfl , prsfc ,      &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: paprc , paprs , prfl , prsfc ,      &
                                 psfl , pssfc
-  real(dp) , dimension(kbdim,klev) :: pcpen , pdmfdp , pdmfup ,      &
+  real(rk8) , dimension(kbdim,klev) :: pcpen , pdmfdp , pdmfup ,      &
          pdpmel , plude , pmfdq , pmfds , pmful , pmfuq , pmfus ,   &
          pqte , pqtec , pqude , pten , ptte , pxtec
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtte
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtte
   intent (in) ldcum , paphp1 , pcpen , pdmfdp , pdmfup , pdpmel ,   &
               plude , pmfdq , pmfds , pmfdxt , pmful , pmfuq ,      &
               pmfus , pmfuxt , pqude , prfl , psfl , pten
   intent (out) pqtec , prsfc , pssfc , pxtec
   intent (inout) paprc , paprs , pqte , ptte , pxtte
 !
-  integer :: jk , jl , jt
+  integer(ik4) :: jk , jl , jt
   logical :: llo1
-  real(dp) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
-  real(dp) , dimension(kbdim) :: zmelt , zsheat
+  real(rk8) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
+  real(rk8) , dimension(kbdim) :: zmelt , zsheat
   character (len=64) :: subroutine_name='cudtdq'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3678,21 +3679,21 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2
-  integer , dimension(kbdim) :: kcbot , ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2
+  integer(ik4) , dimension(kbdim) :: kcbot , ktype
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pmfd , pmfu , pud , puen ,     &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pmfd , pmfu , pud , puen ,     &
          puu , pvd , pven , pvol , pvom , pvu
   intent (in) kcbot , ktype , ldcum , paphp1 , pmfd , pmfu , pud , &
               puen , puu , pvd , pven , pvu
   intent (inout) pvol , pvom
 !
-  integer :: ik , ikb , jk , jl
-  real(dp) :: zdudt , zdvdt , zzp
-  real(dp) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
+  integer(ik4) :: ik , ikb , jk , jl
+  real(rk8) :: zdudt , zdvdt , zzp
+  real(rk8) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
   character (len=64) :: subroutine_name='cududv'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3811,13 +3812,13 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , kk , klev , klevp1 , kproma
-  integer , dimension(kbdim) :: kcbot , kctop0 , khmin , klwmin ,   &
+  integer(ik4) , intent(in) :: kbdim , kk , klev , klevp1 , kproma
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop0 , khmin , klwmin ,   &
                                 ktype
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
-  real(dp) , dimension(kbdim,klev) :: pgeoh , pmfu , podetr , pqenh ,&
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
+  real(rk8) , dimension(kbdim,klev) :: pgeoh , pmfu , podetr , pqenh ,&
          pqte , ptenh
   intent (in) kcbot , kctop0 , khmin , klwmin , ktype , ldcum , &
               paphp1 , pentr , pgeoh , pqenh , pqte , ptenh
@@ -3826,12 +3827,12 @@ module mod_cu_tiedtke
 !
 ! Local variables
 !
-  integer :: ikb , ikh , iklwmin , ikt , jl
+  integer(ik4) :: ikb , ikh , iklwmin , ikt , jl
   logical :: llo1 , llo2
-  real(dp) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
+  real(rk8) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
              zrrho , ztmzk , zzmzk
   character (len=64) :: subroutine_name='cuentr'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -3994,22 +3995,22 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , kk , klev , klevp1 , kproma
-  integer , dimension(kbdim) :: kcbot , kctop0 , klwmin , ktype
+  integer(ik4) , intent(in) :: kbdim , kk , klev , klevp1 , kproma
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop0 , klwmin , ktype
   logical , dimension(kbdim) :: ldcum
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
-  real(dp) , dimension(kbdim,klev) :: pmfu , pqenh , pqte , ptenh
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
+  real(rk8) , dimension(kbdim,klev) :: pmfu , pqenh , pqte , ptenh
   intent (in) kcbot , kctop0 , klwmin , ktype , ldcum , paphp1 , &
               pentr , pqenh , pqte , ptenh
   intent (out) pdmfde , pdmfen
   intent (inout) pmfu , ppbase
 !
-  integer :: iklwmin , jl
+  integer(ik4) :: iklwmin , jl
   logical :: llo1 , llo2
-  real(dp) :: zdprho , zentest , zentr , zpmid , zrrho
+  real(rk8) :: zdprho , zentest , zentr , zpmid , zrrho
   character (len=64) :: subroutine_name='cuentrt'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -4077,16 +4078,16 @@ module mod_cu_tiedtke
 !
   implicit none
 !
-  integer , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
-  integer , intent(inout):: ktopm2
-  integer , dimension(kbdim) :: kcbot , kctop , kdtop , ktype
+  integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
+  integer(ik4) , intent(inout):: ktopm2
+  integer(ik4) , dimension(kbdim) :: kcbot , kctop , kdtop , ktype
   logical , dimension(kbdim) :: ldcum , lddraf
-  real(dp) , dimension(kbdim,klevp1) :: paphp1
-  real(dp) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pdmfup ,      &
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pdmfup ,      &
          pdpmel , pgeoh , pmfd , pmfdq , pmfds , pmfu , pmful ,     &
          pmfuq , pmfus , pqen , pqenh , pqsen , pten , ptenh
-  real(dp) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtenh
-  real(dp) , dimension(kbdim) :: prain , prfl , psfl
+  real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtenh
+  real(rk8) , dimension(kbdim) :: prain , prfl , psfl
   intent (in) kcbot , kctop , kdtop , ldcum , paphp1 , pcpcu , pgeoh , &
               pqen , pqenh , pqsen , pten , ptenh , pxtenh
   intent (out) pdpmel
@@ -4094,13 +4095,13 @@ module mod_cu_tiedtke
                  pmfds , pmfdxt , pmfu , pmful , pmfuq , pmfus ,   &
                  pmfuxt , prain , prfl , psfl
 !
-  integer :: ikb , jk , jl , jt
-  real(dp) :: zcons1 , zcons2 , zcucov , zdpevap , zdrfl , zfac ,    &
+  integer(ik4) :: ikb , jk , jl , jt
+  real(rk8) :: zcons1 , zcons2 , zcucov , zdpevap , zdrfl , zfac ,    &
              zrfl , zrfln , zrmin , zrnew , zrsum , zsnmlt ,        &
              ztmelp2 , zzp
-  real(dp) , dimension(kbdim) :: zpsubcl
+  real(rk8) , dimension(kbdim) :: zpsubcl
   character (len=64) :: subroutine_name='cuflx'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 !
@@ -4286,23 +4287,23 @@ module mod_cu_tiedtke
   integer, intent (in) :: kcall, kk, klev, kproma, kbdim
 
   !  array arguments with intent(in):
-  real(dp), intent (in) :: pp(kbdim)
+  real(rk8), intent (in) :: pp(kbdim)
   logical, intent (in) :: ldflag(kbdim)
 
   !  array arguments with intent(inout):
-  real(dp), intent (inout) :: pq(kbdim,klev), pt(kbdim,klev)
+  real(rk8), intent (inout) :: pq(kbdim,klev), pt(kbdim,klev)
 
   !  local scalars: 
-  real(dp):: zcond1, zqst1, zdqsdt, zqsat, zes, zcor, zlcdqsdt
-  integer :: isum, jl, it, it1
+  real(rk8):: zcond1, zqst1, zdqsdt, zqsat, zes, zcor, zlcdqsdt
+  integer(ik4) :: isum, jl, it, it1
   logical :: lo
 
   !  local arrays: 
-  real(dp):: zcond(kbdim)
+  real(rk8):: zcond(kbdim)
 
   !  Executable statements 
   character (len=64) :: subroutine_name='cuadjtq'
-  integer :: idindx=0
+  integer(ik4) :: idindx=0
 
   call time_begin(subroutine_name,idindx)
 

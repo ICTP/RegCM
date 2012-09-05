@@ -21,7 +21,8 @@ module mod_che_emission
   !
   ! Chemical and aerosol surface emission 
   !
-  use netcdf
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_mpmessage
   use mod_mppparam
@@ -33,6 +34,7 @@ module mod_che_emission
   use mod_che_dust
   use mod_che_ncio
   use mod_che_indices
+  use netcdf
   !
   private
   !
@@ -44,11 +46,11 @@ contains
   !
   subroutine chem_emission(lyear,lmonth,lday,lhour)
     implicit none
-    integer , intent(in) :: lyear , lmonth , lday , lhour
+    integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
     !
-    integer , save :: currmonth
+    integer(ik4) , save :: currmonth
     character (len=64) :: subroutine_name = 'chem_emission'
-    integer :: idindx = 0
+    integer(ik4) :: idindx = 0
     !
     call time_begin(subroutine_name,idindx)
     !
@@ -83,16 +85,16 @@ contains
   subroutine emis_tend(ktau,j,lmonth,declin)
     implicit none
 
-    integer , intent(in) :: j , lmonth
-    integer(8) , intent(in) :: ktau
+    integer(ik4) , intent(in) :: j , lmonth
+    integer(ik8) , intent(in) :: ktau
 
-    real(dp) , intent(in) ::declin 
+    real(rk8) , intent(in) ::declin 
     integer  :: i , itr
 
 #if (defined VOC && defined CLM)
     integer  :: jglob, iglob  ! Full grid i- j-component
 #endif
-    real(dp) :: daylen , fact , maxelev , amp
+    real(rk8) :: daylen , fact , maxelev , amp
 
     ! calculate the tendency linked to emissions from emission fluxes
     ! In the future split these calculations in corresponding module  ??

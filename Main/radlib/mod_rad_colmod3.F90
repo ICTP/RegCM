@@ -19,6 +19,7 @@
 !
 module mod_rad_colmod3
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_service
@@ -35,43 +36,43 @@ module mod_rad_colmod3
 !
 ! Allowed range for cloud fraction
 !
-  real(dp) , parameter :: lowcld = 0.00001D0
-  real(dp) , parameter :: hicld  = 0.99999D0
+  real(rk8) , parameter :: lowcld = 0.00001D0
+  real(rk8) , parameter :: hicld  = 0.99999D0
 !
 !   longwave absorption coeff (m**2/g)
 !
-  real(dp) , parameter :: kabsl = 0.090361D0
-  real(dp) , parameter :: nearone  = 0.99D+00
+  real(rk8) , parameter :: kabsl = 0.090361D0
+  real(rk8) , parameter :: nearone  = 0.99D+00
 !
-  real(dp) , pointer , dimension(:) :: alb , albc , &
+  real(rk8) , pointer , dimension(:) :: alb , albc , &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
     sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci , xptrop , &
     dlat , czen
-  real(dp) , pointer , dimension(:) :: aeradfo , aeradfos
-  real(dp) , pointer , dimension(:) :: aerlwfo , aerlwfos
-  real(dp) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
-  real(dp) , pointer , dimension(:) :: asw , alw
-  real(dp) , pointer , dimension(:) :: abv , sol
-  real(dp) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
-  real(dp) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
+  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
+  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
+  real(rk8) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
+  real(rk8) , pointer , dimension(:) :: asw , alw
+  real(rk8) , pointer , dimension(:) :: abv , sol
+  real(rk8) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
+  real(rk8) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
     o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
     deltaz , tm1 , rh1
-  real(dp) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-  real(dp) , pointer , dimension(:,:,:) :: aermmr
-  real(dp) , pointer , dimension(:,:,:) :: absgasnxt
-  real(dp) , pointer , dimension(:,:,:) :: absgastot
-  real(dp) , pointer , dimension(:,:) :: emsgastot
+  real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
+  real(rk8) , pointer , dimension(:,:,:) :: aermmr
+  real(rk8) , pointer , dimension(:,:,:) :: absgasnxt
+  real(rk8) , pointer , dimension(:,:,:) :: absgastot
+  real(rk8) , pointer , dimension(:,:) :: emsgastot
   logical , pointer , dimension(:) :: czengt0
-  integer , pointer , dimension(:) :: ioro
+  integer(ik4) , pointer , dimension(:) :: ioro
 !
-  integer :: npr
+  integer(ik4) :: npr
 
   contains
 !
     subroutine allocate_mod_rad_colmod3(ichem)
       implicit none
-      integer , intent(in) :: ichem
+      integer(ik4) , intent(in) :: ichem
       npr = (jci2-jci1+1)*(ici2-ici1+1)
       call getmem1d(alb,1,npr,'colmod3:alb')
       call getmem1d(albc,1,npr,'colmod3:albc')
@@ -226,13 +227,13 @@ module mod_rad_colmod3
 !
     implicit none
 !
-    integer , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
-    real(dp) , intent(in) :: eccf
+    real(rk8) , intent(in) :: eccf
 !
-    integer :: i , j , k , n , m , k2 , jj0 , jj1 , jj2
+    integer(ik4) :: i , j , k , n , m , k2 , jj0 , jj1 , jj2
     character (len=64) :: subroutine_name='colmod3'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -475,21 +476,21 @@ module mod_rad_colmod3
   subroutine cldefr
     implicit none
 !
-    integer :: n , k
-    real(dp) :: pnrml , rliq , weight
+    integer(ik4) :: n , k
+    real(rk8) :: pnrml , rliq , weight
     ! reimax - maximum ice effective radius
-    real(dp) , parameter :: reimax = 30.0D0
+    real(rk8) , parameter :: reimax = 30.0D0
     ! rirnge - range of ice radii (reimax - 10 microns)
-    real(dp) , parameter :: rirnge = 20.0D0
+    real(rk8) , parameter :: rirnge = 20.0D0
     ! pirnge - nrmlzd pres range for ice particle changes
-    real(dp) , parameter :: pirnge = 0.4D0
+    real(rk8) , parameter :: pirnge = 0.4D0
     ! picemn - normalized pressure below which rei=reimax
-    real(dp) , parameter :: picemn = 0.4D0
+    real(rk8) , parameter :: picemn = 0.4D0
     ! Temperatures in K (263.16 , 243.16)
-    real(dp) , parameter :: minus10 = wattp-d_10
-    real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
+    real(rk8) , parameter :: minus10 = wattp-d_10
+    real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
     character (len=64) :: subroutine_name='cldefr'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     call time_begin(subroutine_name,indx)
 !
@@ -547,10 +548,10 @@ module mod_rad_colmod3
 !
   subroutine cldems
     implicit none
-    integer :: n , k
-    real(dp) :: kabs , kabsi
+    integer(ik4) :: n , k
+    real(rk8) :: kabs , kabsi
     character (len=64) :: subroutine_name='cldems'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
     do k = 1 , kz
       do n = 1 , npr
@@ -575,14 +576,14 @@ module mod_rad_colmod3
   subroutine getdat
     implicit none
 !
-    integer :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
-    real(dp) :: clwtem
-    real(dp) , parameter :: amd = 28.9644D0
-    real(dp) , parameter :: amo = 48.0000D0
-    real(dp) , parameter :: vmmr = amo/amd
+    integer(ik4) :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
+    real(rk8) :: clwtem
+    real(rk8) , parameter :: amd = 28.9644D0
+    real(rk8) , parameter :: amo = 48.0000D0
+    real(rk8) , parameter :: vmmr = amo/amd
     logical , save :: ifirst
     character (len=64) :: subroutine_name='getdat'
-    integer :: indx = 0
+    integer(ik4) :: indx = 0
 !
     data ifirst /.true./
 !

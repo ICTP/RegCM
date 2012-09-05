@@ -21,6 +21,8 @@
 
 module mod_mtrxclm
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv
   use mod_mpmessage
@@ -77,7 +79,7 @@ module mod_mtrxclm
     use clm_comp , only : clm_run1 , clm_run2
 !
     implicit none
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 
     call interfclm(1,ktau)
     call rcmdrv()
@@ -148,13 +150,13 @@ module mod_mtrxclm
 !
     logical , intent(in)                   :: ifrest
     type(rcm_time_and_date) , intent(in)   :: idate1 , idate2
-    real(8) , intent(in)                   :: dtrad , dtsrf , dx
-    integer , intent(in), optional         :: igases
-    integer , intent(in), optional         :: iaeros
+    real(rk8) , intent(in)                 :: dtrad , dtsrf , dx
+    integer(ik4) , intent(in), optional         :: igases
+    integer(ik4) , intent(in), optional         :: iaeros
     character(len=6), intent(in), optional :: ctracers(*) 
 !
-    integer :: i , j , ig , jg , n , mpierr
-    integer :: year , month , day , hour
+    integer(ik4) :: i , j , ig , jg , n , mpierr
+    integer(ik4) :: year , month , day , hour
     !
     ! Initialize run control variables for clm
     !
@@ -443,8 +445,8 @@ module mod_mtrxclm
   subroutine albedoclm(imon)
     use clm_varsur , only : landfrac
     implicit none
-    integer , intent(in) :: imon
-    integer :: i , j , ig , jg
+    integer(ik4) , intent(in) :: imon
+    integer(ik4) :: i , j , ig , jg
 !
     call albedobats(imon)
 !
@@ -493,13 +495,13 @@ module mod_mtrxclm
     ! ivers = 1 : regcm -> clm
     ! ivers = 2 : clm -> regcm
     !
-    integer , intent(in) :: ivers
-    integer(8) , intent(in) :: ktau
+    integer(ik4) , intent(in) :: ivers
+    integer(ik8) , intent(in) :: ktau
 !
-    real(8) :: mmpd , wpm2
-    integer :: i , j , ic , jc , ib , jg , ig , kk , n , icpu , nnn , nout
-    integer :: idep, iddep
-    real(4) :: real_4
+    real(rk8) :: mmpd , wpm2
+    integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n , icpu , nnn , nout
+    integer(ik4) :: idep, iddep
+    real(rk4) :: real_4
 !
     if ( ivers == 1 ) then
 
@@ -994,8 +996,8 @@ module mod_mtrxclm
 !
   subroutine fill_frame2d(a,b)
     implicit none
-    real(dp) , pointer , intent(in) , dimension(:,:) :: a
-    real(dp) , pointer , intent(out) , dimension(:,:) :: b
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
@@ -1032,8 +1034,8 @@ module mod_mtrxclm
 
   subroutine fill_frame3d(a,b)
     implicit none
-    real(dp) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(dp) , pointer , intent(out) , dimension(:,:) :: b
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
@@ -1070,9 +1072,9 @@ module mod_mtrxclm
 
   subroutine fill_frame4d(a,b,l)
     implicit none
-    real(dp) , pointer , intent(in) , dimension(:,:,:,:) :: a
-    real(dp) , pointer , intent(out) , dimension(:,:) :: b
-    integer , intent(in) :: l
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    integer(ik4) , intent(in) :: l
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz,l)
@@ -1110,14 +1112,14 @@ module mod_mtrxclm
   subroutine solar_clm(idatex,calday,declin,xyear)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idatex
-    integer , intent(in)  :: xyear
-    real(dp) , intent(out) :: calday , declin
-    real(dp) :: decdeg
-    real(dp) :: mvelp , obliq
-    integer :: iyear_ad
+    integer(ik4) , intent(in)  :: xyear
+    real(rk8) , intent(out) :: calday , declin
+    real(rk8) :: decdeg
+    real(rk8) :: mvelp , obliq
+    integer(ik4) :: iyear_ad
     logical :: log_print
     character (len=64) :: subroutine_name='solar_clm'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
@@ -1147,12 +1149,12 @@ module mod_mtrxclm
 
   subroutine zenit_clm(coszrs)
     implicit none
-    real(dp) , pointer , intent(out), dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent(out), dimension(:,:) :: coszrs
 !
-    integer :: i , j
-    real(dp) :: cldy , declinp1 , xxlon
-    real(dp) :: xxlat
-    integer :: idindx=0
+    integer(ik4) :: i , j
+    real(rk8) :: cldy , declinp1 , xxlon
+    real(rk8) :: xxlat
+    integer(ik4) :: idindx=0
     character (len=64) :: subroutine_name='zenitm_clm'
 !
     call time_begin(subroutine_name,idindx)

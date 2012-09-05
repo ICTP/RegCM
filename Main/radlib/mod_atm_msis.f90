@@ -19,17 +19,18 @@
 
 module physics_msis
 
+  use mod_intkinds
+  use mod_realkinds
   use mod_constants
   use mod_spline
-  use mod_realkinds
 
   private
 
   character(4) , public , dimension(2) :: chname , istime
   character(4) , public , dimension(3) :: isdate
-  real(dp) , public , dimension(25) :: sav
-  integer , public :: imr = 0
-  real(dp) , public :: tlb , s , db04 , db16 , db28 , db32 , db40 , &
+  real(rk8) , public , dimension(25) :: sav
+  integer(ik4) , public :: imr = 0
+  real(rk8) , public :: tlb , s , db04 , db16 , db28 , db32 , db40 , &
               db48 , db01 , za , t0 , z0 , xg0 , rl , dd , db14 , tr12
 
   public :: gtd7d
@@ -37,23 +38,23 @@ module physics_msis
   public :: gtd7 , gts7 , ghp7
   public :: tselec , tretrv
 
-  integer :: isw
-  real(dp) , dimension(25) :: sw , swc
-  real(dp) :: dm01 , dm04 , dm14 , dm16 , dm28 , dm32 , dm40
-  real(dp) , dimension(10,8) :: pdm
-  real(dp) , dimension(10) :: ptm
-  real(dp) :: apd , apdf , c2tloc , c3tloc , ctloc , day , df , dfa ,   &
+  integer(ik4) :: isw
+  real(rk8) , dimension(25) :: sw , swc
+  real(rk8) :: dm01 , dm04 , dm14 , dm16 , dm28 , dm32 , dm40
+  real(rk8) , dimension(10,8) :: pdm
+  real(rk8) , dimension(10) :: ptm
+  real(rk8) :: apd , apdf , c2tloc , c3tloc , ctloc , day , df , dfa ,   &
               s2tloc , s3tloc , stloc
-  real(dp) , dimension(10) :: pavgm
-  real(dp) , dimension(4) :: apt
-  real(dp) , dimension(2) :: tgn1 , tgn2 , tgn3
-  real(dp) , dimension(5) :: tn1 , tn3
-  real(dp) , dimension(4) :: tn2
-  integer :: iyr
-  real(dp) , dimension(9,4) :: plg
+  real(rk8) , dimension(10) :: pavgm
+  real(rk8) , dimension(4) :: apt
+  real(rk8) , dimension(2) :: tgn1 , tgn2 , tgn3
+  real(rk8) , dimension(5) :: tn1 , tn3
+  real(rk8) , dimension(4) :: tn2
+  integer(ik4) :: iyr
+  real(rk8) , dimension(9,4) :: plg
 
-  real(dp) , dimension(150) , target :: pt      ! pt1 , pt2 , pt3
-  real(dp) , dimension(150,9) , target :: pd    ! pa1 , pa2 , pa3
+  real(rk8) , dimension(150) , target :: pt      ! pt1 , pt2 , pt3
+  real(rk8) , dimension(150,9) , target :: pd    ! pa1 , pa2 , pa3
                                                 ! pb1 , pb2 , pb3
                                                 ! pc1 , pc2 , pc3
                                                 ! pd1 , pd2 , pd3
@@ -62,13 +63,13 @@ module physics_msis
                                                 ! pg1 , pg2 , pg3
                                                 ! ph1 , ph2 , ph3
                                                 ! pi1 , pi2 , pi3
-  real(dp) , dimension(150) , target :: ps      ! pj1 , pj2 , pj3
-  real(dp) , dimension(25,2) , target :: pdl    ! pk1
-  real(dp) , dimension(100,4) , target :: ptl   ! pl1 , pl2
+  real(rk8) , dimension(150) , target :: ps      ! pj1 , pj2 , pj3
+  real(rk8) , dimension(25,2) , target :: pdl    ! pk1
+  real(rk8) , dimension(100,4) , target :: ptl   ! pl1 , pl2
                                                 ! pm1 , pm2
                                                 ! pn1 , pn2
                                                 ! po1 , po2
-  real(dp) , dimension(100,10) , target :: pma  ! pp1 , pp2
+  real(rk8) , dimension(100,10) , target :: pma  ! pp1 , pp2
                                                 ! pq1 , pq2
                                                 ! pr1 , pr2
                                                 ! ps1 , ps2
@@ -78,25 +79,25 @@ module physics_msis
                                                 ! px1 , px2
                                                 ! py1 , py2
                                                 ! pz1 , pz2
-  real(dp) , dimension(100) , target :: sam     ! paa1 , paa2
+  real(rk8) , dimension(100) , target :: sam     ! paa1 , paa2
 
-  real(dp) :: gsurf , re
-  real(dp) :: gb , rout , tinf
-  real(dp) , dimension(15) :: t
+  real(rk8) :: gsurf , re
+  real(rk8) :: gb , rout , tinf
+  real(rk8) , dimension(15) :: t
   ! Gas constant in J/K/mol
-  real(dp) , parameter :: rgasmol = boltzk*navgdr
-  real(dp) , parameter :: r100gas = rgasmol*d_100
-  real(dp) , parameter :: nearzero = 0.000001D0
-  real(dp) , parameter :: dr = 1.72142D-2
-  integer , parameter :: mn1 = 5
-  integer , parameter :: mn2 = 4
-  integer , parameter :: mn3 = 5
-  real(dp) , dimension(mn1) :: zn1
-  real(dp) , dimension(mn2) :: zn2
-  real(dp) , dimension(mn3) :: zn3
-  integer , dimension(11) :: mt
-  real(dp) , dimension(9) :: alph
-  real(dp) , dimension(8) :: altl
+  real(rk8) , parameter :: rgasmol = boltzk*navgdr
+  real(rk8) , parameter :: r100gas = rgasmol*d_100
+  real(rk8) , parameter :: nearzero = 0.000001D0
+  real(rk8) , parameter :: dr = 1.72142D-2
+  integer(ik4) , parameter :: mn1 = 5
+  integer(ik4) , parameter :: mn2 = 4
+  integer(ik4) , parameter :: mn3 = 5
+  real(rk8) , dimension(mn1) :: zn1
+  real(rk8) , dimension(mn2) :: zn2
+  real(rk8) , dimension(mn3) :: zn3
+  integer(ik4) , dimension(11) :: mt
+  real(rk8) , dimension(9) :: alph
+  real(rk8) , dimension(8) :: altl
 
   ! MSISE-00 01-FEB-02
   data isdate/'01-F' , 'EB-0' , '2   '/
@@ -1069,15 +1070,15 @@ module physics_msis
 !
 !   Chemistry/dissociation correction for msis models
 !
-    real(dp) function ccor(alt,r,h1,zh)
+    real(rk8) function ccor(alt,r,h1,zh)
       implicit none
       ! alt - Altitude
       ! r   - Target ratio
       ! h1  - Transition scale length
       ! zh  - Altitude of 1/2 r
-      real(dp) , intent(in) :: alt , h1 , r , zh
-      real(dp) , parameter :: echeck = 70.0D0
-      real(dp) :: e , ex
+      real(rk8) , intent(in) :: alt , h1 , r , zh
+      real(rk8) , parameter :: echeck = 70.0D0
+      real(rk8) :: e , ex
       e = (alt-zh)/h1
       if ( e > echeck ) then
         ccor = d_zero
@@ -1092,15 +1093,15 @@ module physics_msis
 !
 !   O&O2 Chemistry/dissociation correction for msis models
 !
-    real(dp) function ccor2(alt,r,h1,zh,h2)
+    real(rk8) function ccor2(alt,r,h1,zh,h2)
       implicit none
       ! alt - Altitude
       ! r   - Target ratio
       ! h1  - Transition scale length
       ! zh  - Altitude of 1/2 r
-      real(dp) , intent(in) :: alt , h1 , h2 , r , zh
-      real(dp) :: e1 , e2 , ex1 , ex2
-      real(dp) , parameter :: echeck = 70.0D0
+      real(rk8) , intent(in) :: alt , h1 , h2 , r , zh
+      real(rk8) :: e1 , e2 , ex1 , ex2
+      real(rk8) , parameter :: echeck = 70.0D0
 !
       e1 = (alt-zh)/h1
       e2 = (alt-zh)/h2
@@ -1118,16 +1119,16 @@ module physics_msis
 !
 ! Calculate Temperature and Density Profiles for lower atmos.
 !
-    real(dp) function densm(alt,d0,xm,tz)
+    real(rk8) function densm(alt,d0,xm,tz)
       implicit none
 !
-      real(dp) , intent(in) :: alt , d0 , xm
-      real(dp) , intent(out) :: tz
+      real(rk8) , intent(in) :: alt , d0 , xm
+      real(rk8) , intent(out) :: tz
 !
-      real(dp) :: expl , gamm , glb , t1 , t2 , x , y , yd1 , &
+      real(rk8) :: expl , gamm , glb , t1 , t2 , x , y , yd1 , &
                  yd2 , yi , z , z1 , z2 , zg , zgdif
-      integer :: k , mn
-      real(dp) , dimension(10) :: xs , y2out , ys
+      integer(ik4) :: k , mn
+      real(rk8) , dimension(10) :: xs , y2out , ys
 
       densm = d0
       if ( alt <= zn2(1) ) then
@@ -1202,9 +1203,9 @@ module physics_msis
       end if
       if ( dabs(xm) < nearzero ) densm = tz
       contains
-        real(dp) function zeta(zz,zl)
+        real(rk8) function zeta(zz,zl)
           implicit none
-          real(dp) , intent(in) :: zz , zl
+          real(rk8) , intent(in) :: zz , zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
     end function densm
@@ -1212,17 +1213,17 @@ module physics_msis
 !   Calculate Temperature and Density Profiles for MSIS models
 !   New lower thermo polynomial 10/30/89
 !
-    real(dp) function densu(alt,dlb,t1,t2,xm,xalph,tz,zlb,s2)
+    real(rk8) function densu(alt,dlb,t1,t2,xm,xalph,tz,zlb,s2)
       implicit none
 !
-      real(dp) , intent(in) :: xalph , alt , t1 , t2 , dlb , s2 , xm , zlb
-      real(dp) , intent(out) :: tz
+      real(rk8) , intent(in) :: xalph , alt , t1 , t2 , dlb , s2 , xm , zlb
+      real(rk8) , intent(out) :: tz
 !
-      real(dp) :: densa , dta , expl , gamm , gammo , glb , &
+      real(rk8) :: densa , dta , expl , gamm , gammo , glb , &
                  tt1 , tt2 , ta , tt , x , y , yd1 , yd2 , yi , z ,   &
                  z1 , z2 , za , zg , zg2 , zgdif
-      integer :: k , mn
-      real(dp) , dimension(5) :: xs , y2out , ys
+      integer(ik4) :: k , mn
+      real(rk8) , dimension(5) :: xs , y2out , ys
 !
       densu = d_one
 !     Joining altitude of Bates and spline
@@ -1288,16 +1289,16 @@ module physics_msis
         end if
       end if
       contains
-        real(dp) function zeta(zz,zl)
+        real(rk8) function zeta(zz,zl)
           implicit none
-          real(dp) , intent(in) :: zz , zl
+          real(rk8) , intent(in) :: zz , zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
     end function densu
 !
 !   Turbopause correction for msis models
 !
-    real(dp) function dnet(dd,dm,zhm,xmm,xm)
+    real(rk8) function dnet(dd,dm,zhm,xmm,xm)
       implicit none
 !
 !     DD - diffusive density
@@ -1307,10 +1308,10 @@ module physics_msis
 !     XM  - species molecular weight
 !     DNET - combined density
 !
-      real(dp) , intent(in) :: dm , xm , xmm , zhm
-      real(dp) , intent(inout) :: dd
+      real(rk8) , intent(in) :: dm , xm , xmm , zhm
+      real(rk8) , intent(inout) :: dd
 !
-      real(dp) :: a , ylog
+      real(rk8) :: a , ylog
 !
       a = zhm/(xmm-xm)
       if ( dm <= d_zero .or. dd <= d_zero ) then
@@ -1344,9 +1345,9 @@ module physics_msis
     subroutine tselec(sv)
       implicit none
 !
-      real(dp) , dimension(25) , intent(in) :: sv
+      real(rk8) , dimension(25) , intent(in) :: sv
 !
-      integer :: i
+      integer(ik4) :: i
 
       do i = 1 , 25
         sav(i) = sv(i)
@@ -1364,8 +1365,8 @@ module physics_msis
 !
     subroutine tretrv(svv)
       implicit none
-      real(dp) , dimension(25) , intent(out) :: svv
-      integer :: i
+      real(rk8) , dimension(25) , intent(out) :: svv
+      integer(ik4) :: i
       do i = 1 , 25
         svv(i) = sav(i)
       end do
@@ -1375,29 +1376,29 @@ module physics_msis
 !
     subroutine glatf(lat)
       implicit none
-      real(dp) , intent(in) :: lat
-      real(dp)  :: c2
+      real(rk8) , intent(in) :: lat
+      real(rk8)  :: c2
       c2 = dcos(d_two*degrad*lat)
       gsurf = egrav*100.0D0*(d_one-0.0026373D0*c2)
       re = d_two*gsurf/(3.085462D-6+2.27D-9*c2)*1.D-5
     end subroutine glatf
 !
-    real(dp) function glob7s(glong,p)
+    real(rk8) function glob7s(glong,p)
       implicit none
 !
-      real(dp) , intent(in) :: glong
-      real(dp) , dimension(:) , intent(out) :: p
+      real(rk8) , intent(in) :: glong
+      real(rk8) , dimension(:) , intent(out) :: p
 !
-      real(dp) :: t82 , tt , t71 , t72 , t81
-      integer :: i
-      real(dp) , dimension(14) :: t
+      real(rk8) :: t82 , tt , t71 , t72 , t81
+      integer(ik4) :: i
+      real(rk8) , dimension(14) :: t
 !
 !     VERSION OF GLOBE FOR LOWER ATMOSPHERE 10/26/99
 !
-      real(dp) , parameter :: pset = d_two
-      real(dp) , save :: dayl
-      real(dp) , save :: p32 , p18 , p14 , p39
-      real(dp) , save :: cd14 , cd18 , cd32 , cd39
+      real(rk8) , parameter :: pset = d_two
+      real(rk8) , save :: dayl
+      real(rk8) , save :: p32 , p18 , p14 , p39
+      real(rk8) , save :: cd14 , cd18 , cd32 , cd39
       data dayl /-1.0D0/
       data p32  /-1000.0D0/
       data p18  /-1000.0D0/
@@ -1520,20 +1521,20 @@ module physics_msis
     subroutine ghp7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,d,t,press)
       implicit none
 !
-      real(dp) , intent(in) :: f107 , f107a , glat , glong , press , sec , stl
-      real(dp) , intent(out) :: alt
-      integer , intent(in) :: iyd
-      real(dp) , intent(in) , dimension(7) :: ap
-      real(dp) , intent(inout) , dimension(9) :: d
-      real(dp) , intent(inout) , dimension(2) :: t
+      real(rk8) , intent(in) :: f107 , f107a , glat , glong , press , sec , stl
+      real(rk8) , intent(out) :: alt
+      integer(ik4) , intent(in) :: iyd
+      real(rk8) , intent(in) , dimension(7) :: ap
+      real(rk8) , intent(inout) , dimension(9) :: d
+      real(rk8) , intent(inout) , dimension(2) :: t
 !
-      real(dp) :: ca , cd , cl , cl2 , diff , g , p , pl , sh , &
+      real(rk8) :: ca , cd , cl , cl2 , diff , g , p , pl , sh , &
                  xm , xn , z , zi
-      integer :: iday , l
+      integer(ik4) :: iday , l
 
-      real(dp) , parameter :: bm = 1.3806D-19
-      real(dp) , parameter :: test = 0.00043D0
-      integer , parameter :: ltest = 12
+      real(rk8) , parameter :: bm = 1.3806D-19
+      real(rk8) , parameter :: test = 0.00043D0
+      integer(ik4) , parameter :: ltest = 12
 !
       pl = dlog10(press)
 !
@@ -1587,33 +1588,33 @@ module physics_msis
       end do
     end subroutine ghp7
 !
-    real(dp) function globe7(yrd,sec,lat,long,tloc,f107a,f107,ap,p)
+    real(rk8) function globe7(yrd,sec,lat,long,tloc,f107a,f107,ap,p)
       implicit none
 !
-      real(dp) , intent(in) :: f107 , f107a , lat , long , sec , tloc , yrd
-      real(dp) , dimension(:) , intent(in) :: ap
-      real(dp) , intent(out) , dimension(:) :: p
+      real(rk8) , intent(in) :: f107 , f107a , lat , long , sec , tloc , yrd
+      real(rk8) , dimension(:) , intent(in) :: ap
+      real(rk8) , intent(out) , dimension(:) :: p
 !
-      real(dp) :: c , c2 , c4 , exp1 , f1 , f2 , p44 , p45 , s , s2 ,    &
+      real(rk8) :: c , c2 , c4 , exp1 , f1 , f2 , p44 , p45 , s , s2 ,    &
                   t71 , t72 , t81 , t82 , tix
-      integer :: i
-      real(dp) , save , dimension(25) :: sv = d_one
+      integer(ik4) :: i
+      real(rk8) , save , dimension(25) :: sv = d_one
 !
 !     CALCULATE G(L) FUNCTION
 !
 !     Upper Thermosphere Parameters
-      integer , parameter :: nsw = 14
-      real(dp) , parameter :: hr = 0.2618D0
-      real(dp) , parameter :: sr = 7.2722D-5
-      real(dp) , save :: xl  = 1000.0D0
-      real(dp) , save :: tll = 1000.0D0
-      real(dp) , save :: sw9 = 1.0D0
-      real(dp) , save :: dayl = -1.0D0
-      real(dp) , save :: p14 = -1000.0D0
-      real(dp) , save :: p18 = -1000.0D0
-      real(dp) , save :: p32 = -1000.0D0
-      real(dp) , save :: p39 = -1000.0D0
-      real(dp) , save :: cd14 , cd18 , cd32 , cd39
+      integer(ik4) , parameter :: nsw = 14
+      real(rk8) , parameter :: hr = 0.2618D0
+      real(rk8) , parameter :: sr = 7.2722D-5
+      real(rk8) , save :: xl  = 1000.0D0
+      real(rk8) , save :: tll = 1000.0D0
+      real(rk8) , save :: sw9 = 1.0D0
+      real(rk8) , save :: dayl = -1.0D0
+      real(rk8) , save :: p14 = -1000.0D0
+      real(rk8) , save :: p18 = -1000.0D0
+      real(rk8) , save :: p32 = -1000.0D0
+      real(rk8) , save :: p39 = -1000.0D0
+      real(rk8) , save :: cd14 , cd18 , cd32 , cd39
 
       if ( isw /= 64999 ) call tselec(sv)
 !
@@ -1807,22 +1808,22 @@ module physics_msis
 
 !     3hr Magnetic activity functions
 !     Eq. A24d
-      real(dp) function g0(a)
+      real(rk8) function g0(a)
         implicit none
-        real(dp) , intent(in) :: a
+        real(rk8) , intent(in) :: a
         g0 = (a-d_four+(p(26)-d_one)*(a-d_four + &
              (dexp(-dabs(p(25))*(a-d_four))-d_one)/dabs(p(25))))
       end function g0
 !     Eq. A24c
-      real(dp) function sumex(ex)
+      real(rk8) function sumex(ex)
         implicit none
-        real(dp) , intent(in) :: ex
+        real(rk8) , intent(in) :: ex
         sumex = d_one + (d_one-ex**19.0D0)/(d_one-ex)*ex**(d_half)
       end function sumex
 !     Eq. A24a
-      real(dp) function sg0(ex)
+      real(rk8) function sg0(ex)
         implicit none
-        real(dp) , intent(in) :: ex
+        real(rk8) , intent(in) :: ex
         sg0 = (g0(ap(2))+(g0(ap(3))*ex+g0(ap(4))*ex*ex + &
                g0(ap(5))*ex**3.0D0+(g0(ap(6))*ex**d_four +    &
                g0(ap(7))*ex**12.0D0)*(d_one-ex**8.0D0)/(d_one-ex)))/sumex(ex)
@@ -1832,11 +1833,11 @@ module physics_msis
     subroutine gtd7d(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(dp) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer :: iyd , mass
-      real(dp) , intent(in) , dimension(7) :: ap
-      real(dp) , intent(inout) , dimension(2) :: t
-      real(dp) , intent(inout) , dimension(9) :: d
+      real(rk8) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
+      integer(ik4) :: iyd , mass
+      real(rk8) , intent(in) , dimension(7) :: ap
+      real(rk8) , intent(inout) , dimension(2) :: t
+      real(rk8) , intent(inout) , dimension(9) :: d
 !
 !     NRLMSISE-00
 !     -----------
@@ -1911,21 +1912,21 @@ module physics_msis
     subroutine gtd7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(dp) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer , intent(in) :: iyd , mass
-      real(dp) , intent(in) , dimension(7) :: ap
-      real(dp) , intent(out) , dimension(9) :: d
-      real(dp) , intent(out) , dimension(2) :: t
+      real(rk8) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
+      integer(ik4) , intent(in) :: iyd , mass
+      real(rk8) , intent(in) , dimension(7) :: ap
+      real(rk8) , intent(out) , dimension(9) :: d
+      real(rk8) , intent(out) , dimension(2) :: t
 !
-      real(dp) :: altt , dmc , dmr , dm28m , dz28 , tz , v1 , xlat , xmm
-      real(dp) , dimension(9) :: ds
-      integer :: j , mss
-      real(dp) , dimension(2) :: ts
+      real(rk8) :: altt , dmc , dmr , dm28m , dz28 , tz , v1 , xlat , xmm
+      real(rk8) , dimension(9) :: ds
+      integer(ik4) :: j , mss
+      real(rk8) , dimension(2) :: ts
 !
-      real(dp) , dimension(25) , save :: sv
-      integer , save :: mssl
-      real(dp) , save :: alast
-      real(dp) , parameter :: zmix = 62.5D0
+      real(rk8) , dimension(25) , save :: sv
+      integer(ik4) , save :: mssl
+      real(rk8) , save :: alast
+      real(rk8) , parameter :: zmix = 62.5D0
 !
       data alast /99999.0D0/
       data mssl /-999/
@@ -2185,13 +2186,13 @@ module physics_msis
     subroutine gts7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(dp) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer , intent(in) :: iyd , mass
-      real(dp) , intent(in) , dimension(:) :: ap
-      real(dp) , intent(inout) , dimension(9) :: d
-      real(dp) , intent(inout) , dimension(2) :: t
+      real(rk8) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
+      integer(ik4) , intent(in) :: iyd , mass
+      real(rk8) , intent(in) , dimension(:) :: ap
+      real(rk8) , intent(inout) , dimension(9) :: d
+      real(rk8) , intent(inout) , dimension(2) :: t
 !
-      real(dp) :: b01 , b04 , b14 , b16 , b28 , b32 , b40 ,     &
+      real(rk8) :: b01 , b04 , b14 , b16 , b28 , b32 , b40 ,     &
               day , db16h , ddum , g1 , g14 , g16 , g16h , g28 ,        &
               g32 , g4 , g40 , hc01 , hc04 , hc14 , hc16 , hc216 ,      &
               hc32 , hc40 , hcc01 , hcc14 , hcc16 , hcc232 , hcc32 ,    &
@@ -2200,8 +2201,8 @@ module physics_msis
               zc40 , zcc01 , zcc14 , zcc16 , zcc32 , zh01 , zh04 ,      &
               zh14 , zh16 , zh28 , zh32 , zh40 , zhf , zhm01 , zhm04 ,  &
               zhm14 , zhm16 , zhm28 , zhm32 , zhm40 , zmho , zsho , zsht
-      integer :: i , j
-      real(dp) , save :: alast
+      integer(ik4) :: i , j
+      real(rk8) , save :: alast
 !
 !     Thermospheric portion of NRLMSISE-00
 !     See GTD7 for more extensive comments
@@ -2626,27 +2627,27 @@ module physics_msis
       !
       !   Calculate scale height (km)
       !
-      real(dp) function scalh(alt,xm,temp)
+      real(rk8) function scalh(alt,xm,temp)
         implicit none
-        real(dp) , intent(in) :: alt , temp , xm
-        real(dp) :: g
+        real(rk8) , intent(in) :: alt , temp , xm
+        real(rk8) :: g
         g = gsurf/(d_one+alt/re)**d_two
         scalh = r100gas*temp/(g*xm)
       end function scalh
     end subroutine gts7
 !
-    real(dp) function vtst7(iyd,sec,glat,glong,stl,f107a,f107,ap,ic)
+    real(rk8) function vtst7(iyd,sec,glat,glong,stl,f107a,f107,ap,ic)
       implicit none
 !
-      real(dp) , intent(in) :: f107 , f107a , glat , glong , sec , stl
-      integer , intent(in) :: ic , iyd
-      real(dp) , intent(in) , dimension(7) :: ap
+      real(rk8) , intent(in) :: f107 , f107a , glat , glong , sec , stl
+      integer(ik4) , intent(in) :: ic , iyd
+      real(rk8) , intent(in) , dimension(7) :: ap
 !
-      real(dp) , dimension(7,2) , save :: apl
-      real(dp) , dimension(2) , save :: fal , fl , glatl , gll , secl , stll
-      integer , dimension(2) , save :: iydl
-      real(dp) , dimension(25,2) , save :: swcl , swl
-      integer :: i
+      real(rk8) , dimension(7,2) , save :: apl
+      real(rk8) , dimension(2) , save :: fal , fl , glatl , gll , secl , stll
+      integer(ik4) , dimension(2) , save :: iydl
+      real(rk8) , dimension(25,2) , save :: swcl , swl
+      integer(ik4) :: i
       logical :: ldc
 !
 !     Test if geophysical variables or switches changed and save

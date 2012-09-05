@@ -19,6 +19,7 @@
 
 module mod_cbmz_chemlocal
 !
+  use mod_intkinds
   use mod_realkinds
   use mod_cbmz_chemmech
 !
@@ -59,9 +60,9 @@ module mod_cbmz_chemlocal
 !
 ! xclastq : OPTION, xc after last aquasolve,  used in next aquasolve
 ! 
-  real(dp) ::  xc( c_kvec,c_cdim) ! concentration molec/cm3
-  real(dp) ::  xcfinr( c_kvec,c_cdim) ! ratio FINAL/AVG cncn
-  real(dp) ::  xclastq( c_kvec,c_cdim) ! conc molec/cm3
+  real(rk8) ::  xc( c_kvec,c_cdim) ! concentration molec/cm3
+  real(rk8) ::  xcfinr( c_kvec,c_cdim) ! ratio FINAL/AVG cncn
+  real(rk8) ::  xclastq( c_kvec,c_cdim) ! conc molec/cm3
 
 ! CHEMICAL REACTION RATES
 !     (see also rate parameters in chemmech.EXT
@@ -84,13 +85,13 @@ module mod_cbmz_chemlocal
 ! 2009 addition
 ! ratero2(kk,nr,2) = rate constants for parameterized RO2-RO2: 1 self 2 cross R
 !
-  real(dp) :: ratek(c_kvec,c_rdim)     ! Rate constants
-  real(dp) :: rateh(c_kvec,c_rdim)     ! Henry's law constants
-  real(dp) :: rateq(c_kvec,c_rdim)     ! Aqueous equil. constants
-  real(dp) :: rateqq(c_kvec,c_rdim)    ! Special equil. constants
-  real(dp) :: rhdif(c_kvec,c_rdim)     ! H. modified by diffusion
-  real(dp) :: egasaq(c_kvec,c_rdim)    ! Gas-to-aq transfer s-1
-  real(dp) :: ratero2(c_kvec,c_rdim,2) ! Rate constants for RO2-RO2
+  real(rk8) :: ratek(c_kvec,c_rdim)     ! Rate constants
+  real(rk8) :: rateh(c_kvec,c_rdim)     ! Henry's law constants
+  real(rk8) :: rateq(c_kvec,c_rdim)     ! Aqueous equil. constants
+  real(rk8) :: rateqq(c_kvec,c_rdim)    ! Special equil. constants
+  real(rk8) :: rhdif(c_kvec,c_rdim)     ! H. modified by diffusion
+  real(rk8) :: egasaq(c_kvec,c_rdim)    ! Gas-to-aq transfer s-1
+  real(rk8) :: ratero2(c_kvec,c_rdim,2) ! Rate constants for RO2-RO2
 
 ! LOCAL CHEMICAL SOLVER VARIABLES:  
 ! PRODUCTION AND LOSS RATES AND INTERIM CONCENTRATIONS
@@ -152,31 +153,31 @@ module mod_cbmz_chemlocal
 !       (used in chemsolve only, not nec. in common)
 !
 ! 
-  real(dp) :: cpm(c_kvec,c_cdim,c_cdim)   ! Cross-prod for multi
-  real(dp) :: cpro(c_kvec,c_cdim,c_cdim)  ! Cross-production 
+  real(rk8) :: cpm(c_kvec,c_cdim,c_cdim)   ! Cross-prod for multi
+  real(rk8) :: cpro(c_kvec,c_cdim,c_cdim)  ! Cross-production 
 ! 
-  real(dp) :: history(c_kvec,c_cdim,400)  ! Cncn for each iter
-  real(dp) :: geomavg(c_kvec,c_cdim)      ! Geom. avg factor
+  real(rk8) :: history(c_kvec,c_cdim,400)  ! Cncn for each iter
+  real(rk8) :: geomavg(c_kvec,c_cdim)      ! Geom. avg factor
 !
-  real(dp) :: rlm(c_kvec,c_cdim)          ! Loss for multi-spec 
-  real(dp) :: rlmulti(c_kvec)             ! Loss group sum for multi
-  real(dp) :: rloss(c_kvec,c_cdim)        ! Solver loss rate
-  real(dp) :: rloss1(c_kvec,c_cdim)       ! Interim rloss w/out cpro
-  real(dp) :: rlpair(c_kvec,c_cdim)       ! Loss rate for pair grp
-  real(dp) :: rpm(c_kvec,c_cdim)          ! Production rate for multi
-  real(dp) :: rpmulti(c_kvec)             ! Product'n multi group sum
-  real(dp) :: rppair(c_kvec,c_cdim)       ! Production for pair grp
-  real(dp) :: rpro(c_kvec,c_cdim)         ! Solver production rate
-  real(dp) :: rpro1(c_kvec,c_cdim)        ! Interim rpro w/out cpro 
-  real(dp) :: rrp(c_kvec,c_cdim)          ! Interim production rate 
-  real(dp) :: rrl(c_kvec,c_cdim)          ! Interim loss rate 
+  real(rk8) :: rlm(c_kvec,c_cdim)          ! Loss for multi-spec 
+  real(rk8) :: rlmulti(c_kvec)             ! Loss group sum for multi
+  real(rk8) :: rloss(c_kvec,c_cdim)        ! Solver loss rate
+  real(rk8) :: rloss1(c_kvec,c_cdim)       ! Interim rloss w/out cpro
+  real(rk8) :: rlpair(c_kvec,c_cdim)       ! Loss rate for pair grp
+  real(rk8) :: rpm(c_kvec,c_cdim)          ! Production rate for multi
+  real(rk8) :: rpmulti(c_kvec)             ! Product'n multi group sum
+  real(rk8) :: rppair(c_kvec,c_cdim)       ! Production for pair grp
+  real(rk8) :: rpro(c_kvec,c_cdim)         ! Solver production rate
+  real(rk8) :: rpro1(c_kvec,c_cdim)        ! Interim rpro w/out cpro 
+  real(rk8) :: rrp(c_kvec,c_cdim)          ! Interim production rate 
+  real(rk8) :: rrl(c_kvec,c_cdim)          ! Interim loss rate 
 ! 
-  real(dp) :: xrm(c_kvec,c_cdim)          ! Initial conc. for multi
-  real(dp) :: xrp(c_kvec,c_cdim)          ! Solver prior concentration
-  real(dp) :: xrppair(c_kvec)             ! Solver prior pair group cn.
-  real(dp) :: xrr(c_kvec,c_cdim)          ! Solver concentration
-  real(dp) :: xrrm(c_kvec,c_cdim)         ! Initial solution for multi
-  real(dp) :: xrrpair(c_kvec)             ! Solution for pair group sum
+  real(rk8) :: xrm(c_kvec,c_cdim)          ! Initial conc. for multi
+  real(rk8) :: xrp(c_kvec,c_cdim)          ! Solver prior concentration
+  real(rk8) :: xrppair(c_kvec)             ! Solver prior pair group cn.
+  real(rk8) :: xrr(c_kvec,c_cdim)          ! Solver concentration
+  real(rk8) :: xrrm(c_kvec,c_cdim)         ! Initial solution for multi
+  real(rk8) :: xrrpair(c_kvec)             ! Solution for pair group sum
 
 ! OPTION - iteration counter is in common for output, may cut from common.
 !          -> moved to chemvars as c_iter
@@ -229,23 +230,23 @@ module mod_cbmz_chemlocal
 ! xohtest          Convergence test ratio for OH (nonvectorized)
 !                     =(OHp-OH)/OHp
 
-!  real(dp) :: foh(c_kvec)        ! OH/HO2.  not common
+!  real(rk8) :: foh(c_kvec)        ! OH/HO2.  not common
 
-  real(dp) :: oddhdel(c_kvec,2)  ! Summed Hx sens to Oh, mol/cm3
-  real(dp) :: oddhloh(c_kvec,2)  ! Hx loss from OH,  mol/cm3
-  real(dp) :: oddhlho2(c_kvec,2) ! Hx loss from HO2,  mol/cm3
-  real(dp) :: oddhsrc(c_kvec,2)  ! Summed P Hx, mol/cm3
-  real(dp) :: oddhsum(c_kvec,2)  ! Summed net P/L Hx, mol/cm3
-  real(dp) :: senshx(c_kvec,2)   ! Hx sens: d ln(pHx)/d ln([OH])
-  real(dp) :: senhcat(c_kvec,99) ! Hx sens. by species categ.
+  real(rk8) :: oddhdel(c_kvec,2)  ! Summed Hx sens to Oh, mol/cm3
+  real(rk8) :: oddhloh(c_kvec,2)  ! Hx loss from OH,  mol/cm3
+  real(rk8) :: oddhlho2(c_kvec,2) ! Hx loss from HO2,  mol/cm3
+  real(rk8) :: oddhsrc(c_kvec,2)  ! Summed P Hx, mol/cm3
+  real(rk8) :: oddhsum(c_kvec,2)  ! Summed net P/L Hx, mol/cm3
+  real(rk8) :: senshx(c_kvec,2)   ! Hx sens: d ln(pHx)/d ln([OH])
+  real(rk8) :: senhcat(c_kvec,99) ! Hx sens. by species categ.
 !
-  real(dp) :: sourcnx(c_kvec)    ! Summed NOx source, mol/cm3
-  real(dp) :: sinknx(c_kvec)     ! Summed NOx sink, mol/cm3
+  real(rk8) :: sourcnx(c_kvec)    ! Summed NOx source, mol/cm3
+  real(rk8) :: sinknx(c_kvec)     ! Summed NOx sink, mol/cm3
 
-  real(dp) :: xfohtest           ! OH/HO2 convergence test 
+  real(rk8) :: xfohtest           ! OH/HO2 convergence test 
 
-  real(dp) :: oddhfacp(c_kvec)   ! Factor for OH from prior iteration
-  real(dp) :: oddhsump(c_kvec)   ! Net pro/loss of OH from prior it.
+  real(rk8) :: oddhfacp(c_kvec)   ! Factor for OH from prior iteration
+  real(rk8) :: oddhsump(c_kvec)   ! Net pro/loss of OH from prior it.
 !
 ! SPECIES INDICES AND COUNTERS FOR CHEMISTRY SOLVER. 
 
@@ -280,12 +281,12 @@ module mod_cbmz_chemlocal
 !       (in quadchem, chemsolve, chemread. Must be in common for now.)
 !
 
-!  integer :: nsol           ! Number of pair groups being solved for
-!  integer :: nsolv          ! Number of species being solved for
-  integer :: nsdim          ! Maximum number of pair groups being solved
-  integer :: ncdim          ! Maximum Number of species being solved for
-!  integer :: ncsolv(c_cdim) ! Species number (ic) for species in solver
-!  integer :: nssolv(c_cdim) ! Pair group number (is) for spec. in solver
+!  integer(ik4) :: nsol           ! Number of pair groups being solved for
+!  integer(ik4) :: nsolv          ! Number of species being solved for
+  integer(ik4) :: nsdim          ! Maximum number of pair groups being solved
+  integer(ik4) :: ncdim          ! Maximum Number of species being solved for
+!  integer(ik4) :: ncsolv(c_cdim) ! Species number (ic) for species in solver
+!  integer(ik4) :: nssolv(c_cdim) ! Pair group number (is) for spec. in solver
 
 
 !
@@ -314,40 +315,40 @@ module mod_cbmz_chemlocal
 ! kk                            :          Vectorization counter
 ! kw       :   Index for vector diagnostic output (see c_kkw)
 
-!  real(dp) :: calpha(c_kvec) ! General vector variable
-!  real(dp) :: cbeta(c_kvec)  ! General vector variable
-!  real(dp) :: cgamma(c_kvec) ! General vector variable
-!  real(dp) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
+!  real(rk8) :: calpha(c_kvec) ! General vector variable
+!  real(rk8) :: cbeta(c_kvec)  ! General vector variable
+!  real(rk8) :: cgamma(c_kvec) ! General vector variable
+!  real(rk8) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
 
-!  real(dp) :: stoicx            ! stoichiometry sum
+!  real(rk8) :: stoicx            ! stoichiometry sum
 
 
 !!$!FAB : VERY DANGEROUS HERE, LOCAL COUNTER SHOULD NOT BE DEFINED in GLOBAL MODULE
 !!$
 !!$  ! Chem index
-!!$  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
+!!$  integer(ik4) :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
 !!$  ! Chem local index
-!!$  integer :: is , iss , iscs , isc2
+!!$  integer(ik4) :: is , iss , iscs , isc2
 !!$  ! Chem index
-!!$  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
+!!$  integer(ik4) :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
 !!$  ! chem index - pair and multi
-!!$  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
+!!$  integer(ik4) :: icr1 , icr2 , icr , isr1 , isr2 , icpair
 !!$  ! aquasolve ion counter
-!!$  integer :: ionsum
+!!$  integer(ik4) :: ionsum
 !!$  ! Aquasolve chem index
-!!$  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
+!!$  integer(ik4) :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
 !!$  ! Aqueous counters
-!!$  integer :: neq
+!!$  integer(ik4) :: neq
 !!$  ! Chem species counters
-!!$  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
+!!$  integer(ik4) :: nc , nc1 , nc2 , ncc , ncf , nn , nne
 !!$  ! Reaction counters
-!!$  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
+!!$  integer(ik4) :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
 !!$  ! indices used for species categories
-!!$  integer :: icat1 , icat2 , icatp , icatp2
+!!$  integer(ik4) :: icat1 , icat2 , icatp , icatp2
 !!$  ! Vectorization counters
-!!$  integer :: kk , kw
+!!$  integer(ik4) :: kk , kw
 !!$  ! General counters
-!!$  integer :: i , j , k , ii , ij , iii , n
+!!$  integer(ik4) :: i , j , k , ii , ij , iii , n
 !!$! 
 ! CUT LOCAL VARIABLES  - Local in individual subroutines
 !

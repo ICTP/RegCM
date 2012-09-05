@@ -21,6 +21,8 @@ module mod_cu_em
 !
 ! Kerry Emanuel Convective scheme
 !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_cu_common
@@ -33,16 +35,16 @@ module mod_cu_em
             omtrain , omtsnow , coeffr , coeffs , cu , betae , &
             dtmax , alphae , damp , minorig
 !
-  real(dp) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
+  real(rk8) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
              elcrit , entp , minsig , omtrain , omtsnow , sigd ,    &
              sigs , tlcrit
 !
-  integer :: minorig
-  real(dp) , parameter :: cl = 2500.0D0
-  real(dp) , parameter :: cpvmcl = cl - cpv
-  real(dp) , parameter :: mincbmf = 1.0D-30
+  integer(ik4) :: minorig
+  real(rk8) , parameter :: cl = 2500.0D0
+  real(rk8) , parameter :: cpvmcl = cl - cpv
+  real(rk8) , parameter :: mincbmf = 1.0D-30
 !
-  real(dp) , public , pointer , dimension(:,:) :: cbmf2d
+  real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
 !
   contains
 !
@@ -60,16 +62,16 @@ module mod_cu_em
 ! 
     implicit none
 !
-    integer(8) , intent(in) :: ktau
+    integer(ik8) , intent(in) :: ktau
 !
-    integer , parameter :: ntra = 0
+    integer(ik4) , parameter :: ntra = 0
 !
-    real(dp) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
-    real(dp) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
+    real(rk8) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
+    real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
-    real(dp) , dimension(kz,1) :: ftra , tra
-    integer :: i , j , k , iflag , kbase , kclth , kk , ktop
-    real(dp) , dimension(kzp1) :: phcup
+    real(rk8) , dimension(kz,1) :: ftra , tra
+    integer(ik4) :: i , j , k , iflag , kbase , kclth , kk , ktop
+    real(rk8) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
     do i = ici1 , ici2
@@ -300,17 +302,17 @@ module mod_cu_em
 !
     implicit none
 !
-    real(dp) :: cbmf , precip , qprime , tprime , wd
-    integer :: icb , iflag , inb , na , nd , nl , ntra
-    real(dp) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
+    real(rk8) :: cbmf , precip , qprime , tprime , wd
+    integer(ik4) :: icb , iflag , inb , na , nd , nl , ntra
+    real(rk8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                t , u , v
-    real(dp) , dimension(nd,1) :: ftra , tra
+    real(rk8) , dimension(nd,1) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    inb , precip , q , qprime , qs , t , tra , u , v
 !
-    real(dp) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
+    real(rk8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
                cbmfold , chi , coeff , cpinv , cwat , damps , dbo ,   &
@@ -319,18 +321,18 @@ module mod_cu_em
                elacrit , ents , epmax , fac , fqold , frac , ftold ,  &
                ftraold , fuold , fvold , plcl , qnew , qp1 , qsm ,    &
                qstm , qti , rat , rdcp , revap , rh , rm , scrit , sigt
-    real(dp) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
+    real(rk8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
                                hp , lv , lvcp , m , mp , qp , sigp ,  &
                                th , told , tp , tratm , tv , tvp ,    &
                                up , vp , water , wt
-    real(dp) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
-    integer :: i , ihmin , inb1 , ipbl , j , jc , jn , jtt , k , nk
-    integer , dimension(na) :: nent
-    real(dp) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
+    real(rk8) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
+    integer(ik4) :: i , ihmin , inb1 , ipbl , j , jc , jn , jtt , k , nk
+    integer(ik4) , dimension(na) :: nent
+    real(rk8) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
                thbar , tnew , traav , tvaplcl , tvpplcl , tvx , tvy , &
                uav , um , vav , vm , wdtrain , x
-    real(dp) , dimension(na,na,ntra) :: traent
-    real(dp) , dimension(na,ntra) :: trap
+    real(rk8) , dimension(na,na,ntra) :: traent
+    real(rk8) , dimension(na,ntra) :: trap
 !
 !   specify switches                        
 !
@@ -1121,15 +1123,15 @@ module mod_cu_em
 
     implicit none
 !
-    integer :: icb , kk , nd , nk , nl
-    real(dp) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
+    integer(ik4) :: icb , kk , nd , nk , nl
+    real(rk8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
     intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
     intent (out) tvp
     intent (inout) clw , tpk
 !
-    real(dp) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
+    real(rk8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
                qg , rg , s , tc , tg
-    integer :: i , j , nsb , nst
+    integer(ik4) :: i , j , nsb , nst
 !
 !   calculate certain parcel quantities, including static energy
 !

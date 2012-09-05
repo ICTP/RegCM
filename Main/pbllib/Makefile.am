@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.mod $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libpbl.a
 libpbl_a_SOURCES = mod_pbl_common.f90 mod_pbl_thetal.f90 mod_pbl_uwtcm.F90 \
@@ -38,12 +38,6 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-%.mod: %.f90 %.o
-	@true
-
-%.mod: %.F90 %.o
-	@true
-
 distclean-local:
 	rm -f *.mod
 
@@ -52,7 +46,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_pbl_common.o mod_pbl_common.mod: mod_pbl_common.f90 mod_realkinds.mod mod_constants.mod mod_dynparam.mod mod_memutil.mod mod_runparams.mod
-mod_pbl_holtbl.o mod_pbl_holtbl.mod: mod_pbl_holtbl.F90 mod_dynparam.mod mod_mppparam.mod mod_memutil.mod mod_service.mod mod_mpmessage.mod mod_pbl_common.mod mod_runparams.mod
-mod_pbl_thetal.o mod_pbl_thetal.mod: mod_pbl_thetal.f90 mod_constants.mod mod_realkinds.mod
-mod_pbl_uwtcm.o mod_pbl_uwtcm.mod: mod_pbl_uwtcm.F90 mod_realkinds.mod mod_memutil.mod mod_dynparam.mod mod_constants.mod mod_mpmessage.mod mod_pbl_common.mod mod_pbl_thetal.mod mod_runparams.mod mod_mppparam.mod
+mod_pbl_common.o : mod_pbl_common.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_memutil.o mod_runparams.o
+mod_pbl_holtbl.o : mod_pbl_holtbl.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mppparam.o mod_memutil.o mod_service.o mod_mpmessage.o mod_pbl_common.o mod_runparams.o
+mod_pbl_thetal.o : mod_pbl_thetal.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
+mod_pbl_uwtcm.o : mod_pbl_uwtcm.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o mod_constants.o mod_mpmessage.o mod_pbl_common.o mod_pbl_thetal.o mod_runparams.o mod_mppparam.o

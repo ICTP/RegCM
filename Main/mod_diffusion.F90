@@ -56,17 +56,17 @@ module mod_diffusion
 !
     implicit none
 !
-    integer , intent(in) :: ind
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
-    real(dp) , pointer , dimension(:,:) , intent(in) :: press
-    real(dp) , pointer , dimension(:,:) , intent(in) :: mapf
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ften
+    integer(ik4) , intent(in) :: ind
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: press
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: mapf
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ften
 !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
 !
     character (len=64) :: subroutine_name='diffu_d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 
@@ -181,16 +181,16 @@ module mod_diffusion
 !
     implicit none
 !
-    integer , intent(in) :: kmax
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(dp) , pointer , dimension(:,:,:) , intent(out) :: ften
-    real(dp) , pointer , dimension(:,:) , intent(in) :: press
+    integer(ik4) , intent(in) :: kmax
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ften
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
 !
     character (len=64) :: subroutine_name='diffu_x3d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
@@ -267,16 +267,16 @@ module mod_diffusion
 !
     implicit none
 !
-    integer , intent(in) :: kmax , n4
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: xkc
-    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: ften
-    real(dp) , pointer , dimension(:,:) , intent(in) :: press
+    integer(ik4) , intent(in) :: kmax , n4
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ften
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
-    integer :: i , j , k , n
+    integer(ik4) :: i , j , k , n
 !
     character (len=64) :: subroutine_name='diffu_x4d'
-    integer :: idindx=0
+    integer(ik4) :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
     !
