@@ -31,7 +31,7 @@ module mod_header
 
   integer(ik4) , parameter :: nrite=6
   character (len=24) :: cdata='?'
-  integer(ik4) , dimension(8) :: timearr
+  integer(ik4) :: clock_count , clock_rate , clock_max
   real(rk8) :: start_time
 
   contains
@@ -40,11 +40,9 @@ module mod_header
     implicit none 
     integer(ik4) , intent(in) :: myid
 
-    if ( myid == iocpu )  then 
-      call date_and_time(values=timearr)
-      start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                   timearr(5)*secph+ timearr(6)*secpm + &
-                   dble(timearr(7)) + d_r1000*timearr(8)
+    if ( myid == iocpu ) then 
+      call system_clock(clock_count,clock_rate,clock_max)
+      start_time = dble(clock_count)
       write (nrite,"(/,2x,'This is RegCM trunk')")
       write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
     end if
@@ -95,13 +93,11 @@ module mod_header
 #else
       call fdate(cdata)
 #endif 
-      call date_and_time(values=timearr)
-      finish_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                    timearr(5)*secph+ timearr(6)*secpm + &
-                    dble(timearr(7)) + d_r1000*timearr(8)
+      call system_clock(clock_count,clock_rate,clock_max)
+      finish_time = dble(clock_count)
       write (nrite,*) ': this run stops at  : ', cdata
       write (nrite,*) ': Total elapsed seconds of run : ', &
-                      finish_time - start_time
+                (finish_time - start_time)/dble(clock_rate)
     end if
   end subroutine finaltime
 
