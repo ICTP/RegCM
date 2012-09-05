@@ -27,9 +27,14 @@ module mod_runparams
 
   implicit none
 
-  integer(ik4) , public , parameter :: nqx = 2
+  logical , public :: enable_newmicro = .false.
+
+  integer(ik4) , public :: nqx
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
+  integer(ik4) , public , parameter :: iqr = 3
+  integer(ik4) , public , parameter :: iqi = 4
+  integer(ik4) , public , parameter :: iqs = 5
 
   type(rcm_time_and_date) , save :: idate0 , idate1 , idate2
 

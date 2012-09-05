@@ -447,6 +447,12 @@ module mod_params
 !
 !---------------------------------------------------------------------
 !
+  if ( enable_newmicro ) then
+    nqx = 5
+  else
+    nqx = 2
+  end if
+
 #ifdef CLM
   if ( myid == italk ) then
     if (nsg /= 1 ) then
@@ -775,7 +781,9 @@ module mod_params
   call allocate_mod_clm(ntr,igaschem)
 #endif
 
-  call allocate_mod_cloud_s1
+  if ( enable_newmicro ) then
+    call allocate_mod_cloud_s1
+  end if
   call allocate_mod_rad_common(ichem)
   call allocate_mod_rad_aerosol(ichem)
   call allocate_mod_rad_o3blk
@@ -1001,7 +1009,6 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_cloud_s1(atms)
 #ifdef CLM
   allocate(landmask(jx,iy))
   call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io, &
@@ -1624,6 +1631,10 @@ module mod_params
   end if
   if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call init_mod_pbl_uwtcm
+  end if
+
+  if ( enable_newmicro ) then
+    call init_cloud_s1(atms,aten,q_detr,heatrt)
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &

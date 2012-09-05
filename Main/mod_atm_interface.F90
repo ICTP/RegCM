@@ -151,8 +151,6 @@ module mod_atm_interface
   integer(ik4) , public , parameter :: two_exchange_point = 2
 
 #ifdef DEBUG
-  logical , public :: enable_newmicro = .false.
-  type(grid_nc_var4d) , public :: qqxp
   type(grid_nc_var4d) , public :: nc_4d
   type(grid_nc_var3d) , public :: nc_3d
   type(grid_nc_var2d) , public :: nc_2d

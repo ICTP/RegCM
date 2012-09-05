@@ -617,7 +617,7 @@ module mod_tendency
 #ifdef DEBUG
       if ( enable_newmicro ) then
         call microphys(omega,jci1,jci2,ici1,ici2)
-        call grid_nc_write(qqxp)
+        ! call grid_nc_write(qqxp)
       end if
 #endif
       ! 
