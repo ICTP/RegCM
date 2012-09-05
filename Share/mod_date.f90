@@ -729,9 +729,9 @@ module mod_date
           case (noleap)
             dm = dble(d%day)/dble(mlen(d%month))
         end select
-        d%month = d%month+mod(tmp,12)
+        d%month = d%month+mod(tmp,i8mpy)
         call adjustpm(d%month,d%year,12)
-        tmp = tmp/12
+        tmp = tmp/i8mpy
         d%year = d%year+tmp
         ! Adjust date of the month: This is really a trick...
         select case (z%calendar)
@@ -747,7 +747,7 @@ module mod_date
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year+100*tmp
+        d%year = d%year+i8ypc*tmp
         call date_to_days_from_reference(d,z)
     end select
   end function add_interval
@@ -878,9 +878,9 @@ module mod_date
         z%days_from_reference = z%days_from_reference - tmp
       case (umnt)
         call days_from_reference_to_date(x,d)
-        d%month = d%month-mod(tmp,12)
+        d%month = d%month-mod(tmp,i8mpy)
         call adjustmp(d%month,d%year,12)
-        d%year = d%year-tmp/12
+        d%year = d%year-tmp/i8mpy
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
@@ -888,7 +888,7 @@ module mod_date
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year-100*tmp
+        d%year = d%year-i8ypc*tmp
         call date_to_days_from_reference(d,z)
     end select
   end function sub_interval
