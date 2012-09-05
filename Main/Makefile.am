@@ -160,7 +160,7 @@ mod_pbl_interface.o: mod_pbl_interface.F90 mod_realkinds.o mod_service.o mod_con
 mod_precip.o: mod_precip.f90 mod_runparams.o mod_memutil.o mod_atm_interface.o
 mod_rad_interface.o: mod_rad_interface.f90 mod_realkinds.o mod_atm_interface.o mod_rad_common.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rrtmg_driver.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o
 if DO_COMPILE_LIBCLM
-mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.o mod_service.o mod_che_interface.o mod_atm_interface.o mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_ncio.o mod_output.o mod_split.o mod_bdycod.o mod_init.o mod_header.o mod_params.o mod_tendency.o mod_tstep.o mod_service.o mod_mppio.o mod_cloud_s1.o mod_sun.o perf_mod.o mod_mtrxclm.o spmdmod.o clm_varsur.o
+mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.o mod_service.o mod_che_interface.o mod_atm_interface.o mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_ncio.o mod_output.o mod_split.o mod_bdycod.o mod_init.o mod_header.o mod_params.o mod_tendency.o mod_tstep.o mod_service.o mod_mppio.o mod_cloud_s1.o mod_sun.o perf_mod.o mod_mtrxclm.o spmdMod.o clm_varsur.o
 else
 if DO_COMPILE_LIBESMF
 mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.o mod_service.o mod_che_interface.o mod_atm_interface.o mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_ncio.o mod_output.o mod_split.o mod_bdycod.o mod_init.o mod_header.o mod_params.o mod_tendency.o mod_tstep.o mod_service.o mod_mppio.o mod_cloud_s1.o mod_sun.o mod_update.o
@@ -170,7 +170,7 @@ endif
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
-mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o mod_clm.o restfilemod.o clm_varctl.o clm_time_manager.o mod_mppparam.o
+mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o mod_clm.o restFileMod.o clm_varctl.o clm_time_manager.o mod_mppparam.o
 else
 mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o mod_mppparam.o
 endif
