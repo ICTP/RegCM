@@ -50,6 +50,8 @@ module mod_runparams
   real(rk8) :: xbctime
   real(rk8) :: calday , twodt
 
+  real(rk8) :: solcon , scon
+
   ! Step counter. Is zero at idate0, always increasing, never reset.
   integer(ik8) :: ktau
   ! Final number of step for THIS run

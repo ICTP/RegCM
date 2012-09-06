@@ -21,6 +21,8 @@ module mod_sun
 !
 ! Sun zenith and declination
 !
+   use mod_intkinds
+   use mod_realkinds
    use mod_constants
    use mod_dynparam
    use mod_runparams
@@ -279,8 +281,10 @@ module mod_sun
 !
     write (aline, 99001) calday, decdeg
     call say
-99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
-        &   ' degrees.')
+    write (aline, 99002) solcon
+    call say
+99001 format ('JDay ',f12.2,' solar declination angle = ',f12.8,' degrees')
+99002 format (18x,'solar TSI irradiance    = ',f12.4,' W/m^2')
 !
     call time_end(subroutine_name,idindx)
 !
@@ -331,7 +335,7 @@ module mod_sun
 !
   real(rk8) function solar_irradiance( )
     implicit none
-    integer(ik4) :: iyear
+    integer(ik4) :: iyear , iidate
     real(rk8) :: w1 , w2
     if ( xmonth > 6 .and. xday > 15 ) then
       w1 = calday/dayspy-0.5
@@ -343,17 +347,13 @@ module mod_sun
     if ( xyear < 1610 ) then
       call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
     end if
-    if ( xyear > 2008 ) then
-      iyear = mod(xyear,12)+1996
+    iidate = xyear*10000+xmonth*100+xday
+    if ( iidate > 20080615 ) then
+      iyear = mod(xyear,13)+1996-1
     else
-      iyear = xyear
+      iyear = xyear-1
     end if
-    if ( myid == 0 ) then
-      print *, xyear , xmonth , xday , xhour
-      print *, w1 , '(2)'
-      print *, tsi(3,iyear) , tsi(3,iyear+1) 
-    end if
-    solar_irradiance = tsifac*(w2*tsi(3,iyear) + w1*tsi(3,iyear+1))
+    solar_irradiance = tsifac*(w2*tsi(3,iyear)+w1*tsi(3,iyear+1))
   end function solar_irradiance
 !
 end module mod_sun

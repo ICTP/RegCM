@@ -148,6 +148,9 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
+    ! Update solar constant from TSI dataset
+    solcon = solar_irradiance( )
+    scon = solcon*d_1000
     !
     ! Calculate solar declination angle at startup
     !
@@ -230,6 +233,7 @@ module mod_regcm_interface
     implicit none
     real(rk8) , intent(in) :: timestr   ! starting time-step
     real(rk8) , intent(in) :: timeend   ! ending   time-step
+    real(rk8) :: peppe
     character(len=32) :: appdat
 !
 #ifdef DEBUG
@@ -240,6 +244,8 @@ module mod_regcm_interface
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
+      solcon = solar_irradiance( )
+      scon = solcon*d_1000
       !
       ! Refined start
       !

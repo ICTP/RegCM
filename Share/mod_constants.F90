@@ -201,10 +201,13 @@ module mod_constants
   ! Angular velocity of rotation of Earth
   real(rk8) , parameter :: eomeg = 7.2921159D-05
   real(rk8) , parameter :: eomeg2 = d_two*eomeg
+  !
   ! Solar Constant in W/m**2
-  real(rk8) , parameter :: solcon = 1367.0D+00
+  ! See now function solar_irradiance
+  !
+  !real(rk8) , parameter :: solcon = 1367.0D+00
   ! Solar Constant in erg/cm**2/sec
-  real(rk8) , parameter :: scon = solcon*d_1000
+  !real(rk8) , parameter :: scon = solcon*d_1000
 
   ! Soil roughness length
   real(rk8) , parameter :: zlnd = 0.01D+00
