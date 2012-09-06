@@ -233,7 +233,6 @@ module mod_regcm_interface
     implicit none
     real(rk8) , intent(in) :: timestr   ! starting time-step
     real(rk8) , intent(in) :: timeend   ! ending   time-step
-    real(rk8) :: peppe
     character(len=32) :: appdat
 !
 #ifdef DEBUG
