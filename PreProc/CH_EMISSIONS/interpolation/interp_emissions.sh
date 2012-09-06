@@ -54,16 +54,18 @@ file_list=(`ls ${data_dir}/*.nc`)
 $CDO gencon,$REGCM_dir/REGCM_grid.nc -setgrid,$CMIP5_dir/CMIP5_grid.nc \
       ${file_list[0]} remapweights.nc
 
+chfiles=""
 for file in ${file_list[*]}
 do
   ofile=`basename $file`
   echo "Producing $ofile..."
   $CDO remap,$REGCM_dir/REGCM_grid.nc,remapweights.nc $file $out_dir/$ofile
+  chfiles="$chfiles $out_dir/$ofile"
 done
 
 # here the final naming has to be interactive with regcm.in
 rm -f $out_dir/${DOMNAME}_CHEMISS.nc
-$CDO merge $out_dir/RCP*.nc $out_dir/${DOMNAME}_CHEMISS.nc 
+$CDO merge $chfiles $out_dir/${DOMNAME}_CHEMISS.nc 
 
 echo 'Cleanup...'
 for file in ${file_list[*]}
