@@ -58,6 +58,8 @@ module mod_runparams
   integer(ik8) :: mtau
   ! How many steps for an hour (updates date fields Y m d H)
   integer(ik8) :: khour
+  ! How many steps for a day (updates date fields Y m d)
+  integer(ik8) :: kday
   ! Output k values for I/O operations.
   integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf , krep
   ! Seconds counter in between boundary conditions read

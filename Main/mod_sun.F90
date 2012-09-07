@@ -337,23 +337,23 @@ module mod_sun
     implicit none
     integer(ik4) :: iyear , iidate
     real(rk8) :: w1 , w2
-    if ( xmonth > 6 .and. xday > 15 ) then
-      w1 = calday/dayspy-0.5
-      w2 = d_one-w1
+    if ( calday > dayspy/2.0D0 ) then
+      w2 = calday/dayspy-0.5D0
+      w1 = 1.0D0-w2
+      iyear = xyear
     else
-      w1 = 0.5-calday/dayspy
-      w2 = d_one-w1
+      w1 = 0.5D0-calday/dayspy
+      w2 = 1.0D0-w1
+      iyear = xyear-1
     end if
     if ( xyear < 1610 ) then
       call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
     end if
     iidate = xyear*10000+xmonth*100+xday
-    if ( iidate > 20080615 ) then
-      iyear = mod(xyear,13)+1996-1
-    else
-      iyear = xyear-1
+    if ( iidate > 20080630 ) then
+      iyear = mod(xyear,12)+1996
     end if
-    solar_irradiance = tsifac*(w2*tsi(3,iyear)+w1*tsi(3,iyear+1))
+    solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
   end function solar_irradiance
 !
 end module mod_sun

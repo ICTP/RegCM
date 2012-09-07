@@ -243,8 +243,10 @@ module mod_regcm_interface
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
-      solcon = solar_irradiance( )
-      scon = solcon*d_1000
+      if ( mod(ktau,kday) == 0 ) then
+        solcon = solar_irradiance( )
+        scon = solcon*d_1000
+      end if
       !
       ! Refined start
       !

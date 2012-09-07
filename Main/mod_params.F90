@@ -925,6 +925,7 @@ module mod_params
   ktau = 0
 
   khour = 3600_8/idnint(dtsec)
+  kday  = 86400_8/idnint(dtsec)
   krep  = khour*3
   kbdy  = nbdyfrq/idnint(dtsec)
   katm  = natmfrq/idnint(dtsec)
