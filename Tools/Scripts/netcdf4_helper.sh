@@ -109,7 +109,7 @@ echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-4.2.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-4.2
 PATH=$DEST/bin:$PATH ./configure CC="$CC" FC="$FC" \
-     CPPFLAGS=-I$DEST/include LD_FLAGS=-L$DEST/lib --prefix=$DEST \
+     CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --disable-shared >> $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && make install >> $DEST/logs/install.log
 if [ $? -ne 0 ]
