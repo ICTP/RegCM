@@ -193,7 +193,7 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer(ik4) :: datefound , i , j , k , ierr
+    integer(ik4) :: datefound , i , j , k
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     character (len=64) :: subroutine_name='init_bdy'
@@ -252,7 +252,7 @@ module mod_bdycod
 
     end if
 
-    call date_bcast(bdydate2,iocpu,mycomm,ierr)
+    call bcast(bdydate2)
     bdydate1 = bdydate2
     !
     ! Send each processor its computing slice
@@ -372,7 +372,6 @@ module mod_bdycod
     implicit none
 !
     integer(ik4) :: i , j , k , n , mmrec
-    integer(ik4) :: ierr
     character(len=32) :: appdat
     character (len=64) :: subroutine_name='bdyin'
     integer(ik4) :: idindx=0
@@ -515,7 +514,7 @@ module mod_bdycod
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
-    call date_bcast(bdydate2,iocpu,mycomm,ierr)
+    call bcast(bdydate2)
     bdydate1 = bdydate2
 
     call time_end(subroutine_name,idindx)

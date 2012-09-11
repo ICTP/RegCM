@@ -60,7 +60,7 @@ MODULE mod_service
 
 #ifdef DEBUG
 
-  use mod_dynparam , only : mycomm, debug_level
+  use mod_dynparam , only : mycomm , myid , nproc , debug_level
 
 !!! definition of single and double precision 
 
@@ -100,7 +100,6 @@ MODULE mod_service
   INTEGER(ik4), PRIVATE :: node=0,mxnode=1
   INTEGER(ik4), PRIVATE :: called
   INTEGER(ik4), PRIVATE, ALLOCATABLE :: a_tmp(:)
-  LOGICAL,PRIVATE :: called_mpi=.TRUE.
 
   !! interface for write_info subroutine
 
@@ -118,73 +117,55 @@ MODULE mod_service
 
   PUBLIC :: activate_debug, start_debug, stop_debug
 
-CONTAINS
+  CONTAINS
 
-  !!>
-  !!   ROUTINE : activate_DEBUG
-  !!   ACTION : Open Debugging files and activates debugging
-  !!            Set variables needed in the timing routines 
-  !!            It is executed only if the code is compiled with DEBUG enabled
-  !!     
-  !!< 
-  SUBROUTINE activate_debug(level)
+    subroutine activate_debug(level)
+      implicit none
+      include 'mpif.h'  
+      integer(ik4) , optional :: level
+      character(len=3) :: np = '   '
+      character(len=9) :: string
+      character(len=64) :: sub = 'activate_debug'
+      integer(ik4) :: ierr1 , idum
 
-    IMPLICIT NONE
-    INCLUDE 'mpif.h'  
-    INTEGER(ik4), optional :: LEVEL
-    CHARACTER(len=3) ::  np='   '
-    CHARACTER(len=9) ::  string
-    CHARACTER (len=64) :: sub='activate_debug'
-    INTEGER(ik4) :: ierr1,idum
-    INTEGER(ik4),EXTERNAL :: intstr
+      ! Number of processes
+      node = myid
+      mxnode = nproc
 
-    ! check if MPI is on.
-    called_mpi=.FALSE.
-    CALL MPI_initialized(called_mpi,ierr1)
-    IF (.NOT.called_mpi)  CALL MPI_init(ierr1)
-    CALL MPI_initialized(called_mpi,ierr1)
+      ! allocate and initialize this vector needed in timing routines..
+      allocate(a_tmp(0:mxnode-1))
+      a_tmp = 0 
 
-    ! Number of processes 
-    CALL MPI_COMM_RANK( mycomm,node,ierr1)
-    CALL MPI_COMM_SIZE( mycomm,mxnode,ierr1)
-
-    !! allocate and initialize this vector needed in timing routines..
-    ALLOCATE(a_tmp(0:mxnode-1))
-    a_tmp=0 
-
-    !! the following procedure accounts up to 999 processors  
-    IF (mxnode.LT.10) THEN
-       WRITE(np(1:1),'(i1)') node
-    ELSEIF(mxnode.LT.100)THEN
-       IF (node.LT.10) THEN
+      ! the following procedure accounts up to 999 processors  
+      if ( mxnode < 10 ) then
+        write(np(1:1),'(i1)') node
+      else if ( mxnode < 100 ) then
+        if (node.LT.10) THEN
           np ='0'
-          WRITE(np(2:2),'(i1)') node
-       ELSE
-          WRITE(np(1:2),'(i2)') node
-       ENDIF
-    ELSE
-       IF (node.LT.10) THEN
+          write(np(2:2),'(i1)') node
+        else
+          write(np(1:2),'(i2)') node
+        end if
+      else
+        if ( node < 10 ) then
           np ='00'
-          WRITE(np(3:3),'(i1)') node
-       ELSEIF(node.LT.100)THEN
+          write(np(3:3),'(i1)') node
+        else if ( node < 100 ) THEN
           np ='0'
-          WRITE(np(2:3),'(i2)') node
-       ELSE
-          WRITE(np,'(i3)') node
-       ENDIF
-    END IF
-
-    WRITE(string,'(A6,A3)') "DEBUG_",np
-    OPEN(ndebug+node,FILE=string,status='unknown')
-     idum=ndebug+node
-     CALL write_info(sub, "DEBUGGING FILE CORRECTLY OPEN:unit is",idum)
-     if (present(level)) debug_level=level
-     CALL write_info(sub,"debug_level not specified in regcm.in file:default is ",debug_level)
-     ldebug=.true.
-
-  END SUBROUTINE activate_debug
-
-
+          write(np(2:3),'(i2)') node
+        else
+          write(np,'(i3)') node
+        end if
+      end if
+      write(string,'(a6,a3)') "debug_",np
+      open(ndebug+node,file=string,status='unknown')
+      idum = ndebug+node
+      CALL write_info(sub,'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum)
+      if ( present(level) ) debug_level = level
+      CALL write_info(sub, &
+         'debug_level not specified in regcm.in file : default is ',debug_level)
+      ldebug = .true.
+    end subroutine activate_debug
 
   !!>
   !!   ROUTINE : START_DEBUG
@@ -204,10 +185,6 @@ CONTAINS
     string=' '
     substr='not specified'
     sline =' no spec'
-    IF (.NOT.CALLED_MPI) THEN
-       CALL error_prot(sub='start_debug',err_code=3001,  &
-            message='error : process unkown to debugging facility')
-    END IF
     IF (PRESENT(SUB)) substr=sub
     IF (PRESENT(LINE)) WRITE(SLINE,'(1X,I6)') LINE
     WRITE(string,'(A29,A20,A6,A8)') &
@@ -752,7 +729,7 @@ CONTAINS
     CHARACTER(len=7) :: sline
     CHARACTER(len=36) :: string
 
-    INTEGER(ik4)(8) i_addr
+    INTEGER(ik8) i_addr
     string='    '
     subro= '    '
     varia= '    '

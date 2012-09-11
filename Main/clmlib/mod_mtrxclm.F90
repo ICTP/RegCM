@@ -155,7 +155,7 @@ module mod_mtrxclm
     integer(ik4) , intent(in), optional         :: iaeros
     character(len=6), intent(in), optional :: ctracers(*) 
 !
-    integer(ik4) :: i , j , ig , jg , n , mpierr
+    integer(ik4) :: i , j , ig , jg , n
     integer(ik4) :: year , month , day , hour
     !
     ! Initialize run control variables for clm

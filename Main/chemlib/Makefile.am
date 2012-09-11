@@ -68,7 +68,6 @@ mod_che_common.o : mod_che_common.F90 mod_intkinds.o mod_realkinds.o mod_dynpara
 mod_che_cumtran.o : mod_che_cumtran.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_che_common.o
 mod_che_drydep.o : mod_che_drydep.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_che_common.o mod_che_dust.o mod_mpmessage.o mod_service.o mod_che_ncio.o mod_che_mppio.o mod_che_indices.o mod_che_indices.o
 mod_che_dust.o : mod_che_dust.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mpmessage.o mod_memutil.o mod_mppparam.o mod_che_common.o mod_che_ncio.o mod_che_mppio.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_che_emission.o : mod_che_emission.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mpmessage.o mod_service.o mod_dynparam.o mod_che_common.o mod_che_param.o mod_che_mppio.o mod_che_dust.o mod_che_ncio.o mod_che_indices.o mod_mppparam.o
 mod_che_indices.o : mod_che_indices.f90 mod_intkinds.o
 mod_che_mppio.o : mod_che_mppio.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_che_param.o mod_che_common.o mod_che_species.o mod_mppparam.o

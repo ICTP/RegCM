@@ -69,7 +69,7 @@ module mod_regcm_interface
     implicit none
     integer, intent(in), optional :: mpiCommunicator
 !
-    integer(ik4) :: ncpu, ierr
+    integer(ik4) :: ierr
     character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
@@ -84,7 +84,8 @@ module mod_regcm_interface
       mycomm = MPI_COMM_WORLD
     end if
     call mpi_comm_rank(mycomm, myid, ierr)
-    call mpi_comm_size(mycomm, ncpu, ierr)
+    call mpi_comm_size(mycomm, nproc, ierr)
+    call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
 !
     call whoami(myid)
     call setup_mesg(myid)
@@ -117,8 +118,8 @@ module mod_regcm_interface
 
     call memory_init
 !
-    call header(myid,ncpu)
-    call set_nproc(ncpu)
+    call header(myid,nproc)
+    call set_nproc
     call setup_model_indexes
 !
     if ( myid == iocpu ) then

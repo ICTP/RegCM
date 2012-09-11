@@ -148,9 +148,7 @@ module mod_che_dust
     subroutine inidust
 !    
       implicit none
-      include 'mpif.h'
 !
-      integer(ik4) :: ierr
       real(rk8) , dimension(nats) :: bcly , bslt , bsnd
       real(rk8) :: deldp , eps , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr
@@ -224,7 +222,7 @@ module mod_che_dust
         end do
       end if
 
-      call mpi_bcast(rd_tex,1,mpi_logical,0,mycomm,ierr)
+      call bcast(rd_tex)
 
       if ( myid == iocpu ) then
         if ( rd_tex ) then

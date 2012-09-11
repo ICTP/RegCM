@@ -88,7 +88,7 @@ module mod_che_bdyco
   subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
     implicit none
     logical :: ifrest
-    integer(ik4) :: datefound , i , j , k , ierr,n, after
+    integer(ik4) :: datefound , i , j , k , n, after
     real (dp) :: dtbdys
     character(len=32) :: appdat
     type (rcm_time_and_date) :: idate1, chbc_date
@@ -170,7 +170,7 @@ module mod_che_bdyco
 
     end if
 
-    call date_bcast(chbdydate2,0,mycomm,ierr)
+    call bcast(chbdydate2)
     chbdydate1 = chbdydate2
     !
     ! Send each processor its computing slice

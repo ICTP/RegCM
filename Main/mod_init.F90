@@ -63,14 +63,11 @@ module mod_init
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
   subroutine init
-!
   implicit none
-  include 'mpif.h'
 !
   integer(ik4) :: i , j , k , n , ist
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  integer(ik4) :: ierr
   character (len=64) :: subroutine_name='init'
   integer(ik4) :: idindx = 0
 !
@@ -244,8 +241,8 @@ module mod_init
     !
     xbctime = d_zero
     nbdytime = 0
-    call mpi_bcast(ktau,1,mpi_integer8,iocpu,mycomm,ierr)
-    call date_bcast(idatex,iocpu,mycomm,ierr)
+    call bcast(ktau)
+    call bcast(idatex)
 !
     mtau = mtau + ktau
 !

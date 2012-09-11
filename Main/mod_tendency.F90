@@ -86,15 +86,13 @@ module mod_tendency
 !
   subroutine tend
     implicit none
-    include 'mpif.h'
 !
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,   &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
                tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk
-    integer(ik4) :: ierr , icons_mpi
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
     character (len=64) :: subroutine_name='tend'
@@ -433,8 +431,8 @@ module mod_tendency
           end do
         end do
       end if
-      call mpi_bcast(ptntot,1,mpi_real8,iocpu,mycomm,ierr)
-      call mpi_bcast(pt2tot,1,mpi_real8,iocpu,mycomm,ierr)
+      call bcast(ptntot)
+      call bcast(pt2tot)
     end if
     !
     ! calculate solar zenith angle
@@ -1293,9 +1291,8 @@ module mod_tendency
     if ( ktau > 1 ) then
       ptnbar = ptntot/dble(iptn)
       pt2bar = pt2tot/dble(iptn)
-      icons_mpi = 0
-      call mpi_reduce(total_precip_points,icons_mpi,1,mpi_integer, &
-                      mpi_sum,iocpu,mycomm,ierr)
+      iconvec = 0
+      call sumall(total_precip_points,iconvec)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1390,7 +1387,7 @@ module mod_tendency
           write(stdout,'(a23,a,i16)') appdat , ', ktau   = ', ktau
           write(stdout,'(a,2E12.5)') '$$$ 1st, 2nd time deriv of ps   = ', &
                 ptnbar , pt2bar
-          write(stdout,'(a,i7)') '$$$  no. of points w/convection = ', icons_mpi
+          write(stdout,'(a,i7)') '$$$  no. of points w/convection = ', iconvec
         end if
       end if
     end if
