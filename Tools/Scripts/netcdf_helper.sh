@@ -7,11 +7,11 @@
 # CHEK HERE BELOW THE COMPILERS
 #
 # Working CC Compiler
-#CC=gcc
+CC=icc
 # Working Fortran Compiler
-#FC=gfortran
+FC=ifort
 # Destination directory
-#DEST=$PWD
+DEST=$PWD
 
 if [ -z "$DEST" ]
 then
@@ -66,7 +66,8 @@ echo "Compiled netCDF C library. Half way..."
 tar zxvf netcdf-fortran-4.2.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-4.2
 sed -i configure -e 's/ nc_def_opaque//'
-PATH=$PWD/bin:$PATH ./configure CC="$CC" FC="$FC" --prefix=$DEST \
+PATH=$PWD/bin:$PATH ./configure CC="$CC" FC="$FC" \
+     CPPFLAGS=-I$DEST/include LD_FLAGS=-L$DEST/lib --prefix=$DEST \
      --disable-shared >> $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && make install >> $DEST/logs/install.log
 if [ $? -ne 0 ]
