@@ -144,10 +144,11 @@ module mod_cu_tiedtke
 !   local variables
     integer(ik4) :: i , j , k , ii , kclth
     real(rk8) :: akclth
-    character (len=64) :: subroutine_name='tiedtkedrv'
-    integer(ik4) :: idindx=0
-    !
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 
 !   need to translate REGCM to TIEDTKE vars...
 
@@ -314,8 +315,9 @@ module mod_cu_tiedtke
         ii = ii + 1
       end do
     end do
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine tiedtkedrv
 !
   subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
@@ -375,10 +377,11 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zrain , ztopmax
   real(rk8) :: zxip1 , zxlp1
   real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
-  character (len=64) :: subroutine_name='cucall'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cucall'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !  Executable statements
 !
@@ -480,8 +483,9 @@ module mod_cu_tiedtke
     end if
     ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cucall
 !
 !---------------------------------------------------------------------
@@ -611,12 +615,11 @@ module mod_cu_tiedtke
          zuu , zvd , zvu , zxenh
   real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
-  character (len=64) :: subroutine_name='cumastr'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cumastr'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
-!
-!     Executable statements
+#endif
  
   lookupoverflow = .false.
 !
@@ -986,8 +989,9 @@ module mod_cu_tiedtke
   if ( lmfdudv ) call cududv(kproma,kbdim,klev,klevp1,itopm2,ktype, &
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cumastr
 !
   subroutine cumastrh(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
@@ -1112,12 +1116,11 @@ module mod_cu_tiedtke
          zvd , zvu , zxenh
   real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
-  character (len=64) :: subroutine_name='cumastrh'
-  integer(ik4) :: idindx=0
-  !
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cumastrh'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
-!
-!     Executable statements
+#endif
  
   lookupoverflow = .false.
 !-----------------------------------------------------------------------
@@ -1431,8 +1434,9 @@ module mod_cu_tiedtke
   if ( lmfdudv ) call cududv(kproma,kbdim,klev,klevp1,itopm2,ktype, &
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cumastrh
 !
   subroutine cumastrt(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
@@ -1555,13 +1559,12 @@ module mod_cu_tiedtke
                                 zmfub , zmfub1 , zrfl , zsfl
   real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
          zxtenh
-  character (len=64) :: subroutine_name='cumastrt'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cumastrt'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
-!
-!     Executable statements
-!
+#endif
+
   lookupoverflow = .false.
 !
 !---------------------------------------------------------------------
@@ -1832,8 +1835,9 @@ module mod_cu_tiedtke
   if ( lmfdudv ) call cududv(kproma,kbdim,klev,klevp1,itopm2,ktype, &
                              kcbot,paphp1,ldcum,puen,pven,pvom,pvol,&
                              zuu,zud,zvu,zvd,pmfu,pmfd)
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cumastrt
 !
   subroutine cuini(kproma,kbdim,klev,klevp1,klevm1,pten,pqen,pqsen, &
@@ -1893,10 +1897,11 @@ module mod_cu_tiedtke
   logical , dimension(kbdim) :: loflag
   real(rk8) :: zarg , zcpm , zzs
   real(rk8) , dimension(kbdim) :: zph , zwmax
-  character (len=64) :: subroutine_name='cumini'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cumini'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.           SPECIFY LARGE SCALE PARAMETERS AT HALF LEVELS
@@ -2031,8 +2036,9 @@ module mod_cu_tiedtke
     end do
 !
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuini
 !
   subroutine cuasc(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,puen,&
@@ -2114,10 +2120,11 @@ module mod_cu_tiedtke
                                 zmfuv , zpbase , zph , zqold
   real(rk8) , dimension(kbdim,klev) :: zodetr , zoentr
 !
-  character (len=64) :: subroutine_name='cuasc'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuasc'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !----------------------------------------------------------------------
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
@@ -2539,8 +2546,9 @@ module mod_cu_tiedtke
       end if
     end do
   end if
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuasc
 !
   subroutine cuasct(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,    &
@@ -2616,10 +2624,11 @@ module mod_cu_tiedtke
              zseen , ztglace , zxteen , zxtude , zz , zzdmf
   real(rk8) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
                                 zpbase , zph , zqold
-  character (len=64) :: subroutine_name='cuasct'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuasct'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.           SPECIFY PARAMETERS
@@ -2925,8 +2934,9 @@ module mod_cu_tiedtke
       end if
     end do
   end if
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuasct
 !
   subroutine cubase(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,    &
@@ -2977,10 +2987,11 @@ module mod_cu_tiedtke
   logical , dimension(kbdim) :: loflag
   real(rk8) :: zbuo , zz
   real(rk8) , dimension(kbdim) :: zph , zqold
-  character (len=64) :: subroutine_name='cubase'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cubase'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !     1.           INITIALIZE VALUES AT LIFTING LEVEL
@@ -3069,8 +3080,9 @@ module mod_cu_tiedtke
       end if
     end do
   end if
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cubase
 !
   subroutine cubasmc(kproma,kbdim,klev,kk,klab,pten,pqen,pqsen,puen,&
@@ -3121,10 +3133,11 @@ module mod_cu_tiedtke
   integer(ik4) :: jl , jt
   logical , dimension(kbdim) :: llo3
   real(rk8) :: zzzmb
-  character (len=64) :: subroutine_name='cubasmc'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cubasmc'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -3167,8 +3180,9 @@ module mod_cu_tiedtke
       end if
     end do
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cubasmc
 !
   subroutine cuddraf(kproma,kbdim,klev,klevp1,ptenh,pqenh,puen,pven,&
@@ -3231,10 +3245,11 @@ module mod_cu_tiedtke
              zmfdvk , zmfdxtk , zqdde , zqeen , zsdde , zseen ,     &
              zxtdde , zxteen
   real(rk8) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
-  character (len=64) :: subroutine_name='cuddraf'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuddraf'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !     1.           CALCULATE MOIST DESCENT FOR CUMULUS DOWNDRAFT BY
@@ -3343,8 +3358,9 @@ module mod_cu_tiedtke
     end if
 !
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuddraf
 !
   subroutine cudlfs(kproma,kbdim,klev,klevp1,ptenh,pqenh,puen,pven, &
@@ -3403,10 +3419,11 @@ module mod_cu_tiedtke
   real(rk8) :: zbuo , zmftop , zqtest , zttest
   real(rk8) , dimension(kbdim) :: zcond , zph
   real(rk8) , dimension(kbdim,klev) :: zqenwb , ztenwb
-  character (len=64) :: subroutine_name='cudlf'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cudlf'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !     1.           SET DEFAULT VALUES FOR DOWNDRAFTS
@@ -3511,8 +3528,9 @@ module mod_cu_tiedtke
 !
     end do
   end if
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cudlfs
 !
   subroutine cudtdq(kproma,kbdim,klev,klevp1,ktopm2,ldcum,ktrac,    &
@@ -3553,10 +3571,11 @@ module mod_cu_tiedtke
   logical :: llo1
   real(rk8) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
   real(rk8) , dimension(kbdim) :: zmelt , zsheat
-  character (len=64) :: subroutine_name='cudtdq'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cudtdq'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    2.0          INCREMENTATION OF T AND Q TENDENCIES
@@ -3657,8 +3676,9 @@ module mod_cu_tiedtke
     paprc(jl) = paprc(jl) + ztmx*(prfl(jl)+psfl(jl))
     paprs(jl) = paprs(jl) + ztmx*psfl(jl)
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cudtdq
 !
   subroutine cududv(kproma,kbdim,klev,klevp1,ktopm2,ktype,kcbot,    &
@@ -3692,10 +3712,11 @@ module mod_cu_tiedtke
   integer(ik4) :: ik , ikb , jk , jl
   real(rk8) :: zdudt , zdvdt , zzp
   real(rk8) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
-  character (len=64) :: subroutine_name='cududv'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cududv'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.0          CALCULATE FLUXES AND UPDATE U AND V TENDENCIES
@@ -3779,8 +3800,9 @@ module mod_cu_tiedtke
     end if
 !
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cududv
 !
   subroutine cuentr(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,   &
@@ -3831,10 +3853,11 @@ module mod_cu_tiedtke
   logical :: llo1 , llo2
   real(rk8) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
              zrrho , ztmzk , zzmzk
-  character (len=64) :: subroutine_name='cuentr'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuentr'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -3962,8 +3985,9 @@ module mod_cu_tiedtke
   end do
 
   end if !AMT temporary if statement for optimisation
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuentr
 !
   subroutine cuentrt(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,  &
@@ -4009,10 +4033,11 @@ module mod_cu_tiedtke
   integer(ik4) :: iklwmin , jl
   logical :: llo1 , llo2
   real(rk8) :: zdprho , zentest , zentr , zpmid , zrrho
-  character (len=64) :: subroutine_name='cuentrt'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuentrt'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
@@ -4050,8 +4075,9 @@ module mod_cu_tiedtke
       pdmfen(jl) = zentr + zentest*pmfu(jl,kk+1)*zrrho*zdprho
     end if
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuentrt
 !
   subroutine cuflx(kproma,kbdim,klev,klevp1,pqen,pqsen,ptenh,pqenh, &
@@ -4100,10 +4126,11 @@ module mod_cu_tiedtke
              zrfl , zrfln , zrmin , zrnew , zrsum , zsnmlt ,        &
              ztmelp2 , zzp
   real(rk8) , dimension(kbdim) :: zpsubcl
-  character (len=64) :: subroutine_name='cuflx'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuflx'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !*    SPECIFY CONSTANTS
 !
@@ -4249,8 +4276,9 @@ module mod_cu_tiedtke
     prfl(jl) = prfl(jl) + zdpevap*prfl(jl)*(d_one/max(1.D-20,zrsum))
     psfl(jl) = psfl(jl) + zdpevap*psfl(jl)*(d_one/max(1.D-20,zrsum))
   end do
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuflx
 !
   subroutine cuadjtq(kproma,kbdim,klev,kk,pp,pt,pq,ldflag,kcall)
@@ -4301,11 +4329,11 @@ module mod_cu_tiedtke
   !  local arrays: 
   real(rk8):: zcond(kbdim)
 
-  !  Executable statements 
-  character (len=64) :: subroutine_name='cuadjtq'
-  integer(ik4) :: idindx=0
-
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'cuadjtq'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 
   lookupoverflow = .false.
 
@@ -4567,7 +4595,9 @@ module mod_cu_tiedtke
     endif
 
   end if
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuadjtq
 
 end module mod_cu_tiedtke

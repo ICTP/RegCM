@@ -64,12 +64,11 @@ module mod_diffusion
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ften
 !
     integer(ik4) :: i , j , k
-!
-    character (len=64) :: subroutine_name='diffu_d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'diffu_d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-
+#endif
     !
     ! fourth-order scheme for interior:
     !
@@ -172,9 +171,9 @@ module mod_diffusion
         end do
       end do
     end if
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
-
+#endif
   end subroutine diffu_d
 !
   subroutine diffu_x3d(ften,f,press,xkc,kmax)
@@ -188,11 +187,11 @@ module mod_diffusion
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
     integer(ik4) :: i , j , k
-!
-    character (len=64) :: subroutine_name='diffu_x3d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! fourth-order scheme for interior:
     !
@@ -258,15 +257,13 @@ module mod_diffusion
         end do
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine diffu_x3d
 !
   subroutine diffu_x4d(ften,f,press,xkc,n4,kmax)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: kmax , n4
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
@@ -274,11 +271,11 @@ module mod_diffusion
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
     integer(ik4) :: i , j , k , n
-!
-    character (len=64) :: subroutine_name='diffu_x4d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'diffu_x4d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! fourth-order scheme for interior:
     !
@@ -354,7 +351,9 @@ module mod_diffusion
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine diffu_x4d
 
 end module mod_diffusion

@@ -49,10 +49,11 @@ contains
     integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
     !
     integer(ik4) , save :: currmonth
-    character (len=64) :: subroutine_name = 'chem_emission'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'chem_emission'
     integer(ik4) :: idindx = 0
-    !
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! read the monthly aerosol emission files
     ! FAB: remember for now, we have 1 emission file containing all monthly
@@ -74,7 +75,9 @@ contains
        call read_emission(lyear,lmonth,chemsrc_io)
     end if
     call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine chem_emission
   !
   !
@@ -95,6 +98,11 @@ contains
     integer  :: jglob, iglob  ! Full grid i- j-component
 #endif
     real(rk8) :: daylen , fact , maxelev , amp
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'emis_tend'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 
     ! calculate the tendency linked to emissions from emission fluxes
     ! In the future split these calculations in corresponding module  ??
@@ -165,6 +173,9 @@ contains
     !  if ( iisop > 0 ) then 
     !    chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
     !  end if 
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine emis_tend
 !
 end module mod_che_emission

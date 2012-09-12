@@ -80,12 +80,20 @@ module mod_mtrxclm
 !
     implicit none
     integer(ik8) , intent(in) :: ktau
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'mtrxclm'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 
     call interfclm(1,ktau)
     call rcmdrv()
     call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call interfclm(2,ktau)
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
 !
   end subroutine mtrxclm
 !
@@ -157,6 +165,11 @@ module mod_mtrxclm
 !
     integer(ik4) :: i , j , ig , jg , n
     integer(ik4) :: year , month , day , hour
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'initclm'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     !
     ! Initialize run control variables for clm
     !
@@ -439,7 +452,9 @@ module mod_mtrxclm
     if ( allocated(init_tgb) )     deallocate(init_tgb)
     if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
     if ( allocated(clm_fracveg) )  deallocate(clm_fracveg)
-
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine initclm
 !
   subroutine albedoclm(imon)
@@ -447,6 +462,11 @@ module mod_mtrxclm
     implicit none
     integer(ik4) , intent(in) :: imon
     integer(ik4) :: i , j , ig , jg
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'albedoclm'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     call albedobats(imon)
 !
@@ -477,6 +497,9 @@ module mod_mtrxclm
         fbat(j,i,aldifs_o) = real(aldifs(j,i))
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine albedoclm
 !
   subroutine interfclm(ivers,ktau)
@@ -502,6 +525,11 @@ module mod_mtrxclm
     integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n , icpu , nnn , nout
     integer(ik4) :: idep, iddep
     real(rk4) :: real_4
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'interfclm'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     if ( ivers == 1 ) then
 
@@ -992,6 +1020,9 @@ module mod_mtrxclm
         end do
       end if
     end if  ! end if ivers = 2
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine interfclm
 !
   subroutine fill_frame2d(a,b)
@@ -1118,13 +1149,12 @@ module mod_mtrxclm
     real(rk8) :: mvelp , obliq
     integer(ik4) :: iyear_ad
     logical :: log_print
-    character (len=64) :: subroutine_name='solar_clm'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'solar_clm'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     calday = yeardayfrac(idatex)
-!
     log_print = .false.
     iyear_ad = xyear
 !   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
@@ -1139,9 +1169,9 @@ module mod_mtrxclm
     decdeg = declin/degrad
     write (aline, 99001) calday, decdeg
     call say
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
 99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
         &   ' degrees.')
 !
@@ -1154,10 +1184,11 @@ module mod_mtrxclm
     integer(ik4) :: i , j
     real(rk8) :: cldy , declinp1 , xxlon
     real(rk8) :: xxlat
-    integer(ik4) :: idindx=0
-    character (len=64) :: subroutine_name='zenitm_clm'
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'zenitm_clm'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     cldy = get_curr_calday()
     call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0, &
                       r2cobliqr,declinp1,r2ceccf)
@@ -1170,7 +1201,9 @@ module mod_mtrxclm
         coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine zenit_clm
 
 end module mod_mtrxclm

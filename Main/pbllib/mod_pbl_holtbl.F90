@@ -135,10 +135,11 @@ module mod_pbl_holtbl
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
              vflxsfx
   integer(ik4) :: i , j , k , itr
-  character (len=64) :: subroutine_name='holtbl'
-  integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'holtbl'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !
@@ -838,8 +839,9 @@ module mod_pbl_holtbl
       end do
     end do
   end if
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
- 
+#endif 
   end subroutine holtbl
 !
 ! ------------------------------------------------------------
@@ -882,10 +884,11 @@ module mod_pbl_holtbl
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
              zl , zm , zp , zzh , zzhnew , zzhnew2
   integer(ik4) :: i , j , k , k2
-  character (len=64) :: subroutine_name='blhnew'
-  integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'blhnew'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
   ! note: kmxpbl, max no. of pbl levels, calculated in param
   ! compute richardson number
@@ -1109,8 +1112,9 @@ module mod_pbl_holtbl
       end do
     end do
   end if
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine blhnew
 !
 end module mod_pbl_holtbl

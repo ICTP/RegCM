@@ -64,27 +64,25 @@ module mod_vmodes
 !
 !----------------------------------------------------------------------
 !
-!   This subroutine determines the vertical modes of the PSU/NCAR meso-
-!   scale model designated MM4.  It also computes associated transform
-!   matrices used by the initialization software used with MM4.
-!   Adapted to be used in RegCM.
+! This subroutine determines the vertical modes of the PSU/NCAR meso-
+! scale model designated MM4.  It also computes associated transform
+! matrices used by the initialization software used with MM4.
+! Adapted to be used in RegCM.
 !
 !----------------------------------------------------------------------
 !
 !
-!   Programmed by Ronald M. Errico at NCAR,  Dec 1984.
-!   Revised by Ronald Errico and Gary Bates, Nov 1987.
-!   Revised by Ronald Errico,                Mar 1988.
-!   For further info see: NCAR Tech Note by Errico and Bates, 1988.
+! Programmed by Ronald M. Errico at NCAR,  Dec 1984.
+! Revised by Ronald Errico and Gary Bates, Nov 1987.
+! Revised by Ronald Errico,                Mar 1988.
+! For further info see: NCAR Tech Note by Errico and Bates, 1988.
 !
-!   lstand = .true. if standard atmosphere t to be used (ignore input
-!             tbarh and xps in that case).  Otherwise, xps and tbarh must
-!             be defined on input.
+! lstand = .true. if standard atmosphere t to be used (ignore input
+!           tbarh and xps in that case).  Otherwise, xps and tbarh must
+!           be defined on input.
 !
   subroutine vmodes(lstand)
-!
     implicit none
-!
     logical , intent(in) :: lstand
 !
     real(rk8) , dimension(2) :: det
@@ -104,11 +102,12 @@ module mod_vmodes
     real(rk8) , dimension(kzp1,kzp1) :: varpa2
     real(rk8) , dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
-!
-    character (len=64) :: subroutine_name='vmodes'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'vmodes'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
+
     a1 = d_zero
     a2 = d_zero
     a3 = d_zero
@@ -138,19 +137,20 @@ module mod_vmodes
     varpa2 = d_zero
     numerr = 0
     lprint = .false.
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!                            s  t  a  r  t
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!       set arrays describing vertical structure
-!
-!  set reference pressures
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    !                            s  t  a  r  t
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! set arrays describing vertical structure
+    !
+    ! set reference pressures
+    !
     if ( lstand ) xps = d_100
-                          ! standard xps in cb; otherwise xps set in tav
+    ! standard xps in cb; otherwise xps set in tav
     pd = xps - ptop
-!
     write (aline,*) 'Calculating Vertical Modes'
     call say
     if ( lstand ) then
@@ -160,7 +160,6 @@ module mod_vmodes
       write (aline,*) '- Linearization about horizontal mean of data'
       call say
     end if
-!
     lsigma = .false.
     if ( dabs(sigma(1)) > dlowval ) lsigma = .true.
     if ( dabs(sigma(kzp1)-d_one) > dlowval ) lsigma = .true.
@@ -174,33 +173,34 @@ module mod_vmodes
     if ( lsigma ) then
       call fatal(__FILE__,__LINE__,'Sigma values in vmode inappropriate')
     end if
-!
-!  compute sigmah (sigma at half levels) and delta sigma
+    !
+    ! compute sigmah (sigma at half levels) and delta sigma
+    !
     do k = 1 , kz
       sigmah(k) = (sigma(k)+sigma(k+1))*d_half
       sdsigma(k) = sigma(k+1) - sigma(k)
     end do
     sigmah(kzp1) = d_one
-!
-!  set tbarh (temperature at half (data) levels: indexed k + 1/2)
+    !
+    ! set tbarh (temperature at half (data) levels: indexed k + 1/2)
+    !
     if ( lstand ) call vtlaps
     call vchekt
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!      determine thermodynamic matrix
-!
-!  compute thetah
-!  this array is never used: it is only computed and printed out 
-!  the  following line causes a segfault on IBM SP6 when compiled with -q check 
-!  because it uses F90 syntax arrays with different sizes  
-!  S.C. 21/05/2010
-!  I therefore decided to comment out this line 
-!      thetah = tbarh*((sigmah+ptop/pd)**(-rovcp))
-
-!
-!  compute tbarf and thetaf
-!
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    !      determine thermodynamic matrix
+    !
+    ! compute thetah
+    ! this array is never used: it is only computed and printed out 
+    ! the  following line causes a segfault on IBM SP6 when compiled
+    ! with -q check because it uses F90 syntax arrays with different sizes  
+    ! S.C. 21/05/2010
+    ! I therefore decided to comment out this line 
+    ! thetah = tbarh*((sigmah+ptop/pd)**(-rovcp))
+    !
+    ! compute tbarf and thetaf
+    !
     do k = 2 , kz
       k1 = k - 1
       tbarf(k) = tbarh(k1)*(sigmah(k)-sigma(k))/(sigmah(k)-sigmah(k1)) + &
@@ -208,7 +208,6 @@ module mod_vmodes
     end do
     tbarf(1) = d_zero
     tbarf(kzp1) = d_zero
-!
     do k = 1 , kzp1
       if ( sigma(k) < dlowval ) then
         thetaf(k) = tbarf(k)
@@ -216,9 +215,9 @@ module mod_vmodes
         thetaf(k) = tbarf(k)*((sigma(k)+ptop/pd)**(-rovcp))
       end if
     end do
-!
-!  define matrices for determination of thermodynamic matrix
-!
+    !
+    ! define matrices for determination of thermodynamic matrix
+    !
     do l = 1 , kz
       do k = 1 , kz
         if ( l > k ) e2(k,l) = d_zero
@@ -246,56 +245,56 @@ module mod_vmodes
       if ( k < kz ) g1(k,k+1) = -tbarf(k+1)
       if ( k < kz ) e3(k,k+1) = d_one
     end do
-!
-!  compute g2 (i.e., the transform from divg. to sigma dot)
-!
+    !
+    ! compute g2 (i.e., the transform from divg. to sigma dot)
+    !
     w1 = e2 - x1
     w2 = matmul(w1,d1)
     g2 = matmul(e1,d1)
     w1 = matmul(s1,g2)
     g2 = w1 - w2
-!
-!  compute a1
-!
+    !
+    ! compute a1
+    !
     w2 = 0.0D0
     do k = 1 , kz
       w2(k,k) = d_one/d1(k,k)
     end do
     w1 = matmul(g1,g2)
     a1 = matmul(w2,w1)
-!
-!  compute a2
-!
+    !
+    ! compute a2
+    !
     w1 = matmul(e1,d1)
     a2 = matmul(s2,w1)
     w2 = matmul(e3,g2)
     w2 = w2*d_half
     w1 = w2-a2
     a2 = matmul(d2,w1)
-!
-!  compute a4
-!
+    !
+    ! compute a4
+    !
     w1 = matmul(e1,d1)
     a4 = matmul(a3,w1)
     a4 = -a4
-!
-!  compute a
-!
+    !
+    ! compute a
+    !
     a0 = a1+a2+a3+a4
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!       determine matrices for linearized determination of geopotential
-!
-!  compute delta log p
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! determine matrices for linearized determination of geopotential
+    !
+    ! compute delta log p
+    !
     do k = 2 , kz
       w1(k,1) = dlog((sigmah(k)+ptop/pd)/(sigmah(k-1)+ptop/pd))
     end do
-!
-!  compute matrix which multiples t vector
-!
+    !
+    ! compute matrix which multiples t vector
+    !
     hydros = d_zero
-!
     do k = 1 , kz - 1
       do l = k , kz - 1
         hydros(k,l) = hydros(k,l) + &
@@ -304,41 +303,35 @@ module mod_vmodes
                     w1(l+1,1)*sdsigma(l+1)/(sdsigma(l+1)+sdsigma(l))
       end do
     end do
-!
     do k = 1 , kz
       hydros(k,kz) = hydros(k,kz) + dlog((d_one+ptop/pd)/(sigmah(kz)+ptop/pd))
     end do
-!
-!  compute matirx which multiplies log(sigma*p+ptop) vector
-!
+    !
+    ! compute matirx which multiplies log(sigma*p+ptop) vector
+    !
     hydroc = d_zero
-!
     tweigh(1) = d_zero
     do l = 2 , kz
       tweigh(l) = (tbarh(l)*sdsigma(l) + &
                    tbarh(l-1)*sdsigma(l-1))/(sdsigma(l)+sdsigma(l-1))
     end do
-!
     do l = 2 , kz - 1
       do k = 1 , l - 1
         hydroc(k,l) = tweigh(l) - tweigh(l+1)
       end do
     end do
-!
     do l = 1 , kz - 1
       hydroc(l,l) = tbarh(l) - tweigh(l+1)
     end do
-!
     do k = 1 , kz - 1
       hydroc(k,kz) = tweigh(kz) - tbarh(kz)
     end do
-!
     do k = 1 , kz
       hydroc(k,kzp1) = tbarh(kz)
     end do
-!
-!  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
-!
+    !
+    ! test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
+    !
     lhydro = .false.
     do k = 1 , kz
       w1(k,1) = d_zero
@@ -352,24 +345,22 @@ module mod_vmodes
       x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
       if ( x > 1.0D-8 ) lhydro = .true.
     end do
-!
     if ( lhydro ) then
       numerr = numerr + 1
       print 99002
       call vprntv(w1(1,1),kz,'test1   ')
       call vprntv(w1(1,2),kz,'test2   ')
     end if
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!       determine tau matrix
-!
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! determine tau matrix
+    !
     do l = 1 , kz
       do k = 1 , kzp1
         w3(k,l) = sdsigma(l)/(d_one+ptop/(pd*sigmah(k)))
       end do
     end do
-!
     do l = 1 , kz
       do k = 1 , kz
         w2(k,l) = d_zero
@@ -378,54 +369,51 @@ module mod_vmodes
         end do
       end do
     end do
-!
     w1 = matmul(hydros,a0)
     tau = w1-w2
     tau = -rgas*tau
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!   determine other matrices and vectors
-!
-!   compute eigenvalues and vectors for tau (rg calls eispack routines)
-!
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! determine other matrices and vectors
+    !
+    ! compute eigenvalues and vectors for tau (rg calls eispack routines)
+    !
     w1 = tau
     call rg(kz,w1,hbar,w2,1,zmatx,ier)
     call vcheki(ier,numerr,'zmatx   ')
     call vcheke
     call vorder
     call vnorml
-!
-!   compute inverse of zmatx
-!
+    !
+    ! compute inverse of zmatx
+    !
     call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'zmatxr  ')
-!
-!   compute inverse of hydros
-!
+    !
+    ! compute inverse of hydros
+    !
     call invmtrx(hydros,kz,hydror,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'hydror  ')
-!
-!   compute cpfac
-!
+    !
+    ! compute cpfac
+    !
     call invmtrx(tau,kz,w1,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'taur    ')
-!
     do k = 1 , kz
       cpfac(k) = d_zero
       do l = 1 , kz
         cpfac(k) = cpfac(k) + (sigma(l+1)-sigma(l))*w1(l,k)
       end do
     end do
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!   determine arrays needed for daley's variational scheme
-!   for determination of surface pressure changes
-!
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! determine arrays needed for daley's variational scheme
+    ! for determination of surface pressure changes
+    !
     hweigh = d_zero
     hweigh(kz) = d_one  ! only lowest sigma level t considered
-!
     do k1 = 1 , kz
       do k2 = 1 , kz    ! compute b(-1t) w/tbar**2 b(-1)
         w1(k2,k1) = d_zero
@@ -435,7 +423,6 @@ module mod_vmodes
         end do
       end do
     end do
-!
     ps2 = xps*xps
     do k1 = 1 , kzp1
       do k2 = 1 , kz
@@ -445,7 +432,6 @@ module mod_vmodes
         end do
       end do
     end do
-!
     do k1 = 1 , kzp1
       do k2 = 1 , kzp1
         varpa2(k2,k1) = d_zero
@@ -454,22 +440,21 @@ module mod_vmodes
         end do
       end do
     end do
-!
     alpha1 = hydros(kz,kz)*tbarh(kz)/xps
     alpha2 = hweigh(kz)
-!
-!   subract a4 from a for use in computing am.
-!
+    !
+    ! subract a4 from a for use in computing am.
+    !
     do k1 = 1 , kz
       do k2 = 1 , kz
         a0(k2,k1) = a0(k2,k1) - a4(k2,k1)
       end do
     end do
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!   output desired arrays
-!
+    !
+    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    !
+    ! output desired arrays
+    !
     if ( myid == iocpu ) then
       call vprntv(sigma,kzp1,'sigma   ')
       call vprntv(tbarh,kz,'t mean  ')
@@ -477,9 +462,10 @@ module mod_vmodes
       call vprntv(pps,1,'ps mean ')
       print 99003 , kz , numerr
     end if
-!
-!   printout if desired
-    if ( .not.lprint ) then
+    !
+    ! printout if desired
+    !
+    if ( .not. lprint ) then
       return
     end if
     call vprntv(cpfac,kz,'cpfac   ')
@@ -500,7 +486,6 @@ module mod_vmodes
     call vprntm(zmatxr,kz,kz,'zmatxr  ')
     call vprntm(varpa1,kz,kzp1,'varpa1  ')
     call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
-!
 
 99001 format ('0 for k=',i3,' sigma(k+1)=',f9.6,' <= sigma(k)=',f9.6)
 99002 format ('0 problem with linearization of hydostatic equation')
@@ -508,24 +493,20 @@ module mod_vmodes
               ' errors detected   (should be 0)')
 99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
  
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
 
     contains
-!
-!   Check if tbar is stable.  This is not the actual stability condition
-!   consistent with the model finite differences.
-!
+    !
+    ! Check if tbar is stable.  This is not the actual stability condition
+    ! consistent with the model finite differences.
+    !
     subroutine vchekt
       implicit none
-!
       real(rk8) :: ds1 , ds2 , g1 , g2 , tb
       integer(ik4) :: k
       logical :: lstab
-!
-      character (len=64) :: subroutine_name='vchekt'
-      integer(ik4) :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
       lstab = .true.
       do k = 1 , kz - 1
         ds1 = sigma(k+1) - sigma(k)
@@ -539,25 +520,18 @@ module mod_vmodes
         numerr = numerr + 1
         print 99001
       end if
-!
-      call time_end(subroutine_name,idindx)
-!
 99001 format ('0 indication that tbarh statically unstable')
-!
     end subroutine vchekt
-!
-!   This routine computes the temperature corresponding to a U.S.
-!   standard atmosphere (see text by hess). Units of p are cb.
-!
+    !
+    ! This routine computes the temperature corresponding to a U.S.
+    ! standard atmosphere (see text by hess). Units of p are cb.
+    !
     subroutine vtlaps
       implicit none
-!
       real(rk8) , parameter :: tstrat = 218.15D0
       real(rk8) , parameter :: zstrat = 10769.0D0
-!
       real(rk8) :: p0 , fac , p , z
       integer(ik4) :: k
-!
       p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
       do k = 1 , kz
@@ -566,19 +540,16 @@ module mod_vmodes
         z = (stdt-tbarh(k))/lrate
         if ( z > zstrat ) tbarh(k) = tstrat
       end do
-!
     end subroutine vtlaps
-!
-!   This routine orders the components of hbar so they are largest to
-!   smallest valued.  The columns of zmatx are reorded so that they
-!   correspond to the same (but reordered) components of hbar.
-!
+    !
+    ! This routine orders the components of hbar so they are largest to
+    ! smallest valued.  The columns of zmatx are reorded so that they
+    ! correspond to the same (but reordered) components of hbar.
+    !
     subroutine vorder
       implicit none
-!
       real(rk8) :: hmax
       integer(ik4) :: k , kmax , l
-!
       kmax = 1
       do k = 1 , kz
         w2(k,1) = hbar(k)
@@ -587,7 +558,6 @@ module mod_vmodes
           w1(k,l) = zmatx(k,l)
         end do
       end do
-!
       do l = 1 , kz
         hmax = -1.0D100
         do k = 1 , kz
@@ -596,31 +566,26 @@ module mod_vmodes
             kmax = k
           end if
         end do
-!
         hbar(l) = hmax
         w2(kmax,2) = d_one
         do k = 1 , kz
           zmatx(k,l) = w1(k,kmax)
         end do
       end do
-!
     end subroutine vorder
-!
-!   This routine normalizes the columns of z such that the component
-!   with the largest absolute value is positive, and the sum of the
-!   mass-weighted squares equals one.
-!
+    !
+    ! This routine normalizes the columns of z such that the component
+    ! with the largest absolute value is positive, and the sum of the
+    ! mass-weighted squares equals one.
+    !
     subroutine vnorml
       implicit none
-!
       real(rk8) :: a , v , zmax
       integer(ik4) :: k , kmax , l
-!
       kmax = 1
       do l = 1 , kz
         zmax = -d_one
         v = d_zero
-!
         do k = 1 , kz
           a = dabs(zmatx(k,l))
           if ( a > zmax ) then
@@ -629,93 +594,78 @@ module mod_vmodes
           end if
           v = (sigma(k+1)-sigma(k))*a*a + v
         end do
-!
         a = (zmatx(kmax,l)/zmax)/dsqrt(v)
         do k = 1 , kz
           zmatx(k,l) = a*zmatx(k,l)
         end do
       end do
-!
     end subroutine vnorml
-!
-!   Check that eigenvalues are real and positive valued.
-!
+    !
+    ! Check that eigenvalues are real and positive valued.
+    !
     subroutine vcheke
       implicit none
-!
       real(rk8) , parameter :: tol = 1.0D-9
-!
       real(rk8) :: emax
       integer(ik4) :: n , nimag , numneg
-!
       numneg = 0
       emax = d_zero
       do n = 1 , kz
         if ( hbar(n) <= d_zero ) numneg = numneg + 1
         if ( hbar(n) > emax ) emax = hbar(n)
       end do
-!
       nimag = 0
       do n = 1 , kz
         if ( w2(n,1)/emax > tol ) nimag = nimag + 1
       end do
-!
       if ( numneg+nimag == 0 ) then
         return
       end if
-!
       numerr = numerr + 1
       print 99001 , numneg , nimag
-!
 99001 format ('0 problem with equivalent depths determined from tau',/, &
          10x,i3,' depths are nonpositive valued',10x,i3,' are not real')
-!
     end subroutine vcheke
-!
   end subroutine vmodes
-!
-! Flag of detected errors in linear algebra routines
-!
+  !
+  ! Flag of detected errors in linear algebra routines
+  !
   subroutine vcheki(ier,numerr,aname)
     implicit none
-!
     character(8) :: aname
     integer(ik4) :: ier , numerr
     intent (in) aname , ier
     intent (inout) numerr
-!
     if ( ier /= 0 ) then
       numerr = numerr + 1
       print 99001 , aname , ier
     end if
-!
 99001 format ('0 error in determination of ',a8, &
               ' using library routine ier=',i4)
   end subroutine vcheki
-!
-! Matrix inversion using linpack
-!
+  !
+  ! Matrix inversion using linpack
+  !
   subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
     implicit none
-!
     integer(ik4) :: na , nv , n , ier
     integer(ik4) , dimension(n) :: ip
     real(rk8) :: a(n,n) , v(n,n) , work(n) , d(2)
     integer(ik4) :: i , j
-!
-!   08/23/91 Version 1.0
-!   12/10/92 Updated to correct bugs
-!   Note: different from cray routine invmtx
-!   Uses subroutines sgefa/sgedi from library linpack
-!
-    character (len=64) :: subroutine_name='invmtrx'
-    integer(ik4) :: idindx=0
-!
+    !
+    ! 08/23/91 Version 1.0
+    ! 12/10/92 Updated to correct bugs
+    ! Note: different from cray routine invmtx
+    ! Uses subroutines sgefa/sgedi from library linpack
+    !
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'invmtrx'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     if ( n /= na .or. n /= nv ) then
       call fatal(__FILE__,__LINE__,'invmtx: equate n, na, nv')
     end if
-!
     do j = 1 , n
       do i = 1 , n
         v(i,j) = a(i,j)
@@ -728,14 +678,15 @@ module mod_vmodes
       call fatal(__FILE__,__LINE__,'sgefa error')
     end if
     call sgedi(v,n,n,ip,d,work,11)
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)  
+#endif
   end subroutine invmtrx
-!
-! Printout helpers
-!
+  !
+  ! Printout helpers
+  !
   subroutine vprntv(a,n,nam)
     implicit none
-!
     integer(ik4) :: n
     character(8) :: nam
     real(rk8) , dimension(n) :: a
@@ -749,7 +700,6 @@ module mod_vmodes
 !
   subroutine vprntm(a,n1,n2,nam)
     implicit none
-!
     integer(ik4) :: n1 , n2
     character(8) :: nam
     real(rk8) , dimension(n1,n2) :: a

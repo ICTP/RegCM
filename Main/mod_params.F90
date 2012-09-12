@@ -87,8 +87,10 @@ module mod_params
 #ifndef CLM
   real(rk8) :: clmfrq
 #endif
-  character (len=64) :: subroutine_name='param'
-  integer(ik4) :: idindx=0
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'param'
+  integer(ik4) :: idindx = 0
+#endif
 !
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
@@ -146,7 +148,9 @@ module mod_params
 
   namelist /cplparam/ cpldt, cpldbglevel
 !
+#ifdef DEBUG
   call time_begin(subroutine_name,idindx)
+#endif
 !
 !----------------------------------------------------------------------
 !-----specify the parameters used in the model:
@@ -1763,7 +1767,9 @@ module mod_params
   call allocate_v3dbound(xub,kz,dot)
   call allocate_v3dbound(xvb,kz,dot)
 !
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
+#endif
 !
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                            &

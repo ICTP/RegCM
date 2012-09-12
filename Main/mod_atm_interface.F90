@@ -32,10 +32,9 @@ module mod_atm_interface
 
   logical , public , parameter :: cross = .false.
   logical , public , parameter :: dot = .true.
-
 !
 ! Storage for all the 3d prognostic variables in two
-!     timesteps and all the 2d variables and constants
+! timesteps and all the 2d variables and constants
 !
   type domain
     real(rk8) , pointer , dimension(:,:) :: ht

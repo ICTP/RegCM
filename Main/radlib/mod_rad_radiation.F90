@@ -670,10 +670,11 @@ module mod_rad_radiation
 !
     integer(ik4) :: iband
 
-    character (len=64) :: subroutine_name='radini'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radini'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Set general radiation consts; convert to cgs units where
 !   appropriate:
@@ -741,8 +742,9 @@ module mod_rad_radiation
     c30 = 0.1D0
     c31 = 3.0D-5
     cfa1 = 0.61D0
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radini
 !
 !-----------------------------------------------------------------------
@@ -864,10 +866,11 @@ module mod_rad_radiation
 !
     integer(ik4) :: n , k
 !
-    character (len=64) :: subroutine_name='radctl'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radctl'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Instead of interpolating the o3vmr from the time-interpolated
 !   values, we pass compute o3vmr in getdat() and pass it directly
@@ -991,8 +994,9 @@ module mod_rad_radiation
                   flnsc(n) * (d_one - totcf(n))
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radctl
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1185,11 +1189,13 @@ module mod_rad_radiation
                trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
     integer(ik4) :: n , indxsl , k , ns
 !
-    character (len=64) :: subroutine_name='radcsw'
     logical :: lzero = .false.
-    integer(ik4) :: indx = 0
 !
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radcsw'
+    integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Initialize output fields:
 !
@@ -1748,8 +1754,9 @@ module mod_rad_radiation
     do n = n1 , n2
       fsds(n) = fswdn(n,kzp1)
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radcsw
 !
 !-----------------------------------------------------------------------
@@ -1837,12 +1844,11 @@ module mod_rad_radiation
     real(rk8) :: absbt , bk1 , bk2 , tmp1
     integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
                km3 , km4 , ns , irad , nradaer
-!
-    character (len=64) :: subroutine_name='radclw'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radclw'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
-!
+#endif
     do n = n1 , n2
       rtclrsf(n,1) = d_one/tclrsf(n,1)
     end do
@@ -2252,9 +2258,9 @@ module mod_rad_radiation
                     ((pint(n,k)-pint(n,k+1)))
       end do
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
-
+#endif
     contains
 
       integer function intmax(imax)
@@ -2339,10 +2345,11 @@ module mod_rad_radiation
                tautot , tdnmexp , ts , ue , ws , wtot
     integer(ik4) :: n , k
 !
-    character (len=64) :: subroutine_name='radclw'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radclw'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !-----------------------------------------------------------------------
 !
 !   Initialize all total transmimission values to 0, so that nighttime
@@ -2502,8 +2509,9 @@ module mod_rad_radiation
                       (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
       end if
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radclr
 !
 !-----------------------------------------------------------------------
@@ -2594,11 +2602,11 @@ module mod_rad_radiation
                taucsc , tautot , tdnmexp , ts , ue , ws ,     &
                wt , wtau , wtot
     integer(ik4) :: n , k
-!
-    character (len=64) :: subroutine_name='radded'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radded'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !-----------------------------------------------------------------------
 !
 !   Initialize all total transmission values to 0, so that nighttime
@@ -2820,8 +2828,9 @@ module mod_rad_radiation
                       (tdif(n,k-1)*rdenom)
       end if
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radded
 !
 !-----------------------------------------------------------------------
@@ -3049,11 +3058,11 @@ module mod_rad_radiation
     real(rk8) , dimension(2) :: r2st , term7 , term8 , trline
     integer(ik4) :: n , iband , k , k1 , k2 , kn , wvl
 !
-    character (len=64) :: subroutine_name='radabs'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radabs'
     integer(ik4) :: indx = 0
-!
-!-----------------------------------------------------------------------
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Initialize
 !
@@ -3538,8 +3547,9 @@ module mod_rad_radiation
         end do
       end do
     end do  !  end of nearest layer level loop
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radabs
 !
 !-----------------------------------------------------------------------
@@ -3735,12 +3745,11 @@ module mod_rad_radiation
     real(rk8) :: xterm6 , xterm9
     real(rk8) , dimension(2) :: term7 , term8 , trline
     integer(ik4) :: n , k , kk , iband , l
-!
-    character (len=64) :: subroutine_name='radems'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radems'
     integer(ik4) :: indx = 0
-!
-!-----------------------------------------------------------------------
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Planck function for co2
 !
@@ -3966,8 +3975,9 @@ module mod_rad_radiation
         emsgastot(n,k) = h2oems(n,k)+co2ems(n,k)+o3ems(n,k)+emstrc(n,k)
       end do
     end do  ! End of interface loop
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radems
 !
 !-----------------------------------------------------------------------
@@ -4003,10 +4013,11 @@ module mod_rad_radiation
 !-----------------------------------------------------------------------
 !
     integer(ik4) :: n , k
-    character (len=64) :: subroutine_name='radoz2'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radoz2'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Evaluate the ozone path length integrals to interfaces;
 !   factors of 0.1 and 0.01 to convert pressures from cgs to mks:
@@ -4025,7 +4036,9 @@ module mod_rad_radiation
                     (pint(n,k)*pint(n,k)-pint(n,k-1)*pint(n,k-1))
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radoz2
 !
 !-----------------------------------------------------------------------
@@ -4062,10 +4075,11 @@ module mod_rad_radiation
 !
     real(rk8) :: dpnm , dpnmsq , dy , rtnm
     integer(ik4) :: n , k
-    character (len=64) :: subroutine_name='radtpl'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radtpl'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Set the top and bottom intermediate level temperatures,
 !   top level planck temperature and top layer temp**4.
@@ -4138,8 +4152,9 @@ module mod_rad_radiation
                      dexp(1800.0D0*(rtnm-r296))*qnm(n,k)*repsil
       end do
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radtpl
 !
 !-----------------------------------------------------------------------
@@ -4211,10 +4226,11 @@ module mod_rad_radiation
 !   Processes in Meterology and Climatology, Elsevier Scientific
 !   Publishing Company, New York  p. 57, p. 62,63.
 !
-    character (len=64) :: subroutine_name='radinp'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radinp'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
     !
     ! Convert pressure from pascals to dynes/cm2
     !
@@ -4254,7 +4270,9 @@ module mod_rad_radiation
         o3mmr(n,k) = vmmr*o3vmr(n,k)
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine radinp
 !
   real(rk8) function xalpha(w,uu,g,e)

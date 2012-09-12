@@ -179,14 +179,13 @@ module mod_bats_mtrxbats
 !=======================================================================
 ! 
   subroutine mtrxbats(ktau)
-!
     implicit none
-!
     integer(ik8) , intent(in) :: ktau
-    character (len=64) :: subroutine_name='mtrxbats'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'mtrxbats'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 !
 !---------------------------------------------------------------------
 !
@@ -213,9 +212,10 @@ module mod_bats_mtrxbats
 !   Accumulate quantities for energy and moisture budgets
 
     call interf(2,ktau)
-! 
-    call time_end(subroutine_name,idindx)
 !
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine mtrxbats
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -230,16 +230,16 @@ module mod_bats_mtrxbats
 !
   subroutine initb
     implicit none
-! 
     integer(ik4) :: i , is , itex , j , n , nlveg
 !
-    character (len=64) :: subroutine_name='initb'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'initb'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
-!   initialize hostetler lake model
-!
+#endif
+    !
+    ! initialize hostetler lake model
+    !
     if ( llake ) call initlake
  
     do i = ici1 , ici2
@@ -270,9 +270,9 @@ module mod_bats_mtrxbats
         end do
       end do
     end do
-! 
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine initb
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -285,9 +285,7 @@ module mod_bats_mtrxbats
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
   subroutine interf(ivers,ktau)
-!
     implicit none
-!
     integer(ik4) , intent (in) :: ivers
     integer(ik8) , intent(in) :: ktau
 !
@@ -296,11 +294,11 @@ module mod_bats_mtrxbats
                 solvt , wpm2 , p0 , qs0 , ts0
     integer(ik4) :: i , j , n , nnn
     real(rk4) :: real_4
-!
-    character (len=64) :: subroutine_name='interf'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'interf'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
  
     if ( ivers == 1 ) then ! regcm --> bats
 
@@ -647,8 +645,9 @@ module mod_bats_mtrxbats
         end do
       end if
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine interf
 !
 ! Albedo calculates fragmented albedos (direct and diffuse) in
@@ -685,10 +684,11 @@ module mod_bats_mtrxbats
     real(rk8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer(ik4) :: kolour , n , i , j
-    character (len=64) :: subroutine_name='albedobats'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'albedobats'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! =================================================================
     ! 1. set initial parameters
@@ -893,8 +893,9 @@ module mod_bats_mtrxbats
       end do
     end do
     aemiss = sum(emiss,1)*rdnnsg
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine albedobats
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -917,11 +918,11 @@ module mod_bats_mtrxbats
 !   capacity is assumed to be 2 mm/day (baver et al., 1972)
 !   ===============================================================
 !
-    character (len=64) :: subroutine_name='soilbc'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'soilbc'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
- 
+#endif 
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -959,8 +960,9 @@ module mod_bats_mtrxbats
         end do
       end do
     end do
- 
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine soilbc
 !
 end module mod_bats_mtrxbats

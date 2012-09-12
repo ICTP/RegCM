@@ -53,10 +53,6 @@ module mod_split
 !
   subroutine allocate_mod_split
     implicit none
-    character (len=64) :: subroutine_name='allocate_mod_split'
-    integer(ik4) :: idindx = 0
-!
-    call time_begin(subroutine_name,idindx)
     call getmem1d(aam,1,nsplit,'split:aam')
     call getmem2d(am,1,kz,1,nsplit,'split:am')
     call getmem1d(an,1,nsplit,'split:naam')
@@ -71,7 +67,6 @@ module mod_split
     call getmem2d(vv,jdi1,jdi2+ma%jbr1,idi1,idi2+ma%ibt1,'split:vv')
     call getmem3d(uuu,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:uuu')
     call getmem3d(vvv,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:vvv')
-    call time_end(subroutine_name,idindx)
   end subroutine allocate_mod_split
 !
 ! Intial computation of vertical modes.
@@ -81,10 +76,11 @@ module mod_split
     real(rk8) :: eps , eps1 , fac , pdlog
     integer(ik4) :: i , ijlx , j , k , l , n , ns
     logical :: lstand
-    character (len=64) :: subroutine_name='spinit'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'spinit'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! Compute m.
     !
@@ -169,7 +165,9 @@ module mod_split
     ! If a restart run, do not recalculate the hstor/dstor
     !
     if ( ifrest ) then
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
       return
     end if
     !
@@ -228,9 +226,9 @@ module mod_split
         end do
       end do
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine spinit
 !
 ! Compute deld, delh, integrate in time and add correction terms appropriately
@@ -239,11 +237,11 @@ module mod_split
     implicit none
     real(rk8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
     integer(ik4) :: i , j , k , l , n
-    character (len=64) :: subroutine_name='splitf'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'splitf'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     deld(:,:,:,:) = d_zero
     delh(:,:,:,:) = d_zero
 !
@@ -491,11 +489,9 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine splitf
 !
   subroutine spstep
@@ -503,11 +499,11 @@ module mod_split
 !
     real(rk8) :: dtau2 , fac
     integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
-    character (len=64) :: subroutine_name='spstep'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'spstep'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -730,8 +726,9 @@ module mod_split
       end do
 !
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine spstep
 !
 end module mod_split

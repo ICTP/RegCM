@@ -232,10 +232,11 @@ module mod_rad_colmod3
     real(rk8) , intent(in) :: eccf
 !
     integer(ik4) :: i , j , k , n , m , k2 , jj0 , jj1 , jj2
-    character (len=64) :: subroutine_name='colmod3'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
 !   Fields specified by the user in getdat()
 !
@@ -463,8 +464,9 @@ module mod_rad_colmod3
                 fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,h2ommr, &
                 cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,   &
                 tauxar3d,tauasc3d,gtota3d)
-!
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine colmod3
 !
 !-----------------------------------------------------------------------
@@ -489,10 +491,11 @@ module mod_rad_colmod3
     ! Temperatures in K (263.16 , 243.16)
     real(rk8) , parameter :: minus10 = wattp-d_10
     real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
-    character (len=64) :: subroutine_name='cldefr'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'cldefr'
     integer(ik4) :: indx = 0
-!
     call time_begin(subroutine_name,indx)
+#endif
 !
     totci(:) = d_zero
     do k = 1 , kz
@@ -536,8 +539,9 @@ module mod_rad_colmod3
         totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
-!
+#endif
   end subroutine cldefr
 !
 !-----------------------------------------------------------------------
@@ -550,9 +554,11 @@ module mod_rad_colmod3
     implicit none
     integer(ik4) :: n , k
     real(rk8) :: kabs , kabsi
-    character (len=64) :: subroutine_name='cldems'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'cldems'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
+#endif
     do k = 1 , kz
       do n = 1 , npr
         ! ice absorption coefficient
@@ -563,7 +569,9 @@ module mod_rad_colmod3
         emis(n,k) = d_one - dexp(-1.66D0*kabs*clwp(n,k))
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine cldems
 !
 !-----------------------------------------------------------------------
@@ -581,13 +589,12 @@ module mod_rad_colmod3
     real(rk8) , parameter :: amd = 28.9644D0
     real(rk8) , parameter :: amo = 48.0000D0
     real(rk8) , parameter :: vmmr = amo/amd
-    logical , save :: ifirst
-    character (len=64) :: subroutine_name='getdat'
+    logical , save :: ifirst = .true.
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'getdat'
     integer(ik4) :: indx = 0
-!
-    data ifirst /.true./
-!
     call time_begin(subroutine_name,indx)
+#endif
     !
     ! Static informations
     !
@@ -829,7 +836,9 @@ module mod_rad_colmod3
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,indx)
+#endif
   end subroutine getdat
 !
 end module mod_rad_colmod3

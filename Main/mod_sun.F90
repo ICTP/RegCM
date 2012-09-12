@@ -37,12 +37,13 @@ module mod_sun
    integer(ik4) :: ii , jj
 
    public :: solar1 , zenitm , solar_irradiance
-!
+   !
    ! ANNUAL MEAN TSI
    ! Lean (GRL 2000) with Wang Lean Sheeley (ApJ 2005) background
    ! Mon Apr  6 11:29:27 2009
    ! PMOD absolute scale , multiply by 0.9965 for TIM scale
    ! YEAR, TSI 11-yr cycle, TSI cycle+background  
+   !
    data ((tsi(ii,jj),ii=1,3),jj=1610,2008) / &
        1610.5D0,1365.8477D0,1365.5469D0, 1611.5D0,1365.8342D0,1365.5300D0, &
        1612.5D0,1366.2461D0,1365.9279D0, 1613.5D0,1366.3650D0,1366.0399D0, &
@@ -245,32 +246,23 @@ module mod_sun
        2006.5D0,1365.8107D0,1365.8107D0, 2007.5D0,1365.7240D0,1365.7240D0, &
        2008.5D0,1365.6918D0,1365.6918 /
   contains
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-! This subroutine computes the solar declination angle
-! from the julian date.
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+  !
+  ! This subroutine computes the solar declination angle
+  ! from the julian date.
+  !
   subroutine solar1
-
     implicit none
-!
-    real(rk8) :: decdeg
-    real(rk8) :: theta
-!
-!----------------------------------------------------------------------
-!
-    character (len=64) :: subroutine_name='solar1'
-    integer(ik4) :: idindx=0
-!
+    real(rk8) :: decdeg , theta
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'solar1'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     calday = yeardayfrac(idatex)
     theta = twopi*calday/dayspy
-!
-!   Solar declination in radians:
-!
+    !
+    ! Solar declination in radians:
+    !
     declin = 0.006918D0 - 0.399912D0*dcos(theta) + &
              0.070257D0*dsin(theta) -              &
              0.006758D0*dcos(2.0D0*theta) +        &
@@ -278,44 +270,34 @@ module mod_sun
              0.002697D0*dcos(3.0D0*theta) +        &
              0.001480D0*dsin(3.0D0*theta)
     decdeg = declin/degrad
-!
     write (aline, 99001) calday, decdeg
     call say
     write (aline, 99002) solcon
     call say
 99001 format ('JDay ',f12.2,' solar declination angle = ',f12.8,' degrees')
 99002 format (18x,'solar TSI irradiance    = ',f12.4,' W/m^2')
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine solar1
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-! This subroutine calculates the cosine of the solar zenith angle
-! for all longitude points of the RegCM domain. It needs as inputs
-! the longitude and latitude of the points, the initial date of the
-! simulation and the gmt. All these quantities are specified
-! in the initialization procedure of RegCM
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+  !
+  ! This subroutine calculates the cosine of the solar zenith angle
+  ! for all longitude points of the RegCM domain. It needs as inputs
+  ! the longitude and latitude of the points, the initial date of the
+  ! simulation and the gmt. All these quantities are specified
+  ! in the initialization procedure of RegCM
+  !
   subroutine zenitm(coszrs)
-!
     implicit none
-!
     real(rk8) , pointer , intent (out), dimension(:,:) :: coszrs
-!
     integer(ik4) :: i , j
     real(rk8) :: omga , tlocap , xt24
-    character (len=64) :: subroutine_name='zenitm'
     real(rk8) :: xxlat
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'zenitm'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
-!***********************************************************************
-!
+#endif
     xt24 = dble(idatex%second_of_day)/secph
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -330,13 +312,20 @@ module mod_sun
         coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine zenitm
 !
   real(rk8) function solar_irradiance( )
     implicit none
     integer(ik4) :: iyear , iidate
     real(rk8) :: w1 , w2
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'solar_irradiance'
+    integer(ik4) :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     if ( calday > dayspy/2.0D0 ) then
       w2 = calday/dayspy-0.5D0
       w1 = 1.0D0-w2
@@ -354,6 +343,9 @@ module mod_sun
       iyear = mod(xyear,12)+1996
     end if
     solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end function solar_irradiance
 !
 end module mod_sun

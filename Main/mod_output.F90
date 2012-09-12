@@ -66,10 +66,11 @@ module mod_output
 !
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
-  character (len=64) :: subroutine_name='output'
-  integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'output'
+  integer(ik4) :: idindx = 0
   call time_begin(subroutine_name,idindx)
+#endif
 !
   lstartup = .false.
   if ( ktau == 0 .or. doing_restart ) then
@@ -79,7 +80,9 @@ module mod_output
     lstartup = .true.
     if ( doing_restart ) then
       doing_restart = .false.
+#ifdef DEBUG
       call time_end(subroutine_name,idindx) 
+#endif
       return
     end if
   end if
@@ -396,116 +399,77 @@ module mod_output
       end if
     end if
   end if
-!
+#ifdef DEBUG
   call time_end(subroutine_name,idindx) 
-
+#endif
   end subroutine output
 !
   subroutine mkfile
- 
-  implicit none
-!
-  if ( myid /= iocpu ) return
-
-  print * , ' '
-  print * , '******* OPENING NEW OUTPUT FILES : ' , tochar(idatex)
-  print * , ' '
-
-  if ( ifatm ) then
-    call prepare_common_out(idatex,'ATM')
-  end if
- 
-  if ( ifsrf ) then
-    call prepare_common_out(idatex,'SRF')
-    if (lakemod == 1 .and. iflak) then
-      call prepare_common_out(idatex,'LAK')
+    implicit none
+    if ( myid /= iocpu ) return
+    print * , ' '
+    print * , '******* OPENING NEW OUTPUT FILES : ' , tochar(idatex)
+    print * , ' '
+    if ( ifatm ) then
+      call prepare_common_out(idatex,'ATM')
     end if
-    call prepare_common_out(idatex,'STS')
-  end if
- 
-  if ( nsg > 1 .and. ifsub ) then
-    call prepare_common_out(idatex,'SUB')
-  end if
- 
-  if ( ifrad ) then
-    call prepare_common_out(idatex,'RAD')
-  end if
- 
-  if ( ichem == 1 ) then
-    if ( ifchem ) then
-!      call prepare_common_out(idatex,'CHE')
-!      if (iaerosol == 1)
-!       call prepare_opt_out(idatex)
-      call prepare_chem_out(idatex,ifrest)
+    if ( ifsrf ) then
+      call prepare_common_out(idatex,'SRF')
+      if (lakemod == 1 .and. iflak) then
+        call prepare_common_out(idatex,'LAK')
+      end if
+      call prepare_common_out(idatex,'STS')
     end if
-  end if
-
+    if ( nsg > 1 .and. ifsub ) then
+      call prepare_common_out(idatex,'SUB')
+    end if
+    if ( ifrad ) then
+      call prepare_common_out(idatex,'RAD')
+    end if
+    if ( ichem == 1 ) then
+      if ( ifchem ) then
+        call prepare_chem_out(idatex,ifrest)
+      end if
+    end if
   end subroutine mkfile
 !
   subroutine outatm
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model output to tape or disk for use c
-!     in dataflow analyses.                                           c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-  implicit none
-
-  call writerec_atm(atm1_io%u,atm1_io%v,omega_io,atm1_io%t,atm1_io%qx, &
-                    atm1_io%tke,tcmstate_io%kth,tcmstate_io%kzm, &
-                    sfs_io%psa,sfs_io%rainc,sfs_io%rainnc,tgbrd_io, &
-                    tsw_io,ldmsk1_io,idatex)
- 
-  print *, 'ATM variables written at ' , tochar(idatex)
- 
+    implicit none
+    call writerec_atm(atm1_io%u,atm1_io%v,omega_io,atm1_io%t,atm1_io%qx, &
+                      atm1_io%tke,tcmstate_io%kth,tcmstate_io%kzm, &
+                      sfs_io%psa,sfs_io%rainc,sfs_io%rainnc,tgbrd_io, &
+                      tsw_io,ldmsk1_io,idatex)
+    print *, 'ATM variables written at ' , tochar(idatex)
   end subroutine outatm
 !
   subroutine outsrf
+    implicit none
+    call writerec_srf(fbat_io,ldmsk_io,idatex)
+    print *, 'SRF variables written at ' , tochar(idatex)
 
-  implicit none
-!
-  call writerec_srf(fbat_io,ldmsk_io,idatex)
-  print *, 'SRF variables written at ' , tochar(idatex)
-
-  if ( ifsts .and. mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
-    call writerec_sts(fbat_io,idatex)
-    print *, 'STS variables written at ' , tochar(idatex)
-  end if
-
+    if ( ifsts .and. mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
+      call writerec_sts(fbat_io,idatex)
+      print *, 'STS variables written at ' , tochar(idatex)
+    end if
 #ifndef CLM
-  if ( lakemod == 1 .and. iflak .and. iolak == klak ) then
-    call writerec_lak(fbat_io,evl_io,aveice_io, &
-                      hsnow_io,tlak_io,idatex)
-    print *, 'LAK variables written at ' , tochar(idatex)
-  end if
+    if ( lakemod == 1 .and. iflak .and. iolak == klak ) then
+      call writerec_lak(fbat_io,evl_io,aveice_io, &
+                        hsnow_io,tlak_io,idatex)
+      print *, 'LAK variables written at ' , tochar(idatex)
+    end if
 #endif
-
   end subroutine outsrf
 !
   subroutine outsub
-
-  implicit none
-
-  call writerec_sub(fsub_io,idatex)
-
-  print *, 'SUB variables written at ' , tochar(idatex)
-
+    implicit none
+    call writerec_sub(fsub_io,idatex)
+    print *, 'SUB variables written at ' , tochar(idatex)
   end subroutine outsub
 !
   subroutine outrad
-!
-  implicit none
-!
-!   character (len=64) :: subroutine_name='outrad'
-!   integer(ik4) :: idindx=0
-! 
-  call writerec_rad(4,12,frad3d_io,frad2d_io,sfs_io%psa,idatex)
-
-  print * , 'RAD variables written at ' , tochar(idatex)
-!   call time_end(subroutine_name,idindx)
-
+    implicit none
+    call writerec_rad(4,12,frad3d_io,frad2d_io,sfs_io%psa,idatex)
+    print * , 'RAD variables written at ' , tochar(idatex)
   end subroutine outrad
 !
 end module mod_output

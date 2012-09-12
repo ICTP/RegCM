@@ -82,7 +82,6 @@ module mod_che_bdyco
                          ide1-ma%ibb1,ide2+ma%ibt1, &
                          1,kz,1,5,'mod_che_bdyco:oxcl')
     end if 
-
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
@@ -93,11 +92,11 @@ module mod_che_bdyco
     character(len=32) :: appdat
     type (rcm_time_and_date) :: idate1, chbc_date
     type(rcm_time_interval)::  intbdy
-    
-    character (len=64) :: subroutine_name='che_init_bdy'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'che_init_bdy'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 
     chbdydate1 = idate1
     chbdydate2 = idate1
@@ -218,7 +217,9 @@ module mod_che_bdyco
       call grid_distribute(oxcl_io,oxcl,jce1,jce2,ice1,ice2,1,kz,1,5)
       call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine che_init_bdy
 
   subroutine chem_bdyin(dtbdys,intbdy)
@@ -228,11 +229,11 @@ module mod_che_bdyco
     integer(ik4) :: i , j , k , n , mmrec, after
     character(len=32) :: appdat
     integer(ik4) :: lyear , lmonth , lday , lhour
-
-    character (len=64) :: subroutine_name='chem_bdyin'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'chem_bdyin'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
   
     chbdydate2 = chbdydate2 + intbdy
     call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
@@ -294,7 +295,9 @@ module mod_che_bdyco
     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)
 
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine chem_bdyin
 
   subroutine chem_bdyval(xt,ktau)
@@ -303,11 +306,11 @@ module mod_che_bdyco
     real(rk8) , intent(in) :: xt
 !
     integer(ik4) :: itr , j , k , i
-    character (len=64) :: subroutine_name='chem_bdyval'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     if ( ktau > 1 ) then
       !
       ! West boundary
@@ -395,8 +398,9 @@ module mod_che_bdyco
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine chem_bdyval
 
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -443,11 +447,11 @@ module mod_che_bdyco
     real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
 
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge3d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'nudge_chi'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     if ( cba%dotflag ) then
       i1 = idi1
       i2 = idi2
@@ -536,8 +540,9 @@ module mod_che_bdyco
         end do
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine nudge_chi
 !
   subroutine setup_che_bdycon
@@ -547,7 +552,7 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1D0/ ( 2 * dtche)
+    fnudge = 0.1D0/ ( d_two * dtche)
     gnudge = (1.0D0/crdxsq/dtche)/50.0D0
     do k = 1 , kz
       do n = 2 , cnbdm-1

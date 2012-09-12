@@ -19,59 +19,60 @@
 
 module mod_service
 
+#ifdef DEBUG
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
-
-#ifdef DEBUG
-
   use mod_dynparam , only : mycomm , myid , nproc , debug_level
 
+  private
+
+  integer(ik4) , parameter , public :: dbgslen = 64
+  integer(ik4) , parameter , public :: dbglinelen = 80
+  integer(ik4) , parameter , public :: ndebug = 28 !! unit for debugging files
+
   type timing_info
-    character(len=64) :: name_of_section
+    character(len=dbgslen) :: name_of_section
     real(rk8) :: total_time
     integer(ik4) :: n_of_time
     integer(ik4) :: total_size
   end type timing_info
 
-  integer , parameter :: maxcall = 100
+  integer(ik4) , parameter :: maxcall = 100
   type(timing_info) , dimension(maxcall) :: info_serial , info_comm
   real(rk8) :: time_et(maxcall) , time_bt(maxcall) 
   integer(ik4) :: n_of_entry = 0
 
-  CHARACTER (len=120) :: errmsg   !! a string where to compose an error message
+  character(len=120) :: errmsg   !! a string where to compose an error message
 
   !! some global variable for debugging purposes 
   !! set by prepare_debug, start_debug and stop_debug subroutines
 
-  INTEGER(ik4) :: ndebug=28 !! unit for debugging files..
-  INTEGER(ik4) :: Nlevel=0  !! level of depth in printing calling tree.. 
-  LOGICAL :: ldebug=.FALSE. !! if true debug is enabled ( set by activate_debug)
-!  INTEGER(ik4) :: debug_level=0  !! Level of information to be printed out 
+  integer(ik4) :: nlevel = 0  !! level of depth in printing calling tree.. 
+  logical :: ldebug = .false. !! if true debug is enabled
 
-!!! 
-
-  INTEGER(ik4), PRIVATE :: node=0,mxnode=1
-  INTEGER(ik4), PRIVATE :: called
-  INTEGER(ik4), PRIVATE, ALLOCATABLE :: a_tmp(:)
+  integer(ik4) :: node = 0
+  integer(ik4) :: mxnode = 1
+  integer(ik4) , allocatable , dimension(:) :: a_tmp
 
   !! interface for write_info subroutine
 
-  INTERFACE WRITE_info
-     MODULE PROCEDURE printa_i 
-     MODULE PROCEDURE printa_r
-  END INTERFACE
+  interface write_info
+    module procedure printa_i 
+    module procedure printa_r
+  end interface
 
   !! interface for check_memory subroutine
 
-  INTERFACE check_memory
-     MODULE PROCEDURE check_memory_r 
-     MODULE PROCEDURE check_memory_i
-  END INTERFACE
+  interface check_memory
+    module procedure check_memory_r 
+    module procedure check_memory_i
+  end interface
 
-  PUBLIC :: activate_debug, start_debug, stop_debug
+  public :: activate_debug , start_debug , stop_debug
+  public :: time_begin , time_end , time_reset , time_print
 
-  CONTAINS
+  contains
 
     subroutine activate_debug(level)
       implicit none
@@ -79,7 +80,7 @@ module mod_service
       integer(ik4) , optional :: level
       character(len=3) :: np = '   '
       character(len=9) :: string
-      character(len=64) :: sub = 'activate_debug'
+      character(len=dbgslen) :: sub = 'activate_debug'
       integer(ik4) :: ierr1 , idum
 
       ! Number of processes
@@ -114,155 +115,126 @@ module mod_service
       write(string,'(a6,a3)') "debug_",np
       open(ndebug+node,file=string,status='unknown')
       idum = ndebug+node
-      CALL write_info(sub,'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum)
+      call write_info(sub,'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum)
       if ( present(level) ) debug_level = level
-      CALL write_info(sub, &
+      call write_info(sub, &
          'debug_level not specified in regcm.in file : default is ',debug_level)
       ldebug = .true.
     end subroutine activate_debug
 
-  !!>
-  !!   ROUTINE : START_DEBUG
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
-  !!   ACTION : start debug facilites on specific portion of code
-  !!< 
-  SUBROUTINE start_debug(level,sub,line)
+    subroutine start_debug(level,sub,line)
+      implicit none
+      integer(ik4) , optional , intent(in) :: level
+      character(len=*) , optional , intent(in) :: sub
+      integer(ik4) , optional , intent(in) :: line
+      character(len=dbglinelen) :: string = '   '
+      character(len=dbgslen) :: substr = 'not specified'
+      character(len=8) :: sline = ' no spec'
+      string = ' '
+      substr = 'not specified'
+      sline = ' no spec'
+      if ( present(sub) ) substr = sub
+      if ( present(line) ) write(sline,'(1x,i6)') line
+      write(string,'(A29,A20,A6,A8)') &
+           'Debugging started in routine:',substr(1:20),', line',sline  
+      write(ndebug+node,'(a80)') string
+      call flusha(ndebug+node)
+      if ( ldebug ) then 
+        write(ndebug+node,*) 'Debug already active, debug level = ', debug_level
+      else 
+        ldebug = .true.
+        if ( present(level) ) debug_level = level
+      end if
+    end subroutine start_debug
 
-    IMPLICIT NONE
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: LEVEL
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
-    CHARACTER(len=80) :: string='   '
-    CHARACTER(len=64) :: substr='not specified'
-    CHARACTER(len=8)  :: sline =' no spec'
+    subroutine stop_debug(level,sub,line)
+      implicit none
+      integer(ik4) , optional :: level
+      character(len=*) , optional , intent(in) :: sub
+      integer(ik4) , optional , intent(in) :: line
+      character(len=dbglinelen) :: string = ' '
+      character(len=dbgslen) :: substr = ' not specified'
+      character(len=8) :: sline = ' no spec'
+      string = ' '
+      substr = ' not specified'
+      sline = ' no spec'
+      if ( present(level) ) debug_level = level
+      if ( present(sub) ) substr = sub
+      if ( present(line) ) write(SLINE,'(1X,I6)') LINE
+      write(string,'(a24,a20,a6,a8)') &
+           'Ending debug in routine:', substr(1:20), ", line", sline  
+      ldebug = .false.
+      debug_level = 0
+      write(ndebug+node,'(a80)') string
+      call flusha(ndebug+node)
+    end subroutine stop_debug
 
-    string=' '
-    substr='not specified'
-    sline =' no spec'
-    IF (PRESENT(SUB)) substr=sub
-    IF (PRESENT(LINE)) WRITE(SLINE,'(1X,I6)') LINE
-    WRITE(string,'(A29,A20,A6,A8)') &
-         'Debugging started in routine:',substr(1:20),', line',SLINE  
-    WRITE(ndebug+NODE,'(A80)') string
-    CALL flusha(ndebug+node)
-    IF (LDEBUG) THEN 
-       WRITE(ndebug+NODE,*) 'Debug already active, debug level=',debug_level
-    ELSE 
-       LDEBUG=.TRUE.
-       IF (PRESENT(level)) debug_level=level
-    END IF
-
-  END SUBROUTINE START_DEBUG
-
-
-
-  !!>
-  !!   ROUTINE : STOP_DEBUG
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
-  !!   ACTION : stop debug facilities
-  !!<   
-  SUBROUTINE STOP_debug(level,sub,line)
-
-    IMPLICIT NONE
-    INTEGER(ik4), OPTIONAL :: LEVEL
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
-    CHARACTER(len=80) :: string=' '
-    CHARACTER(len=64) :: substr=' not specified'
-    CHARACTER(len=8)  :: sline =' no spec'
-
-    string=' '
-    substr=' not specified'
-    sline =' no spec'
-    IF (PRESENT(level)) debug_level=0 
-    IF (PRESENT(level)) debug_level=level
-    IF (PRESENT(SUB)) substr=sub
-    IF (PRESENT(LINE)) WRITE(SLINE,'(1X,I6)') LINE
-
-
-    WRITE(string,'(A24,A20,A6,A8)') &
-         'Ending debug in routine:',substr(1:20),", line",SLINE  
-    LDEBUG=.FALSE.
-    debug_level=0
-    WRITE(ndebug+NODE,'(A80)') string
-    CALL flusha(ndebug+node)
-  END SUBROUTINE STOP_DEBUG
-
-
-  !!>
-  !!   ROUTINE : TIME_BEGIN
-  !!   ACTION : start recording time for the calling subroutine
-  !!<
-  SUBROUTINE time_begin(name,indx)
-    IMPLICIT NONE
-    INTEGER(ik4), INTENT(INOUT) :: indx
-    CHARACTER (len=64) :: name
-    CHARACTER (len=64) :: stringa='                                      '
-
-    IF (indx==0) THEN 
-       n_of_ENTRY=n_of_ENTRY+1
-       indx=n_of_ENTRY
-    END IF
-
-    time_bt(indx)=timer()
-
-    ! debugging stuff: if debug_level is greater than 3 print out name of the  
-    ! routine ( just 4 levels depth..)
-
-    IF (ldebug.AND.(debug_level.GT.3)) THEN
-       nlevel=nlevel+1
-       IF (nlevel.LE.4) THEN 
-          WRITE(ndebug+node,*) stringa(1:nlevel*2),name(1:20),"(in)",nlevel
-          CALL flusha(ndebug+node)
-       ENDIF
-    END IF
-  END SUBROUTINE time_begin
+    subroutine time_begin(name,indx)
+      implicit none
+      integer(ik4) , intent(inout) :: indx
+      character(len=dbgslen) :: name
+      character(len=dbgslen) :: stringa
+      if ( indx == 0 ) then 
+        n_of_entry = n_of_entry + 1
+        indx = n_of_entry
+      end if
+      time_bt(indx) = timer()
+      ! debugging stuff: if debug_level is greater than 3 print out name of the
+      ! routine ( just 4 levels depth..)
+      if ( ldebug .and. (debug_level > 3) ) then
+        nlevel = nlevel+1
+        if ( nlevel <= 4 ) then 
+          write(ndebug+node,*) stringa(1:nlevel*2),name(1:20),"(in)",nlevel
+          call flusha(ndebug+node)
+        end if
+      end if
+    end subroutine time_begin
 
   !!> 
   !!   ROUTINE : TIME_END
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : end recording time for the calling subroutine
   !!<
-  SUBROUTINE time_end(name_of_section,indx,isize)
-    IMPLICIT NONE
-    CHARACTER (len=64) ::  name_of_section
-    INTEGER(ik4), INTENT(IN) :: indx
-    INTEGER(ik4), OPTIONAL :: isize
-    REAL (Kind=8)  :: time_CALL
-    CHARACTER (len=64)  :: stringa=' '
+  subroutine time_end(name_of_section,indx,isize)
+    implicit none
+    character (len=dbgslen) ::  name_of_section
+    integer(ik4), intent(IN) :: indx
+    integer(ik4), optional :: isize
+    real (Kind=8)  :: time_call
+    character (len=dbgslen)  :: stringa=' '
 
     ! check for indx: should not be less than zero
     IF (indx<0) THEN 
-       CALL error_prot(sub='time_end',err_code=3502,  &
+       call error_prot(sub='time_end',err_code=3502,  &
             message='indx less then 0: bad thing !! ')
     END IF
 
     ! debugging stuff 
     IF (ldebug.AND.(debug_level.GT.3)) THEN
        IF (nlevel.LE.4) THEN 
-          WRITE(ndebug+node,*) &
+          write(ndebug+node,*) &
                stringa(1:nlevel*2),name_of_section(1:20),"(out)",nlevel
-          CALL flusha(ndebug+node)
+          call flusha(ndebug+node)
        END IF
        nlevel=nlevel-1
     END IF
 
     !
     time_et(indx)=timer()
-    time_CALL=time_et(indx)-time_bt(indx)
+    time_call=time_et(indx)-time_bt(indx)
 
-    IF (PRESENT(isize)) THEN 
+    IF (present(isize)) THEN 
        info_comm(indx)%total_size=info_comm(indx)%total_size+isize
        info_comm(indx)%name_of_section=name_of_section
        info_comm(indx)%n_of_time=info_comm(indx)%n_of_time+1
-       info_comm(indx)%total_time=info_comm(indx)%total_time+time_CALL
+       info_comm(indx)%total_time=info_comm(indx)%total_time+time_call
     ELSE
        info_serial(indx)%name_of_section=name_of_section
        info_serial(indx)%n_of_time=info_serial(indx)%n_of_time+1
-       info_serial(indx)%total_time=info_serial(indx)%total_time+time_CALL
+       info_serial(indx)%total_time=info_serial(indx)%total_time+time_call
     END IF
 
-  END SUBROUTINE time_end
+  end subroutine time_end
 
 
   !!>
@@ -271,43 +243,43 @@ module mod_service
   !!            on unit iunit (meant to be the OUTPUT file)
   !!<
 
-  SUBROUTINE time_print(iunit,name_of_section)
+  subroutine time_print(iunit,name_of_section)
 
-    IMPLICIT NONE
+    implicit none
     INCLUDE 'mpif.h'  
     ! arguments:
-    CHARACTER (len=*),OPTIONAL :: name_of_section
-    INTEGER(ik4) :: iunit
+    character (len=*),optional :: name_of_section
+    integer(ik4) :: iunit
     ! local variables:  
-    INTEGER(ik4) :: ENTRY
-    INTEGER(ik4) :: imin,imax
-    INTEGER(ik4) :: i,test,len
-    REAL (rk8)  :: avg,xmin,xmax
-    REAL (rk8)  , ALLOCATABLE :: array_tmp(:)
-    INTEGER(ik4) , ALLOCATABLE :: array_entries(:)
+    integer(ik4) :: ENTRY
+    integer(ik4) :: imin,imax
+    integer(ik4) :: i,test,len
+    real (rk8)  :: avg,xmin,xmax
+    real (rk8)  , ALLOCATABLE :: array_tmp(:)
+    integer(ik4) , ALLOCATABLE :: array_entries(:)
     LOGICAL :: L_TIMES_on_PE=.FALSE.
     LOGICAL :: L_ENTRY=.TRUE.
-    INTEGER(ik4) :: ierr1
-    REAL(dp):: total_comm_time=0.0D0
-    REAL    :: avg_value
-    CHARACTER (len=128) :: name
-    CHARACTER (len=64) :: sub='time_print'
+    integer(ik4) :: ierr1
+    real(dp):: total_comm_time=0.0D0
+    real    :: avg_value
+    character (len=128) :: name
+    character (len=dbgslen) :: sub='time_print'
 
-    CALL MPI_BARRIER(mycomm,ierr1)
+    call MPI_BARRIER(mycomm,ierr1)
 
     L_ENTRY=.TRUE.
     IF (node==0) THEN
-       ! WRITE(iunit,"(80('-'))")
-       IF(PRESENT(name_of_section))  THEN
+       ! write(iunit,"(80('-'))")
+       IF(present(name_of_section))  THEN
           len=len_strim(name_of_section)
 
-          WRITE(iunit,"(/,1x,10('!'),' Specific TIMING for section: ',a30,1x,10('!'))") &    
+          write(iunit,"(/,1x,10('!'),' Specific TIMING for section: ',a30,1x,10('!'))") &    
                name_of_section(1:len)
        ELSE
-          WRITE(iunit,"(/,1x,10('!'),' Specific TIMING up to checkpoint ',30('!'))")
+          write(iunit,"(/,1x,10('!'),' Specific TIMING up to checkpoint ',30('!'))")
        END IF
-       WRITE(iunit,"(5('!'),19x,a30,/)") '!Serial subroutines : '
-       WRITE(iunit,105) 'section','times','avg-time','max(PE)','min(PE)'
+       write(iunit,"(5('!'),19x,a30,/)") '!Serial subroutines : '
+       write(iunit,105) 'section','times','avg-time','max(PE)','min(PE)'
     END IF
 105 FORMAT(1x,'!',A7,9x,A10,1x,A9,1x,A15,1x,A10)   
 
@@ -315,13 +287,13 @@ module mod_service
     ALLOCATE(array_entries(0:mxnode-1))
 
     ! check if the calling tree is the same on all nodes 
-    CALL gather_i(array_entries,n_of_ENTRY)
+    call gather_i(array_entries,n_of_ENTRY)
     test=array_entries(0)  
     DO i=1,mxnode-1
        IF (array_entries(i)/=test) THEN 
-          WRITE(ndebug+node,*) ' Warning:Different trees on different pe:',  &
+          write(ndebug+node,*) ' Warning:Different trees on different pe:',  &
                n_of_ENTRY
-          CALL error_prot(sub='time_end',err_code=-3503,  &
+          call error_prot(sub='time_end',err_code=-3503,  &
                message='different trees on different pe! ')
           L_ENTRY=.FALSE.
        END IF
@@ -333,7 +305,7 @@ module mod_service
        DO ENTRY=1,n_of_ENTRY
 
           L_times_on_pe=.FALSE.
-          CALL gather_i(a_tmp,info_serial(ENTRY)%n_of_time)
+          call gather_i(a_tmp,info_serial(ENTRY)%n_of_time)
           ! check the number of time
           test=a_tmp(0)
           avg_value= SUM(a_tmp)/mxnode 
@@ -341,21 +313,21 @@ module mod_service
              IF (a_tmp(i)/=test) THEN 
                 L_times_on_pe=.TRUE.
              END IF
-             CALL MPI_barrier(mycomm,ierr1)
+             call MPI_barrier(mycomm,ierr1)
           END DO
           ! set to zero times less then 0.1 microseconds
           IF (info_serial(ENTRY)%total_time<=0.0000001) & 
                info_serial(ENTRY)%total_time=0.0000001
 
           IF (info_serial(ENTRY)%n_of_time>=1) THEN
-             CALL gather(array_tmp,info_serial(ENTRY)%total_time)
+             call gather(array_tmp,info_serial(ENTRY)%total_time)
              ! compute avg, max and min 
-             CALL av_max_MIN(array_tmp,avg,xmax,imax,xmin,imin)
+             call av_max_MIN(array_tmp,avg,xmax,imax,xmin,imin)
              IF (node==0) THEN
                 NAME=info_serial(ENTRY)%name_of_section
                 IF (L_times_on_pe) &
                      NAME = "*" // info_serial(ENTRY)%name_of_section 
-                WRITE(iunit,100) NAME(1:15), & 
+                write(iunit,100) NAME(1:15), & 
                      info_serial(ENTRY)%n_of_time, &
                      avg,xmax,imax-1,xmin,imin-1
              END IF
@@ -364,18 +336,18 @@ module mod_service
        END DO
     ELSE 
        IF (node==0) THEN
-          WRITE (iunit,*) 'No global times for serial routines: different calling tree'
+          write (iunit,*) 'No global times for serial routines: different calling tree'
        ENDIF
     ENDIF
 
     !save anyway the data for each pe on debug unit:
     if (ldebug) then  
-    CALL write_info(sub,'Specific local time up to checkpoint for node',node) 
+    call write_info(sub,'Specific local time up to checkpoint for node',node) 
     DO ENTRY=1,n_of_ENTRY
        NAME=info_serial(ENTRY)%name_of_section
        IF (L_times_on_pe) NAME = "*" // info_serial(ENTRY)%name_of_section
        IF (info_serial(ENTRY)%n_of_time>=1) THEN 
-          WRITE(ndebug+NODE,102) NAME, & 
+          write(ndebug+NODE,102) NAME, & 
                info_serial(ENTRY)%n_of_time, &
                info_serial(ENTRY)%total_time
           call flusha(ndebug+NODE)
@@ -384,8 +356,8 @@ module mod_service
     endif 
 
     IF (node==0) THEN
-       WRITE(iunit,"(1x,'!',19x,a30,/)") 'Communication subroutines :   '
-       WRITE(iunit,*) &
+       write(iunit,"(1x,'!',19x,a30,/)") 'Communication subroutines :   '
+       write(iunit,*) &
             '!! section       times avg-time  max(PE)  min(PE) data  ratio(Mb/sec)'
     END IF
     !!   
@@ -395,10 +367,10 @@ module mod_service
             info_comm(ENTRY)%total_time=0.0000001
 
        IF (info_comm(ENTRY)%n_of_time>=1) THEN
-          CALL gather(array_tmp,info_comm(ENTRY)%total_time)
-          CALL av_max_MIN(array_tmp,avg,xmax,imax,xmin,imin)
+          call gather(array_tmp,info_comm(ENTRY)%total_time)
+          call av_max_MIN(array_tmp,avg,xmax,imax,xmin,imin)
           IF (node==0) THEN
-             WRITE(iunit,101) info_comm(ENTRY)%name_of_section, & 
+             write(iunit,101) info_comm(ENTRY)%name_of_section, & 
                   info_comm(ENTRY)%n_of_time, &
                   avg,xmax,imax-1,xmin,imin-1, & 
                   info_comm(ENTRY)%total_size, &
@@ -408,13 +380,13 @@ module mod_service
        END IF
     END DO
     IF(node==0) THEN  
-       WRITE(iunit,"(1x,'!',a40,3x,f9.4)") &
+       write(iunit,"(1x,'!',a40,3x,f9.4)") &
             'total communication time:',total_comm_time
        total_comm_time=0.0
 
     END IF
     IF(node==0) THEN  
-       WRITE(iunit,"(/,1x,10('!'),' End of Specific TIMING ', 47('!'),/)")
+       write(iunit,"(/,1x,10('!'),' End of Specific TIMING ', 47('!'),/)")
        call flusha(iunit)
     ENDIF
 100 FORMAT(1x,'!',A15,1x,I10,1x,F9.4,1x,F9.4,'(',i3,')',1x,f9.4,'(',i3,')')   
@@ -425,16 +397,16 @@ module mod_service
     DEALLOCATE(array_tmp) 
     DEALLOCATE(array_entries) 
 
-  END SUBROUTINE time_print
+  end subroutine time_print
 
 
   !!>
   !!   ROUTINE : TIME_RESET
   !!   ACTION :reset all the data structures 
   !!<
-  SUBROUTINE time_reset
-    IMPLICIT NONE 
-    INTEGER(ik4) :: ENTRY
+  subroutine time_reset
+    implicit none 
+    integer(ik4) :: ENTRY
 
     DO ENTRY=1,100
        info_serial(ENTRY)%n_of_time=0
@@ -445,7 +417,7 @@ module mod_service
        info_comm(ENTRY)%total_size=0
 
     END DO
-  END SUBROUTINE time_reset
+  end subroutine time_reset
 
 
   !!>
@@ -454,57 +426,57 @@ module mod_service
   !!   ACTION : gather and fill an array of data from different processors 
   !!<
 
-  SUBROUTINE gather(f_collect,f_sub)
-    IMPLICIT NONE 
+  subroutine gather(f_collect,f_sub)
+    implicit none 
     INCLUDE 'mpif.h'  
-    REAL (rk8), DIMENSION(:)  :: f_collect 
-    REAL (rk8) :: f_sub
+    real (rk8), DIMENSION(:)  :: f_collect 
+    real (rk8) :: f_sub
 
-    INTEGER(ik4) :: ierr,nword_send,nword_receive
+    integer(ik4) :: ierr,nword_send,nword_receive
     Nword_send=1
     Nword_receive=Nword_send
-    CALL MPI_Allgather(f_sub,Nword_send,MPI_DOUBLE_PRECISION,f_collect, &
+    call MPI_Allgather(f_sub,Nword_send,MPI_DOUBLE_PRECISION,f_collect, &
          Nword_receive,MPI_DOUBLE_PRECISION,mycomm,ierr)
     IF (ierr /=0) THEN
-       CALL error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
+       call error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
             message=' error in MPI_allgather!! ')
 
     END IF
-  END SUBROUTINE gather
+  end subroutine gather
 
   !!>
   !!   ROUTINE : GATHER_I
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : another gathering routine
   !!<
-  SUBROUTINE gather_i(f_collect,f_sub)
-    IMPLICIT NONE 
+  subroutine gather_i(f_collect,f_sub)
+    implicit none 
     INCLUDE 'mpif.h'  
     ! assumed shaped array... 
-    INTEGER(ik4) , DIMENSION(:)  :: f_collect 
-    INTEGER(ik4)  :: f_sub
-    INTEGER(ik4) :: ierr,nword_send,nword_receive
+    integer(ik4) , DIMENSION(:)  :: f_collect 
+    integer(ik4)  :: f_sub
+    integer(ik4) :: ierr,nword_send,nword_receive
 
     Nword_send=1
     Nword_receive=Nword_send
-    CALL MPI_Allgather(f_sub,Nword_send,MPI_INTEGER,f_collect, &
-         Nword_receive,MPI_INTEGER,mycomm,ierr)
+    call MPI_Allgather(f_sub,Nword_send,MPI_integer,f_collect, &
+         Nword_receive,MPI_integer,mycomm,ierr)
     IF (ierr /=0) THEN
-       CALL error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
+       call error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
             message=' error in MPI_allgather!! ')
     END IF
-  END SUBROUTINE gather_i
+  end subroutine gather_i
 
   !!>
   !!
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : compute average, maximum and minimum of array and indices
   !!<
-  SUBROUTINE av_max_MIN(array,avg,xmax,indx_max,xmin,indx_min) 
-    INTEGER(ik4) :: indx_min,indx_max,n_elements
-    REAL (rk8)    :: xmax,xmin,avg
-    REAL (rk8), DIMENSION(:) :: array
-    INTEGER(ik4) :: i
+  subroutine av_max_MIN(array,avg,xmax,indx_max,xmin,indx_min) 
+    integer(ik4) :: indx_min,indx_max,n_elements
+    real (rk8)    :: xmax,xmin,avg
+    real (rk8), DIMENSION(:) :: array
+    integer(ik4) :: i
 
     xmax=0.0
     xmin=1.e6
@@ -526,7 +498,7 @@ module mod_service
 
     avg=avg/dble(n_elements)
 
-  END SUBROUTINE av_max_min
+  end subroutine av_max_min
 
 
   !!>
@@ -539,17 +511,17 @@ module mod_service
   !!            message (optional): error message, as explicit as possible
   !!            line (optional): source line (cpp '__LINE__' macro)
   !!<
-  SUBROUTINE error_prot(sub,err_code,message,line) 
+  subroutine error_prot(sub,err_code,message,line) 
 
-    IMPLICIT NONE
+    implicit none
     INCLUDE 'mpif.h'  
-    CHARACTER*(*), INTENT(in) :: sub
-    INTEGER(ik4), INTENT(in) :: err_code
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: message
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
+    character*(*), intent(in) :: sub
+    integer(ik4), intent(in) :: err_code
+    character*(*), optional, intent(in) :: message
+    integer(ik4), optional, intent(in) :: line
     ! local
-    CHARACTER(len=11) :: error_TYPE
-    INTEGER(ik4) :: ierr 
+    character(len=11) :: error_TYPE
+    integer(ik4) :: ierr 
 
     error_TYPE = 'Error'
 
@@ -560,24 +532,24 @@ module mod_service
 
        IF (err_code > 0) THEN
 
-          WRITE (stderr,'(/1x,78(''*''))')
-          WRITE (stderr,'(3x,a8,'' no.'',i5,'' from '',a)') &
+          write (stderr,'(/1x,78(''*''))')
+          write (stderr,'(3x,a8,'' no.'',i5,'' from '',a)') &
                error_TYPE, err_code, sub
 
           ! optional strings
-          IF (PRESENT(line)) WRITE(stderr,'(5x,''line:    '',i6)') line
-          IF (PRESENT(message)) WRITE(stderr,'(/1x,''>>> '',a)') message
+          IF (present(line)) write(stderr,'(5x,''line:    '',i6)') line
+          IF (present(message)) write(stderr,'(/1x,''>>> '',a)') message
 
-          WRITE (stderr,'(/1x,78(''*''))')
+          write (stderr,'(/1x,78(''*''))')
 
-          WRITE (stderr,'(1x,a)') 'Stopping the code...'
+          write (stderr,'(1x,a)') 'Stopping the code...'
        ELSE
 
-          WRITE (stderr,'(3x,a8,'' no.'',i5,'' from '',a,'' : '',a)') &
+          write (stderr,'(3x,a8,'' no.'',i5,'' from '',a,'' : '',a)') &
                error_TYPE, err_code, sub, message
 
        ENDIF
-       CALL flusha(stderr)
+       call flusha(stderr)
 
     ENDIF
 
@@ -585,11 +557,11 @@ module mod_service
     IF (err_code > 0) THEN
 
        CLOSE (stderr)
-       CALL MPI_BARRIER(mycomm,ierr) 
-       CALL MPI_finalize(ierr) 
+       call MPI_BARRIER(mycomm,ierr) 
+       call MPI_finalize(ierr) 
     ENDIF
 
-  END SUBROUTINE error_prot
+  end subroutine error_prot
 
 
 
@@ -597,93 +569,93 @@ module mod_service
   !!   ROUTINE : PRINTA_I
   !!   ACTION : general purpose error printing routine for integers
   !!<
-  SUBROUTINE printa_i(sub,variable,value,line)
+  subroutine printa_i(sub,variable,value,line)
 
-    IMPLICIT NONE
-    CHARACTER*(*), INTENT(in) :: sub
-    CHARACTER*(*), INTENT(in) :: variable
-    INTEGER(ik4), INTENT (in) :: value
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
+    implicit none
+    character*(*), intent(in) :: sub
+    character*(*), intent(in) :: variable
+    integer(ik4), intent (in) :: value
+    integer(ik4), optional, intent(in) :: line
 
-    IF (PRESENT(line)) THEN 
-       WRITE(ndebug+node,'(A20,'':at line'',I6,A,i10)') &
+    IF (present(line)) THEN 
+       write(ndebug+node,'(A20,'':at line'',I6,A,i10)') &
             sub(1:20),line,variable,value
     ELSE
-       WRITE(ndebug+node,'(A20,'':'',A,i10)') sub(1:20),variable,value
+       write(ndebug+node,'(A20,'':'',A,i10)') sub(1:20),variable,value
     END IF
-    CALL flusha(ndebug+node)
+    call flusha(ndebug+node)
 
-  END SUBROUTINE printa_i
+  end subroutine printa_i
 
   !!>
   !!   ROUTINE : PRINTA_R
   !!   ACTION : general purpose error printing routine for reals
   !!<
 
-  SUBROUTINE printa_r(sub,variable,value,line)
+  subroutine printa_r(sub,variable,value,line)
 
-    IMPLICIT NONE
-    CHARACTER*(*), INTENT(in) :: sub
-    CHARACTER*(*), INTENT(in) :: variable
-    REAL(rk8), INTENT (in) :: value
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
+    implicit none
+    character*(*), intent(in) :: sub
+    character*(*), intent(in) :: variable
+    real(rk8), intent (in) :: value
+    integer(ik4), optional, intent(in) :: line
 
-    IF (PRESENT(line)) THEN 
-       WRITE(ndebug+node,'(A20,'':at line'',I6,A,F20.10)') &
+    IF (present(line)) THEN 
+       write(ndebug+node,'(A20,'':at line'',I6,A,F20.10)') &
             sub(1:20),line,variable,value
     ELSE
-       WRITE(ndebug+node,'(A20,'':'',A,f20.10)') sub(1:20),variable,value
+       write(ndebug+node,'(A20,'':'',A,f20.10)') sub(1:20),variable,value
     END IF
-    CALL flusha(ndebug+node)
+    call flusha(ndebug+node)
 
-  END SUBROUTINE printa_r
+  end subroutine printa_r
 
   !!>
   !!   ROUTINE : E_ALLOCA
   !!   ACTION :signal error on allocation
   !!<                                                                     
-  SUBROUTINE e_alloca(sub,variable,line)
+  subroutine e_alloca(sub,variable,line)
 
-    IMPLICIT NONE
-    CHARACTER*(*), INTENT(in) :: sub
-    CHARACTER*(*), INTENT(in) :: variable
-    CHARACTER(len=10)  :: sub_e='e_alloca'
-    CHARACTER(len=80)  :: string=' ' 
-    INTEGER(ik4), OPTIONAL, INTENT(in) :: line
+    implicit none
+    character*(*), intent(in) :: sub
+    character*(*), intent(in) :: variable
+    character(len=10)  :: sub_e='e_alloca'
+    character(len=dbglinelen)  :: string=' ' 
+    integer(ik4), optional, intent(in) :: line
 
-    IF (PRESENT(line)) THEN 
-       WRITE(ndebug+node,'(A20,'':at line'',I6,A24,A)') & 
+    IF (present(line)) THEN 
+       write(ndebug+node,'(A20,'':at line'',I6,A24,A)') & 
             sub(1:20),line,'error allocating ', variable
-       WRITE(string,'(A10,'':at line'',I6,A24,A20)') & 
+       write(string,'(A10,'':at line'',I6,A24,A20)') & 
             sub(1:20),line,'error allocating ', variable(1:20)
     ELSE
-       WRITE(ndebug+node,'(A20,'':'',A24,A20)') &
+       write(ndebug+node,'(A20,'':'',A24,A20)') &
             sub(1:20),'error allocating: ',variable(1:20)
-       WRITE(string,'(A20,'':'',A24,A20)') &
+       write(string,'(A20,'':'',A24,A20)') &
             sub(1:20),'error allocating: ',variable(1:20)
     END IF
-    CALL flusha(ndebug+node)
+    call flusha(ndebug+node)
     !! if an error occours stops the program... 
-    CALL error_prot(sub_e,3000,string)
-  END SUBROUTINE e_alloca
+    call error_prot(sub_e,3000,string)
+  end subroutine e_alloca
 
 
   !!>
   !! ROUTINE : CHECK_MEMORY_R
   !! ACTION : check the address of real variable
   !!<
-  SUBROUTINE check_memory_r(variable,name_of_variable,sub,line)
-    IMPLICIT NONE
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: name_of_variable
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    REAL(rk8),            INTENT(in) :: variable
-    INTEGER(ik4),       OPTIONAL, INTENT(in) :: line
-    CHARACTER(len=10) :: varia
-    CHARACTER(len=20) :: subro
-    CHARACTER(len=7) :: sline
-    CHARACTER(len=36) :: string
+  subroutine check_memory_r(variable,name_of_variable,sub,line)
+    implicit none
+    character*(*), optional, intent(in) :: name_of_variable
+    character*(*), optional, intent(in) :: sub
+    real(rk8),            intent(in) :: variable
+    integer(ik4),       optional, intent(in) :: line
+    character(len=10) :: varia
+    character(len=20) :: subro
+    character(len=7) :: sline
+    character(len=36) :: string
 
-    INTEGER(ik8) i_addr
+    integer(ik8) i_addr
     string='    '
     subro= '    '
     varia= '    '
@@ -692,34 +664,34 @@ module mod_service
 
     i_addr=loc(variable)
 
-    WRITE(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
-    IF (PRESENT(name_of_variable)) varia=name_of_variable 
-    IF (PRESENT(sub)) subro=sub
-    IF (PRESENT(line))  WRITE(SLINE,'(1X,I6)') LINE
-    WRITE(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
+    write(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
+    IF (present(name_of_variable)) varia=name_of_variable 
+    IF (present(sub)) subro=sub
+    IF (present(line))  write(SLINE,'(1X,I6)') LINE
+    write(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
          string,varia,subro,sline
 
-    CALL flusha(ndebug+node) 
+    call flusha(ndebug+node) 
 
-  END SUBROUTINE check_memory_r
+  end subroutine check_memory_r
 
   !!>
   !!   ROUTINE : CHECK_MEMORY_I
   !!   ACTION :check the address of real variable
   !!           It may use the loc function (not architecture-universal)
   !!<
-  SUBROUTINE check_memory_i(variable,name_of_variable,sub,line)
-    IMPLICIT NONE
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: name_of_variable
-    CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
-    INTEGER(ik4),            INTENT(in) :: variable
-    INTEGER(ik4),       OPTIONAL, INTENT(in) :: line
-    CHARACTER(len=10) :: varia
-    CHARACTER(len=20) :: subro
-    CHARACTER(len=7) :: sline
-    CHARACTER(len=36) :: string
+  subroutine check_memory_i(variable,name_of_variable,sub,line)
+    implicit none
+    character*(*), optional, intent(in) :: name_of_variable
+    character*(*), optional, intent(in) :: sub
+    integer(ik4),            intent(in) :: variable
+    integer(ik4),       optional, intent(in) :: line
+    character(len=10) :: varia
+    character(len=20) :: subro
+    character(len=7) :: sline
+    character(len=36) :: string
 
-    INTEGER(ik8) i_addr
+    integer(ik8) i_addr
     string='    '
     subro= '    '
     varia= '    '
@@ -728,16 +700,16 @@ module mod_service
 
     i_addr=loc(variable)
 
-    WRITE(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
-    IF (PRESENT(name_of_variable)) varia=name_of_variable 
-    IF (PRESENT(sub)) subro=sub
-    IF (PRESENT(line))  WRITE(SLINE,'(1X,I6)') LINE
-    WRITE(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
+    write(string,"(A20,I15)") 'CM_mes>address is =' ,i_addr
+    IF (present(name_of_variable)) varia=name_of_variable 
+    IF (present(sub)) subro=sub
+    IF (present(line))  write(SLINE,'(1X,I6)') LINE
+    write(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
          string,varia,subro,sline
 
-    CALL flusha(ndebug+node) 
+    call flusha(ndebug+node) 
 
-  END SUBROUTINE check_memory_i
+  end subroutine check_memory_i
 
 
   !!>
@@ -745,9 +717,9 @@ module mod_service
   !!   ACTION : trimming of string
   !!< 
   FUNCTION len_strim (string) RESULT (len_trim_RESULT)
-    IMPLICIT NONE 
-    CHARACTER  (len=*), INTENT(IN) :: string
-    INTEGER(ik4) :: len_trim_RESULT,k
+    implicit none 
+    character  (len=*), intent(IN) :: string
+    integer(ik4) :: len_trim_RESULT,k
 
     len_trim_RESULT =0 
     DO k= LEN(string),1,-1
@@ -759,54 +731,25 @@ module mod_service
 
   END FUNCTION len_strim
  
-  double precision function timer()
-  integer(ik8) C,R,M
-    CALL SYSTEM_CLOCK (COUNT=C, COUNT_RATE=R, COUNT_MAX=M)
-    timer= dble(C)/dble(R)
-    return
-  end function
+    double precision function timer()
+      implicit none
+      integer(ik8) :: c , r , m
+      call system_clock(count=c,count_rate=r,count_max=m)
+      timer= dble(c)/dble(r)
+    end function
 
-  subroutine flusha( lunit, errno )
-  integer, intent(in)  :: lunit
-  integer, intent(out),optional :: ERRNO
-  if ( PRESENT(ERRNO) ) errno=0
-
-! If whe have a FLUSH, use it 
-!  On IBM, flush is flush_ 
+    subroutine flusha(lunit)
+      implicit none
+      integer(ik4) , intent(in) :: lunit
+      ! If whe have a FLUSH, use it 
+      ! On IBM, flush is flush_ 
 #ifdef IBM 
-  call FLUSH_(lunit)  
+      call flush_(lunit)  
 #else
-  call flush(lunit)
+      call flush(lunit)
 #endif        
- end subroutine flusha
-
-#else
-
-CONTAINS
-
-  SUBROUTINE time_begin(sname,indx)
-    IMPLICIT NONE
-    CHARACTER (len=64), INTENT(IN) :: sname
-    INTEGER(ik4), INTENT(IN) :: indx
-  END SUBROUTINE time_begin
-
-  SUBROUTINE time_end(sname,indx,isize)
-    IMPLICIT NONE
-    CHARACTER (len=64), INTENT(IN) :: sname
-    INTEGER(ik4), INTENT(IN) :: indx
-    INTEGER(ik4), INTENT(IN),  OPTIONAL :: isize
-  END SUBROUTINE time_end
-
-  SUBROUTINE time_print(iunit,sname)
-    IMPLICIT NONE
-    INTEGER(ik4), INTENT(IN) :: iunit
-    CHARACTER (len=*), INTENT(IN) :: sname
-  END SUBROUTINE time_print
-
-  SUBROUTINE time_reset
-    IMPLICIT NONE 
-  END SUBROUTINE time_reset
+    end subroutine flusha
 
 #endif
 
-END MODULE  mod_service
+end module  mod_service

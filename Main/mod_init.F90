@@ -68,10 +68,11 @@ module mod_init
   integer(ik4) :: i , j , k , n , ist
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
-  character (len=64) :: subroutine_name='init'
+#ifdef DEBUG
+  character(len=dbgslen) :: subroutine_name = 'init'
   integer(ik4) :: idindx = 0
-!
   call time_begin(subroutine_name,idindx)
+#endif
   !
   ! Reset the accumulation arrays
   !
@@ -539,8 +540,9 @@ module mod_init
     call start_chem(ifrest,idate1,intbdy,dtbdys)
   end if
 !
+#ifdef DEBUG
   call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine init
 !
 end module mod_init

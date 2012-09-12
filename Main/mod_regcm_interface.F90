@@ -85,7 +85,9 @@ module mod_regcm_interface
     end if
     call mpi_comm_rank(mycomm, myid, ierr)
     call mpi_comm_size(mycomm, nproc, ierr)
+#ifndef MPI_SERIAL
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
+#endif
 !
     call whoami(myid)
     call setup_mesg(myid)
@@ -216,11 +218,10 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
+#ifdef DEBUG
     call time_print(6,'inizialization phase')
     call time_reset()
-!
-    return
-
+#endif
   end subroutine RCM_initialize
 !
 !=======================================================================
@@ -335,8 +336,8 @@ module mod_regcm_interface
     call stop_debug()
     ! if ( enable_newmicro ) call grid_nc_destroy(qqxp)
     ! call grid_nc_destroy(nc_4d)
-#endif
     call time_print(6,'evolution phase')
+#endif
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
         & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &

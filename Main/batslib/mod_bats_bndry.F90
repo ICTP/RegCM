@@ -86,11 +86,12 @@ module mod_bats_bndry
 !
     real(rk8) :: fact , qsatd , rai
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='bndry'
-    integer(ik4) :: idindx = 0
     real(rk8) , parameter :: minwrat = 1.0D-04
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'bndry'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
    
     !=======================================================================
     !   1.   initialize
@@ -266,7 +267,9 @@ module mod_bats_bndry
         end do
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine bndry
 !
 !=======================================================================
@@ -278,10 +281,11 @@ module mod_bats_bndry
   subroutine vcover
     implicit none
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='vcover'
+#ifdef DEBUG
+    character(len=64) :: subroutine_name = 'vcover'
     integer(ik4) :: idindx = 0
-!
     call time_begin(subroutine_name,idindx)
+#endif
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -311,8 +315,9 @@ module mod_bats_bndry
         end do
       end do
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine vcover
 !
 !=======================================================================
@@ -324,11 +329,11 @@ module mod_bats_bndry
   subroutine drip
     implicit none
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='drip'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'drip'
     integer(ik4) :: idindx = 0
-!
     call time_begin(subroutine_name,idindx)
-!
+#endif
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -353,7 +358,9 @@ module mod_bats_bndry
         end do
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine drip
 ! 
 !=======================================================================
@@ -374,11 +381,11 @@ module mod_bats_bndry
     real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
                 rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss , wtt
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='tseaice'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'tseaice'
     integer(ik4) :: idindx = 0
-!
     call time_begin(subroutine_name,idindx)
-!
+#endif
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -469,7 +476,9 @@ module mod_bats_bndry
         end do
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine tseaice
 !
 !=======================================================================
@@ -508,10 +517,11 @@ module mod_bats_bndry
     real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                evmxt , rap , vakb , wtg2c , xxkb
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='water'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'water'
     integer(ik4) :: idindx = 0
-!
     call time_begin(subroutine_name,idindx)
+#endif
     !
     !=======================================================================
     !   1.   define soil water fluxes
@@ -743,8 +753,9 @@ module mod_bats_bndry
         end do
       end do
     end do
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine water
 ! 
 !=======================================================================
@@ -774,11 +785,11 @@ module mod_bats_bndry
 !
     real(rk8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
     integer(ik4) :: n , i , j
-!
-    character (len=64) :: subroutine_name='snow'
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'snow'
     integer(ik4) :: idindx = 0
-!
     call time_begin(subroutine_name,idindx)
+#endif
 !
     age3 = 0.3D0
    
@@ -848,7 +859,9 @@ module mod_bats_bndry
         end do
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
+#endif
   end subroutine snow
 !
 !=======================================================================
@@ -893,14 +906,13 @@ module mod_bats_bndry
              tbef , tg , tinc , wtas , wtax , wtd , wtds
     real(rk8) :: dtbat2 , rdtbat2 , xlexp , xnua
     integer(ik4) :: n , i , j
-    character (len=64) :: subroutine_name='tgrund'
-    integer(ik4) :: idindx = 0
-!
     real(rk8) , parameter :: xkperi = 1.4D-6
     real(rk8) , parameter :: t3 = 271.0D0 ! permafrost temperature
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'tgrund'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-! 
+#endif
     dtbat2  = dtbat*d_two
     rdtbat2 = d_one/dtbat2
 
@@ -1059,8 +1071,9 @@ module mod_bats_bndry
         end do
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx) 
-
+#endif
   contains
 
     function fsk(x)

@@ -191,12 +191,11 @@ module mod_cu_grell
 !
     real(rk8) :: pkdcut , pkk , prainx , us , vs
     integer(ik4) :: i , j , k , jp1 , kk
-!
-    character (len=64) :: subroutine_name='cuparan'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'cuparan'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     pkdcut = 75.0D0
 !
 !   prepare input, erase output
@@ -365,7 +364,9 @@ module mod_cu_grell
         end if
       end do
     end do
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine cuparan
 !
 !   GRELL CUMULUS SCHEME
@@ -384,10 +385,11 @@ module mod_cu_grell
                tvbar , tvbaro , xk
     integer(ik4) :: i , j , k , iph , ipho , kbcono , kclth , kk , lpt
 !
-    character (len=64) :: subroutine_name='cup'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'cup'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 
     mbdt = dtcum*5.0D-03
     f  = -d_one
@@ -1156,15 +1158,13 @@ module mod_cu_grell
         end if
       end do
     end do
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
     contains
 !
      subroutine minimi(array,ks,ke,kt)
-!
        implicit none
-!
        integer(ik4) , intent (in) :: ke
        real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
        integer(ik4) , intent(in) , pointer , dimension(:,:) :: ks
@@ -1172,11 +1172,11 @@ module mod_cu_grell
 !
        integer(ik4) :: i , j , k
        real(rk8) :: x
-       character (len=64) :: subroutine_name='minimi'
+#ifdef DEBUG
+       character(len=dbgslen) :: subroutine_name = 'minimi'
        integer(ik4) :: idindx=0
-!
        call time_begin(subroutine_name,idindx)
-!
+#endif
        do i = ici1 , ici2
          do j = jci1 , jci2
            kt(j,i) = ks(j,i)
@@ -1189,24 +1189,24 @@ module mod_cu_grell
            end do
          end do
        end do
+#ifdef DEBUG
        call time_end(subroutine_name,idindx) 
+#endif
      end subroutine minimi
 !
      subroutine maximi1(array,ks,ke,imax)
-!
       implicit none
-!
       integer(ik4) , intent (in) :: ks , ke
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
       integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
 !
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
-!
-      character (len=64) :: subroutine_name='maximi1'
-      integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'maximi1'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
+#endif
       do i = ici1 , ici2
         do j = jci1 , jci2
           imax(j,i) = ks
@@ -1220,14 +1220,13 @@ module mod_cu_grell
           end do
         end do
       end do
-!
+#ifdef DEBUG
       call time_end(subroutine_name,idindx) 
+#endif
     end subroutine maximi1
 
-     subroutine maximi2(array,ks,ke,imax)
-!
+    subroutine maximi2(array,ks,ke,imax)
       implicit none
-!
       integer(ik4) , intent (in) :: ks
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
       integer(ik4) , intent(in) , pointer , dimension(:,:) :: ke
@@ -1235,11 +1234,11 @@ module mod_cu_grell
 !
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
-!
-      character (len=64) :: subroutine_name='maximi2'
-      integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'maximi2'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
+#endif
       do i = ici1 , ici2
         do j = jci1 , jci2
           imax(j,i) = ks
@@ -1253,8 +1252,9 @@ module mod_cu_grell
           end do
         end do
       end do
-!
+#ifdef DEBUG
       call time_end(subroutine_name,idindx) 
+#endif
     end subroutine maximi2
 
   end subroutine cup

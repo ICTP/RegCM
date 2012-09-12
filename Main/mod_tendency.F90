@@ -95,10 +95,11 @@ module mod_tendency
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
-    character (len=64) :: subroutine_name='tend'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'tend'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! Calculate eccentricity factor for radiation calculations
     !
@@ -1392,7 +1393,9 @@ module mod_tendency
       end if
     end if
 !
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine tend
 !
 end module mod_tendency

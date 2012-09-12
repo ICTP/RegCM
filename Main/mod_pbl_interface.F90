@@ -219,11 +219,12 @@ module mod_pbl_interface
     type(atmstate) , intent(in) :: atm
     type(tcm_state) , intent(inout) :: tcmstate
     real(rk8) , pointer , dimension(:,:) :: twt
-    character (len=64) :: subroutine_name='hadvtke'
-    integer(ik4) :: idindx = 0
     integer(ik4) :: i , k , j
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'hadvtke'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 
     do k = 2 , kz
       do i = ici1 , ici2
@@ -252,9 +253,9 @@ module mod_pbl_interface
         end do
       end do
     end do
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine hadvtke
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -273,12 +274,12 @@ module mod_pbl_interface
     integer(ik4) , intent(in) :: ind
     type(tcm_state) :: tcmstate
     real(rk8) , dimension(:,:,:) , pointer , intent(in) :: qdot
-    character (len=64) :: subroutine_name='vadvtke'
-    integer(ik4) :: idindx = 0
-!
     integer(ik4) :: i , j , k
-
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'vadvtke'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
         
     !
     ! Use Bretherton's method for tke advection
@@ -329,9 +330,9 @@ module mod_pbl_interface
         end do
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine vadvtke
 
   subroutine set_tke_bc(atm1,atm2)

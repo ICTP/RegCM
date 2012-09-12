@@ -378,12 +378,11 @@ module mod_che_drydep
       real(rk8), dimension(ici1:ici2,kz) :: wk, settend
       real(rk8) , dimension(mbin) :: avesize
       integer(ik4) :: i , k , kcov , l , n , ib
-!
-      character (len=64) :: subroutine_name='drydep_aero'
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'drydep_aero'
       integer(ik4) :: idindx = 0
-!
       call time_begin(subroutine_name,idindx)
-
+#endif
       ! here avesize is a RADIUS of the particle bin in m :
       ! calculated here from bin effective diameter in micrometer
       do n = 1 , mbin
@@ -627,7 +626,9 @@ module mod_che_drydep
           drydepv(j,i,indsp(ib)) =  drydepv(j,i,indsp(ib))+ddepv(i,indsp(ib))
         end do
       end do
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine drydep_aero
 !
 ! 
@@ -655,13 +656,14 @@ module mod_che_drydep
       real(rk8) , dimension(ici1:ici2) :: icz , ddrem
       real(rk8) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(rk8) :: kd
-
 #ifdef CLM
       integer  :: jj, ii
 #endif
-
-
-
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'drydep_gas'
+      integer(ik4) :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
       ! Different options for LAI and roughness 
       ! for the moment read from 
      
@@ -775,8 +777,9 @@ module mod_che_drydep
            end do
          end do
        end if 
-
-
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
     end subroutine drydep_gas
 
 !
@@ -803,6 +806,11 @@ module mod_che_drydep
       real(rk8) :: aa , cm , ch , fm , fh    
       real(rk8) , dimension(ici1:ici2) :: zz0
       real(rk8) , parameter :: z10 = 10.0D0
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'aerodyresis'
+      integer(ik4) :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
   
       !======================================================================
       ! ****************************************************
@@ -945,6 +953,9 @@ module mod_che_drydep
           ra(i,j) = dmin1(ra(i,j),999.9D0)
         end do
       end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
     end subroutine aerodyresis
 
 !***********************************************************************
@@ -984,6 +995,11 @@ module mod_che_drydep
       logical :: is_dew , is_rain
       real(rk8) , parameter :: dair = 0.369D0 * 29.0D0 + 6.29D0
       real(rk8) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'stomtresis'
+      integer(ik4) :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
 
       do j = 1 , luc
         do i = ici1 , ici2
@@ -1270,6 +1286,9 @@ module mod_che_drydep
           end do !igas
         end do !ilg
       end do !luc
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
     end subroutine stomtresis
 
 end module mod_che_drydep

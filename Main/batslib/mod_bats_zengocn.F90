@@ -67,9 +67,7 @@ module mod_bats_zengocn
 ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
 !
   subroutine zengocndrv(ktau)
-!
     implicit none
-!
     integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
@@ -86,10 +84,11 @@ module mod_bats_zengocn
     real(rk8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
     real(rk8) :: dtstend , dts , fs , tskin , dtsst
 !
-    character (len=64) :: subroutine_name='zengocndrv'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'zengocndrv'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     do i = ici1 , ici2
 #ifdef CLM
       ii = global_istart+i-1
@@ -356,9 +355,9 @@ module mod_bats_zengocn
     end do
 
     lfirst_call = .false.
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
     contains
 !
 !   stability function for rb < 0
@@ -464,7 +463,6 @@ module mod_bats_zengocn
 !
   subroutine zengocn(u,ts,t,q,hgt,zi,ps,qs,u10,tau, &
                      alh,ash,dth,dqh,ustar,zo)
-!
     implicit none
 !
     real(rk8) , intent (in) :: hgt , q , t , u , zi , ts , ps
@@ -476,13 +474,11 @@ module mod_bats_zengocn
                xlv , zeta , zoq
     integer(ik4) :: nconv
 !
-    character (len=64) :: subroutine_name='zengocn'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'zengocn'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
-!***********************************************************************
-!
+#endif
     hu = hgt
     ht = hgt
     hq = hgt
@@ -626,8 +622,9 @@ module mod_bats_zengocn
       u10 = u + (ustar/vonkar)* &
                (dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)  
-
+#endif
     contains
 !
 !   stability function for rb < 0

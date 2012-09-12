@@ -76,7 +76,6 @@ module mod_advection
       type(atmstate) , intent(in) :: atm
       real(rk8) , pointer , dimension(:,:,:) :: vertvel
       integer(ik4) , pointer , dimension(:,:) :: kpbltop
-
       call assignpnt(atm%u,ua)
       call assignpnt(atm%v,va)
       call assignpnt(sfs%psa,ps)
@@ -113,12 +112,11 @@ module mod_advection
 !
       real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
       integer(ik4) :: i , j , k
-!
-      character (len=64) :: subroutine_name='hadv3d'
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadv3d'
       integer(ik4) :: idindx = 0
-!
       call time_begin(subroutine_name,idindx)
-!
+#endif
       if ( ldot ) then
         !
         ! ua, va : are p*u and p*v.
@@ -163,12 +161,13 @@ module mod_advection
           end do
         end do
       end if
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine hadv3d
 !
     subroutine hadv3d4d(ften,f,nk,m,ind)
       implicit none
-!
       integer(ik4) , intent (in) :: ind , nk , m
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
@@ -176,12 +175,11 @@ module mod_advection
       real(rk8) :: fx1 , fx2 , fy1 , fy2
       real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
       integer(ik4) :: i , j , k
-!
-      character (len=64) :: subroutine_name='hadv3d4d'
-      integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadv3d4d'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
-!
+#endif
       if ( ind == 1 ) then
         !
         ! for qv:
@@ -239,8 +237,9 @@ module mod_advection
         call fatal(__FILE__,__LINE__, &
                    'The advection scheme you required is not available.')
       end if
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
-!
+#endif
     end subroutine hadv3d4d
 !
     subroutine hadv4d(ften,f,nk)
@@ -252,11 +251,11 @@ module mod_advection
       real(rk8) :: fx1 , fx2 , fy1 , fy2
       real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
       integer(ik4) :: i , j , k , n
-!
-      character (len=64) :: subroutine_name='hadv4d'
-      integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadv4d'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
+#endif
       do n = 1 , ntr
         do k = 1 , nk
           do i = ici1 , ici2
@@ -292,7 +291,9 @@ module mod_advection
           end do
         end do
       end do
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine hadv4d
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -317,9 +318,7 @@ module mod_advection
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine vadv3d(ldot,ften,f,nk,ind)
-!
       implicit none
-!
       logical , intent(in) :: ldot
       integer(ik4) , intent(in) :: ind , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
@@ -327,14 +326,11 @@ module mod_advection
 !
       real(rk8) :: slope
       integer(ik4) :: i , j , k
-!
-      character (len=64) :: subroutine_name='vadv3d'
-      integer(ik4) :: idindx=0
-!
-!----------------------------------------------------------------------
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'vadv3d'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
-!
+#endif
       if ( ldot ) then
         if ( ind /= 2 ) then
           call fatal(__FILE__,__LINE__, &
@@ -488,27 +484,24 @@ module mod_advection
           end do
         end do
       end if
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine vadv3d
 !
     subroutine vadv3d4d(ften,f,nk,m,ind)
-!
       implicit none
-!
       integer(ik4) , intent(in) :: ind , m , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
       real(rk8) :: slope
       integer(ik4) :: i , j , k
-!
-      character (len=64) :: subroutine_name='vadv3d4d'
-      integer(ik4) :: idindx=0
-!
-!----------------------------------------------------------------------
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'vadv3d4d'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
-!
+#endif
       if ( ind == 1 ) then
         !
         ! vertical advection term : interpolate qv to full sigma levels
@@ -644,27 +637,24 @@ module mod_advection
           end do
         end do
       end if
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine vadv3d4d
 !
     subroutine vadv4d(ften,f,nk,ind)
-!
       implicit none
-!
       integer(ik4) , intent(in) :: ind , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
       real(rk8) :: slope
       integer(ik4) :: i , j , k , n
-!
-      character (len=64) :: subroutine_name='vadv4d'
-      integer(ik4) :: idindx=0
-!
-!----------------------------------------------------------------------
-!
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'vadv4d'
+      integer(ik4) :: idindx = 0
       call time_begin(subroutine_name,idindx)
-!
+#endif
       if ( ind == 1 ) then
         do n = 1 , ntr
           do i = ici1 , ici2
@@ -688,13 +678,13 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                        (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
             end do
           end do
         end do
@@ -770,7 +760,9 @@ module mod_advection
           end do
         end do
       end if
+#ifdef DEBUG
       call time_end(subroutine_name,idindx)
+#endif
     end subroutine vadv4d
 !
 end module mod_advection

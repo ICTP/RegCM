@@ -85,11 +85,6 @@ module mod_bdycod
   subroutine allocate_mod_bdycon(iboudy)
     implicit none
     integer(ik4) , intent(in) :: iboudy
-    character (len=64) :: subroutine_name='allocate_mod_bdycon'
-    integer(ik4) :: idindx=0
-!
-    call time_begin(subroutine_name,idindx)
-
     if ( iboudy == 1 ) then
       call getmem1d(fcx,1,nspgx,'bdycon:fcx')
       call getmem1d(gcx,1,nspgx,'bdycon:gcx')
@@ -129,18 +124,17 @@ module mod_bdycod
       call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
       call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
     end if
-!
-    call time_end(subroutine_name,idindx)
   end subroutine allocate_mod_bdycon
 !
   subroutine setup_bdycon(hlev)
     implicit none
     real(rk8) , pointer , dimension(:) , intent(in) :: hlev
     integer(ik4) :: n , k
-    character (len=64) :: subroutine_name='setup_bdycon'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
@@ -188,7 +182,9 @@ module mod_bdycod
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine setup_bdycon
 
   subroutine init_bdy
@@ -196,10 +192,11 @@ module mod_bdycod
     integer(ik4) :: datefound , i , j , k
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
-    character (len=64) :: subroutine_name='init_bdy'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'init_bdy'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 
     bdydate1 = idate1
     bdydate2 = idate1
@@ -357,9 +354,9 @@ module mod_bdycod
     end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine init_bdy
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -370,14 +367,14 @@ module mod_bdycod
 !
   subroutine bdyin
     implicit none
-!
     integer(ik4) :: i , j , k , n , mmrec
     character(len=32) :: appdat
-    character (len=64) :: subroutine_name='bdyin'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'bdyin'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
+
     xub%b0(:,:,:) = xub%b1(:,:,:)
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
@@ -516,9 +513,9 @@ module mod_bdycod
 
     call bcast(bdydate2)
     bdydate1 = bdydate2
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine bdyin
 !
 ! This subroutine sets the boundary values of u and v according
@@ -539,10 +536,11 @@ module mod_bdycod
     integer(ik4) , intent(in) :: iboudy
 !
     integer(ik4) :: i , j , k
-    character (len=64) :: subroutine_name='bdyuv'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'bdyuv'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
     !
     ! First compute the p* at dot points to decouple U,V:
     !
@@ -736,8 +734,9 @@ module mod_bdycod
       call exchange_bdy_tb(evi,1,kz)
     end if
 
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine bdyuv
 !
 ! This subroutine sets the boundary values for p*, p*u, p*v,
@@ -762,11 +761,11 @@ module mod_bdycod
     real(rk8) :: qcx , qcint , qvx , qext , qint
     integer(ik4) :: i , j , k , n
     real(rk8) :: windavg
-    character (len=64) :: subroutine_name='bdyval'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'bdyval'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     !
     ! Fill up the boundary value for xxb variables from xxa variables:
     ! if this subroutine is called for the first time, this part
@@ -1220,9 +1219,9 @@ module mod_bdycod
     if ( ichem == 1 ) then
       call chem_bdyval(xt,ktau)
     end if
-!
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-!
+#endif
   end subroutine bdyval
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1255,10 +1254,11 @@ module mod_bdycod
     integer(ik4) :: i , j , k
     integer(ik4) :: ib , i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:) :: wg
-    character (len=64) :: subroutine_name='sponge4d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'sponge4d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 !
     if ( .not. ba%havebound ) return
 !
@@ -1322,7 +1322,9 @@ module mod_bdycod
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine sponge4d
 !
   subroutine sponge3d(nk,ba,bnd,ften)
@@ -1337,10 +1339,11 @@ module mod_bdycod
     integer(ik4) :: i , j , k
     integer(ik4) :: ib , i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:) :: wg
-    character (len=64) :: subroutine_name='sponge3d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'sponge3d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 !
     if ( .not. ba%havebound ) return
 !
@@ -1404,13 +1407,13 @@ module mod_bdycod
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine sponge3d
 !
   subroutine sponge2d(ba,bnd,ften)
-!
     implicit none
-!
     type(bound_area) , intent(in) :: ba
     type(v2dbound) , intent(in) :: bnd
     real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
@@ -1418,11 +1421,11 @@ module mod_bdycod
     integer(ik4) :: i , j , i1 , i2 , j1 , j2
     integer(ik4) :: ib
     real(rk8) , pointer , dimension(:) :: wg
-    character (len=64) :: subroutine_name='sponge2d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'sponge2d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     if ( .not. ba%havebound ) return
 !
     if ( ba%dotflag ) then
@@ -1475,8 +1478,9 @@ module mod_bdycod
         end do
       end do
     end if
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine sponge2d
 !
 !
@@ -1528,7 +1532,6 @@ module mod_bdycod
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
   subroutine nudge4d(nk,m,ba,xt,f,ibdy,bnd,ften)
-!
     implicit none
 !
     integer(ik4) , intent(in) :: ibdy , nk , m
@@ -1540,11 +1543,11 @@ module mod_bdycod
 !
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge4d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'nudge4d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
-!
+#endif
     if ( .not. ba%havebound ) return
 !
     if ( ba%dotflag ) then
@@ -1659,8 +1662,9 @@ module mod_bdycod
         end do
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine nudge4d
 !
   subroutine nudge3d(nk,ba,xt,f,ibdy,bnd,ften)
@@ -1676,10 +1680,11 @@ module mod_bdycod
 !
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge3d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'nudge3d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 !
     if ( .not. ba%havebound ) return
 !
@@ -1795,8 +1800,9 @@ module mod_bdycod
         end do
       end do
     end if
-
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
   end subroutine nudge3d
 !
 ! ###################################################################
@@ -1814,10 +1820,11 @@ module mod_bdycod
 !
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , ib , i1 , i2 , j1 , j2
-    character (len=64) :: subroutine_name='nudge2d'
-    integer(ik4) :: idindx=0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'nudge2d'
+    integer(ik4) :: idindx = 0
     call time_begin(subroutine_name,idindx)
+#endif
 !
     if ( .not. ba%havebound ) return
 !
@@ -1926,8 +1933,9 @@ module mod_bdycod
       end do
     end if
 
+#ifdef DEBUG
     call time_end(subroutine_name,idindx)
-
+#endif
   end subroutine nudge2d
 !
 end module mod_bdycod
