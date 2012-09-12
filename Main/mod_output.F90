@@ -62,7 +62,6 @@ module mod_output
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   implicit none
-  include 'mpif.h'
 !
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
