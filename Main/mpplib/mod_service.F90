@@ -1,89 +1,43 @@
-!!>
-!!c*******************************************************************
-!!c
-!!c   MODULE: mod_service
-!!c   PACKAGE VERSION:  regcm4  coming from DLPROTEIN-2.1  package.. 
-!!c   ACTION: basic service module: 
-!!c           Timing/Debugging/Error routines 
-!!c           defines sp and dp parameters 
-!!c*******************************************************************
-!! 
-!!                                  
-!!
-!! *How to use this module for TIMING*:
-!! 1) First the module need to be initialized with : 
-!!        call activate_debug
-!!
-!! 2) The timer is activated when in each subroutine is inserted 
-!!        use mod_service 
-!!    and having declared the two following local variables: 
-!!        character (len=64) :: sub='name_of_your_subroutine' 
-!!        integer(ik4) :: indx=0
-!!    and as a first instruction
-!!        call time_begin(subroutine_name,indx)
-!!
-!! 3) If the subroutine is not a communication subroutine
-!!    as last line insert the following call:
-!!        call time_end(subroutine_name,indx) 
-!! 4) If the subroutine is a communication subroutine:
-!!    compute the length of the messages exchanged and as
-!!    the last instruction insert the following call:
-!!        call time_end(subroutine_name,indx,length)
-!!
-!! 5) To print out times during the run:
-!!    - insert "call time_print" to print out at desired location: 
-!!      it is possible to pass a string to this call for labelling
-!!    - insert "call time_reset" to reset and start a new timing section.
-!!
-!! *How to use this module for DEBUGGING:*
-!!  
-!! Debugging facilities are enabled by the call
-!!      call start_debug
-!! and are disabled by the call
-!!      call stop_debug
-!!                       
-!!
-!!
-!!* Module main variables:*
-!!  - _TYPE timing_info_: data structure to store all informations
-!!                        on the calling soubroutine
-!!  -_type info_serial_ : informations for serial subroutines
-!!  -_type info_comm_   : informations  for communication routines
-!!  -_integer number_of_entry_ : counter ( unique for the previous two types)
-!!  -_real time_et,time_bt_    : array where to store timing info
-!!
-!!<
-MODULE mod_service
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+module mod_service
 
   use mod_intkinds
   use mod_realkinds
+  use mod_stdio
 
 #ifdef DEBUG
 
   use mod_dynparam , only : mycomm , myid , nproc , debug_level
 
-!!! definition of single and double precision 
+  type timing_info
+    character(len=64) :: name_of_section
+    real(rk8) :: total_time
+    integer(ik4) :: n_of_time
+    integer(ik4) :: total_size
+  end type timing_info
 
-!! all constant/numbers used in the code should be defined as
-!!  DD.DD_dp for double precision numbers: 
-!!  DD.DD_sp for single precision numbers: 
-!! 
-!! examples: 
-!!      3.745566_dp : double precision numbers 
-!!      4.2_sp      : single precision numbers  
-!! 
-
-  TYPE timing_info
-     INTEGER(ik4) :: n_of_time
-     CHARACTER (len=64) :: name_of_section
-     REAL (rk8) :: total_time
-     INTEGER(ik4) :: total_size
-  END TYPE timing_info
-
-  TYPE (timing_info) , DIMENSION (100) :: info_serial,info_comm
-  REAL (rk8)  :: time_et(100),time_bt(100) 
-  INTEGER(ik4) :: n_of_ENTRY=0
-  INTEGER(ik4) :: nrite=6
+  integer , parameter :: maxcall = 100
+  type(timing_info) , dimension(maxcall) :: info_serial , info_comm
+  real(rk8) :: time_et(maxcall) , time_bt(maxcall) 
+  integer(ik4) :: n_of_entry = 0
 
   CHARACTER (len=120) :: errmsg   !! a string where to compose an error message
 
@@ -606,31 +560,31 @@ MODULE mod_service
 
        IF (err_code > 0) THEN
 
-          WRITE (nrite,'(/1x,78(''*''))')
-          WRITE (nrite,'(3x,a8,'' no.'',i5,'' from '',a)') &
+          WRITE (stderr,'(/1x,78(''*''))')
+          WRITE (stderr,'(3x,a8,'' no.'',i5,'' from '',a)') &
                error_TYPE, err_code, sub
 
           ! optional strings
-          IF (PRESENT(line)) WRITE(nrite,'(5x,''line:    '',i6)') line
-          IF (PRESENT(message)) WRITE(nrite,'(/1x,''>>> '',a)') message
+          IF (PRESENT(line)) WRITE(stderr,'(5x,''line:    '',i6)') line
+          IF (PRESENT(message)) WRITE(stderr,'(/1x,''>>> '',a)') message
 
-          WRITE (nrite,'(/1x,78(''*''))')
+          WRITE (stderr,'(/1x,78(''*''))')
 
-          WRITE (nrite,'(1x,a)') 'Stopping the code...'
+          WRITE (stderr,'(1x,a)') 'Stopping the code...'
        ELSE
 
-          WRITE (nrite,'(3x,a8,'' no.'',i5,'' from '',a,'' : '',a)') &
+          WRITE (stderr,'(3x,a8,'' no.'',i5,'' from '',a,'' : '',a)') &
                error_TYPE, err_code, sub, message
 
        ENDIF
-       CALL flusha(nrite)
+       CALL flusha(stderr)
 
     ENDIF
 
     !! close all file and shutdown 
     IF (err_code > 0) THEN
 
-       CLOSE (nrite)
+       CLOSE (stderr)
        CALL MPI_BARRIER(mycomm,ierr) 
        CALL MPI_finalize(ierr) 
     ENDIF

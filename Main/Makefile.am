@@ -84,7 +84,7 @@ LIBS = $(LMPPLIB) $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
 
 bin_PROGRAMS = regcm
 
-regcm_SOURCES = mod_atm_interface.f90 mod_che_interface.F90 \
+regcm_SOURCES = mod_atm_interface.F90 mod_che_interface.F90 \
   mod_lm_interface.F90 mod_cu_interface.f90 mod_rad_interface.f90 \
   mod_pbl_interface.F90 mod_mppio.F90 mod_header.F90 \
   mod_advection.F90 mod_ncio.F90 mod_bdycod.F90 mod_diffusion.F90 \
@@ -124,7 +124,6 @@ clean-local:
 #
 mod_advection.o: mod_advection.F90 mod_atm_interface.o mod_dynparam.o mod_runparams.o mod_memutil.o mod_service.o
 mod_atm_interface.o: mod_atm_interface.F90 mod_dynparam.o mod_stdio.o mod_constants.o mod_runparams.o mod_mppparam.o mod_service.o mod_memutil.o
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_bdycod.o: mod_bdycod.F90 mod_dynparam.o mod_mppparam.o mod_memutil.o mod_atm_interface.o mod_pbl_interface.o mod_che_interface.o mod_lm_interface.o mod_mpmessage.o mod_ncio.o mod_mppio.o mod_service.o
 mod_che_interface.o: mod_che_interface.F90 mod_realkinds.o mod_atm_interface.o mod_che_common.o mod_che_cumtran.o mod_che_dust.o mod_che_indices.o mod_che_mppio.o mod_che_ncio.o mod_che_param.o mod_che_drydep.o mod_che_bdyco.o mod_che_emission.o mod_che_carbonaer.o mod_che_species.o mod_che_tend.o mod_che_start.o
 mod_cloud_s1.o: mod_cloud_s1.F90 mod_runparams.o mod_memutil.o mod_atm_interface.o mod_realkinds.o mod_dynparam.o
@@ -136,7 +135,6 @@ mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_a
 else
 mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.o rrtmg_lw_init.o mod_pbl_interface.o mod_precip.o mod_bdycod.o mod_mpmessage.o mod_sun.o mod_ncio.o mod_savefile.o mod_mppio.o mod_slice.o mod_constants.o mod_lm_interface.o
 endif
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
 mod_lm_interface.o: mod_lm_interface.F90 mod_bats_common.o mod_runparams.o mod_memutil.o mod_atm_interface.o mod_mtrxclm.o mod_clm.o mod_bats_mtrxbats.o mod_bats_param.o mod_bats_mppio.o mod_bats_bndry.o mod_bats_co2.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_mtrxbats.o mod_bats_zengocn.o
 else
@@ -149,13 +147,11 @@ mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_
 else
 mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncio.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_mppio.o
 endif
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
 mod_params.o: mod_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.o mod_advection.o mod_mppio.o mod_clm.o clm_varsur.o
 else
 mod_params.o: mod_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.o mod_advection.o mod_mppio.o
 endif
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_pbl_interface.o: mod_pbl_interface.F90 mod_realkinds.o mod_service.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_atm_interface.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_runparams.o
 mod_precip.o: mod_precip.f90 mod_runparams.o mod_memutil.o mod_atm_interface.o
 mod_rad_interface.o: mod_rad_interface.f90 mod_realkinds.o mod_atm_interface.o mod_rad_common.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rrtmg_driver.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o
@@ -182,7 +178,6 @@ mod_tendency.o: mod_tendency.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o 
 else
 mod_tendency.o: mod_tendency.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_stdio.o mod_service.o mod_memutil.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_lm_interface.o mod_rad_interface.o mod_pbl_interface.o mod_bdycod.o mod_che_bdyco.o mod_precip.o mod_slice.o mod_sun.o mod_advection.o mod_diffusion.o mod_mppio.o mod_domain.o mod_cloud_s1.o
 endif
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_tstep.o: mod_tstep.f90 mod_runparams.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_memutil.o mod_mpmessage.o mod_service.o linpack.o eispack.o mod_mppparam.o
 #
@@ -208,4 +203,3 @@ regcm.o: regcm.f90 mod_dynparam.o $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZ
 else
 regcm.o: regcm.f90 mod_dynparam.o $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
 endif
-	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
