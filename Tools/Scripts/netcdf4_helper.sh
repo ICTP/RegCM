@@ -7,11 +7,11 @@
 # CHEK HERE BELOW THE COMPILERS
 #
 # Working CC Compiler
-CC=icc
+#CC=icc
 # Working Fortran Compiler
-FC=ifort
+#FC=ifort
 # Destination directory
-DEST=$PWD
+#DEST=$PWD
 
 if [ -z "$DEST" ]
 then
@@ -80,7 +80,7 @@ echo "Compiled Zlib library."
 echo "Compiling HDF5 library."
 tar zxvf hdf5-1.8.9.tar.gz
 cd hdf5-1.8.9
-./configure CC=icc --prefix=$DEST --with-zlib=$DEST --disable-shared \
+./configure CC="$CC" --prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && make install > $DEST/logs/install.log
 if [ $? -ne 0 ]
