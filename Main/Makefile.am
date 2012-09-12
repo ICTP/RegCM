@@ -203,3 +203,4 @@ regcm.o: regcm.f90 mod_dynparam.o $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZ
 else
 regcm.o: regcm.f90 mod_dynparam.o $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
 endif
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
