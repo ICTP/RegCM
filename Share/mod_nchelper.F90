@@ -504,12 +504,13 @@ module mod_nchelper
     ipnt = ipnt + 1
   end subroutine define_lakedepth
 
-  subroutine define_textures(ncid,idims,ipnt,ivar)
+  subroutine define_textures(ncid,idims,ipnt,ivar,idimtex)
     implicit none
-    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) :: ncid , idimtex
     integer(ik4) , intent(in) , dimension(:) :: idims
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(out) :: ivar
+    integer(ik4) , dimension(3) :: itmpdims
 
     incstat = nf90_def_var(ncid, 'texture', nf90_float, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable texture')
@@ -549,8 +550,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding texture coordinates')
     ipnt = ipnt + 1
+    itmpdims(1) = idims(1)
+    itmpdims(2) = idims(2)
+    itmpdims(3) = idims(idimtex)
     incstat = nf90_def_var(ncid, 'texture_fraction', nf90_float, &
-                          idims(1:3), ivar(ipnt))
+                          itmpdims, ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable texture_fract')
 #ifdef NETCDF4_HDF5

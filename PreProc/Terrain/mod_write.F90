@@ -125,7 +125,7 @@ module mod_write
       call define_lakedepth(ncid,idims,ipnt,ivar)
     end if
     if ( ltexture ) then
-      call define_textures(ncid,idims,ipnt,ivar)
+      call define_textures(ncid,idims,ipnt,ivar,4)
     end if
 !
     incstat = nf90_enddef(ncid)
