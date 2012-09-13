@@ -280,7 +280,7 @@ module mod_che_ncio
       looprec: &
       do n = 1 , chmnrec
         tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
-        call spit_idate(tchdate,year,month,day,hour)
+        call split_idate(tchdate,year,month,day,hour)
         select case (ifreq)
           case (ifrqmon)
             if ( year == lyear .and. month == lmonth ) then
