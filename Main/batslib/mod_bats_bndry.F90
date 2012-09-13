@@ -89,7 +89,7 @@ module mod_bats_bndry
     real(rk8) , parameter :: minwrat = 1.0D-04
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bndry'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
    
@@ -283,7 +283,7 @@ module mod_bats_bndry
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=64) :: subroutine_name = 'vcover'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -331,7 +331,7 @@ module mod_bats_bndry
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'drip'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ici1 , ici2
@@ -383,7 +383,7 @@ module mod_bats_bndry
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tseaice'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ici1 , ici2
@@ -519,7 +519,7 @@ module mod_bats_bndry
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -787,7 +787,7 @@ module mod_bats_bndry
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -910,7 +910,7 @@ module mod_bats_bndry
     real(rk8) , parameter :: t3 = 271.0D0 ! permafrost temperature
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tgrund'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     dtbat2  = dtbat*d_two

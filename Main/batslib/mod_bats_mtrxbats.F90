@@ -183,7 +183,7 @@ module mod_bats_mtrxbats
     integer(ik8) , intent(in) :: ktau
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxbats'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -234,7 +234,7 @@ module mod_bats_mtrxbats
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initb'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -296,7 +296,7 @@ module mod_bats_mtrxbats
     real(rk4) :: real_4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
  
@@ -686,7 +686,7 @@ module mod_bats_mtrxbats
     integer(ik4) :: kolour , n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedobats'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -920,7 +920,7 @@ module mod_bats_mtrxbats
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'soilbc'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif 
     do i = ici1 , ici2

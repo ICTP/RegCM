@@ -94,7 +94,7 @@ module mod_che_bdyco
     type(rcm_time_interval)::  intbdy
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'che_init_bdy'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -231,7 +231,7 @@ module mod_che_bdyco
     integer(ik4) :: lyear , lmonth , lday , lhour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyin'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
   
@@ -308,7 +308,7 @@ module mod_che_bdyco
     integer(ik4) :: itr , j , k , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( ktau > 1 ) then
@@ -449,7 +449,7 @@ module mod_che_bdyco
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge_chi'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( cba%dotflag ) then

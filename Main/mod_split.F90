@@ -78,7 +78,7 @@ module mod_split
     logical :: lstand
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spinit'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -239,7 +239,7 @@ module mod_split
     integer(ik4) :: i , j , k , l , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'splitf'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     deld(:,:,:,:) = d_zero
@@ -501,7 +501,7 @@ module mod_split
     integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spstep'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do n = 1 , nsplit

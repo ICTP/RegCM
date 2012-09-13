@@ -193,7 +193,7 @@ module mod_cu_grell
     integer(ik4) :: i , j , k , jp1 , kk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuparan'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     pkdcut = 75.0D0
@@ -387,7 +387,7 @@ module mod_cu_grell
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cup'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -1174,7 +1174,7 @@ module mod_cu_grell
        real(rk8) :: x
 #ifdef DEBUG
        character(len=dbgslen) :: subroutine_name = 'minimi'
-       integer(ik4) :: idindx=0
+       integer(ik4) , save :: idindx = 0
        call time_begin(subroutine_name,idindx)
 #endif
        do i = ici1 , ici2
@@ -1204,7 +1204,7 @@ module mod_cu_grell
       real(rk8) :: x , xar
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'maximi1'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       do i = ici1 , ici2
@@ -1236,7 +1236,7 @@ module mod_cu_grell
       real(rk8) :: x , xar
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'maximi2'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       do i = ici1 , ici2

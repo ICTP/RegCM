@@ -146,7 +146,7 @@ module mod_cu_tiedtke
     real(rk8) :: akclth
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -379,7 +379,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cucall'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -617,7 +617,7 @@ module mod_cu_tiedtke
          zxtenh
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cumastr'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
  
@@ -1118,7 +1118,7 @@ module mod_cu_tiedtke
          zxtenh
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cumastrh'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
  
@@ -1561,7 +1561,7 @@ module mod_cu_tiedtke
          zxtenh
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cumastrt'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 
@@ -1899,7 +1899,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zph , zwmax
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cumini'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -2122,7 +2122,7 @@ module mod_cu_tiedtke
 !
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuasc'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !----------------------------------------------------------------------
@@ -2626,7 +2626,7 @@ module mod_cu_tiedtke
                                 zpbase , zph , zqold
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuasct'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -2989,7 +2989,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zph , zqold
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cubase'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3135,7 +3135,7 @@ module mod_cu_tiedtke
   real(rk8) :: zzzmb
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cubasmc'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3247,7 +3247,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuddraf'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3421,7 +3421,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev) :: zqenwb , ztenwb
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cudlf'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3573,7 +3573,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zmelt , zsheat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cudtdq'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3714,7 +3714,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cududv'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -3855,7 +3855,7 @@ module mod_cu_tiedtke
              zrrho , ztmzk , zzmzk
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuentr'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -4035,7 +4035,7 @@ module mod_cu_tiedtke
   real(rk8) :: zdprho , zentest , zentr , zpmid , zrrho
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuentrt'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -4128,7 +4128,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim) :: zpsubcl
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuflx'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -4331,7 +4331,7 @@ module mod_cu_tiedtke
 
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cuadjtq'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 

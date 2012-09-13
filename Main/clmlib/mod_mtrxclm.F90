@@ -82,7 +82,7 @@ module mod_mtrxclm
     integer(ik8) , intent(in) :: ktau
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxclm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -167,7 +167,7 @@ module mod_mtrxclm
     integer(ik4) :: year , month , day , hour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initclm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -464,7 +464,7 @@ module mod_mtrxclm
     integer(ik4) :: i , j , ig , jg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedoclm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -527,7 +527,7 @@ module mod_mtrxclm
     real(rk4) :: real_4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -1151,7 +1151,7 @@ module mod_mtrxclm
     logical :: log_print
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar_clm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     calday = yeardayfrac(idatex)
@@ -1186,7 +1186,7 @@ module mod_mtrxclm
     real(rk8) :: xxlat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zenitm_clm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     cldy = get_curr_calday()

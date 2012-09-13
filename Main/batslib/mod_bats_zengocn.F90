@@ -86,7 +86,7 @@ module mod_bats_zengocn
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zengocndrv'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ici1 , ici2
@@ -476,7 +476,7 @@ module mod_bats_zengocn
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zengocn'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     hu = hgt

@@ -222,7 +222,7 @@ module mod_pbl_interface
     integer(ik4) :: i , k , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hadvtke'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -277,7 +277,7 @@ module mod_pbl_interface
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vadvtke'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
         

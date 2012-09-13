@@ -51,7 +51,7 @@ contains
     integer(ik4) , save :: currmonth
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_emission'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -100,7 +100,7 @@ contains
     real(rk8) :: daylen , fact , maxelev , amp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 

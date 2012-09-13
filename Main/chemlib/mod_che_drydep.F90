@@ -380,7 +380,7 @@ module mod_che_drydep
       integer(ik4) :: i , k , kcov , l , n , ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       ! here avesize is a RADIUS of the particle bin in m :
@@ -661,7 +661,7 @@ module mod_che_drydep
 #endif
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       ! Different options for LAI and roughness 
@@ -808,7 +808,7 @@ module mod_che_drydep
       real(rk8) , parameter :: z10 = 10.0D0
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'aerodyresis'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
   
@@ -997,7 +997,7 @@ module mod_che_drydep
       real(rk8) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'stomtresis'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 

@@ -114,7 +114,7 @@ module mod_advection
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ldot ) then
@@ -177,7 +177,7 @@ module mod_advection
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d4d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ind == 1 ) then
@@ -253,7 +253,7 @@ module mod_advection
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv4d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       do n = 1 , ntr
@@ -328,7 +328,7 @@ module mod_advection
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ldot ) then
@@ -499,7 +499,7 @@ module mod_advection
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d4d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ind == 1 ) then
@@ -652,7 +652,7 @@ module mod_advection
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
-      integer(ik4) :: idindx = 0
+      integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ind == 1 ) then

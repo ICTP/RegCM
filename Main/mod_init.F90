@@ -70,7 +70,7 @@ module mod_init
   character(len=32) :: appdat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
   !

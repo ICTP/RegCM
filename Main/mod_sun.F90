@@ -255,7 +255,7 @@ module mod_sun
     real(rk8) :: decdeg , theta
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     calday = yeardayfrac(idatex)
@@ -295,7 +295,7 @@ module mod_sun
     real(rk8) :: xxlat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zenitm'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     xt24 = dble(idatex%second_of_day)/secph
@@ -323,7 +323,7 @@ module mod_sun
     real(rk8) :: w1 , w2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar_irradiance'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( calday > dayspy/2.0D0 ) then

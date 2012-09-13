@@ -261,6 +261,7 @@ module mod_mppparam
   public :: subgrid_distribute , subgrid_collect
   public :: uvcross2dot , psc2psd
   public :: bcast , sumall
+  public :: gather_r , gather_i
 !
   contains
 !
@@ -5090,5 +5091,27 @@ module mod_mppparam
     nullify(xvar%val)
     call relmem4d(xvar%iobuf)
   end subroutine grid_nc_destroy_var4d
+
+  subroutine gather_r(f_collect,f_sub)
+    implicit none 
+    real(rk8) , dimension(:) :: f_collect 
+    real(rk8) :: f_sub
+    call mpi_allgather(f_sub,    1,mpi_real8, &
+                       f_collect,1,mpi_real8,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) THEN
+      call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
+    end if
+  end subroutine gather_r
+
+  subroutine gather_i(i_collect,i_sub)
+    implicit none 
+    integer(ik4) , dimension(:) :: i_collect 
+    integer(ik4) :: i_sub
+    call mpi_allgather(i_sub,    1,mpi_integer, &
+                       i_collect,1,mpi_integer,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) THEN
+      call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
+    end if
+  end subroutine gather_i
 
 end module mod_mppparam

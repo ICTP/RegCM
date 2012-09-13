@@ -67,7 +67,7 @@ module mod_output
   logical :: lstartup
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'output'
-  integer(ik4) :: idindx = 0
+  integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
 !

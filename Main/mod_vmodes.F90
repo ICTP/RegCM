@@ -104,7 +104,7 @@ module mod_vmodes
     data lprint/.false./  ! true if all matrices to be printed
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vmodes'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -660,7 +660,7 @@ module mod_vmodes
     !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'invmtrx'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( n /= na .or. n /= nv ) then

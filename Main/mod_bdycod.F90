@@ -132,7 +132,7 @@ module mod_bdycod
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -194,7 +194,7 @@ module mod_bdycod
     type (rcm_time_and_date) :: icbc_date
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init_bdy'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -371,7 +371,7 @@ module mod_bdycod
     character(len=32) :: appdat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -538,7 +538,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyuv'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -763,7 +763,7 @@ module mod_bdycod
     real(rk8) :: windavg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -1256,7 +1256,7 @@ module mod_bdycod
     real(rk8) , pointer , dimension(:) :: wg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge4d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -1341,7 +1341,7 @@ module mod_bdycod
     real(rk8) , pointer , dimension(:) :: wg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge3d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -1423,7 +1423,7 @@ module mod_bdycod
     real(rk8) , pointer , dimension(:) :: wg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge2d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba%havebound ) return
@@ -1545,7 +1545,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba%havebound ) return
@@ -1682,7 +1682,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -1822,7 +1822,7 @@ module mod_bdycod
     integer(ik4) :: i , j , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge2d'
-    integer(ik4) :: idindx = 0
+    integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
