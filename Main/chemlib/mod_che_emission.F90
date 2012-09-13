@@ -44,35 +44,35 @@ contains
   !
   ! SURFACE EMIOSSION flux
   !
-  subroutine chem_emission(lyear,lmonth,calday,lhour)
+  subroutine chem_emission(lyear,lmonth,lday,lhour)
     implicit none
-    integer(ik4) , intent(in) :: lyear , lmonth , calday , lhour
-    !
-    integer(ik4) , save :: currmonth
+    integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
+    integer(ik4) , save :: curry = -1
+    integer(ik4) , save :: currm = -1
+    integer(ik4) , save :: currd = -1
+    integer(ik4) , save :: ifreq = -1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_emission'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    ! read the monthly aerosol emission files
-    ! FAB: remember for now, we have 1 emission file containing all monthly
-    ! emission for the whole simulation period
-    ! change that in the future. Also lmonth is not really necessary here,
-    ! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
+    ! read the aerosol emission files
     !
-    if (chemsimtype(1:4)=='DUST') return
-    if ( calday == currmonth ) then 
-       return 
-    else
-       currmonth = calday
+    if ( chemsimtype(1:4) == 'DUST' ) return
+    if ( ifreq == ifrqmon ) then
+      if ( curry == lyear .and. currm == lmonth ) return
+    else if ( ifreq == ifrqday ) then
+      if ( curry == lyear .and. currm == lmonth .and. currd == lday ) return
     end if
+    curry = lyear
+    currm = lmonth
+    currd = lday
     if ( myid == iocpu ) then
-       write(*,*)'READ CHEM EMISSION for ', &
-            lyear*1000000+lmonth*10000+calday
+       write(*,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
        ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
        ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
-       call read_emission(lyear,lmonth,calday, chemsrc_io)
+       call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc_io)
     end if
     call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
 #ifdef DEBUG

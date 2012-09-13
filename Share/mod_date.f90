@@ -1115,23 +1115,18 @@ module mod_date
     pm = x - z
   end function prevwk
 
-  subroutine timeval2ym(xval,cunit,year,month,julday)
+  subroutine timeval2ym(xval,cunit,year,month)
     implicit none
     real(rk8) , intent(in) :: xval
     character(*) , intent(in) :: cunit
-    integer(ik4) , intent(out) :: year , month, julday
-
+    integer(ik4) , intent(out) :: year , month
     type (iadate) , save :: d
     type (iatime) :: t
     character(16) :: cdum
 
-    character(64) , save :: csave,dsave
+    character(64) , save :: csave
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
-    data dsave /'days since XXXX-XX-XX XX:XX:XX XXX'/
 
-    if (cunit(1:6) == 'months') then
-
-    
     if (csave == cunit) then
       year = d%year+idint(xval/12.0D0)
       month = d%month+idint(mod(xval,12.0D0))
@@ -1144,7 +1139,7 @@ module mod_date
       end if
       return
     end if
-
+    if (cunit(1:6) == 'months') then
       ! Unit is months since reference
       if (len_trim(cunit) >= 31) then
         read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
@@ -1166,7 +1161,9 @@ module mod_date
       else
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2YM')
       end if
-
+    else
+       call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS')
+    end if
     csave = cunit
     year = d%year+idint(xval/12.0D0)
     month = d%month+idint(mod(xval,12.0D0))
@@ -1177,46 +1174,6 @@ module mod_date
       month = month + 12
       year = year - 1
     end if
-
-
-    elseif (cunit(1:4) == 'months') then
-
-      if (dsave == cunit) then
-       year = d%year+idint(xval/366)
-       julday = d%day  + xval - idint(xval/366)* 366     
-       month = 0 
-       return
-       end if
-
-      if (len_trim(cunit) >= 31) then
-        read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute, cdum, t%second
-      else if (len_trim(cunit) >= 28) then
-        read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute
-      else if (len_trim(cunit) >= 25) then
-        read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-      else if (len_trim(cunit) >= 22) then
-        read(cunit,'(a11,i4,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day
-      else if (len_trim(cunit) >= 19) then
-        read(cunit,'(a11,i4,a1,i2)') &
-          cdum, d%year, cdum, d%month
-      else
-        call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2YM')
-      end if
-
-      dsave = cunit
-      year = d%year+ idint(xval/366)
-      julday = d%day  + xval - idint(xval/366) * 366     
-      month=0
-    else 
-       call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS or DAYS')
-    end if
-
   end subroutine timeval2ym
 
   function timeval2date(xval,cunit,ccal) result(dd)
