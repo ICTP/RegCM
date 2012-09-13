@@ -190,6 +190,7 @@ module mod_che_ncio
       real(rk4), dimension(jx,iy) ::  toto
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+
       istatus = nf90_open(dname, nf90_nowrite, idmin)
       call check_ok(__FILE__,__LINE__, &
                   'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
@@ -217,16 +218,17 @@ module mod_che_ncio
       call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
     end subroutine read_texture
 
-    subroutine read_emission(lyear,lmonth,echemsrc)
+    subroutine read_emission(lyear,lmonth,calday, echemsrc)
       implicit none
-      integer(ik4) , intent(in) :: lyear , lmonth
+
+      integer(ik4) , intent(in) :: lyear , lmonth,calday
       real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n,ncid , itvar, idimid, chmnrec
+      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
       character(64) ::chemi_timeunits
       real(rk8) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: year, month 
+      integer(ik4) :: year, month,jday 
 
       ! FAB: remember for now, we have 1 emission file containing all monthly
       ! emission for the whole simulation period 
@@ -259,12 +261,24 @@ module mod_che_ncio
     
        recc=0
        do n = 1 , chmnrec
-         call timeval2ym(emtimeval(n),chemi_timeunits,year,month)
+         call timeval2ym(emtimeval(n),chemi_timeunits,year,month,jday)
+
+         print*, ' HI' , n, year, month,jday
+
+         if(month > 0) then
          if (year == lyear .and. month == lmonth) then 
            recc = n
            exit
-         end if
-       end do 
+         endif
+         elseif (month ==0) then
+         ! mean here that the emission data set is daily 
+         if (year == lyear .and. jday  == calday ) then 
+           recc = n
+           exit
+         end if 
+
+        end if
+       enddo
        
        if ( recc == 0 ) then
          print *,'chem emission : time record not found emission file, STOP ! '
@@ -273,6 +287,20 @@ module mod_che_ncio
 
       !*** intialized in start_chem
       !*** Advice record counter
+      istart = 0
+      icount = 0 
+      istatus = nf90_inq_dimid(ncid, 'lev', idimid)
+
+      if(istatus /= nf90_noerr) then
+      ! no lev diemsion in emission variables
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = recc
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = 1
+      sdim = 3
+      else
       istart(1) = 1
       istart(2) = 1
       istart(3) = 1
@@ -281,33 +309,34 @@ module mod_che_ncio
       icount(2) = iy
       icount(3) = 1
       icount(4) = 1
-
+      sdim=4
+      end if
       ! CO emission                  
       if ( ico /= 0 ) then
-          call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.)
+          call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.,sdim)
           print*, 'FAB emis testco','ico', maxval(echemsrc)
       end if
 
       ! NO emission                  
       if ( ino /= 0 ) then
           call rvar(ncid,istart,icount,ino,echemsrc, &
-                    'NO_flux',.false.)
+                    'NO_flux',.false.,sdim)
       end if
 
       ! HCHO emission                  
         if ( ihcho /= 0 ) then
            call rvar(ncid,istart,icount,ihcho,echemsrc, &
-             'HCHO_flux',.false.)
+             'HCHO_flux',.false.,sdim)
         end if
         ! ACET emission                  
         if ( iacet /= 0 ) then
           call rvar(ncid,istart,icount,iacet,echemsrc, &
-              'ACET_flux',.false.)
+              'ACET_flux',.false.,sdim)
         end if
         ! SO2 emission
         if ( iso2 /= 0 ) then
           call rvar(ncid,istart,icount,iso2,echemsrc, &
-                    'SO2_flux',.false.)
+                    'SO2_flux',.false.,sdim)
         end if
 
         !NH3
@@ -318,29 +347,29 @@ module mod_che_ncio
         ! CH4
         if ( ich4 /= 0 ) then
           call rvar(ncid,istart,icount,ich4,echemsrc, &
-                    'CH4_flux',.false.)
+                    'CH4_flux',.false.,sdim)
         end if
         ! Ethane
         if ( ic2h6 /= 0 ) then
           call rvar(ncid,istart,icount,ic2h6,echemsrc, &
-                    'C2H6_flux',.false.)
+                    'C2H6_flux',.false.,sdim)
         end if
         ! PAR
         if ( ipar /= 0 ) then
          call rvar(ncid,istart,icount,ipar,echemsrc, &
-                 'PAR_flux',.false.)
+                 'PAR_flux',.false.,sdim)
         end if
 
         ! Ethene
         if ( iethe /= 0 ) then
           call rvar(ncid,istart,icount,iethe,echemsrc, &
-                    'ETHE_flux',.false.)
+                    'ETHE_flux',.false.,sdim)
         end if
 
         ! Termenal Alkene
         if ( iolt /= 0 ) then
           call rvar(ncid,istart,icount,iolt,echemsrc, &
-                    'OLT_flux',.false.)
+                    'OLT_flux',.false.,sdim)
         end if
 
         ! Internal Alkene
@@ -350,10 +379,10 @@ module mod_che_ncio
 
         ! Isoprene
         if ( iisop /= 0 ) then
-          call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.)
+          call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.,sdim)
           ! here use io3(never emuitted) to temporarily read anthropo
           ! isoprene and add to biogenic. Should be refined 
-          call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.)
+          call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.,sdim)
           echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
           echemsrc(:,:,io3) = d_zero
         end if
@@ -361,28 +390,28 @@ module mod_che_ncio
         ! Toluene
         if ( itolue /= 0 ) then
             call rvar(ncid,istart,icount,itolue,echemsrc, &
-                      'TOL_flux',.false.)
+                      'TOL_flux',.false.,sdim)
         end if
 
         ! Xylene
         if ( ixyl /= 0 ) then
             call rvar(ncid,istart,icount,ixyl,echemsrc, &
-                      'XYL_flux',.true.)
+                      'XYL_flux',.false.,sdim)
         end if
         ! Acetaldehyde
         if ( iald2 /= 0 ) then
-          call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.)
+          call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.,sdim)
         end if
         ! Methanol + Ethanol
         if ( imoh /= 0 ) then
           call rvar(ncid,istart,icount,imoh,echemsrc, &
-                    'MOH_flux',.false.)
+                    'MOH_flux',.false.,sdim)
         end if           
 
         !acids
         if ( ircooh /= 0 ) then
           call rvar(ncid,istart,icount,ircooh,echemsrc, &
-                    'RCOOH_flux',.false.)
+                    'RCOOH_flux',.false.,sdim)
         end if
 
 !!$        ! DMS
@@ -393,11 +422,11 @@ module mod_che_ncio
         ! OC and BC anthropogenic + biomass burning
         if ( ibchb /= 0 ) then
           call rvar(ncid,istart,icount,ibchb,echemsrc, &
-                    'BC_flux',.false.)
+                    'BC_flux',.false.,sdim)
         end if
         if ( iochb /= 0 ) then
           call rvar(ncid,istart,icount,iochb,echemsrc, &
-                    'OC_flux',.false.)
+                    'OC_flux',.false.,sdim)
         end if
 
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
@@ -409,9 +438,10 @@ module mod_che_ncio
       deallocate (emtimeval)
     end subroutine read_emission
 
-    subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,cnb,cnc,cnd)
+    subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
       implicit none
-      integer(ik4) , intent(in) :: ncid
+
+      integer(ik4) , intent(in) :: ncid,sdim
       integer(ik4) , dimension(4) , intent(in) :: istart , icount
       real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       logical , intent(in) :: lh
@@ -426,7 +456,7 @@ module mod_che_ncio
       istatus = nf90_inq_varid(ncid, cna, ivarid)
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+      istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' read err','CHEM_EMISS FILE')
       if ( lh ) then  ! half of lumped Aromatics
@@ -446,7 +476,7 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnb, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnb//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnb//' read err','CHEM_EMISS FILE')
         do i = 1 , iy
@@ -459,7 +489,7 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnc, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnc//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnc//' read err','CHEM_EMISS FILE')
         do i = 1 , iy
@@ -472,7 +502,7 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnd, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' read err','CHEM_EMISS FILE')
         do i = 1 , iy

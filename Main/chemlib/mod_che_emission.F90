@@ -44,9 +44,9 @@ contains
   !
   ! SURFACE EMIOSSION flux
   !
-  subroutine chem_emission(lyear,lmonth,lday,lhour)
+  subroutine chem_emission(lyear,lmonth,calday,lhour)
     implicit none
-    integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
+    integer(ik4) , intent(in) :: lyear , lmonth , calday , lhour
     !
     integer(ik4) , save :: currmonth
 #ifdef DEBUG
@@ -62,17 +62,17 @@ contains
     ! but KEEP THIS DIMENSION FOR HIGHER TEMPORAL RESOLUTION INVENTORIES 
     !
     if (chemsimtype(1:4)=='DUST') return
-    if ( lmonth == currmonth ) then 
+    if ( calday == currmonth ) then 
        return 
     else
-       currmonth = lmonth
+       currmonth = calday
     end if
     if ( myid == iocpu ) then
        write(*,*)'READ CHEM EMISSION for ', &
-            lyear*1000000+lmonth*10000+lday*100+lhour
+            lyear*1000000+lmonth*10000+calday
        ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
        ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
-       call read_emission(lyear,lmonth,chemsrc_io)
+       call read_emission(lyear,lmonth,calday, chemsrc_io)
     end if
     call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
 #ifdef DEBUG
