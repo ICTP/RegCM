@@ -75,6 +75,7 @@ contains
        call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc_io)
     end if
     call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
+    call bcast(ifreq)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
