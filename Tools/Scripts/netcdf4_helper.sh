@@ -68,7 +68,8 @@ tar zxvf zlib-1.2.7.tar.gz
 cd zlib-1.2.7
 CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
              $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && make install > $DEST/logs/install.log
+make > $DEST/logs/compile.log 2>&1 && \
+  make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling zlib library"
@@ -82,7 +83,8 @@ tar zxvf hdf5-1.8.9.tar.gz
 cd hdf5-1.8.9
 ./configure CC="$CC" --prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && make install > $DEST/logs/install.log
+make > $DEST/logs/compile.log 2>&1 && \
+  make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling HDF5 library"
@@ -97,7 +99,8 @@ cd netcdf-4.2.1.1
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="-lhdf5_hl -lhdf5 -lz" \
   --disable-shared --disable-dap >> $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && make install > $DEST/logs/install.log
+make > $DEST/logs/compile.log 2>&1 && \
+  make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling netCDF C library"
@@ -111,7 +114,8 @@ cd netcdf-fortran-4.2
 PATH=$DEST/bin:$PATH ./configure CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --disable-shared >> $DEST/logs/configure.log 2>&1
-make >> $DEST/logs/compile.log 2>&1 && make install >> $DEST/logs/install.log
+make >> $DEST/logs/compile.log 2>&1 && \
+  make install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling netCDF Fortran library"
