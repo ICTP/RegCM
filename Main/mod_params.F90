@@ -113,7 +113,7 @@ module mod_params
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
     ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
-    irrtm , iclimao3
+    irrtm , iclimao3 , isolconst
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -318,6 +318,7 @@ module mod_params
   iconvlwp = 1
   irrtm = 0
   iclimao3 = 0
+  isolconst = 1
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
 !
@@ -615,6 +616,7 @@ module mod_params
   call bcast(iconvlwp)
   call bcast(irrtm)
   call bcast(iclimao3)
+  call bcast(isolconst)
 
 #ifdef CLM
   call bcast(dirclm,256)

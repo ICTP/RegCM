@@ -326,6 +326,10 @@ module mod_sun
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    if ( isolconst == 1 ) then
+      solar_irradiance = 1367.0D0
+      return
+    end if
     if ( calday > dayspy/2.0D0 ) then
       w2 = calday/dayspy-0.5D0
       w1 = 1.0D0-w2

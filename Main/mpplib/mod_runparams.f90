@@ -91,7 +91,7 @@ module mod_runparams
   ! Ocean model switch indexes
   integer(ik4) :: iocnrough , iocnflx , iocncpl
   ! Radiation switch controls
-  integer(ik4) :: idirect , iemiss
+  integer(ik4) :: idirect , iemiss , isolconst
 !
   real(rk8) :: dt , dt2 , dtbdys
   real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
