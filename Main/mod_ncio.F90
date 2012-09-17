@@ -1738,11 +1738,12 @@ contains
     isrfrec = isrfrec + 1
   end subroutine writerec_srf
 
-  subroutine writerec_sub(fsub,tlake,idate)
+  subroutine writerec_sub(fsub,iveg1,tlake,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: iveg1
     integer(ik4) :: ivar
     integer(ik4) :: n , nxb , nyb , id
     integer(ik4) , dimension(4) :: istart , icount
@@ -1829,7 +1830,7 @@ contains
       ivar = 17
       if ( sub_variables(ivar)%enabled ) then
         do id = 1 , 4
-          call reorder_3d_lake(tlake,subio,id)
+          call reorder_3d_lake(iveg1,tlake,subio,id)
           istart(4) = isubrec
           istart(3) = id
           istart(2) = 1
@@ -2485,9 +2486,10 @@ contains
     end do
   end subroutine reorder_3_2
 
-  subroutine reorder_3d_lake(m2,m1,m)
+  subroutine reorder_3d_lake(mask,m2,m1,m)
     implicit none
     integer(ik4) , intent(in) :: m
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mask
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: m2
     real(rk4) , pointer , dimension(:,:) , intent(out) :: m1
     integer(ik4) :: i , ii , j , jj , n
@@ -2500,7 +2502,11 @@ contains
         n = (jj-1)*nsg + ii
         jj = (j+nsg-1)/nsg
         ii = (i+nsg-1)/nsg
-        m1(j,i) = real(m2(n,jj+1,ii+1,m))+real(tzero)
+        if ( mask(n,jj+1,ii+1) == 14 ) then
+          m1(j,i) = real(m2(n,jj+1,ii+1,m))+real(tzero)
+        else
+          m1(j,i) = smissval
+        end if
       end do
     end do
   end subroutine reorder_3d_lake

@@ -225,7 +225,8 @@ module mod_output
       if ( ifsub .and. nsg > 1 ) then
         call subgrid_collect(fsub,fsub_io,jci1,jci2,ici1,ici2,1,numsub)
         if ( lakemod == 1 ) then
-          call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
+          call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,4)
+          call subgrid_collect(iveg1,iveg1_io,jci1,jci2,ici1,ici2)
         end if
         if ( myid == iocpu ) then
           call outsub
@@ -467,7 +468,7 @@ module mod_output
 !
   subroutine outsub
     implicit none
-    call writerec_sub(fsub_io,tlak_io,idatex)
+    call writerec_sub(fsub_io,iveg1_io,tlak_io,idatex)
     print *, 'SUB variables written at ' , tochar(idatex)
   end subroutine outsub
 !
