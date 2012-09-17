@@ -100,7 +100,7 @@ module mod_runparams
 
   integer(ik4) :: iboudy , ichem , ipgf , ipptls
 
-  logical :: ifrest , rfstrt , doing_restart
+  logical :: ifrest , rfstrt , doing_restart , lsync
 
   integer(ik4) :: kchi , kclo , kcmd , cpldbglevel
 !
@@ -113,10 +113,6 @@ module mod_runparams
 
   character(len=8) :: scenario
 
-  integer, private  :: ierr 
-  real(rk8) , private :: total_allocation_size
-
-  data total_allocation_size /d_zero/
   data doing_restart /.false./
 
   contains

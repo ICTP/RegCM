@@ -164,6 +164,9 @@
  rad_enablevar = 15*.true., ! Mask to eventually disable variables RAD
  che_enablevar = 17*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',      ! Path where all output will be placed
+ lsync   = .false.,         ! If sync of output files at every timestep is
+                            ! requested. Note, it has a performance impact.
+                            ! Enabled by default if debug_level > 2
  /
 !
 ! Model Physics

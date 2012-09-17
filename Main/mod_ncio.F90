@@ -466,6 +466,7 @@ contains
       call getmem2d(subio,1,o_njg,1,o_nig,'ncio:subio')
       call getmem2d(sp2d1,1,jxsg,1,iysg,'ncio:sp2d1')
     end if
+    if ( debug_level > 2 ) lsync = .true.
   end subroutine init_mod_ncio
 
   subroutine read_domain_info
@@ -1333,7 +1334,7 @@ contains
       call check_ok(__FILE__,__LINE__,'Error var layer write', fterr)
     end if
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncid)
       call check_ok(__FILE__,__LINE__,'Error initial sync', fterr)
     end if
@@ -1592,7 +1593,7 @@ contains
       ivar = ivar + 1
     end do
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncsts)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'STS FILE')
     end if
@@ -1718,7 +1719,7 @@ contains
                     ' at '//ctime, 'SRF FILE')
     end if
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncsrf)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'SRF FILE')
     end if
@@ -1811,7 +1812,7 @@ contains
       end if
       ivar = ivar + 1
     end do
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncsub)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'SUB FILE')
     end if
@@ -1887,7 +1888,7 @@ contains
       ivar = ivar + 1
     end do
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncrad)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'RAD FILE')
     end if
@@ -2218,7 +2219,7 @@ contains
                     'ATM FILE')
     end if
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(ncatm)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'ATM FILE')
     end if
@@ -2382,7 +2383,7 @@ contains
                   ' at '//ctime, 'LAK FILE')
     end do
 
-    if ( debug_level > 2 ) then
+    if ( lsync ) then
       istatus = nf90_sync(nclak)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'LAK FILE')
     end if

@@ -108,7 +108,7 @@ module mod_params
     radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,    &
     ifchem , chemfrq , atm_enablevar , srf_enablevar ,             &
     rad_enablevar , sub_enablevar , sts_enablevar ,                &
-    lak_enablevar , dirout
+    lak_enablevar , dirout , lsync
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -290,6 +290,7 @@ module mod_params
   lak_enablevar(:) = .true.
   rad_enablevar(:) = .true.
   dirout = './output' 
+  lsync = .false.
 !chem2
   ifchem = .false.
   chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
