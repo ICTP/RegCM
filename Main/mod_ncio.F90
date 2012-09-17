@@ -28,7 +28,7 @@ module mod_ncio
 !
   integer(ik4) , parameter :: n_atmvar = 14
   integer(ik4) , parameter :: n_srfvar = 26
-  integer(ik4) , parameter :: n_subvar = 16
+  integer(ik4) , parameter :: n_subvar = 17
   integer(ik4) , parameter :: n_radvar = 18
   integer(ik4) , parameter :: n_lakvar = 16
   integer(ik4) , parameter :: n_stsvar = 13
@@ -183,7 +183,9 @@ module mod_ncio
     output_variable('sena','surface_downward_sensible_heat_flux',             &
           'Sensible heat flux','W m-2','mean',.true.),                        &
     output_variable('prcv','convective_rainfall_flux',                        &
-          'Convective precipitation','kg m-2 day-1','mean',.true.) /
+          'Convective precipitation','kg m-2 day-1','mean',.true.),           &
+    output_variable('tlake','water_temperature',                              &
+         'Lake water first 4 meters temperature','K','point',.true.) /
 
   data rad_variables / &
     output_variable('time','','','','',.true.),                               &
@@ -959,6 +961,12 @@ contains
       istatus = nf90_def_dim(ncid, 'depth', ndpmax, idims(10))
       call check_ok(__FILE__,__LINE__,'Error create dim depth', fterr)
     end if
+    if ( ctype == 'SUB' ) then
+      if ( lakemod == 1 ) then
+        istatus = nf90_def_dim(ncid, 'depth', 4, idims(10))
+        call check_ok(__FILE__,__LINE__,'Error create dim depth', fterr)
+      end if
+    end if
     istatus = nf90_def_var(ncid, 'rcm_map', nf90_int, varid=imapvar)
     call check_ok(__FILE__,__LINE__,'Error add var rcm_map', fterr)
     if (iproj == 'LAMCON') then
@@ -1160,6 +1168,9 @@ contains
       if ( iseaice /= 1 .and. lakemod /= 1 ) then
         srf_variables(26)%enabled = .false.
       end if
+      if ( lakemod /= 1 ) then
+        sub_variables(17)%enabled = .false.
+      end if
       call addvara(ncid,ctype,t10yx,.false.,4)
       call addvara(ncid,ctype,t10yx,.false.,5)
       call addvara(ncid,ctype,tyx,.false.,6)
@@ -1223,6 +1234,7 @@ contains
       call addvara(ncid,ctype,tyx,.true.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
+      call addvara(ncid,ctype,tdyx,.true.,17)
     else if (ctype == 'RAD') then
       iradvar = -1
       iradvar(1) = itvar
@@ -1726,12 +1738,13 @@ contains
     isrfrec = isrfrec + 1
   end subroutine writerec_srf
 
-  subroutine writerec_sub(fsub, idate)
+  subroutine writerec_sub(fsub,tlake,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: fsub
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
     integer(ik4) :: ivar
-    integer(ik4) :: n , nxb , nyb
+    integer(ik4) :: n , nxb , nyb , id
     integer(ik4) , dimension(4) :: istart , icount
     real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
@@ -1812,6 +1825,26 @@ contains
       end if
       ivar = ivar + 1
     end do
+    if ( lakemod == 1 ) then
+      ivar = 17
+      if ( sub_variables(ivar)%enabled ) then
+        do id = 1 , 4
+          call reorder_3d_lake(tlake,subio,id)
+          istart(4) = isubrec
+          istart(3) = id
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_nig
+          icount(1) = o_njg
+          istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE')
+        end do
+      end if
+    end if
     if ( lsync ) then
       istatus = nf90_sync(ncsub)
       call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'SUB FILE')
@@ -2451,5 +2484,25 @@ contains
       end do
     end do
   end subroutine reorder_3_2
+
+  subroutine reorder_3d_lake(m2,m1,m)
+    implicit none
+    integer(ik4) , intent(in) :: m
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: m2
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: m1
+    integer(ik4) :: i , ii , j , jj , n
+    do j = 1 , o_njg
+      do i = 1 , o_nig
+        jj = mod(j,nsg)
+        if ( jj == 0 ) jj = nsg
+        ii = mod(i,nsg)
+        if ( ii == 0 ) ii = nsg
+        n = (jj-1)*nsg + ii
+        jj = (j+nsg-1)/nsg
+        ii = (i+nsg-1)/nsg
+        m1(j,i) = real(m2(n,jj+1,ii+1,m))+real(tzero)
+      end do
+    end do
+  end subroutine reorder_3d_lake
 
 end module mod_ncio
