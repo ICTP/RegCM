@@ -598,8 +598,12 @@ module mod_che_ncio
         ofname = trim(dirout)//pthsep//trim(domname)// &
                    '_'//trim(fbname)//'.nc'
 
-        write (aline, *) 'Opening new output file ', trim(ofname), noutf, ntr
+        write (aline, *) 'Opening new output file ', trim(ofname)
         call say
+#ifdef DEBUG
+        write (aline,*) 'NOUTF = ', noutf, ', NTR = ', ntr
+        call say
+#endif
 
         call createfile_withname(ofname,ncid)
         call add_common_global_params(ncid,'Model (Chemistry '// &
