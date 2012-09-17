@@ -185,7 +185,7 @@ module mod_ncio
     output_variable('prcv','convective_rainfall_flux',                        &
           'Convective precipitation','kg m-2 day-1','mean',.true.),           &
     output_variable('tlake','water_temperature',                              &
-         'Lake water first 4 meters temperature','K','point',.true.) /
+         'Lake water surface temperature','K','point',.true.) /
 
   data rad_variables / &
     output_variable('time','','','','',.true.),                               &
@@ -961,12 +961,6 @@ contains
       istatus = nf90_def_dim(ncid, 'depth', ndpmax, idims(10))
       call check_ok(__FILE__,__LINE__,'Error create dim depth', fterr)
     end if
-    if ( ctype == 'SUB' ) then
-      if ( lakemod == 1 ) then
-        istatus = nf90_def_dim(ncid, 'depth', 4, idims(10))
-        call check_ok(__FILE__,__LINE__,'Error create dim depth', fterr)
-      end if
-    end if
     istatus = nf90_def_var(ncid, 'rcm_map', nf90_int, varid=imapvar)
     call check_ok(__FILE__,__LINE__,'Error add var rcm_map', fterr)
     if (iproj == 'LAMCON') then
@@ -1008,7 +1002,7 @@ contains
     istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
                          'sigma: sigma ps: ps ptop: ptop')
     call check_ok(__FILE__,__LINE__,'Error add sigma formula_terms', fterr)
-    if (ctype == 'LAK') then
+    if ( ctype == 'LAK' ) then
       istatus = nf90_def_var(ncid, 'depth', nf90_float, idims(10), izvar(3))
       call check_ok(__FILE__,__LINE__,'Error add var depth', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'standard_name', 'depth')
@@ -1234,7 +1228,7 @@ contains
       call addvara(ncid,ctype,tyx,.true.,14)
       call addvara(ncid,ctype,tyx,.false.,15)
       call addvara(ncid,ctype,tyx,.false.,16)
-      call addvara(ncid,ctype,tdyx,.true.,17)
+      call addvara(ncid,ctype,tyx,.true.,17)
     else if (ctype == 'RAD') then
       iradvar = -1
       iradvar(1) = itvar
@@ -1745,7 +1739,7 @@ contains
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: iveg1
     integer(ik4) :: ivar
-    integer(ik4) :: n , nxb , nyb , id
+    integer(ik4) :: n , nxb , nyb
     integer(ik4) , dimension(4) :: istart , icount
     real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
@@ -1829,21 +1823,17 @@ contains
     if ( lakemod == 1 ) then
       ivar = 17
       if ( sub_variables(ivar)%enabled ) then
-        do id = 1 , 4
-          call reorder_3d_lake(iveg1,tlake,subio,id)
-          istart(4) = isubrec
-          istart(3) = id
-          istart(2) = 1
-          istart(1) = 1
-          icount(4) = 1
-          icount(3) = 1
-          icount(2) = o_nig
-          icount(1) = o_njg
-          istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-          call check_ok(__FILE__,__LINE__, &
+        call reorder_3d_lake(iveg1,tlake,subio,1)
+        istart(3) = isubrec
+        istart(2) = 1
+        istart(1) = 1
+        icount(3) = 1
+        icount(2) = o_nig
+        icount(1) = o_njg
+        istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
+        call check_ok(__FILE__,__LINE__, &
                         'Error writing '//sub_variables(ivar)%vname// &
                         ' at '//ctime, 'SUB FILE')
-        end do
       end if
     end if
     if ( lsync ) then
