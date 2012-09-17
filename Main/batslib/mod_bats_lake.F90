@@ -69,8 +69,7 @@ module mod_bats_lake
 
 !     ******  initialize hostetler lake model
           if ( (lndcat1(n,j,i) > 13.9D0 .and.   &
-                lndcat1(n,j,i) < 14.1D0) .and.  &
-               dhlake1(n,j,i) > d_one) then
+                lndcat1(n,j,i) < 14.1D0) ) then
             idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
                                   dble(ndpmax)))/dz)
             if ( ldmsk1(n,j,i) == 2 ) then
