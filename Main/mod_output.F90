@@ -188,6 +188,7 @@ module mod_output
         call subgrid_collect(eta,eta_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(hi,hi_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(evpr,evl_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(hsnow,hsnow_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         call subgrid_collect(iveg1,iveg1_io,jci1,jci2,ici1,ici2)
