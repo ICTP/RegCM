@@ -190,6 +190,8 @@ module mod_output
         call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(hsnow,hsnow_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
+        call subgrid_collect(iveg1,iveg1_io,jci1,jci2,ici1,ici2)
+        call grid_collect(iveg,iveg_io,jci1,jci2,ici1,ici2)
       end if
 #endif
       if ( iseaice == 1 .or. lakemod == 1 ) then
@@ -453,7 +455,7 @@ module mod_output
 #ifndef CLM
     if ( lakemod == 1 .and. iflak .and. iolak == klak ) then
       call writerec_lak(fbat_io,evl_io,aveice_io, &
-                        hsnow_io,tlak_io,idatex)
+                        hsnow_io,tlak_io,iveg1_io,iveg_io,idatex)
       print *, 'LAK variables written at ' , tochar(idatex)
     end if
 #endif

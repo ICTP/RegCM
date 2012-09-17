@@ -53,23 +53,14 @@ module mod_bats_lake
 !
   subroutine initlake
     implicit none
-! 
     integer(ik4) :: i, j, n
-!
-    hi     = 0.01D0
-    aveice = d_zero
-    hsnow  = d_zero
-    eta    = d_half
-    tlak   = 6.0D0
-    idep   = 0
+
+    ! initialize hostetler lake model
 
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-
-!     ******  initialize hostetler lake model
-          if ( (lndcat1(n,j,i) > 13.9D0 .and.   &
-                lndcat1(n,j,i) < 14.1D0) ) then
+          if ( iveg1(n,j,i) == 14 ) then
             idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
                                   dble(ndpmax)))/dz)
             if ( ldmsk1(n,j,i) == 2 ) then
@@ -88,17 +79,16 @@ module mod_bats_lake
             else
               eta(n,j,i) = 0.3D0
             end if
+            tlak(n,j,i,1:idep(n,j,i)) = 6.0D0
+            hi(n,j,i) = 0.01D0
+            aveice(n,j,i) = d_zero
+            hsnow(n,j,i)  = d_zero
           else
-            idep(n,j,i) = 0
-          end if
-          if (idep(n,j,i) == 0) then
+            idep(n,j,i)   = 0
             hi(n,j,i)     = dmissval
             aveice(n,j,i) = dmissval
             hsnow(n,j,i)  = dmissval
             eta(n,j,i)    = dmissval
-            tlak(n,j,i,:) = dmissval
-          else if (idep(n,j,i) < ndpmax) then
-            tlak(n,j,i,idep(n,j,i)+1:) = dmissval
           end if
         end do
       end do
@@ -622,10 +612,11 @@ module mod_bats_lake
     integer(ik4) :: i , j , k , n
 !
     write (iutl) idep_io
-    do i = icross1 , icross2
-      do j = jcross1 , jcross2
+
+    do i = iout1 , iout2
+      do j = jout1 , jout2
         do n = 1 , nnsg
-          if ( idep_io(n,j,i) > 1 ) then
+          if ( idep_io(n,j,i) > 0 ) then
             write(iutl) eta_io(n,j,i), hi_io(n,j,i), &
                  aveice_io(n,j,i), hsnow_io(n,j,i),  &
                  (tlak_io(n,j,i,k),k=1,idep_io(n,j,i))  
@@ -645,36 +636,21 @@ module mod_bats_lake
     integer(ik4) :: i , j , k , n
 !
     idep_io   = 0
-    hi_io     = 0.01D0
-    aveice_io = d_zero
-    hsnow_io  = d_zero
-    eta_io    = d_half
-    tlak_io   = 6.0D0
+    hi_io     = dmissval
+    aveice_io = dmissval
+    hsnow_io  = dmissval
+    eta_io    = dmissval
+    tlak_io   = dmissval
 !
     read (iutl) idep_io
-    do i = icross1 , icross2
-      do j = jcross1 , jcross2
-        do n = 1 , nnsg
-          if ( idep_io(n,j,i) > 1 ) then
-            read(iutl) eta_io(n,j,i), hi_io(n,j,i), &
-                 aveice_io(n,j,i), hsnow_io(n,j,i), &
-                 (tlak_io(n,j,i,k),k=1,idep_io(n,j,i))  
-          end if
-        end do
-      end do
-    end do
 
     do i = iout1 , iout2
       do j = jout1 , jout2
         do n = 1 , nnsg
-          if (idep_io(n,j,i) == 0) then
-            hi_io(n,j,i)     = dmissval
-            aveice_io(n,j,i) = dmissval
-            hsnow_io(n,j,i)  = dmissval
-            eta_io(n,j,i)    = dmissval
-            tlak_io(n,j,i,:) = dmissval
-          else if (idep_io(n,j,i) < ndpmax) then
-            tlak_io(n,j,i,idep_io(n,j,i)+1:) = dmissval
+          if ( idep_io(n,j,i) > 0 ) then
+            read(iutl) eta_io(n,j,i), hi_io(n,j,i), &
+                 aveice_io(n,j,i), hsnow_io(n,j,i), &
+                 (tlak_io(n,j,i,k),k=1,idep_io(n,j,i))  
           end if
         end do
       end do

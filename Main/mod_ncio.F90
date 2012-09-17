@@ -2225,7 +2225,7 @@ contains
     iatmrec = iatmrec + 1
   end subroutine writerec_atm
 
-  subroutine writerec_lak(fbat,evl,aveice,hsnow,tlake,idate)
+  subroutine writerec_lak(fbat,evl,aveice,hsnow,tlake,iveg1,iveg,idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: fbat
@@ -2233,8 +2233,10 @@ contains
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: aveice
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: hsnow
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: tlake
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: iveg1
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: iveg
     integer(ik4) :: ivar
-    integer(ik4) :: n
+    integer(ik4) :: i , j , ii , jj , n , nn , nvals
     integer(ik4) , dimension(4) :: istart , icount
     real(rk8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
@@ -2267,21 +2269,78 @@ contains
     end do
 
     ! Add lake model output
-    dumio(:,:,1) =  real(sum(evl(:,o_js:o_je,o_is:o_ie),1)*xns2d)
+    do i = 1 , o_ni
+      ii = o_is+i-1
+      do j = 1 , o_nj
+        jj = o_js+j-1
+        dumio(j,i,1) = smissval
+        if ( iveg(jj,ii) == 14 ) then
+          nvals = 0
+          dumio(j,i,1) = 0.0
+          do nn = 1 , nnsg
+            if ( iveg1(nn,jj,ii) == 14 ) then
+              nvals = nvals+1
+              dumio(j,i,1) = dumio(j,i,1) + real(evl(nn,jj,ii))
+            end if
+          end do
+          if ( nvals > 0 ) then
+            dumio(j,i,1) = dumio(j,i,1) / real(nvals)
+          end if
+        end if
+      end do
+    end do
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
                   'Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
-    dumio(:,:,1) = real(sum(aveice(:,o_js:o_je,o_is:o_ie),1)*xns2d)
+    do i = 1 , o_ni
+      ii = o_is+i-1
+      do j = 1 , o_nj
+        jj = o_js+j-1
+        dumio(j,i,1) = smissval
+        if ( iveg(jj,ii) == 14 ) then
+          nvals = 0
+          dumio(j,i,1) = 0.0
+          do nn = 1 , nnsg
+            if ( iveg1(nn,jj,ii) == 14 ) then
+              nvals = nvals+1
+              dumio(j,i,1) = dumio(j,i,1) + real(aveice(nn,jj,ii))
+            end if
+          end do
+          if ( nvals > 0 ) then
+            dumio(j,i,1) = dumio(j,i,1) / real(nvals)
+          end if
+        end if
+      end do
+    end do
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
                   'Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
-    dumio(:,:,1) = real(sum(hsnow(:,o_js:o_je,o_is:o_ie),1)*xns2d)
+    do i = 1 , o_ni
+      ii = o_is+i-1
+      do j = 1 , o_nj
+        jj = o_js+j-1
+        dumio(j,i,1) = smissval
+        if ( iveg(jj,ii) == 14 ) then
+          nvals = 0
+          dumio(j,i,1) = 0.0
+          do nn = 1 , nnsg
+            if ( iveg1(nn,jj,ii) == 14 ) then
+              nvals = nvals+1
+              dumio(j,i,1) = dumio(j,i,1) + real(hsnow(nn,jj,ii))
+            end if
+          end do
+          if ( nvals > 0 ) then
+            dumio(j,i,1) = dumio(j,i,1) / real(nvals)
+          end if
+        end if
+      end do
+    end do
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
              dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok(__FILE__,__LINE__, &
@@ -2297,10 +2356,26 @@ contains
       icount(3) = 1
       icount(2) = o_ni
       icount(1) = o_nj
-      dumio(:,:,1) = real(sum(tlake(:,o_js:o_je,o_is:o_ie,n),1)*xns2d)
-      where (iolnds == 14)
-        dumio(:,:,1) = dumio(:,:,1) + real(tzero)
-      end where
+      do i = 1 , o_ni
+        ii = o_is+i-1
+        do j = 1 , o_nj
+          jj = o_js+j-1
+          dumio(j,i,1) = smissval
+          if ( iveg(jj,ii) == 14 ) then
+            nvals = 0
+            dumio(j,i,1) = 0.0
+            do nn = 1 , nnsg
+              if ( iveg1(nn,jj,ii) == 14 ) then
+                nvals = nvals+1
+                dumio(j,i,1) = dumio(j,i,1) + real(tlake(nn,jj,ii,n))
+              end if
+            end do
+            if ( nvals > 0 ) then
+              dumio(j,i,1) = dumio(j,i,1) / real(nvals)
+            end if
+          end if
+        end do
+      end do
       istatus = nf90_put_var(nclak, ilakvar(ivar), dumio(:,:,1), istart, icount)
       call check_ok(__FILE__,__LINE__, &
                     'Error writing '//lak_variables(ivar)%vname// &
