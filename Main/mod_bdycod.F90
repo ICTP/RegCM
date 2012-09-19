@@ -1260,7 +1260,12 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       wg => wgtd
@@ -1345,7 +1350,12 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       wg => wgtd
@@ -1426,7 +1436,12 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       wg => wgtd
@@ -1548,7 +1563,12 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       lfc => fcd
@@ -1686,7 +1706,12 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       lfc => fcd
@@ -1826,7 +1851,12 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    if ( .not. ba%havebound ) return
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 !
     if ( ba%dotflag ) then
       lfc => fcd
