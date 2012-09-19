@@ -170,7 +170,7 @@ mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_atm_interfa
 else
 mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o mod_mppparam.o
 endif
-mod_slice.o: mod_slice.F90 mod_runparams.o mod_atm_interface.o mod_che_interface.o mod_pbl_interface.o
+mod_slice.o: mod_slice.F90 mod_runparams.o mod_atm_interface.o mod_che_interface.o mod_pbl_interface.o mod_rad_interface.o
 mod_split.o: mod_split.F90 mod_dynparam.o mod_mppparam.o mod_runparams.o mod_atm_interface.o mod_vmodes.o mod_bdycod.o mod_atm_interface.o mod_memutil.o mod_service.o mod_mppio.o
 mod_sun.o: mod_sun.F90 mod_constants.o mod_dynparam.o mod_runparams.o mod_atm_interface.o mod_mpmessage.o mod_service.o
 if DO_COMPILE_LIBCLM

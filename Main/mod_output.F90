@@ -190,9 +190,11 @@ module mod_output
         call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(evpr,evl_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(hsnow,hsnow_io,jci1,jci2,ici1,ici2)
+#ifndef CLM
         call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         call subgrid_collect(iveg1,iveg1_io,jci1,jci2,ici1,ici2)
         call grid_collect(iveg,iveg_io,jci1,jci2,ici1,ici2)
+#endif
       end if
 #endif
       if ( iseaice == 1 .or. lakemod == 1 ) then
@@ -224,10 +226,12 @@ module mod_output
 
       if ( ifsub .and. nsg > 1 ) then
         call subgrid_collect(fsub,fsub_io,jci1,jci2,ici1,ici2,1,numsub)
+#ifndef CLM
         if ( lakemod == 1 ) then
           call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,4)
           call subgrid_collect(iveg1,iveg1_io,jci1,jci2,ici1,ici2)
         end if
+#endif
         if ( myid == iocpu ) then
           call outsub
         end if
@@ -468,7 +472,9 @@ module mod_output
 !
   subroutine outsub
     implicit none
+#ifndef CLM
     call writerec_sub(fsub_io,iveg1_io,tlak_io,idatex)
+#endif
     print *, 'SUB variables written at ' , tochar(idatex)
   end subroutine outsub
 !
