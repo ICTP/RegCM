@@ -142,8 +142,7 @@ module mod_cu_tiedtke
     integer(ik8) , intent(in) :: ktau
 
 !   local variables
-    integer(ik4) :: i , j , k , ii , kclth
-    real(rk8) :: akclth
+    integer(ik4) :: i , j , k , ii
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -301,20 +300,21 @@ module mod_cu_tiedtke
       end do
     end do
 
+    icumtop(:,:) = 0
+    icumbot(:,:) = 0
     ii = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if (ktype(ii) > 0) then
-          kclth = kcbot(ii) - kctop(ii) + 1
-          akclth = d_one/dble(kclth)
-          do k = kctop(ii) , kcbot(ii)
-            rcldlwc(j,i,k) = cllwcv
-            rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
-          end do
+          icumtop(j,i) = kctop(ii)
+          icumbot(j,i) = kcbot(ii)
         end if
         ii = ii + 1
       end do
     end do
+
+    call model_cumulus_cloud
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

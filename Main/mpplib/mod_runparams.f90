@@ -78,6 +78,8 @@ module mod_runparams
   integer(ik4) :: icup
   ! Closure index for Grell
   integer(ik4) :: igcc
+  ! Cumulus cloud model
+  integer(ik4) :: icumcloud
   ! Boundary layer index
   integer(ik4) :: ibltyp
   ! Lake model activation index

@@ -113,7 +113,7 @@ module mod_params
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
     ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
-    irrtm , iclimao3 , isolconst
+    irrtm , iclimao3 , isolconst , icumcloud
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -320,6 +320,7 @@ module mod_params
   irrtm = 0
   iclimao3 = 0
   isolconst = 1
+  icumcloud = 1
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
 !
@@ -584,6 +585,7 @@ module mod_params
   call bcast(lakemod)
   call bcast(ichem)
   call bcast(ntr)
+  call bcast(icumcloud)
 
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then
@@ -618,6 +620,7 @@ module mod_params
   call bcast(irrtm)
   call bcast(iclimao3)
   call bcast(isolconst)
+  call bcast(icumcloud)
 
 #ifdef CLM
   call bcast(dirclm,256)

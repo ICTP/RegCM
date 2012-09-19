@@ -210,7 +210,7 @@ module mod_cu_bm
     logical , parameter :: unil = .true.
     logical , parameter :: oct90 = .true.
 !
-    real(rk8) :: ak , akclth , apekl , avrgt , avrgtl , cell , &
+    real(rk8) :: ak , apekl , avrgt , avrgtl , cell , &
                cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
                dpmix , dqref , drheat , dsp , dsp0k , dspbk , dsptk , &
                dst , dstq , dtdeta , dthem , ee , efi , es , fefi ,   &
@@ -222,7 +222,7 @@ module mod_cu_bm
                sumdt , tauk , tcorr , tdpt , thskl , thtpk , thvmkl , &
                tkl , tlcl , trfkl , tskl , ztop
     integer(ik4) :: i , j , iconss , iter , ivi , k , kb , kbaseb ,    &
-               kclth , khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
+               khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
                lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
                n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
 !
@@ -230,18 +230,14 @@ module mod_cu_bm
 !
     lqm = 0
     lshu = 0
-!
+    !
+    ! icumtop = top level of cumulus clouds
+    ! icumbot = bottom level of cumulus clouds
+    !
+    icumtop(:,:) = 0
+    icumbot(:,:) = 0
     if ( lchem ) then
-!
-!     icumtop = top level of cumulus clouds
-!     icumbot = bottom level of cumulus clouds
-!     (calculated in cupara and stored for tractend)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          icumtop(j,i) = 0
-          icumbot(j,i) = 0
-        end do
-      end do
+      convpr(:,:,:) = d_zero
     end if
     total_precip_points = 0
     iconss = 0
@@ -1026,17 +1022,9 @@ module mod_cu_bm
           end if
 !         find cloud fractional cover and liquid water content
           kbaseb = min0(lbtk,kzm2)
-          if ( ltpk <= kbaseb ) then
-            kclth = kbaseb - ltpk + 1
-            akclth = d_one/dble(kclth)
-            do k = ltpk , kbaseb
-              rcldlwc(j,i,k) = cllwcv
-              rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
-            end do
-          end if
+          icumtop(j,i) = ltpk
+          icumbot(j,i) = kbaseb
           if ( lchem ) then
-            icumtop(j,i) = ltpk
-            icumbot(j,i) = kbaseb
             do k = ltpk , kz
               convpr(j,i,k) = prainx/dtcum
             end do
@@ -1052,6 +1040,8 @@ module mod_cu_bm
         end do
       end do
     end do
+
+    call model_cumulus_cloud
 
   end subroutine bmpara
 !

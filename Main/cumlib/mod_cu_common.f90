@@ -36,8 +36,7 @@ module mod_cu_common
   integer(ik4) , pointer , dimension(:,:) :: cucontrol ! which scheme to use
 
   ! Grell shared parameters for tracers removal
-  integer(ik4) , pointer , dimension(:,:) :: icumtop , icumbot , icumdwd
-
+  integer(ik4) , pointer , dimension(:,:) :: icumtop , icumbot
 !
   real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
   real(rk8) , pointer , dimension(:,:,:) :: hgt    ! za
@@ -88,10 +87,69 @@ module mod_cu_common
     end if
     call getmem2d(icumbot,jci1,jci2,ici1,ici2,'mod_cu_common:icumbot')
     call getmem2d(icumtop,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
-    call getmem2d(icumdwd,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
     if ( ichem == 1 ) then
       call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_common:convpr')
     end if
   end subroutine allocate_mod_cu_common
+!
+  subroutine model_cumulus_cloud
+    implicit none
+    real(rk8) :: akclth , xhk
+    integer :: i , j , k , ktop , kbot , kclth
+    real(rk8) , dimension(6) :: clf_coeff
+    real(rk8) , dimension(6) :: lqc_coeff
+
+    data clf_coeff / 6.7666666666668D-1, -1.2535431235434D-1, &
+                     1.3307109557111D-1, -3.4714452214455D-2, &
+                     3.6888111888115D-3, -1.4102564102565D-4 /
+    data lqc_coeff /-1.4666666666659D-2,  2.9144079254078D-1, &
+                     9.3927738927745D-2, -4.5889568764570D-2, &
+                     5.3648018648020D-3, -1.9807692307693D-4 /
+
+    rcldfra(:,:,:) = d_zero
+    rcldlwc(:,:,:) = d_zero
+
+    if ( icumcloud == 1 ) then
+      iloop1: &
+      do i = ici1 , ici2
+        jloop1: &
+        do j = jci1 , jci2
+          ! The regcm model is top to bottom
+          ktop = icumtop(j,i)
+          kbot = icumbot(j,i)
+          if ( ktop > kbot .or. kbot == 0 ) cycle jloop1
+          kclth = kbot - ktop + 1
+          akclth = d_one/dble(kclth)
+          do k = ktop , kbot
+            rcldlwc(j,i,k) = cllwcv
+            rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
+          end do
+        end do jloop1
+      end do iloop1
+    else if ( icumcloud == 2 ) then
+      iloop2: &
+      do i = ici1 , ici2
+        jloop2: &
+        do j = jci1 , jci2
+          ktop = icumtop(j,i)
+          kbot = icumbot(j,i)
+          if ( ktop > kbot .or. kbot == 0 ) cycle jloop2
+          kclth = kbot - ktop + 1
+          akclth = d_one/dble(kclth)
+          do k = ktop , kbot
+            xhk = dble(k-ktop+1)*akclth*d_10
+            rcldlwc(j,i,k) = cllwcv* &
+                   (lqc_coeff(1) + lqc_coeff(2)*xhk + lqc_coeff(3)*xhk**2 + &
+                    lqc_coeff(4)*xhk**3 + lqc_coeff(5)*xhk**4 + &
+                    lqc_coeff(6)*xhk**5)
+            rcldfra(j,i,k) = (dble(kz) / dble(kclth)) * &
+                   (clf_coeff(1) + clf_coeff(2)*xhk + clf_coeff(3)*xhk**2 + &
+                    clf_coeff(4)*xhk**3 + clf_coeff(5)*xhk**4 + &
+                    clf_coeff(6)*xhk**5)
+          end do
+        end do jloop2
+      end do iloop2
+    end if
+  end subroutine model_cumulus_cloud
 !
 end module mod_cu_common

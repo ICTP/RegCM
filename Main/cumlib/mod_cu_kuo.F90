@@ -78,13 +78,13 @@ module mod_cu_kuo
 !
     integer(ik8) , intent(in) :: ktau
 !
-    real(rk8) :: akclth , apcnt , arh , c301 , dalr ,    &
+    real(rk8) :: apcnt , arh , c301 , dalr ,    &
                deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
                eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
                psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
                sca , siglcl , suma , sumb , t1 , tdmax , tlcl , &
                tmax , tmean , ttconv , ttp , ttsum , xsav , zlcl
-    integer(ik4) :: i , j , k , kbase , kbaseb , kclth , kk , ktop
+    integer(ik4) :: i , j , k , kbase , kbaseb , kk , ktop
     real(rk8) , dimension(kz) :: seqt
     real(rk8) , dimension(kz) :: tmp3
 !
@@ -94,18 +94,14 @@ module mod_cu_kuo
     pmax = d_zero
     qmax = d_zero
     tmax = d_zero
-!
+    !
+    ! icumtop = top level of cumulus clouds
+    ! icumbot = bottom level of cumulus clouds
+    !
+    icumtop(:,:) = 0
+    icumbot(:,:) = 0
     if ( lchem ) then
-!
-!     icumtop = top level of cumulus clouds
-!     icumbot = bottom level of cumulus clouds
-!     (calculated in cupara and stored for tractend)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          icumtop(j,i) = 0
-          icumbot(j,i) = 0
-        end do
-      end do
+      convpr(:,:,:) = d_zero
     end if
 !
 !   compute the moisture convergence in a column:
@@ -267,17 +263,10 @@ module mod_cu_kuo
                 rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtcum*d_half
               end do
 !
-!             find cloud fractional cover and liquid water content
-!
               kbaseb = min0(kbase,kzm2)
-              if ( ktop <= kbaseb ) then
-                kclth = kbaseb - ktop + 1
-                akclth = d_one/dble(kclth)
-                do k = ktop , kbaseb
-                  rcldlwc(j,i,k) = cllwcv
-                  rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
-                end do
-              end if
+              icumtop(j,i) = ktop
+              icumbot(j,i) = kbaseb
+
 !             the unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
               if ( prainx > dlowval ) then
@@ -289,10 +278,7 @@ module mod_cu_kuo
                   lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtmdl*aprdiv
                 end if
               end if
-!
               if ( lchem ) then
-                icumtop(j,i) = ktop
-                icumbot(j,i) = kbaseb
                 ! build for chemistry 3d table of constant precipitation rate
                 ! from the surface to the top of the convection
                 do k = 1 , ktop-1
@@ -339,6 +325,8 @@ module mod_cu_kuo
         end do
       end do
     end do
+
+    call model_cumulus_cloud
 
 99001 format (/,' >>in **cupara**: at ktau=',i8,  &
           ' (i,j)=(',i2,',',i2,'),   ',' kbase/ktop are non-standard:',2I3, &

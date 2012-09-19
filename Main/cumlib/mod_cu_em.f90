@@ -66,14 +66,17 @@ module mod_cu_em
 !
     integer(ik4) , parameter :: ntra = 0
 !
-    real(rk8) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
+    real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
     real(rk8) , dimension(kz,1) :: ftra , tra
-    integer(ik4) :: i , j , k , iflag , kbase , kclth , kk , ktop
+    integer(ik4) :: i , j , k , iflag , kbase , kk , ktop
     real(rk8) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
+    icumtop(:,:) = 0
+    icumbot(:,:) = 0
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( icup /= 4 ) then
@@ -124,6 +127,11 @@ module mod_cu_em
             uten(j,i,kk) = fu(k)*sfcps(j,i) + uten(j,i,kk)
             vten(j,i,kk) = fv(k)*sfcps(j,i) + vten(j,i,kk)
           end do
+
+          ! The order top/bottom for regcm is reversed.
+          icumtop(j,i) = kzp1 - ktop
+          icumbot(j,i) = kzp1 - kbase
+
           ! build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( lchem ) then
@@ -131,15 +139,6 @@ module mod_cu_em
               convpr(j,i,kz-k+1) = pret
             end do
           end if
-   
-          ! Cloud fraction and cloud water
-          kclth = ktop - kbase + 1
-          akclth = d_one/dble(kclth)
-          do k = kbase , ktop
-            kk = kzp1 - k
-            rcldlwc(j,i,kk) = cllwcv
-            rcldfra(j,i,kk) = d_one - (d_one-clfrcv)**akclth
-          end do
    
           ! Precipitation
           prainx = pret*dtmdl
@@ -155,6 +154,10 @@ module mod_cu_em
         end if
       end do
     end do
+
+    ! Cloud fraction and cloud water
+
+    call model_cumulus_cloud
 ! 
   end subroutine cupemandrv
 !

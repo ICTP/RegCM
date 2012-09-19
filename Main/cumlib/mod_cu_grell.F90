@@ -364,6 +364,9 @@ module mod_cu_grell
         end if
       end do
     end do
+    !
+    call model_cumulus_cloud
+    !
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -377,13 +380,13 @@ module mod_cu_grell
 !
     implicit none
 !
-    real(rk8) :: adw , akclth , aup , detdo , detdoq , dg , dh ,   &
+    real(rk8) :: adw , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , e , eo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
                tvbar , tvbaro , xk
-    integer(ik4) :: i , j , k , iph , ipho , kbcono , kclth , kk , lpt
+    integer(ik4) :: i , j , k , iph , ipho , kbcono , kk , lpt
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cup'
@@ -1128,36 +1131,24 @@ module mod_cu_grell
 !
 !   calculate cloud fraction and water content
 !
+    icumtop(:,:) = 0
+    icumbot(:,:) = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        icumtop(j,i) = 0
-        icumbot(j,i) = 0
-        icumdwd(j,i) = 0
-!
         if ( xac(j,i) >= d_zero ) then
-
+          !
+          ! define convection base and top
+          !
           if ( ktop(j,i) > 1 .and. kbcon(j,i) > 1 ) then
-            kclth = ktop(j,i) - kbcon(j,i) + 1
-            akclth = d_one/dble(kclth)
-            do k = kbcon(j,i) , ktop(j,i)
-              kk = kz - k + 1
-              rcldlwc(j,i,kk) = cllwcv
-              rcldfra(j,i,kk) = d_one - (d_one-clfrcv)**akclth
-            end do
-!
-!           define convection  base and top for tracers
-!
-            if ( lchem ) then
-              if ( ktop(j,i) > 1 .and. k22(j,i) >= 1 ) then
-                icumtop(j,i) = kzp1 - ktop(j,i)
-                icumbot(j,i) = kzp1 - k22(j,i)
-                icumdwd(j,i) = kzp1 - kmin(j,i)
-              end if
+            if ( ktop(j,i) > 1 .and. k22(j,i) >= 1 ) then
+              icumtop(j,i) = kzp1 - ktop(j,i)
+              icumbot(j,i) = kzp1 - k22(j,i)
             end if
           end if
         end if
       end do
     end do
+!
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
