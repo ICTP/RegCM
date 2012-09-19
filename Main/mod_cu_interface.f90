@@ -36,7 +36,7 @@ module mod_cu_interface
 
   subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
                            sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma, &
-                           qcon,cldfra,cldlwc)
+                           qcon,cldfra,cldlwc,ktrop)
     implicit none
     real(rk8) , intent(in) :: dtsec
     integer(ik8) , intent(in) :: ntsrf
@@ -45,12 +45,10 @@ module mod_cu_interface
     type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chiten
-
-
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: qdot
     real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
-    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk , ktrop
     real(rk8) , pointer , intent(in) , dimension(:) :: sigma , hsigma
     real(rk8) , pointer , intent(in) , dimension(:) :: dsigma , qcon
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
@@ -90,6 +88,7 @@ module mod_cu_interface
     call assignpnt(qcon,wlev)
     call assignpnt(cldfra,rcldfra)
     call assignpnt(cldlwc,rcldlwc)
+    call assignpnt(ktrop,rktrop)
 
   end subroutine init_cuscheme
 !

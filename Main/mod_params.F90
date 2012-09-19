@@ -1023,8 +1023,9 @@ module mod_params
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl)
 #endif
-  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                     sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma,qcon,cldfra,cldlwc)
+  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten, &
+                     sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma,qcon,  &
+                     cldfra,cldlwc,ktrop)
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &

@@ -317,10 +317,8 @@ module mod_cu_grell
 !
           po(j,i,k) = p(j,i,k)
           psur(j,i) = d_10*sfcps(j,i) + d_10*ptop
-          outt(j,i,k) = d_zero
           pkk = psur(j,i) - po(j,i,k)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
-          outq(j,i,k) = d_zero
           ter11(j,i) = sfhgt(j,i)*regrav
           if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
           qcrit(j,i) = qcrit(j,i) + qxten(j,i,kk,iqv)

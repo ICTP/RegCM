@@ -25,6 +25,7 @@ module mod_slice
   use mod_atm_interface
   use mod_che_interface
   use mod_pbl_interface
+  use mod_rad_interface
 !
   private
 !
@@ -98,6 +99,22 @@ module mod_slice
         end do
       end do
     end do
+    !
+    ! Find troposphere hgt.
+    !
+    iloop: &
+    do i = ici1 , ici2
+      jloop: &
+      do j = jci1 , jci2
+        kloop: &
+        do k = kz , 1 , -1
+          if ( atms%pb3d(j,i,k)*d_10 < ptrop(j,i)*d_r100 ) then
+            ktrop(j,i) = kz-k-1
+            cycle jloop
+          end if
+        end do kloop
+      end do jloop
+    end do iloop
     !
     ! compute the height at full (za) and half (zq) sigma levels:
     !

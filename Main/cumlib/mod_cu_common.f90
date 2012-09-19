@@ -66,6 +66,7 @@ module mod_cu_common
   integer(ik4) , pointer , dimension(:,:) :: lmask    ! ldmsk
   real(rk8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
   real(rk8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
+  integer(ik4) , pointer , dimension(:,:) :: rktrop  ! ktrop
 
   real(rk8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon
@@ -99,9 +100,9 @@ module mod_cu_common
     real(rk8) , dimension(6) :: clf_coeff
     real(rk8) , dimension(6) :: lqc_coeff
 
-    data clf_coeff / 6.7666666666668D-1, -1.2535431235434D-1, &
-                     1.3307109557111D-1, -3.4714452214455D-2, &
-                     3.6888111888115D-3, -1.4102564102565D-4 /
+    data clf_coeff / 1.9666666666669D-1, -2.9128321678326D-1, &
+                     1.6301573426576D-1, -3.5253496503501D-2, &
+                     3.0914918414923D-3, -8.3333333333350D-5 /
     data lqc_coeff /-1.4666666666659D-2,  2.9144079254078D-1, &
                      9.3927738927745D-2, -4.5889568764570D-2, &
                      5.3648018648020D-3, -1.9807692307693D-4 /
@@ -137,12 +138,12 @@ module mod_cu_common
           kclth = kbot - ktop + 1
           akclth = d_one/dble(kclth)
           do k = ktop , kbot
-            xhk = dble(k-ktop+1)*akclth*d_10
+            xhk = dble(kbot-k+1)*akclth*d_10
             rcldlwc(j,i,k) = cllwcv* &
                    (lqc_coeff(1) + lqc_coeff(2)*xhk + lqc_coeff(3)*xhk**2 + &
                     lqc_coeff(4)*xhk**3 + lqc_coeff(5)*xhk**4 + &
                     lqc_coeff(6)*xhk**5)
-            rcldfra(j,i,k) = (dble(kz) / dble(kclth)) * &
+            rcldfra(j,i,k) = dmax1((dble(kclth)/dble(rktrop(j,i))),d_one) * &
                    (clf_coeff(1) + clf_coeff(2)*xhk + clf_coeff(3)*xhk**2 + &
                     clf_coeff(4)*xhk**3 + clf_coeff(5)*xhk**4 + &
                     clf_coeff(6)*xhk**5)
