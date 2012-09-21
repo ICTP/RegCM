@@ -51,7 +51,7 @@ module mod_che_dust
   real(rk8) , parameter :: rhodust = 2650.0D0
 !
   integer(ik4) , parameter :: nsoil = 152
-  integer(ik4) , parameter :: mode = 3
+  integer(ik4) , parameter :: mode = 5
   integer(ik4) , parameter :: jsoilm = 1 
   integer(ik4) , parameter :: jfs = 1 
   integer(ik4) , parameter :: ust = 1
@@ -152,9 +152,18 @@ module mod_che_dust
       real(rk8) , dimension(nats) :: bcly , bslt , bsnd
       real(rk8) :: deldp , eps , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr
-      real(rk8) , dimension(3,12) :: mmd , pcent , sigma
+      real(rk8) , dimension(mode,nats) :: mmdd , pcentd , sigmad
+      real(rk8) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rk8) , dimension(iy,nsoil,nats) :: srel
       real(rk8) , dimension(nsoil) :: ss
+
+! modif new distribution 
+! for each category, this is the percent of Coarse sand, Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012) 
+      real(rk8) , dimension (mode,12) :: soiltexpc
+      real(rk8) , dimension (mode)    :: texmmd,texstd
+
+      
+
       logical :: rd_tex 
       character(6) :: aerctl
       real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
@@ -184,33 +193,81 @@ module mod_che_dust
 ! 
       data eps/1.0D-7/
 !
-      data mmd/690.0D0 ,   0.0D0 ,   0.0D0 ,&
-               690.0D0 , 210.0D0 ,   0.0D0 ,&
-               690.0D0 , 210.0D0 ,   0.0D0 ,&
-               520.0D0 , 100.0D0 ,   5.0D0 ,& 
-               520.0D0 ,  75.0D0 ,   2.5D0 ,& 
-               520.0D0 ,  75.0D0 ,   2.5D0 ,&
-               210.0D0 ,  75.0D0 ,   2.5D0 ,& 
-               210.0D0 ,  50.0D0 ,   2.5D0 ,& 
-               125.0D0 ,  50.0D0 ,   1.0D0 ,& 
-               100.0D0 ,  10.0D0 ,   1.0D0 ,& 
-               100.0D0 ,  10.0D0 ,   0.5D0 ,& 
-               100.0D0 ,  10.0D0 ,   0.5D0/
+      data mmdd/690.0D0 ,   0.0D0 ,   0.0D0 ,  0.0D0 ,   0.0D0,      &
+               690.0D0 , 210.0D0 ,   0.0D0 ,  0.0D0 ,   0.0D0,    &
+               690.0D0 , 210.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
+               520.0D0 , 100.0D0 ,   5.0D0 , 0.0D0 ,   0.0D0, & 
+               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
+               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,&
+               210.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
+               210.0D0 ,  50.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
+               125.0D0 ,  50.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0,& 
+               100.0D0 ,  10.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0,& 
+               100.0D0 ,  10.0D0 ,   0.5D0 , 0.0D0 ,   0.0D0,& 
+               100.0D0 ,  10.0D0 ,   0.5D0, 0.0D0 ,   0.0D0 /
 ! 
-      data sigma/1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , &
-                 1.8D0 , 1.8D0 , 1.6D0 , 1.7D0 , 1.8D0 , 1.6D0 , 1.7D0 , &
-                 1.8D0 , 1.6D0 , 1.7D0 , 1.8D0 , 1.7D0 , 1.7D0 , 1.8D0 , &
-                 1.7D0 , 1.7D0 , 1.8D0 , 1.7D0 , 1.7D0 , 1.8D0 , 1.8D0 , &
-                 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , &
-                 1.8D0/
+      data sigmad/1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.7D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.8D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+                 1.8D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
+                 1.8D0 , 1.8D0 , 1.8D0,  0.0D0 ,   0.0D0 /
 ! 
-       data pcent/1.00D0 , 0.00D0 , 0.00D0 , 0.90D0 , 0.10D0 , 0.00D0 , &
-                  0.80D0 , 0.20D0 , 0.00D0 , 0.50D0 , 0.35D0 , 0.15D0 , &
-                  0.45D0 , 0.40D0 , 0.15D0 , 0.35D0 , 0.50D0 , 0.15D0 , &
-                  0.30D0 , 0.50D0 , 0.20D0 , 0.30D0 , 0.50D0 , 0.20D0 , &
-                  0.20D0 , 0.50D0 , 0.30D0 , 0.65D0 , 0.00D0 , 0.35D0 , &
-                  0.60D0 , 0.00D0 , 0.40D0 , 0.50D0 , 0.00D0 , 0.50D0/
+       data pcentd/1.00D0 , 0.00D0 , 0.00D0 ,  0.0D0 ,   0.0D0,   &
+                  0.90D0 , 0.10D0 , 0.00D0 ,  0.0D0 ,   0.0D0,   &
+                  0.80D0 , 0.20D0 , 0.00D0 , 0.0D0 ,   0.0D0,   &
+                  0.50D0 , 0.35D0 , 0.15D0 ,  0.0D0 ,   0.0D0,   &
+                  0.45D0 , 0.40D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
+                  0.35D0 , 0.50D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
+                  0.30D0 , 0.50D0 , 0.20D0 , 0.0D0 ,   0.0D0,   &
+                  0.30D0 , 0.50D0 , 0.20D0 ,  0.0D0 ,   0.0D0,   &
+                  0.20D0 , 0.50D0 , 0.30D0 , 0.0D0 ,   0.0D0,   &
+                  0.65D0 , 0.00D0 , 0.35D0 ,  0.0D0 ,   0.0D0,   &
+                  0.60D0 , 0.00D0 , 0.40D0 , 0.0D0 ,   0.0D0,   &
+                  0.50D0 , 0.00D0 , 0.50D0, 0.0D0 ,   0.0D0 /
+
+!!
+!! new option 
+      
+
+       data   soiltexpc / 0.46D0, 0.46D0, 0.05D0,  0.03D0, 0.0D0, &
+                          0.41D0, 0.41D0, 0.18D0,  0.00D0, 0.0D0,  &
+                          0.29D0, 0.29D0, 0.32D0,  0.10D0, 0.0D0, & 
+                          0.00D0, 0.17D0, 0.70D0,  0.13D0, 0.0D0, & 
+                          0.00D0, 0.10D0, 0.85D0,  0.05D0, 0.0D0, & 
+                          0.00D0, 0.43D0, 0.39D0,  0.18D0, 0.0D0, &
+                          0.29D0, 0.29D0, 0.15D0,  0.27D0, 0.0D0, &
+                          0.00D0, 0.10D0, 0.56D0,  0.34D0, 0.0D0, &
+                          0.00D0, 0.32D0, 0.34D0,  0.34D0, 0.0D0, &
+                          0.00D0, 0.52D0, 0.06D0,  0.42D0, 0.0D0, &
+                          0.00D0, 0.06D0, 0.47D0,  0.47D0, 0.0D0, &
+                          0.00D0, 0.22D0, 0.20D0,  0.58D0, 0.0D0/
 !
+      data  texmmd  / 690.0D0, 210.0D0, 125.0D0,2.0D0, 520.0D0 / 
+      data  texstd  / 1.6D0,   1.6D0,   1.8D0,  2.0D0, 1.50D0 /
+
+
+
+     if (ichdustemd==1) then 
+      mmd = mmdd
+      sigma=sigmad      
+      pcent=pcentd 
+     else if (ichdustemd==2) then 
+     do nm=1,mode
+      mmd(nm,:) =  texmmd (nm)
+      sigma(nm,:) = texstd(nm)
+      pcent(nm,:) =  soiltexpc(nm,d)
+     end do
+      
+     endif 
+
+
       rd_tex = .false.
       if ( myid == iocpu ) then
         do itr = 1 , ntr
@@ -268,7 +325,7 @@ module mod_che_dust
             stotal = d_zero
             if ( sand2row2(i,nt,j) > d_zero ) then
               do ns = 1 , nsoil          !soil size segregatoin no
-                do nm = 1 , mode       !soil mode = 3
+                do nm = 1 , mode       !soil mode = 5
                   if ( (pcent(nm,nt) > eps) .and.                    &
                          (sigma(nm,nt) /= d_zero) ) then
                     xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
