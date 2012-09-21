@@ -20,6 +20,7 @@
 module mod_output
 
   use mod_runparams
+  use mod_header
   use mod_mpmessage
   use mod_mppparam
   use mod_service
@@ -406,6 +407,7 @@ module mod_output
     if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
       if ( .not. lstartup .and. idatex /= idate2 ) then
         call mkfile
+        call checktime(myid)
       end if
     end if
   end if

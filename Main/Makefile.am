@@ -129,7 +129,7 @@ mod_che_interface.o: mod_che_interface.F90 mod_realkinds.o mod_atm_interface.o m
 mod_cloud_s1.o: mod_cloud_s1.F90 mod_runparams.o mod_memutil.o mod_atm_interface.o mod_realkinds.o mod_dynparam.o
 mod_cu_interface.o: mod_cu_interface.f90 mod_constants.o mod_realkinds.o mod_cu_common.o mod_cu_tiedtke.o mod_cu_tables.o mod_cu_bm.o mod_cu_em.o mod_cu_kuo.o mod_cu_grell.o mod_atm_interface.o
 mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.o mod_mppparam.o mod_service.o
-mod_header.o: mod_header.F90 regcm.o mod_constants.o mod_realkinds.o mod_date.o mod_mppparam.o
+mod_header.o: mod_header.F90 regcm.o mod_constants.o mod_realkinds.o mod_date.o mod_mppparam.o mod_stdio.o
 if DO_COMPILE_LIBCLM
 mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o rrtmg_sw_init.o rrtmg_lw_init.o mod_pbl_interface.o mod_precip.o mod_bdycod.o mod_mpmessage.o mod_sun.o mod_ncio.o mod_savefile.o mod_mppio.o mod_slice.o mod_constants.o mod_clm.o mod_lm_interface.o clm_varsur.o
 else
@@ -145,7 +145,7 @@ mod_ncio.o: mod_ncio.F90 mod_runparams.o mod_mpmessage.o mod_memutil.o mod_nchel
 if DO_COMPILE_LIBCLM
 mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncio.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_mppio.o mod_clm.o
 else
-mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncio.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_mppio.o
+mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncio.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_mppio.o mod_header.o
 endif
 if DO_COMPILE_LIBCLM
 mod_params.o: mod_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.o mod_advection.o mod_mppio.o mod_clm.o clm_varsur.o

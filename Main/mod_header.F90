@@ -24,17 +24,16 @@ module mod_header
   use mod_constants
   use mod_mppparam
   use mod_date
+  use mod_stdio
 
   private
 
-  public :: whoami , header , finaltime
+  public :: whoami , header , checktime , finaltime
 
-  integer(ik4) , parameter :: nrite=6
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
-  integer(ik4) :: clock_count , clock_rate , clock_max
   integer(ik4) , dimension(8) :: tval
-  real(rk8) :: start_time
+  real(rk4) :: start_time , last_time
 
   contains
 
@@ -43,10 +42,10 @@ module mod_header
     integer(ik4) , intent(in) :: myid
 
     if ( myid == iocpu ) then 
-      call system_clock(clock_count,clock_rate,clock_max)
-      start_time = dble(clock_count)
-      write (nrite,"(/,2x,'This is RegCM trunk')")
-      write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+      call cpu_time(start_time)
+      last_time = start_time
+      write (stderr,"(/,2x,'This is RegCM trunk')")
+      write (stderr,99001)  SVN_REV, __DATE__ , __TIME__   
     end if
 
 99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
@@ -75,15 +74,27 @@ module mod_header
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
-      write (nrite,*) ": this run start at  : ",trim(cdata)
-      write (nrite,*) ": it is submitted by : ",trim(user)
-      write (nrite,*) ": it is running on   : ",trim(hostname)
-      write (nrite,*) ": it is using        : ",nproc, &
+      write (stderr,*) ": this run start at  : ",trim(cdata)
+      write (stderr,*) ": it is submitted by : ",trim(user)
+      write (stderr,*) ": it is running on   : ",trim(hostname)
+      write (stderr,*) ": it is using        : ",nproc, &
                        '  processors' 
-      write (nrite,*) ": in directory       : ",trim(directory)
-      write (nrite,*) "                      " 
+      write (stderr,*) ": in directory       : ",trim(directory)
+      write (stderr,*) "                      " 
     end if 
   end subroutine header
+
+  subroutine checktime(myid)
+    implicit none
+    integer(ik4) , intent (in) :: myid
+    real(rk4) :: check_time
+    if ( myid == iocpu ) then
+      call cpu_time(check_time)
+      write (stderr,*) 'Elapsed seconds of run for this month : ', &
+                (check_time-last_time)
+      last_time = check_time
+    end if
+  end subroutine checktime
 
   subroutine finaltime(myid)
     implicit none
@@ -91,14 +102,13 @@ module mod_header
     real(rk8) :: finish_time
 
     if ( myid == iocpu ) then
-      call system_clock(clock_count,clock_rate,clock_max)
-      finish_time = dble(clock_count)
+      call cpu_time(finish_time)
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
-      write (nrite,*) ': this run stops at  : ', trim(cdata)
-      write (nrite,*) ': Total elapsed seconds of run : ', &
-                (finish_time - start_time)/dble(clock_rate)
+      write (stderr,*) ': this run stops at  : ', trim(cdata)
+      write (stderr,*) ': Total elapsed seconds of run : ', &
+                (finish_time - start_time)
     end if
   end subroutine finaltime
 
