@@ -24,7 +24,7 @@ module mod_mtrxclm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : idate0 , iqv
+  use mod_runparams , only : idate0 , iqv , solcon
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -1169,11 +1169,13 @@ module mod_mtrxclm
     decdeg = declin/degrad
     write (aline, 99001) calday, decdeg
     call say
+    write (aline, 99002) solcon
+    call say
+99001 format ('JDay ',f12.2,' solar declination angle = ',f12.8,' degrees')
+99002 format (18x,'solar TSI irradiance    = ',f12.4,' W/m^2')
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
-        &   ' degrees.')
 !
   end subroutine solar_clm
 
