@@ -67,33 +67,6 @@
  inpter = 'globdata/',   ! Input directory for SURFACE dataset
  /
 !
-! ICBC Global data input control
-!
- &globdatparam
- ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
-                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_RF, FV_A2, FV_B2,
-                             !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST, CA_XX,
-                             !          HA_XX, EC_XX, IP_XX, GF_XX,
-                             !          CN_XX, MP_XX
- dattyp = 'EIN15',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
-                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
- gdate1 = 1990060100,        ! Start date for ICBC data generation
- gdate2 = 1990070100,        ! End data for ICBC data generation
- calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
- dirglob = 'input/',         ! Path for ICBC produced input files
- inpglob = 'globdata/',      ! Path for ICBC global input datasets.
-                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
-                   ! on how to download them.
- /
-!
 ! Global I/O control Stanza
 !
  &ioparam
@@ -118,6 +91,53 @@
  high_nudge =    3.0D0, ! Nudge value high range
  medium_nudge =  2.0D0, ! Nudge value medium range
  low_nudge =     1.0D0  ! Nudge value low range
+ /
+!
+! ICBC Global data input control
+!
+ &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
+ ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
+                             !          FV_RF, FV_A2, FV_B2,
+                             !          EH5RF, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST, CA_XX,
+                             !          HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          CN_XX, MP_XX
+ dattyp = 'EIN15',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
+                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
+                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
+                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
+                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
+ gdate1 = 1990060100,        ! Start date for ICBC data generation
+ gdate2 = 1990070100,        ! End data for ICBC data generation
+ calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
+ dirglob = 'input/',         ! Path for ICBC produced input files
+ inpglob = 'globdata/',      ! Path for ICBC global input datasets.
+ ensemble_run = .false.,     ! If this is a member of a perturbed ensemble
+                             ! run. Activate random noise added to input
+                             ! ICBC controlled by the perturbparam stanza
+                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
+                   ! on how to download them.
+ /
+!
+! Perturbation control for ensembles
+!
+ &perturbparam
+ lperturb_ts = .false.,     ! Add perturbation to surface temeprature
+ perturb_frac_ts = 0.001D0, ! Fractional value of the perturbation on ts
+ lperturb_ps = .false.,     ! Add perturbation to surface pressure
+ perturb_frac_ps = 0.001D0, ! Fractional value of the perturbation on ps
+ lperturb_t  = .false.,     ! Add perturbation to temperature
+ perturb_frac_t  = 0.001D0, ! Fractional value of the perturbation on t
+ lperturb_q  = .false.,     ! Add perturbation to humidity mixing ratio
+ perturb_frac_q  = 0.001D0, ! Fractional value of the perturbation on q
+ lperturb_u  = .false.,     ! Add perturbation to zonal velocity
+ perturb_frac_u  = 0.001D0, ! Fractional value of the perturbation on u
+ lperturb_v  = .false.,     ! Add perturbation to meridional velocity
+ perturb_frac_v  = 0.001D0, ! Fractional value of the perturbation on v
  /
 !
 ! Model start/restart control

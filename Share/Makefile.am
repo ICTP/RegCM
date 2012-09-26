@@ -7,7 +7,10 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 mod_space.f90 \
                       mod_dynparam.F90 mod_ensemble.f90 mod_stdio.f90 \
                       mod_realkinds.f90 mod_interp.f90 mod_nchelper.F90 \
                       mod_vertint.F90 mod_spline.f90 mod_domain.F90 \
-                      mod_intkinds.f90
+                      mod_intkinds.f90 mod_scrip_grids.F90 \
+                      mod_scrip_remap_bicubic.F90 mod_scrip_remap_bilinear.F90 \
+                      mod_scrip_remap_conserv.F90 mod_scrip_remap_distwgt.F90 \
+                      mod_scrip_remap_vars.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -40,3 +43,9 @@ mod_space.o: mod_space.f90 mod_intkinds.o mod_realkinds.o mod_date.o
 mod_spline.o: mod_spline.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_stdio.o: mod_stdio.f90 mod_intkinds.o
 mod_vertint.o: mod_vertint.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o
+mod_scrip_grids.o: mod_scrip_grids.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_memutil.o
+mod_scrip_remap_vars.o: mod_scrip_remap_vars.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_scrip_grids.o
+mod_scrip_remap_bicubic.o: mod_scrip_remap_bicubic.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o mod_scrip_grids.o mod_scrip_remap_vars.o
+mod_scrip_remap_bilinear.o: mod_scrip_remap_bilinear.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_scrip_grids.o mod_scrip_remap_vars.o
+mod_scrip_remap_conserv.o: mod_scrip_remap_conserv.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_scrip_grids.o mod_scrip_remap_vars.o
+mod_scrip_remap_distwgt.o: mod_scrip_remap_distwgt.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_scrip_grids.o mod_scrip_remap_vars.o

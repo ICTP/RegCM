@@ -34,9 +34,6 @@ module mod_ensemble
 !
   private
 
-  real(rk8) , public :: dHumidfrac , dSSTfrac
-  logical , public :: bDoSSTEnsemble , bDoHumidEnsemble
-
   interface randify
     module procedure randify3D
     module procedure randify2D
@@ -60,7 +57,7 @@ module mod_ensemble
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax , kmax
-    real(rk8) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
+    real(rk4) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
     real(rk8) , intent(in) :: dFrac
 
     real(rk8) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
@@ -108,7 +105,7 @@ module mod_ensemble
 
     ! Add this random number to the variable
 
-    dVariable3D = dVariable3D + dRand3D
+    dVariable3D = dVariable3D + real(dRand3D)
 
   end subroutine randify3D
 
@@ -123,7 +120,7 @@ module mod_ensemble
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax
-    real(rk8) , dimension(imax,jmax) , intent(inout) :: dVariable2D
+    real(rk4) , dimension(imax,jmax) , intent(inout) :: dVariable2D
     real(rk8) , intent(in) :: dFrac
 
     real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
@@ -172,7 +169,7 @@ module mod_ensemble
 
     ! Add this random number to the variable
 
-    dVariable2D = dVariable2D + dRand2D
+    dVariable2D = dVariable2D + real(dRand2D)
 
   end subroutine randify2D
 

@@ -19,6 +19,7 @@
 !
 module mod_dynparam
 
+  use mod_stdio
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -335,6 +336,22 @@ module mod_dynparam
 
   integer(ik4) :: ibdyfrq
 
+  logical :: ensemble_run
+
+  logical :: lperturb_ts
+  logical :: lperturb_ps
+  logical :: lperturb_t
+  logical :: lperturb_q
+  logical :: lperturb_u
+  logical :: lperturb_v
+
+  real(rk8) :: perturb_frac_ts
+  real(rk8) :: perturb_frac_ps
+  real(rk8) :: perturb_frac_t
+  real(rk8) :: perturb_frac_q
+  real(rk8) :: perturb_frac_u
+  real(rk8) :: perturb_frac_v
+
   contains
 
   subroutine initparam(filename, ierr)
@@ -354,8 +371,11 @@ module mod_dynparam
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
                    medium_nudge , low_nudge
     namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
-                   dirglob , inpglob , calendar , ibdyfrq
-! , nbin, sbin
+                   dirglob , inpglob , calendar , ibdyfrq , ensemble_run
+    namelist /perturbparam/ lperturb_ts , perturb_frac_ts , &
+      lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
+      lperturb_q , perturb_frac_q , lperturb_u , perturb_frac_u , &
+      lperturb_v , perturb_frac_v
 
     open(ipunit, file=filename, status='old', &
                  action='read', err=100)
@@ -366,6 +386,10 @@ module mod_dynparam
     niycpus = -1
 
     read(ipunit, dimparam, err=101)
+    if ( nsg < 1 ) then
+      write(stderr,*) 'Resetting nsg to 1'
+      nsg = 1
+    end if
 
     i_band = 0
 
@@ -457,6 +481,7 @@ module mod_dynparam
 
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'
+    ensemble_run = .false.
     read(ipunit, globdatparam, err=109)
     if (calendar == 'gregorian') then
       dayspy = 365.2422D+00
@@ -478,38 +503,57 @@ module mod_dynparam
     globidate2 = gdate2
     call setcal(globidate1,ical)
     call setcal(globidate2,ical)
+    if ( ensemble_run ) then
+      lperturb_ts = .false.
+      lperturb_ps = .false.
+      lperturb_t = .false.
+      lperturb_q = .false.
+      lperturb_u = .false.
+      lperturb_v = .false.
+      perturb_frac_ts = d_r1000
+      perturb_frac_ps = d_r1000
+      perturb_frac_t = d_r1000
+      perturb_frac_q = d_r1000
+      perturb_frac_u = d_r1000
+      perturb_frac_v = d_r1000
+      read(ipunit, perturbparam, err=110)
+    end if
 
     ierr = 0
     return
 
-  100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
+  100   write(stderr,*) 'Cannot read namelist file ', trim(filename)
     ierr = 1 
     return 
-  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ',  &
+  101   write(stderr,*) 'Cannot read namelist stanza: dimparam       ',  &
         & trim(filename)
     ierr = 1
     return
-  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ',  &
+  102   write(stderr,*) 'Cannot read namelist stanza: geoparam       ',  &
         & trim(filename)
     ierr = 1
     return
-  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ',  &
+  103   write(stderr,*) 'Cannot read namelist stanza: terrainparam   ',  &
         & trim(filename)
     ierr = 1
     return
-  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ',  &
+  104   write(stderr,*) 'Cannot read namelist stanza: ioparam        ',  &
         & trim(filename)
     ierr = 1
     return
-  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ',  &
+  105   write(stderr,*) 'Cannot read namelist stanza: debugparam     ',  &
         & trim(filename)
     ierr = 1
     return
-  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
+  106   write(stderr,*) 'Cannot read namelist stanza: boundaryparam  ',  &
         & trim(filename)
     ierr = 1
     return
-  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
+  109   write(stderr,*) 'Cannot read namelist stanza: globdatparam   ',  &
+        & trim(filename)
+    ierr = 1
+    return
+  110   write(stderr,*) 'Cannot read namelist stanza: perturbparam   ',  &
         & trim(filename)
     ierr = 1
     return
@@ -543,7 +587,7 @@ module mod_dynparam
     read(ipunit, outparam, err=100)
     return
 
-  100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
+  100   write(stderr,*) 'Cannot read namelist stanza: outparam'
 
   end subroutine init_outparam
 

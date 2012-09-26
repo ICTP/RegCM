@@ -244,62 +244,6 @@ http://clima-dods.ictp.it/thredds/dodsC
 This is controlled by the \verb=AERTYP= flag. See above in \ref{aerosolparam}.
 \end{enumerate}
 
-\subsection{globdatparam stanza}
-
-This stanza is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
-tell them how to build initial and bondary conditions.
-
-{\footnotesize
-\begin{Verbatim}
- &globdatparam
- ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
-                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_RF, FV_A2, FV_B2,
-                             !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST, CA_XX,
-                             !          HA_XX, EC_XX, IP_XX, GF_XX,
-                             !          CN_XX
- dattyp = 'EIN15',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX
- gdate1 = 1990060100,        ! Start date for ICBC data generation
- gdate2 = 1990070100,        ! End data for ICBC data generation
- calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
- dirglob = 'input/',         ! Path for ICBC produced input files
- inpglob = 'globdata/',      ! Path for ICBC global input datasets.
-                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
-                   ! on how to download them.
- /
-\end{Verbatim}
-}
-
-Things you need to know here:
-
-\begin{enumerate}
-\item The gdate time window to build ICBC must be always greater or equal to
-the time window you plan to run the model in.
-Different GCMs and reanalysis products have different length of the year.
-For example, the reanalysis products employ the real year length (365 days +
-real leap years, i.e. and average length of 365.2422), the CCSM has a length
-of 365 days (no leap year), the HadCM has a length of 360 days (30 day months).
-The RegCM4 length of the year has to be the same as in the forcing fields, and
-this can be set in the variable \verb=dayspy=.
-Please remember to always check the consistency of the length of the year.
-\item Even if listed, not all the input engines are fully tested. Some of them
-need data which have been reformatted by ICTP (they are not in the original
-format with which they are distributed by the institution producing them).
-Some input data are not freely distibutable by ICTP, and you need a special
-agreement with the owner to use them.
-Hopefully the situation is changing, and data exchange is becoming more and more
-the basis for good science in the climatic field.
-\item For notes on path, you can see the above in terrainparam stanza
-description at \ref{pathnote}.
-\end{enumerate}
-
 \subsection{ioparam stanza}
 
 {\footnotesize
@@ -404,6 +348,100 @@ follow the conditions:
  /
 \end{Verbatim}
 }
+
+\subsection{globdatparam stanza}
+
+This stanza is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
+tell them how to build initial and bondary conditions.
+
+{\footnotesize
+\begin{Verbatim}
+ &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
+ ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
+                             !          FV_RF, FV_A2, FV_B2,
+                             !          EH5RF, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST, CA_XX,
+                             !          HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          CN_XX
+ dattyp = 'EIN15',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
+                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
+                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
+                             !          EC_XX, IP_XX, GF_XX, CN_XX
+ gdate1 = 1990060100,        ! Start date for ICBC data generation
+ gdate2 = 1990070100,        ! End data for ICBC data generation
+ calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
+ dirglob = 'input/',         ! Path for ICBC produced input files
+ inpglob = 'globdata/',      ! Path for ICBC global input datasets.
+ ensemble_run = .false.,     ! If this is a member of a perturbed ensemble
+                             ! run. Activate random noise added to input
+                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
+                   ! on how to download them.
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The gdate time window to build ICBC must be always greater or equal to
+the time window you plan to run the model in.
+Different GCMs and reanalysis products have different length of the year.
+For example, the reanalysis products employ the real year length (365 days +
+real leap years, i.e. and average length of 365.2422), the CCSM has a length
+of 365 days (no leap year), the HadCM has a length of 360 days (30 day months).
+The RegCM4 length of the year has to be the same as in the forcing fields, and
+this can be set in the variable \verb=dayspy=.
+Please remember to always check the consistency of the length of the year.
+\item Even if listed, not all the input engines are fully tested. Some of them
+need data which have been reformatted by ICTP (they are not in the original
+format with which they are distributed by the institution producing them).
+Some input data are not freely distibutable by ICTP, and you need a special
+agreement with the owner to use them.
+Hopefully the situation is changing, and data exchange is becoming more and more
+the basis for good science in the climatic field.
+\item For notes on path, you can see the above in terrainparam stanza
+description at \ref{pathnote}.
+\end{enumerate}
+
+\subsection{perturbparam stanza}
+
+This stanza lets you control to which input field and of what fractional
+level a perturbation is added at ICBC stage on the input fields.
+It is read by the ICBC program if the \verb=ensemble_run= parameter in the
+\verb=globdatparam= stanza is set to \verb=true=.
+
+{\footnotesize
+\begin{Verbatim}
+!
+! Perturbation control for ensembles
+!
+ &perturbparam
+ lperturb_ts = .false.,     ! Add perturbation to surface temeprature
+ perturb_frac_ts = 0.001D0, ! Fractional value of the perturbation on ts
+ lperturb_ps = .false.,     ! Add perturbation to surface pressure
+ perturb_frac_ps = 0.001D0, ! Fractional value of the perturbation on ps
+ lperturb_t  = .false.,     ! Add perturbation to temperature
+ perturb_frac_t  = 0.001D0, ! Fractional value of the perturbation on t
+ lperturb_q  = .false.,     ! Add perturbation to humidity mixing ratio
+ perturb_frac_q  = 0.001D0, ! Fractional value of the perturbation on q
+ lperturb_u  = .false.,     ! Add perturbation to zonal velocity
+ perturb_frac_u  = 0.001D0, ! Fractional value of the perturbation on u
+ lperturb_v  = .false.,     ! Add perturbation to meridional velocity
+ perturb_frac_v  = 0.001D0, ! Fractional value of the perturbation on v
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The \verb=perturb_frac= should not exceed a percent of the field value.
+The algorithm detail of the applied noise can be found in \cite{tao_ense}.
+\end{enumerate}
 
 \subsection{restartparam stanza}
 

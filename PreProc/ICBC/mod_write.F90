@@ -26,6 +26,7 @@ module mod_write
   use mod_memutil
   use mod_message
   use mod_nchelper
+  use mod_ensemble
   use netcdf
 
   private
@@ -252,6 +253,33 @@ module mod_write
     integer(ik4) , dimension(4) :: istart , icount
     real(rk8) , dimension(1) :: xdate
 !
+    if ( ensemble_run ) then
+      write(stdout,*) 'Appling perturbation to input dataset:'
+      if ( lperturb_ts ) then
+        write(stdout,'(a,f7.2,a)') 'TS with value ',perturb_frac_ts*d_100,'%'
+        call randify(ts4,perturb_frac_ts,jx,iy)
+      end if
+      if ( lperturb_ps ) then
+        write(stdout,'(a,f7.2,a)') 'PS with value ',perturb_frac_ps*d_100,'%'
+        call randify(ps4,perturb_frac_ps,jx,iy)
+      end if
+      if ( lperturb_t ) then
+        write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+        call randify(t4,perturb_frac_t,jx,iy,kz)
+      end if
+      if ( lperturb_q ) then
+        write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+        call randify(q4,perturb_frac_q,jx,iy,kz)
+      end if
+      if ( lperturb_u ) then
+        write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+        call randify(u4,perturb_frac_u,jx,iy,kz)
+      end if
+      if ( lperturb_v ) then
+        write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+        call randify(v4,perturb_frac_v,jx,iy,kz)
+      end if
+    end if
     istart1(1) = itime
     icount1(1) = 1
     tdiff = idate - irefdate
