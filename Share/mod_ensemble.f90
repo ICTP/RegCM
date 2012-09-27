@@ -62,37 +62,37 @@ module mod_ensemble
 
     real(rk8) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
     integer(ik4) :: i
-    integer(ik4) :: nseed , clock
+    integer(ik4) :: nseed
+    real(rk4) :: cputime
 
     ! initialize the random number generator with the current clock time
-    ! get the size of the seed array
-
-    call random_seed(size = nseed)
-
-    ! allocate a new seed array
-    ! TODO: is this something that stays the same throughout the program's
-    ! execution, no matter how many times this routine is called?  If so, then
-    ! the allocate/deallocate should be moved out of this routine to save
-    ! computer time.
 
     if ( .not. associated(seed) ) then
-      call getmem1d(seed,1,nseed,'randify3D:seed')
+
+      ! get the size of the seed array
+
+      call random_seed(size = nseed)
+
+      ! allocate a new seed array
+
+      call getmem1d(seed,1,nseed,'randify2D:seed')
+
+      ! Get the system time
+
+      call cpu_time(cputime)
+
+      ! Set the seed array to be the clock time plus ???
+      ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
+      ! understand why 37 is used as opposed to any other number.
+
+      seed = cputime + 37*(/(i-1,i=1,nseed)/)
+
+      ! Set the seed for the random number generator.  This makes it so that we
+      ! get a pseudo-random sequence of numbers
+
+      call random_seed(put = seed)
+
     end if
-
-    ! Get the system time
-
-    call system_clock(count = clock)
-
-    ! Set the seed array to be the clock time plus ???
-    ! TAO:  The odd syntax for this line comes from GNU documentation.  I don't
-    ! understand why 37 is used as opposed to any other number.
-
-    seed = clock + 37*(/(i-1,i=1,nseed)/)
-
-    ! Set the seed for the random number generator.  This makes it so that we
-    ! get a pseudo-random sequence of numbers
-
-    call random_seed(put = seed)
 
     ! Figure out how much to tweak the variable by (at most)
 
@@ -125,38 +125,37 @@ module mod_ensemble
 
     real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
     integer(ik4) :: i
-    integer(ik4) :: nseed , clock
-    integer(ik4) , dimension(:) , pointer :: seed
+    integer(ik4) :: nseed
+    real(rk4) :: cputime
 
     ! initialize the random number generator with the current clock time
-    ! get the size of the seed array
-
-    call random_seed(size = nseed)
-
-    ! allocate a new seed array
-    ! TODO: is this something that stays the same throughout the program's
-    ! execution, no matter how many times this routine is called?  If so, then
-    ! the allocate/deallocate should be moved out of this routine to save
-    ! computer time.
 
     if ( .not. associated(seed) ) then
+
+      ! get the size of the seed array
+
+      call random_seed(size = nseed)
+
+      ! allocate a new seed array
+
       call getmem1d(seed,1,nseed,'randify2D:seed')
+
+      ! Get the system time
+
+      call cpu_time(cputime)
+
+      ! Set the seed array to be the clock time plus ???
+      ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
+      ! understand why 37 is used as opposed to any other number.
+
+      seed = cputime + 37*(/(i-1,i=1,nseed)/)
+
+      ! Set the seed for the random number generator.  This makes it so that we
+      ! get a pseudo-random sequence of numbers
+
+      call random_seed(put = seed)
+
     end if
-
-    ! Get the system time
-
-    call system_clock(count = clock)
-
-    ! Set the seed array to be the clock time plus ???
-    ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
-    ! understand why 37 is used as opposed to any other number.
-
-    seed = clock + 37*(/(i-1,i=1,nseed)/)
-
-    ! Set the seed for the random number generator.  This makes it so that we
-    ! get a pseudo-random sequence of numbers
-
-    call random_seed(put = seed)
 
     ! Figure out how much to tweak the variable by (at most)
 
