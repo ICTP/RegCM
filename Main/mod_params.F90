@@ -585,7 +585,6 @@ module mod_params
   call bcast(lakemod)
   call bcast(ichem)
   call bcast(ntr)
-  call bcast(icumcloud)
 
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then
