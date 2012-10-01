@@ -51,7 +51,7 @@ module mod_slice
         do i = ice1 , ice2
           do j = jce1 , jce2
             atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)/sfs%psb(j,i)
-            if ( atms%qxb3d(j,i,k,n) < minqx ) atms%qxb3d(j,i,k,n) = d_zero
+            if ( atms%qxb3d(j,i,k,n) < minqx ) atms%qxb3d(j,i,k,n) = minqx
           end do
         end do
       end do
