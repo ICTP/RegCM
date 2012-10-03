@@ -127,7 +127,7 @@ program clm2rcm
   checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
 
   call createfile_withname(checkfile,ncid)
-  call add_common_global_params(ncid,'clm2rcm')
+  call add_common_global_params(ncid,'clm2rcm',.false.)
   ipnt = 1
   call define_basic_dimensions(ncid,jx,iy,kzp1,ipnt,idims)
   call add_dimension(ncid,'time',nf90_unlimited,ipnt,idims)

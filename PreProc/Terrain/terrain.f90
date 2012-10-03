@@ -673,18 +673,18 @@ program terrain
 
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
-    call write_domain(outname,fudge_lnd_s,fudge_tex_s,fudge_lak_s,ntypec_s, &
-                      s_sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,dmap_s,    &
-                      coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,dpth_s,    &
-                      texout_s,frac_tex_s)
+    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s,  &
+                      ntypec_s,s_sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s, &
+                      dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,   &
+                      dpth_s,texout_s,frac_tex_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
   write (outname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
-  call write_domain(outname,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
-                    s_sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol, &
-                    mask,htgrid,lndout,snowam,dpth,texout,frac_tex)
+  call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
+                    s_sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
+                    htgrid,lndout,snowam,dpth,texout,frac_tex)
   write(stdout,*) 'Grid data written to output file'
 
   call memory_destroy

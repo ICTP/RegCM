@@ -91,7 +91,7 @@ module mod_sst_grid
     sstname = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
 
     call createfile_withname(sstname,ncid)
-    call add_common_global_params(ncid,'sst')
+    call add_common_global_params(ncid,'sst',.false.)
 
     istatus = nf90_put_att(ncid, nf90_global, 'sst_source', ssttyp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding global sst_source')

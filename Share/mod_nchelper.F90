@@ -83,11 +83,12 @@ module mod_nchelper
     end if
   end subroutine cdumlogical
 
-  subroutine add_common_global_params(ncid,prgname)
+  subroutine add_common_global_params(ncid,prgname,lsub)
     implicit none
 
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: prgname
+    logical :: lsub
 
     character(256) :: history
     real(rk4) , dimension(2) :: trlat
@@ -119,8 +120,17 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global experiment')
     incstat = nf90_put_att(ncid, nf90_global, 'projection',iproj)
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global projection')
-    incstat = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*1000.0)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global gridsize')
+    if ( lsub ) then
+      incstat = nf90_put_att(ncid, nf90_global, &
+                             'grid_size_in_meters', (ds*1000.0)/dble(nsg))
+      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global gridsize')
+      incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes');
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global subgrid flag')
+    else
+      incstat = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*1000.0)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global gridsize')
+    end if
     incstat = nf90_put_att(ncid, nf90_global, &
                  'latitude_of_projection_origin', clat)
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global clat')

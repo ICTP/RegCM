@@ -238,7 +238,7 @@ module mod_wrtoxd
     csdate = tochar(idate1)
 
     call createfile_withname(ofname,ncoutch)
-    call add_common_global_params(ncoutch,'chem_icbc')
+    call add_common_global_params(ncoutch,'chem_icbc',.false.)
 
     ipnt = 1
     call define_basic_dimensions(ncoutch,jx,iy,kz,ipnt,idims)
@@ -320,7 +320,7 @@ module mod_wrtoxd
     csdate = tochar(idate1)
 
     call createfile_withname(ofname,ncoutox)
-    call add_common_global_params(ncoutox,'oxcl_icbc')
+    call add_common_global_params(ncoutox,'oxcl_icbc',.false.)
 
     ipnt = 1
     call define_basic_dimensions(ncoutox,jx,iy,kz,ipnt,idims)
@@ -403,7 +403,7 @@ module mod_wrtoxd
     csdate = tochar(idate1)
 
     call createfile_withname(ofname,ncoutae)
-    call add_common_global_params(ncoutae,'aerc_icbc')
+    call add_common_global_params(ncoutae,'aerc_icbc',.false.)
 
     ipnt = 1
     call define_basic_dimensions(ncoutae,jx,iy,kz,ipnt,idims)

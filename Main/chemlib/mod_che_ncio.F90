@@ -607,7 +607,7 @@ module mod_che_ncio
 
         call createfile_withname(ofname,ncid)
         call add_common_global_params(ncid,'Model (Chemistry '// &
-                        trim(chevarnam)//')')
+                        trim(chevarnam)//')',.false.)
         ncche(itr) = ncid
 !
 !       ADD RUN PARAMETERS

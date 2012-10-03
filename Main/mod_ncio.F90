@@ -800,7 +800,11 @@ contains
     call say
 
     call createfile_withname(ofname,ncid)
-    call add_common_global_params(ncid,'Model ('//ctype//')')
+    if ( ctype == 'SUB' ) then
+      call add_common_global_params(ncid,'Model ('//ctype//')',.true.)
+    else
+      call add_common_global_params(ncid,'Model ('//ctype//')',.false.)
+    end if
 !
 !         ADD RUN PARAMETERS
 !

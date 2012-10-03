@@ -31,12 +31,12 @@ module mod_write
 
   contains
 !
-  subroutine write_domain(fname,lndfudge,texfudge,lakfudge,ntype,sigma, &
+  subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
                           htgrid,lndout,snowam,dpth,texout,frac_tex)
     implicit none
     character (len=*) , intent(in) :: fname
-    logical , intent(in) :: lndfudge , texfudge , lakfudge
+    logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
     integer(ik4) , intent(in) :: ntype
     real(rk4) , dimension(:) , pointer , intent(in) :: sigma
     real(rk4) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
@@ -68,7 +68,7 @@ module mod_write
     nz = ubound(sigma,1)
 
     call createfile_withname(fname,ncid)
-    call add_common_global_params(ncid,'terrain')
+    call add_common_global_params(ncid,'terrain',lsub)
 
     ! Terrain related global parameters
     call cdumlogical(cdum,smthbdy)

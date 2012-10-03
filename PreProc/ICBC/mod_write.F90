@@ -100,7 +100,7 @@ module mod_write
     csdate = tochar(idate1)
 
     call createfile_withname(ofname,ncout)
-    call add_common_global_params(ncout,'icbc')
+    call add_common_global_params(ncout,'icbc',.false.)
 
     istatus = nf90_put_att(ncout, nf90_global, 'global_sst_source', ssttyp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding global sst_source')
