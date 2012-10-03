@@ -327,11 +327,11 @@ program ncprepare
     print *, 'Coordinate file exist, not recreating it'
   end if
 
-  write(11, '(a,i4,i4,a,a)') 'pdef ', jx , iy ,                         &
+  write(11, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
          ' bilin sequential binary-big ^', trim(experiment)//'.coord'
-  write(11, '(a,i5,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
+  write(11, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc 
-  write(11, '(a,i5,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
+  write(11, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc 
 
   if (.not. ldepth .and. kz /= 0) then
