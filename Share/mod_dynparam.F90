@@ -337,7 +337,9 @@ module mod_dynparam
   integer(ik4) :: ibdyfrq
 
   logical :: ensemble_run
+  integer :: ensemble_members
 
+  logical :: lperturb_topo
   logical :: lperturb_ts
   logical :: lperturb_ps
   logical :: lperturb_t
@@ -345,6 +347,7 @@ module mod_dynparam
   logical :: lperturb_u
   logical :: lperturb_v
 
+  real(rk8) :: perturb_frac_topo
   real(rk8) :: perturb_frac_ts
   real(rk8) :: perturb_frac_ps
   real(rk8) :: perturb_frac_t
@@ -362,19 +365,21 @@ module mod_dynparam
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                   plon , truelatl, truelath , i_band
+      plon , truelatl, truelath , i_band
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
-                  fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , &
-                  fudge_lak,  fudge_lak_s , h2opct , h2ohgt , dirter , inpter
+      fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
+      fudge_lak_s , h2opct , h2ohgt , dirter , inpter
     namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
-                   medium_nudge , low_nudge
+      medium_nudge , low_nudge
     namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
-                   dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /perturbparam/ lperturb_ts , perturb_frac_ts , &
+      dirglob , inpglob , calendar , ibdyfrq , ensemble_run ,   &
+      ensemble_members
+    namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
+      lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
-      lperturb_q , perturb_frac_q , lperturb_u , perturb_frac_u , &
+      lperturb_q , perturb_frac_q , lperturb_u , perturb_frac_u ,   &
       lperturb_v , perturb_frac_v
 
     open(ipunit, file=filename, status='old', &
@@ -482,6 +487,7 @@ module mod_dynparam
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'
     ensemble_run = .false.
+    ensemble_members = 0
     read(ipunit, globdatparam, err=109)
     if (calendar == 'gregorian') then
       dayspy = 365.2422D+00
@@ -504,12 +510,17 @@ module mod_dynparam
     call setcal(globidate1,ical)
     call setcal(globidate2,ical)
     if ( ensemble_run ) then
+      if ( ensemble_members == 0 ) then
+        ensemble_members = 1
+      end if
+      lperturb_topo = .false.
       lperturb_ts = .false.
       lperturb_ps = .false.
       lperturb_t = .false.
       lperturb_q = .false.
       lperturb_u = .false.
       lperturb_v = .false.
+      perturb_frac_topo = d_r1000
       perturb_frac_ts = d_r1000
       perturb_frac_ps = d_r1000
       perturb_frac_t = d_r1000
