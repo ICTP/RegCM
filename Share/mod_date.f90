@@ -1204,6 +1204,10 @@ module mod_date
       z = xval
       z%iunit = iunit
       dd = dref + z
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
       if (iunit == uday) then
         zz%ival = idint((xval-dble(z%ival))*24.0D0)
         zz%iunit = uhrs
@@ -1288,6 +1292,29 @@ module mod_date
           call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
         end if
         iunit = uday
+      else if (cunit(1:6) == 'months') then
+        ! Unit is months since reference
+        if (len_trim(cunit) >= 31) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 28) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 25) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else if (len_trim(cunit) >= 22) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day
+        else if (len_trim(cunit) >= 19) then
+          read(cunit,'(a13,i4,a1,i2)') &
+            cdum, d%year, cdum, d%month
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = umnt
       else
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
@@ -1303,6 +1330,10 @@ module mod_date
       call date_time_to_internal(d,t,dref)
       z%iunit = iunit
       dd = dref + z
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
       if (iunit == uday) then
         zz%ival = idint((xval-dble(z%ival))*24.0D0)
         zz%iunit = uhrs
