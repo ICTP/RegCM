@@ -40,9 +40,11 @@ module mod_sst_gnhnc
   integer(ik4) :: timid
   integer(ik4) :: istatus
   integer(ik4) , dimension(3) :: istart , icount
+  integer(ik2) , pointer , dimension (:, :) :: work
   real(rk8) , pointer ::  work1(:)
   real(rk4) , pointer , dimension (:, :) :: work2
   real(rk4) , pointer , dimension(:,:) :: sst
+  real(rk4) :: add_offset , scale_factor
   type(rcm_time_and_date) , save :: fidate1
   character(64) :: cunit , ccal
   character(256) :: inpfile
@@ -101,6 +103,9 @@ module mod_sst_gnhnc
       trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp85_r1i1p1_', &
       y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
     varname(2) = 'tos'
+  else if ( ssttyp == 'EIXXX' ) then
+    write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
+    varname(2) = 'sst'
   else
     call die('gnhnc_sst','Unknown ssttyp: '//ssttyp,1)
   end if
@@ -111,9 +116,15 @@ module mod_sst_gnhnc
 
 ! GET DIMENSION IDs
   istatus = nf90_inq_dimid(inet1,'lat',latid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_dimid(inet1,'latitude',latid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+  end if
   istatus = nf90_inq_dimid(inet1,'lon',lonid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_dimid(inet1,'longitude',lonid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+  end if
   istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
   istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
@@ -129,9 +140,15 @@ module mod_sst_gnhnc
 
 ! GET VARIABLE IDs
   istatus = nf90_inq_varid(inet1,'lat',latid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(inet1,'latitude',latid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+  end if
   istatus = nf90_inq_varid(inet1,'lon',lonid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(inet1,'longitude',lonid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+  end if
   istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
   call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(1))
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
@@ -159,18 +176,30 @@ module mod_sst_gnhnc
   call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
   
 ! GET TIME VALUES
-  istart(1) = 1
-  icount(1) = timlen
-  istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
-! CHECK FOR THE REQUIRED RECORD IN DATA FILE  
-  istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-                  'Error read var '//varname(1)//' units')
-  istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-                  'Error read var '//varname(1)//' calendar')
-  fidate1 = timeval2date(work1(1),cunit,ccal)
+  if ( ssttyp /= 'EIXXX' ) then
+    istart(1) = 1
+    icount(1) = timlen
+    istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+  ! CHECK FOR THE REQUIRED RECORD IN DATA FILE  
+    istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(1)//' units')
+    istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(1)//' calendar')
+    fidate1 = timeval2date(work1(1),cunit,ccal)
+  else
+    istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(2)//' add_offset')
+    istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(2)//' scale_factor')
+    write(6,*) 'Add offset   = ',add_offset
+    write(6,*) 'Scale factor = ',scale_factor
+    call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
+  end if
 
   idateo = monfirst(globidate1)
   idatef = globidate2
@@ -203,11 +232,19 @@ module mod_sst_gnhnc
   integer(ik4) :: it , i , j
   integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
   type(rcm_time_interval) :: tdif
+  integer(ik4) , dimension(12) :: isteps
+
+  data isteps /1,125,237,361,481,605,725,849,973,1093,1217,1337/
 
   istart(3) = 1
 
-  tdif = idate-fidate1
-  it = tohours(tdif)/6 + 1
+  if ( ssttyp == 'EIXXX' ) then
+    call split_idate(idate, year, month, day, hour)  
+    it = isteps(month) + (day-1)*4 + hour/6 
+  else
+    tdif = idate-fidate1
+    it = tohours(tdif)/6 + 1
+  end if
 
   if ( it > timlen ) then
     ! Try switching to next file
@@ -268,8 +305,17 @@ module mod_sst_gnhnc
   istart(1) = 1
   istart(2) = 1
   istart(3) = it
-  istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+  if ( ssttyp == 'EIXXX' ) then
+    istatus = nf90_get_var(inet1,ivar2(2),work,istart,icount)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+    work2 = 1E+20
+    where ( work /= -32767 )
+      work2 = work * scale_factor + add_offset
+    end where
+  else
+    istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+  end if
   do j = 1 , jlat
     do i = 1 , ilon
       if (work2(i,j) < 0.9E+20 ) then
