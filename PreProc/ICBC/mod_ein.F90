@@ -39,7 +39,11 @@ module mod_ein
 
   private
 
-  integer(ik4) :: inlev , klev , jlat , ilon
+  integer(ik4) , parameter :: klev = 37
+
+  real(rk4) , dimension(klev) :: plevs
+
+  integer(ik4) :: jlat , ilon
 
   real(rk4) , pointer , dimension(:,:,:) :: b3
   real(rk4) , pointer , dimension(:,:,:) :: d3
@@ -63,481 +67,305 @@ module mod_ein
 
   public :: getein , headerein
 
+  data plevs / 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 20.0, 30.0, 50.0, 70.0,  &
+               100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 300.0, &
+               350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, &
+               750.0, 775.0, 800.0, 825.0, 850.0, 875.0, 900.0, 925.0, &
+               950.0, 975.0, 1000.0 /
   contains
 
   subroutine getein(idate)
-  implicit none
-!
-  type(rcm_time_and_date) , intent(in) :: idate
-!
-!     READ DATA AT IDATE
-!
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    !
+    ! READ DATA AT IDATE
+    !
+    call ein6hour(dattyp,idate,globidate1)
+    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    !
+    ! HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+    !
+    call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+    call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    !
+    ! ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+    !
+    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
+    !
+    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+    !
+    ! V E R T I C A L   I N T E R P O L A T I O N
+    !
+    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+    !
+    !HH:  CHANGE THE VERTICAL ORDER.
+    call top2btm(t3,jx,iy,klev)
+    call top2btm(q3,jx,iy,klev)
+    call top2btm(h3,jx,iy,klev)
+    call top2btm(u3,jx,iy,klev)
+    call top2btm(v3,jx,iy,klev)
+    !HH:OVER
+    !
+    ! NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+    !
+    call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+    if ( i_band == 1 ) then
+      call p1p2_band(b3pd,ps4,jx,iy)
+    else
+      call p1p2(b3pd,ps4,jx,iy)
+    end if
+    ! 
+    ! INTERPOLATION FROM PRESSURE LEVELS
+    !
+    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
 
-  call ein6hour(dattyp,idate,globidate1)
-
-  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
-!
-!     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
-!
-  call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-  call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
-!
-!     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
-!
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
-!
-!     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-!     X X
-!     V E R T I C A L   I N T E R P O L A T I O N
-!
-!     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-!     X X
-!HH:  CHANGE THE VERTICAL ORDER.
-  call top2btm(t3,jx,iy,klev)
-  call top2btm(q3,jx,iy,klev)
-  call top2btm(h3,jx,iy,klev)
-  call top2btm(u3,jx,iy,klev)
-  call top2btm(v3,jx,iy,klev)
-!HH:OVER
-!
-!     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
-!
-  call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
- 
-  call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-  if(i_band == 1) then
-     call p1p2_band(b3pd,ps4,jx,iy)
-  else
-     call p1p2(b3pd,ps4,jx,iy)
-  endif
- 
-!     INTERPOLATION FROM PRESSURE LEVELS
-  call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
-
-  call readsst(ts4,idate)
- 
-!     F3  INTERPOLATE U, V, T, AND Q.
-
-  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
-  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
-! 
-  call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
-!
-!     F4  DETERMINE H
-  call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
-!
+    call readsst(ts4,idate)
+    ! 
+    ! F3  INTERPOLATE U, V, T, AND Q.
+    !
+    call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+    call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+    ! 
+    call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+    !
+    ! F4  DETERMINE H
+    !
+    call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
   end subroutine getein
 !
 !-----------------------------------------------------------------------
 !
   subroutine ein6hour(dattyp,idate,idate0)
-  implicit none
+    implicit none
 !
-  character(5) , intent(in) :: dattyp
-  type(rcm_time_and_date) , intent(in) :: idate , idate0
+    character(5) , intent(in) :: dattyp
+    type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
-  character(24) :: inname
-  character(256) :: pathaddname
-  character(1) , dimension(5) :: varname
-  real(rk8) :: xadd , xscale
-  integer(ik4) , dimension(10) :: icount , istart
-  integer(ik4) :: year , month , day , hour
-!
-!     This is the latitude, longitude dimension of the grid to be read.
-!     This corresponds to the lat and lon dimension variables in the
-!     netCDF file.
-!     The data are packed into short integers (INTEGER*2).  The array
-!     work will be used to hold the packed integers.  The array 'x'
-!     will contain the unpacked data.
-!
-  data varname/'t' , 'z' , 'r' , 'u' , 'v'/
-!
-  call split_idate(idate,year,month,day,hour)
+    integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
+    character(64) :: inname
+    character(256) :: pathaddname
+    character(1) , dimension(5) :: varname
+    character(4) , dimension(5) :: fname
+    character(4) , dimension(4) :: hname
+    real(rk8) :: xadd , xscale
+    integer(ik4) , dimension(4) :: icount , istart
+    integer(ik4) :: year , month , day , hour
+    integer(ik4) , save :: lastmonth , lastyear
+    integer(ik4) , dimension(12) :: isteps
 
-  if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
-    do k4 = 1 , 4
-      do kkrec = 1 , 5
-        if ( kkrec == 1 ) then
-          if ( k4 == 1 ) then
-            write (inname,99001) year , 'air.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99002) year , 'air.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99003) year , 'air.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99004) year , 'air.' , year
-          end if
-        else if ( kkrec == 2 ) then
-          if ( k4 == 1 ) then
-            write (inname,99001) year , 'hgt.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99002) year , 'hgt.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99003) year , 'hgt.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99004) year , 'hgt.' , year
-          end if
-        else if ( kkrec == 3 ) then
-          if ( k4 == 1 ) then
-            write (inname,99005) year , 'rhum.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99006) year , 'rhum.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99007) year , 'rhum.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99008) year , 'rhum.' , year
-          end if
-        else if ( kkrec == 4 ) then
-          if ( k4 == 1 ) then
-            write (inname,99005) year , 'uwnd.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99006) year , 'uwnd.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99007) year , 'uwnd.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99008) year , 'uwnd.' , year
-          end if
-        else if ( kkrec == 5 ) then
-          if ( k4 == 1 ) then
-            write (inname,99005) year , 'vwnd.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99006) year , 'vwnd.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99007) year , 'vwnd.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99008) year , 'vwnd.' , year
-          end if
-        end if
- 
-        pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),ivar5(kkrec,k4))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4), &
-                 'scale_factor',xscl(kkrec,k4))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),  &
-                 'add_offset',xoff(kkrec,k4))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
-        write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
-                         xscl(kkrec,k4) , xoff(kkrec,k4)
-      end do
-    end do
- 
-  end if
- 
-  k4 = hour/6 + 1
-  it = day
-  if ( month == 2 ) it = it + 31
-  if ( month == 3 ) it = it + 59
-  if ( month == 4 ) it = it + 90
-  if ( month == 5 ) it = it + 120
-  if ( month == 6 ) it = it + 151
-  if ( month == 7 ) it = it + 181
-  if ( month == 8 ) it = it + 212
-  if ( month == 9 ) it = it + 243
-  if ( month == 10 ) it = it + 273
-  if ( month == 11 ) it = it + 304
-  if ( month == 12 ) it = it + 334
-  if ( mod(year,4) == 0 .and. month > 2 ) it = it + 1
-  if ( mod(year,100) == 0 .and. month > 2 ) it = it - 1
-  if ( mod(year,400) == 0 .and. month > 2 ) it = it + 1
-  do k = 1 , 4
-    istart(k) = 1
-  end do
-  do k = 5 , 10
-    istart(k) = 0
-    icount(k) = 0
-  end do
-  icount(1) = ilon
-  icount(2) = jlat
-  icount(3) = inlev
-  icount(4) = 365
-  if ( mod(year,4) == 0 ) icount(4) = 366
-  if ( mod(year,100) == 0 ) icount(4) = 365
-  if ( mod(year,400) == 0 ) icount(4) = 366
-  istart(4) = it
-  icount(4) = 1
-!bxq_
-  do kkrec = 1 , 5
-    inet = inet5(kkrec,k4)
-    ivar = ivar5(kkrec,k4)
-    istatus = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(kkrec))
-    xscale = xscl(kkrec,k4)
-    xadd = xoff(kkrec,k4)
-    if ( kkrec == 1 ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
-!             Tvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
-          tvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
-          tvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
-          tvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
-          tvar(i,jlat+1-j,4) = real(dble(work(i,j,4))*xscale+xadd)
-          tvar(i,jlat+1-j,5) = real(dble(work(i,j,5))*xscale+xadd)
-          tvar(i,jlat+1-j,6) = real(dble(work(i,j,6))*xscale+xadd)
-          tvar(i,jlat+1-j,7) = real(dble(work(i,j,7))*xscale+xadd)
-          tvar(i,jlat+1-j,8) = real(dble(work(i,j,8))*xscale+xadd)
-          tvar(i,jlat+1-j,9) = real(dble(work(i,j,9))*xscale+xadd)
-          tvar(i,jlat+1-j,10) = real(dble(work(i,j,10))*xscale+xadd)
-          tvar(i,jlat+1-j,11) = real(dble(work(i,j,11))*xscale+xadd)
-          tvar(i,jlat+1-j,12) = real(dble(work(i,j,13))*xscale+xadd)
-          tvar(i,jlat+1-j,13) = real(dble(work(i,j,15))*xscale+xadd)
-          tvar(i,jlat+1-j,14) = real(dble(work(i,j,17))*xscale+xadd)
-          tvar(i,jlat+1-j,15) = real(dble(work(i,j,18))*xscale+xadd)
-          tvar(i,jlat+1-j,16) = real(dble(work(i,j,20))*xscale+xadd)
-          tvar(i,jlat+1-j,17) = real(dble(work(i,j,22))*xscale+xadd)
-          tvar(i,jlat+1-j,18) = real(dble(work(i,j,24))*xscale+xadd)
-          tvar(i,jlat+1-j,19) = real(dble(work(i,j,26))*xscale+xadd)
-          tvar(i,jlat+1-j,20) = real(dble(work(i,j,28))*xscale+xadd)
-          tvar(i,jlat+1-j,21) = real(dble(work(i,j,31))*xscale+xadd)
-          tvar(i,jlat+1-j,22) = real(dble(work(i,j,34))*xscale+xadd)
-          tvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
+    !
+    ! This is the latitude, longitude dimension of the grid to be read.
+    ! This corresponds to the lat and lon dimension variables in the
+    ! netCDF file.
+    ! The data are packed into short integers (INTEGER*2).  The array
+    ! work will be used to hold the packed integers.  The array 'x'
+    ! will contain the unpacked data.
+    !
+    data varname /'t' , 'z' , 'r' , 'u' , 'v'/
+    data fname   /'air','hgt','rhum','uwnd','vwnd'/
+    data hname   /'.00.','.06.','.12.','.18.'/
+    data isteps /1,125,237,361,481,605,725,849,973,1093,1217,1337/
+!
+    k4 = 1
+    call split_idate(idate,year,month,day,hour)
+
+    if ( dattyp == 'EIXXX' ) then
+      if ( idate == idate0 .or. month /= lastmonth ) then
+        lastmonth = month
+        do kkrec = 1 , 5
+          write(inname,'(a,i0.2,a,i0.2,a)') &
+             varname(kkrec)//'_xxxx',month,'0100-xxxx',month+1,'0100.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
+                        pthsep//'XXXX'//pthsep//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error open file '//trim(pathaddname))
+          istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
+                                   ivar5(kkrec,1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error find var '//varname(kkrec))
+          istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
+                   'scale_factor',xscl(kkrec,1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error find att scale_factor')
+          istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
+                   'add_offset',xoff(kkrec,1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error find att add_offset')
+          write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
+                           xscl(kkrec,1) , xoff(kkrec,1)
         end do
-      end do
-    else if ( kkrec == 2 ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
-!             Hvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
-          hvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
-          hvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
-          hvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
-          hvar(i,jlat+1-j,4) = real(dble(work(i,j,4))*xscale+xadd)
-          hvar(i,jlat+1-j,5) = real(dble(work(i,j,5))*xscale+xadd)
-          hvar(i,jlat+1-j,6) = real(dble(work(i,j,6))*xscale+xadd)
-          hvar(i,jlat+1-j,7) = real(dble(work(i,j,7))*xscale+xadd)
-          hvar(i,jlat+1-j,8) = real(dble(work(i,j,8))*xscale+xadd)
-          hvar(i,jlat+1-j,9) = real(dble(work(i,j,9))*xscale+xadd)
-          hvar(i,jlat+1-j,10) = real(dble(work(i,j,10))*xscale+xadd)
-          hvar(i,jlat+1-j,11) = real(dble(work(i,j,11))*xscale+xadd)
-          hvar(i,jlat+1-j,12) = real(dble(work(i,j,13))*xscale+xadd)
-          hvar(i,jlat+1-j,13) = real(dble(work(i,j,15))*xscale+xadd)
-          hvar(i,jlat+1-j,14) = real(dble(work(i,j,17))*xscale+xadd)
-          hvar(i,jlat+1-j,15) = real(dble(work(i,j,18))*xscale+xadd)
-          hvar(i,jlat+1-j,16) = real(dble(work(i,j,20))*xscale+xadd)
-          hvar(i,jlat+1-j,17) = real(dble(work(i,j,22))*xscale+xadd)
-          hvar(i,jlat+1-j,18) = real(dble(work(i,j,24))*xscale+xadd)
-          hvar(i,jlat+1-j,19) = real(dble(work(i,j,26))*xscale+xadd)
-          hvar(i,jlat+1-j,20) = real(dble(work(i,j,28))*xscale+xadd)
-          hvar(i,jlat+1-j,21) = real(dble(work(i,j,31))*xscale+xadd)
-          hvar(i,jlat+1-j,22) = real(dble(work(i,j,34))*xscale+xadd)
-          hvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
-        end do
-      end do
-      do k = 1 , klev
-        do j = 1 , jlat
-          do i = 1 , ilon
-            hvar(i,j,k) = hvar(i,j,k)/9.80616
-          end do
-        end do
-      end do
-    else if ( kkrec == 3 ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
-!             RHvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
-          rhvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
-          rhvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
-          rhvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
-          rhvar(i,jlat+1-j,4) = real(dble(work(i,j,4))*xscale+xadd)
-          rhvar(i,jlat+1-j,5) = real(dble(work(i,j,5))*xscale+xadd)
-          rhvar(i,jlat+1-j,6) = real(dble(work(i,j,6))*xscale+xadd)
-          rhvar(i,jlat+1-j,7) = real(dble(work(i,j,7))*xscale+xadd)
-          rhvar(i,jlat+1-j,8) = real(dble(work(i,j,8))*xscale+xadd)
-          rhvar(i,jlat+1-j,9) = real(dble(work(i,j,9))*xscale+xadd)
-          rhvar(i,jlat+1-j,10) = real(dble(work(i,j,10))*xscale+xadd)
-          rhvar(i,jlat+1-j,11) = real(dble(work(i,j,11))*xscale+xadd)
-          rhvar(i,jlat+1-j,12) = real(dble(work(i,j,13))*xscale+xadd)
-          rhvar(i,jlat+1-j,13) = real(dble(work(i,j,15))*xscale+xadd)
-          rhvar(i,jlat+1-j,14) = real(dble(work(i,j,17))*xscale+xadd)
-          rhvar(i,jlat+1-j,15) = real(dble(work(i,j,18))*xscale+xadd)
-          rhvar(i,jlat+1-j,16) = real(dble(work(i,j,20))*xscale+xadd)
-          rhvar(i,jlat+1-j,17) = real(dble(work(i,j,22))*xscale+xadd)
-          rhvar(i,jlat+1-j,18) = real(dble(work(i,j,24))*xscale+xadd)
-          rhvar(i,jlat+1-j,19) = real(dble(work(i,j,26))*xscale+xadd)
-          rhvar(i,jlat+1-j,20) = real(dble(work(i,j,28))*xscale+xadd)
-          rhvar(i,jlat+1-j,21) = real(dble(work(i,j,31))*xscale+xadd)
-          rhvar(i,jlat+1-j,22) = real(dble(work(i,j,34))*xscale+xadd)
-          rhvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
-        end do
-      end do
-      do k = 1 , 23
-        do j = 1 , jlat
-          do i = 1 , ilon
-            rhvar(i,j,k) = amax1(rhvar(i,j,k)*0.01,0.00)
-          end do
-        end do
-      end do
-    else if ( kkrec == 4 ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
-!             Uvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
-          uvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
-          uvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
-          uvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
-          uvar(i,jlat+1-j,4) = real(dble(work(i,j,4))*xscale+xadd)
-          uvar(i,jlat+1-j,5) = real(dble(work(i,j,5))*xscale+xadd)
-          uvar(i,jlat+1-j,6) = real(dble(work(i,j,6))*xscale+xadd)
-          uvar(i,jlat+1-j,7) = real(dble(work(i,j,7))*xscale+xadd)
-          uvar(i,jlat+1-j,8) = real(dble(work(i,j,8))*xscale+xadd)
-          uvar(i,jlat+1-j,9) = real(dble(work(i,j,9))*xscale+xadd)
-          uvar(i,jlat+1-j,10) = real(dble(work(i,j,10))*xscale+xadd)
-          uvar(i,jlat+1-j,11) = real(dble(work(i,j,11))*xscale+xadd)
-          uvar(i,jlat+1-j,12) = real(dble(work(i,j,13))*xscale+xadd)
-          uvar(i,jlat+1-j,13) = real(dble(work(i,j,15))*xscale+xadd)
-          uvar(i,jlat+1-j,14) = real(dble(work(i,j,17))*xscale+xadd)
-          uvar(i,jlat+1-j,15) = real(dble(work(i,j,18))*xscale+xadd)
-          uvar(i,jlat+1-j,16) = real(dble(work(i,j,20))*xscale+xadd)
-          uvar(i,jlat+1-j,17) = real(dble(work(i,j,22))*xscale+xadd)
-          uvar(i,jlat+1-j,18) = real(dble(work(i,j,24))*xscale+xadd)
-          uvar(i,jlat+1-j,19) = real(dble(work(i,j,26))*xscale+xadd)
-          uvar(i,jlat+1-j,20) = real(dble(work(i,j,28))*xscale+xadd)
-          uvar(i,jlat+1-j,21) = real(dble(work(i,j,31))*xscale+xadd)
-          uvar(i,jlat+1-j,22) = real(dble(work(i,j,34))*xscale+xadd)
-          uvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
-        end do
-      end do
-    else if ( kkrec == 5 ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
-!             Vvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
-          vvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
-          vvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
-          vvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
-          vvar(i,jlat+1-j,4) = real(dble(work(i,j,4))*xscale+xadd)
-          vvar(i,jlat+1-j,5) = real(dble(work(i,j,5))*xscale+xadd)
-          vvar(i,jlat+1-j,6) = real(dble(work(i,j,6))*xscale+xadd)
-          vvar(i,jlat+1-j,7) = real(dble(work(i,j,7))*xscale+xadd)
-          vvar(i,jlat+1-j,8) = real(dble(work(i,j,8))*xscale+xadd)
-          vvar(i,jlat+1-j,9) = real(dble(work(i,j,9))*xscale+xadd)
-          vvar(i,jlat+1-j,10) = real(dble(work(i,j,10))*xscale+xadd)
-          vvar(i,jlat+1-j,11) = real(dble(work(i,j,11))*xscale+xadd)
-          vvar(i,jlat+1-j,12) = real(dble(work(i,j,13))*xscale+xadd)
-          vvar(i,jlat+1-j,13) = real(dble(work(i,j,15))*xscale+xadd)
-          vvar(i,jlat+1-j,14) = real(dble(work(i,j,17))*xscale+xadd)
-          vvar(i,jlat+1-j,15) = real(dble(work(i,j,18))*xscale+xadd)
-          vvar(i,jlat+1-j,16) = real(dble(work(i,j,20))*xscale+xadd)
-          vvar(i,jlat+1-j,17) = real(dble(work(i,j,22))*xscale+xadd)
-          vvar(i,jlat+1-j,18) = real(dble(work(i,j,24))*xscale+xadd)
-          vvar(i,jlat+1-j,19) = real(dble(work(i,j,26))*xscale+xadd)
-          vvar(i,jlat+1-j,20) = real(dble(work(i,j,28))*xscale+xadd)
-          vvar(i,jlat+1-j,21) = real(dble(work(i,j,31))*xscale+xadd)
-          vvar(i,jlat+1-j,22) = real(dble(work(i,j,34))*xscale+xadd)
-          vvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
-        end do
-      end do
+      end if
+      it = isteps(month) + (day-1)*4 + hour/6 
     else
+      if ( idate == idate0 .or. year /= lastyear ) then
+        lastyear = year
+        do k4 = 1 , 4
+          do kkrec = 1 , 5
+            write(inname,'(i4,a,a,i4,a)') &
+              year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+            pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+            istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error open file '//trim(pathaddname))
+            istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec), &
+                                     ivar5(kkrec,k4))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find var '//varname(kkrec))
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4), &
+                     'scale_factor',xscl(kkrec,k4))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find att scale_factor')
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),  &
+                     'add_offset',xoff(kkrec,k4))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find att add_offset')
+            write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
+                             xscl(kkrec,k4) , xoff(kkrec,k4)
+          end do
+        end do
+      end if
+      k4 = hour/6 + 1
+      it = day
+      if ( month == 2 ) it = it + 31
+      if ( month == 3 ) it = it + 59
+      if ( month == 4 ) it = it + 90
+      if ( month == 5 ) it = it + 120
+      if ( month == 6 ) it = it + 151
+      if ( month == 7 ) it = it + 181
+      if ( month == 8 ) it = it + 212
+      if ( month == 9 ) it = it + 243
+      if ( month == 10 ) it = it + 273
+      if ( month == 11 ) it = it + 304
+      if ( month == 12 ) it = it + 334
+      if ( mod(year,4) == 0 .and. month > 2 ) it = it + 1
+      if ( mod(year,100) == 0 .and. month > 2 ) it = it - 1
+      if ( mod(year,400) == 0 .and. month > 2 ) it = it + 1
     end if
-  end do
+ 
+    do k = 1 , 4
+      istart(k) = 1
+    end do
+    icount(1) = ilon
+    icount(2) = jlat
+    icount(3) = klev
+    istart(4) = it
+    icount(4) = 1
 
-
-99001 format (i4,'/',a4,i4,'.00.nc')
-99002 format (i4,'/',a4,i4,'.06.nc')
-99003 format (i4,'/',a4,i4,'.12.nc')
-99004 format (i4,'/',a4,i4,'.18.nc')
-99005 format (i4,'/',a5,i4,'.00.nc')
-99006 format (i4,'/',a5,i4,'.06.nc')
-99007 format (i4,'/',a5,i4,'.12.nc')
-99008 format (i4,'/',a5,i4,'.18.nc')
-!
+    do kkrec = 1 , 5
+      inet = inet5(kkrec,k4)
+      ivar = ivar5(kkrec,k4)
+      istatus = nf90_get_var(inet,ivar,work,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Error read var '//varname(kkrec))
+      xscale = xscl(kkrec,k4)
+      xadd = xoff(kkrec,k4)
+      if ( kkrec == 1 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            tvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+          end do
+        end do
+      else if ( kkrec == 2 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            hvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)/9.80616
+          end do
+        end do
+      else if ( kkrec == 3 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            rhvar(i,jlat+1-j,:) = &
+                amax1(real(dble(work(i,j,:))*xscale+xadd)*0.01,0.0)
+          end do
+        end do
+      else if ( kkrec == 4 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            uvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+          end do
+        end do
+      else if ( kkrec == 5 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            vvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+          end do
+        end do
+      end if
+    end do
   end subroutine ein6hour
 !
 !-----------------------------------------------------------------------
 !
   subroutine headerein(ires)
-  implicit none
+    implicit none
 !
-  integer(ik4) , intent(in) :: ires
-  integer(ik4) :: i , j , k , kr
+    integer(ik4) , intent(in) :: ires
+    integer(ik4) :: i , j , k , kr
 
-  klev = 23
-  inlev = 37
-  select case (ires)
-    case (15)
-      jlat = 121
-      ilon = 240
-      xres = 1.50
-    case (25)
-      jlat = 73
-      ilon = 144
-      xres = 2.50
-    case (75)
-      jlat = 241
-      ilon = 480
-      xres = 0.750
-    case default
-      call die('headerein','Unsupported resolution',1)
-  end select
-!
-!     Allocate working space
-!
-  call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
-  call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
-  call getmem1d(glat,1,jlat,'mod_ein:glat')
-  call getmem1d(glon,1,ilon,'mod_ein:glon')
-  call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
-  call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
-  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
-  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
-  call getmem3d(work,1,ilon,1,jlat,1,inlev,'mod_ein:work')
+    select case (ires)
+      case (15)
+        jlat = 121
+        ilon = 240
+        xres = 1.50
+      case (25)
+        jlat = 73
+        ilon = 144
+        xres = 2.50
+      case (75)
+        jlat = 241
+        ilon = 480
+        xres = 0.750
+      case default
+        call die('headerein','Unsupported resolution',1)
+    end select
+    !
+    ! Allocate working space
+    !
+    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
+    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
+    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
+    call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
+    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
+    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
+    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
 
-  sigmar(1) = .001
-  sigmar(2) = .002
-  sigmar(3) = .003
-  sigmar(4) = .005
-  sigmar(5) = .007
-  sigmar(6) = .01
-  sigmar(7) = .02
-  sigmar(8) = .03
-  sigmar(9) = .05
-  sigmar(10) = .07
-  sigmar(11) = .1
-  sigmar(12) = .15
-  sigmar(13) = .2
-  sigmar(14) = .25
-  sigmar(15) = .3
-  sigmar(16) = .4
-  sigmar(17) = .5
-  sigmar(18) = .6
-  sigmar(19) = .7
-  sigmar(20) = .775
-  sigmar(21) = .85
-  sigmar(22) = .925
-  sigmar(23) = 1.00
-!
-!     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
-!
-  do i = 1 , ilon
-    glon(i) = float(i-1)*xres
-  end do
-  do j = 1 , jlat
-    glat(j) = -90.0 + float(j-1)*xres
-  end do
-!
-!     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
-!
-  do k = 1 , klev
-    kr = klev - k + 1
-    sigma1(k) = sigmar(kr)
-  end do
- 
-!     Set up pointers
-
-  u3 => d3(:,:,1:klev)
-  v3 => d3(:,:,klev+1:2*klev)
-  t3 => b3(:,:,1:klev)
-  h3 => b3(:,:,klev+1:2*klev)
-  q3 => b3(:,:,2*klev+1:3*klev)
-  uvar => d2(:,:,1:klev)
-  vvar => d2(:,:,klev+1:2*klev)
-  tvar => b2(:,:,1:klev)
-  hvar => b2(:,:,klev+1:2*klev)
-  rhvar => b2(:,:,2*klev+1:3*klev)
-
+    sigmar(:) = plevs(:)/1000.0
+    !
+    ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+    !
+    do i = 1 , ilon
+      glon(i) = float(i-1)*xres
+    end do
+    do j = 1 , jlat
+      glat(j) = -90.0 + float(j-1)*xres
+    end do
+    !
+    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+    !
+    do k = 1 , klev
+      kr = klev - k + 1
+      sigma1(k) = sigmar(kr)
+    end do
+    ! 
+    ! Set up pointers
+    !
+    u3 => d3(:,:,1:klev)
+    v3 => d3(:,:,klev+1:2*klev)
+    t3 => b3(:,:,1:klev)
+    h3 => b3(:,:,klev+1:2*klev)
+    q3 => b3(:,:,2*klev+1:3*klev)
+    uvar => d2(:,:,1:klev)
+    vvar => d2(:,:,klev+1:2*klev)
+    tvar => b2(:,:,1:klev)
+    hvar => b2(:,:,klev+1:2*klev)
+    rhvar => b2(:,:,2*klev+1:3*klev)
   end subroutine headerein
 
 end module mod_ein

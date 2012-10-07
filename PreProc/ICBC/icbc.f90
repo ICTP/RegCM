@@ -214,7 +214,8 @@ program icbc
     call headerec
   else if ( dattyp == 'ERA40' ) then
     call headerera
-  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' ) then
+  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
+            dattyp == 'EIXXX' ) then
     call headerein(15)
   else if ( dattyp == 'EIN75' ) then
     call headerein(75)
@@ -259,7 +260,8 @@ program icbc
       call getecwcp(idate)
     else if ( dattyp == 'ERA40' ) then
       call getera40(idate)
-    else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' ) then
+    else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
+              dattyp == 'EIXXX' ) then
       call getein(idate)
     else if ( dattyp == 'GFS11' ) then
       call get_gn6hnc(idate)
