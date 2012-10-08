@@ -197,7 +197,7 @@ module mod_ein
                            xscl(kkrec,1) , xoff(kkrec,1)
         end do
       end if
-      it = (day-1)*4 + hour/6 
+      it = (day-1)*4 + hour/6 + 1
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
