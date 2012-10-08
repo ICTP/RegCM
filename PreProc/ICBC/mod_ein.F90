@@ -155,8 +155,6 @@ module mod_ein
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour
     integer(ik4) , save :: lastmonth , lastyear
-    integer(ik4) , dimension(12) :: isteps
-
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -168,7 +166,6 @@ module mod_ein
     data varname /'t' , 'z' , 'r' , 'u' , 'v'/
     data fname   /'air','hgt','rhum','uwnd','vwnd'/
     data hname   /'.00.','.06.','.12.','.18.'/
-    data isteps /1,125,237,361,481,605,725,849,973,1093,1217,1337/
 !
     k4 = 1
     call split_idate(idate,year,month,day,hour)
@@ -200,7 +197,7 @@ module mod_ein
                            xscl(kkrec,1) , xoff(kkrec,1)
         end do
       end if
-      it = isteps(month) + (day-1)*4 + hour/6 
+      it = (day-1)*4 + hour/6 
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
