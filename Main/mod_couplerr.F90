@@ -6,7 +6,8 @@
 !
       use ESMF
 !
-      use mod_realkinds, only : sp, dp
+      use mod_intkinds, only : ik4
+      use mod_realkinds, only : rk8
 !
       implicit none
 !
