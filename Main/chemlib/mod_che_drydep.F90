@@ -35,7 +35,7 @@ module mod_che_drydep
 
   private
 !
-  public :: drydep_aero , drydep_gas
+  public :: drydep_aero , drydep_gas, aerodyresis
   public :: a1 , a2 , a3 , c1 , c2 , c3 , c4 , aa1 , aa2 , aa3
 !
 ! Dynamic Viscosity Parameters

@@ -69,6 +69,7 @@
       real(rk8) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
                  srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
                  hsurf
+       real(rk8) , dimension(ici1:ici2,1) :: xra
       real(rk8) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
       real(rk8) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
@@ -261,6 +262,9 @@
       !
       if ( idust(1) > 0 ) then
         do j = jci1 , jci2
+
+          zeff(:,j) = 0.01 ! value set to desert type ( even for semi-arid) 
+          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j),rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
                       zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))     

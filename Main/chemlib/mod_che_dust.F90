@@ -31,6 +31,7 @@ module mod_che_dust
   use mod_che_common
   use mod_che_ncio
   use mod_che_mppio
+ 
 
   implicit none
 ! 
@@ -180,10 +181,10 @@ module mod_che_dust
       ! size distribution is option enabled. 
       ! Values are derived from Laurent et al. typical ranged adapted for our USDA texture types. 
       ! 
-      data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
-                3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
+ !      data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
+ !               3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
 
-!      data bcly/12*0.05/
+      data bcly/12*0.0D0/
                
 ! bsnd and bslt are not really used after / the data here are not consistent with clay.
       data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
@@ -250,22 +251,27 @@ module mod_che_dust
                           0.00D0, 0.22D0, 0.20D0,  0.58D0, 0.0D0/
 !
       data  texmmd  / 690.0D0, 210.0D0, 125.0D0,2.0D0, 520.0D0 / 
+
       data  texstd  / 1.6D0,   1.6D0,   1.8D0,  2.0D0, 1.50D0 /
 
-
-
-     if (ichdustemd==1) then 
+     mmd = d_zero
+     sigma =d_zero
+     pcent=d_zero
+!     if (ichdustemd==1) then 
       mmd = mmdd
       sigma=sigmad      
       pcent=pcentd 
-     else if (ichdustemd==2) then 
+!     else if (ichdustemd==2) then 
      do nm=1,mode
       mmd(nm,:) =  texmmd (nm)
       sigma(nm,:) = texstd(nm)
-      pcent(nm,:) =  soiltexpc(nm,d)
+      pcent(nm,:) =  soiltexpc(nm,:)
      end do
-      
-     endif 
+     where (soiltexpc(:,:) == d_zero) 
+          mmd (:,:)= d_zero
+          sigma(:,:)=d_zero
+     end where
+!     endif 
 
 
       rd_tex = .false.
@@ -592,7 +598,7 @@ module mod_che_dust
 !
       real(rk8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
       real(rk8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
-                  umin , ustarns , uth , utmin , x , xz , ym , z0s
+                  umin , ustarns , uth , utmin , x , xz , ym , z0s,ustarfw
       integer(ik4) :: i
       real(rk8) , dimension(ilg) :: ustar
       real(rk8) , dimension(ilg,nsoil) :: utheff
@@ -656,9 +662,11 @@ module mod_che_dust
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998                           
-        ! ustarns = (vonkar*100.*surfwd(i))/(dlog(1000./srl(i)))
+        ustarfw = (vonkar*100.*surfwd(i))/(dlog(1000./srl(i)))
+
         ustarns = ustarnd(i)*d_100 !cm.s-1
         utmin = (umin/(d_100*vonkar*rc(i)))*dlog(d_1000/srl(i))
+
  
         if ( surfwd(i) >= utmin ) then
           ustar(i) = ustarns + 0.3D0*(surfwd(i)-utmin)*(surfwd(i)-utmin)
@@ -732,7 +740,7 @@ module mod_che_dust
       if ( ichdustemd == 1 ) then
         const = 0.4D0
       else if (  ichdustemd == 2 ) then 
-        const =0.15D0
+        const = d_one
       end if 
  
       do nt = 1 , nats 
