@@ -31,7 +31,6 @@ module mod_che_dust
   use mod_che_common
   use mod_che_ncio
   use mod_che_mppio
- 
 
   implicit none
 ! 
@@ -158,12 +157,11 @@ module mod_che_dust
       real(rk8) , dimension(iy,nsoil,nats) :: srel
       real(rk8) , dimension(nsoil) :: ss
 
-! modif new distribution 
-! for each category, this is the percent of Coarse sand, Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012) 
+      ! modif new distribution 
+      ! for each category, this is the percent of Coarse sand,
+      ! Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012) 
       real(rk8) , dimension (mode,12) :: soiltexpc
-      real(rk8) , dimension (mode)    :: texmmd,texstd
-
-      
+      real(rk8) , dimension (mode)    :: texmmd , texstd
 
       logical :: rd_tex 
       character(6) :: aerctl
@@ -179,14 +177,16 @@ module mod_che_dust
       ! change also the clay/sand/sil percentage (used to calculate the ratio
       ! of vertical/horizontal flux): This (bcly) is only effective when Kok
       ! size distribution is option enabled. 
-      ! Values are derived from Laurent et al. typical ranged adapted for our USDA texture types. 
+      ! Values are derived from Laurent et al. typical ranged adapted 
+      ! for our USDA texture types. 
       ! 
- !      data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
- !               3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
+      ! data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
+      !           3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
 
-      data bcly/12*0.0D0/
+      data bcly /12*0.0D0/
                
-! bsnd and bslt are not really used after / the data here are not consistent with clay.
+      ! bsnd and bslt are not really used after / 
+      ! the data here are not consistent with clay.
       data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
                 0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
       data bslt/0.05D0 , 0.05D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
@@ -194,51 +194,49 @@ module mod_che_dust
 ! 
       data eps/1.0D-7/
 !
-      data mmdd/690.0D0 ,   0.0D0 ,   0.0D0 ,  0.0D0 ,   0.0D0,      &
-               690.0D0 , 210.0D0 ,   0.0D0 ,  0.0D0 ,   0.0D0,    &
+      data mmdd/690.0D0 ,  0.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
+               690.0D0 , 210.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
                690.0D0 , 210.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
                520.0D0 , 100.0D0 ,   5.0D0 , 0.0D0 ,   0.0D0, & 
-               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
-               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,&
-               210.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
-               210.0D0 ,  50.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0,& 
-               125.0D0 ,  50.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0,& 
-               100.0D0 ,  10.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0,& 
-               100.0D0 ,  10.0D0 ,   0.5D0 , 0.0D0 ,   0.0D0,& 
+               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, & 
+               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, &
+               210.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, & 
+               210.0D0 ,  50.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, & 
+               125.0D0 ,  50.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0, & 
+               100.0D0 ,  10.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0, & 
+               100.0D0 ,  10.0D0 ,   0.5D0 , 0.0D0 ,   0.0D0, & 
                100.0D0 ,  10.0D0 ,   0.5D0, 0.0D0 ,   0.0D0 /
 ! 
-      data sigmad/1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.6D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+      data sigmad/1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,  &
+                 1.6D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
                  1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
                  1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.6D0 , 1.7D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+                 1.6D0 , 1.7D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
                  1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
                  1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
                  1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
                  1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.8D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,   &
+                 1.8D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
                  1.8D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
                  1.8D0 , 1.8D0 , 1.8D0,  0.0D0 ,   0.0D0 /
 ! 
-       data pcentd/1.00D0 , 0.00D0 , 0.00D0 ,  0.0D0 ,   0.0D0,   &
-                  0.90D0 , 0.10D0 , 0.00D0 ,  0.0D0 ,   0.0D0,   &
+       data pcentd/1.00D0 , 0.00D0 , 0.00D0 ,  0.0D0 ,   0.0D0, &
+                  0.90D0 , 0.10D0 , 0.00D0 ,  0.0D0 ,   0.0D0,  &
                   0.80D0 , 0.20D0 , 0.00D0 , 0.0D0 ,   0.0D0,   &
-                  0.50D0 , 0.35D0 , 0.15D0 ,  0.0D0 ,   0.0D0,   &
+                  0.50D0 , 0.35D0 , 0.15D0 ,  0.0D0 ,   0.0D0,  &
                   0.45D0 , 0.40D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
                   0.35D0 , 0.50D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
                   0.30D0 , 0.50D0 , 0.20D0 , 0.0D0 ,   0.0D0,   &
-                  0.30D0 , 0.50D0 , 0.20D0 ,  0.0D0 ,   0.0D0,   &
+                  0.30D0 , 0.50D0 , 0.20D0 ,  0.0D0 ,   0.0D0,  &
                   0.20D0 , 0.50D0 , 0.30D0 , 0.0D0 ,   0.0D0,   &
-                  0.65D0 , 0.00D0 , 0.35D0 ,  0.0D0 ,   0.0D0,   &
+                  0.65D0 , 0.00D0 , 0.35D0 ,  0.0D0 ,   0.0D0,  &
                   0.60D0 , 0.00D0 , 0.40D0 , 0.0D0 ,   0.0D0,   &
                   0.50D0 , 0.00D0 , 0.50D0, 0.0D0 ,   0.0D0 /
-
 !!
 !! new option 
-      
-
+!!      
        data   soiltexpc / 0.46D0, 0.46D0, 0.05D0,  0.03D0, 0.0D0, &
-                          0.41D0, 0.41D0, 0.18D0,  0.00D0, 0.0D0,  &
+                          0.41D0, 0.41D0, 0.18D0,  0.00D0, 0.0D0, &
                           0.29D0, 0.29D0, 0.32D0,  0.10D0, 0.0D0, & 
                           0.00D0, 0.17D0, 0.70D0,  0.13D0, 0.0D0, & 
                           0.00D0, 0.10D0, 0.85D0,  0.05D0, 0.0D0, & 
@@ -251,28 +249,26 @@ module mod_che_dust
                           0.00D0, 0.22D0, 0.20D0,  0.58D0, 0.0D0/
 !
       data  texmmd  / 690.0D0, 210.0D0, 125.0D0,2.0D0, 520.0D0 / 
-
       data  texstd  / 1.6D0,   1.6D0,   1.8D0,  2.0D0, 1.50D0 /
 
-     mmd = d_zero
-     sigma =d_zero
-     pcent=d_zero
-!     if (ichdustemd==1) then 
-      mmd = mmdd
-      sigma=sigmad      
-      pcent=pcentd 
-!     else if (ichdustemd==2) then 
-     do nm=1,mode
-      mmd(nm,:) =  texmmd (nm)
-      sigma(nm,:) = texstd(nm)
-      pcent(nm,:) =  soiltexpc(nm,:)
-     end do
-     where (soiltexpc(:,:) == d_zero) 
-          mmd (:,:)= d_zero
-          sigma(:,:)=d_zero
-     end where
-!     endif 
-
+!     mmd = d_zero
+!     sigma = d_zero
+!     pcent = d_zero
+!     if ( ichdustemd == 1 ) then 
+!       mmd = mmdd
+!       sigma = sigmad      
+!       pcent = pcentd 
+!     else if ( ichdustemd == 2 ) then 
+      do nm = 1 , mode
+        mmd(nm,:) = texmmd(nm)
+        sigma(nm,:) = texstd(nm)
+        pcent(nm,:) = soiltexpc(nm,:)
+      end do
+      where ( dabs(soiltexpc(:,:)) < dlowval ) 
+        mmd (:,:) = d_zero
+        sigma(:,:) = d_zero
+      end where
+!     end if
 
       rd_tex = .false.
       if ( myid == iocpu ) then
@@ -597,8 +593,8 @@ module mod_che_dust
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
 !
       real(rk8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(rk8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
-                  umin , ustarns , uth , utmin , x , xz , ym , z0s,ustarfw
+      real(rk8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,   &
+          umin , ustarns , uth , utmin , x , xz , ym , z0s , ustarfw
       integer(ik4) :: i
       real(rk8) , dimension(ilg) :: ustar
       real(rk8) , dimension(ilg,nsoil) :: utheff
@@ -662,18 +658,14 @@ module mod_che_dust
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998                           
-        ustarfw = (vonkar*100.*surfwd(i))/(dlog(1000./srl(i)))
-
+        ustarfw = (vonkar*100.0D0*surfwd(i))/(dlog(1000.0D0/srl(i)))
         ustarns = ustarnd(i)*d_100 !cm.s-1
         utmin = (umin/(d_100*vonkar*rc(i)))*dlog(d_1000/srl(i))
-
- 
         if ( surfwd(i) >= utmin ) then
           ustar(i) = ustarns + 0.3D0*(surfwd(i)-utmin)*(surfwd(i)-utmin)
         else
           ustar(i) = ustarns
         end if
- 
       end do       ! end i loop
  
       call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
