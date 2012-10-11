@@ -534,7 +534,6 @@ module mod_che_dust
                 xalphaprop(ieff,n) = d_10**(0.134D0 * &
 !                             clay2row2(i,n,jloop)-6.0D0)*0.035D0
                               clay2row2(i,n,jloop)-6.0D0)
-                 print*, 'Hi',clay2row2(i,n,jloop), xalphaprop(ieff,n)
               else 
                 xalphaprop(ieff,n) = d_10**(-0.1D0 * &
 !                             clay2row2(i,n,jloop)-1.2D0)*0.035D0
