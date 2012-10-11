@@ -251,14 +251,14 @@ module mod_che_dust
       data  texmmd  / 690.0D0, 210.0D0, 125.0D0,2.0D0, 520.0D0 / 
       data  texstd  / 1.6D0,   1.6D0,   1.8D0,  2.0D0, 1.50D0 /
 
-!     mmd = d_zero
-!     sigma = d_zero
-!     pcent = d_zero
-!     if ( ichdustemd == 1 ) then 
-!       mmd = mmdd
-!       sigma = sigmad      
-!       pcent = pcentd 
-!     else if ( ichdustemd == 2 ) then 
+     mmd = d_zero
+     sigma = d_zero
+     pcent = d_zero
+     if ( ichdustemd == 1 ) then 
+       mmd = mmdd
+       sigma = sigmad      
+       pcent = pcentd 
+     else if ( ichdustemd == 2 ) then 
       do nm = 1 , mode
         mmd(nm,:) = texmmd(nm)
         sigma(nm,:) = texstd(nm)
@@ -268,7 +268,7 @@ module mod_che_dust
         mmd (:,:) = d_zero
         sigma(:,:) = d_zero
       end where
-!     end if
+     end if
 
       rd_tex = .false.
       if ( myid == iocpu ) then
@@ -534,7 +534,7 @@ module mod_che_dust
                 xalphaprop(ieff,n) = d_10**(0.134D0 * &
 !                             clay2row2(i,n,jloop)-6.0D0)*0.035D0
                               clay2row2(i,n,jloop)-6.0D0)
-
+                 print*, 'Hi',clay2row2(i,n,jloop), xalphaprop(ieff,n)
               else 
                 xalphaprop(ieff,n) = d_10**(-0.1D0 * &
 !                             clay2row2(i,n,jloop)-1.2D0)*0.035D0

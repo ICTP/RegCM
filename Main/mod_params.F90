@@ -138,7 +138,7 @@ module mod_params
     lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-         ichcumtra , ichsolver , idirect , ichdustemd , ichdiag
+         ichcumtra , ichsolver , idirect , ichdustemd , ichdiag, ichsursrc
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
@@ -435,6 +435,7 @@ module mod_params
   ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
   idirect = 1       ! tracer direct effect
   ichdiag = 0       ! chem tend outputs 
+  ichsursrc = 1
 #ifdef CLM
 !c------CLM Specific
   imask = 1
@@ -747,6 +748,7 @@ module mod_params
     call bcast(ichsolver)
     call bcast(ichdustemd)
     call bcast(ichdiag)
+    call bcast(ichsursrc)
     call chem_config
     call bcast(ntr)
     call bcast(iaerosol)

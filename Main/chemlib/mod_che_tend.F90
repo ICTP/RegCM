@@ -260,7 +260,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
       !
-      if ( idust(1) > 0 ) then
+      if ( idust(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
           zeff(:,j) = 0.01D0 ! value set to desert type ( even for semi-arid) 
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j), &
@@ -271,7 +271,7 @@
                       dustbsiz,dust_flx(:,:,j))     
         end do 
       end if
-      if ( isslt(1) > 0 ) then
+      if ( isslt(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
           call sea_salt(j,wid10(:,j),ivegcov(:,j),seasalt_flx(:,:,j))
         end do
@@ -279,9 +279,11 @@
       !
       ! update emission tendencies from inventories
       !
-      do j = jci1 , jci2
-        call emis_tend(ktau,j,lmonth,declin)
-      end do
+      if ( ichsursrc ==1 ) then
+        do j = jci1 , jci2
+          call emis_tend(ktau,j,lmonth,declin)
+        end do
+      end if
       !
       ! aerosol settling and drydep 
       ! include calculation of dry dep/settling velocities and 
@@ -290,7 +292,7 @@
       pdepv(:,:,:,:) = d_zero
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
-      if ( idust(1) > 0 ) then
+      if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),      &
                            ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),  &
@@ -299,7 +301,7 @@
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if
-      if ( isslt(1) > 0 ) then
+      if ( isslt(1) > 0  .and. ichdrdepo > 0) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
                            ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),  &
@@ -308,7 +310,7 @@
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
-      if ( icarb(1) > 0 ) then
+      if ( icarb(1) > 0  .and. ichdrdepo > 0) then
         ibin = count( icarb > 0 ) 
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
@@ -332,7 +334,7 @@
       !
       ! WET deposition (rainout and washout) for aerosol
       !
-      if ( idust(1) > 0 ) then
+      if ( idust(1) > 0 .and. ichremlsc == 1) then
         do j = jci1 , jci2
           call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j), &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
@@ -340,7 +342,7 @@
                        convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
-      if ( isslt(1) > 0 )  then   
+      if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then   
         do j = jci1 , jci2
           call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j), &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
@@ -348,7 +350,7 @@
                        convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
-      if ( icarb(1) > 0 )  then   
+      if ( icarb(1) > 0 .and.  ichremlsc == 1 )  then   
         ibin = count( icarb > 0 ) 
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
@@ -360,7 +362,7 @@
       !
       ! Wet Deposition for gasphase species 
       !
-      if ( igaschem == 1 ) then
+      if ( igaschem == 1 .and.ichremlsc == 1 ) then
         ! fix the interface for this variable
         ! no effect of cumulus scavenging now
 !        checum = d_zero
