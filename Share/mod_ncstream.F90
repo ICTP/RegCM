@@ -19,13 +19,14 @@
 
 module mod_ncstream
 
-  use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_constants
   use mod_memutil
   use mod_dynparam
   use mod_message
+  use netcdf
 
   private
 
@@ -78,6 +79,7 @@ module mod_ncstream
 
   type ncstream
     character(len=maxpath) :: filename
+    character(len=maxname) :: progname
     integer(ik4) :: id = -1
     !
     ! Defaults is output from model, i.e.:
@@ -89,7 +91,7 @@ module mod_ncstream
     logical :: l_subgrid = .false.
     logical :: l_full_sigma = .false.
     !
-    ! DO NOT TOUCH THIS.
+    ! Work flags
     !
     logical :: l_sync = .false.
     logical :: l_enabled = .false.
@@ -103,6 +105,36 @@ module mod_ncstream
     ! Implemented up to 4d var with records
     integer(ik4) , dimension(5) :: istart , icount
   end type ncstream
+!
+  type ncglobal_attribute_standard
+    character(len=maxname) :: aname
+  end type ncglobal_attribute_standard
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_string
+    character(len=maxstring) :: theval
+  end type ncattribute_string
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_integer
+    integer(ik4) :: theval
+  end type ncattribute_integer
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_real4
+    real(rk4) :: theval
+  end type ncattribute_real4
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_real8
+    real(rk8) :: theval
+  end type ncattribute_real8
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_real4_array
+    real(rk4) , dimension(maxdims) :: theval
+    integer(ik4) :: numval = maxdims
+  end type ncattribute_real4_array
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_real8_array
+    real(rk8) , dimension(maxdims) :: theval
+    integer(ik4) :: numval = maxdims
+  end type ncattribute_real8_array
 !
   type ncvariable_standard
     integer(ik4) :: id
@@ -191,7 +223,7 @@ module mod_ncstream
   integer(ik4) , dimension(maxdims) :: len_dim
 
   type ncstream_p
-    type(ncstream) , pointer :: xs
+    type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
   interface stream_addvar
@@ -234,10 +266,11 @@ module mod_ncstream
 
   contains
 
-    subroutine stream_setup(ncp,fname,l_bound,l_subgrid,l_full_sigma)
+    subroutine stream_setup(ncp,fname,pname,l_bound,l_subgrid,l_full_sigma)
       implicit none
       type(ncstream_p) , intent(inout) :: ncp
       character(len=*) , intent(in) :: fname
+      character(len=*) , intent(in) :: pname
       logical , intent(in) , optional :: l_bound
       logical , intent(in) , optional :: l_subgrid
       logical , intent(in) , optional :: l_full_sigma
@@ -257,6 +290,7 @@ module mod_ncstream
         call die('nc_stream','Cannot create file '//trim(fname),1)
       end if
       stream%filename = fname
+      stream%progname = pname
       if ( present(l_bound) )      stream%l_bound      = l_bound
       if ( present(l_subgrid) )    stream%l_subgrid    = l_subgrid
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
@@ -312,6 +346,9 @@ module mod_ncstream
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( stream%l_enabled ) return
+
+      call add_common_global_params(ncp)
+
       i_nc_status = nf90_enddef(stream%id)
       if ( i_nc_status /= nf90_noerr ) then
         write (stderr,*) nf90_strerror(i_nc_status)
@@ -616,6 +653,43 @@ module mod_ncstream
         end if
       end if
     end subroutine add_varatts
+
+    subroutine add_globalatt(ncp,att)
+      implicit none
+      type(ncstream_p) , intent(in) :: ncp
+      class(ncglobal_attribute_standard) :: att
+      type(ncstream) , pointer :: stream
+      if ( .not. associated(ncp%xs) ) return
+      stream => ncp%xs
+      if ( stream%l_enabled ) return
+      if ( stream%id < 0 ) return
+      select type(att)
+        class is (ncattribute_string)
+          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
+        class is (ncattribute_integer)
+          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
+        class is (ncattribute_real4)
+          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
+        class is (ncattribute_real8)
+          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
+        class is (ncattribute_real4_array)
+          i_nc_status = nf90_put_att(stream%id,nf90_global, &
+            att%aname,att%theval(1:att%numval))
+        class is (ncattribute_real8_array)
+          i_nc_status = nf90_put_att(stream%id,nf90_global, &
+            att%aname,att%theval(1:att%numval))
+        class default
+          call die('nc_stream', &
+                   'Cannot add global attribute '//trim(att%aname)// &
+                   ' in file '//trim(stream%filename), 1)
+      end select
+      if ( i_nc_status /= nf90_noerr ) then
+        write (stderr,*) nf90_strerror(i_nc_status)
+        call die('nc_stream', &
+                 'Cannot add global attribute '//trim(att%aname)// &
+                 ' in file '//trim(stream%filename), 1)
+      end if
+    end subroutine add_globalatt
 
     subroutine stream_addvar0d_norec(ncp,var)
       implicit none
@@ -1464,6 +1538,67 @@ module mod_ncstream
       call stream_sync(var%stream)
     end subroutine stream_writevar4d_integer
 
+    subroutine cdumlogical(cdum,yesno)
+      implicit none
+      character(len=*) , intent(out) :: cdum
+      logical , intent(in) :: yesno
+      if (yesno) then
+        write (cdum,'(a)') 'Yes'
+      else
+        write (cdum,'(a)') 'No'
+      end if
+    end subroutine cdumlogical
+
+    subroutine add_common_global_params(ncp)
+      implicit none
+      type(ncstream_p) , intent(inout) :: ncp
+      character(maxstring) :: history
+      real(rk8) , dimension(2) :: trlat
+      integer(ik4) , dimension(8) :: tvals
+
+      call add_globalatt(ncp, &
+        ncattribute_string('title','ICTP Regional Climatic model V4'))
+      call add_globalatt(ncp,ncattribute_string('institution','ICTP'))
+      call add_globalatt(ncp, &
+        ncattribute_string('source','RegCM Model output file'))
+      call add_globalatt(ncp,ncattribute_string('Conventions','CF-1.4'))
+      call add_globalatt(ncp,ncattribute_string('references', &
+        'http://gforge.ictp.it/gf/project/regcm'))
+      call add_globalatt(ncp,ncattribute_string('model_revision',SVN_REV))
+      call date_and_time(values=tvals)
+      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
+        tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
+        tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
+        ' : Created by RegCM '//trim(ncp%xs%progname)//' program'
+      call add_globalatt(ncp,ncattribute_string('history',history))
+      call add_globalatt(ncp,ncattribute_string('experiment',domname))
+      call add_globalatt(ncp,ncattribute_string('projection',iproj))
+      if ( ncp%xs%l_subgrid ) then
+        call add_globalatt(ncp,ncattribute_real8('grid_size_in_meters', &
+          (ds*1000.0)/dble(nsg)))
+        call add_globalatt(ncp,ncattribute_string('model_subgrid','Yes'))
+      else
+        call add_globalatt(ncp,ncattribute_real8('grid_size_in_meters', &
+          (ds*1000.0)))
+      end if
+      call add_globalatt(ncp, &
+        ncattribute_real8('latitude_of_projection_origin',clat))
+      call add_globalatt(ncp, &
+        ncattribute_real8('longitude_of_projection_origin',clon))
+      if ( iproj == 'ROTMER' ) then
+        call add_globalatt(ncp, &
+          ncattribute_real8('grid_north_pole_latitude',plat))
+        call add_globalatt(ncp, &
+          ncattribute_real8('grid_north_pole_longitude',plon))
+      else if ( iproj == 'LAMCON' ) then
+        trlat(1) = truelatl
+        trlat(2) = truelath
+        call add_globalatt(ncp, &
+          ncattribute_real8_array('standard_parallel',trlat,2))
+      end if
+      call add_globalatt(ncp,ncattribute_real8('grid_factor',xcone))
+    end subroutine add_common_global_params
+
 end module mod_ncstream
 
 #ifdef TESTNCSTREAM
@@ -1493,6 +1628,14 @@ program test
   jx = 36
   iy = 36
   kz = 18
+  ds = 50.0D0
+  domname = 'domname'
+  iproj = 'LAMCON'
+  xcone = 0.71
+  clat = 43.0
+  clon = 15.0
+  truelatl = 30.0
+  truelath = 60.0
 
   var0dint%vname = 'time'
   var0dint%vunit = 'units_int0dvar'
@@ -1523,8 +1666,7 @@ program test
   var3dreal%lfillvalue = .true.
   var3dreal%axis = 'xyz'
 
-  nullify(ncout%xs)
-  call stream_setup(ncout,'testfile.nc',l_bound=.true.)
+  call stream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
   call stream_addvar(ncout,var0dint)
   call stream_addvar(ncout,var1dreal)
   call stream_addvar(ncout,var2dreal)
