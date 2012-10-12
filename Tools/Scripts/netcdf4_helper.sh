@@ -132,5 +132,5 @@ echo  --with-netcdf=$DEST
 echo
 
 echo "Cleanup..."
-rm -fr $DEST/bin $DEST/share $DEST/logs $DEST/lib/pkgconfig $DEST/lib/*.la
+rm -fr $DEST/share $DEST/logs $DEST/lib/pkgconfig $DEST/lib/*.la
 exit 0
