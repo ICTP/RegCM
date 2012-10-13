@@ -77,6 +77,10 @@ module mod_ncstream
     real(rk4) , dimension(:,:,:,:) , allocatable :: rbuf4d
   end type internal_iobuffer
 
+  type iobuff_p
+    type(internal_iobuffer) , pointer :: xp => null()
+  end type iobuff_p
+
   type ncstream
     character(len=maxpath) :: filename
     character(len=maxname) :: progname
@@ -100,7 +104,7 @@ module mod_ncstream
     !
     integer(ik4) , dimension(maxdims) :: id_dims
     integer(ik4) , dimension(maxdims) :: len_dims
-    type(internal_iobuffer) :: buffer
+    type(iobuff_p) :: buffer
     integer(ik4) :: irec
     ! Implemented up to 4d var with records
     integer(ik4) , dimension(5) :: istart , icount
@@ -226,7 +230,7 @@ module mod_ncstream
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
-  public :: ncstream_p
+  public :: ncstream_p , iobuff_p
   public :: ncvariable0d_real , ncvariable0d_integer
   public :: ncvariable1d_real , ncvariable1d_integer
   public :: ncvariable2d_real , ncvariable2d_integer
@@ -237,6 +241,7 @@ module mod_ncstream
   public :: stream_addvar
   public :: stream_writevar
   public :: stream_addrec
+  public :: stream_get_iobuff
 
   contains
 
@@ -249,6 +254,7 @@ module mod_ncstream
       logical , intent(in) , optional :: l_subgrid
       logical , intent(in) , optional :: l_full_sigma
       type(ncstream) , pointer :: stream
+      type(internal_iobuffer) , pointer :: buffer
 
       if ( associated(ncp%xs) ) call stream_dispose(ncp)
       allocate(ncp%xs)
@@ -270,15 +276,17 @@ module mod_ncstream
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
       stream%id_dims(:) = -1
       stream%len_dims(:) = 0
-      stream%buffer%max1d_int(:) = 0
-      stream%buffer%max2d_int(:) = 0
-      stream%buffer%max3d_int(:) = 0
-      stream%buffer%max4d_int(:) = 0
-      stream%buffer%max1d_real(:) = 0
-      stream%buffer%max2d_real(:) = 0
-      stream%buffer%max3d_real(:) = 0
-      stream%buffer%max4d_real(:) = 0
       stream%irec = 1
+      allocate(stream%buffer%xp)
+      buffer => stream%buffer%xp
+      buffer%max1d_int(:) = 0
+      buffer%max2d_int(:) = 0
+      buffer%max3d_int(:) = 0
+      buffer%max4d_int(:) = 0
+      buffer%max1d_real(:) = 0
+      buffer%max2d_real(:) = 0
+      buffer%max3d_real(:) = 0
+      buffer%max4d_real(:) = 0
     end subroutine stream_setup
 
     subroutine stream_dispose(ncp)
@@ -296,12 +304,16 @@ module mod_ncstream
         end if
       end if
       call deallocate_buffers(stream%buffer)
+      deallocate(stream%buffer%xp)
       deallocate(ncp%xs)
     end subroutine stream_dispose
 
-    subroutine deallocate_buffers(buffer)
+    subroutine deallocate_buffers(xbf)
       implicit none
-      type(internal_iobuffer) , intent(inout) :: buffer
+      type(iobuff_p) , intent(inout) :: xbf
+      type(internal_iobuffer) , pointer :: buffer
+      if ( .not. associated(xbf%xp) ) return
+      buffer => xbf%xp
       if ( allocated(buffer%intbuff) )  deallocate(buffer%intbuff)
       if ( allocated(buffer%realbuff) ) deallocate(buffer%realbuff)
       if ( allocated(buffer%ibuf2d) )   deallocate(buffer%ibuf2d)
@@ -317,11 +329,13 @@ module mod_ncstream
       type(ncstream_p) , intent(inout) :: ncp
       type(ncstream) , pointer :: stream
       integer(ik4) :: maxnum_int , maxnum_real
+      type(internal_iobuffer) , pointer :: buffer
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( stream%l_enabled ) return
 
       call add_common_global_params(ncp)
+      buffer => stream%buffer%xp
 
       i_nc_status = nf90_enddef(stream%id)
       if ( i_nc_status /= nf90_noerr ) then
@@ -331,68 +345,68 @@ module mod_ncstream
       !
       ! Allocate buffer space shared by all vars
       !
-      maxnum_int  = stream%buffer%max1d_int(1)
-      maxnum_real = stream%buffer%max1d_real(1)
+      maxnum_int  = buffer%max1d_int(1)
+      maxnum_real = buffer%max1d_real(1)
 
-      if ( stream%buffer%lhas2dint ) then
-        allocate(stream%buffer%rbuf2d(stream%buffer%max2d_int(1), &
-                                      stream%buffer%max2d_int(2)))
-        maxnum_int = max(product(stream%buffer%max2d_int),maxnum_int)
+      if ( buffer%lhas2dint ) then
+        allocate(buffer%rbuf2d(buffer%max2d_int(1), &
+                               buffer%max2d_int(2)))
+        maxnum_int = max(product(buffer%max2d_int),maxnum_int)
       end if
-      if ( stream%buffer%lhas2dreal ) then
-        allocate(stream%buffer%rbuf2d(stream%buffer%max2d_real(1), &
-                                      stream%buffer%max2d_real(2)))
-        maxnum_real = max(product(stream%buffer%max2d_real),maxnum_real)
+      if ( buffer%lhas2dreal ) then
+        allocate(buffer%rbuf2d(buffer%max2d_real(1), &
+                               buffer%max2d_real(2)))
+        maxnum_real = max(product(buffer%max2d_real),maxnum_real)
       end if
-      if ( stream%buffer%lhas3dint ) then
-        allocate(stream%buffer%rbuf3d(stream%buffer%max3d_int(1), &
-                                      stream%buffer%max3d_int(2), &
-                                      stream%buffer%max3d_int(3)))
-        maxnum_int = max(product(stream%buffer%max3d_int),maxnum_int)
+      if ( buffer%lhas3dint ) then
+        allocate(buffer%rbuf3d(buffer%max3d_int(1), &
+                               buffer%max3d_int(2), &
+                               buffer%max3d_int(3)))
+        maxnum_int = max(product(buffer%max3d_int),maxnum_int)
       end if
-      if ( stream%buffer%lhas3dreal ) then
-        allocate(stream%buffer%rbuf3d(stream%buffer%max3d_real(1), &
-                                      stream%buffer%max3d_real(2), &
-                                      stream%buffer%max3d_real(3)))
-        maxnum_real = max(product(stream%buffer%max3d_real),maxnum_real)
+      if ( buffer%lhas3dreal ) then
+        allocate(buffer%rbuf3d(buffer%max3d_real(1), &
+                               buffer%max3d_real(2), &
+                               buffer%max3d_real(3)))
+        maxnum_real = max(product(buffer%max3d_real),maxnum_real)
       end if
-      if ( stream%buffer%lhas4dint ) then
-        allocate(stream%buffer%ibuf4d(stream%buffer%max4d_int(1), &
-                                      stream%buffer%max4d_int(2), &
-                                      stream%buffer%max4d_int(3), &
-                                      stream%buffer%max4d_int(4)))
-        maxnum_int = max(product(stream%buffer%max4d_int),maxnum_int)
+      if ( buffer%lhas4dint ) then
+        allocate(buffer%ibuf4d(buffer%max4d_int(1), &
+                               buffer%max4d_int(2), &
+                               buffer%max4d_int(3), &
+                               buffer%max4d_int(4)))
+        maxnum_int = max(product(buffer%max4d_int),maxnum_int)
       end if
-      if ( stream%buffer%lhas4dreal ) then
-        allocate(stream%buffer%rbuf4d(stream%buffer%max4d_real(1), &
-                                      stream%buffer%max4d_real(2), &
-                                      stream%buffer%max4d_real(3), &
-                                      stream%buffer%max4d_real(4)))
-        maxnum_real = max(product(stream%buffer%max4d_real),maxnum_real)
+      if ( buffer%lhas4dreal ) then
+        allocate(buffer%rbuf4d(buffer%max4d_real(1), &
+                               buffer%max4d_real(2), &
+                               buffer%max4d_real(3), &
+                               buffer%max4d_real(4)))
+        maxnum_real = max(product(buffer%max4d_real),maxnum_real)
       end if
-      if ( maxnum_int > 0 ) allocate(stream%buffer%intbuff(maxnum_int))
-      if ( maxnum_real > 0 ) allocate(stream%buffer%realbuff(maxnum_real))
+      if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
+      if ( maxnum_real > 0 ) allocate(buffer%realbuff(maxnum_real))
       stream%l_enabled = .true.
 #ifdef DEBUG
       write(stdout,*) 'Enabled netCDF stream ',trim(stream%filename)
-      if ( allocated(stream%buffer%intbuff) ) &
+      if ( allocated(buffer%intbuff) ) &
         write(stdout,*) 'Total buffer integer size :', &
-          size(stream%buffer%intbuff)
-      if ( allocated(stream%buffer%realbuff) ) &
+          size(buffer%intbuff)
+      if ( allocated(buffer%realbuff) ) &
         write(stdout,*) 'Total buffer float size   :', &
-          size(stream%buffer%realbuff)
-      if ( allocated(stream%buffer%ibuf2d) ) &
-        write(stdout,*) 'Total buffer int  2d size :',size(stream%buffer%ibuf2d)
-      if ( allocated(stream%buffer%rbuf2d) ) &
-        write(stdout,*) 'Total buffer real 2d size :',size(stream%buffer%rbuf2d)
-      if ( allocated(stream%buffer%ibuf3d) ) &
-        write(stdout,*) 'Total buffer int  3d size :',size(stream%buffer%ibuf3d)
-      if ( allocated(stream%buffer%rbuf3d) ) &
-        write(stdout,*) 'Total buffer real 3d size :',size(stream%buffer%rbuf3d)
-      if ( allocated(stream%buffer%ibuf4d) ) &
-        write(stdout,*) 'Total buffer int  4d size :',size(stream%buffer%ibuf4d)
-      if ( allocated(stream%buffer%rbuf4d) ) &
-        write(stdout,*) 'Total buffer real 4d size :',size(stream%buffer%rbuf4d)
+          size(buffer%realbuff)
+      if ( allocated(buffer%ibuf2d) ) &
+        write(stdout,*) 'Total buffer int  2d size :',size(buffer%ibuf2d)
+      if ( allocated(buffer%rbuf2d) ) &
+        write(stdout,*) 'Total buffer real 2d size :',size(buffer%rbuf2d)
+      if ( allocated(buffer%ibuf3d) ) &
+        write(stdout,*) 'Total buffer int  3d size :',size(buffer%ibuf3d)
+      if ( allocated(buffer%rbuf3d) ) &
+        write(stdout,*) 'Total buffer real 3d size :',size(buffer%rbuf3d)
+      if ( allocated(buffer%ibuf4d) ) &
+        write(stdout,*) 'Total buffer int  4d size :',size(buffer%ibuf4d)
+      if ( allocated(buffer%rbuf4d) ) &
+        write(stdout,*) 'Total buffer real 4d size :',size(buffer%rbuf4d)
 #endif
     end subroutine stream_enable
 
@@ -409,6 +423,14 @@ module mod_ncstream
         end if
       end if
     end subroutine stream_sync
+
+    subroutine stream_get_iobuff(ncp,xbf)
+      implicit none
+      type(ncstream_p) , intent(in) :: ncp
+      type(iobuff_p) , intent(out) :: xbf
+      if ( .not. associated(ncp%xs) ) return
+      xbf%xp => ncp%xs%buffer%xp
+    end subroutine stream_get_iobuff
 
     subroutine stream_addrec(ncp)
       implicit none
@@ -516,12 +538,16 @@ module mod_ncstream
       integer(ik4) , optional :: iloc
       character(len=*) , optional :: vname
       type(ncstream) , pointer :: stream
-      integer(ik4) :: iv = nf90_global
+      integer(ik4) :: iv
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
-      if ( present(iloc) ) iv = iloc
+      if ( present(iloc) ) then
+        iv = iloc
+      else
+        iv = nf90_global
+      end if
       select type(att)
         class is (ncattribute_string)
           i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
@@ -635,11 +661,13 @@ module mod_ncstream
       type(ncstream_p) , intent(inout) :: ncp
       class(ncvariable_standard) :: var
       type(ncstream) , pointer :: stream
+      type(internal_iobuffer) , pointer :: buffer
       integer (ik4) :: nctype
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
+      buffer => stream%buffer%xp
       select type(var)
         class is (ncvariable0d_real)
           var%nctype = nf90_float
@@ -760,61 +788,41 @@ module mod_ncstream
       end select
       select type(var)
         class is (ncvariable1d_real)
-          stream%buffer%lhas1dreal = .true.
-          stream%buffer%max1d_real(1) = &
-            max(stream%buffer%max1d_real(1),len_dim(1))
+          buffer%lhas1dreal = .true.
+          buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
         class is (ncvariable2d_real) 
-          stream%buffer%lhas2dreal = .true.
-          stream%buffer%max2d_real(1) = &
-            max(stream%buffer%max2d_real(1),len_dim(1))
-          stream%buffer%max2d_real(2) = &
-            max(stream%buffer%max2d_real(2),len_dim(2))
+          buffer%lhas2dreal = .true.
+          buffer%max2d_real(1) = max(buffer%max2d_real(1),len_dim(1))
+          buffer%max2d_real(2) = max(buffer%max2d_real(2),len_dim(2))
         class is (ncvariable3d_real)
-          stream%buffer%lhas3dreal = .true.
-          stream%buffer%max3d_real(1) = &
-            max(stream%buffer%max3d_real(1),len_dim(1))
-          stream%buffer%max3d_real(2) = &
-            max(stream%buffer%max3d_real(2),len_dim(2))
-          stream%buffer%max3d_real(3) = &
-            max(stream%buffer%max3d_real(3),len_dim(3))
+          buffer%lhas3dreal = .true.
+          buffer%max3d_real(1) = max(buffer%max3d_real(1),len_dim(1))
+          buffer%max3d_real(2) = max(buffer%max3d_real(2),len_dim(2))
+          buffer%max3d_real(3) = max(buffer%max3d_real(3),len_dim(3))
         class is (ncvariable4d_real)
-          stream%buffer%lhas4dreal = .true.
-          stream%buffer%max4d_real(1) = &
-            max(stream%buffer%max4d_real(1),len_dim(1))
-          stream%buffer%max4d_real(2) = &
-            max(stream%buffer%max4d_real(2),len_dim(2))
-          stream%buffer%max4d_real(3) = &
-            max(stream%buffer%max4d_real(3),len_dim(3))
-          stream%buffer%max4d_real(4) = &
-            max(stream%buffer%max4d_real(4),len_dim(4))
+          buffer%lhas4dreal = .true.
+          buffer%max4d_real(1) = max(buffer%max4d_real(1),len_dim(1))
+          buffer%max4d_real(2) = max(buffer%max4d_real(2),len_dim(2))
+          buffer%max4d_real(3) = max(buffer%max4d_real(3),len_dim(3))
+          buffer%max4d_real(4) = max(buffer%max4d_real(4),len_dim(4))
         class is (ncvariable1d_integer)
-          stream%buffer%lhas1dint = .true.
-          stream%buffer%max1d_int(1) =  &
-             max(stream%buffer%max1d_int(1),len_dim(1))
+          buffer%lhas1dint = .true.
+          buffer%max1d_int(1) =  max(buffer%max1d_int(1),len_dim(1))
         class is (ncvariable2d_integer)
-          stream%buffer%lhas2dint = .true.
-          stream%buffer%max2d_int(1) = &
-            max(stream%buffer%max2d_int(1),len_dim(1))
-          stream%buffer%max2d_int(2) = &
-            max(stream%buffer%max2d_int(2),len_dim(2))
+          buffer%lhas2dint = .true.
+          buffer%max2d_int(1) = max(buffer%max2d_int(1),len_dim(1))
+          buffer%max2d_int(2) = max(buffer%max2d_int(2),len_dim(2))
         class is (ncvariable3d_integer)
-          stream%buffer%lhas3dint = .true.
-          stream%buffer%max3d_int(1) = &
-            max(stream%buffer%max3d_int(1),len_dim(1))
-          stream%buffer%max3d_int(2) = &
-            max(stream%buffer%max3d_int(2),len_dim(2))
-          stream%buffer%max3d_int(3) = &
-            max(stream%buffer%max3d_int(3),len_dim(3))
+          buffer%lhas3dint = .true.
+          buffer%max3d_int(1) = max(buffer%max3d_int(1),len_dim(1))
+          buffer%max3d_int(2) = max(buffer%max3d_int(2),len_dim(2))
+          buffer%max3d_int(3) = max(buffer%max3d_int(3),len_dim(3))
         class is (ncvariable4d_integer)
-          stream%buffer%lhas4dint = .true.
-          stream%buffer%max4d_int(1) = &
-            max(stream%buffer%max4d_int(1),len_dim(1))
-          stream%buffer%max4d_int(2) = &
-            max(stream%buffer%max4d_int(2),len_dim(2))
-          stream%buffer%max4d_int(3) = &
-            max(stream%buffer%max4d_int(3),len_dim(3))
-          stream%buffer%max4d_int(4) = &
-            max(stream%buffer%max4d_int(4),len_dim(4))
+          buffer%lhas4dint = .true.
+          buffer%max4d_int(1) = max(buffer%max4d_int(1),len_dim(1))
+          buffer%max4d_int(2) = max(buffer%max4d_int(2),len_dim(2))
+          buffer%max4d_int(3) = max(buffer%max4d_int(3),len_dim(3))
+          buffer%max4d_int(4) = max(buffer%max4d_int(4),len_dim(4))
         class default
           continue
       end select
@@ -911,10 +919,12 @@ module mod_ncstream
       implicit none
       class(ncvariable_standard) , intent(inout) :: var
       type(ncstream) , pointer :: stream
+      type(internal_iobuffer) , pointer :: buffer
       if ( .not. associated(var%stream) ) return
       stream => var%stream
-      if ( stream%l_enabled ) return
+      if ( .not. stream%l_enabled ) return
       if ( stream%id < 0 ) return
+      buffer => stream%buffer%xp
       select type(var)
         class is (ncvariable0d_real)
           if ( var%lrecords ) then
@@ -932,16 +942,16 @@ module mod_ncstream
             stream%istart(2) = stream%irec
             stream%icount(2) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
+              buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:1),stream%icount(1:1))
+              buffer%realbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_real)
-          stream%buffer%realbuff(1:size(stream%buffer%rbuf2d)) = &
-            reshape(stream%buffer%rbuf2d,(/size(stream%buffer%rbuf2d)/))
+          buffer%realbuff(1:size(buffer%rbuf2d)) = &
+            reshape(buffer%rbuf2d,(/size(buffer%rbuf2d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -950,18 +960,18 @@ module mod_ncstream
             stream%istart(3) = stream%irec
             stream%icount(3) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+              buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
+              buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_real)
-          stream%buffer%realbuff(1:size(stream%buffer%rbuf3d)) = &
-            reshape(stream%buffer%rbuf3d,(/size(stream%buffer%rbuf3d)/))
+          buffer%realbuff(1:size(buffer%rbuf3d)) = &
+            reshape(buffer%rbuf3d,(/size(buffer%rbuf3d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -972,7 +982,7 @@ module mod_ncstream
             stream%istart(4) = stream%irec
             stream%icount(4) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+              buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -981,11 +991,11 @@ module mod_ncstream
             stream%istart(3) = 1
             stream%icount(3) = var%nval(3)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+              buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_real)
-          stream%buffer%realbuff(1:size(stream%buffer%rbuf4d)) = &
-            reshape(stream%buffer%rbuf4d,(/size(stream%buffer%rbuf4d)/))
+          buffer%realbuff(1:size(buffer%rbuf4d)) = &
+            reshape(buffer%rbuf4d,(/size(buffer%rbuf4d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -998,7 +1008,7 @@ module mod_ncstream
             stream%istart(5) = stream%irec
             stream%icount(5) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:5),stream%icount(1:5))
+              buffer%realbuff,stream%istart(1:5),stream%icount(1:5))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1009,7 +1019,7 @@ module mod_ncstream
             stream%istart(4) = 1
             stream%icount(4) = var%nval(4)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+              buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
           end if
         class is (ncvariable0d_integer)
           if ( var%lrecords ) then
@@ -1027,16 +1037,16 @@ module mod_ncstream
             stream%istart(2) = stream%irec
             stream%icount(2) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
+              buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:1),stream%icount(1:1))
+              buffer%intbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_integer)
-          stream%buffer%intbuff(1:size(stream%buffer%ibuf2d)) = &
-            reshape(stream%buffer%ibuf2d,(/size(stream%buffer%ibuf2d)/))
+          buffer%intbuff(1:size(buffer%ibuf2d)) = &
+            reshape(buffer%ibuf2d,(/size(buffer%ibuf2d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1045,18 +1055,18 @@ module mod_ncstream
             stream%istart(3) = stream%irec
             stream%icount(3) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+              buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
+              buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_integer)
-          stream%buffer%intbuff(1:size(stream%buffer%ibuf3d)) = &
-            reshape(stream%buffer%ibuf3d,(/size(stream%buffer%ibuf3d)/))
+          buffer%intbuff(1:size(buffer%ibuf3d)) = &
+            reshape(buffer%ibuf3d,(/size(buffer%ibuf3d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1067,7 +1077,7 @@ module mod_ncstream
             stream%istart(4) = stream%irec
             stream%icount(4) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+              buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1076,11 +1086,11 @@ module mod_ncstream
             stream%istart(3) = 1
             stream%icount(3) = var%nval(3)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+              buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_integer)
-          stream%buffer%intbuff(1:size(stream%buffer%ibuf4d)) = &
-            reshape(stream%buffer%ibuf4d,(/size(stream%buffer%ibuf4d)/))
+          buffer%intbuff(1:size(buffer%ibuf4d)) = &
+            reshape(buffer%ibuf4d,(/size(buffer%ibuf4d)/))
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1093,7 +1103,7 @@ module mod_ncstream
             stream%istart(5) = stream%irec
             stream%icount(5) = 1
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:5),stream%icount(1:5))
+              buffer%intbuff,stream%istart(1:5),stream%icount(1:5))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1104,7 +1114,7 @@ module mod_ncstream
             stream%istart(4) = 1
             stream%icount(4) = var%nval(4)
             i_nc_status = nf90_put_var(stream%id,var%id, &
-              stream%buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+              buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
           end if
         class default
           call die('nc_stream', &
@@ -1192,6 +1202,7 @@ program test
   use mod_dynparam
 
   type(ncstream_p) :: ncout
+  type(iobuff_p) :: obuf
   type(ncvariable0d_integer) :: var0dint
   type(ncvariable1d_real) :: var1dreal
   type(ncvariable2d_real) :: var2dreal
@@ -1254,29 +1265,30 @@ program test
   call stream_addvar(ncout,var3dreal)
 
   call stream_enable(ncout)
+  call stream_get_iobuff(ncout,obuf)
 
-  ncout%xs%buffer%realbuff(1:size(sigma)) = real(sigma(:))
+  obuf%xp%realbuff(1:size(sigma)) = real(sigma(:))
   call stream_writevar(var1dreal)
 
-  ncout%xs%buffer%rbuf2d(1:jx,1:iy) = 1.0
-  ncout%xs%buffer%rbuf2d(jx/2,iy/2) = 2.0
+  obuf%xp%rbuf2d(1:jx,1:iy) = 1.0
+  obuf%xp%rbuf2d(jx/2,iy/2) = 2.0
   call stream_writevar(var2dreal)
 
   var0dint%ival(1) = 12
   call stream_writevar(var0dint)
 
-  ncout%xs%buffer%rbuf3d(1:jx,1:iy,:) = 1.0
+  obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
-    ncout%xs%buffer%rbuf3d(jx/4,iy/4,k) = k
+    obuf%xp%rbuf3d(jx/4,iy/4,k) = k
   end do
   call stream_writevar(var3dreal)
   call stream_addrec(ncout)
 
   var0dint%ival(1) = 13
   call stream_writevar(var0dint)
-  ncout%xs%buffer%rbuf3d(1:jx,1:iy,:) = 1.0
+  obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
-    ncout%xs%buffer%rbuf3d(jx/4,iy/4,k) = k*1.5
+    obuf%xp%rbuf3d(jx/4,iy/4,k) = k*1.5
   end do
   call stream_writevar(var3dreal)
 
