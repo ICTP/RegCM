@@ -226,19 +226,6 @@ module mod_ncstream
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
-  interface stream_addvar
-    module procedure stream_addvar0d_real
-    module procedure stream_addvar0d_integer
-    module procedure stream_addvar1d_real
-    module procedure stream_addvar1d_integer
-    module procedure stream_addvar2d_real
-    module procedure stream_addvar2d_integer
-    module procedure stream_addvar3d_real
-    module procedure stream_addvar3d_integer
-    module procedure stream_addvar4d_real
-    module procedure stream_addvar4d_integer
-  end interface stream_addvar
-
   interface stream_writevar
     module procedure stream_writevar0d_real
     module procedure stream_writevar0d_integer
@@ -535,6 +522,87 @@ module mod_ncstream
       stream%len_dims(pdim) = num
     end subroutine add_dimension
 
+    subroutine add_attribute(ncp,att,iloc,vname)
+      implicit none
+      type(ncstream_p) , intent(in) :: ncp
+      class(ncglobal_attribute_standard) :: att
+      integer(ik4) , optional :: iloc
+      character(len=*) , optional :: vname
+      type(ncstream) , pointer :: stream
+      integer(ik4) :: iv = nf90_global
+      if ( .not. associated(ncp%xs) ) return
+      stream => ncp%xs
+      if ( stream%l_enabled ) return
+      if ( stream%id < 0 ) return
+      if ( present(iloc) ) iv = iloc
+      select type(att)
+        class is (ncattribute_string)
+          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+        class is (ncattribute_integer)
+          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+        class is (ncattribute_real4)
+          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+        class is (ncattribute_real8)
+          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+        class is (ncattribute_real4_array)
+          i_nc_status = nf90_put_att(stream%id,iv, &
+            att%aname,att%theval(1:att%numval))
+        class is (ncattribute_real8_array)
+          i_nc_status = nf90_put_att(stream%id,iv, &
+            att%aname,att%theval(1:att%numval))
+        class default
+          call die('nc_stream', &
+                   'Cannot add attribute '//trim(att%aname)// &
+                   ' in file '//trim(stream%filename), 1)
+      end select
+      if ( i_nc_status /= nf90_noerr ) then
+        write (stderr,*) nf90_strerror(i_nc_status)
+        if ( present(iloc) ) then
+          call die('nc_stream', &
+                   'Cannot add attribute '//trim(att%aname)// &
+                   'to variable '//vname//' in file '//trim(stream%filename), 1)
+        else
+          call die('nc_stream', &
+                   'Cannot add global attribute '//trim(att%aname)// &
+                   ' in file '//trim(stream%filename), 1)
+        end if
+      end if
+    end subroutine add_attribute
+
+    subroutine add_varatts(ncp,var)
+      implicit none
+      type(ncstream_p) , intent(in) :: ncp
+      class(ncvariable_standard) , intent(in) :: var
+      character(len=16) :: coords_cross = 'xlat xlon'
+      character(len=16) :: coords_dot   = 'dlat dlon'
+      call add_attribute(ncp, &
+        ncattribute_string('long_name',var%long_name),var%id,var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('standard_name',var%standard_name),var%id,var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('units',var%vunit),var%id,var%vname)
+      if ( var%lgridded ) then
+        if ( var%stream%l_bound .and. &
+            (var%vname == 'u' .or. var%vname == 'v') ) then
+          call add_attribute(ncp, &
+            ncattribute_string('coordinates',coords_dot),var%id,var%vname)
+        else
+          call add_attribute(ncp, &
+            ncattribute_string('coordinates',coords_cross),var%id,var%vname)
+        end if
+        call add_attribute(ncp, &
+          ncattribute_string('grid_mapping','rcm_map'),var%id,var%vname)
+      end if
+      if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
+        call add_attribute(ncp, &
+          ncattribute_string('cell_methods',var%cell_method),var%id,var%vname)
+      end if
+      if ( var%lfillvalue ) then
+        call add_attribute(ncp, &
+          ncattribute_real4('_FillValue',smissval),var%id,var%vname)
+      end if
+    end subroutine add_varatts
+
     subroutine add_variable(ncp,var,ndims)
       implicit none
       type(ncstream_p) , intent(in) :: ncp
@@ -572,428 +640,198 @@ module mod_ncstream
 #endif
       end if
       var%stream => stream
-      call add_varatts(var)
+      call add_varatts(ncp,var)
     end subroutine add_variable
 
-    subroutine add_varatts(var)
+    subroutine stream_addvar(ncp,var)
       implicit none
+      type(ncstream_p) , intent(inout) :: ncp
       class(ncvariable_standard) :: var
-      character(len=16) :: coords_cross = 'xlat xlon'
-      character(len=16) :: coords_dot   = 'dlat dlon'
-      i_nc_status = nf90_put_att(var%stream%id,var%id,'long_name',var%long_name)
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
-        call die('nc_stream', &
-          'Cannot add attribute long_name to variable '//trim(var%vname)// &
-          ' in file '//trim(var%stream%filename), 1)
-      end if
-      i_nc_status = nf90_put_att(var%stream%id,var%id,'standard_name', &
-                                 var%standard_name)
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
-        call die('nc_stream', &
-          'Cannot add attribute standard_name to variable '//trim(var%vname)// &
-          ' in file '//trim(var%stream%filename), 1)
-      end if
-      i_nc_status = nf90_put_att(var%stream%id,var%id,'units',var%vunit)
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
-        call die('nc_stream', &
-          'Cannot add attribute units to variable '//trim(var%vname)// &
-          ' in file '//trim(var%stream%filename), 1)
-      end if
-      if ( var%lgridded ) then
-        if ( var%stream%l_bound .and. &
-            (var%vname == 'u' .or. var%vname == 'v') ) then
-          i_nc_status = nf90_put_att(var%stream%id,var%id, &
-                                     'coordinates',coords_dot)
-          if ( i_nc_status /= nf90_noerr ) then
-            write (stderr,*) nf90_strerror(i_nc_status)
-            call die('nc_stream', &
-              'Cannot add attribute coordinates to variable '// &
-              trim(var%vname)//' in file '//trim(var%stream%filename), 1)
-          end if
-        else
-          i_nc_status = nf90_put_att(var%stream%id,var%id, &
-                                     'coordinates',coords_cross)
-          if ( i_nc_status /= nf90_noerr ) then
-            write (stderr,*) nf90_strerror(i_nc_status)
-            call die('nc_stream', &
-              'Cannot add attribute coordinates to variable '// &
-              trim(var%vname)//' in file '//trim(var%stream%filename), 1)
-          end if
-        end if
-        i_nc_status = nf90_put_att(var%stream%id,var%id, &
-                                   'grid_mapping','rcm_map')
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot add attribute grid_mapping to variable '// &
-            trim(var%vname)//' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
-        i_nc_status = nf90_put_att(var%stream%id,var%id,'cell_methods', &
-                                   var%cell_method)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot add attribute cell_methods to variable '// &
-            trim(var%vname)//' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      if ( var%lfillvalue ) then
-        i_nc_status = nf90_put_att(var%stream%id,var%id,'_FillValue', &
-                                   smissval)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot add attribute _FillValue to variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-    end subroutine add_varatts
-
-    subroutine add_globalatt(ncp,att)
-      implicit none
-      type(ncstream_p) , intent(in) :: ncp
-      class(ncglobal_attribute_standard) :: att
       type(ncstream) , pointer :: stream
+      integer (ik4) :: nctype
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
-      select type(att)
-        class is (ncattribute_string)
-          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
-        class is (ncattribute_integer)
-          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
-        class is (ncattribute_real4)
-          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
-        class is (ncattribute_real8)
-          i_nc_status = nf90_put_att(stream%id,nf90_global,att%aname,att%theval)
-        class is (ncattribute_real4_array)
-          i_nc_status = nf90_put_att(stream%id,nf90_global, &
-            att%aname,att%theval(1:att%numval))
-        class is (ncattribute_real8_array)
-          i_nc_status = nf90_put_att(stream%id,nf90_global, &
-            att%aname,att%theval(1:att%numval))
+      select type(var)
+        class is (ncvariable0d_real)
+          var%nctype = nf90_float
+        class is (ncvariable1d_real)
+          var%nctype = nf90_float
+        class is (ncvariable2d_real)
+          var%nctype = nf90_float
+        class is (ncvariable3d_real)
+          var%nctype = nf90_float
+        class is (ncvariable4d_real)
+          var%nctype = nf90_float
+        class is (ncvariable0d_integer)
+          var%nctype = nf90_int
+        class is (ncvariable1d_integer)
+          var%nctype = nf90_int
+        class is (ncvariable2d_integer)
+          var%nctype = nf90_int
+        class is (ncvariable3d_integer)
+          var%nctype = nf90_int
+        class is (ncvariable4d_integer)
+          var%nctype = nf90_int
         class default
           call die('nc_stream', &
-                   'Cannot add global attribute '//trim(att%aname)// &
+                   'Cannot add variable '//trim(var%vname)// &
                    ' in file '//trim(stream%filename), 1)
       end select
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
-        call die('nc_stream', &
-                 'Cannot add global attribute '//trim(att%aname)// &
-                 ' in file '//trim(stream%filename), 1)
-      end if
-    end subroutine add_globalatt
-
-    subroutine stream_addvar0d_norec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_0d) , intent(inout) :: var
-      var%lgridded = .false.
-      var%laddmethod = .false.
-      call add_variable(ncp,var,0)
-    end subroutine stream_addvar0d_norec
-
-    subroutine stream_addvar1d_norec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_1d) , intent(inout) :: var
-      call dimlist(ncp,var%axis)
-      var%lgridded = .false.
-      var%laddmethod = .false.
-      call add_variable(ncp,var,1)
-    end subroutine stream_addvar1d_norec
-
-    subroutine stream_addvar2d_norec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_2d) , intent(inout) :: var
-      call dimlist(ncp,var%axis)
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      var%laddmethod = .false.
-      call add_variable(ncp,var,2)
-    end subroutine stream_addvar2d_norec
-
-    subroutine stream_addvar3d_norec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_3d) , intent(inout) :: var
-      call dimlist(ncp,var%axis)
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      var%laddmethod = .false.
-      call add_variable(ncp,var,3)
-    end subroutine stream_addvar3d_norec
-
-    subroutine stream_addvar4d_norec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_4d) , intent(inout) :: var
-      call dimlist(ncp,var%axis)
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      var%laddmethod = .false.
-      call add_variable(ncp,var,4)
-    end subroutine stream_addvar4d_norec
-
-    subroutine stream_addvar0d_rec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_0d) , intent(inout) :: var
-      call dimlist(ncp,'t')
-      var%lgridded = .false.
-      call add_variable(ncp,var,1)
-    end subroutine stream_addvar0d_rec
-
-    subroutine stream_addvar1d_rec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_1d) , intent(inout) :: var
-      call dimlist(ncp,var%axis//'t')
-      var%lgridded = .false.
-      call add_variable(ncp,var,2)
-    end subroutine stream_addvar1d_rec
-
-    subroutine stream_addvar2d_rec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_2d) , intent(inout) :: var
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      call dimlist(ncp,var%axis//'t')
-      call add_variable(ncp,var,3)
-    end subroutine stream_addvar2d_rec
-
-    subroutine stream_addvar3d_rec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_3d) , intent(inout) :: var
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      call dimlist(ncp,var%axis//'t')
-      call add_variable(ncp,var,4)
-    end subroutine stream_addvar3d_rec
-
-    subroutine stream_addvar4d_rec(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      class(ncvariable_4d) , intent(inout) :: var
-      if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
-           var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-        var%lgridded = .true.
-      end if
-      call dimlist(ncp,var%axis//'t')
-      call add_variable(ncp,var,5)
-    end subroutine stream_addvar4d_rec
-
-    subroutine stream_addvar0d_real(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable0d_real) , intent(inout) :: var
-      var%nctype = nf90_float
-      if ( var%lrecords ) then
-        call stream_addvar0d_rec(ncp,var)
-      else
-        call stream_addvar0d_norec(ncp,var)
-      end if
-    end subroutine stream_addvar0d_real
-
-    subroutine stream_addvar0d_integer(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable0d_integer) , intent(inout) :: var
-      var%nctype = nf90_int
-      if ( var%lrecords ) then
-        call stream_addvar0d_rec(ncp,var)
-      else
-        call stream_addvar0d_norec(ncp,var)
-      end if
-    end subroutine stream_addvar0d_integer
-
-    subroutine stream_addvar1d_real(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable1d_real) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_float
-      if ( var%lrecords ) then
-        call stream_addvar1d_rec(ncp,var)
-      else
-        call stream_addvar1d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas1dreal = .true.
-      stream%buffer%max1d_real(1) = max(stream%buffer%max1d_real(1),len_dim(1))
-    end subroutine stream_addvar1d_real
-
-    subroutine stream_addvar1d_integer(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable1d_integer) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_int
-      if ( var%lrecords ) then
-        call stream_addvar1d_rec(ncp,var)
-      else
-        call stream_addvar1d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas1dint = .true.
-      stream%buffer%max1d_int(1) = max(stream%buffer%max1d_int(1),len_dim(1))
-    end subroutine stream_addvar1d_integer
-
-    subroutine stream_addvar2d_real(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable2d_real) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_real
-      if ( var%lrecords ) then
-        call stream_addvar2d_rec(ncp,var)
-      else
-        call stream_addvar2d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas2dreal = .true.
-      stream%buffer%max2d_real(1) = max(stream%buffer%max2d_real(1),len_dim(1))
-      stream%buffer%max2d_real(2) = max(stream%buffer%max2d_real(2),len_dim(2))
-    end subroutine stream_addvar2d_real
-
-    subroutine stream_addvar2d_integer(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable2d_integer) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_int
-      if ( var%lrecords ) then
-        call stream_addvar2d_rec(ncp,var)
-      else
-        call stream_addvar2d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas2dint = .true.
-      stream%buffer%max2d_int(1) = max(stream%buffer%max2d_int(1),len_dim(1))
-      stream%buffer%max2d_int(2) = max(stream%buffer%max2d_int(2),len_dim(2))
-    end subroutine stream_addvar2d_integer
-
-    subroutine stream_addvar3d_real(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable3d_real) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_float
-      if ( var%lrecords ) then
-        call stream_addvar3d_rec(ncp,var)
-      else
-        call stream_addvar3d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%nval(3) = len_dim(3)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas3dreal = .true.
-      stream%buffer%max3d_real(1) = max(stream%buffer%max3d_real(1),len_dim(1))
-      stream%buffer%max3d_real(2) = max(stream%buffer%max3d_real(2),len_dim(2))
-      stream%buffer%max3d_real(3) = max(stream%buffer%max3d_real(3),len_dim(3))
-    end subroutine stream_addvar3d_real
-
-    subroutine stream_addvar3d_integer(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable3d_integer) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_int
-      if ( var%lrecords ) then
-        call stream_addvar3d_rec(ncp,var)
-      else
-        call stream_addvar3d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%nval(3) = len_dim(3)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas3dint = .true.
-      stream%buffer%max3d_int(1) = max(stream%buffer%max3d_int(1),len_dim(1))
-      stream%buffer%max3d_int(2) = max(stream%buffer%max3d_int(2),len_dim(2))
-      stream%buffer%max3d_int(3) = max(stream%buffer%max3d_int(3),len_dim(3))
-    end subroutine stream_addvar3d_integer
-
-    subroutine stream_addvar4d_real(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable4d_real) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_float
-      if ( var%lrecords ) then
-        call stream_addvar4d_rec(ncp,var)
-      else
-        call stream_addvar4d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%nval(3) = len_dim(3)
-      var%nval(4) = len_dim(4)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas4dreal = .true.
-      stream%buffer%max4d_real(1) = max(stream%buffer%max4d_real(1),len_dim(1))
-      stream%buffer%max4d_real(2) = max(stream%buffer%max4d_real(2),len_dim(2))
-      stream%buffer%max4d_real(3) = max(stream%buffer%max4d_real(3),len_dim(3))
-      stream%buffer%max4d_real(4) = max(stream%buffer%max4d_real(4),len_dim(4))
-    end subroutine stream_addvar4d_real
-
-    subroutine stream_addvar4d_integer(ncp,var)
-      implicit none
-      type(ncstream_p) , intent(inout) :: ncp
-      type(ncvariable4d_integer) , intent(inout) :: var
-      type(ncstream) , pointer :: stream
-      var%nctype = nf90_int
-      if ( var%lrecords ) then
-        call stream_addvar4d_rec(ncp,var)
-      else
-        call stream_addvar4d_norec(ncp,var)
-      end if
-      var%nval(1) = len_dim(1)
-      var%nval(2) = len_dim(2)
-      var%nval(3) = len_dim(3)
-      var%nval(4) = len_dim(4)
-      var%totsize = product(var%nval)
-      stream => ncp%xs
-      stream%buffer%lhas4dint = .true.
-      stream%buffer%max4d_int(1) = max(stream%buffer%max4d_int(1),len_dim(1))
-      stream%buffer%max4d_int(2) = max(stream%buffer%max4d_int(2),len_dim(2))
-      stream%buffer%max4d_int(3) = max(stream%buffer%max4d_int(3),len_dim(3))
-      stream%buffer%max4d_int(4) = max(stream%buffer%max4d_int(4),len_dim(4))
-    end subroutine stream_addvar4d_integer
+      select type(var)
+        class is (ncvariable_0d)
+          if ( var%lrecords ) then
+            call dimlist(ncp,'t')
+            var%lgridded = .false.
+            call add_variable(ncp,var,1)
+          else
+            var%lgridded = .false.
+            var%laddmethod = .false.
+            call add_variable(ncp,var,0)
+          end if
+        class is (ncvariable_1d)
+          if ( var%lrecords ) then
+            call dimlist(ncp,var%axis//'t')
+            var%lgridded = .false.
+            call add_variable(ncp,var,2)
+          else
+            call dimlist(ncp,var%axis)
+            var%lgridded = .false.
+            var%laddmethod = .false.
+            call add_variable(ncp,var,1)
+          end if
+          var%nval(1) = len_dim(1)
+          var%totsize = product(var%nval)
+        class is (ncvariable_2d)
+          if ( var%lrecords ) then
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            call dimlist(ncp,var%axis//'t')
+            call add_variable(ncp,var,3)
+          else
+            call dimlist(ncp,var%axis)
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            var%laddmethod = .false.
+            call add_variable(ncp,var,2)
+          end if
+          var%nval(1) = len_dim(1)
+          var%nval(2) = len_dim(2)
+          var%totsize = product(var%nval)
+        class is (ncvariable_3d)
+          if ( var%lrecords ) then
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            call dimlist(ncp,var%axis//'t')
+            call add_variable(ncp,var,4)
+          else
+            call dimlist(ncp,var%axis)
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            var%laddmethod = .false.
+            call add_variable(ncp,var,3)
+          end if
+          var%nval(1) = len_dim(1)
+          var%nval(2) = len_dim(2)
+          var%nval(3) = len_dim(3)
+          var%totsize = product(var%nval)
+        class is (ncvariable_4d)
+          if ( var%lrecords ) then
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            call dimlist(ncp,var%axis//'t')
+            call add_variable(ncp,var,5)
+          else
+            call dimlist(ncp,var%axis)
+            if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
+                 var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+              var%lgridded = .true.
+            end if
+            var%laddmethod = .false.
+            call add_variable(ncp,var,4)
+          end if
+          var%nval(1) = len_dim(1)
+          var%nval(2) = len_dim(2)
+          var%nval(3) = len_dim(3)
+          var%nval(4) = len_dim(4)
+          var%totsize = product(var%nval)
+        class default
+          call die('nc_stream', &
+                   'Cannot add variable '//trim(var%vname)// &
+                   ' in file '//trim(stream%filename), 1)
+      end select
+      select type(var)
+        class is (ncvariable1d_real)
+          stream%buffer%lhas1dreal = .true.
+          stream%buffer%max1d_real(1) = &
+            max(stream%buffer%max1d_real(1),len_dim(1))
+        class is (ncvariable2d_real) 
+          stream%buffer%lhas2dreal = .true.
+          stream%buffer%max2d_real(1) = &
+            max(stream%buffer%max2d_real(1),len_dim(1))
+          stream%buffer%max2d_real(2) = &
+            max(stream%buffer%max2d_real(2),len_dim(2))
+        class is (ncvariable3d_real)
+          stream%buffer%lhas3dreal = .true.
+          stream%buffer%max3d_real(1) = &
+            max(stream%buffer%max3d_real(1),len_dim(1))
+          stream%buffer%max3d_real(2) = &
+            max(stream%buffer%max3d_real(2),len_dim(2))
+          stream%buffer%max3d_real(3) = &
+            max(stream%buffer%max3d_real(3),len_dim(3))
+        class is (ncvariable4d_real)
+          stream%buffer%lhas4dreal = .true.
+          stream%buffer%max4d_real(1) = &
+            max(stream%buffer%max4d_real(1),len_dim(1))
+          stream%buffer%max4d_real(2) = &
+            max(stream%buffer%max4d_real(2),len_dim(2))
+          stream%buffer%max4d_real(3) = &
+            max(stream%buffer%max4d_real(3),len_dim(3))
+          stream%buffer%max4d_real(4) = &
+            max(stream%buffer%max4d_real(4),len_dim(4))
+        class is (ncvariable1d_integer)
+          stream%buffer%lhas1dint = .true.
+          stream%buffer%max1d_int(1) =  &
+             max(stream%buffer%max1d_int(1),len_dim(1))
+        class is (ncvariable2d_integer)
+          stream%buffer%lhas2dint = .true.
+          stream%buffer%max2d_int(1) = &
+            max(stream%buffer%max2d_int(1),len_dim(1))
+          stream%buffer%max2d_int(2) = &
+            max(stream%buffer%max2d_int(2),len_dim(2))
+        class is (ncvariable3d_integer)
+          stream%buffer%lhas3dint = .true.
+          stream%buffer%max3d_int(1) = &
+            max(stream%buffer%max3d_int(1),len_dim(1))
+          stream%buffer%max3d_int(2) = &
+            max(stream%buffer%max3d_int(2),len_dim(2))
+          stream%buffer%max3d_int(3) = &
+            max(stream%buffer%max3d_int(3),len_dim(3))
+        class is (ncvariable4d_integer)
+          stream%buffer%lhas4dint = .true.
+          stream%buffer%max4d_int(1) = &
+            max(stream%buffer%max4d_int(1),len_dim(1))
+          stream%buffer%max4d_int(2) = &
+            max(stream%buffer%max4d_int(2),len_dim(2))
+          stream%buffer%max4d_int(3) = &
+            max(stream%buffer%max4d_int(3),len_dim(3))
+          stream%buffer%max4d_int(4) = &
+            max(stream%buffer%max4d_int(4),len_dim(4))
+        class default
+          continue
+      end select
+    end subroutine stream_addvar
 
     subroutine dimlist(ncp,code)
       implicit none
@@ -1556,47 +1394,47 @@ module mod_ncstream
       real(rk8) , dimension(2) :: trlat
       integer(ik4) , dimension(8) :: tvals
 
-      call add_globalatt(ncp, &
+      call add_attribute(ncp, &
         ncattribute_string('title','ICTP Regional Climatic model V4'))
-      call add_globalatt(ncp,ncattribute_string('institution','ICTP'))
-      call add_globalatt(ncp, &
+      call add_attribute(ncp,ncattribute_string('institution','ICTP'))
+      call add_attribute(ncp, &
         ncattribute_string('source','RegCM Model output file'))
-      call add_globalatt(ncp,ncattribute_string('Conventions','CF-1.4'))
-      call add_globalatt(ncp,ncattribute_string('references', &
+      call add_attribute(ncp,ncattribute_string('Conventions','CF-1.4'))
+      call add_attribute(ncp,ncattribute_string('references', &
         'http://gforge.ictp.it/gf/project/regcm'))
-      call add_globalatt(ncp,ncattribute_string('model_revision',SVN_REV))
+      call add_attribute(ncp,ncattribute_string('model_revision',SVN_REV))
       call date_and_time(values=tvals)
       write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
         ' : Created by RegCM '//trim(ncp%xs%progname)//' program'
-      call add_globalatt(ncp,ncattribute_string('history',history))
-      call add_globalatt(ncp,ncattribute_string('experiment',domname))
-      call add_globalatt(ncp,ncattribute_string('projection',iproj))
+      call add_attribute(ncp,ncattribute_string('history',history))
+      call add_attribute(ncp,ncattribute_string('experiment',domname))
+      call add_attribute(ncp,ncattribute_string('projection',iproj))
       if ( ncp%xs%l_subgrid ) then
-        call add_globalatt(ncp,ncattribute_real8('grid_size_in_meters', &
+        call add_attribute(ncp,ncattribute_real8('grid_size_in_meters', &
           (ds*1000.0)/dble(nsg)))
-        call add_globalatt(ncp,ncattribute_string('model_subgrid','Yes'))
+        call add_attribute(ncp,ncattribute_string('model_subgrid','Yes'))
       else
-        call add_globalatt(ncp,ncattribute_real8('grid_size_in_meters', &
+        call add_attribute(ncp,ncattribute_real8('grid_size_in_meters', &
           (ds*1000.0)))
       end if
-      call add_globalatt(ncp, &
+      call add_attribute(ncp, &
         ncattribute_real8('latitude_of_projection_origin',clat))
-      call add_globalatt(ncp, &
+      call add_attribute(ncp, &
         ncattribute_real8('longitude_of_projection_origin',clon))
       if ( iproj == 'ROTMER' ) then
-        call add_globalatt(ncp, &
+        call add_attribute(ncp, &
           ncattribute_real8('grid_north_pole_latitude',plat))
-        call add_globalatt(ncp, &
+        call add_attribute(ncp, &
           ncattribute_real8('grid_north_pole_longitude',plon))
       else if ( iproj == 'LAMCON' ) then
         trlat(1) = truelatl
         trlat(2) = truelath
-        call add_globalatt(ncp, &
+        call add_attribute(ncp, &
           ncattribute_real8_array('standard_parallel',trlat,2))
       end if
-      call add_globalatt(ncp,ncattribute_real8('grid_factor',xcone))
+      call add_attribute(ncp,ncattribute_real8('grid_factor',xcone))
     end subroutine add_common_global_params
 
 end module mod_ncstream
