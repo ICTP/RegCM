@@ -226,19 +226,6 @@ module mod_ncstream
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
-  interface stream_writevar
-    module procedure stream_writevar0d_real
-    module procedure stream_writevar0d_integer
-    module procedure stream_writevar1d_real
-    module procedure stream_writevar1d_integer
-    module procedure stream_writevar2d_real
-    module procedure stream_writevar2d_integer
-    module procedure stream_writevar3d_real
-    module procedure stream_writevar3d_integer
-    module procedure stream_writevar4d_real
-    module procedure stream_writevar4d_integer
-  end interface stream_writevar
-
   public :: ncstream_p
   public :: ncvariable0d_real , ncvariable0d_integer
   public :: ncvariable1d_real , ncvariable1d_integer
@@ -920,461 +907,217 @@ module mod_ncstream
       end do
     end subroutine dimlist
 
-    subroutine stream_writevar0d_real(var)
+    subroutine stream_writevar(var)
       implicit none
-      type(ncvariable0d_real) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      if ( var%lrecords ) then
-        var%stream%istart(1) = var%stream%irec
-        var%stream%icount(1) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id,var%rval, &
-          var%stream%istart(1:1),var%stream%icount(1:1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
+      class(ncvariable_standard) , intent(inout) :: var
+      type(ncstream) , pointer :: stream
+      if ( .not. associated(var%stream) ) return
+      stream => var%stream
+      if ( stream%l_enabled ) return
+      if ( stream%id < 0 ) return
+      select type(var)
+        class is (ncvariable0d_real)
+          if ( var%lrecords ) then
+            stream%istart(1) = stream%irec
+            stream%icount(1) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+          else
+            i_nc_status = nf90_put_var(stream%id,var%id,var%rval(1))
+          end if
+        class is (ncvariable1d_real)
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = stream%irec
+            stream%icount(2) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:1),stream%icount(1:1))
+          end if
+        class is (ncvariable2d_real)
+          stream%buffer%realbuff(1:size(stream%buffer%rbuf2d)) = &
+            reshape(stream%buffer%rbuf2d,(/size(stream%buffer%rbuf2d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
+          end if
+        class is (ncvariable3d_real)
+          stream%buffer%realbuff(1:size(stream%buffer%rbuf3d)) = &
+            reshape(stream%buffer%rbuf3d,(/size(stream%buffer%rbuf3d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+          end if
+        class is (ncvariable4d_real)
+          stream%buffer%realbuff(1:size(stream%buffer%rbuf4d)) = &
+            reshape(stream%buffer%rbuf4d,(/size(stream%buffer%rbuf4d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = 1
+            stream%icount(4) = var%nval(4)
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:5),stream%icount(1:5))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = 1
+            stream%icount(4) = var%nval(4)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+          end if
+        class is (ncvariable0d_integer)
+          if ( var%lrecords ) then
+            stream%istart(1) = stream%irec
+            stream%icount(1) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id,var%ival, &
+              stream%istart(1:1),stream%icount(1:1))
+          else
+            i_nc_status = nf90_put_var(stream%id,var%id,var%ival(1))
+          end if
+        class is (ncvariable1d_integer)
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = stream%irec
+            stream%icount(2) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:1),stream%icount(1:1))
+          end if
+        class is (ncvariable2d_integer)
+          stream%buffer%intbuff(1:size(stream%buffer%ibuf2d)) = &
+            reshape(stream%buffer%ibuf2d,(/size(stream%buffer%ibuf2d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
+          end if
+        class is (ncvariable3d_integer)
+          stream%buffer%intbuff(1:size(stream%buffer%ibuf3d)) = &
+            reshape(stream%buffer%ibuf3d,(/size(stream%buffer%ibuf3d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+          end if
+        class is (ncvariable4d_integer)
+          stream%buffer%intbuff(1:size(stream%buffer%ibuf4d)) = &
+            reshape(stream%buffer%ibuf4d,(/size(stream%buffer%ibuf4d)/))
+          if ( var%lrecords ) then
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = 1
+            stream%icount(4) = var%nval(4)
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:5),stream%icount(1:5))
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            stream%istart(3) = 1
+            stream%icount(3) = var%nval(3)
+            stream%istart(4) = 1
+            stream%icount(4) = var%nval(4)
+            i_nc_status = nf90_put_var(stream%id,var%id, &
+              stream%buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+          end if
+        class default
           call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        i_nc_status = nf90_put_var(var%stream%id,var%id,var%rval(1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
+                   'Cannot write variable '//trim(var%vname)// &
+                   ' in file '//trim(stream%filename), 1)
+      end select
+      if ( i_nc_status /= nf90_noerr ) then
+        write (stderr,*) nf90_strerror(i_nc_status)
+        call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+          ' in file '//trim(stream%filename), 1)
       end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar0d_real
-
-    subroutine stream_writevar0d_integer(var)
-      implicit none
-      type(ncvariable0d_integer) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      if ( var%lrecords ) then
-        var%stream%istart(1) = var%stream%irec
-        var%stream%icount(1) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id,var%ival, &
-          var%stream%istart(1:1),var%stream%icount(1:1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        i_nc_status = nf90_put_var(var%stream%id,var%id,var%ival(1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar0d_integer
-
-    subroutine stream_writevar1d_real(var)
-      implicit none
-      type(ncvariable1d_real) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = var%stream%irec
-        var%stream%icount(2) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:2),var%stream%icount(1:2))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:1),var%stream%icount(1:1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar1d_real
-
-    subroutine stream_writevar1d_integer(var)
-      implicit none
-      type(ncvariable1d_integer) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = var%stream%irec
-        var%stream%icount(2) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:2),var%stream%icount(1:2))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:1),var%stream%icount(1:1))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar1d_integer
-
-    subroutine stream_writevar2d_real(var)
-      implicit none
-      type(ncvariable2d_real) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%realbuff(1:size(var%stream%buffer%rbuf2d)) = &
-        reshape(var%stream%buffer%rbuf2d,(/size(var%stream%buffer%rbuf2d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = var%stream%irec
-        var%stream%icount(3) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:3),var%stream%icount(1:3))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:2),var%stream%icount(1:2))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar2d_real
-
-    subroutine stream_writevar2d_integer(var)
-      implicit none
-      type(ncvariable2d_integer) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%intbuff(1:size(var%stream%buffer%ibuf2d)) = &
-        reshape(var%stream%buffer%ibuf2d,(/size(var%stream%buffer%ibuf2d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = var%stream%irec
-        var%stream%icount(3) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:3),var%stream%icount(1:3))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:2),var%stream%icount(1:2))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar2d_integer
-
-    subroutine stream_writevar3d_real(var)
-      implicit none
-      type(ncvariable3d_real) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%realbuff(1:size(var%stream%buffer%rbuf3d)) = &
-        reshape(var%stream%buffer%rbuf3d,(/size(var%stream%buffer%rbuf3d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = var%stream%irec
-        var%stream%icount(4) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:4),var%stream%icount(1:4))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:3),var%stream%icount(1:3))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar3d_real
-
-    subroutine stream_writevar3d_integer(var)
-      implicit none
-      type(ncvariable3d_integer) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%intbuff(1:size(var%stream%buffer%ibuf3d)) = &
-        reshape(var%stream%buffer%ibuf3d,(/size(var%stream%buffer%ibuf3d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = var%stream%irec
-        var%stream%icount(4) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:4),var%stream%icount(1:4))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:3),var%stream%icount(1:3))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar3d_integer
-
-    subroutine stream_writevar4d_real(var)
-      implicit none
-      type(ncvariable4d_real) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%realbuff(1:size(var%stream%buffer%rbuf4d)) = &
-        reshape(var%stream%buffer%rbuf4d,(/size(var%stream%buffer%rbuf4d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = 1
-        var%stream%icount(4) = var%nval(4)
-        var%stream%istart(5) = var%stream%irec
-        var%stream%icount(5) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:5),var%stream%icount(1:5))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = 1
-        var%stream%icount(4) = var%nval(4)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%realbuff, &
-          var%stream%istart(1:4),var%stream%icount(1:4))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar4d_real
-
-    subroutine stream_writevar4d_integer(var)
-      implicit none
-      type(ncvariable4d_integer) , intent(inout) :: var
-      if ( .not. associated(var%stream) ) then
-        call die('nc_stream', &
-          'Unassociated stream for variable '//var%vname,1)
-      end if
-      if ( .not. var%stream%l_enabled ) then
-        call die('nc_stream', &
-          'File stream '//trim(var%stream%filename)//' not enabled', 1)
-      end if
-      var%stream%buffer%intbuff(1:size(var%stream%buffer%ibuf4d)) = &
-        reshape(var%stream%buffer%ibuf4d,(/size(var%stream%buffer%ibuf4d)/))
-      if ( var%lrecords ) then
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = 1
-        var%stream%icount(4) = var%nval(4)
-        var%stream%istart(5) = var%stream%irec
-        var%stream%icount(5) = 1
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:5),var%stream%icount(1:5))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      else
-        var%stream%istart(1) = 1
-        var%stream%icount(1) = var%nval(1)
-        var%stream%istart(2) = 1
-        var%stream%icount(2) = var%nval(2)
-        var%stream%istart(3) = 1
-        var%stream%icount(3) = var%nval(3)
-        var%stream%istart(4) = 1
-        var%stream%icount(4) = var%nval(4)
-        i_nc_status = nf90_put_var(var%stream%id,var%id, &
-          var%stream%buffer%intbuff, &
-          var%stream%istart(1:4),var%stream%icount(1:4))
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(var%stream%filename), 1)
-        end if
-      end if
-      call stream_sync(var%stream)
-    end subroutine stream_writevar4d_integer
+      call stream_sync(stream)
+    end subroutine stream_writevar
 
     subroutine cdumlogical(cdum,yesno)
       implicit none
