@@ -32,7 +32,7 @@ module mod_ncstream
 
   integer(ik4) , parameter :: maxdims = 16
   integer(ik4) , parameter :: maxname = 32
-  integer(ik4) , parameter :: maxunit = 16
+  integer(ik4) , parameter :: maxunit = 36
   integer(ik4) , parameter :: maxstring = 256
   integer(ik4) , parameter :: maxpath = 256
 
@@ -98,6 +98,7 @@ module mod_ncstream
     ! Work flags
     !
     logical :: l_sync = .false.
+    logical :: l_hasrec = .false.
     logical :: l_enabled = .false.
     !
     ! Dimension identifiers for 'coded' dimensions
@@ -105,7 +106,7 @@ module mod_ncstream
     integer(ik4) , dimension(maxdims) :: id_dims
     integer(ik4) , dimension(maxdims) :: len_dims
     type(iobuff_p) :: buffer
-    integer(ik4) :: irec
+    integer(ik4) :: irec = 0
     ! Implemented up to 4d var with records
     integer(ik4) , dimension(5) :: istart , icount
   end type ncstream
@@ -141,8 +142,8 @@ module mod_ncstream
   end type ncattribute_real8_array
 !
   type ncvariable_standard
-    integer(ik4) :: id
-    integer(ik4) :: nctype
+    integer(ik4) :: id = -1
+    integer(ik4) :: nctype = -1
     character(len=maxname) :: vname
     character(len=maxunit) :: vunit
     character(len=maxstring) :: long_name
@@ -152,7 +153,7 @@ module mod_ncstream
     logical :: lgridded = .true.
     logical :: laddmethod = .true.
     logical :: lfillvalue = .false.
-    type(ncstream) , pointer :: stream
+    type(ncstream) , pointer :: stream => null()
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d
@@ -160,67 +161,67 @@ module mod_ncstream
   end type ncvariable_0d
 
   type, extends(ncvariable_0d) :: ncvariable0d_real
-    real(rk4) , dimension(1) :: rval
+    real(rk4) , dimension(1) :: rval = 0.0
   end type ncvariable0d_real
 
   type, extends(ncvariable_0d) :: ncvariable0d_integer
-    integer(ik4) , dimension(1) :: ival
+    integer(ik4) , dimension(1) :: ival = 0
   end type ncvariable0d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_1d
     logical :: lrecords = .false.
-    character(len=1) :: axis = ' '
-    integer(ik4) , dimension(1) :: nval
+    character(len=1) :: axis = 'x'
+    integer(ik4) , dimension(1) :: nval = 0
   end type ncvariable_1d
 
   type, extends(ncvariable_1d) :: ncvariable1d_real
-    real(rk4) , dimension(:) , pointer :: rval
+    real(rk4) , dimension(:) , pointer :: rval => null()
   end type ncvariable1d_real
 
   type, extends(ncvariable_1d) :: ncvariable1d_integer
-    integer(ik4) , dimension(:) , pointer :: ival
+    integer(ik4) , dimension(:) , pointer :: ival => null()
   end type ncvariable1d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_2d
     logical :: lrecords = .false.
-    character(len=2) :: axis = '  '
-    integer(ik4) , dimension(2) :: nval
+    character(len=2) :: axis = 'xy'
+    integer(ik4) , dimension(2) :: nval = 0
   end type ncvariable_2d
 
   type, extends(ncvariable_2d) :: ncvariable2d_real
-    real(rk4) , dimension(:,:) , pointer :: rval
+    real(rk4) , dimension(:,:) , pointer :: rval => null()
   end type ncvariable2d_real
 
   type, extends(ncvariable_2d) :: ncvariable2d_integer
-    integer(ik4) , dimension(:,:) , pointer :: ival
+    integer(ik4) , dimension(:,:) , pointer :: ival => null()
   end type ncvariable2d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_3d
     logical :: lrecords = .false.
-    character(len=3) :: axis = '   '
-    integer(ik4) , dimension(3) :: nval
+    character(len=3) :: axis = 'xyz'
+    integer(ik4) , dimension(3) :: nval = 0
   end type ncvariable_3d
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
-    real(rk4) , dimension(:,:,:) , pointer :: rval
+    real(rk4) , dimension(:,:,:) , pointer :: rval => null()
   end type ncvariable3d_real
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
-    integer(rk4) , dimension(:,:,:) , pointer :: ival
+    integer(rk4) , dimension(:,:,:) , pointer :: ival => null()
   end type ncvariable3d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_4d
     logical :: lrecords = .false.
-    character(len=4) :: axis = '    '
-    integer(ik4) , dimension(4) :: nval
+    character(len=4) :: axis = 'xyzd'
+    integer(ik4) , dimension(4) :: nval = 0
   end type ncvariable_4d
 
   type, extends(ncvariable_4d) :: ncvariable4d_real
-    real(rk4) , dimension(:,:,:,:) , pointer :: rval
+    real(rk4) , dimension(:,:,:,:) , pointer :: rval => null()
   end type ncvariable4d_real
 
   type, extends(ncvariable_4d) :: ncvariable4d_integer
-    integer(rk4) , dimension(:,:,:,:) , pointer :: ival
+    integer(rk4) , dimension(:,:,:,:) , pointer :: ival => null()
   end type ncvariable4d_integer
 
   integer(ik4) , dimension(maxdims) :: id_dim
@@ -229,6 +230,10 @@ module mod_ncstream
   type ncstream_p
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
+
+  type(ncvariable0d_real) :: time_var
+  type(ncvariable1d_real) :: jx_var
+  type(ncvariable1d_real) :: iy_var
 
   public :: ncstream_p , iobuff_p
   public :: ncvariable0d_real , ncvariable0d_integer
@@ -276,7 +281,6 @@ module mod_ncstream
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
       stream%id_dims(:) = -1
       stream%len_dims(:) = 0
-      stream%irec = 1
       allocate(stream%buffer%xp)
       buffer => stream%buffer%xp
       buffer%max1d_int(:) = 0
@@ -337,6 +341,15 @@ module mod_ncstream
       call add_common_global_params(ncp)
       buffer => stream%buffer%xp
 
+      if ( stream%l_hasrec ) then
+        time_var = ncvariable0d_real(vname='time', &
+            vunit='hours since 1949-12-01 00:00:00 UTC', &
+            long_name='time',standard_name='time',       &
+            lrecords = .true.)
+        call stream_addvar(ncp,time_var)
+        call add_attribute(ncp, &
+          ncattribute_string('calendar',calendar),time_var%id,time_var%vname)
+      end if
       i_nc_status = nf90_enddef(stream%id)
       if ( i_nc_status /= nf90_noerr ) then
         write (stderr,*) nf90_strerror(i_nc_status)
@@ -432,14 +445,17 @@ module mod_ncstream
       xbf%xp => ncp%xs%buffer%xp
     end subroutine stream_get_iobuff
 
-    subroutine stream_addrec(ncp)
+    subroutine stream_addrec(ncp,val)
       implicit none
       type(ncstream_p) , intent(in) :: ncp
+      real(rk4) , intent(in) :: val
       type(ncstream) , pointer :: stream
       if ( .not. associated(ncp%xs) ) return
       stream => ncp%xs
       if ( .not. stream%l_enabled ) return
       stream%irec = stream%irec+1
+      time_var%rval = val
+      call stream_writevar(time_var)
     end subroutine stream_addrec
 
     subroutine add_dimension(ncp,dname)
@@ -697,6 +713,7 @@ module mod_ncstream
       select type(var)
         class is (ncvariable_0d)
           if ( var%lrecords ) then
+            stream%l_hasrec = .true.
             call dimlist(ncp,'t')
             var%lgridded = .false.
             call add_variable(ncp,var,1)
@@ -707,6 +724,7 @@ module mod_ncstream
           end if
         class is (ncvariable_1d)
           if ( var%lrecords ) then
+            stream%l_hasrec = .true.
             call dimlist(ncp,var%axis//'t')
             var%lgridded = .false.
             call add_variable(ncp,var,2)
@@ -720,6 +738,7 @@ module mod_ncstream
           var%totsize = product(var%nval)
         class is (ncvariable_2d)
           if ( var%lrecords ) then
+            stream%l_hasrec = .true.
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
@@ -740,6 +759,7 @@ module mod_ncstream
           var%totsize = product(var%nval)
         class is (ncvariable_3d)
           if ( var%lrecords ) then
+            stream%l_hasrec = .true.
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
@@ -761,6 +781,7 @@ module mod_ncstream
           var%totsize = product(var%nval)
         class is (ncvariable_4d)
           if ( var%lrecords ) then
+            stream%l_hasrec = .true.
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
@@ -1188,6 +1209,16 @@ module mod_ncstream
           ncattribute_real8_array('standard_parallel',trlat,2))
       end if
       call add_attribute(ncp,ncattribute_real8('grid_factor',xcone))
+      jx_var = ncvariable1d_real(vname='jx',vunit='km',        &
+          long_name='x-coordinate in Cartesian system', &
+          standard_name='projection_x_coordinate',      &
+          axis='x',lrecords = .false.)
+      iy_var = ncvariable1d_real(vname='iy',vunit='km',        &
+          long_name='y-coordinate in Cartesian system', &
+          standard_name='projection_y_coordinate',      &
+          axis='y',lrecords = .false.)
+      call stream_addvar(ncp,jx_var)
+      call stream_addvar(ncp,iy_var)
     end subroutine add_common_global_params
 
 end module mod_ncstream
@@ -1226,6 +1257,7 @@ program test
   kz = 18
   ds = 50.0D0
   domname = 'domname'
+  calendar = 'gregorian'
   iproj = 'LAMCON'
   xcone = 0.71
   clat = 43.0
@@ -1233,7 +1265,7 @@ program test
   truelatl = 30.0
   truelath = 60.0
 
-  var0dint%vname = 'time'
+  var0dint%vname = 'int0dvar'
   var0dint%vunit = 'units_int0dvar'
   var0dint%long_name = 'longname int0dvar'
   var0dint%standard_name = 'stdname_int0dvar'
@@ -1292,11 +1324,9 @@ program test
   end do
 
   ! Write variables in the current record step
+  call stream_addrec(ncout,256212.0)
   call stream_writevar(var0dint)
   call stream_writevar(var3dreal)
-
-  ! Add a new record
-  call stream_addrec(ncout)
 
   var0dint%ival(1) = 13
   obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
@@ -1304,7 +1334,8 @@ program test
     obuf%xp%rbuf3d(jx/4,iy/4,k) = k*1.5
   end do
 
-  ! Write variables in the current record step
+  ! Add a new record
+  call stream_addrec(ncout,256236.0)
   call stream_writevar(var0dint)
   call stream_writevar(var3dreal)
 
