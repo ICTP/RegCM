@@ -565,19 +565,19 @@ module mod_ncstream
             att%aname,att%theval(1:att%numval))
         class default
           call die('nc_stream', &
-                   'Cannot add attribute '//trim(att%aname)// &
-                   ' in file '//trim(stream%filename), 1)
+            'Cannot add attribute '//trim(att%aname)// &
+            ' in file '//trim(stream%filename), 1)
       end select
       if ( i_nc_status /= nf90_noerr ) then
         write (stderr,*) nf90_strerror(i_nc_status)
         if ( present(iloc) ) then
           call die('nc_stream', &
-                   'Cannot add attribute '//trim(att%aname)// &
-                   'to variable '//vname//' in file '//trim(stream%filename), 1)
+            'Cannot add attribute '//trim(att%aname)// &
+            'to variable '//vname//' in file '//trim(stream%filename), 1)
         else
           call die('nc_stream', &
-                   'Cannot add global attribute '//trim(att%aname)// &
-                   ' in file '//trim(stream%filename), 1)
+            'Cannot add global attribute '//trim(att%aname)// &
+            ' in file '//trim(stream%filename), 1)
         end if
       end if
     end subroutine add_attribute
@@ -1118,8 +1118,8 @@ module mod_ncstream
           end if
         class default
           call die('nc_stream', &
-                   'Cannot write variable '//trim(var%vname)// &
-                   ' in file '//trim(stream%filename), 1)
+            'Cannot write variable '//trim(var%vname)// &
+            ' in file '//trim(stream%filename), 1)
       end select
       if ( i_nc_status /= nf90_noerr ) then
         write (stderr,*) nf90_strerror(i_nc_status)
@@ -1197,12 +1197,16 @@ subroutine myabort
   call abort
 end subroutine myabort
 
+!
+! Example program to use this module and write a netcdf file
+!
 program test
   use mod_ncstream
   use mod_dynparam
 
   type(ncstream_p) :: ncout
   type(iobuff_p) :: obuf
+
   type(ncvariable0d_integer) :: var0dint
   type(ncvariable1d_real) :: var1dreal
   type(ncvariable2d_real) :: var2dreal
@@ -1258,40 +1262,53 @@ program test
   var3dreal%lfillvalue = .true.
   var3dreal%axis = 'xyz'
 
+  ! Setup an output stream
   call stream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
+
+  ! Add variables with different dimensions. Can be in a loop !!
   call stream_addvar(ncout,var0dint)
   call stream_addvar(ncout,var1dreal)
   call stream_addvar(ncout,var2dreal)
   call stream_addvar(ncout,var3dreal)
 
+  ! Enable the output stream for write
   call stream_enable(ncout)
+
+  ! Get a pointer to the I/O buffer
   call stream_get_iobuff(ncout,obuf)
 
   obuf%xp%realbuff(1:size(sigma)) = real(sigma(:))
-  call stream_writevar(var1dreal)
-
   obuf%xp%rbuf2d(1:jx,1:iy) = 1.0
   obuf%xp%rbuf2d(jx/2,iy/2) = 2.0
+
+  ! Write some static variables
+  call stream_writevar(var1dreal)
   call stream_writevar(var2dreal)
 
   var0dint%ival(1) = 12
-  call stream_writevar(var0dint)
-
   obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
     obuf%xp%rbuf3d(jx/4,iy/4,k) = k
   end do
+
+  ! Write variables in the current record step
+  call stream_writevar(var0dint)
   call stream_writevar(var3dreal)
+
+  ! Add a new record
   call stream_addrec(ncout)
 
   var0dint%ival(1) = 13
-  call stream_writevar(var0dint)
   obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
     obuf%xp%rbuf3d(jx/4,iy/4,k) = k*1.5
   end do
+
+  ! Write variables in the current record step
+  call stream_writevar(var0dint)
   call stream_writevar(var3dreal)
 
+  ! Finally, close the file and cleanup all
   call stream_dispose(ncout)
 
 end program test
