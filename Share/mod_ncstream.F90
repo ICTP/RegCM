@@ -232,8 +232,16 @@ module mod_ncstream
   end type ncstream_p
 
   type(ncvariable0d_real) :: time_var
+  type(ncvariable1d_real) :: sigma_var
+  type(ncvariable0d_real) :: ptop_var
   type(ncvariable1d_real) :: jx_var
   type(ncvariable1d_real) :: iy_var
+  type(ncvariable2d_real) :: xlat_var
+  type(ncvariable2d_real) :: xlon_var
+  type(ncvariable2d_real) :: dlat_var
+  type(ncvariable2d_real) :: dlon_var
+  type(ncvariable2d_real) :: topo_var
+  type(ncvariable2d_real) :: mask_var
 
   public :: ncstream_p , iobuff_p
   public :: ncvariable0d_real , ncvariable0d_integer
@@ -1209,16 +1217,44 @@ module mod_ncstream
           ncattribute_real8_array('standard_parallel',trlat,2))
       end if
       call add_attribute(ncp,ncattribute_real8('grid_factor',xcone))
-      jx_var = ncvariable1d_real(vname='jx',vunit='km',        &
-          long_name='x-coordinate in Cartesian system', &
-          standard_name='projection_x_coordinate',      &
-          axis='x',lrecords = .false.)
-      iy_var = ncvariable1d_real(vname='iy',vunit='km',        &
-          long_name='y-coordinate in Cartesian system', &
-          standard_name='projection_y_coordinate',      &
-          axis='y',lrecords = .false.)
+      jx_var = ncvariable1d_real(vname='jx',vunit='km', &
+        long_name = 'x-coordinate in Cartesian system', &
+        standard_name = 'projection_x_coordinate',      &
+        axis = 'x',lrecords = .false.)
+      iy_var = ncvariable1d_real(vname='iy',vunit='km', &
+        long_name = 'y-coordinate in Cartesian system', &
+        standard_name = 'projection_y_coordinate',      &
+        axis = 'y',lrecords = .false.)
+      if ( ncp%xs%l_full_sigma ) then
+        sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
+          long_name = "Sigma at full model layers",             &
+          standard_name = 'atmosphere_sigma_coordinate' ,       &
+          axis = 'z',lrecords = .false.)
+      else
+        sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
+          long_name = "Sigma at half model layers",             &
+          standard_name = 'atmosphere_sigma_coordinate' ,       &
+          axis = 'z',lrecords = .false.)
+      end if
+      ptop_var =  ncvariable0d_real(vname='ptop',vunit='hPa', &
+        long_name = "Pressure at model top",                  &
+        standard_name = 'air_pressure',lrecords = .false.)
+      
       call stream_addvar(ncp,jx_var)
       call stream_addvar(ncp,iy_var)
+      call stream_addvar(ncp,sigma_var)
+      call stream_addvar(ncp,ptop_var)
+      call add_attribute(ncp, &
+        ncattribute_string('axis','X'),jx_var%id,jx_var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('axis','Y'),iy_var%id,iy_var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('axis','Z'),sigma_var%id,sigma_var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('positive','down'),sigma_var%id,sigma_var%vname)
+      call add_attribute(ncp, &
+        ncattribute_string('formula_terms','sigma: sigma ps: ps ptop: ptop'), &
+          sigma_var%id,sigma_var%vname)
     end subroutine add_common_global_params
 
 end module mod_ncstream
