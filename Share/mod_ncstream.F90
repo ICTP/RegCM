@@ -50,7 +50,7 @@ module mod_ncstream
   integer(ik4) :: i_nc_status
   character(len=maxstring) :: cstr
 
-  type internal_iobuffer
+  type internal_obuffer
     logical :: lhas1dint = .false.
     logical :: lhas2dint = .false.
     logical :: lhas3dint = .false.
@@ -59,14 +59,14 @@ module mod_ncstream
     logical :: lhas2dreal = .false.
     logical :: lhas3dreal = .false.
     logical :: lhas4dreal = .false.
-    integer(ik4) , dimension(1) :: max1d_int
-    integer(ik4) , dimension(2) :: max2d_int
-    integer(ik4) , dimension(3) :: max3d_int
-    integer(ik4) , dimension(4) :: max4d_int
-    integer(ik4) , dimension(1) :: max1d_real
-    integer(ik4) , dimension(2) :: max2d_real
-    integer(ik4) , dimension(3) :: max3d_real
-    integer(ik4) , dimension(4) :: max4d_real
+    integer(ik4) , dimension(1) :: max1d_int = 0
+    integer(ik4) , dimension(2) :: max2d_int = 0
+    integer(ik4) , dimension(3) :: max3d_int = 0
+    integer(ik4) , dimension(4) :: max4d_int = 0
+    integer(ik4) , dimension(1) :: max1d_real = 0
+    integer(ik4) , dimension(2) :: max2d_real = 0
+    integer(ik4) , dimension(3) :: max3d_real = 0
+    integer(ik4) , dimension(4) :: max4d_real = 0
     integer(ik4) , dimension(:) , allocatable :: intbuff
     integer(ik4) , dimension(:,:) , allocatable :: ibuf2d
     integer(ik4) , dimension(:,:,:) , allocatable :: ibuf3d
@@ -75,11 +75,11 @@ module mod_ncstream
     real(rk4) , dimension(:,:) , allocatable :: rbuf2d
     real(rk4) , dimension(:,:,:) , allocatable :: rbuf3d
     real(rk4) , dimension(:,:,:,:) , allocatable :: rbuf4d
-  end type internal_iobuffer
+  end type internal_obuffer
 
-  type iobuff_p
-    type(internal_iobuffer) , pointer :: xp => null()
-  end type iobuff_p
+  type obuff_p
+    type(internal_obuffer) , pointer :: xb => null()
+  end type obuff_p
 
   type ncstream
     character(len=maxpath) :: filename
@@ -105,7 +105,6 @@ module mod_ncstream
     !
     integer(ik4) , dimension(maxdims) :: id_dims
     integer(ik4) , dimension(maxdims) :: len_dims
-    type(iobuff_p) :: buffer
     integer(ik4) :: irec = 0
     ! Implemented up to 4d var with records
     integer(ik4) , dimension(5) :: istart , icount
@@ -153,7 +152,6 @@ module mod_ncstream
     logical :: lgridded = .true.
     logical :: laddmethod = .true.
     logical :: lfillvalue = .false.
-    type(ncstream) , pointer :: stream => null()
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d
@@ -231,47 +229,60 @@ module mod_ncstream
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
-  type(ncvariable0d_real) :: time_var
-  type(ncvariable1d_real) :: sigma_var
-  type(ncvariable0d_real) :: ptop_var
-  type(ncvariable1d_real) :: jx_var
-  type(ncvariable1d_real) :: iy_var
-  type(ncvariable2d_real) :: xlat_var
-  type(ncvariable2d_real) :: xlon_var
-  type(ncvariable2d_real) :: dlat_var
-  type(ncvariable2d_real) :: dlon_var
-  type(ncvariable2d_real) :: topo_var
-  type(ncvariable2d_real) :: mask_var
+  type static_variables
+    type(ncvariable0d_real) :: time_var
+    type(ncvariable0d_real) :: ptop_var
+    type(ncvariable1d_real) :: sigma_var
+    type(ncvariable1d_real) :: jx_var
+    type(ncvariable1d_real) :: iy_var
+    type(ncvariable2d_real) :: xlat_var
+    type(ncvariable2d_real) :: xlon_var
+    type(ncvariable2d_real) :: dlat_var
+    type(ncvariable2d_real) :: dlon_var
+    type(ncvariable2d_real) :: topo_var
+    type(ncvariable2d_real) :: mask_var
+  end type static_variables
 
-  public :: ncstream_p , iobuff_p
+  type static_variables_p
+    type(static_variables) , pointer :: xv => null()
+  end type static_variables_p
+
+  type nc_output_stream
+    type(ncstream_p) :: ncp
+    type(obuff_p) :: obp
+    type(static_variables_p) :: svp
+  end type nc_output_stream
+
+  public :: nc_output_stream
   public :: ncvariable0d_real , ncvariable0d_integer
   public :: ncvariable1d_real , ncvariable1d_integer
   public :: ncvariable2d_real , ncvariable2d_integer
   public :: ncvariable3d_real , ncvariable3d_integer
   public :: ncvariable4d_real , ncvariable4d_integer
 
-  public :: stream_setup , stream_enable , stream_dispose
-  public :: stream_addvar
-  public :: stream_writevar
-  public :: stream_addrec
-  public :: stream_get_iobuff
+  public :: outstream_setup , outstream_enable , outstream_dispose
+  public :: outstream_addvar
+  public :: outstream_writevar
+  public :: outstream_addrec
 
   contains
 
-    subroutine stream_setup(ncp,fname,pname,l_bound,l_subgrid,l_full_sigma)
+    subroutine outstream_setup(ncout,fname,pname,l_bound,l_subgrid,l_full_sigma)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
       character(len=*) , intent(in) :: fname
       character(len=*) , intent(in) :: pname
       logical , intent(in) , optional :: l_bound
       logical , intent(in) , optional :: l_subgrid
       logical , intent(in) , optional :: l_full_sigma
       type(ncstream) , pointer :: stream
-      type(internal_iobuffer) , pointer :: buffer
 
-      if ( associated(ncp%xs) ) call stream_dispose(ncp)
-      allocate(ncp%xs)
-      stream => ncp%xs
+      if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
+      ! Allocate all space
+      allocate(ncout%ncp%xs)
+      allocate(ncout%obp%xb)
+      allocate(ncout%svp%xv)
+      stream => ncout%ncp%xs
 #ifdef NETCDF4_HDF5
       i_nc_status = nf90_create(fname, &
         ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),stream%id)
@@ -289,25 +300,15 @@ module mod_ncstream
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
       stream%id_dims(:) = -1
       stream%len_dims(:) = 0
-      allocate(stream%buffer%xp)
-      buffer => stream%buffer%xp
-      buffer%max1d_int(:) = 0
-      buffer%max2d_int(:) = 0
-      buffer%max3d_int(:) = 0
-      buffer%max4d_int(:) = 0
-      buffer%max1d_real(:) = 0
-      buffer%max2d_real(:) = 0
-      buffer%max3d_real(:) = 0
-      buffer%max4d_real(:) = 0
-    end subroutine stream_setup
+    end subroutine outstream_setup
 
-    subroutine stream_dispose(ncp)
+    subroutine outstream_dispose(ncout)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
       type(ncstream) , pointer :: stream
 
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
       if ( stream%id > 0 ) then
         i_nc_status = nf90_close(stream%id)
         if ( i_nc_status /= nf90_noerr ) then
@@ -315,48 +316,51 @@ module mod_ncstream
           call die('nc_stream','Cannot close file '//trim(stream%filename),1)
         end if
       end if
-      call deallocate_buffers(stream%buffer)
-      deallocate(stream%buffer%xp)
-      deallocate(ncp%xs)
-    end subroutine stream_dispose
+      call deallocate_buffers(ncout%obp%xb)
+      deallocate(ncout%ncp%xs)
+      deallocate(ncout%obp%xb)
+      deallocate(ncout%svp%xv)
+    end subroutine outstream_dispose
 
     subroutine deallocate_buffers(xbf)
       implicit none
-      type(iobuff_p) , intent(inout) :: xbf
-      type(internal_iobuffer) , pointer :: buffer
-      if ( .not. associated(xbf%xp) ) return
-      buffer => xbf%xp
-      if ( allocated(buffer%intbuff) )  deallocate(buffer%intbuff)
-      if ( allocated(buffer%realbuff) ) deallocate(buffer%realbuff)
-      if ( allocated(buffer%ibuf2d) )   deallocate(buffer%ibuf2d)
-      if ( allocated(buffer%rbuf2d) )   deallocate(buffer%rbuf2d)
-      if ( allocated(buffer%ibuf3d) )   deallocate(buffer%ibuf3d)
-      if ( allocated(buffer%rbuf3d) )   deallocate(buffer%rbuf3d)
-      if ( allocated(buffer%ibuf4d) )   deallocate(buffer%ibuf4d)
-      if ( allocated(buffer%rbuf4d) )   deallocate(buffer%rbuf4d)
+      type(internal_obuffer) , pointer :: xbf
+      if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
+      if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
+      if ( allocated(xbf%ibuf2d) )   deallocate(xbf%ibuf2d)
+      if ( allocated(xbf%rbuf2d) )   deallocate(xbf%rbuf2d)
+      if ( allocated(xbf%ibuf3d) )   deallocate(xbf%ibuf3d)
+      if ( allocated(xbf%rbuf3d) )   deallocate(xbf%rbuf3d)
+      if ( allocated(xbf%ibuf4d) )   deallocate(xbf%ibuf4d)
+      if ( allocated(xbf%rbuf4d) )   deallocate(xbf%rbuf4d)
     end subroutine deallocate_buffers
 
-    subroutine stream_enable(ncp)
+    subroutine outstream_enable(ncout)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
+
       type(ncstream) , pointer :: stream
+      type(internal_obuffer) , pointer :: buffer
+      type(static_variables) , pointer :: stvar
       integer(ik4) :: maxnum_int , maxnum_real
-      type(internal_iobuffer) , pointer :: buffer
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
+
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
+      buffer => ncout%obp%xb
+      stvar  => ncout%svp%xv
       if ( stream%l_enabled ) return
 
-      call add_common_global_params(ncp)
-      buffer => stream%buffer%xp
+      call add_common_global_params(ncout)
 
       if ( stream%l_hasrec ) then
-        time_var = ncvariable0d_real(vname='time', &
+        stvar%time_var = ncvariable0d_real(vname='time', &
             vunit='hours since 1949-12-01 00:00:00 UTC', &
             long_name='time',standard_name='time',       &
             lrecords = .true.)
-        call stream_addvar(ncp,time_var)
-        call add_attribute(ncp, &
-          ncattribute_string('calendar',calendar),time_var%id,time_var%vname)
+        call outstream_addvar(ncout,stvar%time_var)
+        call add_attribute(stream, &
+          ncattribute_string('calendar',calendar), &
+            stvar%time_var%id,stvar%time_var%vname)
       end if
       i_nc_status = nf90_enddef(stream%id)
       if ( i_nc_status /= nf90_noerr ) then
@@ -409,7 +413,7 @@ module mod_ncstream
       if ( maxnum_real > 0 ) allocate(buffer%realbuff(maxnum_real))
       stream%l_enabled = .true.
 #ifdef DEBUG
-      write(stdout,*) 'Enabled netCDF stream ',trim(stream%filename)
+      write(stdout,*) 'Enabled netCDF output stream ',trim(stream%filename)
       if ( allocated(buffer%intbuff) ) &
         write(stdout,*) 'Total buffer integer size :', &
           size(buffer%intbuff)
@@ -429,9 +433,12 @@ module mod_ncstream
       if ( allocated(buffer%rbuf4d) ) &
         write(stdout,*) 'Total buffer real 4d size :',size(buffer%rbuf4d)
 #endif
-    end subroutine stream_enable
+      ! Put "static" information in the file
+      stvar%ptop_var%rval(1) = real(ptop)*10.0
+      call outstream_writevar(ncout,stvar%ptop_var)
+    end subroutine outstream_enable
 
-    subroutine stream_sync(stream)
+    subroutine outstream_sync(stream)
       implicit none
       type(ncstream) , pointer , intent(in) :: stream
       if ( .not. stream%l_enabled ) return
@@ -443,38 +450,29 @@ module mod_ncstream
                    'Cannot sync file '//trim(stream%filename), 1)
         end if
       end if
-    end subroutine stream_sync
+    end subroutine outstream_sync
 
-    subroutine stream_get_iobuff(ncp,xbf)
+    subroutine outstream_addrec(ncout,val)
       implicit none
-      type(ncstream_p) , intent(in) :: ncp
-      type(iobuff_p) , intent(out) :: xbf
-      if ( .not. associated(ncp%xs) ) return
-      xbf%xp => ncp%xs%buffer%xp
-    end subroutine stream_get_iobuff
-
-    subroutine stream_addrec(ncp,val)
-      implicit none
-      type(ncstream_p) , intent(in) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
       real(rk4) , intent(in) :: val
       type(ncstream) , pointer :: stream
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
+      type(static_variables) , pointer :: stvar
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
+      stvar  => ncout%svp%xv
       if ( .not. stream%l_enabled ) return
       stream%irec = stream%irec+1
-      time_var%rval = val
-      call stream_writevar(time_var)
-    end subroutine stream_addrec
+      stvar%time_var%rval = val
+      call outstream_writevar(ncout,stvar%time_var)
+    end subroutine outstream_addrec
 
-    subroutine add_dimension(ncp,dname)
+    subroutine add_dimension(stream,dname)
       implicit none
-      type(ncstream_p) , intent(in) :: ncp
+      type(ncstream) , pointer , intent(inout) :: stream
       character(len=*) , intent(in) :: dname
-      type(ncstream) , pointer :: stream
       character(len=maxname) :: the_name
       integer(ik4) :: pdim , num
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
       select case (dname)
@@ -555,16 +553,13 @@ module mod_ncstream
       stream%len_dims(pdim) = num
     end subroutine add_dimension
 
-    subroutine add_attribute(ncp,att,iloc,vname)
+    subroutine add_attribute(stream,att,iloc,vname)
       implicit none
-      type(ncstream_p) , intent(in) :: ncp
+      type(ncstream) , pointer , intent(in) :: stream
       class(ncglobal_attribute_standard) :: att
       integer(ik4) , optional :: iloc
       character(len=*) , optional :: vname
-      type(ncstream) , pointer :: stream
       integer(ik4) :: iv
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
       if ( present(iloc) ) then
@@ -606,48 +601,48 @@ module mod_ncstream
       end if
     end subroutine add_attribute
 
-    subroutine add_varatts(ncp,var)
+    subroutine add_varatts(stream,var)
       implicit none
-      type(ncstream_p) , intent(in) :: ncp
+      type(ncstream) , pointer , intent(in) :: stream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'
-      call add_attribute(ncp, &
+      call add_attribute(stream, &
         ncattribute_string('long_name',var%long_name),var%id,var%vname)
-      call add_attribute(ncp, &
+      call add_attribute(stream, &
         ncattribute_string('standard_name',var%standard_name),var%id,var%vname)
-      call add_attribute(ncp, &
+      call add_attribute(stream, &
         ncattribute_string('units',var%vunit),var%id,var%vname)
       if ( var%lgridded ) then
-        if ( var%stream%l_bound .and. &
+        if ( stream%l_bound .and. &
             (var%vname == 'u' .or. var%vname == 'v') ) then
-          call add_attribute(ncp, &
+          call add_attribute(stream, &
             ncattribute_string('coordinates',coords_dot),var%id,var%vname)
         else
-          call add_attribute(ncp, &
+          call add_attribute(stream, &
             ncattribute_string('coordinates',coords_cross),var%id,var%vname)
         end if
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_string('grid_mapping','rcm_map'),var%id,var%vname)
       end if
       if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_string('cell_methods',var%cell_method),var%id,var%vname)
       end if
       if ( var%lfillvalue ) then
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_real4('_FillValue',smissval),var%id,var%vname)
       end if
     end subroutine add_varatts
 
-    subroutine add_variable(ncp,var,ndims)
+    subroutine add_variable(ncout,var,ndims)
       implicit none
-      type(ncstream_p) , intent(in) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
       class(ncvariable_standard) , intent(inout) :: var
       integer(ik4) , intent(in) :: ndims
       type(ncstream) , pointer :: stream
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
       if ( stream%l_enabled ) return
       if ( ndims == 0 ) then
         i_nc_status = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
@@ -676,22 +671,20 @@ module mod_ncstream
         end if
 #endif
       end if
-      var%stream => stream
-      call add_varatts(ncp,var)
+      call add_varatts(stream,var)
     end subroutine add_variable
 
-    subroutine stream_addvar(ncp,var)
+    subroutine outstream_addvar(ncout,var)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
       class(ncvariable_standard) :: var
       type(ncstream) , pointer :: stream
-      type(internal_iobuffer) , pointer :: buffer
-      integer (ik4) :: nctype
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
+      type(internal_obuffer) , pointer :: buffer
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
+      buffer => ncout%obp%xb
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
-      buffer => stream%buffer%xp
       select type(var)
         class is (ncvariable0d_real)
           var%nctype = nf90_float
@@ -722,25 +715,25 @@ module mod_ncstream
         class is (ncvariable_0d)
           if ( var%lrecords ) then
             stream%l_hasrec = .true.
-            call dimlist(ncp,'t')
+            call dimlist(stream,'t')
             var%lgridded = .false.
-            call add_variable(ncp,var,1)
+            call add_variable(ncout,var,1)
           else
             var%lgridded = .false.
             var%laddmethod = .false.
-            call add_variable(ncp,var,0)
+            call add_variable(ncout,var,0)
           end if
         class is (ncvariable_1d)
           if ( var%lrecords ) then
             stream%l_hasrec = .true.
-            call dimlist(ncp,var%axis//'t')
+            call dimlist(stream,var%axis//'t')
             var%lgridded = .false.
-            call add_variable(ncp,var,2)
+            call add_variable(ncout,var,2)
           else
-            call dimlist(ncp,var%axis)
+            call dimlist(stream,var%axis)
             var%lgridded = .false.
             var%laddmethod = .false.
-            call add_variable(ncp,var,1)
+            call add_variable(ncout,var,1)
           end if
           var%nval(1) = len_dim(1)
           var%totsize = product(var%nval)
@@ -751,16 +744,16 @@ module mod_ncstream
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
-            call dimlist(ncp,var%axis//'t')
-            call add_variable(ncp,var,3)
+            call dimlist(stream,var%axis//'t')
+            call add_variable(ncout,var,3)
           else
-            call dimlist(ncp,var%axis)
+            call dimlist(stream,var%axis)
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
             var%laddmethod = .false.
-            call add_variable(ncp,var,2)
+            call add_variable(ncout,var,2)
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
@@ -772,16 +765,16 @@ module mod_ncstream
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
-            call dimlist(ncp,var%axis//'t')
-            call add_variable(ncp,var,4)
+            call dimlist(stream,var%axis//'t')
+            call add_variable(ncout,var,4)
           else
-            call dimlist(ncp,var%axis)
+            call dimlist(stream,var%axis)
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
             var%laddmethod = .false.
-            call add_variable(ncp,var,3)
+            call add_variable(ncout,var,3)
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
@@ -794,16 +787,16 @@ module mod_ncstream
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
-            call dimlist(ncp,var%axis//'t')
-            call add_variable(ncp,var,5)
+            call dimlist(stream,var%axis//'t')
+            call add_variable(ncout,var,5)
           else
-            call dimlist(ncp,var%axis)
+            call dimlist(stream,var%axis)
             if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 .and. &
                  var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
               var%lgridded = .true.
             end if
             var%laddmethod = .false.
-            call add_variable(ncp,var,4)
+            call add_variable(ncout,var,4)
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
@@ -855,18 +848,15 @@ module mod_ncstream
         class default
           continue
       end select
-    end subroutine stream_addvar
+    end subroutine outstream_addvar
 
-    subroutine dimlist(ncp,code)
+    subroutine dimlist(stream,code)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(ncstream) , intent(inout) , pointer :: stream
       character(len=*) , intent(in) :: code
-      type(ncstream) , pointer :: stream
       character(len=maxdims) :: safecode
       integer(ik4) :: ic
 
-      if ( .not. associated(ncp%xs) ) return
-      stream => ncp%xs
       do ic = 1 , maxdims
         safecode(ic:ic) = ' '
       end do
@@ -876,61 +866,61 @@ module mod_ncstream
         select case (safecode(ic:ic))
           case ('x')
             if ( stream%id_dims(jx_dim) < 0 ) then
-              call add_dimension(ncp,'jx')
+              call add_dimension(stream,'jx')
             end if
             id_dim(ic) = stream%id_dims(jx_dim)
             len_dim(ic) = stream%len_dims(jx_dim)
           case ('y')
             if ( stream%id_dims(iy_dim) < 0 ) then
-              call add_dimension(ncp,'iy')
+              call add_dimension(stream,'iy')
             end if
             id_dim(ic) = stream%id_dims(iy_dim)
             len_dim(ic) = stream%len_dims(iy_dim)
           case ('z')
             if ( stream%id_dims(kz_dim) < 0 ) then
-              call add_dimension(ncp,'kz')
+              call add_dimension(stream,'kz')
             end if
             id_dim(ic) = stream%id_dims(kz_dim)
             len_dim(ic) = stream%len_dims(kz_dim)
           case ('t')
             if ( stream%id_dims(time_dim) < 0 ) then
-              call add_dimension(ncp,'time')
+              call add_dimension(stream,'time')
             end if
             id_dim(ic) = stream%id_dims(time_dim)
             len_dim(ic) = stream%len_dims(time_dim)
           case ('b')
             if ( stream%id_dims(time_bound_dim) < 0 ) then
-              call add_dimension(ncp,'time_bound')
+              call add_dimension(stream,'time_bound')
             end if
             id_dim(ic) = stream%id_dims(time_bound_dim)
             len_dim(ic) = stream%len_dims(time_bound_dim)
           case ('T')
             if ( stream%id_dims(texture_dim) < 0 ) then
-              call add_dimension(ncp,'ntex')
+              call add_dimension(stream,'ntex')
             end if
             id_dim(ic) = stream%id_dims(texture_dim)
             len_dim(ic) = stream%len_dims(texture_dim)
           case ('2')
             if ( stream%id_dims(h2m_level_dim) < 0 ) then
-              call add_dimension(ncp,'2m')
+              call add_dimension(stream,'2m')
             end if
             id_dim(ic) = stream%id_dims(h2m_level_dim)
             len_dim(ic) = stream%len_dims(h2m_level_dim)
           case ('w')
             if ( stream%id_dims(h10m_level_dim) < 0 ) then
-              call add_dimension(ncp,'h10')
+              call add_dimension(stream,'h10')
             end if
             id_dim(ic) = stream%id_dims(h10m_level_dim)
             len_dim(ic) = stream%len_dims(h10m_level_dim)
           case ('s')
             if ( stream%id_dims(soil_layer_dim) < 0 ) then
-              call add_dimension(ncp,'soil_layer')
+              call add_dimension(stream,'soil_layer')
             end if
             id_dim(ic) = stream%id_dims(soil_layer_dim)
             len_dim(ic) = stream%len_dims(soil_layer_dim)
           case ('d')
             if ( stream%id_dims(water_depth_dim) < 0 ) then
-              call add_dimension(ncp,'depth')
+              call add_dimension(stream,'depth')
             end if
             id_dim(ic) = stream%id_dims(water_depth_dim)
             len_dim(ic) = stream%len_dims(water_depth_dim)
@@ -944,16 +934,16 @@ module mod_ncstream
       end do
     end subroutine dimlist
 
-    subroutine stream_writevar(var)
+    subroutine outstream_writevar(ncout,var)
       implicit none
+      type(nc_output_stream) , intent(inout) :: ncout
       class(ncvariable_standard) , intent(inout) :: var
       type(ncstream) , pointer :: stream
-      type(internal_iobuffer) , pointer :: buffer
-      if ( .not. associated(var%stream) ) return
-      stream => var%stream
+      type(internal_obuffer) , pointer :: buffer
+      stream => ncout%ncp%xs
       if ( .not. stream%l_enabled ) return
       if ( stream%id < 0 ) return
-      buffer => stream%buffer%xp
+      buffer => ncout%obp%xb
       select type(var)
         class is (ncvariable0d_real)
           if ( var%lrecords ) then
@@ -1155,8 +1145,8 @@ module mod_ncstream
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
-      call stream_sync(stream)
-    end subroutine stream_writevar
+      call outstream_sync(stream)
+    end subroutine outstream_writevar
 
     subroutine cdumlogical(cdum,yesno)
       implicit none
@@ -1169,92 +1159,96 @@ module mod_ncstream
       end if
     end subroutine cdumlogical
 
-    subroutine add_common_global_params(ncp)
+    subroutine add_common_global_params(ncout)
       implicit none
-      type(ncstream_p) , intent(inout) :: ncp
+      type(nc_output_stream) , intent(inout) :: ncout
+      type(ncstream) , pointer :: stream
+      type(static_variables) , pointer :: stvar
       character(maxstring) :: history
       real(rk8) , dimension(2) :: trlat
       integer(ik4) , dimension(8) :: tvals
 
-      call add_attribute(ncp, &
+      stream => ncout%ncp%xs
+      stvar  => ncout%svp%xv
+      call add_attribute(stream, &
         ncattribute_string('title','ICTP Regional Climatic model V4'))
-      call add_attribute(ncp,ncattribute_string('institution','ICTP'))
-      call add_attribute(ncp, &
+      call add_attribute(stream,ncattribute_string('institution','ICTP'))
+      call add_attribute(stream, &
         ncattribute_string('source','RegCM Model output file'))
-      call add_attribute(ncp,ncattribute_string('Conventions','CF-1.4'))
-      call add_attribute(ncp,ncattribute_string('references', &
+      call add_attribute(stream,ncattribute_string('Conventions','CF-1.4'))
+      call add_attribute(stream,ncattribute_string('references', &
         'http://gforge.ictp.it/gf/project/regcm'))
-      call add_attribute(ncp,ncattribute_string('model_revision',SVN_REV))
+      call add_attribute(stream,ncattribute_string('model_revision',SVN_REV))
       call date_and_time(values=tvals)
       write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
-        ' : Created by RegCM '//trim(ncp%xs%progname)//' program'
-      call add_attribute(ncp,ncattribute_string('history',history))
-      call add_attribute(ncp,ncattribute_string('experiment',domname))
-      call add_attribute(ncp,ncattribute_string('projection',iproj))
-      if ( ncp%xs%l_subgrid ) then
-        call add_attribute(ncp,ncattribute_real8('grid_size_in_meters', &
+        ' : Created by RegCM '//trim(stream%progname)//' program'
+      call add_attribute(stream,ncattribute_string('history',history))
+      call add_attribute(stream,ncattribute_string('experiment',domname))
+      call add_attribute(stream,ncattribute_string('projection',iproj))
+      if ( stream%l_subgrid ) then
+        call add_attribute(stream,ncattribute_real8('grid_size_in_meters', &
           (ds*1000.0)/dble(nsg)))
-        call add_attribute(ncp,ncattribute_string('model_subgrid','Yes'))
+        call add_attribute(stream,ncattribute_string('model_subgrid','Yes'))
       else
-        call add_attribute(ncp,ncattribute_real8('grid_size_in_meters', &
+        call add_attribute(stream,ncattribute_real8('grid_size_in_meters', &
           (ds*1000.0)))
       end if
-      call add_attribute(ncp, &
+      call add_attribute(stream, &
         ncattribute_real8('latitude_of_projection_origin',clat))
-      call add_attribute(ncp, &
+      call add_attribute(stream, &
         ncattribute_real8('longitude_of_projection_origin',clon))
       if ( iproj == 'ROTMER' ) then
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_real8('grid_north_pole_latitude',plat))
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_real8('grid_north_pole_longitude',plon))
       else if ( iproj == 'LAMCON' ) then
         trlat(1) = truelatl
         trlat(2) = truelath
-        call add_attribute(ncp, &
+        call add_attribute(stream, &
           ncattribute_real8_array('standard_parallel',trlat,2))
       end if
-      call add_attribute(ncp,ncattribute_real8('grid_factor',xcone))
-      jx_var = ncvariable1d_real(vname='jx',vunit='km', &
+      call add_attribute(stream,ncattribute_real8('grid_factor',xcone))
+      stvar%jx_var = ncvariable1d_real(vname='jx',vunit='km', &
         long_name = 'x-coordinate in Cartesian system', &
         standard_name = 'projection_x_coordinate',      &
         axis = 'x',lrecords = .false.)
-      iy_var = ncvariable1d_real(vname='iy',vunit='km', &
+      stvar%iy_var = ncvariable1d_real(vname='iy',vunit='km', &
         long_name = 'y-coordinate in Cartesian system', &
         standard_name = 'projection_y_coordinate',      &
         axis = 'y',lrecords = .false.)
-      if ( ncp%xs%l_full_sigma ) then
-        sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
+      if ( stream%l_full_sigma ) then
+        stvar%sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
           long_name = "Sigma at full model layers",             &
           standard_name = 'atmosphere_sigma_coordinate' ,       &
           axis = 'z',lrecords = .false.)
       else
-        sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
+        stvar%sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
           long_name = "Sigma at half model layers",             &
           standard_name = 'atmosphere_sigma_coordinate' ,       &
           axis = 'z',lrecords = .false.)
       end if
-      ptop_var =  ncvariable0d_real(vname='ptop',vunit='hPa', &
+      stvar%ptop_var =  ncvariable0d_real(vname='ptop',vunit='hPa', &
         long_name = "Pressure at model top",                  &
         standard_name = 'air_pressure',lrecords = .false.)
-      
-      call stream_addvar(ncp,jx_var)
-      call stream_addvar(ncp,iy_var)
-      call stream_addvar(ncp,sigma_var)
-      call stream_addvar(ncp,ptop_var)
-      call add_attribute(ncp, &
-        ncattribute_string('axis','X'),jx_var%id,jx_var%vname)
-      call add_attribute(ncp, &
-        ncattribute_string('axis','Y'),iy_var%id,iy_var%vname)
-      call add_attribute(ncp, &
-        ncattribute_string('axis','Z'),sigma_var%id,sigma_var%vname)
-      call add_attribute(ncp, &
-        ncattribute_string('positive','down'),sigma_var%id,sigma_var%vname)
-      call add_attribute(ncp, &
+      call outstream_addvar(ncout,stvar%jx_var)
+      call outstream_addvar(ncout,stvar%iy_var)
+      call outstream_addvar(ncout,stvar%sigma_var)
+      call outstream_addvar(ncout,stvar%ptop_var)
+      call add_attribute(stream, &
+        ncattribute_string('axis','X'),stvar%jx_var%id,stvar%jx_var%vname)
+      call add_attribute(stream, &
+        ncattribute_string('axis','Y'),stvar%iy_var%id,stvar%iy_var%vname)
+      call add_attribute(stream, &
+        ncattribute_string('axis','Z'),stvar%sigma_var%id,stvar%sigma_var%vname)
+      call add_attribute(stream, &
+        ncattribute_string('positive','down'), &
+          stvar%sigma_var%id,stvar%sigma_var%vname)
+      call add_attribute(stream, &
         ncattribute_string('formula_terms','sigma: sigma ps: ps ptop: ptop'), &
-          sigma_var%id,sigma_var%vname)
+          stvar%sigma_var%id,stvar%sigma_var%vname)
     end subroutine add_common_global_params
 
 end module mod_ncstream
@@ -1271,8 +1265,7 @@ program test
   use mod_ncstream
   use mod_dynparam
 
-  type(ncstream_p) :: ncout
-  type(iobuff_p) :: obuf
+  type(nc_output_stream) :: ncout
 
   type(ncvariable0d_integer) :: var0dint
   type(ncvariable1d_real) :: var1dreal
@@ -1298,6 +1291,7 @@ program test
   xcone = 0.71
   clat = 43.0
   clon = 15.0
+  ptop = 5.0
   truelatl = 30.0
   truelath = 60.0
 
@@ -1331,53 +1325,49 @@ program test
   var3dreal%axis = 'xyz'
 
   ! Setup an output stream
-  call stream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
+  call outstream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
 
   ! Add variables with different dimensions. Can be in a loop !!
-  call stream_addvar(ncout,var0dint)
-  call stream_addvar(ncout,var1dreal)
-  call stream_addvar(ncout,var2dreal)
-  call stream_addvar(ncout,var3dreal)
+  call outstream_addvar(ncout,var0dint)
+  call outstream_addvar(ncout,var1dreal)
+  call outstream_addvar(ncout,var2dreal)
+  call outstream_addvar(ncout,var3dreal)
 
   ! Enable the output stream for write
-  call stream_enable(ncout)
+  call outstream_enable(ncout)
 
-  ! Get a pointer to the I/O buffer
-  call stream_get_iobuff(ncout,obuf)
-
-  obuf%xp%realbuff(1:size(sigma)) = real(sigma(:))
-  obuf%xp%rbuf2d(1:jx,1:iy) = 1.0
-  obuf%xp%rbuf2d(jx/2,iy/2) = 2.0
+  ncout%obp%xb%realbuff(1:size(sigma)) = real(sigma(:))
+  ncout%obp%xb%rbuf2d(1:jx,1:iy) = 1.0
+  ncout%obp%xb%rbuf2d(jx/2,iy/2) = 2.0
 
   ! Write some static variables
-  call stream_writevar(var1dreal)
-  call stream_writevar(var2dreal)
+  call outstream_writevar(ncout,var1dreal)
+  call outstream_writevar(ncout,var2dreal)
 
   var0dint%ival(1) = 12
-  obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
+  ncout%obp%xb%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
-    obuf%xp%rbuf3d(jx/4,iy/4,k) = k
+    ncout%obp%xb%rbuf3d(jx/4,iy/4,k) = k
   end do
 
   ! Write variables in the current record step
-  call stream_addrec(ncout,256212.0)
-  call stream_writevar(var0dint)
-  call stream_writevar(var3dreal)
+  call outstream_addrec(ncout,256212.0)
+  call outstream_writevar(ncout,var0dint)
+  call outstream_writevar(ncout,var3dreal)
 
   var0dint%ival(1) = 13
-  obuf%xp%rbuf3d(1:jx,1:iy,:) = 1.0
+  ncout%obp%xb%rbuf3d(1:jx,1:iy,:) = 1.0
   do k = 1 , kz
-    obuf%xp%rbuf3d(jx/4,iy/4,k) = k*1.5
+    ncout%obp%xb%rbuf3d(jx/4,iy/4,k) = k*1.5
   end do
 
   ! Add a new record
-  call stream_addrec(ncout,256236.0)
-  call stream_writevar(var0dint)
-  call stream_writevar(var3dreal)
+  call outstream_addrec(ncout,256236.0)
+  call outstream_writevar(ncout,var0dint)
+  call outstream_writevar(ncout,var3dreal)
 
   ! Finally, close the file and cleanup all
-  call stream_dispose(ncout)
+  call outstream_dispose(ncout)
 
 end program test
-
 #endif
