@@ -94,6 +94,7 @@ module mod_ncstream
     logical :: l_bound = .false.
     logical :: l_subgrid = .false.
     logical :: l_full_sigma = .false.
+    real(rk8) :: zero_time = 0.0D0
     !
     ! Work flags
     !
@@ -168,6 +169,10 @@ module mod_ncstream
     integer(ik4) , dimension(1) :: ival = 0
   end type ncvariable0d_integer
 
+  type, extends(ncvariable_0d) :: ncvariable0d_char
+    character, dimension(1) :: cval = 'x'
+  end type ncvariable0d_char
+
   type, extends(ncvariable_standard) :: ncvariable_1d
     logical :: lrecords = .false.
     character(len=1) :: axis = 'x'
@@ -238,7 +243,7 @@ module mod_ncstream
     type(ncvariable1d_real) :: sigma_var
     type(ncvariable1d_real) :: jx_var
     type(ncvariable1d_real) :: iy_var
-    type(ncvariable0d_integer) :: map_var
+    type(ncvariable0d_char) :: map_var
   end type basic_variables
 
   type basic_variables_p
@@ -252,6 +257,7 @@ module mod_ncstream
   end type nc_output_stream
 
   public :: nc_output_stream
+  public :: ncvariable0d_char
   public :: ncvariable0d_real , ncvariable0d_integer
   public :: ncvariable1d_real , ncvariable1d_integer
   public :: ncvariable2d_real , ncvariable2d_integer
@@ -269,11 +275,13 @@ module mod_ncstream
 
   contains
 
-    subroutine outstream_setup(ncout,fname,pname,l_bound,l_subgrid,l_full_sigma)
+    subroutine outstream_setup(ncout,fname,pname,zero_time, &
+                               l_bound,l_subgrid,l_full_sigma)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       character(len=*) , intent(in) :: fname
       character(len=*) , intent(in) :: pname
+      real(rk8) , optional :: zero_time
       logical , intent(in) , optional :: l_bound
       logical , intent(in) , optional :: l_subgrid
       logical , intent(in) , optional :: l_full_sigma
@@ -297,6 +305,7 @@ module mod_ncstream
       end if
       stream%filename = fname
       stream%progname = pname
+      if ( present(zero_time) )    stream%zero_time    = zero_time
       if ( present(l_bound) )      stream%l_bound      = l_bound
       if ( present(l_subgrid) )    stream%l_subgrid    = l_subgrid
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
@@ -380,7 +389,7 @@ module mod_ncstream
         end if
       end if
       if ( stream%l_hasgrid ) then
-        stvar%map_var =  ncvariable0d_integer(vname='rcm_map', &
+        stvar%map_var =  ncvariable0d_char(vname='rcm_map', &
           vunit='',long_name = '', standard_name = '',     &
           lrecords = .false.)
         call outstream_addvar(ncout,stvar%map_var)
@@ -493,12 +502,12 @@ module mod_ncstream
       else
         xds = ds
       end if
-      buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds)
+      buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds * d_1000)
       do i = 2 , jx
         buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
       end do
       call outstream_writevar(ncout,stvar%jx_var)
-      buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds)
+      buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds * d_1000)
       do i = 2 , iy
         buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
       end do
@@ -529,13 +538,21 @@ module mod_ncstream
       real(rk4) , intent(in) :: val
       type(ncstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
+      type(internal_obuffer) , pointer :: buffer
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
+      buffer => ncout%obp%xb
       if ( .not. stream%l_enabled ) return
       stream%irec = stream%irec+1
       stvar%time_var%rval = val
       call outstream_writevar(ncout,stvar%time_var)
+      if ( stream%l_hastbound ) then
+        buffer%realbuff(1) = real(stream%zero_time)
+        buffer%realbuff(2) = val
+        call outstream_writevar(ncout,stvar%tbound_var)
+        stream%zero_time = val
+      end if
     end subroutine outstream_addrec
 
     subroutine add_dimension(stream,dname)
@@ -778,6 +795,8 @@ module mod_ncstream
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
       select type(var)
+        class is (ncvariable0d_char)
+          var%nctype = nf90_char
         class is (ncvariable0d_real)
           var%nctype = nf90_float
         class is (ncvariable1d_real)
@@ -1303,11 +1322,11 @@ module mod_ncstream
           ncattribute_real8_array('standard_parallel',trlat,2))
       end if
       call add_attribute(stream,ncattribute_real8('grid_factor',xcone))
-      stvar%jx_var = ncvariable1d_real(vname='jx',vunit='km', &
+      stvar%jx_var = ncvariable1d_real(vname='jx',vunit='m', &
         long_name = 'x-coordinate in Cartesian system', &
         standard_name = 'projection_x_coordinate',      &
         axis = 'x',lrecords = .false.)
-      stvar%iy_var = ncvariable1d_real(vname='iy',vunit='km', &
+      stvar%iy_var = ncvariable1d_real(vname='iy',vunit='m', &
         long_name = 'y-coordinate in Cartesian system', &
         standard_name = 'projection_y_coordinate',      &
         axis = 'y',lrecords = .false.)
@@ -1418,7 +1437,8 @@ program test
   var3dreal%cell_method = 'time: mean'
 
   ! Setup an output stream
-  call outstream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
+  call outstream_setup(ncout,'testfile.nc','prog', &
+                       zero_time=256188.0,l_bound=.true.)
 
   ! Add variables with different dimensions. Can be in a loop !!
   call outstream_addvar(ncout,var0dint)
