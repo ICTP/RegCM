@@ -99,6 +99,8 @@ module mod_ncstream
     !
     logical :: l_sync = .false.
     logical :: l_hasrec = .false.
+    logical :: l_hastbound = .false.
+    logical :: l_hasgrid = .false.
     logical :: l_enabled = .false.
     !
     ! Dimension identifiers for 'coded' dimensions
@@ -229,28 +231,24 @@ module mod_ncstream
     type(ncstream) , pointer :: xs => null()
   end type ncstream_p
 
-  type static_variables
+  type basic_variables
     type(ncvariable0d_real) :: time_var
+    type(ncvariable1d_real) :: tbound_var
     type(ncvariable0d_real) :: ptop_var
     type(ncvariable1d_real) :: sigma_var
     type(ncvariable1d_real) :: jx_var
     type(ncvariable1d_real) :: iy_var
-    type(ncvariable2d_real) :: xlat_var
-    type(ncvariable2d_real) :: xlon_var
-    type(ncvariable2d_real) :: dlat_var
-    type(ncvariable2d_real) :: dlon_var
-    type(ncvariable2d_real) :: topo_var
-    type(ncvariable2d_real) :: mask_var
-  end type static_variables
+    type(ncvariable0d_integer) :: map_var
+  end type basic_variables
 
-  type static_variables_p
-    type(static_variables) , pointer :: xv => null()
-  end type static_variables_p
+  type basic_variables_p
+    type(basic_variables) , pointer :: xv => null()
+  end type basic_variables_p
 
   type nc_output_stream
     type(ncstream_p) :: ncp
     type(obuff_p) :: obp
-    type(static_variables_p) :: svp
+    type(basic_variables_p) :: svp
   end type nc_output_stream
 
   public :: nc_output_stream
@@ -260,8 +258,12 @@ module mod_ncstream
   public :: ncvariable3d_real , ncvariable3d_integer
   public :: ncvariable4d_real , ncvariable4d_integer
 
+  public :: ncattribute_string , ncattribute_integer
+  public :: ncattribute_real4 , ncattribute_real8
+  public :: ncattribute_real4_array , ncattribute_real8_array
+
   public :: outstream_setup , outstream_enable , outstream_dispose
-  public :: outstream_addvar
+  public :: outstream_addvar , outstream_addatt
   public :: outstream_writevar
   public :: outstream_addrec
 
@@ -300,6 +302,7 @@ module mod_ncstream
       if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
       stream%id_dims(:) = -1
       stream%len_dims(:) = 0
+      call add_common_global_params(ncout)
     end subroutine outstream_setup
 
     subroutine outstream_dispose(ncout)
@@ -335,22 +338,23 @@ module mod_ncstream
       if ( allocated(xbf%rbuf4d) )   deallocate(xbf%rbuf4d)
     end subroutine deallocate_buffers
 
-    subroutine outstream_enable(ncout)
+    subroutine outstream_enable(ncout,sigma)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
+      real(rk8) , dimension(:) , intent(in) :: sigma
 
       type(ncstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
-      type(static_variables) , pointer :: stvar
-      integer(ik4) :: maxnum_int , maxnum_real
+      type(basic_variables) , pointer :: stvar
+      integer(ik4) :: maxnum_int , maxnum_real , i
+      real(rk8) , dimension(2) :: trlat
+      real(rk8) :: xds
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       buffer => ncout%obp%xb
       stvar  => ncout%svp%xv
       if ( stream%l_enabled ) return
-
-      call add_common_global_params(ncout)
 
       if ( stream%l_hasrec ) then
         stvar%time_var = ncvariable0d_real(vname='time', &
@@ -361,6 +365,56 @@ module mod_ncstream
         call add_attribute(stream, &
           ncattribute_string('calendar',calendar), &
             stvar%time_var%id,stvar%time_var%vname)
+        if ( stream%l_hastbound ) then
+          call add_attribute(stream, &
+            ncattribute_string('bounds','time_bnds'),stvar%time_var%id, &
+            stvar%time_var%vname)
+          stvar%tbound_var =  ncvariable1d_real(vname='time_bnds', &
+                  vunit='hours since 1949-12-01 00:00:00 UTC',     &
+                  axis='b',long_name = '', standard_name = '',     &
+                  lrecords = .true.)
+          call outstream_addvar(ncout,stvar%tbound_var)
+          call add_attribute(stream, &
+            ncattribute_string('calendar',calendar), &
+              stvar%tbound_var%id,stvar%tbound_var%vname)
+        end if
+      end if
+      if ( stream%l_hasgrid ) then
+        stvar%map_var =  ncvariable0d_integer(vname='rcm_map', &
+          vunit='',long_name = '', standard_name = '',     &
+          lrecords = .false.)
+        call outstream_addvar(ncout,stvar%map_var)
+        select case (iproj)
+          case('LAMCON')
+            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
+              'lambert_conformal_conic'),stvar%map_var%id,stvar%map_var%vname)
+            trlat(1) = truelatl
+            trlat(2) = truelath
+            call add_attribute(stream, &
+              ncattribute_real8_array('standard_parallel', &
+              trlat,2),stvar%map_var%id,stvar%map_var%vname)
+          case('POLSTR')
+            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
+              'stereographic'),stvar%map_var%id,stvar%map_var%vname)
+          case('NORMER')
+            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
+              'mercator'),stvar%map_var%id,stvar%map_var%vname)
+          case('ROTMER')
+            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
+             'rotated_latitude_longitude'),stvar%map_var%id,stvar%map_var%vname)
+            call add_attribute(stream, &
+              ncattribute_real8('grid_north_pole_latitude', &
+              plat),stvar%map_var%id,stvar%map_var%vname)
+            call add_attribute(stream, &
+              ncattribute_real8('grid_north_pole_longitude', &
+              plon),stvar%map_var%id,stvar%map_var%vname)
+        end select
+        call add_attribute(stream, &
+          ncattribute_real8('longitude_of_central_meridian', &
+          clon),stvar%map_var%id,stvar%map_var%vname)
+        call add_attribute(stream, &
+          ncattribute_real8('latitude_of_projection_origin', &
+          clat),stvar%map_var%id,stvar%map_var%vname)
       end if
       i_nc_status = nf90_enddef(stream%id)
       if ( i_nc_status /= nf90_noerr ) then
@@ -433,7 +487,24 @@ module mod_ncstream
       if ( allocated(buffer%rbuf4d) ) &
         write(stdout,*) 'Total buffer real 4d size :',size(buffer%rbuf4d)
 #endif
-      ! Put "static" information in the file
+      ! Put "basic" information in the file
+      if ( stream%l_subgrid ) then
+        xds = ds/dble(nsg)
+      else
+        xds = ds
+      end if
+      buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds)
+      do i = 2 , jx
+        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
+      end do
+      call outstream_writevar(ncout,stvar%jx_var)
+      buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds)
+      do i = 2 , iy
+        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
+      end do
+      call outstream_writevar(ncout,stvar%iy_var)
+      buffer%realbuff(1:size(sigma)) = real(sigma)
+      call outstream_writevar(ncout,stvar%sigma_var)
       stvar%ptop_var%rval(1) = real(ptop)*10.0
       call outstream_writevar(ncout,stvar%ptop_var)
     end subroutine outstream_enable
@@ -457,7 +528,7 @@ module mod_ncstream
       type(nc_output_stream) , intent(inout) :: ncout
       real(rk4) , intent(in) :: val
       type(ncstream) , pointer :: stream
-      type(static_variables) , pointer :: stvar
+      type(basic_variables) , pointer :: stvar
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
@@ -553,10 +624,18 @@ module mod_ncstream
       stream%len_dims(pdim) = num
     end subroutine add_dimension
 
+    subroutine outstream_addatt(ncout,att)
+      implicit none
+      type(nc_output_stream) , intent(inout) :: ncout
+      class(ncglobal_attribute_standard) , intent(in) :: att
+      if ( .not. associated(ncout%ncp%xs) ) return
+      call add_attribute(ncout%ncp%xs,att)
+    end subroutine outstream_addatt
+
     subroutine add_attribute(stream,att,iloc,vname)
       implicit none
       type(ncstream) , pointer , intent(in) :: stream
-      class(ncglobal_attribute_standard) :: att
+      class(ncglobal_attribute_standard) , intent(in) :: att
       integer(ik4) , optional :: iloc
       character(len=*) , optional :: vname
       integer(ik4) :: iv
@@ -607,12 +686,15 @@ module mod_ncstream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'
-      call add_attribute(stream, &
-        ncattribute_string('long_name',var%long_name),var%id,var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('standard_name',var%standard_name),var%id,var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('units',var%vunit),var%id,var%vname)
+      if ( len_trim(var%long_name) > 0 ) &
+        call add_attribute(stream, &
+          ncattribute_string('long_name',var%long_name),var%id,var%vname)
+      if ( len_trim(var%standard_name) > 0 ) &
+        call add_attribute(stream, &
+         ncattribute_string('standard_name',var%standard_name),var%id,var%vname)
+      if ( len_trim(var%vunit) > 0 ) &
+        call add_attribute(stream, &
+          ncattribute_string('units',var%vunit),var%id,var%vname)
       if ( var%lgridded ) then
         if ( stream%l_bound .and. &
             (var%vname == 'u' .or. var%vname == 'v') ) then
@@ -624,10 +706,18 @@ module mod_ncstream
         end if
         call add_attribute(stream, &
           ncattribute_string('grid_mapping','rcm_map'),var%id,var%vname)
+        stream%l_hasgrid = .true.
       end if
       if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
         call add_attribute(stream, &
           ncattribute_string('cell_methods',var%cell_method),var%id,var%vname)
+        if ( (verify(var%cell_method(1:9),'time: mea') == 0 .or.    &
+              verify(var%cell_method(1:9),'time: max') == 0 .or. &
+              verify(var%cell_method(1:9),'time: min') == 0 .or. &
+              verify(var%cell_method(1:9),'time: sum') == 0) .and.   &
+              .not. stream%l_hastbound ) then
+          stream%l_hastbound = .true.
+        end if
       end if
       if ( var%lfillvalue ) then
         call add_attribute(stream, &
@@ -658,16 +748,18 @@ module mod_ncstream
         if ( i_nc_status /= nf90_noerr ) then
           write (stderr,*) nf90_strerror(i_nc_status)
           call die('nc_stream', &
-            'Cannot set compression on variable '//trim(var%vname)// &
+            'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
 #ifdef NETCDF4_HDF5
-        i_nc_status = nf90_def_var_deflate(stream%id,var%id,1,1,9)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
-          call die('nc_stream', &
-            'Cannot set compression on variable '//trim(var%vname)// &
-            ' in file '//trim(stream%filename), 1)
+        if ( ndims > 3 ) then
+          i_nc_status = nf90_def_var_deflate(stream%id,var%id,1,1,9)
+          if ( i_nc_status /= nf90_noerr ) then
+            write (stderr,*) nf90_strerror(i_nc_status)
+            call die('nc_stream', &
+              'Cannot set compression on variable '//trim(var%vname)// &
+              ' in file '//trim(stream%filename), 1)
+          end if
         end if
 #endif
       end if
@@ -890,7 +982,7 @@ module mod_ncstream
             len_dim(ic) = stream%len_dims(time_dim)
           case ('b')
             if ( stream%id_dims(time_bound_dim) < 0 ) then
-              call add_dimension(stream,'time_bound')
+              call add_dimension(stream,'time_bounds')
             end if
             id_dim(ic) = stream%id_dims(time_bound_dim)
             len_dim(ic) = stream%len_dims(time_bound_dim)
@@ -1163,7 +1255,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       type(ncstream) , pointer :: stream
-      type(static_variables) , pointer :: stvar
+      type(basic_variables) , pointer :: stvar
       character(maxstring) :: history
       real(rk8) , dimension(2) :: trlat
       integer(ik4) , dimension(8) :: tvals
@@ -1323,6 +1415,7 @@ program test
   var3dreal%lrecords = .true.
   var3dreal%lfillvalue = .true.
   var3dreal%axis = 'xyz'
+  var3dreal%cell_method = 'time: mean'
 
   ! Setup an output stream
   call outstream_setup(ncout,'testfile.nc','prog',l_bound=.true.)
@@ -1333,8 +1426,14 @@ program test
   call outstream_addvar(ncout,var2dreal)
   call outstream_addvar(ncout,var3dreal)
 
+  ! Add some more attributes
+  call outstream_addatt(ncout,ncattribute_string('boundary_smoothing','No'))
+  call outstream_addatt(ncout,ncattribute_string('lake_fudging','No'))
+  call outstream_addatt(ncout, &
+    ncattribute_real8('minimum_h2o_pct_for_water',50.0D0))
+
   ! Enable the output stream for write
-  call outstream_enable(ncout)
+  call outstream_enable(ncout,sigma)
 
   ncout%obp%xb%realbuff(1:size(sigma)) = real(sigma(:))
   ncout%obp%xb%rbuf2d(1:jx,1:iy) = 1.0
