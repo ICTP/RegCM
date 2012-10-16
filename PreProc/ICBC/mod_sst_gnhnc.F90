@@ -106,6 +106,11 @@ module mod_sst_gnhnc
   else if ( ssttyp == 'EIXXX' ) then
     write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
     varname(2) = 'sst'
+  else if ( ssttyp == 'E5_A2' ) then
+    write(inpfile,'(a,i9,a,i9,a)') &
+      trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
+      y1*100000+m1*1000+10,'0-',y2*100000+m2*1000+10,'0.nc'
+    varname(2) = 'tos'
   else
     call die('gnhnc_sst','Unknown ssttyp: '//ssttyp,1)
   end if
@@ -204,7 +209,7 @@ module mod_sst_gnhnc
   idateo = monfirst(globidate1)
   idatef = globidate2
   tdif = idatef-idateo
-  nsteps = tohours(tdif)/6 + 1
+  nsteps = int(tohours(tdif))/6 + 1
   write (stdout,*) 'NSTEPS = ', nsteps
  
   call open_sstfile(idateo)
@@ -243,7 +248,7 @@ module mod_sst_gnhnc
     it = isteps(month) + (day-1)*4 + hour/6 
   else
     tdif = idate-fidate1
-    it = tohours(tdif)/6 + 1
+    it = int(tohours(tdif))/6 + 1
   end if
 
   if ( it > timlen ) then
@@ -272,6 +277,10 @@ module mod_sst_gnhnc
       write(inpfile,'(a,i9,a,i9,a)') &
         trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp85_r1i1p1_', &
         y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
+    else if ( ssttyp == 'E5_A2' ) then
+      write(inpfile,'(a,i9,a,i9,a)') &
+        trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
+        y1*100000+m1*1000+10,'0-',y2*100000+m2*1000+10,'0.nc'
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
@@ -297,7 +306,7 @@ module mod_sst_gnhnc
                     'Error read var '//varname(1)//' calendar')
     fidate1 = timeval2date(work1(1),cunit,ccal)
     tdif = idate-fidate1
-    it = tohours(tdif)/6 + 1
+    it = int(tohours(tdif))/6 + 1
   end if
   icount(1) = ilon
   icount(2) = jlat
@@ -315,6 +324,11 @@ module mod_sst_gnhnc
   else
     istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+    if ( ssttyp(1:2) == 'E5' ) then
+      where ( abs(work2-273.15) < 0.001 )
+        work2 = 1E+20
+      end where
+    end if
   end if
   do j = 1 , jlat
     do i = 1 , ilon

@@ -129,7 +129,7 @@ program sst
     end if
     call sst_gnmnc
   else if ( ssttyp == 'MP_RF' .or. ssttyp == 'MP_45' .or. &
-            ssttyp == 'MP_85' ) then
+            ssttyp == 'MP_85' .or. ssttyp == 'E5_A2' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
       call die('sst','Calendar mismatch',1)
