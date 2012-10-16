@@ -585,7 +585,6 @@ module mod_rad_colmod3
     implicit none
 !
     integer(ik4) :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
-    real(rk8) :: clwtem
     real(rk8) , parameter :: amd = 28.9644D0
     real(rk8) , parameter :: amo = 48.0000D0
     real(rk8) , parameter :: vmmr = amo/amd
@@ -771,10 +770,9 @@ module mod_rad_colmod3
           ! Convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
           !
-          clwtem = cldlwc(j,i,k) !cqc mod
           deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
                         pintm1(n,k))/(egrav*pmidm1(n,k))
-          clwp(n,k) = clwtem*deltaz(n,k)
+          clwp(n,k) = cldlwc(j,i,k)*deltaz(n,k)
           if ( cldfra(j,i,k) < lowcld ) then
             clwp(n,k) = d_zero
           end if
