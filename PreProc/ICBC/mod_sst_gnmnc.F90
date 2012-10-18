@@ -467,8 +467,23 @@ module mod_sst_gnmnc
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
       call split_idate(idate, year, month, day, hour)  
-      y1 = (year-1)/5*5+1
-      y2 = y1+4
+      if ( year < 2006 ) then
+        y1 = (year)/10*10
+        if ( y1 == 2000 ) then
+          y2 = 2005
+        else
+          y2 = y1 + 9
+        end if
+      else
+        y1 = (year-6)/10*10+6
+        y2 = y1 + 9
+      end if
+      if ( year /= 2006 .and. month /= 1 .and. day /= 1 .and. hour /= 0 ) then
+        if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
+          y1 = y1 - 10
+          y2 = y1 + 9
+        end if
+      end if
       if ( ssttyp(4:5) == 'RF' ) then
         write(inpfile,'(a,i4,a,i4,a)') &
            trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
