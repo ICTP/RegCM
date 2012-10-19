@@ -47,8 +47,35 @@ module mod_ncstream
   integer(ik4) , parameter :: soil_layer_dim  = 9
   integer(ik4) , parameter :: water_depth_dim = 10
 
-  integer(ik4) :: i_nc_status
-  character(len=maxstring) :: cstr
+  integer(ik4) :: ncstat
+
+  type ncstream_params
+    ! The name of the output file
+    character(len=maxstring) :: fname = 'regcm_generic.nc'
+    ! The name of the program writing the file
+    character(len=maxname) :: pname = 'ncstream test'
+    ! To enable Parallel I/O. Must use hdf5 library
+    integer(ik4) :: mpi_comm = -1
+    integer(ik4) :: mpi_info = -1
+    integer(ik4) :: mpi_iotype = -1
+    ! If boundary values are part of the grids
+    ! Note that in the model configuration as of now, the output is on
+    ! CROSS points INTERNAL
+    ! Instead for the ICBC, the output is on EXTERNAL and the CROSS grid
+    ! has an extra unused line and row.
+    ! JX = number of DOT zonal points WITH boundary
+    ! IY = number of DOT meridional points WITH boundary
+    logical :: l_bound = .false.
+    ! If this is a subgrid output file.
+    logical :: l_subgrid = .false.
+    ! If the vertical coordinate is on full sigma levels
+    logical :: l_full_sigma = .false.
+    ! Initial time for this run
+    real(rk8) :: zero_time = 0.0D0
+    ! If parallel I/O, the processor patch indexes on the global grid
+    integer(ik4) :: global_jstart , global_jend
+    integer(ik4) :: global_istart , global_iend
+  end type ncstream_params
 
   type internal_obuffer
     logical :: lhas1dint = .false.
@@ -99,6 +126,7 @@ module mod_ncstream
     ! Work flags
     !
     logical :: l_sync = .false.
+    logical :: l_parallel = .false.
     logical :: l_hasrec = .false.
     logical :: l_hastbound = .false.
     logical :: l_hasgrid = .false.
@@ -111,6 +139,10 @@ module mod_ncstream
     integer(ik4) :: irec = 0
     ! Implemented up to 4d var with records
     integer(ik4) , dimension(5) :: istart , icount
+    ! If using parallel I/O, those are the patch window
+    integer(ik4) , dimension(2) :: jparbound
+    integer(ik4) , dimension(2) :: iparbound
+    integer(ik4) :: global_nj , global_ni
   end type ncstream
 !
   type ncglobal_attribute_standard
@@ -152,7 +184,7 @@ module mod_ncstream
     character(len=maxstring) :: standard_name
     character(len=maxstring) :: cell_method = "time: point"
     integer(ik4) :: totsize = 0
-    logical :: lgridded = .true.
+    logical :: lgridded = .false.
     logical :: laddmethod = .true.
     logical :: lfillvalue = .false.
   end type ncvariable_standard
@@ -256,6 +288,7 @@ module mod_ncstream
     type(basic_variables_p) :: svp
   end type nc_output_stream
 
+  public :: ncstream_params
   public :: nc_output_stream
   public :: ncvariable0d_char
   public :: ncvariable0d_real , ncvariable0d_integer
@@ -268,23 +301,19 @@ module mod_ncstream
   public :: ncattribute_real4 , ncattribute_real8
   public :: ncattribute_real4_array , ncattribute_real8_array
 
-  public :: outstream_setup , outstream_enable , outstream_dispose
+  public :: outstream_setup
+  public :: outstream_enable , outstream_dispose
   public :: outstream_addvar , outstream_addatt
   public :: outstream_writevar
   public :: outstream_addrec
 
   contains
 
-    subroutine outstream_setup(ncout,fname,pname,zero_time, &
-                               l_bound,l_subgrid,l_full_sigma)
+    subroutine outstream_setup(ncout,params)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      character(len=*) , intent(in) :: fname
-      character(len=*) , intent(in) :: pname
-      real(rk8) , optional :: zero_time
-      logical , intent(in) , optional :: l_bound
-      logical , intent(in) , optional :: l_subgrid
-      logical , intent(in) , optional :: l_full_sigma
+      type(ncstream_params) , intent(in) :: params
+      integer(ik4) :: iomode
       type(ncstream) , pointer :: stream
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
@@ -293,24 +322,53 @@ module mod_ncstream
       allocate(ncout%obp%xb)
       allocate(ncout%svp%xv)
       stream => ncout%ncp%xs
+      stream%filename = params%fname
 #ifdef NETCDF4_HDF5
-      i_nc_status = nf90_create(fname, &
-        ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),stream%id)
-#else
-      i_nc_status = nf90_create(fname,nf90_clobber,stream%id)
-#endif
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
-        call die('nc_stream','Cannot create file '//trim(fname),1)
+      if ( params%mpi_comm /= -1 ) then
+        if ( params%mpi_iotype /= -1 ) then
+          iomode = ior(ior(nf90_netcdf4,params%mpi_iotype),nf90_clobber)
+        else
+          iomode = ior(ior(nf90_netcdf4,nf90_mpiio),nf90_clobber)
+        end if
+        ncstat = nf90_create(stream%filename,iomode, &
+          stream%id,comm=params%mpi_comm,info=params%mpi_info)
+        stream%l_parallel = .true.
+      else
+        iomode = ior(ior(nf90_classic_model,nf90_clobber),nf90_netcdf4)
+        ncstat = nf90_create(stream%filename,iomode,stream%id)
       end if
-      stream%filename = fname
-      stream%progname = pname
-      if ( present(zero_time) )    stream%zero_time    = zero_time
-      if ( present(l_bound) )      stream%l_bound      = l_bound
-      if ( present(l_subgrid) )    stream%l_subgrid    = l_subgrid
-      if ( present(l_full_sigma) ) stream%l_full_sigma = l_full_sigma
-      stream%id_dims(:) = -1
-      stream%len_dims(:) = 0
+#else
+      if ( params%mpi_comm /= -1 ) then
+        iomode = ior(nf90_pnetcdf,nf90_clobber)
+        ncstat = nf90_create_par(stream%filename,iomode, &
+          params%mpi_comm,params%mpi_info,stream%id)
+        stream%l_parallel = .true.
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+      else
+        ncstat = nf90_create(stream%filename,nf90_clobber,stream%id)
+      end if
+#endif
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) nf90_strerror(ncstat)
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call die('nc_stream','Cannot create file '//trim(stream%filename),1)
+      end if
+      if ( stream%l_parallel ) then
+        stream%jparbound(1) = params%global_jstart
+        stream%jparbound(2) = params%global_jend
+        stream%iparbound(1) = params%global_istart
+        stream%iparbound(2) = params%global_iend
+        stream%global_ni = params%global_iend-params%global_istart+1
+        stream%global_nj = params%global_jend-params%global_jstart+1
+      end if
+      stream%progname     = params%pname
+      stream%zero_time    = params%zero_time
+      stream%l_bound      = params%l_bound
+      stream%l_subgrid    = params%l_subgrid
+      stream%l_full_sigma = params%l_full_sigma
+      stream%id_dims(:)   = -1
+      stream%len_dims(:)  = 0
       call add_common_global_params(ncout)
     end subroutine outstream_setup
 
@@ -322,9 +380,10 @@ module mod_ncstream
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       if ( stream%id > 0 ) then
-        i_nc_status = nf90_close(stream%id)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
+        ncstat = nf90_close(stream%id)
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) nf90_strerror(ncstat)
           call die('nc_stream','Cannot close file '//trim(stream%filename),1)
         end if
       end if
@@ -425,9 +484,10 @@ module mod_ncstream
           ncattribute_real8('latitude_of_projection_origin', &
           clat),stvar%map_var%id,stvar%map_var%vname)
       end if
-      i_nc_status = nf90_enddef(stream%id)
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
+      ncstat = nf90_enddef(stream%id)
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        write(stderr,*) nf90_strerror(ncstat)
         call die('nc_stream','Cannot enable file '//trim(stream%filename),1)
       end if
       !
@@ -523,9 +583,10 @@ module mod_ncstream
       type(ncstream) , pointer , intent(in) :: stream
       if ( .not. stream%l_enabled ) return
       if ( stream%l_sync ) then
-        i_nc_status = nf90_sync(stream%id)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
+        ncstat = nf90_sync(stream%id)
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) nf90_strerror(ncstat)
           call die('nc_stream', &
                    'Cannot sync file '//trim(stream%filename), 1)
         end if
@@ -627,13 +688,15 @@ module mod_ncstream
           the_name = 'depth'
           pdim = water_depth_dim
         case default
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
             'Cannot add dimension '//trim(dname)//' to file '// &
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
-      i_nc_status = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
+      ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        write(stderr,*) nf90_strerror(ncstat)
         call die('nc_stream', &
           'Cannot add dimension '//trim(the_name)//' to file '// &
           trim(stream%filename), 1)
@@ -665,31 +728,34 @@ module mod_ncstream
       end if
       select type(att)
         class is (ncattribute_string)
-          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
         class is (ncattribute_integer)
-          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
         class is (ncattribute_real4)
-          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
         class is (ncattribute_real8)
-          i_nc_status = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
         class is (ncattribute_real4_array)
-          i_nc_status = nf90_put_att(stream%id,iv, &
+          ncstat = nf90_put_att(stream%id,iv, &
             att%aname,att%theval(1:att%numval))
         class is (ncattribute_real8_array)
-          i_nc_status = nf90_put_att(stream%id,iv, &
+          ncstat = nf90_put_att(stream%id,iv, &
             att%aname,att%theval(1:att%numval))
         class default
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
             'Cannot add attribute '//trim(att%aname)// &
             ' in file '//trim(stream%filename), 1)
       end select
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) nf90_strerror(ncstat)
         if ( present(iloc) ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
             'Cannot add attribute '//trim(att%aname)// &
             'to variable '//vname//' in file '//trim(stream%filename), 1)
         else
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
             'Cannot add global attribute '//trim(att%aname)// &
             ' in file '//trim(stream%filename), 1)
@@ -752,27 +818,30 @@ module mod_ncstream
       stream => ncout%ncp%xs
       if ( stream%l_enabled ) return
       if ( ndims == 0 ) then
-        i_nc_status = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
+        ncstat = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) nf90_strerror(ncstat)
           call die('nc_stream', &
             'Cannot add variable '//trim(var%vname)//' to file '// &
             trim(stream%filename), 1)
         end if
       else
-        i_nc_status = nf90_def_var(stream%id,var%vname,var%nctype, &
+        ncstat = nf90_def_var(stream%id,var%vname,var%nctype, &
                               id_dim(1:ndims),var%id)
-        if ( i_nc_status /= nf90_noerr ) then
-          write (stderr,*) nf90_strerror(i_nc_status)
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) nf90_strerror(ncstat)
           call die('nc_stream', &
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
 #ifdef NETCDF4_HDF5
         if ( ndims > 3 ) then
-          i_nc_status = nf90_def_var_deflate(stream%id,var%id,1,1,9)
-          if ( i_nc_status /= nf90_noerr ) then
-            write (stderr,*) nf90_strerror(i_nc_status)
+          ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
+          if ( ncstat /= nf90_noerr ) then
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+            write(stderr,*) nf90_strerror(ncstat)
             call die('nc_stream', &
               'Cannot set compression on variable '//trim(var%vname)// &
               ' in file '//trim(stream%filename), 1)
@@ -818,6 +887,7 @@ module mod_ncstream
         class is (ncvariable4d_integer)
           var%nctype = nf90_int
         class default
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
                    'Cannot add variable '//trim(var%vname)// &
                    ' in file '//trim(stream%filename), 1)
@@ -915,6 +985,7 @@ module mod_ncstream
           var%nval(4) = len_dim(4)
           var%totsize = product(var%nval)
         class default
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
                    'Cannot add variable '//trim(var%vname)// &
                    ' in file '//trim(stream%filename), 1)
@@ -925,17 +996,32 @@ module mod_ncstream
           buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
         class is (ncvariable2d_real) 
           buffer%lhas2dreal = .true.
-          buffer%max2d_real(1) = max(buffer%max2d_real(1),len_dim(1))
-          buffer%max2d_real(2) = max(buffer%max2d_real(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)
+            buffer%max2d_real(2) = max(buffer%max2d_real(2),stream%global_ni)
+          else
+            buffer%max2d_real(1) = max(buffer%max2d_real(1),len_dim(1))
+            buffer%max2d_real(2) = max(buffer%max2d_real(2),len_dim(2))
+          end if
         class is (ncvariable3d_real)
           buffer%lhas3dreal = .true.
-          buffer%max3d_real(1) = max(buffer%max3d_real(1),len_dim(1))
-          buffer%max3d_real(2) = max(buffer%max3d_real(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max3d_real(1) = max(buffer%max3d_real(1),stream%global_nj)
+            buffer%max3d_real(2) = max(buffer%max3d_real(2),stream%global_ni)
+          else
+            buffer%max3d_real(1) = max(buffer%max3d_real(1),len_dim(1))
+            buffer%max3d_real(2) = max(buffer%max3d_real(2),len_dim(2))
+          end if
           buffer%max3d_real(3) = max(buffer%max3d_real(3),len_dim(3))
         class is (ncvariable4d_real)
           buffer%lhas4dreal = .true.
-          buffer%max4d_real(1) = max(buffer%max4d_real(1),len_dim(1))
-          buffer%max4d_real(2) = max(buffer%max4d_real(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max4d_real(1) = max(buffer%max4d_real(1),stream%global_nj)
+            buffer%max4d_real(2) = max(buffer%max4d_real(2),stream%global_ni)
+          else
+            buffer%max4d_real(1) = max(buffer%max4d_real(1),len_dim(1))
+            buffer%max4d_real(2) = max(buffer%max4d_real(2),len_dim(2))
+          end if
           buffer%max4d_real(3) = max(buffer%max4d_real(3),len_dim(3))
           buffer%max4d_real(4) = max(buffer%max4d_real(4),len_dim(4))
         class is (ncvariable1d_integer)
@@ -943,17 +1029,32 @@ module mod_ncstream
           buffer%max1d_int(1) =  max(buffer%max1d_int(1),len_dim(1))
         class is (ncvariable2d_integer)
           buffer%lhas2dint = .true.
-          buffer%max2d_int(1) = max(buffer%max2d_int(1),len_dim(1))
-          buffer%max2d_int(2) = max(buffer%max2d_int(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max2d_int(1) = max(buffer%max2d_int(1),len_dim(1))
+            buffer%max2d_int(2) = max(buffer%max2d_int(2),len_dim(2))
+          else
+            buffer%max2d_int(1) = max(buffer%max2d_int(1),stream%global_nj)
+            buffer%max2d_int(2) = max(buffer%max2d_int(2),stream%global_ni)
+          end if
         class is (ncvariable3d_integer)
           buffer%lhas3dint = .true.
-          buffer%max3d_int(1) = max(buffer%max3d_int(1),len_dim(1))
-          buffer%max3d_int(2) = max(buffer%max3d_int(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max3d_int(1) = max(buffer%max3d_int(1),len_dim(1))
+            buffer%max3d_int(2) = max(buffer%max3d_int(2),len_dim(2))
+          else
+            buffer%max3d_int(1) = max(buffer%max3d_int(1),stream%global_nj)
+            buffer%max3d_int(2) = max(buffer%max3d_int(2),stream%global_ni)
+          end if
           buffer%max3d_int(3) = max(buffer%max3d_int(3),len_dim(3))
         class is (ncvariable4d_integer)
           buffer%lhas4dint = .true.
-          buffer%max4d_int(1) = max(buffer%max4d_int(1),len_dim(1))
-          buffer%max4d_int(2) = max(buffer%max4d_int(2),len_dim(2))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max4d_int(1) = max(buffer%max4d_int(1),len_dim(1))
+            buffer%max4d_int(2) = max(buffer%max4d_int(2),len_dim(2))
+          else
+            buffer%max4d_int(1) = max(buffer%max4d_int(1),stream%global_nj)
+            buffer%max4d_int(2) = max(buffer%max4d_int(2),stream%global_ni)
+          end if
           buffer%max4d_int(3) = max(buffer%max4d_int(3),len_dim(3))
           buffer%max4d_int(4) = max(buffer%max4d_int(4),len_dim(4))
         class default
@@ -1036,6 +1137,7 @@ module mod_ncstream
             id_dim(ic) = stream%id_dims(water_depth_dim)
             len_dim(ic) = stream%len_dims(water_depth_dim)
           case default
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) 'Not in list. Known dimension codes: xyztbT2wsd'
             call die('nc_stream', &
               'Cannot select dimension '//safecode(ic:ic)//' on file '// &
@@ -1060,10 +1162,10 @@ module mod_ncstream
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id,var%rval, &
+            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
           else
-            i_nc_status = nf90_put_var(stream%id,var%id,var%rval(1))
+            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
           end if
         class is (ncvariable1d_real)
           if ( var%lrecords ) then
@@ -1071,94 +1173,97 @@ module mod_ncstream
             stream%icount(1) = var%nval(1)
             stream%istart(2) = stream%irec
             stream%icount(2) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%realbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_real)
           buffer%realbuff(1:size(buffer%rbuf2d)) = &
             reshape(buffer%rbuf2d,(/size(buffer%rbuf2d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = stream%irec
-            stream%icount(3) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          if ( var%lrecords ) then
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_real)
           buffer%realbuff(1:size(buffer%rbuf3d)) = &
             reshape(buffer%rbuf3d,(/size(buffer%rbuf3d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = stream%irec
-            stream%icount(4) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          if ( var%lrecords ) then
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_real)
           buffer%realbuff(1:size(buffer%rbuf4d)) = &
             reshape(buffer%rbuf4d,(/size(buffer%rbuf4d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = 1
-            stream%icount(4) = var%nval(4)
-            stream%istart(5) = stream%irec
-            stream%icount(5) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%realbuff,stream%istart(1:5),stream%icount(1:5))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = 1
-            stream%icount(4) = var%nval(4)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          stream%istart(4) = 1
+          stream%icount(4) = var%nval(4)
+          if ( var%lrecords ) then
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%realbuff,stream%istart(1:5),stream%icount(1:5))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%realbuff,stream%istart(1:4),stream%icount(1:4))
           end if
         class is (ncvariable0d_integer)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id,var%ival, &
+            ncstat = nf90_put_var(stream%id,var%id,var%ival, &
               stream%istart(1:1),stream%icount(1:1))
           else
-            i_nc_status = nf90_put_var(stream%id,var%id,var%ival(1))
+            ncstat = nf90_put_var(stream%id,var%id,var%ival(1))
           end if
         class is (ncvariable1d_integer)
           if ( var%lrecords ) then
@@ -1166,93 +1271,98 @@ module mod_ncstream
             stream%icount(1) = var%nval(1)
             stream%istart(2) = stream%irec
             stream%icount(2) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%intbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_integer)
           buffer%intbuff(1:size(buffer%ibuf2d)) = &
             reshape(buffer%ibuf2d,(/size(buffer%ibuf2d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = stream%irec
-            stream%icount(3) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          if ( var%lrecords ) then
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_integer)
           buffer%intbuff(1:size(buffer%ibuf3d)) = &
             reshape(buffer%ibuf3d,(/size(buffer%ibuf3d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = stream%irec
-            stream%icount(4) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          if ( var%lrecords ) then
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_integer)
           buffer%intbuff(1:size(buffer%ibuf4d)) = &
             reshape(buffer%ibuf4d,(/size(buffer%ibuf4d)/))
-          if ( var%lrecords ) then
-            stream%istart(1) = 1
-            stream%icount(1) = var%nval(1)
-            stream%istart(2) = 1
-            stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = 1
-            stream%icount(4) = var%nval(4)
-            stream%istart(5) = stream%irec
-            stream%icount(5) = 1
-            i_nc_status = nf90_put_var(stream%id,var%id, &
-              buffer%intbuff,stream%istart(1:5),stream%icount(1:5))
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%icount(1) = stream%jparbound(2)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(2) = stream%iparbound(2)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
             stream%istart(2) = 1
             stream%icount(2) = var%nval(2)
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-            stream%istart(4) = 1
-            stream%icount(4) = var%nval(4)
-            i_nc_status = nf90_put_var(stream%id,var%id, &
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          stream%istart(4) = 1
+          stream%icount(4) = var%nval(4)
+          if ( var%lrecords ) then
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            ncstat = nf90_put_var(stream%id,var%id, &
+              buffer%intbuff,stream%istart(1:5),stream%icount(1:5))
+          else
+            ncstat = nf90_put_var(stream%id,var%id, &
               buffer%intbuff,stream%istart(1:4),stream%icount(1:4))
           end if
         class default
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
             'Cannot write variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
       end select
-      if ( i_nc_status /= nf90_noerr ) then
-        write (stderr,*) nf90_strerror(i_nc_status)
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        write(stderr,*) nf90_strerror(ncstat)
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
@@ -1264,9 +1374,9 @@ module mod_ncstream
       character(len=*) , intent(out) :: cdum
       logical , intent(in) :: yesno
       if (yesno) then
-        write (cdum,'(a)') 'Yes'
+        write(cdum,'(a)') 'Yes'
       else
-        write (cdum,'(a)') 'No'
+        write(cdum,'(a)') 'No'
       end if
     end subroutine cdumlogical
 
@@ -1291,7 +1401,7 @@ module mod_ncstream
         'http://gforge.ictp.it/gf/project/regcm'))
       call add_attribute(stream,ncattribute_string('model_revision',SVN_REV))
       call date_and_time(values=tvals)
-      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
+      write(history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
         ' : Created by RegCM '//trim(stream%progname)//' program'
@@ -1377,6 +1487,7 @@ program test
   use mod_dynparam
 
   type(nc_output_stream) :: ncout
+  type(ncstream_params) :: opar
 
   type(ncvariable0d_integer) :: var0dint
   type(ncvariable1d_real) :: var1dreal
@@ -1437,8 +1548,9 @@ program test
   var3dreal%cell_method = 'time: mean'
 
   ! Setup an output stream
-  call outstream_setup(ncout,'testfile.nc','prog', &
-                       zero_time=256188.0,l_bound=.true.)
+  opar%zero_time = 256188.0
+  opar%l_bound = .true.
+  call outstream_setup(ncout,opar)
 
   ! Add variables with different dimensions. Can be in a loop !!
   call outstream_addvar(ncout,var0dint)
