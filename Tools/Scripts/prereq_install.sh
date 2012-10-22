@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# INSTALL NETCDF V3 LIBRARY IN DEST.
+# INSTALL NETCDF and MPI2 LIBRARY IN DEST.
 #
 # Requires wget program
 #
@@ -15,12 +15,13 @@
 
 if [ -z "$DEST" ]
 then
-  echo "SCRIPT TO INSTALL NETCDF V4 LIBRARY"
+  echo "SCRIPT TO INSTALL NETCDF V4 and MPICH2 LIBRARIES."
   echo "EDIT ME TO DEFINE DEST, CC AND FC VARIABLE"
   exit 1
 fi
 
 UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
+MCS=https://www.mcs.anl.gov/research/projects/mpich2/downloads/tarballs/1.5
 
 WGET=`which wget 2> /dev/null`
 if [ -z "$WGET" ]
@@ -29,20 +30,20 @@ then
   exit 1
 fi
 
-echo "This script installs the netCDF library in the $DEST directory."
+echo "This script installs the netCDF/mpi librares in the $DEST directory."
 echo "If something goes wrong, logs are saved in $DEST/logs"
 
 cd $DEST
 mkdir $DEST/logs
 echo "Downloading ZLIB library..."
-$WGET http://zlib.net/zlib-1.2.7.tar.gz -o $DEST/logs/download_Z.log
+$WGET -c http://zlib.net/zlib-1.2.7.tar.gz -o $DEST/logs/download_Z.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading ZLIB library from zlib.net"
   exit 1
 fi
 echo "Downloading HDF5 library..."
-$WGET http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.9.tar.gz \
+$WGET -c http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.9.tar.gz \
       -o $DEST/logs/download_H.log
 if [ $? -ne 0 ]
 then
@@ -50,36 +51,66 @@ then
   exit 1
 fi
 echo "Downloading netCDF Library..."
-$WGET $UNIDATA/netcdf-4.2.1.1.tar.gz -o $DEST/logs/download_C.log
+$WGET -c $UNIDATA/netcdf-4.2.1.1.tar.gz -o $DEST/logs/download_C.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF C library from www.unidata.ucar.edu"
   exit 1
 fi
-$WGET $UNIDATA/netcdf-fortran-4.2.tar.gz -o $DEST/logs/download_F.log
+$WGET -c $UNIDATA/netcdf-fortran-4.2.tar.gz -o $DEST/logs/download_F.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF Fortran library from www.unidata.ucar.edu"
   exit 1
 fi
+echo "Downloading MPICH2 Library..."
+wget -c $MCS/mpich2-1.5.tar.gz -o $DEST/logs/download_M.log
+if [ $? -ne 0 ]
+then
+  echo "Error downloading MPICH2 from MCS website"
+  exit 1
+fi
 
+echo "Compiling MPI2 library."
+tar zxvf mpich2-1.5.tar.gz > /dev/null
+if [ $? -ne 0 ]
+then
+  echo "Error uncompressing mpich2 library"
+  exit 1
+fi
+cd mpich2-1.5
+CC="$CC" FC="$FC" ./configure --prefix=$DEST > $DEST/logs/configure.log 2>&1
+make > $DEST/logs/compile.log 2>&1 && \
+  make install > $DEST/logs/install.log 2>&1
+if [ $? -ne 0 ]
+then
+  echo "Error compiling mpich2 library"
+  exit 1
+fi
+cd $DEST
+rm -fr mpich2-1.5
 echo "Compiling zlib Library."
-tar zxvf zlib-1.2.7.tar.gz
+tar zxvf zlib-1.2.7.tar.gz > /dev/null
+if [ $? -ne 0 ]
+then
+  echo "Error uncompressing zlib library"
+  exit 1
+fi
 cd zlib-1.2.7
 CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
              $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && \
-  make install > $DEST/logs/install.log 2>&1
+make >> $DEST/logs/compile.log 2>&1 && \
+  make install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling zlib library"
   exit 1
 fi
 cd $DEST
-rm -fr zlib-1.2.7*
+rm -fr zlib-1.2.7
 echo "Compiled Zlib library."
 echo "Compiling HDF5 library."
-tar zxvf hdf5-1.8.9.tar.gz
+tar zxvf hdf5-1.8.9.tar.gz > $DEST/logs/extract.log
 cd hdf5-1.8.9
 ./configure CC="$CC" --prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
@@ -91,7 +122,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr hdf5-1.8.9*
+rm -fr hdf5-1.8.9
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
 tar zxvf netcdf-4.2.1.1.tar.gz > $DEST/logs/extract.log
@@ -107,7 +138,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-4.2.1.1*
+rm -fr netcdf-4.2.1.1
 echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-4.2.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-4.2
@@ -122,15 +153,17 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-fortran-4.2*
+rm -fr netcdf-fortran-4.2
 
 # Done
 echo "Done!"
-echo "To link RegCM with this library use:"
+echo "To link RegCM with this librares use:"
 echo
-echo  --with-netcdf=$DEST
+echo  PATH=$DEST/bin:$PATH ./configure CC=$CC FC=$FC '\'
+echo         CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib '\'
+echo         LIBS=\"-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz\"
 echo
 
 echo "Cleanup..."
-rm -fr $DEST/share $DEST/logs $DEST/lib/pkgconfig $DEST/lib/*.la
+mkdir src && mv *gz src || exit 1
 exit 0
