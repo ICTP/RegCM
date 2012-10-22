@@ -30,8 +30,14 @@ then
   exit 1
 fi
 
-echo "This script installs the netCDF/mpi librares in the $DEST directory."
-echo "If something goes wrong, logs are saved in $DEST/logs"
+echo "This script installs the netCDF/mpi librares in the"
+echo
+echo -e "\t $DEST"
+echo
+echo "directory. If something goes wrong, logs are saved in"
+echo
+echo -e "\t$DEST/logs"
+echo
 
 cd $DEST
 mkdir $DEST/logs
@@ -89,6 +95,7 @@ then
 fi
 cd $DEST
 rm -fr mpich2-1.5
+echo "Compiled MPI2 library."
 echo "Compiling zlib Library."
 tar zxvf zlib-1.2.7.tar.gz > /dev/null
 if [ $? -ne 0 ]
@@ -108,7 +115,7 @@ then
 fi
 cd $DEST
 rm -fr zlib-1.2.7
-echo "Compiled Zlib library."
+echo "Compiled zlib library."
 echo "Compiling HDF5 library."
 tar zxvf hdf5-1.8.9.tar.gz > $DEST/logs/extract.log
 cd hdf5-1.8.9
@@ -154,6 +161,7 @@ then
 fi
 cd $DEST
 rm -fr netcdf-fortran-4.2
+echo "Compiled netCDF Fortran library."
 
 # Done
 echo "Done!"

@@ -339,10 +339,10 @@ module mod_ncstream
       end if
 #else
       if ( params%mpi_comm /= -1 ) then
-        iomode = ior(nf90_pnetcdf,nf90_clobber)
-        ncstat = nf90_create_par(stream%filename,iomode, &
-          params%mpi_comm,params%mpi_info,stream%id)
-        stream%l_parallel = .true.
+        !iomode = ior(nf90_pnetcdf,nf90_clobber)
+        !ncstat = nf90_create_par(stream%filename,iomode, &
+        !  params%mpi_comm,params%mpi_info,stream%id)
+        !stream%l_parallel = .true.
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
       else

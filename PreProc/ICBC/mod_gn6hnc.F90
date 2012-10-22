@@ -145,7 +145,9 @@ module mod_gn6hnc
   character(3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: echvars = &
-                         (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , '   '/)
+                         (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
+  character(3) , target , dimension(nvars) :: ec5vars = &
+                         (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
   character(3) , target , dimension(nvars) :: csirvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(3) , target , dimension(nvars) :: mpievars = &
