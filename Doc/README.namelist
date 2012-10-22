@@ -380,23 +380,27 @@
                            !   SUCA : Activate both SUKF and CARB
                            !   AERO : Activate all DUST, SSLT, CARB and SULF
                            !   CBMZ : Activate gas phase and sulfate
- ichsolver = 1, ! Activate the chemical solver
- idirect   = 1, ! enable or not aerosol feedbacks on radiation and
-                ! dynamics (aerosol direct and semi direct effcts):
-                !  0 = no coupling. Aerosol are only transported and
-                !      don't interact with radiation scheme.
-                !  1 = no coupling to dynamic and thermodynamic. However
-                !      the clear sky surface and top of atmosphere 
-                !      aerosol radiative forcings are diagnosed.
-                !  2 = allows aerosol feedbacks on radiative,
-                !      thermodynamic and dynamic fields.
- ichdrdepo = 0, ! 1 = enable tracer surface dry deposition. For dust,
-                !     it is calculated by a size settling and dry
-                !     deposition scheme. For other aerosol,a dry
-                !     deposition velocity is simply prescribed further.
-                !     Next release will include an improved aerosol dry
-                !     deposition scheme for non dust aerosols.
- ichcumtra = 1, ! 1 = enable tracer convective transport and mixing.
+                           !   DCBB : Activate CBMZ +DUST +CARB
+ ichsolver = 1,  ! Activate the chemical solver
+ ichsursrc = 1,  ! Enable the emissions.
+ ichdrdepo = 0,  ! 1 = enable tracer surface dry deposition. For dust,
+                 !     it is calculated by a size settling and dry
+                 !     deposition scheme. For other aerosol,a dry
+                 !     deposition velocity is simply prescribed further.
+ ichcumtra = 1,  ! 1 = enable tracer convective transport and mixing.
+ ichremlsc = 1,  ! 1 = wet removal of chemical species (washout and rainout
+                 !     by total rain) is enabled
+ ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
+                 ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
+                 ! 2 = use the the revised soil granulometry + Kok et al., 2011
+ ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
+ idirect   = 1,  ! CHoice to enable or not aerosol feedbacks on radiation and
+                 ! dynamics (aerosol direct and semi direct effcts):
+                 ! 1 = no coupling to dynamic and thermodynamic. However
+                 !     the clear sky surface and top of atmosphere 
+                 !     aerosol radiative forcings are diagnosed.
+                 ! 2 = allows aerosol feedbacks on radiative,
+                 !     thermodynamic and dynamic fields.
  /
 !
 ! CLM parameters

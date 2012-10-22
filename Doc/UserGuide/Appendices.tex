@@ -7,8 +7,8 @@
 We will review here a sample installation session of software needed to
 install the RegCM model.
 
-The starting point is here a Linux system on a multicore processor box, and the final
-goal is to have an optimized system to run the model.
+The starting point is here a Linux system on a multicore processor box, and
+the final goal is to have an optimized system to run the model.
 I will use \verb=bash= as my shell and assume that GNU development tools like
 \verb=make=, \verb=sed=, \verb=awk= are installed as part of the default
 Operating System environment as is the case in most Linux distro.
@@ -16,7 +16,7 @@ I will require also for commodity a command line web downloader such as
 \verb=curl= installed on the system, along its development libraries to be
 used to enable OpenDAP remote data access protocol capabilities of netCDF
 library. Standard file management tools such as \verb=tar= and \verb=gzip=
-are also required.
+and \verb=wget= are also required.
 The symbol \verb=$>= will stand for a shell prompt.
 I will assume that the process is performed as a normal system user, which
 will own all the toolchain. I will be now just the \verb=regcm= user.
@@ -92,7 +92,7 @@ software as well (most complete distribution I am aware of for this is Fedora:
 all needed software is packaged and it is a matter of yum install).
 
 So let us assume I have licensed the Intel Composer XE Professional Suite
-12.0.2 on my laptop. My system administrator installed it on the default
+13.0.0 on my laptop. My system administrator installed it on the default
 location under \verb=/opt/intel=, and I have my shell environment update
 loading vendor provided script:
 
@@ -109,9 +109,8 @@ type the following command:
 
 \begin{Verbatim}
 $> ifort --version
-ifort (IFORT) 12.0.2 20110112
-Copyright (C) 1985-2011 Intel Corporation.  All rights reserved.
-
+ifort (IFORT) 13.0.0 20120731
+Copyright (C) 1985-2012 Intel Corporation.  All rights reserved.
 \end{Verbatim}
 
 I am skipping here any problem that may arise from license installation for any
@@ -128,8 +127,6 @@ On my system (see the above processor informations) I will use:
 $> # Where all the software will be installed ?
 $> # I am chosing here a place under my home directory.
 $> export INTELROOT=/home/regcm/intelsoft
-$> export INTELSRC=/home/regcm/intelsoft/src
-$> mkdir -p $INTELROOT/{bin,include,lib,share/man,src}
 $> # the C compiler. I am assuming here to have the whole Intel
 $> # Composer XE suite, so I will use the intel C compiler.
 $> export CC=icc
@@ -161,137 +158,53 @@ Depending on the above compiler selected, those flags my differ for you, but the
 concept is that I am selecting a performance target build for the machine I am
 on. I am now ready to compile software.
 
-\section{Compression Library Installation}
+\section{Pre requisite library installation}
 
-To have a complete optimized stack, I will compile also here the compression
-libraries optionally needed by HDF5 library.
+To build a complete optimized stack, a sample script have been added
+in \verb=Tools/Script/prereq_install.sh=
+This help script will build netCDF V4 and MPICH2 libraries to be used to
+compile the RegCM model.
+Following the above settings, the script must be edited in the first lines
+setting the \verb=DEST= variable to \verb=$INTELROOT=.
 
-I will need the sources:
+Then we can just execute the script:
 
 \begin{Verbatim}
-$> cd $INTELSRC
-$> curl -o zlib-1.2.5.tar.gz http://zlib.net/zlib-1.2.5.tar.gz
-$> curl -o szip-2.1.tar.gz \
-> http://www.hdfgroup.org/ftp/lib-external/szip/2.1/src/szip-2.1.tar.gz
+$> ./prereq_install.sh
+This script installs the netCDF/mpi librares in the:
+    /home/regcm/intelsoft
+directory.
+If something goes wrong, logs are saved in:
+    /home/regcm/intelsoft/logs
+Downloading ZLIB library...
+Downloading HDF5 library...
+Downloading netCDF Library...
+Downloading MPICH2 Library...
+Compiling MPI2 library.
+Compiled MPI2 library.
+Compiling zlib Library.
+Compiled Zlib library.
+Compiling HDF5 library.
+Compiled HDF5 library.
+Compiling netCDF Library.
+Compiled netCDF C library.
+Done!
+To link RegCM with this librares use:
+
+PATH=/home/regcm/intelsoft/bin:$PATH ./configure \
+  CC=icc FC=ifort \
+  CPPFLAGS=-I/home/regcm/intelsoft/include \
+  LDFLAGS=-L/home/regcm/intelsoft/lib \
+  LIBS="-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz"
+
 \end{Verbatim}
 
-Please note that the szip library license allows to use that software only
-together with HDF5 library.
-
-Then I must decompress the sources:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> tar -zxvf zlib-1.2.5.tar.gz
-$> tar -zxvf szip-2.1.tar.gz
-\end{Verbatim}
-
-Let us start with zlib:
+The admins who must compile the pre requisite libraries are invited to look
+at the script, identifying the various steps.
+The normal user should be content of the last printout message which details
+how to use the just built libraries to compile RegCM model sources against.
+At run time an environment variable must be added to set correct paths:
 
 \begin{Verbatim}
-$> cd $INTELSRC
-$> cd zlib-1.2.5
-$> LDSHARED="icc -shared -Wl,-soname \
-> -Wl,libz.so.1,--version-script,zlib.map" \
-> ./configure --prefix=$INTELROOT
-$> make
-$> make check
-$> make install
-\end{Verbatim}
-
-This will install the zlib software under \verb=/home/regcm/intelsoft=.
-Let us continue with szip.
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> cd szip-2.1
-$> ./configure --prefix=$INTELROOT
-$> make
-$> make check
-$> make install
-\end{Verbatim}
-
-This will install the szip software under \verb=/home/regcm/intelsoft=.
-
-\section{HDF5 Library installation}
-
-Download the source pack:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> curl -o hdf5-1.8.6.tar.bz2 \
-> ftp://ftp.hdfgroup.org/HDF5/current/src/hdf5-1.8.6.tar.bz2
-\end{Verbatim}
-
-Install it:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> cd hdf5-1.8.6
-$> ./configure --prefix=$INTELROOT --enable-hl --enable-linux-lfs \
-> --enable-production --with-pic --docdir=$INTELROOT/share/doc/hdf5/ \
-> --with-szlib=$INTELROOT --with-zlib=$INTELROOT
-$> make
-$> make check
-$> make install
-\end{Verbatim}
-
-\section{netCDF Library installation}
-
-Download the source pack:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> curl -o netcdf-4.1.3.tar.gz \
-> http://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-4.1.3.tar.gz
-\end{Verbatim}
-
-Install it:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> cd netcdf-4.1.3
-$> ./configure --prefix=$INTELROOT --enable-shared --enable-netcdf-4 \
-> --with-udunits --with-libcf --enable-dap-netcdf --enable-cxx-4 \
-> CPPFLAGS="$CPPFLAGS -I$INTELROOT/include" \
-> LDFLAGS="$LDFLAGS -L$INTELROOT/lib"
-$> make
-$> make check
-$> make install
-\end{Verbatim}
-
-\section{OpenMPI library installation}
-
-This optional step will install OpenMPI message passing library to enable
-parallel run of the RegCM model using all cores of my processor.
-Download the souece pack:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> curl -o openmpi-1.4.3.tar.bz2 \
-> http://www.open-mpi.org/software/ompi/v1.5/downloads/openmpi-1.4.3.tar.bz2
-\end{Verbatim}
-
-Install it:
-
-\begin{Verbatim}
-$> cd $INTELSRC
-$> cd openmpi-1.4.3
-$> ./configure --prefix=$INTELROOT --sysconfdir=$INTELROOT/etc/openmpi \
-> --mandir=$INTELROOT/share/man --libdir=$INTELROOT/lib --enable-mpi-f90 
-$> make
-$> make check
-$> make install
-\end{Verbatim}
-
-\section{Final step}
-
-To enable all the ready installed software to be used by the regcm user whenever
-it logs in the box, edit the \verb=.bashrc= file in the home directory and add
-the following lines:
-
-\begin{Verbatim}
-export PATH=$INTELROOT/bin:$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INTELROOT/lib
-export MANPATH=$INTELROOT/share/man:$MANPATH
+$> export PATH=/home/regcm/intelsoft/bin:$PATH
 \end{Verbatim}
