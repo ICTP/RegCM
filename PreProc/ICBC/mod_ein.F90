@@ -153,7 +153,7 @@ module mod_ein
     character(4) , dimension(4) :: hname
     real(rk8) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year , month , day , hour , monthp1
     integer(ik4) , save :: lastmonth , lastyear
     !
     ! This is the latitude, longitude dimension of the grid to be read.
@@ -174,8 +174,10 @@ module mod_ein
       if ( idate == idate0 .or. month /= lastmonth ) then
         lastmonth = month
         do kkrec = 1 , 5
+          monthp1 = month+1
+          if ( monthp1 == 13 ) monthp1 = 1
           write(inname,'(a,i0.2,a,i0.2,a)') &
-             varname(kkrec)//'_xxxx',month,'0100-xxxx',month+1,'0100.nc'
+             varname(kkrec)//'_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
           pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
                         pthsep//'XXXX'//pthsep//inname
           istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
