@@ -426,7 +426,7 @@ module mod_che_drydep
             ! 
             cfac(i,l,n) = 1.0D0 + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = dmax1(priiv*avesize(n)**2.0D0*cfac(i,l,n) * &
+            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n) * &
                             regrav,0.D0)
             !
             ! ********************************************************
@@ -504,7 +504,7 @@ module mod_che_drydep
                 st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
                 eb = schm(i)**(-0.666667D0)
 !               eim=(st/(st+aest(k)))**2
-                eim = (st/(st+aest(kcov)))**2.0D0
+                eim = (st/(st+aest(kcov)))**2
                 eim = dmin1(eim,0.6D0)
                 ein = 0.0D0
 !               if (arye(k) > 0.0001D0) then
@@ -525,7 +525,7 @@ module mod_che_drydep
                 ! * r = exp (- st^0.2)                            *****
                 ! *****************************************************
  
-                r1 = dmax1(0.5D0,exp(-st**0.5D0))
+                r1 = dmax1(0.5D0,exp(-sqrt(st)))
                 if ( kcov >= 11 .and. r1 < 0.5D0 ) r1 = 0.5D0
                 if ( r1 < 0.4D0 ) r1 = 0.4D0
                 ! ***************************************************
@@ -875,7 +875,7 @@ module mod_che_drydep
             cun = 7.5D-4 + 6.7D-5*ww
             mol = 9999.0D0
             if ( abs(dthv) > 1.0D-6 ) then
-              mol = vptemp*cun**1.5D0*ww**2.0D0/(5.096D-3*dthv)
+              mol = vptemp*cun**1.5D0*ww**2/(5.096D-3*dthv)
             end if
             if ( mol > 0.0D0  .and. mol < 5.0D0 ) mol =  5.0D0
             if ( mol > -5.0D0 .and. mol < 0.0D0 ) mol = -5.0D0
@@ -907,7 +907,7 @@ module mod_che_drydep
             ! * water use louis method. !pkk 7/16/85, find bulk
             ! * richardson number.
             ! **************************************************************
-            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2.0D0)
+            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
             ! ***************************************************************
             ! * ensure that conditions over land are never stable when
             ! * there is incoming solar radiation
@@ -918,7 +918,7 @@ module mod_che_drydep
             tbar = 0.5D0*(ptemp2+sutemp(i))
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
-            asq = 0.16D0/(logratio**2.0D0)
+            asq = 0.16D0/(logratio**2)
             if ( rib <= 0.0D0 ) then
               aa = asq*9.4D0*dsqrt(ratioz)
               cm = 7.4D0*aa
@@ -926,10 +926,10 @@ module mod_che_drydep
               fm = 1.0D0 - (9.4D0*rib/(1.0D0+cm*dsqrt(dabs(rib))))
               fh = 1.0D0 - (9.4D0*rib/(1.0D0+ch*dsqrt(dabs(rib))))
             else
-              fm = 1.0D0/((1.0D0+4.7D0*rib)**2.0D0)
+              fm = 1.0D0/((1.0D0+4.7D0*rib)**2)
               fh = fm
             end if
-            ustarsq = asq*ww**2.0D0*fm
+            ustarsq = asq*ww**2*fm
             utstar = asq*ww*dtemp*fh/0.74D0
             ustar(i,j) = dsqrt(ustarsq)
             thstar = utstar/ustar(i,j)
@@ -1196,13 +1196,13 @@ module mod_che_drydep
             rcuts_f = 1.D25
 !           print *, 'RCUT === ', rcuto_f,rcuts_f 
           else if ( is_rain ) then
-            rcuto_f = rcutwo(kcov)/lai_f(i)**0.5D0/ustar(i,j)
-            rcuts_f = 50.0D0/lai_f(i)**0.5D0/ustar(i,j)
+            rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
+            rcuts_f = 50.0D0/sqrt(lai_f(i))/ustar(i,j)
             rcuts_f = dmax1(rcuts_f, 20.D0)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f 
           else if ( is_dew ) then
-            rcuto_f = rcutwo(kcov)/lai_f(i)**0.5D0/ustar(i,j)
-            rcuts_f = 100.0D0/lai_f(i)**0.5D0/ustar(i,j)
+            rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
+            rcuts_f = 100.0D0/sqrt(lai_f(i))/ustar(i,j)
             rcuts_f = dmax1(rcuts_f, 20.D0)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f 
           else if (ts(i) < 272.156D0 ) then
@@ -1252,7 +1252,7 @@ module mod_che_drydep
           do ig = 1 , igas
             dgas = 0.369D0 * mw(ig) + 6.29D0
             di = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0 + mw(ig))/mw(ig)/29.D0)
-            di = di/1.0D0/(dair**0.3333D0 + dgas**0.3333D0)**2.0D0
+            di = di/1.0D0/(dair**0.3333D0 + dgas**0.3333D0)**2
             vi = 145.8D0 * 1.D-4 * (ts(i) * 0.5D0 + t2(i) *0.5D0)**1.5D0/ &
                  (ts(i) * 0.5D0 + t2(i) *0.5D0 + 110.4D0)
             !================================================================
@@ -1265,7 +1265,7 @@ module mod_che_drydep
             ! of  diffusity of water vapor to the gas species
             !================================================================
             dvh2o = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0+18.0D0)/29.0D0/18.0D0)
-            dvh2o = dvh2o/(dair**0.3333D0 + dh2o**0.3333D0)**2.0D0
+            dvh2o = dvh2o/(dair**0.3333D0 + dh2o**0.3333D0)**2
             rstom = rst * dVh2o/di + rm(ig) 
             ! (rst <999) for bare surfaces)
             !================================================================

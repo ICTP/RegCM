@@ -279,7 +279,7 @@ module mod_cbmz_rates1
           nr1 = nr1+1
           ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
           ratero2(kk,nr1,1) = ratek(kk,j)
-          ratero2(kk,nr1,2) = (c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk)))**0.5D0
+          ratero2(kk,nr1,2) = sqrt(c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk)))
         end if
         !
         ! REACTION ON SULFATE AEROSOL SURFACES.  c_nrk(j) = -20
@@ -290,7 +290,7 @@ module mod_cbmz_rates1
         !
         if ( c_nrk(j) == -20 ) then
           ratek(kk,j) = c_saersa(kk) * (0.25D0*c_rk(1,j)) * &
-             ((8.0D0*rumolec*c_temp(kk))/(mathpi*c_rk(2,j)))**0.5D0
+             sqrt((8.0D0*rumolec*c_temp(kk))/(mathpi*c_rk(2,j)))
         end if
         !
         ! END SET ALL RATE CONSTANTS LOOP

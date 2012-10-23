@@ -232,7 +232,7 @@ module mod_mksst
           if ( i < 1 .or. i > iy ) cycle
           if ( j < 1 .or. j > jx ) cycle
           if ( sst(j,i) > -900.0 ) then
-            wt = 1.0/sqrt(real(i-ip)**2.0+real(j-jp)**2.0)
+            wt = 1.0/sqrt(real(i-ip)**2+real(j-jp)**2)
             nearn = nearn + sst(j,i)*wt
             wtsum = wtsum + wt
             np = np + 1

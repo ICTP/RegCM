@@ -440,10 +440,10 @@ module mod_interp
         jc1dr(i,j) = ndr
         ic1dl(i,j) = mdl
         jc1dl(i,j) = ndl
-        dc1xa(i,j) = (1.0/dista)**2.0
-        dc1xb(i,j) = (1.0/distb)**2.0
-        dc1xc(i,j) = (1.0/distc)**2.0
-        dc1xd(i,j) = (1.0/distd)**2.0
+        dc1xa(i,j) = (1.0/dista)**2
+        dc1xb(i,j) = (1.0/distb)**2
+        dc1xc(i,j) = (1.0/distc)**2
+        dc1xd(i,j) = (1.0/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
@@ -630,10 +630,10 @@ module mod_interp
         jd1dr(i,j) = ndr
         id1dl(i,j) = mdl
         jd1dl(i,j) = ndl
-        dd1xa(i,j) = (1.0/dista)**2.0
-        dd1xb(i,j) = (1.0/distb)**2.0
-        dd1xc(i,j) = (1.0/distc)**2.0
-        dd1xd(i,j) = (1.0/distd)**2.0
+        dd1xa(i,j) = (1.0/dista)**2
+        dd1xb(i,j) = (1.0/distb)**2
+        dd1xc(i,j) = (1.0/distc)**2
+        dd1xd(i,j) = (1.0/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'

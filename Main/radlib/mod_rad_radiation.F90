@@ -3243,7 +3243,7 @@ module mod_rad_radiation
             f1sqwp = f1co2*sqwp
             t1co2 = d_one/(d_one+(245.18D0*omet*sqwp*rsqti))
             oneme = d_one - et2
-            alphat = oneme**3.0D0*rsqti
+            alphat = oneme**3*rsqti
             pi = dabs(dpnm)
             wco2 = 2.5221D0*co2vmr*pi*regravgts
             u7 = 4.9411D4*alphat*et2*wco2
@@ -3501,7 +3501,7 @@ module mod_rad_radiation
           f1sqwp = f1co2*sqwp
           t1co2 = d_one/(d_one+(245.18D0*omet*sqwp*rsqti))
           oneme = d_one - et2
-          alphat = oneme**3.0D0*rsqti
+          alphat = oneme**3*rsqti
           pi = dabs(dpnm)*winpl(n,kn)
           wco2 = 2.5221D0*co2vmr*pi*regravgts
           u7 = 4.9411D4*alphat*et2*wco2
@@ -3912,7 +3912,7 @@ module mod_rad_radiation
         f1sqwp = f1co2*sqwp
         t1co2 = d_one/(d_one+245.18D0*omet*sqwp*rsqti)
         oneme = d_one - et2
-        alphat = oneme**3.0D0*rsqti
+        alphat = oneme**3*rsqti
         wco2 = 2.5221D0*co2vmr*pint(n,k)*regravgts
         u7 = 4.9411D4*alphat*et2*wco2
         u8 = 3.9744D4*alphat*et4*wco2

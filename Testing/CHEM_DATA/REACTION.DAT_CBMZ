@@ -460,7 +460,7 @@ c  u = Fc, base for exponent in log-T-P adjustment, always 0.6 in NASA.
 
       f1=b*((tempx/300.)**c)*denx
       f2=f1/( d * ((tempx/300.)**e))
-      ee= 1. / ( 1 + (log10(f2))**2. )
+      ee= 1. / ( 1 + (log10(f2))**2 )
       bod = (f1/(1+f2) ) * u ** ee
 NOTES bod finished.
 

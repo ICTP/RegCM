@@ -1818,15 +1818,15 @@ module physics_msis
       real(rk8) function sumex(ex)
         implicit none
         real(rk8) , intent(in) :: ex
-        sumex = d_one + (d_one-ex**19.0D0)/(d_one-ex)*ex**(d_half)
+        sumex = d_one + (d_one-ex**19)/(d_one-ex)*sqrt(ex)
       end function sumex
 !     Eq. A24a
       real(rk8) function sg0(ex)
         implicit none
         real(rk8) , intent(in) :: ex
         sg0 = (g0(ap(2))+(g0(ap(3))*ex+g0(ap(4))*ex*ex + &
-               g0(ap(5))*ex**3.0D0+(g0(ap(6))*ex**4 +    &
-               g0(ap(7))*ex**12.0D0)*(d_one-ex**8.0D0)/(d_one-ex)))/sumex(ex)
+               g0(ap(5))*ex**3+(g0(ap(6))*ex**4 +    &
+               g0(ap(7))*ex**12)*(d_one-ex**8)/(d_one-ex)))/sumex(ex)
       end function sg0
     end function globe7
 !

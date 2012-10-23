@@ -901,7 +901,7 @@ module mod_mtrxclm
           fbat(j,i,t2mx_o) = amax1(fbat(j,i,t2mx_o),fbat(j,i,t2m_o))
           fbat(j,i,t2mn_o) = amin1(fbat(j,i,t2mn_o),fbat(j,i,t2m_o))
           fbat(j,i,w10x_o) = amax1(fbat(j,i,w10x_o), &
-                        sqrt(fbat(j,i,u10m_o)**2.0+fbat(j,i,v10m_o)**2.0))
+                        sqrt(fbat(j,i,u10m_o)**2+fbat(j,i,v10m_o)**2))
           real_4      = real((pptnc(j,i)+pptc(j,i)))
           fbat(j,i,pcpx_o) = amax1(fbat(j,i,pcpx_o),real_4)
           fbat(j,i,pcpa_o) = fbat(j,i,pcpa_o) + real_4/fdaysrf

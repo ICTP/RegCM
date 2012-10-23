@@ -1382,7 +1382,7 @@ module mod_cbmz_solve1
             !    *      .or. c_tchem(ncsol(1)) == '    HBRG'
             ! xrr(kk, nc) =(xrr(kk,nc) **0.85) * (xrp(kk,nc)) **0.15
             ! xrr(kk, nc) =(xrr(kk,nc) **0.70) * (xrp(kk,nc)) **0.30
-            xrr(kk,nc) = (xrr(kk,nc) **0.50D0) * (xrp(kk,nc)) **0.50D0
+            xrr(kk,nc) = sqrt(xrr(kk,nc)) * sqrt(xrp(kk,nc))
           end if
         end if
         !
@@ -3220,7 +3220,7 @@ module mod_cbmz_solve1
           icc = ics
           if ( neq > 1 ) icc = c_ncequil(ics,(neq-1))
           if ( calpha(kk) >= 0.1D0*oddhsrc(kk,1) ) then
-!           xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**0.5)
+!           xc(kk,icc) = xc(kk,icc) * sqrt(oddhfac(kk))
             xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**geomavg(kk,ic2) )
           end if
         end do
@@ -3325,7 +3325,7 @@ module mod_cbmz_solve1
       ! senhcat(kk,3) = senhcat(kk,10)
       ! OPTION with GEOM MEAN
       !
-      senhcat(kk,3) = (senhcat(kk,10)**0.5D0)*(senhcat(kk,3)**0.5D0)
+      senhcat(kk,3) = sqrt(senhcat(kk,10))*sqrt(senhcat(kk,3))
       senhcat(kk,10) = senhcat(kk,3)
       !
       ! OLDER HO2-RO2 SENHCAT ALGORITHMS
@@ -4366,7 +4366,7 @@ module mod_cbmz_solve1
        !  TO REPRESENT DROPLET DIFFUSION LIMITATION
        !  (Lelieveld, J. At. Chem 12, 229, 1991 - see p. 241).
        !
-       !  Q = Cavg/Csurf = 3 (coth q /q - 1/q**2)**-1;  q=r*(ka/Da)**0.5
+       !  Q = Cavg/Csurf = 3 (coth q /q - 1/q**2)**-1;  q=r*sqrt(ka/Da)
        !
        !   where r= droplet radius (.001cm)  Da=droplet diffusion (2e-5 cm)
        !   ka = pseudo-1st-order aqueous loss rate.
@@ -4598,7 +4598,7 @@ module mod_cbmz_solve1
          ! MODIFY GAS/AQ RATIO FOR TROUBLESOME CONVERGENCE
          !
          if ( c_iter > 2 ) then
-           rhdif(kk,nrh) = (rhdif(kk,nrh)**0.5D0)*(prior(kk)**0.5D0)
+           rhdif(kk,nrh) = sqrt(rhdif(kk,nrh))*sqrt(prior(kk))
          end if
        end do
        ! -----------------------------------------------------------

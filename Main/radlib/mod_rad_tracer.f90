@@ -769,11 +769,11 @@ module mod_rad_tracer
         do j = n1 , n2
 !           non-nearlest layer function
           abplnk1(wvl,j,k) = (f2(wvl)*dexp(f3(wvl)/tint(j,k)))        &
-                           & /(tint(j,k)**5.0D0*                      &
+                           & /(tint(j,k)**5*                      &
                            & (dexp(f3(wvl)/tint(j,k))-d_one)**2)
 !           nearest layer function
           abplnk2(wvl,j,k) = (f2(wvl)*dexp(f3(wvl)/tlayr(j,k)))       &
-                           & /(tlayr(j,k)**5.0D0*                     &
+                           & /(tlayr(j,k)**5*                     &
                            & (dexp(f3(wvl)/tlayr(j,k))-d_one)**2)
         end do
       end do
