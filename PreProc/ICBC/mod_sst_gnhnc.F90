@@ -107,9 +107,9 @@ module mod_sst_gnhnc
     write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
     varname(2) = 'sst'
   else if ( ssttyp == 'E5_A2' ) then
-    write(inpfile,'(a,i9,a,i9,a)') &
+    write(inpfile,'(a,i4,a,i4,a)') &
       trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
-      y1*100000+m1*1000+10,'0-',y2*100000+m2*1000+10,'0.nc'
+      y1,'010100-',y1+1,'010100.nc'
     varname(2) = 'tos'
   else
     call die('gnhnc_sst','Unknown ssttyp: '//ssttyp,1)
@@ -280,7 +280,7 @@ module mod_sst_gnhnc
     else if ( ssttyp == 'E5_A2' ) then
       write(inpfile,'(a,i9,a,i9,a)') &
         trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
-        y1*100000+m1*1000+10,'0-',y2*100000+m2*1000+10,'0.nc'
+        y1,'010100-',y1+1,'010100.nc'
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))

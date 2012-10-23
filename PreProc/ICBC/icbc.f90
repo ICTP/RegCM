@@ -190,7 +190,7 @@ program icbc
       call die('icbc','Calendar mismatch',1)
     end if
   end if
-  if (dattyp(1:3) == 'MP_' ) then
+  if (dattyp(1:3) == 'MP_' .or. dattyp(1:2) == 'E5' ) then
     if ( ical /= gregorian ) then
       write(stderr,*) 'Calendar should be set to gregorian'
       call die('icbc','Calendar mismatch',1)
@@ -238,7 +238,8 @@ program icbc
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
             dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
             dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-            dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' ) then
+            dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' .or. &
+            dattyp(1:2) == 'E5' ) then
     call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)
@@ -280,7 +281,8 @@ program icbc
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
               dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
               dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-              dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' ) then
+              dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' .or. &
+              dattyp(1:2) == 'E5' ) then
       call get_gn6hnc(idate)
     end if
     call writef(idate)

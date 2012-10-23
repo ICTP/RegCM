@@ -155,6 +155,9 @@ module mod_gn6hnc
 
   character(4) , dimension(nvars) :: ccsmfname = &
                          (/'air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres'/)
+  character(6) , target , dimension(nvars) :: ec5name = &
+                         (/'STP   ' , 'GPH   ' , 'RELHUM' , &
+                           'U     ' , 'V     ' , 'XXX   '/)
 
   character(3) , dimension(12) :: mname = &
                          (/'JAN','FEB','MAR','APR','MAY','JUN', &
@@ -214,6 +217,9 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/CSIRO-MK36/RF/ta/ta_6hrLev_CSIRO-Mk3-6-0_historical_'// &
             'r1i1p1_195001010600-195101010000.nc'
+    else if ( dattyp(1:2) == 'E5' ) then
+      ! Vertical info are stored in the fixed vertinfo file.
+      pathaddname = trim(inpglob)//'/ECHAM5/fixed/EH5_OM_1_VERTINFO.nc'
     else if ( dattyp(1:3) == 'MP_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -252,7 +258,8 @@ module mod_gn6hnc
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
-    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
+         dattyp(1:2) /= 'E5' ) then
       call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
       call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
       call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
@@ -265,8 +272,10 @@ module mod_gn6hnc
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
     else
-      call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
-      call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+      if ( dattyp(1:2) /= 'E5' ) then
+        call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
+        call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+      end if
       call getmem3d(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
       call getmem3d(d2,1,nlon,1,nlat,1,klev*2,'mod_gn6hnc:d2')
       uvar => d2(:,:,1:klev)
@@ -336,6 +345,39 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
       call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
+    else if ( dattyp(1:2) == 'E5' ) then
+      npl = klev ! Data are on pressure levels
+      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      istatus = nf90_inq_varid(inet1,'lev',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      istatus = nf90_get_var(inet1,ivar1,pplev)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+            '/ECHAM5/fixed/EH5_OM_1_GEOSP_19000101.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'geosp',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find geosporog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'MP_' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
@@ -606,7 +648,8 @@ module mod_gn6hnc
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
     call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
 
-    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
+         dattyp(1:2) /= 'E5') then
       call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
       call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
       up => d2(:,:,1:npl)
@@ -647,7 +690,8 @@ module mod_gn6hnc
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
-              dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'MP_' ) then
+              dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'MP_' .or. &
+              dattyp(1:2) == 'E5' ) then
       call setcal(itimes(1), gregorian)
     else
       call setcal(itimes(1), noleap)
@@ -657,6 +701,8 @@ module mod_gn6hnc
       do k = 1 , klev
         sigmar(k) = pplev(klev-k+1)*0.00001
       end do
+    else if ( dattyp(1:2) == 'E5' ) then
+      sigmar(:) = pplev(:)*0.00001
     else
       sigmar(:) = pplev(:)*0.001
     end if
@@ -678,8 +724,9 @@ module mod_gn6hnc
     call readgn6hnc(idate)
     write (stderr,*) 'Read in fields at Date: ', tochar(idate)
  
-    ! GFS and EC-EARTH grids are already on pressure levels.
-    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' ) then
+    ! GFS and EC-EARTH and ECHAM5 grids are already on pressure levels.
+    if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
+         dattyp(1:2) /= 'E5' ) then
 
       ! All processing assumes dataset in top -> bottom
       ! HadGEM is read bottom -> top
@@ -724,7 +771,7 @@ module mod_gn6hnc
     if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
          dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
-         dattyp(1:3) /= 'EC_' ) then
+         dattyp(1:3) /= 'EC_' .and. dattyp(1:2) /= 'E5' ) then
       call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
       call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     else ! Gaussian grid
@@ -849,7 +896,74 @@ module mod_gn6hnc
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-
+    else if ( dattyp(1:2) == 'E5' ) then
+      varname => ec5vars
+      if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
+        do kkrec = 1 , 5
+          if ( inet(kkrec) > 0 ) then
+            istatus = nf90_close(inet(kkrec))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          end if
+        end do
+        ! yearly files, one for each variable
+        y1 = year
+        y2 = y1+1
+        do i = 1 , nfiles
+          if ( ec5vars(i) /= 'XXX' ) then
+            write (inname,99009) dattyp(4:5),pthsep, &
+               'EH5_OM_'//dattyp(4:5)//'_1_', &
+               trim(ec5name(i)), '_', y1, '010100-',y1+1,'010100.nc'
+            pathaddname = trim(inpglob)//'/ECHAM5/'//inname
+            istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error open '//trim(pathaddname))
+            istatus = nf90_inq_varid(inet(i),trim(varname(i)),ivar(i))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error find var '//trim(varname(i)))
+            write (stdout,*) inet(i), trim(pathaddname)
+          end if
+        end do
+        istatus = nf90_inq_dimid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        istatus = nf90_inq_varid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        istatus = nf90_get_att(inet(1),timid,'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        istatus = nf90_get_var(inet(1),timid,xtimes)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        do it = 1 , timlen
+          itimes(it) = timeval2date(xtimes(it),cunit,ccal)
+        end do
+      end if
+      tdif = idate - itimes(1)
+      it = idnint(tohours(tdif))/6 + 1
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = klev
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+      istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      do k = 1, klev
+        pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
+      end do
     ! More difficult. Multiple files per variable and per year
     else if ( dattyp(1:3) == 'EC_' ) then
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
@@ -1518,6 +1632,7 @@ module mod_gn6hnc
 99006   format (a,a,i0.4,a,a,a,i0.4,a)
 99007   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99008   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
+99009   format (a,a,a,a,a,i0.4,a,i0.4,a)
 
   end subroutine readgn6hnc
 !
