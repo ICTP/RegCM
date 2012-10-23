@@ -87,11 +87,11 @@ module mod_tendency
   subroutine tend
     implicit none
 !
-    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy , &
-               psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,   &
-               ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
-               rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
-               tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf , sod
+    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
+               psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
+               ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
+               tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
+               xmsf , xtm1 , theta , eccf , sod
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -1225,27 +1225,27 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            qvas = atmc%qx(j,i,k,n)
-            lowq = minqx*sfs%psa(j,i)
-            if ( qvas < lowq ) then
-              if ( n == iqv ) then
-                qvas = lowq
-              else
-                qvas = d_zero
-              end if
-            end if
-            qvbs = omuhf*atm1%qx(j,i,k,n) + &
+            qxas = atmc%qx(j,i,k,n)
+            qxbs = omuhf*atm1%qx(j,i,k,n) + &
                    gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
-            lowq = minqx*sfs%psb(j,i)
-            if ( qvbs < lowq ) then
+            lowq = minqx*sfs%psa(j,i)
+            if ( qxas < lowq ) then
               if ( n == iqv ) then
-                qvbs = lowq
+                qxas = lowq
               else
-                qvbs = d_zero
+                qxas = d_zero
               end if
             end if
-            atm2%qx(j,i,k,n) = qvbs
-            atm1%qx(j,i,k,n) = qvas
+            lowq = minqx*sfs%psb(j,i)
+            if ( qxbs < lowq ) then
+              if ( n == iqv ) then
+                qxbs = lowq
+              else
+                qxbs = d_zero
+              end if
+            end if
+            atm1%qx(j,i,k,n) = qxas
+            atm2%qx(j,i,k,n) = qxbs
           end do
         end do
       end do
