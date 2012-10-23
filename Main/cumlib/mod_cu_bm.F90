@@ -626,7 +626,7 @@ module mod_cu_bm
 !
         do l = lcor , lb
           tskl = trefk(l)*apek(l)/apesk(l)
-          dhdt = qrefk(l)*a23m4l/(tskl-c4les)**d_two + cpd
+          dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
           trefk(l) = hcorr/dhdt + trefk(l)
           thskl = trefk(l)*apek(l)
           qrefk(l) = pq0/psk(l)*dexp(c3les*(thskl-tzero*apesk(l)) / &

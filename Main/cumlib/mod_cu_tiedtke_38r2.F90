@@ -393,7 +393,7 @@ module mod_cu_tiedtke_38r2
           end if
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
-          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
           zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           zcond = max(zcond,d_zero)
           ! if ( dabs(zcond) > dlowval ) then
@@ -407,7 +407,7 @@ module mod_cu_tiedtke_38r2
           end if
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
-          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
           zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           if ( dabs(zcond) < dlowval ) zcond1 = d_zero
           pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
@@ -431,7 +431,7 @@ module mod_cu_tiedtke_38r2
           end if
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
-          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
           zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           zcond = min(zcond,d_zero)
           ! if ( dabs(zcond) > dlowval ) then
@@ -445,7 +445,7 @@ module mod_cu_tiedtke_38r2
           end if
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
-          z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+          z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
           zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           if ( dabs(zcond) < dlowval ) zcond1 = d_zero
           pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
@@ -468,7 +468,7 @@ module mod_cu_tiedtke_38r2
         end if
         zcor = d_one/(d_one-retv*zqsat)
         zqsat = zqsat*zcor
-        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
         zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
         pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
         pq(jl,kk) = pq(jl,kk)-zcond1
@@ -480,7 +480,7 @@ module mod_cu_tiedtke_38r2
         end if
         zcor = d_one/(d_one-retv*zqsat)
         zqsat = zqsat*zcor
-        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
         zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
         pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
         pq(jl,kk) = pq(jl,kk)-zcond1
@@ -500,7 +500,7 @@ module mod_cu_tiedtke_38r2
         end if
         zcor = d_one/(d_one-retv*zqsat)
         zqsat = zqsat*zcor
-        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
         zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
         pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond
         pq(jl,kk) = pq(jl,kk)-zcond
@@ -512,7 +512,7 @@ module mod_cu_tiedtke_38r2
         end if
         zcor = d_one/(d_one-retv*zqsat)
         zqsat = zqsat*zcor
-        z2s = z5alcp(jl)/(ztarg-z4es(jl))**d_two
+        z2s = z5alcp(jl)/(ztarg-z4es(jl))**2
         zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
         pt(jl,kk) = pt(jl,kk)+zaldcp(jl)*zcond1
         pq(jl,kk) = pq(jl,kk)-zcond1
@@ -627,15 +627,15 @@ module mod_cu_tiedtke_38r2
             zqsat = zqsat*zqp
             zqsat = min(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            ! zcond = (pq(jl,kk)*zcor**d_two-zqsat*zcor) / &
-            !         (zcor**d_two+zqsat*foedemcu(pt(jl,kk)))
+            ! zcond = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
+            !         (zcor**2+zqsat*foedemcu(pt(jl,kk)))
             ! foedemcu(ptare) = foealfcu(ptare)*c5alvcp*  &
-            !                   (d_one/(ptare-c4les)**d_two)+ &
+            !                   (d_one/(ptare-c4les)**2)+ &
             !                   (d_one-foealfcu(ptare))*  &
-            !                   c5alscp*(d_one/(ptare-c4ies)**d_two)
-            zf = foealfcu(pt(jl,kk))*c5alvcp*zl**d_two + &
-                 (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**d_two
-            zcond = (pq(jl,kk)*zcor**d_two-zqsat*zcor)/(zcor**d_two+zqsat*zf)
+            !                   c5alscp*(d_one/(ptare-c4ies)**2)
+            zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
+                 (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
+            zcond = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
             ! zcond = max(zcond,d_zero)
             if ( zcond > d_zero ) then
               pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond
@@ -650,11 +650,11 @@ module mod_cu_tiedtke_38r2
               zqsat = zqsat*zqp
               zqsat = minj(zqmax,zqsat)
               zcor = d_one-retv*zqsat
-              ! zcond1 = (pq(jl,kk)*zcor**d_two-zqsat*zcor) / &
-              !          (zcor**d_two+zqsat*foedemcu(pt(jl,kk)))
-              zf = foealfcu(pt(jl,kk))*c5alvcp*zl**d_two + &
-                   (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**d_two
-              zcond1 = (pq(jl,kk)*zcor**d_two-zqsat*zcor)/(zcor**d_two+zqsat*zf)
+              ! zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
+              !          (zcor**2+zqsat*foedemcu(pt(jl,kk)))
+              zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
+                   (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
+              zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
               if ( dabs(zcond) < dlowval ) zcond1 = d_zero
               pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond1
               pq(jl,kk) = pq(jl,kk)-zcond1
@@ -775,15 +775,15 @@ module mod_cu_tiedtke_38r2
                     (d_one-foealfa(pt(jl,kk)))*ztmp2(jl-kidia+1))*zqp
             zqsat = minj(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            ! zcond = (pq(jl,kk)*zcor**d_two-zqsat*zcor) / &
-            !         (zcor**d_two+zqsat*foedem(pt(jl,kk)))
+            ! zcond = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
+            !         (zcor**2+zqsat*foedem(pt(jl,kk)))
             ! foedem(ptare) = foealfa(ptare)*c5alvcp*&
-            !                 (d_one/(ptare-c4les)**d_two)+&
+            !                 (d_one/(ptare-c4les)**2)+&
             !                 (d_one-foealfa(ptare))*c5alscp*&
-            !                 (d_one/(ptare-c4ies)**d_two)
-            zf = foealfa(pt(jl,kk))*c5alvcp*(ztmp5(jl-kidia+1)**d_two) + &
-                 (d_one-foealfa(pt(jl,kk)))*c5alscp*(ztmp6(jl-kidia+1)**d_two)
-            zcond = (pq(jl,kk)*zcor**d_two-zqsat*zcor)/(zcor**d_two+zqsat*zf)
+            !                 (d_one/(ptare-c4ies)**2)
+            zf = foealfa(pt(jl,kk))*c5alvcp*(ztmp5(jl-kidia+1)**2) + &
+                 (d_one-foealfa(pt(jl,kk)))*c5alscp*(ztmp6(jl-kidia+1)**2)
+            zcond = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
             pt(jl,kk) = pt(jl,kk)+foeldcpm(pt(jl,kk))*zcond
             pq(jl,kk) = pq(jl,kk)-zcond
             ztmp0(jl-kidia+1) = zqp
@@ -804,15 +804,15 @@ module mod_cu_tiedtke_38r2
                     (d_one-foealfa(pt(jl,kk)))*ztmp2(jl-kidia+1))*zqp
             zqsat = minj(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            ! zcond1=(pq(jl,kk)*zcor**d_two-zqsat*zcor) / &
-            !        (zcor**d_two+zqsat*foedem(pt(jl,kk)))
+            ! zcond1=(pq(jl,kk)*zcor**2-zqsat*zcor) / &
+            !        (zcor**2+zqsat*foedem(pt(jl,kk)))
             ! foedem(ptare) = foealfa(ptare)*c5alvcp*&
-            !                 (d_one/(ptare-c4les)**d_two)+&
+            !                 (d_one/(ptare-c4les)**2)+&
             !                 (d_one-foealfa(ptare))*c5alscp*&
-            !                 (d_one/(ptare-c4ies)**d_two)
-            zf = foealfa(pt(jl,kk))*c5alvcp*(ztmp5(jl-kidia+1)**d_two) + &
-                 (d_one-foealfa(pt(jl,kk)))*c5alscp*(ztmp6(jl-kidia+1)**d_two)
-            zcond1 = (pq(jl,kk)*zcor**d_two-zqsat*zcor)/(zcor**d_two+zqsat*zf)
+            !                 (d_one/(ptare-c4ies)**2)
+            zf = foealfa(pt(jl,kk))*c5alvcp*(ztmp5(jl-kidia+1)**2) + &
+                 (d_one-foealfa(pt(jl,kk)))*c5alscp*(ztmp6(jl-kidia+1)**2)
+            zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
             pt(jl,kk) = pt(jl,kk)+foeldcpm(pt(jl,kk))*zcond1
             pq(jl,kk) = pq(jl,kk)-zcond1
           end do
@@ -857,8 +857,8 @@ module mod_cu_tiedtke_38r2
                     (d_one-foealfcu(pt(jl,kk)))*ztmp2(jl-kidia+1))*zqp
             zqsat = minj(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            zcond1 = (pq(jl,kk)*zcor**d_two - &
-                     zqsat*zcor)/(zcor**d_two+zqsat*foedemcu(pt(jl,kk)))
+            zcond1 = (pq(jl,kk)*zcor**2 - &
+                     zqsat*zcor)/(zcor**2+zqsat*foedemcu(pt(jl,kk)))
             pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond1
             pq(jl,kk) = pq(jl,kk)-zcond1
             ztmp0(jl-kidia+1) = zqp
@@ -877,8 +877,8 @@ module mod_cu_tiedtke_38r2
                     (d_one-foealfcu(pt(jl,kk)))*ztmp2(jl-kidia+1))*zqp
             zqsat = minj(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            zcond1 = (pq(jl,kk)*zcor**d_two - &
-                     zqsat*zcor)/(zcor**d_two+zqsat*foedemcu(pt(jl,kk)))
+            zcond1 = (pq(jl,kk)*zcor**2 - &
+                     zqsat*zcor)/(zcor**2+zqsat*foedemcu(pt(jl,kk)))
             pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond1
             pq(jl,kk) = pq(jl,kk)-zcond1
           end do
@@ -903,8 +903,8 @@ module mod_cu_tiedtke_38r2
             zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
             zcor = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
-            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
             zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
             zcond = max(zcond,d_zero)
             if ( dabs(zcond) > dlowval ) then
@@ -920,8 +920,8 @@ module mod_cu_tiedtke_38r2
               zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
               zcor = d_one/(d_one-retv*zqsat)
               zqsat = zqsat*zcor
-              z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                    (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+              z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                    (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
               zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
               pt(jl,kk) = pt(jl,kk) + &
                          (zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond1
@@ -946,8 +946,8 @@ module mod_cu_tiedtke_38r2
             zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
             zcor = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
-            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
             zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
             zcond = min(zcond,d_zero)
             if ( dabs(zcond) > dlowval ) then
@@ -963,8 +963,8 @@ module mod_cu_tiedtke_38r2
               zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
               zcor = d_one/(d_one-retv  *zqsat)
               zqsat = zqsat*zcor
-              z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                    (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+              z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                    (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
               zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
               pt(jl,kk) = pt(jl,kk) + &
                           (zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond1
@@ -988,8 +988,8 @@ module mod_cu_tiedtke_38r2
           zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
           zcor = d_one/(d_one-retv  *zqsat)
           zqsat = zqsat*zcor
-          z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+          z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
           zcond1=(pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           pt(jl,kk) = pt(jl,kk)+(zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond1
           pq(jl,kk) = pq(jl,kk)-zcond1
@@ -1002,8 +1002,8 @@ module mod_cu_tiedtke_38r2
           zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
-          z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+          z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
           zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
           pt(jl,kk) = pt(jl,kk)+(zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond1
           pq(jl,kk) = pq(jl,kk)-zcond1
@@ -1025,8 +1025,8 @@ module mod_cu_tiedtke_38r2
             zqsat = d_half*((d_one-z1s)*zqsat+(d_one+z1s)*zqmax)
             zcor = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
-            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+            z2s = zoealfa *c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
             zcond = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
             pt(jl,kk) = pt(jl,kk) + &
                        (zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond
@@ -1041,8 +1041,8 @@ module mod_cu_tiedtke_38r2
             zqsat = min(zqmax,zqsat)
             zcor = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
-            z2s = zoealfa*c5alvcp*(d_one/(ztarg-c4les)**d_two) + &
-                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**d_two)
+            z2s = zoealfa*c5alvcp*(d_one/(ztarg-c4les)**2) + &
+                  (d_one-zoealfa)*c5alscp*(d_one/(ztarg-c4ies)**2)
             zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*z2s)
             pt(jl,kk) = pt(jl,kk) + &
                    (zoealfa*wlhvocp+(d_one-zoealfa)*wlhsocp)*zcond1
@@ -2091,7 +2091,7 @@ module mod_cu_tiedtke_38r2
     zkdiff1 = 10.0D0
     zkdiff2 = 2.5D0
     ztmst = ptsphy
-    zcons1 = ztpfac1*ztmst*egrav**d_two/(d_half*rgas)
+    zcons1 = ztpfac1*ztmst*egrav**2/(d_half*rgas)
     zcons2 = d_one/ztmst
     zcons3 = ztmst*cpd
     ilevh = klev/2
@@ -3114,7 +3114,7 @@ module mod_cu_tiedtke_38r2
                 zsuh(jl,jkk) = zsenh(jl,jkk) + cpd*ztexc
                 ztu(jl,jkk) = (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
                 zlu(jl,jkk) = d_zero
-                zwu2h(jl,jkk) = zws**d_two
+                zwu2h(jl,jkk) = zws**2
                 !
                 !  Determine buoyancy at lowest half level
                 !
@@ -3206,7 +3206,7 @@ module mod_cu_tiedtke_38r2
               zqf = (pqenh(jl,jk+1) + pqenh(jl,jk))*d_half
               zsf = (zsenh(jl,jk+1) + zsenh(jl,jk))*d_half
               zmix(jl) = 0.4D0*entrorg*zdz(jl) * &
-                         min(d_one,(pqsen(jl,jk)/pqsen(jl,klev))**d_three)
+                         min(d_one,(pqsen(jl,jk)/pqsen(jl,klev))**3)
               zqu(jl,jk) = zqu(jl,jk+1)*(d_one-zmix(jl))+ zqf*zmix(jl)
               zsuh(jl,jk) = zsuh(jl,jk+1)*(d_one-zmix(jl))+ zsf*zmix(jl)
               zqold(jl) = zqu(jl,jk)
@@ -3290,8 +3290,8 @@ module mod_cu_tiedtke_38r2
               zqsu = zqsu*zcor
               zdq = min(d_zero,zqu(jl,ik)-zqsu)
               zalfaw = foealfa(ztu(jl,ik))
-              zfacw = c5les/((ztu(jl,ik)-c4les)**d_two)
-              zfaci = c5ies/((ztu(jl,ik)-c4ies)**d_two)
+              zfacw = c5les/((ztu(jl,ik)-c4les)**2)
+              zfaci = c5ies/((ztu(jl,ik)-c4ies)**2)
               zfac = zalfaw*zfacw+(d_one-zalfaw)*zfaci
               zesdp = foeewm(ztu(jl,ik))/paph(jl,ik)
               zcor = d_one/(d_one-retv*zesdp)
@@ -3494,13 +3494,13 @@ module mod_cu_tiedtke_38r2
     implicit none
     real(rk8) , intent(in) :: ptare
     foede = (foedelta(ptare)*c5alvcp+(d_one-foedelta(ptare))*c5alscp) / &
-       (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**d_two
+       (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**2
   end function foede
   real(rk8) function foedesu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foedesu = (foedelta(ptare)*c5les+(d_one-foedelta(ptare))*c5ies) / &
-         (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**d_two
+         (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**2
   end function foedesu
   real(rk8) function foelh(ptare)
     implicit none
@@ -3516,7 +3516,7 @@ module mod_cu_tiedtke_38r2
     implicit none
     real(rk8) , intent(in) :: ptare
     foealfa = min(d_one,((max(rtice,min(rtwat,ptare))-rtice) * &
-                  rtwat_rtice_r)**d_two)
+                  rtwat_rtice_r)**2)
   end function foealfa
   real(rk8) function foeewm(ptare)
     implicit none
@@ -3527,8 +3527,8 @@ module mod_cu_tiedtke_38r2
   real(rk8) function foedem(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
-    foedem = foealfa(ptare)*c5alvcp*(d_one/(ptare-c4les)**d_two) + &
-            (d_one-foealfa(ptare))*c5alscp*(d_one/(ptare-c4ies)**d_two)
+    foedem = foealfa(ptare)*c5alvcp*(d_one/(ptare-c4les)**2) + &
+            (d_one-foealfa(ptare))*c5alscp*(d_one/(ptare-c4ies)**2)
   end function foedem
   real(rk8) function foeldcpm(ptare)
     implicit none
@@ -3543,14 +3543,14 @@ module mod_cu_tiedtke_38r2
   real(rk8) function foetb(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
-    foetb = foealfa(ptare)*c3les*(tzero-c4les)*(d_one/(ptare-c4les)**d_two)+ &
-      (d_one-foealfa(ptare))*c3ies*(tzero-c4ies)*(d_one/(ptare-c4ies)**d_two)
+    foetb = foealfa(ptare)*c3les*(tzero-c4les)*(d_one/(ptare-c4les)**2)+ &
+      (d_one-foealfa(ptare))*c3ies*(tzero-c4ies)*(d_one/(ptare-c4ies)**2)
   end function foetb
   real(rk8) function foealfcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foealfcu = min(d_one, &
-           ((max(rtice,min(rtwat,ptare))-rtice)*rtwat_rtice_r)**d_two)
+           ((max(rtice,min(rtwat,ptare))-rtice)*rtwat_rtice_r)**2)
   end function foealfcu
   real(rk8) function foeewmcu(ptare)
     implicit none
@@ -3561,8 +3561,8 @@ module mod_cu_tiedtke_38r2
   real(rk8) function foedemcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
-    foedemcu = foealfcu(ptare)*c5alvcp*(d_one/(ptare-c4les)**d_two) + &
-           (d_one-foealfcu(ptare))*c5alscp*(d_one/(ptare-c4ies)**d_two)
+    foedemcu = foealfcu(ptare)*c5alvcp*(d_one/(ptare-c4les)**2) + &
+           (d_one-foealfcu(ptare))*c5alscp*(d_one/(ptare-c4ies)**2)
   end function foedemcu
   real(rk8) function foeldcpmcu(ptare)
     implicit none

@@ -172,13 +172,13 @@ module mod_bats_co2
 !         ****  photorespiration
         wp = pm/(d_one+0.4D0*(d_one+cco2i/xk))
 !         ****    total respiration
-!         ****dark respiration within daytime leaves
+!         **** dark respiration within daytime leaves
         wd = 3.0D-4*rt + 0.14D0*p
         w = wp + wd
 !         *****    carbon uptake factors
         ac = cco2 + xkb + rm*(pm-w)
         bc = d_four*rm*(cco2*(pm-w)-xkb*w)
-        ab = dsqrt(ac**d_two-bc)
+        ab = dsqrt(ac**2-bc)
         p = d_half*(ac-ab)/rm
         ccold = cco2i
         cco2i = cco2 - p*rm
@@ -208,7 +208,7 @@ module mod_bats_co2
       real(rk8) function e(xl,a,pml)
         implicit none
         real(rk8) , intent(in) :: xl , a , pml
-        e = a*xl/(d_one+(a*xl/pml)**d_two)**d_half
+        e = a*xl/sqrt(d_one+(a*xl/pml)**2)
       end function e
   end function carbon
 !

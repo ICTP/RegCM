@@ -787,7 +787,7 @@ module mod_pbl_uwtcm
       templ = thlxin(k)*exnerfl(k)
       rvls = esatw(presfl(k),templ)*epop(k)
       temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
-                       ep2*wlhv*rvls/(rgas*templ**d_two))
+                       ep2*wlhv*rvls/(rgas*templ**2))
       rvls = esatw(presfl(k),temps)*epop(k)
       rcldb(k) = dmax1(qwxin(k)-rvls,d_zero)
       tempv = (templ + wlhvocp*rcldb(k)) *    &
@@ -797,7 +797,7 @@ module mod_pbl_uwtcm
       templ = thlxin(k-1)*exnerfl(k)
       rvls = esatw(presfl(k),templ)*epop(k)
       temps = templ+(qwxin(k-1)-rvls) / &
-                     (cpowlhv+ep2*wlhv*rvls/(rgas*templ**d_two))
+                     (cpowlhv+ep2*wlhv*rvls/(rgas*templ**2))
       rvls = esatw(presfl(k),temps)*epop(k)
       rcld = dmax1(qwxin(k-1)-rvls,d_zero)
       tempv = (templ + wlhvocp*rcld) *    &
@@ -890,9 +890,9 @@ module mod_pbl_uwtcm
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by 
         ! one grid level over one time step -- TAO
-        kthmax = dmin1((zax(k-1)-zax(k))**d_two/dtpbl,1.D4)
+        kthmax = dmin1((zax(k-1)-zax(k))**2/dtpbl,1.D4)
         ! kthmax = 10000.0D0
-        kth(k) = biga * dsqrt(TKE(k)**d_three)/nsquar(k) /    &
+        kth(k) = biga * dsqrt(TKE(k)**3)/nsquar(k) /    &
                  dmax1(bbls(k),bbls(k+1))
         ! Smoothly limit kth to a maximum value
         kth(k) = 2*kthmax/mathpi*atan(kth(k)/kthmax)
@@ -1007,7 +1007,7 @@ module mod_pbl_uwtcm
           elambda = wlhvocp*rcldb(k)*rexnerhl(k)/dmax1(delthvl,0.1D0)
           bige = 0.8D0 * elambda
           biga = aone * (d_one + atwo * bige)
-          entnnll = biga * dsqrt(tkeavg**d_three) / bbls(k)
+          entnnll = biga * dsqrt(tkeavg**3) / bbls(k)
         end if
         rnnll = rnnll + dmin1(d_zero,bbls(k)/dsqrt(dmax1(tkeavg,1.0D-8)) * &
                                             (radnnll + entnnll) )

@@ -154,7 +154,7 @@ module mod_bats_bndry
             if ( sigf(n,j,i) <= minsigf .and. ldmsk1(n,j,i) /= 2 ) then
               qsatd = qgrd(n,j,i)*gwet(n,j,i) * &
                       lfta(n,j,i)*(tzero-lftb(n,j,i)) * &
-                      (d_one/(tgrd(n,j,i)-lftb(n,j,i)))**d_two
+                      (d_one/(tgrd(n,j,i)-lftb(n,j,i)))**2
               rai = cdrx(n,j,i)*vspda(n,j,i)*rhs(n,j,i)
               cgrnds(n,j,i) = rai*cpd
               cgrndl(n,j,i) = rai*qsatd
@@ -394,7 +394,7 @@ module mod_bats_bndry
    
           if ( ldmsk1(n,j,i) == 2 ) then
             ! rhosw = density of snow relative to water
-            rhosw3 = rhosw(n,j,i)**d_three
+            rhosw3 = rhosw(n,j,i)**3
             ! cice = specific heat of sea-ice per unit volume
             rsd1 = cice*(sfice(n,j,i)*d_r1000)
             if ( sncv(n,j,i) > d_zero ) then
@@ -562,9 +562,9 @@ module mod_bats_bndry
             wfluxc(n,j,i) = evmxr*(depuv(lveg(n,j,i)) / &
                                    deprv(lveg(n,j,i)))**0.4D0*bfac
             wflux1(n,j,i) = wfluxc(n,j,i)*watr(n,j,i)
-            wflux2(n,j,i) = evmxt*(depuv(lveg(n,j,i)) / &
-                                   deprv(lveg(n,j,i)))**d_half* &
-                          bfac2*(watt(n,j,i)-watr(n,j,i))
+            wflux2(n,j,i) = evmxt*sqrt(depuv(lveg(n,j,i)) / &
+                                       deprv(lveg(n,j,i)))* &
+                            bfac2*(watt(n,j,i)-watr(n,j,i))
             !
             ! 1.3  gravitational drainage
             !
@@ -611,11 +611,11 @@ module mod_bats_bndry
             ! 2.11 increase surface runoff over frozen ground
             !
             if ( tgrd(n,j,i) < tzero ) then
-              rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**d_one) * &
-                          dmax1(d_zero,gwatr(n,j,i))
+              rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**1) * &
+                            dmax1(d_zero,gwatr(n,j,i))
             else
-              rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**d_four) * &
-                          dmax1(d_zero,gwatr(n,j,i))
+              rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**4) * &
+                            dmax1(d_zero,gwatr(n,j,i))
             end if
             !
             ! 2.12 irrigate cropland

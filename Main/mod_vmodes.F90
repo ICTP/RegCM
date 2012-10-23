@@ -419,7 +419,7 @@ module mod_vmodes
         w1(k2,k1) = d_zero
         do k = 1 , kz
           w1(k2,k1) = hydror(k,k2)*hydror(k,k1)*hweigh(k) / &
-                    (tbarh(k)**d_two)+w1(k2,k1)
+                    (tbarh(k)**2)+w1(k2,k1)
         end do
       end do
     end do

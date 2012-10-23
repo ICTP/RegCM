@@ -515,7 +515,7 @@ module mod_init
       hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
       hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
       hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-      hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**d_two)
+      hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
     end do
   end do
   !
@@ -523,7 +523,7 @@ module mod_init
   !
   do i = ici1 , ici2
     do j = jci1 , jci2
-      ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**d_two
+      ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**2
     end do
   end do
   !

@@ -289,7 +289,7 @@ module mod_che_seasalt
 
       rdrybb = dexp( alnrdrylo )
       rdry_cm = rdrybb*1.0D-4
-      rwet_cm = ( rdry_cm**d_three + (c1*(rdry_cm**c2)) / &     
+      rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &     
                 ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
       rwetbb = rwet_cm*1.0D4
 
@@ -312,7 +312,7 @@ module mod_che_seasalt
         rdrybb = dexp( dum )
 
         rdry_cm = rdrybb*1.0D-4
-        rwet_cm = ( rdry_cm**d_three + (c1*(rdry_cm**c2)) / &  
+        rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &  
                  ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
         rwetbb = rwet_cm*1.0D4
      
@@ -328,7 +328,7 @@ module mod_che_seasalt
         !*   xmdry is dry mass in g                             *****
         !************************************************************
 
-        xmdry = drydens_f * (rdry**d_three)
+        xmdry = drydens_f * (rdry**3)
 
         !************************************************************         
         !* dumb is "B" in Gong's Eqn 5a                          ****
@@ -370,12 +370,12 @@ module mod_che_seasalt
 
       rdryaa = 0.99D0*rdry_star
       rdry_cm = rdryaa*1.0D-4
-      rwet_cm = ( rdry_cm**d_three + (c1*(rdry_cm**c2)) / &
+      rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
                 ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
       rwetaa = rwet_cm*1.0D4
       rdrybb = 1.01D0*rdry_star
       rdry_cm = rdrybb*1.0D-4
-      rwet_cm = ( rdry_cm**d_three + (c1*(rdry_cm**c2)) / &
+      rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
                 ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
       rwetbb = rwet_cm*1.0D4
       rwet = d_half*(rwetaa + rwetbb)
@@ -412,7 +412,7 @@ module mod_che_seasalt
         !*  xmdry is dry mass in g                               ****
         !************************************************************
 
-        xmdry = drydens_f * (rdry**d_three)
+        xmdry = drydens_f * (rdry**3)
 
         !************************************************************
         !* dumadjust is adjustment factor to reduce dF0/dr      *****

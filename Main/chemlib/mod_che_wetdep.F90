@@ -919,7 +919,7 @@ module mod_che_wetdep
           !* mean molecular free path.                         ****
           !*     k.v. beard [1976], j atm. sci., 33            ****
           !********************************************************
-          amfp = c1*(amu/c2)*(c3/pre)*(t(i,k)/c4)**d_half
+          amfp = c1*(amu/c2)*(c3/pre)*sqrt(t(i,k)/c4)
           !********************************************************
           !* cunningham slip correction factor and             ****
           !* relaxation time = vg/grav.                        ****
@@ -955,7 +955,7 @@ module mod_che_wetdep
             ! particles settling but not for big rain drops (high reynolds)!!
             ! cf Seinfeld / Vpr would be overestimated 
             !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
-            ! vpr = priiv*rrm**d_two*cfac
+            ! vpr = priiv*rrm**2*cfac
             ! try with a mean rainfall velcoity of 3 m/s 
               vpr = 3.D0 
           end if 
@@ -1011,7 +1011,7 @@ module mod_che_wetdep
           else
           ! snow scavenging efficiency: 
           colef(i,k,n) = (d_one/schm)**alpha +  &
-                 (d_one-dexp(-(d_one+dsqrt(re))*rr**d_two)) + colimp
+                 (d_one-dexp(-(d_one+dsqrt(re))*rr**2)) + colimp
           endif
           ! setting the upper-bound for collection efficiency: 
           colef(i,k,n) = dmax1(d_zero,dmin1(d_one,colef(i,k,n)))

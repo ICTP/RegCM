@@ -293,7 +293,7 @@ module mod_rad_atmosphere
        real(rk8) , intent(in) :: jday
        real(rk8) :: dis
        dis = ((half_dayspy-jday-sixteenth_dayspy+d_one)/dayspy)*mathpi
-       winter_wgt = dsin(dis)**d_two
+       winter_wgt = dsin(dis)**2
      end function winter_wgt
 
      integer function find_klev(plev,izone)

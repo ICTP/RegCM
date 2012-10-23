@@ -107,7 +107,7 @@ module mod_bats_lake
         do n = 1 , nnsg
           if ( idep(n,j,i) > 1 ) then
             tl = sts(n,j,i)
-            vl = dsqrt(usw(j,i)**d_two+vsw(j,i)**d_two)
+            vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
             zl = zh(n,j,i)
             ql = qs(n,j,i)
             fswx = fsw(j,i)
@@ -215,7 +215,7 @@ module mod_bats_lake
       ea  = ql*88.0D0/(ep2+0.378D0*ql)
       tac = tl - tzero
       tk  = tzero + tprof(1)
-      lu  = -emsw*sigm*tk**d_four
+      lu  = -emsw*sigm*tk**4
       ld  = flw - lu
       ev  = evl*secph         ! convert to mm/hr
       ai  = aveice / d_1000   ! convert to m
@@ -256,7 +256,7 @@ module mod_bats_lake
     demin = hdmw
 !
     ! Added to keep numerical stability of code
-    demax = .50D0*dz**d_two/dtlake
+    demax = .50D0*dz**2/dtlake
     demax = .99D0*demax
 !
     do k = 1 , ndpt
@@ -309,13 +309,13 @@ module mod_bats_lake
       end if
 
       ! Richardson number estimate
-      rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**d_two
+      rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**2
       if (rad < d_zero) rad = d_zero
       ri = (-d_one+dsqrt(rad))/20.0D0
 
       ! Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
       de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / &
-                      (d_one+37.0D0*ri**d_two)
+                      (d_one+37.0D0*ri**2)
       if ( de(k) < demin ) de(k) = demin
       if ( de(k) > demax ) de(k) = demax
 
@@ -576,7 +576,7 @@ module mod_bats_lake
       implicit none
       real(rk8) :: t4
       real(rk8) , intent(in) :: x
-      t4 = (x+tzero)**d_four
+      t4 = (x+tzero)**4
     end function t4
     ! Computes air vapor pressure as a function of temp (in K)
     function tr1(x)
@@ -589,8 +589,8 @@ module mod_bats_lake
       implicit none
       real(rk8) :: eomb
       real(rk8) , intent(in) :: x
-      eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
-             -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
+      eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2   &
+             -0.6445D0*tr1(x)**3- 0.1299D0*tr1(x)**4)
      end function eomb
     function f(x)
       implicit none

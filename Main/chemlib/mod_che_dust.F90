@@ -332,8 +332,8 @@ module mod_che_dust
                          (sigma(nm,nt) /= d_zero) ) then
                     xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
                     xl = ((dlog(dp_array(ns))- &
-                           dlog(mmd(nm,nt)*1.0D-4))**d_two) &
-                           /(d_two*(dlog(sigma(nm,nt)))**d_two)
+                           dlog(mmd(nm,nt)*1.0D-4))**2) &
+                           /(d_two*(dlog(sigma(nm,nt)))**2)
                     xm = xk*dexp(-xl)
                   else
                     xm = d_zero
@@ -382,9 +382,9 @@ module mod_che_dust
         asigma2 = dlog10(sigma2)
         asigma3 = dlog10(sigma3)
 
-        frac1(n) = dexp(-(alogdi-amean1)**d_two/(d_two*asigma1**d_two))
-        frac2(n) = dexp(-(alogdi-amean2)**d_two/(d_two*asigma2**d_two))
-        frac3(n) = dexp(-(alogdi-amean3)**d_two/(d_two*asigma3**d_two))
+        frac1(n) = dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
+        frac2(n) = dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
+        frac3(n) = dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
 
         totv1 = totv1 + frac1(n)
         totv2 = totv2 + frac2(n)
@@ -394,7 +394,7 @@ module mod_che_dust
         amean = log10(d)
         asigma = log10(sigmas)
         frac(n) = rwi / cv * (d_one+derf(log(rwi/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(rwi/lambda)**d_three)  !see Kok (2011)
+                  log(sigmas)))*exp(-(rwi/lambda)**3)  !see Kok (2011)
         totv = totv + frac(n)
       end do
 
@@ -741,7 +741,7 @@ module mod_che_dust
             if ( rc(i) > d_zero .and. ustar(i) /= d_zero ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
               if ( uth <= d_one ) then
-                fdp1 = ustar(i)**d_three*(d_one-uth*uth)
+                fdp1 = ustar(i)**3*(d_one-uth*uth)
                 fdp2 = (d_one+uth)*const*(1.0D-5)*roarow(i)*regrav
                 if ( fdp2 <= d_zero ) fdp2 = d_zero
                 ! FAB: with subgrid soil texture, the aggregation of vertical
@@ -755,8 +755,8 @@ module mod_che_dust
                   dec = fsoil(i,nt)*beta
                   ! individual kinetic energy for an aggregate of size dp (
                   ! g cm2 s-2) cf alfaro (dp) is in cm
-                  ec = (mathpi/12.0D0)*rhodust*1.0D-3*(dp_array(ns)**d_three)* &
-                        (20.0D0*ustar(i))**d_two
+                  ec = (mathpi/12.0D0)*rhodust*1.0D-3*(dp_array(ns)**3)* &
+                        (20.0D0*ustar(i))**2
                   if ( ec > e1 ) then
                     p1 = (ec-e1)/(ec-e3)
                     p2 = (d_one-p1)*(ec-e2)/(ec-e3)
@@ -775,11 +775,11 @@ module mod_che_dust
                     p3 = d_zero
                   end if
                   fsoil1(i,nt) = fsoil1(i,nt) + 1.0D-2*p1*(dec/e1)* &
-                            (mathpi/6.0D0)*rhodust*((d1*1.0D-04)**d_three)
+                            (mathpi/6.0D0)*rhodust*((d1*1.0D-04)**3)
                   fsoil2(i,nt) = fsoil2(i,nt) + 1.0D-2*p2*(dec/e2)* &
-                            (mathpi/6.0D0)*rhodust*((d2*1.0D-04)**d_three)
+                            (mathpi/6.0D0)*rhodust*((d2*1.0D-04)**3)
                   fsoil3(i,nt) = fsoil3(i,nt) + 1.0D-2*p3*(dec/e3)* &
-                            (mathpi/6.0D0)*rhodust*((d3*1.0D-04)**d_three)
+                            (mathpi/6.0D0)*rhodust*((d3*1.0D-04)**3)
                 else if ( ichdustemd == 2 ) then   
                   fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)* &
                                 srel(i,ns,nt)*fdp1*fdp2 

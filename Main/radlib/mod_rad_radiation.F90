@@ -1253,7 +1253,7 @@ module mod_rad_radiation
         pthco2 = sqrco2*(xptop*regravgts)
         h2ostr = dsqrt(d_one/h2ommr(n,1))
         zenfac(n) = dsqrt(czen(n))
-        pthh2o = xptop**d_two*tmp1+(xptop*regravgts)*(h2ostr*zenfac(n)*delta)
+        pthh2o = xptop**2*tmp1+(xptop*regravgts)*(h2ostr*zenfac(n)*delta)
         uh2o(n,0) = h2ommr(n,1)*pthh2o
         uco2(n,0) = zenfac(n)*pthco2
         uo2(n,0) = zenfac(n)*ptho2
@@ -1271,7 +1271,7 @@ module mod_rad_radiation
           ptho3 = o3mmr(n,k)*path
           pthco2 = sqrco2*path
           h2ostr = dsqrt(d_one/h2ommr(n,k))
-          pthh2o = (pflx(n,k+1)**d_two-pflx(n,k)**d_two) * &
+          pthh2o = (pflx(n,k+1)**2-pflx(n,k)**2) * &
                     tmp1 + pdel*h2ostr*zenfac(n)*tmp2
           uh2o(n,k) = h2ommr(n,k)*pthh2o
           uco2(n,k) = zenfac(n)*pthco2
@@ -1493,7 +1493,7 @@ module mod_rad_radiation
             rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
                           (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
                           (tdir(n,k)-explay(n,k)))*rdenom
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**d_two*rdenom
+            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
           end if
         end do
       end do
@@ -1630,7 +1630,7 @@ module mod_rad_radiation
               rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
                             (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
                             (tdir(n,k)-explay(n,k)))*rdenom
-              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**d_two*rdenom
+              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
             end if
           end do
         end do
@@ -1696,7 +1696,7 @@ module mod_rad_radiation
             rupdir(n,k) = rdir(n,k) + tdif(n,k) *     &
                           (rupdir(n,k+1)*explay(n,k)+ &
                            rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**d_two*rdenom
+            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
           end if
         end do
       end do
@@ -2022,9 +2022,9 @@ module mod_rad_radiation
 !
       do n = n1 , n2
         if ( iemiss == 1 ) then
-          fsul(n,kzp1) = emsvt(n)*(stebol*(ts(n)**d_four))
+          fsul(n,kzp1) = emsvt(n)*(stebol*(ts(n)**4))
         else
-          fsul(n,kzp1) = stebol*(ts(n)**d_four)
+          fsul(n,kzp1) = stebol*(ts(n)**4)
         end if
       end do
 !
@@ -2034,7 +2034,7 @@ module mod_rad_radiation
       do n = n1 , n2
         tmp(n) = fsul(n,kzp1) - stebol*tint4(n,kzp1)
         fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1)*tmp(n)+s(n,1,2)
-        fsdl(n,1) = stebol*(tplnke(n)**d_four)*emstot(n,1)
+        fsdl(n,1) = stebol*(tplnke(n)**4)*emstot(n,1)
         ful(n,1) = fsul(n,1)
         fdl(n,1) = fsdl(n,1)
       end do
@@ -2045,7 +2045,7 @@ module mod_rad_radiation
         do n = n1 , n2
           fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n)+s(n,k,k+1)
           ful(n,k) = fsul(n,k)
-          fsdl(n,k) = stebol*(tplnke(n)**d_four)*emstot(n,k) - &
+          fsdl(n,k) = stebol*(tplnke(n)**4)*emstot(n,k) - &
                               (s(n,k,2)-s(n,k,k+1))
           fdl(n,k) = fsdl(n,k)
         end do
@@ -2056,7 +2056,7 @@ module mod_rad_radiation
 !
       do n = n1 , n2
         ful(n,kzp1) = fsul(n,kzp1)
-        absbt = stebol*(tplnke(n)**d_four)*emstot(n,kzp1)
+        absbt = stebol*(tplnke(n)**4)*emstot(n,kzp1)
         fsdl(n,kzp1) = absbt - s(n,kzp1,2)
         fdl(n,kzp1) = fsdl(n,kzp1)
       end do
@@ -3091,7 +3091,7 @@ module mod_rad_radiation
 !
     do k = 1 , kzp1
       do n = n1 , n2
-        pnmsq(n,k) = pint(n,k)**d_two
+        pnmsq(n,k) = pint(n,k)**2
         dtx(n) = tplnka(n,k) - 250.0D0
         term6(n,k) = coeff(1,2) + coeff(2,2)*dtx(n) *          &
                       (d_one+c9*dtx(n)*(d_one+c11*dtx(n) *     &
@@ -3120,7 +3120,7 @@ module mod_rad_radiation
             dtx(n) = tplnka(n,k2) - 250.0D0
             dty(n) = tpatha - 250.0D0
             dtyp15 = dty(n) + 15.0D0
-            dtyp15sq = dtyp15**d_two
+            dtyp15sq = dtyp15**2
             dtz = dtx(n) - 50.0D0
             dtp = dty(n) - 50.0D0
             do iband = 2 , 4 , 2
@@ -3337,10 +3337,10 @@ module mod_rad_radiation
         rdpnm = d_one/dpnm
         p1 = (pmid(n,k2)+pint(n,k2+1))*d_half
         p2 = (pmid(n,k2)+pint(n,k2))*d_half
-        uinpl(n,1) = (pnmsq(n,k2+1)-p1**d_two)*rdpnmsq
-        uinpl(n,2) = -(pnmsq(n,k2)-p2**d_two)*rdpnmsq
-        uinpl(n,3) = -(pnmsq(n,k2)-p1**d_two)*rdpnmsq
-        uinpl(n,4) = (pnmsq(n,k2+1)-p2**d_two)*rdpnmsq
+        uinpl(n,1) = (pnmsq(n,k2+1)-p1**2)*rdpnmsq
+        uinpl(n,2) = -(pnmsq(n,k2)-p2**2)*rdpnmsq
+        uinpl(n,3) = -(pnmsq(n,k2)-p1**2)*rdpnmsq
+        uinpl(n,4) = (pnmsq(n,k2+1)-p2**2)*rdpnmsq
         winpl(n,1) = ((pint(n,k2+1)-pmid(n,k2))*d_half)*rdpnm
         winpl(n,2) = ((-pint(n,k2)+pmid(n,k2))*d_half)*rdpnm
         winpl(n,3) = ((pint(n,k2+1)+pmid(n,k2))*d_half-pint(n,k2))*rdpnm
@@ -3377,7 +3377,7 @@ module mod_rad_radiation
           dtx(n) = temh2o(kn) - 250.0D0
           dty(n) = tbar(n,kn) - 250.0D0
           dtyp15 = dty(n) + 15.0D0
-          dtyp15sq = dtyp15**d_two
+          dtyp15sq = dtyp15**2
           dtz = dtx(n) - 50.0D0
           dtp = dty(n) - 50.0D0
           do iband = 2 , 4 , 2
@@ -3755,7 +3755,7 @@ module mod_rad_radiation
 !
     do n = n1 , n2
       ex = dexp(960.0D0/tplnke(n))
-      co2plk(n) = 5.0D8/((tplnke(n)**d_four)*(ex-d_one))
+      co2plk(n) = 5.0D8/((tplnke(n)**4)*(ex-d_one))
       co2t(n,1) = tplnke(n)
       xsum(n) = co2t(n,1)*pint(n,1)
     end do
@@ -3766,7 +3766,7 @@ module mod_rad_radiation
         xsum(n) = xsum(n) + tlayr(n,kk)*(pint(n,kk)-pint(n,kk-1))
         ex = dexp(960.0D0/tlayr(n,kk))
         tlayr5 = tlayr(n,kk)*tlayr4(n,kk)
-        co2eml(n,kk-1) = 1.2D11*ex/(tlayr5*(ex-d_one)**d_two)
+        co2eml(n,kk-1) = 1.2D11*ex/(tlayr5*(ex-d_one)**2)
         co2t(n,kk) = xsum(n)/pint(n,kk)
       end do
     end do
@@ -3851,8 +3851,8 @@ module mod_rad_radiation
 !       emis(3)   800 - 1200 cm-1   window
 !
         do l = 1 , 2
-          phi = a1(l)*(dty(n)+15.0D0)+a2(l)*(dty(n)+15.0D0)**d_two
-          psi = b1(l)*(dty(n)+15.0D0)+b2(l)*(dty(n)+15.0D0)**d_two
+          phi = a1(l)*(dty(n)+15.0D0)+a2(l)*(dty(n)+15.0D0)**2
+          psi = b1(l)*(dty(n)+15.0D0)+b2(l)*(dty(n)+15.0D0)**2
           phi = dexp(phi)
           psi = dexp(psi)
           ubar = w(n,k)*phi
@@ -3939,7 +3939,7 @@ module mod_rad_radiation
         tco2(n) = d_one/(d_one+d_10*(u7/dsqrt(d_four+u7*(d_one+rbeta7))))
         co2ems(n,k) = troco2*absbnd*co2plk(n)
         ex = dexp(960.0D0/tint(n,k))
-        exm1sq = (ex-d_one)**d_two
+        exm1sq = (ex-d_one)**2
         co2em(n,k) = 1.2D11*ex/(tint(n,k)*tint4(n,k)*exm1sq)
 !       trem3(n) = 1. - bndfct*absbnd
 !
@@ -4089,10 +4089,10 @@ module mod_rad_radiation
 !
     do n = n1 , n2
       tint(n,kzp1) = ts(n)
-      tint4(n,kzp1) = tint(n,kz + 1)**d_four
+      tint4(n,kzp1) = tint(n,kz + 1)**4
       tplnka(n,1) = tnm(n,1)
       tint(n,1) = tplnka(n,1)
-      tlayr4(n,1) = tplnka(n,1)**d_four
+      tlayr4(n,1) = tplnka(n,1)**4
       tint4(n,1) = tlayr4(n,1)
     end do
 !
@@ -4103,7 +4103,7 @@ module mod_rad_radiation
       do n = n1 , n2
         dy = (piln(n,k)-pmln(n,k))/(pmln(n,k-1)-pmln(n,k))
         tint(n,k) = tnm(n,k) - dy*(tnm(n,k)-tnm(n,k-1))
-        tint4(n,k) = tint(n,k)**d_four
+        tint4(n,k) = tint(n,k)**4
       end do
     end do
 !
@@ -4115,7 +4115,7 @@ module mod_rad_radiation
     do k = 2 , kzp1
       do n = n1 , n2
         tlayr(n,k) = tnm(n,k-1)
-        tlayr4(n,k) = tlayr(n,k)**d_four
+        tlayr4(n,k) = tlayr(n,k)**4
         tplnka(n,k) = (tint(n,k)+tint(n,k-1))*d_half
       end do
     end do
@@ -4144,7 +4144,7 @@ module mod_rad_radiation
     do k = 1 , kz
       do n = n1 , n2
         dpnm = pint(n,k+1) - pint(n,k)
-        dpnmsq = pint(n,k+1)**d_two - pint(n,k)**d_two
+        dpnmsq = pint(n,k+1)**2 - pint(n,k)**2
         rtnm = d_one/tnm(n,k)
         s2t(n,k+1) = s2t(n,k) + rgsslp*dpnmsq*qnm(n,k)*tnm(n,k)
         w(n,k+1) = w(n,k) + regravgts*qnm(n,k)*dpnm
@@ -4255,9 +4255,9 @@ module mod_rad_radiation
     end do
     do k = 1 , kz
       do n = n1 , n2
-        plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**d_two - &
-                       pintrd(n,k)**d_two) * h2ommr(n,k)
-        plco2(n,k+1) = co2vmr*cpwpl*pintrd(n,k+1)**d_two
+        plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
+                       pintrd(n,k)**2) * h2ommr(n,k)
+        plco2(n,k+1) = co2vmr*cpwpl*pintrd(n,k+1)**2
         tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
       end do
     end do

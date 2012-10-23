@@ -77,7 +77,7 @@ module mod_uvrot
         zrlap = pollam*degrad - zrla
         zarg1 = polcphi*sin(zrlap)
         zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-        znorm = d_one/sqrt(zarg1**d_two+zarg2**d_two)
+        znorm = d_one/sqrt(zarg1**2+zarg2**2)
         sindel = zarg1*znorm
         cosdel = zarg2*znorm
         do l = 1 , ll
@@ -178,7 +178,7 @@ module mod_uvrot
         zrlap = pollam*degrad - zrla
         zarg1 = polcphi*sin(zrlap)
         zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-        znorm = d_one/sqrt(zarg1**d_two+zarg2**d_two)
+        znorm = d_one/sqrt(zarg1**2+zarg2**2)
         sindel = zarg1*znorm
         cosdel = zarg2*znorm
         do l = 1 , ll

@@ -312,7 +312,7 @@ module mod_cu_grell
           tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dtcum
           qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dtcum
           p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
-          vsp(j,i,k) = dsqrt(us**d_two+vs**d_two)
+          vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !
           po(j,i,k) = p(j,i,k)
@@ -622,9 +622,9 @@ module mod_cu_grell
               if ( k < ktop(j,i) ) then
                 dz = d_half*(z(j,i,k+1)-z(j,i,k-1))
                 dz1 = z(j,i,k) - z(j,i,k-1)
-                agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**d_two)))*qes(j,i,k)
+                agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**2)))*qes(j,i,k)
                 agamma0 = (wlhvocp) * &
-                  (wlhv/(rwat*(t(j,i,k-1)**d_two)))*qes(j,i,k-1)
+                  (wlhv/(rwat*(t(j,i,k-1)**2)))*qes(j,i,k-1)
                 qrch = qes(j,i,k) + &
                       (d_one/wlhv)*(agamma/(d_one+agamma))*dby(j,i,k)
                 qc(j,i,k) = (qck(j,i)-qrch)/(d_one+c0*dz) + qrch
@@ -637,9 +637,9 @@ module mod_cu_grell
                        dby(j,i,k-1)/(d_one+d_half*(agamma+agamma0))
                 dzo = d_half*(zo(j,i,k+1)-zo(j,i,k-1))
                 dz2 = zo(j,i,k) - zo(j,i,k-1)
-                agammo = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**d_two)))*qeso(j,i,k)
+                agammo = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**2)))*qeso(j,i,k)
                 agammo0 = (wlhvocp) * &
-                  (wlhv/(rwat*(tn(j,i,k-1)**d_two)))*qeso(j,i,k-1)
+                  (wlhv/(rwat*(tn(j,i,k-1)**2)))*qeso(j,i,k-1)
                 qrcho = qeso(j,i,k) + &
                      (d_one/wlhv)*(agammo/(d_one+agammo))*dbyo(j,i,k)
                 qco(j,i,k) = (qcko(j,i)-qrcho)/(d_one+c0*dzo) + qrcho
@@ -661,14 +661,14 @@ module mod_cu_grell
         if ( xac(j,i) > xacact ) then
           k = ktop(j,i)
           dz = d_half*(z(j,i,k)-z(j,i,k-1))
-          agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**d_two)))*qes(j,i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(t(j,i,k)**2)))*qes(j,i,k)
           qrch = qes(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dby(j,i,k)
           qc(j,i,k) = qes(j,i,k)
           pwc(j,i,k) = (qrch-qes(j,i,k))
           pwcav(j,i) = pwcav(j,i) + pwc(j,i,k)
 !
           dz = d_half*(zo(j,i,k)-zo(j,i,k-1))
-          agamma = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**d_two)))*qeso(j,i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**2)))*qeso(j,i,k)
           qrcho = qeso(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dbyo(j,i,k)
           qco(j,i,k) = qeso(j,i,k)
           pwco(j,i,k) = (qrcho-qeso(j,i,k))
@@ -696,8 +696,8 @@ module mod_cu_grell
         if ( xac(j,i) > xacact ) then
           vshear(j,i) = d_1000*vshear(j,i)/dble(kz/2)
           edt(j,i) = d_one - &
-             (1.591D0-0.639D0*vshear(j,i)+0.0953D0*(vshear(j,i)**d_two) - &
-              0.00496D0*(vshear(j,i)**d_three))
+             (1.591D0-0.639D0*vshear(j,i)+0.0953D0*(vshear(j,i)**2) - &
+              0.00496D0*(vshear(j,i)**3))
           if ( edt(j,i) > shrmax2d(j,i) ) edt(j,i) = shrmax2d(j,i)
           if ( edt(j,i) < shrmin2d(j,i) ) edt(j,i) = shrmin2d(j,i)
 
@@ -726,7 +726,7 @@ module mod_cu_grell
                 dz*(hcd(j,i)-d_half*(hes(j,i,kk)+hes(j,i,kk+1)))
               dq = (qes(j,i,kk)+qes(j,i,kk+1))*d_half
               xdt = (t(j,i,kk)+t(j,i,kk+1))*d_half
-              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = hcd(j,i) - d_half*(hes(j,i,kk)+hes(j,i,kk+1))
               qrcd(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
               pwcd(j,i,kk) = dkk(j,i,kk)*(qcd(j,i)-qrcd(j,i,kk))
@@ -738,7 +738,7 @@ module mod_cu_grell
                 dz*(hcdo(j,i)-(heso(j,i,kk)+heso(j,i,kk+1))*d_half)
               dq = (qeso(j,i,kk)+qeso(j,i,kk+1))*d_half
               xdt = (tn(j,i,kk)+tn(j,i,kk+1))*d_half
-              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = hcdo(j,i) - d_half*(heso(j,i,kk)+heso(j,i,kk+1))
               qrcdo(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
               pwcdo(j,i,kk) = dkk(j,i,kk)*(qcdo(j,i)-qrcdo(j,i,kk))
@@ -938,9 +938,9 @@ module mod_cu_grell
             if ( k > kbcon(j,i) .and. k < ktop(j,i) ) then
               dz = d_half*(xz(j,i,k+1)-xz(j,i,k-1))
               dz1 = xz(j,i,k) - xz(j,i,k-1)
-              agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**d_two)))*xqes(j,i,k)
+              agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**2)))*xqes(j,i,k)
               agamma0 = (wlhvocp) * &
-                (wlhv/(rwat*(xt(j,i,k-1)**d_two)))*xqes(j,i,k-1)
+                (wlhv/(rwat*(xt(j,i,k-1)**2)))*xqes(j,i,k-1)
               qrch = xqes(j,i,k) + &
                  (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(j,i,k)
               xqc(j,i,k) = (xqck(j,i)-qrch)/(d_one+c0*dz) + qrch
@@ -960,7 +960,7 @@ module mod_cu_grell
         if ( xac(j,i) >= d_zero ) then
           k = ktop(j,i)
           dz = d_half*(xz(j,i,k)-xz(j,i,k-1))
-          agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**d_two)))*xqes(j,i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(xt(j,i,k)**2)))*xqes(j,i,k)
           qrch = xqes(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(j,i,k)
           xqc(j,i,k) = xqes(j,i,k)
           xpwc(j,i,k) = (qrch-xqes(j,i,k))
@@ -989,7 +989,7 @@ module mod_cu_grell
                 dz*(xhcd(j,i)-d_half*(xhes(j,i,kk)+xhes(j,i,kk+1)))
               dq = d_half*(xqes(j,i,kk)+xqes(j,i,kk+1))
               xdt = d_half*(xt(j,i,kk)+xt(j,i,kk+1))
-              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = xhcd(j,i) - d_half*(xhes(j,i,kk)+xhes(j,i,kk+1))
               xqrcd(j,i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
               xpwcd(j,i,kk) = dkk(j,i,kk)*(xqcd(j,i)-xqrcd(j,i,kk))
@@ -1031,9 +1031,9 @@ module mod_cu_grell
 !
 !             original
 !
-              agamma1 = (wlhvocp)*(wlhv/(rwat*(t(j,i,kk)**d_two)))*qes(j,i,kk)
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(t(j,i,kk)**2)))*qes(j,i,kk)
               agamma2 = (wlhvocp) * &
-                (wlhv/(rwat*(t(j,i,kk+1)**d_two)))*qes(j,i,kk+1)
+                (wlhv/(rwat*(t(j,i,kk+1)**2)))*qes(j,i,kk+1)
               dhh = hcd(j,i)
               xdt = d_half*(t(j,i,kk)+t(j,i,kk+1))
               dg = d_half*(agamma1+agamma2)
@@ -1044,9 +1044,9 @@ module mod_cu_grell
 !
 !             modified by larger scale
 !
-              agamma1 = (wlhvocp)*(wlhv/(rwat*(tn(j,i,kk)**d_two)))*qeso(j,i,kk)
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(tn(j,i,kk)**2)))*qeso(j,i,kk)
               agamma2 = (wlhvocp) * &
-                (wlhv/(rwat*(tn(j,i,kk+1)**d_two)))*qeso(j,i,kk+1)
+                (wlhv/(rwat*(tn(j,i,kk+1)**2)))*qeso(j,i,kk+1)
               dhh = hcdo(j,i)
               xdt = d_half*(tn(j,i,kk)+tn(j,i,kk+1))
               dg = d_half*(agamma1+agamma2)
@@ -1057,9 +1057,9 @@ module mod_cu_grell
 !
 !             modified by cloud
 !
-              agamma1 = (wlhvocp)*(wlhv/(rwat*(xt(j,i,kk)**d_two)))*xqes(j,i,kk)
+              agamma1 = (wlhvocp)*(wlhv/(rwat*(xt(j,i,kk)**2)))*xqes(j,i,kk)
               agamma2 = (wlhvocp) * &
-                (wlhv/(rwat*(xt(j,i,kk+1)**d_two)))*xqes(j,i,kk+1)
+                (wlhv/(rwat*(xt(j,i,kk+1)**2)))*xqes(j,i,kk+1)
               dhh = xhcd(j,i)
               xdt = d_half*(xt(j,i,kk)+xt(j,i,kk+1))
               dg = d_half*(agamma1+agamma2)

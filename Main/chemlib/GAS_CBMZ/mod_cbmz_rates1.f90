@@ -598,7 +598,7 @@ module mod_cbmz_rates1
       !
       f1 = b*((tempx/300.0D0)**c)*denx
       f2 = f1 / (d*((tempx/300.0D0)**e))
-      ee = d_one / ( d_one + (dlog10(f2))**d_two )
+      ee = d_one / ( d_one + (dlog10(f2))**2 )
       bod = (f1/(d_one+f2) ) * u**ee
     end function bod
 !
@@ -640,7 +640,7 @@ module mod_cbmz_rates1
 
       x = par*tempx*dexp(1.08D0*c)*denx*(300.0D0/tempx)**5.05D0
       y = 0.384D0*(300.0D0/tempx)**4.16D0
-      z = d_one / ( d_one + (dlog10(x/y))**d_two )
+      z = d_one / ( d_one + (dlog10(x/y))**2 )
       ytn = ( x / (d_one + x/y ))*(0.467D0**z)
     end function ytn
 !

@@ -401,8 +401,8 @@ module mod_bats_mtrxbats
             if ( iocnflx == 1 .or. &
                 (iocnflx == 2 .and. ldmsk1(n,j,i) /= 0 ) ) then
               tgbb(j,i) = tgbb(j,i) +                 &
-                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**d_four +  &
-                         lncl(n,j,i)*tlef(n,j,i)**d_four)**d_rfour
+                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**4 +  &
+                         lncl(n,j,i)*tlef(n,j,i)**4)**d_rfour
             else
               tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
             end if

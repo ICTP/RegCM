@@ -2580,7 +2580,7 @@ module mod_cbmz_solve1
       cbeta(kk) = (rlm(kk,3) - cpm(kk,1,2))/xrm(kk,3) + &
                               cpm(kk,2,1)/xrm(kk,2) +  &
                  (cpm(kk,1,2)/(xrm(kk,1)*xrm(kk,3))) * (xox(kk)-xnox(kk))
-      xrrm(kk,3) = 0.5D0 * (dsqrt(cbeta(kk)**d_two + &
+      xrrm(kk,3) = 0.5D0 * (dsqrt(cbeta(kk)**2 + &
                      d_four*calpha(kk)*cgamma(kk)) - cbeta(kk))/calpha(kk)
       xrrm(kk,2) = xnox(kk) - xrrm(kk,3)
       xrrm(kk,1) = xox(kk) - xrrm(kk,2)
@@ -2613,7 +2613,7 @@ module mod_cbmz_solve1
       !                   calpha*NO**2 + cbeta*NO = cgamma  with new NO.
       !
       if ( dabs(xrrm(kk,3)) < dlowval ) xrrm(kk,3) = d_one
-      xk2 = (xrrm(kk,3)**d_two) * calpha(kk)
+      xk2 = (xrrm(kk,3)**2) * calpha(kk)
       xk2n = xrrm(kk,3) * (cpm(kk,1,2)/(xrm(kk,1)*xrm(kk,3))) * &
              (xox(kk)-xnox(kk))
       xrln = xrrm(kk,3) * (rlm(kk,3) - cpm(kk,1,2))/xrm(kk,3)
@@ -3623,7 +3623,7 @@ module mod_cbmz_solve1
        if ( nspecial(1) > 0 .and. nspecial(2) > 0 ) then
          cbeta(kk) = ratek(kk,nspecial(1))/ratek(kk,nspecial(2))
          xc(kk,c_nno) = 0.5D0 * &
-              (dsqrt((c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+cbeta(kk))**d_two + &
+              (dsqrt((c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+cbeta(kk))**2 + &
                     d_four*cbeta(kk)*(c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)))- &
                     (c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+cbeta(kk)))
          xc(kk,c_nno2) = c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)-xc(kk,c_nno)
@@ -3677,11 +3677,11 @@ module mod_cbmz_solve1
        end if
        cbeta(kk) = d_one + d_one/foh(kk) +  &
                    c_time*ratek(kk,nspecial(12))*xc(kk,c_nno2)
-       calpha(kk) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
-       if ( calpha(kk)*cgamma(kk) < cbeta(kk)**d_two ) then
+       calpha(kk) = c_time* ratek(kk,nspecial(22))/(foh(kk)**2)
+       if ( calpha(kk)*cgamma(kk) < cbeta(kk)**2 ) then
          xc(kk,c_noh) = cgamma(kk)/cbeta(kk)
        else
-         xc(kk,c_noh) = (dsqrt(cbeta(kk)**d_two + &
+         xc(kk,c_noh) = (dsqrt(cbeta(kk)**2 + &
                 d_four*calpha(kk)*cgamma(kk))-cbeta(kk))/(d_two*calpha(kk))
        end if
        xc(kk,c_nho2) = xc(kk,c_noh)/foh(kk)
@@ -4460,7 +4460,7 @@ module mod_cbmz_solve1
                    xxx1 = cbeta(kk)
                  end if
                  cbeta(kk) = d_three*(cbeta(kk)/cgamma(kk) - &
-                            d_one/(cgamma(kk)**d_two) )
+                            d_one/(cgamma(kk)**2) )
                  if ( c_kkw > 0 ) then
                    xxx2 = cbeta(kk)
                  end if
@@ -4559,7 +4559,7 @@ module mod_cbmz_solve1
          if ( c_iter > 1 ) then
            cgamma(kk) = dsqrt(8.0D0*rumolec*c_temp(kk)/(mathpi*c_molwt(nrh)))
            egasaq(kk,nrh) = c_h2oliq(kk) / &
-                ((c_droplet(kk)**d_two/(d_three*difgas)) + &
+                ((c_droplet(kk)**2/(d_three*difgas)) + &
                  (d_four*c_droplet(kk)/(d_three*cgamma(kk)*c_accom(nrh))))
            cbeta(kk) = rpro(kk,1) + c_rp(kk,ic)
            !

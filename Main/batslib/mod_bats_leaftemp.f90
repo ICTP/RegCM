@@ -109,9 +109,9 @@ module mod_bats_leaftemp
           if ( sigf(n,j,i) > 0.001D0 ) then
             vpdc(n,j,i) = d_10
             if ( lemiss ) then
-              sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**d_three)
+              sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
             else
-              sgtg3 = sigm*tgrd(n,j,i)**d_three
+              sgtg3 = sigm*tgrd(n,j,i)**3
             end if
             flneto(n,j,i) = d_four*sgtg3*(tlef(n,j,i)-tgrd(n,j,i))
           end if
@@ -243,9 +243,9 @@ module mod_bats_leaftemp
               dcn = dcd(n,j,i)*tlef(n,j,i)
               ! 1.2  radiative forcing for leaf temperature calculation
               if ( lemiss ) then
-                sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**d_three)
+                sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
               else
-                sgtg3 = sigm*tgrd(n,j,i)**d_three
+                sgtg3 = sigm*tgrd(n,j,i)**3
               end if
               sf1 = sigf(n,j,i)*(sabveg(j,i)-flw(j,i)-(d_one-sigf(n,j,i))* &
                     flneto(n,j,i)+d_four*sgtg3*tgrd(n,j,i))
@@ -299,9 +299,9 @@ module mod_bats_leaftemp
                          (wtlq0(n,j,i)*qsatl(n,j,i) + &
                           wtgq0(n,j,i)*qgrd(n,j,i))
             if ( lemiss ) then
-              sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**d_three)
+              sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
             else
-              sgtg3 = sigm*tgrd(n,j,i)**d_three
+              sgtg3 = sigm*tgrd(n,j,i)**3
             end if
             flnet(n,j,i) = sgtg3*(tlef(n,j,i)-tgrd(n,j,i))*d_four
             xxkb = dmin1(rough(lveg(n,j,i)),d_one)
@@ -320,7 +320,7 @@ module mod_bats_leaftemp
                          wtlq0(n,j,i)*qsatl(n,j,i))+qbare)
             !  5.3  deriv of soil energy flux with respect to soil temp
             qsatdg = qgrd(n,j,i)*rgr(n,j,i)*lfta(n,j,i)*(tzero-lftb(n,j,i)) * &
-                     (d_one/(tgrd(n,j,i)-lftb(n,j,i)))**d_two
+                     (d_one/(tgrd(n,j,i)-lftb(n,j,i)))**2
             cgrnds(n,j,i) = rhs(n,j,i)*cpd*(wtg(n,j,i)*(wta0(n,j,i) + &
                           wtl0(n,j,i))+wtg2(n,j,i))
             cgrndl(n,j,i) = rhs(n,j,i)*qsatdg*((wta(n,j,i)+wtlq(n,j,i)) * &
@@ -619,10 +619,10 @@ module mod_bats_leaftemp
                 dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
                          sigf(n,j,i)*tkb-sts(n,j,i)
                 u1 = wtur + d_two*dsqrt(dthdz)
-                ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u1**d_two
+                ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
               else
                 u2 = wtur
-                ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u2**d_two
+                ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u2**2
               end if
               vspda(n,j,i) = dsqrt(ribd(n,j,i))
               if ( vspda(n,j,i) < d_one ) then
@@ -772,7 +772,7 @@ module mod_bats_leaftemp
             if ( sigf(n,j,i) > 0.001D0 ) then
               dne = d_one/(tlef(n,j,i)-lftb(n,j,i))
               qsatld(n,j,i) = qsatl(n,j,i)*lfta(n,j,i) * &
-                            (tzero-lftb(n,j,i))*dne**d_two
+                            (tzero-lftb(n,j,i))*dne**2
               xkb = cdrd(n,j,i)/cdr(n,j,i)
               hfl = df(n,j,i)*(wtga(n,j,i)*tlef(n,j,i) - &
                              wtg0(n,j,i)*tgrd(n,j,i)   - &
@@ -796,12 +796,12 @@ module mod_bats_leaftemp
     logical , parameter :: lcrop_cutoff = .false.
     if ( lcrop_cutoff ) then
       if ( ic == 1 ) then ! Crop cutoff
-        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_four)
+        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**4)
       else
-        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
+        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**2)
       end if
     else
-      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
+      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**2)
     end if
   end function fseas
 ! 

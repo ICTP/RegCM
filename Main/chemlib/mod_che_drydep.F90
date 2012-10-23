@@ -1032,7 +1032,7 @@ module mod_che_drydep
             rdv   = 0.4D0 * (600.0D0 - rdu ) * coszen(i)
             ww1   = -dlog(coszen(i))/2.302585D0
 !           print *, ' ww1 = ', ww1
-            ww2   = -1.195D0 + 0.4459D0 * ww1 - 0.0345D0 * ww1**d_two
+            ww2   = -1.195D0 + 0.4459D0 * ww1 - 0.0345D0 * ww1**2
             ww3   = 1320.0D0*10.0D0**ww2
 !           print *, 'ww= ', ww
             rdm   = (720.0D0*dexp(-0.06D0/coszen(i))-ww3)*coszen(i)

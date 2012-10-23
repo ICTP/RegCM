@@ -103,7 +103,7 @@ module mod_bats_zengocn
 #else
           if ( ldmsk1(n,j,i) == 0 ) then
 #endif
-            uv995 = dsqrt(uatm(j,i,kz)**d_two+vatm(j,i,kz)**d_two)
+            uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
             tsurf = tground2(j,i) - tzero
             t995 = tatm(j,i,kz) - tzero
             q995 = qxatm(j,i,kz,iqv)/(d_one+qxatm(j,i,kz,iqv))
@@ -221,7 +221,7 @@ module mod_bats_zengocn
                       (d_five*dlog(zeta)+zeta-d_one))
               end if
               thvstar = tstar*(d_one+0.61D0*q995) + 0.61D0*th*qstar
-              zeta = vonkar*egrav*thvstar*hu/(ustar**d_two*thv)
+              zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
               if ( zeta >= d_zero ) then   !neutral or stable
                 um = dmax1(uv995,0.1D0)
                 zeta = dmin1(d_two,dmax1(zeta,r1e6))
@@ -271,7 +271,7 @@ module mod_bats_zengocn
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
               ! ustar water (with air density ==1)
-              ustarw = d_half*ustar*(rhox(j,i)/rhoh2o)**d_half
+              ustarw = d_half*ustar*dsqrt(rhox(j,i)/rhoh2o)
               ! lwds =  flwd(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4
               ! q is the skin cooling term inckude net lw flux from
@@ -286,12 +286,12 @@ module mod_bats_zengocn
               dts = tdelta-td
               ! m.o lenght calculation
               if ( dts > d_zero ) then
-                fd = (nu*egrav*alphaw/(d_five*d))**d_half*    &
-                       rhoh2o*cpw0*ustarw**d_two*dts**d_half
+                fd = dsqrt(nu*egrav*alphaw/(d_five*d))*    &
+                       rhoh2o*cpw0*ustarw**2*dsqrt(dts)
               else
                 fd = egrav*alphaw*(q+rs-rd)
               end if
-              l = rhoh2o*cpw0*ustarw**d_three/(vonkar*fd)
+              l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
               ! calulation of phidl (stability function)
               if ( (d/l) >= d_zero ) then
                 phidl = d_one+d_five*(d/l)
@@ -310,8 +310,8 @@ module mod_bats_zengocn
               ! update tdelta
               tdelta = dts + td
               ! update delta thickness  and cool skin tempearture
-              aa = -16.0D0*egrav*alphaw*rhoh2o*cpw0*nuw**d_three/ &
-                          (ustarw**d_four *kw**d_two)
+              aa = -16.0D0*egrav*alphaw*rhoh2o*cpw0*nuw**3/ &
+                          (ustarw**4 * kw**2)
               bb =  aa *(q+rs*fs)
               if ( bb > d_zero ) then
                 ! case of cool skin layer correction
@@ -337,7 +337,7 @@ module mod_bats_zengocn
             evpr(n,j,i)  = lh/wlhv
             ! Back out Drag Coefficient
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            drag(n,j,i) = ustar**d_two*rhox(j,i)/uv995
+            drag(n,j,i) = ustar**2*rhox(j,i)/uv995
             u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
             v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
             taux(n,j,i) = tau*(uatm(j,i,kz)/uv995) 
@@ -591,7 +591,7 @@ module mod_bats_zengocn
       end if
       thvstar = tstar*(d_one+0.61D0*q) + 0.61D0*th*qstar
 !
-      zeta = vonkar*egrav*thvstar*hu/(ustar**d_two*thv)
+      zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
       if ( zeta >= d_zero ) then   !neutral or stable
         um = dmax1(u,0.1D0)
         zeta = dmin1(d_two,dmax1(zeta,r1e6))

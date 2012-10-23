@@ -1657,7 +1657,7 @@ module mod_params
   dsmalc = 10.0D0
   dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
   clfrcv = afracl + (afracs-afracl)                                 &
-           *((dlargc-dxtemc)/(dlargc-dsmalc))**d_two
+           *((dlargc-dxtemc)/(dlargc-dsmalc))**2
   clfrcv = dmin1(clfrcv,clfrcvmax)
   write (aline, *) ' '
   call say

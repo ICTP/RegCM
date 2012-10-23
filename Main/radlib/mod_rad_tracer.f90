@@ -186,20 +186,20 @@ module mod_rad_tracer
       uch4(j,1) = diff*8.60957D4*ch4(j,1)*pnm(j,1)* &
                   regravgts/dsqrt(tnm(j,1))
       co2fac = diff*co2mmr*pnm(j,1)*regravgts
-      alpha1 = (d_one-dexp(-1540.0D0/tnm(j,1)))**d_three/dsqrt(tnm(j,1))
-      alpha2 = (d_one-dexp(-1360.0D0/tnm(j,1)))**d_three/dsqrt(tnm(j,1))
+      alpha1 = (d_one-dexp(-1540.0D0/tnm(j,1)))**3/dsqrt(tnm(j,1))
+      alpha2 = (d_one-dexp(-1360.0D0/tnm(j,1)))**3/dsqrt(tnm(j,1))
       uco211(j,1) = 3.42217D3*co2fac*alpha1*dexp(-1849.7D0/tnm(j,1))
       uco212(j,1) = 6.02454D3*co2fac*alpha1*dexp(-2782.1D0/tnm(j,1))
       uco213(j,1) = 5.53143D3*co2fac*alpha1*dexp(-3723.2D0/tnm(j,1))
       uco221(j,1) = 3.88984D3*co2fac*alpha2*dexp(-1997.6D0/tnm(j,1))
       uco222(j,1) = 3.67108D3*co2fac*alpha2*dexp(-3843.8D0/tnm(j,1))
       uco223(j,1) = 6.50642D3*co2fac*alpha2*dexp(-2989.7D0/tnm(j,1))
-      bn2o0(j,1) = diff*19.399D0*pnm(j,1)**d_two*n2o(j,1) * &
+      bn2o0(j,1) = diff*19.399D0*pnm(j,1)**2*n2o(j,1) * &
                    1.02346D5*regravgts/(sslp*tnm(j,1))
       bn2o1(j,1) = bn2o0(j,1)*dexp(-847.36D0/tnm(j,1))*2.06646D5
-      bch4(j,1) = diff*2.94449D0*ch4(j,1)*pnm(j,1)**d_two*regravgts * &
+      bch4(j,1) = diff*2.94449D0*ch4(j,1)*pnm(j,1)**2*regravgts * &
                   8.60957D4/(sslp*tnm(j,1))
-      uptype(j,1) = diff*qnm(j,1)*pnm(j,1)**d_two*dexp(1800.0D0* &
+      uptype(j,1) = diff*qnm(j,1)*pnm(j,1)**2*dexp(1800.0D0* &
                    (d_one/tnm(j,1)-d_one/296.0D0))*regravgts/sslp
     end do
     do k = 1 , kz
@@ -208,8 +208,8 @@ module mod_rad_tracer
         rsqrt = dsqrt(rt)
         pbar = ((pnm(j,k+1)+pnm(j,k))*d_half)/sslp
         dpnm = (pnm(j,k+1)-pnm(j,k))*regravgts
-        alpha1 = diff*rsqrt*(d_one-dexp(-1540.0D0/tnm(j,k)))**d_three
-        alpha2 = diff*rsqrt*(d_one-dexp(-1360.0D0/tnm(j,k)))**d_three
+        alpha1 = diff*rsqrt*(d_one-dexp(-1540.0D0/tnm(j,k)))**3
+        alpha2 = diff*rsqrt*(d_one-dexp(-1360.0D0/tnm(j,k)))**3
         ucfc11(j,k+1) = ucfc11(j,k) + 1.8D0*cfc11(j,k)*dpnm
         ucfc12(j,k+1) = ucfc12(j,k) + 1.8D0*cfc12(j,k)*dpnm
         un2o0(j,k+1) = un2o0(j,k) + diff*1.02346D5*n2o(j,k)*rsqrt*dpnm
@@ -757,7 +757,7 @@ module mod_rad_tracer
 !
     do wvl = 1 , 14
       do j = n1 , n2
-        emplnk(wvl,j) = f1(wvl)/(tplnke(j)**d_four * &
+        emplnk(wvl,j) = f1(wvl)/(tplnke(j)**4 * &
                       (dexp(f3(wvl)/tplnke(j))-d_one))
       end do
     end do
@@ -770,11 +770,11 @@ module mod_rad_tracer
 !           non-nearlest layer function
           abplnk1(wvl,j,k) = (f2(wvl)*dexp(f3(wvl)/tint(j,k)))        &
                            & /(tint(j,k)**5.0D0*                      &
-                           & (dexp(f3(wvl)/tint(j,k))-d_one)**d_two)
+                           & (dexp(f3(wvl)/tint(j,k))-d_one)**2)
 !           nearest layer function
           abplnk2(wvl,j,k) = (f2(wvl)*dexp(f3(wvl)/tlayr(j,k)))       &
                            & /(tlayr(j,k)**5.0D0*                     &
-                           & (dexp(f3(wvl)/tlayr(j,k))-d_one)**d_two)
+                           & (dexp(f3(wvl)/tlayr(j,k))-d_one)**2)
         end do
       end do
     end do

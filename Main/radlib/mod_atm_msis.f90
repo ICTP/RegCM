@@ -1147,7 +1147,7 @@ module physics_msis
           ys(k) = d_one/tn2(k)
         end do
         yd1 = -tgn2(1)/(t1*t1)*zgdif
-        yd2 = -tgn2(2)/(t2*t2)*zgdif*((re+z2)/(re+z1))**d_two
+        yd2 = -tgn2(2)/(t2*t2)*zgdif*((re+z2)/(re+z1))**2
         ! Calculate spline coefficients
         call spline(xs(1:mn),ys(1:mn),yd1,yd2,y2out(1:mn))
         x = zg/zgdif
@@ -1156,7 +1156,7 @@ module physics_msis
         tz = d_one/y
         if ( dabs(xm) > nearzero ) then
           ! CALCULATE STRATOSPHERE/MESOSPHERE DENSITY
-          glb = gsurf/(d_one+z1/re)**d_two
+          glb = gsurf/(d_one+z1/re)**2
           gamm = xm*glb*zgdif/r100gas
           ! Integrate temperature profile
           call splini(xs(1:mn),ys(1:mn),y2out(1:mn),x,yi)
@@ -1181,7 +1181,7 @@ module physics_msis
             ys(k) = d_one/tn3(k)
           end do
           yd1 = -tgn3(1)/(t1*t1)*zgdif
-          yd2 = -tgn3(2)/(t2*t2)*zgdif*((re+z2)/(re+z1))**d_two
+          yd2 = -tgn3(2)/(t2*t2)*zgdif*((re+z2)/(re+z1))**2
           ! Calculate spline coefficients
           call spline(xs(1:mn),ys(1:mn),yd1,yd2,y2out(1:mn))
           x = zg/zgdif
@@ -1190,7 +1190,7 @@ module physics_msis
           tz = d_one/y
           if ( dabs(xm) > nearzero ) then
             ! CALCULATE TROPOSPHERIC/STRATOSPHERE DENSITY
-            glb = gsurf/(d_one+z1/re)**d_two
+            glb = gsurf/(d_one+z1/re)**2
             gamm = xm*glb*zgdif/r100gas
             ! Integrate temperature profile
             call splini(xs(1:mn),ys(1:mn),y2out(1:mn),x,yi)
@@ -1239,7 +1239,7 @@ module physics_msis
       if ( alt < za ) then
         ! CALCULATE TEMPERATURE BELOW ZA
         ! Temperature gradient at ZA from Bates profile
-        dta = (t1-ta)*s2*((re+zlb)/(re+za))**d_two
+        dta = (t1-ta)*s2*((re+zlb)/(re+za))**2
         tgn1(1) = dta
         tn1(1) = ta
         z = dmax1(alt,zn1(mn1))
@@ -1258,7 +1258,7 @@ module physics_msis
         end do
         ! End node derivatives
         yd1 = -tgn1(1)/(tt1*tt1)*zgdif
-        yd2 = -tgn1(2)/(tt2*tt2)*zgdif*((re+z2)/(re+z1))**d_two
+        yd2 = -tgn1(2)/(tt2*tt2)*zgdif*((re+z2)/(re+z1))**2
         ! Calculate spline coefficients
         call spline(xs,ys,yd1,yd2,y2out)
         x = zg/zgdif
@@ -1269,7 +1269,7 @@ module physics_msis
       end if
       if ( dabs(xm) > nearzero ) then
         ! CALCULATE DENSITY ABOVE ZA
-        glb = gsurf/(d_one+zlb/re)**d_two
+        glb = gsurf/(d_one+zlb/re)**2
         gammo = xm*glb/(s2*r100gas*t1)
         expl = dexp(-s2*gammo*zg2)
         if ( expl > 50.0D0 .or. tt <= d_zero ) expl = 50.0D0
@@ -1278,7 +1278,7 @@ module physics_msis
         densu = densa
         if ( alt<za ) then
           ! CALCULATE DENSITY BELOW ZA
-          glb = gsurf/(d_one+z1/re)**d_two
+          glb = gsurf/(d_one+z1/re)**2
           gamm = xm*glb*zgdif/r100gas
           ! integrate spline temperatures
           call splini(xs,ys,y2out,x,yi)
@@ -1558,7 +1558,7 @@ module physics_msis
           ca = (-2.93D0-pl)/(-2.93D0+1.11D0)
         z = zi - 4.87D0*cl*cd*ca - 1.64D0*cl2*ca + 0.31D0*ca*cl
       end if
-      if ( pl < -5.0D0 ) z = 22.0D0*(pl+4.0D0)**d_two + 110.0D0
+      if ( pl < -5.0D0 ) z = 22.0D0*(pl+4.0D0)**2 + 110.0D0
       ! ITERATION LOOP
       l = 0
       do
@@ -1575,7 +1575,7 @@ module physics_msis
         else
           xm = d(6)/xn/1.66D-24
           if ( imr == 1 ) xm = xm*1.D3
-          g = gsurf / (1.0D0+z/re)**d_two
+          g = gsurf / (1.0D0+z/re)**2
           sh = r100gas*t(2)/(xm*g)
           ! New altitude estimate using scale height
           if ( l < 6 ) then
@@ -1825,7 +1825,7 @@ module physics_msis
         implicit none
         real(rk8) , intent(in) :: ex
         sg0 = (g0(ap(2))+(g0(ap(3))*ex+g0(ap(4))*ex*ex + &
-               g0(ap(5))*ex**3.0D0+(g0(ap(6))*ex**d_four +    &
+               g0(ap(5))*ex**3.0D0+(g0(ap(6))*ex**4 +    &
                g0(ap(7))*ex**12.0D0)*(d_one-ex**8.0D0)/(d_one-ex)))/sumex(ex)
       end function sg0
     end function globe7
@@ -2112,7 +2112,7 @@ module physics_msis
         tn2(4) = pma(1,3)*pavgm(3)/(d_one-sw(20)*sw(22)*glob7s(glong,pma(:,3)))
         tgn2(2) = pavgm(9)*pma(1,10)                                    &
                  *(d_one+sw(20)*sw(22)*glob7s(glong,pma(:,10)))*tn2(4)*tn2(4)   &
-                 /(pma(1,3)*pavgm(3))**d_two
+                 /(pma(1,3)*pavgm(3))**2
         tn3(1) = tn2(4)
       end if
       !
@@ -2129,7 +2129,7 @@ module physics_msis
           tn3(4) = pma(1,6)*pavgm(6)/(d_one-sw(22)*glob7s(glong,pma(:,6)))
           tn3(5) = pma(1,7)*pavgm(7)/(d_one-sw(22)*glob7s(glong,pma(:,7)))
           tgn3(2) = pma(1,8)*pavgm(8)*(d_one+sw(22)*glob7s(glong,pma(:,8)))  &
-                   *tn3(5)*tn3(5)/(pma(1,7)*pavgm(7))**d_two
+                   *tn3(5)*tn3(5)/(pma(1,7)*pavgm(7))**2
         end if
       end if
 
@@ -2309,14 +2309,14 @@ module physics_msis
         tn1(3) = ptm(3)*ptl(1,2)
         tn1(4) = ptm(8)*ptl(1,3)
         tn1(5) = ptm(5)*ptl(1,4)
-        tgn1(2) = ptm(9)*pma(1,9)*tn1(5)*tn1(5)/(ptm(5)*ptl(1,4))**d_two
+        tgn1(2) = ptm(9)*pma(1,9)*tn1(5)*tn1(5)/(ptm(5)*ptl(1,4))**2
       else if ( dabs(v2-d_one) < nearzero .or. alast >= 300.0D0 ) then
         tn1(2) = ptm(7)*ptl(1,1)/(d_one-sw(18)*glob7s(glong,ptl(:,1)))
         tn1(3) = ptm(3)*ptl(1,2)/(d_one-sw(18)*glob7s(glong,ptl(:,2)))
         tn1(4) = ptm(8)*ptl(1,3)/(d_one-sw(18)*glob7s(glong,ptl(:,3)))
         tn1(5) = ptm(5)*ptl(1,4)/(d_one-sw(18)*sw(20)*glob7s(glong,ptl(:,4)))
         tgn1(2) = ptm(9)*pma(1,9)*(d_one+sw(18)*sw(20)*glob7s(glong,pma(:,9)))   &
-                & *tn1(5)*tn1(5)/(ptm(5)*ptl(1,4))**d_two
+                & *tn1(5)*tn1(5)/(ptm(5)*ptl(1,4))**2
       end if
 !
       z0 = zn1(4)
@@ -2631,7 +2631,7 @@ module physics_msis
         implicit none
         real(rk8) , intent(in) :: alt , temp , xm
         real(rk8) :: g
-        g = gsurf/(d_one+alt/re)**d_two
+        g = gsurf/(d_one+alt/re)**2
         scalh = r100gas*temp/(g*xm)
       end function scalh
     end subroutine gts7

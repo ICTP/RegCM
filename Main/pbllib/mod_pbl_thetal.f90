@@ -64,7 +64,7 @@ module mod_pbl_thetal
     ! If necessary, find the minimum of the zerofuncion, which should be
     ! the place where it equals zero if no solution is available otherwise
     if ( bderiv ) then
-      zerofunc = -(cpd/rwat)*(myp/es)*(locp*qv/t)**d_two - d_one
+      zerofunc = -(cpd/rwat)*(myp/es)*(locp*qv/t)**2 - d_one
     end if
   end function zerofunc
 
@@ -399,7 +399,7 @@ bigloop : &
           ! otherwise, add a contribution from the change in cloud water.
         else
           dum = (myp/ep2/tempes)*(cpd/rwat)*      &
-                (mylovcp*tempqv/(cpd*tempt))**d_two + d_one
+                (mylovcp*tempqv/(cpd*tempt))**2 + d_one
           deltat = (myexner*dthetal + mylovcp*dqt)/dum
         end if
 

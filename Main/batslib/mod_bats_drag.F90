@@ -83,10 +83,10 @@ module mod_bats_drag
           dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
                    sigf(n,j,i)*taf(n,j,i) - sts(n,j,i)
           u1 = wtur + d_two*dsqrt(dthdz)
-          ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u1**d_two
+          ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
         else
           u2 = wtur
-          ribd(n,j,i) = usw(j,i)**d_two + vsw(j,i)**d_two + u2**d_two
+          ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u2**2
         end if
         vspda(n,j,i) = dsqrt(ribd(n,j,i))
         if ( vspda(n,j,i) < d_one ) then
@@ -124,7 +124,7 @@ module mod_bats_drag
     do j = jci1 , jci2
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) == 2 ) then       !  check each point
-          cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**d_two
+          cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**2
           ! 4.1  drag coefficient over leads
           ribl(n,j,i) = (d_one-271.5D0/sts(n,j,i))* &
                        zh(n,j,i)*egrav/ribd(n,j,i)
@@ -179,21 +179,21 @@ module mod_bats_drag
         if ( ldmsk1(n,j,i) == 2 ) then
           ! drag coeff over seaice
           sigf(n,j,i) = d_zero
-          cdrn(n,j,i) = ( vonkar / zlglnd(n,j,i) )**d_two
+          cdrn(n,j,i) = ( vonkar / zlglnd(n,j,i) )**2
         else if ( ldmsk1(n,j,i) == 1 ) then
           ! drag coeff over land
           frav = sigf(n,j,i)
           asigf = lncl(n,j,i)
           fras = asigf*wt(n,j,i) + (d_one-asigf)*scvk(n,j,i)
           frab = (d_one-asigf)*(d_one-scvk(n,j,i))
-          cdb = (vonkar/zlglnd(n,j,i))**d_two
-          cds = (vonkar/zlgsno(n,j,i))**d_two
-          cdv = (vonkar/zlgdis(n,j,i))**d_two
+          cdb = (vonkar/zlglnd(n,j,i))**2
+          cds = (vonkar/zlgsno(n,j,i))**2
+          cdv = (vonkar/zlgdis(n,j,i))**2
           cdrn(n,j,i) = frav*cdv + frab*cdb + fras*cds
         else
           ! drag coeff over ocean
           sigf(n,j,i) = d_zero
-          cdrn(n,j,i) = (vonkar/zlgocn(n,j,i))**d_two
+          cdrn(n,j,i) = (vonkar/zlgocn(n,j,i))**2
         end if
       end do
     end do

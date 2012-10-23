@@ -419,7 +419,7 @@ module mod_cloud_s1
                 case (4)           !Sundqvist
                   zsolqb(j,i,iqqr,iqql) = zsolqb(j,i,iqqr,iqql) + & 
                          ptsphy*zauto_rate_sundq* &
-                         (d_one-dexp(-(zqxx(j,i,k,iqql)/zautocrit)**d_two))
+                         (d_one-dexp(-(zqxx(j,i,k,iqql)/zautocrit)**2))
                   zsolqa(j,i,iqqr,iqql) = zsolqa(j,i,iqqr,iqql) + d_zero
               end select
             end if !(ZQX(JL,JK,IQL)>0.0)
@@ -718,7 +718,7 @@ module mod_cloud_s1
               zexplicit = zexplicit - zsolqa(j,i,jn,n)
             end do
           zqxn(j,i,k,n) = zqxx(j,i,k,n) + zexplicit
-          ! note ***density missing*** for the moment...
+          ! note *** density missing*** for the moment...
           zfluxq(j,i,n) = zfallsrce(j,i,n)+ zconvsrce(j,i,n)   !(delz at k-1)
           zqxn(j,i,k,n) = zqxn(j,i,k,n) + zfluxq(j,i,n)
           !    ZQXN(JL,JM)=MAX(ZQXN(JL,JM),0.0)
@@ -883,13 +883,13 @@ contains
      real(rk8) function dqsatdtc(zt,satc)
        implicit none
        real(rk8) , intent(in) :: satc , zt
-       dqsatdtc = satc*(6150.0D0/(zt**d_two))
+       dqsatdtc = satc*(6150.0D0/(zt**2))
      end function dqsatdtc
       
      real(rk8) function dqsatdtw(zt,satw)
        implicit none
        real(rk8) , intent(in) :: satw , zt
-       dqsatdtw = satw*(4097.99D0/((zt-32.15D0)**d_two))
+       dqsatdtw = satw*(4097.99D0/((zt-32.15D0)**2))
      end function dqsatdtw
 
      real(rk8) function satc(zt,xp)

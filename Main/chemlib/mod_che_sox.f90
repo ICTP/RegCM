@@ -350,7 +350,7 @@ module mod_che_sox
        real(rk8) :: expo
        rk0 = rk0*cair_mlc*(te/300.0D0)**(-rnn)
        rki = rki*(te/300.0D0)**(-rmm)
-       expo= d_one/(d_one + (dlog10(rk0/rki))**d_two)
+       expo= d_one/(d_one + (dlog10(rk0/rki))**2)
        troe  = (rk0*rki/(rk0+rki))*0.6D0**expo
      end function troe
   

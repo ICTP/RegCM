@@ -121,7 +121,7 @@
         ea  = ql*88.0D0/(ep2+0.378D0*ql)
         tac = tl - tzero
         tk  = tzero + tprof(1)
-        lu  = -emsw*sigm*tk**d_four
+        lu  = -emsw*sigm*tk**4
         ld  = flw - lu
         ev  = evl*secph         ! convert to mm/hr
         ai  = aveice * d_r1000  ! convert to m
@@ -162,7 +162,7 @@
       demin = hdmw
 !
 !     Added to keep numerical stability of code
-      demax = .50D0*dz**d_two/dtlake
+      demax = .50D0*dz**2/dtlake
       demax = .99D0*demax
 !
       do k = 1 , ndpt
@@ -216,13 +216,13 @@
         end if
 
 !       Richardson number estimate
-        rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**d_two
+        rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**2
         if (rad < d_zero) rad = d_zero
         ri = (-d_one+dsqrt(rad))/20.0D0
 
 !       Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
         de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / &
-                        (d_one+37.0D0*ri**d_two)
+                        (d_one+37.0D0*ri**2)
         if ( de(k) < demin ) de(k) = demin
         if ( de(k) > demax ) de(k) = demax
 
@@ -491,7 +491,7 @@
         implicit none
         real(8) :: t4
         real(8) , intent(in) :: x
-        t4 = (x+tzero)**d_four
+        t4 = (x+tzero)**4
       end function t4
       ! Computes air vapor pressure as a function of temp (in K)
       function tr1(x)
@@ -504,8 +504,8 @@
         implicit none
         real(8) :: eomb
         real(8) , intent(in) :: x
-        eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
-           &   -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
+        eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2   &
+           &   -0.6445D0*tr1(x)**3- 0.1299D0*tr1(x)**4)
        end function eomb
       function f(x)
         implicit none

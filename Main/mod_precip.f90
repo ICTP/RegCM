@@ -440,8 +440,8 @@ module mod_precip
             ! temperature dependance for convective cloud water content
             ! in g/m3 (Lemus et al., 1997)
             radlqwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                            1.29D-04 * tcel**d_two +    &
-                            8.36D-07 * tcel**d_three
+                            1.29D-04 * tcel**2 +    &
+                            8.36D-07 * tcel**3
             if ( radlqwc(j,i,k) > 0.3D+00 ) radlqwc(j,i,k) = 0.300D+00
             if ( radlqwc(j,i,k) < d_zero )  radlqwc(j,i,k) = 0.001D+00
             if ( tcel < -50D+00 ) radlqwc(j,i,k) = 0.001D+00
