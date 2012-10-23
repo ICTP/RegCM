@@ -1218,22 +1218,35 @@ module mod_tendency
           atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
                           gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
           atm1%t(j,i,k) = atmc%t(j,i,k)
-          qvas = atmc%qx(j,i,k,iqv)
-          lowq = minqx*sfs%psa(j,i)
-          if ( qvas < lowq ) qvas = lowq
-          qvbs = omuhf*atm1%qx(j,i,k,iqv) + &
-                 gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
-          lowq = minqx*sfs%psb(j,i)
-          if ( qvbs < lowq ) qvbs = lowq
-          atm2%qx(j,i,k,iqv) = qvbs
-          atm1%qx(j,i,k,iqv) = qvas
-          qcas = atmc%qx(j,i,k,iqc)
-          if ( qcas < minqx*sfs%psa(j,i) ) qcas = d_zero
-          qcbs = omu*atm1%qx(j,i,k,iqc) + &
-                 gnu*(atm2%qx(j,i,k,iqc)+atmc%qx(j,i,k,iqc))
-          if ( qcbs < minqx*sfs%psb(j,i) ) qcbs = d_zero
-          atm2%qx(j,i,k,iqc) = qcbs
-          atm1%qx(j,i,k,iqc) = qcas
+        end do
+      end do
+    end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qvas = atmc%qx(j,i,k,n)
+            lowq = minqx*sfs%psa(j,i)
+            if ( qvas < lowq ) then
+              if ( n == iqv ) then
+                qvas = lowq
+              else
+                qvas = d_zero
+              end if
+            end if
+            qvbs = omuhf*atm1%qx(j,i,k,n) + &
+                   gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
+            lowq = minqx*sfs%psb(j,i)
+            if ( qvbs < lowq ) then
+              if ( n == iqv ) then
+                qvbs = lowq
+              else
+                qvbs = d_zero
+              end if
+            end if
+            atm2%qx(j,i,k,n) = qvbs
+            atm1%qx(j,i,k,n) = qvas
+          end do
         end do
       end do
     end do
