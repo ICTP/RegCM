@@ -142,7 +142,7 @@ module mod_ncstream
     ! If using parallel I/O, those are the patch window
     integer(ik4) , dimension(2) :: jparbound
     integer(ik4) , dimension(2) :: iparbound
-    integer(ik4) :: global_nj , global_ni
+    integer(ik4) :: global_nj , global_ni , parsize
   end type ncstream
 !
   type ncglobal_attribute_standard
@@ -313,7 +313,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       type(ncstream_params) , intent(in) :: params
-      integer(ik4) :: iomode
+      integer(ik4) :: iomode = nf90_clobber
       type(ncstream) , pointer :: stream
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
@@ -340,13 +340,13 @@ module mod_ncstream
 #else
       if ( params%mpi_comm /= -1 ) then
         !iomode = ior(nf90_pnetcdf,nf90_clobber)
-        !ncstat = nf90_create_par(stream%filename,iomode, &
+        !ncstat = nf90_create(stream%filename,iomode, &
         !  params%mpi_comm,params%mpi_info,stream%id)
         !stream%l_parallel = .true.
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
       else
-        ncstat = nf90_create(stream%filename,nf90_clobber,stream%id)
+        ncstat = nf90_create(stream%filename,iomode,stream%id)
       end if
 #endif
       if ( ncstat /= nf90_noerr ) then
@@ -361,6 +361,13 @@ module mod_ncstream
         stream%iparbound(2) = params%global_iend
         stream%global_ni = params%global_iend-params%global_istart+1
         stream%global_nj = params%global_jend-params%global_jstart+1
+        stream%parsize = stream%global_ni*stream%global_nj
+#ifdef DEBUG
+        write(stdout,*) 'Parallel I/O enabled.'
+        write(stdout,*) 'Processor ', myid, ' window: ', &
+          stream%global_nj,' x ' , stream%global_ni, ' at ', &
+          stream%jparbound(1) , ',', stream%iparbound(1)
+#endif
       end if
       stream%progname     = params%pname
       stream%zero_time    = params%zero_time
@@ -836,7 +843,7 @@ module mod_ncstream
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
-#ifdef NETCDF4_HDF5
+#if defined(NETCDF4_HDF5) && defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
           ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
           if ( ncstat /= nf90_noerr ) then
@@ -1186,9 +1193,9 @@ module mod_ncstream
             reshape(buffer%rbuf2d,(/size(buffer%rbuf2d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1209,9 +1216,9 @@ module mod_ncstream
             reshape(buffer%rbuf3d,(/size(buffer%rbuf3d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1234,9 +1241,9 @@ module mod_ncstream
             reshape(buffer%rbuf4d,(/size(buffer%rbuf4d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1284,9 +1291,9 @@ module mod_ncstream
             reshape(buffer%ibuf2d,(/size(buffer%ibuf2d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1307,9 +1314,9 @@ module mod_ncstream
             reshape(buffer%ibuf3d,(/size(buffer%ibuf3d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1332,9 +1339,9 @@ module mod_ncstream
             reshape(buffer%ibuf4d,(/size(buffer%ibuf4d)/))
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
-            stream%icount(1) = stream%jparbound(2)
             stream%istart(2) = stream%iparbound(1)
-            stream%icount(2) = stream%iparbound(2)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
