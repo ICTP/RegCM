@@ -48,7 +48,6 @@ module mod_domain
   interface read_domain
     module procedure read_domain_type
     module procedure read_domain_array
-    module procedure read_domain_array_single
   end interface read_domain
 
   public :: domain_io , mddom_io , read_domain , check_domain
@@ -74,7 +73,7 @@ module mod_domain
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                               lndcat,msfx,msfd,coriol)
+                               lndcat,msfx,msfd,coriol,ltrans)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(out) :: sigma
@@ -88,35 +87,6 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfx
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
-    call check_domain(ncid)
-    call read_var1d_static(ncid,'sigma',sigma)
-    if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
-    if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
-    if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
-    if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
-    if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
-    if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
-    if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
-    if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
-    if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
-    if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-  end subroutine read_domain_array
-
-  subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,ltrans)
-    implicit none
-    integer(ik4) , intent(in) :: ncid
-    real(rk4) , pointer , dimension(:) , intent(out) :: sigma
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     logical , intent(in) , optional :: ltrans
     real(rk4) , pointer , dimension(:,:) :: dum
     logical :: dotrans
@@ -182,7 +152,7 @@ module mod_domain
       if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
       if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     end if
-  end subroutine read_domain_array_single
+  end subroutine read_domain_array
 
   subroutine allocate_domain
     implicit none
@@ -208,7 +178,7 @@ module mod_domain
     integer(ik4) :: iyy , jxx , kzz , kcheck
     character(6) :: proj
     logical :: lh
-    real(rk4) :: dsx , iclat , iclon , ptsp
+    real(rk8) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
     if ( present(lmod) ) lh = lmod

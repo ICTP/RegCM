@@ -49,6 +49,8 @@ module mod_ncstream
 
   integer(ik4) :: ncstat
 
+  logical , parameter :: nocopy = .false.
+
   type ncstream_params
     ! The name of the output file
     character(len=maxstring) :: fname = 'regcm_generic.nc'
@@ -95,13 +97,7 @@ module mod_ncstream
     integer(ik4) , dimension(3) :: max3d_real = 0
     integer(ik4) , dimension(4) :: max4d_real = 0
     integer(ik4) , dimension(:) , allocatable :: intbuff
-    integer(ik4) , dimension(:,:) , allocatable :: ibuf2d
-    integer(ik4) , dimension(:,:,:) , allocatable :: ibuf3d
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: ibuf4d
     real(rk4) , dimension(:) , allocatable :: realbuff
-    real(rk4) , dimension(:,:) , allocatable :: rbuf2d
-    real(rk4) , dimension(:,:,:) , allocatable :: rbuf3d
-    real(rk4) , dimension(:,:,:,:) , allocatable :: rbuf4d
   end type internal_obuffer
 
   type obuff_p
@@ -152,6 +148,10 @@ module mod_ncstream
   type, extends(ncglobal_attribute_standard) :: ncattribute_string
     character(len=maxstring) :: theval
   end type ncattribute_string
+
+  type, extends(ncglobal_attribute_standard) :: ncattribute_logical
+    logical :: theval
+  end type ncattribute_logical
 
   type, extends(ncglobal_attribute_standard) :: ncattribute_integer
     integer(ik4) :: theval
@@ -212,7 +212,7 @@ module mod_ncstream
   end type ncvariable_1d
 
   type, extends(ncvariable_1d) :: ncvariable1d_real
-    real(rk4) , dimension(:) , pointer :: rval => null()
+    real(rk8) , dimension(:) , pointer :: rval => null()
   end type ncvariable1d_real
 
   type, extends(ncvariable_1d) :: ncvariable1d_integer
@@ -223,10 +223,12 @@ module mod_ncstream
     logical :: lrecords = .false.
     character(len=2) :: axis = 'xy'
     integer(ik4) , dimension(2) :: nval = 0
+    integer(ik4) :: i1 = -1 , i2 = -1
+    integer(ik4) :: j1 = -1 , j2 = -1
   end type ncvariable_2d
 
   type, extends(ncvariable_2d) :: ncvariable2d_real
-    real(rk4) , dimension(:,:) , pointer :: rval => null()
+    real(rk8) , dimension(:,:) , pointer :: rval => null()
   end type ncvariable2d_real
 
   type, extends(ncvariable_2d) :: ncvariable2d_integer
@@ -237,10 +239,12 @@ module mod_ncstream
     logical :: lrecords = .false.
     character(len=3) :: axis = 'xyz'
     integer(ik4) , dimension(3) :: nval = 0
+    integer(ik4) :: i1 = -1 , i2 = -1
+    integer(ik4) :: j1 = -1 , j2 = -1
   end type ncvariable_3d
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
-    real(rk4) , dimension(:,:,:) , pointer :: rval => null()
+    real(rk8) , dimension(:,:,:) , pointer :: rval => null()
   end type ncvariable3d_real
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
@@ -251,10 +255,12 @@ module mod_ncstream
     logical :: lrecords = .false.
     character(len=4) :: axis = 'xyzd'
     integer(ik4) , dimension(4) :: nval = 0
+    integer(ik4) :: i1 = -1 , i2 = -1
+    integer(ik4) :: j1 = -1 , j2 = -1
   end type ncvariable_4d
 
   type, extends(ncvariable_4d) :: ncvariable4d_real
-    real(rk4) , dimension(:,:,:,:) , pointer :: rval => null()
+    real(rk8) , dimension(:,:,:,:) , pointer :: rval => null()
   end type ncvariable4d_real
 
   type, extends(ncvariable_4d) :: ncvariable4d_integer
@@ -297,7 +303,8 @@ module mod_ncstream
   public :: ncvariable3d_real , ncvariable3d_integer
   public :: ncvariable4d_real , ncvariable4d_integer
 
-  public :: ncattribute_string , ncattribute_integer
+  public :: ncattribute_string
+  public :: ncattribute_logical , ncattribute_integer
   public :: ncattribute_real4 , ncattribute_real8
   public :: ncattribute_real4_array , ncattribute_real8_array
 
@@ -405,18 +412,12 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: xbf
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
-      if ( allocated(xbf%ibuf2d) )   deallocate(xbf%ibuf2d)
-      if ( allocated(xbf%rbuf2d) )   deallocate(xbf%rbuf2d)
-      if ( allocated(xbf%ibuf3d) )   deallocate(xbf%ibuf3d)
-      if ( allocated(xbf%rbuf3d) )   deallocate(xbf%rbuf3d)
-      if ( allocated(xbf%ibuf4d) )   deallocate(xbf%ibuf4d)
-      if ( allocated(xbf%rbuf4d) )   deallocate(xbf%rbuf4d)
     end subroutine deallocate_buffers
 
     subroutine outstream_enable(ncout,sigma)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      real(rk8) , dimension(:) , intent(in) :: sigma
+      real(rk8) , dimension(:) , pointer , intent(in) :: sigma
 
       type(ncstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
@@ -504,39 +505,21 @@ module mod_ncstream
       maxnum_real = buffer%max1d_real(1)
 
       if ( buffer%lhas2dint ) then
-        allocate(buffer%rbuf2d(buffer%max2d_int(1), &
-                               buffer%max2d_int(2)))
         maxnum_int = max(product(buffer%max2d_int),maxnum_int)
       end if
       if ( buffer%lhas2dreal ) then
-        allocate(buffer%rbuf2d(buffer%max2d_real(1), &
-                               buffer%max2d_real(2)))
         maxnum_real = max(product(buffer%max2d_real),maxnum_real)
       end if
       if ( buffer%lhas3dint ) then
-        allocate(buffer%rbuf3d(buffer%max3d_int(1), &
-                               buffer%max3d_int(2), &
-                               buffer%max3d_int(3)))
         maxnum_int = max(product(buffer%max3d_int),maxnum_int)
       end if
       if ( buffer%lhas3dreal ) then
-        allocate(buffer%rbuf3d(buffer%max3d_real(1), &
-                               buffer%max3d_real(2), &
-                               buffer%max3d_real(3)))
         maxnum_real = max(product(buffer%max3d_real),maxnum_real)
       end if
       if ( buffer%lhas4dint ) then
-        allocate(buffer%ibuf4d(buffer%max4d_int(1), &
-                               buffer%max4d_int(2), &
-                               buffer%max4d_int(3), &
-                               buffer%max4d_int(4)))
         maxnum_int = max(product(buffer%max4d_int),maxnum_int)
       end if
       if ( buffer%lhas4dreal ) then
-        allocate(buffer%rbuf4d(buffer%max4d_real(1), &
-                               buffer%max4d_real(2), &
-                               buffer%max4d_real(3), &
-                               buffer%max4d_real(4)))
         maxnum_real = max(product(buffer%max4d_real),maxnum_real)
       end if
       if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
@@ -550,18 +533,6 @@ module mod_ncstream
       if ( allocated(buffer%realbuff) ) &
         write(stdout,*) 'Total buffer float size   :', &
           size(buffer%realbuff)
-      if ( allocated(buffer%ibuf2d) ) &
-        write(stdout,*) 'Total buffer int  2d size :',size(buffer%ibuf2d)
-      if ( allocated(buffer%rbuf2d) ) &
-        write(stdout,*) 'Total buffer real 2d size :',size(buffer%rbuf2d)
-      if ( allocated(buffer%ibuf3d) ) &
-        write(stdout,*) 'Total buffer int  3d size :',size(buffer%ibuf3d)
-      if ( allocated(buffer%rbuf3d) ) &
-        write(stdout,*) 'Total buffer real 3d size :',size(buffer%rbuf3d)
-      if ( allocated(buffer%ibuf4d) ) &
-        write(stdout,*) 'Total buffer int  4d size :',size(buffer%ibuf4d)
-      if ( allocated(buffer%rbuf4d) ) &
-        write(stdout,*) 'Total buffer real 4d size :',size(buffer%rbuf4d)
 #endif
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then
@@ -573,15 +544,15 @@ module mod_ncstream
       do i = 2 , jx
         buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
       end do
-      call outstream_writevar(ncout,stvar%jx_var)
+      call outstream_writevar(ncout,stvar%jx_var,nocopy)
       buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds * d_1000)
       do i = 2 , iy
         buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
       end do
-      call outstream_writevar(ncout,stvar%iy_var)
+      call outstream_writevar(ncout,stvar%iy_var,nocopy)
       buffer%realbuff(1:size(sigma)) = real(sigma)
-      call outstream_writevar(ncout,stvar%sigma_var)
-      stvar%ptop_var%rval(1) = real(ptop)*10.0
+      call outstream_writevar(ncout,stvar%sigma_var,nocopy)
+      stvar%ptop_var%rval(1) = real(ptop*10.0D0)
       call outstream_writevar(ncout,stvar%ptop_var)
     end subroutine outstream_enable
 
@@ -618,7 +589,7 @@ module mod_ncstream
       if ( stream%l_hastbound ) then
         buffer%realbuff(1) = real(stream%zero_time)
         buffer%realbuff(2) = val
-        call outstream_writevar(ncout,stvar%tbound_var)
+        call outstream_writevar(ncout,stvar%tbound_var,nocopy)
         stream%zero_time = val
       end if
     end subroutine outstream_addrec
@@ -724,6 +695,7 @@ module mod_ncstream
       type(ncstream) , pointer , intent(in) :: stream
       class(ncglobal_attribute_standard) , intent(in) :: att
       integer(ik4) , optional :: iloc
+      character(len=4) :: cdum
       character(len=*) , optional :: vname
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
@@ -736,6 +708,9 @@ module mod_ncstream
       select type(att)
         class is (ncattribute_string)
           ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+        class is (ncattribute_logical)
+          call cdumlogical(cdum,att%theval)
+          ncstat = nf90_put_att(stream%id,iv,att%aname,cdum)
         class is (ncattribute_integer)
           ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
         class is (ncattribute_real4)
@@ -945,6 +920,24 @@ module mod_ncstream
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
+          if ( var%i1 < 1 ) then
+          end if
+          if ( var%j1 < 1 .and. var%j2 < 1 ) then
+            var%j1 = 1
+            var%j2 = len_dim(1)
+          end if
+          if ( var%i1 < 1 .and. var%i2 < 1 ) then
+            var%i1 = 1
+            var%i2 = len_dim(1)
+          end if
+          if ( var%j2-var%j1+1 /= var%nval(1) .or. &
+               var%i2-var%i1+1 /= var%nval(2) ) then
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+            write(stderr,*) 'Size of variable do not match span requested'
+            call die('nc_stream', &
+                   'Cannot add variable '//trim(var%vname)// &
+                   ' in file '//trim(stream%filename), 1)
+          end if
           var%totsize = product(var%nval)
         class is (ncvariable_3d)
           if ( var%lrecords ) then
@@ -966,6 +959,24 @@ module mod_ncstream
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
+          if ( var%i1 < 1 ) then
+          end if
+          if ( var%j1 < 1 .and. var%j2 < 1 ) then
+            var%j1 = 1
+            var%j2 = len_dim(1)
+          end if
+          if ( var%i1 < 1 .and. var%i2 < 1 ) then
+            var%i1 = 1
+            var%i2 = len_dim(1)
+          end if
+          if ( var%j2-var%j1+1 /= var%nval(1) .or. &
+               var%i2-var%i1+1 /= var%nval(2) ) then
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+            write(stderr,*) 'Size of variable do not match span requested'
+            call die('nc_stream', &
+                   'Cannot add variable '//trim(var%vname)// &
+                   ' in file '//trim(stream%filename), 1)
+          end if
           var%nval(3) = len_dim(3)
           var%totsize = product(var%nval)
         class is (ncvariable_4d)
@@ -988,6 +999,24 @@ module mod_ncstream
           end if
           var%nval(1) = len_dim(1)
           var%nval(2) = len_dim(2)
+          if ( var%i1 < 1 ) then
+          end if
+          if ( var%j1 < 1 .and. var%j2 < 1 ) then
+            var%j1 = 1
+            var%j2 = len_dim(1)
+          end if
+          if ( var%i1 < 1 .and. var%i2 < 1 ) then
+            var%i1 = 1
+            var%i2 = len_dim(1)
+          end if
+          if ( var%j2-var%j1+1 /= var%nval(1) .or. &
+               var%i2-var%i1+1 /= var%nval(2) ) then
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+            write(stderr,*) 'Size of variable do not match span requested'
+            call die('nc_stream', &
+                   'Cannot add variable '//trim(var%vname)// &
+                   ' in file '//trim(stream%filename), 1)
+          end if
           var%nval(3) = len_dim(3)
           var%nval(4) = len_dim(4)
           var%totsize = product(var%nval)
@@ -1154,12 +1183,16 @@ module mod_ncstream
       end do
     end subroutine dimlist
 
-    subroutine outstream_writevar(ncout,var)
+    subroutine outstream_writevar(ncout,var,lcopy)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       class(ncvariable_standard) , intent(inout) :: var
+      logical , intent(in) , optional :: lcopy
       type(ncstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
+      logical :: docopy
+      docopy = .true.
+      if ( present(lcopy) ) docopy = lcopy
       stream => ncout%ncp%xs
       if ( .not. stream%l_enabled ) return
       if ( stream%id < 0 ) return
@@ -1175,6 +1208,15 @@ module mod_ncstream
             ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
           end if
         class is (ncvariable1d_real)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:var%nval(1)) = real(var%rval(1:var%nval(1)))
+          end if
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1189,8 +1231,17 @@ module mod_ncstream
               buffer%realbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_real)
-          buffer%realbuff(1:size(buffer%rbuf2d)) = &
-            reshape(buffer%rbuf2d,(/size(buffer%rbuf2d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:var%totsize) = &
+              real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
+              (/var%totsize/)))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1212,8 +1263,17 @@ module mod_ncstream
               buffer%realbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_real)
-          buffer%realbuff(1:size(buffer%rbuf3d)) = &
-            reshape(buffer%rbuf3d,(/size(buffer%rbuf3d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:var%totsize) = &
+              real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2,:), &
+              (/var%totsize/)))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1237,8 +1297,17 @@ module mod_ncstream
               buffer%realbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_real)
-          buffer%realbuff(1:size(buffer%rbuf4d)) = &
-            reshape(buffer%rbuf4d,(/size(buffer%rbuf4d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:var%totsize) = &
+              real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2,:,:), &
+              (/var%totsize/)))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1273,6 +1342,15 @@ module mod_ncstream
             ncstat = nf90_put_var(stream%id,var%id,var%ival(1))
           end if
         class is (ncvariable1d_integer)
+          if ( docopy ) then
+            if ( .not. associated(var%ival) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%intbuff(1:var%nval(1)) = var%ival(1:var%nval(1))
+          end if
           if ( var%lrecords ) then
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1287,8 +1365,16 @@ module mod_ncstream
               buffer%intbuff,stream%istart(1:1),stream%icount(1:1))
           end if
         class is (ncvariable2d_integer)
-          buffer%intbuff(1:size(buffer%ibuf2d)) = &
-            reshape(buffer%ibuf2d,(/size(buffer%ibuf2d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%ival) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%intbuff(1:var%totsize) = &
+              reshape(var%ival(var%j1:var%j2,var%i1:var%i2),(/var%totsize/))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1310,8 +1396,16 @@ module mod_ncstream
               buffer%intbuff,stream%istart(1:2),stream%icount(1:2))
           end if
         class is (ncvariable3d_integer)
-          buffer%intbuff(1:size(buffer%ibuf3d)) = &
-            reshape(buffer%ibuf3d,(/size(buffer%ibuf3d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%ival) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%intbuff(1:var%totsize) = &
+              reshape(var%ival(var%j1:var%j2,var%i1:var%i2,:),(/var%totsize/))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1335,8 +1429,16 @@ module mod_ncstream
               buffer%intbuff,stream%istart(1:3),stream%icount(1:3))
           end if
         class is (ncvariable4d_integer)
-          buffer%intbuff(1:size(buffer%ibuf4d)) = &
-            reshape(buffer%ibuf4d,(/size(buffer%ibuf4d)/))
+          if ( docopy ) then
+            if ( .not. associated(var%ival) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%intbuff(1:var%totsize) = &
+              reshape(var%ival(var%j1:var%j2,var%i1:var%i2,:,:),(/var%totsize/))
+          end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -1502,6 +1604,8 @@ program test
   type(ncvariable3d_real) :: var3dreal
 
   real(rk8) , dimension(18) :: sigma
+  real(rk8) , dimension(36,36) :: 2dvar
+  real(rk8) , dimension(36,36,18) :: 3dvar
   integer(ik4) :: k
 
   data sigma /0.025000000372529, 0.0750000011175871, 0.129999998956919, &
@@ -1574,29 +1678,31 @@ program test
   ! Enable the output stream for write
   call outstream_enable(ncout,sigma)
 
-  ncout%obp%xb%realbuff(1:size(sigma)) = real(sigma(:))
-  ncout%obp%xb%rbuf2d(1:jx,1:iy) = 1.0
-  ncout%obp%xb%rbuf2d(jx/2,iy/2) = 2.0
+  var1dreal%rval => sigma
+  2dvar(1:jx,1:iy) = 1.0D0
+  2dvar(jx/2,iy/2) = 2.0D0
+  var2dreal%rval => 2dvar
 
   ! Write some static variables
   call outstream_writevar(ncout,var1dreal)
   call outstream_writevar(ncout,var2dreal)
 
   var0dint%ival(1) = 12
-  ncout%obp%xb%rbuf3d(1:jx,1:iy,:) = 1.0
+  3dvar(1:jx,1:iy,:) = 1.0D0
   do k = 1 , kz
-    ncout%obp%xb%rbuf3d(jx/4,iy/4,k) = k
+    3dvar(jx/4,iy/4,k) = dble(k)
   end do
 
   ! Write variables in the current record step
   call outstream_addrec(ncout,256212.0)
   call outstream_writevar(ncout,var0dint)
   call outstream_writevar(ncout,var3dreal)
+  var3dreal%rval => 3dvar
 
   var0dint%ival(1) = 13
-  ncout%obp%xb%rbuf3d(1:jx,1:iy,:) = 1.0
+  3dvar(1:jx,1:iy,:) = 1.0D0
   do k = 1 , kz
-    ncout%obp%xb%rbuf3d(jx/4,iy/4,k) = k*1.5
+    3dvar(jx/4,iy/4,k) = dble(k)*1.5D0
   end do
 
   ! Add a new record
