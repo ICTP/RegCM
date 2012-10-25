@@ -447,6 +447,11 @@ module mod_che_ncio
                   'OC_flux',.false.,sdim)
       end if
 
+      if (ipollen /=0 ) then 
+        call  rvar(ncid,istart,icount,ipollen,echemsrc, &
+                  'POLLEN',.false.,sdim)
+      end if
+
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
 
       istatus = nf90_close(ncid)

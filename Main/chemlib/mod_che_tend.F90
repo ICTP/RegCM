@@ -39,7 +39,8 @@
   use mod_che_carbonaer
   use mod_che_mppio
   use mod_che_chemistry
-  private
+  use mod_che_pollen 
+ private
 
   public :: tractend2 , tracbud
 
@@ -76,7 +77,8 @@
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
 !      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
-
+       real(rk8) , dimension (1) :: polrftab
+       integer(ik4) , dimension (1) :: poltab 
       integer(ik4) :: i , j , ibin , k
       integer(ik8) :: kchsolv
       !
@@ -262,10 +264,10 @@
       !
       if ( idust(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
-          zeff(:,j) = 0.01D0 ! value set to desert type ( even for semi-arid) 
-          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j), &
-                           tsurf(:,j),rh10(:,j),srad(:,j),   &
-                           ivegcov(:,j),ustar(:,j),xra(:,1))
+          where (ivegcov(:,j) == 11)
+            zeff(:,j) = 0.01 ! value set to desert type for semi-arid)      
+          end where
+          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j),rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
                       zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))     
@@ -277,8 +279,14 @@
         end do
       end if
       !
-      ! update emission tendencies from inventories
-      !
+      ! pollen emission 
+      if(ipollen > 0) then 
+      do j = jci1 , jci2  
+         call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j),rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
+         call pollen_emission(j,ustar(:,j),wid10(:,j),rh10(:,j),prec(:,kz,j), convprec(:,kz,j))
+      end do
+      end if  
+      !update emission tendencies from inventories
       if ( ichsursrc ==1 ) then
         do j = jci1 , jci2
           call emis_tend(ktau,j,lmonth,declin)
@@ -320,6 +328,24 @@
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
+
+      if ( ipollen > 0 ) then
+        ibin = 1 
+        poltab(1) = ipollen
+        polrftab(1) = reffpollen
+        do j = jci1 , jci2
+          call drydep_aero(j,ibin,poltab,rhopollen,ivegcov(:,j), &
+                           ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),   &
+                           temp10(:,j),tsurf(:,j),srad(:,j),        &
+                           rh10(:,j),wid10(:,j),zeff(:,j),          &
+                           polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
+        end do
+      end if 
+
+
+
+
+
       !
       ! GAS phase dry deposition velocity + tendencies
       ! option compatible with BATS and CLM

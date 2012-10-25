@@ -148,20 +148,19 @@ contains
     if ( ichdrdepo /= 2 ) then  
       do itr = 1 , ntr
         do i = ici1 , ici2
-          if ( chtrname(itr)(1:4).ne.'DUST' .or. &
-               chtrname(itr)(1:4).ne.'SSALT' ) then 
+          if ( idust(itr) > 0 .or. isslt(itr)  > 0 .or. ipollen   >  0 ) cycle 
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
             chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cdiagf
-          end if
         end do
       end do
     elseif ( ichdrdepo ==2) then
       do itr = 1 , ntr
         do i = ici1 , ici2
           if ( chtrname(itr)(1:4).ne.'DUST' .or. &
-               chtrname(itr)(1:4).ne.'SSALT' ) then 
+               chtrname(itr)(1:4).ne.'SSLT' .or. &
+               chtrname(itr)(1:6).ne.'POLLEN' ) then 
             !then emission is injected in the PBL scheme
             cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul

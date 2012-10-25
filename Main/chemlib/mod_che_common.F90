@@ -304,6 +304,18 @@ module mod_che_common
         write (aline,*) 'CBMZ gas-phase + sulfate simulation'
         call say
 
+
+      else if ( chemsimtype(1:6) == 'POLLEN' ) then 
+        ntr = 1
+        allocate(chtrname(ntr))      
+        chtrname(1:ntr)(1:6) = (/'POLLEN' /)
+
+        iaerosol = 1
+        
+        write (aline,*) 'POLLEN'
+        call say
+
+
       else 
         write (aline,*) 'Not a valid chemtype simulation : STOP !'
         call say

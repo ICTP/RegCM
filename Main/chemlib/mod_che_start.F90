@@ -129,6 +129,9 @@ module mod_che_start
     irooh   = 0
     ixo2 =    0
 
+    ipollen = 0
+
+
     !abt *** For initializing megan tracer biogenic voc mask  
     !    *** Mask not equal to zero when any MEGAN species is
     !    *** defined as a tracer within regcm.in  
@@ -261,6 +264,7 @@ module mod_che_start
       if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
 
 
+      if ( chtrname(itr) == 'POLLEN'   ) ipollen      = itr
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
       !    *** regcm.in namelist.  If both are defined then STOP
