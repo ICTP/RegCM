@@ -225,6 +225,7 @@ module mod_ncstream
     integer(ik4) , dimension(2) :: nval = 0
     integer(ik4) :: i1 = -1 , i2 = -1
     integer(ik4) :: j1 = -1 , j2 = -1
+    logical :: dotrans = .false.
   end type ncvariable_2d
 
   type, extends(ncvariable_2d) :: ncvariable2d_real
@@ -544,12 +545,12 @@ module mod_ncstream
       end if
       buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds * d_1000)
       do i = 2 , jx
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
+        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
       end do
       call outstream_writevar(ncout,stvar%jx_var,nocopy)
       buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds * d_1000)
       do i = 2 , iy
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds)
+        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
       end do
       call outstream_writevar(ncout,stvar%iy_var,nocopy)
       buffer%realbuff(1:size(sigma)) = real(sigma)
@@ -1249,9 +1250,15 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
-            buffer%realbuff(1:var%totsize) = &
-              real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
-              (/var%totsize/)))
+            if ( var%dotrans ) then
+              buffer%realbuff(1:var%totsize) = real(reshape(      &
+                transpose(var%rval(var%j1:var%j2,var%i1:var%i2)), &
+                (/var%totsize/)))
+            else
+              buffer%realbuff(1:var%totsize) =                      &
+                real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
+                (/var%totsize/)))
+            end if
           end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
