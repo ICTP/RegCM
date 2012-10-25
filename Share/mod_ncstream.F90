@@ -311,8 +311,10 @@ module mod_ncstream
   public :: outstream_setup
   public :: outstream_enable , outstream_dispose
   public :: outstream_addvar , outstream_addatt
+  public :: outstream_addvaratt
   public :: outstream_writevar
   public :: outstream_addrec
+
 
   contains
 
@@ -689,6 +691,15 @@ module mod_ncstream
       if ( .not. associated(ncout%ncp%xs) ) return
       call add_attribute(ncout%ncp%xs,att)
     end subroutine outstream_addatt
+
+    subroutine outstream_addvaratt(ncout,var,att)
+      implicit none
+      type(nc_output_stream) , intent(in) :: ncout
+      class(ncvariable_standard) , intent(in) :: var
+      class(ncglobal_attribute_standard) , intent(in) :: att
+      if ( .not. associated(ncout%ncp%xs) ) return
+      call add_attribute(ncout%ncp%xs,att,var%id,var%vname)
+    end subroutine outstream_addvaratt
 
     subroutine add_attribute(stream,att,iloc,vname)
       implicit none
