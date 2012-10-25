@@ -939,7 +939,7 @@ module mod_ncstream
           end if
           if ( var%i1 < 1 .and. var%i2 < 1 ) then
             var%i1 = 1
-            var%i2 = len_dim(1)
+            var%i2 = len_dim(2)
           end if
           if ( var%j2-var%j1+1 /= var%nval(1) .or. &
                var%i2-var%i1+1 /= var%nval(2) ) then
@@ -978,7 +978,7 @@ module mod_ncstream
           end if
           if ( var%i1 < 1 .and. var%i2 < 1 ) then
             var%i1 = 1
-            var%i2 = len_dim(1)
+            var%i2 = len_dim(2)
           end if
           if ( var%j2-var%j1+1 /= var%nval(1) .or. &
                var%i2-var%i1+1 /= var%nval(2) ) then
@@ -1018,7 +1018,7 @@ module mod_ncstream
           end if
           if ( var%i1 < 1 .and. var%i2 < 1 ) then
             var%i1 = 1
-            var%i2 = len_dim(1)
+            var%i2 = len_dim(2)
           end if
           if ( var%j2-var%j1+1 /= var%nval(1) .or. &
                var%i2-var%i1+1 /= var%nval(2) ) then
