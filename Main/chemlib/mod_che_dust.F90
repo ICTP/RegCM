@@ -183,7 +183,7 @@ module mod_che_dust
       ! data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
       !           3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
 
-      data bcly /12*0.0D0/
+      data bcly / 4.3D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
                
       ! bsnd and bslt are not really used after / 
       ! the data here are not consistent with clay.
