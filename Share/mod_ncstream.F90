@@ -23,9 +23,9 @@ module mod_ncstream
   use mod_realkinds
   use mod_stdio
   use mod_constants
-  use mod_memutil
   use mod_dynparam
   use mod_message
+  use mod_date
   use netcdf
 
   private
@@ -73,11 +73,13 @@ module mod_ncstream
     ! If the vertical coordinate is on full sigma levels
     logical :: l_full_sigma = .false.
     ! Initial time for this run
-    real(rk8) :: zero_time = 0.0D0
+    type(rcm_time_and_date) :: zero_date = rcm_time_and_date(1,18231,0)
     ! If parallel I/O, the processor patch indexes on the global grid
     integer(ik4) :: global_jstart , global_jend
     integer(ik4) :: global_istart , global_iend
   end type ncstream_params
+
+  type(rcm_time_and_date) :: reference_date
 
   type internal_obuffer
     logical :: lhas1dint = .false.
@@ -187,6 +189,8 @@ module mod_ncstream
     logical :: lgridded = .false.
     logical :: laddmethod = .true.
     logical :: lfillvalue = .false.
+    real(rk4) :: rmissval = smissval
+    integer(ik4) :: imissval = -9999
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d
@@ -246,6 +250,8 @@ module mod_ncstream
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
     real(rk8) , dimension(:,:,:) , pointer :: rval => null()
+    logical :: is_slice = .false.
+    real(rk8) , dimension(:,:,:,:) , pointer :: rval_slice => null()
   end type ncvariable3d_real
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
@@ -295,6 +301,11 @@ module mod_ncstream
     type(basic_variables_p) :: svp
   end type nc_output_stream
 
+  interface outstream_addrec
+    module procedure outstream_addrec_date
+    module procedure outstream_addrec_value
+  end interface
+
   public :: ncstream_params
   public :: nc_output_stream
   public :: ncvariable0d_char
@@ -315,7 +326,6 @@ module mod_ncstream
   public :: outstream_addvaratt
   public :: outstream_writevar
   public :: outstream_addrec
-
 
   contains
 
@@ -380,7 +390,9 @@ module mod_ncstream
 #endif
       end if
       stream%progname     = params%pname
-      stream%zero_time    = params%zero_time
+      reference_date      = 1949120100
+      call setcal(reference_date,ical)
+      stream%zero_time    = tohours(params%zero_date-reference_date)
       stream%l_bound      = params%l_bound
       stream%l_subgrid    = params%l_subgrid
       stream%l_full_sigma = params%l_full_sigma
@@ -574,10 +586,19 @@ module mod_ncstream
       end if
     end subroutine outstream_sync
 
-    subroutine outstream_addrec(ncout,val)
+    subroutine outstream_addrec_date(ncout,dtime)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      real(rk4) , intent(in) :: val
+      type(rcm_time_and_date) , intent(in) :: dtime
+      real(rk8) :: val
+      val = tohours(dtime-reference_date)
+      call outstream_addrec_value(ncout,val)
+    end subroutine outstream_addrec_date
+
+    subroutine outstream_addrec_value(ncout,val)
+      implicit none
+      type(nc_output_stream) , intent(inout) :: ncout
+      real(rk8) , intent(in) :: val
       type(ncstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
       type(internal_obuffer) , pointer :: buffer
@@ -587,15 +608,15 @@ module mod_ncstream
       buffer => ncout%obp%xb
       if ( .not. stream%l_enabled ) return
       stream%irec = stream%irec+1
-      stvar%time_var%rval = val
+      stvar%time_var%rval = real(val)
       call outstream_writevar(ncout,stvar%time_var)
       if ( stream%l_hastbound ) then
         buffer%realbuff(1) = real(stream%zero_time)
-        buffer%realbuff(2) = val
+        buffer%realbuff(2) = real(val)
         call outstream_writevar(ncout,stvar%tbound_var,nocopy)
-        stream%zero_time = val
+        stream%zero_time = real(val)
       end if
-    end subroutine outstream_addrec
+    end subroutine outstream_addrec_value
 
     subroutine add_dimension(stream,dname)
       implicit none
@@ -797,8 +818,14 @@ module mod_ncstream
         end if
       end if
       if ( var%lfillvalue ) then
-        call add_attribute(stream, &
-          ncattribute_real4('_FillValue',smissval),var%id,var%vname)
+        if ( var%nctype == nf90_real ) then
+          call add_attribute(stream, &
+            ncattribute_real4('_FillValue',var%rmissval),var%id,var%vname)
+        else
+          call add_attribute(stream, &
+            ncattribute_real4('_FillValue',var%imissval),var%id,var%vname)
+        end if
+
       end if
     end subroutine add_varatts
 
@@ -1195,11 +1222,12 @@ module mod_ncstream
       end do
     end subroutine dimlist
 
-    subroutine outstream_writevar(ncout,var,lcopy)
+    subroutine outstream_writevar(ncout,var,lcopy,is)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       class(ncvariable_standard) , intent(inout) :: var
       logical , intent(in) , optional :: lcopy
+      integer , intent(in) , optional :: is
       type(ncstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
       logical :: docopy
@@ -1288,9 +1316,21 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
-            buffer%realbuff(1:var%totsize) = &
-              real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2,:), &
-              (/var%totsize/)))
+            if ( var%is_slice ) then
+              if ( .not. present(is) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Requesting slice without giving index...'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+              buffer%realbuff(1:var%totsize) = &
+                real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,:,is), &
+                (/var%totsize/)))
+            else
+              buffer%realbuff(1:var%totsize) = &
+                real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2,:), &
+                (/var%totsize/)))
+            end if
           end if
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
