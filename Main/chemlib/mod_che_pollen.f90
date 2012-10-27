@@ -67,7 +67,7 @@ module mod_che_pollen
       emispol = d_zero
       do i = ici1 , ici2
     
-       emispot = chemsrc(j,i,ipollen)! in particle/m2
+       emispot = chemsrc(j,i,ipollen) * 24.D0 ! in particle/m2 + derniere correction
        if (emispot < 1.D-20) cycle
        emispol(i) = emispot * mathpi / 6.D0 * (reffpollen * 1.D-06)**3  *  rhopollen / 3600.D0  ! in kg/m2/s
 

@@ -386,6 +386,20 @@
         end do
       end if
       !
+      if ( ipollen > 0 .and.  ichremlsc == 1 )  then   
+        ibin = 1 
+        poltab(1) = ipollen
+        polrftab(1) = reffpollen
+      do j = jci1 , jci2
+          call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
+                       ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
+                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),             &
+                       convprec(:,:,j),pdepv(:,:,:,j)) 
+        end do
+      end if
+
+
+
       ! Wet Deposition for gasphase species 
       !
       if ( igaschem == 1 .and.ichremlsc == 1 ) then
