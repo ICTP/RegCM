@@ -100,7 +100,7 @@ module mod_che_bdyco
 
     chbdydate1 = idate1
     chbdydate2 = idate1
-
+    if(ichebdy==1) then 
     if ( myid == iocpu ) then
       if ( chbdydate1 == globidate1 ) then
         chbc_date = chbdydate1
@@ -171,6 +171,8 @@ module mod_che_bdyco
 
     call bcast(chbdydate2)
     chbdydate1 = chbdydate2
+
+    END IF !test
     !
     ! Send each processor its computing slice
     !
@@ -239,7 +241,7 @@ module mod_che_bdyco
     call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
 
     chib0(:,:,:,:) = chib1(:,:,:,:)
-
+    if(ichebdy==1) then
     if ( myid == iocpu ) then
       write (6,'(a,i10)') 'SEARCH CHBC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
@@ -267,6 +269,8 @@ module mod_che_bdyco
         end do
       end if
     end if
+   end if 
+
     call grid_distribute(chebdy_io1,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     do n = 1 , ntr
       do k = 1 , kz
