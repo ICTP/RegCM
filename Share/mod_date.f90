@@ -134,7 +134,7 @@ module mod_date
   public :: setcal
   public :: tochar , toint10 , tohours
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
-  public :: nextmon , prevmon , yrfirst , nextwk , prevwk
+  public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
   public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
   public :: split_idate , julianday
@@ -943,6 +943,14 @@ module mod_date
     call days_from_reference_to_date(y,d2)
     z = (d1%year-d2%year)*12+(d1%month-d2%month)
   end function imondiff
+
+  real(rk8) function hourdiff(x,y) result(z)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x , y
+    call check_cal(x,y)
+    z = dble(x%days_from_reference-y%days_from_reference)*24.0D0 + &
+        dble(x%second_of_day-y%second_of_day)/3600.0D0
+  end function hourdiff
 
   logical function lfhomonth(x) result(lf)
     implicit none
