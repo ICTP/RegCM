@@ -1,7 +1,6 @@
 #!/bin/sh
 
-#CDO=`which cdo`
-CDO='/home/mariotti/mytree/bin/cdo'
+CDO=`which cdo`
 if [ -z "$CDO" ]
 then
   echo "Cannot find a cdo executable in Your path."
