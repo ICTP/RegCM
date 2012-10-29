@@ -229,6 +229,8 @@ module mod_ncstream
     logical :: lfillvalue = .false.
     real(rk4) :: rmissval = smissval
     integer(ik4) :: imissval = -9999
+    integer(ik4) :: ndims = 0
+    integer(ik4) , dimension(5) :: idims = (/-1,-1,-1,-1,-1/)
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d
@@ -2060,15 +2062,15 @@ module mod_ncstream
           stvar%sigma_var%id,stvar%sigma_var%vname)
     end subroutine add_common_global_params
 
-    subroutine instream_readvar(ncin,var,irec)
+    subroutine instream_readvar(ncin,var,irec,window)
       implicit none
       type(nc_input_stream) , intent(inout) :: ncin
       class(ncvariable_standard) , intent(inout) :: var
       integer(ik4) , intent(in) , optional :: irec
+      integer(ik4) , dimension(:) , intent(in) , optional :: window
       type(ncinstream) , pointer :: stream
       type(internal_ibuffer) , pointer :: buffer
       integer(ik4) :: ndims
-      integer(ik4) , dimension(:) , allocatable :: idims
 
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
@@ -2082,9 +2084,8 @@ module mod_ncstream
           call die('nc_stream','Cannot find variable '//trim(var%vname)// &
             ' in '//trim(stream%filename),1)
         end if
-        allocate(idims(stream%ndims))
-        ncstat = nf90_inquire_variable(stream%id,var%id,ndims=ndims, &
-          dimids=idims)
+        ncstat = nf90_inquire_variable(stream%id,var%id,ndims=var%ndims, &
+          dimids=var%idims)
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) nf90_strerror(ncstat)
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2099,26 +2100,77 @@ module mod_ncstream
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
         class is (ncvariable2d_real)
           ndims = 2
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%totsize = product(var%nval)
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           if ( present(irec) ) then
+            if ( var%ndims /= 3 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(3) = irec
             stream%icount(3) = 1
             ndims = 3
@@ -2146,29 +2198,90 @@ module mod_ncstream
           end if
         class is (ncvariable3d_real)
           ndims = 3
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%nval(3) = stream%len_dims(idims(3))
-            var%totsize = product(var%nval)
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
-          stream%istart(3) = 1
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           stream%icount(3) = var%nval(3)
           if ( present(irec) ) then
+            if ( var%ndims /= 4 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(4) = irec
             stream%icount(4) = 1
             ndims = 4
@@ -2198,31 +2311,103 @@ module mod_ncstream
           end if
         class is (ncvariable4d_real)
           ndims = 4
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(7) < 0 .or. window(8) < 0 .or. &
+                 window(7) > window(8) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) .or. &
+                 window(7) > stream%len_dims(var%idims(4)) .or. &
+                 window(8) > stream%len_dims(var%idims(4)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+            stream%istart(4) = window(7)
+            var%nval(4) = window(8) - window(7) + 1
+            if ( var%n1 < 0 .and. var%n2 < 0 ) then
+              var%n1 = window(7)
+              var%n2 = window(8)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%nval(3) = stream%len_dims(idims(3))
-            var%nval(4) = stream%len_dims(idims(4))
-            var%totsize = product(var%nval)
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+            stream%istart(4) = 1
+            var%nval(4) = stream%len_dims(var%idims(4))
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
-          stream%istart(3) = 1
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           stream%icount(3) = var%nval(3)
           stream%icount(4) = var%nval(4)
           if ( present(irec) ) then
+            if ( var%ndims /= 5 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(5) = irec
             stream%icount(5) = 1
             ndims = 5
@@ -2235,7 +2420,8 @@ module mod_ncstream
             stream%istart(1:ndims),stream%icount(1:ndims))
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
-               var%k1 > 0 .and. var%k2 > 0 ) then
+               var%k1 > 0 .and. var%k2 > 0 .and. &
+               var%n1 > 0 .and. var%n2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
                  (var%i2-var%i1+1) /= var%nval(2) .or. &
                  (var%k2-var%k1+1) /= var%nval(3) .or. &
@@ -2259,26 +2445,77 @@ module mod_ncstream
           ncstat = nf90_get_var(stream%id,var%id,var%ival)
         class is (ncvariable2d_integer)
           ndims = 2
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%totsize = product(var%nval)
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           if ( present(irec) ) then
+            if ( var%ndims /= 3 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(3) = irec
             stream%icount(3) = 1
             ndims = 3
@@ -2306,29 +2543,90 @@ module mod_ncstream
           end if
         class is (ncvariable3d_integer)
           ndims = 3
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%nval(3) = stream%len_dims(idims(3))
-            var%totsize = product(var%nval)
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
-          stream%istart(3) = 1
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           stream%icount(3) = var%nval(3)
           if ( present(irec) ) then
+            if ( var%ndims /= 4 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(4) = irec
             stream%icount(4) = 1
             ndims = 4
@@ -2358,31 +2656,103 @@ module mod_ncstream
           end if
         class is (ncvariable4d_integer)
           ndims = 4
-          if ( var%nval(1) < 1 ) then
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(7) < 0 .or. window(8) < 0 .or. &
+                 window(7) > window(8) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) .or. &
+                 window(7) > stream%len_dims(var%idims(4)) .or. &
+                 window(8) > stream%len_dims(var%idims(4)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+            stream%istart(4) = window(7)
+            var%nval(4) = window(8) - window(7) + 1
+            if ( var%n1 < 0 .and. var%n2 < 0 ) then
+              var%n1 = window(7)
+              var%n2 = window(8)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
               var%nval(1) = stream%global_nj
               var%nval(2) = stream%global_ni
             else
-              var%nval(1) = stream%len_dims(idims(1))
-              var%nval(2) = stream%len_dims(idims(2))
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
             end if
-            var%nval(3) = stream%len_dims(idims(3))
-            var%nval(4) = stream%len_dims(idims(4))
-            var%totsize = product(var%nval)
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+            stream%istart(4) = 1
+            var%nval(4) = stream%len_dims(var%idims(4))
           end if
-          if ( stream%l_parallel .and. var%lgridded ) then
-            stream%istart(1) = stream%jparbound(1)
-            stream%istart(2) = stream%iparbound(1)
-          else
-            stream%istart(1) = 1
-            stream%istart(2) = 1
-          end if
-          stream%istart(3) = 1
+          var%totsize = product(var%nval)
           stream%icount(1) = var%nval(1)
           stream%icount(2) = var%nval(2)
           stream%icount(3) = var%nval(3)
           stream%icount(4) = var%nval(4)
           if ( present(irec) ) then
+            if ( var%ndims /= 5 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
             stream%istart(5) = irec
             stream%icount(5) = 1
             ndims = 5
@@ -2395,7 +2765,8 @@ module mod_ncstream
             stream%istart(1:ndims),stream%icount(1:ndims))
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
-               var%k1 > 0 .and. var%k2 > 0 ) then
+               var%k1 > 0 .and. var%k2 > 0 .and. &
+               var%n1 > 0 .and. var%n2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
                  (var%i2-var%i1+1) /= var%nval(2) .or. &
                  (var%k2-var%k1+1) /= var%nval(3) .or. &
@@ -2419,7 +2790,6 @@ module mod_ncstream
             'Cannot read variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
       end select
-      if ( allocated(idims) ) deallocate(idims)
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) nf90_strerror(ncstat)
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2455,10 +2825,12 @@ program test
   type(ncvariable2d_real) :: var2dreal
   type(ncvariable3d_real) :: var3dreal
 
+  type(ncvariable2d_real) :: var2read
+
   real(rk8) , target , dimension(18) :: sigma
-  real(rk8) , target , dimension(36,36) :: d2dvar
-  real(rk8) , target , dimension(36,36,18) :: d3dvar
-  integer(ik4) :: k
+  real(rk8) , target , dimension(16,12) :: d2dvar
+  real(rk8) , target , dimension(16,12,18) :: d3dvar
+  integer(ik4) :: i , k
 
   data sigma /0.025000000372529, 0.0750000011175871, 0.129999998956919, &
               0.195000000298023, 0.270000003278255, 0.349999994039536, &
@@ -2466,12 +2838,13 @@ program test
               0.669999986886978, 0.744999974966049, 0.809999972581863, &
               0.864999979734421, 0.909999996423721, 0.944999992847443, &
               0.969999998807907, 0.985000014305115, 0.995000004768372 /
-  jx = 36
-  iy = 36
+  jx = 16
+  iy = 12
   kz = 18
   ds = 50.0D0
   domname = 'domname'
   calendar = 'gregorian'
+  ical = 1
   iproj = 'LAMCON'
   xcone = 0.71
   clat = 43.0
@@ -2512,7 +2885,6 @@ program test
 
   ! Setup an output stream
   opar%zero_date = 1979022200
-  opar%zero_date%calendar = 1
   opar%l_bound = .true.
   call outstream_setup(ncout,opar)
 
@@ -2575,7 +2947,22 @@ program test
 
   call instream_findrec(ncin,idate,xrec)
 
-  print *, 'Going to read timestep ', xrec
+  print *, 'Record ',trim(tochar(idate)),' is at ', xrec
+
+  d2dvar(:,:) = -1.0D0
+  var2read%vname = 'real2dvar'
+  var2read%lgridded = .true.
+  var2read%rval => d2dvar
+  var2read%j1 = 1
+  var2read%j2 = 9
+  var2read%i1 = 1
+  var2read%i2 = 7
+
+  call instream_readvar(ncin,var2read,window=(/4,12,2,8/))
+
+  do i = 1 , iy
+    print '(16i2)', int(d2dvar(:,i))
+  end do
 
   call instream_dispose(ncin)
 
