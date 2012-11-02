@@ -44,28 +44,28 @@ module mod_ecens
   integer(ik4) :: mlev , nlat , nlon , ntime
   integer(ik4) , parameter :: nplev = 18
 
-  real(rk4) , pointer , dimension(:) :: vlat
-  real(rk4) , pointer , dimension(:) :: rlat
-  real(rk4) , pointer , dimension(:) :: vlon
-  real(rk4) , pointer , dimension(:) :: ak , bk
-  real(rk4) , pointer , dimension(:,:,:) :: work
+  real(rk8) , pointer , dimension(:) :: vlat
+  real(rk8) , pointer , dimension(:) :: rlat
+  real(rk8) , pointer , dimension(:) :: vlon
+  real(rk8) , pointer , dimension(:) :: ak , bk
+  real(rk8) , pointer , dimension(:,:,:) :: work
 
-  real(rk4) , pointer , dimension(:,:,:) :: bb
-  real(rk4) , pointer , dimension(:,:,:) :: b2
-  real(rk4) , pointer , dimension(:,:,:) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
-  real(rk4) , pointer , dimension(:,:,:) :: pp3d , z1
+  real(rk8) , pointer , dimension(:,:,:) :: bb
+  real(rk8) , pointer , dimension(:,:,:) :: b2
+  real(rk8) , pointer , dimension(:,:,:) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , pointer , dimension(:,:,:) :: pp3d , z1
 
-  real(rk4) , pointer , dimension(:,:) :: zs2
-  real(rk4) , pointer , dimension(:,:) :: ps2
-  real(rk4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-  real(rk4) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(rk4) , pointer , dimension(:,:,:) :: up , vp
-  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk8) , pointer , dimension(:,:) :: zs2
+  real(rk8) , pointer , dimension(:,:) :: ps2
+  real(rk8) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+  real(rk8) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rk8) , pointer , dimension(:,:,:) :: up , vp
+  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
 
-  real(rk4) , dimension(nplev) :: pplev , sigmar
+  real(rk8) , dimension(nplev) :: pplev , sigmar
 
   integer(ik4) :: mdlver , ensnum
   integer(ik4) , parameter :: ibctime = 6
@@ -179,9 +179,9 @@ module mod_ecens
   type(rcm_time_interval) :: tdif
   integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar , jdim
   logical :: lfirst
-  character(6) , dimension(5) :: varname
-  character(6) , dimension(5) :: vfname
-  character(64) :: cunit , ccal
+  character(len=6) , dimension(5) :: varname
+  character(len=6) , dimension(5) :: vfname
+  character(len=64) :: cunit , ccal
 !
   data varname /'var152','var130','var133','var131','var132'/
   data vfname  /'lnsp','air','qhum','uwnd','vwnd'/

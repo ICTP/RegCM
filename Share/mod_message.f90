@@ -24,8 +24,8 @@ module mod_message
 
   private
 !
-  character(512) :: aline
-  character(8) :: cline
+  character(len=512) :: aline
+  character(len=8) :: cline
 
   public :: setup_mesg , die , aline , say , note , cry , fatal , checkalloc
 

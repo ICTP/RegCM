@@ -42,12 +42,12 @@ module mod_sst_gnhnc
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik2) , pointer , dimension (:, :) :: work
   real(rk8) , pointer ::  work1(:)
-  real(rk4) , pointer , dimension (:, :) :: work2
-  real(rk4) , pointer , dimension(:,:) :: sst
-  real(rk4) :: add_offset , scale_factor
+  real(rk8) , pointer , dimension (:, :) :: work2
+  real(rk8) , pointer , dimension(:,:) :: sst
+  real(rk8) :: add_offset , scale_factor
   type(rcm_time_and_date) , save :: fidate1
-  character(64) :: cunit , ccal
-  character(256) :: inpfile
+  character(len=64) :: cunit , ccal
+  character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
 !
   data varname/'time', 'TOBESET'/
@@ -68,10 +68,10 @@ module mod_sst_gnhnc
 
   implicit none
 !
-  real(rk4) , pointer , dimension(:) :: glat
-  real(rk4) , pointer , dimension(:) :: glon
-  real(rk4) , pointer , dimension(:,:) :: glat2
-  real(rk4) , pointer , dimension(:,:) :: glon2
+  real(rk8) , pointer , dimension(:) :: glat
+  real(rk8) , pointer , dimension(:) :: glon
+  real(rk8) , pointer , dimension(:,:) :: glat2
+  real(rk8) , pointer , dimension(:,:) :: glon2
   type(rcm_time_and_date) :: idate , idatef , idateo
   type(rcm_time_interval) :: tdif
   integer(ik4) :: i , j , k , nsteps , latid , lonid
@@ -219,7 +219,7 @@ module mod_sst_gnhnc
   do k = 1 , nsteps
     call gnhnc_sst(idate)
     call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
-    call writerec(idate,.false.)
+    call writerec(idate)
     write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
     idate = idate + tdif
   end do

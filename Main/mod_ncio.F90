@@ -21,6 +21,8 @@ module mod_ncio
 !
   use netcdf
   use mod_runparams
+  use mod_dynparam
+  use mod_ensemble
   use mod_mpmessage
   use mod_memutil
   use mod_nchelper
@@ -483,6 +485,14 @@ contains
     iotopo(:,:) = real(mddom_io%ht(o_js:o_je,o_is:o_ie))
     iomask(:,:) = real(mddom_io%mask(o_js:o_je,o_is:o_ie))
     iolnds(:,:) = real(mddom_io%lndcat(o_js:o_je,o_is:o_ie))
+    if ( ensemble_run ) then
+      write(stdout,*) 'Appling perturbation to input dataset:'
+      if ( lperturb_topo ) then
+        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+          perturb_frac_topo*d_100,'%'
+        call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
+      end if
+    end if
   end subroutine read_domain_info
 
   subroutine read_domain_lake(hlake)
@@ -708,6 +718,33 @@ contains
     call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
     istatus = nf90_get_var(ibcin,icbc_ivar(6),qv,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
+    if ( ensemble_run ) then
+      write(stdout,*) 'Appling perturbation to input dataset:'
+      if ( lperturb_ts ) then
+        write(stdout,'(a,f7.2,a)') 'TS with value ',perturb_frac_ts*d_100,'%'
+        call randify(ts,perturb_frac_ts,jx,iy)
+      end if
+      if ( lperturb_ps ) then
+        write(stdout,'(a,f7.2,a)') 'PS with value ',perturb_frac_ps*d_100,'%'
+        call randify(ps,perturb_frac_ps,jx,iy)
+      end if
+      if ( lperturb_t ) then
+        write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+        call randify(t,perturb_frac_t,jx,iy,kz)
+      end if
+      if ( lperturb_q ) then
+        write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+        call randify(qv,perturb_frac_q,jx,iy,kz)
+      end if
+      if ( lperturb_u ) then
+        write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+        call randify(u,perturb_frac_u,jx,iy,kz)
+      end if
+      if ( lperturb_v ) then
+        write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+        call randify(v,perturb_frac_v,jx,iy,kz)
+      end if
+    end if
   end subroutine read_icbc
 
   subroutine close_icbc

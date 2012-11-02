@@ -41,24 +41,24 @@ module mod_ein
 
   integer(ik4) , parameter :: klev = 37
 
-  real(rk4) , dimension(klev) :: plevs
+  real(rk8) , dimension(klev) :: plevs
 
   integer(ik4) :: jlat , ilon
 
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
 
-  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(rk4) :: xres
-  real(rk4) , pointer , dimension(:,:,:) :: b2
-  real(rk4) , pointer , dimension(:,:,:) :: d2
-  real(rk4) , pointer , dimension(:) :: glat
-  real(rk4) , pointer , dimension(:) :: glon
-  real(rk4) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rk8) :: xres
+  real(rk8) , pointer , dimension(:,:,:) :: b2
+  real(rk8) , pointer , dimension(:,:,:) :: d2
+  real(rk8) , pointer , dimension(:) :: glat
+  real(rk8) , pointer , dimension(:) :: glon
+  real(rk8) , pointer , dimension(:) :: sigma1 , sigmar
   integer(2) , pointer , dimension(:,:,:) :: work
 
   integer(ik4) , dimension(5,4) :: inet5
@@ -142,15 +142,15 @@ module mod_ein
   subroutine ein6hour(dattyp,idate,idate0)
     implicit none
 !
-    character(5) , intent(in) :: dattyp
+    character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
     integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
-    character(64) :: inname
-    character(256) :: pathaddname
-    character(1) , dimension(5) :: varname
-    character(4) , dimension(5) :: fname
-    character(4) , dimension(4) :: hname
+    character(len=64) :: inname
+    character(len=256) :: pathaddname
+    character(len=1) , dimension(5) :: varname
+    character(len=4) , dimension(5) :: fname
+    character(len=4) , dimension(4) :: hname
     real(rk8) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour , monthp1

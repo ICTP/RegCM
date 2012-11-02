@@ -36,12 +36,12 @@ module mod_mksst
   integer(ik4) :: ncst , ntime
   integer(ik4) , dimension(3) :: ivar
   type(rcm_time_and_date) , dimension(:) , pointer :: itime
-  real(rk4) , dimension(:,:) , pointer :: work1 , work2
-  real(rk4) , dimension(:,:) , pointer :: work3 , work4
+  real(rk8) , dimension(:,:) , pointer :: work1 , work2
+  real(rk8) , dimension(:,:) , pointer :: work3 , work4
   real(rk8) , dimension(:) , pointer :: xtime
 
   data lopen/.false./
-  character(256) :: sstfile
+  character(len=256) :: sstfile
 
   public :: readsst , closesst
 
@@ -51,15 +51,15 @@ module mod_mksst
 !
   subroutine readsst(tsccm, idate)
     implicit none
-    real(rk4) , dimension(jx,iy) , intent(inout) :: tsccm
+    real(rk8) , dimension(jx,iy) , intent(inout) :: tsccm
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: istatus , idimid , itvar
     integer(ik4) , dimension(3) :: istart , icount
-    character(64) :: timeunits , timecal
+    character(len=64) :: timeunits , timecal
     integer(ik4) :: i , j , irec
     integer(ik4) :: iyy , im , id , ih
     type(rcm_time_interval) :: ks1 , ks2
-    real(rk4) :: wt
+    real(rk8) :: wt
 
     call split_idate(idate,iyy,im,id,ih)
 
@@ -216,11 +216,11 @@ module mod_mksst
     end if
   end subroutine readsst
 
-  real(rk4) function nearn(jp,ip,sst)
+  real(rk8) function nearn(jp,ip,sst)
     implicit none
     integer(ik4) , intent(in) :: jp , ip
-    real(rk4) , dimension(:,:) , intent(in) :: sst
-    real(rk4) :: wt , wtsum
+    real(rk8) , dimension(:,:) , intent(in) :: sst
+    real(rk8) :: wt , wtsum
     integer(ik4) :: i , j , nr , np
     nr = 1
     np = -1

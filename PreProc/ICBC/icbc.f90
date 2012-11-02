@@ -148,7 +148,7 @@ program icbc
   type(rcm_time_interval) :: tdiff , tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
-  character(256) :: namelistfile, prgname
+  character(len=256) :: namelistfile, prgname
 !
   call header('icbc')
 !

@@ -57,7 +57,7 @@ module mod_ensemble
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax , kmax
-    real(rk4) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
+    real(rk8) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
     real(rk8) , intent(in) :: dFrac
 
     real(rk8) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
@@ -85,7 +85,7 @@ module mod_ensemble
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 
-      seed = cputime + 37*(/(i-1,i=1,nseed)/)
+      seed = int(cputime) + 37*(/(i-1,i=1,nseed)/)
 
       ! Set the seed for the random number generator.  This makes it so that we
       ! get a pseudo-random sequence of numbers
@@ -120,7 +120,7 @@ module mod_ensemble
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax
-    real(rk4) , dimension(imax,jmax) , intent(inout) :: dVariable2D
+    real(rk8) , dimension(imax,jmax) , intent(inout) :: dVariable2D
     real(rk8) , intent(in) :: dFrac
 
     real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
@@ -148,7 +148,7 @@ module mod_ensemble
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 
-      seed = cputime + 37*(/(i-1,i=1,nseed)/)
+      seed = int(cputime) + 37*(/(i-1,i=1,nseed)/)
 
       ! Set the seed for the random number generator.  This makes it so that we
       ! get a pseudo-random sequence of numbers

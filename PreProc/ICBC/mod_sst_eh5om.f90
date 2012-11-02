@@ -57,15 +57,15 @@ module mod_sst_eh5om
   integer(ik4) :: it_base
   integer(2) , dimension(ilon,jlat) :: ivar
   real(rk8) :: offset , xscale
-  real(rk4) , dimension(ilon,jlat) :: sst
+  real(rk8) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , ieh5ostart
   integer(ik4) :: a1 , a2 , a3 , a4 , a5 , a6 , a7 , a8 , a9 , &
              a10  , a11 , a12 , a13 , a14 , g1 , g2 , i1
   type(rcm_time_interval) :: tdiff , itbc
   integer(ik4) :: ieh5orec , nsteps
   integer(ik4) :: i , it , j
-  real(rk4) , dimension(jlat) :: lati
-  real(rk4) , dimension(ilon) :: loni
+  real(rk8) , dimension(jlat) :: lati
+  real(rk8) , dimension(ilon) :: loni
   logical :: there
 !
 !
@@ -402,11 +402,11 @@ module mod_sst_eh5om
       end do
     end do
  
-    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
     write (stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
-    call writerec(idate,.false.)
+    call writerec(idate)
     write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
     close(11)
 

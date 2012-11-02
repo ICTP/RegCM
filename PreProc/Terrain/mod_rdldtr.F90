@@ -27,9 +27,9 @@ module mod_rdldtr
 
   private
 
-  real(rk4) , dimension(:,:) , pointer :: readbuf
-  real(rk4) , dimension(:) , pointer :: copybuf
-  real(rk4) , dimension(:,:) , pointer :: values
+  real(rk8) , dimension(:,:) , pointer :: readbuf
+  real(rk8) , dimension(:) , pointer :: copybuf
+  real(rk8) , dimension(:,:) , pointer :: values
 
   public :: values , read_ncglob
 
@@ -91,16 +91,16 @@ module mod_rdldtr
     if (lreg) ireg = 1
     delta = ((dble(iires)/d_two)/dble(secpd))*dble(ireg)
 
-    grdltmn = dble(floor(xminlat))  -delta
-    grdltma = dble(ceiling(xmaxlat))+delta
+    grdltmn = floor(xminlat)  -delta
+    grdltma = ceiling(xmaxlat)+delta
     if (grdltmn < -deg90+delta) grdltmn = -deg90+delta
     if (grdltma > +deg90-delta) grdltma =  deg90-delta
     if (lonwrap) then
       grdlnmn = -deg180+delta
       grdlnma =  deg180-delta
     else
-      grdlnmn = dble(floor(xminlon))  -delta
-      grdlnma = dble(ceiling(xmaxlon))+delta
+      grdlnmn = floor(xminlon)  -delta
+      grdlnma = ceiling(xmaxlon)+delta
     end if
 
 #ifdef DEBUG
@@ -190,7 +190,7 @@ module mod_rdldtr
           do j = 1 , nlonin
             call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                          (i-1)*ifrac+1,ifrac,lcrosstime)
-            values(j,i) = sum(copybuf)/real(size(copybuf))
+            values(j,i) = sum(copybuf)/dble(size(copybuf))
           end do
         end do
       case (2)
@@ -209,7 +209,7 @@ module mod_rdldtr
           do j = 1 , nlonin
             call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                          (i-1)*ifrac+1,ifrac,lcrosstime)
-            values(j,i) = real(mpindex(copybuf))
+            values(j,i) = dble(mpindex(copybuf))
           end do
         end do
       case default
@@ -227,8 +227,8 @@ module mod_rdldtr
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , isize 
-    real(rk4) , dimension(isize*isize) , intent(out) :: copybuf
-    real(rk4) , dimension(ni,nj) , intent(in) :: readbuf
+    real(rk8) , dimension(isize*isize) , intent(out) :: copybuf
+    real(rk8) , dimension(ni,nj) , intent(in) :: readbuf
     integer(ik4) , intent(in) :: i , j
     logical , intent(in) :: lwrap
     integer(ik4) :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
@@ -262,7 +262,7 @@ module mod_rdldtr
 !
   function mpindex(x)
     implicit none
-    real(rk4) , dimension(:) , intent(in) :: x
+    real(rk8) , dimension(:) , intent(in) :: x
     integer(ik4) :: mpindex
     integer(ik4) , dimension(32) :: cnt
     integer(ik4) :: i
@@ -278,7 +278,7 @@ module mod_rdldtr
 !
   recursive subroutine qsort(a)
     implicit none 
-    real(rk4) , dimension(:) , intent(in out) :: a
+    real(rk8) , dimension(:) , intent(in out) :: a
     integer(ik4) :: np , isplit
  
     np = size(a)
@@ -291,10 +291,10 @@ module mod_rdldtr
  
   subroutine partition(a, marker)
     implicit none 
-    real(rk4) , dimension(:) , intent(inout) :: a
+    real(rk8) , dimension(:) , intent(inout) :: a
     integer(ik4) , intent(out) :: marker
     integer(ik4) :: np , left , right
-    real(rk4) :: temp , pivot
+    real(rk8) :: temp , pivot
  
     np = size(a)
     pivot = (a(1) + a(np))/2.0E0

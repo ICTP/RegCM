@@ -31,15 +31,15 @@ module mod_interp
 
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
 
-  real(rk4) :: alatmn , alatmx , alonmn , alonmx
-  real(rk4) :: glatmn , glatmx , glonmn , glonmx
+  real(rk8) :: alatmn , alatmx , alonmn , alonmx
+  real(rk8) :: glatmn , glatmx , glonmn , glonmx
 
   integer(ik4) :: imxmn = 0
   integer(ik4) :: lcross = 0
   integer(ik4) :: ldot = 0
 
-  real(rk4) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(rk4) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
+  real(rk8) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
   integer(ik4) , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
                                        jc1dl , jc1dr , jc1ul , jc1ur
   integer(ik4) , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
@@ -49,20 +49,20 @@ module mod_interp
 !
 !-----------------------------------------------------------------------
 !
-  subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx,nflds)
+  subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,jx,iy,nflds)
   implicit none
 !
-  integer(ik4) :: iy , jx , nflds , nlati , nloni
-  real(rk4) , dimension(nloni,nlati,nflds) :: fin
-  real(rk4) , dimension(nlati) :: lati
-  real(rk4) , dimension(iy,jx) :: lato , lono
-  real(rk4) , dimension(nloni) :: loni
-  real(rk4) , dimension(iy,jx,nflds) :: fout
-  intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
+  integer(ik4) :: jx , iy , nflds , nlati , nloni
+  real(rk8) , dimension(nloni,nlati,nflds) :: fin
+  real(rk8) , dimension(nlati) :: lati
+  real(rk8) , dimension(jx,iy) :: lato , lono
+  real(rk8) , dimension(nloni) :: loni
+  real(rk8) , dimension(jx,iy,nflds) :: fout
+  intent (in) fin , jx , iy , lati , lato , loni , lono , nflds ,   &
               nlati , nloni
   intent (out) fout
 !
-  real(rk4) :: bas , lon360 , p , q , xsum , xind , yind
+  real(rk8) :: bas , lon360 , p , q , xsum , xind , yind
   integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , l
   logical :: lg
 !
@@ -93,17 +93,17 @@ module mod_interp
   lg = .true.
 !
 !
-  do j = 1 , jx
-    do i = 1 , iy
+  do i = 1 , iy
+    do j = 1 , jx
  
-      yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))*float(nlati-1))+1.
+      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))*float(nlati-1))+1.
       jq = int(yind)
       jq = max0(jq,1)
       jqp1 = min0(jq+1,nlati)
       q = yind - jq
  
-      lon360 = lono(i,j)
-      if ( lono(i,j) < 0. ) lon360 = lono(i,j) + 360.
+      lon360 = lono(j,i)
+      if ( lono(j,i) < 0. ) lon360 = lono(j,i) + 360.
       xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))*float(nloni-1))+1.
       if ( xind < 1.0 .and. lg ) then
         ip = nloni
@@ -125,7 +125,7 @@ module mod_interp
         bas = 0.0
         if ( fin(ip,jq,l) < -9990.0 .and. fin(ipp1,jq,l) < -9990.0 .and. &
              fin(ipp1,jqp1,l) < -9990.0 .and. fin(ip,jqp1,l) < -9990.0 ) then
-          fout(i,j,l) = -9999.
+          fout(j,i,l) = -9999.
         else
           if ( fin(ip,jq,l) > -9990.0 ) then
             xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
@@ -143,7 +143,7 @@ module mod_interp
             xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
             bas = bas + q*(1.-p)
           end if
-          fout(i,j,l) = xsum/bas
+          fout(j,i,l) = xsum/bas
         end if
       end do
     end do
@@ -158,15 +158,15 @@ module mod_interp
   implicit none
 !
   integer(ik4) :: iy , jx , llev , nlat , nlon
-  real(rk4) , dimension(jx,iy) :: alat , alon
-  real(rk4) , dimension(nlon,nlat,llev) :: b2
-  real(rk4) , dimension(jx,iy,llev) :: b3
-  real(rk4) , dimension(nlat) :: hlat
-  real(rk4) , dimension(nlon) :: hlon
+  real(rk8) , dimension(jx,iy) :: alat , alon
+  real(rk8) , dimension(nlon,nlat,llev) :: b2
+  real(rk8) , dimension(jx,iy,llev) :: b3
+  real(rk8) , dimension(nlat) :: hlat
+  real(rk8) , dimension(nlon) :: hlon
   intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev , nlat , nlon
   intent (out) b3
 !
-  real(rk4) :: ave , p1 , p2 , q1 , q2
+  real(rk8) :: ave , p1 , p2 , q1 , q2
   integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
 !
 !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -199,53 +199,52 @@ module mod_interp
   p1 = 0.0
   p2 = 0.0
 
-  do j = 1 , iy
-    do i = 1 , jx
- 
+  do i = 1 , iy
+    do j = 1 , jx
       i1 = 1000
       do ii = 1 , nlon - 1
-        if ( alon(i,j) >= hlon(ii) .and. alon(i,j) < hlon(ii+1) ) then
-          p1 = alon(i,j) - hlon(ii)
-          p2 = hlon(ii+1) - alon(i,j)
+        if ( alon(j,i) >= hlon(ii) .and. alon(j,i) < hlon(ii+1) ) then
+          p1 = alon(j,i) - hlon(ii)
+          p2 = hlon(ii+1) - alon(j,i)
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(i,j) >= hlon(ii)-360 .and. &
-                  alon(i,j) < hlon(ii+1)-360. ) then
-          p1 = alon(i,j) - (hlon(ii)-360.)
-          p2 = (hlon(ii+1)-360.) - alon(i,j)
+        else if ( alon(j,i) >= hlon(ii)-360 .and. &
+                  alon(j,i) < hlon(ii+1)-360. ) then
+          p1 = alon(j,i) - (hlon(ii)-360.)
+          p2 = (hlon(ii+1)-360.) - alon(j,i)
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(i,j) >= hlon(ii)+360 .and. &
-                  alon(i,j) < hlon(ii+1)+360. ) then
-          p1 = alon(i,j) - (hlon(ii)+360.)
-          p2 = (hlon(ii+1)+360.) - alon(i,j)
+        else if ( alon(j,i) >= hlon(ii)+360 .and. &
+                  alon(j,i) < hlon(ii+1)+360. ) then
+          p1 = alon(j,i) - (hlon(ii)+360.)
+          p2 = (hlon(ii+1)+360.) - alon(j,i)
           i1 = ii
           i2 = ii + 1
           exit
         end if
       end do
-      if ( alon(i,j) >= hlon(nlon) .and. alon(i,j) < hlon(1)+360. ) then
-        p1 = alon(i,j) - hlon(nlon)
-        p2 = (hlon(1)+360.) - alon(i,j)
+      if ( alon(j,i) >= hlon(nlon) .and. alon(j,i) < hlon(1)+360. ) then
+        p1 = alon(j,i) - hlon(nlon)
+        p2 = (hlon(1)+360.) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j) >= hlon(nlon)+360 .and. &
-                alon(i,j) < hlon(1)+720. ) then
-        p1 = alon(i,j) - (hlon(nlon)+360.)
-        p2 = (hlon(1)+720.) - alon(i,j)
+      else if ( alon(j,i) >= hlon(nlon)+360 .and. &
+                alon(j,i) < hlon(1)+720. ) then
+        p1 = alon(j,i) - (hlon(nlon)+360.)
+        p2 = (hlon(1)+720.) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j) >= hlon(nlon)-360 .and. alon(i,j) < hlon(1) ) then
-        p1 = alon(i,j) - (hlon(nlon)-360.)
-        p2 = hlon(1) - alon(i,j)
+      else if ( alon(j,i) >= hlon(nlon)-360 .and. alon(j,i) < hlon(1) ) then
+        p1 = alon(j,i) - (hlon(nlon)-360.)
+        p2 = hlon(1) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j) >= hlon(nlon)-720 .and. &
-                alon(i,j) < hlon(1)-360. ) then
-        p1 = alon(i,j) - (hlon(nlon)-720.)
-        p2 = (hlon(1)-360.) - alon(i,j)
+      else if ( alon(j,i) >= hlon(nlon)-720 .and. &
+                alon(j,i) < hlon(1)-360. ) then
+        p1 = alon(j,i) - (hlon(nlon)-720.)
+        p2 = (hlon(1)-360.) - alon(j,i)
         i1 = nlon
         i2 = 1
       end if
@@ -254,19 +253,19 @@ module mod_interp
       end if
       j1 = 1000
       do jj = 1 , nlat - 1
-        if ( alat(i,j) >= hlat(jj) .and. alat(i,j) < hlat(jj+1) ) then
-          q1 = alat(i,j) - hlat(jj)
-          q2 = hlat(jj+1) - alat(i,j)
+        if ( alat(j,i) >= hlat(jj) .and. alat(j,i) < hlat(jj+1) ) then
+          q1 = alat(j,i) - hlat(jj)
+          q2 = hlat(jj+1) - alat(j,i)
           j1 = jj
           j2 = jj + 1
           exit
-        else if ( alat(i,j) <= hlat(1) ) then
+        else if ( alat(j,i) <= hlat(1) ) then
           q1 = 1.0
           q2 = 1.0
           j1 = 1
           j2 = 1
           exit
-        else if ( alat(i,j) >= hlat(nlat) ) then
+        else if ( alat(j,i) >= hlat(nlat) ) then
           q1 = 1.0
           q2 = 1.0
           j1 = nlat
@@ -278,7 +277,7 @@ module mod_interp
       end if
       if ( j1 > 0 .and. j1 < nlat ) then
         do l = 1 , llev
-          b3(i,j,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+(b2(i1,j2,l)* &
+          b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+(b2(i1,j2,l)* &
                         p2+b2(i2,j2,l)*p1)*q1)/(p1+p2)/(q1+q2)
         end do
       else if ( j1 == 0 ) then
@@ -288,7 +287,7 @@ module mod_interp
             ave = ave + b2(ii,1,l)
           end do
           ave = ave/float(nlon)
-          b3(i,j,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
+          b3(j,i,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
                                      p1)*q1)/(p1+p2)/(q1+q2)
         end do
       else if ( j1 == nlat ) then
@@ -298,7 +297,7 @@ module mod_interp
             ave = ave + b2(ii,nlat,l)
           end do
           ave = ave/float(nlon)
-          b3(i,j,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+ &
+          b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+ &
                        (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
         end do
       else
@@ -312,15 +311,15 @@ module mod_interp
   implicit none
 !
   integer(ik4) :: iy , jx , nlat , nlon
-  real(rk4) , dimension(jx,iy) :: alat , alon
-  real(rk4) , dimension(jx,iy) :: b3
-  real(rk4) , dimension(nlon,nlat) :: glat , glon
-  real(rk4) , dimension(nlon,nlat) :: b2
+  real(rk8) , dimension(jx,iy) :: alat , alon
+  real(rk8) , dimension(jx,iy) :: b3
+  real(rk8) , dimension(nlon,nlat) :: glat , glon
+  real(rk8) , dimension(nlon,nlat) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(rk4) :: dist , dista , distb , distc , distd
-  real(rk4) :: v1 , v2 , v3 , v4 , wg
+  real(rk8) :: dist , dista , distb , distc , distd
+  real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound
 !
@@ -368,8 +367,8 @@ module mod_interp
     if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'interp:dc1xd')
     write (stdout,*) 'FIRST TIME in CRESSMCR'
     write (stdout,*) 'Calculating weights.... (will take long time)'
-    do j = 1 , iy
-      do i = 1 , jx
+    do i = 1 , iy
+      do j = 1 , jx
         mur = -1000
         nur = -1000
         mul = -1000
@@ -384,36 +383,36 @@ module mod_interp
         distd = 1.E8
         do n = 1 , nlat
           do m = 1 , nlon
-            if ( glon(m,n) > alon(i,j) .and. &
-                 glat(m,n) > alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) > alon(j,i) .and. &
+                 glat(m,n) > alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < dista ) then
                 dista = dist
                 mur = m
                 nur = n
               end if
             end if
-            if ( glon(m,n) < alon(i,j) .and. &
-                 glat(m,n) > alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) < alon(j,i) .and. &
+                 glat(m,n) > alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distb ) then
                 distb = dist
                 mul = m
                 nul = n
               end if
             end if
-            if ( glon(m,n) > alon(i,j) .and. &
-                 glat(m,n) < alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) > alon(j,i) .and. &
+                 glat(m,n) < alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distc ) then
                 distc = dist
                 mdr = m
                 ndr = n
               end if
             end if
-            if ( glon(m,n) < alon(i,j) .and. &
-                 glat(m,n) < alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) < alon(j,i) .and. &
+                 glat(m,n) < alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distd ) then
                 distd = dist
                 mdl = m
@@ -428,22 +427,22 @@ module mod_interp
           write (stderr,*) mur , nur , mdr , ndr
           write (stderr,*) mul , nul , mdl , ndl
           write (stderr,*) i , j
-          write (stderr,*) alon(i,j)
-          write (stderr,*) alat(i,j)
+          write (stderr,*) alon(j,i)
+          write (stderr,*) alat(j,i)
           call die('cressmcr')
         end if
-        ic1ur(i,j) = mur
-        jc1ur(i,j) = nur
-        ic1ul(i,j) = mul
-        jc1ul(i,j) = nul
-        ic1dr(i,j) = mdr
-        jc1dr(i,j) = ndr
-        ic1dl(i,j) = mdl
-        jc1dl(i,j) = ndl
-        dc1xa(i,j) = (1.0/dista)**2
-        dc1xb(i,j) = (1.0/distb)**2
-        dc1xc(i,j) = (1.0/distc)**2
-        dc1xd(i,j) = (1.0/distd)**2
+        ic1ur(j,i) = mur
+        jc1ur(j,i) = nur
+        ic1ul(j,i) = mul
+        jc1ul(j,i) = nul
+        ic1dr(j,i) = mdr
+        jc1dr(j,i) = ndr
+        ic1dl(j,i) = mdl
+        jc1dl(j,i) = ndl
+        dc1xa(j,i) = (1.0/dista)**2
+        dc1xb(j,i) = (1.0/distb)**2
+        dc1xc(j,i) = (1.0/distc)**2
+        dc1xd(j,i) = (1.0/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
@@ -452,20 +451,20 @@ module mod_interp
 
   b3(:,:) = -9999.0
 
-  do j = 1 , iy
-    do i = 1 , jx
-      mur = ic1ur(i,j)
-      nur = jc1ur(i,j)
-      mul = ic1ul(i,j)
-      nul = jc1ul(i,j)
-      mdr = ic1dr(i,j)
-      ndr = jc1dr(i,j)
-      mdl = ic1dl(i,j)
-      ndl = jc1dl(i,j)
-      dista = dc1xa(i,j)
-      distb = dc1xb(i,j)
-      distc = dc1xc(i,j)
-      distd = dc1xd(i,j)
+  do i = 1 , iy
+    do j = 1 , jx
+      mur = ic1ur(j,i)
+      nur = jc1ur(j,i)
+      mul = ic1ul(j,i)
+      nul = jc1ul(j,i)
+      mdr = ic1dr(j,i)
+      ndr = jc1dr(j,i)
+      mdl = ic1dl(j,i)
+      ndl = jc1dl(j,i)
+      dista = dc1xa(j,i)
+      distb = dc1xb(j,i)
+      distc = dc1xc(j,i)
+      distd = dc1xd(j,i)
  
       ifound = 0
       wg = 0.0
@@ -493,7 +492,7 @@ module mod_interp
         ifound = 1
         wg = wg + distd
       end if
-      if ( ifound /= 0 ) b3(i,j) = v1/wg+v2/wg+v3/wg+v4/wg
+      if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
     end do
   end do
  
@@ -503,15 +502,15 @@ module mod_interp
   implicit none
 !
   integer(ik4) :: iy , jx , nlat , nlon
-  real(rk4) , dimension(jx,iy) :: alat , alon
-  real(rk4) , dimension(jx,iy) :: b3
-  real(rk4) , dimension(nlon,nlat) :: glat , glon
-  real(rk4) , dimension(nlon,nlat) :: b2
+  real(rk8) , dimension(jx,iy) :: alat , alon
+  real(rk8) , dimension(jx,iy) :: b3
+  real(rk8) , dimension(nlon,nlat) :: glat , glon
+  real(rk8) , dimension(nlon,nlat) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(rk4) :: dist , dista , distb , distc , distd
-  real(rk4) :: v1 , v2 , v3 , v4 , wg
+  real(rk8) :: dist , dista , distb , distc , distd
+  real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound
 !
@@ -558,8 +557,8 @@ module mod_interp
     if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'interp:dd1xd')
     write (stdout,*) 'FIRST TIME in CRESSMDT'
     write (stdout,*) 'Calculating weights.... (will take long time)'
-    do j = 1 , iy
-      do i = 1 , jx
+    do i = 1 , iy
+      do j = 1 , jx
         mur = -1000
         nur = -1000
         mul = -1000
@@ -574,36 +573,36 @@ module mod_interp
         distd = 1.E8
         do n = 1 , nlat
           do m = 1 , nlon
-            if ( glon(m,n) > alon(i,j) .and. &
-                 glat(m,n) > alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) > alon(j,i) .and. &
+                 glat(m,n) > alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < dista ) then
                 dista = dist
                 mur = m
                 nur = n
               end if
             end if
-            if ( glon(m,n) < alon(i,j) .and. &
-                 glat(m,n) > alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) < alon(j,i) .and. &
+                 glat(m,n) > alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distb ) then
                 distb = dist
                 mul = m
                 nul = n
               end if
             end if
-            if ( glon(m,n) > alon(i,j) .and. &
-                 glat(m,n) < alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) > alon(j,i) .and. &
+                 glat(m,n) < alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distc ) then
                 distc = dist
                 mdr = m
                 ndr = n
               end if
             end if
-            if ( glon(m,n) < alon(i,j) .and. &
-                 glat(m,n) < alat(i,j) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(i,j),alon(i,j))
+            if ( glon(m,n) < alon(j,i) .and. &
+                 glat(m,n) < alat(j,i) ) then
+              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
               if ( dist < distd ) then
                 distd = dist
                 mdl = m
@@ -618,22 +617,22 @@ module mod_interp
           write (stderr,*) mur , nur , mdr , ndr
           write (stderr,*) mul , nul , mdl , ndl
           write (stderr,*) i , j
-          write (stderr,*) alon(i,j)
-          write (stderr,*) alat(i,j)
+          write (stderr,*) alon(j,i)
+          write (stderr,*) alat(j,i)
           call die('cressmdt')
         end if
-        id1ur(i,j) = mur
-        jd1ur(i,j) = nur
-        id1ul(i,j) = mul
-        jd1ul(i,j) = nul
-        id1dr(i,j) = mdr
-        jd1dr(i,j) = ndr
-        id1dl(i,j) = mdl
-        jd1dl(i,j) = ndl
-        dd1xa(i,j) = (1.0/dista)**2
-        dd1xb(i,j) = (1.0/distb)**2
-        dd1xc(i,j) = (1.0/distc)**2
-        dd1xd(i,j) = (1.0/distd)**2
+        id1ur(j,i) = mur
+        jd1ur(j,i) = nur
+        id1ul(j,i) = mul
+        jd1ul(j,i) = nul
+        id1dr(j,i) = mdr
+        jd1dr(j,i) = ndr
+        id1dl(j,i) = mdl
+        jd1dl(j,i) = ndl
+        dd1xa(j,i) = (1.0/dista)**2
+        dd1xb(j,i) = (1.0/distb)**2
+        dd1xc(j,i) = (1.0/distc)**2
+        dd1xd(j,i) = (1.0/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
@@ -642,20 +641,20 @@ module mod_interp
 
   b3(:,:) = -9999.0
 
-  do j = 1 , iy
-    do i = 1 , jx
-      mur = id1ur(i,j)
-      nur = jd1ur(i,j)
-      mul = id1ul(i,j)
-      nul = jd1ul(i,j)
-      mdr = id1dr(i,j)
-      ndr = jd1dr(i,j)
-      mdl = id1dl(i,j)
-      ndl = jd1dl(i,j)
-      dista = dd1xa(i,j)
-      distb = dd1xb(i,j)
-      distc = dd1xc(i,j)
-      distd = dd1xd(i,j)
+  do i = 1 , iy
+    do j = 1 , jx
+      mur = id1ur(j,i)
+      nur = jd1ur(j,i)
+      mul = id1ul(j,i)
+      nul = jd1ul(j,i)
+      mdr = id1dr(j,i)
+      ndr = jd1dr(j,i)
+      mdl = id1dl(j,i)
+      ndl = jd1dl(j,i)
+      dista = dd1xa(j,i)
+      distb = dd1xb(j,i)
+      distc = dd1xc(j,i)
+      distd = dd1xd(j,i)
  
       ifound = 0
       wg = 0.0
@@ -683,7 +682,7 @@ module mod_interp
         ifound = 1
         wg = wg + distd
       end if
-      if ( ifound /= 0 ) b3(i,j) = v1/wg+v2/wg+v3/wg+v4/wg
+      if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
     end do
   end do
  
@@ -695,10 +694,10 @@ module mod_interp
   implicit none
 !
   integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
-  real(rk4) , dimension(jx,iy) :: alat , alon
-  real(rk4) , dimension(jx,iy,nlev*nf) :: b3
-  real(rk4) , dimension(nlon,nlat) :: glat , glon
-  real(rk4) , dimension(nlon,nlat,nlev*nf) :: b2
+  real(rk8) , dimension(jx,iy) :: alat , alon
+  real(rk8) , dimension(jx,iy,nlev*nf) :: b3
+  real(rk8) , dimension(nlon,nlat) :: glat , glon
+  real(rk8) , dimension(nlon,nlat,nlev*nf) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
               nlev , nlon , nf
   intent (out) b3
@@ -721,10 +720,10 @@ module mod_interp
   implicit none
 !
   integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
-  real(rk4) , dimension(jx,iy) :: alat , alon
-  real(rk4) , dimension(jx,iy,nlev*nf) :: b3
-  real(rk4) , dimension(nlon,nlat) :: glat , glon
-  real(rk4) , dimension(nlon,nlat,nlev*nf) :: b2
+  real(rk8) , dimension(jx,iy) :: alat , alon
+  real(rk8) , dimension(jx,iy,nlev*nf) :: b3
+  real(rk8) , dimension(nlon,nlat) :: glat , glon
+  real(rk8) , dimension(nlon,nlat,nlev*nf) :: b2
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
               nlev , nlon , nf
   intent (out) b3
@@ -741,9 +740,9 @@ module mod_interp
  
   end subroutine cressmdt
 !
-  real(rk4) function gcdist(lat1,lon1,lat2,lon2)
+  real(rk8) function gcdist(lat1,lon1,lat2,lon2)
     implicit none
-    real(rk4) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
     real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
 
     clat1 = cos(dble(lat1)*degrad)

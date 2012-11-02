@@ -23,143 +23,122 @@ module mod_humid
   use mod_realkinds
   use mod_constants
 !
-  real(rk4) , parameter :: rt0 = real(rtzero)
-  real(rk4) , parameter :: t0 = real(tzero)
-  real(rk4) , parameter :: slh0 = real(lh0)
-  real(rk4) , parameter :: slh1 = real(lh1)
-  real(rk4) , parameter :: slsvp1 = real(lsvp1)
-  real(rk4) , parameter :: slsvp2 = real(lsvp2)
-  real(rk4) , parameter :: sep2 = real(ep2)
-
   contains
 
   subroutine humid1(t,q,ps,ptop,sigma,ni,nj,nk)
-  implicit none
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) :: ps , ptop
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rk8) , intent(in) , dimension(nk) :: sigma
 !
-  integer(ik4) :: ni , nj , nk
-  real(rk4) :: ps
-  real(rk8) :: ptop
-  real(rk4) , dimension(ni,nj,nk) :: q , t
-  real(rk4) , dimension(nk) :: sigma
-  intent (in) ni , nj , nk , ps , ptop , sigma , t
-  intent (inout) q
-!
-  real(rk4) :: lh , p , qs , pt , satvp
-  integer(ik4) :: i , j , k
-!
-!     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
-!
-  pt = real(ptop)
-  do i = 1 , ni
-    do j = 1 , nj
-      do k = 1 , nk
-        p = (pt+sigma(k)*ps)*10.        ! PRESSURE AT LEVEL K
-        lh = slh0 - slh1*(t(i,j,k)-t0)
-        satvp = slsvp1*exp(slsvp2*lh*(1./t0-1./t(i,j,k)))
-        qs = sep2*satvp/(p-satvp)        ! SAT. MIXING RATIO
-        q(i,j,k) = amax1(q(i,j,k)/qs,0.0)
+    real(rk8) :: lh , p , qs , satvp
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          p = (ptop+sigma(k)*ps)*d_10       ! PRESSURE AT LEVEL K
+          lh = lh0 - lh1*(t(i,j,k)-tzero)
+          satvp = lsvp1*dexp(lsvp2*lh*(d_one/tzero-d_one/t(i,j,k)))
+          qs = ep2*satvp/(p-satvp)        ! SAT. MIXING RATIO
+          q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+        end do
       end do
     end do
-  end do
   end subroutine humid1
 !
 !-----------------------------------------------------------------------
 !
   subroutine humid1_o(t,q,ps,sigma,ptop,im,jm,km)
-  implicit none
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) , dimension(im,jm) :: ps
+    real(rk8) , intent(in) , dimension(im,jm,km) :: t
+    real(rk8) , intent(in) , dimension(km) :: sigma
+    real(rk8) , intent(inout) , dimension(im,jm,km) :: q
 !
-  integer(ik4) :: im , jm , km
-  real(rk8) :: ptop
-  real(rk4) , dimension(im,jm) :: ps
-  real(rk4) , dimension(im,jm,km) :: q , t
-  real(rk4) , dimension(km) :: sigma
-  intent (in) im , jm , km , ps , ptop , sigma , t
-  intent (inout) q
-!
-  real(rk4) :: lh , p , qs , satvp , pt
-  integer(ik4) :: i , j , k
-!
-!     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
-!     DATA ON SIGMA LEVELS
-!
-  pt = real(ptop)
-  do k = 1 , km
-    do j = 1 , jm
-      do i = 1 , im
-        p = sigma(k)*(ps(i,j)-pt) + pt
-        lh = slh0 - slh1*(t(i,j,k)-t0)       ! LATENT HEAT OF EVAP.
-        satvp = slsvp1*exp(slsvp2*lh*(rt0-1./t(i,j,k)))
-                                                  ! SATURATION VAP PRESS.
-        qs = sep2*satvp/(p-satvp)                 ! SAT. MIXING RATIO
-        q(i,j,k) = amax1(q(i,j,k)/qs,0.0)
+    real(rk8) :: lh , p , qs , satvp
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+    ! DATA ON SIGMA LEVELS
+    !
+    do k = 1 , km
+      do j = 1 , jm
+        do i = 1 , im
+          p = sigma(k)*(ps(i,j)-ptop) + ptop
+          lh = lh0 - lh1*(t(i,j,k)-tzero)       ! LATENT HEAT OF EVAP.
+          satvp = lsvp1*dexp(lsvp2*lh*(rtzero-d_one/t(i,j,k)))
+                                                ! SATURATION VAP PRESS.
+          qs = ep2*satvp/(p-satvp)              ! SAT. MIXING RATIO
+          q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+        end do
       end do
     end do
-  end do
   end subroutine humid1_o
 !
 !-----------------------------------------------------------------------
 !
   subroutine humid1fv(t,q,p3d,ni,nj,nk)
-  implicit none
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: p3d , t
+    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
 !
-  integer(ik4) :: ni , nj , nk
-  real(rk4) , dimension(ni,nj,nk) :: p3d , q , t
-  intent (in) ni , nj , nk , p3d , t
-  intent (inout) q
-!
-  real(rk4) :: lh , qs , satvp
-  integer(ik4) :: i , j , k
-!
-!     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
-!
-  do i = 1 , ni
-    do j = 1 , nj
-      do k = 1 , nk
-        if ( p3d(i,j,k) > -9990. ) then
-          lh = slh0 - slh1*(t(i,j,k)-t0)  ! LATENT HEAT OF EVAP.
-          satvp = slsvp1*exp(slsvp2*lh*(rt0-1./t(i,j,k)))
-                                               ! SATURATION VAP PRESS.
-          qs = sep2*satvp/(p3d(i,j,k)-satvp)   ! SAT. MIXING RATIO
-          q(i,j,k) = amax1(q(i,j,k)/qs,0.0)    !ALREADY MIXING RATIO
-        else
-          q(i,j,k) = -9999.
-        end if
+    real(rk8) :: lh , qs , satvp
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          if ( p3d(i,j,k) > -9990.0D0 ) then
+            lh = lh0 - lh1*(t(i,j,k)-tzero)  ! LATENT HEAT OF EVAP.
+            satvp = lsvp1*dexp(lsvp2*lh*(rtzero-d_one/t(i,j,k)))
+                                                 ! SATURATION VAP PRESS.
+            qs = ep2*satvp/(p3d(i,j,k)-satvp)   ! SAT. MIXING RATIO
+            q(i,j,k) = max(q(i,j,k)/qs,d_zero)    !ALREADY MIXING RATIO
+          else
+            q(i,j,k) = -9999.D0
+          end if
+        end do
       end do
     end do
-  end do
   end subroutine humid1fv
 !
 !-----------------------------------------------------------------------
 !
   subroutine humid2(t,q,ps,ptop,sigma,ni,nj,nk)
-  implicit none
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) , dimension(ni,nj) :: ps
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rk8) , intent(in) , dimension(nk) :: sigma
 !
-  integer(ik4) :: ni , nj , nk
-  real(rk8) :: ptop
-  real(rk4) , dimension(ni,nj) :: ps
-  real(rk4) , dimension(ni,nj,nk) :: q , t
-  real(rk4) , dimension(nk) :: sigma
-  intent (in) ni , nj , nk , ps , ptop , sigma , t
-  intent (inout) q
-!
-  real(rk4) :: lh , p , qs , pt , satvp
-  integer(ik4) :: i , j , k
-!
-!     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
-!
-  pt = real(ptop)
-  do i = 1 , ni
-    do j = 1 , nj
-      do k = 1 , nk
-        p = (pt+sigma(k)*ps(i,j))*10.
-        lh = slh0 - slh1*(t(i,j,k)-t0)
-        satvp = slsvp1*exp(slsvp2*lh*(rt0-1./t(i,j,k)))
-        qs = sep2*satvp/(p-satvp)
-        q(i,j,k) = amax1(q(i,j,k)*qs,0.0)
+    real(rk8) :: lh , p , qs , satvp
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          p = (ptop+sigma(k)*ps(i,j))*d_10
+          lh = lh0 - lh1*(t(i,j,k)-tzero)
+          satvp = lsvp1*dexp(lsvp2*lh*(rtzero-d_one/t(i,j,k)))
+          qs = ep2*satvp/(p-satvp)
+          q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+        end do
       end do
     end do
-  end do
-!
   end subroutine humid2
 !
 end module mod_humid

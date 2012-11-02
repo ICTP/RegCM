@@ -40,23 +40,23 @@ module mod_ncep
 
   integer(ik4) , parameter :: klev = 13 , jlat = 73 , ilon = 144
 
-  real(rk4) , dimension(ilon,jlat) :: psvar
-  real(rk4) , dimension(jlat) :: glat
-  real(rk4) , dimension(ilon) :: glon
-  real(rk4) , dimension(klev) :: sigma1 , sigmar
+  real(rk8) , dimension(ilon,jlat) :: psvar
+  real(rk8) , dimension(jlat) :: glat
+  real(rk8) , dimension(ilon) :: glon
+  real(rk8) , dimension(klev) :: sigma1 , sigmar
 
-  real(rk4) , dimension(ilon,jlat,klev) :: wvar
+  real(rk8) , dimension(ilon,jlat,klev) :: wvar
 
-  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk8) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
   integer(2) , pointer , dimension(:,:,:) :: work
   
-  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
   integer(ik4) :: year , month , day , hour
 
@@ -146,9 +146,9 @@ module mod_ncep
   type(rcm_time_and_date) , intent (in) :: idate , idate0
 !
   integer(ik4) :: i , ilev , inet , it , j , kkrec , m , k , nlev , istatus
-  character(21) :: inname
-  character(256) :: pathaddname
-  character(5) , dimension(7) :: varname
+  character(len=21) :: inname
+  character(len=256) :: pathaddname
+  character(len=5) , dimension(7) :: varname
   real(rk8) :: xadd , xscale
   integer(ik4) , dimension(10) , save :: icount , istart
   integer(ik4) , dimension(7) , save :: inet7 , ivar7
@@ -352,9 +352,9 @@ module mod_ncep
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
   integer(ik4) :: i , ii , ilev , inet , it , j , jj , kkrec , m , nlev , istatus
-  character(24) :: inname
-  character(256) :: pathaddname
-  character(5) , dimension(7) :: varname
+  character(len=24) :: inname
+  character(len=256) :: pathaddname
+  character(len=5) , dimension(7) :: varname
   integer(ik4) :: iii , jjj
   real(rk8) :: xadd , xscale
   integer(ik4) , dimension(10) :: icount , istart

@@ -30,21 +30,21 @@ module mod_ecwcp
 
   integer(ik4) , parameter :: nlev = 15 , jlat = 64 , ilon = 128
 
-  real(rk4) , dimension(jlat) :: hlat
-  real(rk4) , dimension(ilon) :: hlon
-  real(rk4) , dimension(nlev) :: sigma1 , sigmar
+  real(rk8) , dimension(jlat) :: hlat
+  real(rk8) , dimension(ilon) :: hlon
+  real(rk8) , dimension(nlev) :: sigma1 , sigmar
 
-  real(rk4) , dimension(ilon,jlat,nlev) :: w1
+  real(rk8) , dimension(ilon,jlat,nlev) :: w1
 
-  real(rk4) , target , dimension(ilon,jlat,nlev*3) :: b2
-  real(rk4) , target , dimension(ilon,jlat,nlev*2) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , target , dimension(ilon,jlat,nlev*3) :: b2
+  real(rk8) , target , dimension(ilon,jlat,nlev*2) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
 
-  real(rk4) , pointer , dimension(:,:,:) :: t1 , q1 , h1
-  real(rk4) , pointer , dimension(:,:,:) :: u1 , v1
-  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk8) , pointer , dimension(:,:,:) :: t1 , q1 , h1
+  real(rk8) , pointer , dimension(:,:,:) :: u1 , v1
+  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: getecwcp , headerec
 
@@ -64,7 +64,7 @@ module mod_ecwcp
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  character(12) , dimension(12,5) :: finm
+  character(len=12) , dimension(12,5) :: finm
   integer(ik4) :: i , j , k , nrec
   integer(ik4) :: year , month , day , hour
   logical :: there
@@ -170,7 +170,7 @@ module mod_ecwcp
 !
   call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
  
-  call humid1(t3,q3,100.0,0.0D0,sigma1,jx,iy,nlev)
+  call humid1(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
   call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !

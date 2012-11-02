@@ -51,35 +51,35 @@ module mod_gn6hnc
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer(ik4) , parameter :: nipl = 18
-  real(rk4) , target , dimension(nipl) :: fplev = &
+  real(rk8) , target , dimension(nipl) :: fplev = &
    (/  30.0,   50.0,   70.0,  100.0,  150.0,  200.0,  250.0, &
       300.0,  350.0,  420.0,  500.0,  600.0,  700.0,  780.0, &
       850.0,  920.0,  960.0, 1000.0 /)
 
   integer(ik4) :: npl , nrhlev
-  real(rk4) , pointer , dimension(:) :: pplev
-  real(rk4) , pointer , dimension(:) :: sigmar
+  real(rk8) , pointer , dimension(:) :: pplev
+  real(rk8) , pointer , dimension(:) :: sigmar
 
   ! Whole space
-  real(rk4) , pointer , dimension(:,:,:) :: b2
-  real(rk4) , pointer , dimension(:,:,:) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , pointer , dimension(:,:,:) :: b2
+  real(rk8) , pointer , dimension(:,:,:) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
 
-  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk4) , pointer :: up(:,:,:) , vp(:,:,:)
-  real(rk4) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk8) , pointer :: up(:,:,:) , vp(:,:,:)
+  real(rk8) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
 
   ! Input space
-  real(rk4) :: p0
-  real(rk4) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
-  real(rk4) , pointer , dimension(:) :: ak , bk
-  real(rk4) , pointer , dimension(:) :: glat , gltemp
-  real(rk4) , pointer , dimension(:) :: glon
-  real(rk4) , pointer , dimension(:,:) :: glat2
-  real(rk4) , pointer , dimension(:,:) :: glon2
-  real(rk4) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
+  real(rk8) :: p0
+  real(rk8) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
+  real(rk8) , pointer , dimension(:) :: ak , bk
+  real(rk8) , pointer , dimension(:) :: glat , gltemp
+  real(rk8) , pointer , dimension(:) :: glon
+  real(rk8) , pointer , dimension(:,:) :: glat2
+  real(rk8) , pointer , dimension(:,:) :: glon2
+  real(rk8) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                            uvar , vvar , pp3d , &
                                            vwork
   integer(ik4) :: timlen , pstimlen
@@ -97,73 +97,73 @@ module mod_gn6hnc
 
   public :: get_gn6hnc , headgn6hnc
 
-  character(256) :: pathaddname
+  character(len=256) :: pathaddname
   type(rcm_time_and_date) , save :: refdate
   type(rcm_time_and_date) , save :: filedate
 
   data inet /nvars*-1/
 
-  character(32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
-  character(64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
-  character(64) :: hapbase1 = '_6hrPlev_HadGEM2-ES_historical'
-  character(64) :: hapbase2 = '_6hrPlev_HadGEM2-ES_rcp'
-  character(64) :: habase3 = '_r1i1p1_'
-  character(64) :: cabase1 = '_6hrLev_CanESM2_historical'
-  character(64) :: cabase2 = '_6hrLev_CanESM2_rcp'
-  character(64) :: cabase3 = '_r1i1p1_'
-  character(64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
-  character(64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
-  character(64) :: ipbase3 = '_r1i1p1_'
-  character(64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
-  character(64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
-  character(64) :: gfdlbase3 = '_r1i1p1_'
-  character(64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
-  character(64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
-  character(64) :: cnrmbase3 = '_r1i1p1_'
-  character(64) :: csirbase1 = '_6hrLev_CSIRO-Mk3-6-0_historical'
-  character(64) :: csirbase2 = '_6hrLev_CSIRO-Mk3-6-0_rcp'
-  character(64) :: csirbase3 = '_r1i1p1_'
-  character(64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
-  character(64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
-  character(64) :: mpiebase3 = '_r1i1p1_'
+  character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
+  character(len=64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
+  character(len=64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
+  character(len=64) :: hapbase1 = '_6hrPlev_HadGEM2-ES_historical'
+  character(len=64) :: hapbase2 = '_6hrPlev_HadGEM2-ES_rcp'
+  character(len=64) :: habase3 = '_r1i1p1_'
+  character(len=64) :: cabase1 = '_6hrLev_CanESM2_historical'
+  character(len=64) :: cabase2 = '_6hrLev_CanESM2_rcp'
+  character(len=64) :: cabase3 = '_r1i1p1_'
+  character(len=64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
+  character(len=64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
+  character(len=64) :: ipbase3 = '_r1i1p1_'
+  character(len=64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
+  character(len=64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
+  character(len=64) :: gfdlbase3 = '_r1i1p1_'
+  character(len=64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
+  character(len=64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
+  character(len=64) :: cnrmbase3 = '_r1i1p1_'
+  character(len=64) :: csirbase1 = '_6hrLev_CSIRO-Mk3-6-0_historical'
+  character(len=64) :: csirbase2 = '_6hrLev_CSIRO-Mk3-6-0_rcp'
+  character(len=64) :: csirbase3 = '_r1i1p1_'
+  character(len=64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
+  character(len=64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
+  character(len=64) :: mpiebase3 = '_r1i1p1_'
 
-  character(3) , target , dimension(nvars) :: cam2vars = &
+  character(len=3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(3) , target , dimension(nvars) :: ccsmvars = &
+  character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(3) , target , dimension(nvars) :: havars = &
+  character(len=3) , target , dimension(nvars) :: havars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'psl'/)
-  character(3) , target , dimension(nvars) :: cavars = &
+  character(len=3) , target , dimension(nvars) :: cavars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: ipvars = &
+  character(len=3) , target , dimension(nvars) :: ipvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: gfdlvars = &
+  character(len=3) , target , dimension(nvars) :: gfdlvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: cnrmvars = &
+  character(len=3) , target , dimension(nvars) :: cnrmvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: gfsvars = &
+  character(len=3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: echvars = &
+  character(len=3) , target , dimension(nvars) :: echvars = &
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
-  character(3) , target , dimension(nvars) :: ec5vars = &
+  character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
-  character(3) , target , dimension(nvars) :: csirvars = &
+  character(len=3) , target , dimension(nvars) :: csirvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
-  character(3) , target , dimension(nvars) :: mpievars = &
+  character(len=3) , target , dimension(nvars) :: mpievars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
 
-  character(4) , dimension(nvars) :: ccsmfname = &
+  character(len=4) , dimension(nvars) :: ccsmfname = &
                          (/'air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres'/)
-  character(6) , target , dimension(nvars) :: ec5name = &
+  character(len=6) , target , dimension(nvars) :: ec5name = &
                          (/'STP   ' , 'GPH   ' , 'RELHUM' , &
                            'U     ' , 'V     ' , 'XXX   '/)
 
-  character(3) , dimension(12) :: mname = &
+  character(len=3) , dimension(12) :: mname = &
                          (/'JAN','FEB','MAR','APR','MAY','JUN', &
                            'JUL','AUG','SEP','OCT','NOV','DEC'/)
 
-  character(3) , dimension(:) , pointer :: varname
+  character(len=3) , dimension(:) , pointer :: varname
 
   contains
 !
@@ -173,7 +173,7 @@ module mod_gn6hnc
     implicit none
 !
     integer(ik4) :: istatus , ivar1 , inet1 , jdim , i , j , k
-    character(256) :: pathaddname
+    character(len=256) :: pathaddname
     real(8) :: dp0
 !
 !
@@ -832,10 +832,10 @@ module mod_gn6hnc
 !
     integer(ik4) :: istatus
     integer(ik4) :: i , it , itps , j , k , timid , imon1 , iyear1 , imon2 , iyear2
-    character(256) :: inname
+    character(len=256) :: inname
 
     integer(ik4) :: kkrec
-    character(64) :: cunit , ccal
+    character(len=64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
     integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2

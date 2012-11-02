@@ -61,12 +61,12 @@ module mod_sst_ersst
   integer(ik4) :: istatus , inet
   integer(ik4) :: year , month , day , hour , isyear
   integer(ik4) :: dimi , vari
-  real(rk4) , pointer , dimension(:) :: lati
-  real(rk4) , pointer , dimension(:) :: loni
+  real(rk8) , pointer , dimension(:) :: lati
+  real(rk8) , pointer , dimension(:) :: loni
   integer(ik4) :: ierrec , nsteps
   type(rcm_time_and_date) :: idate , ierastart
   type(rcm_time_interval) :: tdiff , itbc
-  real(rk4) , pointer , dimension(:,:) :: sst
+  real(rk8) , pointer , dimension(:,:) :: sst
   character(len=256) :: inpfile
   logical :: lfirst
 
@@ -189,11 +189,11 @@ module mod_sst_ersst
       call sst_erain(ierrec,ilon,jlat,sst,inet,lfirst,2)
     end if
 
-    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
     write(stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
     ! WRITE OUT SST DATA ON REGCM GRID
-    call writerec(idate,.false.)
+    call writerec(idate)
     write(stdout,*) 'WRITING OUT MM4 SST DATA:' , tochar(idate)
 
     idate = idate + itbc
@@ -209,10 +209,10 @@ module mod_sst_ersst
 !
     integer(ik4) , intent(in) :: it , ilon , jlat , inet , itype
     logical , intent(inout) :: lfirst
-    real(rk4) , dimension(ilon,jlat) ,intent(out) :: sst
+    real(rk8) , dimension(ilon,jlat) ,intent(out) :: sst
 !
     integer(ik4) :: i , j
-    character(4) , dimension(2) :: varname
+    character(len=4) , dimension(2) :: varname
     integer(2) , dimension(ilon,jlat) :: work
     integer(ik4) :: istatus
 !

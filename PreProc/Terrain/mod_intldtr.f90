@@ -109,32 +109,29 @@ module mod_intldtr
   end if
   end function ifloor
 !
-  function jfloor(y,n)
+  integer(ik4) function jfloor(y,n)
   implicit none
-  integer(ik4) :: jfloor
   real(rk8) , intent(in) :: y
   integer(ik4) , intent(in) :: n
   jfloor = min(max(floor(y),1),n)
   end function jfloor
 !
-  function nearpoint(x,y,m,n,grid,lwrap)
+  real(rk8) function nearpoint(x,y,m,n,grid,lwrap)
   implicit none
-  real(rk8) :: nearpoint
   integer(ik4) :: m , n
   real(rk8) :: x , y
   logical :: lwrap
-  real(rk4) , dimension(m,n) :: grid
+  real(rk8) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
-  nearpoint = dble(grid(inear(x,m,lwrap),jnear(y,n)))
+  nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
   end function nearpoint
 !
-  function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
+  real(rk8) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
   implicit none
-  real(rk8) :: mostaround
   integer(ik4) , intent(in) :: m , n , nbox , ibnty
   real(rk8) , intent(in) :: x , y
   logical , intent(in) :: lwrap
-  real(rk4) , intent(in) , dimension(m,n) :: grid
+  real(rk8) , intent(in) , dimension(m,n) :: grid
   real(rk8) , intent(in) :: h2opct
 !
   real(rk8) , dimension(nbox*nbox) :: binval , bindist
@@ -152,7 +149,7 @@ module mod_intldtr
       ry = dble(jj0 + j - 1)
       ii = ifloor(rx,m,lwrap)
       jj = jfloor(ry,n)
-      binval((i-1)*nbox+j) = dble(grid(ii,jj))
+      binval((i-1)*nbox+j) = grid(ii,jj)
       bindist((i-1)*nbox+j) = sqrt((x-rx)**2+(y-ry)**2)
     end do
   end do
@@ -198,7 +195,7 @@ module mod_intldtr
   integer(ik4) :: m , n , ival , nbox
   real(rk8) :: x , y , rx , ry
   logical :: lwrap
-  real(rk4) , dimension(m,n) :: grid
+  real(rk8) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y , ival
 !
   integer(ik4) :: ii0 , jj0 , ii , jj
@@ -231,7 +228,7 @@ module mod_intldtr
   integer(ik4) :: m , n
   real(rk8) :: x , y
   logical :: lwrap
-  real(rk4) , dimension(m,n) :: grid
+  real(rk8) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
 !
   real(rk8) :: dx, dy, p12, p03
@@ -245,8 +242,8 @@ module mod_intldtr
     ii2 = dble(min(max(ceiling(x),1),m))
     dx = (x-ii0)
   else
-    ii0 = dble(floor(x))
-    ii2 = dble(ceiling(x))
+    ii0 = floor(x)
+    ii2 = ceiling(x)
     dx = (x-ii0)
     if (ii0 < 1) then
       ii0 = dble(m)
@@ -286,7 +283,7 @@ module mod_intldtr
   integer(ik4) :: m , n
   real(rk8) :: x , y
   logical :: lwrap
-  real(rk4) , dimension(m,n) :: grid
+  real(rk8) , dimension(m,n) :: grid
   intent (in) grid , m , n , x , y , lwrap
 !
   real(rk8) , dimension(4) :: f , f1 , f12 , f2
@@ -323,11 +320,11 @@ module mod_intldtr
         imp1 = i+1
         imn1 = i-1
       end if
-      f(ii) = dble(grid(im,j))
-      f1(ii) = dble((grid(imp1,j)-grid(imn1,j)))/(d_two)
-      f2(ii) = dble((grid(im,j+1)-grid(im,j-1)))/(d_two)
-      f12(ii) = dble((grid(imp1,j+1)-grid(imp1,j-1)-&
-                      grid(imn1,j+1)+grid(imn1,j-1)))/(d_four)
+      f(ii) = grid(im,j)
+      f1(ii) = (grid(imp1,j)-grid(imn1,j))/(d_two)
+      f2(ii) = (grid(im,j+1)-grid(im,j-1))/(d_two)
+      f12(ii) = (grid(imp1,j+1)-grid(imp1,j-1)-&
+                 grid(imn1,j+1)+grid(imn1,j-1))/(d_four)
     end do
   end do
  
@@ -384,14 +381,14 @@ module mod_intldtr
   do i = 1 , 4
     do j = 1 , 4
       l = l + 1
-      c(i,j) = cl(l)
+      c(j,i) = cl(l)
     end do
   end do
   end subroutine bcucof
 !
 ! Interpolates input regolar lat/lon grid on output model grid
 !
-  subroutine interp(iy,jx,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
+  subroutine interp(jx,iy,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
                     ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
  
   use mod_stdio
@@ -400,14 +397,14 @@ module mod_intldtr
   implicit none
 !
   integer(ik4) , intent(in) :: iy , jx , iniy , injx , ntypec , itype
-  real(rk4) , intent(in) , dimension(iy, jx) :: xlat , xlon
-  real(rk4) , intent(in) , dimension(injx, iniy) :: imt
+  real(rk8) , intent(in) , dimension(jx,iy) :: xlat , xlon
+  real(rk8) , intent(in) , dimension(injx,iniy) :: imt
   real(rk8) , intent(in) :: milat , milon
   logical , intent(in) :: lwrap , lcross
   integer(ik4) , intent(in) , optional :: ival
   integer(ik4) , intent(in) , optional :: ibnty
   real(rk8) , intent(in) , optional :: h2opct
-  real(rk4) , intent(out) , dimension(iy, jx) :: omt
+  real(rk8) , intent(out) , dimension(jx,iy) :: omt
 !
   integer(ik4) :: nbox , ii , jj
   real(rk8) :: xx , yy , rinc
@@ -421,15 +418,15 @@ module mod_intldtr
 !
   do ii = 1 , iy
     do jj = 1 , jx
-      yy = (dble(xlat(ii,jj))-milat)*rinc + d_one
+      yy = (xlat(jj,ii)-milat)*rinc + d_one
       if (lcross) then
-        xx = (mod((dble(xlon(ii,jj))+deg360),deg360)-milon) * &
+        xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
               rinc + d_one
       else
-        xx = (dble(xlon(ii,jj))-milon)*rinc + d_one
+        xx = (xlon(jj,ii)-milon)*rinc + d_one
       end if
  
-!     yy and xx are the exact index values of a point i,j of the
+!     yy and xx are the exact index values of a point j,i of the
 !     mesoscale mesh when projected onto an earth-grid of lat_s
 !     and lon_s for which terrain observations are available.  it
 !     is assumed that the earth grid has equal spacing in both
@@ -437,55 +434,54 @@ module mod_intldtr
 
       select case (itype)
         case(1)
-          omt(ii,jj) = real(bilinear(xx,yy,injx,iniy,imt,lwrap))
+          omt(jj,ii) = bilinear(xx,yy,injx,iniy,imt,lwrap)
         case(2)
-          omt(ii,jj) = real(bicubic(xx,yy,injx,iniy,imt,lwrap))
+          omt(jj,ii) = bicubic(xx,yy,injx,iniy,imt,lwrap)
         case(3)
-          omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
+          omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
         case(4,5)
           if (lwrap) then
             if (ii == 1 .or. ii == iy ) then 
-              omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
+              omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               cycle
             else
               if (jj == jx) then
-                nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+ &
-                            real(deg360)))*real(rinc)/2.0, 2.0))
+                nbox = nint(max(abs(xlon(jx-1,ii)-(xlon(1,ii)+ &
+                            deg360))*rinc/d_two, d_two))
                 nbox = min(nbox,8)
               else if (jj == 1) then
-                nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)- &
-                            real(deg360)))*real(rinc)/2.0, 2.0))
+                nbox = nint(max(abs(xlon(2,ii)-(xlon(jx,ii)- &
+                            deg360))*rinc/d_two, d_two))
                 nbox = min(nbox,8)
               else
-                nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                            real(rinc)/2.0, 2.0))
+                nbox = nint(max(abs(xlon(jj-1,ii)-xlon(jj+1,ii))* &
+                            rinc/d_two, d_two))
                 nbox = min(nbox,8)
               end if
-              nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                          real(rinc)/2.0, real(nbox)))
+              nbox = nint(max(abs(xlat(jj,ii-1)-xlat(jj,ii+1))* &
+                          rinc/d_two, dble(nbox)))
             end if
           else
             if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-              omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
+              omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               cycle
             else
-              nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                          real(rinc)/2.0, 2.0))
-              nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                          real(rinc)/2.0, real(nbox)))
+              nbox = nint(max(abs(xlon(jj-1,ii)-xlon(jj+1,ii))* &
+                          rinc/d_two, d_two))
+              nbox = nint(max(abs(xlat(jj,ii-1)-xlat(jj,ii+1))* &
+                          rinc/d_two, dble(nbox)))
             end if
           end if
-          nbox = nbox * nint(abs(cos(xlat(ii,jj)*degrad))) + 1
-          if (nbox < 2.0) then
-            omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
+          nbox = nbox * nint(abs(cos(xlat(jj,ii)*degrad))) + 1
+          if (nbox < 2) then
+            omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
           else
             nbox = (nbox / 2) * 2
             if (itype == 4) then
-              omt(ii,jj) = real(mostaround(xx,yy,injx,iniy,imt,nbox, &
-                                      ibnty,h2opct,lwrap))
+              omt(jj,ii) = mostaround(xx,yy,injx,iniy,imt,nbox, &
+                                      ibnty,h2opct,lwrap)
             else
-              omt(ii,jj) = real(pctaround(xx,yy,injx,iniy,imt, &
-                                     nbox,ival,lwrap))
+              omt(jj,ii) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
             end if
           end if
       end select
@@ -495,10 +491,10 @@ module mod_intldtr
 
   end subroutine interp
 
-  subroutine filter1plakes(iy,jx,omt)
+  subroutine filter1plakes(jx,iy,omt)
     implicit none
-    integer(ik4) , intent(in) :: iy , jx
-    real(rk4) , intent(out) , dimension(iy, jx) :: omt
+    integer(ik4) , intent(in) :: jx , iy
+    real(rk8) , intent(out) , dimension(jx,iy) :: omt
     integer(ik4) , dimension(maxbins) :: cnt
     integer(ik4) , dimension(9) :: around
     integer(ik4) , parameter :: ilake = 14
@@ -508,7 +504,7 @@ module mod_intldtr
 
     do i = 1 , iy
       do j = 1 , jx
-        if (int(omt(i,j)) == ilake) then
+        if (int(omt(j,i)) == ilake) then
           k = 1
           do ii = -1 , 1 , 1
             do jj = -1 , 1 , 1
@@ -529,7 +525,7 @@ module mod_intldtr
               if (cnt(k) > mpindex) mpindex = k
             end do
             if (mpindex == 0) mpindex = iocn
-            omt(i,j) = real(mpindex)
+            omt(j,i) = dble(mpindex)
           end if
         end if
       end do

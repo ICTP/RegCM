@@ -44,7 +44,7 @@ program chem_icbc
   type(rcm_time_interval) :: tdif , tbdy
   integer(ik4) :: nnn , nsteps
   integer(ik4) :: ierr
-  character(256) :: namelistfile , prgname
+  character(len=256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
              ichsolver , idirect , ichdustemd, ichdiag

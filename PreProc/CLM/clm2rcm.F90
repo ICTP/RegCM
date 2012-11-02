@@ -61,9 +61,9 @@ program clm2rcm
   integer(ik4) , dimension(4) :: icount , istart
   integer(ik4) , dimension(1) :: istart1 , icount1
   integer(ik4) , dimension(3) :: iadim
-  character(64) , dimension(nfld) :: lnam
-  character(64) :: cdum
-  character(64) , dimension(nfld) :: units
+  character(len=64) , dimension(nfld) :: lnam
+  character(len=64) :: cdum
+  character(len=64) , dimension(nfld) :: units
   real(rk4) , dimension(3) :: varmax , varmin
   real(rk8) :: xhr
   real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
@@ -72,15 +72,15 @@ program clm2rcm
                                        zlev , zlon
   real(rk4) , pointer , dimension(:,:) :: mpu
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
-  real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom , dumw
+  real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
   integer(ik4) :: ipathdiv , ierr
   integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
-  character(256) :: namelistfile , prgname
-  character(256) :: inpfile , terfile , checkfile
-  character(256) :: outfil_nc
-  character(64) :: csdate , cldim
+  character(len=256) :: namelistfile , prgname
+  character(len=256) :: inpfile , terfile , checkfile
+  character(len=256) :: outfil_nc
+  character(len=64) :: csdate , cldim
   integer(ik4) , dimension(8) :: ilevs
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
@@ -113,7 +113,7 @@ program clm2rcm
 !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call openfile_withname(terfile,incin)
-  call read_domain(incin,sigx,xlat,xlon,ltrans=.true.)
+  call read_domain(incin,sigx,xlat,xlon)
   istatus = nf90_close(incin)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error closing file '//trim(terfile))
@@ -155,8 +155,8 @@ program clm2rcm
   call write_vertical_coord(ncid,sigx,hptop,izvar)
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
   ipnt = 1
-  call write_var2d_static(ncid,'xlat',xlat,ipnt,illvar,do_transpose)
-  call write_var2d_static(ncid,'xlon',xlon,ipnt,illvar,do_transpose)
+  call write_var2d_static(ncid,'xlat',xlat,ipnt,illvar)
+  call write_var2d_static(ncid,'xlon',xlon,ipnt,illvar)
 
   imondate = irefdate
   do it = 1 , 12
@@ -310,11 +310,11 @@ program clm2rcm
  
 !       ** Interpolate data to RegCM3 grid
 
-    call getmem4d(regyxzt,1,iy,1,jx,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
+    call getmem4d(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
     call getmem3d(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
 
     call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
-                  xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
+                  xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)
  
 !   ** Write the interpolated data to NetCDF for CLM and checkfile
 
@@ -323,21 +323,21 @@ program clm2rcm
       if ( ifld==ipft ) then
         do i = 1 , iy
           do j = 1 , jx
-            if ( regyxzt(i,j,1,l)>-99. ) then
+            if ( regyxzt(j,i,1,l)>-99. ) then
               do k = 1 , nlev(ifld)
-                regyxzt(i,j,k,l) = aint(regyxzt(i,j,k,l))
+                regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
               pxerr = 100.
               kmax = -1
               pmax = -99.
               do k = 1 , nlev(ifld)
-                pxerr = pxerr - regyxzt(i,j,k,l)
-                if ( regyxzt(i,j,k,l)>pmax ) then
-                  pmax = regyxzt(i,j,k,l)
+                pxerr = pxerr - regyxzt(j,i,k,l)
+                if ( regyxzt(j,i,k,l)>pmax ) then
+                  pmax = regyxzt(j,i,k,l)
                   kmax = k
                 end if
               end do
-              regyxzt(i,j,kmax,l) = regyxzt(i,j,kmax,l) + pxerr
+              regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
             end if
           end do
         end do
@@ -346,10 +346,10 @@ program clm2rcm
         do j = 1 , jx
           do i = 1 , iy
             if ( ifld==icol ) then
-              regyxzt(i,j,k,l) = anint(regyxzt(i,j,k,l))
+              regyxzt(j,i,k,l) = anint(regyxzt(j,i,k,l))
             end if
-            if ( regyxzt(i,j,k,l)>vmin(ifld) ) then
-              regxyz(j,i,k) = regyxzt(i,j,k,l)
+            if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
+              regxyz(j,i,k) = regyxzt(j,i,k,l)
             else
               regxyz(j,i,k) = 0.0
             end if
@@ -386,7 +386,8 @@ program clm2rcm
         ilevs(ldim) = nlev(ifld)
         write (cldim,'(a,i0.3)') 'level_', nlev(ifld)
         istatus = nf90_def_dim(ncid, cldim, nlev(ifld), idum)
-        call checkncerr(istatus,__FILE__,__LINE__, 'Error create dim '//trim(cldim))
+        call checkncerr(istatus,__FILE__,__LINE__,  &
+          'Error create dim '//trim(cldim))
       end if
     end if
 
@@ -419,7 +420,8 @@ program clm2rcm
         istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims(1:2), ivar)
       end if
     end if
-    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var '//trim(vnam(ifld)))
+    call checkncerr(istatus,__FILE__,__LINE__,  &
+      'Error add var '//trim(vnam(ifld)))
     idum = len_trim(lnam(ifld))
     istatus = nf90_put_att(ncid, ivar, 'long_name', lnam(ifld)(1:idum))
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -438,16 +440,9 @@ program clm2rcm
     istatus = nf90_enddef(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error End redef NetCDF output')
 
-    call getmem4d(dumw,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:dumw')
-
-    do j = 1 , iy
-      do i = 1 , jx
-         dumw(i,j,:,:) = regyxzt(j,i,:,:)
-      end do
-    end do
-
-    istatus = nf90_put_var(ncid, ivar, dumw)
-    call checkncerr(istatus,__FILE__,__LINE__,('Error '//trim(vnam(ifld))// ' write'))
+    istatus = nf90_put_var(ncid, ivar, regyxzt)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      ('Error '//trim(vnam(ifld))// ' write'))
 
   end do  ! End nfld loop
 
@@ -457,7 +452,8 @@ program clm2rcm
   call clscdf(idout,ierr)
 
   istatus = nf90_close(ncid)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error close file '//trim(checkfile))
+  call checkncerr(istatus,__FILE__,__LINE__,  &
+    'Error close file '//trim(checkfile))
 
   call memory_destroy
 

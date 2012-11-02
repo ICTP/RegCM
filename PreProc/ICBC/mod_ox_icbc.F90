@@ -37,20 +37,20 @@ module mod_ox_icbc
   integer(ik4) :: k0
 
   integer(ik4) , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 26 , oxitime = 12
-  real(rk4) , dimension(oxilon) :: oxt42lon
-  real(rk4) , dimension(oxjlat) :: oxt42lat
-  real(rk4) , dimension(oxilev) :: oxt42hyam , oxt42hybm
+  real(rk8) , dimension(oxilon) :: oxt42lon
+  real(rk8) , dimension(oxjlat) :: oxt42lat
+  real(rk8) , dimension(oxilev) :: oxt42hyam , oxt42hybm
 !
 ! Oxidant climatology variables
 !
-  real(rk4) :: p0 , r4pt
-  real(rk4) , dimension(oxilon,oxjlat) :: xps
-  real(rk4) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
-  real(rk4) , dimension(oxilon,oxjlat,oxitime) :: xps2
-  real(rk4) , pointer , dimension(:,:) :: poxid_3
-  real(rk4) , pointer , dimension(:,:,:,:) :: oxv3
+  real(rk8) :: p0 , r4pt
+  real(rk8) , dimension(oxilon,oxjlat) :: xps
+  real(rk8) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
+  real(rk8) , dimension(oxilon,oxjlat,oxitime) :: xps2
+  real(rk8) , pointer , dimension(:,:) :: poxid_3
+  real(rk8) , pointer , dimension(:,:,:,:) :: oxv3
 
-  real(rk4) :: prcm , pmpi , pmpj
+  real(rk8) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus
 
   public :: header_ox_icbc , get_ox_icbc , close_ox_icbc
@@ -111,8 +111,8 @@ module mod_ox_icbc
 !
     integer(ik4) :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    real(rk4) , dimension(oxilon,oxjlat,oxilev) :: xinp
-    real(rk4) :: wt1 , wt2
+    real(rk8) , dimension(oxilon,oxjlat,oxilev) :: xinp
+    real(rk8) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer(ik4) :: m1 , m2

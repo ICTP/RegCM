@@ -30,12 +30,12 @@ module mod_grid
 
   private
 
-  real(rk4) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
-  real(rk4) , public , pointer , dimension(:,:) :: topogm , mask , landuse
-  real(rk4) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(rk4) , public , pointer , dimension(:,:) :: b3pd
-  real(rk4) , public , pointer , dimension(:) :: dsigma , sigma2
-  real(rk4) , public , pointer , dimension(:) :: sigmaf
+  real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
+  real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
+  real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
+  real(rk8) , public , pointer , dimension(:,:) :: b3pd
+  real(rk8) , public , pointer , dimension(:) :: dsigma , sigma2
+  real(rk8) , public , pointer , dimension(:) :: sigmaf
   real(rk8) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
   real(rk8) , public :: lat0 , lat1 , lon0 , lon1
@@ -69,7 +69,7 @@ module mod_grid
     implicit none
     integer(ik4) :: istatus
     integer(ik4) :: incin
-    character(256) :: fname
+    character(len=256) :: fname
     integer(ik4) :: k
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)

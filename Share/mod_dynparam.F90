@@ -61,7 +61,7 @@ module mod_dynparam
 !          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
 !          'ROTMER', Rotated Mercator
 !
-  character(6) :: iproj
+  character(len=6) :: iproj
  
 ! Control flag for tropical band option.
  
@@ -147,14 +147,14 @@ module mod_dynparam
 ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
 !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
-  character(5) :: dattyp
+  character(len=5) :: dattyp
 
 ! Type of Sea Surface Temperature used
 !
 ! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
 !         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
 !
-  character(5) :: ssttyp
+  character(len=5) :: ssttyp
 
 ! Land Surface Legend number
 
@@ -265,7 +265,7 @@ module mod_dynparam
 
 ! Terrain output files
 
-  character(64) :: domname
+  character(len=64) :: domname
 
 ! Global Begin and End date for Input Pre processing
 
@@ -274,7 +274,7 @@ module mod_dynparam
 
 ! Days per year and degrees per day
 
-  character(12) :: calendar
+  character(len=12) :: calendar
   integer(ik4) :: ical
   real(rk8) :: dayspy
   real(rk8) :: half_dayspy
@@ -304,14 +304,14 @@ module mod_dynparam
 
 ! Shall we use this to port?
 
-  character(1), parameter :: pthsep = '/'
+  character(len=1), parameter :: pthsep = '/'
 
 ! Paths
 
-  character(256) :: dirter , inpter
-  character(256) :: dirglob , inpglob
-  character(256) :: dirout
-  character(256) :: dirclm
+  character(len=256) :: dirter , inpter
+  character(len=256) :: dirglob , inpglob
+  character(len=256) :: dirout
+  character(len=256) :: dirclm
 
 ! Model output control parameters
 

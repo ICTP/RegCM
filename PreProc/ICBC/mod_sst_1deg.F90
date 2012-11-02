@@ -67,13 +67,13 @@ module mod_sst_1deg
 !
   integer(ik4) , parameter :: ilon = 360 , jlat = 180
 !
-  real(rk4) , dimension(ilon,jlat) :: sst , ice
+  real(rk8) , dimension(ilon,jlat) :: sst , ice
   integer(ik4) :: i , j , k , iwk , nrec
   integer(ik4) :: nsteps
   type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
-  real(rk4) , dimension(jlat) :: lati
-  real(rk4) , dimension(ilon) :: loni
-  character(256) :: inpfile
+  real(rk8) , dimension(jlat) :: lati
+  real(rk8) , dimension(ilon) :: loni
+  character(len=256) :: inpfile
   logical :: there
 !
 
@@ -168,9 +168,9 @@ module mod_sst_1deg
         end if
       end if
  
-      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
       if ( ssttyp == 'OI2ST' ) then
-        call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+        call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
       end if
 
       write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
@@ -186,11 +186,7 @@ module mod_sst_1deg
       end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-      if ( ssttyp /= 'OI2ST' ) then
-        call writerec(idatem,.false.)
-      else
-        call writerec(idatem,.true.)
-      end if
+      call writerec(idate)
 
       write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
 
@@ -215,7 +211,7 @@ module mod_sst_1deg
       end if
 
       call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
-      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
  
       if ( ssttyp == 'OI2WK') then
         if ( idate < 19891231 ) then
@@ -224,27 +220,23 @@ module mod_sst_1deg
           inpfile=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
         end if
         call ice_wk(idate,iwk,ilon,jlat,ice,inpfile)
-        call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+        call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
       end if 
 
       write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
 
-      do j = 1 , jx
-        do i = 1 , iy
-          if ( sstmm(i,j) > -100. ) then
-            sstmm(i,j) = sstmm(i,j) + 273.15
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( sstmm(j,i) > -100. ) then
+            sstmm(j,i) = sstmm(j,i) + 273.15
           else
-            sstmm(i,j) = -9999.
+            sstmm(j,i) = -9999.
           end if
         end do
       end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-      if (ssttyp == 'OI_WK') then
-        call writerec(idate,.false.)
-      else
-        call writerec(idate,.true.)
-      endif
+      call writerec(idate)
 
       write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
 
@@ -262,13 +254,13 @@ module mod_sst_1deg
 !
   integer(ik4) , intent(in) :: ilon , jlat
   type(rcm_time_and_date) :: idate , idate0
-  character(256) , intent(in) :: pathaddname
+  character(len=256) , intent(in) :: pathaddname
 !
-  real(rk4) , dimension(ilon,jlat) :: sst
+  real(rk8) , dimension(ilon,jlat) :: sst
   intent (out) :: sst
 !
   integer(ik4) :: i , it , j , n
-  character(5) :: varname
+  character(len=5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer(ik4) :: istatus
 !
@@ -334,12 +326,12 @@ module mod_sst_1deg
 !
   integer(ik4) , intent(in) :: ilon , jlat
   type(rcm_time_and_date) :: idate , idate0
-  character(256) , intent(in) :: pathaddname
-  real(rk4) , dimension(ilon,jlat) :: ice
+  character(len=256) , intent(in) :: pathaddname
+  real(rk8) , dimension(ilon,jlat) :: ice
   intent (out) :: ice
 !
   integer(ik4) :: i , it , j , n
-  character(5) :: varname
+  character(len=5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer(ik4) :: istatus
 !
@@ -404,19 +396,19 @@ module mod_sst_1deg
 !
   type(rcm_time_and_date) , intent(in) :: idate
   integer(ik4) , intent(in) :: kkk , ilon , jlat
-  character(256) , intent(in) :: pathaddname
+  character(len=256) , intent(in) :: pathaddname
 !
-  real(rk4) , dimension(ilon,jlat) , intent(out) :: sst
+  real(rk8) , dimension(ilon,jlat) , intent(out) :: sst
 !
   integer(ik4) :: i , j , n
-  character(3) :: varname
+  character(len=3) :: varname
   integer(ik4) :: istatus
   integer(2) , dimension(ilon,jlat) :: work , work1
 !
   integer(ik4) , dimension(10) , save :: icount , istart
   integer(ik4) , save :: inet , ivar
   real(rk8) , save :: xadd , xscale
-  character(256) , save :: usename
+  character(len=256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -499,19 +491,19 @@ module mod_sst_1deg
 !
   type(rcm_time_and_date) , intent(in) :: idate
   integer(ik4) , intent(in) :: kkk , ilon , jlat
-  character(256) , intent(in) :: pathaddname
+  character(len=256) , intent(in) :: pathaddname
 !
-  real(rk4) , dimension(ilon,jlat) , intent(out) :: ice
+  real(rk8) , dimension(ilon,jlat) , intent(out) :: ice
 !
   integer(ik4) :: i , j , n
-  character(4) :: varname
+  character(len=4) :: varname
   integer(2) , dimension(ilon,jlat) :: work , work1
   integer(ik4) :: istatus
 !
   integer(ik4) , dimension(10) , save :: icount , istart
   integer(ik4) , save :: inet , ivar
   real(rk8) , save :: xadd , xscale
-  character(256) , save :: usename
+  character(len=256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

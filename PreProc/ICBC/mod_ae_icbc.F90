@@ -33,22 +33,22 @@ module mod_ae_icbc
   private
 !
   integer(ik4) , parameter :: aeilon = 144 , aejlat = 96 , aeilev = 26 , aeitime = 12
-  real(rk4) , dimension(aeilon) :: aet42lon
-  real(rk4) , dimension(aejlat) :: aet42lat
-  real(rk4) , dimension(aeilev) :: aet42hyam , aet42hybm
+  real(rk8) , dimension(aeilon) :: aet42lon
+  real(rk8) , dimension(aejlat) :: aet42lat
+  real(rk8) , dimension(aeilev) :: aet42hyam , aet42hybm
 !
 ! Oxidant climatology variables
 !
-  real(rk4) :: p0 , r4pt
-  real(rk4) , dimension(aeilon,aejlat) :: xps
-  real(rk4) , pointer , dimension(:,:,:,:,:) :: aev2
-  real(rk4) , dimension(aeilon,aejlat,aeitime) :: xps2
-  real(rk4) , pointer , dimension(:,:) :: paeid_3
-  real(rk4) , pointer , dimension(:,:,:,:) :: aev3
+  real(rk8) :: p0 , r4pt
+  real(rk8) , dimension(aeilon,aejlat) :: xps
+  real(rk8) , pointer , dimension(:,:,:,:,:) :: aev2
+  real(rk8) , dimension(aeilon,aejlat,aeitime) :: xps2
+  real(rk8) , pointer , dimension(:,:) :: paeid_3
+  real(rk8) , pointer , dimension(:,:,:,:) :: aev3
   integer(ik4) :: iyear
   character(len=8) , dimension(4) :: scendir
 
-  real(rk4) :: prcm , pmpi , pmpj
+  real(rk8) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus , iscen
 
   public :: header_ae_icbc , get_ae_icbc , close_ae_icbc
@@ -133,8 +133,8 @@ module mod_ae_icbc
 !
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: i , l , is , j , k , k0
-    real(rk4) , dimension(aeilon,aejlat,aeilev) :: xinp
-    real(rk4) :: wt1 , wt2
+    real(rk8) , dimension(aeilon,aejlat,aeilev) :: xinp
+    real(rk8) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer(ik4) :: m1 , m2

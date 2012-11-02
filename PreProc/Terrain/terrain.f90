@@ -77,8 +77,8 @@ program terrain
 
   implicit none
 !
-  character(256) :: char_lnd , char_tex , char_lak
-  character(256) :: namelistfile , prgname , outname
+  character(len=256) :: char_lnd , char_tex , char_lak
+  character(len=256) :: namelistfile , prgname , outname
   integer(ik4) :: i , j , k , ierr , i0 , j0 , m , n
   logical :: ibndry
   real(rk8) :: clong , hsum , have , dsinm
@@ -91,7 +91,6 @@ program terrain
   integer(ik4) :: icount
   integer(ik4) , parameter :: maxiter = 1000000
   real(rk8) , parameter :: conv_crit = 0.00001D0
-  real(rk4) , pointer , dimension(:) :: s_sigma
 !
   call header(1)
 !
@@ -110,13 +109,13 @@ program terrain
   end if
 
   call memory_init
-
 !
-  call prepare_grid(iy,jx,kz,ntex)
+  call prepare_grid(jx,iy,kz,ntex)
 
   if ( nsg>1 ) then
-    call prepare_subgrid(iysg,jxsg,ntex)
+    call prepare_subgrid(jxsg,iysg,ntex)
   end if
+  call setup_outvars
 !
 !  Setup hardcoded sigma levels
 !
@@ -275,8 +274,6 @@ program terrain
     call relmem1d(dsig)
     call relmem1d(alph)
   end if
-  call getmem1d(s_sigma,1,kz+1,'terrain:s_sigma')
-  s_sigma = real(sigma)
 
 !---------------------------------------------------------------------
 !
@@ -297,26 +294,26 @@ program terrain
     write(stdout,*) 'Subgrid setup done'
 
     if ( iproj=='LAMCON' ) then
-      call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
+      call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,0,xcone,truelatl,truelath)
-      call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
+      call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,1,xcone,truelatl,truelath)
     else if ( iproj=='POLSTR' ) then
-      call mappol(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
+      call mappol(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,0)
-      call mappol(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
+      call mappol(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,1)
       xcone = d_one
     else if ( iproj=='NORMER' ) then
-      call normer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
+      call normer(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,0)
-      call normer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
+      call normer(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
                   clat,dsinm,1)
       xcone = d_zero
     else if ( iproj=='ROTMER' ) then
-      call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clon,     &
+      call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clon,     &
                   clat,plon,plat,dsinm,0)
-      call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clon,     &
+      call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clon,     &
                   clat,plon,plat,dsinm,1)
       xcone = d_zero
     else
@@ -328,7 +325,7 @@ program terrain
     write(stdout,*) 'Subgrid Geo mapping done'
 !
 !       reduce the search area for the domain
-    call mxmnll(iysg,jxsg,xlon_s,xlat_s,i_band)
+    call mxmnll(jxsg,iysg,xlon_s,xlat_s,i_band)
     write(stdout,*) 'Determined Subgrid coordinate range'
 !
     ntypec_s = idnint((ds/dble(nsg)/d_two)*60.0D0/110.0)
@@ -340,7 +337,7 @@ program terrain
                      pthsep//'GTOPO_DEM_30s.nc','z',   &
                      30,ntypec_s,.true.,0)
     write(stdout,*)'Static DEM data successfully read in'
-    call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
+    call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec_s,3,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated DEM on SUBGRID'
@@ -349,11 +346,11 @@ program terrain
                      pthsep//'GLCC_BATS_30s.nc',       &
                      'landcover',30,ntypec_s,.true.,0)
     write(stdout,*)'Static landcover BATS data successfully read in'
-    call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
+    call interp(jxsg,iysg,xlat_s,xlon_s,lndout_s,  &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec_s,4,lonwrap,lcrosstime,     &
                 ibnty=1,h2opct=h2opct)
-    call filter1plakes(iysg,jxsg,lndout_s)
+    call filter1plakes(jxsg,iysg,lndout_s)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 !
     if ( ltexture ) then
@@ -361,12 +358,12 @@ program terrain
                        pthsep//'GLZB_SOIL_30s.nc',       &
                        'soiltype',30,ntypec_s,.true.,0)
       write(stdout,*)'Static texture data successfully read in'
-      call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
+      call interp(jxsg,iysg,xlat_s,xlon_s,texout_s,   &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec_s,4,lonwrap,lcrosstime,      &
                   ibnty=2,h2opct=h2opct)
       do i = 1 , ntex
-        call interp(iysg,jxsg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
+        call interp(jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
                     nlatin,nlonin,grdltmn,grdlnmn,values,      &
                     ntypec_s,5,lonwrap,lcrosstime,ival=i)
       end do
@@ -378,62 +375,62 @@ program terrain
                        pthsep//'ETOPO_BTM_30s.nc',       &
                        'z',30,ntypec_s,.true.,0)
       write(stdout,*)'Static bathymetry data successfully read in'
-      call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
+      call interp(jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec_s,3,lonwrap,lcrosstime)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-    call smth121(htgrid_s,iysg,jxsg)
-    call smth121(htgrid_s,iysg,jxsg)
+    call smth121(htgrid_s,jxsg,iysg)
+    call smth121(htgrid_s,jxsg,iysg)
 
     if ( ibndry ) then
       do j = 2 , jxsg - 1
-        htgrid_s(1,j) = htgrid_s(2,j)
-        htgrid_s(iysg,j) = htgrid_s(iysg-1,j)
-        lndout_s(1,j) = lndout_s(2,j)
-        lndout_s(iysg,j) = lndout_s(iysg-1,j)
+        htgrid_s(j,1) = htgrid_s(j,2)
+        htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
+        lndout_s(j,1) = lndout_s(j,2)
+        lndout_s(j,iysg) = lndout_s(j,iysg-1)
  
         if ( ltexture ) then
-          texout_s(1,j) = texout_s(2,j)
-          texout_s(iysg,j) = texout_s(iysg-1,j)
+          texout_s(j,1) = texout_s(j,2)
+          texout_s(j,iysg) = texout_s(j,iysg-1)
           do k = 1 , ntex
-            frac_tex_s(1,j,k) = frac_tex_s(2,j,k)
-            frac_tex_s(iysg,j,k) = frac_tex_s(iysg-1,j,k)
+            frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
+            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
           end do
         end if
       end do
       do i = 1 , iysg
-        htgrid_s(i,1) = htgrid_s(i,2)
-        htgrid_s(i,jxsg) = htgrid_s(i,jxsg-1)
-        lndout_s(i,1) = lndout_s(i,2)
-        lndout_s(i,jxsg) = lndout_s(i,jxsg-1)
+        htgrid_s(1,i) = htgrid_s(2,i)
+        htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
+        lndout_s(1,i) = lndout_s(2,i)
+        lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
  
         if ( ltexture ) then
-          texout_s(i,1) = texout_s(i,2)
-          texout_s(i,jxsg) = texout_s(i,jxsg-1)
+          texout_s(1,i) = texout_s(2,i)
+          texout_s(jxsg,i) = texout_s(jxsg-1,i)
           do k = 1 , ntex
-            frac_tex_s(i,1,k) = frac_tex_s(i,2,k)
-            frac_tex_s(i,jxsg,k) = frac_tex_s(i,jxsg-1,k)
+            frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
+            frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
           end do
         end if
       end do
     end if
     do i = 1 , iysg
       do j = 1 , jxsg
-        snowam_s(i,j) = 0.0
+        snowam_s(j,i) = 0.0
       end do
     end do
 
     write (char_lnd,99001) trim(dirter), pthsep, trim(domname), &
            '_LANDUSE' , nsg
-    call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,iysg,jxsg, &
+    call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,jxsg,iysg, &
                   trim(char_lnd))
     if ( ltexture ) then
       write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
              '_TEXTURE' , nsg
-      call texfudge(fudge_tex_s,texout_s,htgrid_s,iysg,jxsg, &
+      call texfudge(fudge_tex_s,texout_s,htgrid_s,jxsg,iysg, &
                     trim(char_tex))
     end if
     write(stdout,*) 'Fudging data (if requested) succeeded'
@@ -454,22 +451,22 @@ program terrain
 !
 !-----calling the map projection subroutine
   if ( iproj=='LAMCON' ) then
-    call lambrt(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0,xcone,  &
+    call lambrt(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0,xcone,  &
                 truelatl,truelath)
-    call lambrt(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1,xcone,  &
+    call lambrt(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1,xcone,  &
                 truelatl,truelath)
   else if ( iproj=='POLSTR' ) then
-    call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
-    call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
+    call mappol(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0)
+    call mappol(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1)
     xcone = d_one
   else if ( iproj=='NORMER' ) then
-    call normer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
-    call normer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
+    call normer(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0)
+    call normer(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1)
     xcone = d_zero
   else if ( iproj=='ROTMER' ) then
-    call rotmer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,plon,plat,   &
+    call rotmer(xlon,xlat,xmap,coriol,jx,iy,clong,clat,plon,plat,   &
                 dsinm,0)
-    call rotmer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,plon,plat,   &
+    call rotmer(dlon,dlat,dmap,coriol,jx,iy,clong,clat,plon,plat,   &
                 dsinm,1)
     xcone = d_zero
   else
@@ -481,7 +478,7 @@ program terrain
   write(stdout,*) 'Geo mapping done'
 !
 !     reduce the search area for the domain
-  call mxmnll(iy,jx,xlon,xlat,i_band)
+  call mxmnll(jx,iy,xlon,xlat,i_band)
   write(stdout,*)'Determined Grid coordinate range'
 !
   ntypec = idnint((ds/d_two)*60.0D0/110.0)
@@ -493,7 +490,7 @@ program terrain
                    pthsep//'GTOPO_DEM_30s.nc','z',   &
                    30,ntypec,.true.,0)
   write(stdout,*)'Static DEM data successfully read in'
-  call interp(iy,jx,xlat,xlon,htgrid,           &
+  call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
               ntypec,3,lonwrap,lcrosstime)
   write(stdout,*)'Interpolated DEM on model GRID'
@@ -502,11 +499,11 @@ program terrain
                    pthsep//'GLCC_BATS_30s.nc',       &
                    'landcover',30,ntypec,.true.,0)
   write(stdout,*)'Static landcover BATS data successfully read in'
-  call interp(iy,jx,xlat,xlon,lndout,            &
+  call interp(jx,iy,xlat,xlon,lndout,            &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
               ntypec,4,lonwrap,lcrosstime,       &
               ibnty=1,h2opct=h2opct)
-  call filter1plakes(iy,jx,lndout)
+  call filter1plakes(jx,iy,lndout)
   write(stdout,*)'Interpolated landcover on model GRID'
 !
   if ( ltexture ) then
@@ -514,12 +511,12 @@ program terrain
                      pthsep//'GLZB_SOIL_30s.nc',       &
                      'soiltype',30,ntypec,.true.,0)
     write(stdout,*)'Static texture data successfully read in'
-    call interp(iy,jx,xlat,xlon,texout,             &
+    call interp(jx,iy,xlat,xlon,texout,             &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec,4,lonwrap,lcrosstime,        &
                 ibnty=2,h2opct=h2opct)
     do i = 1 , ntex
-      call interp(iy,jx,xlat,xlon,frac_tex(:,:,i),   &
+      call interp(jx,iy,xlat,xlon,frac_tex(:,:,i),   &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,5,lonwrap,lcrosstime,ival=i)
     end do
@@ -531,47 +528,47 @@ program terrain
                      pthsep//'ETOPO_BTM_30s.nc',       &
                      'z',30,ntypec,.true.,0)
     write(stdout,*)'Static bathymetry data successfully read in'
-    call interp(iy,jx,xlat,xlon,dpth,              &
+    call interp(jx,iy,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec,3,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 
 !     ******           preliminary heavy smoothing of boundaries
-  if ( smthbdy ) call smthtr(htgrid,iy,jx)
+  if ( smthbdy ) call smthtr(htgrid,jx,iy)
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-  call smth121(htgrid,iy,jx)
-  call smth121(htgrid,iy,jx)
+  call smth121(htgrid,jx,iy)
+  call smth121(htgrid,jx,iy)
 
   if ( ibndry ) then
     do j = 2 , jx - 1
-      htgrid(1,j) = htgrid(2,j)
-      htgrid(iy,j) = htgrid(iy-1,j)
-      lndout(1,j) = lndout(2,j)
-      lndout(iy,j) = lndout(iy-1,j)
+      htgrid(j,1) = htgrid(j,2)
+      htgrid(j,iy) = htgrid(j,iy-1)
+      lndout(j,1) = lndout(j,2)
+      lndout(j,iy) = lndout(j,iy-1)
  
       if ( ltexture ) then
-        texout(1,j) = texout(2,j)
-        texout(iy,j) = texout(iy-1,j)
+        texout(j,1) = texout(j,2)
+        texout(j,iy) = texout(j,iy-1)
         do k = 1 , ntex
-          frac_tex(1,j,k) = frac_tex(2,j,k)
-          frac_tex(iy,j,k) = frac_tex(iy-1,j,k)
+          frac_tex(j,1,k) = frac_tex(j,2,k)
+          frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
         end do
       end if
     end do
     do i = 1 , iy
-      htgrid(i,1) = htgrid(i,2)
-      htgrid(i,jx) = htgrid(i,jx-1)
-      lndout(i,1) = lndout(i,2)
-      lndout(i,jx) = lndout(i,jx-1)
+      htgrid(1,i) = htgrid(2,i)
+      htgrid(jx,i) = htgrid(jx-1,i)
+      lndout(1,i) = lndout(2,i)
+      lndout(jx,i) = lndout(jx-1,i)
  
       if ( ltexture ) then
-        texout(i,1) = texout(i,2)
-        texout(i,jx) = texout(i,jx-1)
+        texout(1,i) = texout(2,i)
+        texout(jx,i) = texout(jx-1,i)
         do k = 1 , ntex
-          frac_tex(i,1,k) = frac_tex(i,2,k)
-          frac_tex(i,jx,k) = frac_tex(i,jx-1,k)
+          frac_tex(1,i,k) = frac_tex(2,i,k)
+          frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
         end do
       end if
     end do
@@ -579,18 +576,18 @@ program terrain
  
   do i = 1 , iy
     do j = 1 , jx
-      snowam(i,j) = 0.0
+      snowam(j,i) = 0.0
     end do
   end do
 
   write (char_lnd,99002) trim(dirter), pthsep, trim(domname), &
            '_LANDUSE'
-  call lndfudge(fudge_lnd,lndout,htgrid,iy,jx,trim(char_lnd))
+  call lndfudge(fudge_lnd,lndout,htgrid,jx,iy,trim(char_lnd))
 
   if ( ltexture ) then
     write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
              '_TEXTURE'
-    call texfudge(fudge_tex,texout,htgrid,iy,jx,trim(char_tex))
+    call texfudge(fudge_tex,texout,htgrid,jx,iy,trim(char_tex))
   end if
 
   if ( .not. h2ohgt ) then
@@ -616,7 +613,7 @@ program terrain
   if ( lakedpth ) then
     write (char_lak,99002) trim(dirter), pthsep, trim(domname), &
              '_LAK'
-    call lakfudge(fudge_lak,dpth,lndout,iy,jx,trim(char_lak))
+    call lakfudge(fudge_lak,dpth,lndout,jx,iy,trim(char_lak))
   end if
   write(stdout,*) 'Fudging data (if requested) succeeded'
 
@@ -628,19 +625,18 @@ program terrain
         hsum = d_zero
         do m = 1 , nsg
           do n = 1 , nsg
-            if ( htgrid(i,j)<0.1 .and. &
-                (lndout(i,j)>14.5 .and. lndout(i,j)<15.5) ) then
-              htgrid_s(i0+m,j0+n) = 0.0
-              lndout_s(i0+m,j0+n) = 15.0
+            if ( htgrid(j,i)<0.1 .and. &
+                (lndout(j,i)>14.5 .and. lndout(j,i)<15.5) ) then
+              htgrid_s(j0+n,i0+m) = 0.0
+              lndout_s(j0+n,i0+m) = 15.0
             end if
-            hsum = hsum + dble(htgrid_s(i0+m,j0+n))
+            hsum = hsum + htgrid_s(j0+n,i0+m)
           end do
         end do
         have = hsum/dble(nnsg)
         do m = 1 , nsg
           do n = 1 , nsg
-            htgrid_s(i0+m,j0+n) = htgrid(i,j) + &
-                                  (htgrid_s(i0+m,j0+n) - real(have))
+            htgrid_s(j0+n,i0+m) = htgrid(j,i) + (htgrid_s(j0+n,i0+m) - have)
           end do
         end do
       end do
@@ -667,14 +663,14 @@ program terrain
     if ( lakedpth ) then
       write (char_lak,99001) trim(dirter), pthsep, trim(domname), &
                '_LAK', nsg
-      call lakfudge(fudge_lak_s,dpth_s,lndout_s,iysg,jxsg, &
+      call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
                     trim(char_lak))
     end if
 
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
     call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s,  &
-                      ntypec_s,s_sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s, &
+                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s, &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,   &
                       dpth_s,texout_s,frac_tex_s)
     write(stdout,*) 'Subgrid data written to output file'
@@ -683,7 +679,7 @@ program terrain
   write (outname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
-                    s_sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
+                    sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
                     htgrid,lndout,snowam,dpth,texout,frac_tex)
   write(stdout,*) 'Grid data written to output file'
 

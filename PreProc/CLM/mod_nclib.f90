@@ -46,13 +46,13 @@ module mod_nclib
   implicit none
 
   integer(ik4) , intent (in) :: ndim
-  character(256), intent(in) :: filnam
+  character(len=256), intent(in) :: filnam
   real(rk4) , dimension(ndim) :: phymin , phymax
   integer(ik4) , intent (out) :: ierr , cdfid
 
   integer(ik4) , parameter :: maxdim = 4
-  character(64) :: attnam
-  character(1)  :: chrid(maxdim)
+  character(len=64) :: attnam
+  character(len=1)  :: chrid(maxdim)
   integer(ik4) :: k
   data chrid /'x','y','z','a'/
 
@@ -97,7 +97,7 @@ module mod_nclib
 
   implicit none
 
-  character(256) , intent(in) :: filnam
+  character(len=256) , intent(in) :: filnam
   integer(ik4) , intent(in) :: ndim
   integer(ik4) , intent(out) :: cdfid
   integer(ik4) , intent(out) :: ierr
@@ -159,7 +159,7 @@ module mod_nclib
   implicit none
 
   integer(ik4) , intent(in) :: cdfid , ie , je , ke
-  character(64) :: varnam , lname , vunit
+  character(len=64) :: varnam , lname , vunit
   real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
   real(rk4) , dimension(ie) , intent(in) :: xlon1d
   real(rk4) , dimension(je) , intent(in) :: xlat1d
@@ -352,7 +352,7 @@ module mod_nclib
 
   integer(ik4) , intent(in) :: cdfid , ievar , jevar , ie , je , ke , k ,&
                           level
-  character(64) , intent(in) :: varnam
+  character(len=64) , intent(in) :: varnam
   real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
   real(rk4) , intent(in) :: vmisdat , rfac , offset
   integer(ik4) , intent(out) :: ierr
@@ -500,15 +500,15 @@ module mod_nclib
   integer(ik4) , parameter :: maxdim = 4
 
   integer(ik4) , intent(in) :: cdfid , ndim , iotype
-  character(64) , intent(in) :: varnam , clname , clunits
+  character(len=64) , intent(in) :: varnam , clname , clunits
   integer(ik4) , dimension(ndim) :: vardim
   real(rk4) , dimension(ndim) :: varmin , varmax
   real(rk4) , intent(in) :: xscale , offset , misdat
   integer(ik4) , intent(out) :: ierr
 
-  character(64) :: dimnam , dimchk
-  character(64) , dimension(10) :: dimnams
-  character(5) , dimension(maxdim) :: rdim
+  character(len=64) :: dimnam , dimchk
+  character(len=64) , dimension(10) :: dimnams
+  character(len=5) , dimension(maxdim) :: rdim
   integer(ik4) , dimension(10) :: dimvals
   integer(ik4) , dimension(maxdim) :: did
   integer(ik4) :: numdims , numvars , numgats , dimulim
@@ -516,8 +516,8 @@ module mod_nclib
   integer(ik4) :: idcoor
   real(rk4) , dimension(2) :: vrange
   real(rk8) , dimension(2) :: dvrange
-  character(64) , dimension(maxdim) :: long_name
-  character(64) , dimension(maxdim) :: units
+  character(len=64) , dimension(maxdim) :: long_name
+  character(len=64) , dimension(maxdim) :: units
   integer(2) , parameter :: shfill = -32767_2
 
   data rdim /'lon','lat','level','time'/
@@ -728,7 +728,7 @@ module mod_nclib
   implicit none
 
   integer(ik4) , intent(in) :: cdfid
-  character(64) , intent(in) :: varnam
+  character(len=64) , intent(in) :: varnam
   real(rk8) , intent(in) :: time
   integer(ik4) , intent(in) :: k , level , ievar , jevar , ie ,  je , ke
   real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
@@ -866,13 +866,13 @@ module mod_nclib
 
   integer(ik4) , intent(in) :: cdfid
   integer(ik4) , intent(out) :: ndim
-  character(64), intent(in) :: varnam
+  character(len=64), intent(in) :: varnam
   integer, dimension(4) , intent(out) :: vardim
   real(rk4) , intent(out) :: misdat
   integer(ik4) , intent(out) :: ierr
 
-  character(64) , dimension(maxdim) :: dimnam
-  character(64) :: vnam
+  character(len=64) , dimension(maxdim) :: dimnam
+  character(len=64) :: vnam
   integer(ik4) :: id , i , k
   integer(ik4) :: ndims , nvars , ngatts , recdim
   integer(ik4) , dimension(maxdim) :: dimsiz
@@ -971,14 +971,14 @@ module mod_nclib
   implicit none
 
   integer(ik4) , intent(in) :: cdfid
-  character(64) , intent(in) :: varnam
+  character(len=64) , intent(in) :: varnam
   integer(ik4) , intent(out) :: ndim
   integer, dimension(4) , intent(out) :: vardim
   real(rk4) , intent(out) :: misdat
   integer(ik4) , intent(out) :: ierr
 
-  character(64), dimension(10) :: dimnam
-  character(64) :: vnam
+  character(len=64), dimension(10) :: dimnam
+  character(len=64) :: vnam
   integer(ik4) :: id , i , k
   integer(ik4) :: ndims , nvars , ngatts , recdim
   integer(ik4) , dimension(10) :: dimsiz
@@ -1070,7 +1070,7 @@ module mod_nclib
 !
   integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
-  character(64) :: lnam , units , vnam
+  character(len=64) :: lnam , units , vnam
   real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1
@@ -1117,7 +1117,7 @@ module mod_nclib
 !
   integer(ik4) :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
              nlev , nlev1 , nlon , nlon1 , ntim , ntim1
-  character(64) :: lnam , units , vnam
+  character(len=64) :: lnam , units , vnam
   real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
               nlev1 , nlon , nlon1 , ntim , ntim1
@@ -1209,9 +1209,9 @@ module mod_nclib
 !
   integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
-  character(64) :: lnam
-  character(64) :: units
-  character(64) :: vnam
+  character(len=64) :: lnam
+  character(len=64) :: units
+  character(len=64) :: vnam
   real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1

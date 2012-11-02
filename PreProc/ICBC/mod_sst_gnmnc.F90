@@ -41,11 +41,11 @@ module mod_sst_gnmnc
   integer(ik4) :: istatus
   integer(ik4) , dimension(3) :: istart , icount
   real(rk8) , pointer ::  work1(:)
-  real(rk4) , pointer , dimension (:, :) :: work2 , work3
-  real(rk4) , pointer , dimension(:,:) :: sst
+  real(rk8) , pointer , dimension (:, :) :: work2 , work3
+  real(rk8) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) , save :: fidate1
-  character(64) :: cunit , ccal
-  character(256) :: inpfile
+  character(len=64) :: cunit , ccal
+  character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
 !
   data varname/'time', 'TOBESET'/
@@ -71,14 +71,14 @@ module mod_sst_gnmnc
 
   implicit none
 !
-  real(rk4) , pointer , dimension(:) :: glat
-  real(rk4) , pointer , dimension(:) :: glon
-  real(rk4) , pointer , dimension(:,:) :: glat2
-  real(rk4) , pointer , dimension(:,:) :: glon2
+  real(rk8) , pointer , dimension(:) :: glat
+  real(rk8) , pointer , dimension(:) :: glon
+  real(rk8) , pointer , dimension(:,:) :: glat2
+  real(rk8) , pointer , dimension(:,:) :: glon2
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer(ik4) :: i , j , k , nsteps , latid , lonid
   integer(ik4) :: year , month , day , hour , y1 , y2
-  real(rk4) :: ufac
+  real(rk8) :: ufac
 !
   call split_idate(globidate2, year, month, day, hour)  
 !
@@ -347,16 +347,16 @@ module mod_sst_gnmnc
          ssttyp(1:3) == 'HA_' ) then
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
     else
-      call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
+      call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
     end if
 
-    do j = 2 , jx-1
-      do i = 2 , iy-1
-        sstmm(i,j) = sstmm(i,j) + ufac
+    do i = 2 , iy-1
+      do j = 2 , jx-1
+        sstmm(j,i) = sstmm(j,i) + ufac
       end do
     end do
 
-    call writerec(idate,.false.)
+    call writerec(idate)
     write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
 
     idate = nextmon(idate)
@@ -375,7 +375,7 @@ module mod_sst_gnmnc
   implicit none
 
   type(rcm_time_and_date) , intent (in) :: idate
-  real(rk4) :: wt1 , wt2
+  real(rk8) :: wt1 , wt2
   type(rcm_time_and_date) :: prev , next
 
   integer(ik4) :: it , i , j

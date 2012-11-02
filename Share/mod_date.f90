@@ -1130,9 +1130,9 @@ module mod_date
     integer(ik4) , intent(out) :: year , month
     type (iadate) , save :: d
     type (iatime) :: t
-    character(16) :: cdum
+    character(len=16) :: cdum
 
-    character(64) , save :: csave
+    character(len=64) , save :: csave
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
 
     if (csave == cunit) then
@@ -1192,11 +1192,11 @@ module mod_date
 
     type (rcm_time_and_date) :: dd
     type (rcm_time_interval) :: z , zz
-    character(64) , save :: csave
-    character(16) :: safeccal
+    character(len=64) , save :: csave
+    character(len=16) :: safeccal
     integer(ik4) , save :: iunit
     type (rcm_time_and_date) , save :: dref
-    character(16) :: cdum
+    character(len=16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
 

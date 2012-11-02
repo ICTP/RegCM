@@ -103,7 +103,7 @@ module mod_domain
   end subroutine read_domain_array
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,ltrans)
+                                      lndcat,msfx,msfd,coriol)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk4) , pointer , dimension(:) , intent(out) :: sigma
@@ -117,71 +117,18 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
-    logical , intent(in) , optional :: ltrans
-    real(rk4) , pointer , dimension(:,:) :: dum
-    logical :: dotrans
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
-
-    dotrans = .false.
-    if ( present(ltrans) ) then
-      dotrans = ltrans
-    end if
-    if ( dotrans ) then
-      call getmem2d(dum,1,jx,1,iy,'read_domain_arrays_single:dum')
-      if ( present(xlat) ) then
-        call read_var2d_static(ncid,'xlat',dum)
-        xlat = transpose(dum)
-      end if
-      if ( present(xlon) ) then
-        call read_var2d_static(ncid,'xlon',dum)
-        xlon = transpose(dum)
-      end if
-      if ( present(dlat) ) then
-        call read_var2d_static(ncid,'dlat',dum)
-        dlat = transpose(dum)
-      end if
-      if ( present(dlon) ) then
-        call read_var2d_static(ncid,'dlon',dum)
-        dlon = transpose(dum)
-      end if
-      if ( present(ht) ) then
-        call read_var2d_static(ncid,'topo',dum)
-        ht = transpose(dum)
-      end if
-      if ( present(mask) ) then
-        call read_var2d_static(ncid,'mask',dum)
-        mask = transpose(dum)
-      end if
-      if ( present(lndcat) ) then
-        call read_var2d_static(ncid,'landuse',dum)
-        lndcat = transpose(dum)
-      end if
-      if ( present(msfx) ) then
-        call read_var2d_static(ncid,'xmap',dum)
-        msfx = transpose(dum)
-      end if
-      if ( present(msfd) ) then
-        call read_var2d_static(ncid,'dmap',dum)
-        msfd = transpose(dum)
-      end if
-      if ( present(coriol) ) then
-        call read_var2d_static(ncid,'coriol',dum)
-        coriol = transpose(dum)
-      end if
-      call relmem2d(dum)
-    else
-      if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
-      if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
-      if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
-      if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
-      if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
-      if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
-      if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
-      if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
-      if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
-      if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-    end if
+    if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
+    if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
+    if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
+    if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+    if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
+    if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
+    if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
+    if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
+    if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
+    if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
   end subroutine read_domain_array_single
 
   subroutine allocate_domain
@@ -206,9 +153,9 @@ module mod_domain
     integer(ik4) :: istatus
     integer(ik4) :: idimid , ivarid
     integer(ik4) :: iyy , jxx , kzz , kcheck
-    character(6) :: proj
+    character(len=6) :: proj
     logical :: lh
-    real(rk4) :: dsx , iclat , iclon , ptsp
+    real(rk8) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
     if ( present(lmod) ) lh = lmod

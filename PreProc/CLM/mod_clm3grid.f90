@@ -117,7 +117,7 @@ module mod_clm3grid
  
   end subroutine clm3grid2
 
-  subroutine bilinx4d(mti,loni,lati,nloni,nlati,mto,lono,lato,iy,jx,&
+  subroutine bilinx4d(mti,loni,lati,nloni,nlati,mto,lono,lato,jx,iy,&
                       nz,nt,xming,vmisdat)
 !
 !  PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A BIGGER
@@ -146,9 +146,9 @@ module mod_clm3grid
   real(rk4) :: vmisdat , xming
   real(rk4) , dimension(nloni,nlati,nz,nt) :: mti
   real(rk4) , dimension(nlati) :: lati
-  real(rk4) , dimension(iy,jx) :: lato , lono
+  real(rk4) , dimension(jx,iy) :: lato , lono
   real(rk4) , dimension(nloni) :: loni
-  real(rk4) , dimension(iy,jx,nz,nt) :: mto
+  real(rk4) , dimension(jx,iy,nz,nt) :: mto
   intent (in) mti , iy , jx , lati , lato , loni , lono , nlati ,   &
               nloni , nt , nz , vmisdat , xming
   intent (out) mto
@@ -156,16 +156,16 @@ module mod_clm3grid
   integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , k , l
   real(rk4) :: lon360 , p , q , temp1 , temp2 , xind , yind
 !
-  do j = 1 , jx
-    do i = 1 , iy
+  do i = 1 , iy
+    do j = 1 , jx
  
-      yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
+      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))           &
              *float(nlati-1)) + 1.
       jq = int(yind)
       jqp1 = min0(jq+1,nlati)
       q = yind - jq
  
-      lon360 = lono(i,j)
+      lon360 = lono(j,i)
       xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))              &
              *float(nloni-1)) + 1.
       ip = int(xind)
@@ -202,13 +202,13 @@ module mod_clm3grid
           end if
  
           if ( temp1<=xming .and. temp2>xming ) then
-            mto(i,j,k,l) = temp2
+            mto(j,i,k,l) = temp2
           else if ( temp1<=xming .and. temp2<=xming ) then
-            mto(i,j,k,l) = vmisdat
+            mto(j,i,k,l) = vmisdat
           else if ( temp1>xming .and. temp2<=xming ) then
-            mto(i,j,k,l) = temp1
+            mto(j,i,k,l) = temp1
           else
-            mto(i,j,k,l) = (1.-q)*temp1 + q*temp2
+            mto(j,i,k,l) = (1.-q)*temp1 + q*temp2
           end if
  
         end do

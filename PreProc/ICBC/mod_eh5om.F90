@@ -41,22 +41,22 @@ module mod_eh5om
   integer(ik4) , parameter :: klev = 17 , jlat = 96 , ilon = 192
   integer(ik4) , parameter :: mlev = 31
 
-  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk8) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
 
-  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(rk4) , dimension(jlat) :: glat
-  real(rk4) , dimension(ilon) :: glon
-  real(rk4) , dimension(klev) :: sigma1 , sigmar
+  real(rk8) , dimension(jlat) :: glat
+  real(rk8) , dimension(ilon) :: glon
+  real(rk8) , dimension(klev) :: sigma1 , sigmar
 
-  real(rk4) , dimension(mlev+1) :: hyai , hybi
-  real(rk4) , dimension(mlev) :: hyam , hybm
+  real(rk8) , dimension(mlev+1) :: hyai , hybi
+  real(rk8) , dimension(mlev) :: hyam , hybm
 
   integer(4) , dimension(10) :: icount , istart
 
@@ -69,15 +69,15 @@ module mod_eh5om
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  character(3) , dimension(12) :: chmon
-  character(21) :: finm
+  character(len=3) , dimension(12) :: chmon
+  character(len=21) :: finm
   integer(ik4) :: i , i2 , ii , j , j2 , k , nrec , numx , numy
   integer(2) , dimension(ilon,jlat) :: itmp
   logical :: there
   real(rk8) :: offset , xscale
-  character(4) , dimension(100) :: yr_a2
-  character(4) , dimension(61) :: yr_rf
-  character(4) :: namepart
+  character(len=4) , dimension(100) :: yr_a2
+  character(len=4) , dimension(61) :: yr_rf
+  character(len=4) :: namepart
   integer(ik4) :: year , month , day , hour
 !
   data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &

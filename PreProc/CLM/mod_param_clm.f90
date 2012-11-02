@@ -40,9 +40,9 @@ module mod_param_clm
   integer(ik4) , dimension(nfld) :: nlat , nlev , nlon , ntim
 !     ** glev_st = soil level depths
   real(rk4) , dimension(nsoi) :: glev_st
-  character(256) , dimension(nfld) :: infil
-  character(64) , dimension(nfld) :: vnam
-  character(64) :: vnam_lm , vnam_st
+  character(len=256) , dimension(nfld) :: infil
+  character(len=64) , dimension(nfld) :: vnam
+  character(len=64) :: vnam_lm , vnam_st
 !
   data (glev_st(k),k=1,nsoi)/0.0175 , 0.0451 , 0.0906 , 0.1656 ,    &
         0.2892 , 0.4930 , 0.8290 , 1.3829 , 2.2962 , 3.4332/

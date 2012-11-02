@@ -52,10 +52,10 @@ module mod_sst_fvgcm
   integer(ik4) , parameter :: ilon = 192 , jlat = 145
 !
   integer(ik4) :: i , it , j , k , nsteps
-  real(rk4) , dimension(jlat) :: lati
-  real(rk4) , dimension(ilon) :: loni
-  real(rk4) , dimension(ilon,jlat) :: temp
-  real(rk4) , dimension(ilon,jlat) :: sst
+  real(rk8) , dimension(jlat) :: lati
+  real(rk8) , dimension(ilon) :: loni
+  real(rk8) , dimension(ilon,jlat) :: temp
+  real(rk8) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , idateo , idatef
   integer(ik4) :: year , month , day , hour
   logical :: there
@@ -139,20 +139,20 @@ module mod_sst_fvgcm
       end do
     end do
  
-    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+    call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
     write (stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
-    do j = 1 , jx
-      do i = 1 , iy
-        if ( sstmm(i,j) > -100. ) then
-          sstmm(i,j) = sstmm(i,j)
+    do i = 1 , iy
+      do j = 1 , jx
+        if ( sstmm(j,i) > -100. ) then
+          sstmm(j,i) = sstmm(j,i)
         else
-          sstmm(i,j) = -9999.
+          sstmm(j,i) = -9999.
         end if
       end do
     end do
  
-    call writerec(idate,.false.)
+    call writerec(idate)
 
     write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
     idate = nextmon(idate)

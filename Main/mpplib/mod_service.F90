@@ -29,6 +29,8 @@ module mod_service
 
   private
 
+  include 'mpif.h'
+
   integer(ik4) , parameter , public :: dbgslen = 64
   integer(ik4) , parameter , public :: dbglinelen = 80
   integer(ik4) , parameter , public :: ndebug = 28 !! unit for debugging files
@@ -65,7 +67,6 @@ module mod_service
 
     subroutine activate_debug(level)
       implicit none
-      include 'mpif.h'
       integer(ik4) , optional :: level
       character(len=3) :: np = '   '
       character(len=9) :: string
@@ -218,7 +219,6 @@ module mod_service
 
     subroutine time_print(iunit,name_of_section)
       implicit none
-      INCLUDE 'mpif.h'
       character(len=*) , optional :: name_of_section
       integer(ik4) :: iunit
       integer(ik4) :: entry , imin , imax , i , test , ilen , ierr

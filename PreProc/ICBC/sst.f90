@@ -42,8 +42,8 @@ program sst
   implicit none
 
   integer(ik4) :: ierr
-  character(256) :: namelistfile , prgname
-  character(256) :: terfile
+  character(len=256) :: namelistfile , prgname
+  character(len=256) :: terfile
 
 !     call and print header
   call header('sst')
@@ -69,6 +69,7 @@ program sst
   call init_grid
   terfile=trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call read_domain_info(terfile)
+  call setup_outvars
 
   if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.       &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &

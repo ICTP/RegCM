@@ -49,20 +49,21 @@ program ncplot
   character(256) :: charatt
   character(6) :: iproj
   real(rk8) :: clat , clon , plat , plon , ds , centeri , centerj
-  real(rk4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
+  real(rk8) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
   real(rk8) , dimension(2) :: trlat
-  real(rk4) , allocatable , dimension(:,:) :: xlat , xlon
-  real(rk4) , allocatable , dimension(:) :: level , tmplon
+  real(rk8) , allocatable , dimension(:,:) :: xlat , xlon
+  real(rk8) , allocatable , dimension(:) :: level , tmplon
   real(rk8) , allocatable , dimension(:) :: times
   real(rk8) :: time1
-  real(rk4) , allocatable , dimension(:,:) :: rin , rjn , ruv
+  real(rk8) , allocatable , dimension(:,:) :: rin , rjn , ruv
+  real(rk4) , allocatable , dimension(:,:) :: r4in , r4jn , r4uv
   logical , allocatable , dimension(:) :: lvarflag
   integer(ik4) , allocatable , dimension(:) :: dimids
   integer(ik4) :: ndims , nvars , natts , udimid , totvars
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rk4) :: alat , alon , angle
+  real(rk8) :: alat , alon , angle
   integer(ik4) :: i , j
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , lsigma , ldepth
@@ -228,8 +229,8 @@ program ncplot
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = rounder(real(ds/111000.0/2.0),.false.)
-  rloninc = rounder(real(ds/111000.0/2.0),.false.)
+  rlatinc = rounder(ds/111000.0/2.0,.false.)
+  rloninc = rounder(ds/111000.0/2.0,.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0 .and. maxlon < 0.0) then
     nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
@@ -250,10 +251,16 @@ program ncplot
 
   allocate(rin(nlon,nlat), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'rin')
+  allocate(r4in(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'r4in')
   allocate(rjn(nlon,nlat), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'rjn')
+  allocate(r4jn(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'r4jn')
   allocate(ruv(nlon,nlat), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'ruv')
+  allocate(r4uv(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'r4uv')
 
   if (iproj == 'LAMCON') then
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
@@ -321,10 +328,16 @@ program ncplot
   write(11, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc 
 
-  write(12) rin
-  write(12) rjn
-  write(12) ruv
+  r4in = real(rin)
+  r4jn = real(rjn)
+  r4uv = real(ruv)
+  write(12) r4in
+  write(12) r4jn
+  write(12) r4uv
   close(12)
+
+  deallocate(rin,rjn,ruv)
+  deallocate(r4in,r4jn,r4uv)
 
   if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)

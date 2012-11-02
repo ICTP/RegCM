@@ -41,27 +41,27 @@ module mod_era40
 
   integer(ik4) , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
-  real(rk4) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(rk4) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rk4) , target , dimension(ilon,jlat,4*3+1) :: s2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
-  real(rk4) , pointer , dimension(:,:,:) :: s3
+  real(rk8) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rk8) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rk8) , target , dimension(ilon,jlat,4*3+1) :: s2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , pointer , dimension(:,:,:) :: s3
 
-  real(rk4) , dimension(ilon,jlat,klev) :: wvar
+  real(rk8) , dimension(ilon,jlat,klev) :: wvar
 
-  real(rk4) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-  real(rk4) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
-  real(rk4) , pointer , dimension(:,:) :: snw
-  real(rk4) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
-  real(rk4) , pointer , dimension(:,:) :: snow
+  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rk8) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
+  real(rk8) , pointer , dimension(:,:) :: snw
+  real(rk8) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
+  real(rk8) , pointer , dimension(:,:) :: snow
 
-  real(rk4) , dimension(jlat) :: glat
-  real(rk4) , dimension(ilon) :: glon
-  real(rk4) , dimension(klev) :: sigma1 , sigmar
+  real(rk8) , dimension(jlat) :: glat
+  real(rk8) , dimension(ilon) :: glon
+  real(rk8) , dimension(klev) :: sigma1 , sigmar
 
   public :: getera40 , headerera
 
@@ -136,13 +136,13 @@ module mod_era40
   subroutine era6hour(dattyp,idate,idate0)
   implicit none
 !
-  character(5) , intent(in) :: dattyp
+  character(len=5) , intent(in) :: dattyp
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
   integer(ik4) :: i , inet , ivar , it , j , k , k4 , kkrec , istatus
   integer(ik4) :: year , month , day , hour
-  character(24) :: inname
-  character(256) :: pathaddname
+  character(len=24) :: inname
+  character(len=256) :: pathaddname
   integer(2) , dimension(ilon,jlat,klev) :: work
   real(rk8) :: xadd , xscale
 
@@ -150,7 +150,7 @@ module mod_era40
   real(rk8) , dimension(5,4) , save :: xoff , xscl
   integer(ik4) , dimension(5,4) , save :: inet6
   integer(ik4) , dimension(5,4) , save :: ivar6
-  character(5) , dimension(5) :: varname
+  character(len=5) , dimension(5) :: varname
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

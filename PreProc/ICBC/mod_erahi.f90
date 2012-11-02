@@ -42,24 +42,24 @@ module mod_erahi
   integer(ik4) , parameter :: nlons = 320
   integer(ik4) , parameter :: nlev2 = 18
 
-  real(rk4) , dimension(nlev1+1) :: ak , bk
-  real(rk4) , dimension(nlev2) :: pplev , sigma1 , sigmar
-  real(rk4) , dimension(nlats) :: slat
-  real(rk4) , dimension(nlons) :: slon
+  real(rk8) , dimension(nlev1+1) :: ak , bk
+  real(rk8) , dimension(nlev2) :: pplev , sigma1 , sigmar
+  real(rk8) , dimension(nlats) :: slat
+  real(rk8) , dimension(nlons) :: slon
 
-  real(rk4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
-  real(rk4) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
-  real(rk4) , dimension(nlons,nlats,nlev1) :: pp3d , z1
+  real(rk8) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+  real(rk8) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
+  real(rk8) , dimension(nlons,nlats,nlev1) :: pp3d , z1
 
-  real(rk4) , target , dimension(nlons,nlats,nlev2*3) :: b2
-  real(rk4) , target , dimension(nlons,nlats,nlev2*2) :: d2
-  real(rk4) , pointer , dimension(:,:,:) :: b3
-  real(rk4) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , target , dimension(nlons,nlats,nlev2*3) :: b2
+  real(rk8) , target , dimension(nlons,nlats,nlev2*2) :: d2
+  real(rk8) , pointer , dimension(:,:,:) :: b3
+  real(rk8) , pointer , dimension(:,:,:) :: d3
 
-  real(rk4) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(rk4) , pointer , dimension(:,:,:) :: up , vp
-  real(rk4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk4) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rk8) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rk8) , pointer , dimension(:,:,:) :: up , vp
+  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: geterahi , headerehi
 
@@ -70,10 +70,10 @@ module mod_erahi
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  character(256) :: finame
+  character(len=256) :: finame
   integer(ik4) :: i , j , k , nrec
   logical :: there
-  real(rk4) :: slonmax , slonmin , xlonmax , xlonmin
+  real(rk8) :: slonmax , slonmin , xlonmax , xlonmin
 !
   if ( idate == globidate1 ) then
     xlonmin = 400.

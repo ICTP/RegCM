@@ -32,64 +32,64 @@ module mod_block
 
   contains
 
-  subroutine mxmnll(iy,jx,xlon,xlat,iband)
-  implicit none
-!
-  integer(ik4) :: iy , jx , iband
-  real(rk4) , dimension(iy,jx) :: xlat , xlon
-  intent (in) iy , jx , xlat , xlon , iband
-  real(rk8) :: xtstlon1 , xtstlon2
-!
-!     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
-!
-  xminlat = dble(floor(minval(xlat)))
-  xmaxlat = dble(ceiling(maxval(xlat)))
+  subroutine mxmnll(jx,iy,xlon,xlat,iband)
+    implicit none
+    integer(ik4) , intent(in) :: iy , jx , iband
+    real(rk8) , dimension(jx,iy) , intent(in) :: xlat , xlon
 
-  if ( iband.eq.1 ) then
-    xminlon = -deg180
-    xmaxlon =  deg180
-    xtstlon1 = xminlon
-    xtstlon2 = xmaxlon
-  else if (abs(xminlat+deg90)<0.0001D0 .or. &
-           abs(xmaxlat-deg90)<0.001D0) then
-    xminlon = -deg180
-    xmaxlon =  deg180
-    xtstlon1 = xminlon
-    xtstlon2 = xmaxlon
-  else
-    xminlon = dble(floor(minval(xlon(:,1))))
-    xmaxlon = dble(ceiling(maxval(xlon(:,jx))))
-    xtstlon1 = dble(floor(maxval(xlon(:,1))))
-    xtstlon2 = dble(ceiling(minval(xlon(:,jx))))
-  end if
+    real(rk8) :: xtstlon1 , xtstlon2
+    real(rk8) , parameter :: coord_eps = 0.001D0
+    !
+    ! PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
+    !
+    xminlat = floor(minval(xlat))
+    xmaxlat = ceiling(maxval(xlat))
 
-  if (xminlon == xmaxlon) then
-    xminlon = -deg180
-    xmaxlon =  deg180
-    xtstlon1 = xminlon
-    xtstlon2 = xmaxlon
-  end if
+    if ( iband.eq.1 ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    else if ( abs(xminlat+deg90) < coord_eps .or. &
+              abs(xmaxlat-deg90) < coord_eps ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    else
+      xminlon  = floor(minval(xlon(1,:)))
+      xmaxlon  = ceiling(maxval(xlon(jx,:)))
+      xtstlon1 = floor(maxval(xlon(1,:)))
+      xtstlon2 = ceiling(minval(xlon(jx,:)))
+    end if
 
-  lonwrap = .false.
-  lcrosstime = .false.
-  if ((xmaxlon-xminlon) > (deg360-0.001)) then
-    lonwrap = .true.
-    write(stdout,*) 'Special case for longitude wrapping'
-  end if
-  if (abs(xminlon - xtstlon1) > deg180 .or.   &
-      abs(xmaxlon - xtstlon2) > deg180 .or.   &
-      xminlon > deg00 .and. xmaxlon < deg00) then
-    lcrosstime = .true.
-    if (xminlon < deg00 .and. xtstlon1 > deg00) xminlon = xtstlon1
-    if (xmaxlon > deg00 .and. xtstlon2 < deg00) xmaxlon = xtstlon2
-    write(stdout,*) 'Special case for timeline crossing'
-  end if
+    if ( dabs(xminlon-xmaxlon) < coord_eps ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    end if
 
-  write(stdout,*) 'Calculated large extrema:'
-  write(stdout,*) '         MINLAT = ', xminlat
-  write(stdout,*) '         MAXLAT = ', xmaxlat
-  write(stdout,*) '         MINLON = ', xminlon
-  write(stdout,*) '         MAXLON = ', xmaxlon
+    lonwrap = .false.
+    lcrosstime = .false.
+    if ( (xmaxlon-xminlon) > (deg360-coord_eps) ) then
+      lonwrap = .true.
+      write(stdout,*) 'Special case for longitude wrapping'
+    end if
+    if ( abs(xminlon - xtstlon1) > deg180 .or.   &
+         abs(xmaxlon - xtstlon2) > deg180 .or.   &
+         xminlon > deg00 .and. xmaxlon < deg00 ) then
+      lcrosstime = .true.
+      if ( xminlon < deg00 .and. xtstlon1 > deg00 ) xminlon = xtstlon1
+      if ( xmaxlon > deg00 .and. xtstlon2 < deg00 ) xmaxlon = xtstlon2
+      write(stdout,*) 'Special case for timeline crossing'
+    end if
+
+    write(stdout,*) 'Calculated large extrema:'
+    write(stdout,*) '         MINLAT = ', xminlat
+    write(stdout,*) '         MAXLAT = ', xmaxlat
+    write(stdout,*) '         MINLON = ', xminlon
+    write(stdout,*) '         MAXLON = ', xmaxlon
 
   end subroutine mxmnll
 

@@ -27,14 +27,21 @@ module mod_vertint
 !
   private
 
-  real(rk4) , parameter :: rgas2 = real(rgas/2.0D0)
+  real(rk8) , parameter :: rgas2 = rgas/d_two
   ! lrate is defined as a positive constant.
-  real(rk4) , parameter :: rglrog = real(rgas*lrate*regrav)
-  real(rk4) , parameter :: b1 = -real(egrav/lrate)
-  real(rk4) , parameter :: rbltop = real(bltop)
-  real(rk4) , parameter :: psccm = 100.0
+  real(rk8) , parameter :: rglrog = rgas*lrate*regrav
+  real(rk8) , parameter :: b1 = -egrav/lrate
+  real(rk8) , parameter :: psccm = 100.0D0
 !
-  integer(ik4) , parameter :: maxnlev = 100
+  interface intlin_o
+    module procedure intlin_o_double
+    module procedure intlin_o_single
+  end interface intlin_o
+
+  interface intlog_o
+    module procedure intlog_o_double
+    module procedure intlog_o_single
+  end interface intlog_o
 
   public :: intlin , intlin_o , intgtb , intlog , intlog_o
   public :: intpsn , intv0 , intv1 , intv2 , intv3
@@ -42,35 +49,82 @@ module mod_vertint
   contains
 
   subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
-  implicit none
+    implicit none
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) , dimension(im,jm,km) :: f , p3d
+    real(rk8) , dimension(im,jm,kp) :: fp
+    real(rk8) , dimension(kp) :: p
+    real(rk8) , dimension(im,jm) :: ps
+    intent (in) f , im , jm , km , kp , p , p3d , ps
+    intent (out) fp
 !
-  integer(ik4) :: im , jm , km , kp
-  real(rk4) , dimension(im,jm,km) :: f , p3d
-  real(rk4) , dimension(im,jm,kp) :: fp
-  real(rk4) , dimension(kp) :: p
-  real(rk4) , dimension(im,jm) :: ps
-  intent (in) f , im , jm , km , kp , p , p3d , ps
-  intent (out) fp
+    integer(ik4) :: i , j , k , k1 , kp1 , n
+    real(rk8) , dimension(km) :: sig
+    real(rk8) :: sigp , w1 , wp
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    do j = 1 , jm
+      do i = 1 , im
+        if ( ps(i,j) > -9995.0D0 ) then
+          do k = 1 , km
+            sig(k) = p3d(i,j,k)/ps(i,j)
+          end do
+          do n = 1 , kp
+            sigp = p(n)/ps(i,j)
+            k1 = 0
+            do k = 1 , km
+              if ( sigp > sig(k) ) k1 = k
+            end do
+            if ( sigp <= sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+            else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+              kp1 = k1 + 1
+              wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
+              w1 = 1. - wp
+              fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
+            else if ( sigp >= sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+            else
+            end if
+          end do
+        else
+          do n = 1 , kp
+            fp(i,j,n) = -9999.0D0
+          end do
+        end if
+      end do
+    end do
+  end subroutine intlin
 !
-  integer(ik4) :: i , j , k , k1 , kp1 , n
-  real(rk4) , dimension(maxnlev) :: sig
-  real(rk4) :: sigp , w1 , wp
+!-----------------------------------------------------------------------
 !
-!     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+  subroutine intlin_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
+    implicit none
 !
-  if ( km > maxnlev ) then
-    call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
-  end if
-  do j = 1 , jm
-    do i = 1 , im
-      if ( ps(i,j) > -9995.0 ) then
-        do k = 1 , km
-          sig(k) = p3d(i,j,k)/ps(i,j)
-        end do
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) :: ptop
+    real(rk8) , dimension(im,jm,km) :: f
+    real(rk8) , dimension(im,jm,kp) :: fp
+    real(rk8) , dimension(kp) :: p
+    real(rk8) , dimension(im,jm) :: pstar
+    real(rk8) , dimension(km) :: sig
+    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
+    intent (out) fp
+!
+    integer(ik4) :: i , j , k , k1 , kp1 , n
+    real(rk8) :: sigp , w1 , wp
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    do j = 1 , jm
+      do i = 1 , im
         do n = 1 , kp
-          sigp = p(n)/ps(i,j)
+          sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
           k1 = 0
           do k = 1 , km
             if ( sigp > sig(k) ) k1 = k
@@ -87,162 +141,258 @@ module mod_vertint
           else
           end if
         end do
-      else
-        do n = 1 , kp
-          fp(i,j,n) = -9999.0
-        end do
-      end if
-    end do
-  end do
-  end subroutine intlin
-!
-!-----------------------------------------------------------------------
-!
-  subroutine intlin_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
-  implicit none
-!
-  integer(ik4) :: im , jm , km , kp
-  real(rk8) :: ptop
-  real(rk4) , dimension(im,jm,km) :: f
-  real(rk4) , dimension(im,jm,kp) :: fp
-  real(rk4) , dimension(kp) :: p
-  real(rk4) , dimension(im,jm) :: pstar
-  real(rk4) , dimension(km) :: sig
-  intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-  intent (out) fp
-!
-  integer(ik4) :: i , j , k , k1 , kp1 , n
-  real(rk4) :: sigp , w1 , wp
-!
-!     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!
-  do j = 1 , jm
-    do i = 1 , im
-      do n = 1 , kp
-        sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
-        k1 = 0
-        do k = 1 , km
-          if ( sigp > sig(k) ) k1 = k
-        end do
-        if ( sigp <= sig(1) ) then
-          fp(i,j,n) = f(i,j,1)
-        else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-          kp1 = k1 + 1
-          wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
-          w1 = 1. - wp
-          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-        else if ( sigp >= sig(km) ) then
-          fp(i,j,n) = f(i,j,km)
-        else
-        end if
       end do
     end do
-  end do
-  end subroutine intlin_o
+  end subroutine intlin_o_double
+
+  subroutine intlin_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
+    implicit none
+!
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) :: ptop
+    real(rk4) , dimension(im,jm,km) :: f
+    real(rk4) , dimension(im,jm,kp) :: fp
+    real(rk4) , dimension(kp) :: p
+    real(rk4) , dimension(im,jm) :: pstar
+    real(rk4) , dimension(km) :: sig
+    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
+    intent (out) fp
+!
+    integer(ik4) :: i , j , k , k1 , kp1 , n
+    real(rk4) :: sigp , w1 , wp , pt
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    pt = real(ptop)
+    do j = 1 , jm
+      do i = 1 , im
+        do n = 1 , kp
+          sigp = (p(n)-pt)/(pstar(i,j)-pt)
+          k1 = 0
+          do k = 1 , km
+            if ( sigp > sig(k) ) k1 = k
+          end do
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+            kp1 = k1 + 1
+            wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
+            w1 = 1. - wp
+            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
+          else if ( sigp >= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else
+          end if
+        end do
+      end do
+    end do
+  end subroutine intlin_o_single
 !
 !-----------------------------------------------------------------------
 !
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
-  implicit none
+    implicit none
 !
-  integer(ik4) :: ni , nj , nlev1
-  real(rk4) , dimension(ni,nj) :: pa , tlayer , za , zrcm
-  real(rk4) , dimension(nlev1) :: sccm
-  real(rk4) , dimension(ni,nj,nlev1) :: tp , zp
-  intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
-  intent (out) pa , za
-  intent (inout) tlayer
+    integer(ik4) :: ni , nj , nlev1
+    real(rk8) , dimension(ni,nj) :: pa , tlayer , za , zrcm
+    real(rk8) , dimension(nlev1) :: sccm
+    real(rk8) , dimension(ni,nj,nlev1) :: tp , zp
+    intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
+    intent (out) pa , za
+    intent (inout) tlayer
 !
-  integer(ik4) :: i , j , k , kb , kt
-!
-!     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
-!     TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
-!     THE TOPOGRAPHY AND THE PRESSURE LEVEL ABOVE IS CALULATED
-!     BY LINEARLY INTERPOLATING WITH HEIGHT THE TEMPS ON
-!     PRESSURE LEVELS.
-!     INPUT:    TP        TEMPS ON ECMWF PRESSURE LEVELS
-!     ZP        HEIGHTS OF ECMWF PRESSURE LEVELS
-!     ZRCM      RCM TOPOGRAPHY
-!     SCCM      ECMWF PRESSURE LEVELS (DIVIDED BY 1000.)
-!     OUTPUT:   TLAYER    MEAN LAYER TEMP ABOVE RCM SURFACE
-!     PA        PRESSURE AT TOP OF LAYER
-!     ZA        HEIGHT AT PRESSURE PA
-!
-  do i = 1 , ni
-    do j = 1 , nj
- 
-      kt = 0
-      do k = 1 , nlev1 - 1
-        if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
-             zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+    integer(ik4) :: i , j , k , kb , kt
+    !
+    !     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
+    !     TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
+    !     THE TOPOGRAPHY AND THE PRESSURE LEVEL ABOVE IS CALULATED
+    !     BY LINEARLY INTERPOLATING WITH HEIGHT THE TEMPS ON
+    !     PRESSURE LEVELS.
+    !     INPUT:    TP        TEMPS ON ECMWF PRESSURE LEVELS
+    !     ZP        HEIGHTS OF ECMWF PRESSURE LEVELS
+    !     ZRCM      RCM TOPOGRAPHY
+    !     SCCM      ECMWF PRESSURE LEVELS (DIVIDED BY 1000.)
+    !     OUTPUT:   TLAYER    MEAN LAYER TEMP ABOVE RCM SURFACE
+    !     PA        PRESSURE AT TOP OF LAYER
+    !     ZA        HEIGHT AT PRESSURE PA
+    !
+    do i = 1 , ni
+      do j = 1 , nj
+        kt = 0
+        do k = 1 , nlev1 - 1
+          if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
+               zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+        end do
+        kb = kt + 1
+        if ( kt /= 0 ) then
+          tlayer(i,j) = (tp(i,j,nlev1+1-kt)*(zrcm(i,j)-          &
+                         zp(i,j,nlev1+1-kb))+tp(i,j,nlev1+1-kb)  &
+                        *(zp(i,j,nlev1+1-kt)-zrcm(i,j)))         &
+                        /(zp(i,j,nlev1+1-kt)-zp(i,j,nlev1+1-kb))
+          tlayer(i,j) = (tp(i,j,nlev1+1-kt)+tlayer(i,j))/2.
+          za(i,j) = zp(i,j,nlev1+1-kt)
+          pa(i,j) = d_100*sccm(kt)
+        else
+          tlayer(i,j) = tp(i,j,1)
+          za(i,j) = zp(i,j,1)
+          pa(i,j) = d_100
+        end if
       end do
-      kb = kt + 1
- 
-      if ( kt /= 0 ) then
-        tlayer(i,j) = (tp(i,j,nlev1+1-kt)*(zrcm(i,j)-          &
-                       zp(i,j,nlev1+1-kb))+tp(i,j,nlev1+1-kb)  &
-                      *(zp(i,j,nlev1+1-kt)-zrcm(i,j)))         &
-                      /(zp(i,j,nlev1+1-kt)-zp(i,j,nlev1+1-kb))
-        tlayer(i,j) = (tp(i,j,nlev1+1-kt)+tlayer(i,j))/2.
-        za(i,j) = zp(i,j,nlev1+1-kt)
-        pa(i,j) = 100.*sccm(kt)
-      else
-        tlayer(i,j) = tp(i,j,1)
-        za(i,j) = zp(i,j,1)
-        pa(i,j) = 100.
-      end if
- 
     end do
-  end do
- 
-!     PRINT *, 'ZRCM, ZP(6)   = ', ZRCM(5,5), ZP(5,5,NLEV1+1-6)
-!     PRINT *, '      TP(6)   = ',            TP(5,5,NLEV1+1-6)
-!     PRINT *, 'TLAYER, ZA, PA = ', TLAYER(5,5), ZA(5,5), PA(5,5)
- 
   end subroutine intgtb
 !
 !-----------------------------------------------------------------------
 !
   subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
-  implicit none
+    implicit none
 !
-  integer(ik4) :: im , jm , km , kp
-  real(rk4) , dimension(im,jm,km) :: f , p3d
-  real(rk4) , dimension(im,jm,kp) :: fp
-  real(rk4) , dimension(kp) :: p
-  real(rk4) , dimension(im,jm) :: ps
-  intent (in) f , im , jm , km , kp , p , p3d , ps
-  intent (out) fp
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) , dimension(im,jm,km) :: f , p3d
+    real(rk8) , dimension(im,jm,kp) :: fp
+    real(rk8) , dimension(kp) :: p
+    real(rk8) , dimension(im,jm) :: ps
+    intent (in) f , im , jm , km , kp , p , p3d , ps
+    intent (out) fp
 !
-  real(rk4) :: sigp , w1 , wp
-  integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
-  real(rk4) , dimension(maxnlev) :: sig
+    real(rk8) :: sigp , w1 , wp
+    integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+    real(rk8) , dimension(km) :: sig
+    !
+    ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+    ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+    ! THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+    ! CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
+    ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+    ! TWO EXTREME TEMPERATURES IN THE LAYER.
+    !
+    do j = 1 , jm
+      do i = 1 , im
+        if ( ps(i,j) > -9995.0D0 ) then
+          kbc = 1
+          do k = 1 , km
+            sig(k) = p3d(i,j,k)/ps(i,j)
+            if ( sig(k) < bltop ) kbc = k
+          end do
+          do n = 1 , kp
+            sigp = p(n)/ps(i,j)
+            k1 = 0
+            do k = 1 , km
+              if ( sigp > sig(k) ) k1 = k
+            end do
+            if ( sigp <= sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+            else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+              kp1 = k1 + 1
+              wp = dlog(sigp/sig(k1))/dlog(sig(kp1)/sig(k1))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
+            else if ( (sigp >= sig(km)) .and. (sigp <= d_one) ) then
+              fp(i,j,n) = f(i,j,km)
+            else if ( sigp > d_one ) then
+              fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
+            end if
+          end do
+        else
+          do n = 1 , kp
+            fp(i,j,n) = -9999.0D0
+          end do
+        end if
+      end do
+    end do
+  end subroutine intlog
 !
-!     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATURES IN THE LAYER.
- 
+!-----------------------------------------------------------------------
 !
-!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG = BLTOP)
-  if ( km > maxnlev ) then
-    call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
-  end if
-  do j = 1 , jm
-    do i = 1 , im
-      if ( ps(i,j) > -9995.0 ) then
-        kbc = 1
-        do k = 1 , km
-          sig(k) = p3d(i,j,k)/ps(i,j)
-          if ( sig(k) < rbltop ) kbc = k
-        end do
+  subroutine intlog_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
+    implicit none
+!
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) :: ptop
+    real(rk8) , dimension(im,jm,km) :: f
+    real(rk8) , dimension(im,jm,kp) :: fp
+    real(rk8) , dimension(kp) :: p
+    real(rk8) , dimension(im,jm) :: pstar
+    real(rk8) , dimension(km) :: sig
+    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
+    intent (out) fp
+!
+    real(rk8) :: sigp , w1 , wp
+    integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+    !
+    ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+    ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+    ! THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+    ! CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
+    ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+    ! TWO EXTREME TEMPERATURES IN THE LAYER.
+    !
+    kbc = 1
+    do k = 1 , km
+      if ( sig(k) < bltop ) kbc = k
+    end do
+    do j = 1 , jm
+      do i = 1 , im
         do n = 1 , kp
-          sigp = p(n)/ps(i,j)
+          sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
+          k1 = 0
+          do k = 1 , km
+            if ( sigp > sig(k) ) k1 = k
+          end do
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+            kp1 = k1 + 1
+            wp = dlog(sigp/sig(k1))/dlog(sig(kp1)/sig(k1))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
+          else if ( (sigp >= sig(km)) .and. (sigp <= d_one) ) then
+            fp(i,j,n) = f(i,j,km)
+          else if ( sigp > d_one ) then
+            fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
+          else
+          end if
+        end do
+      end do
+    end do
+  end subroutine intlog_o_double
+
+  subroutine intlog_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
+    implicit none
+!
+    integer(ik4) :: im , jm , km , kp
+    real(rk8) :: ptop
+    real(rk4) , dimension(im,jm,km) :: f
+    real(rk4) , dimension(im,jm,kp) :: fp
+    real(rk4) , dimension(kp) :: p
+    real(rk4) , dimension(im,jm) :: pstar
+    real(rk4) , dimension(km) :: sig
+    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
+    intent (out) fp
+!
+    real(rk4) :: sigp , w1 , wp , pt
+    integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+    !
+    ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+    ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+    ! THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+    ! CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
+    ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+    ! TWO EXTREME TEMPERATURES IN THE LAYER.
+    !
+    pt = real(ptop)
+    kbc = 1
+    do k = 1 , km
+      if ( sig(k) < bltop ) kbc = k
+    end do
+    do j = 1 , jm
+      do i = 1 , im
+        do n = 1 , kp
+          sigp = (p(n)-pt)/(pstar(i,j)-pt)
           k1 = 0
           do k = 1 , km
             if ( sigp > sig(k) ) k1 = k
@@ -252,112 +402,42 @@ module mod_vertint
           else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
             kp1 = k1 + 1
             wp = log(sigp/sig(k1))/log(sig(kp1)/sig(k1))
-            w1 = 1. - wp
+            w1 = 1.0 - wp
             fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-          else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
+          else if ( (sigp >= sig(km)) .and. (sigp <= 1.0) ) then
             fp(i,j,n) = f(i,j,km)
-          else if ( sigp > 1. ) then
-            fp(i,j,n) = f(i,j,kbc)*exp(rglrog*log(sigp/sig(kbc)))
+          else if ( sigp > 1.0 ) then
+            fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
           else
           end if
         end do
-      else
-        do n = 1 , kp
-          fp(i,j,n) = -9999.0
-        end do
-      end if
-    end do
-  end do
- 
-  end subroutine intlog
-!
-!-----------------------------------------------------------------------
-!
-  subroutine intlog_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
-  implicit none
-!
-  integer(ik4) :: im , jm , km , kp
-  real(rk8) :: ptop
-  real(rk4) , dimension(im,jm,km) :: f
-  real(rk4) , dimension(im,jm,kp) :: fp
-  real(rk4) , dimension(kp) :: p
-  real(rk4) , dimension(im,jm) :: pstar
-  real(rk4) , dimension(km) :: sig
-  intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-  intent (out) fp
-!
-  real(rk4) :: sigp , w1 , wp
-  integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
-!
-!     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!     THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!     WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!     CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
-!     THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!     TWO EXTREME TEMPERATURES IN THE LAYER.
- 
-!
-!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG = BLTOP)
-  kbc = 1
-  do k = 1 , km
-    if ( sig(k) < rbltop ) kbc = k
-  end do
-  do j = 1 , jm
-    do i = 1 , im
-      do n = 1 , kp
-        sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
-        k1 = 0
-        do k = 1 , km
-          if ( sigp > sig(k) ) k1 = k
-        end do
-        if ( sigp <= sig(1) ) then
-          fp(i,j,n) = f(i,j,1)
-        else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-          kp1 = k1 + 1
-          wp = log(sigp/sig(k1))/log(sig(kp1)/sig(k1))
-          w1 = 1. - wp
-          fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-        else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
-          fp(i,j,n) = f(i,j,km)
-        else if ( sigp > 1. ) then
-          fp(i,j,n) = f(i,j,kbc)*exp(rglrog*log(sigp/sig(kbc)))
-        else
-        end if
       end do
     end do
-  end do
- 
-  end subroutine intlog_o
+  end subroutine intlog_o_single
 !
 !-----------------------------------------------------------------------
 !
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
-  implicit none
+    implicit none
+    integer(ik4) :: ni , nj
+    real(rk8) :: pt
+    real(rk8) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
+    intent (in) ni , nj , pa , pt , tlayer , za , zrcm
+    intent (out) psrcm
 !
-  integer(ik4) :: ni , nj
-  real(rk8) :: pt
-  real(rk4) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
-  intent (in) ni , nj , pa , pt , tlayer , za , zrcm
-  intent (out) psrcm
-!
-  real(rk4) :: tb
-  integer(ik4) :: i , j
-!
-!     EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
-!     USE TLAYER CALCULATED IN INTGTB.
-!     PSRCM = SURFACE PRESSURE - PTOP
-!
-  do i = 1 , ni
-    do j = 1 , nj
-      tb = tlayer(i,j)
-      psrcm(i,j) = pa(i,j)*exp(-real(govr)*(zrcm(i,j)-za(i,j))/tb)-real(pt)
+    real(rk8) :: tb
+    integer(ik4) :: i , j
+    !
+    ! EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
+    ! USE TLAYER CALCULATED IN INTGTB.
+    ! PSRCM = SURFACE PRESSURE - PTOP
+    !
+    do i = 1 , ni
+      do j = 1 , nj
+        tb = tlayer(i,j)
+        psrcm(i,j) = pa(i,j)*dexp(-govr*(zrcm(i,j)-za(i,j))/tb)-pt
+      end do
     end do
-  end do
- 
-!     PRINT *, 'ZRCM, ZA, PA, PT = ', ZRCM(5,5), ZA(5,5), PA(5,5), PT
-!     PRINT *, 'TLAYER(5,5), PSRCM(5,5) = ', TLAYER(5,5), PSRCM(5,5)
- 
   end subroutine intpsn
 !
 !-----------------------------------------------------------------------
@@ -367,15 +447,15 @@ module mod_vertint
 !
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
-    real(rk4) , dimension(ni,nj,kccm) :: fccm
-    real(rk4) , dimension(ni,nj,krcm) :: frcm
-    real(rk4) , dimension(ni,nj) :: psrcm
-    real(rk4) , dimension(kccm) :: sccm
-    real(rk4) , dimension(krcm) :: srcm
+    real(rk8) , dimension(ni,nj,kccm) :: fccm
+    real(rk8) , dimension(ni,nj,krcm) :: frcm
+    real(rk8) , dimension(ni,nj) :: psrcm
+    real(rk8) , dimension(kccm) :: sccm
+    real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(rk4) :: dp1 , pt1 , rc , rc1 , sc
+    real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
 
 !
@@ -401,7 +481,7 @@ module mod_vertint
           else if ( k1 /= kccm ) then
             kp1 = k1+1
             rc = (sc-sccm(k1))/(sccm(kp1)-sccm(k1))
-            rc1 = 1.0-rc
+            rc1 = d_one-rc
             frcm(i,j,n) = rc1*fccm(i,j,k1)+rc*fccm(i,j,kp1)
           else
             frcm(i,j,n) = fccm(i,j,kccm)
@@ -416,15 +496,15 @@ module mod_vertint
 !
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
-    real(rk4) , dimension(ni,nj,kccm) :: fccm
-    real(rk4) , dimension(ni,nj,krcm) :: frcm
-    real(rk4) , dimension(ni,nj) :: psrcm
-    real(rk4) , dimension(kccm) :: sccm
-    real(rk4) , dimension(krcm) :: srcm
+    real(rk8) , dimension(ni,nj,kccm) :: fccm
+    real(rk8) , dimension(ni,nj,krcm) :: frcm
+    real(rk8) , dimension(ni,nj) :: psrcm
+    real(rk8) , dimension(kccm) :: sccm
+    real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(rk4) :: dp1 , pt1 , rc , rc1 , sc
+    real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
 
 !
@@ -449,7 +529,7 @@ module mod_vertint
           else if ( k1 /= kccm ) then
             kp1 = k1 + 1
             rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
-            rc1 = 1.0 - rc
+            rc1 = d_one - rc
             frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
           else
             frcm(i,j,n) = fccm(i,j,1)
@@ -466,15 +546,15 @@ module mod_vertint
 !
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
-    real(rk4) , dimension(ni,nj,kccm) :: fccm
-    real(rk4) , dimension(ni,nj,krcm) :: frcm
-    real(rk4) , dimension(ni,nj) :: psrcm
-    real(rk4) , dimension(kccm) :: sccm
-    real(rk4) , dimension(krcm) :: srcm
+    real(rk8) , dimension(ni,nj,kccm) :: fccm
+    real(rk8) , dimension(ni,nj,krcm) :: frcm
+    real(rk8) , dimension(ni,nj) :: psrcm
+    real(rk8) , dimension(kccm) :: sccm
+    real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
 !
-    real(rk4) :: a1 , dp1 , pt1 , rc , rc1 , sc
+    real(rk8) :: a1 , dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
 !
 !   INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
@@ -500,7 +580,7 @@ module mod_vertint
           else if ( k1 /= kccm ) then
             kp1 = k1 + 1
             rc = log(sccm(k1)/sc)/log(sccm(k1)/sccm(kp1))
-            rc1 = 1.0 - rc
+            rc1 = d_one - rc
             frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
           else
             a1 = rgas2*log(sc/sccm(kccm))
@@ -518,13 +598,13 @@ module mod_vertint
 !
     integer(ik4) :: kccm , ni , nj
     real(rk8) :: ptop
-    real(rk4) , dimension(ni,nj,kccm) :: fccm
-    real(rk4) , dimension(ni,nj) :: fsccm , psrccm
-    real(rk4) , dimension(kccm) :: sccm
+    real(rk8) , dimension(ni,nj,kccm) :: fccm
+    real(rk8) , dimension(ni,nj) :: fsccm , psrccm
+    real(rk8) , dimension(kccm) :: sccm
     intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
     intent (out) fsccm
 !
-    real(rk4) :: a1 , rc , rc1 , sc
+    real(rk8) :: a1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
 !
 !   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
@@ -554,7 +634,7 @@ module mod_vertint
         else
           kp1 = k1 + 1
           rc = log(sccm(k1)/sc)/log(sccm(k1)/sccm(kp1))
-          rc1 = 1.0 - rc
+          rc1 = d_one - rc
           fsccm(i,j) = rc1*fccm(i,j,kccm+1-k1)+rc*fccm(i,j,kccm+1-kp1)
         end if
       end do

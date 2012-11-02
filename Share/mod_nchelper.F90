@@ -66,8 +66,6 @@ module mod_nchelper
   public :: read_var1d_static
   public :: read_var2d_static
 
-  logical , public , parameter :: do_transpose = .true.
-  logical , public , parameter :: no_transpose = .false.
   integer(ik4) :: incstat
 
   contains
@@ -90,7 +88,7 @@ module mod_nchelper
     character(len=*) , intent(in) :: prgname
     logical :: lsub
 
-    character(256) :: history
+    character(len=256) :: history
     real(rk4) , dimension(2) :: trlat
     integer(ik4) , dimension(8) :: tvals
 
@@ -611,19 +609,14 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error variable iy write')
   end subroutine write_horizontal_coord
 
-  subroutine write_var2d_static(ncid,vnam,values,ipnt,ivar,ltranspose)
+  subroutine write_var2d_static(ncid,vnam,values,ipnt,ivar)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) :: vnam
     real(rk4) , dimension(:,:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
-    logical , intent(in) :: ltranspose
-    if ( ltranspose ) then
-      incstat = nf90_put_var(ncid, ivar(ipnt), transpose(values))
-    else
-      incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    end if
+    incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
@@ -633,38 +626,22 @@ module mod_nchelper
     end if
   end subroutine write_var2d_static
 
-  subroutine write_var3d_static(ncid,vnam,values,ipnt,ivar,ltranspose)
+  subroutine write_var3d_static(ncid,vnam,values,ipnt,ivar)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
     real(rk4) , dimension(:,:,:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
-    logical , intent(in) :: ltranspose
-    integer(ik4) :: nk , k
     integer(ik4) , dimension(3) :: istart
     integer(ik4) , dimension(3) :: icount
     istart(1) = 1
     istart(2) = 1
-    if (ltranspose) then
-      icount(1) = ubound(values,2)
-      icount(2) = ubound(values,1)
-      icount(3) = 1
-      nk = ubound(values,3)
-      do k = 1 , nk
-        istart(3) = k
-        incstat = nf90_put_var(ncid,ivar(ipnt),  &
-                               transpose(values(:,:,k)),istart,icount)
-        call checkncerr(incstat,__FILE__,__LINE__, &
-                        'Error variable '//vnam//' write')
-      end do
-    else
-      icount(1) = ubound(values,1)
-      icount(2) = ubound(values,2)
-      incstat = nf90_put_var(ncid,ivar(ipnt),values)
-      call checkncerr(incstat,__FILE__,__LINE__, &
-                      'Error variable '//vnam//' write')
-    end if
+    icount(1) = ubound(values,1)
+    icount(2) = ubound(values,2)
+    incstat = nf90_put_var(ncid,ivar(ipnt),values)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
       call checkncerr(incstat,__FILE__,__LINE__, &
