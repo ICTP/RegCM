@@ -42,9 +42,9 @@ module mod_rad_o3blk
   real(rk8) , dimension(32) :: ppwrkh
   real(rk8) , pointer , dimension(:) :: prlevh
 
-  real(rk4) , pointer , dimension(:,:) :: alon , alat , aps , laps
-  real(rk4) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rk4) , pointer , dimension(:) :: asig
+  real(rk8) , pointer , dimension(:,:) :: alon , alat , aps , laps
+  real(rk8) , pointer , dimension(:,:,:) :: ozone1 , ozone2
+  real(rk8) , pointer , dimension(:) :: asig
   real(rk8) , pointer , dimension(:,:,:) :: ozone
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
@@ -181,11 +181,11 @@ module mod_rad_o3blk
     character(len=64) :: infile
     logical , save :: ifirst
     logical :: dointerp
-    real(rk4) , dimension(72,37,24) :: xozone1 , xozone2
-    real(rk4) , dimension(njcross,nicross,24) :: yozone
-    real(rk4) , save , dimension(37) :: lat
-    real(rk4) , save , dimension(72) :: lon
-    real(rk4) , save , dimension(24) :: plev
+    real(rk8) , dimension(72,37,24) :: xozone1 , xozone2
+    real(rk8) , dimension(njcross,nicross,24) :: yozone
+    real(rk8) , save , dimension(37) :: lat
+    real(rk8) , save , dimension(72) :: lon
+    real(rk8) , save , dimension(24) :: plev
     real(rk8) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
@@ -314,7 +314,7 @@ module mod_rad_o3blk
     implicit none
     character(len=*) , intent(in) :: o3file
     integer(ik4) , intent(out) :: ncid
-    real(rk4) , intent(out) , dimension(:) :: lat , lon , plev
+    real(rk8) , intent(out) , dimension(:) :: lat , lon , plev
     integer(ik4) :: iret
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
@@ -331,7 +331,7 @@ module mod_rad_o3blk
     implicit none
     integer(ik4) , intent(in) :: ncid , iyear , imon
     character(len=*) , intent(in) :: vname
-    real(rk4) , intent(out) , dimension(:,:,:) :: val
+    real(rk8) , intent(out) , dimension(:,:,:) :: val
     real(rk8) , save :: xscale , xfact
     integer(ik4) , save :: ilastncid , icvar
     integer(ik4) , save , dimension(4) :: istart , icount
@@ -367,14 +367,14 @@ module mod_rad_o3blk
       write (stderr, *) nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
-    val = real(val*xscale+xfact)
+    val = dble(val*xscale+xfact)
   end subroutine readvar3d_pack
 
   subroutine readvar1d(ncid,vname,val)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk4) , intent(out) , dimension(:) :: val
+    real(rk8) , intent(out) , dimension(:) :: val
     integer(ik4) :: icvar , iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then

@@ -47,7 +47,8 @@ module mod_rrtmg_driver
   real(rk8) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
          clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,  &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
-         asdif , aldir , aldif , czen , dlat , xptrop
+         asdif , aldir , aldif , czen , dlat , xptrop , totcf ,       &
+         totcl , totci
 
   real(rk8) , pointer , dimension(:,:) :: qrs , qrl , clwp_int ,     &
          cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr , &
@@ -144,6 +145,9 @@ module mod_rrtmg_driver
     call getmem1d(dlat,1,npr,'rrtmg:dlat')
     call getmem1d(xptrop,1,npr,'rrtmg:xptrop')
     call getmem1d(ioro,1,npr,'rrtmg:ioro')
+    call getmem1d(totcf,1,npr,'rrtmg:totcf')
+    call getmem1d(totcl,1,npr,'rrtmg:totlf')
+    call getmem1d(totci,1,npr,'rrtmg:totif')
 
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
@@ -309,10 +313,10 @@ module mod_rrtmg_driver
     ! LW call :
 
     permuteseed = 150
-    call  mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play, &
-                          cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
-                          ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
-                          taucmcl_lw)
+    call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play, &
+                         cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
+                         ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
+                         taucmcl_lw)
     tauaer_lw = d_zero
     !  provisoire similar ti default std 
     do k = 1,nbndlw
@@ -378,10 +382,27 @@ module mod_rrtmg_driver
     empty1 = dmissval
     empty2 = dmissval
 
+    ! Calculate cloud parameters
+    totcf(:) = d_one
+    do k = 1 , kz
+      totcf(:) = totcf*(d_one-cld_int(:,k))
+    end do
+    totcf(:) = d_one - totcf(:)
+    totcf(:) = d_half * ( totcf(:) + maxval(cld_int(:,:),2) )
+    where ( totcf > cftotmax )
+      totcf = cftotmax
+    end where
+    where ( totcf < d_zero )
+      totcf = d_zero
+    end where
+
+    totci(:) = sum(clwp_int*fice,2)*d_r1000
+    totcl(:) = sum(clwp_int,2)*d_r1000
+
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
                 solld,empty1,empty1,empty1,empty1,empty1,empty1,  &
-                empty1,empty1,empty1,empty2,cld_int,clwp_int,abv, &
+                totcf,totcl,totci,empty2,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
                 tauasc3d,gtota3d)
 

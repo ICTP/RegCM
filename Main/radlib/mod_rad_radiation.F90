@@ -36,9 +36,6 @@ module mod_rad_radiation
 
   private
 
-! Maximum total cloud fraction for radiation model
-  real(rk8) , public :: cftotmax
-
   public :: allocate_mod_rad_radiation , radini , radctl
 
   integer(ik4) :: npoints

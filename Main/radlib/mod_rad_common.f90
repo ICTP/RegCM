@@ -44,6 +44,9 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:) :: tground    ! sfs%tgbb
   real(rk8) , pointer , dimension(:,:) :: xlat       ! mddom%xlat
 
+! Maximum total cloud fraction for radiation model
+  real(rk8) , public :: cftotmax
+
   ! vegetation absorbed radiation (full solar spectrum)
   real(rk8) , pointer , dimension(:,:) :: abveg   ! sabveg
   ! Incident solar flux
