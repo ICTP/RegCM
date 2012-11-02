@@ -23,7 +23,6 @@ module mod_write
   use mod_realkinds
   use mod_dynparam
   use mod_ncstream
-  use netcdf
 
   private
 

@@ -28,7 +28,6 @@ module mod_sst_grid
   use mod_nchelper
   use mod_ncstream
   use mod_domain
-  use netcdf
 
   private
 
@@ -64,9 +63,7 @@ module mod_sst_grid
     integer(ik4) :: istatus , incin
     call openfile_withname(terfile,incin)
     call read_domain(incin,sigma,xlat,xlon,ht=topo,mask=mask)
-    istatus = nf90_close(incin)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error closing file '//trim(terfile))
+    call closefile(incin)
   end subroutine read_domain_info
 
   subroutine setup_outvars

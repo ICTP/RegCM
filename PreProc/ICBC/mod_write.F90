@@ -26,7 +26,6 @@ module mod_write
   use mod_memutil
   use mod_message
   use mod_ncstream
-  use netcdf
 
   private
 

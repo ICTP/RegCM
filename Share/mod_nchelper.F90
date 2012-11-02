@@ -33,6 +33,7 @@ module mod_nchelper
 
   public :: openfile_withname
   public :: createfile_withname
+  public :: closefile
   public :: add_common_global_params
   public :: define_basic_dimensions
   public :: add_dimension
@@ -782,6 +783,14 @@ module mod_nchelper
       call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
     end if
   end subroutine check_dims
+
+  subroutine closefile(ncid)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) :: istatus
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error closing file')
+  end subroutine closefile
 
   subroutine checkncerr(ival,filename,line,arg)
     implicit none

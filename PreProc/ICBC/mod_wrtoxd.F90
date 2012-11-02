@@ -19,7 +19,6 @@
 
 module mod_wrtoxd
 
-  use netcdf
   use mod_dynparam
   use mod_date
   use mod_grid

@@ -26,7 +26,6 @@ module mod_grid
   use mod_message
   use mod_nchelper
   use mod_domain
-  use netcdf
 
   private
 
@@ -74,9 +73,7 @@ module mod_grid
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm,mask,landuse)
-    istatus = nf90_close(incin)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error closing file '//trim(fname))
+    call closefile(incin)
     do k = 1 , kz
       sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
       dsigma(k) = sigmaf(k+1) - sigmaf(k)
