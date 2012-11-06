@@ -87,6 +87,7 @@ program chem_icbc
     case ( 'DCCB' )
       dochem = .true.
       doaero = .true.
+      dooxcl = .true.
     case default
       write (stderr,*) 'Unknown chemsimtype'
       write (stderr,*) 'Assuming nothing to do for this experiment'

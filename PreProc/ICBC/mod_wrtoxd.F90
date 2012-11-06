@@ -152,6 +152,7 @@ module mod_wrtoxd
         naesp = 8
         aespec => aedccb
         doaero = .true.
+        dooxcl = .true.
         dochem = .true.
       case default
         call die('init_outoxd','Unknown chemsimtype')
@@ -196,6 +197,8 @@ module mod_wrtoxd
     v2dvar_base(2)%vunit = 'degrees_north'
     v2dvar_base(2)%long_name = 'Latitude on Cross Points'
     v2dvar_base(2)%standard_name = 'latitude'
+    v2dvar_base(1)%rval => xlon
+    v2dvar_base(2)%rval => xlat
   end subroutine init_outoxd
 
   subroutine close_outoxd
@@ -236,8 +239,6 @@ module mod_wrtoxd
       call outstream_addvar(ncoutch,v3dvar_ch(ivar))
     end do
     call outstream_enable(ncoutch,sigma2)
-    v2dvar_base(1)%rval => xlon
-    v2dvar_base(1)%rval => xlat
     call outstream_writevar(ncoutch,v2dvar_base(1))
     call outstream_writevar(ncoutch,v2dvar_base(2))
   end subroutine newfile_ch_icbc
@@ -250,7 +251,7 @@ module mod_wrtoxd
 
     call outstream_dispose(ncoutox)
     write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, trim(domname), &
-      '_CHBC.', toint10(idate1), '.nc'
+      '_OXBC.', toint10(idate1), '.nc'
     opar%fname = ofname
     opar%pname = 'chem_icbc'
     opar%zero_date = idate1
@@ -268,12 +269,10 @@ module mod_wrtoxd
         'mass_fraction_of_'//trim(oxspec(ivar))//'_in_air'
       v3dvar_ox(ivar)%lrecords = .true.
       v3dvar_ox(ivar)%is_slice = .true.
-      v3dvar_ox(ivar)%rval_slice => chv4
+      v3dvar_ox(ivar)%rval_slice => oxv4
       call outstream_addvar(ncoutox,v3dvar_ox(ivar))
     end do
     call outstream_enable(ncoutox,sigma2)
-    v2dvar_base(1)%rval => xlon
-    v2dvar_base(1)%rval => xlat
     call outstream_writevar(ncoutox,v2dvar_base(1))
     call outstream_writevar(ncoutox,v2dvar_base(2))
   end subroutine newfile_ox_icbc
@@ -287,7 +286,7 @@ module mod_wrtoxd
 
     call outstream_dispose(ncoutae)
     write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, trim(domname), &
-      '_CHBC.', toint10(idate1), '.nc'
+      '_AEBC.', toint10(idate1), '.nc'
     opar%fname = ofname
     opar%pname = 'chem_icbc'
     opar%zero_date = idate1
@@ -325,8 +324,6 @@ module mod_wrtoxd
       call outstream_addvar(ncoutae,v3dvar_ae(ivar))
     end do
     call outstream_enable(ncoutae,sigma2)
-    v2dvar_base(1)%rval => xlon
-    v2dvar_base(1)%rval => xlat
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
   end subroutine newfile_ae_icbc

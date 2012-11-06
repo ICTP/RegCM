@@ -280,16 +280,19 @@ module mod_ncstream_types
     integer(ik4) :: i1 = -1 , i2 = -1
     integer(ik4) :: j1 = -1 , j2 = -1
     integer(ik4) :: k1 = -1 , k2 = -1
+    logical :: is_level = .false.
   end type ncvariable_3d
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
     logical :: is_slice = .false.
+    real(rk8) , dimension(:,:) , pointer :: rval_level => null()
     real(rk8) , dimension(:,:,:) , pointer :: rval => null()
     real(rk8) , dimension(:,:,:,:) , pointer :: rval_slice => null()
   end type ncvariable3d_real
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
     logical :: is_slice = .false.
+    integer(rk4) , dimension(:,:) , pointer :: ival_level => null()
     integer(rk4) , dimension(:,:,:) , pointer :: ival => null()
     integer(rk4) , dimension(:,:,:,:) , pointer :: ival_slice => null()
   end type ncvariable3d_integer
@@ -348,5 +351,9 @@ module mod_ncstream_types
   type nc_variable_p
     class(ncvariable_standard) , pointer :: vp => null()
   end type nc_variable_p
+
+  type nc_varlist
+    type(nc_variable_p) , dimension(:) , allocatable :: vlist
+  end type nc_varlist
 
 end module mod_ncstream_types
