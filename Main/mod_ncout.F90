@@ -831,6 +831,7 @@ contains
   subroutine newoutfile(idate,itype)
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=16) :: fbname
+    character(len=36) :: cdate
     integer , intent(in) :: itype
 
     select case (itype)
@@ -904,12 +905,15 @@ contains
 
     call outstream_addatt(outstream(itype)%ncout, &
       ncattribute_logical('model_is_restarted',ifrest))
+    cdate = tochar(idate0)
     call outstream_addatt(outstream(itype)%ncout, &
-      ncattribute_string('model_simulation_initial_start',tochar(idate0)))
+      ncattribute_string('model_simulation_initial_start',cdate))
+    cdate = tochar(idate1)
     call outstream_addatt(outstream(itype)%ncout, &
-      ncattribute_string('model_simulation_start',tochar(idate1)))
+      ncattribute_string('model_simulation_start',cdate))
+    cdate = tochar(idate1)
     call outstream_addatt(outstream(itype)%ncout, &
-      ncattribute_string('model_simulation_end',tochar(idate2)))
+      ncattribute_string('model_simulation_end',cdate))
 
     ! Model timing parameters
 
