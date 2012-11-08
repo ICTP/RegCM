@@ -26,6 +26,9 @@ module mod_ncout
   use mod_ncstream
   use mod_atm_interface
   use mod_lm_interface
+  use mod_cu_interface
+  use mod_rad_interface
+  use mod_precip
 
   use mpi
   use netcdf
@@ -83,19 +86,19 @@ module mod_ncout
     dimension(:) :: v3dvar_srf => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_sts => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_sts => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_sub => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_sub => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_lak => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_lak => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_rad => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_rad => null()
 
   integer(ik4) , parameter :: maxstreams = 6
@@ -1013,8 +1016,8 @@ module mod_ncout
 
   integer(ik4) function countvars(eflags,ntot)
     implicit none
-    logical , dimension(ntot) , intent(in) :: eflags
     integer(ik4) , intent(in) :: ntot
+    logical , dimension(ntot) , intent(in) :: eflags
     integer(ik4) :: i
     countvars = nbase
     do i = nbase , ntot
@@ -1023,6 +1026,7 @@ module mod_ncout
   end function countvars
 
   subroutine newoutfile(idate,itype)
+    implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=16) :: fbname
     character(len=36) :: cdate
@@ -1242,7 +1246,6 @@ module mod_ncout
     real(rk8) , pointer , dimension(:,:) :: tmp2d
     real(rk8) , pointer , dimension(:,:,:) :: tmp3d
     class(ncvariable_standard) , pointer :: vp
-    type(varspan) :: vsize
     integer(ik4) :: ivar
 
     call outstream_addrec(outstream(istream)%ncout,idate)
