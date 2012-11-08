@@ -972,7 +972,9 @@ module mod_ncout
       if ( lparallel ) then
         outstream(nstream)%opar%mpi_comm = mycomm
         outstream(nstream)%opar%mpi_info = mpi_info_null
+#ifdef NETCDF4_HDF5
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
+#endif
         ! The "global" indexes in the output stream refer to the INTERNAL
         ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
         ! subtract 1 line/column to rebase on pixel (2,2) of the internal model
