@@ -29,11 +29,11 @@ module mod_write
   public :: setup_outvars , write_domain
 
   integer(ik4) , parameter :: nvar2d = 11
-  type(ncvariable2d_real) , dimension(nvar2d) :: v2dvar_base
+  type(ncvariable2d_real) , save, dimension(nvar2d) :: v2dvar_base
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
-  type(ncvariable2d_real) :: v2dvar_lake
-  type(ncvariable2d_real) :: v2dvar_texture
-  type(ncvariable3d_real) :: v3dvar_texture
+  type(ncvariable2d_real) , save :: v2dvar_lake
+  type(ncvariable2d_real) , save :: v2dvar_texture
+  type(ncvariable3d_real) , save :: v3dvar_texture
 
   character(len=512) :: landuse_legend =                     &
                '1  => Crop/mixed farming'//char(10)//        &

@@ -33,7 +33,7 @@ module mod_ncstream
 
   integer(ik4) :: ncstat
   logical , parameter :: nocopy = .false.
-  type(rcm_time_and_date) :: reference_date
+  type(rcm_time_and_date) , save :: reference_date
   integer(ik4) , dimension(ncmaxdims) :: id_dim
   integer(ik4) , dimension(ncmaxdims) :: len_dim
 
@@ -341,7 +341,8 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       type(basic_variables) , pointer :: stvar
       integer(ik4) :: maxnum_int , maxnum_real , i
-      real(rk8) , dimension(2) :: trlat
+      real(rk8) , target , dimension(2) :: trlat
+      real(rk8) , pointer , dimension(:) :: tp
       real(rk8) :: xds
 
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -384,9 +385,10 @@ module mod_ncstream
               'lambert_conformal_conic'),stvar%map_var%id,stvar%map_var%vname)
             trlat(1) = truelatl
             trlat(2) = truelath
+            tp => trlat
             call add_attribute(stream, &
               ncattribute_real8_array('standard_parallel', &
-              trlat,2),stvar%map_var%id,stvar%map_var%vname)
+              tp,2),stvar%map_var%id,stvar%map_var%vname)
           case('POLSTR')
             call add_attribute(stream,ncattribute_string('grid_mapping_name', &
               'stereographic'),stvar%map_var%id,stvar%map_var%vname)
@@ -631,7 +633,7 @@ module mod_ncstream
     subroutine outstream_addatt(ncout,att)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      class(ncglobal_attribute_standard) , intent(in) :: att
+      class(ncattribute_standard) , intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
       call add_attribute(ncout%ncp%xs,att)
     end subroutine outstream_addatt
@@ -640,7 +642,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(in) :: ncout
       class(ncvariable_standard) , intent(in) :: var
-      class(ncglobal_attribute_standard) , intent(in) :: att
+      class(ncattribute_standard) , intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
       call add_attribute(ncout%ncp%xs,att,var%id,var%vname)
     end subroutine outstream_addvaratt
@@ -648,7 +650,7 @@ module mod_ncstream
     subroutine add_attribute(stream,att,iloc,vname)
       implicit none
       type(ncoutstream) , pointer , intent(in) :: stream
-      class(ncglobal_attribute_standard) , intent(in) :: att
+      class(ncattribute_standard) , intent(in) :: att
       integer(ik4) , optional :: iloc
       character(len=4) :: cdum
       character(len=*) , optional :: vname
@@ -1693,7 +1695,8 @@ module mod_ncstream
       type(ncoutstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
       character(256) :: history
-      real(rk8) , dimension(2) :: trlat
+      real(rk8) , target , dimension(2) :: trlat
+      real(rk8) , pointer , dimension(:) :: tp
       integer(ik4) , dimension(8) :: tvals
 
       stream => ncout%ncp%xs
@@ -1735,8 +1738,9 @@ module mod_ncstream
       else if ( iproj == 'LAMCON' ) then
         trlat(1) = truelatl
         trlat(2) = truelath
+        tp => trlat
         call add_attribute(stream, &
-          ncattribute_real8_array('standard_parallel',trlat,2))
+          ncattribute_real8_array('standard_parallel',tp,2))
       end if
       call add_attribute(stream,ncattribute_real8('grid_factor',xcone))
       stvar%jx_var = ncvariable1d_real(vname='jx',vunit='m', &

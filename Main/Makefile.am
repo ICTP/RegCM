@@ -143,6 +143,7 @@ endif
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_atm_interface.o mod_lm_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o
 mod_ncio.o: mod_ncio.F90 mod_runparams.o mod_mpmessage.o mod_memutil.o mod_nchelper.o mod_domain.o mod_che_interface.o mod_ensemble.o
 mod_ncout.o: mod_ncout.F90 mod_dynparam.o mod_runparams.o mod_ncstream_types.o mod_ncstream.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
 mod_output.o: mod_output.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncio.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_mppio.o mod_clm.o
 else

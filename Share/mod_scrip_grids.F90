@@ -425,7 +425,7 @@ module mod_scrip_grids
         case ('latitude')
           write(stdout,*) 'Using latitude bins to restrict search.'
           if ( num_srch_bins <= 0 ) then
-            call die('scrip_grid_init','num_srch_bins <= 0 ???',1)
+            call die('scrip_grid_init','num_srch_bins <= 0 ?',1)
           end if
           call getmem2d(bin_addr1,1,2,1,num_srch_bins,'scrip:bin_addr1')
           call getmem2d(bin_addr2,1,2,1,num_srch_bins,'scrip:bin_addr2')
@@ -464,7 +464,7 @@ module mod_scrip_grids
         case ('latlon')
           write(stdout,*) 'Using lat/lon boxes to restrict search.'
           if ( num_srch_bins <= 0 ) then
-            call die('scrip_grid_init','num_srch_bins <= 0 ???',1)
+            call die('scrip_grid_init','num_srch_bins <= 0 ?',1)
           end if
           dlat = mathpi/num_srch_bins
           dlon = twopi/num_srch_bins

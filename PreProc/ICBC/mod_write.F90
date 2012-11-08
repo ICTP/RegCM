@@ -36,12 +36,12 @@ module mod_write
   public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4
   public :: init_output , close_output , newfile , writef
 
-  type(nc_output_stream) :: ncout
+  type(nc_output_stream) , save :: ncout
   integer(ik4) , parameter :: nvar2d = 6
   integer(ik4) , parameter :: nvar2d_static = 4
   integer(ik4) , parameter :: nvar3d = 4
-  type(ncvariable2d_real) , dimension(nvar2d) :: v2dvar_icbc
-  type(ncvariable3d_real) , dimension(nvar3d) :: v3dvar_icbc
+  type(ncvariable2d_real) , save , dimension(nvar2d) :: v2dvar_icbc
+  type(ncvariable3d_real) , save , dimension(nvar3d) :: v3dvar_icbc
 
   contains
 

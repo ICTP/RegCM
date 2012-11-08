@@ -81,7 +81,6 @@ module mod_ensemble
 
       call cpu_time(cputime)
 
-      ! Set the seed array to be the clock time plus ???
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 
@@ -144,7 +143,6 @@ module mod_ensemble
 
       call cpu_time(cputime)
 
-      ! Set the seed array to be the clock time plus ???
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 

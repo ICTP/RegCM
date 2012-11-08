@@ -1247,6 +1247,7 @@ module mod_params
 
   call grid_distribute(mddom_io%ht,mddom%ht,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%lndcat,mddom%lndcat,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%mask,mddom%mask,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%xlat,mddom%xlat,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%xlon,mddom%xlon,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%dlat,mddom%dlat,jde1,jde2,ide1,ide2)

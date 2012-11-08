@@ -224,10 +224,14 @@ module mod_dynparam
 
   ! Global reference in global grid jx*iy of dot points
   ! The CROSS grid is contained within
-  integer(ik4) :: global_istart
-  integer(ik4) :: global_iend
-  integer(ik4) :: global_jstart
-  integer(ik4) :: global_jend
+  integer(ik4) :: global_dot_jstart
+  integer(ik4) :: global_dot_jend
+  integer(ik4) :: global_dot_istart
+  integer(ik4) :: global_dot_iend
+  integer(ik4) :: global_cross_jstart
+  integer(ik4) :: global_cross_jend
+  integer(ik4) :: global_cross_istart
+  integer(ik4) :: global_cross_iend
 
 !####################### MPI parameters ################################
 

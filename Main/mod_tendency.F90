@@ -1318,8 +1318,8 @@ module mod_tendency
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%t(jj,ii,kk) > maxv ) then
-                  write(stderr,*) 'II :', global_istart+ii-1 , &
-                                ', JJ :', global_jstart+jj-1 , ', KK :', kk
+                  write(stderr,*) 'II :', global_dot_istart+ii-1 , &
+                                ', JJ :', global_dot_jstart+jj-1 , ', KK :', kk
                 end if
               end do
             end do
@@ -1333,8 +1333,8 @@ module mod_tendency
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%u(jj,ii,kk) > maxv ) then
-                  write(stderr,*) 'II :', global_istart+ii-1 , &
-                                ', JJ :', global_jstart+jj-1 , ', KK :', kk
+                  write(stderr,*) 'II :', global_dot_istart+ii-1 , &
+                                ', JJ :', global_dot_jstart+jj-1 , ', KK :', kk
                 end if
               end do
             end do
@@ -1348,8 +1348,8 @@ module mod_tendency
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%v(jj,ii,kk) > maxv ) then
-                  write(stderr,*) 'II :', global_istart+ii-1 , &
-                                ', JJ :', global_jstart+jj-1 , ', KK :', kk
+                  write(stderr,*) 'II :', global_dot_istart+ii-1 , &
+                                ', JJ :', global_dot_jstart+jj-1 , ', KK :', kk
                 end if
               end do
             end do
@@ -1363,8 +1363,8 @@ module mod_tendency
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%qx(jj,ii,kk,iqv) > maxv ) then
-                  write(stderr,*) 'II :', global_istart+ii-1 , &
-                                ', JJ :', global_jstart+jj-1 , ', KK :', kk
+                  write(stderr,*) 'II :', global_dot_istart+ii-1 , &
+                                ', JJ :', global_dot_jstart+jj-1 , ', KK :', kk
                 end if
               end do
             end do
@@ -1378,8 +1378,8 @@ module mod_tendency
             do ii = ici1 , ici2
               do jj = jci1 , jci2
                 if ( aten%qx(jj,ii,kk,iqc) > maxv ) then
-                  write(stderr,*) 'II :', global_istart+ii-1 , &
-                                ', JJ :', global_jstart+jj-1 , ', KK :', kk
+                  write(stderr,*) 'II :', global_dot_istart+ii-1 , &
+                                ', JJ :', global_dot_jstart+jj-1 , ', KK :', kk
                 end if
               end do
             end do

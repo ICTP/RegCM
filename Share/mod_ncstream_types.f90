@@ -171,38 +171,38 @@ module mod_ncstream_types
     integer(ik4) :: global_nj , global_ni , parsize
   end type ncoutstream
 !
-  type ncglobal_attribute_standard
+  type ncattribute_standard
     character(len=maxname) :: aname
-  end type ncglobal_attribute_standard
+  end type ncattribute_standard
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_string
+  type, extends(ncattribute_standard) :: ncattribute_string
     character(len=maxstring) :: theval
   end type ncattribute_string
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_logical
+  type, extends(ncattribute_standard) :: ncattribute_logical
     logical :: theval
   end type ncattribute_logical
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_integer
+  type, extends(ncattribute_standard) :: ncattribute_integer
     integer(ik4) :: theval
   end type ncattribute_integer
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_real4
+  type, extends(ncattribute_standard) :: ncattribute_real4
     real(rk4) :: theval
   end type ncattribute_real4
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_real8
+  type, extends(ncattribute_standard) :: ncattribute_real8
     real(rk8) :: theval
   end type ncattribute_real8
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_real4_array
-    real(rk4) , dimension(ncmaxdims) :: theval
-    integer(ik4) :: numval = ncmaxdims
+  type, extends(ncattribute_standard) :: ncattribute_real4_array
+    real(rk4) , pointer , dimension(:) :: theval
+    integer(ik4) :: numval = 0
   end type ncattribute_real4_array
 
-  type, extends(ncglobal_attribute_standard) :: ncattribute_real8_array
-    real(rk8) , dimension(ncmaxdims) :: theval
-    integer(ik4) :: numval = ncmaxdims
+  type, extends(ncattribute_standard) :: ncattribute_real8_array
+    real(rk8) , pointer , dimension(:) :: theval
+    integer(ik4) :: numval = 0
   end type ncattribute_real8_array
 !
   type ncvariable_standard

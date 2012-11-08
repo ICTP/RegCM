@@ -41,6 +41,7 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:) :: lndcat
     real(rk8) , pointer , dimension(:,:) :: xlat
     real(rk8) , pointer , dimension(:,:) :: xlon
+    real(rk8) , pointer , dimension(:,:) :: mask
     real(rk8) , pointer , dimension(:,:) :: dlat
     real(rk8) , pointer , dimension(:,:) :: dlon
     real(rk8) , pointer , dimension(:,:) :: msfx
@@ -250,8 +251,8 @@ module mod_atm_interface
       write(ndebug+myid,*) 'BOTTOM      = ', ma%bottom
       write(ndebug+myid,*) 'BOTTOMLEFT  = ', ma%bottomleft
       write(ndebug+myid,*) 'LEFT        = ', ma%left
-      write(ndebug+myid,*) 'GLOBAL J = ', global_jstart , global_jend
-      write(ndebug+myid,*) 'GLOBAL I = ', global_istart , global_iend
+      write(ndebug+myid,*) 'GLOBAL J = ', global_dot_jstart , global_dot_jend
+      write(ndebug+myid,*) 'GLOBAL I = ', global_dot_istart , global_dot_iend
       write(ndebug+myid,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
       write(ndebug+myid,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
       write(ndebug+myid,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
@@ -312,10 +313,10 @@ module mod_atm_interface
       if ( ma%bandflag ) then
         ! Check for South boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
             do j = j1 , j2
-              jglob = global_jstart+j-1
+              jglob = global_dot_jstart+j-1
               if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
               ba%ibnd(j,i) = iglob-igbb1+2
               ba%bsouth(j,i) = .true.
@@ -325,10 +326,10 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
             do j = j1 , j2
-              jglob = global_jstart+j-1
+              jglob = global_dot_jstart+j-1
               if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
               ba%ibnd(j,i) = igbt2-iglob+2
               ba%bnorth(j,i) = .true.
@@ -339,10 +340,10 @@ module mod_atm_interface
       else
         ! Check for South boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
             do j = j1 , j2
-              jglob = global_jstart+j-1
+              jglob = global_dot_jstart+j-1
               if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
                 if ( jglob <= jgbl2 .and. iglob >= jglob ) cycle
                 if ( jglob >= jgbr1 .and. iglob >= (jgbr2-jglob+2) ) cycle
@@ -355,10 +356,10 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
             do j = j1 , j2
-              jglob = global_jstart+j-1
+              jglob = global_dot_jstart+j-1
               if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
                 if ( jglob <= jgbl2 .and. (igbt2-iglob+2) >= jglob ) cycle
                 if ( jglob >= jgbr1 .and. (igbt2-iglob) >= (jgbr2-jglob) ) cycle
@@ -371,10 +372,10 @@ module mod_atm_interface
         end do
         ! West boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
           do j = j1 , j2
-            jglob = global_jstart+j-1
+            jglob = global_dot_jstart+j-1
             if ( jglob >= jgbl1 .and. jglob <= jgbl2 ) then
               if ( iglob < igbb2 .and. jglob > iglob ) cycle
               if ( iglob > igbt1 .and. jglob > (igbt2-iglob+2) ) cycle
@@ -386,10 +387,10 @@ module mod_atm_interface
         end do
         ! East boundary
         do i = i1 , i2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
           do j = j1 , j2
-            jglob = global_jstart+j-1
+            jglob = global_dot_jstart+j-1
             if ( jglob >= jgbr1 .and. jglob <= jgbr2 ) then
               if ( iglob < igbb2 .and. (jgbr2-jglob+2) > iglob ) cycle
               if ( iglob > igbt1 .and. (jgbr2-jglob) > (igbt2-iglob) ) cycle
@@ -531,6 +532,7 @@ module mod_atm_interface
         call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
+        call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'atm_interface:mask')
         call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
@@ -543,6 +545,7 @@ module mod_atm_interface
         call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'atm_interface:xlon')
+        call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'atm_interface:mask')
         call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'atm_interface:msfx')
