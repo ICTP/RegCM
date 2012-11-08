@@ -75,6 +75,8 @@ module mod_ncstream_types
     logical :: l_subgrid = .false.
     ! If the vertical coordinate is on full sigma levels
     logical :: l_full_sigma = .false.
+    ! Sync the output each timestep
+    logical :: l_sync = .false.
     ! Initial time for this run
     type(rcm_time_and_date) :: zero_date = rcm_time_and_date(1,18231,0)
     ! If parallel I/O, the processor patch indexes on the global grid
@@ -353,7 +355,7 @@ module mod_ncstream_types
   end type nc_variable_p
 
   type nc_varlist
-    type(nc_variable_p) , dimension(:) , allocatable :: vlist
+    type(nc_variable_p) , dimension(:) , pointer :: vlist
   end type nc_varlist
 
 end module mod_ncstream_types

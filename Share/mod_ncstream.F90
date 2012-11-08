@@ -261,6 +261,7 @@ module mod_ncstream
       call setcal(reference_date,ical)
       stream%zero_time    = hourdiff(params%zero_date,reference_date)
       stream%l_bound      = params%l_bound
+      stream%l_sync       = params%l_sync
       stream%l_subgrid    = params%l_subgrid
       stream%l_full_sigma = params%l_full_sigma
       stream%id_dims(:)   = -1
@@ -457,19 +458,29 @@ module mod_ncstream
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then
         xds = ds/dble(nsg)
+        buffer%realbuff(1) = -real((dble(jxsg-1)/d_two) * xds * d_1000)
+        do i = 2 , jxsg
+          buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        end do
+        call outstream_writevar(ncout,stvar%jx_var,nocopy)
+        buffer%realbuff(1) = -real((dble(iysg-1)/d_two) * xds * d_1000)
+        do i = 2 , iysg
+          buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        end do
+        call outstream_writevar(ncout,stvar%iy_var,nocopy)
       else
         xds = ds
+        buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds * d_1000)
+        do i = 2 , jx
+          buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        end do
+        call outstream_writevar(ncout,stvar%jx_var,nocopy)
+        buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds * d_1000)
+        do i = 2 , iy
+          buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        end do
+        call outstream_writevar(ncout,stvar%iy_var,nocopy)
       end if
-      buffer%realbuff(1) = -real((dble(jx-1)/d_two) * xds * d_1000)
-      do i = 2 , jx
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
-      end do
-      call outstream_writevar(ncout,stvar%jx_var,nocopy)
-      buffer%realbuff(1) = -real((dble(iy-1)/d_two) * xds * d_1000)
-      do i = 2 , iy
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
-      end do
-      call outstream_writevar(ncout,stvar%iy_var,nocopy)
       buffer%realbuff(1:size(sigma)) = real(sigma)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
       stvar%ptop_var%rval(1) = real(ptop*10.0D0)

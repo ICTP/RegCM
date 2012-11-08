@@ -145,14 +145,17 @@ module mod_mppparam
   end interface subgrid_distribute
 
   interface grid_collect
-    module procedure real8_2d_collect ,   &
-                     real8_3d_collect ,   &
-                     real8_4d_collect ,   &
-                     real4_2d_collect ,   &
-                     real4_3d_collect ,   &
-                     real4_4d_collect ,   &
-                     integer_2d_collect , &
-                     integer_3d_collect , &
+    module procedure real8_2d_collect ,    &
+                     real8_2d_3d_collect , &
+                     real8_3d_collect ,    &
+                     real8_3d_2d_collect , &
+                     real8_4d_collect ,    &
+                     real8_4d_2d_collect , &
+                     real4_2d_collect ,    &
+                     real4_3d_collect ,    &
+                     real4_4d_collect ,    &
+                     integer_2d_collect ,  &
+                     integer_3d_collect ,  &
                      integer_4d_collect
   end interface grid_collect
 
@@ -1875,6 +1878,63 @@ module mod_mppparam
     end if
   end subroutine integer_3d_sub_distribute
 !
+  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 
+    integer(ik4) , intent(in) , optional :: k
+    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      kk = 1
+      if ( present(k) ) kk = k
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_dot_jstart+j-1,global_dot_istart+i-1,kk) = ml(j,i)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
+        end if
+        call recv_array(r8vector1,lsize,icpu,tag_base)
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i,kk) = r8vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          r8vector2(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r8vector2,lsize,iocpu,tag_base)
+    end if
+  end subroutine real8_2d_3d_collect
+!
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
@@ -1991,6 +2051,60 @@ module mod_mppparam
     end if
   end subroutine real8_3d_collect
 !
+  subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg   ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i,k)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
+        end if
+        call recv_array(r8vector1,lsize,icpu,tag_base)
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = r8vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          r8vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r8vector2,lsize,iocpu,tag_base)
+    end if
+  end subroutine real8_3d_2d_collect
+!
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
@@ -2061,6 +2175,60 @@ module mod_mppparam
       call send_array(r8vector2,lsize,iocpu,tag_base)
     end if
   end subroutine real8_4d_collect
+!
+  subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg     ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i,k,n)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        if ( size(r8vector1) < lsize ) then
+          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
+        end if
+        call recv_array(r8vector1,lsize,icpu,tag_base)
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = r8vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( size(r8vector2) < lsize ) then
+        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          r8vector2(ib) = ml(j,i,k,n)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r8vector2,lsize,iocpu,tag_base)
+    end if
+  end subroutine real8_4d_2d_collect
 !
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none

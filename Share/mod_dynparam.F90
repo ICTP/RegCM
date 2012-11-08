@@ -202,6 +202,8 @@ module mod_dynparam
   integer(ik4) :: jdot2 , idot2
   integer(ik4) :: jout1 , iout1
   integer(ik4) :: jout2 , iout2
+  integer(ik4) :: joutsg1 , ioutsg1
+  integer(ik4) :: joutsg2 , ioutsg2
 !
   ! D stands for DOT
   integer(ik4) :: ide1 , ide2 ! External i (included bdy) (latitude)
@@ -434,10 +436,14 @@ module mod_dynparam
       jcross2 = jx
       jout1 = 1
       jout2 = jx
+      joutsg1 = 1
+      joutsg2 = jx*nsg
     else
       jcross2 = jxm1
       jout1 = 2
       jout2 = jxm2
+      joutsg1 = nsg
+      joutsg2 = jxm2*nsg
     end if
     idot1 = 1
     idot2 = iy
@@ -445,6 +451,8 @@ module mod_dynparam
     icross2 = iym1
     iout1 = 2
     iout2 = iym2
+    ioutsg1 = nsg
+    ioutsg2 = iym2*nsg
     njcross = jcross2-jcross1+1
     nicross = icross2-icross1+1
     njdot = jdot2-jdot1+1

@@ -55,7 +55,7 @@ module mod_che_pollen
       integer, intent(in) :: j
       real(rk8) , dimension(ici1:ici2) , intent(in) ::ustar, wind10, rh10, prec,convprec
       real(rk8) , dimension(ici1:ici2) :: precip,emispol
-     integer(ik4) :: i , k
+     integer(ik4) :: i
       real (rk8) :: emispot, fh,fw,fr,uconv,htc
             
 ! calculate the actual pollen flux corrected for meteo 

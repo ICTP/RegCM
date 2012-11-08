@@ -144,7 +144,6 @@ module mod_write
     v3dvar_texture%standard_name = 'soil_type_fraction'
     v3dvar_texture%axis = 'xyT'
     v3dvar_texture%lfillvalue = .true.
-
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
@@ -197,6 +196,10 @@ module mod_write
     end if
 
     do ivar = 1 , nvar2d
+      v2dvar_base(ivar)%j1 = -1
+      v2dvar_base(ivar)%j2 = -1
+      v2dvar_base(ivar)%i1 = -1
+      v2dvar_base(ivar)%i2 = -1
       call outstream_addvar(ncout,v2dvar_base(ivar))
     end do
     call outstream_addvaratt(ncout,v2dvar_base(idlnd), &
@@ -214,11 +217,23 @@ module mod_write
     v2dvar_base(11)%rval => snowam
 
     if ( lakedpth ) then
+      v2dvar_lake%j1 = -1
+      v2dvar_lake%j2 = -1
+      v2dvar_lake%i1 = -1
+      v2dvar_lake%i2 = -1
       call outstream_addvar(ncout,v2dvar_lake)
       v2dvar_lake%rval => dpth
     end if
 
     if ( ltexture ) then
+      v2dvar_texture%j1 = -1
+      v2dvar_texture%j2 = -1
+      v2dvar_texture%i1 = -1
+      v2dvar_texture%i2 = -1
+      v3dvar_texture%j1 = -1
+      v3dvar_texture%j2 = -1
+      v3dvar_texture%i1 = -1
+      v3dvar_texture%i2 = -1
       call outstream_addvar(ncout,v2dvar_texture)
       call outstream_addvaratt(ncout,v2dvar_texture, &
         ncattribute_string('legend',texture_legend))

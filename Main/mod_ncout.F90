@@ -30,57 +30,75 @@ module mod_ncout
   use mpi
   use netcdf
 !
-  type regcm_stream
-    type(nc_output_stream) :: ncout
-    type(ncoutstream_params) :: opar
-    integer(ik4) :: nvar
-    type(nc_varlist) :: ncvars
-  end type regcm_stream
-
+  public :: init_output_streams
+  public :: dispose_output_streams
+  public :: write_record_output_stream
+!
   type varspan
     integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2
   end type varspan
+
+  type regcm_stream
+    type(nc_output_stream) :: ncout
+    type(ncoutstream_params) :: opar
+    integer(ik4) :: nvar = 0
+    type(nc_varlist) :: ncvars
+    integer(ik4) :: jg1 , jg2 , ig1 , ig2
+    integer(ik4) :: jl1 , jl2 , il1 , il2
+  end type regcm_stream
 
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 2 + nbase
   integer(ik4) , parameter :: natm3dvars = 10
-  integer(ik4) , public , parameter :: natmvars = natm2dvars+natm3dvars
+  integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
-  integer(ik4) , public , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
+  integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 6 + nbase
   integer(ik4) , parameter :: nsts3dvars = 4
-  integer(ik4) , public , parameter :: nstsvars = nsts2dvars+nsts3dvars
+  integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
   integer(ik4) , parameter :: nsub2dvars = 7 + nbase
   integer(ik4) , parameter :: nsub3dvars = 6
-  integer(ik4) , public , parameter :: nsubvars = nsub2dvars+nsub3dvars
+  integer(ik4) , parameter :: nsubvars = nsub2dvars+nsub3dvars
 
   integer(ik4) , parameter :: nlak2dvars = 13 + nbase
   integer(ik4) , parameter :: nlak3dvars = 1
-  integer(ik4) , public , parameter :: nlakvars = nlak2dvars+nlak3dvars
+  integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 12 + nbase
   integer(ik4) , parameter :: nrad3dvars = 4
-  integer(ik4) , public , parameter :: nradvars = nrad2dvars+nrad3dvars
+  integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars
 
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_atm
-  type(ncvariable3d_real) , save , pointer , dimension(:) :: v3dvar_atm
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_srf
-  type(ncvariable3d_real) , save , pointer , dimension(:) :: v3dvar_srf
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_sts
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v3dvar_sts
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_sub
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v3dvar_sub
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_lak
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v3dvar_lak
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v2dvar_rad
-  type(ncvariable2d_real) , save , pointer , dimension(:) :: v3dvar_rad
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_atm => null()
+  type(ncvariable3d_real) , save , pointer , &
+    dimension(:) :: v3dvar_atm => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_srf => null()
+  type(ncvariable3d_real) , save , pointer , &
+    dimension(:) :: v3dvar_srf => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_sts => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v3dvar_sts => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_sub => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v3dvar_sub => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_lak => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v3dvar_lak => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_rad => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v3dvar_rad => null()
 
-  integer(ik4) , parameter :: maxstreams = 100
+  integer(ik4) , parameter :: maxstreams = 6
 
   integer(ik4) , public , parameter :: atm_stream = 1
   integer(ik4) , public , parameter :: srf_stream = 2
@@ -98,8 +116,6 @@ module mod_ncout
   logical , public , dimension(nsubvars) :: enable_sub_vars
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
-
-  public :: init_output_streams
 
   integer(ik4), parameter :: atm_xlon  = 1
   integer(ik4), parameter :: atm_xlat  = 2
@@ -231,14 +247,16 @@ module mod_ncout
 
   integer(ik4), parameter :: lak_tlake  = 1
 
+  real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
+  real(rk8) , pointer , dimension(:,:,:) :: io3d
+
   contains
 
-  subroutine init_output_streams(lparallel,stream_number)
+  subroutine init_output_streams(lparallel)
     implicit none
     logical , intent(in) :: lparallel
-    integer(ik4) , intent(in) :: stream_number
     integer(ik4) :: nstream , i , vcount
-    integer(ik4) :: ifac
+    integer(ik4) :: kkz
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
     logical , dimension(natm3dvars) :: enable_atm3d_vars
@@ -253,22 +271,15 @@ module mod_ncout
     logical , dimension(nrad2dvars) :: enable_rad2d_vars
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
 
-    vsize%j1 = jci1
-    vsize%j2 = jci2
-    vsize%i1 = ici1
-    vsize%i2 = ici2
-    vsize%k1 = 1
-
-    do nstream = 1 , stream_number
+    do nstream = 1 , maxstreams
 
       if ( .not. enable_flag(nstream) ) cycle
 
-      ifac = 1
-
-      vsize%j1 = vsize%j1*ifac
-      vsize%j2 = vsize%j2*ifac
-      vsize%i1 = vsize%i1*ifac
-      vsize%i2 = vsize%i2*ifac
+      vsize%j1 = jci1
+      vsize%j2 = jci2
+      vsize%i1 = ici1
+      vsize%i2 = ici2
+      vsize%k1 = 1
 
       if ( nstream == atm_stream ) then
 
@@ -363,6 +374,14 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(atm_stream)%jl1 = vsize%j1
+        outstream(atm_stream)%jl2 = vsize%j2
+        outstream(atm_stream)%il1 = vsize%i1
+        outstream(atm_stream)%il2 = vsize%i2
+        outstream(atm_stream)%jg1 = jout1
+        outstream(atm_stream)%jg2 = jout2
+        outstream(atm_stream)%ig1 = iout1
+        outstream(atm_stream)%ig2 = iout2
       end if
 
       if ( nstream == srf_stream ) then
@@ -506,6 +525,14 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(srf_stream)%jl1 = vsize%j1
+        outstream(srf_stream)%jl2 = vsize%j2
+        outstream(srf_stream)%il1 = vsize%i1
+        outstream(srf_stream)%il2 = vsize%i2
+        outstream(srf_stream)%jg1 = jout1
+        outstream(srf_stream)%jg2 = jout2
+        outstream(srf_stream)%ig1 = iout1
+        outstream(srf_stream)%ig2 = iout2
       end if
 
       if ( nstream == sts_stream ) then
@@ -592,6 +619,14 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(sts_stream)%jl1 = vsize%j1
+        outstream(sts_stream)%jl2 = vsize%j2
+        outstream(sts_stream)%il1 = vsize%i1
+        outstream(sts_stream)%il2 = vsize%i2
+        outstream(sts_stream)%jg1 = jout1
+        outstream(sts_stream)%jg2 = jout2
+        outstream(sts_stream)%ig1 = iout1
+        outstream(sts_stream)%ig2 = iout2
       end if
 
       if ( nstream == sub_stream ) then
@@ -601,11 +636,10 @@ module mod_ncout
         enable_sub2d_vars = enable_sub_vars(1:nsub2dvars)
         enable_sub3d_vars = enable_sub_vars(nsub2dvars+1:nsubvars)
 
-        ifac = nsg
-        vsize%j1 = vsize%j1*ifac
-        vsize%j2 = vsize%j2*ifac
-        vsize%i1 = vsize%i1*ifac
-        vsize%i2 = vsize%i2*ifac
+        vsize%j1 = (vsize%j1-1)*nsg
+        vsize%j2 = vsize%j2*nsg
+        vsize%i1 = (vsize%i1-1)*nsg
+        vsize%i2 = vsize%i2*nsg
 
         ! This variables are always present
 
@@ -699,6 +733,14 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(sub_stream)%jl1 = vsize%j1
+        outstream(sub_stream)%jl2 = vsize%j2
+        outstream(sub_stream)%il1 = vsize%i1
+        outstream(sub_stream)%il2 = vsize%i2
+        outstream(sub_stream)%jg1 = joutsg1
+        outstream(sub_stream)%jg2 = joutsg2
+        outstream(sub_stream)%ig1 = ioutsg1
+        outstream(sub_stream)%ig2 = ioutsg2
       end if
 
       if ( nstream == rad_stream ) then
@@ -806,6 +848,14 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(rad_stream)%jl1 = vsize%j1
+        outstream(rad_stream)%jl2 = vsize%j2
+        outstream(rad_stream)%il1 = vsize%i1
+        outstream(rad_stream)%il2 = vsize%i2
+        outstream(rad_stream)%jg1 = jout1
+        outstream(rad_stream)%jg2 = jout2
+        outstream(rad_stream)%ig1 = iout1
+        outstream(rad_stream)%ig2 = iout2
       end if
 
       if ( nstream == lak_stream ) then
@@ -902,25 +952,63 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(lak_stream)%jl1 = vsize%j1
+        outstream(lak_stream)%jl2 = vsize%j2
+        outstream(lak_stream)%il1 = vsize%i1
+        outstream(lak_stream)%il2 = vsize%i2
+        outstream(lak_stream)%jg1 = jout1
+        outstream(lak_stream)%jg2 = jout2
+        outstream(lak_stream)%ig1 = iout1
+        outstream(lak_stream)%ig2 = iout2
       end if
 
       outstream(nstream)%opar%pname = 'RegCM Model'
       outstream(nstream)%opar%zero_date = idate1
+      outstream(nstream)%opar%l_sync = lsync
 
       if ( lparallel ) then
         outstream(nstream)%opar%mpi_comm = mycomm
         outstream(nstream)%opar%mpi_info = mpi_info_null
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
-        ! The "global" indexes refer to the INTERNAL grid, so we must take
-        ! out 
+        ! The "global" indexes in the output stream refer to the INTERNAL
+        ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
+        ! subtract 1 line/column to rebase on pixel (2,2) of the internal model
+        ! cross points grid to point (1,1).
         outstream(nstream)%opar%global_jstart = global_cross_jstart - 1
-        outstream(nstream)%opar%global_jend = global_cross_jend - 1
+        outstream(nstream)%opar%global_jend   = global_cross_jend   - 1
         outstream(nstream)%opar%global_istart = global_cross_istart - 1
-        outstream(nstream)%opar%global_iend = global_cross_iend - 1
+        outstream(nstream)%opar%global_iend   = global_cross_iend   - 1
+        if ( nstream == sub_stream ) then
+          outstream(nstream)%opar%global_jstart = &
+            (outstream(nstream)%opar%global_jstart-1)*nsg+1
+          outstream(nstream)%opar%global_jend =   &
+            outstream(nstream)%opar%global_jend*nsg
+          outstream(nstream)%opar%global_istart = &
+            (outstream(nstream)%opar%global_istart-1)*nsg+1
+          outstream(nstream)%opar%global_iend =   &
+            outstream(nstream)%opar%global_iend*nsg
+        end if
+        outstream(nstream)%opar%l_subgrid = .true.
+      else
+        ! Allocate space to collect all from all CPUs
+        if ( myid == iocpu ) then
+          kkz = 2
+          if ( enable_flag(atm_stream) .or. enable_flag(rad_stream) ) then
+            kkz = max(kz,kkz)
+          end if
+          if ( lakemod == 1 .and. enable_flag(lak_stream) ) then
+            kkz = max(ndpmax,kkz)
+          end if
+          call getmem2d(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
+          if ( kkz > 0 ) then
+            call getmem3d(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
+          end if
+          if ( enable_flag(sub_stream) ) then
+            call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
+          end if
+        end if
       end if
-
     end do
-
   end subroutine init_output_streams
 
   integer(ik4) function countvars(eflags,ntot)
@@ -1106,11 +1194,99 @@ module mod_ncout
         if ( present(l_rec) ) var%lrecords = l_rec
         call getmem2d(var%rval,vsize%j1,vsize%j2, &
           vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var%vname))
+        var%j1 = vsize%j1
+        var%j2 = vsize%j2
+        var%i1 = vsize%i1
+        var%i2 = vsize%i2
       type is (ncvariable3d_real)
         if ( present(l_rec) ) var%lrecords = l_rec
         call getmem3d(var%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
           vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var%vname))
+        var%j1 = vsize%j1
+        var%j2 = vsize%j2
+        var%i1 = vsize%i1
+        var%i2 = vsize%i2
+        var%k1 = vsize%k1
+        var%k2 = vsize%k2
     end select
   end subroutine setup_var
+
+  subroutine dispose_output_streams
+    implicit none
+    integer(ik4) :: nstream
+    if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
+    if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
+    if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
+    if ( associated(v3dvar_srf) ) deallocate(v3dvar_srf)
+    if ( associated(v2dvar_sts) ) deallocate(v2dvar_sts)
+    if ( associated(v3dvar_sts) ) deallocate(v3dvar_sts)
+    if ( associated(v2dvar_rad) ) deallocate(v2dvar_rad)
+    if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
+    if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
+    if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
+    if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)
+    if ( associated(v3dvar_lak) ) deallocate(v3dvar_lak)
+    do nstream = 1 , maxstreams
+      call outstream_dispose(outstream(nstream)%ncout)
+      if ( associated(outstream(nstream)%ncvars%vlist) ) then
+        deallocate(outstream(nstream)%ncvars%vlist)
+      end if
+    end do
+  end subroutine dispose_output_streams
+
+  subroutine write_record_output_stream(lparallel,istream,idate)
+    implicit none
+    logical , intent(in) :: lparallel
+    integer(ik4) , intent(in) :: istream
+    type(rcm_time_and_date) , intent(in) :: idate
+    real(rk8) , pointer , dimension(:,:) :: tmp2d
+    real(rk8) , pointer , dimension(:,:,:) :: tmp3d
+    class(ncvariable_standard) , pointer :: vp
+    type(varspan) :: vsize
+    integer(ik4) :: ivar
+
+    call outstream_addrec(outstream(istream)%ncout,idate)
+    do ivar = 1 , outstream(istream)%nvar
+      vp => outstream(istream)%ncvars%vlist(ivar)%vp
+      if ( .not. lparallel ) then
+        select type(vp)
+          type is (ncvariable2d_real)
+            call grid_collect(io2d,vp%rval,vp%j1,vp%j2,vp%i1,vp%i2)
+            vp%j1 = outstream(istream)%jg1
+            vp%j2 = outstream(istream)%jg2
+            vp%i1 = outstream(istream)%ig1
+            vp%i2 = outstream(istream)%ig2
+            tmp2d => vp%rval
+            vp%rval => io2d
+          type is (ncvariable3d_real)
+            call grid_collect(io3d,vp%rval,vp%j1,vp%j2,vp%i1,vp%i2, &
+              1,size(vp%rval,3))
+            vp%j1 = outstream(istream)%jg1
+            vp%j2 = outstream(istream)%jg2
+            vp%i1 = outstream(istream)%ig1
+            vp%i2 = outstream(istream)%ig2
+            tmp3d => vp%rval
+            vp%rval => io3d
+        end select
+      end if
+      call outstream_writevar(outstream(istream)%ncout,vp)
+      if ( .not. lparallel ) then
+        select type(vp)
+          type is (ncvariable2d_real)
+            vp%rval => tmp2d
+            vp%j1 = outstream(istream)%jl1
+            vp%j2 = outstream(istream)%jl2
+            vp%i1 = outstream(istream)%il1
+            vp%i2 = outstream(istream)%il2
+          type is (ncvariable3d_real)
+            vp%rval => tmp3d
+            vp%j1 = outstream(istream)%jl1
+            vp%j2 = outstream(istream)%jl2
+            vp%i1 = outstream(istream)%il1
+            vp%i2 = outstream(istream)%il2
+        end select
+      end if
+    end do
+  end subroutine write_record_output_stream
 
 end module mod_ncout
