@@ -29,6 +29,7 @@ module mod_ncstream_types
   integer(ik4) , parameter :: ncmaxdims = 16
   integer(ik4) , private , parameter :: maxname = 32
   integer(ik4) , private , parameter :: maxunit = 36
+  integer(ik4) , private , parameter :: maxattarr = 8
   integer(ik4) , private , parameter :: maxstring = 256
   integer(ik4) , private , parameter :: maxpath = 256
 
@@ -198,12 +199,12 @@ module mod_ncstream_types
   end type ncattribute_real8
 
   type, extends(ncattribute_standard) :: ncattribute_real4_array
-    real(rk4) , pointer , dimension(:) :: theval
+    real(rk4) , dimension(maxattarr) :: theval
     integer(ik4) :: numval = 0
   end type ncattribute_real4_array
 
   type, extends(ncattribute_standard) :: ncattribute_real8_array
-    real(rk8) , pointer , dimension(:) :: theval
+    real(rk8) , dimension(maxattarr) :: theval
     integer(ik4) :: numval = 0
   end type ncattribute_real8_array
 !

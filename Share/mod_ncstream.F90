@@ -345,6 +345,9 @@ module mod_ncstream
       real(rk8) , target , dimension(2) :: trlat
       real(rk8) , pointer , dimension(:) :: tp
       real(rk8) :: xds
+      type(ncattribute_string) :: attc
+      type(ncattribute_real8) :: attr
+      type(ncattribute_real8_array) :: attra
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
@@ -353,65 +356,74 @@ module mod_ncstream
       if ( stream%l_enabled ) return
 
       if ( stream%l_hasrec ) then
-        stvar%time_var = ncvariable0d_real(vname='time', &
-            vunit='hours since 1949-12-01 00:00:00 UTC', &
-            long_name='time',standard_name='time',       &
-            lrecords = .true.)
+        stvar%time_var%vname = 'time'
+        stvar%time_var%vunit = 'hours since 1949-12-01 00:00:00 UTC'
+        stvar%time_var%long_name = 'time'
+        stvar%time_var%standard_name = 'time'
+        stvar%time_var%lrecords = .true.
         call outstream_addvar(ncout,stvar%time_var)
-        call add_attribute(stream, &
-          ncattribute_string('calendar',calendar), &
-            stvar%time_var%id,stvar%time_var%vname)
+        attc%aname = 'calendar'
+        attc%theval = calendar
+        call add_attribute(stream,attc,stvar%time_var%id,stvar%time_var%vname)
         if ( stream%l_hastbound ) then
-          call add_attribute(stream, &
-            ncattribute_string('bounds','time_bnds'),stvar%time_var%id, &
-            stvar%time_var%vname)
-          stvar%tbound_var =  ncvariable1d_real(vname='time_bnds', &
-                  vunit='hours since 1949-12-01 00:00:00 UTC',     &
-                  axis='b',long_name = '', standard_name = '',     &
-                  lrecords = .true.)
+          attc%aname = 'bounds'
+          attc%theval = 'time_bnds'
+          call add_attribute(stream,attc,stvar%time_var%id,stvar%time_var%vname)
+          stvar%tbound_var%vname = 'time_bnds'
+          stvar%tbound_var%vunit = 'hours since 1949-12-01 00:00:00 UTC'
+          stvar%tbound_var%axis = 'b'
+          stvar%tbound_var%long_name = ''
+          stvar%tbound_var%standard_name = ''
+          stvar%tbound_var%lrecords = .true.
           call outstream_addvar(ncout,stvar%tbound_var)
-          call add_attribute(stream, &
-            ncattribute_string('calendar',calendar), &
-              stvar%tbound_var%id,stvar%tbound_var%vname)
+          attc%aname = 'calendar'
+          attc%theval = calendar
+          call add_attribute(stream,attc,stvar%tbound_var%id, &
+            stvar%tbound_var%vname)
         end if
       end if
       if ( stream%l_hasgrid ) then
-        stvar%map_var =  ncvariable0d_char(vname='rcm_map', &
-          vunit='',long_name = '', standard_name = '',     &
-          lrecords = .false.)
+        stvar%map_var%vname = 'rcm_map'
+        stvar%map_var%vunit = ''
+        stvar%map_var%long_name = ''
+        stvar%map_var%standard_name = ''
         call outstream_addvar(ncout,stvar%map_var)
         select case (iproj)
           case('LAMCON')
-            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
-              'lambert_conformal_conic'),stvar%map_var%id,stvar%map_var%vname)
-            trlat(1) = truelatl
-            trlat(2) = truelath
-            tp => trlat
-            call add_attribute(stream, &
-              ncattribute_real8_array('standard_parallel', &
-              tp,2),stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'grid_mapping_name'
+            attc%theval = 'lambert_conformal_conic'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attra%aname = 'standard_parallel'
+            attra%theval(1) = truelatl
+            attra%theval(2) = truelath
+            attra%numval = 2
+            call add_attribute(stream,attra,stvar%map_var%id, &
+              stvar%map_var%vname)
           case('POLSTR')
-            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
-              'stereographic'),stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'grid_mapping_name'
+            attc%theval = 'stereographic'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('NORMER')
-            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
-              'mercator'),stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'grid_mapping_name'
+            attc%theval = 'mercator'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('ROTMER')
-            call add_attribute(stream,ncattribute_string('grid_mapping_name', &
-             'rotated_latitude_longitude'),stvar%map_var%id,stvar%map_var%vname)
-            call add_attribute(stream, &
-              ncattribute_real8('grid_north_pole_latitude', &
-              plat),stvar%map_var%id,stvar%map_var%vname)
-            call add_attribute(stream, &
-              ncattribute_real8('grid_north_pole_longitude', &
-              plon),stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'grid_mapping_name'
+            attc%theval = 'rotated_latitude_longitude'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'grid_north_pole_latitude'
+            attr%theval = plat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'grid_north_pole_longitude'
+            attr%theval = plon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         end select
-        call add_attribute(stream, &
-          ncattribute_real8('longitude_of_central_meridian', &
-          clon),stvar%map_var%id,stvar%map_var%vname)
-        call add_attribute(stream, &
-          ncattribute_real8('latitude_of_projection_origin', &
-          clat),stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'latitude_of_projection_origin'
+        attr%theval = clat
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'longitude_of_central_meridian'
+        attr%theval = clon
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
       end if
       ncstat = nf90_enddef(stream%id)
       if ( ncstat /= nf90_noerr ) then
@@ -549,11 +561,12 @@ module mod_ncstream
       implicit none
       type(ncoutstream) , pointer , intent(inout) :: stream
       character(len=*) , intent(in) :: dname
-      character(len=16) :: the_name
+      character(len=16) :: the_name , in_name
       integer(ik4) :: pdim , num
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
-      select case (dname)
+      in_name = dname
+      select case (in_name)
         case ('JX','jx')
           if ( stream%l_bound ) then
             ! this is the number of dot points WITH bondary
@@ -619,7 +632,7 @@ module mod_ncstream
         case default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
-            'Cannot add dimension '//trim(dname)//' to file '// &
+            'Cannot add dimension '//trim(the_name)//' to file '// &
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
       ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
@@ -657,6 +670,7 @@ module mod_ncstream
       integer(ik4) , optional :: iloc
       character(len=4) :: cdum
       character(len=*) , optional :: vname
+      character(len=32) :: the_name
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
@@ -665,6 +679,7 @@ module mod_ncstream
       else
         iv = nf90_global
       end if
+      the_name = vname
       select type(att)
         class is (ncattribute_string)
           ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
@@ -694,8 +709,8 @@ module mod_ncstream
         if ( present(iloc) ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
-            'Cannot add attribute '//trim(att%aname)// &
-            'to variable '//vname//' in file '//trim(stream%filename), 1)
+            'Cannot add attribute '//trim(att%aname)//'to variable '// &
+            trim(the_name)//' in file '//trim(stream%filename), 1)
         else
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
@@ -1701,89 +1716,120 @@ module mod_ncstream
       real(rk8) , target , dimension(2) :: trlat
       real(rk8) , pointer , dimension(:) :: tp
       integer(ik4) , dimension(8) :: tvals
+      type(ncattribute_string) :: attc
+      type(ncattribute_real8) :: attr
+      type(ncattribute_real8_array) :: attra
+      type(ncattribute_integer) :: atti
 
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
-      call add_attribute(stream, &
-        ncattribute_string('title','ICTP Regional Climatic model V4'))
-      call add_attribute(stream,ncattribute_string('institution','ICTP'))
-      call add_attribute(stream, &
-        ncattribute_string('source','RegCM Model output file'))
-      call add_attribute(stream,ncattribute_string('Conventions','CF-1.4'))
-      call add_attribute(stream,ncattribute_string('references', &
-        'http://gforge.ictp.it/gf/project/regcm'))
-      call add_attribute(stream,ncattribute_string('model_revision',SVN_REV))
+      attc%aname = 'title'
+      attc%theval = 'ICTP Regional Climatic model V4'
+      call add_attribute(stream,attc)
+      attc%aname = 'institution'
+      attc%theval = 'ICTP'
+      call add_attribute(stream,attc)
+      attc%aname = 'source'
+      attc%theval = 'RegCM Model output file'
+      call add_attribute(stream,attc)
+      attc%aname = 'Conventions'
+      attc%theval = 'CF-1.4'
+      call add_attribute(stream,attc)
+      attc%aname = 'references'
+      attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
+      call add_attribute(stream,attc)
+      attc%aname = 'model_revision'
+      attc%theval = SVN_REV
+      call add_attribute(stream,attc)
       call date_and_time(values=tvals)
       write(history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
         ' : Created by RegCM '//trim(stream%progname)//' program'
-      call add_attribute(stream,ncattribute_string('history',history))
-      call add_attribute(stream,ncattribute_string('experiment',domname))
-      call add_attribute(stream,ncattribute_string('projection',iproj))
+      attc%aname = 'history'
+      attc%theval = history
+      call add_attribute(stream,attc)
+      attc%aname = 'experiment'
+      attc%theval = domname
+      call add_attribute(stream,attc)
+      attc%aname = 'projection'
+      attc%theval = iproj
+      call add_attribute(stream,attc)
       if ( stream%l_subgrid ) then
-        call add_attribute(stream,ncattribute_real8('grid_size_in_meters', &
-          (ds*1000.0)/dble(nsg)))
-        call add_attribute(stream,ncattribute_string('model_subgrid','Yes'))
+        attr%aname = 'grid_size_in_meters'
+        attr%theval = (ds*d_1000)/dble(nsg)
+        call add_attribute(stream,attr)
+        attc%aname = 'model_subgrid'
+        attc%theval = 'Yes'
+        call add_attribute(stream,attc)
       else
-        call add_attribute(stream,ncattribute_real8('grid_size_in_meters', &
-          (ds*1000.0)))
+        attr%aname = 'grid_size_in_meters'
+        attr%theval = ds*d_1000
+        call add_attribute(stream,attr)
       end if
-      call add_attribute(stream, &
-        ncattribute_real8('latitude_of_projection_origin',clat))
-      call add_attribute(stream, &
-        ncattribute_real8('longitude_of_projection_origin',clon))
+      attr%aname = 'latitude_of_projection_origin'
+      attr%theval = clat
+      call add_attribute(stream,attr)
+      attr%aname = 'longitude_of_projection_origin'
+      attr%theval = clon
+      call add_attribute(stream,attr)
       if ( iproj == 'ROTMER' ) then
-        call add_attribute(stream, &
-          ncattribute_real8('grid_north_pole_latitude',plat))
-        call add_attribute(stream, &
-          ncattribute_real8('grid_north_pole_longitude',plon))
+        attr%aname = 'grid_north_pole_latitude'
+        attr%theval = plat
+        call add_attribute(stream,attr)
+        attr%aname = 'grid_north_pole_longitude'
+        attr%theval = plon
+        call add_attribute(stream,attr)
       else if ( iproj == 'LAMCON' ) then
-        trlat(1) = truelatl
-        trlat(2) = truelath
-        tp => trlat
-        call add_attribute(stream, &
-          ncattribute_real8_array('standard_parallel',tp,2))
+        attra%aname = 'standard_parallel'
+        attra%theval(1) = truelatl
+        attra%theval(2) = truelath
+        attra%numval = 2
+        call add_attribute(stream,attra)
       end if
-      call add_attribute(stream,ncattribute_real8('grid_factor',xcone))
-      stvar%jx_var = ncvariable1d_real(vname='jx',vunit='m', &
-        long_name = 'x-coordinate in Cartesian system', &
-        standard_name = 'projection_x_coordinate',      &
-        axis = 'x',lrecords = .false.)
-      stvar%iy_var = ncvariable1d_real(vname='iy',vunit='m', &
-        long_name = 'y-coordinate in Cartesian system', &
-        standard_name = 'projection_y_coordinate',      &
-        axis = 'y',lrecords = .false.)
+      attr%aname = 'grid_factor'
+      attr%theval = xcone
+      call add_attribute(stream,attr)
+      stvar%jx_var%vname = 'jx'
+      stvar%jx_var%vunit = 'm'
+      stvar%jx_var%long_name = 'x-coordinate in Cartesian system'
+      stvar%jx_var%standard_name = 'projection_x_coordinate'
+      stvar%jx_var%axis = 'x'
+      stvar%iy_var%vname = 'iy'
+      stvar%iy_var%vunit = 'm'
+      stvar%iy_var%long_name = 'y-coordinate in Cartesian system'
+      stvar%iy_var%standard_name = 'projection_y_coordinate'
+      stvar%iy_var%axis = 'y'
+      stvar%sigma_var%vname = 'sigma'
+      stvar%sigma_var%vunit = '1'
       if ( stream%l_full_sigma ) then
-        stvar%sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
-          long_name = "Sigma at full model layers",             &
-          standard_name = 'atmosphere_sigma_coordinate' ,       &
-          axis = 'z',lrecords = .false.)
+        stvar%sigma_var%long_name = "Sigma at full model layers"
       else
-        stvar%sigma_var =  ncvariable1d_real(vname='sigma',vunit='1', &
-          long_name = "Sigma at half model layers",             &
-          standard_name = 'atmosphere_sigma_coordinate' ,       &
-          axis = 'z',lrecords = .false.)
+        stvar%sigma_var%long_name = "Sigma at half model layers"
       end if
-      stvar%ptop_var =  ncvariable0d_real(vname='ptop',vunit='hPa', &
-        long_name = "Pressure at model top",                  &
-        standard_name = 'air_pressure',lrecords = .false.)
+      stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
+      stvar%sigma_var%axis = 'z'
+      stvar%ptop_var%vname='ptop'
+      stvar%ptop_var%vunit='hPa'
+      stvar%ptop_var%long_name = "Pressure at model top"
+      stvar%ptop_var%standard_name = 'air_pressure'
       call outstream_addvar(ncout,stvar%jx_var)
       call outstream_addvar(ncout,stvar%iy_var)
       call outstream_addvar(ncout,stvar%sigma_var)
       call outstream_addvar(ncout,stvar%ptop_var)
-      call add_attribute(stream, &
-        ncattribute_string('axis','X'),stvar%jx_var%id,stvar%jx_var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('axis','Y'),stvar%iy_var%id,stvar%iy_var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('axis','Z'),stvar%sigma_var%id,stvar%sigma_var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('positive','down'), &
-          stvar%sigma_var%id,stvar%sigma_var%vname)
-      call add_attribute(stream, &
-        ncattribute_string('formula_terms','sigma: sigma ps: ps ptop: ptop'), &
-          stvar%sigma_var%id,stvar%sigma_var%vname)
+      attc%aname = 'axis'
+      attc%theval = 'X'
+      call add_attribute(stream,attc,stvar%jx_var%id,stvar%jx_var%vname)
+      attc%theval = 'Y'
+      call add_attribute(stream,attc,stvar%iy_var%id,stvar%iy_var%vname)
+      attc%theval = 'Z'
+      call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
+      attc%aname = 'positive'
+      attc%theval = 'down'
+      call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
+      attc%aname = 'formula_terms'
+      attc%theval = 'sigma: sigma ps: ps ptop: ptop'
+      call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)
