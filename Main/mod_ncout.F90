@@ -1446,6 +1446,7 @@ module mod_ncout
           select type(vp)
             type is (ncvariable2d_real)
               if ( vp%lrecords ) cycle
+              vp%rval = myid + 1
               call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
               vp%j1 = outstream(i)%jg1
               vp%j2 = outstream(i)%jg2
@@ -1556,25 +1557,30 @@ module mod_ncout
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
-            vp%j1 = outstream(istream)%jg1
-            vp%j2 = outstream(istream)%jg2
-            vp%i1 = outstream(istream)%ig1
-            vp%i2 = outstream(istream)%ig2
-            tmp2d => vp%rval
-            vp%rval => io2d
+            if ( myid == iocpu ) then
+              vp%j1 = outstream(istream)%jg1
+              vp%j2 = outstream(istream)%jg2
+              vp%i1 = outstream(istream)%ig1
+              vp%i2 = outstream(istream)%ig2
+              tmp2d => vp%rval
+              vp%rval => io2d
+            end if
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2, &
               1,size(vp%rval,3))
-            vp%j1 = outstream(istream)%jg1
-            vp%j2 = outstream(istream)%jg2
-            vp%i1 = outstream(istream)%ig1
-            vp%i2 = outstream(istream)%ig2
-            tmp3d => vp%rval
-            vp%rval => io3d
+            if ( myid == iocpu ) then
+              vp%j1 = outstream(istream)%jg1
+              vp%j2 = outstream(istream)%jg2
+              vp%i1 = outstream(istream)%ig1
+              vp%i2 = outstream(istream)%ig2
+              tmp3d => vp%rval
+              vp%rval => io3d
+            end if
           class default
             return
         end select
+        if ( myid /= iocpu ) cycle
       end if
       call outstream_writevar(outstream(istream)%ncout,vp)
       if ( .not. parallel_out ) then
