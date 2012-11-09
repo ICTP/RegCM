@@ -1062,7 +1062,7 @@ module mod_ncstream
             len_dim(ic) = stream%len_dims(h2m_level_dim)
           case ('w')
             if ( stream%id_dims(h10m_level_dim) < 0 ) then
-              call add_dimension(stream,'h10')
+              call add_dimension(stream,'10m')
             end if
             id_dim(ic) = stream%id_dims(h10m_level_dim)
             len_dim(ic) = stream%len_dims(h10m_level_dim)
