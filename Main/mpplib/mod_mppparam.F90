@@ -40,6 +40,8 @@ module mod_mppparam
 
   integer(ik4) :: cartesian_communicator
 
+  integer , public :: ncout_mpi_info = mpi_info_null
+
   type model_area
     logical :: bandflag
     logical :: has_bdy
