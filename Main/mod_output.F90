@@ -32,7 +32,6 @@ module mod_output
   use mod_cu_interface
   use mod_pbl_interface
   use mod_ncio
-  use mod_ncout
   use mod_bdycod
   use mod_precip
   use mod_split
@@ -75,7 +74,6 @@ module mod_output
 !
   lstartup = .false.
   if ( ktau == 0 .or. doing_restart ) then
-    call newoutfiles(idatex)
     if ( myid == iocpu ) then
       call mkfile
     end if
@@ -405,11 +403,6 @@ module mod_output
     end if
   end if
 
-  if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
-    if ( .not. lstartup .and. idatex /= idate2 ) then
-      call newoutfiles(idatex)
-    end if
-  end if
   if ( myid == iocpu ) then
     if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
       if ( .not. lstartup .and. idatex /= idate2 ) then
