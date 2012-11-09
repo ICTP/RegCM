@@ -26,6 +26,7 @@ module mod_wrtoxd
   use mod_memutil
   use mod_message
   use mod_stdio
+  use mod_ncstream_types
   use mod_ncstream
 
   private

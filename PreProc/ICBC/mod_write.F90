@@ -25,6 +25,7 @@ module mod_write
   use mod_grid
   use mod_memutil
   use mod_message
+  use mod_ncstream_types
   use mod_ncstream
 
   private

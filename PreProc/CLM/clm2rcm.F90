@@ -73,6 +73,9 @@ program clm2rcm
   real(rk4) , pointer , dimension(:,:) :: mpu
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
+  real(rk4) , pointer , dimension(:,:,:) :: save_regyz
+  real(rk4) , pointer , dimension(:,:) :: new_forest , old_forest
+  logical :: hassmask = .false.
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
   integer(ik4) :: ipathdiv , ierr
   integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
@@ -82,6 +85,8 @@ program clm2rcm
   character(len=256) :: outfil_nc
   character(len=64) :: csdate , cldim
   integer(ik4) , dimension(8) :: ilevs
+  integer(ik4) , parameter :: iforest = 5
+  integer(ik4) , parameter :: igrass  = 14
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -189,7 +194,8 @@ program clm2rcm
 !         ************************
       write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
       ierr = nf90_open(inpfile,nf90_nowrite,idin)
-      call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Cannot open file '//trim(inpfile))
       ipathdiv = scan(inpfile, pthsep, .true.)
       if ( ipathdiv/=0 ) then
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
@@ -222,6 +228,11 @@ program clm2rcm
       icount(4) = 1
     end if
  
+    if ( ifld==ipft ) then
+      call getmem3d(save_regyz,1,iy,1,jx,1,nlev(ifld),'clm2rcm:save_regyz')
+      call getmem2d(new_forest,1,iy,1,jx,'clm2rcm:new_forest')
+      call getmem2d(old_forest,1,iy,1,jx,'clm2rcm:old_forest')
+    end if
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
                   'clm2rcm:zoom')
     call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
@@ -317,8 +328,16 @@ program clm2rcm
                   xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)
  
 !   ** Write the interpolated data to NetCDF for CLM and checkfile
-
     imondate = irefdate
+    if ( ifld == ipft ) then
+      inquire(file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+             exist=hassmask)
+      if ( hassmask ) then
+        open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+             form='unformatted',status='old')
+        read(163) save_regyz
+      end if
+    end if
     do l = 1 , ntim(ifld)
       if ( ifld==ipft ) then
         do i = 1 , iy
@@ -341,6 +360,19 @@ program clm2rcm
             end if
           end do
         end do
+        if ( .not. hassmask ) then
+          save_regyz(:,:,:) = regyxzt(:,:,:,1)
+          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+               form='unformatted',status='new')
+          write(163) save_regyz
+        else
+          new_forest = regyxzt(:,:,iforest,1)
+          old_forest = save_regyz(:,:,iforest)
+          regyxzt(:,:,:,1) = save_regyz(:,:,:)
+          regyxzt(:,:,iforest,1) = new_forest(:,:)
+          regyxzt(:,:,igrass,1) = save_regyz(:,:,igrass)+ &
+                           (old_forest(:,:)-new_forest(:,:))
+        end if
       end if
       do k = 1 , nlev(ifld)
         do j = 1 , jx
@@ -443,6 +475,8 @@ program clm2rcm
     istatus = nf90_put_var(ncid, ivar, regyxzt)
     call checkncerr(istatus,__FILE__,__LINE__, &
       ('Error '//trim(vnam(ifld))// ' write'))
+
+    if ( associated(save_regyz) ) call relmem3d(save_regyz)
 
   end do  ! End nfld loop
 

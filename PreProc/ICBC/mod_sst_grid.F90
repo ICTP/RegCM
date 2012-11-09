@@ -26,6 +26,7 @@ module mod_sst_grid
   use mod_memutil
   use mod_message
   use mod_nchelper
+  use mod_ncstream_types
   use mod_ncstream
   use mod_domain
 

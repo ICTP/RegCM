@@ -511,6 +511,7 @@ module mod_dynparam
       dayspy = 360.0D+00
       ical = y360
     else
+      write(stderr,*) 'No calendar specified. Assuming gregorian'
       dayspy = 365.2422D+00
       ical = gregorian
     end if

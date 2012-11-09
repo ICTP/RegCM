@@ -202,6 +202,7 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       integer(ik4) :: iomode = nf90_clobber
       type(ncoutstream) , pointer :: stream
+      type(rcm_time_and_date) :: tt
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space
@@ -257,9 +258,11 @@ module mod_ncstream
 #endif
       end if
       stream%progname     = params%pname
+      tt = params%zero_date
       reference_date      = 1949120100
       call setcal(reference_date,ical)
-      stream%zero_time    = hourdiff(params%zero_date,reference_date)
+      call setcal(tt,reference_date)
+      stream%zero_time    = hourdiff(tt,reference_date)
       stream%l_bound      = params%l_bound
       stream%l_sync       = params%l_sync
       stream%l_subgrid    = params%l_subgrid

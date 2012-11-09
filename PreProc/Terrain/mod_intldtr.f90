@@ -510,7 +510,7 @@ module mod_intldtr
             do jj = -1 , 1 , 1
               ip = max(min(i+ii,iy),1)
               jp = max(min(j+jj,jx),1)
-              around(k) = int(omt(ip,jp))
+              around(k) = int(omt(jp,ip))
               k = k + 1
             end do
           end do
