@@ -342,8 +342,6 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       type(basic_variables) , pointer :: stvar
       integer(ik4) :: maxnum_int , maxnum_real , i
-      real(rk8) , target , dimension(2) :: trlat
-      real(rk8) , pointer , dimension(:) :: tp
       real(rk8) :: xds
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
