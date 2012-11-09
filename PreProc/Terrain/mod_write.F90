@@ -22,6 +22,7 @@ module mod_write
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_ncstream_types
   use mod_ncstream
 
   private
