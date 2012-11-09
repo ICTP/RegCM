@@ -1047,34 +1047,13 @@ module mod_ncout
         var_loop: &
         do ivar = 1 , outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
-          if ( .not. parallel_out ) then
-            select type(vp)
-              type is (ncvariable2d_real)
-                if ( vp%lrecords ) cycle var_loop
-                call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
-                vp%j1 = outstream(i)%jg1
-                vp%j2 = outstream(i)%jg2
-                vp%i1 = outstream(i)%ig1
-                vp%i2 = outstream(i)%ig2
-                tmp2d => vp%rval
-                vp%rval => io2d
-              class default
-                cycle var_loop
-            end select
-          end if
-          call outstream_writevar(outstream(i)%ncout,vp)
-          if ( .not. parallel_out ) then
-            select type(vp)
-              type is (ncvariable2d_real)
-                vp%rval => tmp2d
-                vp%j1 = outstream(i)%jl1
-                vp%j2 = outstream(i)%jl2
-                vp%i1 = outstream(i)%il1
-                vp%i2 = outstream(i)%il2
-              class default
-                cycle var_loop
-            end select
-          end if
+          select type(vp)
+            type is (ncvariable2d_real)
+              if ( vp%lrecords ) cycle var_loop
+              call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+            class default
+              cycle var_loop
+          end select
         end do var_loop
       end do stream_loop
       return
@@ -1445,8 +1424,7 @@ module mod_ncout
         if ( .not. parallel_out ) then
           select type(vp)
             type is (ncvariable2d_real)
-              if ( vp%lrecords ) cycle
-              vp%rval = myid + 1
+              if ( vp%lrecords ) cycle var_loop_par
               call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
               vp%j1 = outstream(i)%jg1
               vp%j2 = outstream(i)%jg2
