@@ -1713,13 +1713,10 @@ module mod_ncstream
       type(ncoutstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
       character(256) :: history
-      real(rk8) , target , dimension(2) :: trlat
-      real(rk8) , pointer , dimension(:) :: tp
       integer(ik4) , dimension(8) :: tvals
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
-      type(ncattribute_integer) :: atti
 
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
