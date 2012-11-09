@@ -1068,7 +1068,7 @@ module mod_ncstream
             len_dim(ic) = stream%len_dims(h10m_level_dim)
           case ('s')
             if ( stream%id_dims(soil_layer_dim) < 0 ) then
-              call add_dimension(stream,'soil_layer')
+              call add_dimension(stream,'nsoil')
             end if
             id_dim(ic) = stream%id_dims(soil_layer_dim)
             len_dim(ic) = stream%len_dims(soil_layer_dim)
