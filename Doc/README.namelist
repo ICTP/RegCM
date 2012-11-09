@@ -353,9 +353,9 @@
 ! RRTM Radiation scheme parameters
 !
  &rrtmparam
- inflgsw  = 2, ! 0 = use the optical properties calculated in perp_dat_rrtm
+ inflgsw  = 2, ! 0 = use the optical properties calculated in prep_dat_rrtm
                !     (same as standard radiation)
-               ! 2 = use RRTM option to calculate cloud optical prperties
+               ! 2 = use RRTM option to calculate cloud optical properties
                !     from water path and cloud drop radius
  iceflgsw = 3, ! ???????????????????????????
  liqflgsw = 1, ! ???????????????????????????

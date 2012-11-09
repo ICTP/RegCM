@@ -28,6 +28,8 @@ module mod_ncout
   use mod_lm_interface
   use mod_cu_interface
   use mod_rad_interface
+  use mod_pbl_interface
+  use mod_che_interface
   use mod_precip
 
   use mpi
@@ -1174,7 +1176,212 @@ module mod_ncout
       ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
     call outstream_addatt(outstream(itype)%ncout, &
       ncattribute_integer('static_solar_constant_used',isolconst))
-
+    if ( ipptls == 1 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_maximum_cloud_fraction_cover',fcmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_auto_conversion_rate_for_ocean',qck1oce))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_gultepe_factor_when_rain_for_land',gulland))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_gultepe_factor_when_rain_for_ocean',guloce))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_rh_with_fcc_one',rhmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_rh_threshold_for_land',rh0land))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_rh_threshold_for_ocean',rh0oce))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_limit_temperature',tc0))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_raindrop_evaporation_rate',cevap))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_raindrop_accretion_rate',caccr))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_cloud_fraction_maximum',cftotmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
+    end if
+    if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_shear_on_precip',shrmin))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_shear_on_precip',shrmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency',edtmin))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency',edtmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency_o',edtmino))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency_o',edtmaxo))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency_x',edtminx))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency_x',edtmaxx))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_shear_on_precip_on_ocean',shrmin_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_shear_on_precip_on_ocean',shrmax_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency_on_ocean',edtmin_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency_on_ocean',edtmax_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency_o_on_ocean',edtmino_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency_o_on_ocean',edtmaxo_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_precip_efficiency_x_on_ocean',edtminx_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_precip_efficiency_x_on_ocean',edtmaxx_ocn))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_depth_of_stable_layer',pbcmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_depth_of_cloud',mincld))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_min_convective_heating',htmin))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_convective_heating',htmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_max_cloud_base_height',skbmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
+     end if
+    if ( icup == 4 .or. icup == 98 .or. icup == 99 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_lowest_convection_sigma',minsig))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_autoconversion_threshold_mixing',elcrit))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_autoconversion_threshold_temperature',tlcrit))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_mixing_coefficient_in_entrainment',entp))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_fractional_area_unsaturated_downdraft',sigd))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_fractional_precip_outside_cloud',sigs))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_pressure_velocity_of_rain',omtrain))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_pressure_velocity_of_snow',omtsnow))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_rain_evaporation_coefficient',coeffr))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_snow_evaporation_coefficient',coeffs))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_momentum_transport_coefficient',cu))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_downdraft_velocity_coefficient',betae))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_max_parcel_neg_temp_perturbation',dtmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_approach_rate_quasi_eq_coeff_a',alphae))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('mit_approach_rate_quasi_eq_coeff_d',damp))
+    end if
+    if ( icup == 5 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('tiedtke_actual_scheme',iconv))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_entrainment_rate_shallow',entrscv))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_entrainment_rate_midlevel',entrmid))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_max_massflux',cmfcmax))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_min_massflux',cmfcmin))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_downdraft_fractional_LFS_massflux',cmfdeps))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_relative_saturation_downdraft',rhcdd))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_cape_adjustment_timescale',cmtcape))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_max_rainfall_elevation',zdlev))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_conversion_coefficient',cprcon))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('tiedtke_midlevel_max_cloudbase_level',nmctop))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_logical('tiedtke_enable_deep_convection',lmfpen))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_logical('tiedtke_enable_shallow_convection',lmfscv))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_logical('tiedtke_enable_midlevel_convection',lmfmid))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_logical('tiedtke_enable_cumulus_downsraft',lmfdd))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_logical('tiedtke_enable_cumulus_friction',lmfdudv))
+    end if
+    if ( ibltyp == 2 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('uwpbl_advection_scheme',iuwvadv))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('uwpbl_cloud_evap_entr_incr_efficiency',atwo))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('uwpbl_eddy_LS_stable_PBL_scaling',rstbl))
+    end if
+    if ( irrtm == 1 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',inflgsw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',iceflgsw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',iceflgsw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',inflglw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',iceflglw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_idrv',idrv))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('rrtm_random_number_generator',irng))
+    end if
+    if ( ichem == 1 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_string('chem_simulation_type',chemsimtype))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_activate_reaction_solver',ichsolver))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_activate_emission',ichsursrc))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_activate_dry_deposition',ichdrdepo))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_activate_convective_transport',ichcumtra))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_activate_wet_removal',ichremlsc))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_dust_PSD_scheme',ichdustemd))
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
+    end if
+#ifdef CLM
+    call outstream_addatt(outstream(itype)%ncout, &
+      ncattribute_integer('clm_land_surface_dataset_selection',imask))
+#endif
+    if ( iocncpl == 1 ) then
+      call outstream_addatt(outstream(itype)%ncout, &
+        ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
+    end if
   end subroutine newoutfile
 
   subroutine setup_var(var,vsize,vname,vunit,long_name,standard_name, &

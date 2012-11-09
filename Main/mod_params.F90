@@ -63,12 +63,6 @@ module mod_params
              dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
              qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
              wkp1 , xbot , xtop , xx , yy
-  real(rk8) :: gulland , guloce , mincld , qck1land , qck1oce , &
-             rh0land , rh0oce , skbmax , clfrcvmax
-  real(rk8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
-             edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
-  real(rk8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
-             edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
   integer(ik4) :: kbmax
   real(rk8) , dimension(nsplit) :: dtsplit
   integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2

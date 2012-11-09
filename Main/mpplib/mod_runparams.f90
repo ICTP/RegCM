@@ -113,6 +113,13 @@ module mod_runparams
   real(rk8) , pointer , dimension(:) :: sigma
   real(rk8) , pointer , dimension(:,:) :: twt
 
+  real(rk8) :: gulland , guloce , mincld , qck1land , qck1oce , &
+               rh0land , rh0oce , skbmax , clfrcvmax
+  real(rk8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
+               edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
+  real(rk8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
+               edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
+
   character(len=8) :: scenario
 
   data doing_restart /.false./
