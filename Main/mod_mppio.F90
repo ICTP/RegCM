@@ -50,6 +50,7 @@ module mod_mppio
 
   real(rk8) , pointer , dimension(:,:,:) :: ht1_io
   real(rk8) , pointer , dimension(:,:,:) :: lndcat1_io
+  real(rk8) , pointer , dimension(:,:,:) :: mask1_io
   real(rk8) , pointer , dimension(:,:,:) :: xlat1_io
   real(rk8) , pointer , dimension(:,:,:) :: xlon1_io
 !
@@ -178,6 +179,7 @@ module mod_mppio
 
       call getmem3d(ht1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'ht1_io')
       call getmem3d(lndcat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'lndcat1_io')
+      call getmem3d(mask1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'mask1_io')
       call getmem3d(xlat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlat1_io')
       call getmem3d(xlon1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlon1_io')
 
