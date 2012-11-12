@@ -121,7 +121,8 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
         srfrna
 !
-  real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
+  real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
+    mask1 , xlat1 , xlon1
 !
   real(rk4) , pointer , dimension(:,:,:) :: fbat
 !
@@ -223,6 +224,7 @@ module mod_bats_common
       call getmem3d(lndcat1,1,nnsg,jde1,jde2,ide1,ide2,'bats:lndcat1')
       call getmem3d(xlat1,1,nnsg,jde1,jde2,ide1,ide2,'bats:xlat1')
       call getmem3d(xlon1,1,nnsg,jde1,jde2,ide1,ide2,'bats:xlon1')
+      call getmem3d(mask1,1,nnsg,jde1,jde2,ide1,ide2,'bats:mask1')
 
       if (idcsst == 1) then
         call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
