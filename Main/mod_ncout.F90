@@ -30,6 +30,7 @@ module mod_ncout
   use mod_rad_interface
   use mod_pbl_interface
   use mod_che_interface
+  use mod_outvars
   use mod_precip
 
   use netcdf
@@ -53,8 +54,8 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 5
 
-  integer(ik4) , parameter :: natm2dvars = 2 + nbase
-  integer(ik4) , parameter :: natm3dvars = 10
+  integer(ik4) , parameter :: natm2dvars = 3 + nbase
+  integer(ik4) , parameter :: natm3dvars = 9
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
@@ -130,6 +131,7 @@ module mod_ncout
   integer(ik4), parameter :: atm_ps    = 5
   integer(ik4), parameter :: atm_tpr   = 6
   integer(ik4), parameter :: atm_tgb   = 7
+  integer(ik4), parameter :: atm_tsw   = 8
 
   integer(ik4), parameter :: atm_u     = 1
   integer(ik4), parameter :: atm_v     = 2
@@ -140,7 +142,6 @@ module mod_ncout
   integer(ik4), parameter :: atm_tke   = 7
   integer(ik4), parameter :: atm_kth   = 8
   integer(ik4), parameter :: atm_kzm   = 9
-  integer(ik4), parameter :: atm_swt   = 10
 
   integer(ik4), parameter :: srf_xlon   = 1
   integer(ik4), parameter :: srf_xlat   = 2
@@ -297,71 +298,86 @@ module mod_ncout
 
         ! This variables are always present
 
-        call setup_var(v2dvar_atm(atm_xlon),vsize,'xlon','degrees_east', &
-          'Longitude on Cross Points','longitude')
-        call setup_var(v2dvar_atm(atm_xlat),vsize,'xlat','degrees_north', &
-          'Latitude on Cross Points','latitude')
-        call setup_var(v2dvar_atm(atm_mask),vsize,'mask','1', &
-          'Land Mask','land_binary_mask')
-        call setup_var(v2dvar_atm(atm_topo),vsize,'topo','m', &
-          'Surface Model Elevation','surface_altitude')
-        call setup_var(v2dvar_atm(atm_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+        call setup_common_vars(vsize,v2dvar_atm(atm_xlon), &
+          v2dvar_atm(atm_xlat),v2dvar_atm(atm_topo),       &
+          v2dvar_atm(atm_mask),v2dvar_atm(atm_ps))
 
         ! The following may be enabled/disabled
 
-        if ( enable_atm3d_vars(atm_tpr) ) &
+        if ( enable_atm2d_vars(atm_tpr) ) then
           call setup_var(v2dvar_atm(atm_tpr),vsize,'tpr','kg m-2 day-1', &
             'Total rain precipitation flux','precipitation_flux',.true., &
             'time: mean')
-        if ( enable_atm3d_vars(atm_tgb) ) &
+          atm_tpr_out => v2dvar_atm(atm_tpr)%rval
+        end if
+        if ( enable_atm2d_vars(atm_tgb) ) then
           call setup_var(v2dvar_atm(atm_tgb),vsize,'tgb','K', &
-            'Lower groud temperature','soil_temperature',.true.)
+            'Lower groud temperature','soil_temperature',.true.,'time: mean')
+          atm_tgb_out => v2dvar_atm(atm_tgb)%rval
+        end if
+        if ( enable_atm2d_vars(atm_tsw) ) then
+          call setup_var(v2dvar_atm(atm_tsw),vsize,'tsw','kg m-2', &
+            'Total soil water','moisture_content_of_soil_layer',.true., &
+            'time: mean',l_fill=.true.)
+          atm_tsw_out => v2dvar_atm(atm_tsw)%rval
+        end if
 
         vsize%k2 = kz
-        if ( enable_atm3d_vars(atm_u) ) &
+        if ( enable_atm3d_vars(atm_u) ) then
           call setup_var(v3dvar_atm(atm_u),vsize,'u','m s-1', &
             'Zonal component of wind (westerly)','eastward_wind',.true.)
-        if ( enable_atm3d_vars(atm_v) ) &
+          atm_u_out => v3dvar_atm(atm_u)%rval
+        end if
+        if ( enable_atm3d_vars(atm_v) ) then
           call setup_var(v3dvar_atm(atm_v),vsize,'v','m s-1', &
             'Meridional component of wind (southerly)','northward_wind',.true.)
-        if ( enable_atm3d_vars(atm_t) ) &
+          atm_v_out => v3dvar_atm(atm_v)%rval
+        end if
+        if ( enable_atm3d_vars(atm_t) ) then
           call setup_var(v3dvar_atm(atm_t),vsize,'t','K', &
             'Air Temperature','air_temperature',.true.)
-        if ( enable_atm3d_vars(atm_omega) ) &
+          atm_t_out => v3dvar_atm(atm_t)%rval
+        end if
+        if ( enable_atm3d_vars(atm_omega) ) then
           call setup_var(v3dvar_atm(atm_omega),vsize,'omega','hPa s-1', &
             'Pressure velocity','lagrangian_tendency_of_air_pressure',.true.)
-        if ( enable_atm3d_vars(atm_qv) ) &
+          atm_omega_out => v3dvar_atm(atm_omega)%rval
+        end if
+        if ( enable_atm3d_vars(atm_qv) ) then
           call setup_var(v3dvar_atm(atm_qv),vsize,'qv','kg kg-1', &
             'Water vapor mixing ratio','humidity_mixing_ratio',.true.)
-        if ( enable_atm3d_vars(atm_qc) ) &
+          atm_qv_out => v3dvar_atm(atm_qv)%rval
+        end if
+        if ( enable_atm3d_vars(atm_qc) ) then
           call setup_var(v3dvar_atm(atm_qc),vsize,'qc','kg kg-1', &
             'Cloud liquid water mixing ratio', &
             'cloud_liquid_water_mixing_ratio',.true.)
+          atm_qc_out => v3dvar_atm(atm_qc)%rval
+        end if
 
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          if ( enable_atm3d_vars(atm_tke) ) &
+          if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm(atm_tke),vsize,'tke','m2 s2', &
               'Turbulent Kinetic Energy','turbulent_kinetic_energy', .true.)
-          if ( enable_atm3d_vars(atm_kth) ) &
+            atm_tke_out => v3dvar_atm(atm_tke)%rval
+          end if
+          if ( enable_atm3d_vars(atm_kth) ) then
             call setup_var(v3dvar_atm(atm_kth),vsize,'kth','m2 s-1', &
               'Vertical Turbulent Viscosity','vertical_momentum_diffusivity', &
               .true.)
-          if ( enable_atm3d_vars(atm_kzm) ) &
+            atm_kth_out => v3dvar_atm(atm_kth)%rval
+          end if
+          if ( enable_atm3d_vars(atm_kzm) ) then
             call setup_var(v3dvar_atm(atm_kzm),vsize,'kzm','m2 s-1', &
               'Vertical Turbulent Diffusivity','vertical_scalar_diffusivity', &
               .true.)
+            atm_kzm_out => v3dvar_atm(atm_kzm)%rval
+          end if
         else
           enable_atm3d_vars(atm_tke) = .false.
           enable_atm3d_vars(atm_kth) = .false.
           enable_atm3d_vars(atm_kzm) = .false.
         end if
-
-        vsize%k2 = 2
-        v3dvar_atm(atm_swt)%axis = 'xys'
-        if ( enable_atm3d_vars(atm_swt) ) &
-          call setup_var(v3dvar_atm(atm_swt),vsize,'swt','kg m-2', &
-            'Total soil water','moisture_content_of_soil_layer',.true.)
 
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
         enable_atm_vars(natm2dvars+1:natmvars) = enable_atm3d_vars
@@ -400,16 +416,9 @@ module mod_ncout
 
         ! This variables are always present
 
-        call setup_var(v2dvar_srf(srf_xlon),vsize,'xlon','degrees_east', &
-          'Longitude on Cross Points','longitude')
-        call setup_var(v2dvar_srf(srf_xlat),vsize,'xlat','degrees_north', &
-          'Latitude on Cross Points','latitude')
-        call setup_var(v2dvar_srf(srf_mask),vsize,'mask','1', &
-          'Land Mask','land_binary_mask')
-        call setup_var(v2dvar_srf(srf_topo),vsize,'topo','m', &
-          'Surface Model Elevation','surface_altitude')
-        call setup_var(v2dvar_srf(srf_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+        call setup_common_vars(vsize,v2dvar_srf(srf_xlon), &
+          v2dvar_srf(srf_xlat),v2dvar_srf(srf_topo),       &
+          v2dvar_srf(srf_mask),v2dvar_srf(srf_ps))
 
         ! The following may be enabled/disabled
 
@@ -551,16 +560,9 @@ module mod_ncout
 
         ! This variables are always present
 
-        call setup_var(v2dvar_sts(sts_xlon),vsize,'xlon','degrees_east', &
-          'Longitude on Cross Points','longitude')
-        call setup_var(v2dvar_sts(sts_xlat),vsize,'xlat','degrees_north', &
-          'Latitude on Cross Points','latitude')
-        call setup_var(v2dvar_sts(sts_mask),vsize,'mask','1', &
-          'Land Mask','land_binary_mask')
-        call setup_var(v2dvar_sts(sts_topo),vsize,'topo','m', &
-          'Surface Model Elevation','surface_altitude')
-        call setup_var(v2dvar_sts(sts_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+        call setup_common_vars(vsize,v2dvar_sts(sts_xlon), &
+          v2dvar_sts(sts_xlat),v2dvar_sts(sts_topo),       &
+          v2dvar_sts(sts_mask),v2dvar_sts(sts_ps))
 
         ! The following may be enabled/disabled
 
@@ -661,6 +663,12 @@ module mod_ncout
         call setup_var(v2dvar_sub(sub_ps),vsize,'ps','hPa', &
           'Surface Pressure','surface_air_pressure',.true.)
 
+        xlon_sub_out => v2dvar_sub(sub_xlon)%rval
+        xlat_sub_out => v2dvar_sub(sub_xlat)%rval
+        mask_sub_out => v2dvar_sub(sub_mask)%rval
+        topo_sub_out => v2dvar_sub(sub_topo)%rval
+        ps_sub_out => v2dvar_sub(sub_ps)%rval
+
         ! The following may be enabled/disabled
 
         if ( enable_sub2d_vars(sub_uvdrag) ) &
@@ -759,16 +767,9 @@ module mod_ncout
 
         ! This variables are always present
 
-        call setup_var(v2dvar_rad(rad_xlon),vsize,'xlon','degrees_east', &
-          'Longitude on Cross Points','longitude')
-        call setup_var(v2dvar_rad(rad_xlat),vsize,'xlat','degrees_north', &
-          'Latitude on Cross Points','latitude')
-        call setup_var(v2dvar_rad(rad_mask),vsize,'mask','1', &
-          'Land Mask','land_binary_mask')
-        call setup_var(v2dvar_rad(rad_topo),vsize,'topo','m', &
-          'Surface Model Elevation','surface_altitude')
-        call setup_var(v2dvar_rad(rad_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+        call setup_common_vars(vsize,v2dvar_rad(rad_xlon), &
+          v2dvar_rad(rad_xlat),v2dvar_rad(rad_topo),       &
+          v2dvar_rad(rad_mask),v2dvar_rad(rad_ps))
 
         ! The following may be enabled/disabled
 
@@ -874,16 +875,9 @@ module mod_ncout
 
         ! This variables are always present
 
-        call setup_var(v2dvar_lak(lak_xlon),vsize,'xlon','degrees_east', &
-          'Longitude on Cross Points','longitude')
-        call setup_var(v2dvar_lak(lak_xlat),vsize,'xlat','degrees_north', &
-          'Latitude on Cross Points','latitude')
-        call setup_var(v2dvar_lak(lak_mask),vsize,'mask','1', &
-          'Land Mask','land_binary_mask')
-        call setup_var(v2dvar_lak(lak_topo),vsize,'topo','m', &
-          'Surface Model Elevation','surface_altitude')
-        call setup_var(v2dvar_lak(lak_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+        call setup_common_vars(vsize,v2dvar_lak(lak_xlon), &
+          v2dvar_lak(lak_xlat),v2dvar_lak(lak_topo),       &
+          v2dvar_lak(lak_mask),v2dvar_lak(lak_ps))
 
         ! The following may be enabled/disabled
 
@@ -1084,7 +1078,9 @@ module mod_ncout
       outstream(i)%opar%fname = &
         trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
 
-      write(stdout,*) 'Opening new output file ',trim(outstream(i)%opar%fname)
+      if ( myid == italk ) then
+        write(stdout,*) 'Opening new output file ',trim(outstream(i)%opar%fname)
+      end if
       call outstream_setup(outstream(i)%ncout,outstream(i)%opar)
 
       ! Buffer Zone Control relaxation + diffusion term params
@@ -1453,14 +1449,71 @@ module mod_ncout
     end do stream_loop_par
   end subroutine newoutfiles
 
+  subroutine setup_common_vars(vsize,xlon,xlat,topo,mask,ps)
+    implicit none
+    type(varspan) , intent(in) :: vsize
+    type(ncvariable2d_real) , intent(inout) :: xlon , xlat , topo , mask , ps
+    if ( associated(xlon_out) ) then
+      call setup_var(xlon,vsize,'xlon','degrees_east', &
+        'Longitude on Cross Points','longitude',lgetspace=.false.)
+      call setup_var(xlat,vsize,'xlat','degrees_north', &
+        'Latitude on Cross Points','latitude',lgetspace=.false.)
+      call setup_var(mask,vsize,'mask','1', &
+        'Land Mask','land_binary_mask',lgetspace=.false.)
+      call setup_var(topo,vsize,'topo','m', &
+        'Surface Model Elevation','surface_altitude',lgetspace=.false.)
+      call setup_var(ps,vsize,'ps','hPa', &
+        'Surface Pressure','surface_air_pressure',.true.,lgetspace=.false.)
+      xlon%rval => xlon_out
+      xlat%rval => xlat_out
+      mask%rval => mask_out
+      topo%rval => topo_out
+      ps%rval => ps_out
+    else
+      call setup_var(xlon,vsize,'xlon','degrees_east', &
+        'Longitude on Cross Points','longitude')
+      call setup_var(xlat,vsize,'xlat','degrees_north', &
+        'Latitude on Cross Points','latitude')
+      call setup_var(mask,vsize,'mask','1', &
+        'Land Mask','land_binary_mask')
+      call setup_var(topo,vsize,'topo','m', &
+        'Surface Model Elevation','surface_altitude')
+      call setup_var(ps,vsize,'ps','hPa', &
+        'Surface Pressure','surface_air_pressure',.true.)
+      xlon_out => xlon%rval
+      xlat_out => xlat%rval
+      mask_out => mask%rval
+      topo_out => topo%rval
+      ps_out => ps%rval
+    end if
+  end subroutine setup_common_vars
+
+  subroutine setup_var_tpr(vsize,tpr)
+    implicit none
+    type(varspan) , intent(in) :: vsize
+    type(ncvariable2d_real) , intent(inout) :: tpr
+
+    if ( associated(tpr_out) ) then
+      call setup_var(tpr,vsize,'tpr','kg m-2 day-1', &
+        'Total rain precipitation flux','precipitation_flux',.true., &
+        'time: mean',lgetspace=.false.)
+      tpr%rval => tpr_out
+    else
+      call setup_var(tpr,vsize,'tpr','kg m-2 day-1', &
+        'Total rain precipitation flux','precipitation_flux',.true., &
+        'time: mean')
+      tpr_out => tpr%rval
+    end if
+  end subroutine setup_var_tpr
+
   subroutine setup_var(var,vsize,vname,vunit,long_name,standard_name, &
-                       l_rec,cell_method,l_fill,rmissval)
+                       l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
     class(ncvariable_standard) , intent(inout) :: var
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
     character(len=*) , intent(in) , optional :: cell_method
-    logical , intent(in) , optional :: l_rec , l_fill
+    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
     real(rk4) , intent(in) , optional :: rmissval
     var%vname = vname
     var%vunit = vunit
@@ -1474,16 +1527,22 @@ module mod_ncout
     select type(var)
       type is (ncvariable2d_real)
         if ( present(l_rec) ) var%lrecords = l_rec
-        call getmem2d(var%rval,vsize%j1,vsize%j2, &
-          vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var%vname))
+        if ( .not. present(lgetspace) .or. &
+             ( present(lgetspace) .and. lgetspace ) ) then
+          call getmem2d(var%rval,vsize%j1,vsize%j2, &
+            vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var%vname))
+        end if
         var%j1 = vsize%j1
         var%j2 = vsize%j2
         var%i1 = vsize%i1
         var%i2 = vsize%i2
       type is (ncvariable3d_real)
         if ( present(l_rec) ) var%lrecords = l_rec
-        call getmem3d(var%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
-          vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var%vname))
+        if ( .not. present(lgetspace) .or. &
+             ( present(lgetspace) .and. lgetspace ) ) then
+          call getmem3d(var%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+            vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var%vname))
+        end if
         var%j1 = vsize%j1
         var%j2 = vsize%j2
         var%i1 = vsize%i1
