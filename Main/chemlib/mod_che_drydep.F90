@@ -721,7 +721,7 @@ module mod_che_drydep
 
        ! Finally : gas phase dry dep tendency calculation 
 #ifdef CLM
-       jj = global_jstart+j-1
+       jj = global_cross_jstart+j-1
 #endif
        if ( ichdrdepo == 1 ) then  
          do i = ici1 , ici2
@@ -730,7 +730,7 @@ module mod_che_drydep
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-              ii = global_istart+i-1
+              ii = global_cross_istart+i-1
               drydepvg(i,:)  =  cdep_vels(jj,ii,:)
            end if
 #endif
@@ -764,7 +764,7 @@ module mod_che_drydep
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-              ii = global_istart+i-1
+              ii = global_cross_istart+i-1
               drydepvg(i,:)  =  cdep_vels(jj,ii,:)
            end if
 #endif

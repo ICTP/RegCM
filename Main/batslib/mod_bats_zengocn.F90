@@ -91,11 +91,11 @@ module mod_bats_zengocn
 #endif
     do i = ici1 , ici2
 #ifdef CLM
-      ii = global_istart+i-1
+      ii = global_cross_istart+i-1
 #endif
       do j = jci1 , jci2
 #ifdef CLM
-        jj = global_jstart+j-1
+        jj = global_cross_jstart+j-1
 #endif
         do n = 1 , nnsg
 #ifdef CLM

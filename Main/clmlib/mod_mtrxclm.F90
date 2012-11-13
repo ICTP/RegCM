@@ -383,9 +383,9 @@ module mod_mtrxclm
     if ( .not. ifrest ) then
       do n = 1 , nnsg
         do i = ici1 , ici2
-          ig = global_istart+i-1
+          ig = global_cross_istart+i-1
           do j = jci1 , jci2
-            jg = global_jstart+j-1
+            jg = global_cross_jstart+j-1
             ldmsk1(n,j,i) = landmask(jg,ig)
             tgbrd(n,j,i)  = tground2(j,i)
             taf(n,j,i)    = tground2(j,i)
@@ -403,9 +403,9 @@ module mod_mtrxclm
         end do
       end do
       do i = ici1 , ici2
-        ig = global_istart+i-1
+        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_jstart+j-1
+          jg = global_cross_jstart+j-1
           fsw(j,i)    = d_zero
           flw(j,i)    = d_zero
           sabveg(j,i) = d_zero
@@ -476,9 +476,9 @@ module mod_mtrxclm
 !     ****** use albedo calculated with BATS method when albedo=1
 !
     do i = ici1 , ici2
-      ig = global_istart+i-1
+      ig = global_cross_istart+i-1
       do j = jci1 , jci2
-        jg = global_jstart+j-1
+        jg = global_cross_jstart+j-1
         if (ldmsk1(1,j,i) /= 0 .and. (d_one-aldirs(j,i)) > 1.0D-10 ) then
           aldirs(j,i) = aldirs(j,i)*landfrac(jg,ig) + &
                         aldirs(j,i)*(d_one-landfrac(jg,ig))
@@ -648,9 +648,9 @@ module mod_mtrxclm
       end if
 
       do i = ici1 , ici2
-        ig = global_istart+i-1
+        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_jstart+j-1
+          jg = global_cross_jstart+j-1
           uvdrag(j,i)   = d_zero
           hfx(j,i)      = d_zero
           qfx(j,i)      = d_zero
@@ -922,9 +922,9 @@ module mod_mtrxclm
       if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
 
         do i = ici1 , ici2
-          ig = global_istart+i-1
+          ig = global_cross_istart+i-1
           do j = jci1 , jci2
-            jg = global_jstart+j-1
+            jg = global_cross_jstart+j-1
             fbat(j,i,drag_o) = 0.0
             fbat(j,i,evpa_o) = 0.0
             fbat(j,i,sena_o) = 0.0
