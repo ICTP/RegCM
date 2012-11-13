@@ -906,9 +906,6 @@ module mod_ncstream
           if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 ) then
             var%lgridded = .true.
           end if
-          if ( scan(var%axis,'2') > 0 .or. scan(var%axis,'w') > 0 ) then
-            var%is_level = .true.
-          end if
           if ( var%lrecords ) then
             nd = 4
             stream%l_hasrec = .true.
@@ -1234,17 +1231,8 @@ module mod_ncstream
             stream%icount(2) = var%nval(2)
             totsize = var%totsize
           end if
-          if ( var%is_level ) then
-            if ( present(is) ) then
-              stream%istart(3) = is
-            else
-              stream%istart(3) = 1
-            end if
-            stream%icount(3) = 1
-          else
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
           if ( docopy ) then
             if ( .not. associated(var%rval) .and. &
                  .not. associated(var%rval_level) .and. &
@@ -1297,11 +1285,6 @@ module mod_ncstream
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2,is), (/totsize/)))
-            else if ( var%is_level ) then
-              totsize = totsize/var%nval(3)
-              buffer%realbuff(1:totsize) = &
-                real(reshape(var%rval_level(var%j1:var%j2,var%i1:var%i2), &
-                  (/totsize/)))
             else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
@@ -1513,17 +1496,8 @@ module mod_ncstream
             stream%icount(2) = var%nval(2)
             totsize = var%totsize
           end if
-          if ( var%is_level ) then
-            if ( present(is) ) then
-              stream%istart(3) = is
-            else
-              stream%istart(3) = 1
-            end if
-            stream%icount(3) = 1
-          else
-            stream%istart(3) = 1
-            stream%icount(3) = var%nval(3)
-          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
           if ( docopy ) then
             if ( .not. associated(var%ival) .and. &
                  .not. associated(var%ival_slice) .and. &
@@ -1576,11 +1550,6 @@ module mod_ncstream
               buffer%intbuff(1:totsize) =                           &
                 reshape(var%ival_slice(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2,is), (/totsize/))
-            else if ( var%is_level ) then
-              totsize = totsize/var%nval(3)
-              buffer%realbuff(1:totsize) = &
-                real(reshape(var%ival_level(var%j1:var%j2,var%i1:var%i2), &
-                  (/totsize/)))
             else
               buffer%realbuff(1:totsize) =                    &
                 reshape(var%ival(var%j1:var%j2,var%i1:var%i2, &

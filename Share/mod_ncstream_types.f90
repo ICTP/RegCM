@@ -283,7 +283,6 @@ module mod_ncstream_types
     integer(ik4) :: i1 = -1 , i2 = -1
     integer(ik4) :: j1 = -1 , j2 = -1
     integer(ik4) :: k1 = -1 , k2 = -1
-    logical :: is_level = .false.
   end type ncvariable_3d
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
