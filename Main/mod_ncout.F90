@@ -422,71 +422,105 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_srf2d_vars(srf_uvdrag) ) &
+        if ( enable_srf2d_vars(srf_uvdrag) ) then
           call setup_var(v2dvar_srf(srf_uvdrag),vsize,'uvdrag','1', &
             'Surface drag stress coefficient in air', &
             'surface_drag_coefficient_in_air',.true.)
-        if ( enable_srf2d_vars(srf_tg) ) &
+          srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
+        end if
+        if ( enable_srf2d_vars(srf_tg) ) then
           call setup_var(v2dvar_srf(srf_tg),vsize,'tg','K', &
             'Ground surface temperature','surface_temperature',.true.)
-        if ( enable_srf2d_vars(srf_tlef) ) &
+          srf_tg_out => v2dvar_srf(srf_tg)%rval
+        end if
+        if ( enable_srf2d_vars(srf_tlef) ) then
           call setup_var(v2dvar_srf(srf_tlef),vsize,'tlef','K', &
             'Foliage canopy temperature','canopy_temperature',.true.)
-        if ( enable_srf2d_vars(srf_tpr) ) &
+          srf_tlef_out => v2dvar_srf(srf_tlef)%rval
+        end if
+        if ( enable_srf2d_vars(srf_tpr) ) then
           call setup_var(v2dvar_srf(srf_tpr),vsize,'tpr','kg m-2 day-1', &
             'Total precipitation flux','precipitation_flux',.true., &
             'time: mean')
-        if ( enable_srf2d_vars(srf_evp) ) &
-          call setup_var(v2dvar_srf(srf_evp),vsize,'evp','kg m-2 day-1', &
+          srf_tpr_out => v2dvar_srf(srf_tpr)%rval
+        end if
+        if ( enable_srf2d_vars(srf_evp) ) then
+          call setup_var(v2dvar_srf(srf_evp),vsize,'evspsbl','kg m-2 s-1', &
             'Total evapotranspiration flux','water_evaporation_flux',.true., &
             'time: mean')
-        if ( enable_srf2d_vars(srf_scv) ) &
-          call setup_var(v2dvar_srf(srf_scv),vsize,'scv','kg m-2 day-1', &
+          srf_evp_out => v2dvar_srf(srf_evp)%rval
+        end if
+        if ( enable_srf2d_vars(srf_scv) ) then
+          call setup_var(v2dvar_srf(srf_scv),vsize,'snv','kg m-2', &
             'Liquid water equivalent of snow thickness', &
             'lwe_thickness_of_surface_snow_amount',.true.,'time: mean')
-        if ( enable_srf2d_vars(srf_sena) ) &
+          srf_scv_out => v2dvar_srf(srf_scv)%rval
+        end if
+        if ( enable_srf2d_vars(srf_sena) ) then
           call setup_var(v2dvar_srf(srf_sena),vsize,'sena','W m-2', &
             'Sensible heat flux','surface_downward_sensible_heat_flux', &
             .true.,'time: mean')
-        if ( enable_srf2d_vars(srf_flw) ) &
+          srf_sena_out => v2dvar_srf(srf_sena)%rval
+        end if
+        if ( enable_srf2d_vars(srf_flw) ) then
           call setup_var(v2dvar_srf(srf_flw),vsize,'flw','W m-2', &
             'Net upward longwave energy flux', &
             'net_upward_longwave_flux_in_air',.true.,'time: mean')
-        if ( enable_srf2d_vars(srf_fsw) ) &
+          srf_flw_out => v2dvar_srf(srf_flw)%rval
+        end if
+        if ( enable_srf2d_vars(srf_fsw) ) then
           call setup_var(v2dvar_srf(srf_fsw),vsize,'fsw','W m-2', &
             'Net downward shortwave energy flux', &
             'net_downward_shortwave_flux_in_air',.true.,'time: mean')
-        if ( enable_srf2d_vars(srf_fld) ) &
+          srf_fsw_out => v2dvar_srf(srf_fsw)%rval
+        end if
+        if ( enable_srf2d_vars(srf_fld) ) then
           call setup_var(v2dvar_srf(srf_fld),vsize,'fld','W m-2', &
             'Surface downward longwave flux in air', &
             'surface_downwelling_longwave_flux_in_air',.true.,'time: mean')
-        if ( enable_srf2d_vars(srf_sina) ) &
+          srf_fld_out => v2dvar_srf(srf_fld)%rval
+        end if
+        if ( enable_srf2d_vars(srf_sina) ) then
           call setup_var(v2dvar_srf(srf_sina),vsize,'sina','W m-2', &
             'Surface downward shortwave flux in air', &
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
-        if ( enable_srf2d_vars(srf_prcv) ) &
+          srf_sina_out => v2dvar_srf(srf_sina)%rval
+        end if
+        if ( enable_srf2d_vars(srf_prcv) ) then
           call setup_var(v2dvar_srf(srf_prcv),vsize,'prcv','kg m-2 day-1', &
             'Convective precipitation flux','convective_rainfall_flux', &
             .true.,'time: mean')
-        if ( enable_srf2d_vars(srf_zpbl) ) &
+          srf_prcv_out => v2dvar_srf(srf_prcv)%rval
+        end if
+        if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf(srf_zpbl),vsize,'zpbl','m', &
             'PBL thickness','atmosphere_boundary_layer_thickness',.true.)
-        if ( enable_srf2d_vars(srf_aldirs) ) &
+          srf_zpbl_out => v2dvar_srf(srf_zpbl)%rval
+        end if
+        if ( enable_srf2d_vars(srf_aldirs) ) then
           call setup_var(v2dvar_srf(srf_aldirs),vsize,'aldirs','1', &
             'Surface albedo to direct shortwave radiation', &
             'surface_albedo_short_wave_direct',.true.)
-        if ( enable_srf2d_vars(srf_aldifs) ) &
+          srf_aldirs_out => v2dvar_srf(srf_aldirs)%rval
+        end if
+        if ( enable_srf2d_vars(srf_aldifs) ) then
           call setup_var(v2dvar_srf(srf_aldifs),vsize,'aldifs','1', &
             'Surface albedo to diffuse shortwave radiation', &
             'surface_albedo_short_wave_diffuse',.true.)
-        if ( enable_srf2d_vars(srf_sund) ) &
+          srf_aldifs_out => v2dvar_srf(srf_aldifs)%rval
+        end if
+        if ( enable_srf2d_vars(srf_sund) ) then
           call setup_var(v2dvar_srf(srf_sund),vsize,'sund','s', &
             'Duration of sunshine','duration_of_sunshine',.true.,'time: sum')
+          srf_sund_out => v2dvar_srf(srf_sund)%rval
+        end if
 
         if ( iseaice == 1 ) then
-          if ( enable_srf2d_vars(srf_seaice) ) &
+          if ( enable_srf2d_vars(srf_seaice) ) then
             call setup_var(v2dvar_srf(srf_seaice),vsize,'seaice','1', &
               'Sea ice mask','seaice_binary_mask',.true.)
+            srf_seaice_out => v2dvar_srf(srf_seaice)%rval
+          end if
         else
           enable_srf2d_vars(srf_seaice) = .false.
         end if
@@ -496,32 +530,43 @@ module mod_ncout
         v3dvar_srf(srf_v10m)%axis = 'xyw'
         v3dvar_srf(srf_t2m)%axis = 'xy2'
         v3dvar_srf(srf_q2m)%axis = 'xy2'
-
-        if ( enable_srf3d_vars(srf_u10m) ) &
-          call setup_var(v3dvar_srf(srf_u10m),vsize,'u10m','m s-1', &
-            '10 meter zonal (westerly) wind component', &
+        if ( enable_srf3d_vars(srf_u10m) ) then
+          call setup_var(v3dvar_srf(srf_u10m),vsize,'uas','m s-1', &
+            'Anemometric zonal (westerly) wind component', &
             'eastward_wind',.true.)
-        if ( enable_srf3d_vars(srf_v10m) ) &
-          call setup_var(v3dvar_srf(srf_v10m),vsize,'v10m','m s-1', &
-            '10 meter meridional (southerly) wind component' , &
+          srf_u10m_out => v3dvar_srf(srf_u10m)%rval
+        end if
+        if ( enable_srf3d_vars(srf_v10m) ) then
+          call setup_var(v3dvar_srf(srf_v10m),vsize,'vas','m s-1', &
+            'Anenometric meridional (southerly) wind component' , &
             'northward_wind',.true.)
-        if ( enable_srf3d_vars(srf_t2m) ) &
-          call setup_var(v3dvar_srf(srf_t2m),vsize,'t2m','K', &
-            '2 meter air temperature','air_temperature',.true.)
-        if ( enable_srf3d_vars(srf_q2m) ) &
-          call setup_var(v3dvar_srf(srf_q2m),vsize,'q2m','1', &
-            '2 meter air specific humidity','specific_humidity',.true.)
+          srf_v10m_out => v3dvar_srf(srf_v10m)%rval
+        end if
+        if ( enable_srf3d_vars(srf_t2m) ) then
+          call setup_var(v3dvar_srf(srf_t2m),vsize,'tas','K', &
+            'Near surface air temperature','air_temperature',.true.)
+          srf_t2m_out => v3dvar_srf(srf_t2m)%rval
+        end if
+        if ( enable_srf3d_vars(srf_q2m) ) then
+          call setup_var(v3dvar_srf(srf_q2m),vsize,'qas','1', &
+            'Near surface air specific humidity','specific_humidity',.true.)
+          srf_q2m_out => v3dvar_srf(srf_q2m)%rval
+        end if
 
         vsize%k2 = 2
         v3dvar_srf(srf_smw)%axis = 'xys'
         v3dvar_srf(srf_runoff)%axis = 'xys'
-        if ( enable_srf3d_vars(srf_smw) ) &
-          call setup_var(v3dvar_srf(srf_smw),vsize,'smw','kg m-2', &
+        if ( enable_srf3d_vars(srf_smw) ) then
+          call setup_var(v3dvar_srf(srf_smw),vsize,'mrso','kg m-2', &
             'Moisture content of the soil layers', &
-            'soil_moisture_content',.true.)
-        if ( enable_srf3d_vars(srf_runoff) ) &
-          call setup_var(v3dvar_srf(srf_runoff),vsize,'runoff','kg m-2 day-1', &
+            'soil_moisture_content_in_layers',.true.)
+          srf_smw_out => v3dvar_srf(srf_smw)%rval
+        end if
+        if ( enable_srf3d_vars(srf_runoff) ) then
+          call setup_var(v3dvar_srf(srf_runoff),vsize,'mrro','kg m-2 s-1', &
             'Runoff flux','runoff_flux',.true.,'time: mean')
+          srf_runoff_out => v3dvar_srf(srf_runoff)%rval
+        end if
 
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
@@ -682,16 +727,16 @@ module mod_ncout
           call setup_var(v2dvar_sub(sub_tlef),vsize,'tlef','K', &
             'Foliage canopy temperature','canopy_temperature',.true.)
         if ( enable_sub2d_vars(sub_evp) ) &
-          call setup_var(v2dvar_sub(sub_evp),vsize,'evp','kg m-2 day-1', &
+          call setup_var(v2dvar_sub(sub_evp),vsize,' evspsbl','kg m-2 s-1', &
             'Total evapotranspiration flux','water_evaporation_flux',.true., &
             'time: mean')
         if ( enable_sub2d_vars(sub_scv) ) &
-          call setup_var(v2dvar_sub(sub_scv),vsize,'scv','kg m-2', &
+          call setup_var(v2dvar_sub(sub_scv),vsize,'snv','kg m-2', &
             'Liquid water equivalent of snow thickness', &
             'lwe_thickness_of_surface_snow_amount',.true.,'time: mean')
         if ( enable_sub2d_vars(sub_sena) ) &
-          call setup_var(v2dvar_sub(sub_sena),vsize,'sena','W m-2', &
-            'Sensible heat flux','surface_downward_sensible_heat_flux', &
+          call setup_var(v2dvar_sub(sub_sena),vsize,'hfss','W m-2', &
+            'Sensible heat flux','surface_upward_sensible_heat_flux', &
             .true.,'time: mean')
         if ( lakemod == 1 ) then
           if ( enable_sub2d_vars(sub_tlake) ) &
@@ -1488,24 +1533,6 @@ module mod_ncout
     end if
   end subroutine setup_common_vars
 
-  subroutine setup_var_tpr(vsize,tpr)
-    implicit none
-    type(varspan) , intent(in) :: vsize
-    type(ncvariable2d_real) , intent(inout) :: tpr
-
-    if ( associated(tpr_out) ) then
-      call setup_var(tpr,vsize,'tpr','kg m-2 day-1', &
-        'Total rain precipitation flux','precipitation_flux',.true., &
-        'time: mean',lgetspace=.false.)
-      tpr%rval => tpr_out
-    else
-      call setup_var(tpr,vsize,'tpr','kg m-2 day-1', &
-        'Total rain precipitation flux','precipitation_flux',.true., &
-        'time: mean')
-      tpr_out => tpr%rval
-    end if
-  end subroutine setup_var_tpr
-
   subroutine setup_var(var,vsize,vname,vunit,long_name,standard_name, &
                        l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
@@ -1586,40 +1613,56 @@ module mod_ncout
     class(ncvariable_standard) , pointer :: vp
     integer(ik4) :: ivar
 
+    if ( .not. parallel_out .and. myid /= iocpu ) then
+      do ivar = 1 , outstream(istream)%nvar
+        vp => outstream(istream)%ncvars%vlist(ivar)%vp
+        select type(vp)
+          type is (ncvariable2d_real)
+            if ( .not. vp%lrecords ) cycle
+            call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+          type is (ncvariable3d_real)
+            if ( .not. vp%lrecords ) cycle
+            call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+          class default
+            cycle
+        end select
+      end do
+      return
+    end if
+
     call outstream_addrec(outstream(istream)%ncout,idate)
+
     do ivar = 1 , outstream(istream)%nvar
+
       vp => outstream(istream)%ncvars%vlist(ivar)%vp
+
       if ( .not. parallel_out ) then
         select type(vp)
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
-            if ( myid == iocpu ) then
-              vp%j1 = outstream(istream)%jg1
-              vp%j2 = outstream(istream)%jg2
-              vp%i1 = outstream(istream)%ig1
-              vp%i2 = outstream(istream)%ig2
-              tmp2d => vp%rval
-              vp%rval => io2d
-            end if
+            vp%j1 = outstream(istream)%jg1
+            vp%j2 = outstream(istream)%jg2
+            vp%i1 = outstream(istream)%ig1
+            vp%i2 = outstream(istream)%ig2
+            tmp2d => vp%rval
+            vp%rval => io2d
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2, &
-              1,size(vp%rval,3))
-            if ( myid == iocpu ) then
-              vp%j1 = outstream(istream)%jg1
-              vp%j2 = outstream(istream)%jg2
-              vp%i1 = outstream(istream)%ig1
-              vp%i2 = outstream(istream)%ig2
-              tmp3d => vp%rval
-              vp%rval => io3d
-            end if
+            call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+            vp%j1 = outstream(istream)%jg1
+            vp%j2 = outstream(istream)%jg2
+            vp%i1 = outstream(istream)%ig1
+            vp%i2 = outstream(istream)%ig2
+            tmp3d => vp%rval
+            vp%rval => io3d
           class default
-            return
+            cycle
         end select
-        if ( myid /= iocpu ) cycle
       end if
+
       call outstream_writevar(outstream(istream)%ncout,vp)
+
       if ( .not. parallel_out ) then
         select type(vp)
           type is (ncvariable2d_real)
@@ -1635,10 +1678,12 @@ module mod_ncout
             vp%i1 = outstream(istream)%il1
             vp%i2 = outstream(istream)%il2
           class default
-            return
+            cycle
         end select
       end if
+
     end do
+
   end subroutine write_record_output_stream
 
 end module mod_ncout
