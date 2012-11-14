@@ -58,13 +58,6 @@ module mod_advection
 
   real(rk8) , parameter :: c287 = 0.287D+00
 !
-! relaxed upstream scheme factors
-!
-  real(rk8) , parameter :: fact1 = 0.60D0
-!hy
-! real(rk8) , parameter :: fact1 = 0.75D0
-!hy
-  real(rk8) , parameter :: fact2 = d_one - fact1
   real(rk8) , parameter :: falow = 1.0D-8
 !
   contains
@@ -166,77 +159,33 @@ module mod_advection
 #endif
     end subroutine hadv3d
 !
-    subroutine hadv3d4d(ften,f,nk,m,ind)
+    subroutine hadv3d4d(ften,f,nk,m)
       implicit none
-      integer(ik4) , intent (in) :: ind , nk , m
+      integer(ik4) , intent (in) :: nk , m
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(rk8) :: fx1 , fx2 , fy1 , fy2
-      real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d4d'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      if ( ind == 1 ) then
-        !
-        ! for qv:
-        !
-        do k = 1 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k,m) = ften(j,i,k,m) -                               &
+      !
+      ! for qv:
+      !
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,k,m) = ften(j,i,k,m) -                               &
                   ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,m)+f(j,i,k,m)) -  &
                    (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,m)+f(j-1,i,k,m)) +  &
                    (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,m)+f(j,i,k,m)) -  &
                    (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,m)+f(j,i,k,m))) / &
                    (dx4*mapfx(j,i)*mapfx(j,i))
-            end do
           end do
         end do
-      else if ( ind == 2 ) then
-        !
-        ! for qc and qx: up-wind values are used.
-        !
-        do k = 1 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ucmonb = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              ucmona = d_half*(ua(j,  i+1,k)+ua(j,  i,k))
-              if ( ucmonb >= d_zero ) then
-                fx2 = fact1*f(j,  i,k,m) + fact2*f(j+1,i,k,m)
-              else
-                fx2 = fact1*f(j+1,i,k,m) + fact2*f(j,  i,k,m)
-              end if
-              if ( ucmona >= d_zero ) then
-                fx1 = fact1*f(j-1,i,k,m) + fact2*f(j,  i,k,m)
-              else
-                fx1 = fact1*f(j,  i,k,m) + fact2*f(j-1,i,k,m)
-              end if
-              vcmonb = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              vcmona = d_half*(va(j+1,i,  k)+va(j,i,  k))
-              if ( vcmonb >= d_zero ) then
-                fy2 = fact1*f(j,i,  k,m) + fact2*f(j,i+1,k,m)
-              else
-                fy2 = fact1*f(j,i+1,k,m) + fact2*f(j,i,  k,m)
-              end if
-              if ( vcmona >= d_zero ) then
-                fy1 = fact1*f(j,i+1,k,m) + fact2*f(j,  i,k,m)
-              else
-                fy1 = fact1*f(j,i,  k,m) + fact2*f(j,i-1,k,m)
-              end if
-              ften(j,i,k,m) = ften(j,i,k,m) -                      &
-                   (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
-                   (dx*mapfx(j,i)*mapfx(j,i))
-            end do
-          end do
-        end do
-      else
-        call fatal(__FILE__,__LINE__, &
-                   'The advection scheme you required is not available.')
-      end if
+      end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
@@ -248,8 +197,6 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      real(rk8) :: fx1 , fx2 , fy1 , fy2
-      real(rk8) :: ucmona , ucmonb , vcmona , vcmonb
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv4d'
@@ -260,33 +207,12 @@ module mod_advection
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ucmonb = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              ucmona = d_half*(ua(j,  i+1,k)+ua(j,  i,k))
-              if ( ucmonb >= d_zero ) then
-                fx2 = fact1*f(j,  i,k,n) + fact2*f(j+1,i,k,n)
-              else
-                fx2 = fact1*f(j+1,i,k,n) + fact2*f(j,  i,k,n)
-              end if
-              if ( ucmona >= d_zero ) then
-                fx1 = fact1*f(j-1,i,k,n) + fact2*f(j,  i,k,n)
-              else
-                fx1 = fact1*f(j,  i,k,n) + fact2*f(j-1,i,k,n)
-              end if
-              vcmonb = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              vcmona = d_half*(va(j+1,i,  k)+va(j,i,  k))
-              if ( vcmonb >= d_zero ) then
-                fy2 = fact1*f(j,i,  k,n) + fact2*f(j,i+1,k,n)
-              else
-                fy2 = fact1*f(j,i+1,k,n) + fact2*f(j,i,  k,n)
-              end if
-              if ( vcmona >= d_zero ) then
-                fy1 = fact1*f(j,i+1,k,n) + fact2*f(j,  i,k,n)
-              else
-                fy1 = fact1*f(j,i,  k,n) + fact2*f(j,i-1,k,n)
-              end if
-              ften(j,i,k,n) = ften(j,i,k,n) -                      &
-                   (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
-                   (dx*mapfx(j,i)*mapfx(j,i))
+              ften(j,i,k,n) = ften(j,i,k,n) -                               &
+                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
+                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
+                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
+                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n))) / &
+                     (dx4*mapfx(j,i)*mapfx(j,i))
             end do
           end do
         end do

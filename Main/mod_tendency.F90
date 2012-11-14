@@ -74,7 +74,7 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    iptn = (jcross2-jcross1+1)*(icross2-icross1+1)
+    iptn = (jci2-jci1+1)*(ici1-ici2+1)
   end subroutine allocate_mod_tend
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -410,31 +410,15 @@ module mod_tendency
     !
     ! compute bleck (1977) noise parameters:
     !
-    do j = jci1 , jci2
-      do i = ici1 , ici2
-        ps4(j,i,1) = pten(j,i)
-        ps4(j,i,2) = psc(j,i)
-        ps4(j,i,3) = sfs%psb(j,i)
-        ps4(j,i,4) = sfs%psa(j,i)
+    ptntot = d_zero
+    pt2tot = d_zero
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ptntot = ptntot + dabs(pten(j,i))
+        pt2tot = pt2tot + dabs((psc(j,i)+sfs%psb(j,i)- &
+                 d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
       end do
     end do
-    call grid_collect(ps4,ps_4,jci1,jci2,ici1,ici2,1,4)
-    if ( ktau /= 0 ) then
-      if ( myid == iocpu ) then
-        ptntot = d_zero
-        pt2tot = d_zero
-        do i = icross1 , icross2
-          do j = jcross1 , jcross2
-            ptntot = ptntot + dabs(ps_4(j,i,1))
-            pt2tot = pt2tot +                       &
-                     dabs((ps_4(j,i,2)+ps_4(j,i,3)- &
-                           d_two*ps_4(j,i,4))/(dt*dt*d_rfour))
-          end do
-        end do
-      end if
-      call bcast(ptntot)
-      call bcast(pt2tot)
-    end if
     !
     ! calculate solar zenith angle
     !
@@ -550,7 +534,7 @@ module mod_tendency
     !   icup = 99: grell over land, emanuel over ocean
     !   icup = 98: emanuel over land, grell over ocean
     !
-    call hadv(aten%qx,atmx%qx,kz,iqv,1)
+    call hadv(aten%qx,atmx%qx,kz,iqv)
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,iqv,1)
@@ -601,7 +585,7 @@ module mod_tendency
     ! Large scale precipitation
     !
     if ( ipptls == 1 ) then
-      call hadv(aten%qx,atmx%qx,kz,iqc,2)
+      call hadv(aten%qx,atmx%qx,kz,iqc)
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,iqc,2)
       else
@@ -1304,9 +1288,6 @@ module mod_tendency
     !
     if ( ktau > 1 ) then
       ptnbar = ptntot/dble(iptn)
-      pt2bar = pt2tot/dble(iptn)
-      iconvec = 0
-      call sumall(total_precip_points,iconvec)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1388,22 +1369,28 @@ module mod_tendency
             end do
           end do
         end if
-        if ( myid == italk ) then
-          write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
-          write (*,*) 'No more atmosphere here....'
-          write (*,*) 'CFL violation detected, so model STOP'
-          write (*,*) '#####################################'
-          write (*,*) '#            DECREASE DT !!!!       #'
-          write (*,*) '#####################################'
-          call fatal(__FILE__,__LINE__,'CFL VIOLATION')
-        end if
+        write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
+        write (*,*) 'No more atmosphere here....'
+        write (*,*) 'CFL violation detected, so model STOP'
+        write (*,*) '#####################################'
+        write (*,*) '#            DECREASE DT !!!!       #'
+        write (*,*) '#####################################'
+        call fatal(__FILE__,__LINE__,'CFL VIOLATION')
       end if
-      if ( myid == italk ) then
-        if ( mod(ktau,krep) == 0 ) then
+
+      if ( mod(ktau,krep) == 0 ) then
+        pt2bar = pt2tot/dble(iptn)
+        iconvec = 0
+        pt2tot = d_zero
+        ptntot = d_zero
+        call sumall(total_precip_points,iconvec)
+        call sumall(pt2bar,pt2tot)
+        call sumall(ptnbar,ptntot)
+        if ( myid == italk ) then
           appdat = tochar(idatex)
           write(stdout,'(a23,a,i16)') appdat , ', ktau   = ', ktau
           write(stdout,'(a,2E12.5)') '$$$ 1st, 2nd time deriv of ps   = ', &
-                ptnbar , pt2bar
+                ptnbar , pt2tot
           write(stdout,'(a,i7)') '$$$  no. of points w/convection = ', iconvec
         end if
       end if
