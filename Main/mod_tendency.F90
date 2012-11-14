@@ -74,7 +74,7 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    iptn = (jci2-jci1+1)*(ici1-ici2+1)
+    iptn = (jci2-jci1+1)*(ici2-ici1+1)
   end subroutine allocate_mod_tend
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -410,15 +410,17 @@ module mod_tendency
     !
     ! compute bleck (1977) noise parameters:
     !
-    ptntot = d_zero
-    pt2tot = d_zero
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ptntot = ptntot + dabs(pten(j,i))
-        pt2tot = pt2tot + dabs((psc(j,i)+sfs%psb(j,i)- &
-                 d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
+    if ( ktau /= 0 ) then
+      ptntot = d_zero
+      pt2tot = d_zero
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ptntot = ptntot + dabs(pten(j,i))
+          pt2tot = pt2tot + dabs((psc(j,i)+sfs%psb(j,i)- &
+                   d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
+        end do
       end do
-    end do
+    end if
     !
     ! calculate solar zenith angle
     !
