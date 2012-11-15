@@ -1251,6 +1251,7 @@ module mod_params
   call grid_distribute(mddom_io%msfx,mddom%msfx,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%msfd,mddom%msfd,jde1,jde2,ide1,ide2)
   call grid_distribute(mddom_io%coriol,mddom%coriol,jde1,jde2,ide1,ide2)
+  call grid_distribute(mddom_io%snowam,mddom%snowam,jde1,jde2,ide1,ide2)
 
   call subgrid_distribute(ht1_io,ht1,jde1,jde2,ide1,ide2)
   call subgrid_distribute(lndcat1_io,lndcat1,jde1,jde2,ide1,ide2)
