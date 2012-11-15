@@ -255,7 +255,11 @@ module mod_bats_mtrxbats
             end if
             nlveg = 12
           else if ( ldmsk1(n,j,i) == 1 ) then
-            sncv(n,j,i) = dmax1(sncv(n,j,i),d_zero)
+            if ( snowam(j,i) > d_zero .and. snowam(j,i) < dmissval ) then
+              sncv(:,j,i) = snowam(j,i)
+            else
+              sncv(:,j,i) = d_zero
+            end if
             nlveg = iveg1(n,j,i)
           else
             nlveg = iveg1(n,j,i)
