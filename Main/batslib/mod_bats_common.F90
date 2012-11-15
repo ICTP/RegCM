@@ -149,6 +149,7 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
   real(rk8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(rk8) , pointer , dimension(:,:) :: ht            ! mddom%ht
+  real(rk8) , pointer , dimension(:,:) :: snow          ! mddom%snow
   real(rk8) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
   real(rk8) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
   real(rk8) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
