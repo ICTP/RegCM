@@ -42,6 +42,7 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:) :: xlat
     real(rk8) , pointer , dimension(:,:) :: xlon
     real(rk8) , pointer , dimension(:,:) :: mask
+    real(rk8) , pointer , dimension(:,:) :: snow
     real(rk8) , pointer , dimension(:,:) :: dlat
     real(rk8) , pointer , dimension(:,:) :: dlon
     real(rk8) , pointer , dimension(:,:) :: msfx
@@ -533,6 +534,7 @@ module mod_atm_interface
         call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
         call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'atm_interface:mask')
+        call getmem2d(dom%snow,jde1,jde2,ide1,ide2,'atm_interface:snow')
         call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
@@ -546,6 +548,7 @@ module mod_atm_interface
         call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'atm_interface:xlon')
         call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'atm_interface:mask')
+        call getmem2d(dom%snow,jdot1,jdot2,idot1,idot2,'atm_interface:snow')
         call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'atm_interface:msfx')
