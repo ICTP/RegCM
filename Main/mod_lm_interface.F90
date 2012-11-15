@@ -69,6 +69,7 @@ module mod_lm_interface
     call assignpnt(dom%xlon,xlon)
     call assignpnt(dom%lndcat,lndcat)
     call assignpnt(dom%ht,ht)
+    call assignpnt(dom%snowam,snowam)
     call assignpnt(atm%ubx3d,uatm)
     call assignpnt(atm%vbx3d,vatm)
     call assignpnt(atm%tb3d,tatm)
