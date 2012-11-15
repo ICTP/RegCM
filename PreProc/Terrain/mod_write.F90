@@ -129,6 +129,7 @@ module mod_write
     v2dvar_base(11)%vunit = 'mm'
     v2dvar_base(11)%long_name = 'Snow initial LWE in mm'
     v2dvar_base(11)%standard_name = 'snowfall_amount'
+    v2dvar_base(11)%lfillvalue = .true.
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'

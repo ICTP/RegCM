@@ -74,6 +74,7 @@ program terrain
   use mod_stdio
   use mod_message
   use mod_memutil
+  use mod_snow
 
   implicit none
 !
@@ -675,6 +676,8 @@ program terrain
                       dpth_s,texout_s,frac_tex_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
+
+  call read_snow(snowam,jx,iy)
 
   write (outname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
