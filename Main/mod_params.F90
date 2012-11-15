@@ -133,7 +133,7 @@ module mod_params
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , ichdustemd , ichdiag, ichsursrc,&
-         ichebdy
+         ichebdy, rdstemfac
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
@@ -432,6 +432,7 @@ module mod_params
   ichdiag = 0       ! chem tend outputs 
   ichsursrc = 1
   ichebdy =1
+  rdstemfac = d_one
 #ifdef CLM
 !c------CLM Specific
   imask = 1
@@ -743,6 +744,7 @@ module mod_params
     call bcast(idirect)
     call bcast(ichsolver)
     call bcast(ichdustemd)
+    call bcast(rdstemfac)
     call bcast(ichdiag)
     call bcast(ichsursrc)
     call chem_config

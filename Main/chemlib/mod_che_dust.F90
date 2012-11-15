@@ -183,8 +183,9 @@ module mod_che_dust
       ! data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
       !           3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
 
-      data bcly / 4.3D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
-               
+!      data bcly / 4.3D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
+      data bcly / 6.D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
+              
       ! bsnd and bslt are not really used after / 
       ! the data here are not consistent with clay.
       data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
@@ -716,7 +717,7 @@ module mod_che_dust
       real(rk8), dimension(ilg,nbin,nats):: rsfrowt
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
-      ! basically this const is a tuning parameter
+      ! basically this const is a tuning parameter / now set through rdstemfac (chem nameliste) 
       !data const /d_one/
       data beta  /16300.0D0/
   
@@ -729,9 +730,9 @@ module mod_che_dust
       fsoil3(:,:) = d_zero
 
       if ( ichdustemd == 1 ) then
-        const = 0.4D0
+        const = 0.4D0 * rdstemfac
       else if (  ichdustemd == 2 ) then 
-        const = d_one
+        const = d_one * rdstemfac
       end if 
  
       do nt = 1 , nats 

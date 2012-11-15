@@ -56,7 +56,7 @@ module mod_che_pollen
       real(rk8) , dimension(ici1:ici2) , intent(in) ::ustar, wind10, rh10, prec,convprec
       real(rk8) , dimension(ici1:ici2) :: precip,emispol
      integer(ik4) :: i
-      real (rk8) :: emispot, fh,fw,fr,uconv,htc
+      real (rk8) :: emispot, fh,fw,fr,uconv,htc,ce
             
 ! calculate the actual pollen flux corrected for meteo 
 ! receive emission potential in grain/m2/hr      
@@ -65,11 +65,13 @@ module mod_che_pollen
       uconv = d_zero
       precip = (prec + convprec ) * 3600.D0 
       emispol = d_zero
+      ce = 1.D-4 ! flowering factor, a raffiner en fonction calendrier floraison
+
       do i = ici1 , ici2
     
        emispot = chemsrc(j,i,ipollen) * 24.D0 ! in particle/m2 + derniere correction
        if (emispot < 1.D-20) cycle
-       emispol(i) = emispot * mathpi / 6.D0 * (reffpollen * 1.D-06)**3  *  rhopollen / 3600.D0  ! in kg/m2/s
+       emispol(i) = emispot * mathpi / 6.D0 * (reffpollen * 1.D-06)**3  *  rhopollen   ! in kg/m2
 
        if (  rh10(i)*100.0D0 < 50.D0 ) then
          fh =d_one
@@ -91,7 +93,7 @@ module mod_che_pollen
 
        fw = 0.5D0 + 1.0D0 * ( 1.D0 - dexp( -(wind10(i) + uconv) / 5.D0 ))
 
-       emispol(i) = emispol(i) * ustar(i)/ htc  * fh * fw * fr
+       emispol(i) = emispol(i) * ustar(i)/ htc  * ce * fh * fw * fr
 
        end do
 
