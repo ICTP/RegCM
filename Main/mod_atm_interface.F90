@@ -42,12 +42,12 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:) :: xlat
     real(rk8) , pointer , dimension(:,:) :: xlon
     real(rk8) , pointer , dimension(:,:) :: mask
-    real(rk8) , pointer , dimension(:,:) :: snow
     real(rk8) , pointer , dimension(:,:) :: dlat
     real(rk8) , pointer , dimension(:,:) :: dlon
     real(rk8) , pointer , dimension(:,:) :: msfx
     real(rk8) , pointer , dimension(:,:) :: msfd
     real(rk8) , pointer , dimension(:,:) :: coriol
+    real(rk8) , pointer , dimension(:,:) :: snowam
   end type domain
 
   type atmstate
@@ -534,7 +534,6 @@ module mod_atm_interface
         call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
         call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'atm_interface:mask')
-        call getmem2d(dom%snow,jde1,jde2,ide1,ide2,'atm_interface:snow')
         call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
@@ -542,18 +541,19 @@ module mod_atm_interface
         call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
                                ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'atm_interface:f')
+        call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'atm_interface:snowam')
       else
         call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'atm_interface:ht')
         call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'atm_interface:lndcat')
         call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'atm_interface:xlat')
         call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'atm_interface:xlon')
         call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'atm_interface:mask')
-        call getmem2d(dom%snow,jdot1,jdot2,idot1,idot2,'atm_interface:snow')
         call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'atm_interface:dlat')
         call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'atm_interface:dlon')
         call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'atm_interface:msfx')
         call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'atm_interface:f')
+        call getmem2d(dom%snowam,jdot1,jdot2,idot1,idot2,'atm_interface:snowam')
       end if
     end subroutine allocate_domain
 !
