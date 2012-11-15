@@ -66,6 +66,7 @@ module mod_constants
   real(rk8) , parameter :: secpm = 60.0D+00
   real(rk8) , parameter :: secph = 3600.0D+00
   real(rk8) , parameter :: secpd = 86400.0D+00
+  real(rk8) , parameter :: rsecpd = 1.0D0/86400.0D+00
   real(rk8) , parameter :: minph = 60.0D+00
   real(rk8) , parameter :: minpd = 1440.0D+00
   real(rk8) , parameter :: houpd = 24.0D+00

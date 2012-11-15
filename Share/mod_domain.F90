@@ -41,6 +41,7 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) :: msfx
     real(rk8) , pointer , dimension(:,:) :: msfd
     real(rk8) , pointer , dimension(:,:) :: coriol
+    real(rk8) , pointer , dimension(:,:) :: snowam
   end type domain_io
 
   type (domain_io) :: mddom_io
@@ -71,10 +72,11 @@ module mod_domain
     call read_var2d_static(ncid,'xmap',mddom_io%msfx)
     call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
+    call read_var2d_static(ncid,'snowam',mddom_io%snowam)
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                               lndcat,msfx,msfd,coriol)
+                               lndcat,msfx,msfd,coriol,snowam)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(out) :: sigma
@@ -88,6 +90,7 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfx
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -100,10 +103,11 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam)
   end subroutine read_domain_array
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol)
+                                      lndcat,msfx,msfd,coriol,snowam)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk4) , pointer , dimension(:) , intent(out) :: sigma
@@ -117,6 +121,7 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -129,6 +134,7 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam)
   end subroutine read_domain_array_single
 
   subroutine allocate_domain
@@ -144,6 +150,7 @@ module mod_domain
     call getmem2d(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
     call getmem2d(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
     call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
+    call getmem2d(mddom_io%snowam,1,jx,1,iy,'domain:snowam')
   end subroutine allocate_domain
 
   subroutine check_domain(ncid,lmod)
