@@ -149,7 +149,7 @@ module mod_regcm_interface
     !
     ! Init output streams
     !
-    call init_output_streams(.false.)
+    ! call init_output_streams(.false.)
 
 !
 !**********************************************************************
@@ -198,7 +198,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call output
-    call new_output
+    ! call new_output
 !
 !**********************************************************************
 !
@@ -320,7 +320,7 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
-      call new_output
+      ! call new_output
       !
       ! Send information to ocean model
       !
