@@ -305,36 +305,36 @@ module mod_ncout
         ! The following may be enabled/disabled
 
         if ( enable_atm2d_vars(atm_tpr) ) then
-          call setup_var(v2dvar_atm(atm_tpr),vsize,'tpr','kg m-2 day-1', &
+          call setup_var(v2dvar_atm(atm_tpr),vsize,'pr','kg m-2 s-1', &
             'Total rain precipitation flux','precipitation_flux',.true., &
             'time: mean')
           atm_tpr_out => v2dvar_atm(atm_tpr)%rval
         end if
         if ( enable_atm2d_vars(atm_tgb) ) then
-          call setup_var(v2dvar_atm(atm_tgb),vsize,'tgb','K', &
-            'Lower groud temperature','soil_temperature',.true.,'time: mean')
+          call setup_var(v2dvar_atm(atm_tgb),vsize,'ts','K', &
+            'Groud surface temperature','soil_temperature',.true.,'time: mean')
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
         if ( enable_atm2d_vars(atm_tsw) ) then
-          call setup_var(v2dvar_atm(atm_tsw),vsize,'tsw','kg m-2', &
-            'Total soil water','moisture_content_of_soil_layer',.true., &
+          call setup_var(v2dvar_atm(atm_tsw),vsize,'mrso','kg m-2', &
+            'Total soil water','soil_moisture_content',.true., &
             'time: mean',l_fill=.true.)
           atm_tsw_out => v2dvar_atm(atm_tsw)%rval
         end if
 
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
-          call setup_var(v3dvar_atm(atm_u),vsize,'u','m s-1', &
+          call setup_var(v3dvar_atm(atm_u),vsize,'ua','m s-1', &
             'Zonal component of wind (westerly)','eastward_wind',.true.)
           atm_u_out => v3dvar_atm(atm_u)%rval
         end if
         if ( enable_atm3d_vars(atm_v) ) then
-          call setup_var(v3dvar_atm(atm_v),vsize,'v','m s-1', &
+          call setup_var(v3dvar_atm(atm_v),vsize,'va','m s-1', &
             'Meridional component of wind (southerly)','northward_wind',.true.)
           atm_v_out => v3dvar_atm(atm_v)%rval
         end if
         if ( enable_atm3d_vars(atm_t) ) then
-          call setup_var(v3dvar_atm(atm_t),vsize,'t','K', &
+          call setup_var(v3dvar_atm(atm_t),vsize,'ta','K', &
             'Air Temperature','air_temperature',.true.)
           atm_t_out => v3dvar_atm(atm_t)%rval
         end if
@@ -344,14 +344,14 @@ module mod_ncout
           atm_omega_out => v3dvar_atm(atm_omega)%rval
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
-          call setup_var(v3dvar_atm(atm_qv),vsize,'qv','kg kg-1', &
-            'Water vapor mixing ratio','humidity_mixing_ratio',.true.)
+          call setup_var(v3dvar_atm(atm_qv),vsize,'qas','1', &
+            'Specific humidity in air','specific_humidity',.true.)
           atm_qv_out => v3dvar_atm(atm_qv)%rval
         end if
         if ( enable_atm3d_vars(atm_qc) ) then
-          call setup_var(v3dvar_atm(atm_qc),vsize,'qc','kg kg-1', &
-            'Cloud liquid water mixing ratio', &
-            'cloud_liquid_water_mixing_ratio',.true.)
+          call setup_var(v3dvar_atm(atm_qc),vsize,'clw','kg kg-1', &
+            'Mass fraction of cloud liquid water', &
+            'mass_fraction_of_cloud_liquid_water_in_air',.true.)
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
 
@@ -423,23 +423,24 @@ module mod_ncout
         ! The following may be enabled/disabled
 
         if ( enable_srf2d_vars(srf_uvdrag) ) then
-          call setup_var(v2dvar_srf(srf_uvdrag),vsize,'uvdrag','1', &
+          call setup_var(v2dvar_srf(srf_uvdrag),vsize,'drag','1', &
             'Surface drag stress coefficient in air', &
             'surface_drag_coefficient_in_air',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
         end if
         if ( enable_srf2d_vars(srf_tg) ) then
-          call setup_var(v2dvar_srf(srf_tg),vsize,'tg','K', &
+          call setup_var(v2dvar_srf(srf_tg),vsize,'ts','K', &
             'Ground surface temperature','surface_temperature',.true.)
           srf_tg_out => v2dvar_srf(srf_tg)%rval
         end if
         if ( enable_srf2d_vars(srf_tlef) ) then
-          call setup_var(v2dvar_srf(srf_tlef),vsize,'tlef','K', &
-            'Foliage canopy temperature','canopy_temperature',.true.)
+          call setup_var(v2dvar_srf(srf_tlef),vsize,'tf','K', &
+            'Foliage canopy temperature','canopy_temperature',  &
+            .true.,l_fill=.true.)
           srf_tlef_out => v2dvar_srf(srf_tlef)%rval
         end if
         if ( enable_srf2d_vars(srf_tpr) ) then
-          call setup_var(v2dvar_srf(srf_tpr),vsize,'tpr','kg m-2 day-1', &
+          call setup_var(v2dvar_srf(srf_tpr),vsize,'pr','kg m-2 s-1', &
             'Total precipitation flux','precipitation_flux',.true., &
             'time: mean')
           srf_tpr_out => v2dvar_srf(srf_tpr)%rval
@@ -453,7 +454,8 @@ module mod_ncout
         if ( enable_srf2d_vars(srf_scv) ) then
           call setup_var(v2dvar_srf(srf_scv),vsize,'snv','kg m-2', &
             'Liquid water equivalent of snow thickness', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean')
+            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            l_fill=.true.)
           srf_scv_out => v2dvar_srf(srf_scv)%rval
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
@@ -487,14 +489,15 @@ module mod_ncout
           srf_sina_out => v2dvar_srf(srf_sina)%rval
         end if
         if ( enable_srf2d_vars(srf_prcv) ) then
-          call setup_var(v2dvar_srf(srf_prcv),vsize,'prcv','kg m-2 day-1', &
+          call setup_var(v2dvar_srf(srf_prcv),vsize,'prc','kg m-2 s-1', &
             'Convective precipitation flux','convective_rainfall_flux', &
             .true.,'time: mean')
           srf_prcv_out => v2dvar_srf(srf_prcv)%rval
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
-          call setup_var(v2dvar_srf(srf_zpbl),vsize,'zpbl','m', &
-            'PBL thickness','atmosphere_boundary_layer_thickness',.true.)
+          call setup_var(v2dvar_srf(srf_zpbl),vsize,'zmla','m', &
+            'Atmospheric Boundary Layer thickness', &
+            'atmosphere_boundary_layer_thickness',.true.)
           srf_zpbl_out => v2dvar_srf(srf_zpbl)%rval
         end if
         if ( enable_srf2d_vars(srf_aldirs) ) then
@@ -517,8 +520,8 @@ module mod_ncout
 
         if ( iseaice == 1 ) then
           if ( enable_srf2d_vars(srf_seaice) ) then
-            call setup_var(v2dvar_srf(srf_seaice),vsize,'seaice','1', &
-              'Sea ice mask','seaice_binary_mask',.true.)
+            call setup_var(v2dvar_srf(srf_seaice),vsize,'seaice','m', &
+              'Sea ice cover','seaice_depth',.true.)
             srf_seaice_out => v2dvar_srf(srf_seaice)%rval
           end if
         else
@@ -559,12 +562,12 @@ module mod_ncout
         if ( enable_srf3d_vars(srf_smw) ) then
           call setup_var(v3dvar_srf(srf_smw),vsize,'mrso','kg m-2', &
             'Moisture content of the soil layers', &
-            'soil_moisture_content_in_layers',.true.)
+            'soil_moisture_content_in_layers',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
         if ( enable_srf3d_vars(srf_runoff) ) then
           call setup_var(v3dvar_srf(srf_runoff),vsize,'mrro','kg m-2 s-1', &
-            'Runoff flux','runoff_flux',.true.,'time: mean')
+            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
           srf_runoff_out => v3dvar_srf(srf_runoff)%rval
         end if
 

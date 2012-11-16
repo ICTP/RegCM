@@ -32,6 +32,7 @@ module mod_output
   use mod_cu_interface
   use mod_pbl_interface
   use mod_ncio
+  use mod_ncout
   use mod_bdycod
   use mod_precip
   use mod_split
@@ -46,7 +47,7 @@ module mod_output
   integer(ik4) :: iolak
   logical :: lskipsrf , lskiprad , lskipche
 
-  public :: output , mkfile
+  public :: output , new_output
 
   data iolak /1/
   data lskipsrf /.false./
@@ -54,6 +55,229 @@ module mod_output
   data lskipche /.false./
 
   contains
+
+  subroutine new_output
+    implicit none
+    logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
+    logical :: lstartup
+    integer(ik4) :: i , j , k , jp1 , ip1
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'new_output'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
+!
+    lstartup = .false.
+    if ( ktau == 0 .or. doing_restart ) then
+      !
+      ! Set up static variables (first time in)
+      !
+      if ( associated(xlon_out) ) then
+        xlon_out = mddom%xlon(jci1:jci2,ici1:ici2)
+        xlat_out = mddom%xlat(jci1:jci2,ici1:ici2)
+        mask_out = mddom%mask(jci1:jci2,ici1:ici2)
+        topo_out = mddom%ht(jci1:jci2,ici1:ici2)
+      end if
+      if ( associated(xlon_sub_out) ) then
+        call reorder_subgrid(xlon1,xlon_sub_out)
+        call reorder_subgrid(xlat1,xlat_sub_out)
+        call reorder_subgrid(mask1,mask_sub_out)
+        call reorder_subgrid(ht1,topo_sub_out)
+      end if
+      call newoutfiles(idatex)
+      lstartup = .true.
+      if ( doing_restart ) then
+        doing_restart = .false.
+#ifdef DEBUG
+        call time_end(subroutine_name,idindx) 
+#endif
+        return
+      end if
+    end if
+!
+    ldoatm = .false.
+    ldosrf = .false.
+    ldorad = .false.
+    ldoche = .false.
+    ldosav = .false.
+    ldotmp = .false.
+
+    if ( ktau > 0 ) then
+      if ( mod(ktau,ksav) == 0 ) then
+        ldotmp = .true.
+      end if
+      if ( ( idatex == idate2 .or. &
+           (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
+        ldosav = .true.
+        ldotmp = .false.
+      end if
+      if ( mod(ktau,katm) == 0 ) then
+        ldoatm = .true.
+      end if
+      if ( mod(ktau,ksrf) == 0 ) then
+        ldosrf = .true.
+      end if
+      if ( mod(ktau,krad) == 0 ) then
+        ldorad = .true.
+      end if
+      if ( mod(ktau,kche) == 0 ) then
+        ldoche = .true.
+      end if
+    end if
+
+    if ( lskipsrf ) then
+      lskipsrf = .false.
+      ldosrf = .true.
+    end if
+    if ( lskiprad ) then
+      lskiprad = .false.
+      ldorad = .true.
+    end if
+    if ( lskipche ) then
+      lskipche = .false.
+      ldoche = .true.
+    end if
+!
+    if ( ktau == 0 ) then
+      if ( debug_level > 2 ) then
+        ldoatm = .true.
+        lskipsrf = .true.
+        lskiprad = .true.
+        lskipche = .true.
+      end if
+    end if
+!
+    if ( enable_flag(atm_stream) ) then
+      if ( ldoatm ) then
+        ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        if ( associated(atm_t_out) ) then
+          do k = 1 , kz
+            atm_t_out(:,:,k) = atm1%t(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
+        end if
+        if ( associated(atm_u_out) .and. associated(atm_v_out) ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              ip1 = i+1
+              if ( ip1 > iy ) ip1 = 1
+              do j = jci1 , jci2
+                jp1 = j+1
+                if ( jp1 > jx ) jp1 = 1
+                atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(jp1,i,k) + &
+                                 atm1%u(j,ip1,k)+atm1%u(jp1,ip1,k))/ps_out(j,i)
+                atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(jp1,i,k) + &
+                                 atm1%v(j,ip1,k)+atm1%v(jp1,ip1,k))/ps_out(j,i)
+              end do
+            end do
+          end do
+        end if
+        if ( associated(atm_omega_out) ) &
+          atm_omega_out = omega(jci1:jci2,ici1:ici2,:)*d_10
+        if ( associated(atm_qv_out) ) then
+          do k = 1 , kz
+            atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
+          end do
+          atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
+        end if
+        if ( associated(atm_qc_out) ) then
+          do k = 1 , kz
+            atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
+          end do
+        end if
+        if ( associated(atm_tke_out) ) &
+          atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+        if ( associated(atm_kth_out) ) &
+          atm_kth_out = uwstateb%kth(jci1:jci2,ici1:ici2,1:kz)
+        if ( associated(atm_kzm_out) ) &
+          atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
+
+        ps_out = d_10*(ps_out+ptop)
+
+        if ( associated(atm_tpr_out) ) &
+          atm_tpr_out = (sfs%rainc+sfs%rainnc)*rsecpd
+        if ( associated(atm_tgb_out) ) &
+          atm_tgb_out = atm_tgb_out * rsrf_in_atm
+        if ( associated(atm_tsw_out) ) &
+          atm_tsw_out = atm_tsw_out * rsrf_in_atm
+
+        call write_record_output_stream(atm_stream,idatex)
+
+        atm_tgb_out = d_zero
+        atm_tsw_out = d_zero
+        sfs%rainc   = d_zero
+        sfs%rainnc  = d_zero
+
+      end if
+    end if
+
+    if ( enable_flag(srf_stream) ) then
+      if ( ldosrf ) then
+
+        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        ! Averaged values
+        if ( associated(srf_tpr_out) ) &
+          srf_tpr_out = srf_tpr_out*rnsrf_for_srffrq
+        if ( associated(srf_prcv_out) ) &
+          srf_prcv_out = srf_prcv_out*rnsrf_for_srffrq
+        if ( associated(srf_zpbl_out) ) &
+          srf_zpbl_out = srf_zpbl_out*rnsrf_for_srffrq
+        if ( associated(srf_evp_out) ) &
+          srf_evp_out = srf_evp_out*rnsrf_for_srffrq
+        if ( associated(srf_scv_out) ) then
+          where ( ldmsk > 0 )
+            srf_scv_out = srf_scv_out*rnsrf_for_srffrq
+          elsewhere
+            srf_scv_out = dmissval
+          end where
+        end if
+        if ( associated(srf_runoff_out) ) then
+          where ( ldmsk > 0 )
+            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)*rnsrf_for_srffrq
+            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)*rnsrf_for_srffrq
+          else where
+            srf_runoff_out(:,:,1) = dmissval
+            srf_runoff_out(:,:,2) = dmissval
+          end where
+        end if
+        if ( associated(srf_sena_out) ) &
+          srf_sena_out = srf_sena_out*rnsrf_for_srffrq
+        if ( associated(srf_flw_out) ) &
+          srf_flw_out = srf_flw_out*rnsrf_for_srffrq
+        if ( associated(srf_fsw_out) ) &
+          srf_fsw_out = srf_fsw_out*rnsrf_for_srffrq
+        if ( associated(srf_fld_out) ) &
+          srf_fld_out = srf_fld_out*rnsrf_for_srffrq
+        if ( associated(srf_sina_out) ) &
+          srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+
+        call write_record_output_stream(srf_stream,idatex)
+
+        if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
+        if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
+        if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
+        if ( associated(srf_evp_out) ) srf_evp_out = d_zero
+        if ( associated(srf_scv_out) ) srf_scv_out = d_zero
+        if ( associated(srf_runoff_out) ) srf_runoff_out = d_zero
+        if ( associated(srf_sena_out) ) srf_sena_out = d_zero
+        if ( associated(srf_flw_out) ) srf_flw_out = d_zero
+        if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
+        if ( associated(srf_fld_out) ) srf_fld_out = d_zero
+        if ( associated(srf_sina_out) ) srf_sina_out = d_zero
+        if ( associated(srf_sund_out) ) srf_sund_out = d_zero
+
+      end if
+    end if
+
+    if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
+      if ( .not. lstartup .and. idatex /= idate2 ) then
+        call newoutfiles(idatex)
+        call checktime(myid)
+      end if
+    end if
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx) 
+#endif
+  end subroutine new_output
 
   subroutine output
 
@@ -175,8 +399,6 @@ module mod_output
       if ( myid == iocpu ) then
         call outatm
       end if
-      sfs%rainc(:,:)  = d_zero
-      sfs%rainnc(:,:) = d_zero
     end if
   end if
  
@@ -486,4 +708,22 @@ module mod_output
     print * , 'RAD variables written at ' , tochar(idatex)
   end subroutine outrad
 !
+  subroutine reorder_subgrid(var3,var2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    integer :: i , j , ii , jj , n1 , n2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n2 = 1 , nsg
+          ii = (i-1) * nsg + n2
+          do n1 = 1 , nsg
+            jj = (j-1) * nsg + n1
+            var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+          end do
+        end do
+      end do
+    end do
+  end subroutine reorder_subgrid
+
 end module mod_output

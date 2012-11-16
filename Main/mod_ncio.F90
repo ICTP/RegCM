@@ -515,11 +515,12 @@ contains
     end do
   end subroutine read_domain_lake
 
-  subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
+  subroutine read_subdomain(ht1,lnd1,mask1,xlat1,xlon1)
     implicit none
 
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mask1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon1
 
@@ -542,6 +543,12 @@ contains
     call check_ok(__FILE__,__LINE__,'Variable landuse read error', &
                   'SUBDOMAIN FILE')
     call reorder_2_3(sp2d1,lnd1)
+    istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
+    call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
+    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
+    call check_ok(__FILE__,__LINE__,'Variable mask read error', &
+                  'SUBDOMAIN FILE')
+    call reorder_2_3(sp2d1,mask1)
     istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable xlat miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)

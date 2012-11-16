@@ -29,6 +29,7 @@ module mod_regcm_interface
   use mod_mppparam
   use mod_mpmessage
   use mod_ncio
+  use mod_ncout
   use mod_output
   use mod_split
   use mod_bdycod
@@ -143,7 +144,13 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call param
+
     dtinc = dt
+    !
+    ! Init output streams
+    !
+    call init_output_streams(.false.)
+
 !
 !**********************************************************************
 !
@@ -191,6 +198,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call output
+    call new_output
 !
 !**********************************************************************
 !
@@ -312,6 +320,7 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
+      call new_output
       !
       ! Send information to ocean model
       !
@@ -354,6 +363,8 @@ module mod_regcm_interface
     appdat = tochar(idate2)
     write (aline, 99002) appdat
     call say
+
+    call dispose_output_streams
 !
 #ifdef CLM
     call t_prf('timing_all',mpicom)

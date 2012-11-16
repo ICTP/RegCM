@@ -66,6 +66,11 @@ module mod_runparams
   integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes
   integer(ik8) :: ntsrf , ntrad
+  real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq
+  ! Step of surface scheme in one atmosphere I/O interval
+  real(rk8) :: rsrf_in_atm
+  ! One over seconds in one surface I/O interval
+  real(rk8) :: rsrffrq_sec
   ! Model timestep in seconds (real and integer)
   integer(ik8) :: ntsec
   real(rk8) :: dtsec

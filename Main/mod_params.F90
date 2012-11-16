@@ -37,6 +37,7 @@ module mod_params
   use mod_ncio
   use mod_tendency
   use mod_ncio
+  use mod_ncout
   use mod_advection , only : init_advection
   use mod_mppio
 #ifdef CLM
@@ -67,12 +68,6 @@ module mod_params
   real(rk8) , dimension(nsplit) :: dtsplit
   integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   integer(ik4) :: hspan
-  logical , dimension(n_atmvar) :: atm_enablevar
-  logical , dimension(n_srfvar) :: srf_enablevar
-  logical , dimension(n_stsvar) :: sts_enablevar
-  logical , dimension(n_subvar) :: sub_enablevar
-  logical , dimension(n_radvar) :: rad_enablevar
-  logical , dimension(n_lakvar) :: lak_enablevar
   integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(ik8) :: nbdyfrq
   integer(ik4) :: n , len_path
@@ -98,11 +93,11 @@ module mod_params
  
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
-  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,   &
+  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,  &
     radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,    &
-    ifchem , chemfrq , atm_enablevar , srf_enablevar ,             &
-    rad_enablevar , sub_enablevar , sts_enablevar ,                &
-    lak_enablevar , dirout , lsync
+    ifchem , chemfrq , enable_atm_vars , enable_srf_vars ,        &
+    enable_rad_vars , enable_sub_vars , enable_sts_vars ,         &
+    enable_lak_vars , dirout , lsync
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -278,12 +273,13 @@ module mod_params
   iflak = .false.
   srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
   lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
-  atm_enablevar(:) = .true.
-  srf_enablevar(:) = .true.
-  sts_enablevar(:) = .true.
-  sub_enablevar(:) = .true.
-  lak_enablevar(:) = .true.
-  rad_enablevar(:) = .true.
+  enable_flag(:) = .true.
+  enable_atm_vars(:) = .true.
+  enable_srf_vars(:) = .true.
+  enable_sts_vars(:) = .true.
+  enable_sub_vars(:) = .true.
+  enable_lak_vars(:) = .true.
+  enable_rad_vars(:) = .true.
   dirout = './output' 
   lsync = .false.
 !chem2
@@ -565,6 +561,12 @@ module mod_params
   call bcast(ifsub)
   call bcast(iflak)
   call bcast(ifsts)
+  enable_flag(atm_stream) = ifatm
+  enable_flag(srf_stream) = ifsrf
+  enable_flag(sub_stream) = ifsub
+  enable_flag(rad_stream) = ifrad
+  enable_flag(lak_stream) = iflak
+  enable_flag(sts_stream) = ifsts
   call bcast(srffrq)
   call bcast(lakfrq)
   call bcast(ifchem)
@@ -583,6 +585,14 @@ module mod_params
   call bcast(lakemod)
   call bcast(ichem)
   call bcast(ntr)
+
+  if ( lakemod /= 1 ) enable_flag(lak_stream) = .false.
+  if ( nsg < 2 )      enable_flag(sub_stream) = .false.
+  if ( .not. enable_flag(srf_stream) ) then
+    enable_flag(lak_stream) = .false.
+    enable_flag(sub_stream) = .false.
+    enable_flag(sts_stream) = .false.
+  end if
 
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then
@@ -883,22 +893,22 @@ module mod_params
 
   if ( myid == iocpu ) then
     do i = 1 , n_atmvar
-      atm_variables(i)%enabled = atm_enablevar(i)
+      atm_variables(i)%enabled = enable_atm_vars(i)
     end do
     do i = 1 , n_srfvar
-      srf_variables(i)%enabled = srf_enablevar(i)
+      srf_variables(i)%enabled = enable_srf_vars(i)
     end do
     do i = 1 , n_stsvar
-      sts_variables(i)%enabled = sts_enablevar(i)
+      sts_variables(i)%enabled = enable_sts_vars(i)
     end do
     do i = 1 , n_lakvar
-      lak_variables(i)%enabled = lak_enablevar(i)
+      lak_variables(i)%enabled = enable_lak_vars(i)
     end do
     do i = 1 , n_subvar
-      sub_variables(i)%enabled = sub_enablevar(i)
+      sub_variables(i)%enabled = enable_sub_vars(i)
     end do
     do i = 1 , n_radvar
-      rad_variables(i)%enabled = rad_enablevar(i)
+      rad_variables(i)%enabled = enable_rad_vars(i)
     end do
     if ( lakemod /= 1 .and. iseaice /= 1 ) then
       srf_variables(ivarname_lookup('SRF','seaice'))%enabled = .false.
@@ -925,8 +935,11 @@ module mod_params
   klak = idnint(lakfrq/srffrq)
   chfrovrradfr = chemfrq/radfrq
 
+  rtsrf = dtsrf/dtsec
   ntsrf = idnint(dtsrf/dtsec)
+  rtsrf = d_one/dble(ntsrf)
   ntrad = idnint(dtrad/(dtsec/secpm))
+  rtrad = d_one/dble(ntrad)
 
   ktau = 0
 
@@ -942,7 +955,11 @@ module mod_params
   kdbg  = ndbgfrq/idnint(dtsec)
   ksav  = nsavfrq/idnint(dtsec)
 
+  rnsrf_for_srffrq = d_one/(dble(ksrf)*rtsrf)
+
   fdaysrf = real(secpd/dtsrf)
+  rsrf_in_atm = dble(ntsrf)/dble(katm)
+  rsrffrq_sec = d_one/(srffrq*secph)
 
   mtau = idnint((hspan*secph)/dt)
 
@@ -1188,7 +1205,7 @@ module mod_params
 
   if ( myid == iocpu ) then
     if ( nsg > 1 ) then
-      call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
+      call read_subdomain(ht1_io,lndcat1_io,mask1_io,xlat1_io,xlon1_io)
       ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
 #ifndef CLM
       if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
@@ -1203,6 +1220,7 @@ module mod_params
           lndcat1_io(1,j,i) = mddom_io%lndcat(j,i)
           xlat1_io(1,j,i) = mddom_io%xlat(j,i)
           xlon1_io(1,j,i) = mddom_io%xlon(j,i)
+          mask1_io(1,j,i) = mddom_io%mask(j,i)
         end do
       end do
     end if
@@ -1255,6 +1273,7 @@ module mod_params
 
   call subgrid_distribute(ht1_io,ht1,jde1,jde2,ide1,ide2)
   call subgrid_distribute(lndcat1_io,lndcat1,jde1,jde2,ide1,ide2)
+  call subgrid_distribute(mask1_io,mask1,jde1,jde2,ide1,ide2)
   call subgrid_distribute(xlat1_io,xlat1,jde1,jde2,ide1,ide2)
   call subgrid_distribute(xlon1_io,xlon1,jde1,jde2,ide1,ide2)
 

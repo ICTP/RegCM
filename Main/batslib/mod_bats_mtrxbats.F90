@@ -35,6 +35,7 @@ module mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_mppio
   use mod_bats_zengocn
+  use mod_outvars
 
   private
 
@@ -367,6 +368,51 @@ module mod_bats_mtrxbats
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
+      ! Accumulators for ATM output
+      if ( ktau > 1 ) then
+        if ( associated(atm_tgb_out) ) &
+          atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
+        if ( associated(atm_tsw_out) ) &
+          atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
+      else if ( ktau == 1 ) then
+        if ( associated(atm_tgb_out) ) &
+          atm_tgb_out = d_two*sum(tgbrd,1)*rdnnsg
+        if ( associated(atm_tsw_out) ) &
+          atm_tsw_out = d_two*sum(tsw,1)*rdnnsg
+      end if
+
+      ! Accumulators for SRF output
+      if ( associated(srf_evp_out) ) &
+        srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+      if ( associated(srf_tpr_out) ) &
+        srf_tpr_out = srf_tpr_out + totpr
+      if ( associated(srf_prcv_out) ) &
+        srf_prcv_out = srf_prcv_out + pptc
+      if ( associated(srf_zpbl_out) ) &
+        srf_zpbl_out = srf_zpbl_out + hpbl
+      if ( associated(srf_scv_out) ) &
+        srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+      if ( associated(srf_sund_out) ) then
+        where( fsw > 120.0D0 )
+          srf_sund_out = srf_sund_out + dtbat
+        end where
+      end if
+      if ( associated(srf_runoff_out) ) then
+        srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
+        srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + &
+          sum(trnof-srnof,1)*rdnnsg
+      end if
+      if ( associated(srf_sena_out) ) &
+        srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+      if ( associated(srf_flw_out) ) &
+        srf_flw_out = srf_flw_out + flw
+      if ( associated(srf_fsw_out) ) &
+        srf_fsw_out = srf_fsw_out + fsw
+      if ( associated(srf_fld_out) ) &
+        srf_fld_out = srf_fld_out + flwd
+      if ( associated(srf_sina_out) ) &
+        srf_sina_out = srf_sina_out + sinc
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           uvdrag(j,i) = d_zero
@@ -537,7 +583,38 @@ module mod_bats_mtrxbats
         end do
       end do
 
-      if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
+      if ( mod(ktau+1,kbats) == 0 .or. (ktau == 0 .and. debug_level > 2) ) then
+
+        if ( associated(srf_uvdrag_out) ) &
+          srf_uvdrag_out = sum(drag,1)*rdnnsg
+        if ( associated(srf_tg_out) ) &
+          srf_tg_out = sum(tgrd,1)*rdnnsg
+        if ( associated(srf_tlef_out) ) then
+          where ( sum(ldmsk1,1) > nnsg/2 )
+            srf_tlef_out = sum(tlef,1)*rdnnsg
+          elsewhere
+            srf_tlef_out = dmissval
+          end where
+        end if
+        if ( associated(srf_aldirs_out) ) &
+          srf_aldirs_out = aldirs
+        if ( associated(srf_aldifs_out) ) &
+          srf_aldifs_out = aldifs
+        if ( associated(srf_seaice_out) ) &
+          srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
+        if ( associated(srf_t2m_out) ) &
+          srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
+        if ( associated(srf_q2m_out) ) &
+          srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
+        if ( associated(srf_u10m_out) ) &
+          srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
+        if ( associated(srf_v10m_out) ) &
+          srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
+        if ( associated(srf_smw_out) ) then
+          srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
+          srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+        end if
+
         if ( ktau == 0 .and. debug_level > 2 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat

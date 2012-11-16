@@ -40,7 +40,7 @@ module mod_precip
   real(rk8) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
  
-  real(rk8) :: qcth , aprdiv
+  real(rk8) :: qcth
 !
   real(rk8) , parameter :: uch = d_1000*regrav*secph
 !
@@ -99,8 +99,6 @@ module mod_precip
       call assignpnt(pptnc,lsmrnc)
       call assignpnt(cldfra,radcldf)
       call assignpnt(cldlwc,radlqwc)
-
-      aprdiv = d_one/dble(ntsrf)
     end subroutine init_precip
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -344,7 +342,7 @@ module mod_precip
           if ( ktau == 0 .and. debug_level > 2 ) then
             lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)
           else
-            lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*aprdiv
+            lsmrnc(j,i) = lsmrnc(j,i) + pptsum(j,i)*rtsrf
           end if
         end if
       end do
