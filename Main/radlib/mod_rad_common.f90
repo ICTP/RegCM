@@ -23,13 +23,10 @@ module mod_rad_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
+  use mod_runparams
   use mod_memutil
 
   public
-
-  integer(ik4) :: irrtm , irrtm_cldov , irrtm_sw_opcliq , irrtm_sw_opcice
-  integer(ik4) :: inflgsw , iceflgsw , liqflgsw , icld , idrv , irng , &
-             inflglw , iceflglw , liqflglw
 
   logical :: lchem ! ichem logical equiv
   real(rk8) :: ptp ! ptop
@@ -43,9 +40,6 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:,:) :: rhatms   ! atms%rhb3d
   real(rk8) , pointer , dimension(:,:) :: tground    ! sfs%tgbb
   real(rk8) , pointer , dimension(:,:) :: xlat       ! mddom%xlat
-
-! Maximum total cloud fraction for radiation model
-  real(rk8) , public :: cftotmax
 
   ! vegetation absorbed radiation (full solar spectrum)
   real(rk8) , pointer , dimension(:,:) :: abveg   ! sabveg
@@ -86,8 +80,6 @@ module mod_rad_common
 
   character(len=6) , pointer , dimension(:) :: tracname ! chtrname
 
-  integer(ik4) :: ncld ! # of bottom model levels with no clouds
-
   real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
   real(rk8) , pointer , dimension(:,:,:) :: heatrt
   real(rk8) , pointer , dimension(:,:,:) :: o3prof
@@ -106,7 +98,6 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:) :: ptrop
   integer(ik4) , pointer , dimension(:,:) :: ktrop
 
-  integer(ik4) :: iclimao3
   logical :: doabsems , dolw , dosw
   integer(ik4) :: ichso4 , ichbc , ichoc
 

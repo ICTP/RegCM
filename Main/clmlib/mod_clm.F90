@@ -31,9 +31,6 @@ module mod_clm
   use mod_runparams , only : ichem , iocnflx
 !
   implicit none
-
-  integer(ik4) :: imask
-  real(rk8) :: clmfrq
 !
   integer(ik4) :: r2comm        ! RegCM MPI communicator
   integer(ik4) :: r2cdtime      ! timestep in seconds
@@ -161,8 +158,6 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: lndcat2d
   real(rk8) , pointer , dimension(:,:) :: rs2d
   real(rk8) , pointer , dimension(:,:) :: ra2d
-  ! 2 meter specific humidity
-  real(rk8) , pointer , dimension(:,:) :: q2d
 
   real(rk8) , pointer , dimension(:,:) :: htf      ! mddom_io%ht
   real(rk8) , pointer , dimension(:,:) :: lndcatf  ! mddom_io%lndcat
@@ -260,7 +255,6 @@ module mod_clm
     call getmem2d(aldifl2d,jci1,jci2,ici1,ici2,'clm:aldifl2d')
     call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
     call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
-    call getmem2d(q2d,jci1,jci2,ici1,ici2,'clm:q2d')
     call getmem2d(lndcat2d,jci1,jci2,ici1,ici2,'clm:lndcat2d')
  
   end subroutine allocate_mod_clm

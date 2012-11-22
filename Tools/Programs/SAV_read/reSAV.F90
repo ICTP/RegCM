@@ -1,3 +1,7 @@
+subroutine myabort
+  call abort
+end subroutine myabort
+
 program resav
 
   use mod_dynparam
@@ -11,7 +15,7 @@ program resav
   type (rcm_time_and_date) :: idatex
   real(8) :: xbctime , dt
   integer :: ktau , ntime
-  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
+  real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
   real(8) , allocatable , dimension(:,:,:) :: ua , va , ta  , qva , qca , tkea
   real(8) , allocatable , dimension(:,:,:) :: ub , vb , tb  , qvb , qcb , tkeb
@@ -103,9 +107,6 @@ program resav
   allocate(vb0(iy,kz,jx))
   allocate(qb0(iy,kz,jx))
   allocate(tb0(iy,kz,jx))
-  if ( ehso4 ) then
-    allocate(so0(iy,kz,jx))
-  end if
   allocate(ps0(iy,jx))
   allocate(ts0(iy,jx))
 !
@@ -301,11 +302,7 @@ program resav
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
   read (iutrst) ktau, dt, xbctime, idatex, ntime
-  if ( ehso4 ) then
-    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
-  else
-    read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
-  end if
+  read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0
   read (iutrst) ua
   read (iutrst) va
   read (iutrst) ta

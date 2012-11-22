@@ -158,7 +158,7 @@ module controlMod
   use abortutils   , only : endrun
   use clm_varsur   , only : r2coutfrq
   use mod_clm
-  use mod_dynparam
+  use mod_runparams , only : dirclm
 !
 ! !PUBLIC TYPES:
   implicit none

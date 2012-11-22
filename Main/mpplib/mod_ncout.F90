@@ -24,14 +24,7 @@ module mod_ncout
   use mod_mppparam
   use mod_ncstream_types
   use mod_ncstream
-  use mod_atm_interface
-  use mod_lm_interface
-  use mod_cu_interface
-  use mod_rad_interface
-  use mod_pbl_interface
-  use mod_che_interface
   use mod_outvars
-  use mod_precip
 
   use netcdf
 !
@@ -46,6 +39,7 @@ module mod_ncout
   type regcm_stream
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
+    logical :: l_sub = .false.
     integer(ik4) :: nvar = 0
     type(nc_varlist) :: ncvars
     integer(ik4) :: jg1 , jg2 , ig1 , ig2
@@ -103,20 +97,20 @@ module mod_ncout
   type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_rad => null()
 
-  integer(ik4) , parameter :: maxstreams = 6
+  integer(ik4) :: maxstreams
 
   logical :: parallel_out
 
-  integer(ik4) , public , parameter :: atm_stream = 1
-  integer(ik4) , public , parameter :: srf_stream = 2
-  integer(ik4) , public , parameter :: sub_stream = 3
-  integer(ik4) , public , parameter :: rad_stream = 4
-  integer(ik4) , public , parameter :: lak_stream = 5
-  integer(ik4) , public , parameter :: sts_stream = 6
+  integer(ik4) , public :: atm_stream = -1
+  integer(ik4) , public :: srf_stream = -1
+  integer(ik4) , public :: sub_stream = -1
+  integer(ik4) , public :: rad_stream = -1
+  integer(ik4) , public :: lak_stream = -1
+  integer(ik4) , public :: sts_stream = -1
+  integer(ik4) , public :: opt_stream = -1
 !
-  type(regcm_stream) , save , dimension(maxstreams) :: outstream
+  type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
-  logical , public , dimension(maxstreams) :: enable_flag
   logical , public , dimension(natmvars) :: enable_atm_vars
   logical , public , dimension(nsrfvars) :: enable_srf_vars
   logical , public , dimension(nstsvars) :: enable_sts_vars
@@ -255,7 +249,7 @@ module mod_ncout
   integer(ik4), parameter :: lak_tlake  = 1
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
-  real(rk8) , pointer , dimension(:,:,:) :: io3d
+  real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
 
   contains
 
@@ -279,9 +273,45 @@ module mod_ncout
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
 
     parallel_out = lparallel
-    do nstream = 1 , maxstreams
 
-      if ( .not. enable_flag(nstream) ) cycle
+    nstream = 0
+
+    if ( ifatm ) then
+      nstream = nstream+1
+      atm_stream = nstream
+    end if
+    if ( ifsrf ) then
+      nstream = nstream+1
+      srf_stream = nstream
+    end if
+    if ( ifsts ) then
+      nstream = nstream+1
+      sts_stream = nstream
+    end if
+    if ( ifsub ) then
+      nstream = nstream+1
+      sub_stream = nstream
+    end if
+    if ( iflak ) then
+      nstream = nstream+1
+      lak_stream = nstream
+    end if
+    if ( ifrad ) then
+      nstream = nstream+1
+      rad_stream = nstream
+    end if
+    if ( ifchem ) then
+      nstream = nstream+1
+      opt_stream = nstream
+      ! Add one output file per tracer
+      nstream = nstream+ntr
+    end if
+
+    maxstreams = nstream
+    allocate(outstream(maxstreams))
+
+    enabled_stream_loop: &
+    do nstream = 1 , maxstreams
 
       vsize%j1 = jci1
       vsize%j2 = jci2
@@ -459,31 +489,31 @@ module mod_ncout
           srf_scv_out => v2dvar_srf(srf_scv)%rval
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
-          call setup_var(v2dvar_srf(srf_sena),vsize,'sena','W m-2', &
-            'Sensible heat flux','surface_downward_sensible_heat_flux', &
+          call setup_var(v2dvar_srf(srf_sena),vsize,'hfss','W m-2', &
+            'Sensible heat flux','surface_upward_sensible_heat_flux', &
             .true.,'time: mean')
           srf_sena_out => v2dvar_srf(srf_sena)%rval
         end if
         if ( enable_srf2d_vars(srf_flw) ) then
-          call setup_var(v2dvar_srf(srf_flw),vsize,'flw','W m-2', &
+          call setup_var(v2dvar_srf(srf_flw),vsize,'rsnl','W m-2', &
             'Net upward longwave energy flux', &
             'net_upward_longwave_flux_in_air',.true.,'time: mean')
           srf_flw_out => v2dvar_srf(srf_flw)%rval
         end if
         if ( enable_srf2d_vars(srf_fsw) ) then
-          call setup_var(v2dvar_srf(srf_fsw),vsize,'fsw','W m-2', &
+          call setup_var(v2dvar_srf(srf_fsw),vsize,'rsns','W m-2', &
             'Net downward shortwave energy flux', &
             'net_downward_shortwave_flux_in_air',.true.,'time: mean')
           srf_fsw_out => v2dvar_srf(srf_fsw)%rval
         end if
         if ( enable_srf2d_vars(srf_fld) ) then
-          call setup_var(v2dvar_srf(srf_fld),vsize,'fld','W m-2', &
+          call setup_var(v2dvar_srf(srf_fld),vsize,'rsdl','W m-2', &
             'Surface downward longwave flux in air', &
             'surface_downwelling_longwave_flux_in_air',.true.,'time: mean')
           srf_fld_out => v2dvar_srf(srf_fld)%rval
         end if
         if ( enable_srf2d_vars(srf_sina) ) then
-          call setup_var(v2dvar_srf(srf_sina),vsize,'sina','W m-2', &
+          call setup_var(v2dvar_srf(srf_sina),vsize,'rsds','W m-2', &
             'Surface downward shortwave flux in air', &
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_sina_out => v2dvar_srf(srf_sina)%rval
@@ -614,49 +644,69 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_sts2d_vars(sts_tgmax) ) &
-          call setup_var(v2dvar_sts(sts_tgmax),vsize,'tgmax','K', &
+        if ( enable_sts2d_vars(sts_tgmax) ) then
+          call setup_var(v2dvar_sts(sts_tgmax),vsize,'tsmax','K', &
             'Maximum surface temperature','surface_temperature', &
             .true.,'time: maximum')
-        if ( enable_sts2d_vars(sts_tgmin) ) &
-          call setup_var(v2dvar_sts(sts_tgmin),vsize,'tgmin','K', &
+          sts_tgmax_out => v2dvar_sts(sts_tgmax)%rval
+        end if
+        if ( enable_sts2d_vars(sts_tgmin) ) then
+          call setup_var(v2dvar_sts(sts_tgmin),vsize,'tsmin','K', &
             'Minimum surface temperature','surface_temperature', &
             .true.,'time: minimum')
-        if ( enable_sts2d_vars(sts_pcpmax) ) &
-          call setup_var(v2dvar_sts(sts_pcpmax),vsize,'pcpmax','kg m-2 s-1', &
+          sts_tgmin_out => v2dvar_sts(sts_tgmin)%rval
+        end if
+        if ( enable_sts2d_vars(sts_pcpmax) ) then
+          call setup_var(v2dvar_sts(sts_pcpmax),vsize,'prmax','kg m-2 s-1', &
             'Maximum total precipitation flux','precipitation_flux', &
             .true.,'time: maximum')
-        if ( enable_sts2d_vars(sts_pcpavg) ) &
-          call setup_var(v2dvar_sts(sts_pcpavg),vsize,'pcpavg','kg m-2 s-1', &
+          sts_pcpmax_out => v2dvar_sts(sts_pcpmax)%rval
+        end if
+        if ( enable_sts2d_vars(sts_pcpavg) ) then
+          call setup_var(v2dvar_sts(sts_pcpavg),vsize,'pr','kg m-2 s-1', &
             'Mean total precipitation flux','precipitation_flux', &
             .true.,'time: mean')
-        if ( enable_sts2d_vars(sts_sund) ) &
+          sts_pcpavg_out => v2dvar_sts(sts_pcpavg)%rval
+        end if
+        if ( enable_sts2d_vars(sts_sund) ) then
           call setup_var(v2dvar_sts(sts_sund),vsize,'sund','s', &
             'Duration of sunshine','duration_of_sunshine',.true.,'time: sum')
-        if ( enable_sts2d_vars(sts_psmin) ) &
+          sts_sund_out => v2dvar_sts(sts_sund)%rval
+        end if
+        if ( enable_sts2d_vars(sts_psmin) ) then
           call setup_var(v2dvar_sts(sts_psmin),vsize,'psmin','hPa', &
             'Minimum of surface pressure','air_pressure',.true.,'time: minimum')
+          sts_psmin_out => v2dvar_sts(sts_psmin)%rval
+        end if
 
         vsize%k2 = 1
         v3dvar_sts(sts_t2max)%axis = 'xy2'
         v3dvar_sts(sts_t2min)%axis = 'xy2'
         v3dvar_sts(sts_t2avg)%axis = 'xy2'
         v3dvar_sts(sts_w10max)%axis = 'xyw'
-        if ( enable_sts3d_vars(sts_t2max) ) &
-          call setup_var(v3dvar_sts(sts_t2max),vsize,'t2max','K', &
+        if ( enable_sts3d_vars(sts_t2max) ) then
+          call setup_var(v3dvar_sts(sts_t2max),vsize,'tasmax','K', &
             'Maximum 2 meter temperature','air_temperature',.true., &
             'time: maximum')
-        if ( enable_sts3d_vars(sts_t2min) ) &
-          call setup_var(v3dvar_sts(sts_t2min),vsize,'t2min','K', &
+          sts_t2max_out => v3dvar_sts(sts_t2max)%rval
+        end if
+        if ( enable_sts3d_vars(sts_t2min) ) then
+          call setup_var(v3dvar_sts(sts_t2min),vsize,'tasmin','K', &
             'Minimum 2 meter temperature','air_temperature',.true., &
             'time: minimum')
-        if ( enable_sts3d_vars(sts_t2avg) ) &
-          call setup_var(v3dvar_sts(sts_t2avg),vsize,'t2avg','K', &
+          sts_t2min_out => v3dvar_sts(sts_t2min)%rval
+        end if
+        if ( enable_sts3d_vars(sts_t2avg) ) then
+          call setup_var(v3dvar_sts(sts_t2avg),vsize,'tas','K', &
             'Mean 2 meter temperature','air_temperature',.true., &
             'time: mean')
-        if ( enable_sts3d_vars(sts_w10max) ) &
-          call setup_var(v3dvar_sts(sts_w10max),vsize,'w10max','m s-1', &
+          sts_t2avg_out => v3dvar_sts(sts_t2avg)%rval
+        end if
+        if ( enable_sts3d_vars(sts_w10max) ) then
+          call setup_var(v3dvar_sts(sts_w10max),vsize,'sfcWindmax','m s-1', &
             'Maximum speed of 10m wind','wind_speed',.true.,'time: maximum')
+          sts_w10max_out => v3dvar_sts(sts_w10max)%rval
+        end if
 
         enable_sts_vars(1:nsts2dvars) = enable_sts2d_vars
         enable_sts_vars(nsts2dvars+1:nstsvars) = enable_sts3d_vars
@@ -693,9 +743,12 @@ module mod_ncout
         enable_sub2d_vars = enable_sub_vars(1:nsub2dvars)
         enable_sub3d_vars = enable_sub_vars(nsub2dvars+1:nsubvars)
 
-        vsize%j1 = (vsize%j1-1)*nsg
+        outstream(nstream)%opar%l_subgrid = .true.
+        outstream(nstream)%l_sub = .true.
+
+        vsize%j1 = (vsize%j1-1)*nsg+1
         vsize%j2 = vsize%j2*nsg
-        vsize%i1 = (vsize%i1-1)*nsg
+        vsize%i1 = (vsize%i1-1)*nsg+1
         vsize%i2 = vsize%i2*nsg
 
         ! This variables are always present
@@ -709,42 +762,58 @@ module mod_ncout
         call setup_var(v2dvar_sub(sub_topo),vsize,'topo','m', &
           'Surface Model Elevation','surface_altitude')
         call setup_var(v2dvar_sub(sub_ps),vsize,'ps','hPa', &
-          'Surface Pressure','surface_air_pressure',.true.)
+          'Surface Pressure','surface_air_pressure',.true.,'time: mean')
 
-        xlon_sub_out => v2dvar_sub(sub_xlon)%rval
-        xlat_sub_out => v2dvar_sub(sub_xlat)%rval
-        mask_sub_out => v2dvar_sub(sub_mask)%rval
-        topo_sub_out => v2dvar_sub(sub_topo)%rval
-        ps_sub_out => v2dvar_sub(sub_ps)%rval
+        sub_xlon_out => v2dvar_sub(sub_xlon)%rval
+        sub_xlat_out => v2dvar_sub(sub_xlat)%rval
+        sub_mask_out => v2dvar_sub(sub_mask)%rval
+        sub_topo_out => v2dvar_sub(sub_topo)%rval
+        sub_ps_out => v2dvar_sub(sub_ps)%rval
 
         ! The following may be enabled/disabled
 
-        if ( enable_sub2d_vars(sub_uvdrag) ) &
-          call setup_var(v2dvar_sub(sub_uvdrag),vsize,'uvdrag','1', &
+        if ( enable_sub2d_vars(sub_uvdrag) ) then
+          call setup_var(v2dvar_sub(sub_uvdrag),vsize,'drag','1', &
             'Surface drag stress coefficient in air', &
             'surface_drag_coefficient_in_air',.true.)
-        if ( enable_sub2d_vars(sub_tg) ) &
-          call setup_var(v2dvar_sub(sub_tg),vsize,'tg','K', &
+          sub_uvdrag_out => v2dvar_sub(sub_uvdrag)%rval
+        end if
+        if ( enable_sub2d_vars(sub_tg) ) then
+          call setup_var(v2dvar_sub(sub_tg),vsize,'ts','K', &
             'Ground temperature','surface_temperature',.true.)
-        if ( enable_sub2d_vars(sub_tlef) ) &
-          call setup_var(v2dvar_sub(sub_tlef),vsize,'tlef','K', &
-            'Foliage canopy temperature','canopy_temperature',.true.)
-        if ( enable_sub2d_vars(sub_evp) ) &
-          call setup_var(v2dvar_sub(sub_evp),vsize,' evspsbl','kg m-2 s-1', &
+          sub_tg_out => v2dvar_sub(sub_tg)%rval
+        end if
+        if ( enable_sub2d_vars(sub_tlef) ) then
+          call setup_var(v2dvar_sub(sub_tlef),vsize,'tf','K', &
+            'Foliage canopy temperature','canopy_temperature',.true., &
+            l_fill=.true.)
+          sub_tlef_out => v2dvar_sub(sub_tlef)%rval
+        end if
+        if ( enable_sub2d_vars(sub_evp) ) then
+          call setup_var(v2dvar_sub(sub_evp),vsize,'evspsbl','kg m-2 s-1', &
             'Total evapotranspiration flux','water_evaporation_flux',.true., &
             'time: mean')
-        if ( enable_sub2d_vars(sub_scv) ) &
+          sub_evp_out => v2dvar_sub(sub_evp)%rval
+        end if
+        if ( enable_sub2d_vars(sub_scv) ) then
           call setup_var(v2dvar_sub(sub_scv),vsize,'snv','kg m-2', &
             'Liquid water equivalent of snow thickness', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean')
-        if ( enable_sub2d_vars(sub_sena) ) &
+            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            l_fill=.true.)
+          sub_scv_out => v2dvar_sub(sub_scv)%rval
+        end if
+        if ( enable_sub2d_vars(sub_sena) ) then
           call setup_var(v2dvar_sub(sub_sena),vsize,'hfss','W m-2', &
             'Sensible heat flux','surface_upward_sensible_heat_flux', &
             .true.,'time: mean')
+          sub_sena_out => v2dvar_sub(sub_sena)%rval
+        end if
         if ( lakemod == 1 ) then
-          if ( enable_sub2d_vars(sub_tlake) ) &
-            call setup_var(v2dvar_sub(sub_tlake),vsize,'tlake','K', &
+          if ( enable_sub2d_vars(sub_tlake) ) then
+            call setup_var(v2dvar_sub(sub_tlake),vsize,'tslake','K', &
               'Lake water surface temperature','water_temperature',.true.)
+            sub_tlake_out => v2dvar_sub(sub_tlake)%rval
+          end if
         else
           enable_sub2d_vars(sub_tlake) = .false.
         end if
@@ -754,29 +823,42 @@ module mod_ncout
         v3dvar_sub(sub_v10m)%axis = 'xyw'
         v3dvar_sub(sub_t2m)%axis = 'xy2'
         v3dvar_sub(sub_q2m)%axis = 'xy2'
-        if ( enable_sub3d_vars(sub_u10m) ) &
-          call setup_var(v3dvar_sub(sub_u10m),vsize,'u10m','m s-1', &
+        if ( enable_sub3d_vars(sub_u10m) ) then
+          call setup_var(v3dvar_sub(sub_u10m),vsize,'uas','m s-1', &
             '10 meter zonal wind component (westerly)', &
             'eastward_wind',.true.)
-        if ( enable_sub3d_vars(sub_v10m) ) &
-          call setup_var(v3dvar_sub(sub_v10m),vsize,'v10m','m s-1', &
+          sub_u10m_out => v3dvar_sub(sub_u10m)%rval
+        end if
+        if ( enable_sub3d_vars(sub_v10m) ) then
+          call setup_var(v3dvar_sub(sub_v10m),vsize,'vas','m s-1', &
             '10 meter meridional wind component (southerly)', &
             'northward_wind',.true.)
-        if ( enable_sub3d_vars(sub_t2m) ) &
-          call setup_var(v3dvar_sub(sub_t2m),vsize,'t2m','K', &
+          sub_v10m_out => v3dvar_sub(sub_v10m)%rval
+        end if
+        if ( enable_sub3d_vars(sub_t2m) ) then
+          call setup_var(v3dvar_sub(sub_t2m),vsize,'tas','K', &
             '2 meter air temperature','air_temperature',.true.)
-        if ( enable_sub3d_vars(sub_q2m) ) &
-          call setup_var(v3dvar_sub(sub_q2m),vsize,'q2m','1', &
+          sub_t2m_out => v3dvar_sub(sub_t2m)%rval
+        end if
+        if ( enable_sub3d_vars(sub_q2m) ) then
+          call setup_var(v3dvar_sub(sub_q2m),vsize,'qas','1', &
             '2 meter air specific humidity','specific_humidity',.true.)
+          sub_q2m_out => v3dvar_sub(sub_q2m)%rval
+        end if
         vsize%k2 = 2
         v3dvar_sub(sub_smw)%axis = 'xys'
         v3dvar_sub(sub_runoff)%axis = 'xys'
-        if ( enable_sub3d_vars(sub_smw) ) &
-          call setup_var(v3dvar_sub(sub_smw),vsize,'smw','kg kg-1', &
-            'Soil moisture content','soil_moisture_content',.true.)
-        if ( enable_sub3d_vars(sub_runoff) ) &
-          call setup_var(v3dvar_sub(sub_runoff),vsize,'runoff','kg m-2 day-1', &
-            'Runoff flux','runoff_flux',.true.,'time: mean')
+        if ( enable_sub3d_vars(sub_smw) ) then
+          call setup_var(v3dvar_sub(sub_smw),vsize,'mrso','kg kg-1', &
+            'Soil moisture content','soil_moisture_content', &
+            .true.,l_fill=.true.)
+          sub_smw_out => v3dvar_sub(sub_smw)%rval
+        end if
+        if ( enable_sub3d_vars(sub_runoff) ) then
+          call setup_var(v3dvar_sub(sub_runoff),vsize,'mrro','kg m-2 day-1', &
+            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
+          sub_runoff_out => v3dvar_sub(sub_runoff)%rval
+        end if
 
         enable_sub_vars(1:nsub2dvars) = enable_sub2d_vars
         enable_sub_vars(nsub2dvars+1:nsubvars) = enable_sub3d_vars
@@ -821,70 +903,102 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_rad2d_vars(rad_frsa) ) &
-          call setup_var(v2dvar_rad(rad_frsa),vsize,'frsa','W m-2', &
+        if ( enable_rad2d_vars(rad_frsa) ) then
+          call setup_var(v2dvar_rad(rad_frsa),vsize,'rsns','W m-2', &
             'Surface net downward shortwave flux', &
             'surface_net_downward_shortwave_flux', .true.)
-        if ( enable_rad2d_vars(rad_frla) ) &
-          call setup_var(v2dvar_rad(rad_frla),vsize,'frla','W m-2', &
+          rad_frsa_out => v2dvar_rad(rad_frsa)%rval
+        end if
+        if ( enable_rad2d_vars(rad_frla) ) then
+          call setup_var(v2dvar_rad(rad_frla),vsize,'rsnl','W m-2', &
             'Surface net upward longwave flux', &
             'surface_net_upward_longwave_flux', .true.)
-        if ( enable_rad2d_vars(rad_clrst) ) &
-          call setup_var(v2dvar_rad(rad_clrst),vsize,'clrst','W m-2', &
+          rad_frla_out => v2dvar_rad(rad_frla)%rval
+        end if
+        if ( enable_rad2d_vars(rad_clrst) ) then
+          call setup_var(v2dvar_rad(rad_clrst),vsize,'rtnscl','W m-2', &
             'Clearsky top of atmosphere net downward shortwave flux', &
             'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.)
-        if ( enable_rad2d_vars(rad_clrss) ) &
-          call setup_var(v2dvar_rad(rad_clrss),vsize,'clrss','W m-2', &
+          rad_clrst_out => v2dvar_rad(rad_clrst)%rval
+        end if
+        if ( enable_rad2d_vars(rad_clrss) ) then
+          call setup_var(v2dvar_rad(rad_clrss),vsize,'rsnscl','W m-2', &
             'Clearsky surface net downward shortwave flux', &
             'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.)
-        if ( enable_rad2d_vars(rad_clrlt) ) &
-          call setup_var(v2dvar_rad(rad_clrlt),vsize,'clrlt','W m-2', &
+          rad_clrss_out => v2dvar_rad(rad_clrss)%rval
+        end if
+        if ( enable_rad2d_vars(rad_clrlt) ) then
+          call setup_var(v2dvar_rad(rad_clrlt),vsize,'rtnlcl','W m-2', &
             'Clearsky top of atmosphere net upward longwave flux', &
             'toa_net_upward_longwave_flux_assuming_clear_sky',.true.)
-        if ( enable_rad2d_vars(rad_clrls) ) &
-          call setup_var(v2dvar_rad(rad_clrls),vsize,'clrls','W m-2', &
+          rad_clrlt_out => v2dvar_rad(rad_clrlt)%rval
+        end if
+        if ( enable_rad2d_vars(rad_clrls) ) then
+          call setup_var(v2dvar_rad(rad_clrls),vsize,'rsnlcl','W m-2', &
             'Clearsky net upward longwave flux', &
             'surface_net_upward_longwave_flux_assuming_clear_sky',.true.)
-        if ( enable_rad2d_vars(rad_solin) ) &
-          call setup_var(v2dvar_rad(rad_solin),vsize,'solin','W m-2', &
+          rad_clrls_out => v2dvar_rad(rad_clrls)%rval
+        end if
+        if ( enable_rad2d_vars(rad_solin) ) then
+          call setup_var(v2dvar_rad(rad_solin),vsize,'rts','W m-2', &
             'Top of atmosphere incoming shortwave flux', &
             'toa_incoming_shortwave_flux',.true.)
-        if ( enable_rad2d_vars(rad_sabtp) ) &
-          call setup_var(v2dvar_rad(rad_sabtp),vsize,'sabtp','W m-2', &
+          rad_solin_out => v2dvar_rad(rad_solin)%rval
+        end if
+        if ( enable_rad2d_vars(rad_sabtp) ) then
+          call setup_var(v2dvar_rad(rad_sabtp),vsize,'rsnt','W m-2', &
             'Net top of atmosphere upward shortwave flux', &
             'toa_net_upward_shortwave_flux',.true.)
-        if ( enable_rad2d_vars(rad_totcf) ) &
-          call setup_var(v2dvar_rad(rad_totcf),vsize,'totcf','1', &
+          rad_sabtp_out => v2dvar_rad(rad_sabtp)%rval
+        end if
+        if ( enable_rad2d_vars(rad_totcf) ) then
+          call setup_var(v2dvar_rad(rad_totcf),vsize,'clt','1', &
             'Total cloud fraction','cloud_area_fraction',.true.)
-        if ( enable_rad2d_vars(rad_totcl) ) &
-          call setup_var(v2dvar_rad(rad_totcl),vsize,'totcl','kg m-2', &
+          rad_totcf_out => v2dvar_rad(rad_totcf)%rval
+        end if
+        if ( enable_rad2d_vars(rad_totcl) ) then
+          call setup_var(v2dvar_rad(rad_totcl),vsize,'clwvi','kg m-2', &
             'Total columnar liquid water content', &
             'atmosphere_cloud_condensed_water_content',.true.)
-        if ( enable_rad2d_vars(rad_totci) ) &
-          call setup_var(v2dvar_rad(rad_totci),vsize,'totci','kg m-2', &
+          rad_totcl_out => v2dvar_rad(rad_totcl)%rval
+        end if
+        if ( enable_rad2d_vars(rad_totci) ) then
+          call setup_var(v2dvar_rad(rad_totci),vsize,'clivi','kg m-2', &
             'Total columnar ice water content', &
             'atmosphere_ice_condensed_water_content',.true.)
-        if ( enable_rad2d_vars(rad_firtp) ) &
-          call setup_var(v2dvar_rad(rad_firtp),vsize,'firtp','W m-2', &
+          rad_totci_out => v2dvar_rad(rad_totci)%rval
+        end if
+        if ( enable_rad2d_vars(rad_firtp) ) then
+          call setup_var(v2dvar_rad(rad_firtp),vsize,'rtl','W m-2', &
             'Top of atmosphere net upward longwave flux', &
             'toa_net_upward_longwave_flux',.true.)
+          rad_firtp_out => v2dvar_rad(rad_firtp)%rval
+        end if
 
         vsize%k2 = kz
-        if ( enable_rad3d_vars(rad_cld) ) &
-          call setup_var(v3dvar_rad(rad_cld),vsize,'cld','1', &
+        if ( enable_rad3d_vars(rad_cld) ) then
+          call setup_var(v3dvar_rad(rad_cld),vsize,'cl','1', &
             'Cloud fractional cover', &
             'cloud_area_fraction_in_atmosphere_layer',.true.)
-        if ( enable_rad3d_vars(rad_clwp) ) &
-          call setup_var(v3dvar_rad(rad_clwp),vsize,'clwp','g m-2', &
+          rad_cld_out => v3dvar_rad(rad_cld)%rval
+        end if
+        if ( enable_rad3d_vars(rad_clwp) ) then
+          call setup_var(v3dvar_rad(rad_clwp),vsize,'clw','g m-2', &
             'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
-        if ( enable_rad3d_vars(rad_qrs) ) &
+          rad_clwp_out => v3dvar_rad(rad_clwp)%rval
+        end if
+        if ( enable_rad3d_vars(rad_qrs) ) then
           call setup_var(v3dvar_rad(rad_qrs),vsize,'qrs','K s-1', &
             'Shortwave radiation heating rate', &
             'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
-        if ( enable_rad3d_vars(rad_qrl) ) &
+          rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+        end if
+        if ( enable_rad3d_vars(rad_qrl) ) then
           call setup_var(v3dvar_rad(rad_qrl),vsize,'qrl','K s-1', &
             'Longwave radiation heating rate', &
             'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+          rad_qrl_out => v3dvar_rad(rad_qrl)%rval
+        end if
 
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars
         enable_rad_vars(nrad2dvars+1:nradvars) = enable_rad3d_vars
@@ -929,59 +1043,89 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_lak2d_vars(lak_tg) ) &
-          call setup_var(v2dvar_lak(lak_tg),vsize,'tg','K', &
+        if ( enable_lak2d_vars(lak_tg) ) then
+          call setup_var(v2dvar_lak(lak_tg),vsize,'ts','K', &
             'Ground temperature','surface_temperature',.true.)
-        if ( enable_lak2d_vars(lak_tpr) ) &
-          call setup_var(v2dvar_lak(lak_tpr),vsize,'tpr','kg m-2 day-1', &
+          lak_tg_out => v2dvar_lak(lak_tg)%rval
+        end if
+        if ( enable_lak2d_vars(lak_tpr) ) then
+          call setup_var(v2dvar_lak(lak_tpr),vsize,'pr','kg m-2 day-1', &
             'Total precipitation flux','precipitation_flux',.true.,'time: mean')
-        if ( enable_lak2d_vars(lak_scv) ) &
-          call setup_var(v2dvar_lak(lak_scv),vsize,'scv','kg m-2', &
+          lak_tpr_out => v2dvar_lak(lak_tpr)%rval
+        end if
+        if ( enable_lak2d_vars(lak_scv) ) then
+          call setup_var(v2dvar_lak(lak_scv),vsize,'snv','kg m-2', &
             'Liquid water equivalent snow depth', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean')
-        if ( enable_lak2d_vars(lak_sena) ) &
-          call setup_var(v2dvar_lak(lak_sena),vsize,'sena','W m-2', &
+            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            l_fill=.true.)
+          lak_scv_out => v2dvar_lak(lak_scv)%rval
+        end if
+        if ( enable_lak2d_vars(lak_sena) ) then
+          call setup_var(v2dvar_lak(lak_sena),vsize,'hfss','W m-2', &
             'Sensible heat flux','surface_downward_sensible_heat_flux',.true.)
-        if ( enable_lak2d_vars(lak_flw) ) &
-          call setup_var(v2dvar_lak(lak_flw),vsize,'flw','W m-2', &
+          lak_sena_out => v2dvar_lak(lak_sena)%rval
+        end if
+        if ( enable_lak2d_vars(lak_flw) ) then
+          call setup_var(v2dvar_lak(lak_flw),vsize,'rsnl','W m-2', &
             'Net longwave energy flux','net_upward_longwave_flux_in_air',.true.)
-        if ( enable_lak2d_vars(lak_fsw) ) &
-          call setup_var(v2dvar_lak(lak_fsw),vsize,'fsw','W m-2', &
+          lak_flw_out => v2dvar_lak(lak_flw)%rval
+        end if
+        if ( enable_lak2d_vars(lak_fsw) ) then
+          call setup_var(v2dvar_lak(lak_fsw),vsize,'rsns','W m-2', &
             'Net shortwave energy flux', 'net_downward_shortwave_flux_in_air', &
             .true.)
-        if ( enable_lak2d_vars(lak_fld) ) &
-          call setup_var(v2dvar_lak(lak_fld),vsize,'fld','W m-2', &
+          lak_fsw_out => v2dvar_lak(lak_fsw)%rval
+        end if
+        if ( enable_lak2d_vars(lak_fld) ) then
+          call setup_var(v2dvar_lak(lak_fld),vsize,'rsdl','W m-2', &
             'Downward longwave flux at surface in air', &
             'surface_downwelling_longwave_flux_in_air',.true.)
-        if ( enable_lak2d_vars(lak_sina) ) &
-          call setup_var(v2dvar_lak(lak_sina),vsize,'sina','W m-2', &
+          lak_fld_out => v2dvar_lak(lak_fld)%rval
+        end if
+        if ( enable_lak2d_vars(lak_sina) ) then
+          call setup_var(v2dvar_lak(lak_sina),vsize,'rsds','W m-2', &
             'Downward shortwave flux at surface in air', &
             'surface_downwelling_shortwave_flux_in_air',.true.)
-        if ( enable_lak2d_vars(lak_aldirs) ) &
+          lak_sina_out => v2dvar_lak(lak_sina)%rval
+        end if
+        if ( enable_lak2d_vars(lak_aldirs) ) then
           call setup_var(v2dvar_lak(lak_aldirs),vsize,'aldirs','1', &
             'Surface albedo to direct shortwave radiation', &
             'surface_albedo_short_wave_direct',.true.)
-        if ( enable_lak2d_vars(lak_aldifs) ) &
+          lak_aldirs_out => v2dvar_lak(lak_aldirs)%rval
+        end if
+        if ( enable_lak2d_vars(lak_aldifs) ) then
           call setup_var(v2dvar_lak(lak_aldifs),vsize,'aldifs','1', &
             'Surface albedo to diffuse shortwave radiation', &
             'surface_albedo_short_wave_diffuse',.true.)
-        if ( enable_lak2d_vars(lak_evp) ) &
-          call setup_var(v2dvar_lak(lak_evp),vsize,'evp','mm s-1', &
+          lak_aldifs_out => v2dvar_lak(lak_aldifs)%rval
+        end if
+        if ( enable_lak2d_vars(lak_evp) ) then
+          call setup_var(v2dvar_lak(lak_evp),vsize,'evspsbl','mm s-1', &
             'Water evaporation flux', &
             'water_evaporation_flux_where_sea_ice',.true.)
-        if ( enable_lak2d_vars(lak_aveice) ) &
-          call setup_var(v2dvar_lak(lak_aveice),vsize,'aveice','mm', &
-            'Floating ice thickness','floating_ice_thickness',.true.)
-        if ( enable_lak2d_vars(lak_hsnow) ) &
-          call setup_var(v2dvar_lak(lak_hsnow),vsize,'hsnow','mm', &
+          lak_evp_out => v2dvar_lak(lak_evp)%rval
+        end if
+        if ( enable_lak2d_vars(lak_aveice) ) then
+          call setup_var(v2dvar_lak(lak_aveice),vsize,'lakeice','mm', &
+            'Floating ice thickness','floating_ice_thickness',.true., &
+            l_fill=.true.)
+          lak_aveice_out => v2dvar_lak(lak_aveice)%rval
+        end if
+        if ( enable_lak2d_vars(lak_hsnow) ) then
+          call setup_var(v2dvar_lak(lak_hsnow),vsize,'lakesnow','mm', &
             'Floating snow thickness','surface_snow_thickness_where_sea_ice', &
-            .true.)
+            .true.,l_fill=.true.)
+          lak_hsnow_out => v2dvar_lak(lak_hsnow)%rval
+        end if
 
         vsize%k2 = ndpmax
         v3dvar_lak(lak_tlake)%axis = 'xyd'
-        if ( enable_lak3d_vars(lak_tlake) ) &
-          call setup_var(v3dvar_lak(lak_tlake),vsize,'tlake','K', &
-            'Lake water temperature','water_temperature',.true.)
+        if ( enable_lak3d_vars(lak_tlake) ) then
+          call setup_var(v3dvar_lak(lak_tlake),vsize,'lakets','K', &
+            'Lake water temperature','water_temperature',.true.,l_fill=.true.)
+          lak_tlake_out => v3dvar_lak(lak_tlake)%rval
+        end if
 
         enable_lak_vars(1:nlak2dvars) = enable_lak2d_vars
         enable_lak_vars(nlak2dvars+1:nlakvars) = enable_lak3d_vars
@@ -1038,28 +1182,31 @@ module mod_ncout
             (outstream(nstream)%opar%global_istart-1)*nsg+1
           outstream(nstream)%opar%global_iend =   &
             outstream(nstream)%opar%global_iend*nsg
-          outstream(nstream)%opar%l_subgrid = .true.
-        end if
-      else
-        ! Allocate space to collect all from all CPUs
-        if ( myid == iocpu ) then
-          kkz = 2
-          if ( enable_flag(atm_stream) .or. enable_flag(rad_stream) ) then
-            kkz = max(kz,kkz)
-          end if
-          if ( lakemod == 1 .and. enable_flag(lak_stream) ) then
-            kkz = max(ndpmax,kkz)
-          end if
-          call getmem2d(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
-          if ( kkz > 0 ) then
-            call getmem3d(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
-          end if
-          if ( enable_flag(sub_stream) ) then
-            call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
-          end if
         end if
       end if
-    end do
+    end do enabled_stream_loop
+
+    ! Allocate space to collect all from all CPUs if not parallel output
+
+    if ( .not. parallel_out ) then
+      if ( myid == iocpu ) then
+        kkz = 2
+        if ( atm_stream > 0 .or. rad_stream > 0 ) then
+          kkz = max(kz,kkz)
+        end if
+        if ( lak_stream > 0 ) then
+          kkz = max(ndpmax,kkz)
+        end if
+        call getmem2d(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
+        call getmem3d(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
+        if ( sub_stream > 0 ) then
+          call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
+          call getmem3d(io3dsg,joutsg1,joutsg2,ioutsg1,ioutsg2, &
+                        1,2,'ncout:io3dsg')
+        end if
+      end if
+    end if
+
   end subroutine init_output_streams
 
   integer(ik4) function countvars(eflags,ntot)
@@ -1073,26 +1220,33 @@ module mod_ncout
     end do
   end function countvars
 
-  subroutine newoutfiles(idate)
+  subroutine newoutfiles(idate,trname)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
+    character(len=*) , optional , intent(in) :: trname
     character(len=16) :: fbname
     character(len=36) :: cdate
     class(ncvariable_standard) , pointer :: vp
     real(rk8) , pointer , dimension(:,:) :: tmp2d
+    real(rk8) , pointer , dimension(:,:) :: pnt2d
     integer(ik4) :: i, ivar
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       stream_loop: &
       do i = 1 , maxstreams
-        if ( .not. enable_flag(i) ) cycle stream_loop
+        if ( outstream(i)%l_sub ) then
+          pnt2d => io2dsg
+        else
+          pnt2d => io2d
+        end if
         var_loop: &
         do ivar = 1 , outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
           select type(vp)
             type is (ncvariable2d_real)
               if ( vp%lrecords ) cycle var_loop
-              call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+              call grid_collect(vp%rval,pnt2d, &
+                                vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
             class default
               cycle var_loop
           end select
@@ -1103,25 +1257,31 @@ module mod_ncout
 
     stream_loop_par: &
     do i = 1 , maxstreams
-      if ( .not. enable_flag(i) ) cycle stream_loop_par
-
-      select case (i)
-        case (atm_stream)
-          write (fbname,'(a,i10)') 'nATM.', toint10(idate)
-        case (srf_stream)
-          write (fbname,'(a,i10)') 'nSRF.', toint10(idate)
-        case (sub_stream)
-          write (fbname,'(a,i10)') 'nSUB.', toint10(idate)
-        case (rad_stream)
-          write (fbname,'(a,i10)') 'nRAD.', toint10(idate)
-        case (lak_stream)
-          write (fbname,'(a,i10)') 'nLAK.', toint10(idate)
-        case (sts_stream)
-          write (fbname,'(a,i10)') 'nSTS.', toint10(idate)
-        case default
-          write(stderr,*) 'Undefined output stream. Skipping it.'
-          return
-      end select
+      if ( i == atm_stream ) then
+        write (fbname,'(a,i10)') 'ATM.', toint10(idate)
+      else if ( i == srf_stream ) then
+        write (fbname,'(a,i10)') 'SRF.', toint10(idate)
+      else if ( i == sub_stream ) then
+        write (fbname,'(a,i10)') 'SUB.', toint10(idate)
+      else if ( i == rad_stream ) then
+        write (fbname,'(a,i10)') 'RAD.', toint10(idate)
+      else if ( i == lak_stream ) then
+        write (fbname,'(a,i10)') 'LAK.', toint10(idate)
+      else if ( i == sts_stream ) then
+        write (fbname,'(a,i10)') 'STS.', toint10(idate)
+      else if ( i == opt_stream ) then
+        write (fbname,'(a,i10)') 'OPT.', toint10(idate)
+      else if ( opt_stream > 0 .and. i > opt_stream ) then
+        if ( present(trname) ) then
+          write (fbname,'(a,a,i10)') trname, '.', toint10(idate)
+        else
+          write (fbname,'(a,i0.3,a,i10)') 'TRAC', i-opt_stream, &
+            '.', toint10(idate)
+        end if
+      else
+        write(stderr,*) 'Undefined output stream. Skipping it.'
+        return
+      end if
 
       outstream(i)%opar%fname = &
         trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
@@ -1450,7 +1610,7 @@ module mod_ncout
       end if
 #ifdef CLM
       call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('clm_land_surface_dataset_selection',imask))
+        ncattribute_integer('clm_land_surface_dataset_selection', imask))
 #endif
       if ( iocncpl == 1 ) then
         call outstream_addatt(outstream(i)%ncout, &
@@ -1462,6 +1622,11 @@ module mod_ncout
         call outstream_addvar(outstream(i)%ncout,vp)
       end do
       call outstream_enable(outstream(i)%ncout,sigma)
+      if ( outstream(i)%l_sub ) then
+        pnt2d => io2dsg
+      else
+        pnt2d => io2d
+      end if
       var_loop_par: &
       do ivar = 1 , outstream(i)%nvar
         vp => outstream(i)%ncvars%vlist(ivar)%vp
@@ -1469,13 +1634,14 @@ module mod_ncout
           select type(vp)
             type is (ncvariable2d_real)
               if ( vp%lrecords ) cycle var_loop_par
-              call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+              call grid_collect(vp%rval,pnt2d, &
+                                vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
               vp%j1 = outstream(i)%jg1
               vp%j2 = outstream(i)%jg2
               vp%i1 = outstream(i)%ig1
               vp%i2 = outstream(i)%ig2
               tmp2d => vp%rval
-              vp%rval => io2d
+              vp%rval => pnt2d
             class default
               cycle var_loop_par
           end select
@@ -1605,6 +1771,7 @@ module mod_ncout
         deallocate(outstream(nstream)%ncvars%vlist)
       end if
     end do
+    deallocate(outstream)
   end subroutine dispose_output_streams
 
   subroutine write_record_output_stream(istream,idate)
@@ -1613,8 +1780,18 @@ module mod_ncout
     type(rcm_time_and_date) , intent(in) :: idate
     real(rk8) , pointer , dimension(:,:) :: tmp2d
     real(rk8) , pointer , dimension(:,:,:) :: tmp3d
+    real(rk8) , pointer , dimension(:,:) :: pnt2d
+    real(rk8) , pointer , dimension(:,:,:) :: pnt3d
     class(ncvariable_standard) , pointer :: vp
     integer(ik4) :: ivar
+
+    if ( outstream(istream)%l_sub ) then
+      pnt2d => io2dsg
+      pnt3d => io3dsg
+    else
+      pnt2d => io2d
+      pnt3d => io3d
+    end if
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       do ivar = 1 , outstream(istream)%nvar
@@ -1622,10 +1799,12 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+            call grid_collect(vp%rval,pnt2d, &
+                              vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
+                              vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
           class default
             cycle
         end select
@@ -1643,22 +1822,24 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,io2d,vp%j1,vp%j2,vp%i1,vp%i2)
+            call grid_collect(vp%rval,pnt2d, &
+                              vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
             vp%i2 = outstream(istream)%ig2
             tmp2d => vp%rval
-            vp%rval => io2d
+            vp%rval => pnt2d
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,io3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
+                              vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
             vp%i2 = outstream(istream)%ig2
             tmp3d => vp%rval
-            vp%rval => io3d
+            vp%rval => pnt3d
           class default
             cycle
         end select

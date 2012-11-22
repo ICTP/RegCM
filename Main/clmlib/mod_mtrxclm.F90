@@ -24,7 +24,7 @@ module mod_mtrxclm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : idate0 , iqv , solcon
+  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , imask
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -34,6 +34,7 @@ module mod_mtrxclm
   use mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_zengocn
+  use mod_outvars
 
   use clm_time_manager , only : get_curr_calday
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
@@ -395,10 +396,6 @@ module mod_mtrxclm
             sncv(n,j,i)   = dmax1(sncv(n,j,i),d_zero)
             sfice(n,j,i)  = d_zero
             gwet(n,j,i)   = d_half
-            sena(n,j,i)   = d_zero
-            evpa(n,j,i)   = d_zero
-            srfrna(n,j,i) = d_zero
-            runoff(n,j,i) = d_zero
           end do
         end do
       end do
@@ -409,12 +406,6 @@ module mod_mtrxclm
           fsw(j,i)    = d_zero
           flw(j,i)    = d_zero
           sabveg(j,i) = d_zero
-          fswa(j,i)   = d_zero
-          flwa(j,i)   = d_zero
-          prca(j,i)   = d_zero
-          prnca(j,i)  = d_zero
-          svga(j,i)   = d_zero
-          sina(j,i)   = d_zero
           !
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent
@@ -493,8 +484,6 @@ module mod_mtrxclm
           albvl(j,i)  = aldirl(j,i)*landfrac(jg,ig) + &
                         albvl(j,i) *(d_one-landfrac(jg,ig))
         end if
-        fbat(j,i,aldirs_o) = real(aldirs(j,i))
-        fbat(j,i,aldifs_o) = real(aldifs(j,i))
       end do
     end do
 #ifdef DEBUG
@@ -521,10 +510,8 @@ module mod_mtrxclm
     integer(ik4) , intent(in) :: ivers
     integer(ik8) , intent(in) :: ktau
 !
-    real(rk8) :: mmpd , wpm2
-    integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n , icpu , nnn , nout
-    integer(ik4) :: idep, iddep
-    real(rk4) :: real_4
+    integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n
+    integer(ik4) :: idep , icpu , nout
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
     integer(ik4) , save :: idindx = 0
@@ -603,8 +590,8 @@ module mod_mtrxclm
           if ( ichem == 1 ) then
             if ( cgaschem == 1 .and. caerosol == 1 ) then
               !**** Dry deposition velocities from CLM4
-              do iddep = 1 , ntr
-                dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+              do n = 1 , ntr
+                dep_vels(j,i,n) = c2r_depout(ib+(kk*(n-1))+idep)
               end do
               c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
               c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
@@ -613,8 +600,8 @@ module mod_mtrxclm
 #endif
             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
               !**** Dry deposition velocities from CLM4
-              do iddep = 1 , ntr
-                dep_vels(j,i,iddep) = c2r_depout(ib+(kk*(iddep-1))+idep)
+              do n = 1 , ntr
+                dep_vels(j,i,n) = c2r_depout(ib+(kk*(n-1))+idep)
               end do
 #if (defined VOC)
               voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
@@ -627,19 +614,9 @@ module mod_mtrxclm
           jc = jc + 1
         end do
         ic = ic + c2rngc(icpu)*nout
-        if ( cgaschem == 1 ) idep = idep + c2rngc(icpu)*n_drydep
+        if ( ichem == 1 .and. cgaschem == 1 ) &
+          idep = idep + c2rngc(icpu)*n_drydep
       end do
-
-      if ( ktau == 0 .and. debug_level == 2 ) then
-        mmpd = secpd/dtbat
-        wpm2 = d_one/dtbat
-      else if ( ktau+1 == kbats .and. debug_level == 2 ) then
-        mmpd = houpd/(srffrq-xdtsec/secph)
-        wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
-      else
-        mmpd = houpd/srffrq
-        wpm2 = d_one/(srffrq*secph)
-      end if
 
       call interf(1,ktau)
 
@@ -685,16 +662,17 @@ module mod_mtrxclm
               tgbrd(n,j,i)  = c2rtgb(jg,ig)
               ! supposed to be lower soil layer temp not tgrnd
               taf(n,j,i)    = c2r2mt(jg,ig)
+              t2m(n,j,i)    = c2r2mt(jg,ig)
+              u10m(n,j,i)   = uatm(j,i,kz)
+              v10m(n,j,i)   = vatm(j,i,kz)
               tlef(n,j,i)   = c2rtlef(jg,ig)
               tsw(n,j,i)    = c2rsmtot(jg,ig)
               rsw(n,j,i)    = c2rsm1m(jg,ig)
               ssw(n,j,i)    = c2rsm10cm(jg,ig)
-              ldew(n,j,i)   = ldew(n,j,i)
               sncv(n,j,i)   = c2rsnowc(jg,ig)
-              evpa(n,j,i)   = evpa(n,j,i) + dtbat*qfx(j,i)
-              sena(n,j,i)   = sena(n,j,i) + dtbat*hfx(j,i)
-              srfrna(n,j,i) = c2rro_sur(jg,ig)*dtbat
-              runoff(n,j,i) = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
+              srnof(n,j,i)  = c2rro_sur(jg,ig)*dtbat
+              trnof(n,j,i)  = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
+              q2m(n,j,i)    = c2r2mq(jg,ig)
 
               if ( lchem ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
@@ -706,15 +684,6 @@ module mod_mtrxclm
                 sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
               end if
             end do
-            !abt added for 2m humidity when landmask = 1 or 3
-            q2d(j,i)   = c2r2mq(jg,ig)
-            prca(j,i)  = prca(j,i) + dtbat*pptc(j,i)
-            prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
-            flwa(j,i)  = flwa(j,i) + dtbat*flw(j,i)
-            flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
-            fswa(j,i)  = fswa(j,i) + dtbat*fsw(j,i)
-            svga(j,i)  = svga(j,i) + dtbat*sabveg(j,i)
-            sina(j,i)  = sina(j,i) + dtbat*sinc(j,i)
           else if ( landmask(jg,ig) == 0 ) then !ocean
             do n = 1 , nnsg
               uvdrag(j,i)   = uvdrag(j,i) + drag(n,j,i)
@@ -753,24 +722,7 @@ module mod_mtrxclm
             do n = 1 , nnsg
               taf(n,j,i)  = t2m(n,j,i)
               sncv(n,j,i) = sncv(n,j,i)
-              evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
-              sena(n,j,i) = sena(n,j,i) + dtbat*sent(n,j,i)
-              if ( dabs(trnof(n,j,i)) > 1.0D-10 ) then
-                srfrna(n,j,i) = srfrna(n,j,i) + trnof(n,j,i)/secpd*dtbat
-              end if
-              if ( dabs(srnof(n,j,i)) > 1.0D-10 .and. &
-                   dabs(trnof(n,j,i)) > 1.0D-10 ) then
-                runoff(n,j,i) = runoff(n,j,i) + &
-                        (trnof(n,j,i)-srnof(n,j,i))/secpd*dtbat
-              end if
             end do
-            prca(j,i)  = prca(j,i) + dtbat*pptc(j,i)
-            prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
-            flwa(j,i)  = flwa(j,i) + dtbat*flw(j,i)
-            flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
-            fswa(j,i)  = fswa(j,i) + dtbat*fsw(j,i)
-            svga(j,i)  = svga(j,i) + dtbat*sabveg(j,i)
-            sina(j,i)  = sina(j,i) + dtbat*sinc(j,i)
           else if ( landmask(jg,ig) == 3 ) then
             !gridcell with some % land and ocean
             do n = 1 , nnsg
@@ -847,178 +799,174 @@ module mod_mtrxclm
                              + rsw(n,j,i)*(d_one-landfrac(jg,ig))
               ssw(n,j,i)    = c2rsm10cm(jg,ig)*landfrac(jg,ig)         &
                              + ssw(n,j,i)*(d_one-landfrac(jg,ig))
-              q2d(j,i)      = c2r2mq(jg,ig)*landfrac(jg,ig) + q2m(n,j,i)  &
+              q2m(n,j,i)    = c2r2mq(jg,ig)*landfrac(jg,ig) + q2m(n,j,i)  &
                              *(d_one-landfrac(jg,ig))
-              evpa(n,j,i)   = evpa(n,j,i) + dtbat*qfx(j,i)
-              sena(n,j,i)   = sena(n,j,i) + dtbat*hfx(j,i)
-              srfrna(n,j,i) = c2rro_sur(jg,ig)*dtbat
-              runoff(n,j,i) = c2rro_sub(jg,ig)*dtbat + c2rro_sur(jg,ig)*dtbat
+              srnof(n,j,i)  = c2rro_sur(jg,ig)*dtbat
+              trnof(n,j,i) = c2rro_sub(jg,ig)*dtbat + c2rro_sur(jg,ig)*dtbat
             end do
-            prca(j,i)  = prca(j,i) + dtbat*pptc(j,i)
-            prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
-            flwa(j,i)  = flwa(j,i) + dtbat*flw(j,i)
-            flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
-            fswa(j,i)  = fswa(j,i) + dtbat*fsw(j,i)
-            svga(j,i)  = svga(j,i) + dtbat*sabveg(j,i)
-            sina(j,i)  = sina(j,i) + dtbat*sinc(j,i)
           end if
-        end do
-      end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fbat(j,i,u10m_o) = 0.0
-          fbat(j,i,v10m_o) = 0.0
-          fbat(j,i,tg_o)   = 0.0
-          fbat(j,i,t2m_o)  = 0.0
-          fbat(j,i,q2m_o)  = 0.0
-          do n = 1 , nnsg
-            if ( ldmsk1(n,j,i) /= 0 ) then
-              fsub(n,j,i,q2m_s)  = real(q2d(j,i))
-              fsub(n,j,i,u10m_s) = real(uatm(j,i,kz))
-              fsub(n,j,i,v10m_s) = real(vatm(j,i,kz))
-              fsub(n,j,i,tg_s)   = real(tgrd(n,j,i))
-              fsub(n,j,i,t2m_s)  = real(taf(n,j,i))
-              fbat(j,i,q2m_o)    = fbat(j,i,q2m_o) + real(q2d(j,i))
-              fbat(j,i,u10m_o)   = fbat(j,i,u10m_o) + real(uatm(j,i,kz))
-              fbat(j,i,v10m_o)   = fbat(j,i,v10m_o) + real(vatm(j,i,kz))
-              fbat(j,i,t2m_o)    = fbat(j,i,t2m_o) + real(taf(n,j,i))
-              fbat(j,i,tg_o)     = fbat(j,i,tg_o) + real(tgrd(n,j,i))
-            else if ( ldmsk1(n,j,i) == 0 ) then
-              fsub(n,j,i,q2m_s)  = real(q2m(n,j,i))
-              fsub(n,j,i,tg_s)   = real(tgrd(n,j,i))
-              fsub(n,j,i,u10m_s) = real(u10m(n,j,i))
-              fsub(n,j,i,v10m_s) = real(v10m(n,j,i))
-              fsub(n,j,i,t2m_s)  = real(t2m(n,j,i))
-              fbat(j,i,q2m_o)    = fbat(j,i,q2m_o) + real(q2m(n,j,i))
-              fbat(j,i,u10m_o)   = fbat(j,i,u10m_o) + real(u10m(n,j,i))
-              fbat(j,i,v10m_o)   = fbat(j,i,v10m_o) + real(v10m(n,j,i))
-              fbat(j,i,t2m_o)    = fbat(j,i,t2m_o) + real(t2m(n,j,i))
-              fbat(j,i,tg_o)     = fbat(j,i,tg_o) + real(tgrd(n,j,i))
-            end if
-          end do
-          fbat(j,i,tgmx_o) = amax1(fbat(j,i,tgmx_o),fbat(j,i,tg_o))
-          fbat(j,i,tgmn_o) = amin1(fbat(j,i,tgmn_o),fbat(j,i,tg_o))
-          fbat(j,i,t2mx_o) = amax1(fbat(j,i,t2mx_o),fbat(j,i,t2m_o))
-          fbat(j,i,t2mn_o) = amin1(fbat(j,i,t2mn_o),fbat(j,i,t2m_o))
-          fbat(j,i,w10x_o) = amax1(fbat(j,i,w10x_o), &
-                        sqrt(fbat(j,i,u10m_o)**2+fbat(j,i,v10m_o)**2))
-          real_4      = real((pptnc(j,i)+pptc(j,i)))
-          fbat(j,i,pcpx_o) = amax1(fbat(j,i,pcpx_o),real_4)
-          fbat(j,i,pcpa_o) = fbat(j,i,pcpa_o) + real_4/fdaysrf
-          fbat(j,i,tavg_o) = fbat(j,i,tavg_o)+fbat(j,i,t2m_o)/fdaysrf
-          real_4      = real((sfps(j,i)+ptop)*d_10)
-          fbat(j,i,psmn_o) = amin1(fbat(j,i,psmn_o),real_4)
-          if ( fsw(j,i) > 120.0D0 ) then
-            fbat(j,i,sund_o) = fbat(j,i,sund_o) + real(dtbat)
-            fbat(j,i,sunt_o) = fbat(j,i,sunt_o) + real(dtbat)
-          end if
-          pptnc(j,i) = d_zero
-          pptc(j,i)  = d_zero
         end do
       end do
 
       ! Fill output arrays if needed
 
-      if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
-
-        do i = ici1 , ici2
-          ig = global_cross_istart+i-1
-          do j = jci1 , jci2
-            jg = global_cross_jstart+j-1
-            fbat(j,i,drag_o) = 0.0
-            fbat(j,i,evpa_o) = 0.0
-            fbat(j,i,sena_o) = 0.0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                fsub(n,j,i,drag_s) = real(uvdrag(j,i))
-                fsub(n,j,i,evpa_s) = real(evpa(n,j,i)*mmpd)
-                fsub(n,j,i,sena_s) = real(sena(n,j,i)*wpm2)
-                fsub(n,j,i,tpr_s)  = real((prnca(j,i)+prca(j,i))*mmpd)
-                fsub(n,j,i,prcv_s) = real(prca(j,i)*mmpd)
-                fsub(n,j,i,ps_s)   = real(sfcp(n,j,i)*0.01D0)
-                fbat(j,i,drag_o)   = fbat(j,i,drag_o) + real(uvdrag(j,i))
-                fbat(j,i,evpa_o)   = fbat(j,i,evpa_o) + real(evpa(n,j,i))
-                fbat(j,i,sena_o)   = fbat(j,i,sena_o) + real(sena(n,j,i))
-              else if ( ldmsk1(n,j,i) == 0 ) then
-                fsub(n,j,i,drag_s) = real(drag(n,j,i))
-                fsub(n,j,i,evpa_s) = real(evpa(n,j,i)*mmpd)
-                fsub(n,j,i,sena_s) = real(sena(n,j,i)*wpm2)
-                fsub(n,j,i,tpr_s)  = real((prnca(j,i)+prca(j,i))*mmpd)
-                fsub(n,j,i,prcv_s) = real(prca(j,i)*mmpd)
-                fsub(n,j,i,ps_s)   = real(sfcp(n,j,i)*0.01D0)
-                fbat(j,i,drag_o)   = fbat(j,i,drag_o) + real(drag(n,j,i))
-                fbat(j,i,evpa_o)   = fbat(j,i,evpa_o) + real(evpa(n,j,i))
-                fbat(j,i,sena_o)   = fbat(j,i,sena_o) + real(sena(n,j,i))
-              end if
-            end do
-            fbat(j,i,tpr_o)  = real((prnca(j,i)+prca(j,i))*mmpd)
-            fbat(j,i,evpa_o) = fbat(j,i,evpa_o)*real(mmpd)
-            fbat(j,i,sena_o) = fbat(j,i,sena_o)*real(wpm2)
-            fbat(j,i,flwa_o) = real(flwa(j,i)*wpm2)
-            fbat(j,i,fswa_o) = real(fswa(j,i)*wpm2)
-            fbat(j,i,flwd_o) = real(flwda(j,i)*wpm2)
-            fbat(j,i,sina_o) = real(sina(j,i)*wpm2)
-            fbat(j,i,prcv_o) = real(prca(j,i)*mmpd)
-            fbat(j,i,ps_o) = real((sfps(j,i)+ptop)*d_10)
-            fbat(j,i,zpbl_o) = real(hpbl(j,i))
-            fbat(j,i,tlef_o) = 0.0
-            fbat(j,i,ssw_o)  = 0.0
-            fbat(j,i,rsw_o)  = 0.0
-            fbat(j,i,rnos_o) = 0.0
-            fbat(j,i,scv_o)  = 0.0
-            nnn = 0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) /= 0 .and. landmask(jg,ig) /= 3 ) then
-                fbat(j,i,tlef_o)   = fbat(j,i,tlef_o) + real(c2rtlef(jg,ig))
-                fbat(j,i,ssw_o)    = fbat(j,i,ssw_o) + real(c2rsm10cm(jg,ig))
-                fbat(j,i,rsw_o)    = fbat(j,i,rsw_o) + real(c2rsm1m(jg,ig))
-                ! Correct unit of measure of runoff coming from CLM
-                fbat(j,i,rnos_o)   = fbat(j,i,rnos_o) + &
-                                     real(srfrna(n,j,i)*d_r1000)
-                fbat(j,i,scv_o)    = fbat(j,i,scv_o) + real(c2rsnowc(jg,ig))
-                fsub(n,j,i,tlef_s) = real(c2rtlef(jg,ig))
-                fsub(n,j,i,ssw_s)  = real(c2rsm10cm(jg,ig))
-                fsub(n,j,i,rsw_s)  = real(c2rsm1m(jg,ig))
-                fsub(n,j,i,rnos_s) = real(srfrna(n,j,i)*mmpd)
-                fsub(n,j,i,scv_s)  = real(c2rsnowc(jg,ig))
-                nnn = nnn + 1
-              else
-                fsub(n,j,i,tlef_s) = smissval
-                fsub(n,j,i,ssw_s)  = smissval
-                fsub(n,j,i,rsw_s)  = smissval
-                fsub(n,j,i,rnos_s) = smissval
-                fsub(n,j,i,scv_s)  = smissval
-              end if
-            end do
-            if ( nnn >= max0(nnsg/2,1) ) then
-              fbat(j,i,tlef_o) = fbat(j,i,tlef_o)/real(nnn)
-              fbat(j,i,ssw_o)  = fbat(j,i,ssw_o)/real(nnn)
-              fbat(j,i,rsw_o)  = fbat(j,i,rsw_o)/real(nnn)
-              fbat(j,i,rnos_o) = fbat(j,i,rnos_o)/real(nnn)*real(mmpd)
-              fbat(j,i,scv_o)  = fbat(j,i,scv_o)/real(nnn)
-            else
-              fbat(j,i,tlef_o) = smissval
-              fbat(j,i,ssw_o)  = smissval
-              fbat(j,i,rsw_o)  = smissval
-              fbat(j,i,rnos_o) = smissval
-              fbat(j,i,scv_o)  = smissval
-            end if
-            ! reset accumulation arrays to zero
-            do n = 1 , nnsg
-              evpa(n,j,i)   = d_zero
-              srfrna(n,j,i) = d_zero
-              sena(n,j,i)   = d_zero
-            end do
-            prnca(j,i) = d_zero
-            prca(j,i)  = d_zero
-            flwa(j,i)  = d_zero
-            flwda(j,i) = d_zero
-            fswa(j,i)  = d_zero
-            svga(j,i)  = d_zero
-            sina(j,i)  = d_zero
-          end do
-        end do
+      ! Accumulators for ATM output
+      if ( ifatm ) then
+        if ( ktau > 1 ) then
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
+          if ( associated(atm_tsw_out) ) &
+            atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
+        else if ( ktau == 1 ) then
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = d_two*sum(tgbrd,1)*rdnnsg
+          if ( associated(atm_tsw_out) ) &
+            atm_tsw_out = d_two*sum(tsw,1)*rdnnsg
+        end if
       end if
+
+      ! Accumulators for SRF output
+
+      if ( ifsrf ) then
+        if ( associated(srf_evp_out) ) &
+          srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+        if ( associated(srf_tpr_out) ) &
+          srf_tpr_out = srf_tpr_out + totpr
+        if ( associated(srf_prcv_out) ) &
+          srf_prcv_out = srf_prcv_out + pptc
+        ! Reset accumulation from precip and cumulus
+        pptnc = d_zero
+        pptc  = d_zero
+        if ( associated(srf_zpbl_out) ) &
+          srf_zpbl_out = srf_zpbl_out + hpbl
+        if ( associated(srf_scv_out) ) &
+          srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+        if ( associated(srf_sund_out) ) then
+          where( fsw > 120.0D0 )
+            srf_sund_out = srf_sund_out + dtbat
+          end where
+        end if
+        if ( associated(srf_runoff_out) ) then
+          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
+          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+        end if
+        if ( associated(srf_sena_out) ) &
+          srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+        if ( associated(srf_flw_out) ) &
+          srf_flw_out = srf_flw_out + flw
+        if ( associated(srf_fsw_out) ) &
+          srf_fsw_out = srf_fsw_out + fsw
+        if ( associated(srf_fld_out) ) &
+          srf_fld_out = srf_fld_out + flwd
+        if ( associated(srf_sina_out) ) &
+          srf_sina_out = srf_sina_out + sinc
+      end if
+
+      ! Accumulators for SUB output
+
+      if ( ifsub ) then
+        call reorder_add_subgrid(sfcp,sub_ps_out)
+        if ( associated(sub_evp_out) ) &
+          call reorder_add_subgrid(evpr,sub_evp_out)
+        if ( associated(sub_scv_out) ) &
+          call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
+        if ( associated(sub_sena_out) ) &
+          call reorder_add_subgrid(sent,sub_sena_out)
+        if ( associated(sub_runoff_out) ) then
+          call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
+          call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+        end if
+      end if
+
+      ! Accumulators for STS output
+
+      if ( ifsts ) then
+        if ( associated(sts_tgmax_out) ) &
+          sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
+        if ( associated(sts_tgmin_out) ) &
+          sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
+        if ( associated(sts_t2max_out) ) &
+          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
+        if ( associated(sts_w10max_out) ) &
+          sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
+            sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
+        if ( associated(sts_pcpmax_out) ) &
+          sts_pcpmax_out = max(sts_pcpmax_out,totpr)
+        if ( associated(sts_pcpavg_out) ) &
+          sts_pcpavg_out = sts_pcpavg_out + totpr
+        if ( associated(sts_psmin_out) ) &
+          sts_psmin_out = min(sts_psmin_out, &
+            (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+        if ( associated(sts_sund_out) ) then
+          where( fsw > 120.0D0 )
+            sts_sund_out = sts_sund_out + dtbat
+          end where
+        end if
+      end if
+
+      ! Those are for the output, but collected only at POINT in time
+
+      if ( mod(ktau+1,kbats) == 0 .or. (ktau == 0 .and. debug_level > 2) ) then
+
+        if ( ifsrf ) then
+          if ( associated(srf_uvdrag_out) ) &
+            srf_uvdrag_out = uvdrag
+          if ( associated(srf_tg_out) ) &
+            srf_tg_out = tground1(jci1:jci2,ici1:ici2)
+          if ( associated(srf_tlef_out) ) then
+            where ( sum(ldmsk1,1) > nnsg/2 )
+              srf_tlef_out = sum(tlef,1)*rdnnsg
+            elsewhere
+              srf_tlef_out = dmissval
+            end where
+          end if
+          if ( associated(srf_aldirs_out) ) &
+            srf_aldirs_out = aldirs
+          if ( associated(srf_aldifs_out) ) &
+            srf_aldifs_out = aldifs
+          if ( associated(srf_seaice_out) ) &
+            srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
+          if ( associated(srf_t2m_out) ) &
+            srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
+          if ( associated(srf_q2m_out) ) &
+            srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
+          if ( associated(srf_u10m_out) ) &
+            srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
+          if ( associated(srf_v10m_out) ) &
+            srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
+          if ( associated(srf_smw_out) ) then
+            srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
+            srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+          end if
+        end if
+
+        if ( ifsub ) then
+          if ( associated(sub_uvdrag_out) ) &
+            call reorder_subgrid(drag,sub_uvdrag_out)
+          if ( associated(sub_tg_out) ) &
+            call reorder_subgrid(tgrd,sub_tg_out)
+          if ( associated(sub_tlef_out) ) &
+            call reorder_subgrid(tlef,sub_tlef_out,mask=ldmsk1)
+          if ( associated(sub_u10m_out) ) &
+            call reorder_subgrid(u10m,sub_u10m_out)
+          if ( associated(sub_v10m_out) ) &
+            call reorder_subgrid(v10m,sub_v10m_out)
+          if ( associated(sub_t2m_out) ) &
+            call reorder_subgrid(t2m,sub_t2m_out)
+          if ( associated(sub_q2m_out) ) &
+            call reorder_subgrid(q2m,sub_q2m_out)
+          if ( associated(sub_smw_out) ) then
+            call reorder_subgrid(ssw,sub_smw_out,1,ldmsk1)
+            call reorder_subgrid(rsw,sub_smw_out,2,ldmsk1)
+          end if
+        end if
+
+      end if ! IF output time
+
     end if  ! end if ivers = 2
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

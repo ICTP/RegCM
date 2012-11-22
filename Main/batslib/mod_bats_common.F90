@@ -34,58 +34,6 @@ module mod_bats_common
 
   logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
 
-  integer(ik4) , parameter :: ps_o     = 1
-  integer(ik4) , parameter :: u10m_o   = 2
-  integer(ik4) , parameter :: v10m_o   = 3
-  integer(ik4) , parameter :: drag_o   = 4
-  integer(ik4) , parameter :: tg_o     = 5
-  integer(ik4) , parameter :: tlef_o   = 6
-  integer(ik4) , parameter :: t2m_o    = 7
-  integer(ik4) , parameter :: q2m_o    = 8
-  integer(ik4) , parameter :: ssw_o    = 9
-  integer(ik4) , parameter :: rsw_o    = 10
-  integer(ik4) , parameter :: tpr_o    = 11
-  integer(ik4) , parameter :: evpa_o   = 12
-  integer(ik4) , parameter :: rnos_o   = 13
-  integer(ik4) , parameter :: scv_o    = 14
-  integer(ik4) , parameter :: sena_o   = 15
-  integer(ik4) , parameter :: flwa_o   = 16
-  integer(ik4) , parameter :: fswa_o   = 17
-  integer(ik4) , parameter :: flwd_o   = 18
-  integer(ik4) , parameter :: sina_o   = 19
-  integer(ik4) , parameter :: prcv_o   = 20
-  integer(ik4) , parameter :: zpbl_o   = 21
-  integer(ik4) , parameter :: aldirs_o = 22
-  integer(ik4) , parameter :: aldifs_o = 23
-  integer(ik4) , parameter :: sunt_o   = 24
-  integer(ik4) , parameter :: tgmx_o   = 25
-  integer(ik4) , parameter :: tgmn_o   = 26
-  integer(ik4) , parameter :: t2mx_o   = 27
-  integer(ik4) , parameter :: t2mn_o   = 28
-  integer(ik4) , parameter :: tavg_o   = 29
-  integer(ik4) , parameter :: w10x_o   = 30
-  integer(ik4) , parameter :: pcpx_o   = 31
-  integer(ik4) , parameter :: pcpa_o   = 32
-  integer(ik4) , parameter :: sund_o   = 33
-  integer(ik4) , parameter :: psmn_o   = 34
-
-  integer(ik4) , parameter :: ps_s   = 1
-  integer(ik4) , parameter :: u10m_s = 2
-  integer(ik4) , parameter :: v10m_s = 3
-  integer(ik4) , parameter :: drag_s = 4
-  integer(ik4) , parameter :: tg_s   = 5
-  integer(ik4) , parameter :: tlef_s = 6
-  integer(ik4) , parameter :: t2m_s  = 7
-  integer(ik4) , parameter :: q2m_s  = 8
-  integer(ik4) , parameter :: ssw_s  = 9
-  integer(ik4) , parameter :: rsw_s  = 10
-  integer(ik4) , parameter :: tpr_s  = 11
-  integer(ik4) , parameter :: evpa_s = 12
-  integer(ik4) , parameter :: rnos_s = 13
-  integer(ik4) , parameter :: scv_s  = 14
-  integer(ik4) , parameter :: sena_s = 15
-  integer(ik4) , parameter :: prcv_s = 16
-
   integer(ik8) :: kbats  ! Step frequency in calling BATS1e LSM
   integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(ik8) :: ntsrf2 ! Number of time step to call BATs 
@@ -118,15 +66,8 @@ module mod_bats_common
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
   integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
 !
-  real(rk8) , pointer , dimension(:,:,:) :: runoff , emiss , evpa , sena , &
-        srfrna
-!
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
-    mask1 , xlat1 , xlon1
-!
-  real(rk4) , pointer , dimension(:,:,:) :: fbat
-!
-  real(rk4) , pointer , dimension(:,:,:,:) :: fsub
+    mask1 , xlat1 , xlon1 , emiss
 !
   ! dtskin is difference between skin temp and bulk sst
   real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
@@ -199,14 +140,10 @@ module mod_bats_common
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
       end if
       call getmem3d(iveg1,1,nnsg,jci1,jci2,ici1,ici2,'bats:iveg1')
-      call getmem3d(runoff,1,nnsg,jci1,jci2,ici1,ici2,'bats:runoff')
-      call getmem3d(evpa,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpa')
-      call getmem3d(srfrna,1,nnsg,jci1,jci2,ici1,ici2,'bats:srfrna')
 
       call getmem3d(ldmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldmsk1')
       call getmem3d(emiss,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss')
       call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
-      call getmem3d(sena,1,nnsg,jci1,jci2,ici1,ici2,'bats:sena')
       call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
       call getmem3d(snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
       call getmem3d(sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
@@ -262,9 +199,6 @@ module mod_bats_common
       call getmem2d(aldirl,jci1,jci2,ici1,ici2,'bats:aldirl')
       call getmem2d(aldirs,jci1,jci2,ici1,ici2,'bats:aldirs')
 
-      call getmem3d(fbat,jci1,jci2,ici1,ici2,1,numbat,'bats:fbat')
-      call getmem4d(fsub,1,nnsg,jci1,jci2,ici1,ici2,1,numsub,'bats:fsub')
-!
       if ( lakemod == 1 ) then
         call getmem3d(dhlake1,1,nnsg,jci1,jci2,ici1,ici2,'bats:dhlake1')
         call getmem3d(idep,1,nnsg,jci1,jci2,ici1,ici2,'bats:idep')

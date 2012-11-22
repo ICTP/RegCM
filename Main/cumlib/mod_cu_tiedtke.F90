@@ -44,29 +44,6 @@ module mod_cu_tiedtke
 
   real(rk8) , parameter :: centrmax = 3.0D-4
 
-  real(rk8) :: entrpen      ! entrainment rate for penetrative convection
-  real(rk8) :: entrscv      ! entrainment rate for shallow convection
-  real(rk8) :: entrmid      ! entrainment rate for midlevel convection
-  real(rk8) :: entrdd       ! entrainment rate for cumulus downdrafts
-  real(rk8) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
-  real(rk8) :: cmtcape      ! CAPE adjustment timescale parameter
-  real(rk8) :: zdlev        ! Restrict rainfall up to this elevation
-  real(rk8) :: cmfcmax      ! maximum massflux value allowed for
-  real(rk8) :: cmfcmin      ! minimum massflux value (for safety)
-  real(rk8) :: cmfdeps      ! fractional massflux for downdrafts at lfs
-  real(rk8) :: rhcdd        ! relative saturation in downdrafts
-  real(rk8) :: cprcon       ! coefficients for determining conversion
-                           ! from cloud water to rain
-  real(rk8) :: ctrigger     ! coefficients for triggering convection
-
-  integer(ik4) :: iconv
-  integer(ik4) :: nmctop    !  max. level for cloud base of mid level conv.
-  logical :: lmfpen    !  true if penetrative convection is switched on
-  logical :: lmfscv    !  true if shallow convection is switched on
-  logical :: lmfmid    !  true if midlevel convection is switched on
-  logical :: lmfdd     !  true if cumulus downdraft is switched on
-  logical :: lmfdudv   !  true if cumulus friction is switched on
-
   integer(ik4) , pointer , dimension(:,:) :: ilab
   integer(ik4) , pointer , dimension(:) :: ktype
 

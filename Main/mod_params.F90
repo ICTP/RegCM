@@ -69,13 +69,10 @@ module mod_params
   integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   integer(ik4) :: hspan
   integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
-  integer(ik8) :: nbdyfrq
+  integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq
   integer(ik4) :: n , len_path
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
-#ifndef CLM
-  real(rk8) :: clmfrq
-#endif
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'param'
   integer(ik4) , save :: idindx = 0
@@ -93,10 +90,10 @@ module mod_params
  
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
-  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,  &
-    radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,    &
-    ifchem , chemfrq , enable_atm_vars , enable_srf_vars ,        &
-    enable_rad_vars , enable_sub_vars , enable_sts_vars ,         &
+  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,    &
+    radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,      &
+    subfrq , ifchem , chemfrq , enable_atm_vars , enable_srf_vars , &
+    enable_rad_vars , enable_sub_vars , enable_sts_vars ,           &
     enable_lak_vars , dirout , lsync
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
@@ -272,8 +269,8 @@ module mod_params
   ifsub = .false.
   iflak = .false.
   srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
-  lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
-  enable_flag(:) = .true.
+  lakfrq =  6.0D0   ! time interval for disposing lake output (hrs)
+  subfrq =  6.0D0   ! time interval for disposing lake output (hrs)
   enable_atm_vars(:) = .true.
   enable_srf_vars(:) = .true.
   enable_sts_vars(:) = .true.
@@ -286,7 +283,6 @@ module mod_params
   ifchem = .false.
   chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
 !chem2_
-  clmfrq = 12.0D0
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -430,8 +426,8 @@ module mod_params
   ichebdy =1
   rdstemfac = d_one
 #ifdef CLM
-!c------CLM Specific
   imask = 1
+  clmfrq = 24.0D0
 #endif
 !------namelist cplparam ;
 ! cpldbglevel:
@@ -487,7 +483,6 @@ module mod_params
     print * , 'OUTPARAM namelist READ IN'
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
-    if ( lakfrq < d_zero ) lakfrq = srffrq
     read (ipunit, physicsparam)
     print * , 'PHYSICSPARAM namelist READ IN'
     if ( ipptls == 1 ) then
@@ -561,14 +556,9 @@ module mod_params
   call bcast(ifsub)
   call bcast(iflak)
   call bcast(ifsts)
-  enable_flag(atm_stream) = ifatm
-  enable_flag(srf_stream) = ifsrf
-  enable_flag(sub_stream) = ifsub
-  enable_flag(rad_stream) = ifrad
-  enable_flag(lak_stream) = iflak
-  enable_flag(sts_stream) = ifsts
   call bcast(srffrq)
   call bcast(lakfrq)
+  call bcast(subfrq)
   call bcast(ifchem)
   call bcast(chemfrq)
 
@@ -586,14 +576,17 @@ module mod_params
   call bcast(ichem)
   call bcast(ntr)
 
-  if ( lakemod /= 1 ) enable_flag(lak_stream) = .false.
-  if ( nsg < 2 )      enable_flag(sub_stream) = .false.
-  if ( .not. enable_flag(srf_stream) ) then
-    enable_flag(lak_stream) = .false.
-    enable_flag(sub_stream) = .false.
-    enable_flag(sts_stream) = .false.
-  end if
+  ! Check if really do output
 
+#ifdef CLM
+  lakemod = 0
+#endif
+  if ( lakemod /= 1 ) then
+    iflak = .false.
+  end if
+  if ( nsg < 2 ) then
+    ifsub = .false.
+  end if
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then
     if ( dattyp(4:5) == '26' ) then
@@ -854,20 +847,6 @@ module mod_params
                    'TO ENABLE STS, ENABLE SRF OUTPUT IS REQUIRED')
       end if
     end if
-    if ( lakemod == 1 ) then
-      if ( lakfrq < srffrq .or. &
-           mod(idnint(lakfrq),idnint(srffrq)) /= 0 ) then
-        write (aline,*) 'BATFRQ=' , srffrq , ' LAKFRQ=' , lakfrq
-        call say
-        write (aline,*) 'Lake frequency needs to be an integer ',&
-                        ' multiple of srffrq.'
-        call say
-        if ( myid == italk ) then
-          call fatal(__FILE__,__LINE__, &
-                    'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
-        end if
-      end if
-    end if
     if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
       call say
@@ -890,30 +869,6 @@ module mod_params
   if ( ifrest ) then
     doing_restart = .true.
   end if
-
-  if ( myid == iocpu ) then
-    do i = 1 , n_atmvar
-      atm_variables(i)%enabled = enable_atm_vars(i)
-    end do
-    do i = 1 , n_srfvar
-      srf_variables(i)%enabled = enable_srf_vars(i)
-    end do
-    do i = 1 , n_stsvar
-      sts_variables(i)%enabled = enable_sts_vars(i)
-    end do
-    do i = 1 , n_lakvar
-      lak_variables(i)%enabled = enable_lak_vars(i)
-    end do
-    do i = 1 , n_subvar
-      sub_variables(i)%enabled = enable_sub_vars(i)
-    end do
-    do i = 1 , n_radvar
-      rad_variables(i)%enabled = enable_rad_vars(i)
-    end do
-    if ( lakemod /= 1 .and. iseaice /= 1 ) then
-      srf_variables(ivarname_lookup('SRF','seaice'))%enabled = .false.
-    end if
-  end if
 !
 !.....calculate the time step in minutes.
 !
@@ -930,9 +885,10 @@ module mod_params
   nradfrq = idnint(secph*radfrq)
   ndbgfrq = idnint(secph*dbgfrq)
   nsrffrq = idnint(secph*srffrq)
+  nlakfrq = idnint(secph*lakfrq)
+  nsubfrq = idnint(secph*subfrq)
   nchefrq = idnint(secph*chemfrq)
   nbdyfrq = idnint(dtbdys)
-  klak = idnint(lakfrq/srffrq)
   chfrovrradfr = chemfrq/radfrq
 
   rtsrf = dtsrf/dtsec
@@ -949,6 +905,8 @@ module mod_params
   kbdy  = nbdyfrq/idnint(dtsec)
   katm  = natmfrq/idnint(dtsec)
   ksrf  = nsrffrq/idnint(dtsec)
+  klak  = nlakfrq/idnint(dtsec)
+  ksub  = nsubfrq/idnint(dtsec)
   ksts  = khour*24
   krad  = nradfrq/idnint(dtsec)
   kche  = nchefrq/idnint(dtsec)
@@ -956,6 +914,9 @@ module mod_params
   ksav  = nsavfrq/idnint(dtsec)
 
   rnsrf_for_srffrq = d_one/(dble(ksrf)*rtsrf)
+  rnsrf_for_lakfrq = d_one/(dble(klak)*rtsrf)
+  rnsrf_for_subfrq = d_one/(dble(ksub)*rtsrf)
+  rnsrf_for_day = d_one/(dble(kday)*rtsrf)
 
   fdaysrf = real(secpd/dtsrf)
   rsrf_in_atm = dble(ntsrf)/dble(katm)
@@ -1112,8 +1073,6 @@ module mod_params
   call say 
   write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , chemfrq
   call say  
-  write (aline,*) 'Frequency in hours to write CLM: clmfrq = ', clmfrq
-  call say
   write (aline,*) ' '
   call say
   write (aline,*) 'physical parameterizations '
@@ -1160,14 +1119,16 @@ module mod_params
                      'for large-scale '// &
                      'clouds (0=no,1=yes):  iconvlwp =' , iconvlwp 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value high range   =', high_nudge 
+  write(aline,'(a,f9.6)') ' Nudge value high range   =', high_nudge 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value medium range =', medium_nudge 
+  write(aline,'(a,f9.6)') ' Nudge value medium range =', medium_nudge 
   call say
-  write  (aline,'(a,f9.6)') ' Nudge value low range    =', low_nudge 
+  write(aline,'(a,f9.6)') ' Nudge value low range    =', low_nudge 
   call say
 #ifdef CLM 
-   write  (aline,'(a,i2)' ) '  imask=' , imask 
+  write(aline,'(a,i2)' )  ' CLM imask  = ' , imask 
+  call say
+  write(aline,'(a,f9.6)') 'Frequency in hours to write CLM: = ', clmfrq
   call say
 #endif
   write (aline, *) ' '

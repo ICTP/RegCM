@@ -59,7 +59,6 @@ module mod_che_chemistry
 
       time = dtchsolv
       idate = (lyear-1900)*10000+lmonth*100+lday
-      xhour =   secofday/3600.0D0   ! abt added for time of day
       c_numitr = 20
       kmax = 1
       

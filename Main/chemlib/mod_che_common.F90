@@ -23,6 +23,7 @@ module mod_che_common
   use mod_realkinds
   use mod_dynparam
   use mod_mppparam
+  use mod_runparams
   use mod_memutil
   use mod_mpmessage
   use mod_che_param
@@ -30,16 +31,10 @@ module mod_che_common
 !
   public
 
-  character(len=8)   :: chemsimtype 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 40 
 
-  ! chemistry nameliste option
-  integer(ik4) , public :: ichcumtra , ichdrdepo , ichremcvc , &
-                      ichremlsc , ichsursrc , ichsolver , &
-                      ichdustemd ,  ichdiag,ichebdy
-  real(rk8), public :: rdstemfac
   ! usefull flags
   integer(ik4) :: iaerosol , igaschem , ioxclim
   

@@ -1,6 +1,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
+vpath %.o $(REGCM_ROOT)/Share:.
+
 bin_PROGRAMS = ReadRegcmio
 ReadRegcmio_SOURCES = ReadRegcmio.F90
 

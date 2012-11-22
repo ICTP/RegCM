@@ -295,10 +295,9 @@ module mod_bats_mtrxbats
     integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
-                fracs , fracv , hl , mmpd , rh0 , satvp ,     &
-                solvt , wpm2 , p0 , qs0 , ts0
-    integer(ik4) :: i , j , n , nnn
-    real(rk4) :: real_4
+                fracs , fracv , hl , rh0 , satvp ,     &
+                solvt , p0 , qs0 , ts0
+    integer(ik4) :: i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
     integer(ik4) , save :: idindx = 0
@@ -368,153 +367,10 @@ module mod_bats_mtrxbats
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
-      ! Accumulators for ATM output
-      if ( ktau > 1 ) then
-        if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
-        if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
-      else if ( ktau == 1 ) then
-        if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = d_two*sum(tgbrd,1)*rdnnsg
-        if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = d_two*sum(tsw,1)*rdnnsg
-      end if
-
-      ! Accumulators for SRF output
-      if ( associated(srf_evp_out) ) &
-        srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
-      if ( associated(srf_tpr_out) ) &
-        srf_tpr_out = srf_tpr_out + totpr
-      if ( associated(srf_prcv_out) ) &
-        srf_prcv_out = srf_prcv_out + pptc
-      if ( associated(srf_zpbl_out) ) &
-        srf_zpbl_out = srf_zpbl_out + hpbl
-      if ( associated(srf_scv_out) ) &
-        srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
-      if ( associated(srf_sund_out) ) then
-        where( fsw > 120.0D0 )
-          srf_sund_out = srf_sund_out + dtbat
-        end where
-      end if
-      if ( associated(srf_runoff_out) ) then
-        srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
-        srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + &
-          sum(trnof-srnof,1)*rdnnsg
-      end if
-      if ( associated(srf_sena_out) ) &
-        srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
-      if ( associated(srf_flw_out) ) &
-        srf_flw_out = srf_flw_out + flw
-      if ( associated(srf_fsw_out) ) &
-        srf_fsw_out = srf_fsw_out + fsw
-      if ( associated(srf_fld_out) ) &
-        srf_fld_out = srf_fld_out + flwd
-      if ( associated(srf_sina_out) ) &
-        srf_sina_out = srf_sina_out + sinc
+      ! Those are needed elsewhere in the model (pbl,cumulus,chem,etc)
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          uvdrag(j,i) = d_zero
-          hfx(j,i) = d_zero
-          qfx(j,i) = d_zero
-          tground2(j,i) = d_zero
-          tground1(j,i) = d_zero
-          tgbb(j,i) = d_zero
-          if ( lchem ) then
-            ssw2da(j,i) = d_zero
-            sdeltk2d(j,i) = d_zero
-            sdelqk2d(j,i) = d_zero
-            sfracv2d(j,i) = d_zero
-            sfracb2d(j,i) = d_zero
-            sfracs2d(j,i) = d_zero
-            svegfrac2d(j,i) = d_zero
-          end if
-
-          do n = 1 , nnsg
-            uvdrag(j,i) = uvdrag(j,i) + drag(n,j,i)
-            hfx(j,i) = hfx(j,i) + sent(n,j,i)
-            qfx(j,i) = qfx(j,i) + evpr(n,j,i)
-            tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
-            tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
-            if ( lchem ) then
-              ssw2da(j,i) = ssw2da(j,i) + ssw(n,j,i)
-              sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
-              sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
-              sfracv2d(j,i) = sfracv2d(j,i) + sigf(n,j,i)
-              sfracb2d(j,i) = sfracb2d(j,i)+ &
-                              (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
-              sfracs2d(j,i) = sfracs2d(j,i) + &
-                       lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
-              svegfrac2d(j,i) = svegfrac2d(j,i) + lncl(n,j,i)
-            end if
-            if ( iocnflx == 1 .or. &
-                (iocnflx == 2 .and. ldmsk1(n,j,i) /= 0 ) ) then
-              tgbb(j,i) = tgbb(j,i) +                 &
-                         ((d_one-lncl(n,j,i))*tgrd(n,j,i)**4 +  &
-                         lncl(n,j,i)*tlef(n,j,i)**4)**d_rfour
-            else
-              tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
-            end if
-            if ( ldmsk1(n,j,i) == 0 ) then
-              ssw(n,j,i)   = dmissval
-              rsw(n,j,i)   = dmissval
-              tsw(n,j,i)   = dmissval
-              trnof(n,j,i) = dmissval
-              srnof(n,j,i) = dmissval
-              sncv(n,j,i)  = dmissval
-            end if
-          end do
-          uvdrag(j,i) = uvdrag(j,i)*rdnnsg
-          hfx(j,i) = hfx(j,i)*rdnnsg
-          qfx(j,i) = qfx(j,i)*rdnnsg
-          tground2(j,i) = tground2(j,i)*rdnnsg
-          tground1(j,i) = tground1(j,i)*rdnnsg
-          tgbb(j,i) = tgbb(j,i)*rdnnsg
-
-          if ( lchem ) then
-            ssw2da(j,i) = ssw2da(j,i)*rdnnsg
-            sdeltk2d(j,i) = sdeltk2d(j,i)*rdnnsg
-            sdelqk2d(j,i) = sdelqk2d(j,i)*rdnnsg
-            sfracv2d(j,i) = sfracv2d(j,i)*rdnnsg
-            sfracb2d(j,i) = sfracb2d(j,i)*rdnnsg
-            sfracs2d(j,i) = sfracs2d(j,i)*rdnnsg
-            svegfrac2d(j,i) = svegfrac2d(j,i)*rdnnsg
-          end if
-          do n = 1 , nnsg
-            evpa(n,j,i) = evpa(n,j,i) + dtbat*evpr(n,j,i)
-            sena(n,j,i) = sena(n,j,i) + dtbat*sent(n,j,i)
-            if ( dabs(srnof(n,j,i)) > 1.0D-10 ) then
-              srfrna(n,j,i) = srfrna(n,j,i) + srnof(n,j,i)*dtbat
-            end if
-            if ( dabs(srnof(n,j,i))  > 1.0D-10 .and. &
-                 dabs(trnof(n,j,i))   > 1.0D-10 ) then
-              runoff(n,j,i) = runoff(n,j,i) + &
-                     (trnof(n,j,i)-srnof(n,j,i))*dtbat
-            end if
-          end do
-          !
-          ! quantities stored on 2d surface array for bats use only
-          !
-          prca(j,i) = prca(j,i) + dtbat*pptc(j,i)
-          prnca(j,i) = prnca(j,i) + dtbat*pptnc(j,i)
-          flwa(j,i) = flwa(j,i) + dtbat*flw(j,i)
-          flwda(j,i) = flwda(j,i) + dtbat*flwd(j,i)
-          fswa(j,i) = fswa(j,i) + dtbat*fsw(j,i)
-          svga(j,i) = svga(j,i) + dtbat*sabveg(j,i)
-          sina(j,i) = sina(j,i) + dtbat*sinc(j,i)
-        end do
-      end do
-
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fbat(j,i,u10m_o)   = 0.0
-          fbat(j,i,v10m_o)   = 0.0
-          fbat(j,i,tg_o)     = 0.0
-          fbat(j,i,t2m_o)    = 0.0
-          fbat(j,i,q2m_o)    = 0.0
-          fbat(j,i,aldirs_o) = 0.0
-          fbat(j,i,aldifs_o) = 0.0
           do n = 1 , nnsg
             if ( ldmsk1(n,j,i) /= 0 ) then
               fracv = sigf(n,j,i)
@@ -542,190 +398,248 @@ module mod_bats_mtrxbats
                 q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
               end if
             end if
-            fsub(n,j,i,tg_s)   = real(tgrd(n,j,i))
-            fsub(n,j,i,u10m_s) = real(u10m(n,j,i))
-            fsub(n,j,i,v10m_s) = real(v10m(n,j,i))
-            fsub(n,j,i,t2m_s)  = real(t2m(n,j,i))
-            fsub(n,j,i,q2m_s)  = real(q2m(n,j,i))
- 
-            fbat(j,i,u10m_o) = fbat(j,i,u10m_o) + real(u10m(n,j,i))
-            fbat(j,i,v10m_o) = fbat(j,i,v10m_o) + real(v10m(n,j,i))
-            fbat(j,i,t2m_o)  = fbat(j,i,t2m_o) + real(t2m(n,j,i))
-            fbat(j,i,q2m_o)  = real(fbat(j,i,q2m_o) + q2m(n,j,i))
-            fbat(j,i,tg_o)   = fbat(j,i,tg_o) + real(tgrd(n,j,i))
           end do
-          fbat(j,i,u10m_o)   = fbat(j,i,u10m_o)*rrnnsg
-          fbat(j,i,v10m_o)   = fbat(j,i,v10m_o)*rrnnsg
-          fbat(j,i,t2m_o)    = fbat(j,i,t2m_o)*rrnnsg
-          fbat(j,i,q2m_o)    = fbat(j,i,q2m_o)*rrnnsg
-          fbat(j,i,tg_o)     = fbat(j,i,tg_o)*rrnnsg
-          fbat(j,i,aldirs_o) = real(aldirs(j,i))
-          fbat(j,i,aldifs_o) = real(aldifs(j,i))
- 
-          fbat(j,i,tgmx_o) = amax1(fbat(j,i,tgmx_o),fbat(j,i,tg_o))
-          fbat(j,i,tgmn_o) = amin1(fbat(j,i,tgmn_o),fbat(j,i,tg_o))
-          fbat(j,i,t2mx_o) = amax1(fbat(j,i,t2mx_o),fbat(j,i,t2m_o))
-          fbat(j,i,t2mn_o) = amin1(fbat(j,i,t2mn_o),fbat(j,i,t2m_o))
-          fbat(j,i,w10x_o) = amax1(fbat(j,i,w10x_o), &
-                          sqrt(fbat(j,i,u10m_o)**2+fbat(j,i,v10m_o)**2))
-          real_4 = real((pptnc(j,i)+pptc(j,i)))
-          fbat(j,i,pcpx_o) = amax1(fbat(j,i,pcpx_o),real_4)
-          fbat(j,i,pcpa_o) = fbat(j,i,pcpa_o) + real_4/fdaysrf
-          fbat(j,i,tavg_o) = fbat(j,i,tavg_o)+fbat(j,i,t2m_o)/fdaysrf
-          real_4 = real((sfps(j,i)+ptop)*d_10)
-          fbat(j,i,psmn_o) = amin1(fbat(j,i,psmn_o),real_4)
-          if ( fsw(j,i) > 120.0D0 ) then
-            fbat(j,i,sund_o) = fbat(j,i,sund_o) + real(dtbat)
-            fbat(j,i,sunt_o) = fbat(j,i,sunt_o) + real(dtbat)
-          end if
-          pptnc(j,i) = d_zero
-          pptc(j,i)  = d_zero
         end do
       end do
+ 
+      uvdrag = sum(drag,1)*rdnnsg
+      hfx = sum(sent,1)*rdnnsg
+      qfx = sum(evpr,1)*rdnnsg
+      tground2(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
+      tground1(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
+      if ( lchem ) then
+        ssw2da = sum(ssw,1)*rdnnsg
+        sdeltk2d = sum(delt,1)*rdnnsg
+        sdelqk2d = sum(delq,1)*rdnnsg
+        sfracv2d = sum(sigf,1)*rdnnsg
+        sfracb2d = sum((d_one-lncl)*(d_one-scvk),1)*rdnnsg
+        sfracs2d = sum(lncl*wt+(d_one-lncl)*scvk,1)*rdnnsg
+        svegfrac2d = sum(lncl,1)*rdnnsg
+      end if
+
+      if ( iocnflx == 1 ) then
+        tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
+      else if ( iocnflx == 2 ) then
+        where ( ldmsk /= 0 )
+          tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
+        else where
+          tgbb = sum(tgrd,1)*rdnnsg
+        end where
+      end if
+
+      ! Those are needed for output purposes
+
+      ! Accumulators for ATM output
+      if ( ifatm ) then
+        if ( ktau > 1 ) then
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
+          if ( associated(atm_tsw_out) ) &
+            atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
+        else if ( ktau == 1 ) then
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = d_two*sum(tgbrd,1)*rdnnsg
+          if ( associated(atm_tsw_out) ) &
+            atm_tsw_out = d_two*sum(tsw,1)*rdnnsg
+        end if
+      end if
+
+      ! Accumulators for SRF output
+
+      if ( ifsrf ) then
+        if ( associated(srf_evp_out) ) &
+          srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+        if ( associated(srf_tpr_out) ) &
+          srf_tpr_out = srf_tpr_out + totpr
+        if ( associated(srf_prcv_out) ) &
+          srf_prcv_out = srf_prcv_out + pptc
+        ! Reset accumulation from precip and cumulus
+        pptnc = d_zero
+        pptc  = d_zero
+        if ( associated(srf_zpbl_out) ) &
+          srf_zpbl_out = srf_zpbl_out + hpbl
+        if ( associated(srf_scv_out) ) &
+          srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+        if ( associated(srf_sund_out) ) then
+          where( fsw > 120.0D0 )
+            srf_sund_out = srf_sund_out + dtbat
+          end where
+        end if
+        if ( associated(srf_runoff_out) ) then
+          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
+          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+        end if
+        if ( associated(srf_sena_out) ) &
+          srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+        if ( associated(srf_flw_out) ) &
+          srf_flw_out = srf_flw_out + flw
+        if ( associated(srf_fsw_out) ) &
+          srf_fsw_out = srf_fsw_out + fsw
+        if ( associated(srf_fld_out) ) &
+          srf_fld_out = srf_fld_out + flwd
+        if ( associated(srf_sina_out) ) &
+          srf_sina_out = srf_sina_out + sinc
+      end if
+
+      ! Accumulators for SUB output
+
+      if ( ifsub ) then
+        call reorder_add_subgrid(sfcp,sub_ps_out)
+        if ( associated(sub_evp_out) ) &
+          call reorder_add_subgrid(evpr,sub_evp_out)
+        if ( associated(sub_scv_out) ) &
+          call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
+        if ( associated(sub_sena_out) ) &
+          call reorder_add_subgrid(sent,sub_sena_out)
+        if ( associated(sub_runoff_out) ) then
+          call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
+          call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+        end if
+      end if
+
+      ! Accumulators for STS output
+
+      if ( ifsts ) then
+        if ( associated(sts_tgmax_out) ) &
+          sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
+        if ( associated(sts_tgmin_out) ) &
+          sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
+        if ( associated(sts_t2max_out) ) &
+          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
+        if ( associated(sts_w10max_out) ) &
+          sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
+            sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
+        if ( associated(sts_pcpmax_out) ) &
+          sts_pcpmax_out = max(sts_pcpmax_out,totpr)
+        if ( associated(sts_pcpavg_out) ) &
+          sts_pcpavg_out = sts_pcpavg_out + totpr
+        if ( associated(sts_psmin_out) ) &
+          sts_psmin_out = min(sts_psmin_out, &
+            (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+        if ( associated(sts_sund_out) ) then
+          where( fsw > 120.0D0 )
+            sts_sund_out = sts_sund_out + dtbat
+          end where
+        end if
+      end if
+
+      ! Accumulators for LAK output
+
+      if ( iflak ) then
+        if ( associated(lak_tpr_out) ) &
+          lak_tpr_out = lak_tpr_out + totpr
+        if ( associated(lak_scv_out) ) &
+          lak_scv_out = lak_scv_out + sum(sncv,1)*rdnnsg
+        if ( associated(lak_sena_out) ) &
+          lak_sena_out = lak_sena_out + sum(sent,1)*rdnnsg
+        if ( associated(lak_flw_out) ) &
+          lak_flw_out = lak_flw_out + flw
+        if ( associated(lak_fsw_out) ) &
+          lak_fsw_out = lak_fsw_out + fsw
+        if ( associated(lak_fld_out) ) &
+          lak_fld_out = lak_fld_out + flwd
+        if ( associated(lak_sina_out) ) &
+          lak_sina_out = lak_sina_out + sinc
+        if ( associated(lak_evp_out) ) &
+          lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
+        if ( associated(lak_aveice_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              do n = 1 , nnsg
+                if ( aveice(n,j,i) < dmissval ) then
+                  lak_aveice_out(j,i) = lak_aveice_out(j,i) + &
+                    aveice(n,j,i)*rdnnsg*d_r1000
+                else
+                  lak_aveice_out = dmissval
+                end if
+              end do
+            end do
+          end do
+        end if
+      end if
+
+      ! Those are for the output, but collected only at POINT in time
 
       if ( mod(ktau+1,kbats) == 0 .or. (ktau == 0 .and. debug_level > 2) ) then
 
-        if ( associated(srf_uvdrag_out) ) &
-          srf_uvdrag_out = sum(drag,1)*rdnnsg
-        if ( associated(srf_tg_out) ) &
-          srf_tg_out = sum(tgrd,1)*rdnnsg
-        if ( associated(srf_tlef_out) ) then
-          where ( sum(ldmsk1,1) > nnsg/2 )
-            srf_tlef_out = sum(tlef,1)*rdnnsg
-          elsewhere
-            srf_tlef_out = dmissval
-          end where
-        end if
-        if ( associated(srf_aldirs_out) ) &
-          srf_aldirs_out = aldirs
-        if ( associated(srf_aldifs_out) ) &
-          srf_aldifs_out = aldifs
-        if ( associated(srf_seaice_out) ) &
-          srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
-        if ( associated(srf_t2m_out) ) &
-          srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
-        if ( associated(srf_q2m_out) ) &
-          srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
-        if ( associated(srf_u10m_out) ) &
-          srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
-        if ( associated(srf_v10m_out) ) &
-          srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
-        if ( associated(srf_smw_out) ) then
-          srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
-          srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+        if ( ifsrf ) then
+          if ( associated(srf_uvdrag_out) ) &
+            srf_uvdrag_out = uvdrag
+          if ( associated(srf_tg_out) ) &
+            srf_tg_out = tground1(jci1:jci2,ici1:ici2)
+          if ( associated(srf_tlef_out) ) then
+            where ( sum(ldmsk1,1) > nnsg/2 )
+              srf_tlef_out = sum(tlef,1)*rdnnsg
+            elsewhere
+              srf_tlef_out = dmissval
+            end where
+          end if
+          if ( associated(srf_aldirs_out) ) &
+            srf_aldirs_out = aldirs
+          if ( associated(srf_aldifs_out) ) &
+            srf_aldifs_out = aldifs
+          if ( associated(srf_seaice_out) ) &
+            srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
+          if ( associated(srf_t2m_out) ) &
+            srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
+          if ( associated(srf_q2m_out) ) &
+            srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
+          if ( associated(srf_u10m_out) ) &
+            srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
+          if ( associated(srf_v10m_out) ) &
+            srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
+          if ( associated(srf_smw_out) ) then
+            srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
+            srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+          end if
         end if
 
-        if ( ktau == 0 .and. debug_level > 2 ) then
-          mmpd = secpd/dtbat
-          wpm2 = d_one/dtbat
-        else if ( ktau+1 == kbats .and. debug_level > 2 ) then
-          mmpd = houpd/(srffrq-xdtsec/secph)
-          wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
-        else
-          mmpd = houpd/srffrq
-          wpm2 = d_one/(srffrq*secph)
+        if ( ifsub ) then
+          if ( associated(sub_uvdrag_out) ) &
+            call reorder_subgrid(drag,sub_uvdrag_out)
+          if ( associated(sub_tg_out) ) &
+            call reorder_subgrid(tgrd,sub_tg_out)
+          if ( associated(sub_tlef_out) ) &
+            call reorder_subgrid(tlef,sub_tlef_out,mask=ldmsk1)
+          if ( llake ) then
+            if ( associated(sub_tlake_out) ) &
+            call reorder_subgrid(tlak,sub_tlake_out,1)
+          end if
+          if ( associated(sub_u10m_out) ) &
+            call reorder_subgrid(u10m,sub_u10m_out)
+          if ( associated(sub_v10m_out) ) &
+            call reorder_subgrid(v10m,sub_v10m_out)
+          if ( associated(sub_t2m_out) ) &
+            call reorder_subgrid(t2m,sub_t2m_out)
+          if ( associated(sub_q2m_out) ) &
+            call reorder_subgrid(q2m,sub_q2m_out)
+          if ( associated(sub_smw_out) ) then
+            call reorder_subgrid(ssw,sub_smw_out,1,ldmsk1)
+            call reorder_subgrid(rsw,sub_smw_out,2,ldmsk1)
+          end if
         end if
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fbat(j,i,drag_o) = 0.0
-            fbat(j,i,evpa_o) = 0.0
-            fbat(j,i,sena_o) = 0.0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                fracv = sigf(n,j,i)
-                fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
-                fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
-                facv = z2fra(n,j,i)/zlgveg(n,j,i)
-                facb = z2fra(n,j,i)/zlglnd(n,j,i)
-                facs = z2fra(n,j,i)/zlgsno(n,j,i)
-                fact = fracv*facv + fracb*facb + fracs*facs
-              else
-                if ( iocnflx == 1 ) then
-                  fact = z2fra(n,j,i)/zlgocn(n,j,i)
-                end if
-              end if
-              fsub(n,j,i,drag_s) = real(drag(n,j,i))
-              fsub(n,j,i,evpa_s) = real(evpa(n,j,i)*mmpd)
-              fsub(n,j,i,sena_s) = real(sena(n,j,i)*wpm2)
-              fsub(n,j,i,tpr_s)  = real((prnca(j,i)+prca(j,i))*mmpd)
-              fsub(n,j,i,prcv_s) = real(prca(j,i)*mmpd)
-              fsub(n,j,i,ps_s)   = real(sfcp(n,j,i)*0.01D0)
- 
-              fbat(j,i,drag_o) = real(fbat(j,i,drag_o) + drag(n,j,i))
-              fbat(j,i,evpa_o) = real(fbat(j,i,evpa_o) + evpa(n,j,i))
-              fbat(j,i,sena_o) = real(fbat(j,i,sena_o) + sena(n,j,i))
-            end do
-            fbat(j,i,tpr_o)  = real((prnca(j,i)+prca(j,i))*mmpd)
-            fbat(j,i,drag_o) = fbat(j,i,drag_o)*rrnnsg
-            fbat(j,i,evpa_o) = fbat(j,i,evpa_o)*rrnnsg*real(mmpd)
-            fbat(j,i,sena_o) = fbat(j,i,sena_o)*rrnnsg*real(wpm2)
-            fbat(j,i,flwa_o) = real(flwa(j,i)*wpm2)
-            fbat(j,i,fswa_o) = real(fswa(j,i)*wpm2)
-            fbat(j,i,flwd_o) = real(flwda(j,i)*wpm2)
-            fbat(j,i,sina_o) = real(sina(j,i)*wpm2)
-            fbat(j,i,prcv_o) = real(prca(j,i)*mmpd)
-            fbat(j,i,ps_o) = real((sfps(j,i)+ptop)*d_10)
-            fbat(j,i,zpbl_o) = real(hpbl(j,i))
- 
-            fbat(j,i,tlef_o) = 0.0
-            fbat(j,i,ssw_o)  = 0.0
-            fbat(j,i,rsw_o)  = 0.0
-            fbat(j,i,rnos_o) = 0.0
-            fbat(j,i,scv_o) = 0.0
-            nnn = 0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                fbat(j,i,tlef_o) = fbat(j,i,tlef_o) + real(tlef(n,j,i))
-                fbat(j,i,ssw_o)  = fbat(j,i,ssw_o) + real(ssw(n,j,i))
-                fbat(j,i,rsw_o)  = fbat(j,i,rsw_o) + real(rsw(n,j,i))
-                fbat(j,i,rnos_o) = fbat(j,i,rnos_o) + real(srfrna(n,j,i))
-                fbat(j,i,scv_o)  = fbat(j,i,scv_o) + real(sncv(n,j,i))
-                fsub(n,j,i,tlef_s) = real(tlef(n,j,i))
-                fsub(n,j,i,ssw_s)  = real(ssw(n,j,i))
-                fsub(n,j,i,rsw_s)  = real(rsw(n,j,i))
-                fsub(n,j,i,rnos_s) = real(srfrna(n,j,i)*mmpd)
-                fsub(n,j,i,scv_s)  = real(sncv(n,j,i))
-                nnn = nnn + 1
-              else
-                fsub(n,j,i,tlef_s) = smissval
-                fsub(n,j,i,ssw_s)  = smissval
-                fsub(n,j,i,rsw_s)  = smissval
-                fsub(n,j,i,rnos_s) = smissval
-                fsub(n,j,i,scv_s)  = smissval
-              end if
-            end do
-            if ( nnn >= max0(nnsg/2,1) ) then
-              fbat(j,i,tlef_o) = fbat(j,i,tlef_o)/real(nnn)
-              fbat(j,i,ssw_o)  = fbat(j,i,ssw_o)/real(nnn)
-              fbat(j,i,rsw_o)  = fbat(j,i,rsw_o)/real(nnn)
-              fbat(j,i,rnos_o) = fbat(j,i,rnos_o)/real(nnn)*real(mmpd)
-              fbat(j,i,scv_o)  = fbat(j,i,scv_o)/real(nnn)
-            else
-              fbat(j,i,tlef_o) = smissval
-              fbat(j,i,ssw_o)  = smissval
-              fbat(j,i,rsw_o)  = smissval
-              fbat(j,i,rnos_o) = smissval
-              fbat(j,i,scv_o)  = smissval
-            end if
-            !
-            ! reset accumulation arrays to zero
-            !
-            do n = 1 , nnsg
-              evpa(n,j,i) = d_zero
-              srfrna(n,j,i) = d_zero
-              sena(n,j,i) = d_zero
-            end do
-            prnca(j,i) = d_zero
-            prca(j,i) = d_zero
-            flwa(j,i) = d_zero
-            flwda(j,i) = d_zero
-            fswa(j,i) = d_zero
-            svga(j,i) = d_zero
-            sina(j,i) = d_zero
-          end do
-        end do
-      end if
-    end if
+
+        if ( iflak ) then
+          if ( associated(lak_tg_out) ) &
+            lak_tg_out = tground1(jci1:jci2,ici1:ici2)
+          if ( associated(lak_aldirs_out) ) &
+            lak_aldirs_out = aldirs
+          if ( associated(lak_aldifs_out) ) &
+            lak_aldifs_out = aldifs
+          if ( associated(lak_hsnow_out) ) &
+            lak_hsnow_out = sum(hsnow,1)*rdnnsg
+          if ( associated(lak_tlake_out) ) &
+            lak_tlake_out = sum(tlak,1)*rdnnsg+tzero
+        end if
+
+      end if ! IF output time
+
+    end if ! Versus of the interface (1,2)
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

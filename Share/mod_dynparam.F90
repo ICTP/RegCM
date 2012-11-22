@@ -317,7 +317,6 @@ module mod_dynparam
   character(len=256) :: dirter , inpter
   character(len=256) :: dirglob , inpglob
   character(len=256) :: dirout
-  character(len=256) :: dirclm
 
 ! Model output control parameters
 
@@ -335,6 +334,7 @@ module mod_dynparam
   logical :: ifsts
   logical :: iflak
   real(rk8) :: lakfrq
+  real(rk8) :: subfrq
   real(rk8) :: srffrq
 
   logical :: ifchem
@@ -442,7 +442,7 @@ module mod_dynparam
       jcross2 = jxm1
       jout1 = 2
       jout2 = jxm2
-      joutsg1 = nsg
+      joutsg1 = nsg+1
       joutsg2 = jxm2*nsg
     end if
     idot1 = 1
@@ -451,7 +451,7 @@ module mod_dynparam
     icross2 = iym1
     iout1 = 2
     iout2 = iym2
-    ioutsg1 = nsg
+    ioutsg1 = nsg+1
     ioutsg2 = iym2*nsg
     njcross = jcross2-jcross1+1
     nicross = icross2-icross1+1
@@ -606,7 +606,7 @@ module mod_dynparam
 
     namelist /outparam/ ifsave , savfrq , ifatm , atmfrq ,       &
       ifrad , radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , &
-      lakfrq , ifchem , chemfrq
+      subfrq , lakfrq , ifchem , chemfrq
 
     read(ipunit, outparam, err=100)
     return

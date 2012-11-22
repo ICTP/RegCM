@@ -26,20 +26,12 @@ module mod_cu_em
   use mod_dynparam
   use mod_memutil
   use mod_cu_common
-  use mod_runparams , only : iqv
+  use mod_runparams
 !
   private
 !
   public :: allocate_mod_cu_em , cupemandrv
-  public :: minsig , elcrit , tlcrit , entp , sigd , sigs ,    &
-            omtrain , omtsnow , coeffr , coeffs , cu , betae , &
-            dtmax , alphae , damp , minorig
 !
-  real(rk8) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
-             elcrit , entp , minsig , omtrain , omtsnow , sigd ,    &
-             sigs , tlcrit
-!
-  integer(ik4) :: minorig
   real(rk8) , parameter :: cl = 2500.0D0
   real(rk8) , parameter :: cpvmcl = cl - cpv
   real(rk8) , parameter :: mincbmf = 1.0D-30

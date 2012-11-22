@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  call abort
+end subroutine myabort
+
 program readregcm
   use mod_date
   use netcdf
@@ -377,7 +381,7 @@ program readregcm
 
 !   EXAMPLE READING T2M to obtain statistics for this var at second timestep
 
-    if (varname == 't2m') then
+    if (varname == 'tas') then
       allocate(var(jx,iy))
       if (nt >= 2) then
         istart(4) = 2 ! Second timestep : this is record number

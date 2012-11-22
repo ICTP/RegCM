@@ -29,8 +29,6 @@ module mod_cu_common
 
   public
 !
-  real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
-  real(rk8) :: cllwcv ! Cloud liquid water content for convective precip.
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
   integer(ik4) , pointer , dimension(:,:) :: cucontrol ! which scheme to use

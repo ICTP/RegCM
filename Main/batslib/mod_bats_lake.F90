@@ -57,6 +57,13 @@ module mod_bats_lake
 
     ! initialize hostetler lake model
 
+    idep(:,:,:)   = 0
+    hi(:,:,:)     = dmissval
+    aveice(:,:,:) = dmissval
+    hsnow(:,:,:)  = dmissval
+    eta(:,:,:)    = dmissval
+    tlak(:,:,:,:) = dmissval
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -83,12 +90,6 @@ module mod_bats_lake
             hi(n,j,i) = 0.01D0
             aveice(n,j,i) = d_zero
             hsnow(n,j,i)  = d_zero
-          else
-            idep(n,j,i)   = 0
-            hi(n,j,i)     = dmissval
-            aveice(n,j,i) = dmissval
-            hsnow(n,j,i)  = dmissval
-            eta(n,j,i)    = dmissval
           end if
         end do
       end do

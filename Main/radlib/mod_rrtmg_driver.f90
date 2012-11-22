@@ -401,8 +401,7 @@ module mod_rrtmg_driver
 
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
-                solld,empty1,empty1,empty1,empty1,empty1,empty1,  &
-                totcf,totcl,totci,empty2,cld_int,clwp_int,abv, &
+                solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
                 tauasc3d,gtota3d)
 

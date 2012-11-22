@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  call abort
+endsubroutine myabort
+
 program checksun
   use mod_date
   use mod_constants
@@ -43,6 +47,7 @@ program checksun
   integer , external :: iargc
 #endif
   real(8) , parameter :: dayspy = 365.2422D0
+  real(8) , parameter :: solcon = 1367.0D0
 
   call getarg(0, chararg)
   numarg = iargc( )

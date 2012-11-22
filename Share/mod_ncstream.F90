@@ -1175,6 +1175,8 @@ module mod_ncstream
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
                 write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'file     : ', stream%icount(1)
+                write(stderr,*) 'internal : ', var%j2-var%j1+1
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if

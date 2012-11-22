@@ -236,13 +236,6 @@ module mod_mppio
       call getmem2d(aldirs2d_io,jcross1,jcross2,icross1,icross2,'aldirs2d_io')
       call getmem2d(lndcat2d_io,jcross1,jcross2,icross1,icross2,'lndcat2d_io')
 #endif
-      !
-      ! Output array for SRF , RAD , SUB
-      !
-      call getmem3d(fbat_io,jout1,jout2,iout1,iout2,1,numbat,'fbat_io')
-      call getmem4d(fsub_io,1,nnsg,jout1,jout2,iout1,iout2,1,numsub,'fsub_io')
-      call getmem3d(frad2d_io,jout1,jout2,iout1,iout2,1,nrad2d,'frad2d_io')
-      call getmem4d(frad3d_io,jout1,jout2,iout1,iout2,1,kz,1,nrad3d,'frad3d_io')
     endif
 
   end subroutine allocate_mod_mppio

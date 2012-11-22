@@ -74,7 +74,7 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc
+  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl
 
   private
 
@@ -91,12 +91,6 @@ module mod_pbl_uwtcm
   real(rk8) , parameter :: rcrit = 0.3D0
   real(rk8) , parameter :: etal =  0.085D0
 
-  ! These two parameters can be set in the regcm.in file, so don't set them
-  ! here as it will overwrite the values read in from the regcm.in file.
-  ! Settable model constants that need default values set
-  real(rk8) :: rstbl = 1.5D0
-  real(rk8) :: atwo = 15.0D0
-        
   ! Variables that hold frequently-done calculations
   real(rk8) :: rcp , rczero
 
@@ -127,9 +121,9 @@ module mod_pbl_uwtcm
   integer(ik4) :: kpbl2dx  ! Top of PBL
   integer(ik4) :: kmix2dx  ! Top of mixed layer (decoupled layer)
 
-  integer(ik4) :: imethod , itbound , ilenparam , iuwvadv
+  integer(ik4) :: imethod , itbound , ilenparam
 
-  public :: init_mod_pbl_uwtcm , uwtcm , rstbl , atwo , ilenparam , iuwvadv
+  public :: init_mod_pbl_uwtcm , uwtcm , ilenparam
 
   contains
 

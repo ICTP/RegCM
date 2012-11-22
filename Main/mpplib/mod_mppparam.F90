@@ -32,7 +32,7 @@ module mod_mppparam
 
   include 'mpif.h'
 #ifdef MPI_SERIAL
-  integer mpi_status_ignore(mpi_status_size)
+  integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) , parameter :: mpi_proc_null = -2
 #endif
 
@@ -40,7 +40,7 @@ module mod_mppparam
 
   integer(ik4) :: cartesian_communicator
 
-  integer , public :: ncout_mpi_info = mpi_info_null
+  integer(ik4) , public :: ncout_mpi_info = mpi_info_null
 
   type model_area
     logical :: bandflag
@@ -234,6 +234,18 @@ module mod_mppparam
                      recv_array_real8
   end interface recv_array
 
+  interface reorder_subgrid
+    module procedure reorder_subgrid_2d
+    module procedure reorder_subgrid_2d3d
+    module procedure reorder_subgrid_3d
+  end interface reorder_subgrid
+
+  interface reorder_add_subgrid
+    module procedure reorder_add_subgrid_2d
+    module procedure reorder_add_subgrid_2d3d
+    module procedure reorder_add_subgrid_3d
+  end interface reorder_add_subgrid
+
   public :: model_area
   type(model_area) , public :: ma
 !
@@ -267,6 +279,8 @@ module mod_mppparam
   public :: uvcross2dot , psc2psd
   public :: bcast , sumall
   public :: gather_r , gather_i
+  public :: reorder_subgrid , reorder_add_subgrid
+  public :: input_reorder
 !
   contains
 !
@@ -361,7 +375,7 @@ module mod_mppparam
   subroutine bcast_arr_character(cval,is)
     implicit none
     character(len=*) , intent(inout) :: cval
-    integer , intent(in) :: is
+    integer(ik4) , intent(in) :: is
     call mpi_bcast(cval,is,mpi_character,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
@@ -523,7 +537,7 @@ module mod_mppparam
   subroutine exchange_array(isize,icpu,tag1,tag2)
     implicit none
     integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
-    integer :: ireq
+    integer(ik4) :: ireq
     call mpi_irecv(r8vector2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,ireq,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -1880,20 +1894,29 @@ module mod_mppparam
     end if
   end subroutine integer_3d_sub_distribute
 !
-  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
+  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 
     integer(ik4) , intent(in) , optional :: k
     integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
+    integer(ik4) :: jsub1 , isub1
+    if ( .not. present(lsub) .or. .not. lsub ) then
+      jsub1 = global_dot_jstart
+      isub1 = global_dot_istart
+    else
+      jsub1 = (global_dot_jstart-1)*nsg+1
+      isub1 = (global_dot_istart-1)*nsg+1
+    end if
     if ( myid == iocpu ) then
       kk = 1
       if ( present(k) ) kk = k
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1,kk) = ml(j,i)
+          mg(jsub1+j-1,isub1+i-1,kk) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -1903,7 +1926,7 @@ module mod_mppparam
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
         if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
+          call getmem1d(r8vector1,1,lsize,'real8_2d_3d_collect')
         end if
         call recv_array(r8vector1,lsize,icpu,tag_base)
         ib = 1
@@ -1919,11 +1942,11 @@ module mod_mppparam
       jsize = j2-j1+1
       lsize = isize*jsize
       if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
+        call getmem1d(r8vector2,1,lsize,'real8_2d_3d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = isub1+i1-1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = jsub1+j1-1
       window(4) = window(3)+jsize-1
       call send_array(window,4,iocpu,tag_w)
       ib = 1
@@ -1931,23 +1954,32 @@ module mod_mppparam
         do j = j1 , j2
           r8vector2(ib) = ml(j,i)
           ib = ib + 1
-        end do
+         end do
       end do
       call send_array(r8vector2,lsize,iocpu,tag_base)
     end if
   end subroutine real8_2d_3d_collect
 !
-  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
+  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(out) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    logical , intent(in) , optional :: lsub
+    integer(ik4) :: jsub1 , isub1
+    if ( .not. present(lsub) .or. .not. lsub ) then
+      jsub1 = global_dot_jstart
+      isub1 = global_dot_istart
+    else
+      jsub1 = (global_dot_jstart-1)*nsg+1
+      isub1 = (global_dot_istart-1)*nsg+1
+    end if
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i)
+          mg(jsub1+j-1,isub1+i-1) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -1975,9 +2007,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = isub1+i1-1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = jsub1+j1-1
       window(4) = window(3)+jsize-1
       call send_array(window,4,iocpu,tag_w)
       ib = 1
@@ -1991,18 +2023,27 @@ module mod_mppparam
     end if
   end subroutine real8_2d_collect
 !
-  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
+    integer(ik4) :: isub1 , jsub1
+    if ( .not. present(lsub) .or. .not. lsub ) then
+      jsub1 = global_dot_jstart
+      isub1 = global_dot_istart
+    else
+      jsub1 = (global_dot_jstart-1)*nsg+1
+      isub1 = (global_dot_istart-1)*nsg+1
+    end if
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            mg(global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(j,i,k)
+            mg(jsub1+j-1,isub1+i-1,k) = ml(j,i,k)
           end do
         end do
       end do
@@ -2035,9 +2076,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = isub1+i1-1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = jsub1+j1-1
       window(4) = window(3)+jsize-1
       call send_array(window,4,iocpu,tag_w)
       ib = 1
@@ -5293,5 +5334,253 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
     end if
   end subroutine gather_i
+
+  subroutine reorder_add_subgrid_2d(var3,var2,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_2d
+
+  subroutine reorder_subgrid_2d(var3,var2,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_2d
+
+  subroutine reorder_add_subgrid_2d3d(var3,var2_3,l,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: var2_3
+    integer(ik4) , optional , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    ll = 1
+    if ( present(l) ) ll = l
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
+              else
+                var2_3(jj,ii,ll) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_2d3d
+
+  subroutine reorder_subgrid_2d3d(var3,var2_3,l,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: var2_3
+    integer(ik4) , optional , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    ll = 1
+    if ( present(l) ) ll = l
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
+              else
+                var2_3(jj,ii,ll) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_2d3d
+
+  subroutine reorder_add_subgrid_3d(var4,var2,l,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_3d
+
+  subroutine reorder_subgrid_3d(var4,var2,l,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_3d
+
+  subroutine input_reorder(m1,m2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: m1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: m2
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    do i = idot1 , idot2
+      do j = jdot1 , jdot2
+        do n2 = 1 , nsg
+          ii = (i-1) * nsg + n2
+          do n1 = 1 , nsg
+            jj = (j-1) * nsg + n1
+            m2((n2-1)*nsg+n1,j,i) = m1(jj,ii)
+          end do
+        end do
+      end do
+    end do
+  end subroutine input_reorder
 
 end module mod_mppparam

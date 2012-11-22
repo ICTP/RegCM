@@ -46,11 +46,6 @@ module mod_precip
 !
   real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
   real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
-  real(rk8) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
-  ! TAO 2/8/11:
-  ! Flag for using convective liquid water path as the large-scale
-  ! liquid water path (iconvlwp=1)
-  integer(ik4) , public :: iconvlwp
   logical :: lchem = .false.
 !
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq

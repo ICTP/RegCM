@@ -61,12 +61,14 @@ module mod_runparams
   ! How many steps for a day (updates date fields Y m d)
   integer(ik8) :: kday
   ! Output k values for I/O operations.
-  integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf , krep
+  integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , &
+                  ksrf , ksub , klak , krep
   ! Seconds counter in between boundary conditions read
   integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes
   integer(ik8) :: ntsrf , ntrad
-  real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq
+  real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
+               rnsrf_for_lakfrq , rnsrf_for_subfrq
   ! Step of surface scheme in one atmosphere I/O interval
   real(rk8) :: rsrf_in_atm
   ! One over seconds in one surface I/O interval
@@ -74,8 +76,6 @@ module mod_runparams
   ! Model timestep in seconds (real and integer)
   integer(ik8) :: ntsec
   real(rk8) :: dtsec
-  ! Internal count for how many SRF outputs every LAK output
-  integer(ik4) :: klak
   ! Internal count for how many SRF outputs per day
   integer(ik8) :: ksts , kstsoff
   !
@@ -100,6 +100,8 @@ module mod_runparams
   ! Radiation switch controls
   integer(ik4) :: idirect , iemiss , isolconst
 !
+  character(len=8) :: scenario
+!
   real(rk8) :: dt , dt2 , dtbdys
   real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
@@ -118,14 +120,144 @@ module mod_runparams
   real(rk8) , pointer , dimension(:) :: sigma
   real(rk8) , pointer , dimension(:,:) :: twt
 
-  real(rk8) :: gulland , guloce , mincld , qck1land , qck1oce , &
-               rh0land , rh0oce , skbmax , clfrcvmax
-  real(rk8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
-               edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
-  real(rk8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
-               edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
+  real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
+  real(rk8) :: cllwcv ! Cloud liquid water content for convective precip.
 
-  character(len=8) :: scenario
+  ! Grell cumulus scheme parameters
+
+  real(rk8) :: gulland
+  real(rk8) :: guloce
+  real(rk8) :: mincld
+  real(rk8) :: qck1land
+  real(rk8) :: qck1oce
+  real(rk8) :: rh0land
+  real(rk8) :: rh0oce
+  real(rk8) :: skbmax
+  real(rk8) :: clfrcvmax
+  real(rk8) :: shrmax_ocn
+  real(rk8) :: shrmin_ocn
+  real(rk8) :: edtmax_ocn
+  real(rk8) :: edtmin_ocn
+  real(rk8) :: edtmaxo_ocn
+  real(rk8) :: edtmino_ocn
+  real(rk8) :: edtmaxx_ocn
+  real(rk8) :: edtminx_ocn
+  real(rk8) :: shrmax
+  real(rk8) :: shrmin
+  real(rk8) :: edtmax
+  real(rk8) :: edtmin
+  real(rk8) :: edtmaxo
+  real(rk8) :: edtmino
+  real(rk8) :: edtmaxx
+  real(rk8) :: edtminx
+  real(rk8) :: dtauc
+  real(rk8) :: pbcmax
+  real(rk8) :: htmax
+  real(rk8) :: htmin
+
+  ! Emanuel MIT cumulus scheme parameters
+
+  real(rk8) :: alphae
+  real(rk8) :: betae
+  real(rk8) :: coeffr
+  real(rk8) :: coeffs
+  real(rk8) :: cu
+  real(rk8) :: damp
+  real(rk8) :: dtmax
+  real(rk8) :: elcrit
+  real(rk8) :: entp
+  real(rk8) :: minsig
+  real(rk8) :: omtrain
+  real(rk8) :: omtsnow
+  real(rk8) :: sigd
+  real(rk8) :: sigs
+  real(rk8) :: tlcrit
+  integer(ik4) :: minorig
+ 
+  ! Tiedtke cumulus scheme parameters
+
+  real(rk8) :: entrpen      ! entrainment rate for penetrative convection
+  real(rk8) :: entrscv      ! entrainment rate for shallow convection
+  real(rk8) :: entrmid      ! entrainment rate for midlevel convection
+  real(rk8) :: entrdd       ! entrainment rate for cumulus downdrafts
+  real(rk8) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
+  real(rk8) :: cmtcape      ! CAPE adjustment timescale parameter
+  real(rk8) :: zdlev        ! Restrict rainfall up to this elevation
+  real(rk8) :: cmfcmax      ! maximum massflux value allowed for
+  real(rk8) :: cmfcmin      ! minimum massflux value (for safety)
+  real(rk8) :: cmfdeps      ! fractional massflux for downdrafts at lfs
+  real(rk8) :: rhcdd        ! relative saturation in downdrafts
+  real(rk8) :: cprcon       ! coefficients for determining conversion
+                            ! from cloud water to rain
+  real(rk8) :: ctrigger     ! coefficients for triggering convection
+
+  integer(ik4) :: iconv
+  integer(ik4) :: nmctop    !  max. level for cloud base of mid level conv.
+
+  logical :: lmfpen    !  true if penetrative convection is switched on
+  logical :: lmfscv    !  true if shallow convection is switched on
+  logical :: lmfmid    !  true if midlevel convection is switched on
+  logical :: lmfdd     !  true if cumulus downdraft is switched on
+  logical :: lmfdudv   !  true if cumulus friction is switched on
+
+  ! RRTM scheme parameters
+
+  integer(ik4) :: irrtm
+  integer(ik4) :: irrtm_cldov
+  integer(ik4) :: irrtm_sw_opcliq
+  integer(ik4) :: irrtm_sw_opcice
+  integer(ik4) :: inflgsw
+  integer(ik4) :: iceflgsw
+  integer(ik4) :: liqflgsw
+  integer(ik4) :: icld
+  integer(ik4) :: idrv
+  integer(ik4) :: irng
+  integer(ik4) :: inflglw
+  integer(ik4) :: iceflglw
+  integer(ik4) :: liqflglw
+
+  ! Radiation schemes common parametrs
+
+  real(rk8) , public :: cftotmax ! Maximum total cloud fraction for radiation
+  integer(ik4) :: iclimao3
+  integer(ik4) :: ncld ! # of bottom model levels with no clouds
+
+  ! UW PBL parameters
+
+  integer(ik4) :: iuwvadv
+  real(rk8) :: rstbl
+  real(rk8) :: atwo
+
+  ! Chemistry nameliste option
+
+  character(len=8) :: chemsimtype 
+  integer(ik4) :: ichcumtra
+  integer(ik4) :: ichdrdepo
+  integer(ik4) :: ichremcvc
+  integer(ik4) :: ichremlsc
+  integer(ik4) :: ichsursrc
+  integer(ik4) :: ichsolver
+  integer(ik4) :: ichdustemd
+  integer(ik4) :: ichdiag
+  integer(ik4) :: ichebdy
+  real(rk8) :: rdstemfac
+
+  ! Large scale SUBEX parameters
+
+  real(rk8) :: caccr
+  real(rk8) :: cevap
+  real(rk8) :: rhmax
+  real(rk8) :: tc0
+  real(rk8) :: fcmax
+  real(rk8) :: conf
+  integer(ik4) :: iconvlwp
+
+  ! CLM options
+#ifdef CLM
+  integer(ik4) :: imask
+  real(rk8) :: clmfrq
+  character(len=256) :: dirclm
+#endif
 
   data doing_restart /.false./
 

@@ -24,34 +24,25 @@ module mod_rad_outrad
   use mod_dynparam
   use mod_mpmessage
   use mod_rad_common
+  use mod_outvars
 
   private
 
-  public :: frad2d , frad3d
   public :: allocate_mod_rad_outrad , radout
-  public :: nrad2d , nrad3d
 
-  integer(ik4) , parameter :: nrad2d = 24
-  integer(ik4) , parameter :: nrad3d = 5
   integer(ik4) :: npr
-
-  real(rk4) , pointer , dimension(:,:,:) :: frad2d
-  real(rk4) , pointer , dimension(:,:,:,:) :: frad3d
 
   contains
 
   subroutine allocate_mod_rad_outrad
     implicit none
     npr = (jci2-jci1+1)*(ici2-ici1+1)
-    call getmem3d(frad2d,jci1,jci2,ici1,ici2,1,nrad2d,'mod_outrad:frad2d')
-    call getmem4d(frad3d,jci1,jci2,ici1,ici2,1,kz,1,nrad3d,'mod_outrad:frad3d')
   end subroutine allocate_mod_rad_outrad
 !
   subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
-                    frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,alb, &
-                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,totcl,totci,  &
-                    h2ommr,cld,clwp,abv,sol,aeradfo,aeradfos,aerlwfo,    &
-                    aerlwfos,tauxar3d,tauasc3d,gtota3d)
+                    frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
+                    totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
+                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -76,7 +67,6 @@ module mod_rad_outrad
 ! clrls  - clr sky lw cooling of srf (up-dwn flx)
 ! qrl    - longwave cooling rate
 ! slwd   - surface longwave down flux
-! h2ommr - ozone mixing ratio
 ! cld    - cloud fractional cover
 ! clwp   - cloud liquid water path
 ! soll   - Downward solar rad onto surface (lw direct)
@@ -84,23 +74,17 @@ module mod_rad_outrad
 ! sols   - Downward solar rad onto surface (sw direct)
 ! solsd  - Downward solar rad onto surface (sw diffuse)
 !
-!EES  next 3 added, they are calculated in radcsw
-! fsnirt   - Near-IR flux absorbed at toa
-! fsnrtc   - Clear sky near-IR flux absorbed at toa
-! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
-! fsds     - Flux Shortwave Downwelling Surface
-!
     logical , intent(in) :: lout ! Preapre data for outfile
-    real(rk8) , pointer , dimension(:) :: alb , albc , clrls , clrlt ,  &
-                clrss , clrst , firtp , frla , frsa , fsds , fsnirt ,  &
-                fsnirtsq , fsnrtc , sabtp , slwd , solin , soll ,      &
-                solld , sols , solsd , totcf , totcl , totci , abv , sol
-    real(rk8) , pointer , dimension(:,:) :: cld , clwp , h2ommr , qrl , qrs
+    real(rk8) , pointer , dimension(:) :: clrls , clrlt ,  &
+                clrss , clrst , firtp , frla , frsa ,      &
+                sabtp , slwd , solin , soll , solld ,      &
+                sols , solsd , totcf , totcl , totci , abv , sol
+    real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
-    real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos, aerlwfo , aerlwfos
-    intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,&
-                clwp , firtp , frla , frsa , fsds , fsnirt ,      &
-                fsnirtsq , fsnrtc , h2ommr , qrl , qrs , sabtp ,  &
+    real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
+    real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
+    intent (in) cld , clrls , clrlt , clrss , clrst ,             &
+                clwp , firtp , frla , frsa , qrl , qrs , sabtp ,  &
                 slwd , solin , soll , solld , sols , solsd ,      &
                 totcf , totcl , totci , aeradfo , aeradfos,       &
                 aerlwfo , aerlwfos
@@ -185,68 +169,59 @@ module mod_rad_outrad
 !
     if ( ifrad ) then
       if ( lout ) then
-        do k = 1 , kz
-          n = 1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              frad3d(j,i,k,1) = real(cld(n,k))    ! write
-              frad3d(j,i,k,2) = real(clwp(n,k))   ! write
-              frad3d(j,i,k,3) = real(qrs(n,k))    ! write
-              frad3d(j,i,k,4) = real(qrl(n,k))    ! write
-              frad3d(j,i,k,5) = real(h2ommr(n,k)) ! skip
-              n = n + 1
-            end do
-          end do
-        end do
+        call copy3d(cld,rad_cld_out)
+        call copy3d(clwp,rad_clwp_out)
+        call copy3d(qrs,rad_qrs_out)
+        call copy3d(qrl,rad_qrl_out)
 
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            frad2d(j,i,1) = real(frsa(n))      ! write
-            frad2d(j,i,2) = real(frla(n))      ! write
-            frad2d(j,i,3) = real(clrst(n))     ! write
-            frad2d(j,i,4) = real(clrss(n))     ! write
-            frad2d(j,i,5) = real(clrlt(n))     ! write
-            frad2d(j,i,6) = real(clrls(n))     ! write
-            frad2d(j,i,7) = real(solin(n))     ! write
-            frad2d(j,i,8) = real(sabtp(n))     ! write
-            frad2d(j,i,9) = real(totcf(n))     ! write
-            frad2d(j,i,10) = real(totcl(n))    ! write
-            frad2d(j,i,11) = real(totci(n))    ! write
-            frad2d(j,i,12) = real(firtp(n))    ! write
-            frad2d(j,i,13) = real(alb(n))      ! skip
-            frad2d(j,i,14) = real(albc(n))     ! skip
-            frad2d(j,i,15) = real(fsds(n))     ! skip
-            frad2d(j,i,16) = real(fsnirt(n))   ! skip
-            frad2d(j,i,17) = real(fsnrtc(n))   ! skip
-            frad2d(j,i,18) = real(fsnirtsq(n)) ! skip
-            if ( soll(n) < dlowval ) then
-              frad2d(j,i,19) = 0.0
-            else
-              frad2d(j,i,19) = real(soll(n))   ! skip
-            end if
-            if ( sols(n) < dlowval ) then
-              frad2d(j,i,20) = 0.0
-            else
-              frad2d(j,i,20) = real(sols(n))   ! skip
-            end if
-            if ( solsd(n) < dlowval ) then
-              frad2d(j,i,21) = 0.0
-            else
-              frad2d(j,i,21) = real(solsd(n))  ! skip
-            end if
-            if ( solld(n) < dlowval ) then
-              frad2d(j,i,22) = 0.0
-            else
-              frad2d(j,i,22) = real(solld(n))  ! skip
-            end if
-            frad2d(j,i,23) = real(solar(j,i))  ! skip
-            frad2d(j,i,24) = real(abveg(j,i))  ! skip
-            n = n + 1
-          end do
-        end do
+        call copy2d(frsa,rad_frsa_out)
+        call copy2d(frla,rad_frla_out)
+        call copy2d(clrst,rad_clrst_out)
+        call copy2d(clrss,rad_clrss_out)
+        call copy2d(clrlt,rad_clrlt_out)
+        call copy2d(clrls,rad_clrls_out)
+        call copy2d(solin,rad_solin_out)
+        call copy2d(sabtp,rad_sabtp_out)
+        call copy2d(totcf,rad_totcf_out)
+        call copy2d(totcl,rad_totcl_out)
+        call copy2d(totci,rad_totci_out)
+        call copy2d(firtp,rad_firtp_out)
       end if
     end if
   end subroutine radout
+
+  subroutine copy2d(a,b)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    integer(ik4) :: i , j , n
+    if ( associated(b) ) then
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          b(j,i) = a(n)
+          n = n + 1
+        end do
+      end do
+    end if
+  end subroutine copy2d
+
+  subroutine copy3d(a,b)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy3d
 
 end module mod_rad_outrad

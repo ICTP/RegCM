@@ -125,13 +125,7 @@ module mod_regcm_interface
     call set_nproc
     call setup_model_indexes
 !
-    if ( myid == iocpu ) then
-      if ( ma%bandflag ) then
-        call init_mod_ncio(.true.)
-      else
-        call init_mod_ncio(.false.)
-      end if
-    end if
+    call init_mod_ncio
 !
 #ifdef DEBUG 
     call start_debug()
@@ -144,12 +138,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     call param
-
     dtinc = dt
-    !
-    ! Init output streams
-    !
-    ! call init_output_streams(.false.)
 
 !
 !**********************************************************************
@@ -197,8 +186,8 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
+    call init_output_streams(.false.)
     call output
-    ! call new_output
 !
 !**********************************************************************
 !
@@ -320,7 +309,6 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
-      ! call new_output
       !
       ! Send information to ocean model
       !
