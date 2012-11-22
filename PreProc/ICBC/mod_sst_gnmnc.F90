@@ -40,6 +40,7 @@ module mod_sst_gnmnc
   integer(ik4) :: timid
   integer(ik4) :: istatus
   integer(ik4) , dimension(3) :: istart , icount
+  integer(ik4) , dimension(1) :: istart_t , icount_t
   real(rk8) , pointer ::  work1(:)
   real(rk8) , pointer , dimension (:, :) :: work2 , work3
   real(rk8) , pointer , dimension(:,:) :: sst
@@ -315,9 +316,9 @@ module mod_sst_gnmnc
   call getmem2d(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
   
 ! GET TIME VALUES
-  istart(1) = 1
-  icount(1) = timlen
-  istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
+  istart_t(1) = 1
+  icount_t(1) = timlen
+  istatus = nf90_get_var(inet1,ivar2(1),work1,istart_t,icount_t)
   call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
 ! CHECK FOR THE REQUIRED RECORD IN DATA FILE  
   istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
@@ -431,9 +432,9 @@ module mod_sst_gnmnc
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
       call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
       call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
-      istart(1) = 1
-      icount(1) = timlen
-      istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
+      istart_t(1) = 1
+      icount_t(1) = timlen
+      istatus = nf90_get_var(inet1,ivar2(1),work1,istart_t,icount_t)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
       istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -513,9 +514,9 @@ module mod_sst_gnmnc
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
       call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
       call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
-      istart(1) = 1
-      icount(1) = timlen
-      istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
+      istart_t(1) = 1
+      icount_t(1) = timlen
+      istatus = nf90_get_var(inet1,ivar2(1),work1,istart_t,icount_t)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
       istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
