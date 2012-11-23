@@ -72,7 +72,7 @@ module mod_domain
     call read_var2d_static(ncid,'xmap',mddom_io%msfx)
     call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
-    call read_var2d_static(ncid,'snowam',mddom_io%snowam)
+    call read_var2d_static(ncid,'snowam',mddom_io%snowam,.true.)
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
@@ -103,7 +103,7 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
   end subroutine read_domain_array
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
@@ -134,7 +134,7 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
   end subroutine read_domain_array_single
 
   subroutine allocate_domain

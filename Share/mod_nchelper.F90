@@ -663,14 +663,23 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var1d_static_single
 
-  subroutine read_var2d_static_single(ncid,vnam,values)
+  subroutine read_var2d_static_single(ncid,vnam,values,lerror)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
     real(rk4) , pointer , dimension(:,:) :: values
+    logical , intent(in) , optional :: lerror
     integer(ik4) :: ivarid
-    incstat = nf90_inq_varid(ncid, vnam, ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    if ( present(lerror) ) then
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      if ( incstat /= nf90_noerr .and. lerror ) then
+        return
+      end if
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    else
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    end if
     incstat = nf90_get_var(ncid, ivarid, values)
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var2d_static_single
@@ -687,14 +696,23 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var1d_static_double
 
-  subroutine read_var2d_static_double(ncid,vnam,values)
+  subroutine read_var2d_static_double(ncid,vnam,values,lerror)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
     real(rk8) , pointer , dimension(:,:) :: values
+    logical , intent(in) , optional :: lerror
     integer(ik4) :: ivarid
-    incstat = nf90_inq_varid(ncid, vnam, ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    if ( present(lerror) ) then
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      if ( incstat /= nf90_noerr .and. lerror ) then
+        return
+      end if
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    else
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    end if
     incstat = nf90_get_var(ncid, ivarid, values)
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var2d_static_double
