@@ -162,18 +162,18 @@ module mod_rad_outrad
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
 
-        call copy2d_add(frsa,rad_frsa_out)
-        call copy2d_add(frla,rad_frla_out)
-        call copy2d_add(clrst,rad_clrst_out)
-        call copy2d_add(clrss,rad_clrss_out)
-        call copy2d_add(clrlt,rad_clrlt_out)
-        call copy2d_add(clrls,rad_clrls_out)
+        call copy2d(frsa,rad_frsa_out)
+        call copy2d(frla,rad_frla_out)
+        call copy2d(clrst,rad_clrst_out)
+        call copy2d(clrss,rad_clrss_out)
+        call copy2d(clrlt,rad_clrlt_out)
+        call copy2d(clrls,rad_clrls_out)
         call copy2d(solin,rad_solin_out)
-        call copy2d_add(sabtp,rad_sabtp_out)
+        call copy2d(sabtp,rad_sabtp_out)
         call copy2d(totcf,rad_totcf_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)
-        call copy2d_add(firtp,rad_firtp_out)
+        call copy2d(firtp,rad_firtp_out)
       end if
     end if
 

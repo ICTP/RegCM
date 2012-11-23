@@ -352,32 +352,32 @@ module mod_output
     if ( opt_stream > 0 ) then
       if ( ldoche ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        if ( iaerosol == 1 ) then
-          if ( associated(opt_acstoarf_out) ) &
-            opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
-          if ( associated(opt_acstsrrf_out) ) &
-            opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
-          if ( associated(opt_acstalrf_out) ) &
-            opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
-          if ( associated(opt_acssrlrf_out) ) &
-            opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
-          if ( associated(opt_aod_out) ) &
-            opt_aod_out = opt_aod_out * rnrad_for_chem
-          call write_record_output_stream(opt_stream,idatex)
-          if ( myid == italk ) &
-            write(stdout,*) 'OPT variables written at ' , tochar(idatex)
-          if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
-          if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
-          if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
-          if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
-          if ( associated(opt_aod_out) ) opt_aod_out = d_zero
-
-          ! For now keep this
-
-          call output_chem(idatex)
-
-        end if
+        if ( associated(opt_acstoarf_out) ) &
+          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
+        if ( associated(opt_acstsrrf_out) ) &
+          opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
+        if ( associated(opt_acstalrf_out) ) &
+          opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
+        if ( associated(opt_acssrlrf_out) ) &
+          opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
+        if ( associated(opt_aod_out) ) &
+          opt_aod_out = opt_aod_out * rnrad_for_chem
+        call write_record_output_stream(opt_stream,idatex)
+        if ( myid == italk ) &
+          write(stdout,*) 'OPT variables written at ' , tochar(idatex)
+        if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
+        if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
+        if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
+        if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
+        if ( associated(opt_aod_out) ) opt_aod_out = d_zero
       end if
+    end if
+
+    if ( ldoche ) then
+      ! For now keep this
+      call output_chem(idatex)
+      if ( myid == italk ) &
+        write(stdout,*) 'CHE variables written at ' , tochar(idatex)
     end if
 
     if ( sts_stream > 0 ) then
@@ -409,33 +409,9 @@ module mod_output
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        if ( associated(rad_frsa_out) ) &
-          rad_frsa_out = rad_frsa_out * rnrad_for_radfrq
-        if ( associated(rad_frla_out) ) &
-          rad_frla_out = rad_frla_out * rnrad_for_radfrq
-        if ( associated(rad_clrst_out) ) &
-          rad_clrst_out = rad_clrst_out * rnrad_for_radfrq
-        if ( associated(rad_clrss_out) ) &
-          rad_clrss_out = rad_clrss_out * rnrad_for_radfrq
-        if ( associated(rad_clrls_out) ) &
-          rad_clrls_out = rad_clrls_out * rnrad_for_radfrq
-        if ( associated(rad_clrlt_out) ) &
-          rad_clrlt_out = rad_clrlt_out * rnrad_for_radfrq
-        if ( associated(rad_sabtp_out) ) &
-          rad_sabtp_out = rad_sabtp_out * rnrad_for_radfrq
-        if ( associated(rad_firtp_out) ) &
-          rad_firtp_out = rad_firtp_out * rnrad_for_radfrq
         call write_record_output_stream(rad_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , tochar(idatex)
-        if ( associated(rad_frsa_out) ) rad_frsa_out = d_zero        
-        if ( associated(rad_frla_out) ) rad_frla_out = d_zero        
-        if ( associated(rad_clrst_out) ) rad_clrst_out = d_zero        
-        if ( associated(rad_clrss_out) ) rad_clrss_out = d_zero        
-        if ( associated(rad_clrls_out) ) rad_clrls_out = d_zero        
-        if ( associated(rad_clrlt_out) ) rad_clrlt_out = d_zero        
-        if ( associated(rad_sabtp_out) ) rad_sabtp_out = d_zero        
-        if ( associated(rad_firtp_out) ) rad_firtp_out = d_zero        
       end if
     end if
 

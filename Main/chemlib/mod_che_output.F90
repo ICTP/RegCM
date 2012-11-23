@@ -115,10 +115,6 @@ module mod_che_output
                            cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
                            cbdydiag_io,ctbldiag_io,cseddpdiag_io,          &
                            ccuwdiag_io,remlsc_io,remcvc_io,cpsb_io,idatex)
-        write (*,*) 'CHE variables written at ' , tochar(idatex) 
-        if ( iaerosol > 0 ) then
-          write (*,*) 'OPT variables written at ' , tochar(idatex)
-        end if
       end if
     end subroutine outche2
 
