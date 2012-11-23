@@ -1020,35 +1020,21 @@ module mod_gn6hnc
       istart(2) = 1
       istart(3) = 1
       istart(4) = it
-      istatus = nf90_get_var(inet(1),ivar(1),vwork,istart,icount)
+      istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
-      do j = 1 , nlat
-        tvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
-      istatus = nf90_get_var(inet(2),ivar(2),vwork,istart,icount)
+      istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
-      do j = 1 , nlat
-        hvar(:,nlat-j+1,:) = vwork(:,j,:)/real(egrav) ! Get to m
-      end do
+      hvar = hvar/egrav ! Get to m
       where ( hvar < 0.0 )
         hvar = 0.0 ! We do not want negative hgt, don't we?
       end where
       ! This is specific humidity
-      istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
+      istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
-      do j = 1 , nlat
-        qvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
-      istatus = nf90_get_var(inet(4),ivar(4),vwork,istart,icount)
+      istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
-      do j = 1 , nlat
-        uvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
-      istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
+      istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
-      do j = 1 , nlat
-        vvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do

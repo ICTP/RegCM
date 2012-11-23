@@ -72,6 +72,10 @@ module mod_ncout
   integer(ik4) , parameter :: nrad3dvars = 4
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars
 
+  integer(ik4) , parameter :: nopt2dvars = 5 + nbase
+  integer(ik4) , parameter :: nopt3dvars = 3
+  integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
+
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_real) , save , pointer , &
@@ -96,6 +100,10 @@ module mod_ncout
     dimension(:) :: v2dvar_rad => null()
   type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_rad => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_opt => null()
+  type(ncvariable3d_real) , save , pointer , &
+    dimension(:) :: v3dvar_opt => null()
 
   integer(ik4) :: maxstreams
 
@@ -117,136 +125,152 @@ module mod_ncout
   logical , public , dimension(nsubvars) :: enable_sub_vars
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
+  logical , public , dimension(noptvars) :: enable_opt_vars
 
-  integer(ik4), parameter :: atm_xlon  = 1
-  integer(ik4), parameter :: atm_xlat  = 2
-  integer(ik4), parameter :: atm_mask  = 3
-  integer(ik4), parameter :: atm_topo  = 4
-  integer(ik4), parameter :: atm_ps    = 5
-  integer(ik4), parameter :: atm_tpr   = 6
-  integer(ik4), parameter :: atm_tgb   = 7
-  integer(ik4), parameter :: atm_tsw   = 8
+  integer(ik4) , parameter :: atm_xlon  = 1
+  integer(ik4) , parameter :: atm_xlat  = 2
+  integer(ik4) , parameter :: atm_mask  = 3
+  integer(ik4) , parameter :: atm_topo  = 4
+  integer(ik4) , parameter :: atm_ps    = 5
+  integer(ik4) , parameter :: atm_tpr   = 6
+  integer(ik4) , parameter :: atm_tgb   = 7
+  integer(ik4) , parameter :: atm_tsw   = 8
 
-  integer(ik4), parameter :: atm_u     = 1
-  integer(ik4), parameter :: atm_v     = 2
-  integer(ik4), parameter :: atm_t     = 3
-  integer(ik4), parameter :: atm_omega = 4
-  integer(ik4), parameter :: atm_qv    = 5
-  integer(ik4), parameter :: atm_qc    = 6
-  integer(ik4), parameter :: atm_tke   = 7
-  integer(ik4), parameter :: atm_kth   = 8
-  integer(ik4), parameter :: atm_kzm   = 9
+  integer(ik4) , parameter :: atm_u     = 1
+  integer(ik4) , parameter :: atm_v     = 2
+  integer(ik4) , parameter :: atm_t     = 3
+  integer(ik4) , parameter :: atm_omega = 4
+  integer(ik4) , parameter :: atm_qv    = 5
+  integer(ik4) , parameter :: atm_qc    = 6
+  integer(ik4) , parameter :: atm_tke   = 7
+  integer(ik4) , parameter :: atm_kth   = 8
+  integer(ik4) , parameter :: atm_kzm   = 9
 
-  integer(ik4), parameter :: srf_xlon   = 1
-  integer(ik4), parameter :: srf_xlat   = 2
-  integer(ik4), parameter :: srf_mask   = 3
-  integer(ik4), parameter :: srf_topo   = 4
-  integer(ik4), parameter :: srf_ps     = 5
-  integer(ik4), parameter :: srf_uvdrag = 6
-  integer(ik4), parameter :: srf_tg     = 7
-  integer(ik4), parameter :: srf_tlef   = 8
-  integer(ik4), parameter :: srf_tpr    = 9
-  integer(ik4), parameter :: srf_evp    = 10
-  integer(ik4), parameter :: srf_scv    = 11
-  integer(ik4), parameter :: srf_sena   = 12
-  integer(ik4), parameter :: srf_flw    = 13
-  integer(ik4), parameter :: srf_fsw    = 14
-  integer(ik4), parameter :: srf_fld    = 15
-  integer(ik4), parameter :: srf_sina   = 16
-  integer(ik4), parameter :: srf_prcv   = 17
-  integer(ik4), parameter :: srf_zpbl   = 18
-  integer(ik4), parameter :: srf_aldirs = 19
-  integer(ik4), parameter :: srf_aldifs = 20
-  integer(ik4), parameter :: srf_sund   = 21
-  integer(ik4), parameter :: srf_seaice = 22
+  integer(ik4) , parameter :: srf_xlon   = 1
+  integer(ik4) , parameter :: srf_xlat   = 2
+  integer(ik4) , parameter :: srf_mask   = 3
+  integer(ik4) , parameter :: srf_topo   = 4
+  integer(ik4) , parameter :: srf_ps     = 5
+  integer(ik4) , parameter :: srf_uvdrag = 6
+  integer(ik4) , parameter :: srf_tg     = 7
+  integer(ik4) , parameter :: srf_tlef   = 8
+  integer(ik4) , parameter :: srf_tpr    = 9
+  integer(ik4) , parameter :: srf_evp    = 10
+  integer(ik4) , parameter :: srf_scv    = 11
+  integer(ik4) , parameter :: srf_sena   = 12
+  integer(ik4) , parameter :: srf_flw    = 13
+  integer(ik4) , parameter :: srf_fsw    = 14
+  integer(ik4) , parameter :: srf_fld    = 15
+  integer(ik4) , parameter :: srf_sina   = 16
+  integer(ik4) , parameter :: srf_prcv   = 17
+  integer(ik4) , parameter :: srf_zpbl   = 18
+  integer(ik4) , parameter :: srf_aldirs = 19
+  integer(ik4) , parameter :: srf_aldifs = 20
+  integer(ik4) , parameter :: srf_sund   = 21
+  integer(ik4) , parameter :: srf_seaice = 22
 
-  integer(ik4), parameter :: srf_u10m   = 1
-  integer(ik4), parameter :: srf_v10m   = 2
-  integer(ik4), parameter :: srf_t2m    = 3
-  integer(ik4), parameter :: srf_q2m    = 4
-  integer(ik4), parameter :: srf_smw    = 5
-  integer(ik4), parameter :: srf_runoff = 6
+  integer(ik4) , parameter :: srf_u10m   = 1
+  integer(ik4) , parameter :: srf_v10m   = 2
+  integer(ik4) , parameter :: srf_t2m    = 3
+  integer(ik4) , parameter :: srf_q2m    = 4
+  integer(ik4) , parameter :: srf_smw    = 5
+  integer(ik4) , parameter :: srf_runoff = 6
 
-  integer(ik4), parameter :: sts_xlon   = 1
-  integer(ik4), parameter :: sts_xlat   = 2
-  integer(ik4), parameter :: sts_mask   = 3
-  integer(ik4), parameter :: sts_topo   = 4
-  integer(ik4), parameter :: sts_ps     = 5
-  integer(ik4), parameter :: sts_tgmax  = 6
-  integer(ik4), parameter :: sts_tgmin  = 7
-  integer(ik4), parameter :: sts_pcpmax = 8
-  integer(ik4), parameter :: sts_pcpavg = 9
-  integer(ik4), parameter :: sts_sund   = 10
-  integer(ik4), parameter :: sts_psmin  = 11
+  integer(ik4) , parameter :: sts_xlon   = 1
+  integer(ik4) , parameter :: sts_xlat   = 2
+  integer(ik4) , parameter :: sts_mask   = 3
+  integer(ik4) , parameter :: sts_topo   = 4
+  integer(ik4) , parameter :: sts_ps     = 5
+  integer(ik4) , parameter :: sts_tgmax  = 6
+  integer(ik4) , parameter :: sts_tgmin  = 7
+  integer(ik4) , parameter :: sts_pcpmax = 8
+  integer(ik4) , parameter :: sts_pcpavg = 9
+  integer(ik4) , parameter :: sts_sund   = 10
+  integer(ik4) , parameter :: sts_psmin  = 11
 
-  integer(ik4), parameter :: sts_t2max  = 1
-  integer(ik4), parameter :: sts_t2min  = 2
-  integer(ik4), parameter :: sts_t2avg  = 3
-  integer(ik4), parameter :: sts_w10max = 4
+  integer(ik4) , parameter :: sts_t2max  = 1
+  integer(ik4) , parameter :: sts_t2min  = 2
+  integer(ik4) , parameter :: sts_t2avg  = 3
+  integer(ik4) , parameter :: sts_w10max = 4
 
-  integer(ik4), parameter :: sub_xlon   = 1
-  integer(ik4), parameter :: sub_xlat   = 2
-  integer(ik4), parameter :: sub_mask   = 3
-  integer(ik4), parameter :: sub_topo   = 4
-  integer(ik4), parameter :: sub_ps     = 5
-  integer(ik4), parameter :: sub_uvdrag = 6
-  integer(ik4), parameter :: sub_tg     = 7
-  integer(ik4), parameter :: sub_tlef   = 8
-  integer(ik4), parameter :: sub_evp    = 9
-  integer(ik4), parameter :: sub_scv    = 10
-  integer(ik4), parameter :: sub_sena   = 11
-  integer(ik4), parameter :: sub_tlake  = 12
+  integer(ik4) , parameter :: sub_xlon   = 1
+  integer(ik4) , parameter :: sub_xlat   = 2
+  integer(ik4) , parameter :: sub_mask   = 3
+  integer(ik4) , parameter :: sub_topo   = 4
+  integer(ik4) , parameter :: sub_ps     = 5
+  integer(ik4) , parameter :: sub_uvdrag = 6
+  integer(ik4) , parameter :: sub_tg     = 7
+  integer(ik4) , parameter :: sub_tlef   = 8
+  integer(ik4) , parameter :: sub_evp    = 9
+  integer(ik4) , parameter :: sub_scv    = 10
+  integer(ik4) , parameter :: sub_sena   = 11
+  integer(ik4) , parameter :: sub_tlake  = 12
 
-  integer(ik4), parameter :: sub_u10m   = 1
-  integer(ik4), parameter :: sub_v10m   = 2
-  integer(ik4), parameter :: sub_t2m    = 3
-  integer(ik4), parameter :: sub_q2m    = 4
-  integer(ik4), parameter :: sub_smw    = 5
-  integer(ik4), parameter :: sub_runoff = 6
+  integer(ik4) , parameter :: sub_u10m   = 1
+  integer(ik4) , parameter :: sub_v10m   = 2
+  integer(ik4) , parameter :: sub_t2m    = 3
+  integer(ik4) , parameter :: sub_q2m    = 4
+  integer(ik4) , parameter :: sub_smw    = 5
+  integer(ik4) , parameter :: sub_runoff = 6
 
-  integer(ik4), parameter :: rad_xlon   = 1
-  integer(ik4), parameter :: rad_xlat   = 2
-  integer(ik4), parameter :: rad_mask   = 3
-  integer(ik4), parameter :: rad_topo   = 4
-  integer(ik4), parameter :: rad_ps     = 5
-  integer(ik4), parameter :: rad_frsa   = 6
-  integer(ik4), parameter :: rad_frla   = 7
-  integer(ik4), parameter :: rad_clrst  = 8
-  integer(ik4), parameter :: rad_clrss  = 9
-  integer(ik4), parameter :: rad_clrlt  = 10
-  integer(ik4), parameter :: rad_clrls  = 11
-  integer(ik4), parameter :: rad_solin  = 12
-  integer(ik4), parameter :: rad_sabtp  = 13
-  integer(ik4), parameter :: rad_totcf  = 14
-  integer(ik4), parameter :: rad_totcl  = 15
-  integer(ik4), parameter :: rad_totci  = 16
-  integer(ik4), parameter :: rad_firtp  = 17
+  integer(ik4) , parameter :: rad_xlon   = 1
+  integer(ik4) , parameter :: rad_xlat   = 2
+  integer(ik4) , parameter :: rad_mask   = 3
+  integer(ik4) , parameter :: rad_topo   = 4
+  integer(ik4) , parameter :: rad_ps     = 5
+  integer(ik4) , parameter :: rad_frsa   = 6
+  integer(ik4) , parameter :: rad_frla   = 7
+  integer(ik4) , parameter :: rad_clrst  = 8
+  integer(ik4) , parameter :: rad_clrss  = 9
+  integer(ik4) , parameter :: rad_clrlt  = 10
+  integer(ik4) , parameter :: rad_clrls  = 11
+  integer(ik4) , parameter :: rad_solin  = 12
+  integer(ik4) , parameter :: rad_sabtp  = 13
+  integer(ik4) , parameter :: rad_totcf  = 14
+  integer(ik4) , parameter :: rad_totcl  = 15
+  integer(ik4) , parameter :: rad_totci  = 16
+  integer(ik4) , parameter :: rad_firtp  = 17
 
-  integer(ik4), parameter :: rad_cld    = 1
-  integer(ik4), parameter :: rad_clwp   = 2
-  integer(ik4), parameter :: rad_qrs    = 3
-  integer(ik4), parameter :: rad_qrl    = 4
+  integer(ik4) , parameter :: rad_cld    = 1
+  integer(ik4) , parameter :: rad_clwp   = 2
+  integer(ik4) , parameter :: rad_qrs    = 3
+  integer(ik4) , parameter :: rad_qrl    = 4
 
-  integer(ik4), parameter :: lak_xlon   = 1
-  integer(ik4), parameter :: lak_xlat   = 2
-  integer(ik4), parameter :: lak_mask   = 3
-  integer(ik4), parameter :: lak_topo   = 4
-  integer(ik4), parameter :: lak_ps     = 5
-  integer(ik4), parameter :: lak_tg     = 6
-  integer(ik4), parameter :: lak_tpr    = 7
-  integer(ik4), parameter :: lak_scv    = 8
-  integer(ik4), parameter :: lak_sena   = 9
-  integer(ik4), parameter :: lak_flw    = 10
-  integer(ik4), parameter :: lak_fsw    = 11
-  integer(ik4), parameter :: lak_fld    = 12
-  integer(ik4), parameter :: lak_sina   = 13
-  integer(ik4), parameter :: lak_aldirs = 14
-  integer(ik4), parameter :: lak_aldifs = 15
-  integer(ik4), parameter :: lak_evp    = 16
-  integer(ik4), parameter :: lak_aveice = 17
-  integer(ik4), parameter :: lak_hsnow  = 18
+  integer(ik4) , parameter :: lak_xlon   = 1
+  integer(ik4) , parameter :: lak_xlat   = 2
+  integer(ik4) , parameter :: lak_mask   = 3
+  integer(ik4) , parameter :: lak_topo   = 4
+  integer(ik4) , parameter :: lak_ps     = 5
+  integer(ik4) , parameter :: lak_tg     = 6
+  integer(ik4) , parameter :: lak_tpr    = 7
+  integer(ik4) , parameter :: lak_scv    = 8
+  integer(ik4) , parameter :: lak_sena   = 9
+  integer(ik4) , parameter :: lak_flw    = 10
+  integer(ik4) , parameter :: lak_fsw    = 11
+  integer(ik4) , parameter :: lak_fld    = 12
+  integer(ik4) , parameter :: lak_sina   = 13
+  integer(ik4) , parameter :: lak_aldirs = 14
+  integer(ik4) , parameter :: lak_aldifs = 15
+  integer(ik4) , parameter :: lak_evp    = 16
+  integer(ik4) , parameter :: lak_aveice = 17
+  integer(ik4) , parameter :: lak_hsnow  = 18
 
-  integer(ik4), parameter :: lak_tlake  = 1
+  integer(ik4) , parameter :: lak_tlake  = 1
+
+  integer(ik4) , parameter :: opt_xlon     = 1
+  integer(ik4) , parameter :: opt_xlat     = 2
+  integer(ik4) , parameter :: opt_mask     = 3
+  integer(ik4) , parameter :: opt_topo     = 4
+  integer(ik4) , parameter :: opt_ps       = 5
+  integer(ik4) , parameter :: opt_acstoarf = 6
+  integer(ik4) , parameter :: opt_acstsrrf = 7
+  integer(ik4) , parameter :: opt_acstalrf = 8
+  integer(ik4) , parameter :: opt_acssrlrf = 9
+  integer(ik4) , parameter :: opt_aod      = 10
+
+  integer(ik4) , parameter :: opt_aext8    = 1
+  integer(ik4) , parameter :: opt_assa8    = 2
+  integer(ik4) , parameter :: opt_agfu8    = 3
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
@@ -256,7 +280,7 @@ module mod_ncout
   subroutine init_output_streams(lparallel)
     implicit none
     logical , intent(in) :: lparallel
-    integer(ik4) :: nstream , i , vcount
+    integer(ik4) :: nstream , i , itr , vcount
     integer(ik4) :: kkz
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
@@ -271,6 +295,8 @@ module mod_ncout
     logical , dimension(nlak3dvars) :: enable_lak3d_vars
     logical , dimension(nrad2dvars) :: enable_rad2d_vars
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
+    logical , dimension(nopt2dvars) :: enable_opt2d_vars
+    logical , dimension(nopt3dvars) :: enable_opt3d_vars
 
     parallel_out = lparallel
 
@@ -1153,6 +1179,99 @@ module mod_ncout
         outstream(lak_stream)%jg2 = jout2
         outstream(lak_stream)%ig1 = iout1
         outstream(lak_stream)%ig2 = iout2
+      end if
+
+      if ( nstream == opt_stream ) then
+
+        allocate(v2dvar_opt(nopt2dvars))
+        allocate(v3dvar_opt(nopt3dvars))
+        enable_opt2d_vars = enable_opt_vars(1:nopt2dvars)
+        enable_opt3d_vars = enable_opt_vars(nopt2dvars+1:noptvars)
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_opt(opt_xlon), &
+          v2dvar_opt(opt_xlat),v2dvar_opt(opt_topo),       &
+          v2dvar_opt(opt_mask),v2dvar_opt(opt_ps))
+
+        ! The following may be enabled/disabled
+
+        if ( enable_opt2d_vars(opt_acstsrrf) ) then
+          call setup_var(v2dvar_opt(opt_acstsrrf),vsize,'acstsrrf','W m-2', &
+            'Surface shortwave radiative forcing', &
+            'surface_shortwave_radiative_forcing',.true.)
+          opt_acstsrrf_out => v2dvar_opt(opt_acstsrrf)%rval
+        end if
+        if ( enable_opt2d_vars(opt_acstalrf) ) then
+          call setup_var(v2dvar_opt(opt_acstsrrf),vsize,'acstalrf','W m-2', &
+            'Top of atmosphere longwave radiative forcing', &
+            'toa_longwave_radiative_forcing',.true.)
+          opt_acstalrf_out => v2dvar_opt(opt_acstalrf)%rval
+        end if
+        if ( enable_opt2d_vars(opt_acssrlrf) ) then
+          call setup_var(v2dvar_opt(opt_acssrlrf),vsize,'acssrlrf','W m-2', &
+            'Surface longwave radiative forcing' , &
+            'surface_longwave_radiative_forcing',.true.)
+          opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
+        end if
+        if ( enable_opt2d_vars(opt_aod) ) then
+          call setup_var(v2dvar_opt(opt_aod),vsize,'aod','1', &
+            'Aerosol optical thickness in the visible band' , &
+            'atmosphere_optical_thickness_due_to_aerosol', &
+            .true.)
+          opt_aod_out => v2dvar_opt(opt_aod)%rval
+        end if
+
+        vsize%k2 = kz
+        if ( enable_opt3d_vars(opt_aext8) ) then
+          call setup_var(v3dvar_opt(opt_aext8),vsize,'aext8','1', &
+            'Aerosol optical depth', &
+            'atmosphere_optical_thickness_due_to_aerosol',.true.)
+          opt_aext8_out => v3dvar_opt(opt_aext8)%rval
+        end if
+        if ( enable_opt3d_vars(opt_assa8) ) then
+          call setup_var(v3dvar_opt(opt_assa8),vsize,'assa8','1', &
+            'Aerosol single scattering albedo', &
+            'aerosol_single_scattering_albedo',.true.)
+          opt_assa8_out => v3dvar_opt(opt_assa8)%rval
+        end if
+        if ( enable_opt3d_vars(opt_agfu8) ) then
+          call setup_var(v3dvar_opt(opt_agfu8),vsize,'agfu8','1', &
+            'Aerosol asymmetry parameter', &
+            'aerosol_asymmetry_parameter',.true.)
+          opt_agfu8_out => v3dvar_opt(opt_agfu8)%rval
+        end if
+
+        enable_opt_vars(1:nopt2dvars) = enable_opt2d_vars
+        enable_opt_vars(nopt2dvars+1:noptvars) = enable_opt3d_vars
+        outstream(opt_stream)%nvar = countvars(enable_opt_vars,noptvars)
+        allocate(outstream(opt_stream)%ncvars%vlist(outstream(opt_stream)%nvar))
+
+        vcount = 1
+        do i = 1 , nopt2dvars
+          if ( enable_opt_vars(i) ) then
+            outstream(opt_stream)%ncvars%vlist(vcount)%vp => v2dvar_opt(i)
+            vcount = vcount + 1
+          end if
+        end do
+        do i = 1 , nopt3dvars
+          if ( enable_opt_vars(i+nopt2dvars) ) then
+            outstream(opt_stream)%ncvars%vlist(vcount)%vp => v3dvar_opt(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(opt_stream)%jl1 = vsize%j1
+        outstream(opt_stream)%jl2 = vsize%j2
+        outstream(opt_stream)%il1 = vsize%i1
+        outstream(opt_stream)%il2 = vsize%i2
+        outstream(opt_stream)%jg1 = jout1
+        outstream(opt_stream)%jg2 = jout2
+        outstream(opt_stream)%ig1 = iout1
+        outstream(opt_stream)%ig2 = iout2
+
+        do itr = 1 , ntr
+        end do
+
       end if
 
       outstream(nstream)%opar%pname = 'RegCM Model'

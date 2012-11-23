@@ -94,7 +94,7 @@ module mod_params
     radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,      &
     subfrq , ifchem , chemfrq , enable_atm_vars , enable_srf_vars , &
     enable_rad_vars , enable_sub_vars , enable_sts_vars ,           &
-    enable_lak_vars , dirout , lsync
+    enable_lak_vars , enable_opt_vars , dirout , lsync
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -277,6 +277,7 @@ module mod_params
   enable_sub_vars(:) = .true.
   enable_lak_vars(:) = .true.
   enable_rad_vars(:) = .true.
+  enable_opt_vars(:) = .true.
   dirout = './output' 
   lsync = .false.
 !chem2

@@ -221,12 +221,12 @@ program sigma2p
       psdimids = dimids(1:3)
     else if (varname == 'topo') then
       ishvarid = i
-    else if (varname == 't') then
+    else if (varname == 'ta') then
       has_t = .true.
       intscheme(i) = 2
       tvarid = i
       tdimids = dimids(1:4)
-    else if (varname == 'qv') then
+    else if (varname == 'qas') then
       has_q = .true.
       qvarid = i
     else if (varname == 'chtrname') then

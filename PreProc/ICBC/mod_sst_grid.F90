@@ -61,7 +61,7 @@ module mod_sst_grid
   subroutine read_domain_info(terfile)
     implicit none
     character(len=256) , intent(in) :: terfile
-    integer(ik4) :: istatus , incin
+    integer(ik4) :: incin
     call openfile_withname(terfile,incin)
     call read_domain(incin,sigma,xlat,xlon,ht=topo,mask=mask)
     call closefile(incin)

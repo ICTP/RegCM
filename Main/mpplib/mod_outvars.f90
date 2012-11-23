@@ -134,4 +134,13 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: lak_hsnow_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: lak_tlake_out => null()
 
+  real(rk8) , dimension(:,:) , pointer :: opt_acstoarf_out => null()
+  real(rk8) , dimension(:,:) , pointer :: opt_acstsrrf_out => null()
+  real(rk8) , dimension(:,:) , pointer :: opt_acstalrf_out => null()
+  real(rk8) , dimension(:,:) , pointer :: opt_acssrlrf_out => null()
+  real(rk8) , dimension(:,:) , pointer :: opt_aod_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: opt_aext8_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
+
 end module mod_outvars

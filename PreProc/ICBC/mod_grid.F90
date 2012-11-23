@@ -66,7 +66,6 @@ module mod_grid
   subroutine read_domain_info
     use mod_dynparam
     implicit none
-    integer(ik4) :: istatus
     integer(ik4) :: incin
     character(len=256) :: fname
     integer(ik4) :: k
