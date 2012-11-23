@@ -327,10 +327,12 @@ module mod_ncout
       rad_stream = nstream
     end if
     if ( ifchem ) then
-      nstream = nstream+1
-      opt_stream = nstream
+      if ( iaerosol == 1 ) then
+        nstream = nstream+1
+        opt_stream = nstream
+      end if
       ! Add one output file per tracer
-      nstream = nstream+ntr
+      ! nstream = nstream+ntr
     end if
 
     maxstreams = nstream
@@ -932,37 +934,41 @@ module mod_ncout
         if ( enable_rad2d_vars(rad_frsa) ) then
           call setup_var(v2dvar_rad(rad_frsa),vsize,'rsns','W m-2', &
             'Surface net downward shortwave flux', &
-            'surface_net_downward_shortwave_flux', .true.)
+            'surface_net_downward_shortwave_flux', .true.,'time: mean')
           rad_frsa_out => v2dvar_rad(rad_frsa)%rval
         end if
         if ( enable_rad2d_vars(rad_frla) ) then
           call setup_var(v2dvar_rad(rad_frla),vsize,'rsnl','W m-2', &
             'Surface net upward longwave flux', &
-            'surface_net_upward_longwave_flux', .true.)
+            'surface_net_upward_longwave_flux', .true.,'time: mean')
           rad_frla_out => v2dvar_rad(rad_frla)%rval
         end if
         if ( enable_rad2d_vars(rad_clrst) ) then
           call setup_var(v2dvar_rad(rad_clrst),vsize,'rtnscl','W m-2', &
             'Clearsky top of atmosphere net downward shortwave flux', &
-            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.)
+            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrst_out => v2dvar_rad(rad_clrst)%rval
         end if
         if ( enable_rad2d_vars(rad_clrss) ) then
           call setup_var(v2dvar_rad(rad_clrss),vsize,'rsnscl','W m-2', &
             'Clearsky surface net downward shortwave flux', &
-            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.)
+            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrss_out => v2dvar_rad(rad_clrss)%rval
         end if
         if ( enable_rad2d_vars(rad_clrlt) ) then
           call setup_var(v2dvar_rad(rad_clrlt),vsize,'rtnlcl','W m-2', &
             'Clearsky top of atmosphere net upward longwave flux', &
-            'toa_net_upward_longwave_flux_assuming_clear_sky',.true.)
+            'toa_net_upward_longwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrlt_out => v2dvar_rad(rad_clrlt)%rval
         end if
         if ( enable_rad2d_vars(rad_clrls) ) then
           call setup_var(v2dvar_rad(rad_clrls),vsize,'rsnlcl','W m-2', &
             'Clearsky net upward longwave flux', &
-            'surface_net_upward_longwave_flux_assuming_clear_sky',.true.)
+            'surface_net_upward_longwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrls_out => v2dvar_rad(rad_clrls)%rval
         end if
         if ( enable_rad2d_vars(rad_solin) ) then
@@ -974,7 +980,7 @@ module mod_ncout
         if ( enable_rad2d_vars(rad_sabtp) ) then
           call setup_var(v2dvar_rad(rad_sabtp),vsize,'rsnt','W m-2', &
             'Net top of atmosphere upward shortwave flux', &
-            'toa_net_upward_shortwave_flux',.true.)
+            'toa_net_upward_shortwave_flux',.true.,'time: mean')
           rad_sabtp_out => v2dvar_rad(rad_sabtp)%rval
         end if
         if ( enable_rad2d_vars(rad_totcf) ) then
@@ -997,7 +1003,7 @@ module mod_ncout
         if ( enable_rad2d_vars(rad_firtp) ) then
           call setup_var(v2dvar_rad(rad_firtp),vsize,'rtl','W m-2', &
             'Top of atmosphere net upward longwave flux', &
-            'toa_net_upward_longwave_flux',.true.)
+            'toa_net_upward_longwave_flux',.true.,'time: mean')
           rad_firtp_out => v2dvar_rad(rad_firtp)%rval
         end if
 
@@ -1196,29 +1202,35 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
+        if ( enable_opt2d_vars(opt_acstoarf) ) then
+          call setup_var(v2dvar_opt(opt_acstoarf),vsize,'acstoarf','W m-2', &
+            'Top of atmosphere shortwave radiative forcing', &
+            'toa_shortwave_radiative_forcing',.true.,'time: mean')
+          opt_acstoarf_out => v2dvar_opt(opt_acstoarf)%rval
+        end if
         if ( enable_opt2d_vars(opt_acstsrrf) ) then
           call setup_var(v2dvar_opt(opt_acstsrrf),vsize,'acstsrrf','W m-2', &
             'Surface shortwave radiative forcing', &
-            'surface_shortwave_radiative_forcing',.true.)
+            'surface_shortwave_radiative_forcing',.true.,'time: mean')
           opt_acstsrrf_out => v2dvar_opt(opt_acstsrrf)%rval
         end if
         if ( enable_opt2d_vars(opt_acstalrf) ) then
-          call setup_var(v2dvar_opt(opt_acstsrrf),vsize,'acstalrf','W m-2', &
+          call setup_var(v2dvar_opt(opt_acstalrf),vsize,'acstalrf','W m-2', &
             'Top of atmosphere longwave radiative forcing', &
-            'toa_longwave_radiative_forcing',.true.)
+            'toa_longwave_radiative_forcing',.true.,'time: mean')
           opt_acstalrf_out => v2dvar_opt(opt_acstalrf)%rval
         end if
         if ( enable_opt2d_vars(opt_acssrlrf) ) then
           call setup_var(v2dvar_opt(opt_acssrlrf),vsize,'acssrlrf','W m-2', &
             'Surface longwave radiative forcing' , &
-            'surface_longwave_radiative_forcing',.true.)
+            'surface_longwave_radiative_forcing',.true.,'time: mean')
           opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
         end if
         if ( enable_opt2d_vars(opt_aod) ) then
           call setup_var(v2dvar_opt(opt_aod),vsize,'aod','1', &
             'Aerosol optical thickness in the visible band' , &
             'atmosphere_optical_thickness_due_to_aerosol', &
-            .true.)
+            .true.,'time: mean')
           opt_aod_out => v2dvar_opt(opt_aod)%rval
         end if
 
@@ -1738,6 +1750,9 @@ module mod_ncout
 
       do ivar = 1 , outstream(i)%nvar
         vp => outstream(i)%ncvars%vlist(ivar)%vp
+#ifdef DEBUG
+        write(stdout,*) 'Adding variable ', vp%vname
+#endif
         call outstream_addvar(outstream(i)%ncout,vp)
       end do
       call outstream_enable(outstream(i)%ncout,sigma)

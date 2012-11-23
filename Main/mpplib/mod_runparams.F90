@@ -68,7 +68,8 @@ module mod_runparams
   ! Step counters to activate surface and radiation schemes
   integer(ik8) :: ntsrf , ntrad
   real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
-               rnsrf_for_lakfrq , rnsrf_for_subfrq
+               rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &
+               rnrad_for_radfrq
   ! Step of surface scheme in one atmosphere I/O interval
   real(rk8) :: rsrf_in_atm
   ! One over seconds in one surface I/O interval
@@ -108,6 +109,9 @@ module mod_runparams
   real(rk8) :: xkhmax , xkhz
 
   integer(ik4) :: iboudy , ichem , ipgf , ipptls
+  ! usefull flags for chemistry
+  integer(ik4) :: iaerosol , igaschem , ioxclim
+  
 
   logical :: ifrest , rfstrt , doing_restart , lsync
 

@@ -562,7 +562,6 @@ module mod_che_ncio
       integer(ik4) , dimension(2) :: ivvar
       integer(ik4) , dimension(5) :: illtpvar
       integer(ik4) :: itvar , i , j
-      integer(ik4) :: noutf
       character(len=129) :: cdum
 
       integer(ik4) , dimension(9) :: tyx
@@ -572,14 +571,10 @@ module mod_che_ncio
 
       ctime = tochar(idate)
 
-      ! total number of output  = ntr + 1 for optical properties file
-      noutf = ntr
-      if ( iaerosol == 1 ) noutf = ntr + 1
-
       if ( .not. associated(ncche) ) then
-        call getmem1d(ncche,1,noutf,'che_ncio:ncche')
+        call getmem1d(ncche,1,ntr,'che_ncio:ncche')
       end if
-      do itr = 1, noutf
+      do itr = 1, ntr
         if ( ncche(itr) >= 0 ) then
           istatus = nf90_close(ncche(itr))
           call check_ok(__FILE__,__LINE__,'Error close chem file output','CHE')
@@ -588,13 +583,9 @@ module mod_che_ncio
       end do
       ! tracer loop , since we are generating one output per
       ! tracer + 1 output for OPT
-      do itr = 1, noutf
-        if ( itr < noutf ) then  
-          ncid = ncche(itr)     
-          chevarnam =  chtrname(itr)
-        else if ( itr == noutf) then
-          chevarnam = 'OPT'
-        end if 
+      do itr = 1, ntr
+        ncid = ncche(itr)     
+        chevarnam =  chtrname(itr)
         icherefdate = idate
         icherec = 1
 
@@ -605,10 +596,6 @@ module mod_che_ncio
 
         write (aline, *) 'Opening new output file ', trim(ofname)
         call say
-#ifdef DEBUG
-        write (aline,*) 'NOUTF = ', noutf, ', NTR = ', ntr
-        call say
-#endif
 
         call createfile_withname(ofname,ncid)
         call add_common_global_params(ncid,'Model (Chemistry '// &
@@ -847,122 +834,86 @@ module mod_che_ncio
         tyx = (/idims(1),idims(2),idims(3),-1,-1,-1,-1,-1,-1/)
         tzyx = (/idims(1),idims(2),idims(4),idims(3),-1,-1,-1,-1,-1/)
 
-        if (  itr < noutf  ) then      
-          ichevar = -1
-          ichevar(1) = itvar
-          ichevar(2) = illtpvar(5)
-          call ch_addvara(ncid,chevarnam,chevarnam, &
-                    'atmosphere_mixing_ratio_of_tracer', &
-                    'Tracers mixing ratios','kg kg-1', &
-                    tzyx,.false.,ichevar(3))
-          call ch_addvara(ncid,chevarnam,'wetdep_rainout_flx', &
-                    'wet_deposition_from_large_scale_precip', &
-                    'Wet deposition LS','mg/m2/d', &
-                    tyx,.false.,ichevar(4))
-          call ch_addvara(ncid,chevarnam,'wetdep_washout_flx', &
-                    'wet_deposition_from_convective_precip', &
-                    'Wet deposition CONV','mg/m2/d', &
-                    tyx,.false.,ichevar(5))
-          call ch_addvara(ncid,chevarnam,'drydep_flx', &
-                    'dry_deposition', &
-                    'Dry deposition rate','mg/m2/d', &
-                    tyx,.false.,ichevar(6))
-          call ch_addvara(ncid,chevarnam,'emiss_flx', &
-                    'surface_emission_rate', &
-                    'Emission rate','mg/m2/d', &
-                    tyx,.false.,ichevar(7))
-          call ch_addvara(ncid,chevarnam,'drydep_vel', &
-                    'dry deposition velocity', &
-                    'dr. dep. vel','m.s-1', &
-                    tyx,.false.,ichevar(8))
-          call ch_addvara(ncid,chevarnam,'trac_burden', &
-                    'tracer_burden', &
-                    'trac bud ','mg.m-2', &
-                    tyx,.false.,ichevar(9))
+        ichevar = -1
+        ichevar(1) = itvar
+        ichevar(2) = illtpvar(5)
+        call ch_addvara(ncid,chevarnam,chevarnam, &
+                  'atmosphere_mixing_ratio_of_tracer', &
+                  'Tracers mixing ratios','kg kg-1', &
+                  tzyx,.false.,ichevar(3))
+        call ch_addvara(ncid,chevarnam,'wetdep_rainout_flx', &
+                  'wet_deposition_from_large_scale_precip', &
+                  'Wet deposition LS','mg/m2/d', &
+                  tyx,.false.,ichevar(4))
+        call ch_addvara(ncid,chevarnam,'wetdep_washout_flx', &
+                  'wet_deposition_from_convective_precip', &
+                  'Wet deposition CONV','mg/m2/d', &
+                  tyx,.false.,ichevar(5))
+        call ch_addvara(ncid,chevarnam,'drydep_flx', &
+                  'dry_deposition', &
+                  'Dry deposition rate','mg/m2/d', &
+                  tyx,.false.,ichevar(6))
+        call ch_addvara(ncid,chevarnam,'emiss_flx', &
+                  'surface_emission_rate', &
+                  'Emission rate','mg/m2/d', &
+                  tyx,.false.,ichevar(7))
+        call ch_addvara(ncid,chevarnam,'drydep_vel', &
+                  'dry deposition velocity', &
+                  'dr. dep. vel','m.s-1', &
+                  tyx,.false.,ichevar(8))
+        call ch_addvara(ncid,chevarnam,'trac_burden', &
+                  'tracer_burden', &
+                  'trac bud ','mg.m-2', &
+                  tyx,.false.,ichevar(9))
 
-          if ( ichdiag == 1 ) then
-            call ch_addvara(ncid,chevarnam,'chem_tend', &
-                    'chemical_prod_loss', &
+        if ( ichdiag == 1 ) then
+          call ch_addvara(ncid,chevarnam,'chem_tend', &
+                  'chemical_prod_loss', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(10))
+          call ch_addvara(ncid,chevarnam,'advh_tend', &
+                  'advect. hor. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(11))
+          call ch_addvara(ncid,chevarnam,'advv_tend', &
+                  'advec. ver. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(12))
+          call ch_addvara(ncid,chevarnam,'difh_tend', &
+                  'diff. hor. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(13))
+          call ch_addvara(ncid,chevarnam,'conv_tend', &
+                  'convec_tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(14))
+          call ch_addvara(ncid,chevarnam,'tubl_tend', &
+                  'turb. vert. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(15))
+          call ch_addvara(ncid,chevarnam,'rainout_tend', &
+                  'large + conv scal rainout removal tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(16))
+          call ch_addvara(ncid,chevarnam,'washout_tend', &
+                  'large + conv scale washout removal tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(17))
+          call ch_addvara(ncid,chevarnam,'bdyc_tend', &
+                  'bdy. cond. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(18))
+          call ch_addvara(ncid,chevarnam,'sedddp_tend', &
+                  'sedim. ddep. tend', &
+                  'chem tendency','kg kg-1 s-1', &
+                  tzyx,.false.,ichevar(19))
+          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+            call ch_addvara(ncid,chevarnam,'chifxuw', &
+                    'UWpbl. net flux', &
                     'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(10))
-            call ch_addvara(ncid,chevarnam,'advh_tend', &
-                    'advect. hor. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(11))
-            call ch_addvara(ncid,chevarnam,'advv_tend', &
-                    'advec. ver. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(12))
-            call ch_addvara(ncid,chevarnam,'difh_tend', &
-                    'diff. hor. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(13))
-            call ch_addvara(ncid,chevarnam,'conv_tend', &
-                    'convec_tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(14))
-            call ch_addvara(ncid,chevarnam,'tubl_tend', &
-                    'turb. vert. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(15))
-            call ch_addvara(ncid,chevarnam,'rainout_tend', &
-                    'large + conv scal rainout removal tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(16))
-            call ch_addvara(ncid,chevarnam,'washout_tend', &
-                    'large + conv scale washout removal tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(17))
-            call ch_addvara(ncid,chevarnam,'bdyc_tend', &
-                    'bdy. cond. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(18))
-            call ch_addvara(ncid,chevarnam,'sedddp_tend', &
-                    'sedim. ddep. tend', &
-                    'chem tendency','kg kg-1 s-1', &
-                    tzyx,.false.,ichevar(19))
-            if ( ibltyp == 2 .or. ibltyp == 99 ) then
-              call ch_addvara(ncid,chevarnam,'chifxuw', &
-                      'UWpbl. net flux', &
-                      'chem tendency','kg kg-1 s-1', &
-                      tyx,.false.,ichevar(20))
-            end if
+                    tyx,.false.,ichevar(20))
           end if
-
-         else if ( itr == noutf ) then 
-           ioptvar = -1
-           ioptvar(1) = itvar
-           ioptvar(2) = illtpvar(4)
-           call ch_addvara(ncid,chevarnam,'aext8', &
-                    'aerosol_optical_depth', &
-                    'aer mix. aod.','1',tzyx,.false.,ioptvar(3))
-           call ch_addvara(ncid,chevarnam,'assa8', &
-                    'aerosol_single_scattering_albedo', &
-                    'aer mix. sin. scat. alb','1',tzyx,.false.,ioptvar(4))
-           call ch_addvara(ncid,chevarnam,'agfu8', &
-                    'aerosol_asymmetry_parameter', &
-                    'aer mix. sin. scat. alb','1',tzyx,.false.,ioptvar(5))
-           call ch_addvara(ncid,chevarnam,'acstoarf', &
-                    'toa_instantaneous_shortwave_radiative_forcing', &
-                    'TOArad SW forcing av.','W m-2', &
-                    tyx,.false.,ioptvar(6))
-           call ch_addvara(ncid,chevarnam,'acstsrrf', &
-                    'surface_shortwave_radiative_forcing', &
-                    'SRFrad SW forcing av.','W m-2', &
-                    tyx,.false.,ioptvar(7))
-           call ch_addvara(ncid,chevarnam,'acstalrf', &
-                    'toa_longwave_radiative_forcing', &
-                    'TOArad LW forcing av.','W m-2', &
-                    tyx,.false.,ioptvar(8))
-           call ch_addvara(ncid,chevarnam,'acssrlrf', &
-                    'surface_longwave_radiative_forcing', &
-                    'SRFrad LW forcing av.','W m-2', &
-                    tyx,.false.,ioptvar(9))
-           call ch_addvara(ncid,chevarnam,'aod', &
-                    'aerosol optical depth vis band', &
-                    'aer aod vis band',' ', &
-                    tyx,.false.,ioptvar(10))
-         end if 
+        end if
 
         istatus = nf90_enddef(ncid)
         call check_ok(__FILE__,__LINE__, &
@@ -1066,8 +1017,7 @@ module mod_che_ncio
     subroutine writerec_che2(chia,dtrace,wdlsc,wdcvc,remdrd,cemtrac,drydepv, &
                              chemdiag,cadvhdiag,cadvvdiag,cdifhdiag,         &
                              cconvdiag,cbdydiag,ctbldiag,cseddpdiag,         &
-                             ccuwdiag,remlsc,remcvc,ext,ssa,asp,aod,tarf,    &
-                             ssrf,talwrf,srlwrf,ps,idate)
+                             ccuwdiag,remlsc,remcvc,ps,idate)
       implicit none
           
       type(rcm_time_and_date) , intent(in) :: idate
@@ -1078,21 +1028,14 @@ module mod_che_ncio
       real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
       real(rk8) , pointer , dimension(:,:,:) , intent(in) :: wdlsc , wdcvc , &
                         remdrd , cemtrac , drydepv , dtrace
-      real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ext , ssa , asp 
-      real(rk8) , pointer , dimension(:,:) , intent(in) :: tarf , ssrf , aod , &
-                                                          talwrf , srlwrf
-      integer(ik4) :: n , k , noutf
+      integer(ik4) :: n , k
       integer(ik4) , dimension(5) :: istart , icount
       real(rk8) , dimension(1) :: nctime
       type(rcm_time_interval) :: tdif
       character(len=36) :: ctime
       real(rk8) :: cfd2
 
-      noutf = ntr
-
-      if ( iaerosol == 1 ) noutf = ntr + 1 
- 
-      do n = 1 , noutf        
+      do n = 1 , ntr        
         istart(1) = icherec
         icount(1) = 1
         ctime = tochar(idate)
@@ -1115,7 +1058,85 @@ module mod_che_ncio
         call check_ok(__FILE__,__LINE__, &
                       'Error writing ps at '//ctime, 'CHE FILE ERROR')
 
-        if ( n < noutf ) then 
+        istart(4) = icherec
+        istart(3) = 1
+        istart(2) = 1
+        istart(1) = 1
+        icount(5) = 1
+        icount(4) = 1
+        icount(3) = o_nz
+        icount(2) = o_ni
+        icount(1) = o_nj
+
+        !*** tracer concentration
+        do k = 1 , kz
+          dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,k,n) / &
+                              ps(o_js:o_je,o_is:o_ie))
+        end do
+        istatus = nf90_put_var(ncche(n), ichevar(3), &
+                               dumio, istart, icount)
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing '//chtrname(n)//' at '//ctime,'CHE FILE ERROR')
+        
+        !*** output 2-D gas chem fields
+        istart(4) = 1
+        istart(3) = icherec
+        istart(2) = 1
+        istart(1) = 1
+        icount(4) = 1
+        icount(3) = 1
+        icount(2) = o_ni
+        icount(1) = o_nj
+
+        ! accumulated quantities between two output steps are converted
+        ! to deposition/emission mean rate (mg /m2/per day)  
+        cfd = 1.D6 * 86400.D0 ! from kg/m2/s to mg/m2/day
+        cfd2 = dtche / (chemfrq *3600.0D0)
+
+        !*** wet deposition from large-scale precip
+        dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)* cfd)
+        istatus = nf90_put_var(ncche(n), ichevar(4), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
+
+        !*** wet deposition from convective precip
+        dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)* cfd)
+        istatus = nf90_put_var(ncche(n), ichevar(5), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing wet dep CONV at '//ctime,'CHE FILE ERROR')
+
+        !*** dry deposition
+        dumio(:,:,1) = real(remdrd(o_js:o_je,o_is:o_ie,n)*cfd)
+        istatus = nf90_put_var(ncche(n), ichevar(6), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing dry dep '//ctime, 'CHE FILE ERROR')
+
+        !*** emission rates
+        dumio(:,:,1) = real(cemtrac(o_js:o_je,o_is:o_ie,n)*cfd)
+        istatus = nf90_put_var(ncche(n), ichevar(7), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing emission rate '//ctime, 'CHE FILE ERROR')
+
+        !*** dry dep vel 
+        dumio(:,:,1) = real(drydepv(o_js:o_je,o_is:o_ie,n)*cfd2)
+        istatus = nf90_put_var(ncche(n), ichevar(8), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
+
+        !*** tracer burden (instantaneous in mg/m2) 
+        dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n)*1.0D6)
+        istatus = nf90_put_var(ncche(n), ichevar(9), &
+                               dumio(:,:,1), istart(1:3), icount(1:3))
+        call check_ok(__FILE__,__LINE__, &
+             'Error writing trac burden '//ctime, 'CHE FILE ERROR')
+
+        if ( ichdiag == 1 ) then 
+          !*** 3D tracer diagnostic : chemical productio/loss
           istart(4) = icherec
           istart(3) = 1
           istart(2) = 1
@@ -1125,268 +1146,111 @@ module mod_che_ncio
           icount(3) = o_nz
           icount(2) = o_ni
           icount(1) = o_nj
-
-          !*** tracer concentration
           do k = 1 , kz
-            dumio(:,:,k) = real(chia(o_js:o_je,o_is:o_ie,k,n) / &
+            dumio(:,:,k) = real(chemdiag(o_js:o_je,o_is:o_ie,k,n) / &
                                 ps(o_js:o_je,o_is:o_ie))
           end do
-          istatus = nf90_put_var(ncche(n), ichevar(3), &
+          istatus = nf90_put_var(ncche(n), ichevar(10), &
                                  dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing '//chtrname(n)//' at '//ctime,'CHE FILE ERROR')
-          
-          !*** output 2-D gas chem fields
-          istart(4) = 1
-          istart(3) = icherec
-          istart(2) = 1
-          istart(1) = 1
-          icount(4) = 1
-          icount(3) = 1
-          icount(2) = o_ni
-          icount(1) = o_nj
-
-          ! accumulated quantities between two output steps are converted
-          ! to deposition/emission mean rate (mg /m2/per day)  
-          cfd = 1.D6 * 86400.D0 ! from kg/m2/s to mg/m2/day
-          cfd2 = dtche / (chemfrq *3600.0D0)
-
-          !*** wet deposition from large-scale precip
-          dumio(:,:,1) = real(wdlsc(o_js:o_je,o_is:o_ie,n)* cfd)
-          istatus = nf90_put_var(ncche(n), ichevar(4), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                       'Error writing chemdiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(cadvhdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(11), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing wet dep LS at '//ctime,'CHE FILE ERROR')
-
-          !*** wet deposition from convective precip
-          dumio(:,:,1) = real(wdcvc(o_js:o_je,o_is:o_ie,n)* cfd)
-          istatus = nf90_put_var(ncche(n), ichevar(5), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                       'Error writing cadvhdiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(cadvvdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(12), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing wet dep CONV at '//ctime,'CHE FILE ERROR')
-
-          !*** dry deposition
-          dumio(:,:,1) = real(remdrd(o_js:o_je,o_is:o_ie,n)*cfd)
-          istatus = nf90_put_var(ncche(n), ichevar(6), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                       'Error writing cadvvdiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(cdifhdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(13), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing dry dep '//ctime, 'CHE FILE ERROR')
-
-          !*** emission rates
-          dumio(:,:,1) = real(cemtrac(o_js:o_je,o_is:o_ie,n)*cfd)
-          istatus = nf90_put_var(ncche(n), ichevar(7), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                       'Error writing cdifhdiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(cconvdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(14), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing emission rate '//ctime, 'CHE FILE ERROR')
-
-          !*** dry dep vel 
-          dumio(:,:,1) = real(drydepv(o_js:o_je,o_is:o_ie,n)*cfd2)
-          istatus = nf90_put_var(ncche(n), ichevar(8), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                        'Error writing cconvdiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(ctbldiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(15), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing dr.dep.vel '//ctime, 'CHE FILE ERROR')
-
-          !*** tracer burden (instantaneous in mg/m2) 
-          dumio(:,:,1) = real(dtrace(o_js:o_je,o_is:o_ie,n)*1.0D6)
-          istatus = nf90_put_var(ncche(n), ichevar(9), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
+                       'Error writing ctbldiag at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(remlsc(o_js:o_je,o_is:o_ie,k,n) / &
+                                 ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(16), &
+                                 dumio, istart, icount)
           call check_ok(__FILE__,__LINE__, &
-               'Error writing trac burden '//ctime, 'CHE FILE ERROR')
+                       'Error writing remlsc at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(remcvc(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(17), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing remcvc at '//ctime,'CHE FILE ERROR')
+          do k = 1 , kz
+            dumio(:,:,k) = real(cbdydiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(18), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+                       'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
 
-          if ( ichdiag == 1 ) then 
-            !*** 3D tracer diagnostic : chemical productio/loss
-            istart(4) = icherec
-            istart(3) = 1
+          do k = 1 , kz
+            dumio(:,:,k) = real(cseddpdiag(o_js:o_je,o_is:o_ie,k,n) / &
+                                ps(o_js:o_je,o_is:o_ie))
+          end do
+          istatus = nf90_put_var(ncche(n), ichevar(19), &
+                                 dumio, istart, icount)
+          call check_ok(__FILE__,__LINE__, &
+                       'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
+          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+            !TAO: Re-set istart/icount, since ccuwdiag is a 2D variable
+            !and the previous istart/icount setting was for 3D variables
+            istart(4) = 1
+            istart(3) = icherec
             istart(2) = 1
             istart(1) = 1
-            icount(5) = 1
             icount(4) = 1
-            icount(3) = o_nz
+            icount(3) = 1
             icount(2) = o_ni
             icount(1) = o_nj
-            do k = 1 , kz
-              dumio(:,:,k) = real(chemdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(10), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing chemdiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(cadvhdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(11), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing cadvhdiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(cadvvdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(12), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing cadvvdiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(cdifhdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(13), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing cdifhdiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(cconvdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(14), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                          'Error writing cconvdiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(ctbldiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(15), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing ctbldiag at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(remlsc(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(16), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing remlsc at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(remcvc(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(17), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                          'Error writing remcvc at '//ctime,'CHE FILE ERROR')
-            do k = 1 , kz
-              dumio(:,:,k) = real(cbdydiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(18), &
-                                   dumio, istart, icount)
+            dumio(:,:,1) = real(ccuwdiag(o_js:o_je,o_is:o_ie,n))
+            istatus = nf90_put_var(ncche(n), ichevar(20), &
+                                   dumio(:,:,1), istart, icount)
             call check_ok(__FILE__,__LINE__, &
                          'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
-
-            do k = 1 , kz
-              dumio(:,:,k) = real(cseddpdiag(o_js:o_je,o_is:o_ie,k,n) / &
-                                  ps(o_js:o_je,o_is:o_ie))
-            end do
-            istatus = nf90_put_var(ncche(n), ichevar(19), &
-                                   dumio, istart, icount)
-            call check_ok(__FILE__,__LINE__, &
-                         'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
-            if ( ibltyp == 2 .or. ibltyp == 99 ) then
-              !TAO: Re-set istart/icount, since ccuwdiag is a 2D variable
-              !and the previous istart/icount setting was for 3D variables
-              istart(4) = 1
-              istart(3) = icherec
-              istart(2) = 1
-              istart(1) = 1
-              icount(4) = 1
-              icount(3) = 1
-              icount(2) = o_ni
-              icount(1) = o_nj
-              dumio(:,:,1) = real(ccuwdiag(o_js:o_je,o_is:o_ie,n))
-              istatus = nf90_put_var(ncche(n), ichevar(20), &
-                                     dumio(:,:,1), istart, icount)
-              call check_ok(__FILE__,__LINE__, &
-                           'Error writing cbdydiag at '//ctime,'CHE FILE ERROR')
-            end if
-          end if 
-
-          !closing
-          istatus = nf90_sync(ncche(n))
-          call check_ok(__FILE__,__LINE__, &
-                        'Error sync at '//ctime, 'CHE FILE ERROR')
-
-        else if ( n == noutf ) then 
-
-          istart(4) = icherec
-          istart(3) = 1
-          istart(2) = 1
-          istart(1) = 1
-          icount(5) = 1
-          icount(4) = 1
-          icount(3) = o_nz
-          icount(2) = o_ni
-          icount(1) = o_nj
-
-          !*** extinction
-          do k = 1 , kz
-            dumio(:,:,k) = real(ext(o_js:o_je,o_is:o_ie,kz-k+1))
-          end do
-          istatus = nf90_put_var(ncche(n), ioptvar(3), &
-                                 dumio, istart(1:4), icount(1:4))
-          call check_ok(__FILE__,__LINE__,'Error writing EXT at '//ctime,&
-                         'CHE FILE ERROR')
-
-          !*** SSAE
-          do k = 1 , kz
-            dumio(:,:,k) = real(ssa(o_js:o_je,o_is:o_ie,kz-k+1))
-          end do
-          istatus = nf90_put_var(ncche(n), ioptvar(4), &
-                                 dumio, istart(1:4), icount(1:4))
-          call check_ok(__FILE__,__LINE__,'Error writing SSAE at '//ctime,&
-                        'CHE FILE ERROR')
-
-          !*** ASP
-          do k = 1 , kz
-            dumio(:,:,k) = real(asp(o_js:o_je,o_is:o_ie,kz-k+1))
-          end do
-          istatus = nf90_put_var(ncche(n), ioptvar(5), &
-                                 dumio, istart(1:4), icount(1:4))
-          call check_ok(__FILE__,__LINE__,'Error writing ASP at '//ctime,&
-                        'CHE FILE ERROR')
-
-          !*** output 2-D Aerosl Radiative forcing : NB these variables
-          ! are already accumulated and averagesd in aerout
-
-          istart(3) = icherec
-          istart(2) = 1
-          istart(1) = 1
-          icount(3) = 1
-          icount(2) = o_ni
-          icount(1) = o_nj
-          dumio(:,:,1) = real(tarf(o_js:o_je,o_is:o_ie))
-          istatus = nf90_put_var(ncche(n), ioptvar(6) , &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-          call check_ok(__FILE__,__LINE__,'Error writing aertarf at '//ctime, &
-                       'OPT FILE ERROR')
-          dumio(:,:,1) = real(ssrf(o_js:o_je,o_is:o_ie))
-          istatus = nf90_put_var(ncche(n),  ioptvar(7), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-          call check_ok(__FILE__,__LINE__,'Error writing aersrrf at '//ctime, &
-                       'OPT FILE ERROR')
-          dumio(:,:,1) = real(talwrf(o_js:o_je,o_is:o_ie))
-          istatus = nf90_put_var(ncche(n),ioptvar(8), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-          call check_ok(__FILE__,__LINE__, &
-                     'Error writing aertalwrf at '//ctime,'OPT FILE ERROR')
-          dumio(:,:,1) = real(srlwrf(o_js:o_je,o_is:o_ie))
-          istatus = nf90_put_var(ncche(n), ioptvar(9), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-          call check_ok(__FILE__,__LINE__, &
-                     'Error writing aersrlwrf at '//ctime,'OPT FILE ERROR')
-          dumio(:,:,1) = real(aod(o_js:o_je,o_is:o_ie))
-          istatus = nf90_put_var(ncche(n), ioptvar(10), &
-                                 dumio(:,:,1), istart(1:3), icount(1:3))
-          call check_ok(__FILE__,__LINE__, &
-                     'Error writing aod at '//ctime,'OPT FILE ERROR')
- 
-          istatus = nf90_sync(ncche(n))
-          call check_ok(__FILE__,__LINE__, &
-                     'Error sync at '//ctime, 'OPT FILE ERROR')
+          end if
         end if 
+
+        !closing
+        istatus = nf90_sync(ncche(n))
+        call check_ok(__FILE__,__LINE__, &
+                      'Error sync at '//ctime, 'CHE FILE ERROR')
+
       end do     !main species looop
       icherec = icherec + 1
     end subroutine writerec_che2

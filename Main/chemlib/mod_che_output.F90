@@ -39,28 +39,12 @@ module mod_che_output
 
   contains
 
-    subroutine output_chem(idatex,aerext,aerssa,aerasp,aertarf, &
-                           aersrrf,aertalwrf,aersrlwrf)
+    subroutine output_chem(idatex)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idatex
-      ! note : aerosol optical properties variables are defined in RAD module
-      ! but are outputed if CHE is active !
-      ! that is why they need to pass as argument here (an other option
-      ! would be to define an interface)!! 
-      real(rk8) , pointer , dimension(:,:,:)  :: aerext , aerssa , &
-                                              aerasp
-      real(rk8) , pointer , dimension(:,:)  :: aertarf , aersrrf , &
-                                              aertalwrf , aersrlwrf            
  
       call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_collect(cpsb,cpsb_io,jce1,jce2,ice1,ice2)
-      call grid_collect(aerext,aerext_io,jci1,jci2,ici1,ici2,1,kz)
-      call grid_collect(aerssa,aerssa_io,jci1,jci2,ici1,ici2,1,kz)
-      call grid_collect(aerasp,aerasp_io,jci1,jci2,ici1,ici2,1,kz)
-      call grid_collect(aertarf,aertarf_io,jci1,jci2,ici1,ici2)
-      call grid_collect(aersrrf,aersrrf_io,jci1,jci2,ici1,ici2)
-      call grid_collect(aertalwrf,aertalwrf_io,jci1,jci2,ici1,ici2)
-      call grid_collect(aersrlwrf,aersrlwrf_io,jci1,jci2,ici1,ici2)
       call grid_collect(dtrace,dtrace_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(wdlsc,wdlsc_io,jce1,jce2,ice1,ice2,1,ntr)
       call grid_collect(wdcvc,wdcvc_io,jce1,jce2,ice1,ice2,1,ntr)
@@ -116,11 +100,6 @@ module mod_che_output
         ctbldiag (:,:,:,:) = d_zero 
         cseddpdiag(:,:,:,:) = d_zero      
        end if
-
-      aertarf(:,:) = d_zero
-      aersrrf(:,:) = d_zero
-      aertalwrf(:,:) = d_zero
-      aersrlwrf(:,:) = d_zero
 !
     end subroutine output_chem
 !----------------------------------------------------------------
@@ -131,15 +110,11 @@ module mod_che_output
       type(rcm_time_and_date) , intent(in) :: idatex
 
       if ( myid == iocpu ) then 
-        aeraod_io = sum(aerext_io,3)
         call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,  &
                            cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &
                            cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
                            cbdydiag_io,ctbldiag_io,cseddpdiag_io,          &
-                           ccuwdiag_io,remlsc_io,remcvc_io,                &
-                           aerext_io,aerssa_io,aerasp_io,aeraod_io,        &
-                           aertarf_io,aersrrf_io,aertalwrf_io,aersrlwrf_io,&
-                           cpsb_io,idatex)
+                           ccuwdiag_io,remlsc_io,remcvc_io,cpsb_io,idatex)
         write (*,*) 'CHE variables written at ' , tochar(idatex) 
         if ( iaerosol > 0 ) then
           write (*,*) 'OPT variables written at ' , tochar(idatex)

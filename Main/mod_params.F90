@@ -522,7 +522,6 @@ module mod_params
     else
       ichem = 0
       ntr = 0
-      ifchem = .false.
     end if
 #ifdef CLM
     read (ipunit , clmparam)
@@ -587,6 +586,9 @@ module mod_params
   end if
   if ( nsg < 2 ) then
     ifsub = .false.
+  end if
+  if ( ichem /= 1 ) then
+    ifchem = .false.
   end if
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then
@@ -890,9 +892,7 @@ module mod_params
   nsubfrq = idnint(secph*subfrq)
   nchefrq = idnint(secph*chemfrq)
   nbdyfrq = idnint(dtbdys)
-  chfrovrradfr = chemfrq/radfrq
 
-  rtsrf = dtsrf/dtsec
   ntsrf = idnint(dtsrf/dtsec)
   rtsrf = d_one/dble(ntsrf)
   ntrad = idnint(dtrad/(dtsec/secpm))
@@ -918,6 +918,10 @@ module mod_params
   rnsrf_for_lakfrq = d_one/(dble(klak)*rtsrf)
   rnsrf_for_subfrq = d_one/(dble(ksub)*rtsrf)
   rnsrf_for_day = d_one/(dble(kday)*rtsrf)
+  rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
+  if ( ifchem ) then
+    rnrad_for_chem = d_one/(d_1000*minph*chemfrq/radfrq)
+  end if
 
   fdaysrf = real(secpd/dtsrf)
   rsrf_in_atm = dble(ntsrf)/dble(katm)

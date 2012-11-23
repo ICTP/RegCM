@@ -36,9 +36,6 @@ module mod_che_mppio
   real(rk8) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
   real(rk8) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
                                            wdcvc_io , wdlsc_io, drydepv_io
-  real(rk8) , pointer , dimension(:,:,:) :: aerasp_io , aerext_io , aerssa_io
-  real(rk8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io , &
-                                        aertalwrf_io , aersrlwrf_io , aeraod_io
   real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
                                          sdelqk2d_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
@@ -131,23 +128,6 @@ module mod_che_mppio
           call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                         1,nats,'che_mppio:dustsotex_io')
 
-          call getmem3d(aerasp_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,'che_mppio:aerasp_io')
-          call getmem3d(aerext_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,'che_mppio:aerext_io')
-          call getmem3d(aerssa_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,'che_mppio:aerssa_io')
-          call getmem2d(aersrrf_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:aersrrf_io')
-          call getmem2d(aertarf_io,jcross1,jcross2,icross1,icross2, &
-                          'che_mppio:aertarf_io')
-          call getmem2d(aertalwrf_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:aertalwrf_io')
-          call getmem2d(aersrlwrf_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:aersrlwrf_io')
-          call getmem2d(aeraod_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:aeraod_io')
-         
           if ( ichdiag >0 ) then
             call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:chemdiag_io')

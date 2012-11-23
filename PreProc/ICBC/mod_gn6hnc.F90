@@ -80,8 +80,7 @@ module mod_gn6hnc
   real(rk8) , pointer , dimension(:,:) :: glat2
   real(rk8) , pointer , dimension(:,:) :: glon2
   real(rk8) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
-                                           uvar , vvar , pp3d , &
-                                           vwork
+                                           uvar , vvar , pp3d , vwork
   integer(ik4) :: timlen , pstimlen
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
@@ -272,7 +271,7 @@ module mod_gn6hnc
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
     else
-      if ( dattyp(1:2) /= 'E5' ) then
+      if ( dattyp == 'GFS11' ) then
         call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
         call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
       end if

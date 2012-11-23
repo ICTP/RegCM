@@ -24,6 +24,7 @@ module mod_rad_outrad
   use mod_dynparam
   use mod_mpmessage
   use mod_rad_common
+  use mod_runparams
   use mod_outvars
 
   private
@@ -90,7 +91,6 @@ module mod_rad_outrad
                 aerlwfo , aerlwfos
 !
     integer(ik4) :: i , j , k , n
-    real(rk8) :: rntim
     !
     ! total heating rate in deg/s
     !
@@ -142,29 +142,17 @@ module mod_rad_outrad
       end do
     end do
 
-    if ( lchem ) then
-      rntim = d_one/(d_1000*minph*chfrovrradfr)
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aerext(j,i,k) = tauxar3d(n,k,8)
-            aerssa(j,i,k) = tauasc3d(n,k,8)
-            aerasp(j,i,k) = gtota3d(n,k,8)
-            n = n + 1
-          end do
-        end do
-      end do
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aertarf(j,i)   = aertarf(j,i)   + aeradfo(n)  * rntim
-          aersrrf(j,i)   = aersrrf(j,i)   + aeradfos(n) * rntim
-          aertalwrf(j,i) = aertalwrf(j,i) + aerlwfo(n)  * rntim
-          aersrlwrf(j,i) = aersrlwrf(j,i) + aerlwfos(n) * rntim
-          n = n + 1
-        end do
-      end do
+    if ( ktau == 0 ) return
+
+    if ( ifchem .and. iaerosol == 1 ) then
+      call copy4d(tauxar3d,opt_aext8_out,8)
+      call copy4d(tauasc3d,opt_assa8_out,8)
+      call copy4d(gtota3d,opt_agfu8_out,8)
+      call copy2d_add(aeradfo,opt_acstoarf_out)
+      call copy2d_add(aeradfos,opt_acstsrrf_out)
+      call copy2d_add(aerlwfo,opt_acstalrf_out)
+      call copy2d_add(aerlwfos,opt_acssrlrf_out)
+      opt_aod_out = opt_aod_out + sum(opt_aext8_out,3)
     end if
 !
     if ( ifrad ) then
@@ -174,20 +162,21 @@ module mod_rad_outrad
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
 
-        call copy2d(frsa,rad_frsa_out)
-        call copy2d(frla,rad_frla_out)
-        call copy2d(clrst,rad_clrst_out)
-        call copy2d(clrss,rad_clrss_out)
-        call copy2d(clrlt,rad_clrlt_out)
-        call copy2d(clrls,rad_clrls_out)
+        call copy2d_add(frsa,rad_frsa_out)
+        call copy2d_add(frla,rad_frla_out)
+        call copy2d_add(clrst,rad_clrst_out)
+        call copy2d_add(clrss,rad_clrss_out)
+        call copy2d_add(clrlt,rad_clrlt_out)
+        call copy2d_add(clrls,rad_clrls_out)
         call copy2d(solin,rad_solin_out)
-        call copy2d(sabtp,rad_sabtp_out)
+        call copy2d_add(sabtp,rad_sabtp_out)
         call copy2d(totcf,rad_totcf_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)
-        call copy2d(firtp,rad_firtp_out)
+        call copy2d_add(firtp,rad_firtp_out)
       end if
     end if
+
   end subroutine radout
 
   subroutine copy2d(a,b)
@@ -223,5 +212,77 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy3d
+
+  subroutine copy4d(a,b,l)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: l
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k,l)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d
+
+  subroutine copy2d_add(a,b)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    integer(ik4) :: i , j , n
+    if ( associated(b) ) then
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          b(j,i) = b(j,i) + a(n)
+          n = n + 1
+        end do
+      end do
+    end if
+  end subroutine copy2d_add
+
+  subroutine copy3d_add(a,b)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = b(j,i,k) + a(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy3d_add
+
+  subroutine copy4d_add(a,b,l)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: l
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = b(j,i,k) + a(n,k,l)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d_add
 
 end module mod_rad_outrad

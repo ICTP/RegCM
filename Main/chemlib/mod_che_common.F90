@@ -35,9 +35,6 @@ module mod_che_common
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 40 
 
-  ! usefull flags
-  integer(ik4) :: iaerosol , igaschem , ioxclim
-  
   ! tracer variables
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chi
