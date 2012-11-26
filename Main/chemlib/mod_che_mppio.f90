@@ -31,21 +31,14 @@ module mod_che_mppio
 !
   public
 
-  real(rk8) , pointer , dimension(:,:,:) :: cemtrac_io , wxaq_io , wxsg_io
-  real(rk8) , pointer , dimension(:,:,:) :: remdrd_io
   real(rk8) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
-  real(rk8) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io , &
-                                           wdcvc_io , wdlsc_io, drydepv_io
+  real(rk8) , pointer , dimension(:,:,:) :: remdrd_io
   real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
                                          sdelqk2d_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
   real(rk8) , pointer , dimension(:,:,:) :: chemsrc_io
-  real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io , chemdiag_io , &
-    cadvhdiag_io , cadvvdiag_io , cdifhdiag_io , cconvdiag_io , cbdydiag_io ,  &
-    ctbldiag_io , cseddpdiag_io
-  real(rk8) , pointer , dimension(:,:,:) :: ccuwdiag_io
-
+  real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
 !
 ! Boundary conditions arrays
 !
@@ -53,10 +46,6 @@ module mod_che_mppio
                                              chebdy_io1 , oxcl_io
   real(rk8) , pointer , dimension(:,:,:) :: dustsotex_io
 !
-  real(rk8), pointer, dimension (:,:) :: cpsb_io
-
-!---------- DATA init section--------------------------------------------
-
   contains 
     !
     ! This routines allocate all the arrays contained in the module
@@ -80,29 +69,13 @@ module mod_che_mppio
           call getmem3d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
                         1,ntr,'che_mppio:chemsrc_io')
   
-          call getmem3d(dtrace_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:dtrace_io')
-          call getmem3d(wdlsc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:wdlsc_io')
-          call getmem3d(wdcvc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:wdcvc_io')
-          call getmem3d(ddsfc_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:ddsfc_io')
-          call getmem3d(wxsg_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:wxsg_io')
-          call getmem3d(wxaq_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:wxaq_io')
-          call getmem3d(cemtrac_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:cemtrac_io')
-          call getmem3d(drydepv_io,jcross1,jcross2,icross1,icross2,1,ntr, &
-                        'che_mppio:drydepv_io')
-
           call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remlsc_io')
           call getmem4d(remcvc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remcvc_io')
           call getmem3d(remdrd_io,jcross1,jcross2,icross1,icross2, &
                         1,ntr,'che_mppio:remdrd_io')
+
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
           call getmem2d(sdelqk2d_io,jcross1,jcross2,icross1,icross2, &
@@ -118,8 +91,6 @@ module mod_che_mppio
           call getmem2d(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:svegfrac2d_io')
 
-          call getmem2d(cpsb_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:cpsb_io')
           call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chia_io')
           call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
@@ -128,28 +99,6 @@ module mod_che_mppio
           call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
                         1,nats,'che_mppio:dustsotex_io')
 
-          if ( ichdiag >0 ) then
-            call getmem4d(chemdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:chemdiag_io')
-            call getmem4d(cadvhdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cadvhdiag_io')
-            call getmem4d(cadvvdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cadvvdiag_io')
-            call getmem4d(cdifhdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cdifhdiag_io')
-            call getmem4d(cconvdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cconvdiag_io')
-            call getmem4d(ctbldiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:ctbldiag_io')
-            call getmem4d(cbdydiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cbdydiag_io')
-            call getmem4d(cseddpdiag_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,ntr,'che_mppio:cbdydiag_io')
-            if ( ibltyp == 2 .or. ibltyp == 99 ) then
-              call getmem3d(ccuwdiag_io,jcross1,jcross2,icross1,icross2, &
-                            1,ntr,'che_mppio:ccuwdiag_io')
-            end if
-          end if 
         end if
       end if
     end subroutine allocate_mod_che_mppio
