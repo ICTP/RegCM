@@ -53,7 +53,7 @@ module mod_output
     logical :: ldoatm , ldosrf , ldorad , ldoche
     logical :: ldosav , ldolak , ldosub , ldotmp
     logical :: lstartup
-    integer(ik4) :: i , j , k , jp1 , ip1
+    integer(ik4) :: i , j , k , jp1 , ip1 , itr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -81,9 +81,9 @@ module mod_output
 
       ! This must be removed
 
-      if ( ifchem .and. myid == iocpu ) then
-        call prepare_chem_out(idatex,ifrest)
-      end if
+      ! if ( ifchem .and. myid == iocpu ) then
+      !   call prepare_chem_out(idatex,ifrest)
+      ! end if
 
       lstartup = .true.
       if ( doing_restart ) then
@@ -345,7 +345,6 @@ module mod_output
             lak_aveice_out = d_zero
           end where
         end if
-
       end if
     end if
 
@@ -373,11 +372,16 @@ module mod_output
       end if
     end if
 
-    if ( ldoche ) then
-      ! For now keep this
-      call output_chem(idatex)
-      if ( myid == italk ) &
-        write(stdout,*) 'CHE variables written at ' , tochar(idatex)
+    if ( che_stream > 0 ) then
+      if ( ldoche ) then
+        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        do itr = 1 , ntr
+          call fill_chem_outvars(itr)
+          call write_record_output_stream(che_stream,idatex,itr)
+        end do
+        if ( myid == italk ) &
+          write(stdout,*) 'CHE variables written at ' , tochar(idatex)
+      end if
     end if
 
     if ( sts_stream > 0 ) then
@@ -555,9 +559,9 @@ module mod_output
         call newoutfiles(idatex)
 
         ! This must be removed
-        if ( ifchem .and. myid == iocpu ) then
-          call prepare_chem_out(idatex,ifrest)
-        end if
+        ! if ( ifchem .and. myid == iocpu ) then
+        !   call prepare_chem_out(idatex,ifrest)
+        ! end if
 
         call checktime(myid)
       end if

@@ -111,8 +111,8 @@ module mod_runparams
   integer(ik4) :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
   integer(ik4) :: iaerosol , igaschem , ioxclim
-  
-
+  character(len=6) , pointer , dimension(:) :: chtrname
+!
   logical :: ifrest , rfstrt , doing_restart , lsync
 
   integer(ik4) :: kchi , kclo , kcmd , cpldbglevel

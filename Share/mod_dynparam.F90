@@ -321,23 +321,21 @@ module mod_dynparam
 ! Model output control parameters
 
   logical :: ifsave
-  real(rk8) :: savfrq
-
   logical :: ifatm
-  real(rk8) :: atmfrq
-
   logical :: ifrad
-  real(rk8) :: radfrq
-
   logical :: ifsrf
   logical :: ifsub
   logical :: ifsts
   logical :: iflak
+  logical :: ifopt
+  logical :: ifchem
+
+  real(rk8) :: savfrq
+  real(rk8) :: atmfrq
+  real(rk8) :: radfrq
   real(rk8) :: lakfrq
   real(rk8) :: subfrq
   real(rk8) :: srffrq
-
-  logical :: ifchem
   real(rk8) :: chemfrq
 
   integer(ik4) :: ibdyfrq

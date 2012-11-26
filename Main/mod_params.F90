@@ -90,11 +90,12 @@ module mod_params
  
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
-  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,    &
-    radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , lakfrq ,      &
-    subfrq , ifchem , chemfrq , enable_atm_vars , enable_srf_vars , &
-    enable_rad_vars , enable_sub_vars , enable_sts_vars ,           &
-    enable_lak_vars , enable_opt_vars , dirout , lsync
+  namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
+    ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
+    lakfrq , radfrq , chemfrq , enable_atm_vars , enable_srf_vars ,    &
+    enable_rad_vars , enable_sub_vars , enable_sts_vars ,              &
+    enable_lak_vars , enable_opt_vars , enable_che_vars ,              &
+    dirout , lsync
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -259,18 +260,21 @@ module mod_params
 !
   rfstrt = .false.      ! *
   ifsave = .false.
-  savfrq = 6.0D0
-  ifatm = .true.
-  atmfrq = 6.0D0
-  ifrad = .true.
-  radfrq = 6.0D0     ! time interval for disposing rad output (hrs)
-  ifsrf = .true.
-  ifsts = .true.
-  ifsub = .false.
-  iflak = .false.
-  srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
-  lakfrq =  6.0D0   ! time interval for disposing lake output (hrs)
-  subfrq =  6.0D0   ! time interval for disposing lake output (hrs)
+  ifatm  = .true.
+  ifrad  = .false.
+  ifsrf  = .true.
+  ifsts  = .true.
+  ifsub  = .false.
+  iflak  = .false.
+  ifopt  = .false.
+  ifchem = .false.
+  savfrq  = 24.0D0  ! time interval for disposing sav output (hrs)
+  atmfrq  = 6.0D0   ! time interval for disposing atm output (hrs)
+  radfrq  = 6.0D0   ! time interval for disposing rad output (hrs)
+  srffrq  = 3.0D0   ! time interval for disposing srf output (hrs)
+  lakfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
+  subfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
+  chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
   enable_atm_vars(:) = .true.
   enable_srf_vars(:) = .true.
   enable_sts_vars(:) = .true.
@@ -278,12 +282,9 @@ module mod_params
   enable_lak_vars(:) = .true.
   enable_rad_vars(:) = .true.
   enable_opt_vars(:) = .true.
+  enable_che_vars(:) = .true.
   dirout = './output' 
   lsync = .false.
-!chem2
-  ifchem = .false.
-  chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
-!chem2_
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -556,10 +557,11 @@ module mod_params
   call bcast(ifsub)
   call bcast(iflak)
   call bcast(ifsts)
+  call bcast(ifopt)
+  call bcast(ifchem)
   call bcast(srffrq)
   call bcast(lakfrq)
   call bcast(subfrq)
-  call bcast(ifchem)
   call bcast(chemfrq)
 
   call bcast(iboudy)
@@ -589,6 +591,7 @@ module mod_params
   end if
   if ( ichem /= 1 ) then
     ifchem = .false.
+    ifopt = .false.
   end if
   ! Force the correct scenario from dattyp in CMIP5
   if ( myid == iocpu ) then

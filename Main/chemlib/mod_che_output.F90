@@ -21,101 +21,139 @@ module mod_che_output
 
   use mod_intkinds
   use mod_realkinds
-  use mod_constants
-  use mod_mpmessage
-  use mod_mppparam
   use mod_runparams
-  use mod_service 
   use mod_dynparam
-  use mod_che_common
   use mod_che_param
-  use mod_che_mppio
-  use mod_che_ncio
-  use mod_che_indices
+  use mod_che_common
+  use mod_outvars
 
   private
 
-  public :: output_chem
+  public :: fill_chem_outvars
+
+  real(rk8) , parameter :: cfd = 1.D6 * 86400.D0
 
   contains
 
-    subroutine output_chem(idatex)
+    subroutine fill_chem_outvars(itr)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idatex
- 
-      call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      call grid_collect(cpsb,cpsb_io,jce1,jce2,ice1,ice2)
-      call grid_collect(dtrace,dtrace_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(wdlsc,wdlsc_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(wdcvc,wdcvc_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(cemtrac,cemtrac_io,jce1,jce2,ice1,ice2,1,ntr)
-      call grid_collect(drydepv,drydepv_io,jce1,jce2,ice1,ice2,1,ntr)
+      integer(ik4) , intent(in) :: itr
+      integer(ik4) :: k
+      real(rk8) :: cfd2
 
-      if (ichdiag > 0) then   
-        call grid_collect(chemdiag,chemdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cadvhdiag,cadvhdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cadvvdiag,cadvvdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cdifhdiag,cdifhdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cconvdiag,cconvdiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cbdydiag,cbdydiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(ctbldiag,ctbldiag_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(remcvc,remcvc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_collect(cseddpdiag,cseddpdiag_io, &
-                          jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call grid_collect(cchifxuw,ccuwdiag_io,jci1,jci2,ici1,ici2,1,ntr)
+      cfd2 = dtche / (chemfrq * 3600.0D0)
+
+      if ( associated(che_wdrflx_out) ) then
+        che_wdrflx_out = wdlsc(jci1:jci2,ici1:ici2,itr)*cfd
+      end if
+      wdlsc(:,:,itr) = d_zero
+      if ( associated(che_wdcflx_out) ) then
+        che_wdcflx_out = wdcvc(jci1:jci2,ici1:ici2,itr)*cfd
+      end if
+      wdcvc(:,:,itr) = d_zero
+      if ( associated(che_ddflx_out) ) then
+        che_ddflx_out = remdrd(jci1:jci2,ici1:ici2,itr)*cfd
+      end if
+      remdrd(:,:,itr) = d_zero
+      if ( associated(che_emflx_out) ) then
+        che_emflx_out = cemtrac(jci1:jci2,ici1:ici2,itr)*cfd
+      end if
+      cemtrac(:,:,itr) = d_zero
+      if ( associated(che_ddvel_out) ) then
+        che_ddvel_out = drydepv(jci1:jci2,ici1:ici2,itr)*cfd2
+      end if
+      drydepv(:,:,itr) = d_zero
+      if ( associated(che_mixrat_out) ) then
+        do k = 1 , kz
+          che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
+                           cpsb(jci1:jci2,ici1:ici2)
+        end do
+      end if
+      if ( associated(che_burden_out) ) then
+        che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0D6
+      end if
+      if ( ichdiag > 0 ) then
+        if ( associated(che_cheten_out) ) then
+          do k = 1 , kz
+            che_cheten_out(:,:,k) = chemdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        chemdiag(:,:,:,itr) = d_zero
+        if ( associated(che_advhten_out) ) then
+          do k = 1 , kz
+            che_advhten_out(:,:,k) = cadvhdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cadvhdiag(:,:,:,itr) = d_zero
+        if ( associated(che_advvten_out) ) then
+          do k = 1 , kz
+            che_advvten_out(:,:,k) = cadvvdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cadvvdiag(:,:,:,itr) = d_zero
+        if ( associated(che_difhten_out) ) then
+          do k = 1 , kz
+            che_difhten_out(:,:,k) = cdifhdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cdifhdiag(:,:,:,itr) = d_zero
+        if ( associated(che_cuten_out) ) then
+          do k = 1 , kz
+            che_cuten_out(:,:,k) = cconvdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cconvdiag(:,:,:,itr) = d_zero
+        if ( associated(che_tuten_out) ) then
+          do k = 1 , kz
+            che_tuten_out(:,:,k) = ctbldiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        ctbldiag (:,:,:,:) = d_zero 
+        if ( associated(che_raiten_out) ) then
+          do k = 1 , kz
+            che_raiten_out(:,:,k) = remcvc(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(che_wasten_out) ) then
+          do k = 1 , kz
+            che_wasten_out(:,:,k) = remlsc(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(che_bdyten_out) ) then
+          do k = 1 , kz
+            che_bdyten_out(:,:,k) = cbdydiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cbdydiag(:,:,:,:) = d_zero
+        if ( associated(che_sedten_out) ) then
+          do k = 1 , kz
+            che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        cseddpdiag(:,:,:,:) = d_zero      
+        if ( associated(che_pblten_out) ) then
+          che_pblten_out = cchifxuw(jci1:jci2,ici1:ici2,itr)
         end if
       end if
 
-      call outche2(idatex) 
+      remlsc(:,:,:,itr) = d_zero
+      remcvc(:,:,:,itr) = d_zero
+      rxsg(:,:,:,itr) = d_zero
+      rxsaq1(:,:,:,itr) = d_zero
+      rxsaq2(:,:,:,itr) = d_zero
+      wxaq(:,:,itr) = d_zero
+      wxsg(:,:,itr) = d_zero
 
-      ! put back to zero accumulated variables
-
- 
-      remdrd(:,:,:) = d_zero
-      drydepv(:,:,:) = d_zero
-      cemtrac(:,:,:) = d_zero
-
-      remlsc(:,:,:,:) = d_zero
-      remcvc(:,:,:,:) = d_zero
-      rxsg(:,:,:,:) = d_zero
-      rxsaq1(:,:,:,:) = d_zero
-      rxsaq2(:,:,:,:) = d_zero
-
-      wxaq(:,:,:) = d_zero
-      wxsg(:,:,:) = d_zero
-
-      wdcvc(:,:,:) = d_zero
-      wdlsc(:,:,:) = d_zero
-
-      if ( ichdiag == 1 ) then 
-        chemdiag(:,:,:,:) = d_zero
-        cadvhdiag(:,:,:,:) = d_zero
-        cadvvdiag(:,:,:,:) = d_zero
-        cdifhdiag(:,:,:,:) = d_zero
-        cconvdiag(:,:,:,:) = d_zero
-        cbdydiag(:,:,:,:) = d_zero
-        ctbldiag (:,:,:,:) = d_zero 
-        cseddpdiag(:,:,:,:) = d_zero      
-       end if
-!
-    end subroutine output_chem
-!----------------------------------------------------------------
-!================================================================
-
-    subroutine outche2(idatex)
-      implicit none
-      type(rcm_time_and_date) , intent(in) :: idatex
-
-      if ( myid == iocpu ) then 
-        call writerec_che2(chia_io,dtrace_io,wdlsc_io,wdcvc_io,remdrd_io,  &
-                           cemtrac_io,drydepv_io,chemdiag_io,cadvhdiag_io, &
-                           cadvvdiag_io,cdifhdiag_io,cconvdiag_io,         &
-                           cbdydiag_io,ctbldiag_io,cseddpdiag_io,          &
-                           ccuwdiag_io,remlsc_io,remcvc_io,cpsb_io,idatex)
-      end if
-    end subroutine outche2
+    end subroutine fill_chem_outvars
 
 end module mod_che_output

@@ -49,8 +49,6 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: chemall,jphoto
   integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
-  character(len=6) , pointer , dimension(:) :: chtrname
-!
   real(rk8) , pointer , dimension(:,:)   :: chtrdpv
 
   real(rk8) , pointer , dimension(:,:)   :: chtrsize

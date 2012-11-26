@@ -126,18 +126,20 @@
 ! Perturbation control for ensembles
 !
  &perturbparam
- lperturb_ts = .false.,     ! Add perturbation to surface temeprature
- perturb_frac_ts = 0.001D0, ! Fractional value of the perturbation on ts
- lperturb_ps = .false.,     ! Add perturbation to surface pressure
- perturb_frac_ps = 0.001D0, ! Fractional value of the perturbation on ps
- lperturb_t  = .false.,     ! Add perturbation to temperature
- perturb_frac_t  = 0.001D0, ! Fractional value of the perturbation on t
- lperturb_q  = .false.,     ! Add perturbation to humidity mixing ratio
- perturb_frac_q  = 0.001D0, ! Fractional value of the perturbation on q
- lperturb_u  = .false.,     ! Add perturbation to zonal velocity
- perturb_frac_u  = 0.001D0, ! Fractional value of the perturbation on u
- lperturb_v  = .false.,     ! Add perturbation to meridional velocity
- perturb_frac_v  = 0.001D0, ! Fractional value of the perturbation on v
+ lperturb_topo = .false.,     ! Add perturbation to surface elevation
+ perturb_frac_topo = 0.001D0, ! Fractional value of the perturbation on topo
+ lperturb_ts = .false.,       ! Add perturbation to surface temeprature
+ perturb_frac_ts = 0.001D0,   ! Fractional value of the perturbation on ts
+ lperturb_ps = .false.,       ! Add perturbation to surface pressure
+ perturb_frac_ps = 0.001D0,   ! Fractional value of the perturbation on ps
+ lperturb_t  = .false.,       ! Add perturbation to temperature
+ perturb_frac_t  = 0.001D0,   ! Fractional value of the perturbation on t
+ lperturb_q  = .false.,       ! Add perturbation to humidity mixing ratio
+ perturb_frac_q  = 0.001D0,   ! Fractional value of the perturbation on q
+ lperturb_u  = .false.,       ! Add perturbation to zonal velocity
+ perturb_frac_u  = 0.001D0,   ! Fractional value of the perturbation on u
+ lperturb_v  = .false.,       ! Add perturbation to meridional velocity
+ perturb_frac_v  = 0.001D0,   ! Fractional value of the perturbation on v
  /
 !
 ! Model start/restart control
@@ -167,22 +169,23 @@
  atmfrq  =     6.,          ! Frequency in hours to write to ATM
  ifrad   = .true. ,         ! Output RAD ?
  radfrq  =     6.,          ! Frequency in hours to write to RAD
+ ifsts   = .true. ,         ! Output STS (frequence is daily) ?
  ifsrf   = .true. ,         ! Output SRF ?
- ifsts   = .true. ,         ! Output STS ?
+ srffrq  =     3.,          ! Frequency in hours to write SRF (and CLM)
  ifsub   = .true. ,         ! Output SUB ?
- srffrq  =     3.,          ! Frequency in hours to write SRF and SUB (and CLM)
+ subfrq  =     6.,          ! Frequency in hours to write to SUB
  iflak   = .true.,          ! Output LAK ?
  lakfrq  =     6.,          ! Frequency in hours to write to LAK if lakemod is 1
-                            ! It must be an integer multiple of batfrq
  ifchem  = .true.,          ! Output CHE ?
  chemfrq =     6.,          ! Frequency in hours to write to CHE
- atm_enablevar = 14*.true., ! Mask to eventually disable variables ATM
- srf_enablevar = 24*.true., ! Mask to eventually disable variables SRF
- sts_enablevar = 9*.true.,  ! Mask to eventually disable variables STS
- lak_enablevar = 16*.true., ! Mask to eventually disable variables LAK
- sub_enablevar = 16*.true., ! Mask to eventually disable variables SUB
- rad_enablevar = 15*.true., ! Mask to eventually disable variables RAD
- che_enablevar = 17*.true., ! Mask to eventually disable variables CHE
+ atm_enablevar = 17*.true., ! Mask to eventually disable variables ATM
+ srf_enablevar = 28*.true., ! Mask to eventually disable variables SRF
+ sts_enablevar = 15*.true., ! Mask to eventually disable variables STS
+ lak_enablevar = 19*.true., ! Mask to eventually disable variables LAK
+ sub_enablevar = 18*.true., ! Mask to eventually disable variables SUB
+ rad_enablevar = 21*.true., ! Mask to eventually disable variables RAD
+ opt_enablevar = 13*.true., ! Mask to eventually disable variables OPT
+ che_enablevar = 23*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',      ! Path where all output will be placed
  lsync   = .false.,         ! If sync of output files at every timestep is
                             ! requested. Note, it has a performance impact.

@@ -37,10 +37,12 @@ module mod_ncout
   end type varspan
 
   type regcm_stream
-    type(nc_output_stream) :: ncout
+    type(nc_output_stream) , pointer , dimension(:) :: ncout
+    character(len=8) , pointer , dimension(:) :: cname_base
     type(ncoutstream_params) :: opar
     logical :: l_sub = .false.
     integer(ik4) :: nvar = 0
+    integer(ik4) :: nfiles = 0
     type(nc_varlist) :: ncvars
     integer(ik4) :: jg1 , jg2 , ig1 , ig2
     integer(ik4) :: jl1 , jl2 , il1 , il2
@@ -76,6 +78,10 @@ module mod_ncout
   integer(ik4) , parameter :: nopt3dvars = 3
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
+  integer(ik4) , parameter :: nche2dvars = 7 + nbase
+  integer(ik4) , parameter :: nche3dvars = 11
+  integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
+
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_real) , save , pointer , &
@@ -104,6 +110,10 @@ module mod_ncout
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_opt => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_che => null()
+  type(ncvariable3d_real) , save , pointer , &
+    dimension(:) :: v3dvar_che => null()
 
   integer(ik4) :: maxstreams
 
@@ -116,6 +126,7 @@ module mod_ncout
   integer(ik4) , public :: lak_stream = -1
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
+  integer(ik4) , public :: che_stream = -1
 !
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
@@ -126,6 +137,7 @@ module mod_ncout
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
+  logical , public , dimension(nchevars) :: enable_che_vars
 
   integer(ik4) , parameter :: atm_xlon  = 1
   integer(ik4) , parameter :: atm_xlat  = 2
@@ -272,6 +284,31 @@ module mod_ncout
   integer(ik4) , parameter :: opt_assa8    = 2
   integer(ik4) , parameter :: opt_agfu8    = 3
 
+  integer(ik4) , parameter :: che_xlon     = 1
+  integer(ik4) , parameter :: che_xlat     = 2
+  integer(ik4) , parameter :: che_mask     = 3
+  integer(ik4) , parameter :: che_topo     = 4
+  integer(ik4) , parameter :: che_ps       = 5
+  integer(ik4) , parameter :: che_wdrflx   = 6
+  integer(ik4) , parameter :: che_wdcflx   = 7
+  integer(ik4) , parameter :: che_ddflx    = 8
+  integer(ik4) , parameter :: che_emflx    = 9
+  integer(ik4) , parameter :: che_ddvel    = 10
+  integer(ik4) , parameter :: che_burden   = 11
+  integer(ik4) , parameter :: che_pblten   = 12
+
+  integer(ik4) , parameter :: che_mixrat   = 1
+  integer(ik4) , parameter :: che_cheten   = 2
+  integer(ik4) , parameter :: che_advhten  = 3
+  integer(ik4) , parameter :: che_advvten  = 4
+  integer(ik4) , parameter :: che_difhten  = 5
+  integer(ik4) , parameter :: che_cuten    = 6
+  integer(ik4) , parameter :: che_tuten    = 7
+  integer(ik4) , parameter :: che_raiten   = 8
+  integer(ik4) , parameter :: che_wasten   = 9
+  integer(ik4) , parameter :: che_bdyten   = 10
+  integer(ik4) , parameter :: che_sedten   = 11
+
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
 
@@ -280,8 +317,7 @@ module mod_ncout
   subroutine init_output_streams(lparallel)
     implicit none
     logical , intent(in) :: lparallel
-    integer(ik4) :: nstream , i , itr , vcount
-    integer(ik4) :: kkz
+    integer(ik4) :: nstream , i , itr , vcount , kkz
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
     logical , dimension(natm3dvars) :: enable_atm3d_vars
@@ -297,6 +333,8 @@ module mod_ncout
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
     logical , dimension(nopt2dvars) :: enable_opt2d_vars
     logical , dimension(nopt3dvars) :: enable_opt3d_vars
+    logical , dimension(nche2dvars) :: enable_che2d_vars
+    logical , dimension(nche3dvars) :: enable_che3d_vars
 
     parallel_out = lparallel
 
@@ -327,16 +365,21 @@ module mod_ncout
       rad_stream = nstream
     end if
     if ( ifchem ) then
-      if ( iaerosol == 1 ) then
+      nstream = nstream+1
+      che_stream = nstream
+      if ( iaerosol == 1 .and. ifopt ) then
         nstream = nstream+1
         opt_stream = nstream
       end if
-      ! Add one output file per tracer
-      ! nstream = nstream+ntr
     end if
 
     maxstreams = nstream
     allocate(outstream(maxstreams))
+
+#ifdef DEBUG
+    if ( myid == italk) &
+      write(stdout,*) 'Enabling ',nstream,' output file streams'
+#endif
 
     enabled_stream_loop: &
     do nstream = 1 , maxstreams
@@ -432,15 +475,17 @@ module mod_ncout
             atm_kzm_out => v3dvar_atm(atm_kzm)%rval
           end if
         else
-          enable_atm3d_vars(atm_tke) = .false.
-          enable_atm3d_vars(atm_kth) = .false.
-          enable_atm3d_vars(atm_kzm) = .false.
+          enable_atm3d_vars(atm_tke:atm_kzm) = .false.
         end if
 
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
         enable_atm_vars(natm2dvars+1:natmvars) = enable_atm3d_vars
         outstream(atm_stream)%nvar = countvars(enable_atm_vars,natmvars)
         allocate(outstream(atm_stream)%ncvars%vlist(outstream(atm_stream)%nvar))
+        outstream(atm_stream)%nfiles = 1
+        allocate(outstream(atm_stream)%ncout(outstream(atm_stream)%nfiles))
+        allocate(outstream(atm_stream)%cname_base(outstream(atm_stream)%nfiles))
+        outstream(atm_stream)%cname_base(1) = 'ATM'
 
         vcount = 1
         do i = 1 , natm2dvars
@@ -633,6 +678,10 @@ module mod_ncout
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
         outstream(srf_stream)%nvar = countvars(enable_srf_vars,nsrfvars)
         allocate(outstream(srf_stream)%ncvars%vlist(outstream(srf_stream)%nvar))
+        outstream(srf_stream)%nfiles = 1
+        allocate(outstream(srf_stream)%ncout(outstream(srf_stream)%nfiles))
+        allocate(outstream(srf_stream)%cname_base(outstream(srf_stream)%nfiles))
+        outstream(srf_stream)%cname_base(1) = 'SRF'
 
         vcount = 1
         do i = 1 , nsrf2dvars
@@ -740,6 +789,10 @@ module mod_ncout
         enable_sts_vars(nsts2dvars+1:nstsvars) = enable_sts3d_vars
         outstream(sts_stream)%nvar = countvars(enable_sts_vars,nstsvars)
         allocate(outstream(sts_stream)%ncvars%vlist(outstream(sts_stream)%nvar))
+        outstream(sts_stream)%nfiles = 1
+        allocate(outstream(sts_stream)%ncout(outstream(sts_stream)%nfiles))
+        allocate(outstream(sts_stream)%cname_base(outstream(sts_stream)%nfiles))
+        outstream(sts_stream)%cname_base(1) = 'STS'
 
         vcount = 1
         do i = 1 , nsts2dvars
@@ -892,6 +945,10 @@ module mod_ncout
         enable_sub_vars(nsub2dvars+1:nsubvars) = enable_sub3d_vars
         outstream(sub_stream)%nvar = countvars(enable_sub_vars,nsubvars)
         allocate(outstream(sub_stream)%ncvars%vlist(outstream(sub_stream)%nvar))
+        outstream(sub_stream)%nfiles = 1
+        allocate(outstream(sub_stream)%ncout(outstream(sub_stream)%nfiles))
+        allocate(outstream(sub_stream)%cname_base(outstream(sub_stream)%nfiles))
+        outstream(sub_stream)%cname_base(1) = 'SUB'
 
         vcount = 1
         do i = 1 , nsub2dvars
@@ -1032,6 +1089,10 @@ module mod_ncout
         enable_rad_vars(nrad2dvars+1:nradvars) = enable_rad3d_vars
         outstream(rad_stream)%nvar = countvars(enable_rad_vars,nradvars)
         allocate(outstream(rad_stream)%ncvars%vlist(outstream(rad_stream)%nvar))
+        outstream(rad_stream)%nfiles = 1
+        allocate(outstream(rad_stream)%ncout(outstream(rad_stream)%nfiles))
+        allocate(outstream(rad_stream)%cname_base(outstream(rad_stream)%nfiles))
+        outstream(rad_stream)%cname_base(1) = 'RAD'
 
         vcount = 1
         do i = 1 , nrad2dvars
@@ -1159,6 +1220,10 @@ module mod_ncout
         enable_lak_vars(nlak2dvars+1:nlakvars) = enable_lak3d_vars
         outstream(lak_stream)%nvar = countvars(enable_lak_vars,nlakvars)
         allocate(outstream(lak_stream)%ncvars%vlist(outstream(lak_stream)%nvar))
+        outstream(lak_stream)%nfiles = 1
+        allocate(outstream(lak_stream)%ncout(outstream(lak_stream)%nfiles))
+        allocate(outstream(lak_stream)%cname_base(outstream(lak_stream)%nfiles))
+        outstream(lak_stream)%cname_base(1) = 'LAK'
 
         vcount = 1
         do i = 1 , nlak2dvars
@@ -1254,6 +1319,10 @@ module mod_ncout
         enable_opt_vars(nopt2dvars+1:noptvars) = enable_opt3d_vars
         outstream(opt_stream)%nvar = countvars(enable_opt_vars,noptvars)
         allocate(outstream(opt_stream)%ncvars%vlist(outstream(opt_stream)%nvar))
+        outstream(opt_stream)%nfiles = 1
+        allocate(outstream(opt_stream)%ncout(outstream(opt_stream)%nfiles))
+        allocate(outstream(opt_stream)%cname_base(outstream(opt_stream)%nfiles))
+        outstream(opt_stream)%cname_base(1) = 'OPT'
 
         vcount = 1
         do i = 1 , nopt2dvars
@@ -1277,8 +1346,179 @@ module mod_ncout
         outstream(opt_stream)%ig1 = iout1
         outstream(opt_stream)%ig2 = iout2
 
+      end if
+
+      if ( nstream == che_stream ) then
+
+        allocate(v2dvar_che(nche2dvars))
+        allocate(v3dvar_che(nche3dvars))
+        enable_che2d_vars = enable_che_vars(1:nche2dvars)
+        enable_che3d_vars = enable_che_vars(nche2dvars+1:nchevars)
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_che(che_xlon), &
+          v2dvar_che(che_xlat),v2dvar_che(che_topo),       &
+          v2dvar_che(che_mask),v2dvar_che(che_ps))
+
+        ! The following may be enabled/disabled
+
+        if ( enable_che2d_vars(che_wdrflx) ) then
+          call setup_var(v2dvar_che(che_wdrflx),vsize,'wdrflx', &
+            'mg m-2 day-1','Wet deposition flux due to large scale rain', &
+            'wet_deposition_flux_from_large_scale_precipitation', &
+            .true.,'time: mean')
+          che_wdrflx_out => v2dvar_che(che_wdrflx)%rval
+        end if
+        if ( enable_che2d_vars(che_wdcflx) ) then
+          call setup_var(v2dvar_che(che_wdcflx),vsize,'wdcflx', &
+            'mg m-2 day-1','Wet deposition flux due to convective rain', &
+            'wet_deposition_flux_from_convective_precipitation', &
+            .true.,'time: mean')
+          che_wdcflx_out => v2dvar_che(che_wdcflx)%rval
+        end if
+        if ( enable_che2d_vars(che_ddflx) ) then
+          call setup_var(v2dvar_che(che_ddflx),vsize,'ddflx', &
+            'mg m-2 day-1','Dry deposition flux', &
+            'dry_deposition_flux',.true.,'time: mean')
+          che_ddflx_out => v2dvar_che(che_ddflx)%rval
+        end if
+        if ( enable_che2d_vars(che_emflx) ) then
+          call setup_var(v2dvar_che(che_emflx),vsize,'emflx', &
+            'mg m-2 day-1','Surface emission flux', &
+            'surface_emission_flux',.true.,'time: mean')
+          che_emflx_out => v2dvar_che(che_emflx)%rval
+        end if
+        if ( enable_che2d_vars(che_ddvel) ) then
+          call setup_var(v2dvar_che(che_ddvel),vsize,'ddvel', &
+            'm s-1','Dry deposition velocity', &
+            'dry_deposition_velocity',.true.,'time: mean')
+          che_ddvel_out => v2dvar_che(che_ddvel)%rval
+        end if
+        if ( enable_che2d_vars(che_burden) ) then
+          call setup_var(v2dvar_che(che_burden),vsize,'burden', &
+            'mg m-2','Tracer total burden', &
+            'tracer_burden',.true.,'time: mean')
+          che_burden_out => v2dvar_che(che_burden)%rval
+        end if
+
+        vsize%k2 = kz
+        if ( enable_che3d_vars(che_mixrat) ) then
+          call setup_var(v3dvar_che(che_mixrat),vsize,'mixrat','1', &
+            'Atmosphere tracer mixing ratio', &
+            'atmosphere_mixing_ratio_of_tracer',.true.)
+          che_mixrat_out => v3dvar_che(che_mixrat)%rval
+        end if
+
+        if ( ichdiag == 1 ) then
+          if ( enable_che3d_vars(che_cheten) ) then
+            call setup_var(v3dvar_che(che_cheten),vsize,'cheten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to chemical reactions', &
+              'tendency_of_mixing_ratio_due_to_chemical_prod_loss',.true.)
+            che_cheten_out => v3dvar_che(che_cheten)%rval
+          end if
+          if ( enable_che3d_vars(che_advhten) ) then
+            call setup_var(v3dvar_che(che_advhten),vsize,'advhten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to horizontal advection', &
+              'tendency_of_mixing_ratio_due_to_horizontal_advection',.true.)
+            che_advhten_out => v3dvar_che(che_advhten)%rval
+          end if
+          if ( enable_che3d_vars(che_advvten) ) then
+            call setup_var(v3dvar_che(che_advvten),vsize,'advvten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to vertical advection', &
+              'tendency_of_mixing_ratio_due_to_vertical_advection',.true.)
+            che_advvten_out => v3dvar_che(che_advvten)%rval
+          end if
+          if ( enable_che3d_vars(che_difhten) ) then
+            call setup_var(v3dvar_che(che_difhten),vsize,'difhten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to diffusion', &
+              'tendency_of_mixing_ratio_due_to_diffusion',.true.)
+            che_difhten_out => v3dvar_che(che_difhten)%rval
+          end if
+          if ( enable_che3d_vars(che_cuten) ) then
+            call setup_var(v3dvar_che(che_cuten),vsize,'cuten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to convective rainout', &
+              'tendency_of_mixing_ratio_due_to_convective_rainout',.true.)
+            che_cuten_out => v3dvar_che(che_cuten)%rval
+          end if
+          if ( enable_che3d_vars(che_tuten) ) then
+            call setup_var(v3dvar_che(che_tuten),vsize,'tuten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to vertical turbolence', &
+              'tendency_of_mixing_ratio_due_to_vertical_turbolence',.true.)
+            che_tuten_out => v3dvar_che(che_tuten)%rval
+          end if
+          if ( enable_che3d_vars(che_raiten) ) then
+            call setup_var(v3dvar_che(che_raiten),vsize,'raiten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to total rainout', &
+              'tendency_of_mixing_ratio_due_to_total_rainout',.true.)
+            che_raiten_out => v3dvar_che(che_raiten)%rval
+          end if
+          if ( enable_che3d_vars(che_wasten) ) then
+            call setup_var(v3dvar_che(che_wasten),vsize,'wasten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to total washout', &
+              'tendency_of_mixing_ratio_due_to_total_washout',.true.)
+            che_wasten_out => v3dvar_che(che_wasten)%rval
+          end if
+          if ( enable_che3d_vars(che_bdyten) ) then
+            call setup_var(v3dvar_che(che_bdyten),vsize,'bdyten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to boundary conditions', &
+              'tendency_of_mixing_ratio_due_to_boundary_conditions',.true.)
+            che_bdyten_out => v3dvar_che(che_bdyten)%rval
+          end if
+          if ( enable_che3d_vars(che_sedten) ) then
+            call setup_var(v3dvar_che(che_sedten),vsize,'sedten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to sedimentation', &
+              'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
+            che_sedten_out => v3dvar_che(che_sedten)%rval
+          end if
+          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+            if ( enable_che2d_vars(che_pblten) ) then
+              call setup_var(v2dvar_che(che_pblten),vsize,'pblten', &
+                'kg kg-1 s-1', 'Tendency of tracer due to UW PBL', &
+                'tendency_of_mixing_ratio_due_to_uw_pbl',.true.)
+              che_pblten_out => v2dvar_che(che_pblten)%rval
+            end if
+          else
+            enable_che2d_vars(che_pblten) = .false.
+          end if
+        else
+          enable_che3d_vars(che_cheten:che_sedten) = .false.
+          enable_che2d_vars(che_pblten) = .false.
+        end if
+
+        enable_che_vars(1:nche2dvars) = enable_che2d_vars
+        enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars
+
+        outstream(che_stream)%nvar = countvars(enable_che_vars,nchevars)
+        allocate(outstream(che_stream)%ncvars%vlist(outstream(che_stream)%nvar))
+        outstream(che_stream)%nfiles = ntr
+        allocate(outstream(che_stream)%ncout(outstream(che_stream)%nfiles))
+        allocate(outstream(che_stream)%cname_base(outstream(che_stream)%nfiles))
         do itr = 1 , ntr
+          outstream(che_stream)%cname_base(itr) = chtrname(itr)
         end do
+
+        vcount = 1
+        do i = 1 , nche2dvars
+          if ( enable_che_vars(i) ) then
+            outstream(che_stream)%ncvars%vlist(vcount)%vp => v2dvar_che(i)
+            vcount = vcount + 1
+          end if
+        end do
+        do i = 1 , nche3dvars
+          if ( enable_che_vars(i+nche2dvars) ) then
+            outstream(che_stream)%ncvars%vlist(vcount)%vp => v3dvar_che(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(che_stream)%jl1 = vsize%j1
+        outstream(che_stream)%jl2 = vsize%j2
+        outstream(che_stream)%il1 = vsize%i1
+        outstream(che_stream)%il2 = vsize%i2
+        outstream(che_stream)%jg1 = jout1
+        outstream(che_stream)%jg2 = jout2
+        outstream(che_stream)%ig1 = iout1
+        outstream(che_stream)%ig2 = iout2
 
       end if
 
@@ -1311,6 +1551,7 @@ module mod_ncout
             outstream(nstream)%opar%global_iend*nsg
         end if
       end if
+
     end do enabled_stream_loop
 
     ! Allocate space to collect all from all CPUs if not parallel output
@@ -1347,449 +1588,437 @@ module mod_ncout
     end do
   end function countvars
 
-  subroutine newoutfiles(idate,trname)
+  subroutine newoutfiles(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    character(len=*) , optional , intent(in) :: trname
-    character(len=16) :: fbname
+    character(len=36) :: fbname
     character(len=36) :: cdate
     class(ncvariable_standard) , pointer :: vp
     real(rk8) , pointer , dimension(:,:) :: tmp2d
-    real(rk8) , pointer , dimension(:,:) :: pnt2d
-    integer(ik4) :: i, ivar
+    real(rk8) , pointer , dimension(:,:) :: pnt2d => null()
+    integer(ik4) :: i , j , ivar
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       stream_loop: &
       do i = 1 , maxstreams
-        if ( outstream(i)%l_sub ) then
-          pnt2d => io2dsg
-        else
-          pnt2d => io2d
-        end if
-        var_loop: &
-        do ivar = 1 , outstream(i)%nvar
-          vp => outstream(i)%ncvars%vlist(ivar)%vp
-          select type(vp)
-            type is (ncvariable2d_real)
-              if ( vp%lrecords ) cycle var_loop
-              call grid_collect(vp%rval,pnt2d, &
-                                vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
-            class default
-              cycle var_loop
-          end select
-        end do var_loop
+        file_loop: &
+        do j = 1 , outstream(i)%nfiles
+          var_loop: &
+          do ivar = 1 , outstream(i)%nvar
+            vp => outstream(i)%ncvars%vlist(ivar)%vp
+            select type(vp)
+              type is (ncvariable2d_real)
+                if ( vp%lrecords ) cycle var_loop
+                call grid_collect(vp%rval,pnt2d, &
+                                  vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
+              class default
+                cycle var_loop
+            end select
+          end do var_loop
+        end do file_loop
       end do stream_loop
       return
     end if
 
     stream_loop_par: &
     do i = 1 , maxstreams
-      if ( i == atm_stream ) then
-        write (fbname,'(a,i10)') 'ATM.', toint10(idate)
-      else if ( i == srf_stream ) then
-        write (fbname,'(a,i10)') 'SRF.', toint10(idate)
-      else if ( i == sub_stream ) then
-        write (fbname,'(a,i10)') 'SUB.', toint10(idate)
-      else if ( i == rad_stream ) then
-        write (fbname,'(a,i10)') 'RAD.', toint10(idate)
-      else if ( i == lak_stream ) then
-        write (fbname,'(a,i10)') 'LAK.', toint10(idate)
-      else if ( i == sts_stream ) then
-        write (fbname,'(a,i10)') 'STS.', toint10(idate)
-      else if ( i == opt_stream ) then
-        write (fbname,'(a,i10)') 'OPT.', toint10(idate)
-      else if ( opt_stream > 0 .and. i > opt_stream ) then
-        if ( present(trname) ) then
-          write (fbname,'(a,a,i10)') trname, '.', toint10(idate)
-        else
-          write (fbname,'(a,i0.3,a,i10)') 'TRAC', i-opt_stream, &
-            '.', toint10(idate)
+
+      file_loop_par: &
+      do j = 1 , outstream(i)%nfiles
+
+        write (fbname,'(a,a,i10)') trim(outstream(i)%cname_base(j)) , &
+          '.', toint10(idate)
+
+        outstream(i)%opar%fname = &
+          trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+
+        if ( myid == italk ) then
+          write(stdout,*) 'Opening new output file ', &
+            trim(outstream(i)%opar%fname)
         end if
-      else
-        write(stderr,*) 'Undefined output stream. Skipping it.'
-        return
-      end if
+        call outstream_setup(outstream(i)%ncout(j),outstream(i)%opar)
 
-      outstream(i)%opar%fname = &
-        trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+        ! Buffer Zone Control relaxation + diffusion term params
 
-      if ( myid == italk ) then
-        write(stdout,*) 'Opening new output file ',trim(outstream(i)%opar%fname)
-      end if
-      call outstream_setup(outstream(i)%ncout,outstream(i)%opar)
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('boundary_nspgx',nspgx))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('boundary_nspgd',nspgd))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('boundary_high_nudge',high_nudge))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('boundary_medium_nudge',medium_nudge))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('boundary_low_nudge',low_nudge))
 
-      ! Buffer Zone Control relaxation + diffusion term params
+        ! Perturbation control for ensembles
 
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('boundary_nspgx',nspgx))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('boundary_nspgd',nspgd))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('boundary_high_nudge',high_nudge))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('boundary_medium_nudge',medium_nudge))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('boundary_low_nudge',low_nudge))
-
-      ! Perturbation control for ensembles
-
-      if ( ensemble_run ) then
-        if ( lperturb_topo ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_topo_percent',perturb_frac_topo))
+        if ( ensemble_run ) then
+          if ( lperturb_topo ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_topo_percent',perturb_frac_topo))
+          end if
+          if ( lperturb_ts ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_ts_percent',perturb_frac_ts))
+          end if
+          if ( lperturb_ps ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_ps_percent',perturb_frac_ps))
+          end if
+          if ( lperturb_t ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_t_percent',perturb_frac_t))
+          end if
+          if ( lperturb_u ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_u_percent',perturb_frac_u))
+          end if
+          if ( lperturb_v ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_v_percent',perturb_frac_v))
+          end if
+          if ( lperturb_q ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('perturbation_q_percent',perturb_frac_q))
+          end if
         end if
-        if ( lperturb_ts ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_ts_percent',perturb_frac_ts))
-        end if
-        if ( lperturb_ps ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_ps_percent',perturb_frac_ps))
-        end if
-        if ( lperturb_t ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_t_percent',perturb_frac_t))
-        end if
-        if ( lperturb_u ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_u_percent',perturb_frac_u))
-        end if
-        if ( lperturb_v ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_v_percent',perturb_frac_v))
-        end if
-        if ( lperturb_q ) then
-          call outstream_addatt(outstream(i)%ncout, &
-            ncattribute_real8('perturbation_q_percent',perturb_frac_q))
-        end if
-      end if
 
-      ! Model start/restart control
+        ! Model start/restart control
 
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_logical('model_is_restarted',ifrest))
-      cdate = tochar(idate0)
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_string('model_simulation_initial_start',cdate))
-      cdate = tochar(idate1)
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_string('model_simulation_start',cdate))
-      cdate = tochar(idate2)
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_string('model_simulation_end',cdate))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_logical('model_is_restarted',ifrest))
+        cdate = tochar(idate0)
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_simulation_initial_start',cdate))
+        cdate = tochar(idate1)
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_simulation_start',cdate))
+        cdate = tochar(idate2)
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_simulation_end',cdate))
 
-      ! Model timing parameters
+        ! Model timing parameters
 
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('atmosphere_time_step_in_seconds',dt))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('surface_interaction_time_step_in_seconds',dtsrf))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('radiation_scheme_time_step_in_minuts',dtrad))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_real8('absorption_emission_time_step_in_hours',dtabem))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('atmosphere_time_step_in_seconds',dt))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('surface_interaction_time_step_in_seconds',dtsrf))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('radiation_scheme_time_step_in_minuts',dtrad))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('absorption_emission_time_step_in_hours',dtabem))
 
-      ! Model Physics
+        ! Model Physics
 
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('boundary_layer_scheme',ibltyp))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('cumulus_convection_scheme',icup))
-      if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('grell_scheme_closure',igcc))
-      end if
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('moisture_scheme',ipptls))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('ocean_flux_scheme',iocnflx))
-      if ( iocnflx == 2 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('zeng_ocean_roughness_formula',iocnrough))
-      end if
-      if ( iocncpl == 1 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('coupled_ocean_run',iocncpl))
-      end if
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('pressure_gradient_scheme',ipgf))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('surface_emissivity_factor_computed',iemiss))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('lake_model_activated',lakemod))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('chemical_aerosol_scheme_activated',ichem))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_string('ipcc_scenario_code',scenario))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('simple_sea_ice_scheme',iseaice))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('seasonal_desert_albedo',idesseas))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('rrtm_radiation_scheme_activated',irrtm))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('static_solar_constant_used',isolconst))
-      if ( ipptls == 1 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_maximum_cloud_fraction_cover',fcmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_auto_conversion_rate_for_ocean',qck1oce))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_gultepe_factor_when_rain_for_land',gulland))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_gultepe_factor_when_rain_for_ocean',guloce))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_rh_with_fcc_one',rhmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_rh_threshold_for_land',rh0land))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_rh_threshold_for_ocean',rh0oce))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_limit_temperature',tc0))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_raindrop_evaporation_rate',cevap))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_raindrop_accretion_rate',caccr))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_cloud_fraction_maximum',cftotmax))
-        call outstream_addatt(outstream(i)%ncout, &
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('boundary_layer_scheme',ibltyp))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('cumulus_convection_scheme',icup))
+        if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('grell_scheme_closure',igcc))
+        end if
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('moisture_scheme',ipptls))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('ocean_flux_scheme',iocnflx))
+        if ( iocnflx == 2 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('zeng_ocean_roughness_formula',iocnrough))
+        end if
+        if ( iocncpl == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('coupled_ocean_run',iocncpl))
+        end if
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('pressure_gradient_scheme',ipgf))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('surface_emissivity_factor_computed',iemiss))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('lake_model_activated',lakemod))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('chemical_aerosol_scheme_activated',ichem))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('ipcc_scenario_code',scenario))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('simple_sea_ice_scheme',iseaice))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('seasonal_desert_albedo',idesseas))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('rrtm_radiation_scheme_activated',irrtm))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('static_solar_constant_used',isolconst))
+        if ( ipptls == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_maximum_cloud_fraction_cover',fcmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_auto_conversion_rate_for_ocean',qck1oce))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('subex_gultepe_factor_when_rain_for_land',gulland))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('subex_gultepe_factor_when_rain_for_ocean',guloce))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_rh_with_fcc_one',rhmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_rh_threshold_for_land',rh0land))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_rh_threshold_for_ocean',rh0oce))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_limit_temperature',tc0))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_raindrop_evaporation_rate',cevap))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_raindrop_accretion_rate',caccr))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_cloud_fraction_maximum',cftotmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
-      end if
-      if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_shear_on_precip',shrmin))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_shear_on_precip',shrmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_precip_efficiency',edtmin))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_precip_efficiency',edtmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_precip_efficiency_o',edtmino))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_precip_efficiency_o',edtmaxo))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_precip_efficiency_x',edtminx))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_precip_efficiency_x',edtmaxx))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_shear_on_precip_on_ocean',shrmin_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_shear_on_precip_on_ocean',shrmax_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_precip_efficiency_on_ocean',edtmin_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_precip_efficiency_on_ocean',edtmax_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
+        end if
+        if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_shear_on_precip',shrmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_shear_on_precip',shrmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_precip_efficiency',edtmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_precip_efficiency',edtmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_precip_efficiency_o',edtmino))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_precip_efficiency_o',edtmaxo))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_precip_efficiency_x',edtminx))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_precip_efficiency_x',edtmaxx))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_shear_on_precip_on_ocean',shrmin_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_shear_on_precip_on_ocean',shrmax_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('grell_min_precip_efficiency_on_ocean',edtmin_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('grell_max_precip_efficiency_on_ocean',edtmax_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
         ncattribute_real8('grell_min_precip_efficiency_o_on_ocean',edtmino_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
         ncattribute_real8('grell_max_precip_efficiency_o_on_ocean',edtmaxo_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
         ncattribute_real8('grell_min_precip_efficiency_x_on_ocean',edtminx_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
         ncattribute_real8('grell_max_precip_efficiency_x_on_ocean',edtmaxx_ocn))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_depth_of_stable_layer',pbcmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_depth_of_cloud',mincld))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_min_convective_heating',htmin))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_convective_heating',htmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_max_cloud_base_height',skbmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
-       end if
-      if ( icup == 4 .or. icup == 98 .or. icup == 99 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_lowest_convection_sigma',minsig))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_autoconversion_threshold_mixing',elcrit))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_autoconversion_threshold_temperature',tlcrit))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_mixing_coefficient_in_entrainment',entp))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_fractional_area_unsaturated_downdraft',sigd))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_fractional_precip_outside_cloud',sigs))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_pressure_velocity_of_rain',omtrain))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_pressure_velocity_of_snow',omtsnow))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_rain_evaporation_coefficient',coeffr))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_snow_evaporation_coefficient',coeffs))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_momentum_transport_coefficient',cu))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_downdraft_velocity_coefficient',betae))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_max_parcel_neg_temp_perturbation',dtmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_approach_rate_quasi_eq_coeff_a',alphae))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('mit_approach_rate_quasi_eq_coeff_d',damp))
-      end if
-      if ( icup == 5 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('tiedtke_actual_scheme',iconv))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_entrainment_rate_shallow',entrscv))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_entrainment_rate_midlevel',entrmid))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_max_massflux',cmfcmax))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_min_massflux',cmfcmin))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_depth_of_stable_layer',pbcmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_depth_of_cloud',mincld))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_min_convective_heating',htmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_convective_heating',htmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_max_cloud_base_height',skbmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
+         end if
+        if ( icup == 4 .or. icup == 98 .or. icup == 99 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_lowest_convection_sigma',minsig))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_autoconversion_threshold_mixing',elcrit))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('mit_autoconversion_threshold_temperature',tlcrit))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_mixing_coefficient_in_entrainment',entp))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_fractional_area_unsaturated_downdraft',sigd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_fractional_precip_outside_cloud',sigs))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_pressure_velocity_of_rain',omtrain))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_pressure_velocity_of_snow',omtsnow))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_rain_evaporation_coefficient',coeffr))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_snow_evaporation_coefficient',coeffs))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_momentum_transport_coefficient',cu))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_downdraft_velocity_coefficient',betae))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_max_parcel_neg_temp_perturbation',dtmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_approach_rate_quasi_eq_coeff_a',alphae))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_approach_rate_quasi_eq_coeff_d',damp))
+        end if
+        if ( icup == 5 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('tiedtke_actual_scheme',iconv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_entrainment_rate_shallow',entrscv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_entrainment_rate_midlevel',entrmid))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_max_massflux',cmfcmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_min_massflux',cmfcmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_real8('tiedtke_downdraft_fractional_LFS_massflux',cmfdeps))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_relative_saturation_downdraft',rhcdd))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_cape_adjustment_timescale',cmtcape))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_max_rainfall_elevation',zdlev))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_conversion_coefficient',cprcon))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('tiedtke_midlevel_max_cloudbase_level',nmctop))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_logical('tiedtke_enable_deep_convection',lmfpen))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_logical('tiedtke_enable_shallow_convection',lmfscv))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_logical('tiedtke_enable_midlevel_convection',lmfmid))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_logical('tiedtke_enable_cumulus_downsraft',lmfdd))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_logical('tiedtke_enable_cumulus_friction',lmfdudv))
-      end if
-      if ( ibltyp == 2 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('uwpbl_advection_scheme',iuwvadv))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('uwpbl_cloud_evap_entr_incr_efficiency',atwo))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('uwpbl_eddy_LS_stable_PBL_scaling',rstbl))
-      end if
-      if ( irrtm == 1 ) then
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_relative_saturation_downdraft',rhcdd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_cape_adjustment_timescale',cmtcape))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_max_rainfall_elevation',zdlev))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_conversion_coefficient',cprcon))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('tiedtke_midlevel_max_cloudbase_level',nmctop))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_enable_deep_convection',lmfpen))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_enable_shallow_convection',lmfscv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_enable_midlevel_convection',lmfmid))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_enable_cumulus_downsraft',lmfdd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_enable_cumulus_friction',lmfdudv))
+        end if
+        if ( ibltyp == 2 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('uwpbl_advection_scheme',iuwvadv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('uwpbl_cloud_evap_entr_incr_efficiency',atwo))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('uwpbl_eddy_LS_stable_PBL_scaling',rstbl))
+        end if
+        if ( irrtm == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',inflgsw))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',iceflgsw))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',iceflgsw))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',inflglw))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',iceflglw))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('rrtm_idrv',idrv))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('rrtm_random_number_generator',irng))
-      end if
-      if ( ichem == 1 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_string('chem_simulation_type',chemsimtype))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_activate_reaction_solver',ichsolver))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_activate_emission',ichsursrc))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_activate_dry_deposition',ichdrdepo))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_activate_convective_transport',ichcumtra))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_activate_wet_removal',ichremlsc))
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_integer('chem_dust_PSD_scheme',ichdustemd))
-        call outstream_addatt(outstream(i)%ncout, &
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_idrv',idrv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_random_number_generator',irng))
+        end if
+        if ( ichem == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_string('chem_simulation_type',chemsimtype))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_reaction_solver',ichsolver))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_emission',ichsursrc))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_dry_deposition',ichdrdepo))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_convective_transport',ichcumtra))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_wet_removal',ichremlsc))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_dust_PSD_scheme',ichdustemd))
+          call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
-      end if
+        end if
 #ifdef CLM
-      call outstream_addatt(outstream(i)%ncout, &
-        ncattribute_integer('clm_land_surface_dataset_selection', imask))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('clm_land_surface_dataset_selection', imask))
 #endif
-      if ( iocncpl == 1 ) then
-        call outstream_addatt(outstream(i)%ncout, &
-          ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
-      end if
+        if ( iocncpl == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
+        end if
 
-      do ivar = 1 , outstream(i)%nvar
-        vp => outstream(i)%ncvars%vlist(ivar)%vp
-#ifdef DEBUG
-        write(stdout,*) 'Adding variable ', vp%vname
-#endif
-        call outstream_addvar(outstream(i)%ncout,vp)
-      end do
-      call outstream_enable(outstream(i)%ncout,sigma)
-      if ( outstream(i)%l_sub ) then
-        pnt2d => io2dsg
-      else
-        pnt2d => io2d
-      end if
-      var_loop_par: &
-      do ivar = 1 , outstream(i)%nvar
-        vp => outstream(i)%ncvars%vlist(ivar)%vp
+        do ivar = 1 , outstream(i)%nvar
+          vp => outstream(i)%ncvars%vlist(ivar)%vp
+          call outstream_addvar(outstream(i)%ncout(j),vp)
+        end do
+
+        call outstream_enable(outstream(i)%ncout(j),sigma)
+
         if ( .not. parallel_out ) then
-          select type(vp)
-            type is (ncvariable2d_real)
-              if ( vp%lrecords ) cycle var_loop_par
-              call grid_collect(vp%rval,pnt2d, &
-                                vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
-              vp%j1 = outstream(i)%jg1
-              vp%j2 = outstream(i)%jg2
-              vp%i1 = outstream(i)%ig1
-              vp%i2 = outstream(i)%ig2
-              tmp2d => vp%rval
-              vp%rval => pnt2d
-            class default
-              cycle var_loop_par
-          end select
+          if ( outstream(i)%l_sub ) then
+            pnt2d => io2dsg
+          else
+            pnt2d => io2d
+          end if
         end if
-        call outstream_writevar(outstream(i)%ncout,vp)
-        if ( .not. parallel_out ) then
-          select type(vp)
-            type is (ncvariable2d_real)
-              vp%rval => tmp2d
-              vp%j1 = outstream(i)%jl1
-              vp%j2 = outstream(i)%jl2
-              vp%i1 = outstream(i)%il1
-              vp%i2 = outstream(i)%il2
-            class default
-              cycle var_loop_par
-          end select
-        end if
-      end do var_loop_par
+
+        var_loop_par: &
+        do ivar = 1 , outstream(i)%nvar
+          vp => outstream(i)%ncvars%vlist(ivar)%vp
+
+          ! Collect on temp storage
+          if ( .not. parallel_out ) then
+            select type(vp)
+              type is (ncvariable2d_real)
+                if ( vp%lrecords ) cycle var_loop_par
+                call grid_collect(vp%rval,pnt2d, &
+                                  vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
+                vp%j1 = outstream(i)%jg1
+                vp%j2 = outstream(i)%jg2
+                vp%i1 = outstream(i)%ig1
+                vp%i2 = outstream(i)%ig2
+                tmp2d => vp%rval
+                vp%rval => pnt2d
+              class default
+                cycle var_loop_par
+            end select
+          end if
+
+          call outstream_writevar(outstream(i)%ncout(j),vp)
+
+          ! Reset pointer and shape
+          if ( .not. parallel_out ) then
+            select type(vp)
+              type is (ncvariable2d_real)
+                vp%rval => tmp2d
+                vp%j1 = outstream(i)%jl1
+                vp%j2 = outstream(i)%jl2
+                vp%i1 = outstream(i)%il1
+                vp%i2 = outstream(i)%il2
+              class default
+                cycle var_loop_par
+            end select
+          end if
+
+        end do var_loop_par
+      end do file_loop_par
     end do stream_loop_par
   end subroutine newoutfiles
 
@@ -1882,7 +2111,7 @@ module mod_ncout
 
   subroutine dispose_output_streams
     implicit none
-    integer(ik4) :: nstream
+    integer(ik4) :: nstream , nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
     if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
@@ -1895,8 +2124,16 @@ module mod_ncout
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)
     if ( associated(v3dvar_lak) ) deallocate(v3dvar_lak)
+    if ( associated(v2dvar_opt) ) deallocate(v2dvar_opt)
+    if ( associated(v3dvar_opt) ) deallocate(v3dvar_opt)
+    if ( associated(v2dvar_che) ) deallocate(v2dvar_che)
+    if ( associated(v3dvar_che) ) deallocate(v3dvar_che)
     do nstream = 1 , maxstreams
-      call outstream_dispose(outstream(nstream)%ncout)
+      do nfile = 1 , outstream(nstream)%nfiles
+        call outstream_dispose(outstream(nstream)%ncout(nfile))
+      end do
+      deallocate(outstream(nstream)%ncout)
+      deallocate(outstream(nstream)%cname_base)
       if ( associated(outstream(nstream)%ncvars%vlist) ) then
         deallocate(outstream(nstream)%ncvars%vlist)
       end if
@@ -1904,24 +2141,17 @@ module mod_ncout
     deallocate(outstream)
   end subroutine dispose_output_streams
 
-  subroutine write_record_output_stream(istream,idate)
+  subroutine write_record_output_stream(istream,idate,ifile)
     implicit none
     integer(ik4) , intent(in) :: istream
     type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) , intent(in) , optional :: ifile
     real(rk8) , pointer , dimension(:,:) :: tmp2d
     real(rk8) , pointer , dimension(:,:,:) :: tmp3d
-    real(rk8) , pointer , dimension(:,:) :: pnt2d
-    real(rk8) , pointer , dimension(:,:,:) :: pnt3d
+    real(rk8) , pointer , dimension(:,:) :: pnt2d => null( )
+    real(rk8) , pointer , dimension(:,:,:) :: pnt3d => null( )
     class(ncvariable_standard) , pointer :: vp
-    integer(ik4) :: ivar
-
-    if ( outstream(istream)%l_sub ) then
-      pnt2d => io2dsg
-      pnt3d => io3dsg
-    else
-      pnt2d => io2d
-      pnt3d => io3d
-    end if
+    integer(ik4) :: ivar , jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       do ivar = 1 , outstream(istream)%nvar
@@ -1939,14 +2169,36 @@ module mod_ncout
             cycle
         end select
       end do
+
+      ! If not parallel output, only the master proc writes output files
+      return
+
+    end if
+
+    jfile = outstream(istream)%nfiles
+    if ( present(ifile) ) jfile = ifile
+    if ( jfile < 1 .or. jfile > outstream(istream)%nfiles ) then
+      write (stderr,*) 'No such file in stream ',istream,' : ', ifile
       return
     end if
 
-    call outstream_addrec(outstream(istream)%ncout,idate)
+    call outstream_addrec(outstream(istream)%ncout(jfile),idate)
+
+    if ( .not. parallel_out ) then
+      if ( outstream(istream)%l_sub ) then
+        pnt2d => io2dsg
+        pnt3d => io3dsg
+      else
+        pnt2d => io2d
+        pnt3d => io3d
+      end if
+    end if
 
     do ivar = 1 , outstream(istream)%nvar
 
       vp => outstream(istream)%ncvars%vlist(ivar)%vp
+
+      ! If not parallel output, collect data
 
       if ( .not. parallel_out ) then
         select type(vp)
@@ -1975,7 +2227,9 @@ module mod_ncout
         end select
       end if
 
-      call outstream_writevar(outstream(istream)%ncout,vp)
+      call outstream_writevar(outstream(istream)%ncout(jfile),vp)
+
+      ! Reset pointers
 
       if ( .not. parallel_out ) then
         select type(vp)

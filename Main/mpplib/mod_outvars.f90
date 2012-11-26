@@ -143,4 +143,23 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
 
+  real(rk8) , dimension(:,:) , pointer :: che_wdrflx_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_wdcflx_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_ddflx_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_emflx_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_ddvel_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_burden_out => null()
+  real(rk8) , dimension(:,:) , pointer :: che_pblten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_mixrat_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_cheten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_advhten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_advvten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_difhten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_cuten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_tuten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_raiten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_wasten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_bdyten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_sedten_out => null()
+
 end module mod_outvars
