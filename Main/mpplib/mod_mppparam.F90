@@ -5567,7 +5567,7 @@ module mod_mppparam
 
   subroutine input_reorder(m1,m2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: m1
+    real(rk4) , dimension(:,:) , intent(in) :: m1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: m2
     integer(ik4) :: i , j , ii , jj , n1 , n2
     do i = idot1 , idot2

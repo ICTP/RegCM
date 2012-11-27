@@ -1174,15 +1174,10 @@ module mod_params
 
   if ( myid == iocpu ) then
     if ( nsg > 1 ) then
-      call read_subdomain(ht1_io,lndcat1_io,mask1_io,xlat1_io,xlon1_io)
+      call read_subdomain(ht1_io,lndcat1_io, &
+                          mask1_io,xlat1_io,xlon1_io,dhlake1_io)
       ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
-#ifndef CLM
-      if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
-#endif
     else
-#ifndef CLM
-      if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
-#endif
       do i = idot1 , idot2
         do j = jdot1 , jdot2
           ht1_io(1,j,i) = mddom_io%ht(j,i)*egrav
@@ -1192,8 +1187,16 @@ module mod_params
           mask1_io(1,j,i) = mddom_io%mask(j,i)
         end do
       end do
+#ifndef CLM
+      if ( lakemod == 1 ) then
+        do i = idot1 , idot2
+          do j = jdot1 , jdot2
+            dhlake1_io(1,j,i) = mddom_io%hlake(j,i)
+          end do
+        end do
+      end if
+#endif
     end if
-    call close_domain
 !
 !------invert mapscale factors and convert hgt to geopotential
 !

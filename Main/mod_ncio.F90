@@ -30,50 +30,33 @@ module mod_ncio
   use mod_domain
 !
   public :: ivarname_lookup
-  public :: init_mod_ncio , release_mod_ncio
-  public :: read_domain_info , read_domain_lake,   &
-            read_subdomain , read_subdomain_lake,  &
-            close_domain
+  public :: release_mod_ncio , read_domain_info , read_subdomain
   public :: open_icbc , read_icbc , icbc_search
 !
-  integer(ik4) :: idmin , isdmin , ibcin
+  integer(ik4) :: ibcin
   integer(ik4) :: istatus
   integer(ik4) :: ibcrec , ibcnrec
-  character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   integer(ik4) , dimension(7) :: icbc_ivar
 
-  real(rk4) , dimension(:,:) , pointer :: sp2d
-  real(rk4) , dimension(:,:) , pointer :: sp2d1
-
-  data idmin   /-1/
-  data isdmin  /-1/
   data ibcin   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
 
   contains
 
-  subroutine init_mod_ncio
-    implicit none
-    character(len=3) :: sbstring
-    if ( myid /= iocpu ) return
-    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-    write (sbstring,'(i0.3)') nsg
-    sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
-    icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//'YYYYMMDDHH.nc'
-    call getmem2d(sp2d,1,jx,1,iy,'ncio:sp2d')
-    if (nsg > 1) then
-      call getmem2d(sp2d1,1,jxsg,1,iysg,'ncio:sp2d1')
-    end if
-  end subroutine init_mod_ncio
-
   subroutine read_domain_info
     implicit none
+    character(len=256) :: dname
+    integer(ik4) :: idmin
+    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
     call say
+
     call openfile_withname(dname,idmin)
     call read_domain(idmin)
+    call closefile(idmin)
+
     if ( ensemble_run ) then
       write(stdout,*) 'Appling perturbation to input dataset:'
       if ( lperturb_topo ) then
@@ -82,44 +65,32 @@ module mod_ncio
         call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
       end if
     end if
+
   end subroutine read_domain_info
 
-  subroutine read_domain_lake(hlake)
+  subroutine read_subdomain(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
     implicit none
-
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake
-    integer(ik4) :: n , ivarid
-
-    if (idmin < 0) then
-      write (6,*) 'Error : Domain file not in open state'
-      call fatal(__FILE__,__LINE__,'DOMAIN FILE')
-    end if
-
-    istatus = nf90_inq_varid(idmin, 'dhlake', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dhlake miss', 'DOMAIN FILE')
-    istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok(__FILE__,__LINE__,'Variable dhlake read error','DOMAIN FILE')
-    do n = 1 , nnsg
-      hlake(n,:,:) = dble(sp2d)
-    end do
-  end subroutine read_domain_lake
-
-  subroutine read_subdomain(ht1,lnd1,mask1,xlat1,xlon1)
-    implicit none
-
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mask1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake1
+    integer(ik4) :: isdmin , ivarid
+    character(len=3) :: sbstring
+    character(len=256) :: sdname
+    real(rk4) , dimension(:,:) , allocatable :: sp2d1
 
-    integer(ik4) :: ivarid
-    
+    write (sbstring,'(i0.3)') nsg
+    sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
     if ( nsg > 1 ) then
       write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
       call say
       call openfile_withname(sdname,isdmin)
+    else
+      return
     end if
+    allocate(sp2d1(jxsg,iysg))
     istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable topo miss', 'SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
@@ -150,39 +121,21 @@ module mod_ncio
     istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
+    call input_reorder(sp2d1,mask1)
     call check_ok(__FILE__,__LINE__,'Variable mask read error','SUBDOMAIN FILE')
+    if ( lakemod == 1 ) then
+      istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
+      call check_ok(__FILE__,__LINE__,'Variable dhlake miss','SUBDOMAIN FILE')
+      istatus = nf90_get_var(isdmin, ivarid, sp2d1)
+      call check_ok(__FILE__,__LINE__,'Variable dhlake read error', &
+                    'SUBDOMAIN FILE')
+      call input_reorder(sp2d1,hlake1)
+    end if
+    istatus = nf90_close(isdmin)
+    call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
+                 'SUBDOMAIN FILE')
+    deallocate(sp2d1)
   end subroutine read_subdomain
-
-  subroutine read_subdomain_lake(hlake1)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake1
-    integer(ik4) :: ivarid
-    if (isdmin < 0) then
-      write (6,*) 'Error : Subdom file not in open state'
-      call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE')
-    end if
-    istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable dhlake miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable dhlake read error', &
-                  'SUBDOMAIN FILE')
-    call input_reorder(sp2d1,hlake1)
-  end subroutine read_subdomain_lake
-
-  subroutine close_domain
-    implicit none
-    if (idmin >= 0) then
-      istatus = nf90_close(idmin)
-      call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
-      idmin = -1
-    end if
-    if ( nsg>1 .and. isdmin >=0 ) then
-      istatus = nf90_close(isdmin)
-      call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
-                   'SUBDOMAIN FILE')
-      isdmin = -1
-    end if
-  end subroutine close_domain
 
   integer function icbc_search(idate)
     implicit none
@@ -212,6 +165,7 @@ module mod_ncio
     integer(ik4) :: idimid , itvar , i , chkdiff
     real(rk8) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
+    character(len=256) :: icbcname
 
     call close_icbc
     write (ctime, '(i10)') toint10(idate)
@@ -343,8 +297,7 @@ module mod_ncio
     implicit none
     if (ibcin >= 0) then
       istatus = nf90_close(ibcin)
-      call check_ok(__FILE__,__LINE__, &
-           'Error Close ICBC file '//trim(icbcname),'ICBC FILE')
+      call check_ok(__FILE__,__LINE__,'Error Close ICBC file','ICBC FILE')
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
@@ -363,7 +316,6 @@ module mod_ncio
 
   subroutine release_mod_ncio
     implicit none
-    call close_domain
     call close_icbc
   end subroutine release_mod_ncio
 

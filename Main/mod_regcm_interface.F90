@@ -125,8 +125,6 @@ module mod_regcm_interface
     call set_nproc
     call setup_model_indexes
 !
-    call init_mod_ncio
-!
 #ifdef DEBUG 
     call start_debug()
 #endif 
@@ -139,7 +137,6 @@ module mod_regcm_interface
 !
     call param
     dtinc = dt
-
 !
 !**********************************************************************
 !
