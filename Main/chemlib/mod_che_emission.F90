@@ -119,10 +119,10 @@ contains
       ! then include MEGAN emissions into the source value
       ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
       ! zero when using BATS
-      jglob = global_jstart+j-1
+      jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(iisop) /= 0 ) then
         do i = ici1, ici2
-          iglob = global_istart+i-1
+          iglob = global_dot_istart+i-1
           if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
           chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
         end do

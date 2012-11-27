@@ -31,7 +31,6 @@ module mod_output
   use mod_rad_interface
   use mod_cu_interface
   use mod_pbl_interface
-  use mod_ncio
   use mod_ncout
   use mod_bdycod
   use mod_precip
