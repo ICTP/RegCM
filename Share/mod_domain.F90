@@ -42,6 +42,7 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) :: msfd
     real(rk8) , pointer , dimension(:,:) :: coriol
     real(rk8) , pointer , dimension(:,:) :: snowam
+    real(rk8) , pointer , dimension(:,:) :: hlake
   end type domain_io
 
   type (domain_io) :: mddom_io
@@ -73,10 +74,11 @@ module mod_domain
     call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
     call read_var2d_static(ncid,'snowam',mddom_io%snowam,.true.)
+    call read_var2d_static(ncid,'dhlake',mddom_io%hlake,.true.)
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                               lndcat,msfx,msfd,coriol,snowam)
+                               lndcat,msfx,msfd,coriol,snowam,hlake)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(out) :: sigma
@@ -91,6 +93,7 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: hlake
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -104,10 +107,11 @@ module mod_domain
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
+    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,.true.)
   end subroutine read_domain_array
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,snowam)
+                                      lndcat,msfx,msfd,coriol,snowam,hlake)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk4) , pointer , dimension(:) , intent(out) :: sigma
@@ -122,6 +126,7 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -135,6 +140,7 @@ module mod_domain
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
+    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,.true.)
   end subroutine read_domain_array_single
 
   subroutine allocate_domain
@@ -151,6 +157,7 @@ module mod_domain
     call getmem2d(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
     call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
     call getmem2d(mddom_io%snowam,1,jx,1,iy,'domain:snowam')
+    call getmem2d(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
   end subroutine allocate_domain
 
   subroutine check_domain(ncid,lmod)
