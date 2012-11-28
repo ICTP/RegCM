@@ -27,7 +27,7 @@ module mod_ncstream_types
   public
 
   integer(ik4) , parameter :: ncmaxdims = 16
-  integer(ik4) , private , parameter :: maxname = 32
+  integer(ik4) , private , parameter :: maxname = 64
   integer(ik4) , private , parameter :: maxunit = 36
   integer(ik4) , private , parameter :: maxattarr = 8
   integer(ik4) , private , parameter :: maxstring = 256
