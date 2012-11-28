@@ -1081,18 +1081,17 @@ module mod_params
       write(stdout,*) 'Create CHE files : ' , ifchem  
       write(stdout,*) 'Create OPT files : ' , ifopt  
     end if
-    write(stdout,*) 'Create SUB files : ' , ifsub  
-    write(stdout,'(a,f6.1)') 'Frequency in hours to create SAV : ' , savfrq
-    write(stdout,'(a,f6.1)') 'Frequency in hours to create ATM : ' , atmfrq
-    write(stdout,'(a,f6.1)') 'Frequency in hours to create RAD : ' , radfrq
-    write(stdout,'(a,f6.1)') 'Frequency in hours to create SRF : ' , srffrq
+    write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+    write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
+    write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq
+    write(stdout,'(a,f6.1)') ' Frequency in hours to create SRF : ' , srffrq
     if ( nsg > 1 ) &
-      write(stdout,'(a,f6.1)') 'Frequency in hours to create SUB : ' , subfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create SUB : ' , subfrq
     if ( lakemod == 1 ) &
-      write(stdout,'(a,f6.1)') 'Frequency in hours to create LAK : ' , lakfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create LAK : ' , lakfrq
     if ( ichem == 1 ) then
-      write(stdout,'(a,f6.1)') 'Frequency in hours to create CHE : ' , chemfrq
-      write(stdout,'(a,f6.1)') 'Frequency in hours to create OPT : ' , chemfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create CHE : ' , chemfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create OPT : ' , chemfrq
     end if
 
     write(stdout,*) 'Physical Parameterizations'
