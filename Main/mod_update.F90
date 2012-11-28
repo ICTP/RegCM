@@ -50,7 +50,7 @@
       use mod_constants, only : wlhv
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, kz
-      use mod_dynparam, only : global_istart, global_jstart
+      use mod_dynparam, only : global_cross_istart, global_cross_jstart
 !
       implicit none
 !
@@ -113,8 +113,8 @@
       case ('Pair')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,ps_o)
         end do
       end do
@@ -126,8 +126,8 @@
       case ('Tair')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,t2m_o)
         end do
       end do
@@ -139,8 +139,8 @@
       case ('Qair')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,q2m_o)
         end do
       end do
@@ -152,8 +152,8 @@
       case ('Swrad')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,fswa_o)
         end do
       end do
@@ -165,8 +165,8 @@
       case ('Lwrad_down')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,flwd_o)
         end do
       end do
@@ -178,8 +178,8 @@
       case ('Lwrad')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,flwa_o)
         end do
       end do
@@ -191,8 +191,8 @@
       case ('Shflx')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,sena_o)
         end do
       end do
@@ -204,8 +204,8 @@
       case ('Lhflx')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,evpa_o)*   &
                                                     wlhv*day2s
         end do
@@ -218,8 +218,8 @@
       case ('Rain')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,tpr_o)*    &
                                                     day2s
         end do
@@ -232,8 +232,8 @@
       case ('Uwind')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,u10m_o)
         end do
       end do
@@ -245,8 +245,8 @@
       case ('Vwind')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,v10m_o)
         end do
       end do
@@ -258,8 +258,8 @@
       case ('EminP')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = (fbat(j,i,evpa_o)-  &
                                                     fbat(j,i,tpr_o))*   &
                                                     day2s
@@ -273,8 +273,8 @@
       case ('NHeat')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,fswa_o)-   &
                                                     fbat(j,i,sena_o)-   &
                                                     fbat(j,i,evpa_o)*   &
@@ -290,8 +290,8 @@
       case ('Ustr')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = taux(1,j,i)
         end do
       end do
@@ -303,8 +303,8 @@
       case ('Vstr')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_istart+i-1
-        jj = global_jstart+j-1
+        ii = global_cross_istart+i-1
+        jj = global_cross_jstart+j-1
         models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = tauy(1,j,i)
         end do
       end do
@@ -315,7 +315,7 @@
 !-----------------------------------------------------------------------
 !
       if (ma%has_bdytop) then
-        ii = global_istart+ici2-1
+        ii = global_cross_istart+ici2-1
         models(Iatmos)%dataExport(k,n)%ptr(ii+1,:) =                    &
                        models(Iatmos)%dataExport(k,n)%ptr(ii,:)
         models(Iatmos)%dataExport(k,n)%ptr(ii+2,:) =                    &
@@ -323,7 +323,7 @@
       end if
 !
       if (ma%has_bdyright) then
-        jj = global_jstart+jci2-1
+        jj = global_cross_jstart+jci2-1
         models(Iatmos)%dataExport(k,n)%ptr(:,jj+1) =                    &
                        models(Iatmos)%dataExport(k,n)%ptr(:,jj)
         models(Iatmos)%dataExport(k,n)%ptr(:,jj+2) =                    &
@@ -331,13 +331,13 @@
       end if
 !
       if (ma%has_bdybottom) then
-        ii = global_istart+ici1-1
+        ii = global_cross_istart+ici1-1
         models(Iatmos)%dataExport(k,n)%ptr(ii-1,:) =                    &
                        models(Iatmos)%dataExport(k,n)%ptr(ii,:)
       end if
 !
       if (ma%has_bdyleft) then
-        jj = global_jstart+jci1-1
+        jj = global_cross_jstart+jci1-1
         models(Iatmos)%dataExport(k,n)%ptr(:,jj-1) =                    &
                        models(Iatmos)%dataExport(k,n)%ptr(:,jj)
       end if
@@ -409,7 +409,7 @@
 !
       use mod_atm_interface, only : sfs
       use mod_runparams, only : idcsst 
-      use mod_dynparam, only : global_istart, global_jstart
+      use mod_dynparam, only : global_cross_istart, global_cross_jstart
 !
       implicit none
 !
@@ -500,8 +500,8 @@
       if ( idcsst == 1 ) then
       do i = ici1, ici2
         do j = jci1, jci2
-          ii = global_istart+i-1
-          jj = global_jstart+j-1
+          ii = global_cross_istart+i-1
+          jj = global_cross_jstart+j-1
           do n = 1 , nnsg
             if (iveg1(n,j,i) == 12 .or.                                 &
                 iveg1(n,j,i) == 14 .or.                                 &
@@ -519,8 +519,8 @@
       else
       do i = ici1, ici2
         do j = jci1, jci2
-          ii = global_istart+i-1
-          jj = global_jstart+j-1
+          ii = global_cross_istart+i-1
+          jj = global_cross_jstart+j-1
           do n = 1 , nnsg
             if (iveg1(n,j,i) == 12 .or.                                 &
                 iveg1(n,j,i) == 14 .or.                                 &
@@ -544,8 +544,8 @@
 
       do i = ici1, ici2
         do j = jci1, jci2
-          ii = global_istart+i-1
-          jj = global_jstart+j-1
+          ii = global_cross_istart+i-1
+          jj = global_cross_jstart+j-1
           do n = 1 , nnsg
             if (iveg1(n,j,i) == 12 .or.                                 &
                 iveg1(n,j,i) == 14 .or.                                 &

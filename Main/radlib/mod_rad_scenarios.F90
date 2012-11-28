@@ -206,9 +206,6 @@ module mod_rad_scenarios
     implicit none
     character(8) , intent(in) :: csc
 !
-    write (aline , *) 'Setting IPCC scenario to ', csc
-    call say
-!
     select case (csc)
       case ( 'A1B' )
         cgas(1:6,2001:2050) = reshape((/   &

@@ -87,7 +87,6 @@ module mod_split
     do ns = 1 , nsplit
       aam(ns) = dnint(dtsec/dtau(ns))
     end do
-    if ( myid == italk ) print * , 'dt, dtau = ' , dt , dtau
     !
     ! lstand = .true. if standard atmosphere t to be used (ignore input
     ! tbarh and xps in that case). otherwise, xps and tbarh must
@@ -159,7 +158,10 @@ module mod_split
         zmatx(k,l) = zmatx(k,l)*fac
         am(k,l) = am(k,l)*fac
       end do
-      if ( myid == italk ) print * , 'aam, fac = ' , aam(l) , fac
+      if ( myid == italk ) then
+        write(stdout,'(a,i4a,f11.4,a,f11.4)') &
+          ' Split : ',l,' => aam :',aam(l),', fac :',fac
+      end if
     end do
     !
     ! If a restart run, do not recalculate the hstor/dstor

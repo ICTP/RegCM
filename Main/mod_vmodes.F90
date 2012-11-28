@@ -136,7 +136,6 @@ module mod_vmodes
     hydror = d_zero
     varpa2 = d_zero
     numerr = 0
-    lprint = .false.
     !
     ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     !
@@ -144,30 +143,29 @@ module mod_vmodes
     !
     ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     !
-    ! set arrays describing vertical structure
+    if ( myid == italk ) then
+      write(stdout,*) 'Calculating Vertical Modes'
+      if ( lstand ) then
+        write(stdout,*) 'Linearization about standard atmosphere'
+      else
+        write(stdout,*) 'Linearization about horizontal mean of data'
+      end if
+    end if
     !
+    ! set arrays describing vertical structure
     ! set reference pressures
     !
     if ( lstand ) xps = d_100
     ! standard xps in cb; otherwise xps set in tav
     pd = xps - ptop
-    write (aline,*) 'Calculating Vertical Modes'
-    call say
-    if ( lstand ) then
-      write (aline,*) '- Linearization about standard atmosphere'
-      call say
-    else
-      write (aline,*) '- Linearization about horizontal mean of data'
-      call say
-    end if
     lsigma = .false.
     if ( dabs(sigma(1)) > dlowval ) lsigma = .true.
     if ( dabs(sigma(kzp1)-d_one) > dlowval ) lsigma = .true.
     do k = 1 , kz
       if ( sigma(k+1) < sigma(k) ) then
         lsigma = .true.
-        write (aline,99001) k , sigma(k+1) , sigma(k)
-        call say
+        write(stdout,'(a,i3,a,f9.6,a,f9.6)') ' for k = ',k, &
+          ' sigma(k+1) = ',sigma(k+1),' <= sigma(k) = ', sigma(k)
       end if
     end do
     if ( lsigma ) then
@@ -347,7 +345,7 @@ module mod_vmodes
     end do
     if ( lhydro ) then
       numerr = numerr + 1
-      print 99002
+      write(stderr,*) 'Problem with linearization of hydrostatic equation'
       call vprntv(w1(1,1),kz,'test1   ')
       call vprntv(w1(1,2),kz,'test2   ')
     end if
@@ -460,39 +458,34 @@ module mod_vmodes
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = xps
       call vprntv(pps,1,'ps mean ')
-      print 99003 , kz , numerr
+      write(stderr,'(a,i3)') ' Vertical mode problem for kz   = ',kz
+      write(stderr,'(a,i3)') ' Number of errors (should be 0) = ',numerr
     end if
     !
     ! printout if desired
     !
-    if ( .not. lprint ) then
-      return
+    if ( lprint .and. myid == iocpu ) then
+      call vprntv(cpfac,kz,'cpfac   ')
+      call vprntv(sdsigma,kz,'sdsigma  ')
+      call vprntv(hbar,kz,'hbar    ')
+      call vprntv(sigmah,kzp1,'sigmah  ')
+      call vprntv(tbarf,kzp1,'tbarf   ')
+      call vprntv(thetah,kz,'thetah  ')
+      call vprntv(thetaf,kzp1,'thetaf  ')
+      call vprntv(hweigh,kz,'hweigh  ')
+      write(stdout,'(a,1x,1E16.5,a,1x,1E16.5)') 'alpha1 = ',alpha1, &
+        ', alpha2 = ',alpha2
+      call vprntm(hsigma,kz,kz,'a       ')
+      call vprntm(hydros,kz,kz,'hydros  ')
+      call vprntm(hydror,kz,kz,'hydror  ')
+      call vprntm(hydroc,kz,kzp1,'hydroc  ')
+      call vprntm(tau,kz,kz,'tau     ')
+      call vprntm(zmatx,kz,kz,'zmatx   ')
+      call vprntm(zmatxr,kz,kz,'zmatxr  ')
+      call vprntm(varpa1,kz,kzp1,'varpa1  ')
+      call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
     end if
-    call vprntv(cpfac,kz,'cpfac   ')
-    call vprntv(sdsigma,kz,'sdsigma  ')
-    call vprntv(hbar,kz,'hbar    ')
-    call vprntv(sigmah,kzp1,'sigmah  ')
-    call vprntv(tbarf,kzp1,'tbarf   ')
-    call vprntv(thetah,kz,'thetah  ')
-    call vprntv(thetaf,kzp1,'thetaf  ')
-    call vprntv(hweigh,kz,'hweigh  ')
-    print 99004 , alpha1 , alpha2
-    call vprntm(hsigma,kz,kz,'a       ')
-    call vprntm(hydros,kz,kz,'hydros  ')
-    call vprntm(hydror,kz,kz,'hydror  ')
-    call vprntm(hydroc,kz,kzp1,'hydroc  ')
-    call vprntm(tau,kz,kz,'tau     ')
-    call vprntm(zmatx,kz,kz,'zmatx   ')
-    call vprntm(zmatxr,kz,kz,'zmatxr  ')
-    call vprntm(varpa1,kz,kzp1,'varpa1  ')
-    call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
 
-99001 format ('0 for k=',i3,' sigma(k+1)=',f9.6,' <= sigma(k)=',f9.6)
-99002 format ('0 problem with linearization of hydostatic equation')
-99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1, &
-              ' errors detected   (should be 0)')
-99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
- 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -518,9 +511,8 @@ module mod_vmodes
       end do
       if ( .not.lstab ) then
         numerr = numerr + 1
-        print 99001
+        write(stderr,*) 'Possibly unstable tbarh !!'
       end if
-99001 format ('0 indication that tbarh statically unstable')
     end subroutine vchekt
     !
     ! This routine computes the temperature corresponding to a U.S.
@@ -622,9 +614,9 @@ module mod_vmodes
         return
       end if
       numerr = numerr + 1
-      print 99001 , numneg , nimag
-99001 format ('0 problem with equivalent depths determined from tau',/, &
-         10x,i3,' depths are nonpositive valued',10x,i3,' are not real')
+      write(stderr,*) 'Problem with equivalent depths determined from tau'
+      write(stderr,*) 'Depths non positive valued : ',numneg
+      write(stderr,*) 'Depths not real            : ',nimag
     end subroutine vcheke
   end subroutine vmodes
   !
@@ -638,10 +630,9 @@ module mod_vmodes
     intent (inout) numerr
     if ( ier /= 0 ) then
       numerr = numerr + 1
-      print 99001 , aname , ier
+      write(stderr,*) 'Error in determination of ',aname
+      write(stderr,*) 'Library routine : ',ier
     end if
-99001 format ('0 error in determination of ',a8, &
-              ' using library routine ier=',i4)
   end subroutine vcheki
   !
   ! Matrix inversion using linpack
@@ -682,33 +673,5 @@ module mod_vmodes
     call time_end(subroutine_name,idindx)  
 #endif
   end subroutine invmtrx
-  !
-  ! Printout helpers
-  !
-  subroutine vprntv(a,n,nam)
-    implicit none
-    integer(ik4) :: n
-    character(8) :: nam
-    real(rk8) , dimension(n) :: a
-    intent (in) a , n , nam
-    integer(ik4) :: k
-    print * , nam
-    do k = 1 , n
-      print *, a(k)
-    end do
-  end subroutine vprntv
-!
-  subroutine vprntm(a,n1,n2,nam)
-    implicit none
-    integer(ik4) :: n1 , n2
-    character(8) :: nam
-    real(rk8) , dimension(n1,n2) :: a
-    intent (in) a , n1 , n2 , nam
-    integer(ik4) :: k , l
-    print * , nam
-    do k = 1 , n1
-      print * , k , (a(k,l),l=1,n2)
-    end do
-  end subroutine vprntm
 !
 end module mod_vmodes

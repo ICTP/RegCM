@@ -343,12 +343,12 @@ module mod_regcm_interface
     implicit none
     character(len=32) :: appdat
 !
-    call release_mod_ncio
+    if ( myid == italk ) then
+      appdat = tochar(idate2)
+      write(stdout,*) 'Restart file for next run is written at time =',appdat
+    end if
 !
-    appdat = tochar(idate2)
-    write (aline, 99002) appdat
-    call say
-
+    call close_icbc
     call dispose_output_streams
 !
 #ifdef CLM
@@ -360,10 +360,8 @@ module mod_regcm_interface
     call finaltime(myid)
 !
     if ( myid == italk ) then
-      print *, 'RegCM V4 simulation successfully reached end'
+      write(stdout,*) 'RegCM V4 simulation successfully reached end'
     end if
-!
-99002 format ('Restart file for next run is written at time = ',a)
 !
   end subroutine RCM_finalize
 !

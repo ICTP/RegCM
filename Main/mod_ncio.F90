@@ -30,8 +30,8 @@ module mod_ncio
   use mod_domain
 !
   public :: ivarname_lookup
-  public :: release_mod_ncio , read_domain_info , read_subdomain
-  public :: open_icbc , read_icbc , icbc_search
+  public :: read_domain_info , read_subdomain_info
+  public :: open_icbc , icbc_search , read_icbc , close_icbc
 !
   integer(ik4) :: ibcin
   integer(ik4) :: istatus
@@ -45,30 +45,51 @@ module mod_ncio
 
   contains
 
+  subroutine read_domain_info_par
+    implicit none
+    character(len=256) :: dname
+    integer(ik4) :: idmin
+
+    if ( myid == iocpu ) then
+      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      write(stdout,*) 'Reading Domain file : ', trim(dname)
+      call openfile_withname(dname,idmin)
+      call read_domain(idmin)
+      call closefile(idmin)
+      if ( ensemble_run ) then
+        write(stdout,*) 'Appling perturbation to input dataset:'
+        if ( lperturb_topo ) then
+          write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+            perturb_frac_topo*d_100,'%'
+          call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
+        end if
+      end if
+    end if
+  end subroutine read_domain_info_par
+
   subroutine read_domain_info
     implicit none
     character(len=256) :: dname
     integer(ik4) :: idmin
-    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-    write (aline,*) 'open_domain: READING HEADER FILE:', dname
-    call say
 
-    call openfile_withname(dname,idmin)
-    call read_domain(idmin)
-    call closefile(idmin)
-
-    if ( ensemble_run ) then
-      write(stdout,*) 'Appling perturbation to input dataset:'
-      if ( lperturb_topo ) then
-        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-          perturb_frac_topo*d_100,'%'
-        call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
+    if ( myid == iocpu ) then
+      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      write(stdout,*) 'Reading Domain file : ', trim(dname)
+      call openfile_withname(dname,idmin)
+      call read_domain(idmin)
+      call closefile(idmin)
+      if ( ensemble_run ) then
+        write(stdout,*) 'Appling perturbation to input dataset:'
+        if ( lperturb_topo ) then
+          write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+            perturb_frac_topo*d_100,'%'
+          call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
+        end if
       end if
     end if
-
   end subroutine read_domain_info
 
-  subroutine read_subdomain(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
+  subroutine read_subdomain_info(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd1
@@ -81,16 +102,14 @@ module mod_ncio
     character(len=256) :: sdname
     real(rk4) , dimension(:,:) , allocatable :: sp2d1
 
+    if ( nsg < 2 ) return
+
     write (sbstring,'(i0.3)') nsg
     sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
-    if ( nsg > 1 ) then
-      write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
-      call say
-      call openfile_withname(sdname,isdmin)
-    else
-      return
-    end if
+    write(stdout,*) 'Reading Sub-Domain file : ', trim(sdname)
+
     allocate(sp2d1(jxsg,iysg))
+    call openfile_withname(sdname,isdmin)
     istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
     call check_ok(__FILE__,__LINE__,'Variable topo miss', 'SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
@@ -135,7 +154,7 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
                  'SUBDOMAIN FILE')
     deallocate(sp2d1)
-  end subroutine read_subdomain
+  end subroutine read_subdomain_info
 
   integer function icbc_search(idate)
     implicit none
@@ -313,10 +332,5 @@ module mod_ncio
       call fatal(f,l,trim(mf))
     end if
   end subroutine check_ok
-
-  subroutine release_mod_ncio
-    implicit none
-    call close_icbc
-  end subroutine release_mod_ncio
 
 end module mod_ncio

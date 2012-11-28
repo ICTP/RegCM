@@ -30,7 +30,6 @@ module mod_savefile
   use mod_pbl_interface
   use mod_bdycod
   use mod_mppio
-  use netcdf
 #ifdef CLM
   use mod_clm
   use restFileMod, only : restFile_write, restFile_write_binary
@@ -368,36 +367,5 @@ module mod_savefile
 #endif
     end if
   end subroutine write_savefile
-
-  subroutine preapare_nc_savefile(idate,ltmp)
-    implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    logical , intent(in) :: ltmp
-    character(256) :: ffout
-    character(32) :: fbname
-    integer(ik4) :: ires
-    integer(ik4) :: ixdim
-    if ( myid /= iocpu ) then
-      return
-    end if
-    if (ltmp) then
-      write (fbname, '(a,i10)') 'TMPSAV.', toint10(idate)
-    else
-      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
-    end if
-    ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
-#ifdef NETCDF4_HDF5
-    ires = nf90_create(ffout, &
-              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncsave)
-#else
-    ires = nf90_create(ffout, nf90_clobber, ncsave)
-#endif
-    if ( ires /= nf90_noerr ) then
-      call say
-      call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
-    end if
-    ires = nf90_def_dim(ncsave,'iycross',nicross,ixdim)
-
-  end subroutine preapare_nc_savefile
 
 end module mod_savefile

@@ -221,10 +221,7 @@ module mod_init
     !
     call o3data
     if ( myid == italk ) then
-      write (6,*) 'ozone profiles'
-      do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof(3,3,k)
-      end do
+      call vprntv(o3prof(3,3,:),kzp1,'Ozone profiles')
     end if
     !
     ! End of initial run case
@@ -282,10 +279,7 @@ module mod_init
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
 !
     if ( myid == italk ) then
-      print * , 'ozone profiles restart'
-      do k = 1 , kzp1
-        write (6,'(1x,7E12.4)') o3prof(3,3,k)
-      end do
+      call vprntv(o3prof(3,3,:),kzp1,'Ozone profiles restart')
     end if
 !
     if ( iocnflx == 2 ) then

@@ -461,10 +461,13 @@ module mod_params
 #endif
 
   if ( myid == iocpu ) then
+    write(stdout,*) 'Reading model namelist stanzas'
 !  
 !-----read in namelist variables:
     read (ipunit, restartparam)
-    print * , 'RESTARTPARAM namelist READ IN'
+#ifdef DEBUG
+    write(stdout,*) 'Read restartparam OK'
+#endif
 
     idate0 = mdate0
     idate1 = mdate1
@@ -480,57 +483,84 @@ module mod_params
     end if
 
     read (ipunit, timeparam)
-    print * , 'TIMEPARAM namelist READ IN'
+#ifdef DEBUG
+    write(stdout,*) 'Read timeparam OK'
+#endif
     read (ipunit, outparam)
-    print * , 'OUTPARAM namelist READ IN'
+#ifdef DEBUG
+    write(stdout,*) 'Read outparam OK'
+#endif
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
     read (ipunit, physicsparam)
-    print * , 'PHYSICSPARAM namelist READ IN'
+#ifdef DEBUG
+    write(stdout,*) 'Read physicsparam OK'
+#endif
     if ( ipptls == 1 ) then
       read (ipunit, subexparam)
-      print * , 'SUBEXPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read subexparam OK'
+#endif
     end if
     if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
       read (ipunit, grellparam)
-      print * , 'GRELLPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read grellparam OK'
+#endif
     end if
     if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
       read (ipunit, emanparam)
-      print * , 'EMANPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read emanparam OK'
+#endif
     end if
     if ( icup == 5 ) then
       read (ipunit, tiedtkeparam)
-      print * , 'TIEDTKEPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read tiedtkeparam OK'
+#endif
     end if
     if ( icup < 0 .or. (icup > 5 .and. icup < 98) .or. icup > 99 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
+    end if
+    if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
+      call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
       !Set ichdrdepo to a default value of 2; the UW--chem coupling
       !requires this
       ichdrdepo = 2
-      print * , 'UWPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read uwparam OK'
+#endif
     end if
     if ( irrtm == 1 ) then
       read (ipunit, rrtmparam)
-      print * , 'RRTMPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read rrtmparam OK'
+#endif
     end if
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
-      print * , 'CHEMPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read chemparam OK'
+#endif
     else
       ichem = 0
       ntr = 0
     end if
 #ifdef CLM
     read (ipunit , clmparam)
-    print * , 'CLMPARAM namelist READ IN'
+#ifdef DEBUG
+    write(stdout,*) 'Read clmparam OK'
+#endif
 #endif
     if (iocncpl == 1) then
       read (ipunit , cplparam)
-      print *, 'CPLPARAM namelist READ IN'
+#ifdef DEBUG
+      write(stdout,*) 'Read cplparam OK'
+#endif
     end if
   end if 
 !
@@ -597,23 +627,23 @@ module mod_params
   if ( myid == iocpu ) then
     if ( dattyp(4:5) == '26' ) then
       if ( scenario /= 'RCP3PD' .or. scenario /= 'RCP2.6' ) then
-        print *, 'Forcing scenario from dattyp to RCP2.6'
+        write(stderr,*) 'Forcing scenario from dattyp to RCP2.6'
         scenario = 'RCP3PD'
       end if
     else if ( dattyp(4:5) == '45' ) then
       if ( scenario /= 'RCP4.5') then
-        print *, 'Forcing scenario from dattyp to RCP4.5'
+        write(stderr,*) 'Forcing scenario from dattyp to RCP4.5'
         scenario = 'RCP4.5'
       end if
     else if ( dattyp(4:5) == '60') then
       if ( scenario /= 'RCP6' .or.  scenario /= 'RCP60' .or.  &
            scenario /= 'RCP60') then
-        print *, 'Forcing scenario from dattyp to RCP6.0'
+        write(stderr,*) 'Forcing scenario from dattyp to RCP6.0'
         scenario = 'RCP6'
       end if
     else if ( dattyp(4:5) == '85') then
       if ( scenario /= 'RCP8.5') then
-        print *, 'Forcing scenario from dattyp to RCP8.5'
+        write(stderr,*) 'Forcing scenario from dattyp to RCP8.5'
         scenario = 'RCP8.5'
       end if
     end if
@@ -822,24 +852,19 @@ module mod_params
 !-----------------------------------------------------------------------
 ! 
   if ( myid == italk ) then
-    write (aline,*) 'starting first checks' 
-    call say
     if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
-      write (aline,*) 'DTRAD=' , dtrad , 'DT=' , dt
-      call say
+      write (stderr,*) 'DTRAD=' , dtrad , 'DT=' , dt
       call fatal(__FILE__,__LINE__, &
                  'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
-      write (aline,*) 'DTSRF=' , dtsrf , 'DT=' , dt
-      call say
+      write (stderr,*) 'DTSRF=' , dtsrf , 'DT=' , dt
       call fatal(__FILE__,__LINE__, &
                  'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
     if ( ifsrf ) then
       if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
-        write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
-        call say
+        write (stderr,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
         call fatal(__FILE__,__LINE__, &
                    'INCONSISTENT SURFACE OUTPUT FREQUENCY SPECIFIED')
       end if
@@ -854,20 +879,18 @@ module mod_params
       end if
     end if
     if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
-      write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
-      call say
+      write (stderr,*) 'DTABEM=' , dtabem , 'DT=' , dt
       call fatal(__FILE__,__LINE__, &
                  'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
-      write (aline,*) 'DTABEM=' , dtabem , 'DTRAD=' , dtrad
+      write (stderr,*) 'DTABEM=' , dtabem , 'DTRAD=' , dtrad
       call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                  ' TIMESTEPS SPECIFIED')
     end if
     if ( ichem == 1 .and. chemfrq <=  d_zero) then
-      write (aline,*) 'CHEMFRQ=' ,chemfrq
-      call say
+      write (stderr,*) 'CHEMFRQ=' ,chemfrq
       call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
     end if
   end if
@@ -939,38 +962,36 @@ module mod_params
     dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
     dtau(ns) = dtsplit(ns)
   end do
-  write (aline, *) 'dtau = ' , dtau
-  call say
   ntabem = idnint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
   deltmx = dt
-!.....compute the time steps for radiation computation.
-!sb   lake model mods
-!.....compute the time steps for lake model call.
   dtlake = dtsrf
-!sb   end lake model mods
 !
-
-  if ( myid == iocpu ) then
-    call read_domain_info
-    sigma(:) = mddom_io%sigma(:)
+  if ( myid == italk ) then
+    appdat = tochar(idate0)
+    write(stdout,*) 'Initial date of the global simulation: ',appdat
+    appdat = tochar(idate1)
+    write(stdout,*) 'Initial date of this run             : ',appdat
+    appdat = tochar(idate2)
+    write(stdout,*) 'Final date of this run               : ',appdat
+    write(stdout,*) 'Total simulation lenght              : ',hspan,' hours'
+    write(stdout,'(a,f11.6)') ' Timestep in seconds = ',dtsec
+    write(stdout,'(a,2f11.6)') ' Split explicit dtau = ',dtau
   end if
+
+  call read_domain_info
+
+  if ( myid == iocpu) sigma(:) = mddom_io%sigma(:)
 
   call bcast(ds)
   call bcast(ptop)
   call bcast(sigma)
 
   dx = ds * d_1000
- 
-!rst-fix
-  appdat = tochar(idate0)
-  write (aline, *) 'initial date of the global '// &
-                   'simulation: idate  = ' , appdat
-  call say
-!
+! 
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
 !     qcth   : threshold for the onset of autoconversion.
@@ -998,6 +1019,7 @@ module mod_params
   call setup_boundaries(cross,ba_cr)
   call setup_boundaries(dot,ba_dt)
 
+  if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
   call set_scenario(scenario)
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
@@ -1036,146 +1058,95 @@ module mod_params
 !
   if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then
-      write (6,*) 'Error in parameter set.'
-      write (6,*) 'Cannot set idate0 == idate1 on restart run'
-      write (6,*) 'Correct idate0.'
+      write(stderr,*) 'Error in parameter set.'
+      write(stderr,*) 'Cannot set idate0 == idate1 on restart run'
+      write(stderr,*) 'Correct idate0.'
       call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
     end if
   end if
 !
-  appdat = tochar(idate1)
-  write (aline,*) 'initial date of this '//'simulation: ' , appdat
-  call say
-  appdat = tochar(idate2)
-  write (aline,*) '  final date of this '//'simulation: ' , appdat
-  call say
-  write (aline,'(a,i10,a)')  &
-       'total simulation lenght ' , hspan, ' hours'
-  call say
-  write (aline,'(a,f9.4)')  &
-       'dtsec (timestep in seconds)' , dtsec
-  call say
   idatex = idate1
   call split_idate(idatex,xyear,xmonth,xday,xhour)
   kstsoff = khour*xhour
 !
-  write (aline, *) 'input/output parameters '
-  call say
-  write (aline,*) 'if true(T) create SAV files for '// &
-                  'restart: ifsave = ' , ifsave  
-  call say 
-  write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , savfrq
-  call say 
-  write (aline,*) 'if true (T) Output ATM files:  ifatm = ' , ifatm 
-  call say 
-  write (aline,*) 'Frequency in hours to write  ATM: atmfrq = ' , atmfrq 
-  call say  
-  write (aline,*) 'Frequency in hours to write  RAD: radfrq = ' , radfrq 
-  call say
-  write (aline,*) 'Frequency in hours to write  SRF: srffrq = ' , srffrq  
-  call say
-  if ( lakemod == 1 ) then
-    write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , lakfrq
-  end if
-  write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , ifchem 
-  call say 
-  write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , chemfrq
-  call say  
-  write (aline,*) ' '
-  call say
-  write (aline,*) 'physical parameterizations '
-  call say
-  write (aline,'(a,i2)') ' Lateral Boundary conditions '// &
-                          'scheme: iboudy = ' , iboudy
-  call say  
-  write (aline,'(a,i2)') ' Cumulus convection scheme: icup = ' , icup
-  call say
-  write  (aline,'(a,i2)') ' Grell Scheme Cumulus closure '//  &
-                          'scheme: igcc =' , igcc 
-  call say
-  write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
-  call say
-  write  (aline,'(a,i2)') ' Ocean Flux scheme: iocnflx = ' , iocnflx
-  call say
-  if ( iocnflx == 2 ) then
-    write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
-    call say
-  end if
-  write  (aline,'(a,i2)') ' Coupling with ROMS ocean model: iocncpl = ', iocncpl
-  call say
-  write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
-  call say
-  write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &
-                          'iemiss = ' , iemiss 
-  call say 
-  write  (aline,'(a,i2)') ' Use lake model lakemod = ' , lakemod 
-  call say
-  write  (aline,'(a,i2)') ' Use Chemical/aerosol model '// &
-                          '(0=no,1=yes):  ichem =' , ichem 
-  call say
-  write  (aline,'(a,i2)') ' Use diurnal sst cycle effect '// &
-                          '(0=no,1=yes):  idcsst =' , idcsst 
-  call say 
-  write  (aline,'(a,i2)') ' Use sea ice effect '// &
-                          '(0=no,1=yes):  iseaice =' , iseaice 
-  call say
-  write  (aline,'(a,i2)') ' Use desert seasonal effect '// &
-                          '(0=no,1=yes):  idesseas =' , idesseas 
+  if ( myid == italk ) then
+    write(stdout,*) 'Create SAV files : ' , ifsave  
+    write(stdout,*) 'Create ATM files : ' , ifatm  
+    write(stdout,*) 'Create RAD files : ' , ifrad  
+    write(stdout,*) 'Create SRF files : ' , ifsrf  
+    write(stdout,*) 'Create STS files : ' , ifsts  
+    if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ' , ifsub  
+    if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ' , iflak  
+    if ( ichem == 1 ) then
+      write(stdout,*) 'Create CHE files : ' , ifchem  
+      write(stdout,*) 'Create OPT files : ' , ifopt  
+    end if
+    write(stdout,*) 'Create SUB files : ' , ifsub  
+    write(stdout,'(a,f6.1)') 'Frequency in hours to create SAV : ' , savfrq
+    write(stdout,'(a,f6.1)') 'Frequency in hours to create ATM : ' , atmfrq
+    write(stdout,'(a,f6.1)') 'Frequency in hours to create RAD : ' , radfrq
+    write(stdout,'(a,f6.1)') 'Frequency in hours to create SRF : ' , srffrq
+    if ( nsg > 1 ) &
+      write(stdout,'(a,f6.1)') 'Frequency in hours to create SUB : ' , subfrq
+    if ( lakemod == 1 ) &
+      write(stdout,'(a,f6.1)') 'Frequency in hours to create LAK : ' , lakfrq
+    if ( ichem == 1 ) then
+      write(stdout,'(a,f6.1)') 'Frequency in hours to create CHE : ' , chemfrq
+      write(stdout,'(a,f6.1)') 'Frequency in hours to create OPT : ' , chemfrq
+    end if
 
-  call say
-  write  (aline,'(a,i2)') ' Use convective LWP parameterization '// &
-                     'for large-scale '// &
-                     'clouds (0=no,1=yes):  iconvlwp =' , iconvlwp 
-  call say
-  write(aline,'(a,f9.6)') ' Nudge value high range   =', high_nudge 
-  call say
-  write(aline,'(a,f9.6)') ' Nudge value medium range =', medium_nudge 
-  call say
-  write(aline,'(a,f9.6)') ' Nudge value low range    =', low_nudge 
-  call say
-#ifdef CLM 
-  write(aline,'(a,i2)' )  ' CLM imask  = ' , imask 
-  call say
-  write(aline,'(a,f9.6)') 'Frequency in hours to write CLM: = ', clmfrq
-  call say
+    write(stdout,*) 'Physical Parameterizations'
+    write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
+    write(stdout,'(a,i2)') '  Cumulus convection scheme   : ' , icup
+    if ( icup == 2 ) then
+      write(stdout,'(a,i2)') '  Grell closure scheme        : ' , igcc
+    end if
+    write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
+    write(stdout,'(a,i2)') '  Ocean Flux scheme           : ' , iocnflx
+    if ( iocnflx == 2 ) then
+      write(stdout,'(a,i2)') '  Zeng roughness formula      : ' , iocnrough
+    end if
+    write(stdout,'(a,i2)') '  Coupling with ROMS ocean    : ' , iocncpl
+    write(stdout,'(a,i2)') '  Pressure gradient force     : ' , ipgf
+    write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ' , iemiss
+#ifndef CLM
+    write(stdout,'(a,i2)') '  Lake model in BATS          : ' , lakemod
+    write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ' , idcsst
+    write(stdout,'(a,i2)') '  Simulate sea ice cover      : ' , iseaice
+    write(stdout,'(a,i2)') '  Simulate desert seasons     : ' , idesseas
 #endif
-  write (aline, *) ' '
-  call say
-  write (aline, *) 'model parameters '
-  call say
-  write (aline,'(a,f12.6)')  ' time step for radiation '// &
-          'model in minutes:  dtrad = ' , dtrad 
-  call say 
-  write (aline,'(a,f12.6)')  ' time step for land surface '// &
-          'model in seconds :  dtsrf  = ' , dtsrf 
-  call say
-  write (aline,'(a,f12.6)')  ' time step for LW absorption/'// &
-          'emissivity in hours:  dtabem  = ' , dtabem 
-  call say
-  write (aline,'(a,f12.6)')  ' time step for atmosphere model '// &
-          ' in seconds:  dt     = ' , dt
-  call say
-  write (aline, *) ' '
-  call say
-  write (aline,'(a,i2)' ) '# of bottom model levels '// &
-                          'with no clouds:  ncld = ' , ncld
-  call say
-  write (aline, *) ' '
-  call say
+    write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
+    write(stdout,'(a,i2)') '  Convective LWP scheme       : ' , iconvlwp
+    write(stdout,*) 'Boundary Pameterizations'
+    write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge 
+    write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge 
+    write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge 
+#ifdef CLM 
+    write(stdout,*) 'CLM Pameterizations'
+    write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask 
+    write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
+#endif
+    write(stdout,*) 'Model Timestep Pameterizations'
+    write(stdout,'(a,f12.6)') '  time step for dynamical '// &
+          'model in seconds : ' , dt 
+    write(stdout,'(a,f12.6)') '  time step for surface   '// &
+          'model in seconds : ' , dtsrf 
+    write(stdout,'(a,f12.6)') '  time step for radiation '// &
+          'model in minutes : ' , dtrad 
+    write(stdout,'(a,f12.6)') '  time step for emission  '// &
+          'model in hours   : ' , dtabem 
+  end if
 
-  if (ichem==1) then
+  if ( ichem == 1 ) then
     do n = 1 , ntr
       call bcast(chtrname(n),6)
     end do
   end if
 
-  write (aline, *) 'Reading in DOMAIN data'
-  call say
-
   if ( myid == iocpu ) then
     if ( nsg > 1 ) then
-      call read_subdomain(ht1_io,lndcat1_io, &
-                          mask1_io,xlat1_io,xlon1_io,dhlake1_io)
+      call read_subdomain_info(ht1_io,lndcat1_io, &
+        mask1_io,xlat1_io,xlon1_io,dhlake1_io)
       ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
     else
       do i = idot1 , idot2
@@ -1208,26 +1179,21 @@ module mod_params
       end do
     end do
 
-    print * , ' '
-    print * ,                                                     &
-          '***************************************************'
-    print * ,                                                     &
-          '***************************************************'
-    print * ,                                                     &
-          '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
-    print * , '****     Map Projection: ' , iproj ,               &
-          '                ****'
-    print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
-          '             ****'
-    print * , '****     PTOP=' , ptop , ' DX=' , ds ,             &
-          '       ****'
-    print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
-          '    ****'
-    if ( iproj == 'ROTMER' ) print * , '****     PLAT= ' , plat , &
-                                  ' PLON=' , plon , '    ****'
-    print * ,                                                     &
-          '***************************************************'
-    print * , ' '
+    write(stdout,*) 'Domain grid parameters:'
+    write(stdout,'(a,a)') '  Map Projection        : ',iproj
+    write(stdout,'(a,i4,a,i4,a,i3)') &
+      '  Dot Grid Full Extent  : ',jx,'x',iy,'x',kz
+    write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
+    write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
+    write(stdout,'(a,f11.6,a)') '  Grid Center Latitude  : ',clat,' deg'
+    write(stdout,'(a,f11.6,a)') '  Grid Center longitude : ',clon,' deg'
+    if ( iproj == 'ROTMER' ) then
+      write(stdout,'(a,f11.6,a)') '  Pole Latitude         : ',plat,' deg'
+      write(stdout,'(a,f11.6,a)') '  Pole longitude        : ',plon,' deg'
+    else if ( iproj == 'LAMCON' ) then
+      write(stdout,'(a,f11.6,a)') '  True Latitude 1       : ',truelatl,' deg'
+      write(stdout,'(a,f11.6,a)') '  True Latitude 2       : ',truelath,' deg'
+    end if
 
   end if  ! end if (myid == iocpu)
 
@@ -1300,56 +1266,49 @@ module mod_params
       exit
     end if
   end do
-  write (aline, '(a,i3)') 'Index of highest allowed pbl:'// &
-                          '  kmxpbl = ' , kmxpbl
-  call say
-  write (aline, *) ' '
-  call say
-!
   if ( ipptls == 1 ) then
-    write (aline, '(a,f11.6,a,f11.6)')                        &
-             'Auto-conversion rate:  Land = ' , qck1land ,    &
-             '                      Ocean = ' , qck1oce
-    call say
-    write (aline, *) 'Relative humidity thresholds:  Land = ' ,   &
-             rh0land , '                              Ocean = ' , &
-             rh0oce
-    call say
-    write (aline, *) 'Gultepe factors:  Land=' , gulland ,   &
-            '                 Ocean=' , guloce
-    call say
-    write (aline, *) 'Maximum cloud cover for radiation: ' , fcmax
-    call say
-    write (aline, *) 'Maximum relative humidity: ' , rhmax
-    call say
-    write (aline, *) 'rh0 temperature threshold: ' , tc0
-    call say
-    if ( cevap <= d_zero ) then
-      write (aline, *) 'Raindrop evaporation not included'
-      call say
-      cevap = d_zero
-    end if
+    cevap = max(cevap,d_zero)
+    caccr = max(caccr,d_zero)
     cevapu = cevap
-    if ( caccr <= d_zero ) then
-      write (aline, *) 'Raindrop accretion not included'
-      call say
-    end if
-    write (aline, *) 'Raindrop Evaporation Rate' , cevap
-    call say
-    write (aline, *) 'Raindrop Accretion Rate' , caccr
-    call say
-    write (aline, *) 'Maximum total cloud cover for radiation: ' ,  &
-         cftotmax
-    call say
   end if
  
-  write (aline, *) ' '
-  call say
- 
-  if (icup == 99) then
-    write (aline,*) 'Variable cumulus scheme: will use Grell '// &
-         'over land and Emanuel over ocean.'
-    call say
+  if ( myid == italk ) then
+    if ( ibltyp == 1 ) then
+      write(stdout,*) 'PBL limit for Holtstag'
+      write(stdout,'(a,i3)') '  Index of highest allowed pbl : ',kmxpbl
+    end if
+    if ( ipptls == 1 ) then
+      write(stdout,*) 'SUBEX large scale precipitation parameters'
+      write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
+      write(stdout,'(a,f11.6,a,f11.6)')                      &
+        '  Auto-conversion rate:          Land = ',qck1land,' Ocean = ',qck1oce
+      write(stdout,'(a,f11.6,a,f11.6)')                      &
+        '  Relative humidity thresholds:  Land = ',rh0land, ' Ocean = ',rh0oce
+      write(stdout,'(a,f11.6,a,f11.6)')                      &
+        '  Gultepe factors:               Land = ',gulland ,' Ocean = ',guloce
+      write(stdout,'(a,f11.6)') '  Maximum cloud cover for radiation : ' , fcmax
+      write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' , rhmax
+      write(stdout,'(a,f11.6)') '  RH0 temperature threshold         : ' , tc0
+      if ( cevap <= d_zero ) then
+        write (stdout,*) '  Raindrop evaporation not included'
+      else
+        write(stdout,'(a,f11.6)') '  Raindrop Evaporation Rate         : ',cevap
+      end if
+      if ( caccr <= d_zero ) then
+        write(stdout, *) '  Raindrop accretion not included'
+      else
+        write(stdout,'(a,f11.6)') '  Raindrop Accretion Rate           : ',caccr
+      end if
+      write(stdout,'(a,f11.6)') '  Maximum total cloud cover for rad : ', &
+        cftotmax
+    end if
+  end if
+
+  if ( icup == 99 ) then
+    if ( myid == italk ) then
+      write(stdout,*) 'Cumulus scheme: will use Grell '// &
+           'over land and Emanuel over ocean.'
+    end if
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
@@ -1362,9 +1321,10 @@ module mod_params
     end do
   end if
   if (icup == 98) then
-    write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
-         'over land and Grell over ocean.'
-    call say
+    if ( myid == italk ) then
+      write(stdout,*) 'Cumulus scheme: will use Emanuel '// &
+           'over land and Grell over ocean.'
+    end if
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
@@ -1379,12 +1339,6 @@ module mod_params
 
   if ( icup == 1 ) then
     call allocate_mod_cu_kuo
-    write (aline, *) '*********************************'
-    call say
-    write (aline, *) '***** Anthes-Kuo Convection *****'
-    call say
-    write (aline, *) '*********************************'
-    call say
 !
 !   specify heating profile (twght) and weighted function
 !   for moisture fluxes due to convection (vqflx)
@@ -1445,6 +1399,9 @@ module mod_params
         end do
       end do
     end do
+    if ( myid == italk ) then
+      write(stdout, *) 'Anthes-Kuo Convection Scheme used.'
+    end if
   end if
   if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
     call allocate_mod_cu_grell
@@ -1452,52 +1409,29 @@ module mod_params
     do k = 1 , kz - 1
       if ( hsigma(k) <= skbmax ) kbmax = kz - k
     end do
-    write (aline, *) '*********************************' 
-    call say
-    write (aline, *) '*****    Grell Convection   *****'
-    call say
-    write (aline, *) '*********************************'
-    call say
-    write (aline, *) '   Max Shear:' , shrmax
-    call say
-    write (aline, *) '   Min Shear:' , shrmin
-    call say
-    write (aline, *) '   Max PPT eff:' , edtmax
-    call say
-    write (aline, *) '   Min PPT eff:' , edtmin
-    call say
-    write (aline, *) '   Max PPT eff(o):' , edtmaxo
-    call say
-    write (aline, *) '   Min PPT eff(o):' , edtmino
-    call say
-    write (aline, *) '   Max PPT eff(x):' , edtmaxx
-    call say
-    write (aline, *) '   Min PPT eff(x):' , edtminx
-    call say
-    write (aline, *) '   Max PBC (pbcmax):' , pbcmax
-    call say
-    write (aline, *) '   Min Cloud Depth:' , mincld
-    call say
-    write (aline, *) '   Max Cloud Base:' , kbmax , skbmax
-    call say
-    write (aline, *) '   Max Heating:' , htmax
-    call say
-    write (aline, *) '   Min Heating:' , htmin
-    call say
-    if ( igcc == 1 ) then
-      write (aline, *)                                              &
-            '   Arakawa-Schubert (1974) Closure Assumption'
-      call say
-    else if ( igcc == 2 ) then
-      write (aline, *)                                              &
-            '   Fritsch-Chappell (1980) Closure Assumption'
-      call say
-      write (aline, *) '     ABE removal timescale: dtauc=' , dtauc
-      call say
+    if ( myid == italk ) then
+      write(stdout,*) 'Grell Convection Scheme used.'
+      write(stdout,'(a,f11.6)') '  Max Shear       : ' , shrmax
+      write(stdout,'(a,f11.6)') '  Min Shear       : ' , shrmin
+      write(stdout,'(a,f11.6)') '  Max PPT eff     : ' , edtmax
+      write(stdout,'(a,f11.6)') '  Min PPT eff     : ' , edtmin
+      write(stdout,'(a,f11.6)') '  Max PPT eff(o)  : ' , edtmaxo
+      write(stdout,'(a,f11.6)') '  Min PPT eff(o)  : ' , edtmino
+      write(stdout,'(a,f11.6)') '  Max PPT eff(x)  : ' , edtmaxx
+      write(stdout,'(a,f11.6)') '  Min PPT eff(x)  : ' , edtminx
+      write(stdout,'(a,f11.6)') '  Max PBC         : ' , pbcmax
+      write(stdout,'(a,f11.6)') '  Min Cloud Depth : ' , mincld
+      write(stdout,'(a,f11.6)') '  Max Cloud Base  : ' , skbmax
+      write(stdout,'(a,f11.6)') '  Max Heating     : ' , htmax
+      write(stdout,'(a,f11.6)') '  Min Heating     : ' , htmin
+      if ( igcc == 1 ) then
+        write(stdout,*) ' Arakawa-Schubert (1974) Closure Assumption'
+      else if ( igcc == 2 ) then
+        write(stdout,*) ' Fritsch-Chappell (1980) Closure Assumption'
+        write(stdout,'(a,f11.6)') '  ABE removal timescale : ',dtauc
+      end if
     end if
 
-    write (aline, *) '*********************************'
-    call say
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
@@ -1531,10 +1465,10 @@ module mod_params
   end if
   if ( icup == 3 ) then
     call allocate_mod_cu_bm
-    write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
-                    ' properly implemented'
-    call say
-    !call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
+    if ( myid == italk ) then
+      write(stderr,*) 'WARNING : The Betts-Miller Convection scheme is not ', &
+                      'properly implemented'
+    end if
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     call allocate_mod_cu_em
@@ -1542,89 +1476,49 @@ module mod_params
     do k = 1 , kz
       if ( hsigma(k) <= minsig ) minorig = kz - k
     end do
-    write (aline, *) ' '
-    call say
-    write (aline, *) 'EMANUEL (1991) CONVECTION V4.3C (20 May, 2002)'
-    call say
-    write (aline, *) '  MIN CONVECTION ORIGIN (minsig/orig): ', minsig, minorig
-    call say
-    write (aline, *)'  AUTOCONVERSION THERSHOLD (elcrit): ' , elcrit
-    call say
-    write (aline, *)'  AUTOCONVERSION THRESHOLD TO ZERO (tlcrit): ', tlcrit
-    call say
-    write (aline, *)'  ENTRAINMENT COEFFICIENT (entp): ' , entp
-    call say
-    write (aline, *) '  FRACTIONAL AREA OF UNSATURATED DNDRAFT (sigd): ', sigd
-    call say
-    write (aline, *)'  PRECIP FRACTION OUTSIDE OF CLOUD (sigs): ', sigs
-    call say
-    write (aline, *)'  FALL SPEED OF RAIN (omtrain): ' , omtrain
-    call say
-    write (aline, *)'  FALL SPEED OF SNOW (omtsnow): ' , omtsnow
-    call say
-    write (aline, *)'  RAIN EVAPORATION COEFFICIENT (coeffr): ' , coeffr
-    call say
-    write (aline, *)'  SNOW EVAPORATION COEFFICIENT (coeffs): ' , coeffs
-    call say
-    write (aline, *) '  CONVECTIVE MOMENTUM TRANSPORT COEFFICIENT (cu): ', cu
-    call say
-    write (aline, *)'  DOWNDRAFT VELOCITY SCALE (betae): ' , betae
-    call say
-    write (aline, *) '  MAX NEGATIVE PERTURBATION BELOW LFC (dtmax): ' , dtmax
-    call say
-    write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (alphae): ' , alphae
-    call say
-    write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (damp): ' , damp
-    call say
-    write (aline, *) ' '
-    call say
-    write (aline, *) ' '
-    call say
+    if ( myid == italk ) then
+      write(stdout,*) 'Emanuel (1991) Convection Scheme V4.3C used.'
+      write(stdout,'(a,f11.6)') '  Min Convection origin             : ',minsig
+      write(stdout,'(a,f11.6)') '  Autoconversion Threshold          : ',elcrit
+      write(stdout,'(a,f11.6)') '  Autoconversion Threshold to zero  : ',tlcrit
+      write(stdout,'(a,f11.6)') '  Entrainment Coefficient           : ',entp
+      write(stdout,'(a,f11.6)') '  Fractional area of uns. downdraft : ',sigd
+      write(stdout,'(a,f11.6)') '  Fractional area of uns. downdraft : ',sigd
+      write(stdout,'(a,f11.6)') '  Fall speed of rain                : ',omtrain
+      write(stdout,'(a,f11.6)') '  Fall speed of snow                : ',omtsnow
+      write(stdout,'(a,f11.6)') '  Rain evaporation coefficient      : ',coeffr
+      write(stdout,'(a,f11.6)') '  Snow evaporation coefficient      : ',coeffs
+      write(stdout,'(a,f11.6)') '  Convective momentum transport coef: ',cu
+      write(stdout,'(a,f11.6)') '  Downdraft velocity scale          : ',betae
+      write(stdout,'(a,f11.6)') '  Max negative perturbation blw LFC : ',dtmax
+      write(stdout,'(a,f11.6)') '  Quasi-equilibrium approach rate 1 : ',alphae
+      write(stdout,'(a,f11.6)') '  Quasi-equilibrium approach rate 2 : ',damp
+    end if
   end if
   if ( icup == 5 ) then
     call allocate_mod_cu_tiedtke
-    write (aline, *) ' '
-    call say
-    write (aline, *) 'TIEDTKE (1986) CONVECTION SCHEME FROM ECHAM 5.4'
-    call say
-    write (aline, *) '  USED SCHEME: ', iconv
-    call say
-    write (aline, *) '  ENTRAINMENT RATE FOR PENETRATIVE CONVECTION: ', entrpen
-    call say
-    write (aline, *) '  ENTRAINMENT RATE FOR SHALLOW CONVECTION: ', entrscv
-    call say
-    write (aline, *) '  ENTRAINMENT RATE FOR MIDLEVEL CONVECTION: ', entrmid
-    call say
-    write (aline, *) '  ENTRAINMENT RATE FOR CUMULUS DOWNDRAFT: ', entrdd
-    call say
-    write (aline, *) '  RELAT. CLOUD MASSFLUX AT LEVEL ABV NONBUOY: ', cmfctop
-    call say
-    write (aline, *) '  MAXIMUM MASSFLUX VALUE ALLOWED: ', cmfcmax
-    call say
-    write (aline, *) '  MINIMUM MASSFLUX VALUE ALLOWED: ', cmfcmin
-    call say
-    write (aline, *) '  FRACTIONAL MASSFLUX FOR DOWNDRAFTS AT LFS: ', cmfdeps
-    call say
-    write (aline, *) '  RELATIVE SATURATION IN DOWNDRAFTS: ', rhcdd
-    call say
-    write (aline, *) '  CAPE ADJUSTMENT TIMESCALE PARAMETER: ', cmtcape
-    call say
-    write (aline, *) '  RESTRICT RAINFALL LEVEL: ', zdlev
-    call say
-    write (aline, *) '  COEFF. FOR CONV. FROM CLOUD WATER TO RAIN: ', cprcon
-    call say
-    write (aline, *) '  MAX. LEVEL FOR CLOUD BASE OF MID LEVEL CONV.: ', nmctop
-    call say
-    write (aline, *) '  PENETRATIVE CONVECTION IS SWITCHED ON: ', lmfpen
-    call say
-    write (aline, *) '  SHALLOW CONVECTION IS SWITCHED ON: ', lmfscv
-    call say
-    write (aline, *) '  MIDLEVEL CONVECTION IS SWITCHED ON: ', lmfmid
-    call say
-    write (aline, *) '  CUMULUS DOWNDRAFT IS SWITCHED ON: ', lmfdd
-    call say
-    write (aline, *) '  CUMULUS FRICTON IS SWITCHED ON: ', lmfdudv
-    call say
+    if ( myid == italk ) then
+      write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
+      write(stdout,'(a,i2)')    '  Used Scheme                       : ',iconv
+      write(stdout,'(a,f11.6)') '  Entrainment rate penetrative conv.: ',entrpen
+      write(stdout,'(a,f11.6)') '  Entrainment rate shallow conv.    : ',entrscv
+      write(stdout,'(a,f11.6)') '  Entrainment rate midlev conv.     : ',entrmid
+      write(stdout,'(a,f11.6)') '  Entrainment rate cumulus downdraft: ',entrdd
+      write(stdout,'(a,f11.6)') '  Relative cloud massflux avove NBL : ',cmfctop
+      write(stdout,'(a,f11.6)') '  Maximum allowed massflux          : ',cmfcmax
+      write(stdout,'(a,f11.6)') '  Minimum allowed massflux          : ',cmfcmin
+      write(stdout,'(a,f11.6)') '  Downdraft massflux fraction at LFS: ',cmfdeps
+      write(stdout,'(a,f11.6)') '  Relative downdraft saturation     : ',rhcdd
+      write(stdout,'(a,f11.6)') '  CAPE adjustment timescale         : ',cmtcape
+      write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
+      write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
+      write(stdout,'(a,i3)') '  Max level for cloud base of MLC   : ',nmctop
+      write(stdout,*) ' Penetrative convection enabled    : ',lmfpen
+      write(stdout,*) ' Shallow convection enabled        : ',lmfscv
+      write(stdout,*) ' Midlevel convection enabled       : ',lmfmid
+      write(stdout,*) ' Cumulus downdraft is enabled      : ',lmfdd
+      write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
+    end if
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
@@ -1651,20 +1545,13 @@ module mod_params
   clfrcv = afracl + (afracs-afracl)                                 &
            *((dlargc-dxtemc)/(dlargc-dsmalc))**2
   clfrcv = dmin1(clfrcv,clfrcvmax)
-  write (aline, *) ' '
-  call say
-  write (aline, *) 'CONVECTIVE CLOUD FRACTION/WATER'
-  call say
-  write (aline, *) '   Maximum Convective Cloud Cover'
-  call say
-  write (aline, *) '     before resolution scaling: ' , clfrcvmax
-  call say
-  write (aline, *) '   Maximum Convective Cloud Cover'
-  call say
-  write (aline, *) '     after resolution scaling: ' , clfrcv
-  call say
-  write (aline, *) '   Convective Cloud Water: ' , cllwcv
-  call say
+  if ( myid == italk ) then
+    write(stdout,*) 'Convective Cloud Cover parameters'
+    write(stdout,*) 'Before and after resolution scaling'
+    write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcvmax
+    write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv
+    write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
+  end if
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !
@@ -1727,38 +1614,45 @@ module mod_params
 !
   if ( icup == 3 ) call lutbl(ptop)
 !
-!-----print out the parameters specified in the model.
-!
+  if ( iboudy < 0 .or. iboudy > 5 ) then
+    call fatal(__FILE__,__LINE__,'UNSUPPORTED BDY SCHEME.')
+  end if
+
   if ( myid == italk ) then
-    if ( ibltyp < 0 .or. ibltyp > 2 ) then
-      call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
-    end if
-    if ( ibltyp == 0 ) print 99002
-    print 99003 , ntrad
+    if ( ibltyp == 0 ) &
+      write(stdout,*) 'Model frictionless and insulated for the lower boundary.'
+
+    write(stdout,*) &
+      'The surface energy budget is used to calculate the ground temperature.'
+    write(stdout,'(a,i4,a)') &
+      ' The radiation is computed every ',ntrad,' time steps.'
 !
-    if ( iboudy < 0 .or. iboudy > 5 ) then
-      call fatal(__FILE__,__LINE__,'UNSUPPORTED BDY SCHEME.')
+    if ( iboudy == 0 ) then
+      write(stdout,*) 'The lateral boundary conditions are fixed.'
+    else if ( iboudy == 1 ) then
+      write(stdout,*) 'Relaxation boundary conditions (linear method)'
+    else if ( iboudy == 2 ) then
+      write(stdout,*) 'Time dependent boundary conditions are used.'
+    else if ( iboudy == 3 ) then
+      write(stdout,*) 'Inflow/outflow boundary conditions are used.'
+    else if ( iboudy == 4 ) then
+      write(stdout,*) 'Sponge boundary conditions are used.'
+    else if ( iboudy == 5 ) then
+      write(stdout,*) 'Relaxation boundary conditions (exponential method)'
     end if
-    if ( iboudy == 0 ) print 99004
-    if ( iboudy == 1 ) print 99005 , fnudge , gnudge
-    if ( iboudy == 2 ) print 99007
-    if ( iboudy == 3 ) print 99008
-    if ( iboudy == 4 ) print 99009
-    if ( iboudy == 5 ) print 99006 , fnudge , gnudge
  
-    print 99010
+    write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
+      'dsigma','twt(1)','twt(2)','qcon'
 !
     do k = 1 , kz
-      print 99011 , k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) ,    &
-            twt(k,2) , qcon(k)
+      write(stdout,'(1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)') &
+        k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
     end do
-    print 99012 , kzp1 , sigma(kzp1)
-    print 99014 , dt
-    print 99015 , dx
-    print 99016 , jx , iy
-    print 99017 , kz
-    print 99018 , xkhz
-    print 99019 , xkhmax
+    write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
+    write(stdout,'(a,e11.6,a)') &
+      '  Constant hor. diff. coef. = ',xkhz,' m^2 s-1'
+    write(stdout,'(a,e11.6,a)') &
+      '  Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
   end if
 
   call allocate_v2dbound(xpsb,cross)
@@ -1770,31 +1664,6 @@ module mod_params
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
-!
-99002 format (/'   frictionless and insulated for the lower boundary.')
-99003 format (                                                            &
-      '     the surface energy budget is used to calculate the ground '// &
-      'temperature. the radiation is computed every ',i4,' time steps.')
-!1100 format('     heat and moisture fluxes from the ground are turned o
-!     1ff.')
-99004 format (/'   the lateral boundary conditions are fixed.')
-99005 format (/'   relaxation boundary conditions (linear method)',     &
-          ' are used.  fnudge = ',e15.5,'  gnudge = ',e15.5)
-99006 format (/'   relaxation boudnary conditions (exponential method)',&
-          ' are used. fnudge = ',e15.5,'  gnudge = ',e15.5)
-99007 format (/'   time dependent boundary conditions are used.')
-99008 format (/'   inflow/outflow boundary conditions are used.')
-99009 format (/'   sponge boundary conditions are used.')
-99010 format ('0 k',4x,'sigma(k)',3x,'  a(k)',5x,'dsigma(k)',4x,        &
-          'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
-99011 format (1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)
-99012 format (1x,i2,5x,f7.4)
-99014 format (' time step = ',f7.2,' seconds')
-99015 format (' dx = ',f7.0,' meters')
-99016 format (' grid points (x,y) = (',i4,',',i4,')')
-99017 format (' Number of levels = ',i2)
-99018 format (' constant hor. diff. coef. = ',e12.5,' m*m/s')
-99019 format (' maximum  hor. diff. coef. = ',e12.5,' m*m/s')
 !
   end subroutine param
 !
