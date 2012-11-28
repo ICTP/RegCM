@@ -163,33 +163,33 @@
 ! Model Output control
 !
  &outparam
- ifsave  = .true. ,         ! Create SAV files for restart
- savfrq  =    48.,          ! Frequency in hours to create them
- ifatm   = .true. ,         ! Output ATM ?
- atmfrq  =     6.,          ! Frequency in hours to write to ATM
- ifrad   = .true. ,         ! Output RAD ?
- radfrq  =     6.,          ! Frequency in hours to write to RAD
- ifsts   = .true. ,         ! Output STS (frequence is daily) ?
- ifsrf   = .true. ,         ! Output SRF ?
- srffrq  =     3.,          ! Frequency in hours to write SRF (and CLM)
- ifsub   = .true. ,         ! Output SUB ?
- subfrq  =     6.,          ! Frequency in hours to write to SUB
- iflak   = .true.,          ! Output LAK ?
- lakfrq  =     6.,          ! Frequency in hours to write to LAK if lakemod is 1
- ifchem  = .true.,          ! Output CHE ?
- chemfrq =     6.,          ! Frequency in hours to write to CHE
- atm_enablevar = 17*.true., ! Mask to eventually disable variables ATM
- srf_enablevar = 28*.true., ! Mask to eventually disable variables SRF
- sts_enablevar = 15*.true., ! Mask to eventually disable variables STS
- lak_enablevar = 19*.true., ! Mask to eventually disable variables LAK
- sub_enablevar = 18*.true., ! Mask to eventually disable variables SUB
- rad_enablevar = 21*.true., ! Mask to eventually disable variables RAD
- opt_enablevar = 13*.true., ! Mask to eventually disable variables OPT
- che_enablevar = 23*.true., ! Mask to eventually disable variables CHE
- dirout  = './output',      ! Path where all output will be placed
- lsync   = .false.,         ! If sync of output files at every timestep is
-                            ! requested. Note, it has a performance impact.
-                            ! Enabled by default if debug_level > 2
+ ifsave  = .true. ,           ! Create SAV files for restart
+ savfrq  =    48.,            ! Frequency in hours to create them
+ ifatm   = .true. ,           ! Output ATM ?
+ atmfrq  =     6.,            ! Frequency in hours to write to ATM
+ ifrad   = .true. ,           ! Output RAD ?
+ radfrq  =     6.,            ! Frequency in hours to write to RAD
+ ifsts   = .true. ,           ! Output STS (frequence is daily) ?
+ ifsrf   = .true. ,           ! Output SRF ?
+ srffrq  =     3.,            ! Frequency in hours to write to SRF
+ ifsub   = .true. ,           ! Output SUB ?
+ subfrq  =     6.,            ! Frequency in hours to write to SUB
+ iflak   = .true.,            ! Output LAK ?
+ lakfrq  =     6.,            ! Frequency in hours to write to LAK
+ ifchem  = .true.,            ! Output CHE ?
+ chemfrq =     6.,            ! Frequency in hours to write to CHE
+ enable_atm_vars = 17*.true., ! Mask to eventually disable variables ATM
+ enable_srf_vars = 28*.true., ! Mask to eventually disable variables SRF
+ enable_rad_vars = 15*.true., ! Mask to eventually disable variables STS
+ enable_sub_vars = 19*.true., ! Mask to eventually disable variables LAK
+ enable_sts_vars = 18*.true., ! Mask to eventually disable variables SUB
+ enable_lak_vars = 21*.true., ! Mask to eventually disable variables RAD
+ enable_opt_vars = 13*.true., ! Mask to eventually disable variables OPT
+ enable_che_vars = 23*.true., ! Mask to eventually disable variables CHE
+ dirout  = './output',        ! Path where all output will be placed
+ lsync   = .false.,           ! If sync of output files at every timestep is
+                              ! requested. Note, it has a performance impact.
+                              ! Enabled by default if debug_level > 2
  /
 !
 ! Model Physics
