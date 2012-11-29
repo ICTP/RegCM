@@ -94,7 +94,7 @@ module mod_cu_common
   subroutine model_cumulus_cloud
     implicit none
     real(rk8) :: akclth , xhk
-    integer :: i , j , k , ktop , kbot , kclth
+    integer(ik4):: i , j , k , ktop , kbot , kclth
     real(rk8) , dimension(6) :: clf_coeff
     real(rk8) , dimension(6) :: lqc_coeff
 

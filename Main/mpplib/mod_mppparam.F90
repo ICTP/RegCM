@@ -5565,13 +5565,14 @@ module mod_mppparam
     end if
   end subroutine reorder_subgrid_3d
 
-  subroutine input_reorder(m1,m2)
+  subroutine input_reorder(m1,m2,j1,j2,i1,i2)
     implicit none
-    real(rk4) , dimension(:,:) , intent(in) :: m1
+    real(rk8) , dimension(:,:) , intent(in) :: m1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: m2
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j , ii , jj , n1 , n2
-    do i = idot1 , idot2
-      do j = jdot1 , jdot2
+    do i = i1 , i2
+      do j = j1 , j2
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg

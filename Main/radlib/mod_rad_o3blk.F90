@@ -42,9 +42,8 @@ module mod_rad_o3blk
   real(rk8) , dimension(32) :: ppwrkh
   real(rk8) , pointer , dimension(:) :: prlevh
 
-  real(rk8) , pointer , dimension(:,:) :: alon , alat , aps , laps
+  real(rk8) , pointer , dimension(:,:) :: alon , alat , aps
   real(rk8) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rk8) , pointer , dimension(:) :: asig
   real(rk8) , pointer , dimension(:,:,:) :: ozone
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
@@ -84,9 +83,7 @@ module mod_rad_o3blk
     call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
 
     if ( iclimao3 == 1 ) then
-      call getmem2d(laps,jci1,jci2,ici1,ici2,'mod_o3blk:laps')
       if ( myid == iocpu ) then
-        call getmem1d(asig,1,kzp1,'mod_o3blk:asig')
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
         call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
         call getmem2d(aps,jcross1,jcross2,icross1,icross2,'mod_o3blk:aps')
@@ -206,14 +203,13 @@ module mod_rad_o3blk
       return
     end if
 
-    if ( myid == iocpu ) then
-      if ( ifirst ) then
-        alon = real(xlon(jcross1:jcross2,icross1:icross2))
-        alat = real(xlat(jcross1:jcross2,icross1:icross2))
-        asig = real(sigma(1:kzp1))
-        ifirst = .false.
-      end if
+    if ( ifirst ) then
+      call grid_collect(xlon,alon,jci1,jci2,ici1,ici2)
+      call grid_collect(xlat,alat,jci1,jci2,ici1,ici2)
+      ifirst = .false.
+    end if
 
+    if ( myid == iocpu ) then
       if ( iyear < 2010 ) then
         infile = 'Ozone_CMIP5_ACC_SPARC_RF.nc'
       else if ( scenario(4:6) == '2.6' ) then
@@ -264,16 +260,15 @@ module mod_rad_o3blk
 
     if ( dointerp ) then
       ! We need pressure
-      laps = real((ps(jci1:jci2,ici1:ici2)))
-      call grid_collect(laps,aps,jci1,jci2,ici1,ici2)
+      call grid_collect(ps,aps,jci1,jci2,ici1,ici2)
       if ( myid == iocpu ) then
         write (stderr,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
         call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intv0(ozone1,yozone,aps,asig,plev,ptop,njcross,nicross,kzp1,24)
+        call intv0(ozone1,yozone,aps,sigma,plev,ptop,njcross,nicross,kzp1,24)
         call bilinx2(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intv0(ozone2,yozone,aps,asig,plev,ptop,njcross,nicross,kzp1,24)
+        call intv0(ozone2,yozone,aps,sigma,plev,ptop,njcross,nicross,kzp1,24)
       end if
     end if
 

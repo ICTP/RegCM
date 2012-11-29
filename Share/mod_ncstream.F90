@@ -221,6 +221,10 @@ module mod_ncstream
         ncstat = nf90_create(stream%filename,iomode, &
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
+        write(6,*) 'Opened FILE for parallel I/O'
+        write(6,*) 'comm: ',params%mpi_comm
+        write(6,*) 'info: ',params%mpi_info
+        write(6,*) 'iomode: ',params%mpi_iotype
       else
         iomode = ior(ior(nf90_classic_model,nf90_clobber),nf90_netcdf4)
         ncstat = nf90_create(stream%filename,iomode,stream%id)
@@ -802,7 +806,7 @@ module mod_ncstream
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
-#if defined(NETCDF4_HDF5) && defined (NETCDF4_COMPRESS)
+#if ! defined(NETCDF4_HDF5) && defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
           ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
           if ( ncstat /= nf90_noerr ) then

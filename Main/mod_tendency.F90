@@ -57,7 +57,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps_4 
   real(rk8) , pointer , dimension(:,:) :: psc , pten
 
-  integer(ik4) :: iptn ! Total number of internal points
+  real(rk8) :: rptn ! Total number of internal points
 
   contains
 
@@ -74,7 +74,7 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    iptn = (jci2-jci1+1)*(ici2-ici1+1)
+    rptn = d_one/dble((jci2-jci1+1)*(ici2-ici1+1))
   end subroutine allocate_mod_tend
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -667,8 +667,8 @@ module mod_tendency
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( iclimao3 == 1 ) then
-        call read_o3data(idatex,scenario,mddom_io%xlat,mddom_io%xlon, &
-                         sfs%psa,ptop,sigma)
+        call read_o3data(idatex,scenario,mddom%xlat,mddom%xlon, &
+          sfs%psa,ptop,sigma)
       end if
       if ( irrtm == 1 ) then
         call rrtmg_driver(xyear,eccf,loutrad)
@@ -1289,7 +1289,7 @@ module mod_tendency
     ! Print out noise parameter
     !
     if ( ktau > 1 ) then
-      ptnbar = ptntot/dble(iptn)
+      ptnbar = ptntot*rptn
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1381,7 +1381,7 @@ module mod_tendency
       end if
 
       if ( mod(ktau,krep) == 0 ) then
-        pt2bar = pt2tot/dble(iptn)
+        pt2bar = pt2tot*rptn
         iconvec = 0
         pt2tot = d_zero
         ptntot = d_zero
@@ -1390,10 +1390,10 @@ module mod_tendency
         call sumall(ptnbar,ptntot)
         if ( myid == italk ) then
           appdat = tochar(idatex)
-          write(stdout,'(a23,a,i16)') appdat , ', ktau   = ', ktau
-          write(stdout,'(a,2E12.5)') '$$$ 1st, 2nd time deriv of ps   = ', &
+          write(stdout,'(a,a23,a,i16)') ' $$$', appdat , ', ktau   = ', ktau
+          write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
                 ptnbar , pt2tot
-          write(stdout,'(a,i7)') '$$$  no. of points w/convection = ', iconvec
+          write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
         end if
       end if
     end if

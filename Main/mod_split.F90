@@ -159,7 +159,7 @@ module mod_split
         am(k,l) = am(k,l)*fac
       end do
       if ( myid == italk ) then
-        write(stdout,'(a,i4a,f11.4,a,f11.4)') &
+        write(stdout,'(a,i4,a,f11.4,a,f11.4)') &
           ' Split : ',l,' => aam :',aam(l),', fac :',fac
       end if
     end do

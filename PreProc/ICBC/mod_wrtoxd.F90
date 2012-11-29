@@ -332,7 +332,7 @@ module mod_wrtoxd
   subroutine write_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: ivar
+    integer(ik4):: ivar
     call outstream_addrec(ncoutch,idate)
     do ivar = 1 , nchsp
       call outstream_writevar(ncoutch,v3dvar_ch(ivar),is=ivar)

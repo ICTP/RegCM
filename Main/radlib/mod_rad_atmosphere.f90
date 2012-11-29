@@ -296,7 +296,7 @@ module mod_rad_atmosphere
        winter_wgt = dsin(dis)**2
      end function winter_wgt
 
-     integer function find_klev(plev,izone)
+     integer(ik4) function find_klev(plev,izone)
        implicit none
        integer(ik4) , intent(in) :: izone
        real(rk8) , intent(in) :: plev

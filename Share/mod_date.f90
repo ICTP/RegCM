@@ -160,7 +160,7 @@ module mod_date
     end if
   end function lleap
 
-  integer function mdays_leap(iyear, imon) result(mdays)
+  integer(ik4) function mdays_leap(iyear, imon) result(mdays)
     implicit none
     integer(ik4) , intent(in) :: iyear , imon
     if (imon /= 2) then
@@ -173,7 +173,7 @@ module mod_date
     end if
   end function mdays_leap
 
-  integer function yeardays(y,c)
+  integer(ik4) function yeardays(y,c)
     implicit none
     integer(ik4) , intent(in) :: y , c
     select case (c)
@@ -217,7 +217,7 @@ module mod_date
     d = id
   end subroutine idayofyear_to_monthdate
 
-  integer function idayofyear(x) result(id)
+  integer(ik4) function idayofyear(x) result(id)
     implicit none
     type (iadate) , intent(in) :: x
     integer(ik4) :: i
@@ -893,7 +893,7 @@ module mod_date
     end select
   end function sub_interval
 
-  integer function toint10(x) result(z)
+  integer(ik4) function toint10(x) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
@@ -934,7 +934,7 @@ module mod_date
     lm = (d1%month == d2%month)
   end function
 
-  integer function imondiff(x,y) result(z)
+  integer(ik4) function imondiff(x,y) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     type (iadate) :: d1 , d2
@@ -960,7 +960,7 @@ module mod_date
     lf = (x < mm)
   end function lfhomonth
 
-  integer function idayofweek(x) result(iday)
+  integer(ik4) function idayofweek(x) result(iday)
     ! Sun Mon Tue Wed Thu Fri Sat
     ! 1   2   3   4   5   6   7
     implicit none
@@ -1017,7 +1017,7 @@ module mod_date
     ild = setmidnight(x + z)
   end function ildoweek
 
-  integer function iwkdiff(x,y) result(iwk)
+  integer(ik4) function iwkdiff(x,y) result(iwk)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     type (rcm_time_interval) :: z
@@ -1669,7 +1669,7 @@ module mod_date
                   dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)
   end function yeardayfrac
 
-  integer function getyear(x)
+  integer(ik4) function getyear(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
@@ -1677,7 +1677,7 @@ module mod_date
     getyear = d%year
   end function getyear
 
-  integer function getmonth(x)
+  integer(ik4) function getmonth(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
@@ -1685,7 +1685,7 @@ module mod_date
     getmonth = d%month
   end function getmonth
 
-  integer function getday(x)
+  integer(ik4) function getday(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
@@ -1693,7 +1693,7 @@ module mod_date
     getday = d%day
   end function getday
 
-  integer function gethour(x)
+  integer(ik4) function gethour(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iatime) :: t
@@ -1701,7 +1701,7 @@ module mod_date
     gethour = t%hour
   end function gethour
 
-  integer function getminute(x)
+  integer(ik4) function getminute(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iatime) :: t
@@ -1709,7 +1709,7 @@ module mod_date
     getminute = t%minute
   end function getminute
 
-  integer function getsecond(x)
+  integer(ik4) function getsecond(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iatime) :: t

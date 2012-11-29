@@ -48,12 +48,6 @@ module mod_mppio
   real(rk8) , pointer , dimension(:,:,:) :: tlef_io
   real(rk8) , pointer , dimension(:,:,:) :: emiss_io
 
-  real(rk8) , pointer , dimension(:,:,:) :: ht1_io
-  real(rk8) , pointer , dimension(:,:,:) :: lndcat1_io
-  real(rk8) , pointer , dimension(:,:,:) :: mask1_io
-  real(rk8) , pointer , dimension(:,:,:) :: xlat1_io
-  real(rk8) , pointer , dimension(:,:,:) :: xlon1_io
-!
   real(rk8) , pointer , dimension(:,:) :: flw_io
   real(rk8) , pointer , dimension(:,:) :: flwd_io
   real(rk8) , pointer , dimension(:,:) :: fsw_io
@@ -70,11 +64,6 @@ module mod_mppio
   integer(ik4) , pointer , dimension(:,:) :: kpbl_io
   real(rk8) , pointer , dimension(:,:) :: zpbl_io
 !
-  real(rk4) , pointer , dimension(:,:,:) :: fbat_io
-  real(rk4) , pointer , dimension(:,:,:,:) :: fsub_io
-  real(rk4) , pointer , dimension(:,:,:) :: frad2d_io
-  real(rk4) , pointer , dimension(:,:,:,:) :: frad3d_io
-
   real(rk8) , pointer , dimension(:,:) :: cbmf2d_io
   real(rk8) , pointer , dimension(:,:,:) :: fcc_io
   real(rk8) , pointer , dimension(:,:,:) :: rsheat_io
@@ -89,20 +78,6 @@ module mod_mppio
 
   real(rk8) , pointer , dimension(:,:,:) :: dstor_io
   real(rk8) , pointer , dimension(:,:,:) :: hstor_io
-
-  real(rk8) , pointer , dimension(:,:) :: ps0_io
-  real(rk8) , pointer , dimension(:,:) :: ps1_io
-  real(rk8) , pointer , dimension(:,:) :: ts0_io
-  real(rk8) , pointer , dimension(:,:) :: ts1_io
-
-  real(rk8) , pointer , dimension(:,:,:) :: qb0_io
-  real(rk8) , pointer , dimension(:,:,:) :: qb1_io
-  real(rk8) , pointer , dimension(:,:,:) :: tb0_io
-  real(rk8) , pointer , dimension(:,:,:) :: tb1_io
-  real(rk8) , pointer , dimension(:,:,:) :: ub0_io
-  real(rk8) , pointer , dimension(:,:,:) :: ub1_io
-  real(rk8) , pointer , dimension(:,:,:) :: vb0_io
-  real(rk8) , pointer , dimension(:,:,:) :: vb1_io
 
   real(rk8) , pointer , dimension(:,:) :: cldefi_io
 
@@ -177,12 +152,6 @@ module mod_mppio
         call getmem2d(tdeltas_io,jcross1,jcross2,icross1,icross2,'tdeltas_io')
       end if
 
-      call getmem3d(ht1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'ht1_io')
-      call getmem3d(lndcat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'lndcat1_io')
-      call getmem3d(mask1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'mask1_io')
-      call getmem3d(xlat1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlat1_io')
-      call getmem3d(xlon1_io,1,nnsg,jdot1,jdot2,idot1,idot2,'xlon1_io')
-
       call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
       call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
       call getmem3d(rsheat_io,jcross1,jcross2,icross1,icross2,1,kz,'rsheat_io')
@@ -202,19 +171,6 @@ module mod_mppio
                     icross1,icross2,1,kz,'heatrt_io')
       call getmem3d(o3prof_io,jcross1,jcross2, &
                     icross1,icross2,1,kzp1,'o3prof_io')
-
-      call getmem2d(ps0_io,jdot1,jdot2,idot1,idot2,'ps0_io')
-      call getmem2d(ps1_io,jdot1,jdot2,idot1,idot2,'ps1_io')
-      call getmem2d(ts0_io,jdot1,jdot2,idot1,idot2,'ts0_io')
-      call getmem2d(ts1_io,jdot1,jdot2,idot1,idot2,'ts1_io')
-      call getmem3d(qb0_io,jdot1,jdot2,idot1,idot2,1,kz,'qb0_io')
-      call getmem3d(qb1_io,jdot1,jdot2,idot1,idot2,1,kz,'qb1_io')
-      call getmem3d(tb0_io,jdot1,jdot2,idot1,idot2,1,kz,'tb0_io')
-      call getmem3d(tb1_io,jdot1,jdot2,idot1,idot2,1,kz,'tb1_io')
-      call getmem3d(ub0_io,jdot1,jdot2,idot1,idot2,1,kz,'ub0_io')
-      call getmem3d(ub1_io,jdot1,jdot2,idot1,idot2,1,kz,'ub1_io')
-      call getmem3d(vb0_io,jdot1,jdot2,idot1,idot2,1,kz,'vb0_io')
-      call getmem3d(vb1_io,jdot1,jdot2,idot1,idot2,1,kz,'vb1_io')
 
       if ( iocnflx == 2 ) then
         call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')

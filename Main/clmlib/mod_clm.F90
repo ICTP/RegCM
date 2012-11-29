@@ -159,9 +159,6 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: rs2d
   real(rk8) , pointer , dimension(:,:) :: ra2d
 
-  real(rk8) , pointer , dimension(:,:) :: htf      ! mddom_io%ht
-  real(rk8) , pointer , dimension(:,:) :: lndcatf  ! mddom_io%lndcat
-!
   contains
 !
   subroutine allocate_mod_clm(n_tr,igases)

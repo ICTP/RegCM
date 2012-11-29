@@ -657,7 +657,7 @@ module mod_che_drydep
       real(rk8) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(rk8) :: kd
 #ifdef CLM
-      integer  :: jj, ii
+      integer(ik4) :: jj, ii
 #endif
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'

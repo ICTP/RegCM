@@ -156,6 +156,16 @@ fi
 AC_ARG_ENABLE(nc4-gzip,
   AC_HELP_STRING([--enable-nc4-gzip],
                  [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
+  [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
+)
+if eval "test x$NETCDF4_COMPRESS = x1"; then
+  AM_CPPFLAGS="-DNETCDF4_COMPRESS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(nc4-parallel,
+  AC_HELP_STRING([--enable-nc4-parallel],
+                 [Supply this option if you plan on using NetCDF4/HDF5 mpi output parallel output option.]),
   [NETCDF4_HDF5="1"],[NETCDF4_HDF5="0"]
 )
 if eval "test x$NETCDF4_HDF5 = x1"; then

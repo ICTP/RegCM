@@ -65,9 +65,9 @@ module mod_che_ncio
   type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
   integer(ik4) :: ibcrec , ibcnrec
 
-  integer , public , parameter :: ifrqmon = 1
-  integer , public , parameter :: ifrqday = 2
-  integer , public , parameter :: ifrqhrs = 3
+  integer(ik4) , public , parameter :: ifrqmon = 1
+  integer(ik4) , public , parameter :: ifrqday = 2
+  integer(ik4) , public , parameter :: ifrqhrs = 3
 
   character(256) :: dname , icbcname
 
@@ -484,7 +484,7 @@ module mod_che_ncio
 
 !============================================================================
 
-    integer function chbc_search(idate)
+    integer(ik4) function chbc_search(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(rcm_time_interval) :: tdif

@@ -217,11 +217,11 @@ module mod_mtrxclm
     caerosol = iaeros
 
     ! Set elevation and BATS landuse type (abt added)
-    if ( .not.allocated(ht_rcm) )       allocate(ht_rcm(jx,iy))
-    if ( .not.allocated(init_tgb) )     allocate(init_tgb(jx,iy))
-    if ( .not.allocated(satbrt_clm) )   allocate(satbrt_clm(jx,iy))
-    if ( .not.allocated(clm_fracveg) )  allocate(clm_fracveg(jx,iy))
-    if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
+    allocate(ht_rcm(jx,iy))
+    allocate(init_tgb(jx,iy))
+    allocate(satbrt_clm(jx,iy))
+    allocate(clm_fracveg(jx,iy))
+    allocate(clm2bats_veg(jx,iy))
     clm_fracveg(:,:) = d_zero
 
 #if (defined VOC)
@@ -231,16 +231,9 @@ module mod_mtrxclm
       dep_vels(:,:,:) = d_zero
     end if
 
-    if ( myid == iocpu ) then
-      ! Broadcast of those in CLM code.
-      do i = 1 , iy
-        do j = 1 , jx
-          ht_rcm(j,i)      = htf(j,i)
-          satbrt_clm(j,i)  = lndcatf(j,i)
-          init_tgb(j,i)    = tsf(j,i)
-        end do
-      end do
-    end if
+    call grid_fill(ht,ht_rcm)
+    call grid_fill(lndcat,satbrt_clm)
+    call grid_fill(tground1,init_tgb)
     !
     ! End of clm run control variable initialization
     !
@@ -439,10 +432,11 @@ module mod_mtrxclm
     end if !end ifrest test
 
     ! deallocate some variables used in CLM initialization only
-    if ( allocated(ht_rcm) )       deallocate(ht_rcm)
-    if ( allocated(init_tgb) )     deallocate(init_tgb)
-    if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
-    if ( allocated(clm_fracveg) )  deallocate(clm_fracveg)
+    deallocate(ht_rcm)
+    deallocate(init_tgb)
+    deallocate(satbrt_clm)
+    deallocate(clm2bats_veg)
+    deallocate(clm_fracveg)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

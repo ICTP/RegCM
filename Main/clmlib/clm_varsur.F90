@@ -30,14 +30,14 @@ module clm_varsur
 ! abt below
   integer,  pointer :: landmask(:,:)     ! land mask: 1 = land. 0 = ocean. 3 = land/ocean
   real(r8), allocatable :: landfrac(:,:)     ! fractional land
-  real(r8), allocatable :: ht_rcm(:,:)       ! elevation from regcm
-  real(r8), allocatable :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization
+  real(r8), pointer :: ht_rcm(:,:)       ! elevation from regcm
+  real(r8), pointer :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization
   logical  :: init_grid                      ! call clm initialization or not true=do init
   real(r8) :: numdays                        ! number of days per year (used in shr_orb_mod)
   integer,  allocatable :: clm_soitex(:,:)   ! Used only for the RegCM Dust Model
   real(r8), allocatable :: glonc(:)          ! center longitude (used only for output)
   real(r8), allocatable :: glatc(:)          ! center latitude  (used only for output)
-  real(r8), allocatable :: satbrt_clm(:,:)   ! Landuse from BATS read in from DOMAIN.INFO
+  real(r8), pointer :: satbrt_clm(:,:)   ! Landuse from BATS read in from DOMAIN.INFO
                                              ! for transfer to CLM
   integer :: r2cimask                        ! landmask evaluation method
                                              ! 1 = Using DOMAIN.INFO landuse type

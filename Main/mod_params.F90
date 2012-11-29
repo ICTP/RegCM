@@ -623,7 +623,9 @@ module mod_params
     ifchem = .false.
     ifopt = .false.
   end if
+  !
   ! Force the correct scenario from dattyp in CMIP5
+  !
   if ( myid == iocpu ) then
     if ( dattyp(4:5) == '26' ) then
       if ( scenario /= 'RCP3PD' .or. scenario /= 'RCP2.6' ) then
@@ -648,6 +650,7 @@ module mod_params
       end if
     end if
   end if
+
   call bcast(scenario,8)
   call bcast(idcsst)
   call bcast(iseaice)
@@ -982,13 +985,15 @@ module mod_params
     write(stdout,'(a,2f11.6)') ' Split explicit dtau = ',dtau
   end if
 
-  call read_domain_info
-
-  if ( myid == iocpu) sigma(:) = mddom_io%sigma(:)
-
+  call bcast(dirter,256)
+  call bcast(dirglob,256)
+  call bcast(domname,64)
+  call read_domain_info(mddom%ht,mddom%lndcat,mddom%mask, &
+                        mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &
+                        mddom%msfx,mddom%msfd,mddom%coriol, &
+                        mddom%snowam,mddom%dhlake)
   call bcast(ds)
   call bcast(ptop)
-  call bcast(sigma)
 
   dx = ds * d_1000
 ! 
@@ -1026,8 +1031,7 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
   allocate(landmask(jx,iy))
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io, &
-                atms,sfs,ts0_io,zpbl,landmask)
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl,landmask)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl)
 #endif
@@ -1048,6 +1052,9 @@ module mod_params
                    sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
                    icumtop,icumbot,taucldsp)
 #endif
+    do n = 1 , ntr
+      call bcast(chtrname(n),6)
+    end do
   end if
   call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
                 coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &
@@ -1136,48 +1143,43 @@ module mod_params
           'model in hours   : ' , dtabem 
   end if
 
-  if ( ichem == 1 ) then
-    do n = 1 , ntr
-      call bcast(chtrname(n),6)
+  if ( nsg > 1 ) then
+    call read_subdomain_info(ht1,lndcat1,mask1,xlat1,xlon1,dhlake1)
+    ht1 = ht1*egrav
+  else
+    do i = ide1 , ide2
+      do j = jde1 , jde2
+        ht1(1,j,i) = mddom%ht(j,i)*egrav
+        lndcat1(1,j,i) = mddom%lndcat(j,i)
+        xlat1(1,j,i) = mddom%xlat(j,i)
+        xlon1(1,j,i) = mddom%xlon(j,i)
+        mask1(1,j,i) = mddom%mask(j,i)
+      end do
     end do
-  end if
-
-  if ( myid == iocpu ) then
-    if ( nsg > 1 ) then
-      call read_subdomain_info(ht1_io,lndcat1_io, &
-        mask1_io,xlat1_io,xlon1_io,dhlake1_io)
-      ht1_io(:,:,:) = ht1_io(:,:,:)*egrav
-    else
-      do i = idot1 , idot2
-        do j = jdot1 , jdot2
-          ht1_io(1,j,i) = mddom_io%ht(j,i)*egrav
-          lndcat1_io(1,j,i) = mddom_io%lndcat(j,i)
-          xlat1_io(1,j,i) = mddom_io%xlat(j,i)
-          xlon1_io(1,j,i) = mddom_io%xlon(j,i)
-          mask1_io(1,j,i) = mddom_io%mask(j,i)
+    if ( lakemod == 1 ) then
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          dhlake1(1,j,i) = mddom%dhlake(j,i)
         end do
       end do
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        do i = idot1 , idot2
-          do j = jdot1 , jdot2
-            dhlake1_io(1,j,i) = mddom_io%hlake(j,i)
-          end do
-        end do
-      end if
-#endif
     end if
+  end if
 !
 !------invert mapscale factors and convert hgt to geopotential
 !
-    do i = idot1 , idot2
-      do j = jdot1 , jdot2
-        mddom_io%ht(j,i)   = mddom_io%ht(j,i)*egrav
-        mddom_io%msfd(j,i) = d_one/mddom_io%msfd(j,i)
-        mddom_io%msfx(j,i) = d_one/mddom_io%msfx(j,i)
-      end do
+  do i = ide1 , ide2
+    do j = jde1 , jde2
+      mddom%ht(j,i)   = mddom%ht(j,i)*egrav
+      mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
+      mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
     end do
-
+  end do
+!
+  call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
+  call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
+  call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
+!
+  if ( myid == italk ) then
     write(stdout,*) 'Domain grid parameters:'
     write(stdout,'(a,a)') '  Map Projection        : ',iproj
     write(stdout,'(a,i4,a,i4,a,i3)') &
@@ -1193,36 +1195,7 @@ module mod_params
       write(stdout,'(a,f11.6,a)') '  True Latitude 1       : ',truelatl,' deg'
       write(stdout,'(a,f11.6,a)') '  True Latitude 2       : ',truelath,' deg'
     end if
-
-  end if  ! end if (myid == iocpu)
-
-  call grid_distribute(mddom_io%ht,mddom%ht,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%lndcat,mddom%lndcat,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%mask,mddom%mask,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%xlat,mddom%xlat,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%xlon,mddom%xlon,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%dlat,mddom%dlat,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%dlon,mddom%dlon,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%msfx,mddom%msfx,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%msfd,mddom%msfd,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%coriol,mddom%coriol,jde1,jde2,ide1,ide2)
-  call grid_distribute(mddom_io%snowam,mddom%snowam,jde1,jde2,ide1,ide2)
-
-  call subgrid_distribute(ht1_io,ht1,jde1,jde2,ide1,ide2)
-  call subgrid_distribute(lndcat1_io,lndcat1,jde1,jde2,ide1,ide2)
-  call subgrid_distribute(mask1_io,mask1,jde1,jde2,ide1,ide2)
-  call subgrid_distribute(xlat1_io,xlat1,jde1,jde2,ide1,ide2)
-  call subgrid_distribute(xlon1_io,xlon1,jde1,jde2,ide1,ide2)
-
-#ifndef CLM
-  if ( lakemod == 1 ) then
-    call subgrid_distribute(dhlake1_io,dhlake1,jci1,jci2,ici1,ici2)
-  endif
-#endif
-!
-  call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
-  call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
-  call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
+  end if
 !
 !-----compute land/water mask on subgrid space
 !
@@ -1249,7 +1222,6 @@ module mod_params
     dsigma(k) = (sigma(k+1) - sigma(k))
     hsigma(k) = (sigma(k+1) + sigma(k))*d_half
   end do
-!
 !
 !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
 !-----1. caluclate sigma level at 700mb, assuming 600mb highest

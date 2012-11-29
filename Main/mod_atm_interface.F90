@@ -48,6 +48,7 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:) :: msfd
     real(rk8) , pointer , dimension(:,:) :: coriol
     real(rk8) , pointer , dimension(:,:) :: snowam
+    real(rk8) , pointer , dimension(:,:) :: dhlake
   end type domain
 
   type atmstate
@@ -542,6 +543,8 @@ module mod_atm_interface
                                ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'atm_interface:f')
         call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'atm_interface:snowam')
+        if ( lakemod == 1 ) &
+          call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'atm_interface:dhlake')
       else
         call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'atm_interface:ht')
         call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'atm_interface:lndcat')
@@ -554,6 +557,10 @@ module mod_atm_interface
         call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'atm_interface:msfd')
         call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'atm_interface:f')
         call getmem2d(dom%snowam,jdot1,jdot2,idot1,idot2,'atm_interface:snowam')
+        if ( lakemod == 1 ) then
+          call getmem2d(dom%dhlake,jdot1,jdot2, &
+            idot1,idot2,'atm_interface:dhlake')
+        end if
       end if
     end subroutine allocate_domain
 !

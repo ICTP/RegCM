@@ -19,9 +19,7 @@
 
 module mod_bdycod
 !
-! Storage and subroutines for input of boundary values and tendencies
-! of p*u, p*v, p*t, p*qv and p*, and outmost 2 slices of u and v for
-! large domain.
+! Subroutines for input of boundary values and tendencies
 ! Relaxation and Sponge Boundary Conditions routines
 !
   use mod_dynparam
@@ -201,72 +199,60 @@ module mod_bdycod
     bdydate1 = idate1
     bdydate2 = idate1
 
-    if ( myid == iocpu ) then
-      if ( bdydate1 == globidate1 ) then
-        icbc_date = bdydate1
+    if ( bdydate1 == globidate1 ) then
+      icbc_date = bdydate1
+    else
+      icbc_date = monfirst(bdydate1)
+    end if
+
+    call open_icbc(icbc_date)
+
+    datefound = icbc_search(bdydate1)
+    if (datefound < 0) then
+      !
+      ! Cannot run without initial conditions
+      !
+      appdat = tochar(bdydate2)
+      call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+    end if
+
+    call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+
+    if ( myid == italk ) then
+      appdat = tochar(bdydate1)
+      if ( .not. ifrest ) then
+        write (stdout,*) ' READY IC DATA for ', appdat
       else
-        icbc_date = monfirst(bdydate1)
+        write (stdout,*) ' READY BC DATA for ', appdat
       end if
+    end if
 
-      call open_icbc(icbc_date)
-
-      datefound = icbc_search(bdydate1)
+    bdydate2 = bdydate2 + intbdy
+    if ( myid == italk ) then
+      write (stdout,*) ' SEARCH BC data for ', toint10(bdydate2)
+    end if
+    datefound = icbc_search(bdydate2)
+    if (datefound < 0) then
+      call open_icbc(monfirst(bdydate2))
+      datefound = icbc_search(bdydate2)
       if (datefound < 0) then
-        !
-        ! Cannot run without initial conditions
-        !
         appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
-
-      call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io)
-
-      appdat = tochar(bdydate1)
-      if ( .not. ifrest ) then
-        write (6,*) 'READY IC DATA for ', appdat
-      else
-        write (6,*) 'READY BC DATA for ', appdat
-      end if
-
-      bdydate2 = bdydate2 + intbdy
-      write (6,*) 'SEARCH BC data for ', toint10(bdydate2)
-      datefound = icbc_search(bdydate2)
-      if (datefound < 0) then
-        call open_icbc(monfirst(bdydate2))
-        datefound = icbc_search(bdydate2)
-        if (datefound < 0) then
-          appdat = tochar(bdydate2)
-          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
-        end if
-      end if
-      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io)
-
-      ps0_io(:,:) = (ps0_io(:,:)*d_r10)-ptop
-      ps1_io(:,:) = (ps1_io(:,:)*d_r10)-ptop
-
-      write (6,*) 'READY  BC from     ' , &
-            toint10(bdydate1) , ' to ' , toint10(bdydate2)
-
     end if
 
-    call bcast(bdydate2)
-    bdydate1 = bdydate2
-    !
-    ! Send each processor its computing slice
-    !
-    call grid_distribute(ub0_io,xub%b0,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(vb0_io,xvb%b0,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(tb0_io,xtb%b0,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(qb0_io,xqb%b0,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(ps0_io,xpsb%b0,jce1,jce2,ice1,ice2)
-    call grid_distribute(ts0_io,ts0,jce1,jce2,ice1,ice2)
+    call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
 
-    call grid_distribute(ub1_io,xub%b1,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(vb1_io,xvb%b1,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(tb1_io,xtb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(qb1_io,xqb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(ps1_io,xpsb%b1,jce1,jce2,ice1,ice2)
-    call grid_distribute(ts1_io,ts1,jce1,jce2,ice1,ice2)
+    if ( myid == italk ) then
+      write (6,*) ' READY  BC from     ' , &
+            toint10(bdydate1) , ' to ' , toint10(bdydate2)
+    end if
+
+    bdydate1 = bdydate2
+
+    xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+    xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+
     !
     ! Calculate P* on dot points
     !
@@ -382,37 +368,30 @@ module mod_bdycod
     xpsb%b0(:,:) = xpsb%b1(:,:)
     ts0(:,:) = ts1(:,:)
 !
-    if ( myid == iocpu ) then
-      bdydate2 = bdydate2 + intbdy
-      write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
+    bdydate2 = bdydate2 + intbdy
+    if ( myid == italk ) then
+      write (6,'(a,i10)') ' SEARCH BC data for ', toint10(bdydate2)
+    end if
+    mmrec = icbc_search(bdydate2)
+    if (mmrec < 0) then
+      call open_icbc(monfirst(bdydate2))
       mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then
-        call open_icbc(monfirst(bdydate2))
-        mmrec = icbc_search(bdydate2)
-        if (mmrec < 0) then
-          appdat = tochar(bdydate2)
-          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
-        end if
+        appdat = tochar(bdydate2)
+        call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
-      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io)
-      !
-      ! Convert surface pressure to pstar
-      !
-      ps1_io(:,:) = (ps1_io(:,:)*d_r10)-ptop
     end if
-!
-    call grid_distribute(ub1_io,xub%b1,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(vb1_io,xvb%b1,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(tb1_io,xtb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(qb1_io,xqb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(ps1_io,xpsb%b1,jce1,jce2,ice1,ice2)
-    call grid_distribute(ts1_io,ts1,jce1,jce2,ice1,ice2)
-!
+    call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+    !
+    ! Convert surface pressure to pstar
+    !
+    xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+
     call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)
-!
-!   Couple pressure u,v,t,q
-!
+    !
+    ! Couple pressure u,v,t,q
+    !
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -461,7 +440,6 @@ module mod_bdycod
     end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-!
     !
     ! Update ground temperature on Ocean/Lakes
     !
@@ -507,7 +485,7 @@ module mod_bdycod
     end if
 
     if ( myid == italk ) then
-      write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
+      write (6,'(a,i10,a,i10)') ' READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 

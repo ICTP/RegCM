@@ -345,7 +345,7 @@ module mod_regcm_interface
 !
     if ( myid == italk ) then
       appdat = tochar(idate2)
-      write(stdout,*) 'Restart file for next run is written at time =',appdat
+      write(stdout,*) 'Restart file for next run is written at time ',appdat
     end if
 !
     call close_icbc

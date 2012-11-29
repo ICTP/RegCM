@@ -29,6 +29,8 @@ module mod_ncio
   use mod_nchelper
   use mod_domain
 !
+  private
+
   public :: ivarname_lookup
   public :: read_domain_info , read_subdomain_info
   public :: open_icbc , icbc_search , read_icbc , close_icbc
@@ -43,50 +45,80 @@ module mod_ncio
   data ibcrec  / 1/
   data ibcnrec / 0/
 
+  real(rk8) , dimension(:,:) , allocatable :: rspace2
+  real(rk8) , dimension(:,:,:) , allocatable :: rspace3
+
   contains
 
-  subroutine read_domain_info_par
+  subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
+                              msfx,msfd,coriol,snowam,hlake)
     implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ht
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: lnd
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: mask
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: xlat
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: xlon
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: dlat
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: dlon
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: msfx
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: msfd
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: coriol
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: snowam
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
+    integer(ik4) , dimension(2) :: istart , icount
+    real(rk8) , dimension(:,:) , allocatable :: rspace
 
-    if ( myid == iocpu ) then
-      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+    if ( myid == italk ) then
       write(stdout,*) 'Reading Domain file : ', trim(dname)
-      call openfile_withname(dname,idmin)
-      call read_domain(idmin)
-      call closefile(idmin)
-      if ( ensemble_run ) then
-        write(stdout,*) 'Appling perturbation to input dataset:'
-        if ( lperturb_topo ) then
-          write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-            perturb_frac_topo*d_100,'%'
-          call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
-        end if
+    end if
+    istart(1) = global_dot_jstart
+    istart(2) = global_dot_istart
+    icount(1) = global_dot_jend-global_dot_jstart+1
+    icount(2) = global_dot_iend-global_dot_istart+1
+    allocate(rspace(icount(1),icount(2)))
+    call openfile_withname(dname,idmin)
+    call check_domain(idmin)
+    call read_var1d_static(idmin,'sigma',sigma)
+    call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+    xlat(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+    xlon(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+    dlat(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+    dlon(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+    if ( ensemble_run ) then
+      write(stdout,*) 'Appling perturbation to input dataset:'
+      if ( lperturb_topo ) then
+        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+          perturb_frac_topo*d_100,'%'
+        call randify(rspace,perturb_frac_topo,icount(1),icount(2))
       end if
     end if
-  end subroutine read_domain_info_par
-
-  subroutine read_domain_info
-    implicit none
-    character(len=256) :: dname
-    integer(ik4) :: idmin
-
-    if ( myid == iocpu ) then
-      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-      write(stdout,*) 'Reading Domain file : ', trim(dname)
-      call openfile_withname(dname,idmin)
-      call read_domain(idmin)
-      call closefile(idmin)
-      if ( ensemble_run ) then
-        write(stdout,*) 'Appling perturbation to input dataset:'
-        if ( lperturb_topo ) then
-          write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-            perturb_frac_topo*d_100,'%'
-          call randify(mddom_io%ht,perturb_frac_topo,jx,iy)
-        end if
-      end if
+    ht(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+    mask(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
+    lnd(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
+    msfx(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
+    msfd(jde1:jde2,ide1:ide2) = rspace
+    call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
+    coriol(jde1:jde2,ide1:ide2) = rspace
+    rspace = d_zero
+    call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
+    snowam(jde1:jde2,ide1:ide2) = rspace
+    if ( lakemod == 1 ) then
+      call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+      hlake(jde1:jde2,ide1:ide2) = rspace
     end if
+    call closefile(idmin)
+    deallocate(rspace)
   end subroutine read_domain_info
 
   subroutine read_subdomain_info(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
@@ -97,63 +129,47 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon1
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake1
-    integer(ik4) :: isdmin , ivarid
+    character(len=256) :: dname
+    integer(ik4) :: idmin
+    integer(ik4) , dimension(2) :: istart , icount
+    real(rk8) , dimension(:,:) , allocatable :: rspace
     character(len=3) :: sbstring
-    character(len=256) :: sdname
-    real(rk4) , dimension(:,:) , allocatable :: sp2d1
-
-    if ( nsg < 2 ) return
 
     write (sbstring,'(i0.3)') nsg
-    sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
-    write(stdout,*) 'Reading Sub-Domain file : ', trim(sdname)
-
-    allocate(sp2d1(jxsg,iysg))
-    call openfile_withname(sdname,isdmin)
-    istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable topo read error','SUBDOMAIN FILE')
-    call input_reorder(sp2d1,ht1)
-    istatus = nf90_inq_varid(isdmin, 'landuse', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable landuse miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable landuse read error', &
-                  'SUBDOMAIN FILE')
-    call input_reorder(sp2d1,lnd1)
-    istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable mask read error', &
-                  'SUBDOMAIN FILE')
-    call input_reorder(sp2d1,mask1)
-    istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlat miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable xlat read error','SUBDOMAIN FILE')
-    call input_reorder(sp2d1,xlat1)
-    istatus = nf90_inq_varid(isdmin, 'xlon', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable xlon miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok(__FILE__,__LINE__,'Variable xlon read error','SUBDOMAIN FILE')
-    call input_reorder(sp2d1,xlon1)
-    istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
-    istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call input_reorder(sp2d1,mask1)
-    call check_ok(__FILE__,__LINE__,'Variable mask read error','SUBDOMAIN FILE')
-    if ( lakemod == 1 ) then
-      istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
-      call check_ok(__FILE__,__LINE__,'Variable dhlake miss','SUBDOMAIN FILE')
-      istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-      call check_ok(__FILE__,__LINE__,'Variable dhlake read error', &
-                    'SUBDOMAIN FILE')
-      call input_reorder(sp2d1,hlake1)
+    dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
+    if ( myid == italk ) then
+      write(stdout,*) 'Reading Sub-Domain file : ', trim(dname)
     end if
-    istatus = nf90_close(isdmin)
-    call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
-                 'SUBDOMAIN FILE')
-    deallocate(sp2d1)
+    istart(1) = (global_dot_jstart-1)*nsg+1
+    istart(2) = (global_dot_istart-1)*nsg+1
+    icount(1) = (global_dot_jend-global_dot_jstart+1)*nsg
+    icount(2) = (global_dot_iend-global_dot_istart+1)*nsg
+    allocate(rspace(icount(1),icount(2)))
+    call openfile_withname(dname,idmin)
+    call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+    call input_reorder(rspace,xlat1,jde1,jde2,ide1,ide2)
+    call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+    call input_reorder(rspace,xlon1,jde1,jde2,ide1,ide2)
+    call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+    if ( ensemble_run ) then
+      write(stdout,*) 'Appling perturbation to input dataset:'
+      if ( lperturb_topo ) then
+        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+          perturb_frac_topo*d_100,'%'
+        call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+      end if
+    end if
+    call input_reorder(rspace,ht1,jde1,jde2,ide1,ide2)
+    call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+    call input_reorder(rspace,mask1,jde1,jde2,ide1,ide2)
+    call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
+    call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
+    if ( lakemod == 1 ) then
+      call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+      call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
+    end if
+    call closefile(idmin)
+    deallocate(rspace)
   end subroutine read_subdomain_info
 
   integer function icbc_search(idate)
@@ -181,7 +197,7 @@ module mod_ncio
   subroutine open_icbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
     character(10) :: ctime
-    integer(ik4) :: idimid , itvar , i , chkdiff
+    integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
     real(rk8) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
@@ -244,72 +260,92 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable t miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
     call check_ok(__FILE__,__LINE__,'variable qv miss', 'ICBC FILE')
+
+    nnj = global_dot_jend-global_dot_jstart+1
+    nni = global_dot_iend-global_dot_istart+1
+    allocate(rspace2(nnj,nni))
+    allocate(rspace3(nnj,nni,kz))
   end subroutine open_icbc
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
     implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ps
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: ts
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: u
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: v
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: t
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: qv
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ps
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ts
-
     integer(ik4) , dimension(4) :: istart , icount
 
+    istart(1) = global_dot_jstart
+    istart(2) = global_dot_istart
     istart(3) = ibcrec
-    istart(2) = 1
-    istart(1) = 1
+    icount(1) = global_dot_jend-global_dot_jstart+1
+    icount(2) = global_dot_iend-global_dot_istart+1
     icount(3) = 1
-    icount(2) = iy
-    icount(1) = jx
-    istatus = nf90_get_var(ibcin,icbc_ivar(1),ps,istart(1:3),icount(1:3))
+    istatus = nf90_get_var(ibcin,icbc_ivar(1),rspace2,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
-    istatus = nf90_get_var(ibcin,icbc_ivar(2),ts,istart(1:3),icount(1:3))
+    if ( ensemble_run ) then
+      if ( lperturb_ps ) then
+        write(stdout,'(a,f7.2,a)') 'PS with value ',perturb_frac_ps*d_100,'%'
+        call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
+      end if
+    end if
+    ps(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+    istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
-    istart(4) = ibcrec
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = kz
-    icount(2) = iy
-    icount(1) = jx
-    istatus = nf90_get_var(ibcin,icbc_ivar(3),u,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
-    istatus = nf90_get_var(ibcin,icbc_ivar(4),v,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
-    istatus = nf90_get_var(ibcin,icbc_ivar(5),t,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
-    istatus = nf90_get_var(ibcin,icbc_ivar(6),qv,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
     if ( ensemble_run ) then
       write(stdout,*) 'Appling perturbation to input dataset:'
       if ( lperturb_ts ) then
         write(stdout,'(a,f7.2,a)') 'TS with value ',perturb_frac_ts*d_100,'%'
-        call randify(ts,perturb_frac_ts,jx,iy)
-      end if
-      if ( lperturb_ps ) then
-        write(stdout,'(a,f7.2,a)') 'PS with value ',perturb_frac_ps*d_100,'%'
-        call randify(ps,perturb_frac_ps,jx,iy)
-      end if
-      if ( lperturb_t ) then
-        write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
-        call randify(t,perturb_frac_t,jx,iy,kz)
-      end if
-      if ( lperturb_q ) then
-        write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
-        call randify(qv,perturb_frac_q,jx,iy,kz)
-      end if
-      if ( lperturb_u ) then
-        write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
-        call randify(u,perturb_frac_u,jx,iy,kz)
-      end if
-      if ( lperturb_v ) then
-        write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
-        call randify(v,perturb_frac_v,jx,iy,kz)
+        call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
       end if
     end if
+    ts(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+    istart(1) = global_dot_jstart
+    istart(2) = global_dot_istart
+    istart(3) = 1
+    istart(4) = ibcrec
+    icount(1) = global_dot_jend-global_dot_jstart+1
+    icount(2) = global_dot_iend-global_dot_istart+1
+    icount(3) = kz
+    icount(4) = 1
+    istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)
+    call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
+    if ( ensemble_run ) then
+      if ( lperturb_u ) then
+        write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+        call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
+      end if
+    end if
+    u(jde1:jde2,ide1:ide2,1:kz) = rspace3
+    istatus = nf90_get_var(ibcin,icbc_ivar(4),rspace3,istart,icount)
+    call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
+    if ( ensemble_run ) then
+      if ( lperturb_v ) then
+        write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+        call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
+      end if
+    end if
+    v(jde1:jde2,ide1:ide2,1:kz) = rspace3
+    istatus = nf90_get_var(ibcin,icbc_ivar(5),rspace3,istart,icount)
+    call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
+    if ( ensemble_run ) then
+      if ( lperturb_t ) then
+        write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+        call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
+      end if
+    end if
+    t(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+    istatus = nf90_get_var(ibcin,icbc_ivar(6),rspace3,istart,icount)
+    call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
+    if ( ensemble_run ) then
+      if ( lperturb_q ) then
+        write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+        call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
+      end if
+    end if
+    qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
   end subroutine read_icbc
 
   subroutine close_icbc
@@ -320,6 +356,8 @@ module mod_ncio
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
+    if ( allocated(rspace2) ) deallocate(rspace2)
+    if ( allocated(rspace3) ) deallocate(rspace3)
   end subroutine close_icbc
 
   subroutine check_ok(f,l,m1,mf)

@@ -2260,7 +2260,7 @@ module mod_rad_radiation
 #endif
     contains
 
-      integer function intmax(imax)
+      integer(ik4) function intmax(imax)
         implicit none
         integer(ik4) , pointer , dimension(:) , intent(in) :: imax
         integer(ik4) :: i , n , is , ie , mx

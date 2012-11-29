@@ -73,7 +73,7 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zicetot
   real(rk8) , pointer , dimension(:,:) :: zmeltmax
   
-  integer  , pointer , dimension(:,:,:) :: jindex2
+  integer(ik4) , pointer , dimension(:,:,:) :: jindex2
   real(rk8) , pointer , dimension(:,:,:) :: ztl
   real(rk8) , pointer , dimension(:,:,:) :: ztln
   real(rk8) , pointer , dimension(:,:,:) :: dqsatdt

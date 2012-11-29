@@ -696,12 +696,13 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var1d_static_double
 
-  subroutine read_var2d_static_double(ncid,vnam,values,lerror)
+  subroutine read_var2d_static_double(ncid,vnam,values,lerror,istart,icount)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vnam
-    real(rk8) , pointer , dimension(:,:) :: values
+    real(rk8) , dimension(:,:) :: values
     logical , intent(in) , optional :: lerror
+    integer(ik4) , dimension(2) , optional :: istart , icount
     integer(ik4) :: ivarid
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
@@ -713,8 +714,13 @@ module mod_nchelper
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
     end if
-    incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    if ( present(istart) .and. present(icount) ) then
+      incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    else
+      incstat = nf90_get_var(ncid, ivarid, values)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    end if
   end subroutine read_var2d_static_double
 
   subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)

@@ -93,10 +93,10 @@ contains
     integer(ik8) , intent(in) :: ktau
 
     real(rk8) , intent(in) ::declin 
-    integer  :: i , itr
+    integer(ik4)  :: i , itr
 
 #if (defined VOC && defined CLM)
-    integer  :: jglob, iglob  ! Full grid i- j-component
+    integer(ik4)  :: jglob, iglob  ! Full grid i- j-component
 #endif
     real(rk8) :: daylen , fact , maxelev , amp
 #ifdef DEBUG

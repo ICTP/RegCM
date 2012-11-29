@@ -28,7 +28,6 @@ module mod_bats_mppio
   public
 
   integer(ik4) , pointer , dimension(:,:,:) :: idep_io
-  real(rk8) , pointer , dimension(:,:,:) :: dhlake1_io
   real(rk8) , pointer , dimension(:,:,:) :: eta_io
   real(rk8) , pointer , dimension(:,:,:) :: hi_io
   real(rk8) , pointer , dimension(:,:,:) :: aveice_io
@@ -43,8 +42,6 @@ module mod_bats_mppio
       integer(ik4) , intent(in) :: lakemod
       if ( lakemod == 1 ) then
         if ( myid == iocpu ) then
-          call getmem3d(dhlake1_io,1,nnsg,jdot1,jdot2,idot1,idot2, &
-                        'bats_mppio:dhlake1_io')
           call getmem3d(idep_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
                         'bats_mppio:idep_io')
           call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
