@@ -1536,10 +1536,10 @@ module mod_ncout
         ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
         ! subtract 1 line/column to rebase on pixel (2,2) of the internal model
         ! cross points grid to point (1,1).
-        outstream(nstream)%opar%global_jstart = global_cross_jstart - 1
-        outstream(nstream)%opar%global_jend   = global_cross_jend   - 1
-        outstream(nstream)%opar%global_istart = global_cross_istart - 1
-        outstream(nstream)%opar%global_iend   = global_cross_iend   - 1
+        outstream(nstream)%opar%global_jstart = global_out_jstart
+        outstream(nstream)%opar%global_jend   = global_out_jend
+        outstream(nstream)%opar%global_istart = global_out_istart
+        outstream(nstream)%opar%global_iend   = global_out_iend
         if ( nstream == sub_stream ) then
           outstream(nstream)%opar%global_jstart = &
             (outstream(nstream)%opar%global_jstart-1)*nsg+1
@@ -1999,6 +1999,13 @@ module mod_ncout
               class default
                 cycle var_loop_par
             end select
+          else
+            select type(vp)
+              type is (ncvariable2d_real)
+                if ( vp%lrecords ) cycle var_loop_par
+              class default
+                cycle var_loop_par
+            end select
           end if
 
           call outstream_writevar(outstream(i)%ncout(j),vp)
@@ -2222,6 +2229,15 @@ module mod_ncout
             vp%i2 = outstream(istream)%ig2
             tmp3d => vp%rval
             vp%rval => pnt3d
+          class default
+            cycle
+        end select
+      else
+        select type(vp)
+          type is (ncvariable2d_real)
+            if ( .not. vp%lrecords ) cycle
+          type is (ncvariable3d_real)
+            if ( .not. vp%lrecords ) cycle
           class default
             cycle
         end select

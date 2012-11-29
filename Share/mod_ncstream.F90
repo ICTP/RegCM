@@ -112,8 +112,8 @@ module mod_ncstream
         stream%jparbound(2) = params%global_jend
         stream%iparbound(1) = params%global_istart
         stream%iparbound(2) = params%global_iend
-        stream%global_ni = params%global_iend-params%global_istart+1
         stream%global_nj = params%global_jend-params%global_jstart+1
+        stream%global_ni = params%global_iend-params%global_istart+1
         stream%parsize = stream%global_ni*stream%global_nj
 #ifdef DEBUG
         write(stdout,*) 'Parallel I/O enabled.'
@@ -221,10 +221,6 @@ module mod_ncstream
         ncstat = nf90_create(stream%filename,iomode, &
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
-        write(6,*) 'Opened FILE for parallel I/O'
-        write(6,*) 'comm: ',params%mpi_comm
-        write(6,*) 'info: ',params%mpi_info
-        write(6,*) 'iomode: ',params%mpi_iotype
       else
         iomode = ior(ior(nf90_classic_model,nf90_clobber),nf90_netcdf4)
         ncstat = nf90_create(stream%filename,iomode,stream%id)

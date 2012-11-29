@@ -95,7 +95,7 @@ module mod_params
     lakfrq , radfrq , chemfrq , enable_atm_vars , enable_srf_vars ,    &
     enable_rad_vars , enable_sub_vars , enable_sts_vars ,              &
     enable_lak_vars , enable_opt_vars , enable_che_vars ,              &
-    dirout , lsync
+    dirout , lsync , do_parallel_netcdf_io
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -285,6 +285,7 @@ module mod_params
   enable_che_vars(:) = .true.
   dirout = './output' 
   lsync = .false.
+  do_parallel_netcdf_io = .false.
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -593,6 +594,12 @@ module mod_params
   call bcast(lakfrq)
   call bcast(subfrq)
   call bcast(chemfrq)
+  call bcast(lsync)
+#ifdef NETCDF4_HDF5
+  call bcast(do_parallel_netcdf_io)
+#else
+  do_parallel_netcdf_io = .false.
+#endif
 
   call bcast(iboudy)
   call bcast(ibltyp)
@@ -987,6 +994,7 @@ module mod_params
 
   call bcast(dirter,256)
   call bcast(dirglob,256)
+  call bcast(dirout,256)
   call bcast(domname,64)
   call read_domain_info(mddom%ht,mddom%lndcat,mddom%mask, &
                         mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &

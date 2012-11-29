@@ -820,10 +820,24 @@ module mod_mppparam
       end if
       global_cross_jstart = global_dot_jstart
       global_cross_istart = global_dot_istart
-      global_cross_jend   = global_dot_jend
-      global_cross_iend   = global_dot_iend
-      if ( global_dot_jend == jx ) global_cross_jend = global_cross_jend - 1
-      if ( global_dot_iend == iy ) global_cross_iend = global_cross_iend - 1
+      global_cross_jend = global_dot_jend
+      global_cross_iend = global_dot_iend
+      if ( global_dot_jend == jx ) then
+        global_cross_jend = global_cross_jend - 1
+      end if
+      if ( global_dot_iend == iy ) then
+        global_cross_iend = global_cross_iend - 1
+      end if
+      global_out_jstart = max(global_cross_jstart-1,1)
+      global_out_istart = max(global_cross_istart-1,1)
+      global_out_jend   = global_cross_jend-1
+      global_out_iend   = global_cross_iend-1
+      if ( global_dot_jend == jx ) then
+        global_out_jend = global_out_jend-1
+      end if
+      if ( global_dot_iend == iy ) then
+        global_out_iend = global_out_iend-1
+      end if
     end if
     !
     ! Check the results to be fit (minum for the advection is to have 3 points

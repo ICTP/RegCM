@@ -183,7 +183,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call init_output_streams(.false.)
+    call init_output_streams(do_parallel_netcdf_io)
     call output
 !
 !**********************************************************************

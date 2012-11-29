@@ -234,6 +234,10 @@ module mod_dynparam
   integer(ik4) :: global_cross_jend
   integer(ik4) :: global_cross_istart
   integer(ik4) :: global_cross_iend
+  integer(ik4) :: global_out_jstart
+  integer(ik4) :: global_out_jend
+  integer(ik4) :: global_out_istart
+  integer(ik4) :: global_out_iend
 
 !####################### MPI parameters ################################
 
