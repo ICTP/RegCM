@@ -44,7 +44,6 @@ module mod_che_mppio
 !
   real(rk8) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , &
                                              chebdy_io1 , oxcl_io
-  real(rk8) , pointer , dimension(:,:,:) :: dustsotex_io
 !
   contains 
     !
@@ -95,10 +94,6 @@ module mod_che_mppio
                         1,kz,1,ntr,'che_mppio:chia_io')
           call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chib_io')
-
-          call getmem3d(dustsotex_io,jdot1,jdot2,idot1,idot2, &
-                        1,nats,'che_mppio:dustsotex_io')
-
         end if
       end if
     end subroutine allocate_mod_che_mppio

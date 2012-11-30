@@ -284,17 +284,9 @@ module mod_che_dust
 
       call bcast(rd_tex)
 
-      if ( myid == iocpu ) then
-        if ( rd_tex ) then
-          call read_texture(nats,dustsotex_io)
-        end if
-      end if
-
       if ( rd_tex ) then
-        call grid_distribute(dustsotex_io,dustsotex,jce1,jce2,ice1,ice2,1,nats)
+        call read_texture(nats,dustsotex)
       end if
-
-! end texture file reading
 
       clay2row2 = d_zero
       clayrow2  = d_zero

@@ -131,41 +131,25 @@ module mod_che_ncio
       implicit none
       integer(ik4) , intent(in) :: nats
       real(rk8) , pointer , dimension(:,:,:) , intent(out) :: texture
-
-      integer(ik4) :: ivarid
-      integer(ik4) :: i , j , n
       integer(ik4) :: idmin
       integer(ik4) , dimension(3) :: istart , icount
-      character(256) :: dname
-      real(rk4), dimension(jx,iy) ::  toto
+      character(len=256) :: dname
+      real(rk8) , allocatable , dimension(:,:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-
-      istatus = nf90_open(dname, nf90_nowrite, idmin)
-      call check_ok(__FILE__,__LINE__, &
-                  'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
-      istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
-      call check_ok(__FILE__,__LINE__,'Variable texture_fraction miss', &
-                  'DOMAIN FILE')
-      istart(2) = 1
-      istart(1) = 1
-      icount(3) = 1
-      icount(2) = iy
-      icount(1) = jx
-      do n = 1 , nats
-        istart(3) = n
-        istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
-        call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
-                      'DOMAIN FILE')
-        do i = 1 , iy
-          do j = 1 , jx
-            texture(j,i,n) = dble(toto(j,i))*0.01D0
-            if ( texture(j,i,n) < d_zero ) texture(j,i,n) = d_zero
-          end do
-        end do
-      end do
-      istatus = nf90_close(idmin)
-      call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
+      call openfile_withname(dname,idmin)
+      istart(1) = global_dot_jstart
+      istart(2) = global_dot_istart
+      istart(3) = 1
+      icount(1) = global_dot_jend-global_dot_jstart+1
+      icount(2) = global_dot_iend-global_dot_istart+1
+      icount(3) = nats
+      allocate(rspace(icount(1),icount(2),icount(3)))
+      call read_var3d_static(idmin,'texture_fraction',rspace, &
+        istart=istart,icount=icount)
+      texture(jci1:jci2,ici1:ici2,:) = &
+        max(rspace(jci1:jci2,ici1:ici2,:)*0.01D0,d_zero)
+      call closefile(idmin)
     end subroutine read_texture
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
