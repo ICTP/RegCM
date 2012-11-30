@@ -1390,7 +1390,7 @@ module mod_tendency
         call sumall(ptnbar,ptntot)
         if ( myid == italk ) then
           appdat = tochar(idatex)
-          write(stdout,'(a,a23,a,i16)') ' $$$', appdat , ', ktau   = ', ktau
+          write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
                 ptnbar , pt2tot
           write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec

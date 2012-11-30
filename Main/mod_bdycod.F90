@@ -221,15 +221,15 @@ module mod_bdycod
     if ( myid == italk ) then
       appdat = tochar(bdydate1)
       if ( .not. ifrest ) then
-        write (stdout,*) ' READY IC DATA for ', appdat
+        write(stdout,*) 'READY IC DATA for ', appdat
       else
-        write (stdout,*) ' READY BC DATA for ', appdat
+        write(stdout,*) 'READY BC DATA for ', appdat
       end if
     end if
 
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write (stdout,*) ' SEARCH BC data for ', toint10(bdydate2)
+      write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
     end if
     datefound = icbc_search(bdydate2)
     if (datefound < 0) then
@@ -244,7 +244,7 @@ module mod_bdycod
     call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
 
     if ( myid == italk ) then
-      write (6,*) ' READY  BC from     ' , &
+      write (stdout,*) 'READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
@@ -370,7 +370,7 @@ module mod_bdycod
 !
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write (6,'(a,i10)') ' SEARCH BC data for ', toint10(bdydate2)
+      write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
     end if
     mmrec = icbc_search(bdydate2)
     if (mmrec < 0) then
@@ -485,7 +485,7 @@ module mod_bdycod
     end if
 
     if ( myid == italk ) then
-      write (6,'(a,i10,a,i10)') ' READY  BC from     ' , &
+      write (stdout,*) 'READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 

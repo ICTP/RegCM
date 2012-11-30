@@ -349,6 +349,7 @@ module mod_regcm_interface
     end if
 !
     call close_icbc
+    if ( ichem == 1 ) call close_chbc
     call dispose_output_streams
 !
 #ifdef CLM

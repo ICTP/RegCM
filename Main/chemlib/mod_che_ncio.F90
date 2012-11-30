@@ -33,7 +33,7 @@ module mod_che_ncio
   private
 !
   public :: read_texture , read_emission , recc
-  public :: prepare_chem_out , init_mod_che_ncio
+  public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc
 
   public :: chbc_ivar , n_chbcvar , n_aebcvar
@@ -68,8 +68,9 @@ module mod_che_ncio
   integer(ik4) , public , parameter :: ifrqmon = 1
   integer(ik4) , public , parameter :: ifrqday = 2
   integer(ik4) , public , parameter :: ifrqhrs = 3
+  real(rk8) , dimension(:,:) , allocatable :: rspace2
 
-  character(256) :: dname , icbcname
+  character(256) :: icbcname
 
   data ichin   /-1/
   data iaein   /-1/
@@ -100,7 +101,6 @@ module mod_che_ncio
       implicit none
       character(len=8) , intent(in) :: chemsymtype
 
-      dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       n_aebcvar = 0
       select case ( chemsymtype )
         case ( 'DUST' )
@@ -170,12 +170,11 @@ module mod_che_ncio
       ! change that in the future.,
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
-      print *, 'Opening ch. emission file ', trim(aername)
+      if ( myid == italk ) then
+        write(stdout,*) 'Opening ch. emission file ', trim(aername)
+      end if
 
-      istatus = nf90_open(aername, nf90_nowrite, ncid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Error Opening chem emissiom file '//trim(aername), &
-                    'CHE EMISS FILE OPEN ERROR')
+      call openfile_withname(aername,ncid)
 
       istatus = nf90_inq_dimid(ncid, 'time', idimid)
       call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
@@ -232,7 +231,7 @@ module mod_che_ncio
       end do looprec
        
       if ( recc == 0 ) then
-        print *,'chem emission : time record not found emission file, STOP ! '
+        write(stderr,*) 'chem emission : time record not found emission file'
         call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
       end if  
 
@@ -240,32 +239,38 @@ module mod_che_ncio
       !*** Advice record counter
       istart = 0
       icount = 0 
-      istatus = nf90_inq_dimid(ncid, 'lev', idimid)
 
+      istatus = nf90_inq_dimid(ncid, 'lev', idimid)
       if(istatus /= nf90_noerr) then
         ! no lev diemsion in emission variables
-        istart(1) = 1
-        istart(2) = 1
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
         istart(3) = recc
-        icount(1) = jx
-        icount(2) = iy
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
         icount(3) = 1
         sdim = 3
       else
-        istart(1) = 1
-        istart(2) = 1
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
         istart(3) = 1
         istart(4) = recc
-        icount(1) = jx
-        icount(2) = iy
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
         icount(3) = 1
         icount(4) = 1
         sdim=4
       end if
+
+      allocate(rspace2(icount(1),icount(2)))
+
       ! CO emission                  
       if ( ico /= 0 ) then
         call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.,sdim)
-        print*, 'FAB emis testco','ico', maxval(echemsrc)
+        if ( myid == italk ) then
+          write(stdout,*) 'Emission max co flux : ', &
+            maxval(echemsrc(:,:,ico))
+        end if
       end if
 
       ! NO emission                  
@@ -384,11 +389,9 @@ module mod_che_ncio
 
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
 
-      istatus = nf90_close(ncid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Error Closing Chem emission file '//trim(aername), &
-                    'CH EMISS FILE CLOSE ERROR')
+      call closefile(ncid)
       deallocate (emtimeval)
+      deallocate(rspace2)
     end subroutine read_emission
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
@@ -403,25 +406,24 @@ module mod_che_ncio
       character(len=*) , intent(in) , optional :: cnc
       character(len=*) , intent(in) , optional :: cnd
       integer(ik4) :: ivarid 
-      real(rk4) , dimension(jx,iy) :: toto
       integer(ik4) :: i , j , ind
 
       istatus = nf90_inq_varid(ncid, cna, ivarid)
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
+      istatus = nf90_get_var(ncid,ivarid,rspace2,istart(1:sdim),icount(1:sdim))
       call check_ok(__FILE__,__LINE__, &
                     'Variable '//cna//' read err','CHEM_EMISS FILE')
       if ( lh ) then  ! half of lumped Aromatics
-        do i = 1 , iy
-          do j = 1 , jx
-            echemsrc(j,i,ind) = d_half*toto(j,i)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            echemsrc(j,i,ind) = d_half*rspace2(j,i)
           end do
         end do
       else
-        do i = 1 , iy
-          do j = 1 , jx
-            echemsrc(j,i,ind) = toto(j,i)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            echemsrc(j,i,ind) = rspace2(j,i)
           end do
         end do
       end if
@@ -429,12 +431,13 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnb, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnb//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
+        istatus = nf90_get_var(ncid,ivarid,rspace2, &
+          istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnb//' read err','CHEM_EMISS FILE')
-        do i = 1 , iy
-          do j = 1 , jx
-            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
@@ -442,12 +445,13 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnc, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnc//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
+        istatus = nf90_get_var(ncid,ivarid,rspace2, &
+          istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnc//' read err','CHEM_EMISS FILE')
-        do i = 1 , iy
-          do j = 1 , jx
-            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
@@ -455,12 +459,13 @@ module mod_che_ncio
         istatus = nf90_inq_varid(ncid, cnd, ivarid)
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,toto,istart(1:sdim),icount(1:sdim))
+        istatus = nf90_get_var(ncid,ivarid,rspace2, &
+          istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' read err','CHEM_EMISS FILE')
-        do i = 1 , iy
-          do j = 1 , jx
-            echemsrc(j,i,ind) = toto(j,i) + echemsrc(j,i,ind)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
           end do
         end do
       end if
@@ -504,25 +509,19 @@ module mod_che_ncio
       write (ctime, '(i10)') toint10(idate)
       if ( igaschem == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
-        istatus = nf90_open(icbcname, nf90_nowrite, ichin)
-        call check_ok(__FILE__,__LINE__, &
-              'Error Opening ICBC file '//trim(icbcname),'CHBC FILE OPEN')
+        call openfile_withname(icbcname,ichin)
         call check_dims(ichin)
         ibcid = ichin
       end if
       if ( iaerosol == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
-        istatus = nf90_open(icbcname, nf90_nowrite, iaein)
-        call check_ok(__FILE__,__LINE__, &
-              'Error Opening ICBC file '//trim(icbcname),'AEBC FILE OPEN')
+        call openfile_withname(icbcname,iaein)
         call check_dims(iaein)
         ibcid = iaein
       end if
       if ( ioxclim == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXCL.'//ctime//'.nc'
-        istatus = nf90_open(icbcname, nf90_nowrite, ioxin)
-        call check_ok(__FILE__,__LINE__, &
-              'Error Opening ICBC file '//trim(icbcname),'OXBC FILE OPEN')
+        call openfile_withname(icbcname,ioxin)
         call check_dims(iaein)
         ibcid = ioxin
       end if
@@ -658,14 +657,16 @@ module mod_che_ncio
     subroutine close_chbc
       implicit none
       if ( ichin >= 0 ) then
-        istatus = nf90_close(ichin)
-        call check_ok(__FILE__,__LINE__, 'Error Close file', 'CHBC FILE ERROR')
+        call closefile(ichin)
         ichin = -1
       end if
       if ( iaein >= 0 ) then
-        istatus = nf90_close(iaein)
-        call check_ok(__FILE__,__LINE__, 'Error Close file', 'AEBC FILE ERROR')
+        call closefile(iaein)
         iaein = -1
+      end if
+      if ( ioxin >= 0 ) then
+        call closefile(ioxin)
+        ioxin = -1
       end if
       if ( allocated(chbc_idate) ) deallocate(chbc_idate)
     end subroutine close_chbc

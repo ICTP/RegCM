@@ -138,15 +138,19 @@ module mod_che_bdyco
       end if 
       
       appdat = tochar(chbdydate1)
-      if ( .not. ifrest ) then
-        write (6,*) 'READY ICCH  DATA for ', appdat
-      else
-        write (6,*) 'READY BCCH DATA for ', appdat
+      if ( myid == italk ) then
+        if ( .not. ifrest ) then
+          write(stdout,*) 'READY ICCH DATA for ', appdat
+        else
+          write(stdout,*) 'READY BCCH DATA for ', appdat
+        end if
       end if
 
       chbdydate2 = chbdydate2 + intbdy
  
-      write (6,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+      if ( myid == italk ) then
+        write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+      end if
       datefound = chbc_search(chbdydate2)
       if (datefound < 0) then
         call open_chbc(monfirst(chbdydate2))
@@ -164,8 +168,10 @@ module mod_che_bdyco
         end if
       end do
 
-      write (6,*) 'READY  CHBC from     ' , &
+      if ( myid == italk ) then
+        write (stdout,*) 'READY  CHBC from     ' , &
             toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
+      end if
 
     end if
 
@@ -243,7 +249,7 @@ module mod_che_bdyco
     chib0(:,:,:,:) = chib1(:,:,:,:)
     if(ichebdy==1) then
     if ( myid == iocpu ) then
-      write (6,'(a,i10)') 'SEARCH CHBC data for ', toint10(chbdydate2)
+      write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then
         call open_chbc(monfirst(chbdydate2))

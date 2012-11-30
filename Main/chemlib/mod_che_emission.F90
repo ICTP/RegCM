@@ -68,13 +68,12 @@ contains
     curry = lyear
     currm = lmonth
     currd = lday
-    if ( myid == iocpu ) then
-       write(*,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
-       ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
-       ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
-       call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc_io)
+    if ( myid == italk ) then
+      write(*,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
     end if
-    call grid_distribute(chemsrc_io,chemsrc,jce1,jce2,ice1,ice2,1,ntr)
+    ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
+    ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
+    call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc)
     call bcast(ifreq)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

@@ -429,8 +429,9 @@
             call chemistry(j,secofday,lyear,lmonth,lday)
           end do
 
-        if ( myid == italk ) then
-          print*,'Jvalue max NO2 ',minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
+        if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
+          write(stdout,'(a,2g11.5)') ' $$$ Jvalue min/max NO2 : ', &
+            minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
         end if
 
         end if

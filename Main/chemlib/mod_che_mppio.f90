@@ -37,7 +37,6 @@ module mod_che_mppio
                                          sdelqk2d_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
-  real(rk8) , pointer , dimension(:,:,:) :: chemsrc_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
 !
 ! Boundary conditions arrays
@@ -65,8 +64,6 @@ module mod_che_mppio
             call getmem4d(oxcl_io,jdot1,jdot2,idot1,idot2, &
                           1,kz,1,5,'che_mppio:oxcl_io')
           end if
-          call getmem3d(chemsrc_io,jdot1,jdot2,idot1,idot2, &
-                        1,ntr,'che_mppio:chemsrc_io')
   
           call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remlsc_io')
