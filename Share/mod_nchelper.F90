@@ -64,8 +64,14 @@ module mod_nchelper
     module procedure read_var2d_static_single
   end interface read_var2d_static
 
+  interface read_var3d_static
+    module procedure read_var3d_static_double
+    module procedure read_var3d_static_single
+  end interface read_var3d_static
+
   public :: read_var1d_static
   public :: read_var2d_static
+  public :: read_var3d_static
 
   integer(ik4) :: incstat
 
@@ -663,27 +669,6 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
   end subroutine read_var1d_static_single
 
-  subroutine read_var2d_static_single(ncid,vnam,values,lerror)
-    implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vnam
-    real(rk4) , pointer , dimension(:,:) :: values
-    logical , intent(in) , optional :: lerror
-    integer(ik4) :: ivarid
-    if ( present(lerror) ) then
-      incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      if ( incstat /= nf90_noerr .and. lerror ) then
-        return
-      end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
-    else
-      incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
-    end if
-    incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
-  end subroutine read_var2d_static_single
-
   subroutine read_var1d_static_double(ncid,vnam,values)
     implicit none
     integer(ik4) , intent(in) :: ncid
@@ -702,7 +687,7 @@ module mod_nchelper
     character(len=*) , intent(in) :: vnam
     real(rk8) , dimension(:,:) :: values
     logical , intent(in) , optional :: lerror
-    integer(ik4) , dimension(2) , optional :: istart , icount
+    integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
@@ -722,6 +707,87 @@ module mod_nchelper
       call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
     end if
   end subroutine read_var2d_static_double
+
+  subroutine read_var2d_static_single(ncid,vnam,values,lerror,istart,icount)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vnam
+    real(rk4) , dimension(:,:) :: values
+    logical , intent(in) , optional :: lerror
+    integer(ik4) , dimension(:) , optional :: istart , icount
+    integer(ik4) :: ivarid
+    if ( present(lerror) ) then
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      if ( incstat /= nf90_noerr .and. lerror ) then
+        return
+      end if
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    else
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    end if
+    if ( present(istart) .and. present(icount) ) then
+      incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    else
+      incstat = nf90_get_var(ncid, ivarid, values)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    end if
+  end subroutine read_var2d_static_single
+
+  subroutine read_var3d_static_double(ncid,vnam,values,lerror,istart,icount)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vnam
+    real(rk8) , dimension(:,:,:) :: values
+    logical , intent(in) , optional :: lerror
+    integer(ik4) , dimension(:) , optional :: istart , icount
+    integer(ik4) :: ivarid
+    if ( present(lerror) ) then
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      if ( incstat /= nf90_noerr .and. lerror ) then
+        return
+      end if
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    else
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    end if
+    if ( present(istart) .and. present(icount) ) then
+      incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    else
+      incstat = nf90_get_var(ncid, ivarid, values)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    end if
+  end subroutine read_var3d_static_double
+
+  subroutine read_var3d_static_single(ncid,vnam,values,lerror,istart,icount)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vnam
+    real(rk4) , dimension(:,:,:) :: values
+    logical , intent(in) , optional :: lerror
+    integer(ik4) , dimension(:) , optional :: istart , icount
+    integer(ik4) :: ivarid
+    if ( present(lerror) ) then
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      if ( incstat /= nf90_noerr .and. lerror ) then
+        return
+      end if
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    else
+      incstat = nf90_inq_varid(ncid, vnam, ivarid)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    end if
+    if ( present(istart) .and. present(icount) ) then
+      incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    else
+      incstat = nf90_get_var(ncid, ivarid, values)
+      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    end if
+  end subroutine read_var3d_static_single
 
   subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
     implicit none
