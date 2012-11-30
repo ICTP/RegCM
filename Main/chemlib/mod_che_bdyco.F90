@@ -44,15 +44,19 @@ module mod_che_bdyco
 
   public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval
   public :: nudge_chi , setup_che_bdycon
-  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , chebdy , oxcl
+  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , oxcl
 
   type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
 
-  real(rk8) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , &
-                                             chebdy , oxcl
+  real(rk8) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , oxcl
   real(rk8) , pointer , dimension(:,:) :: cefc , cegc
   integer(ik4) , pointer , dimension(:) :: ichbdy2trac
-   
+  !
+  ! Boundary conditions arrays
+  !
+  real(rk8) , pointer , dimension(:,:,:,:) :: chebdy
+
+  integer(ik4) , parameter :: max_input_tracers = 50
   integer(ik4) :: cnbdm
 
   contains
@@ -60,6 +64,8 @@ module mod_che_bdyco
   subroutine allocate_mod_che_bdyco
     implicit none
     cnbdm = max(nspgx,nspgd)
+    call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
+                  1,max_input_tracers,'che_common:chebdy')
     call getmem4d(chib0,jde1-ma%jbl1,jde2+ma%jbr1, &
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
@@ -69,10 +75,6 @@ module mod_che_bdyco
     call getmem4d(chibt,jde1-ma%jbl1,jde2+ma%jbr1, &
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chibt')
-    call getmem4d(chebdy,jde1-ma%jbl1,jde2+ma%jbr1, &
-                        ide1-ma%ibb1,ide2+ma%ibt1, &
-                        1,kz,1,ntr,'mod_che_bdyco:chebdy')
-!!!    call getmem1d(ichbdy2trac,1,25,'mod_che_bdyco:ichbdytrac')
     call getmem1d(ichbdy2trac,1,35,'mod_che_bdyco:ichbdytrac')
     call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
     call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
@@ -97,11 +99,11 @@ module mod_che_bdyco
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-
     chbdydate1 = idate1
     chbdydate2 = idate1
-    if(ichebdy==1) then 
-    if ( myid == iocpu ) then
+
+    if ( ichebdy == 1 ) then 
+
       if ( chbdydate1 == globidate1 ) then
         chbc_date = chbdydate1
       else
@@ -119,26 +121,38 @@ module mod_che_bdyco
         call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
       end if
 
+      call read_chbc(chebdy)
 
-      call read_chbc(chebdy_in)
-      chebdy_io0 =d_zero
+      chib0 = d_zero
       after = 0
       do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          chebdy_io0(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
-          after = after +1
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chib0(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
+              end do
+            end do
+          end do
+          after = after + 1
         end if
       end do
 
       ! handle oxidant climatology 
       if ( ioxclim == 1 ) then 
         do n = 1 , 5
-          oxcl_io(:,:,:,n) = chebdy_in(:,:,:,after+n)
-        end do   
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                oxcl(j,i,k,n) = chebdy(j,i,k,after+n)
+              end do
+            end do
+          end do
+        end do
       end if 
       
-      appdat = tochar(chbdydate1)
       if ( myid == italk ) then
+        appdat = tochar(chbdydate1)
         if ( .not. ifrest ) then
           write(stdout,*) 'READY ICCH DATA for ', appdat
         else
@@ -151,6 +165,7 @@ module mod_che_bdyco
       if ( myid == italk ) then
         write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
       end if
+
       datefound = chbc_search(chbdydate2)
       if (datefound < 0) then
         call open_chbc(monfirst(chbdydate2))
@@ -160,11 +175,19 @@ module mod_che_bdyco
           call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
         end if
       end if
-      call read_chbc(chebdy_in )
-      chebdy_io1 = d_zero
+
+      call read_chbc(chebdy)
+
+      chib1 = d_zero
       do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
+              end do
+            end do
+          end do
         end if
       end do
 
@@ -173,58 +196,56 @@ module mod_che_bdyco
             toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
       end if
 
-    end if
+      chbdydate1 = chbdydate2
 
-    call bcast(chbdydate2)
-    chbdydate1 = chbdydate2
-
-    END IF !test
-    !
-    ! Send each processor its computing slice
-    !
-    call grid_distribute(chebdy_io0,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    do n = 1 , ntr
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chib0(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
+      !
+      ! Couple with pstar
+      !
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              chib0(j,i,k,n) = chib0(j,i,k,n)*cpsb(j,i)
+            end do
           end do
         end do
       end do
-    end do
-    call exchange(chib0,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    !
-    ! Repeat fot T2
-    !
-    call grid_distribute(chebdy_io1,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    do n = 1 , ntr
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
+      call exchange(chib0,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      !
+      ! Repeat fot T2
+      !
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              chib1(j,i,k,n) = chib1(j,i,k,n)*cpsb(j,i)
+            end do
           end do
         end do
       end do
-    end do
-    call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    !
-    ! Calculate time varying component
-    !
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+      call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      !
+      ! Calculate time varying component
+      !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+          end do
         end do
       end do
-    end do
-    call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
-    ! handle oxc lima
+      ! handle oxc lima
 
-    if ( ioxclim == 1 ) then 
-      call grid_distribute(oxcl_io,oxcl,jce1,jce2,ice1,ice2,1,kz,1,5)
-      call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+      if ( ioxclim == 1 ) then 
+        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+      end if
+    else
+      chbdydate2 = chbdydate2 + intbdy
+      chbdydate1 = chbdydate2
     end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -247,9 +268,13 @@ module mod_che_bdyco
     call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
 
     chib0(:,:,:,:) = chib1(:,:,:,:)
-    if(ichebdy==1) then
-    if ( myid == iocpu ) then
-      write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+
+    if ( ichebdy == 1 ) then
+
+      if ( myid == italk ) then
+        write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+      end if
+
       mmrec = chbc_search(chbdydate2)
       if (mmrec < 0) then
         call open_chbc(monfirst(chbdydate2))
@@ -259,49 +284,66 @@ module mod_che_bdyco
           call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
         end if
       end if
-      call read_chbc(chebdy_in)
-      chebdy_io1 = d_zero
-      after=0  
-     do n = 1 , size(ichbdy2trac)
+
+      call read_chbc(chebdy)
+      chib1 = d_zero
+      after = 0  
+      do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          chebdy_io1(:,:,:,ichbdy2trac(n)) = chebdy_in(:,:,:,n)
-          after = after+1
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
+              end do
+            end do
+          end do
+          after = after + 1
         end if
       end do
-      ! handle oxidant clim 
       if ( ioxclim == 1 ) then
         do n = 1 , 5
-          oxcl_io(:,:,:,n) = chebdy_in(:,:,:,after+n)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                oxcl(j,i,k,n) = chebdy(j,i,k,after+n)
+              end do
+            end do
+          end do
         end do
       end if
-    end if
-   end if 
 
-    call grid_distribute(chebdy_io1,chebdy,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    do n = 1 , ntr
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chib1(j,i,k,n) = chebdy(j,i,k,n)*cpsb(j,i)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              chib1(j,i,k,n) = chib1(j,i,k,n)*cpsb(j,i)
+            end do
           end do
         end do
       end do
-    end do
-    call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+      call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+          end do
         end do
       end do
-    end do
-    call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
-    ! handle oxidant climatology 
-    if ( ioxclim == 1 ) then 
-      call grid_distribute(oxcl_io,oxcl,jce1,jce2,ice1,ice2,1,kz,1,5)
-      call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+      ! handle oxidant climatology 
+      if ( ioxclim == 1 ) then 
+        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+      end if
+
+      if ( myid == italk ) then
+        write (stdout,*) 'READY  CHBC from     ' , &
+            toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
+      end if
+    else
+      chbdydate1 = chbdydate2
     end if
+
     ! Finally rad also the emission 
     call chem_emission(lyear,lmonth,lday,lhour)
 

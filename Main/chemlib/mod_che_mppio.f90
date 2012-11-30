@@ -39,11 +39,6 @@ module mod_che_mppio
                                          svegfrac2d_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
 !
-! Boundary conditions arrays
-!
-  real(rk8) , pointer , dimension(:,:,:,:) :: chebdy_in , chebdy_io0 , &
-                                             chebdy_io1 , oxcl_io
-!
   contains 
     !
     ! This routines allocate all the arrays contained in the module
@@ -54,16 +49,6 @@ module mod_che_mppio
 
       if ( lch ) then
         if ( myid == iocpu ) then
-          call getmem4d(chebdy_io0,jdot1,jdot2,idot1,idot2, &
-                        1,kz,1,ntr,'che_mppio:chebdy_io')
-          call getmem4d(chebdy_io1,jdot1,jdot2,idot1,idot2, &
-                        1,kz,1,ntr,'che_mppio:chebdy_io')
-          call getmem4d(chebdy_in,jdot1,jdot2,idot1,idot2, &
-                        1,kz,1,50,'che_mppio:chebdy_in')
-          if ( ioxclim == 1 ) then 
-            call getmem4d(oxcl_io,jdot1,jdot2,idot1,idot2, &
-                          1,kz,1,5,'che_mppio:oxcl_io')
-          end if
   
           call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remlsc_io')

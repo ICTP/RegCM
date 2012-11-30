@@ -471,8 +471,6 @@ module mod_che_ncio
       end if
     end subroutine rvar
 
-!============================================================================
-
     integer(ik4) function chbc_search(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
@@ -495,15 +493,13 @@ module mod_che_ncio
       end if 
     end function chbc_search
 
-!============================================
-
     subroutine open_chbc(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-      character(10) :: ctime
+      character(len=10) :: ctime
       integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
       real(rk8) , dimension(:) , allocatable :: icbc_nctime
-      character(64) :: icbc_timeunits , icbc_timecal
+      character(len=64) :: icbc_timeunits , icbc_timecal
 
       call close_chbc
       write (ctime, '(i10)') toint10(idate)
@@ -594,26 +590,27 @@ module mod_che_ncio
       implicit none
       real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio 
       integer(ik4) , dimension(4) :: istart , icount
-      real(rk4) , dimension(jx,iy,kz) :: xread
       integer(ik4) :: i , j , k, n , iafter
-      istart(4) = ibcrec
+      real(rk8) , dimension(:,:,:) , allocatable :: rspace3
+      istart(1) = global_dot_jstart
+      istart(2) = global_dot_istart
       istart(3) = 1
-      istart(2) = 1
-      istart(1) = 1
-      icount(4) = 1
+      istart(4) = ibcrec
+      icount(1) = global_dot_jend-global_dot_jstart+1
+      icount(2) = global_dot_iend-global_dot_istart+1
       icount(3) = kz
-      icount(2) = iy
-      icount(1) = jx
+      icount(4) = 1
       iafter = 0
+      allocate(rspace3(icount(1),icount(2),icount(3)))
       if ( igaschem == 1 ) then
         do n = 1 , n_chbcvar
-          istatus = nf90_get_var(ichin, chbc_ivar(n), xread, istart, icount)
+          istatus = nf90_get_var(ichin, chbc_ivar(n), rspace3, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
           do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                chebdio(j,i,k,n) = xread(j,i,k)
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chebdio(j,i,k,n) = rspace3(j,i,k)
               end do
             end do
           end do
@@ -622,13 +619,13 @@ module mod_che_ncio
       end if
       if ( iaerosol == 1 ) then
         do n = 1 , n_aebcvar
-          istatus = nf90_get_var(iaein, aebc_ivar(n), xread, istart, icount)
+          istatus = nf90_get_var(iaein, aebc_ivar(n), rspace3, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
           do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                chebdio(j,i,k,iafter+1) = xread(j,i,k)
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chebdio(j,i,k,iafter+1) = rspace3(j,i,k)
               end do
             end do
           end do
@@ -637,21 +634,20 @@ module mod_che_ncio
       end if
       if ( ioxclim == 1 ) then
         do n = 1 , n_oxbcvar
-          istatus = nf90_get_var(ioxin, oxbc_ivar(n), xread, istart, icount)
+          istatus = nf90_get_var(ioxin, oxbc_ivar(n), rspace3, istart, icount)
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
           do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                chebdio(j,i,k,iafter+n) = xread(j,i,k)
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chebdio(j,i,k,iafter+n) = rspace3(j,i,k)
               end do
             end do
           end do
         end do
       end if
-
-     where (chebdio < d_zero) chebdio = d_zero
-
+      where (chebdio < d_zero) chebdio = d_zero
+      deallocate(rspace3)
     end subroutine read_chbc
 
     subroutine close_chbc
