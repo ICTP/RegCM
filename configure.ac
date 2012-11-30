@@ -279,7 +279,7 @@ fi
 AM_CONDITIONAL(OSNAME_AIX, [test x"$osname" = xAIX])
 AM_CONDITIONAL(OSNAME_LINUX, [test x"$osname" = xLinux])
 
-AM_CONDITIONAL(COMPILER_IBM, [test x"$FC" = xxlf90])
+AM_CONDITIONAL(COMPILER_IBM, [test x"$FC" = xxlf2003])
 AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
 AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
@@ -325,7 +325,7 @@ if eval "test x"$FC" = xpgf90"; then
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
 fi
-if eval "test x"$FC" = xxlf90"; then
+if eval "test x"$FC" = xxlf2003"; then
   AM_CPPFLAGS="-WF,-DIBM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
   CPRDEF="XLF"
@@ -356,7 +356,7 @@ if eval "test x$DEBUG = x1"; then
              -fimf-arch-consistency=true $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xxlf90"; then
+  if eval "test x"$FC" = xxlf2003"; then
     FCFLAGS="-O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
@@ -384,7 +384,7 @@ else
     FCFLAGS="-O3 -fp-model fast=2 -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xxlf90"; then
+  if eval "test x"$FC" = xxlf2003"; then
     FCFLAGS="-qsuppress=1501-245 -bnoquiet -O3 -qstrict \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)

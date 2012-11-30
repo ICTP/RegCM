@@ -91,14 +91,14 @@ module mod_wrtoxd
   logical :: sum_soa_to_oc2
   logical :: sum_sslt_bins
 
-  type(nc_output_stream) :: ncoutch
-  type(nc_output_stream) :: ncoutox
-  type(nc_output_stream) :: ncoutae
+  type(nc_output_stream) , save :: ncoutch
+  type(nc_output_stream) , save :: ncoutox
+  type(nc_output_stream) , save :: ncoutae
 
-  type(ncvariable2d_real) , dimension(2) :: v2dvar_base
-  type(ncvariable3d_real) , dimension(nchsp) :: v3dvar_ch
-  type(ncvariable3d_real) , dimension(noxsp) :: v3dvar_ox
-  type(ncvariable3d_real) , allocatable , dimension(:) :: v3dvar_ae
+  type(ncvariable2d_real) , save , dimension(2) :: v2dvar_base
+  type(ncvariable3d_real) , save , dimension(nchsp) :: v3dvar_ch
+  type(ncvariable3d_real) , save , dimension(noxsp) :: v3dvar_ox
+  type(ncvariable3d_real) , save , allocatable , dimension(:) :: v3dvar_ae
   data sum_soa_to_oc2 /.false./
   data sum_sslt_bins  /.false./
 

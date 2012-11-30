@@ -509,16 +509,16 @@ module mod_cloud_s1
         do j = jstart, jend
           do i = istart, iend 
             zphases = phases(zt(j,i,k))    
-            zfoeew(j,i,k)=min(foeewm(zt(j,i,k))/pres(j,i,k),0.5)
-            zfoeew(j,i,k)=min(0.5,zfoeew(j,i,k))
-            zqsice(j,i,k)=zfoeew(j,i,k)/(1.0-retv*zfoeew(j,i,k))
+            zfoeew(j,i,k)=min(foeewm(zt(j,i,k))/pres(j,i,k),d_half)
+            zfoeew(j,i,k)=min(d_half,zfoeew(j,i,k))
+            zqsice(j,i,k)=zfoeew(j,i,k)/(d_one-retv*zfoeew(j,i,k))
      
            !----------------------------------
            ! liquid water saturation
            !----------------------------------
-           zfoeeliq(j,i,k)=min(foeeliq(zt(j,i,k))/pres(j,i,k),0.5)
+           zfoeeliq(j,i,k)=min(foeeliq(zt(j,i,k))/pres(j,i,k),d_half)
            zqsliq(j,i,k)=zfoeeliq(j,i,k)
-           zqsliq(j,i,k)=zqsliq(j,i,k)/(1.0-retv*zqsliq(j,i,k))
+           zqsliq(j,i,k)=zqsliq(j,i,k)/(d_one-retv*zqsliq(j,i,k))
    
           end do
         end do
@@ -527,9 +527,9 @@ module mod_cloud_s1
         do j = jstart, jend
           do i = istart, iend
             zicetot(j,i)=zqxfg(j,i,iqqi)+zqxfg(j,i,iqqs)
-            zmeltmax(j,i)=0.0 
+            zmeltmax(j,i)=d_zero
             if (zicetot(j,i) > zepsec .and. zt(j,i,k) > zt0) then
-              zsubsat = max(zqsice(j,i,k)-zqx(j,i,k,iqqv),0.0)
+              zsubsat = max(zqsice(j,i,k)-zqx(j,i,k,iqqv),d_zero)
    
               ! Calculate difference between dry-bulb (zt)  and the temperature
               ! at which the wet-bulb=0degC  
@@ -538,8 +538,8 @@ module mod_cloud_s1
               ! due to evaporation.     
               ztdiff = zt(j,i,k)-zt0-zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
               ! Ensure ZCONS1 is positive so that ZMELTMAX=0 if ZTDMTW0<0
-              zcons1 = abs(ptsphy*(1.0+0.5*ztdiff)/rtaumel)  
-              zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,0.0)
+              zcons1 = abs(ptsphy*(d_one+d_half*ztdiff)/rtaumel)  
+              zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
             end if
           end do
         end do    
@@ -843,41 +843,37 @@ contains
      real(rk8) function phases(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16                     !zt0 - 23.0
-       real(rk8) , parameter :: rtwat_rtice_r=1./23.0
-       real(rk8) , parameter :: zt0 = 273.16
-       phases = min(1.0,((max(rtice,min(zt0,zt))-rtice)*rtwat_rtice_r)**2)
+       real(rk8) , parameter :: rtice =  250.16D0      !zt0 - 23.0
+       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
+       phases = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
      end function phases
 
      real(rk8) function foeewm(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r2es =  611.21                     !
-       real(rk8) , parameter :: r3les = 17.502
-       real(rk8) , parameter :: r3ies = 22.587
-       real(rk8) , parameter :: r4les = 32.19
-       real(rk8) , parameter :: r4ies = -0.7
-       real(rk8) , parameter :: zt0 = 273.16
-       foeewm = r2es*(phases(zt)*exp(r3les*(zt-zt0)/(zt-r4les))+&
-       &(1.0-phases(zt))*exp(r3ies*(zt-zt0)/(zt-r4ies)))
+       real(rk8) , parameter :: r2es =  611.21D0
+       real(rk8) , parameter :: r3les = 17.502D0
+       real(rk8) , parameter :: r3ies = 22.587D0
+       real(rk8) , parameter :: r4les = 32.19D0
+       real(rk8) , parameter :: r4ies = -0.7D0
+       foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les))+&
+       &(1.0-phases(zt))*exp(r3ies*(zt-tzero)/(zt-r4ies)))
        end function foeewm
 
      real(rk8) function foeeliq(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16                     !zt0 - 23.0
-       real(rk8) , parameter :: rtwat_rtice_r=1./23.0
-       real(rk8) , parameter :: zt0 = 273.16
-       foeeliq = min(1.0,((max(rtice,min(zt0,zt))-rtice)*rtwat_rtice_r)**2)
+       real(rk8) , parameter :: rtice =  250.16D0 !zt0 - 23.0
+       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
+       foeeliq = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
      end function foeeliq
 
      real(rk8) function foeeice(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16                     !zt0 - 23.0
-       real(rk8) , parameter :: rtwat_rtice_r=1./23.0
-       real(rk8) , parameter :: zt0 = 273.16
-       foeeice = min(1.0,((max(rtice,min(zt0,zt))-rtice)*rtwat_rtice_r)**2)
+       real(rk8) , parameter :: rtice =  250.16D0!zt0 - 23.0
+       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
+       foeeice = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
      end function foeeice
 
      real(rk8) function dqsatdtc(zt,satc)
