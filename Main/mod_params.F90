@@ -572,6 +572,8 @@ module mod_params
   call bcast(idate0)
   call bcast(idate1)
   call bcast(idate2)
+  call bcast(globidate1)
+  call bcast(globidate2)
  
   call bcast(dtrad)
   call bcast(dtabem)
