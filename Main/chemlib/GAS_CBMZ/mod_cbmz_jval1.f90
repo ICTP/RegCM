@@ -23,6 +23,8 @@ module mod_cbmz_jval1
   use mod_realkinds
   use mod_constants
   use mod_dynparam
+  use mod_mppparam
+  use mod_stdio
 
   private
 
@@ -732,7 +734,7 @@ module mod_cbmz_jval1
 !     INTERNAL
 !     --------------------------------------------------
 !     TEST WRITE:  WRITE IF iwri=1
-      write (*,*) 'HVREAD     TUVGRID'
+      if ( myid == italk ) write (stdout,*) 'HVREAD: TUVGRID'
       iwri = 0
  
 !     OPTION:  TOTAL NUMBER OF J-VALUES TO BE READ. (jct=4 test 26 trop

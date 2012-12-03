@@ -413,8 +413,10 @@ module mod_che_start
      cdiagf =  dble(dtche) / (3600D0 * dble(chfrq))* d_half
 
     if ( igaschem == 1 ) then
-      open( 26,file='TUVGRID2', status='old', err=900)
-      open( 25,file='REACTION.DAT_CBMZ', status='old', err=901)  
+      open(26,file='TUVGRID2', status='old', err=900)
+      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)  
+      open(27,file='cbmz_chemmech.out', status='replace', err=902)  
+902   continue
       ! FAB Traiter le prbleme du restart apres
       !  call regchem
       call chemread
