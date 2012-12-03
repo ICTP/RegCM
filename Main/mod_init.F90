@@ -372,10 +372,10 @@ module mod_init
       call grid_distribute(remcvc_io,remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,ntr)
       if ( igaschem == 1 .and. ichsolver > 0 ) then
-        if ( myid == italk ) &
-          write(stdout,*) 'Distributing species concentrations'
         call grid_distribute(chemall_io,chemall,jci1,jci2,ici1,ici2, &
                               1,kz,1,totsp)
+        call grid_distribute(taucldsp_io,taucldsp,jci1,jci2,ici1,ici2, &
+                              0,kz,1,nspi)
       end if
 
       call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)

@@ -52,10 +52,10 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(ktau,lyear,lmonth,lday,secofday,calday,declin)
+    subroutine tractend2(ktau,lyear,lmonth,lday,calday,declin)
       implicit none
       integer(ik4) , intent(in) :: lmonth , lday , lyear
-      real(rk8), intent(in) :: secofday,calday,declin
+      real(rk8) , intent(in) :: calday , declin
       integer(ik8) , intent(in) :: ktau
 !
       real(rk8) :: facb , facs , fact , facv , pres10 , qsat10 , &
@@ -426,7 +426,7 @@
         kchsolv = 6 ! for the moment
         if ( mod(ktau+1,kchsolv) == 0 ) then   
           do j = jci1 , jci2
-            call chemistry(j,secofday,lyear,lmonth,lday)
+            call chemistry(j,lyear,lmonth,lday)
           end do
 
         if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then

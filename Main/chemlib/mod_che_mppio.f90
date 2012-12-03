@@ -39,6 +39,7 @@ module mod_che_mppio
                                          svegfrac2d_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chemall_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp_io
 !
   contains 
     !
@@ -79,6 +80,8 @@ module mod_che_mppio
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call getmem4d(chemall_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')
+            call getmem4d(taucldsp_io,jcross1,jcross2,icross1,icross2, &
+                          0,kz,1,nspi,'che_mppio:chemall_io')
           end if
         end if
       end if

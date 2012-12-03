@@ -90,7 +90,7 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               xmsf , xtm1 , theta , eccf , sod
+               xmsf , xtm1 , theta , eccf
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -649,8 +649,7 @@ module mod_tendency
       !
       ! Compute chemistry tendencies (other than transport)
       !
-      sod = dble(idatex%second_of_day)
-      call tractend2(ktau,xyear,xmonth,xday,sod,calday,declin)
+      call tractend2(ktau,xyear,xmonth,xday,calday,declin)
     end if ! ichem
     !
     ! call radiative transfer package

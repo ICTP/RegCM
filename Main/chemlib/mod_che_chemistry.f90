@@ -35,21 +35,18 @@ module mod_che_chemistry
   private
 
   real(rk8) , parameter :: dtchsolv = 900.0D0
-! 
+  real(rk8) , parameter :: kb = 1.380658D-19
 
   public :: chemistry , dtchsolv
 
-  real(rk8) , parameter :: kb = 1.380658D-19
-
   contains
 
-    subroutine chemistry(j,secofday,lyear,lmonth,lday )
+    subroutine chemistry(j,lyear,lmonth,lday )
 
       implicit none
 
       integer(ik4) , intent(in) :: j
       integer(ik4) , intent(in) :: lyear , lmonth , lday
-      real(rk8) , intent(in) :: secofday 
 
       real(rk8) :: cfactor , pfact
       integer(ik4) :: i , k , kbl , kab ,ic
@@ -59,7 +56,7 @@ module mod_che_chemistry
       c_numitr = 20
       kmax = 1
       
-       ! Begining of i , k loop
+      ! Begining of i , k loop
       ! do not solve chemistry for stratosphere (k == 1)
       do k = 2 , kz
         do i = ici1 , ici2
@@ -112,8 +109,8 @@ module mod_che_chemistry
             end do
           endif
           ! normalise the weighted altitude above and bleow cloud        
-          if (depthb > d_zero)  altbelow = altbelow / depthb 
-          if (deptha >d_zero )  altabove = altabove / deptha      
+          if ( depthb > d_zero ) altbelow = altbelow / depthb 
+          if ( deptha > d_zero ) altabove = altabove / deptha      
 
 !         call the chemistry solver         
           xr(1,:) = d_zero

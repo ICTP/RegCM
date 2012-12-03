@@ -538,6 +538,8 @@ module mod_output
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &
                               1,kz,1,totsp)
+            call grid_collect(taucldsp,taucldsp_io,jci1,jci2,ici1,ici2, &
+                              0,kz,1,nspi)
           end if
 
           call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
