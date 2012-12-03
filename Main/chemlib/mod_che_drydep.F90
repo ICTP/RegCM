@@ -991,7 +991,7 @@ module mod_che_drydep
       real(rk8) :: fsnow , rsnows
       real(rk8) :: dgas , di , vi
       real(rk8) :: dvh2o , rstom
-      real(rk8) :: rcut , rg
+      real(rk8) :: rcut , rg , xp
       logical :: is_dew , is_rain
       real(rk8) , parameter :: dair = 0.369D0 * 29.0D0 + 6.29D0
       real(rk8) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
@@ -1080,7 +1080,12 @@ module mod_che_drydep
             ! Fsun, Fshade are the total sunlit and shaded leaf area
             ! index
             !================================================================
-            fsun  = 2.0D0*coszen(i)*(1.0D0-dexp(-0.5D0*lai_f(i)/coszen(i)))
+            xp = 0.5D0*lai_f(i)/coszen(i)
+            if ( xp < 25.0D0 ) then
+              fsun  = 2.0D0*coszen(i)*(1.0D0-dexp(-xp))
+            else
+              fsun = d_zero
+            end if
             ! Sunlit leaf area
             fshad = lai_f(i) - fsun
             ! Shaded leaf area

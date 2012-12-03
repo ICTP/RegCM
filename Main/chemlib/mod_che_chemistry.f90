@@ -39,9 +39,6 @@ module mod_che_chemistry
 
   public :: chemistry , dtchsolv
 
-
-
-
   real(rk8) , parameter :: kb = 1.380658D-19
 
   contains
@@ -166,7 +163,6 @@ module mod_che_chemistry
           xrin(1,ind_hono) = chib3d(j,i,k,ihono)*cfactor/W_HONO
           xrin(1,ind_hno4) = chib3d(j,i,k,ihno4)*cfactor/W_HNO4
           xrin(1,ind_xo2 ) = chib3d(j,i,k,ixo2)*cfactor/W_XO2
-
 
 !         solver work with xr 
           xr(:,:) = xrin(:,:)

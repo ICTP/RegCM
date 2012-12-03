@@ -134,7 +134,7 @@ module mod_che_sox
          chimol = 28.9D0/64.0D0*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
 
          if ( ichaer == 1 ) then 
-           h2o2mol =  oxbc0%bc(i,k,j,iox_h2o2)
+           h2o2mol =  oxcl(i,k,j,iox_h2o2)
            concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(j,i)
          else
          ! cb*kg/kg do tests, suppose h2o2 always enough

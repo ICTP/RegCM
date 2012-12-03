@@ -535,6 +535,10 @@ module mod_output
           call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(remcvc,remcvc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
+          if ( igaschem == 1 .and. ichsolver > 0 ) then
+            call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &
+                              1,kz,1,totsp)
+          end if
 
           call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
           call grid_collect(sdeltk2d,sdeltk2d_io,jci1,jci2,ici1,ici2)

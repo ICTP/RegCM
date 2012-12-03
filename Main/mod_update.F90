@@ -92,10 +92,8 @@
                     lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=2),  &
                     ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=2)
         write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),         &
-                    lbound(fbat(:,:,ps_o), dim=1),                      &
-                    ubound(fbat(:,:,ps_o), dim=1),                      &
-                    lbound(fbat(:,:,ps_o), dim=2),                      &
-                    ubound(fbat(:,:,ps_o), dim=2)
+                    lbound(t2m, dim=2), ubound(t2m, dim=2),             &
+                    lbound(t2m, dim=3), ubound(t2m, dim=3)
         write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),         &
                     jci1, jci2, ici1, ici2
       end if
@@ -115,7 +113,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,ps_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(sfcp(:,j,i))*rnnsg
         end do
       end do
 !
@@ -128,7 +126,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,t2m_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(t2m(:,j,i))*rnnsg
         end do
       end do
 !
@@ -141,7 +139,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,q2m_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(q2m(:,j,i))*rnnsg
         end do
       end do
 !          
@@ -154,7 +152,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,fswa_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(fsw(:,j,i))*rnnsg
         end do
       end do
 !
@@ -167,7 +165,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,flwd_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(flwd(:,j,i))*rnnsg
         end do
       end do
 !          
@@ -180,7 +178,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,flwa_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(flw((:,j,i))*rnnsg
         end do
       end do
 !          
@@ -193,7 +191,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,sena_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(sinc(:,j,i))*rnnsg
         end do
       end do
 !          
@@ -206,8 +204,8 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,evpa_o)*   &
-                                                    wlhv*day2s
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(evpr(:,j,i)) * &
+                                                    rnnsg*wlhv*day2s
         end do
       end do
 !
@@ -220,8 +218,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,tpr_o)*    &
-                                                    day2s
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(totpr(:,j,i)*rnnsg
         end do
       end do
 !          
@@ -234,7 +231,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,u10m_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(u10m(:,j,i))*rnnsg
         end do
       end do
 !          
@@ -247,7 +244,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,v10m_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(v10m(:,j,i)*rnnsg
         end do
       end do
 !          

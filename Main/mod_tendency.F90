@@ -32,7 +32,6 @@ module mod_tendency
   use mod_rad_interface
   use mod_pbl_interface
   use mod_bdycod
-  use mod_che_bdyco
   use mod_precip
   use mod_slice
   use mod_sun

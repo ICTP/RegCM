@@ -50,8 +50,7 @@ module mod_che_start
 
   !--------------------------------------------------------------------------
 
-  subroutine start_chem (ifrest,idate1,intbdy,dtbdys)
-
+  subroutine start_chem(ifrest,idate1,intbdy,dtbdys)
     implicit none
     logical , intent(in) :: ifrest
     type(rcm_time_and_date) , intent(in) :: idate1
@@ -262,9 +261,7 @@ module mod_che_start
       if ( chtrname(itr) == 'HONO'  ) ihono     = itr
       if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
       if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
-
-
-      if ( chtrname(itr) == 'POLLEN'   ) ipollen      = itr
+      if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
       !    *** regcm.in namelist.  If both are defined then STOP
@@ -277,7 +274,6 @@ module mod_che_start
         end if
         call fatal(__FILE__,__LINE__,'CHEM CANNOT START')
       end if
-
 
 #if (defined VOC && defined CLM)
       !abt *** Added below to determine which MEGAN biogenic emission species
@@ -308,25 +304,25 @@ module mod_che_start
           ichbdy2trac(i) = isslt(i)
         end do
       case ('CARB')        
-        ichbdy2trac(1)  = ibchb
-        ichbdy2trac(2)  = ibchl
-        ichbdy2trac(3)  = iochb
-        ichbdy2trac(4)  = iochl
+        ichbdy2trac(1) = ibchb
+        ichbdy2trac(2) = ibchl
+        ichbdy2trac(3) = iochb
+        ichbdy2trac(4) = iochl
       case ('SULF')
         ichbdy2trac(1) = iso2
         ichbdy2trac(2) = iso4
       case ('SUCA')
-        ichbdy2trac(1)  = ibchb
-        ichbdy2trac(2)  = ibchl
-        ichbdy2trac(3)  = iochb
-        ichbdy2trac(4)  = iochl
+        ichbdy2trac(1) = ibchb
+        ichbdy2trac(2) = ibchl
+        ichbdy2trac(3) = iochb
+        ichbdy2trac(4) = iochl
         ichbdy2trac(5) = iso2
         ichbdy2trac(6) = iso4
       case ('AERO')
-        ichbdy2trac(1)  = ibchb
-        ichbdy2trac(2)  = ibchl
-        ichbdy2trac(3)  = iochb
-        ichbdy2trac(4)  = iochl
+        ichbdy2trac(1) = ibchb
+        ichbdy2trac(2) = ibchl
+        ichbdy2trac(3) = iochb
+        ichbdy2trac(4) = iochl
         ichbdy2trac(5) = iso2
         ichbdy2trac(6) = iso4
         itr = 6
@@ -391,10 +387,10 @@ module mod_che_start
         do i = 1 , ibin
           ichbdy2trac(i+24) = idust(i)
         end do
-        ichbdy2trac(ibin+24+1)  = ibchb
-        ichbdy2trac(ibin+24+2)  = ibchl
-        ichbdy2trac(ibin+24+3)  = iochb
-        ichbdy2trac(ibin+24+4)  = iochl
+        ichbdy2trac(ibin+24+1) = ibchb
+        ichbdy2trac(ibin+24+2) = ibchl
+        ichbdy2trac(ibin+24+3) = iochb
+        ichbdy2trac(ibin+24+4) = iochl
     end select
 
     if ( idust(1) > 0 ) then
@@ -417,8 +413,6 @@ module mod_che_start
       open(25,file='REACTION.DAT_CBMZ', status='old', err=901)  
       open(27,file='cbmz_chemmech.out', status='replace', err=902)  
 902   continue
-      ! FAB Traiter le prbleme du restart apres
-      !  call regchem
       call chemread
       call hvread
       call cheminit 

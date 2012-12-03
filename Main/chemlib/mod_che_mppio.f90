@@ -38,6 +38,7 @@ module mod_che_mppio
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
+  real(rk8) , pointer , dimension(:,:,:,:) :: chemall_io
 !
   contains 
     !
@@ -49,7 +50,6 @@ module mod_che_mppio
 
       if ( lch ) then
         if ( myid == iocpu ) then
-  
           call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remlsc_io')
           call getmem4d(remcvc_io,jcross1,jcross2,icross1,icross2, &
@@ -76,6 +76,10 @@ module mod_che_mppio
                         1,kz,1,ntr,'che_mppio:chia_io')
           call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chib_io')
+          if ( igaschem == 1 .and. ichsolver > 0 ) then
+            call getmem4d(chemall_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,totsp,'che_mppio:chemall_io')
+          end if
         end if
       end if
     end subroutine allocate_mod_che_mppio

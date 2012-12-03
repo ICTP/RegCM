@@ -181,6 +181,9 @@ module mod_savefile
       if ( ichem == 1 ) then
         read (iutrst) chia_io
         read (iutrst) chib_io
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          read (iutrst) chemall_io
+        end if
         ! cumul removal terms (3d, 2d)
         read (iutrst) remlsc_io
         read (iutrst) remcvc_io
@@ -314,6 +317,9 @@ module mod_savefile
       if ( ichem == 1 ) then
         write (iutsav) chia_io
         write (iutsav) chib_io
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          write (iutsav) chemall_io
+        end if
 !             cumul removal terms (3d, 2d)
         write (iutsav) remlsc_io
         write (iutsav) remcvc_io

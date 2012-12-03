@@ -75,23 +75,4 @@ module mod_che_species
   integer(ik4) , parameter :: iox_no3      = 4
   integer(ik4) , parameter :: iox_h2o2     = 5
 
-  type che_sp_bc
-    real(rk8) , pointer , dimension(:,:,:,:) :: bc
-  end type
-
-  type che_ox_bc
-    real(rk8) , pointer , dimension(:,:,:,:) :: bc
-  end type
-
-  type(che_sp_bc) :: chbc0 , chbc1
-  type(che_ox_bc) :: oxbc0
-
-  contains
-
-  subroutine allocate_che_species_bc
-    call getmem4d(chbc0%bc,1,iy,1,kz,1,jxp,1,nchsp,'mod_che_species:chbc0')
-    call getmem4d(chbc1%bc,1,iy,1,kz,1,jxp,1,nchsp,'mod_che_species:chbc1')
-    call getmem4d(oxbc0%bc,1,iy,1,kz,1,jxp,1,noxsp,'mod_che_species:oxbc0')
-  end subroutine allocate_che_species_bc
-
 end module mod_che_species

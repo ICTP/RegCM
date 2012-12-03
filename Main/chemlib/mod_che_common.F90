@@ -46,7 +46,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg , drydepv
 
-  real(rk8) , pointer , dimension(:,:,:,:) :: chemall,jphoto
+  real(rk8) , pointer , dimension(:,:,:,:) :: chemall , jphoto
   integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
   real(rk8) , pointer , dimension(:,:)   :: chtrdpv
@@ -56,9 +56,9 @@ module mod_che_common
 
   real(rk8), pointer , dimension(:,:,:)  :: cchifxuw
 !
-  integer(ik4) , pointer , dimension(:)      :: isslt , icarb , idust
+  integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
 !
-  real(rk8) , pointer , dimension(:,:,:) :: convcldfra ,  cemtrac , remdrd
+  real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
 
 !diagnostic
   real(rk8) :: cdiagf
@@ -162,10 +162,10 @@ module mod_che_common
         call getmem1d(icarb,1,5,'mod_che_common:icarb')
         call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
-        call getmem4d(chemall,1,jxp,1,iy,1,kz,1,totsp,'mod_che_common:chemall')
-        call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
-        call getmem4d(jphoto,jce1,jce2, &
-                        ice1,ice2,1,kz,1,56,'che_common:jphoto')
+        call getmem4d(chemall,jci1,jci2,ici1,ici2, &
+                      1,kz,1,totsp,'mod_che_common:chemall')
+        call getmem3d(srclp2,jci1,jci2,ici1,ici2,1,ntr,'mod_che_common:srclp2')
+        call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz,1,56,'che_common:jphoto')
 
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
         call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
