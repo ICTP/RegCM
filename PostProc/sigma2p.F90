@@ -66,7 +66,7 @@ program sigma2p
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
-  integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar
+  integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q
   logical :: make_rh , make_hgt
   integer(ik4) :: n3d , ip3d
@@ -216,6 +216,8 @@ program sigma2p
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
+    else if (varname == 'rcm_map') then
+      ircm_map = i
     else if (varname == 'ps') then
       ipsvarid = i
       psdimids = dimids(1:3)
@@ -359,6 +361,7 @@ program sigma2p
 
   do i = 1 , nvars
     if (i == itvarid) cycle
+    if (i == ircm_map) cycle
     if (i == ikvarid) then
       istatus = nf90_put_var(ncout, i, plevs)
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable plev')
