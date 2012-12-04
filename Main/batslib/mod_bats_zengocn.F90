@@ -148,7 +148,7 @@ module mod_bats_zengocn
             ! loop to obtain initial and good ustar and zo
             !
             do nconv = 1 , 5
-              zo = 0.013D0*ustar*ustar*regrav + 0.11D0*visa/ustar
+              call ocnrough(zo,zot,zoq,ustar,visa)
               ustar = vonkar*um/dlog(hu/zo)
             end do
             rb = egrav*hu*dthv/(thv*um*um)
@@ -515,7 +515,7 @@ module mod_bats_zengocn
 !   loop to obtain initial and good ustar and zo
 !
     do nconv = 1 , 5
-      zo = 0.013D0*ustar*ustar*regrav + 0.11D0*visa/ustar
+      call ocnrough(zo,zot,zoq,ustar,visa)
       ustar = vonkar*um/dlog(hu/zo)
     end do
 !
