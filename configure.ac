@@ -455,8 +455,7 @@ fi
 
 REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
-bindir=${REGCM_ROOT}/Bin
-AC_SUBST(bindir)
+AC_PREFIX_DEFAULT(${PWD})
 
 if eval "test x"$FC" = xsunf95"; then
   CPPFLAGS="$AM_CPPFLAGS -M$REGCM_ROOT/Share"
@@ -468,6 +467,7 @@ fi
 LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
 SYSLIBS="$LIBS"
 AC_SUBST(SYSLIBS)
+
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
