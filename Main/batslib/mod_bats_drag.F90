@@ -75,9 +75,9 @@ module mod_bats_drag
         ribn(n,j,i) = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
                     (d_one-sigf(n,j,i))*tgrd(n,j,i))/sts(n,j,i)
         !=======================================================================
-        !         2.1  compute the bulk richardson number;
-        !         first get avg winds to use for ri number by summing the
-        !         squares of horiz., vertical, and convective velocities
+        ! 2.1  compute the bulk richardson number;
+        !      first get avg winds to use for ri number by summing the
+        !      squares of horiz., vertical, and convective velocities
         !=======================================================================
         if ( ribn(n,j,i) <= d_zero ) then
           dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
@@ -95,8 +95,8 @@ module mod_bats_drag
         end if
         rib(n,j,i) = ribn(n,j,i)/ribd(n,j,i)
         !=======================================================================
-        !         3.   obtain drag coefficient as product of neutral value
-        !         and stability correction
+        ! 3.   obtain drag coefficient as product of neutral value
+        !      and stability correction
         !=======================================================================
         ! -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
         if ( rib(n,j,i) < d_zero ) then
@@ -114,9 +114,9 @@ module mod_bats_drag
   end do
 
   !=======================================================================
-  !     4.   obtain drag coefficient over sea ice as weighted average
-  !     over ice and leads
-  !     warning! the lat test below (4.1-4.3) is model dependent!
+  ! 4. obtain drag coefficient over sea ice as weighted average
+  !    over ice and leads
+  ! warning! the lat test below (4.1-4.3) is model dependent!
   !=======================================================================
  
   ! 4.1  neutral cd over lead water
@@ -127,7 +127,7 @@ module mod_bats_drag
           cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**2
           ! 4.1  drag coefficient over leads
           ribl(n,j,i) = (d_one-271.5D0/sts(n,j,i))* &
-                       zh(n,j,i)*egrav/ribd(n,j,i)
+                        zh(n,j,i)*egrav/ribd(n,j,i)
           if ( ribl(n,j,i) >= d_zero ) then
             clead(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*ribl(n,j,i))
           else
