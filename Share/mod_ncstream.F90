@@ -400,31 +400,52 @@ module mod_ncstream
             attra%numval = 2
             call add_attribute(stream,attra,stvar%map_var%id, &
               stvar%map_var%vname)
+            attr%aname = 'longitude_of_central_meridian'
+            attr%theval = clon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'latitude_of_projection_origin'
+            attr%theval = clat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('POLSTR')
             attc%aname = 'grid_mapping_name'
             attc%theval = 'stereographic'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'latitude_of_projection_origin'
+            attr%theval = clat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'longitude_of_projection_origin'
+            attr%theval = clon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('NORMER')
             attc%aname = 'grid_mapping_name'
             attc%theval = 'mercator'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'standard_parallel'
+            attr%theval = clat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'latitude_of_projection_origin'
+            attr%theval = clat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'longitude_of_projection_origin'
+            attr%theval = clon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('ROTMER')
             attc%aname = 'grid_mapping_name'
-            attc%theval = 'rotated_latitude_longitude'
+            attc%theval = 'rotated_mercator'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attr%aname = 'grid_north_pole_latitude'
+            attr%aname = 'latitude_of_projection_origin'
             attr%theval = plat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attr%aname = 'grid_north_pole_longitude'
+            attr%aname = 'longitude_of_projection_origin'
             attr%theval = plon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         end select
-        attr%aname = 'latitude_of_projection_origin'
-        attr%theval = clat
-        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-        attr%aname = 'longitude_of_central_meridian'
-        attr%theval = clon
-        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attc%aname = '_CoordinateTransformType'
+        attc%theval = 'Projection'
+        call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+        attc%aname = '_CoordinateAxisTypes'
+        attc%theval = 'GeoX GeoY'
+        call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
       end if
       ncstat = nf90_enddef(stream%id)
       if ( ncstat /= nf90_noerr ) then
@@ -1793,11 +1814,20 @@ module mod_ncstream
       call add_attribute(stream,attc,stvar%iy_var%id,stvar%iy_var%vname)
       attc%theval = 'Z'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
+      attc%aname = '_CoordinateAxisType'
+      attc%theval = 'GeoX'
+      call add_attribute(stream,attc,stvar%jx_var%id,stvar%jx_var%vname)
+      attc%aname = '_CoordinateAxisType'
+      attc%theval = 'GeoY'
+      call add_attribute(stream,attc,stvar%iy_var%id,stvar%iy_var%vname)
       attc%aname = 'positive'
       attc%theval = 'down'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       attc%aname = 'formula_terms'
       attc%theval = 'sigma: sigma ps: ps ptop: ptop'
+      call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
+      attc%aname = '_CoordinateAxisType'
+      attc%theval = 'GeoZ'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
     end subroutine add_common_global_params
 
