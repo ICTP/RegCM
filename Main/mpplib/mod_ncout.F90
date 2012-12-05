@@ -1151,7 +1151,7 @@ module mod_ncout
         end if
         if ( enable_lak2d_vars(lak_sena) ) then
           call setup_var(v2dvar_lak(lak_sena),vsize,'hfss','W m-2', &
-            'Sensible heat flux','surface_downward_sensible_heat_flux',.true.)
+            'Sensible heat flux','surface_upward_sensible_heat_flux',.true.)
           lak_sena_out => v2dvar_lak(lak_sena)%rval
         end if
         if ( enable_lak2d_vars(lak_flw) ) then
