@@ -243,13 +243,12 @@ module mod_bats_bndry
             gwet(n,j,i) = d_one
           end if
           ! 6.1  rate of momentum transfer per velocity
-          drag(n,j,i) = -cdrx(n,j,i)*vspda(n,j,i)*rhs(n,j,i)
-          drag(n,j,i) = -drag(n,j,i)        ! for coupling with regcm
+          drag(n,j,i) = cdrx(n,j,i)*vspda(n,j,i)*rhs(n,j,i)
           ! 6.3  latent and heat fluxes over ocean, plus a dummy taf
           if ( ldmsk1(n,j,i) == 0 ) then
             tlef(n,j,i) = sts(n,j,i)
-            fact = -rhs(n,j,i)*cdrx(n,j,i)*vspda(n,j,i)
-            delq(n,j,i) = (qs(n,j,i)-qgrd(n,j,i))*gwet(n,j,i)
+            fact = -drag(n,j,i)
+            delq(n,j,i) = (qs(n,j,i) - qgrd(n,j,i))*gwet(n,j,i)
             delt(n,j,i) = sts(n,j,i) - tgrd(n,j,i)
             ! evaporation is in kg/m**2/s
             evpr(n,j,i) = fact*delq(n,j,i)

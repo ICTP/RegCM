@@ -234,7 +234,7 @@ module mod_output
           end where
         end if
         if ( associated(srf_sena_out) ) &
-          srf_sena_out = -srf_sena_out*rnsrf_for_srffrq
+          srf_sena_out = srf_sena_out*rnsrf_for_srffrq
         if ( associated(srf_flw_out) ) &
           srf_flw_out = srf_flw_out*rnsrf_for_srffrq
         if ( associated(srf_fsw_out) ) &
@@ -276,7 +276,7 @@ module mod_output
           end where
         end if
         if ( associated(sub_sena_out) ) &
-          sub_sena_out = -sub_sena_out*rnsrf_for_subfrq
+          sub_sena_out = sub_sena_out*rnsrf_for_subfrq
         if ( associated(sub_runoff_out) ) then
           where ( sub_runoff_out(:,:,1) < dmissval )
             sub_runoff_out(:,:,2) = sub_runoff_out(:,:,2)-sub_runoff_out(:,:,1)
@@ -310,7 +310,7 @@ module mod_output
           end where
         end if
         if ( associated(lak_sena_out) ) &
-          lak_sena_out = -lak_sena_out*rnsrf_for_lakfrq
+          lak_sena_out = lak_sena_out*rnsrf_for_lakfrq
         if ( associated(lak_flw_out) ) &
           lak_flw_out = lak_flw_out*rnsrf_for_lakfrq
         if ( associated(lak_fsw_out) ) &

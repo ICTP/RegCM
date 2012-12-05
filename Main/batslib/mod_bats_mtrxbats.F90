@@ -388,7 +388,7 @@ module mod_bats_mtrxbats
               v10m(n,j,i) = vsw(j,i)*(d_one-factuv)
               t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
               q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
-            else 
+            else
               if ( iocnflx == 1 ) then
                 fact = z2fra(n,j,i)/zlgocn(n,j,i)
                 factuv = z10fra(n,j,i)/zlgocn(n,j,i)
@@ -417,15 +417,11 @@ module mod_bats_mtrxbats
         svegfrac2d = sum(lncl,1)*rdnnsg
       end if
 
-      if ( iocnflx == 1 ) then
+      where ( ldmsk /= 0 )
         tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
-      else if ( iocnflx == 2 ) then
-        where ( ldmsk /= 0 )
-          tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
-        else where
-          tgbb = sum(tgrd,1)*rdnnsg
-        end where
-      end if
+      else where
+        tgbb = sum(tgrd,1)*rdnnsg
+      end where
 
       ! Those are needed for output purposes
 
