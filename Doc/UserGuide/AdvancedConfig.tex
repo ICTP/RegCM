@@ -959,13 +959,13 @@ The steps to prepare the chemistry boundary conditions data are the following:
         interpolation:
         \begin{Verbatim}
         $> cd $REGCM_RUN
-        $> ./Bin/emcre_grid test_001.in
+        $> ./bin/emcre_grid test_001.in
         \end{Verbatim}
       \item Interpolate the global data on the RegCM grid with the interpolation
         script:
         \begin{Verbatim}
         $> cd $REGCM_RUN
-        $> ./Bin/interp_emissions test_001.in
+        $> ./bin/interp_emissions test_001.in
         \end{Verbatim}
     \end{itemize}
     The \verb=cdo= program installation is mandatory in this case to perform
@@ -986,7 +986,7 @@ The steps to prepare the chemistry boundary conditions data are the following:
     running :
         \begin{Verbatim}
         $> cd $REGCM_RUN
-        $> ./Bin/chem_icbc test_001.in
+        $> ./bin/chem_icbc test_001.in
         \end{Verbatim}
     That will result in 6 hourly chemical boundary conditions in your input
     directory (\verb=*_CHBC*.nc= and/or \verb=*_AEBC*.nc=). We are generating
@@ -1133,8 +1133,8 @@ in the input directory:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./Bin/terrain regcm.in
-$> ./Bin/clm2rcm regcm.in
+$> ./bin/terrain regcm.in
+$> ./bin/clm2rcm regcm.in
 $> cp $REGCM_GLOBEDAT/CLM/pft-physiology.c070207 input/
 \end{Verbatim}
 
@@ -1146,7 +1146,7 @@ chapter \ref{tutorial}. To run the \verb=CLM= option in the RegCM model, just
 substitute the executable name:
 
 \begin{Verbatim}
-$> mpirun -np 2 ./Bin/regcmMPI_clm regcm.in
+$> mpirun -np 2 ./bin/regcmMPI_clm regcm.in
 \end{Verbatim}
 
 Note that the \verb=CLM= land model is much heavier than the BATS1e model, and

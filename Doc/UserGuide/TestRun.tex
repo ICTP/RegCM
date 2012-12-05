@@ -23,7 +23,7 @@ executed for the purpose of learning how to use it.
 \begin{Verbatim}
 $> cd $REGCM_RUN
 $> mkdir input output
-$> ln -sf $REGCM_ROOT/Bin .
+$> ln -sf $REGCM_ROOT/bin .
 $> cp $REGCM_ROOT/Testing/test_001.in .
 $> cd $REGCM_RUN
 \end{Verbatim}
@@ -91,7 +91,7 @@ To launch the terrain program, enter the following commands:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./Bin/terrain test_001.in
+$> ./bin/terrain test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -116,7 +116,7 @@ it's usage later on.  To have a quick look at the DOMAIN file content, you may w
 to use the GrADSNcPlot program:
 
 \begin{Verbatim}
-$> ./Bin/GrADSNcPlot input/test_001_DOMAIN000.nc
+$> ./bin/GrADSNcPlot input/test_001_DOMAIN000.nc
 \end{Verbatim}
 
 If not familiar with GrADS program, enter in sequence the following commands at
@@ -145,7 +145,7 @@ with the following commands:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./Bin/sst test_001.in
+$> ./bin/sst test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -168,7 +168,7 @@ namelist file. Again you may want to use the GrADSNcPlot program to look at
 file content:
 
 \begin{Verbatim}
-$> ./Bin/GrADSNcPlot input/test_001_SST.nc
+$> ./bin/GrADSNcPlot input/test_001_SST.nc
 \end{Verbatim}
 
 If not familiar with GrADS program, enter in sequence the following commands at
@@ -193,7 +193,7 @@ program, executed with the following commands:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./Bin/icbc test_001.in
+$> ./bin/icbc test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -220,7 +220,7 @@ period and time resolution specified in the input file.
 Again you may want to use the GrADSNcPlot program to look at file content:
 
 \begin{Verbatim}
-$> ./Bin/GrADSNcPlot input/test_001_ICBC.1990060100.nc
+$> ./bin/GrADSNcPlot input/test_001_ICBC.1990060100.nc
 \end{Verbatim}
 
 If not familiar with GrADS program, enter in sequence the following commands at
@@ -261,13 +261,13 @@ Your platform (on my laptop QuadCore I use \verb=-np 4=).
 \item MPI version
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> mpirun -np 2 ./Bin/regcmMPI test_001.in
+$> mpirun -np 2 ./bin/regcmMPI test_001.in
 \end{Verbatim}
 \item Serial version \footnote{Deprecated. Support will be dropped in future
 releases.}
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./Bin/regcmSerial test_001.in
+$> ./bin/regcmSerial test_001.in
 \end{Verbatim}
 \end{itemize}
 
@@ -300,7 +300,7 @@ To have a look for example at surface fields, you may want to use the
 following command:
 
 \begin{Verbatim}
-$> ./Bin/GrADSNcPlot output/test_001_SRF.1990060100.nc
+$> ./bin/GrADSNcPlot output/test_001_SRF.1990060100.nc
 \end{Verbatim}
 
 Assuming the previous crash course in using GraDS was received, you should be
