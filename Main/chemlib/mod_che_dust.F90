@@ -272,15 +272,13 @@ module mod_che_dust
      end if
 
       rd_tex = .false.
-      if ( myid == iocpu ) then
-        do itr = 1 , ntr
-          aerctl = chtrname(itr)
-          if ( aerctl(1:4) == 'DUST' ) then
-            rd_tex = .true.
-            exit
-          end if
-        end do
-      end if
+      do itr = 1 , ntr
+        aerctl = chtrname(itr)
+        if ( aerctl(1:4) == 'DUST' ) then
+          rd_tex = .true.
+          exit
+        end if
+      end do
 
       call bcast(rd_tex)
 
