@@ -664,8 +664,7 @@ module mod_vmodes
     end do
     call sgefa(v,n,n,ip,ier)
     if ( ier /= 0 ) then
-      write (aline,*) 'sgefa error info = ' , ier
-      call say
+      write(stderr,*) 'sgefa error info = ' , ier
       call fatal(__FILE__,__LINE__,'sgefa error')
     end if
     call sgedi(v,n,n,ip,d,work,11)

@@ -391,8 +391,7 @@ module mod_che_start
 
     if ( idust(1) > 0 ) then
       ! fisrt activate dust initialization
-      write (aline, *) 'Calling inidust'
-      call say
+      if ( myid == italk ) write(stdout,*) 'Calling inidust'
       call inidust
     end if
 
@@ -437,11 +436,9 @@ module mod_che_start
 !
     return
 
-900 write(aline,*) 'Cannot open required file TUVGRID2.'
-    call say
+900 write(stderr,*) 'Cannot open required file TUVGRID2.'
     call fatal(__FILE__,__LINE__,'TUVGRID2 NOT FOUND')
-901 write(aline,*) 'Cannot open required file REACTION.DAT_CBMZ.'
-    call say
+901 write(stderr,*) 'Cannot open required file REACTION.DAT_CBMZ.'
     call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
 
   end subroutine start_chem

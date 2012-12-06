@@ -250,9 +250,10 @@ module mod_regcm_interface
         if ( rfstrt ) then
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc)
-            write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                                 dtsec , ktau , xyear
-            call say
+            if ( myid == italk ) then
+              write(stdout, 99001) extime , dtinc , dt , dt2 , &
+                                   dtsec , ktau , xyear
+            end if
           end if
         end if
       end if

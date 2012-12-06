@@ -615,8 +615,7 @@ module mod_che_dust
         ! threshold velocity correction for soil humidity hc
         if ( jsoilm == 0 ) then
           if ( soilw(i) < d_zero ) then
-            write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
-            call say
+            write(stderr,*) 'hc, rc = ' , soilw(i) , ' less than zero'
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
           else if ( soilw(i) < 0.03D0 ) then
             hc(i) = dexp(22.7D0*soilw(i))

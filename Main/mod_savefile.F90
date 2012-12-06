@@ -79,9 +79,8 @@ module mod_savefile
       ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
       inquire (file=ffin,exist=existing)
       if ( .not.existing ) then
-        write (aline,*) 'The following SAV File does not exist: ', &
+        write (stderr,*) 'The following SAV File does not exist: ', &
                          trim(ffin), ' please check location'
-        call say
         call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
       else
         open (iutrst,file=ffin,form='unformatted',status='old')
@@ -91,15 +90,11 @@ module mod_savefile
       idt1 = idnint(odtsec)
       idt2 = idnint(dtsec)
       if ( idt1 /= idt2 ) then
-        write (aline,*) 'Recalculating ktau for the new dt'
-        call say
-        write (aline,*) 'Restart file ktau is       = ', ktau
-        call say
+        write (stdout,*) 'Recalculating ktau for the new dt'
+        write (stdout,*) 'Restart file ktau is       = ', ktau
         ktau = (ktau * idt1) / idt2
-        write (aline,*) 'Actual ktau with new dt is = ', ktau
-        call say
-        write (aline,*) 'Done Recalculating ktau for the new dt'
-        call say
+        write (stdout,*) 'Actual ktau with new dt is = ', ktau
+        write (stdout,*) 'Done Recalculating ktau for the new dt'
       end if
       read (iutrst) atm1_io%u
       read (iutrst) atm1_io%v
@@ -231,9 +226,8 @@ module mod_savefile
 
       inquire (file=ffout,exist=existing)
       if ( .not.existing ) then
-        write (aline,*) 'The SAV File cannot be created: ' , &
+        write (stderr,*) 'The SAV File cannot be created: ' , &
                          trim(ffout), ' please check directory'
-        call say
         call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
       end if
 

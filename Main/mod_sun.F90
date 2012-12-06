@@ -28,6 +28,7 @@ module mod_sun
    use mod_runparams
    use mod_atm_interface
    use mod_mpmessage
+   use mod_mppparam
    use mod_service
 !
    private
@@ -270,12 +271,12 @@ module mod_sun
              0.002697D0*dcos(3.0D0*theta) +        &
              0.001480D0*dsin(3.0D0*theta)
     decdeg = declin/degrad
-    write (aline, 99001) calday, decdeg
-    call say
-    write (aline, 99002) solcon
-    call say
-99001 format ('JDay ',f12.2,' solar declination angle = ',f12.8,' degrees')
-99002 format (18x,'solar TSI irradiance    = ',f12.4,' W/m^2')
+    if ( myid == italk ) then
+      write (stdout,'(a,f12.2,a,f12.8,a)') ' JDay ', calday , &
+        ' solar declination angle = ', decdeg , ' degrees'
+      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+        solcon, ' W/m^2'
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

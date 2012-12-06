@@ -206,30 +206,26 @@ module mod_che_common
         allocate(chtrname(nbin))
         chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
         iaerosol = 1
-        write (aline,*) 'DUST simulation'
-        call say
+        if ( myid == italk ) write(stdout,*) 'DUST simulation'
       else if ( chemsimtype(1:4) == 'SSLT' ) then 
         ntr = sbin
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
         iaerosol = 1
-        write (aline,*) 'SSLT simulation'
-        call say
+        if ( myid == italk ) write(stdout,*) 'SSLT simulation'
       else if ( chemsimtype(1:4) == 'CARB' ) then 
         ntr = 4
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
         iaerosol = 1
-        write (aline,*) 'CARB simulation'
-        call say
+        if ( myid == italk ) write(stdout,*) 'CARB simulation'
       else if ( chemsimtype(1:4) == 'SULF' ) then 
         ntr = 2
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
         iaerosol = 1
         ioxclim  = 1
-        write (aline,*) 'SULF simulation'
-        call say
+        if ( myid == italk ) write(stdout,*) 'SULF simulation'
       else if ( chemsimtype(1:4) == 'SUCA' ) then 
         ntr = 6
         allocate(chtrname(ntr))
@@ -237,8 +233,7 @@ module mod_che_common
                                  'SO2   ','SO4   '/)
         iaerosol = 1
         ioxclim  = 1
-        write (aline,*) 'SUCA simulation'
-        call say
+        if ( myid == italk ) write(stdout,*) 'SUCA simulation'
       else if ( chemsimtype(1:4) == 'AERO' ) then 
         ntr = 12 
         allocate(chtrname(ntr))
@@ -247,10 +242,7 @@ module mod_che_common
         chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
                                  'SO2   ','SO4   ','DUST01','DUST02', &
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
-        write (aline,*) 'AERO simulation'
-        call say
-
-
+        if ( myid == italk ) write(stdout,*) 'AERO simulation'
       else if ( chemsimtype(1:4) == 'DCCB' ) then 
         ntr = 45
         allocate(chtrname(ntr))      
@@ -268,9 +260,7 @@ module mod_che_common
                                  'OC_HB ' /)
         iaerosol = 1
         igaschem = 1
-        write (aline,*) 'CBMZ gas-phase + DUST + BC + OC simulation'
-        call say
-
+        if ( myid == italk ) write(stdout,*) 'DCCB simulation'
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
         ntr = 37
         allocate(chtrname(ntr))      
@@ -284,30 +274,21 @@ module mod_che_common
                                  'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
                                  'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
                                  'XO2   ' /)
-
-
         igaschem = 1
-        write (aline,*) 'CBMZ gas-phase + sulfate simulation'
-        call say
-
-
+        if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
       else if ( chemsimtype(1:6) == 'POLLEN' ) then 
         ntr = 1
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'POLLEN' /)
 
         iaerosol = 1
-        
-        write (aline,*) 'POLLEN'
-        call say
-
-
+        if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
       else 
-        write (aline,*) 'Not a valid chemtype simulation : STOP !'
-        call say
-        write (aline,*) 'Valid simulations are : ' , &
-                        '  DUST SSLT CARB SULF SUCA AERO CBMZ'
-        call say
+        if ( myid == italk ) then
+          write (stderr,*) 'Not a valid chemtype simulation : STOP !'
+          write (stderr,*) 'Valid simulations are : ' , &
+                           '  DUST SSLT CARB SULF SUCA AERO CBMZ'
+        end if
         call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
       end if
 

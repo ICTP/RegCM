@@ -697,8 +697,7 @@ module mod_rad_radiation
       cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
       cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
     else
-      write (aline,*) 'Loading gas scenario for simulation year: ', iyear
-      call say
+      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
     end if

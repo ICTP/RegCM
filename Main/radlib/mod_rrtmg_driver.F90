@@ -38,6 +38,7 @@ module mod_rrtmg_driver
   use parrrtm
   use rrtmg_lw_rad
   use mod_rad_outrad
+  use mod_mpmessage
   use mod_runparams , only : calday , iqv , solcon
 
   private
@@ -656,12 +657,10 @@ module mod_rrtmg_driver
       cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
       cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
     else
-!      write (aline,*) 'Loading gas scenario for simulation year: ', iyear
-!      call say
-!      call fatal(__FILE__,__LINE__,                                   &
-!            'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
+      write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
+      call fatal(__FILE__,__LINE__,                                   &
+            'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
     end if
-
 
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
