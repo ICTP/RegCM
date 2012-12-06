@@ -34,13 +34,9 @@ module mod_cu_interface
 !
   contains
 
-  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten,  &
-                           sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma, &
-                           qcon,cldfra,cldlwc,ktrop)
+  subroutine init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc, &
+                           ldmsk,sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)
     implicit none
-    real(rk8) , intent(in) :: dtsec
-    integer(ik8) , intent(in) :: ntsrf
-    integer(ik4) , intent(in) :: ichem
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
@@ -53,10 +49,6 @@ module mod_cu_interface
     real(rk8) , pointer , intent(in) , dimension(:) :: dsigma , qcon
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
-    if ( ichem == 1 ) lchem = .true.
-    dtcum  = dtsec
-    dtmdl  = dtsec
-    aprdiv = d_one/dble(ntsrf)
     call assignpnt(mddom%ht,sfhgt)
     call assignpnt(atm1%t,ptatm)
     call assignpnt(atm1%u,puatm)

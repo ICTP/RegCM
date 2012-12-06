@@ -61,7 +61,7 @@ module mod_che_chemistry
       do k = 2 , kz
         do i = ici1 , ici2
           ! care here pressure4 is considered ???
-          altmid(1) = (cpsb(j,i)*hlev(k)+chptop)
+          altmid(1) = (cpsb(j,i)*hlev(k)+ptop)
           temp(1) = ctb3d(j,i,k)
           zenith = dacos(czen(j,i))*raddeg
           dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
@@ -259,7 +259,7 @@ module mod_che_chemistry
       end do
 
       if (ichdiag > 0 )chemdiag(j,:,:,:) = chemdiag(j,:,:,:) + &
-              chemten(j,:,:,:) * dble(dtchsolv) / (3600D0 * dble(chfrq)) 
+              chemten(j,:,:,:) * dble(dtchsolv) / (3600D0 * dble(chemfrq)) 
 
 
 

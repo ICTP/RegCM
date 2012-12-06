@@ -736,9 +736,9 @@ module mod_che_drydep
 #endif
            do n = 1 , ntr
              kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
-             if ( kd*dtche < 25.0D0 ) then
+             if ( kd*dt < 25.0D0 ) then
                ! dry dep removal tendency (+)
-               ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dtche))/dtche
+               ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dt))/dt
              else
                ddrem(i) = d_zero
              end if

@@ -74,7 +74,8 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl
+  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
+    dt , rdt , ichem
 
   private
 
@@ -98,7 +99,7 @@ module mod_pbl_uwtcm
   real(rk8) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
                  bouyan , rdza , dza , svs , presfl , exnerfl ,   &
-                 shear , rexnerfl , rcldb , epop , sm , sh, kchi
+                 shear , rexnerfl , rcldb , epop , sm , sh, xkchi
 
   ! local variables on half levels
   real(rk8) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
@@ -210,8 +211,8 @@ module mod_pbl_uwtcm
     call getmem1d(uimp2,1,kz,'mod_uwtcm:uimp2')
     call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
 
-    if(lchem) then
-      call getmem1d(kchi,1,kzp1,'mod_uwtcm:kchi')
+    if ( ichem == 1 ) then
+      call getmem1d(xkchi,1,kzp1,'mod_uwtcm:xkchi')
       call getmem2d(chix,1,ntr,1,kz,'mod_uwtcm:chix')
       call getmem2d(chixs,1,ntr,1,kz,'mod_uwtcm:chixs')
       call getmem1d(chifxx,1,ntr,'mod_uwtcm:chifxx')
@@ -248,7 +249,7 @@ module mod_pbl_uwtcm
         qfxx = qfx(j,i)
         hfxx = hfx(j,i)
         uvdragx = uvdrag(j,i)
-        if ( lchem ) chifxx(:) = chifxuw(j,i,:)
+        if ( ichem == 1 ) chifxx(:) = chifxuw(j,i,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
@@ -268,7 +269,7 @@ module mod_pbl_uwtcm
           qcx(k) = qxatm(j,i,k,iqc)
           ux(k)  = uxatm(j,i,k)
           vx(k)  = vxatm(j,i,k)
-          if ( lchem ) chix(:,k) = chmx(j,i,k,:)
+          if ( ichem == 1 ) chix(:,k) = chmx(j,i,k,:)
 
           ! if ( tx(k) > tzero ) then
 !         if ( tx(k) > tzero ) then
@@ -284,7 +285,7 @@ module mod_pbl_uwtcm
         khalfloop: &
         do k = 1 , kz
           ! pressure at half levels
-          preshl(k) = hlev(k)*psbx + ptp
+          preshl(k) = hlev(k)*psbx + ptop
           ! Level spacing
           udzq(k) = zqx(k)-zqx(k+1)
           rdzq(k) = d_one/udzq(k)
@@ -315,7 +316,7 @@ module mod_pbl_uwtcm
           qxs(k) = qx(k)
           qcxs(k) = qcx(k)
 
-          if ( lchem ) chixs(:,k) = chix(:,k)
+          if ( ichem == 1 ) chixs(:,k) = chix(:,k)
 
           ! density at half levels
           rhoxhl(k)=preshl(k)*d_1000/(rgas*tvx(k))
@@ -327,7 +328,7 @@ module mod_pbl_uwtcm
         kfullloop: &
         do k = 2 , kz
           ! pressure at full levels
-          presfl(k) = flev(k)*psbx + ptp
+          presfl(k) = flev(k)*psbx + ptop
           epop(k) = ep2/presfl(k)
           ! Level spacing
           dza(k) = zax(k-1)-zax(k)
@@ -346,7 +347,7 @@ module mod_pbl_uwtcm
         end do kfullloop
 
         ! pressure at the surface (in centibars)
-        presfl(kzp1) = psbx + ptp
+        presfl(kzp1) = psbx + ptop
         ! Surface exner function
         rexnerfl(kzp1) = (d_100/presfl(kzp1))**rovcp
         exnerfl(kzp1) = d_one/rexnerfl(kzp1)
@@ -437,23 +438,23 @@ module mod_pbl_uwtcm
               aimp(k) = d_zero
             else
               aimp(k) = -(rhoxfl(k)*rrhoxhl(k))* &
-                          kth(k) * dtpbl *rdzq(k)*rdza(k)
+                          kth(k) * dt *rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))* &
-                          kth(k+1) * dtpbl *rdzq(k)*rdza(k+1)
+                          kth(k+1) * dt *rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
             ! now find right side for various scalars:
             ! no flux out top, so no (k == 1)
             if ( k == kz ) then ! at surface
               ! include surface latent heat flux
-              rimp2(k) = qwx(k) + dtpbl * qfxx*rrhoxhl(k)*rdzq(kz)
+              rimp2(k) = qwx(k) + dt * qfxx*rrhoxhl(k)*rdzq(kz)
               ! include surface sensible heat flux
               rimp1(k) = thlx(k) + &
-                     dtpbl * hfxx*rrhoxhl(k)*rcp*rdzq(kz)*rexnerhl(kz)
+                     dt * hfxx*rrhoxhl(k)*rcp*rdzq(kz)*rexnerhl(kz)
             else
               rimp2(k) = qwx(k)
               rimp1(k) = thlx(k)
@@ -507,13 +508,13 @@ module mod_pbl_uwtcm
             aimp(k) = d_zero
           else
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                        kzm(k) * dtpbl *rdzq(k)*rdza(k)
+                        kzm(k) * dt *rdzq(k)*rdza(k)
           end if
           if ( k == kz ) then
             cimp(k) = d_zero
           else
             cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                        kzm(k+1) * dtpbl *rdzq(k)*rdza(k+1)
+                        kzm(k+1) * dt *rdzq(k)*rdza(k+1)
           end if
           bimp(k) = d_one - aimp(k) - cimp(k)
           ! now find right side 
@@ -521,9 +522,9 @@ module mod_pbl_uwtcm
           if ( k == kz ) then
             ! at surface
             ! include surface momentum fluxes
-            rimp1(k) = ux(k) + dtpbl *              &
+            rimp1(k) = ux(k) + dt *              &
                        uflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
-            rimp2(k) = vx(k) + dtpbl *              &
+            rimp2(k) = vx(k) + dt *              &
                        vflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
           else
             rimp1(k) = ux(k)
@@ -567,8 +568,8 @@ module mod_pbl_uwtcm
         !****** Implicit Diffusion of tracers ************************
         !*************************************************************
 
-        if(lchem)then
-          kchi = kth
+        if ( ichem == 1 ) then
+          xkchi = kth
 
           !Set the tridiagonal coefficients that apply to all of the tracers
           diffchi: &
@@ -577,13 +578,13 @@ module mod_pbl_uwtcm
               aimp(k) = d_zero
             else
               aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                          kchi(k) * dtpbl *rdzq(k)*rdza(k)
+                          xkchi(k) * dt *rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                          kchi(k+1) * dtpbl *rdzq(k)*rdza(k+1)
+                          xkchi(k+1) * dt *rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
           end do diffchi
@@ -597,7 +598,7 @@ module mod_pbl_uwtcm
             ! set the right side 
             rimp1(:) = chix(itr,:)
             ! at surface include surface momentum fluxes
-            rimp1(kz) = chix(itr,kz) + dtpbl *              &
+            rimp1(kz) = chix(itr,kz) + dt *              &
                        chifxx(itr) * rrhoxhl(kz) *rdzq(kz)
             ! no flux out top, so no (k == 1)
             rimp1(1) = d_zero
@@ -655,28 +656,28 @@ module mod_pbl_uwtcm
             aimp(k-1) = d_zero
           else
             aimp(k-1) = -(rhoxhl(k-1)*rrhoxfl(k))*    &
-                          kethl(k-1)*dtpbl*rdzq(k-1)*rdza(k)
+                          kethl(k-1)*dt*rdzq(k-1)*rdza(k)
           end if
           if ( k == kz ) then
             cimp(k-1) = d_zero
             ! account for implicit part of flux between level kz and surface
-            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dtpbl *    &
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
                         ( dsqrt(tke(k))*rczero/bbls(k) +        &
                         (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
           else
             cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*    &
-                          kethl(k)*dtpbl*rdzq(k)*rdza(k)
-            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dtpbl *   &
+                          kethl(k)*dt*rdzq(k)*rdza(k)
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *   &
                         dsqrt(tke(k))*rczero/dmax1(bbls(k),bbls(k+1))
           end if
           ! now find right side 
           if ( k == kz ) then
             ! account for fixed part of flux between level kz and surface
-            rimp1(k-1) = tke(k) + dtpbl * ( shear(k)+bouyan(k) +   &
+            rimp1(k-1) = tke(k) + dt * ( shear(k)+bouyan(k) +   &
                            tke(kzp1)*(rhoxhl(k)*rrhoxfl(k))*    &
                            kethl(k)*rdzq(k)*rdza(k) )
           else
-            rimp1(k-1) = tke(k) + dtpbl * (shear(k)+bouyan(k))
+            rimp1(k-1) = tke(k) + dt * (shear(k)+bouyan(k))
           end if
         end do imptkeflux
         call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
@@ -697,20 +698,21 @@ module mod_pbl_uwtcm
         tcmtend: &
         do k = 1 , kz
           ! Zonal wind tendency
-          uuwten(j,i,k)= psbx*(ux(k)-uxs(k))*rdtpbl
+          uuwten(j,i,k)= psbx*(ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
-          vuwten(j,i,k)= psbx*(vx(k)-vxs(k))*rdtpbl
+          vuwten(j,i,k)= psbx*(vx(k)-vxs(k))*rdt
           ! TKE tendency
-          tkeuwten(j,i,k) = (tke(k)-tkes(k))*rdtpbl
+          tkeuwten(j,i,k) = (tke(k)-tkes(k))*rdt
           ! Temperature tendency
-          tuwten(j,i,k)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdtpbl
+          tuwten(j,i,k)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
           ! Water vapor tendency
-          qxuwten(j,i,k,iqv) = psbx*(qx(k)-qxs(k))*rdtpbl
+          qxuwten(j,i,k,iqv) = psbx*(qx(k)-qxs(k))*rdt
           ! Cloud water tendency
-          qxuwten(j,i,k,iqc) = psbx*(qcx(k)-qcxs(k))*rdtpbl
+          qxuwten(j,i,k,iqc) = psbx*(qcx(k)-qcxs(k))*rdt
 
           ! Tracer tendency
-          if ( lchem ) chiuwten(j,i,k,:) = psbx*(chix(:,k) - chixs(:,k))*rdtpbl
+          if ( ichem == 1 ) &
+            chiuwten(j,i,k,:) = psbx*(chix(:,k) - chixs(:,k))*rdt
 
           ! Momentum diffusivity
           uwstateb%kzm(j,i,k) = kzm(k)
@@ -884,7 +886,7 @@ module mod_pbl_uwtcm
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by 
         ! one grid level over one time step -- TAO
-        kthmax = dmin1((zax(k-1)-zax(k))**2/dtpbl,1.D4)
+        kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.D4)
         ! kthmax = 10000.0D0
         kth(k) = biga * dsqrt(TKE(k)**3)/nsquar(k) /    &
                  dmax1(bbls(k),bbls(k+1))

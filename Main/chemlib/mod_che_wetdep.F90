@@ -664,12 +664,12 @@ module mod_che_wetdep
               if ( cremrat(j,i,k) > d_zero .and. fracloud(i,k) > d_zero ) then
                 wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
                    chib(j,i,k,indp(n))* &
-                   (dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
+                   (dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
-                   wetrem(indp(n))/dtche
+                   wetrem(indp(n))/dt
                 ! save the tendency as a diag 
                 remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
-                   wetrem(indp(n))/dtche  *cdiagf
+                   wetrem(indp(n))/dt  *cdiagf
               end if
             end if
           end do
@@ -684,12 +684,12 @@ module mod_che_wetdep
           if ( kcumtop(j,i) >  0 ) then
             do k = kcumtop(j,i) , kz
               wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
-                   chib(j,i,k,indp(n))*(dexp(-remcum*dtche)-d_one)
+                   chib(j,i,k,indp(n))*(dexp(-remcum*dt)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
-                   wetrem_cvc(indp(n))/dtche
+                   wetrem_cvc(indp(n))/dt
          !add the concvetive rainout to large scale save the tendency as a diag 
               remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
-                   wetrem_cvc(indp(n))/ dtche *cdiagf
+                   wetrem_cvc(indp(n))/ dt *cdiagf
             end do
           end if
         end do
@@ -741,7 +741,7 @@ module mod_che_wetdep
     do n = 1 , mbin
       do k = 1 , kz
         do i = ici1 , ici2
-          wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dtche))/dtche
+          wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dt))/dt
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
           ! wet deposition washout diagnostic ( both from conv and large scale)! 
           ! 

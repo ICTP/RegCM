@@ -30,6 +30,7 @@ module mod_che_bdyco
   use mod_dynparam
   use mod_memutil
   use mod_mppparam  
+  use mod_runparams
   use mod_service
   use mod_mpmessage
   use mod_che_common
@@ -86,14 +87,11 @@ module mod_che_bdyco
     end if 
   end subroutine allocate_mod_che_bdyco
 
-  subroutine che_init_bdy(idate1,intbdy,dtbdys,ifrest)
+  subroutine che_init_bdy
     implicit none
-    logical :: ifrest
     integer(ik4) :: datefound , i , j , k , n, after
-    real (dp) :: dtbdys
     character(len=32) :: appdat
-    type (rcm_time_and_date) :: idate1, chbc_date
-    type(rcm_time_interval)::  intbdy
+    type (rcm_time_and_date) :: chbc_date
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'che_init_bdy'
     integer(ik4) , save :: idindx = 0
@@ -251,10 +249,8 @@ module mod_che_bdyco
 #endif
   end subroutine che_init_bdy
 
-  subroutine chem_bdyin(dtbdys,intbdy)
+  subroutine chem_bdyin
     implicit none
-    type(rcm_time_interval) :: intbdy
-    real(rk8) , intent(in) :: dtbdys
     integer(ik4) :: i , j , k , n , mmrec, after
     character(len=32) :: appdat
     integer(ik4) :: lyear , lmonth , lday , lhour
@@ -530,7 +526,7 @@ module mod_che_bdyco
             fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                    xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                    xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -549,7 +545,7 @@ module mod_che_bdyco
             fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
             fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -568,7 +564,7 @@ module mod_che_bdyco
             fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -587,7 +583,7 @@ module mod_che_bdyco
             fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
             fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
             ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) -  &
-                     xg*crdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
           end do
         end do
       end do
@@ -604,8 +600,8 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1D0/ ( d_two * dtche)
-    gnudge = (1.0D0/crdxsq/dtche)/50.0D0
+    fnudge = 0.1D0/dt2
+    gnudge = (1.0D0/rdxsq/dt)/50.0D0
     do k = 1 , kz
       do n = 2 , cnbdm-1
         cefc(n,k) = fnudge*xfune(n,k)

@@ -26,7 +26,7 @@ module mod_pbl_common
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : ibltyp
+  use mod_runparams , only : ibltyp , ichem
 !
   private
 
@@ -72,13 +72,9 @@ module mod_pbl_common
   !
   type(tcm_state) , public :: uwstatea , uwstateb
 
-  real(rk8) , public :: dtpbl ! dt
-  real(rk8) , public :: rdtpbl ! 1/dt
-  real(rk8) , public :: dttke ! TKE time step
   real(rk8) , public :: tkemin
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten! chiuwten
-  real(rk8) , public , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
-
+  real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten
+  real(rk8) , public , pointer , dimension(:,:,:) :: chifxuw
   !
   ! Specific instances of the model's state variables (at the b time step)
   !
@@ -118,20 +114,13 @@ module mod_pbl_common
   real(rk8) , public , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
   real(rk8) , public , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
   real(rk8) , public , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
-  integer(ik4) , public , pointer , dimension(:,:) :: landmsk      ! ldmsk
+  integer(ik4) , public , pointer , dimension(:,:) :: landmsk  ! ldmsk
   real(rk8) , public , pointer , dimension(:) :: hlev          ! a
   real(rk8) , public , pointer , dimension(:) :: flev          ! sigma
   real(rk8) , public , pointer , dimension(:) :: dlev          ! dsigma
-  real(rk8) , public :: ptp                                    ! ptop
-
-  real(rk8) , public , pointer , dimension(:,:) :: depvel       ! chtrdpv
-  character(len=6) , public , pointer , dimension(:) :: chname ! chtrname
-  logical , public :: lchem , lchdrydepo
+  real(rk8) , public , pointer , dimension(:,:) :: depvel      ! chtrdpv
 
   real(rk8) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
-
-  data lchem /.false./
-  data lchdrydepo /.false./
 
   public :: allocate_mod_pbl_common , allocate_tcm_state
 
@@ -157,9 +146,8 @@ module mod_pbl_common
     end if
   end subroutine allocate_tcm_state
 
-  subroutine allocate_mod_pbl_common(ichem)
+  subroutine allocate_mod_pbl_common
     implicit none
-    integer(ik4) , intent(in) :: ichem
     call getmem2d(kpbl,jci1,jci2,ici1,ici2,'pbl_common:kpbl')
     call getmem2d(zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
     !
@@ -172,7 +160,6 @@ module mod_pbl_common
       call getmem3d(dotqdot,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:dotqdot')
       call getmem3d(ftmp,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:ftmp')
       if ( ichem == 1 ) then
-        lchem = .true. 
         call getmem4d(chiuwten,jci1,jci2,ici1,ici2, &
                                1,kz,1,ntr,'pbl_common:chiuwten')
         call getmem3d(chifxuw,jci1,jci2,ici1,ici2,1,ntr,'pbl_common:chifxuw')

@@ -49,7 +49,6 @@ module mod_cu_tiedtke
 
   logical , pointer , dimension(:) :: ldland
 
-  real(rk8) :: ztmx
   real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
 
   real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
@@ -128,14 +127,12 @@ module mod_cu_tiedtke
 
 !   need to translate REGCM to TIEDTKE vars...
 
-    ztmx = dtmdl
-
     total_precip_points = 0
     ilab(:,:) = 2
     cevapcu(:) = cevapu
 
 !   evaporation coefficient for kuo0 
-    if (lchem) then    
+    if ( ichem == 1 ) then    
       do k = 1 , kz
         ii = 1
         do i = ici1 , ici2
@@ -242,7 +239,7 @@ module mod_cu_tiedtke
             if ( ktau == 0 .and. debug_level > 2 ) then
               lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
             else
-              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*aprdiv
+              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
             end if
           end if
         end if
@@ -263,7 +260,7 @@ module mod_cu_tiedtke
             qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
             qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
             q_detr(j,i,k) = zlude(ii,k)
-            if ( lchem ) then
+            if ( ichem == 1 ) then
               tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
               ! build for chemistry 3d table of constant precipitation rate
               ! from the surface to the top of the convection
@@ -370,14 +367,14 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*ztmx
-      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*ztmx)
-      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*ztmx
-      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*ztmx
+      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtsec
+      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dtsec)
+      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dtsec
+      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dtsec
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
       ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+vtmpc1*zqp1(jl,jk)-zxp1(jl,jk))
-      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*ztmx
-      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*ztmx
+      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtsec
+      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtsec
       it = int(ztp1(jl,jk)*d_1000)
       if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
       it = max(min(it,jptlucu2),jptlucu1)
@@ -392,7 +389,7 @@ module mod_cu_tiedtke
  
     do jt = 1 , ktrac
       do jl = 1 , kproma
-        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*ztmx
+        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtsec
       end do
     end do
  
@@ -604,7 +601,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1104,7 +1101,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
 ! was a function of horizontal resolution (nn wavenumber of a spectral model)
@@ -1549,7 +1546,7 @@ module mod_cu_tiedtke
 !     --------------------------------
 !
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 !
 !---------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2106,7 +2103,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
   ztglace = tzero - 13.0D0
   zqold(1:kproma) = d_zero
 
@@ -2611,7 +2608,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
   ztglace = tzero - 13.0D0
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
@@ -3650,8 +3647,8 @@ module mod_cu_tiedtke
   do jl = 1 , kproma
     prsfc(jl) = prfl(jl)
     pssfc(jl) = psfl(jl)
-    paprc(jl) = paprc(jl) + ztmx*(prfl(jl)+psfl(jl))
-    paprs(jl) = paprs(jl) + ztmx*psfl(jl)
+    paprc(jl) = paprc(jl) + dtsec*(prfl(jl)+psfl(jl))
+    paprs(jl) = paprs(jl) + dtsec*psfl(jl)
   end do
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
@@ -4111,8 +4108,8 @@ module mod_cu_tiedtke
 !
 !*    SPECIFY CONSTANTS
 !
-  zcons1 = cpd/(wlhf*egrav*dtcum)
-  zcons2 = d_one/(egrav*dtcum)
+  zcons1 = cpd/(wlhf*egrav*dt)
+  zcons2 = d_one/(egrav*dt)
   zcucov = 0.050D0
   ztmelp2 = tzero + 2.0D0
 !

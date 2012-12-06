@@ -430,12 +430,9 @@ module mod_init
     !
     ! Setup all timeseps for a restart
     !
+    dtbat = dt*dble(ntsrf)
     dt = dt2
-    dtcum = dt2
-    dtche = dt2
-    dtpbl = dt2
-    rdtpbl = d_one/dt2
-    dttke = dt2
+    rdt = d_one/dt
     !
     ! Report success
     !
@@ -534,7 +531,7 @@ module mod_init
 ! chemistry initialisation
 !
   if ( ichem == 1 ) then
-    call start_chem(ifrest,idate1,intbdy,dtbdys)
+    call start_chem
   end if
 !
 #ifdef DEBUG

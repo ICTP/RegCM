@@ -50,12 +50,8 @@ module mod_che_start
 
   !--------------------------------------------------------------------------
 
-  subroutine start_chem(ifrest,idate1,intbdy,dtbdys)
+  subroutine start_chem
     implicit none
-    logical , intent(in) :: ifrest
-    type(rcm_time_and_date) , intent(in) :: idate1
-    type(rcm_time_interval) , intent(in) :: intbdy
-    real (dp) , intent(in) :: dtbdys
     integer(ik4) :: i , j , k , itr , ibin , jbin , kbin
     integer(ik4) :: lyear , lmonth , lday , lhour
 
@@ -406,7 +402,7 @@ module mod_che_start
 
     !*** Initialize accumulation factor for output diagnostics 
     ! (see mod_che_ncio.F90) . Care to the 0.5 factor added (leap frog related)
-     cdiagf =  dble(dtche) / (3600D0 * dble(chfrq))* d_half
+    cdiagf =  dt / (3600.0D0 * chemfrq)* d_half
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
@@ -422,7 +418,7 @@ module mod_che_start
 
     call init_mod_che_ncio(chemsimtype)
 
-    call che_init_bdy(idate1,intbdy,dtbdys,ifrest)
+    call che_init_bdy
     call split_idate(idate1,lyear,lmonth,lday,lhour)
     call chem_emission(lyear,lmonth,lday,lhour)
 

@@ -28,7 +28,6 @@ module mod_bats_common
   use mod_bats_param
   use mod_bats_internal
 !
-  real(rk8) :: xdtsec ! Atmosferic Model dt in seconds
   real(rk8) :: dtbat  ! BATS1e internal timestep
   real(rk8) :: dtlake ! Lake model internal timestep
 

@@ -41,17 +41,16 @@ module mod_che_interface
   contains 
 !
 #if (defined CLM)
-  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
-                       mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,   &
-                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
-                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,    &
-                       icutop,icubot,taucldsp,voc_em,dep_vels)
+  subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
+                       remrat,a,anudg,twt,coszrs,iveg,svegfrac2d,     &
+                       sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
+                       sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
+                       voc_em,dep_vels)
 #else
-  subroutine init_chem(ifrest, idirect,dt,dx,chemfrq,dtrad,dsigma,atms,   &
-                       mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,a,anudg,   &
-                       twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
-                       sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,    &
-                       icutop,icubot,taucldsp)
+  subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
+                       remrat,a,anudg,twt,coszrs,iveg,svegfrac2d,     &
+                       sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
+                       sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp)
 #endif
 
     ! this routine define the pointer interface between the chem module and
@@ -59,9 +58,6 @@ module mod_che_interface
     ! It also call startchem which is the chemistry initialisation routine
 
     implicit none
-    logical, intent(in)   :: ifrest
-    integer(ik4) , intent(in)  :: idirect
-    real(rk8) , intent(in) :: dt , chemfrq , dtrad,dx 
 
     real(rk8) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
@@ -76,19 +72,10 @@ module mod_che_interface
     type(bound_area) , intent(in)       :: ba_cr
     real(rk8) , pointer , dimension(:)   :: a , anudg
     real(rk8) , pointer , dimension(:,:) :: coszrs
-    real(rk8) :: ptop
 
 #if (defined CLM)
     real(rk8), pointer :: voc_em(:,:), dep_vels(:,:,:)
 #endif
-
-    ichdir = idirect
-
-    chfrq = chemfrq
-    rafrq = dtrad
-    dtche = dt
-    crdxsq = d_one/(dx*dx)    
-    chptop = ptop
 
     call assignpnt(dsigma,cdsigma)
     call assignpnt(icutop,kcumtop)

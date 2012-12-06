@@ -103,7 +103,7 @@ module mod_runparams
 !
   character(len=8) :: scenario
 !
-  real(rk8) :: dt , dt2 , dtbdys
+  real(rk8) :: dt , dt2 , dtbdys , rdt
   real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
   real(rk8) :: xkhmax , xkhz

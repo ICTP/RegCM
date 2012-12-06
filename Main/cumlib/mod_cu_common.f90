@@ -68,13 +68,7 @@ module mod_cu_common
 
   real(rk8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
                                     ! sigma, a,     dsigma, qcon
-  real(rk8) :: dtmdl
-  real(rk8) :: dtcum , aprdiv ! dtsec , d_one/dble(ntsrf)
-
-  logical :: lchem
   integer(ik4) :: total_precip_points
-
-  data lchem /.false./
 
   contains
 !

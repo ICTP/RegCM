@@ -681,8 +681,6 @@ module mod_tendency
     ! call mtrxbats for surface physics calculations
     !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      dtbat = dt*d_half*dble(ntsrf)
-      if ( ktau == 0 ) dtbat = dt
       call mtrxbats(ktau)
     end if
 #else
@@ -701,7 +699,6 @@ module mod_tendency
       else
         r2cnstep = (ktau+1)/ntsrf
       end if
-      dtbat = dt*d_half*ntsrf
       call mtrxclm(ktau)
     end if
 #endif
@@ -1188,7 +1185,7 @@ module mod_tendency
                                uwstatea%advtke(j,i,k)/sfs%psa(j,i)
              ! Do a filtered time integration
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
-                               dttke*aten%tke(j,i,k))
+                               dt*aten%tke(j,i,k))
              atm2%tke(j,i,k) = max(tkemin,omuhf*atm1%tke(j,i,k) + &
                                gnuhf*(atm2%tke(j,i,k) + atmc%tke(j,i,k)))
              atm1%tke(j,i,k) = atmc%tke(j,i,k)
@@ -1272,12 +1269,9 @@ module mod_tendency
       xbctime = d_zero
     end if
     if ( ktau == 2 ) then
+      dtbat = dt*dble(ntsrf)
       dt = dt2
-      dtcum  = dt2
-      dtche  = dt2
-      dtpbl  = dt2
-      rdtpbl = d_one/dt2
-      dttke  = dt2
+      rdt = d_one/dt
     end if
     !
     ! do cumulus transport/mixing  of tracers (grell

@@ -58,7 +58,6 @@ module mod_lm_interface
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
-    xdtsec = dt
     kbats = ksrf
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)

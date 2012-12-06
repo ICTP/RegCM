@@ -22,6 +22,7 @@ module mod_che_mppio
   use mod_intkinds
   use mod_realkinds
   use mod_mppparam
+  use mod_runparams
   use mod_dynparam
   use mod_memutil
   use mod_mpmessage
@@ -45,11 +46,10 @@ module mod_che_mppio
     !
     ! This routines allocate all the arrays contained in the module
     !
-    subroutine allocate_mod_che_mppio(ibltyp)
+    subroutine allocate_mod_che_mppio
       implicit none
-      integer(ik4) , intent(in) :: ibltyp
 
-      if ( lch ) then
+      if ( ichem == 1 ) then
         if ( myid == iocpu ) then
           call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:remlsc_io')

@@ -110,9 +110,8 @@ module mod_che_dust
 
   contains 
 !
-    subroutine allocate_mod_che_dust(ichem)
+    subroutine allocate_mod_che_dust
       implicit none
-      integer(ik4) , intent(in) :: ichem
       if ( ichem == 1 ) then
         call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
         call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')

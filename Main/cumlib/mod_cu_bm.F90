@@ -236,13 +236,13 @@ module mod_cu_bm
     !
     icumtop(:,:) = 0
     icumbot(:,:) = 0
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       convpr(:,:,:) = d_zero
     end if
     total_precip_points = 0
     iconss = 0
-    tauk = dtcum/trel
-    cthrs = (0.006350D0/secpd)*dtcum/cprlg
+    tauk = dt/trel
+    cthrs = (0.006350D0/secpd)*dt/cprlg
 !
 !-----------------------------------------------------------------------
 !
@@ -709,14 +709,14 @@ module mod_cu_bm
         rainc(j,i) = rainc(j,i) + prainx
 !       precipitation rate for bats (mm/s)
         if ( ktau == 0 .and. debug_level > 2 ) then
-          lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtcum
+          lmpcpc(j,i) = lmpcpc(j,i) + prainx/dt
         else
-          lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dtcum)/aprdiv
+          lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dt)/rtsrf
         end if
       end if
       do l = ltpk , lb
-        tmod(j,i,l) = dift(l)*fefi/dtcum
-        qqmod(j,i,l) = difq(l)*fefi/dtcum
+        tmod(j,i,l) = dift(l)*fefi/dt
+        qqmod(j,i,l) = difq(l)*fefi/dt
       end do
 !
 !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
@@ -1024,9 +1024,9 @@ module mod_cu_bm
           kbaseb = min0(lbtk,kzm2)
           icumtop(j,i) = ltpk
           icumbot(j,i) = kbaseb
-          if ( lchem ) then
+          if ( ichem == 1 ) then
             do k = ltpk , kz
-              convpr(j,i,k) = prainx/dtcum
+              convpr(j,i,k) = prainx/dt
             end do
           end if
         end if

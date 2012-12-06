@@ -214,7 +214,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
-    if ( lchem ) convpr(:,:,:) = d_zero 
+    if ( ichem == 1 ) convpr(:,:,:) = d_zero 
 !
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -309,8 +309,8 @@ module mod_cu_grell
           t(j,i,k) = tas(j,i,kk)
           q(j,i,k) = qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dtcum
-          qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dtcum
+          tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dt
+          qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dt
           p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
@@ -349,14 +349,14 @@ module mod_cu_grell
     total_precip_points = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prainx = pret(j,i)*dtmdl
+        prainx = pret(j,i)*dtsec
         if ( prainx > dlowval ) then
           rainc(j,i) = rainc(j,i) + prainx
 !         precipitation rate for bats (mm/s)
           if ( ktau == 0 .and. debug_level > 2 ) then
             lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)
           else
-            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*aprdiv
+            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*rtsrf
           end if
           total_precip_points = total_precip_points + 1
         end if
@@ -392,7 +392,7 @@ module mod_cu_grell
     call time_begin(subroutine_name,idindx)
 #endif
 
-    mbdt = dtcum*5.0D-03
+    mbdt = dt*5.0D-03
     f  = -d_one
     xk = -d_one
 !
@@ -1079,7 +1079,7 @@ module mod_cu_grell
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( igcc == 1 ) then
-            f = (xao(j,i)-xac(j,i))/dtcum ! Arakawa-Schubert closure
+            f = (xao(j,i)-xac(j,i))/dt ! Arakawa-Schubert closure
           else if ( igcc == 2 ) then
             f = xac(j,i)/dtauc2d(j,i)    ! Fritsch-Chappell closure
           end if
@@ -1116,7 +1116,7 @@ module mod_cu_grell
     end do
     ! build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           do k = 1 , ktop(j,i)-1

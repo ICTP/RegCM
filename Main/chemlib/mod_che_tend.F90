@@ -410,19 +410,19 @@
         do j = jci1 , jci2        
           call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
                       prec(:,:,j),convprec(:,:,j),chevap(:,:,j), &
-                      dtche,rho(:,:,j),chib(j,:,:,:),psurf(:,j))
+                      dt,rho(:,:,j),chib(j,:,:,:),psurf(:,j))
         end do
       end if
       !
       ! Gas phase solver 
       ! note : solver is called every dtchsolv (900s)- chemten
       ! chemistry raecation tendendy is calculated but chemical tracer
-      ! tendency is still updated every dtche ( =dt) time step
+      ! tendency is still updated every dt ( =dt) time step
       ! ( insure smoothness)  
       !
       chemten(:,:,:,:) = d_zero
       if ( igaschem == 1 .and. ichsolver > 0 ) then   
-        kchsolv = idnint(dtchsolv / dtche)
+        kchsolv = idnint(dtchsolv / dt)
         kchsolv = 6 ! for the moment
         if ( mod(ktau+1,kchsolv) == 0 ) then   
           do j = jci1 , jci2
@@ -435,7 +435,7 @@
         end if
 
         end if
-        ! add tendency due to chemistry reaction (every dtche)      
+        ! add tendency due to chemistry reaction (every dt)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
       end if

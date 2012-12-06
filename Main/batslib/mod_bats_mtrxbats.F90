@@ -425,142 +425,126 @@ module mod_bats_mtrxbats
 
       ! Those are needed for output purposes
 
-      ! Accumulators for ATM output
-      if ( ifatm ) then
-        if ( ktau > 1 ) then
+      ! Fill accumulators
+
+      if ( ktau > 0 ) then
+        if ( ifatm ) then
           if ( associated(atm_tgb_out) ) &
             atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
           if ( associated(atm_tsw_out) ) &
             atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
-        else if ( ktau == 1 ) then
-          if ( associated(atm_tgb_out) ) &
-            atm_tgb_out = d_two*sum(tgbrd,1)*rdnnsg
-          if ( associated(atm_tsw_out) ) &
-            atm_tsw_out = d_two*sum(tsw,1)*rdnnsg
         end if
-      end if
-
-      ! Accumulators for SRF output
-
-      if ( ifsrf ) then
-        if ( associated(srf_evp_out) ) &
-          srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
-        if ( associated(srf_tpr_out) ) &
-          srf_tpr_out = srf_tpr_out + totpr
-        if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out + pptc
-        ! Reset accumulation from precip and cumulus
-        pptnc = d_zero
-        pptc  = d_zero
-        if ( associated(srf_zpbl_out) ) &
-          srf_zpbl_out = srf_zpbl_out + hpbl
-        if ( associated(srf_scv_out) ) &
-          srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
-        if ( associated(srf_sund_out) ) then
-          where( fsw > 120.0D0 )
-            srf_sund_out = srf_sund_out + dtbat
-          end where
+        if ( ifsrf ) then
+          if ( associated(srf_evp_out) ) &
+            srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+          if ( associated(srf_tpr_out) ) &
+            srf_tpr_out = srf_tpr_out + totpr
+          if ( associated(srf_prcv_out) ) &
+            srf_prcv_out = srf_prcv_out + pptc
+          ! Reset accumulation from precip and cumulus
+          pptnc = d_zero
+          pptc  = d_zero
+          if ( associated(srf_zpbl_out) ) &
+            srf_zpbl_out = srf_zpbl_out + hpbl
+          if ( associated(srf_scv_out) ) &
+            srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+          if ( associated(srf_sund_out) ) then
+            where( fsw > 120.0D0 )
+              srf_sund_out = srf_sund_out + dtbat
+            end where
+          end if
+          if ( associated(srf_runoff_out) ) then
+            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
+            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+          end if
+          if ( associated(srf_sena_out) ) &
+            srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+          if ( associated(srf_flw_out) ) &
+            srf_flw_out = srf_flw_out + flw
+          if ( associated(srf_fsw_out) ) &
+            srf_fsw_out = srf_fsw_out + fsw
+          if ( associated(srf_fld_out) ) &
+            srf_fld_out = srf_fld_out + flwd
+          if ( associated(srf_sina_out) ) &
+            srf_sina_out = srf_sina_out + sinc
         end if
-        if ( associated(srf_runoff_out) ) then
-          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
-          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+        if ( ifsub ) then
+          call reorder_add_subgrid(sfcp,sub_ps_out)
+          if ( associated(sub_evp_out) ) &
+            call reorder_add_subgrid(evpr,sub_evp_out)
+          if ( associated(sub_scv_out) ) &
+            call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
+          if ( associated(sub_sena_out) ) &
+            call reorder_add_subgrid(sent,sub_sena_out)
+          if ( associated(sub_runoff_out) ) then
+            call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
+            call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+          end if
         end if
-        if ( associated(srf_sena_out) ) &
-          srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
-        if ( associated(srf_flw_out) ) &
-          srf_flw_out = srf_flw_out + flw
-        if ( associated(srf_fsw_out) ) &
-          srf_fsw_out = srf_fsw_out + fsw
-        if ( associated(srf_fld_out) ) &
-          srf_fld_out = srf_fld_out + flwd
-        if ( associated(srf_sina_out) ) &
-          srf_sina_out = srf_sina_out + sinc
-      end if
-
-      ! Accumulators for SUB output
-
-      if ( ifsub ) then
-        call reorder_add_subgrid(sfcp,sub_ps_out)
-        if ( associated(sub_evp_out) ) &
-          call reorder_add_subgrid(evpr,sub_evp_out)
-        if ( associated(sub_scv_out) ) &
-          call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
-        if ( associated(sub_sena_out) ) &
-          call reorder_add_subgrid(sent,sub_sena_out)
-        if ( associated(sub_runoff_out) ) then
-          call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
-          call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+        if ( ifsts ) then
+          if ( associated(sts_tgmax_out) ) &
+            sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
+          if ( associated(sts_tgmin_out) ) &
+            sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
+          if ( associated(sts_t2max_out) ) &
+            sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
+          if ( associated(sts_t2min_out) ) &
+            sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
+          if ( associated(sts_t2min_out) ) &
+            sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
+          if ( associated(sts_w10max_out) ) &
+            sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
+              sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
+          if ( associated(sts_pcpmax_out) ) &
+            sts_pcpmax_out = max(sts_pcpmax_out,totpr)
+          if ( associated(sts_pcpavg_out) ) &
+            sts_pcpavg_out = sts_pcpavg_out + totpr
+          if ( associated(sts_psmin_out) ) &
+            sts_psmin_out = min(sts_psmin_out, &
+              (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+          if ( associated(sts_sund_out) ) then
+            where( fsw > 120.0D0 )
+              sts_sund_out = sts_sund_out + dtbat
+            end where
+          end if
         end if
-      end if
-
-      ! Accumulators for STS output
-
-      if ( ifsts ) then
-        if ( associated(sts_tgmax_out) ) &
-          sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
-        if ( associated(sts_tgmin_out) ) &
-          sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
-        if ( associated(sts_t2max_out) ) &
-          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
-        if ( associated(sts_t2min_out) ) &
-          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
-        if ( associated(sts_t2min_out) ) &
-          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
-        if ( associated(sts_w10max_out) ) &
-          sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
-            sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
-        if ( associated(sts_pcpmax_out) ) &
-          sts_pcpmax_out = max(sts_pcpmax_out,totpr)
-        if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out + totpr
-        if ( associated(sts_psmin_out) ) &
-          sts_psmin_out = min(sts_psmin_out, &
-            (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
-        if ( associated(sts_sund_out) ) then
-          where( fsw > 120.0D0 )
-            sts_sund_out = sts_sund_out + dtbat
-          end where
-        end if
-      end if
-
-      ! Accumulators for LAK output
-
-      if ( iflak ) then
-        if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out + totpr
-        if ( associated(lak_scv_out) ) &
-          lak_scv_out = lak_scv_out + sum(sncv,1)*rdnnsg
-        if ( associated(lak_sena_out) ) &
-          lak_sena_out = lak_sena_out + sum(sent,1)*rdnnsg
-        if ( associated(lak_flw_out) ) &
-          lak_flw_out = lak_flw_out + flw
-        if ( associated(lak_fsw_out) ) &
-          lak_fsw_out = lak_fsw_out + fsw
-        if ( associated(lak_fld_out) ) &
-          lak_fld_out = lak_fld_out + flwd
-        if ( associated(lak_sina_out) ) &
-          lak_sina_out = lak_sina_out + sinc
-        if ( associated(lak_evp_out) ) &
-          lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
-        if ( associated(lak_aveice_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              do n = 1 , nnsg
-                if ( aveice(n,j,i) < dmissval ) then
-                  lak_aveice_out(j,i) = lak_aveice_out(j,i) + &
-                    aveice(n,j,i)*rdnnsg*d_r1000
-                else
-                  lak_aveice_out = dmissval
-                end if
+        if ( iflak ) then
+          if ( associated(lak_tpr_out) ) &
+            lak_tpr_out = lak_tpr_out + totpr
+          if ( associated(lak_scv_out) ) &
+            lak_scv_out = lak_scv_out + sum(sncv,1)*rdnnsg
+          if ( associated(lak_sena_out) ) &
+            lak_sena_out = lak_sena_out + sum(sent,1)*rdnnsg
+          if ( associated(lak_flw_out) ) &
+            lak_flw_out = lak_flw_out + flw
+          if ( associated(lak_fsw_out) ) &
+            lak_fsw_out = lak_fsw_out + fsw
+          if ( associated(lak_fld_out) ) &
+            lak_fld_out = lak_fld_out + flwd
+          if ( associated(lak_sina_out) ) &
+            lak_sina_out = lak_sina_out + sinc
+          if ( associated(lak_evp_out) ) &
+            lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
+          if ( associated(lak_aveice_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do n = 1 , nnsg
+                  if ( aveice(n,j,i) < dmissval ) then
+                    lak_aveice_out(j,i) = lak_aveice_out(j,i) + &
+                      aveice(n,j,i)*rdnnsg*d_r1000
+                  else
+                    lak_aveice_out = dmissval
+                  end if
+                end do
               end do
             end do
-          end do
+          end if
         end if
       end if
 
       ! Those are for the output, but collected only at POINT in time
 
-      if ( mod(ktau+1,kbats) == 0 .or. (ktau == 0 .and. debug_level > 2) ) then
+      if ( mod(ktau+1,kbats) == 0 ) then
 
         if ( ifsrf ) then
           if ( associated(srf_uvdrag_out) ) &

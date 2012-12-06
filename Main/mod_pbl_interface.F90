@@ -29,7 +29,7 @@ module mod_pbl_interface
   use mod_pbl_common
   use mod_pbl_holtbl
   use mod_pbl_uwtcm
-  use mod_runparams , only : iqc , iqv
+  use mod_runparams , only : iqc , iqv , dt , rdt , ichem
 
   public
 
@@ -37,9 +37,8 @@ module mod_pbl_interface
 
   subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
                       remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,   &
-                      sigma,dsigma,ptop,chtrdpv,chtrname,ichem,ichdrydepo,dt)
+                      sigma,dsigma,chtrdpv)
     implicit none
-    integer(ik4) , intent(in) :: ichem , ichdrydepo
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
     type (slice) , intent(in) :: atms
     type (diffx) , intent(in) :: adf
@@ -54,18 +53,8 @@ module mod_pbl_interface
     real(rk8) , pointer , dimension(:) :: hsigma
     real(rk8) , pointer , dimension(:) :: sigma
     real(rk8) , pointer , dimension(:) :: dsigma
-    real(rk8) :: dt , ptop
     real(rk8) , pointer , dimension(:,:) :: chtrdpv
-    character(len=6) , pointer , dimension(:) :: chtrname
 
-    ptp = ptop
-    if ( ichem == 1 )      lchem = .true.
-!perform dry deposition calculation as part of pbl scheme
-    if ( ichdrydepo == 2 ) lchdrydepo = .true.
-
-    dttke = dt
-    dtpbl = dt
-    rdtpbl = d_one/dtpbl
     tkemin = 1.0D-8
 
     call assignpnt(aten%u,uten)
@@ -110,7 +99,6 @@ module mod_pbl_interface
     call assignpnt(hsigma,hlev)
     call assignpnt(dsigma,dlev)
     call assignpnt(chtrdpv,depvel)
-    if ( associated(chtrname) ) chname => chtrname
     call assignpnt(cchifxuw,chifxuw)
   end subroutine init_pbl
 
@@ -142,7 +130,7 @@ module mod_pbl_interface
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
-      if ( lchem ) then
+      if ( ichem == 1 ) then
         chten(jci1:jci2,ici1:ici2,:,:) = &
               chten(jci1:jci2,ici1:ici2,:,:)+chiuwten(jci1:jci2,ici1:ici2,:,:)
       end if
@@ -375,15 +363,15 @@ module mod_pbl_interface
     do k = 1 , kzm1
       do j = jci1 , jci2
         do i = ici1 , ici2
-          xps = (hlev(k)*sfcps(j,i)+ptp)
-          ps2 = (hlev(k+1)*sfcps(j,i)+ptp)
+          xps = (hlev(k)*sfcps(j,i)+ptop)
+          ps2 = (hlev(k+1)*sfcps(j,i)+ptop)
           dza = za(j,i,k) - za(j,i,k+1)
           rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
         end do
         rhobydpdz1d(kz) = rhox2d(j,i)
-        dtops = dtpbl/sfcps(j,i)
+        dtops = dt/sfcps(j,i)
 
-        rho1d = d_1000*(hlev*sfcps(j,i) + ptp) / &
+        rho1d = d_1000*(hlev*sfcps(j,i) + ptop) / &
                     ( rgas * tatm(j,i,:) *  &
                     (d_one + ep1* qxatm(j,i,:,iqv) - qxatm(j,i,:,iqc)) )
 
@@ -396,7 +384,7 @@ module mod_pbl_interface
 
 !       qwanom = qwtcm - qwrcm
 !       qwanom = qwrcm-qfx(j,i)*dt
-        qwanom = qwtcm - dtpbl*qfx(j,i)
+        qwanom = qwtcm - dt*qfx(j,i)
         tcmstate%kzm(j,i,1) = qwanom
       end do
     end do

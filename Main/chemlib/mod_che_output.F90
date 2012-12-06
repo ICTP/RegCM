@@ -41,7 +41,7 @@ module mod_che_output
       integer(ik4) :: k
       real(rk8) :: cfd2
 
-      cfd2 = dtche / (chemfrq * 3600.0D0)
+      cfd2 = dt / (chemfrq * 3600.0D0)
 
       if ( associated(che_wdrflx_out) ) then
         che_wdrflx_out = wdlsc(jci1:jci2,ici1:ici2,itr)*cfd

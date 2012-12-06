@@ -100,7 +100,7 @@ module mod_cu_kuo
     !
     icumtop(:,:) = 0
     icumbot(:,:) = 0
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       convpr(:,:,:) = d_zero
     end if
 !
@@ -256,11 +256,11 @@ module mod_cu_kuo
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtcum*d_half
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt*d_half
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 qxten(j,i,k,iqv) = eddyf
-                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtcum*d_half
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt*d_half
               end do
 !
               kbaseb = min0(kbase,kzm2)
@@ -268,21 +268,21 @@ module mod_cu_kuo
               icumbot(j,i) = kbaseb
 
 !             the unit for rainfall is mm.
-              prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
+              prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
               if ( prainx > dlowval ) then
                 rainc(j,i) = rainc(j,i) + prainx
 !               instantaneous precipitation rate for use in bats (mm/s)
                 if ( ktau == 0 .and. debug_level > 2 ) then
-                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtmdl
+                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec
                 else
-                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtmdl*aprdiv
+                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec*rtsrf
                 end if
               end if
-              if ( lchem ) then
+              if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate
                 ! from the surface to the top of the convection
                 do k = 1 , ktop-1
-                  convpr(j,i,kz-k+1) = prainx/dtmdl
+                  convpr(j,i,kz-k+1) = prainx/dtsec
                 end do
               end if
               cycle
@@ -320,8 +320,8 @@ module mod_cu_kuo
           rswt = rswat(j,i,k)/tauht
           tten(j,i,k) = tten(j,i,k) + rsht
           qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rswt
-          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtcum/(d_two*tauht))
-          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtcum/(d_two*tauht))
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/(d_two*tauht))
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/(d_two*tauht))
         end do
       end do
     end do
@@ -380,7 +380,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtmdl/dxsq * &
+          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtsec/dxsq * &
                    (wrkkuo1(j,i-1,k)+wrkkuo1(j,i+1,k) + &
                     wrkkuo1(j-1,i,k)+wrkkuo1(j+1,i,k)-d_four*wrkkuo1(j,i,k))
         end do
@@ -390,7 +390,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rswat(j,i,k) = rswat(j,i,k)+akht1*dtmdl/dxsq * &
+          rswat(j,i,k) = rswat(j,i,k)+akht1*dtsec/dxsq * &
                 (wrkkuo2(j,i-1,k)+wrkkuo2(j,i+1,k) + &
                  wrkkuo2(j-1,i,k)+wrkkuo2(j+1,i,k)-d_four*wrkkuo2(j,i,k))
         end do

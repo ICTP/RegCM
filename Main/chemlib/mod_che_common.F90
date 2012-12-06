@@ -73,7 +73,7 @@ module mod_che_common
 !   the pointer targets are defined in mod_che_interface
 !*****************************************************************************
 
-  real(rk8) :: ccalday , crdxsq
+  real(rk8) :: ccalday
   real(rk8) , pointer , dimension(:,:,:,:) ::chib3d
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
@@ -84,7 +84,6 @@ module mod_che_common
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
   real(rk8) , pointer , dimension(:) :: hlev , cdsigma , canudg
   real(rk8) , pointer , dimension(:,:) :: czen
-  real(rk8) :: chptop
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
   type cbound_area
     logical :: dotflag
@@ -109,14 +108,10 @@ module mod_che_common
 
   contains
 
-    subroutine allocate_mod_che_common(ichem)
+    subroutine allocate_mod_che_common
       implicit none
 
-      integer(ik4) , intent(in) :: ichem
-
-      if ( ichem == 1 ) lch = .true.
-
-      if ( lch ) then
+      if ( ichem == 1 ) then
 
         call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')

@@ -75,7 +75,7 @@ module mod_che_carbonaer
       if ( ibchb > 0 .and. ibchl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dtche/chagct))/dtche
+            agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
             chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
@@ -85,7 +85,7 @@ module mod_che_carbonaer
       if ( iochb > 0  .and. iochl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dtche/chagct))/dtche
+            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
             chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2

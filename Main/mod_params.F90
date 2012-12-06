@@ -821,7 +821,7 @@ module mod_params
 
   call allocate_mod_bdycon(iboudy)
 
-  call allocate_mod_pbl_common(ichem)
+  call allocate_mod_pbl_common
 
   call allocate_mod_cu_common(ichem)
 
@@ -852,9 +852,9 @@ module mod_params
     call allocate_mod_rad_colmod3(ichem)
   end if
 
-  call allocate_mod_che_common(ichem)
-  call allocate_mod_che_mppio(ibltyp)
-  call allocate_mod_che_dust(ichem)
+  call allocate_mod_che_common
+  call allocate_mod_che_mppio
+  call allocate_mod_che_dust
   call allocate_mod_che_bdyco
 !
 !-----------------------------------------------------------------------
@@ -914,6 +914,8 @@ module mod_params
 !.....calculate the time step in minutes.
 !
   dtsec = dt
+  dtbat = dt
+  rdt   = d_one/dt
   dtbdys = dble(ibdyfrq)*secph
   ntsec = idnint(dt)
 !
@@ -1045,22 +1047,19 @@ module mod_params
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl)
 #endif
-  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,chiten, &
-                     sfs,qdot,pptc,ldmsk,sigma,hsigma,dsigma,qcon,  &
-                     cldfra,cldlwc,ktrop)
+  call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
+                     sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)
   if ( ichem == 1 ) then
 #ifdef CLM
-    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
-                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
-                   twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
-                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
-                   icumtop,icumbot,taucldsp,voc_em,dep_vels)
+    call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
+                   hsigma,anudg,twt,coszrs,iveg,svegfrac2d,sfracv2d,    &
+                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,    &
+                   convpr,icumtop,icumbot,taucldsp,voc_em,dep_vels)
 #else
-    call init_chem(ifrest,idirect,dtsec,dx,chemfrq,dtrad,dsigma,atms,    &
-                   mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat,hsigma,anudg, &
-                   twt,ptop,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,    &
-                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,       &
-                   icumtop,icumbot,taucldsp)
+    call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
+                   hsigma,anudg,twt,coszrs,iveg,svegfrac2d,sfracv2d,    &
+                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,    &
+                   convpr,icumtop,icumbot,taucldsp)
 #endif
     do n = 1 , ntr
       call bcast(chtrname(n),6)
@@ -1503,7 +1502,7 @@ module mod_params
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
-    call allocate_mod_pbl_holtbl(ichem,ichdrdepo)
+    call allocate_mod_pbl_holtbl
   end if
   if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call init_mod_pbl_uwtcm
@@ -1514,8 +1513,7 @@ module mod_params
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
-                cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,sigma,dsigma,ptop, &
-                chtrdpv,chtrname,ichem,ichdrdepo,dt)
+                cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,sigma,dsigma,chtrdpv)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg

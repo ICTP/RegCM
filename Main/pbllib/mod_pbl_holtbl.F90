@@ -25,7 +25,7 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ibltyp , iqv , iqc
+  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt , ichem , ichdrdepo
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -77,9 +77,8 @@ module mod_pbl_holtbl
 !
   contains
 !
-  subroutine allocate_mod_pbl_holtbl(ichem,ichdrdepo)
+  subroutine allocate_mod_pbl_holtbl
     implicit none
-    integer(ik4) , intent(in) :: ichem , ichdrdepo
 
     call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
     call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
@@ -168,8 +167,8 @@ module mod_pbl_holtbl
     do i = ici1 , ici2
       do j = jci1 , jci2
         dza(j,i,k) = za(j,i,k) - za(j,i,k+1)
-        xps = (hlev(k)*sfcps(j,i)+ptp)*d_1000
-        ps2 = (hlev(k+1)*sfcps(j,i)+ptp)*d_1000
+        xps = (hlev(k)*sfcps(j,i)+ptop)*d_1000
+        ps2 = (hlev(k+1)*sfcps(j,i)+ptop)*d_1000
         rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
       end do
     end do
@@ -199,7 +198,7 @@ module mod_pbl_holtbl
   do k = 2 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
-        kzmax = 0.8D0*dza(j,i,k-1)*dzq(j,i,k)*rdtpbl
+        kzmax = 0.8D0*dza(j,i,k-1)*dzq(j,i,k)*rdt
         vv(j,i,k) = uxatm(j,i,k)*uxatm(j,i,k) + vxatm(j,i,k)*vxatm(j,i,k)
         ss = ((uxatm(j,i,k-1)-uxatm(j,i,k))*   &
               (uxatm(j,i,k-1)-uxatm(j,i,k))+   &
@@ -231,7 +230,7 @@ module mod_pbl_holtbl
         kvm(j,i,k) = kzm(j,i,k)
         kvh(j,i,k) = kzm(j,i,k)
         kvq(j,i,k) = kzm(j,i,k)
-        if ( lchem ) then
+        if ( ichem == 1 ) then
           kvc(j,i,k) = kzm(j,i,k)
         end if
         ! counter gradient terms for heat and moisture
@@ -355,8 +354,8 @@ module mod_pbl_holtbl
   ! Atmosphere top
   do i = idii1 , idii2
     do j = jdii1 , jdii2
-      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = udatm(j,i,1)/coef2(j,i,1)
@@ -368,9 +367,9 @@ module mod_pbl_holtbl
   do k = 2 , kz - 1
     do i = idii1 , idii2
       do j = jdii1 , jdii2
-        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         coeff1(j,i,k) = (udatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1))/       &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
@@ -387,17 +386,17 @@ module mod_pbl_holtbl
   do i = idii1 , idii2
     do j = jdii1 , jdii2
       coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       drgdot = (uvdrage(j-1,i-1)+uvdrage(j,i-1) + &
                 uvdrage(j-1,i)  +uvdrage(j,i))*d_rfour
       uflxsf = drgdot*udatm(j,i,kz)
       vflxsf = drgdot*vdatm(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (udatm(j,i,kz)-dtpbl*alphak(j,i,kz)*uflxsf+      &
+      coeff1(j,i,kz) = (udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+      &
                       coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      coeff2(j,i,kz) = (vdatm(j,i,kz)-dtpbl*alphak(j,i,kz)*vflxsf+      &
+      coeff2(j,i,kz) = (vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+      &
                       coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -429,9 +428,9 @@ module mod_pbl_holtbl
     do i = idii1 , idii2
       do j = jdii1 , jdii2
         uten(j,i,k) = uten(j,i,k) + &
-                      (tpred1(j,i,k)-udatm(j,i,k))*rdtpbl*sfcpd(j,i)
+                      (tpred1(j,i,k)-udatm(j,i,k))*rdt*sfcpd(j,i)
         vten(j,i,k) = vten(j,i,k) + &
-                      (tpred2(j,i,k)-vdatm(j,i,k))*rdtpbl*sfcpd(j,i)
+                      (tpred2(j,i,k)-vdatm(j,i,k))*rdt*sfcpd(j,i)
       end do
     end do
   end do
@@ -459,8 +458,8 @@ module mod_pbl_holtbl
  
   do i = ici1 , ici2
     do j = jci1 , jci2
-      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = thxatm(j,i,1)/coef2(j,i,1)
@@ -470,9 +469,9 @@ module mod_pbl_holtbl
   do k = 2 , kz - 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         coeff1(j,i,k) = (thxatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
@@ -483,10 +482,10 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (thxatm(j,i,kz) + dtpbl*alphak(j,i,kz)*hfx(j,i)*rcpd + &
+      coeff1(j,i,kz) = (thxatm(j,i,kz) + dt*alphak(j,i,kz)*hfx(j,i)*rcpd + &
                        coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -517,7 +516,7 @@ module mod_pbl_holtbl
       do j = jci1 , jci2
         sf = (tatm(j,i,k)*sfcps(j,i))/thxatm(j,i,k)
         difft(j,i,k) = difft(j,i,k) + &
-                       (tpred1(j,i,k)-thxatm(j,i,k))*rdtpbl*sf
+                       (tpred1(j,i,k)-thxatm(j,i,k))*rdt*sf
       end do
     end do
   end do
@@ -534,8 +533,8 @@ module mod_pbl_holtbl
  
   do i = ici1 , ici2
     do j = jci1 , jci2
-      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = qxatm(j,i,1,iqv)/coef2(j,i,1)
@@ -545,9 +544,9 @@ module mod_pbl_holtbl
   do k = 2 , kz - 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         coeff1(j,i,k) = (qxatm(j,i,k,iqv)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                        (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
@@ -558,11 +557,11 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (qxatm(j,i,kz,iqv) + &
-               dtpbl*alphak(j,i,kz)*qfx(j,i) + &
+               dt*alphak(j,i,kz)*qfx(j,i) + &
                coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
     end do
@@ -592,7 +591,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          diagqx(j,i,k,iqv) = (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdtpbl*sfcps(j,i)
+          diagqx(j,i,k,iqv) = (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdt*sfcps(j,i)
         end do
       end do
     end do
@@ -601,7 +600,7 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           diffqx(j,i,k,iqv) = diffqx(j,i,k,iqv) + &
-                         (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdtpbl*sfcps(j,i)
+                         (tpred1(j,i,k)-qxatm(j,i,k,iqv))*rdt*sfcps(j,i)
         end do
       end do
     end do
@@ -618,8 +617,8 @@ module mod_pbl_holtbl
   end do
   do i = ici1 , ici2
     do j = jci1 , jci2
-      coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = qxatm(j,i,1,iqc)/coef2(j,i,1)
@@ -628,9 +627,9 @@ module mod_pbl_holtbl
   do k = 2 , kz - 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         coeff1(j,i,k) = (qxatm(j,i,k,iqc)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
@@ -640,8 +639,8 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (qxatm(j,i,kz,iqc)+coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                      (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
@@ -671,7 +670,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          diagqx(j,i,k,iqc) = (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdtpbl*sfcps(j,i)
+          diagqx(j,i,k,iqc) = (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdt*sfcps(j,i)
         end do
       end do
     end do
@@ -680,7 +679,7 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           diffqx(j,i,k,iqc) = diffqx(j,i,k,iqc) + &
-                      (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdtpbl*sfcps(j,i)
+                      (tpred1(j,i,k)-qxatm(j,i,k,iqc))*rdt*sfcps(j,i)
         end do
       end do
     end do
@@ -718,8 +717,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- ! if ( lchem .and. lchdrydepo ) then
-  if (lchem) then
+  if ( ichem == 1 ) then
     !
     !     coef1, coef2, coef3 and coefe are the same as for water vapor
     !     and cloud water so they do not need to be recalculated
@@ -735,20 +733,20 @@ module mod_pbl_holtbl
     do k = 2 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          coef1(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dtpbl*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dtpbl*alphak(j,i,k)*betak(j,i,k)
+          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         end do
       end do
     end do
     do i = ici1 , ici2
       do j = jci1 , jci2
-        coef1(j,i,1) = dtpbl*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dtpbl*alphak(j,i,1)*betak(j,i,2)
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
         coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dtpbl*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dtpbl*alphak(j,i,kz)*betak(j,i,kz)
+        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       end do
     end do
     !
@@ -763,10 +761,9 @@ module mod_pbl_holtbl
             vdep(j,i,itr) = depvel(itr,1)
           end if
           !
-          !         provisoire test de la routine chdrydep pour les dust
+          ! provisoire test de la routine chdrydep pour les dust
           ! 
-!FAB: insert the interactive vdep 
-!          if ( chname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
+!         if ( chtrname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
           vdep(j,i,itr) = d_zero
         end do
       end do
@@ -793,7 +790,7 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
-          coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dtpbl*alphak(j,i,kz) * &
+          coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dt*alphak(j,i,kz) * &
                             chmx(j,i,kz,itr)*vdep(j,i,itr)*rhox2d(j,i) + &
                             coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                            (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
@@ -824,15 +821,15 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             chten(j,i,k,itr) = chten(j,i,k,itr) +  &
-                        (tpred1(j,i,k)-chmx(j,i,k,itr))*rdtpbl*sfcps(j,i)
+                        (tpred1(j,i,k)-chmx(j,i,k,itr))*rdt*sfcps(j,i)
           end do
         end do
       end do
       do i = ici1 , ici2
         do j = jci1 , jci2
-!          if ( chname(itr) /= 'DUST' ) &
+!         if ( chtrname(itr) /= 'DUST' ) &
             drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
-                vdep(j,i,itr)*sfcps(j,i)*dtpbl*d_half*rhox2d(j,i)* &
+                vdep(j,i,itr)*sfcps(j,i)*dt*d_half*rhox2d(j,i)* &
                 hydf(kz)/sfcps(j,i)
  
         end do
@@ -1057,7 +1054,7 @@ module mod_pbl_holtbl
               kvq(j,i,k) = d_zero
             end if
             ! Erika put k=0 in very stable conditions
-            if ( lchem ) then
+            if ( ichem == 1 ) then
               kvc(j,i,k) = dmax1(pblk2,kzo)
             end if
             ! compute counter-gradient term
@@ -1091,7 +1088,7 @@ module mod_pbl_holtbl
             kvm(j,i,k) = dmax1(pblk,kzo)
             kvh(j,i,k) = dmax1((pblk/pr),kzo)
             kvq(j,i,k) = dmax1(pblk1,kzo)
-            if ( lchem ) then
+            if ( ichem == 1 ) then
               kvc(j,i,k) = dmax1(pblk2,kzo)
             end if
           end if

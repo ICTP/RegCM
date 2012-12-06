@@ -126,20 +126,20 @@ module mod_cu_em
 
           ! build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
-          if ( lchem ) then
+          if ( ichem == 1 ) then
             do k = 1 , ktop-1
               convpr(j,i,kz-k+1) = pret
             end do
           end if
    
           ! Precipitation
-          prainx = pret*dtmdl
+          prainx = pret*dtsec
           if ( prainx > dlowval ) then
             rainc(j,i)  = rainc(j,i)  + prainx  ! mm
             if ( ktau == 0 .and. debug_level > 2 ) then
               lmpcpc(j,i) = lmpcpc(j,i) + pret
             else
-              lmpcpc(j,i) = lmpcpc(j,i) + pret*aprdiv
+              lmpcpc(j,i) = lmpcpc(j,i) + pret*rtsrf
             end if
             total_precip_points = total_precip_points + 1
           end if
@@ -311,7 +311,7 @@ module mod_cu_em
                alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
                cbmfold , chi , coeff , cpinv , cwat , damps , dbo ,   &
-               dbosum , defrac , dei , delm , delp , delt0 , delti ,  &
+               dbosum , defrac , dei , delm , delp , delt0 ,          &
                denom , dhdp , dphinv , dpinv , dtma , dtmnx , dtpbl , &
                elacrit , ents , epmax , fac , fqold , frac , ftold ,  &
                ftraold , fuold , fvold , plcl , qnew , qp1 , qsm ,    &
@@ -347,8 +347,6 @@ module mod_cu_em
 !   water density.  these should be consistent with those used in
 !   calling program
 !   note: these are also specified in subroutine tlift
-!
-    delti = d_one/dtcum
 !
 !   initialize output arrays and parameters
 !
@@ -455,7 +453,7 @@ module mod_cu_em
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
-                     (q(j)-qnew)*regrav/(dtcum*d_1000)  ! mm/s
+                     (q(j)-qnew)*regrav/(dt*d_1000)  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
@@ -692,7 +690,7 @@ module mod_cu_em
 !
     cbmfold = cbmf
     delt0 = 300.0D0
-    damps = damp*dtcum/delt0
+    damps = damp*dt/delt0
     cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
     cbmf = dmax1(cbmf,d_zero)
 !
@@ -964,7 +962,7 @@ module mod_cu_em
         am = am + m(k)
       end do
     end if
-    if ( (d_two*egrav*dpinv*am) >= delti ) iflag = 4
+    if ( (d_two*egrav*dpinv*am) >= rdt ) iflag = 4
     ft(1) = ft(1) + egrav*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
     ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
     ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))*dpinv/cpn(1)
@@ -1005,7 +1003,7 @@ module mod_cu_em
           amp1 = amp1 + ment(k,j)
         end do
       end do
-      if ( (d_two*egrav*dpinv*amp1) >= delti ) iflag = 4
+      if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
       do k = 1 , i - 1
         do j = i , inb
           ad = ad + ment(j,k)

@@ -112,7 +112,7 @@ module mod_che_sox
          !---------------------------------------------      
 
          so2_rate = rk_com(i,k,12) * oh1int * d_10
-         so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dtche))/dtche
+         so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dt))/dt
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5D0*so2_snk(i,k)*cldno 
@@ -120,9 +120,9 @@ module mod_che_sox
          !  gazeous conversion diagnostic 
 
          rxsg(j,i,k,iso2) = rxsg(j,i,k,iso2) + &
-                            so2_snk(i,k)*cldno*dtche/d_two
+                            so2_snk(i,k)*cldno*dt/d_two
          rxsg(j,i,k,iso4) = rxsg(j,i,k,iso4) + &
-                            1.5D0*so2_snk(i,k)*cldno*dtche/d_two
+                            1.5D0*so2_snk(i,k)*cldno*dt/d_two
 
        end do
      end do
@@ -154,7 +154,7 @@ module mod_che_sox
          if ( wl(i,k) > clmin ) then
            ! conversion from so2 to so4
            rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k) * &
-                  (dexp(-wl(i,k)/360.0D0*dtche)-d_one)
+                  (dexp(-wl(i,k)/360.0D0*dt)-d_one)
            rxs11 = rxs1*1.5D0
            ! SO4 src term and the ratio of molar
            ! mass of SO4 to SO2 is 96/64 = 1.5
@@ -171,7 +171,7 @@ module mod_che_sox
 
 !!$           if ( cremrat(j,i,k) > d_zero ) then
 !!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
-!!$                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dtche)-d_one)
+!!$                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
 !!$           end if
  
            ! Below cloud scavenging only for SO2 only stratiform precip !
@@ -183,15 +183,15 @@ module mod_che_sox
 
            if ( crembc(j,i,k) > d_zero ) then
              wetrem(iso2) =  chtrsol(iso2)*concmin(i,k) * &
-                             (dexp(-krembc*dtche)-d_one)
+                             (dexp(-krembc*dt)-d_one)
            end if
          end if
  
          ! Tendancies large scale cloud
-         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dtche + &
-                              wetrem(iso2)/dtche
-         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dtche + &
-                              wetrem(iso4)/dtche
+         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dt + &
+                              wetrem(iso2)/dt
+         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dt + &
+                              wetrem(iso4)/dt
  
          ! and wetdep diagnostics
          remlsc(j,i,k,iso2) = remlsc(j,i,k,iso2) - wetrem(iso2)/d_two
@@ -217,20 +217,20 @@ module mod_che_sox
  
            ! conversion from so2 to so4
            rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k) * &
-                  (dexp(-d_two/360.0D0*dtche)-d_one)
+                  (dexp(-d_two/360.0D0*dt)-d_one)
            rxs21 = rxs2*1.5D0
  
            ! removal (including theremoval on the rxs21 term)
            ! contratily to LS clouds, remcum is already an in cloud removal rate
 !!$ FAB TEST DON'T COSIDER REMOVAL HERE
 !!$          wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
-!!$                              rxs21)*(dexp(-remcum*dtche)-d_one)
+!!$                              rxs21)*(dexp(-remcum*dt)-d_one)
 
            ! tendancies due to convective cloud processes
-           chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs2/dtche
+           chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs2/dt
 
            chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &
-                                wetrem_cvc(iso4)/dtche - rxs21/dtche
+                                wetrem_cvc(iso4)/dt - rxs21/dt
  
            ! diagnostic of wet deposition
            ! remcvc(j,i,k,1) = remcvc(j,i,k,1) - wetrem_cvc(iso2)/2.
@@ -275,11 +275,11 @@ module mod_che_sox
 !!$        ratmsa     = 0.6D0 * rk_com(i,k,9) * oh1int
 !!$
 !!$        dmsoh_snk(i,k) = 0.4D0*chib(i,k,j,idms) * &
-!!$                        (d_one-dexp(-ratdms_oh*dtche))/dtche
+!!$                        (d_one-dexp(-ratdms_oh*dt))/dt
 !!$        dmsno3_snk(i,k) = chib(i,k,j,idms) * &
-!!$                         (d_one-dexp(-ratdms_no3*dtche))/dtche
+!!$                         (d_one-dexp(-ratdms_no3*dt))/dt
 !!$
-!!$        dms_snk(i,k) = chib(i,k,j,idms)*(d_one-dexp(-rattot_dms*dtche))/dtche
+!!$        dms_snk(i,k) = chib(i,k,j,idms)*(d_one-dexp(-rattot_dms*dt))/dt
 !!$        chiten(i,k,j,idms) = chiten(i,k,j,idms) - dms_snk(i,k)
 !!$        dms_gas(i,k) = 1.032258D0 * (dmsoh_snk(i,k) + dmsno3_snk(i,k))
 !!$        chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + dms_gas(i,k)

@@ -481,7 +481,7 @@ module mod_bdycod
     end do
 
     if ( ichem == 1 ) then
-      call chem_bdyin(dtbdys,intbdy) 
+      call chem_bdyin
     end if
 
     if ( myid == italk ) then

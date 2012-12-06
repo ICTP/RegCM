@@ -24,11 +24,7 @@ module mod_che_param
 
   public
 !
-  logical :: lch
-  integer(ik4) :: ichdir
   integer(ik4) :: ichaer
-
-  real(rk8) :: chfrq , rafrq , dtche
 
   real(rk8) , pointer , dimension(:) :: chlevs
 !
