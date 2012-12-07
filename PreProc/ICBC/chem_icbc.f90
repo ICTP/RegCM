@@ -47,17 +47,17 @@ program chem_icbc
   character(len=256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
-             ichsolver , idirect , ichdustemd, ichdiag
+        ichsolver , idirect , ichdustemd , ichdiag , ichsursrc , ichebdy
+  real(rk8) :: rdstemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
   data doaero /.false./
 !
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-         ichcumtra , ichsolver , idirect , ichdustemd , ichdiag
-!  namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo ,  &
-!    ichcumtra , ichsolver , idirect , ichdustemd
-!
+     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,            &
+     ichsursrc , ichebdy, rdstemfac
+
   call header('chem_icbc')
 !
 ! Read input global namelist
