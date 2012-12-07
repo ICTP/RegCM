@@ -363,7 +363,18 @@ module mod_bats_mtrxbats
             fracd(j,i) = 0.2D0
           end if
         end do
+
       end do
+
+      if ( iocnflx == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              if ( ldmsk1(n,j,i) == 0 ) tgrd(n,j,i) = tground2(j,i)
+            end do
+          end do
+        end do
+      end if
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
