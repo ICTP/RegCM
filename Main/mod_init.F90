@@ -438,7 +438,7 @@ module mod_init
     !
     if ( myid == italk ) then
       appdat = tochar(idatex)
-      print *, 'Successfully read restart file at time = ', appdat
+      write(stdout,*) 'Successfully read restart file at time = ', appdat
     end if
     !
     ! End of restart phase

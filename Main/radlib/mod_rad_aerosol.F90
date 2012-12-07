@@ -697,7 +697,7 @@ module mod_rad_aerosol
           do itr = 1 , ntr
             uaer(n,k,itr) = d_zero
             if ( rh(n,k) < d_zero .or. rh(n,k) > d_one ) then
-              print * , n , k , rh(n,k) , '  RH WARNING !!!!!'
+              write(stderr,*) n , k , rh(n,k) , '  RH WARNING !!!!!'
             end if
             if ( tracname(itr) == 'XXXXX') then
               continue

@@ -348,9 +348,8 @@ module mod_savefile
     thisclmrest = filer_rest(1:256)
 #endif
     if ( myid == iocpu ) then
-      print *, 'SAV variables written at ', tochar(idate)
-
-      if (isavlast > 0) then
+      write(stdout,*) 'SAV variables written at ', tochar(idate)
+      if ( isavlast > 0 ) then
         write (fbname, '(a,i10)') 'TMPSAV.', isavlast
         ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
         call unlink(ffout)

@@ -984,7 +984,7 @@
 !-----------------------------------------------------------------------
 !
       if (cpl_dbglevel > 1) then
-      print*, '[debug] -- write grid information to file '//            &
+      write(stderr,*) '[debug] -- write grid information to file '//    &
       '>ocean_'//trim(GRIDDES(models(Iocean)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iocean)%grid(n),                    &
                          filename="ocean_"//                            &

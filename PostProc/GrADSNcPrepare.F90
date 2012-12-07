@@ -27,6 +27,7 @@ program ncprepare
   use mod_intkinds
   use mod_realkinds
   use mod_projections
+  use mod_stdio
   use mod_date
   use mod_message
   use mod_nchelper
@@ -83,10 +84,10 @@ program ncprepare
   call getarg(0, prgname)
   numarg = iargc( )
   if (numarg < 1) then
-    write (6,*) 'Not enough arguments.'
-    write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
-    write (6,*) ' '
+    write (stderr,*) 'Not enough arguments.'
+    write (stderr,*) ' '
+    write (stderr,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (stderr,*) ' '
     stop
   end if
 
@@ -318,7 +319,7 @@ program ncprepare
       end do
     end do
   else
-    write (6,*) 'Unknown Projection : ', iproj
+    write (stderr,*) 'Unknown Projection : ', iproj
     stop
   end if
 
@@ -334,7 +335,7 @@ program ncprepare
     write(12) r4uv
     close(12)
   else
-    print *, 'Coordinate file exist, not recreating it'
+    write(stdout,*) 'Coordinate file exist, not recreating it'
   end if
 
   deallocate(rin,rjn,ruv)

@@ -104,7 +104,7 @@ module mod_cu_em
         !          subsidence warming is violated. (Does not terminate scheme.)
         if ( iflag == 1 .or. iflag == 4 ) then ! If moist convection
 !         if ( iflag == 4 ) then               ! If CFL violation
-!           print*,'EMAN CFL VIOLATION: ',i,j,cbmf
+!           write(stderr,*) 'EMAN CFL VIOLATION: ',i,j,cbmf
 !         end if
    
           ! Tendencies

@@ -824,7 +824,7 @@
 !-----------------------------------------------------------------------
 !
       if (cpldbglevel > 1) then
-      print*, '[debug] -- write grid information to file '//            &
+      write(stderr,*) '[debug] -- write grid information to file '//    &
       '>atmos_'//trim(GRIDDES(models(Iatmos)%mesh(i,n)%gtype))//'point<'
       call ESMF_GridWriteVTK(models(Iatmos)%grid(n),                    &
                          filename="atmos_"//                            &
