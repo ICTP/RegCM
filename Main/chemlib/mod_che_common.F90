@@ -82,7 +82,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
          cssw2da , cvegfrac , csol2d , csdeltk2d , csdelqk2d , ctwt , &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
-  real(rk8) , pointer , dimension(:) :: hlev , cdsigma , canudg
+  real(rk8) , pointer , dimension(:) :: hlev , cdsigma
   real(rk8) , pointer , dimension(:,:) :: czen
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
   type cbound_area

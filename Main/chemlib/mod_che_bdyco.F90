@@ -58,13 +58,11 @@ module mod_che_bdyco
   real(rk8) , pointer , dimension(:,:,:,:) :: chebdy
 
   integer(ik4) , parameter :: max_input_tracers = 50
-  integer(ik4) :: cnbdm
 
   contains
 !
   subroutine allocate_mod_che_bdyco
     implicit none
-    cnbdm = max(nspgx,nspgd)
     call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
                   1,max_input_tracers,'che_common:chebdy')
     call getmem4d(chib0,jde1-ma%jbl1,jde2+ma%jbr1, &
@@ -77,9 +75,8 @@ module mod_che_bdyco
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chibt')
     call getmem1d(ichbdy2trac,1,35,'mod_che_bdyco:ichbdytrac')
-    call getmem2d(cefc,1,cnbdm,1,kz,'bdycon:fcx')
-    call getmem2d(cegc,1,cnbdm,1,kz,'bdycon:fcx')
-    
+    call getmem2d(cefc,1,nspgx,1,kz,'bdycon:fcx')
+    call getmem2d(cegc,1,nspgx,1,kz,'bdycon:fcx')
     if ( ioxclim == 1 ) then  
       call getmem4d(oxcl,jde1-ma%jbl1,jde2+ma%jbr1, &
                          ide1-ma%ibb1,ide2+ma%ibt1, &
@@ -601,9 +598,9 @@ module mod_che_bdyco
     ! Specify the coefficients for nudging boundary conditions:
     !
     fnudge = 0.1D0/dt2
-    gnudge = (1.0D0/rdxsq/dt)/50.0D0
+    gnudge = (dxsq/dt)/50.0D0
     do k = 1 , kz
-      do n = 2 , cnbdm-1
+      do n = 2 , nspgx-1
         cefc(n,k) = fnudge*xfune(n,k)
         cegc(n,k) = gnudge*xfune(n,k)
       end do
@@ -614,7 +611,7 @@ module mod_che_bdyco
     implicit none
     real(rk8) :: xfune
     integer(ik4) , intent(in) :: mm , kk
-    xfune = dexp(-dble(mm-2)/canudg(kk))
+    xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
 !
 end module mod_che_bdyco

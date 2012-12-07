@@ -413,8 +413,6 @@ module mod_che_start
       call cheminit 
     end if
 
-    call setup_che_bdycon
-
     call init_mod_che_ncio(chemsimtype)
 
     call che_init_bdy

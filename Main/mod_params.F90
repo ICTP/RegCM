@@ -1060,14 +1060,14 @@ module mod_params
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
-                   hsigma,anudg,twt,coszrs,iveg,svegfrac2d,sfracv2d,    &
-                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,    &
-                   convpr,icumtop,icumbot,taucldsp,voc_em,dep_vels)
+                   hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
+                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,      &
+                   icumtop,icumbot,taucldsp,voc_em,dep_vels)
 #else
     call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
-                   hsigma,anudg,twt,coszrs,iveg,svegfrac2d,sfracv2d,    &
-                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,    &
-                   convpr,icumtop,icumbot,taucldsp)
+                   hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
+                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,      &
+                   icumtop,icumbot,taucldsp)
 #endif
     do n = 1 , ntr
       call bcast(chtrname(n),6)
@@ -1598,6 +1598,7 @@ module mod_params
 ! Setup Boundary condition routines.
 !
   call setup_bdycon(hsigma)
+  if ( ichem == 1 ) call setup_che_bdycon
 !
   if ( icup == 3 ) call lutbl(ptop)
 !

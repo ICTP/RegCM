@@ -52,13 +52,11 @@ module mod_bdycod
 ! fnudge : are the coefficients for the newtonian term.
 ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
-  public :: anudg
 !
   real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(rk8) , pointer , dimension(:) :: anudg
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
   real(rk8) , pointer , dimension(:) :: lfc , lgc
@@ -93,7 +91,6 @@ module mod_bdycod
       call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
     else if ( iboudy == 5 ) then
       nbdm = max(nspgx,nspgd)
-      call getmem1d(anudg,1,kz,'bdycon:anudg')
       call getmem2d(efc,1,nbdm,1,kz,'bdycon:fcx')
       call getmem2d(egc,1,nbdm,1,kz,'bdycon:fcx')
     end if

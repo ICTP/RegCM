@@ -124,6 +124,7 @@ module mod_runparams
   real(rk8) , pointer , dimension(:) :: hsigma , dsigma , qcon
   real(rk8) , pointer , dimension(:) :: sigma
   real(rk8) , pointer , dimension(:,:) :: twt
+  real(rk8) , pointer , dimension(:) :: anudg
 
   real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
   real(rk8) :: cllwcv ! Cloud liquid water content for convective precip.
@@ -274,6 +275,7 @@ module mod_runparams
     call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
     call getmem1d(qcon,1,kz,'mod_runparams:qcon')
     call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
+    call getmem1d(anudg,1,kz,'mod_runparams:anudg')
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
     call getmem1d(dtau,1,nsplit,'mod_runparams:nsplit')
   end subroutine allocate_mod_runparams

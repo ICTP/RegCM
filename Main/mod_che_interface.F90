@@ -42,13 +42,13 @@ module mod_che_interface
 !
 #if (defined CLM)
   subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
-                       remrat,a,anudg,twt,coszrs,iveg,svegfrac2d,     &
+                       remrat,a,twt,coszrs,iveg,svegfrac2d,           &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,dep_vels)
 #else
   subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
-                       remrat,a,anudg,twt,coszrs,iveg,svegfrac2d,     &
+                       remrat,a,twt,coszrs,iveg,svegfrac2d,           &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp)
 #endif
@@ -70,7 +70,7 @@ module mod_che_interface
     type(domain), intent(in)            :: mddom
     type (surfstate) , intent(in)       :: sfs
     type(bound_area) , intent(in)       :: ba_cr
-    real(rk8) , pointer , dimension(:)   :: a , anudg
+    real(rk8) , pointer , dimension(:)   :: a
     real(rk8) , pointer , dimension(:,:) :: coszrs
 
 #if (defined CLM)
@@ -112,7 +112,6 @@ module mod_che_interface
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)
     call assignpnt(a,hlev)
-    call assignpnt(anudg,canudg)
     call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   
