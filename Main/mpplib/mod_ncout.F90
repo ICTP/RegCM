@@ -1523,7 +1523,6 @@ module mod_ncout
       end if
 
       outstream(nstream)%opar%pname = 'RegCM Model'
-      outstream(nstream)%opar%zero_date = idate1
       outstream(nstream)%opar%l_sync = lsync
 
       if ( parallel_out ) then
@@ -1631,6 +1630,7 @@ module mod_ncout
 
         outstream(i)%opar%fname = &
           trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+        outstream(i)%opar%zero_date = idate
 
         if ( myid == italk ) then
           write(stdout,*) 'Opening new output file ', &
