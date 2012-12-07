@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 CDO=`which cdo`
 if [ -z "$CDO" ]
