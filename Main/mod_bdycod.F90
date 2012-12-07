@@ -478,17 +478,17 @@ module mod_bdycod
       end do
     end do
 
-    if ( ichem == 1 ) then
-      call chem_bdyin
-    end if
-
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
             toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
-    call bcast(bdydate2)
     bdydate1 = bdydate2
+
+    if ( ichem == 1 ) then
+      call chem_bdyin
+    end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
