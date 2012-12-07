@@ -401,12 +401,12 @@ module mod_che_start
 
     !*** Initialize accumulation factor for output diagnostics 
     ! (see mod_che_ncio.F90) . Care to the 0.5 factor added (leap frog related)
-    cdiagf =  dt / (3600.0D0 * chemfrq)* d_half
+    cdiagf =  dt / (3600.0D0 * chemfrq) * d_half
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
-      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)  
-      open(27,file='cbmz_chemmech.out', status='replace', err=902)  
+      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
+      open(27,file='cbmz_chemmech.out', status='replace', err=902)
 902   continue
       call chemread
       call hvread
@@ -414,14 +414,13 @@ module mod_che_start
     end if
 
     call init_mod_che_ncio(chemsimtype)
-
     call che_init_bdy
     call split_idate(idate1,lyear,lmonth,lday,lhour)
     call chem_emission(lyear,lmonth,lday,lhour)
 
     ! Finally initialise chia and chib to chib0 over the whole domain
 
-    if ( .not. ifrest ) then 
+    if ( .not. ifrest ) then
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2

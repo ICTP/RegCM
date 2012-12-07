@@ -792,7 +792,7 @@ module mod_tendency
       ! keep nudge_chi for now 
       if ( iboudy == 1 .or. iboudy == 5 ) then
         xtm1 = xbctime - dtsec
-        call nudge_chi(kz,cba_cr,xtm1,chib,chiten)
+        call nudge_chi(kz,xtm1,chib,chiten)
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten0 - chiten) * cdiagf
     end if

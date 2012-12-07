@@ -57,6 +57,7 @@ module mod_che_common
   real(rk8), pointer , dimension(:,:,:)  :: cchifxuw
 !
   integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
+  integer(ik4) , parameter :: nphoto = 56
 !
   real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
 
@@ -85,17 +86,6 @@ module mod_che_common
   real(rk8) , pointer , dimension(:) :: hlev , cdsigma
   real(rk8) , pointer , dimension(:,:) :: czen
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
-  type cbound_area
-    logical :: dotflag
-    logical :: havebound
-    logical , pointer , dimension(:,:) :: bsouth
-    logical , pointer , dimension(:,:) :: bnorth
-    logical , pointer , dimension(:,:) :: beast
-    logical , pointer , dimension(:,:) :: bwest
-    integer(ik4) :: ns , nn , ne , nw
-    integer(ik4) :: nsp
-    integer(ik4) , pointer , dimension(:,:) :: ibnd
-  end type cbound_area
 #if (defined CLM)
 #if (defined VOC)
   ! Tracer mask that uses MEGAN indices
@@ -104,7 +94,6 @@ module mod_che_common
 #endif
   real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
-  type(cbound_area) :: cba_cr
 
   contains
 
@@ -112,7 +101,6 @@ module mod_che_common
       implicit none
 
       if ( ichem == 1 ) then
-
         call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
         call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
@@ -160,7 +148,8 @@ module mod_che_common
         call getmem4d(chemall,jci1,jci2,ici1,ici2, &
                       1,kz,1,totsp,'mod_che_common:chemall')
         call getmem3d(srclp2,jci1,jci2,ici1,ici2,1,ntr,'mod_che_common:srclp2')
-        call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz,1,56,'che_common:jphoto')
+        call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
+          1,nphoto,'che_common:jphoto')
 
         call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
         call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
@@ -280,7 +269,6 @@ module mod_che_common
         ntr = 1
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'POLLEN' /)
-
         iaerosol = 1
         if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
       else 

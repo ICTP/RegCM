@@ -172,7 +172,7 @@ module mod_che_chemistry
             chemall(j,i,k,ic) = xrout(1,ic)
           end do
           ! Store photolysis rates for diagnostic
-          do ic = 1 , 56
+          do ic = 1 , nphoto
             jphoto(j,i,k,ic) = c_jval(1,ic)
           end do
           !

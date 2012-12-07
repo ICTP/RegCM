@@ -58,13 +58,28 @@ module mod_che_bdyco
   real(rk8) , pointer , dimension(:,:,:,:) :: chebdy
 
   integer(ik4) , parameter :: max_input_tracers = 50
+  integer(ik4) , parameter :: noxcl = 5
+
+  type cbound_area
+    logical :: havebound
+    logical , pointer , dimension(:,:) :: bsouth
+    logical , pointer , dimension(:,:) :: bnorth
+    logical , pointer , dimension(:,:) :: beast
+    logical , pointer , dimension(:,:) :: bwest
+    integer(ik4) :: ns , nn , ne , nw
+    integer(ik4) :: nsp
+    integer(ik4) , pointer , dimension(:,:) :: ibnd
+  end type cbound_area
+  public :: cbound_area
+  type(cbound_area) , public :: cba
 
   contains
 !
   subroutine allocate_mod_che_bdyco
     implicit none
+    call getmem1d(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
     call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
-                  1,max_input_tracers,'che_common:chebdy')
+                  1,max_input_tracers,'che_bdyco:chebdy')
     call getmem4d(chib0,jde1-ma%jbl1,jde2+ma%jbr1, &
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
@@ -74,13 +89,12 @@ module mod_che_bdyco
     call getmem4d(chibt,jde1-ma%jbl1,jde2+ma%jbr1, &
                         ide1-ma%ibb1,ide2+ma%ibt1, &
                         1,kz,1,ntr,'mod_che_bdyco:chibt')
-    call getmem1d(ichbdy2trac,1,35,'mod_che_bdyco:ichbdytrac')
-    call getmem2d(cefc,1,nspgx,1,kz,'bdycon:fcx')
-    call getmem2d(cegc,1,nspgx,1,kz,'bdycon:fcx')
-    if ( ioxclim == 1 ) then  
+    call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
+    call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
+    if ( ioxclim == 1 ) then
       call getmem4d(oxcl,jde1-ma%jbl1,jde2+ma%jbr1, &
                          ide1-ma%ibb1,ide2+ma%ibt1, &
-                         1,kz,1,5,'mod_che_bdyco:oxcl')
+                         1,kz,1,noxcl,'che_bdyco:oxcl')
     end if 
   end subroutine allocate_mod_che_bdyco
 
@@ -135,7 +149,7 @@ module mod_che_bdyco
 
       ! handle oxidant climatology 
       if ( ioxclim == 1 ) then 
-        do n = 1 , 5
+        do n = 1 , noxcl
           do k = 1 , kz
             do i = ice1 , ice2
               do j = jce1 , jce2
@@ -234,7 +248,7 @@ module mod_che_bdyco
       ! handle oxc lima
 
       if ( ioxclim == 1 ) then 
-        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,noxcl)
       end if
     else
       chbdydate2 = chbdydate2 + intbdy
@@ -279,6 +293,7 @@ module mod_che_bdyco
       end if
 
       call read_chbc(chebdy)
+
       chib1 = d_zero
       after = 0  
       do n = 1 , size(ichbdy2trac)
@@ -294,7 +309,7 @@ module mod_che_bdyco
         end if
       end do
       if ( ioxclim == 1 ) then
-        do n = 1 , 5
+        do n = 1 , noxcl
           do k = 1 , kz
             do i = ice1 , ice2
               do j = jce1 , jce2
@@ -326,7 +341,7 @@ module mod_che_bdyco
 
       ! handle oxidant climatology 
       if ( ioxclim == 1 ) then 
-        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,5)
+        call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,noxcl)
       end if
 
       if ( myid == italk ) then
@@ -480,39 +495,27 @@ module mod_che_bdyco
   !                                                                     c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine nudge_chi(nk,cba,xt,f,ften)
+  subroutine nudge_chi(nk,xt,f,ften)
     implicit none
     integer(ik4) , intent(in) :: nk
     real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    type(cbound_area), intent(in) :: cba   
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
     real(rk8) :: xf , xg
     real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
 
-    integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
+    integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge_chi'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    if ( cba%dotflag ) then
-      i1 = idi1
-      i2 = idi2
-      j1 = jdi1
-      j2 = jdi2
-    else
-      i1 = ici1
-      i2 = ici2
-      j1 = jci1
-      j2 = jci2
-    end if
 !
     if ( cba%ns /= 0 ) then
       do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             if ( .not. cba%bsouth(j,i) ) cycle
             ib = cba%ibnd(j,i)
             xf = cefc(ib,k)
@@ -530,8 +533,8 @@ module mod_che_bdyco
     end if
     if ( cba%nn /= 0 ) then
       do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             if ( .not. cba%bnorth(j,i) ) cycle
             ib = cba%ibnd(j,i)
             xf = cefc(ib,k)
@@ -549,8 +552,8 @@ module mod_che_bdyco
     end if
     if ( cba%nw /= 0 ) then
       do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             if ( .not. cba%bwest(j,i) ) cycle
             ib = cba%ibnd(j,i)
             xf = cefc(ib,k)
@@ -568,8 +571,8 @@ module mod_che_bdyco
     end if
     if ( cba%ne /= 0 ) then
       do k = 1 , nk
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             if ( .not. cba%beast(j,i) ) cycle
             ib = cba%ibnd(j,i)
             xf = cefc(ib,k)

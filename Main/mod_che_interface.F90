@@ -118,19 +118,18 @@ module mod_che_interface
 
     call assignpnt(taucldsp, ctaucld)
 
-    cba_cr%dotflag = ba_cr%dotflag
-    cba_cr%havebound = ba_cr%havebound
-    call assignpnt(ba_cr%bsouth, cba_cr%bsouth)   
-    call assignpnt(ba_cr%bnorth, cba_cr%bnorth)   
-    call assignpnt(ba_cr%beast, cba_cr%beast)   
-    call assignpnt(ba_cr%bwest, cba_cr%bwest)   
-    call assignpnt(ba_cr%ibnd, cba_cr%ibnd)   
+    cba%havebound = ba_cr%havebound
+    call assignpnt(ba_cr%bsouth, cba%bsouth)   
+    call assignpnt(ba_cr%bnorth, cba%bnorth)   
+    call assignpnt(ba_cr%beast, cba%beast)   
+    call assignpnt(ba_cr%bwest, cba%bwest)   
+    call assignpnt(ba_cr%ibnd, cba%ibnd)   
 
-    cba_cr%ns = ba_cr%ns
-    cba_cr%nn = ba_cr%nn
-    cba_cr%ne = ba_cr%ne
-    cba_cr%nw = ba_cr%nw
-    cba_cr%nsp = ba_cr%nsp
+    cba%ns = ba_cr%ns
+    cba%nn = ba_cr%nn
+    cba%ne = ba_cr%ne
+    cba%nw = ba_cr%nw
+    cba%nsp = ba_cr%nsp
 
 #if (defined CLM)
 #if (defined VOC)
