@@ -506,6 +506,7 @@ module mod_mtrxclm
 !
     integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n
     integer(ik4) :: idep , icpu , nout
+    real(rk8) :: fact
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
     integer(ik4) , save :: idindx = 0
@@ -616,6 +617,27 @@ module mod_mtrxclm
 
       if ( iocnflx == 2 ) then
         call zengocndrv(ktau)
+      else if ( iocnflx == 1 ) then
+        call dragc
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ldmsk(j,i) == 0 ) then
+              tgrd(:,j,i) = tground2(j,i)
+              drag(:,j,i) = cdrx(:,j,i)*vspda(:,j,i)*rhs(:,j,i)
+              tlef(:,j,i) = sts(:,j,i)
+              delq(:,j,i) =  qs(:,j,i) - qgrd(:,j,i)
+              delt(:,j,i) = sts(:,j,i) - tgrd(:,j,i)
+              evpr(:,j,i) = -drag(:,j,i)*delq(:,j,i)
+              sent(:,j,i) = -drag(:,j,i)*cpd*delt(:,j,i)
+              fact = z10fra(1,j,i)/zlgocn(1,j,i)
+              u10m(:,j,i) = usw(j,i)*(d_one-fact)
+              v10m(:,j,i) = vsw(j,i)*(d_one-fact)
+              fact = z2fra(1,j,i)/zlgocn(1,j,i)
+              t2m(:,j,i) = sts(:,j,i) - delt(:,j,i)*fact
+              q2m(:,j,i) = qs(:,j,i) - delq(:,j,i)*fact
+            end if
+          end do
+        end do
       end if
 
       do i = ici1 , ici2
