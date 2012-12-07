@@ -257,13 +257,13 @@ module mod_bats_zengocn
               delta = deltas(j,i)
               tdelta = tdeltas(j,i)
               ! td is now the 3m bulk SST from the forcing variable
-              td = tground2(j,i)
+              td = sst(j,i)
               !
               ! deep impact of aod on sst
               ! if ( sum(aerext(j,i,:)) <= 1 ) then
-              !   td = tground2(j,i) - sum(aerext(j,i,:))*0.8D0
+              !   td = sst(j,i) - sum(aerext(j,i,:))*0.8D0
               ! else if ( sum(aerext(j,i,:)) > 1 ) then
-              !   td = tground2(j,i)- d_one*0.8D0
+              !   td = sst(j,i)- d_one*0.8D0
               ! end if
               !
               ! rs is the net surface sw flux (sw energy absorbed)

@@ -447,8 +447,9 @@ module mod_bdycod
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
           if ( idcsst == 1 ) then
-            sfs%tga(j,i) = ts1(j,i) + dtskin(j,i)
-            sfs%tgb(j,i) = ts1(j,i) + dtskin(j,i)
+            sst(j,i) = ts1(j,i)
+            sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
+            sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
           else
             sfs%tga(j,i) = ts1(j,i)
             sfs%tgb(j,i) = ts1(j,i)

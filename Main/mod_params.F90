@@ -454,8 +454,8 @@ module mod_params
 #ifdef CLM
   if ( myid == italk ) then
     if (nsg /= 1 ) then
-      write (6,*) 'Running SUBGRID with CLM: not implemented'
-      write (6,*) 'Please set nsg to 1 in regcm.in'
+      write (stderr,*) 'Running SUBGRID with CLM: not implemented'
+      write (stderr,*) 'Please set nsg to 1 in regcm.in'
       call fatal(__FILE__,__LINE__,'CLM & SUBGRID TOGETHER')
     end if
   end if
@@ -669,6 +669,14 @@ module mod_params
   call bcast(iclimao3)
   call bcast(isolconst)
   call bcast(icumcloud)
+
+  if ( idcsst == 1 .and. iocnflx /= 2 ) then
+    if ( myid == italk ) then
+      write(stderr,*) 'Cannot enable diurnal cycle sst without Zheng ocean flux'
+      write(stderr,*) 'Disabling idcsst.'
+    end if
+    idcsst = 0
+  end if
 
 #ifdef CLM
   call bcast(dirclm,256)

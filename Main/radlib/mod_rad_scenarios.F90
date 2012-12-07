@@ -1749,8 +1749,8 @@ module mod_rad_scenarios
     2100.0D0 ,  935.874D0 , 3750.685D0 ,  435.106D0 ,  25.98D0 , 167.28D0 /), &
       (/6,251/))
       case default
-        write (6,*) 'Unsupported emission scenario: ', csc
-        write (6,*) 'Use one in SRES/RCP ', scenarios
+        write (stderr,*) 'Unsupported emission scenario: ', csc
+        write (stderr,*) 'Use one in SRES/RCP ', scenarios
         call fatal(__FILE__,__LINE__,'UNSUPPORTED EMISSION SCENARIO')
     end select
 

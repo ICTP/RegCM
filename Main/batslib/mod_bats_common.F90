@@ -70,6 +70,7 @@ module mod_bats_common
 !
   ! dtskin is difference between skin temp and bulk sst
   real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
+  real(rk8) , pointer , dimension(:,:) :: sst
   ! Lake model
   real(rk8) , pointer , dimension(:,:,:) :: dhlake1
   integer(ik4) , pointer , dimension(:,:,:) :: idep
@@ -166,6 +167,7 @@ module mod_bats_common
         call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
         call getmem2d(tdeltas,jci1,jci2,ici1,ici2,'bats:tdeltas')
         call getmem2d(dtskin,jci1,jci2,ici1,ici2,'bats:dtskin')
+        call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
       end if
 
       call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats:delq')

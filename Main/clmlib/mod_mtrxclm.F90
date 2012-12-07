@@ -352,9 +352,9 @@ module mod_mtrxclm
 ! atmospheric data files are provided, model uses dummy atmospheric
 ! forcing and sets atmospheric grid to land grid.
 
-    if ( myid == iocpu ) write (6,*) 'Attempting to make atmospheric grid'
+    if ( myid == iocpu ) write (stdout,*) 'Attempting to make atmospheric grid'
     call rcmdrv_init()
-    if ( myid == iocpu ) write (6,*) 'Successfully  make atmospheric grid'
+    if ( myid == iocpu ) write (stdout,*) 'Successfully  make atmospheric grid'
 
     ! Initialize radiation and atmosphere variables
     if ( .not. ifrest ) then

@@ -151,7 +151,7 @@ module mod_regcm_interface
     ! Calculate solar declination angle at startup
     !
     if ( myid == italk ) then
-      write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
+      write (stdout,*) 'Calculate solar declination angle at ',toint10(idatex)
     end if
 #ifdef CLM
     numdays = dayspy
@@ -284,7 +284,8 @@ module mod_regcm_interface
           ! recalculate solar declination angle if reading bdy
           !
           if ( myid == italk ) then
-            write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
+            write (stdout,*) &
+              'Calculate solar declination angle at ',toint10(idatex)
           end if
 #ifdef CLM
           call solar_clm(idatex,calday,declin,xyear)

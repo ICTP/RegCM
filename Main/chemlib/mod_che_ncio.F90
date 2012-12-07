@@ -483,10 +483,10 @@ module mod_che_ncio
         ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1 
         if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
           appdat1 = tochar(idate)
-          write (6,*) 'Record is not found in CHBC file for ',appdat1
+          write (stderr,*) 'Record is not found in CHBC file for ',appdat1
           appdat1 = tochar(chbc_idate(1))
           appdat2 = tochar(chbc_idate(ibcnrec))
-          write (6,*) 'Range is : ', appdat1, '-', appdat2
+          write (stderr,*) 'Range is : ', appdat1, '-', appdat2
           call fatal(__FILE__,__LINE__,'CHBC READ')
         end if
         chbc_search = ibcrec
@@ -528,7 +528,7 @@ module mod_che_ncio
       istatus = nf90_inquire_dimension(ibcid, idimid, len=ibcnrec)
       call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
       if ( ibcnrec < 1 ) then
-        write (6,*) 'Time var in ICBC has zero dim.'
+        write (stderr,*) 'Time var in ICBC has zero dim.'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       istatus = nf90_inq_varid(ibcid, 'time', itvar)
@@ -539,12 +539,12 @@ module mod_che_ncio
       call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
       allocate(icbc_nctime(ibcnrec), stat=istatus)
       if ( istatus /= 0 ) then
-        write(6,*) 'Memory allocation error in ICBC for time real values'
+        write(stderr,*) 'Memory allocation error in ICBC for time real values'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       allocate(chbc_idate(ibcnrec), stat=istatus)
       if ( istatus /= 0 ) then
-        write(6,*) 'Memory allocation error in ICBC for time array'
+        write(stderr,*) 'Memory allocation error in ICBC for time array'
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       istatus = nf90_get_var(ibcid, itvar, icbc_nctime)
@@ -556,9 +556,9 @@ module mod_che_ncio
       if ( ibcnrec > 1 ) then
         chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
         if (chkdiff /= ibdyfrq) then
-          write (6,*) 'Time var in ICBC inconsistency.'
-          write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
-          write (6,*) 'Found     ibdyfrq = ', chkdiff
+          write (stderr,*) 'Time var in ICBC inconsistency.'
+          write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
+          write (stderr,*) 'Found     ibdyfrq = ', chkdiff
           call fatal(__FILE__,__LINE__,'ICBC READ')
         end if
       end if
@@ -672,8 +672,8 @@ module mod_che_ncio
       character(*) , intent(in) :: f, m1 , mf
       integer(ik4) , intent(in) :: l
       if (istatus /= nf90_noerr) then
-        write (6,*) trim(m1)
-        write (6,*) nf90_strerror(istatus)
+        write (stderr,*) trim(m1)
+        write (stderr,*) nf90_strerror(istatus)
         call fatal(f,l,trim(mf))
       end if
     end subroutine check_ok

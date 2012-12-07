@@ -214,7 +214,8 @@ module mod_init
     if ( idcsst == 1 ) then
       dtskin(:,:) = d_zero
       deltas(:,:) = 0.001D0
-      tdeltas(:,:) = tground2(jci1:jci2,ici1:ici2) - deltas(:,:)
+      sst(:,:) = tground2(jci1:jci2,ici1:ici2)
+      tdeltas(:,:) = sst(:,:) - deltas(:,:)
     end if
     !
     ! Inizialize Ozone profiles
@@ -394,8 +395,9 @@ module mod_init
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
           if ( idcsst == 1 ) then
-            sfs%tga(j,i) = ts1(j,i) + dtskin(j,i)
-            sfs%tgb(j,i) = ts1(j,i) + dtskin(j,i)
+            sst(j,i) = ts1(j,i)
+            sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
+            sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
           else
             sfs%tga(j,i) = ts1(j,i)
             sfs%tgb(j,i) = ts1(j,i)
