@@ -103,13 +103,20 @@ module mod_che_bdyco
     integer(ik4) :: datefound , i , j , k , n, after
     character(len=32) :: appdat
     type (rcm_time_and_date) :: chbc_date
+    integer(ik4) :: lyear , lmonth , lday , lhour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'che_init_bdy'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
     chbdydate1 = idate1
     chbdydate2 = idate1
+
+    if ( ichsursrc == 1 ) then
+      call split_idate(chbdydate1,lyear,lmonth,lday,lhour)
+      call chem_emission(lyear,lmonth,lday,lhour)
+    end if
 
     if ( ichebdy == 1 ) then 
 
@@ -126,7 +133,7 @@ module mod_che_bdyco
         !
         ! Cannot run without initial conditions
         !
-        appdat = tochar(chbdydate2)
+        appdat = tochar(chbdydate1)
         call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
       end if
 
@@ -214,7 +221,7 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib0(j,i,k,n) = chib0(j,i,k,n)*cpsb(j,i)
+              chib0(j,i,k,n) = chib0(j,i,k,n)*psbb0(j,i)
             end do
           end do
         end do
@@ -227,7 +234,7 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib1(j,i,k,n) = chib1(j,i,k,n)*cpsb(j,i)
+              chib1(j,i,k,n) = chib1(j,i,k,n)*psbb1(j,i)
             end do
           end do
         end do
@@ -262,7 +269,7 @@ module mod_che_bdyco
 
   subroutine chem_bdyin
     implicit none
-    integer(ik4) :: i , j , k , n , mmrec, after
+    integer(ik4) :: i , j , k , n , datefound, after
     character(len=32) :: appdat
     integer(ik4) :: lyear , lmonth , lday , lhour
 #ifdef DEBUG
@@ -271,10 +278,14 @@ module mod_che_bdyco
     call time_begin(subroutine_name,idindx)
 #endif
   
-    chbdydate2 = chbdydate2 + intbdy
-    call split_idate(chbdydate2,lyear,lmonth,lday,lhour)
-
     chib0(:,:,:,:) = chib1(:,:,:,:)
+
+    if ( ichsursrc == 1 ) then
+      call split_idate(chbdydate1,lyear,lmonth,lday,lhour)
+      call chem_emission(lyear,lmonth,lday,lhour)
+    end if
+
+    chbdydate2 = chbdydate2 + intbdy
 
     if ( ichebdy == 1 ) then
 
@@ -282,11 +293,11 @@ module mod_che_bdyco
         write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
       end if
 
-      mmrec = chbc_search(chbdydate2)
-      if (mmrec < 0) then
+      datefound = chbc_search(chbdydate2)
+      if (datefound < 0) then
         call open_chbc(monfirst(chbdydate2))
-        mmrec = chbc_search(chbdydate2)
-        if (mmrec < 0) then
+        datefound = chbc_search(chbdydate2)
+        if (datefound < 0) then
           appdat = tochar(chbdydate2)
           call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
         end if
@@ -324,7 +335,7 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chib1(j,i,k,n) = chib1(j,i,k,n)*cpsb(j,i)
+              chib1(j,i,k,n) = chib1(j,i,k,n)*psbb1(j,i)
             end do
           end do
         end do
@@ -352,17 +363,13 @@ module mod_che_bdyco
       chbdydate1 = chbdydate2
     end if
 
-    ! Finally rad also the emission 
-    call chem_emission(lyear,lmonth,lday,lhour)
-
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine chem_bdyin
 
-  subroutine chem_bdyval(xt,ktau)
+  subroutine chem_bdyval(xt)
     implicit none
-    integer(ik8) , intent(in) :: ktau
     real(rk8) , intent(in) :: xt
 !
     integer(ik4) :: itr , j , k , i

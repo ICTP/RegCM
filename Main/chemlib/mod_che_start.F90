@@ -24,7 +24,6 @@ module mod_che_start
   use mod_dynparam
   use mod_mpmessage
   use mod_che_common
-  use mod_che_emission
   use mod_che_indices
   use mod_che_bdyco
   use mod_che_wetdep
@@ -419,8 +418,6 @@ module mod_che_start
 
     call init_mod_che_ncio(chemsimtype)
     call che_init_bdy
-    call split_idate(idate1,lyear,lmonth,lday,lhour)
-    call chem_emission(lyear,lmonth,lday,lhour)
 
     ! Finally initialise chia and chib to chib0 over the whole domain
 

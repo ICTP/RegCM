@@ -209,7 +209,7 @@ module mod_bdycod
       !
       ! Cannot run without initial conditions
       !
-      appdat = tochar(bdydate2)
+      appdat = tochar(bdydate1)
       call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
     end if
 
@@ -350,7 +350,7 @@ module mod_bdycod
 !
   subroutine bdyin
     implicit none
-    integer(ik4) :: i , j , k , n , mmrec
+    integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
@@ -369,11 +369,11 @@ module mod_bdycod
     if ( myid == italk ) then
       write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
     end if
-    mmrec = icbc_search(bdydate2)
-    if (mmrec < 0) then
+    datefound = icbc_search(bdydate2)
+    if (datefound < 0) then
       call open_icbc(monfirst(bdydate2))
-      mmrec = icbc_search(bdydate2)
-      if (mmrec < 0) then
+      datefound = icbc_search(bdydate2)
+      if (datefound < 0) then
         appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
@@ -1193,7 +1193,7 @@ module mod_bdycod
     end if
 !
     if ( ichem == 1 ) then
-      call chem_bdyval(xt,ktau)
+      call chem_bdyval(xt)
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

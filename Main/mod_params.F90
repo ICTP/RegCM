@@ -1044,6 +1044,12 @@ module mod_params
   call setup_boundaries(cross,ba_cr)
   call setup_boundaries(dot,ba_dt)
 
+  call allocate_v2dbound(xpsb,cross)
+  call allocate_v3dbound(xtb,kz,cross)
+  call allocate_v3dbound(xqb,kz,cross)
+  call allocate_v3dbound(xub,kz,dot)
+  call allocate_v3dbound(xvb,kz,dot)
+!
   if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
   call set_scenario(scenario)
 
@@ -1059,15 +1065,15 @@ module mod_params
                      sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)
   if ( ichem == 1 ) then
 #ifdef CLM
-    call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
-                   hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
-                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,      &
-                   icumtop,icumbot,taucldsp,voc_em,dep_vels)
+    call init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc, &
+                   remrat,hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d, &
+                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,  &
+                   convpr,icumtop,icumbot,taucldsp,voc_em,dep_vels)
 #else
-    call init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,remrat, &
-                   hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d, &
-                   sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,convpr,      &
-                   icumtop,icumbot,taucldsp)
+    call init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc, &
+                   remrat,hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d, &
+                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,  &
+                   convpr,icumtop,icumbot,taucldsp)
 #endif
     do n = 1 , ntr
       call bcast(chtrname(n),6)
@@ -1643,12 +1649,6 @@ module mod_params
       '  Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
   end if
 
-  call allocate_v2dbound(xpsb,cross)
-  call allocate_v3dbound(xtb,kz,cross)
-  call allocate_v3dbound(xqb,kz,cross)
-  call allocate_v3dbound(xub,kz,dot)
-  call allocate_v3dbound(xvb,kz,dot)
-!
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif

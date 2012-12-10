@@ -20,7 +20,8 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , domain, surfstate,bound_area
+  use mod_atm_interface , only : slice , domain, surfstate , &
+                                 bound_area , v2dbound
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -41,14 +42,14 @@ module mod_che_interface
   contains 
 !
 #if (defined CLM)
-  subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
-                       remrat,a,twt,coszrs,iveg,svegfrac2d,           &
+  subroutine init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+                       rembc,remrat,a,twt,coszrs,iveg,svegfrac2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,dep_vels)
 #else
-  subroutine init_chem(dsigma,atms,mddom,sfs,ba_cr,fcc,cldfra,rembc,  &
-                       remrat,a,twt,coszrs,iveg,svegfrac2d,           &
+  subroutine init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+                       rembc,remrat,a,twt,coszrs,iveg,svegfrac2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp)
 #endif
@@ -66,11 +67,12 @@ module mod_che_interface
     real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
     real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
     integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot, iveg
-    type(slice) , intent(in)            :: atms
-    type(domain), intent(in)            :: mddom
-    type (surfstate) , intent(in)       :: sfs
-    type(bound_area) , intent(in)       :: ba_cr
-    real(rk8) , pointer , dimension(:)   :: a
+    type(slice) , intent(in) :: atms
+    type(domain) , intent(in) :: mddom
+    type(surfstate) , intent(in) :: sfs
+    type(v2dbound) , intent(in) :: xpsb
+    type(bound_area) , intent(in) :: ba_cr
+    real(rk8) , pointer , dimension(:) :: a
     real(rk8) , pointer , dimension(:,:) :: coszrs
 
 #if (defined CLM)
@@ -92,6 +94,8 @@ module mod_che_interface
     call assignpnt(mddom%xlat,cxlat)
     call assignpnt(mddom%ht,cht)
     call assignpnt(sfs%psb,cpsb)
+    call assignpnt(xpsb%b0,psbb0)
+    call assignpnt(xpsb%b1,psbb1)
     call assignpnt(sfs%tgb,ctg)
     call assignpnt(sfs%uvdrag,cuvdrag)
     call assignpnt(convpr,cconvpr)
