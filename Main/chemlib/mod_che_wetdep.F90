@@ -66,9 +66,11 @@ module mod_che_wetdep
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: tfld1
     ! dq/dt for convection (kg/kg/s) converted to (1/s) below
     ! real(rk8), dimension(ici1:ici2,kz) , intent(in) :: cmfdqr1
-    ! rainwater formation tendency kg/kg/s1 converted to   (1/s) : PASSED by cremrat already
+    ! rainwater formation tendency kg/kg/s1 converted to (1/s) :
+    !          PASSED by cremrat already
     !real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nrain1
-    ! precip rate mm/s (=kg/m2/s), stratif and convec / grid level already ,  converted next to 1/s  
+    ! precip rate mm/s (=kg/m2/s), stratif and convec / grid level already,
+    ! converted next to 1/s  
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: strappt, convppt
     ! evaporation (kg/kg/s) convert to (1/s) below
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nevapr1
@@ -90,9 +92,10 @@ module mod_che_wetdep
     real(rk8) :: xhnm(ici1:ici2,kz)     ! total atms density (#/cm^3)
     real(rk8) :: qin(ici1:ici2,kz,ntr)  ! exported species ( mmr )
     real(rk8) :: temp_dep(ici1:ici2)    ! temp var of wet dep rate
-                                       ! (centibars_tracer/sec)
-     real(rk8) :: temp_rain(ici1:ici2), temp_wash (ici1:ici2)   ! temp var of wet dep rate
-                                       ! (centibars_tracer/sec)
+                                        ! (centibars_tracer/sec)
+    ! temp var of wet dep rate
+    real(rk8) :: temp_rain(ici1:ici2) , temp_wash(ici1:ici2)
+                                        ! (centibars_tracer/sec)
     real(rk8) :: vmr_hno3(ici1:ici2,kz) ! volume mixing ratio
     real(rk8) :: vmr_h2o2(ici1:ici2,kz) ! volume mixing ratio
     ! Effective henry's law constant (1/s)
@@ -156,7 +159,7 @@ module mod_che_wetdep
     ! conversion rate of water vapor into rain water (molecules/cm^3/s)
     real(rk8) , dimension(ici1:ici2,kz) :: rain
     real(rk8) , dimension(ici1:ici2,kz) :: xhen_hno3 , xhen_h2o2 , xhen_ch2o , &
-        xhen_ch3ooh , xhen_ch3co3h , xhen_ch3cocho , xhen_xooh , xhen_onitr , &
+        xhen_ch3ooh , xhen_ch3co3h , xhen_ch3cocho , xhen_xooh , xhen_onitr ,  &
         xhen_ho2no2 , xhen_glyald , xhen_ch3cho , xhen_mvk , xhen_macr
     real(rk8) , dimension(ici1:ici2,kz) :: xhen_nh3 , xhen_ch3cooh
     real(rk8) , dimension(ici1:ici2,kz,2) :: tmp_hetrates
@@ -174,33 +177,36 @@ module mod_che_wetdep
     !  Set maximum cloud top to highest model level
     !  (e.g. clouds can exist anywhere)
     !-----------------------------------------------------------------
+
     ktop = 0
 
     !-----------------------------------------------------------------
     !  Perform a few conversion for xhnm, zmid, nevap, cmfdqr
     !-----------------------------------------------------------------    
 
-    !    nrain(ici1:ici2,:)  = nrain1(ici1:ici2,:) * (xhnm1(ici1:ici2,:)/rhoh2o)
+    ! nrain(ici1:ici2,:)  = nrain1(ici1:ici2,:) * (xhnm1(ici1:ici2,:)/rhoh2o)
     !
     !FOR NOW LARGE SCALE ONLY
-    nrain(ici1:ici2,:)  =  cremrat(j,ici1:ici2,:) ! already in s-1 / only large scale precip tendency     
+    ! already in s-1 / only large scale precip tendency     
+    nrain(ici1:ici2,:) = cremrat(j,ici1:ici2,:)
 
     cmfdqr(:,:) = d_zero
     nevapr(:,:) = d_zero
-    !FAB:  improve that by calculating or passing a grid level conversion rate for convective processes 
+    !FAB:  improve that by calculating or passing a grid level conversion
+    ! rate for convective processes 
     ![kg_h2o/kg_air/s -> 1/s]
     !cmfdqr(ici1:ici2,:) = cmfdqr1(ici1:ici2,:)*(xhnm1(ici1:ici2,:)/rhoh2o)
     ![kg_h2o/kg_air/s -> 1/s]
     ! nevapr(ici1:ici2,:) = nevapr1(ici1:ici2,:)*(xhnm1(ici1:ici2,:)/rhoh2o)
 
     ![m     -> km]
-    zmid(ici1:ici2,:)   = zmid1(ici1:ici2,:)*m2km
+    zmid(ici1:ici2,:) = zmid1(ici1:ici2,:)*m2km
     ![kg/m3 -> #/cm3]
-    xhnm(ici1:ici2,:)   = xhnm1(ici1:ici2,:)*navgdr*cm3_2_m3/( amd*d_1000)
+    xhnm(ici1:ici2,:) = xhnm1(ici1:ici2,:)*navgdr*cm3_2_m3/( amd*d_1000)
 
-    phis(ici1:ici2)   = phis1(ici1:ici2)   
-    qin(ici1:ici2,:,:)    = qin1(ici1:ici2,:,:)
-    tfld(ici1:ici2,:)   = tfld1(ici1:ici2,:)
+    phis(ici1:ici2) = phis1(ici1:ici2)   
+    qin(ici1:ici2,:,:) = qin1(ici1:ici2,:,:)
+    tfld(ici1:ici2,:) = tfld1(ici1:ici2,:)
 
 
     !-----------------------------------------------------------------
@@ -214,13 +220,17 @@ module mod_che_wetdep
       precip(:,k) = cmfdqr(:,k) + nrain(:,k) - nevapr(:,k)
 
       rain(:,k)   = mass_air*precip(:,k)*xhnm(:,k) / mass_h2o
-! Note : xliq calculated from cloud to rain convesrion rate , should n't it be also from precip rate  ? 
-! In fact xliq is the rainwater generated at each level but is also be used to scavenge gas in level below in washout process
-! after iteration on all cloudy levels, it is equivalent to have an approach with precipitation rate since: a given layer is sucessively washd out
-! by rainwater converted in the different cloudy layer abvove. 
 
-! follows the original mozart code here
-! xliq is ig g (rainwater fromed during dt) / m3 
+      ! Note : xliq calculated from cloud to rain convesrion rate, shouldn't it
+      ! be also from precip rate  ? 
+      ! In fact xliq is the rainwater generated at each level but is also be
+      ! used to scavenge gas in level below in washout process after iteration
+      ! on all cloudy levels, it is equivalent to have an approach with
+      ! precipitation rate since: a given layer is sucessively washd out
+      ! by rainwater converted in the different cloudy layer abvove. 
+
+      ! follows the original mozart code here
+      ! xliq is ig g (rainwater fromed during dt) / m3 
       xliq(:,k)   = precip(:,k) * delt * xhnm(:,k) / navgdr*mass_air * m3_2_cm3 
 
       !---------------------------------------
@@ -229,7 +239,7 @@ module mod_che_wetdep
       if ( ihno3 > 0 ) vmr_hno3(:,k) = (qin(:,k,ihno3)/ps2(:)) * (amd/63.012D0)
       if ( ih2o2 > 0 ) vmr_h2o2(:,k) = (qin(:,k,ih2o2)/ps2(:)) * (amd/34.0147D0)
     end do 
-!
+
     if ( ihno3 > 0 ) then
       xhno3(:,:)  = vmr_hno3(:,:) * xhnm(:,:)
     else
@@ -241,7 +251,7 @@ module mod_che_wetdep
       xh2o2(:,:)  = d_zero
     end if
 
-    zsurf(:) = m2km * phis(:) / egrav
+    zsurf(:) = m2km * phis(:) * regrav
     do k = ktop + 1 , kz - 1
       delz(:,k) = dabs( (zmid(:,k) - zmid(:,k+1))*km2cm ) 
     end do 
@@ -249,28 +259,28 @@ module mod_che_wetdep
 
     !-----------------------------------------------------------------
     ! ... part 0b,  for temperature dependent of henrys
-    !    xxhe1 = henry con for hno3
-    !    xxhe2 = henry con for h2o2
-    !lwh 10/00 -- take henry''s law constants from brasseur et al. [1999],
-    !    appendix j. for hno3, also consider dissociation to
-    !    get effective henry''s law constant; equilibrium
-    !    constant for dissociation from brasseur et al. [1999],
-    !    appendix k. assume ph=5 (set as xph0 above).
-    !    heff = h*k/[h+] for hno3 (complete dissociation)
-    !    heff = h for h2o2 (no dissociation)
-    !    heff = h * (1 + k/[h+]) (in general)
+    ! xxhe1 = henry con for hno3
+    ! xxhe2 = henry con for h2o2
+    ! lwh 10/00 -- take henry''s law constants from brasseur et al. [1999],
+    ! appendix j. for hno3, also consider dissociation to
+    ! get effective henry''s law constant; equilibrium
+    ! constant for dissociation from brasseur et al. [1999],
+    ! appendix k. assume ph=5 (set as xph0 above).
+    ! heff = h*k/[h+] for hno3 (complete dissociation)
+    ! heff = h for h2o2 (no dissociation)
+    ! heff = h * (1 + k/[h+]) (in general)
     !-----------------------------------------------------------------
     do k = ktop + 1 , kz
       work1(:) = (t0 - tfld(:,k))/(t0*tfld(:,k))
     !-----------------------------------------------------------------
     ! 	... effective henry''s law constants:
-    !	   hno3, h2o2, ch2o, ch3ooh, ch3coooh (brasseur et al., 1999)
-    !    xooh, onitr, macrooh (j.-f. muller; brocheton, 1999)
-    !    isopooh (equal to hno3, as for macrooh)
-    !    ho2no2 (mozart-1)
-    !    ch3cocho, hoch2cho (betterton and hoffman, environ. sci. technol., 1988)
-    !    ch3cho (staudinger and roberts, crit. rev. sci. technol., 1996)
-    !    mvk, macr (allen et al., environ. toxicol. chem., 1998)
+    !	hno3, h2o2, ch2o, ch3ooh, ch3coooh (brasseur et al., 1999)
+    ! xooh, onitr, macrooh (j.-f. muller; brocheton, 1999)
+    ! isopooh (equal to hno3, as for macrooh)
+    ! ho2no2 (mozart-1)
+    ! ch3cocho, hoch2cho (betterton and hoffman, environ. sci. technol., 1988)
+    ! ch3cho (staudinger and roberts, crit. rev. sci. technol., 1996)
+    ! mvk, macr (allen et al., environ. toxicol. chem., 1998)
     !-----------------------------------------------------------------
       xk0(:)             = 2.1D5 * dexp(8700.0D0*work1(:))
       xhen_hno3(:,k)     = xk0(:) * (d_one + hno3_diss / xph0)
@@ -298,7 +308,7 @@ module mod_che_wetdep
     do i = ici1 , ici2
       xgas1(:) = xhno3(i,:)  ! xgas will change during 
       xgas2(:) = xh2o2(i,:)  ! different levels wash 
-    level_loop1 : &
+      level_loop1 : &
       do kk = ktop + 1 , kz
         stay = d_one
         if ( dabs(rain(i,kk)) > d_zero ) then  ! finding rain cloud
@@ -546,7 +556,7 @@ module mod_che_wetdep
                   d_one/(xhen_ch3cooh(:,k)*work2(:)))),d_zero)
       end if
 
-      end do level_loop2
+    end do level_loop2
 
       !-----------------------------------------------------------------
       ! *** abt added to work with RegCM4.1
@@ -558,55 +568,56 @@ module mod_che_wetdep
       !-----------------------------------------------------------------
 
       
-     do k= 1, kz
+    do k= 1 , kz
       do itr = 1 , ntr
-       do i = ici1,ici2
-        if ( het_rates(i,k,itr) <= 2.D-29 ) cycle
+        do i = ici1 , ici2
+          if ( het_rates(i,k,itr) <= 2.D-29 ) cycle
 
           ! tendency due to rainout and washout                      
           temp_dep(i) = (d_one-dexp(-het_rates(i,k,itr)*delt))*qin(i,k,itr)
-          chiten(j,i,k,itr) = chiten(j,i,k,itr) - &
-                                      temp_dep(i)/delt 
+          chiten(j,i,k,itr) = chiten(j,i,k,itr) - temp_dep(i)/delt 
 
           ! Disagnostic
           ! remlsc: rainout
           ! remcvc washout 
 
-          if (itr == ih2o2) then 
-            temp_rain(i) =  (d_one-dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,1))*delt))*qin(i,k,itr)
-            temp_wash(i) =  (d_one-dexp(- tmp_hetrates(i,k,1)*delt))*qin(i,k,itr)
-          else if (itr == ihno3) then 
-            temp_rain(i) =  (d_one-dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,2))*delt))*qin(i,k,itr)
-            temp_wash(i) =  (d_one-dexp(- tmp_hetrates(i,k,2)*delt))*qin(i,k,itr)
+          if ( itr == ih2o2 ) then 
+            temp_rain(i) = (d_one- &
+              dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,1))*delt))*qin(i,k,itr)
+            temp_wash(i) = (d_one- &
+              dexp(-tmp_hetrates(i,k,1)*delt))*qin(i,k,itr)
+          else if ( itr == ihno3 ) then 
+            temp_rain(i) = (d_one- &
+              dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,2))*delt))*qin(i,k,itr)
+            temp_wash(i) = (d_one- &
+              dexp(-tmp_hetrates(i,k,2)*delt))*qin(i,k,itr)
           else
-            temp_rain(i) =  temp_dep(i)
-            temp_wash(i) =  d_zero 
+            temp_rain(i) = temp_dep(i)
+            temp_wash(i) = d_zero 
           end if 
-
-          remlsc(j,i,k,itr) = remlsc(j,i,k,itr) -  &
-                                      temp_rain(i)*cdiagf
-          
-          remcvc(j,i,k,itr) = remcvc(j,i,k,itr) -   &
-                                      temp_wash(i)*cdiagf
-         
+          remlsc(j,i,k,itr) = remlsc(j,i,k,itr) - temp_rain(i)*cdiagf
+          remcvc(j,i,k,itr) = remcvc(j,i,k,itr) - temp_wash(i)*cdiagf
         end do 
       end do 
     end do 
 
-! diagnostic for durface fluxes         
-      do itr = 1, ntr
+    ! diagnostic for durface fluxes         
+    do itr = 1 , ntr
       do i = ici1 , ici2
-      wdlsc(j,i,itr) = d_zero
-      wdcvc(j,i,itr) = d_zero
-      do k = 1, kz
-       ! sum on the vertical to get total surface flux diag fo rain out and washout
-          ! ( already weighted for time average cdiagf !), also change sign convention
-       ! normalise by psb to get the right flux unit 
-          wdlsc(j,i,itr) = wdlsc(j,i,itr) - remlsc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdcvc(j,i,itr) = wdcvc(j,i,itr) - remcvc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
+        wdlsc(j,i,itr) = d_zero
+        wdcvc(j,i,itr) = d_zero
+        do k = 1 , kz
+          ! sum on the vertical to get total surface flux diag fo rain out
+          ! and washout (already weighted for time average cdiagf !), 
+          ! also change sign convention normalise by psb to get the right
+          ! flux unit 
+          wdlsc(j,i,itr) = wdlsc(j,i,itr) - &
+            remlsc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
+          wdcvc(j,i,itr) = wdcvc(j,i,itr) - &
+            remcvc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
+        end do
       end do
-      end do
-      end do
+    end do
 
   end subroutine sethet
 
@@ -652,9 +663,10 @@ module mod_che_wetdep
       ! here remrat is divided by fracloud (large scale cloud fraction)
       ! to get the correct in cloud removal rate 
 
-      ! IMPORTANT NOTE : for the diag ,we use now rmlsc and remcvc arrays to output rainout and wahout instead of the 
-      ! large scale vs convective removal. In each arry convective and large scale rainout ( washout) added. The name of thearray
-      ! is thus a bit misleading 
+      ! IMPORTANT NOTE : for the diag, we use now rmlsc and remcvc arrays
+      ! to output rainout and wahout instead of the large scale vs convective
+      ! removal. In each arry convective and large scale rainout ( washout)
+      ! added. The name of the array is thus a bit misleading 
 
       if ( ichremlsc == 1 ) then
         do k = 1 , kz
@@ -712,27 +724,29 @@ module mod_che_wetdep
     ! dry density for now
     rhop(:,:,:) = rhoaer
 
-    ! convppt is a pseudo-3d array of con prec rate conatining constant rate (equals to surface cumul precipi)  from surface to cumtop.
-    ! inside the cloud, need itnterpolate linearly between the prec rate and o ( top of the cloud). Consider that half of the convective
+    ! convppt is a pseudo-3d array of con prec rate conatining constant rate
+    ! (equals to surface cumul precipi) from surface to cumtop.
+    ! inside the cloud, need itnterpolate linearly between the prec rate and
+    ! o ( top of the cloud). Consider that half of the convective
     ! column is cloud .. improve this in the future !  
     totppt(:,:) = d_zero
-    do i=  ici1 , ici2
-    if ( kcumtop(j,i) >  0 ) then
-    n=0
-    nk=0
-    do k =  kcumtop(j,i) , kz 
-      nk = kcumbot(j,i) -  kcumtop(j,i) + 1 
-      nkh = nk / 2      
-      if (n <=  nkh ) then 
-      totppt(i,k) = (dble(n) / dble(nkh)) *   convppt(i,kz)
-      else
-      totppt(i,k)  = convppt(i,kz)
-      end if
-      n=n+1
+    do i =  ici1 , ici2
+      if ( kcumtop(j,i) > 0 ) then
+        n = 0
+        nk = 0
+        do k =  kcumtop(j,i) , kz 
+          nk = kcumbot(j,i) -  kcumtop(j,i) + 1 
+          nkh = nk / 2      
+          if ( n <=  nkh ) then 
+            totppt(i,k) = (dble(n) / dble(nkh)) * convppt(i,kz)
+          else
+            totppt(i,k)  = convppt(i,kz)
+          end if
+          n = n+1
+        end do 
+      end if 
     end do 
-    end if 
-   end do 
-! add the contribution of strat prec
+    ! add the contribution of strat prec
     totppt(:,:) = strappt(:,:) + totppt(:,:)   
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)
 
@@ -743,29 +757,28 @@ module mod_che_wetdep
         do i = ici1 , ici2
           wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dt))/dt
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
-          ! wet deposition washout diagnostic ( both from conv and large scale)! 
-          ! 
+          ! wet deposition washout diagnostic ( both from conv and large scale)
           remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf 
         end do
       end do
-     end do 
+    end do 
 
-      do n = 1, mbin
+    do n = 1, mbin
       do i = ici1 , ici2
-      wdlsc(j,i,indp(n)) = d_zero
-      wdcvc(j,i,indp(n)) = d_zero
-      do k = 1,kz
-       ! sum on the vertical to get total surface flux diag fo rain out and washout
-          ! ( already weighted for time average cdiagf !), also change sign convention
-       ! normalise by psb to get the right flux unit 
-          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
-
+        wdlsc(j,i,indp(n)) = d_zero
+        wdcvc(j,i,indp(n)) = d_zero
+        do k = 1 , kz
+          ! sum on the vertical to get total surface flux diag fo rain out
+          ! and washout (already weighted for time average cdiagf !),
+          ! also change sign convention
+          ! normalise by psb to get the right flux unit 
+          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - &
+            remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
+          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - &
+            remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
+        end do
       end do
-      end do
-      end do
-
- 
+    end do
 
   end subroutine wetdepa
 
@@ -880,9 +893,9 @@ module mod_che_wetdep
   real(rk8) :: priiv 
   ! real(rk8) :: cfac
   real(rk8) :: cfaca
-  real(rk8) :: re  ! reynolds number
-  real(rk8) :: rr  ! ratio of collected particle radius:collector particle radius
-  real(rk8) :: st  ! stokes number of collected particles
+  real(rk8) :: re ! reynolds number
+  real(rk8) :: rr ! ratio of collected particle radius:collector particle radius
+  real(rk8) :: st ! stokes number of collected particles
   real(rk8) :: vr
   real(rk8) :: sstar 
   real(rk8) :: amob 
@@ -957,7 +970,7 @@ module mod_che_wetdep
             !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
             ! vpr = priiv*rrm**2*cfac
             ! try with a mean rainfall velcoity of 3 m/s 
-              vpr = 3.D0 
+            vpr = 3.D0 
           end if 
           !----------------------------------------------------c
           ! snow scavenging                                    c

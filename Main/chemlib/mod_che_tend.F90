@@ -183,7 +183,8 @@
           ! 10 m air temperature
           temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
-          shu10 = cqxb3d(j,i,kz,iqv)/(d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
+          shu10 = cqxb3d(j,i,kz,iqv)/ &
+            (d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m
@@ -265,9 +266,10 @@
       if ( idust(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
-            zeff(:,j) = 0.01 ! value set to desert type for semi-arid)      
+            zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)      
           end where
-          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j),rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
+          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
+            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
                       zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))     
@@ -280,14 +282,19 @@
       end if
       !
       ! pollen emission 
-      if(ipollen > 0) then 
-      do j = jci1 , jci2  
-         call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j),rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
-         call pollen_emission(j,ustar(:,j),wid10(:,j),rh10(:,j),prec(:,kz,j), convprec(:,kz,j))
-      end do
+      !
+      if ( ipollen > 0 ) then 
+        do j = jci1 , jci2  
+         call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
+           rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
+         call pollen_emission(j,ustar(:,j),wid10(:,j),rh10(:,j), &
+           prec(:,kz,j), convprec(:,kz,j))
+        end do
       end if  
+      !
       !update emission tendencies from inventories
-      if ( ichsursrc ==1 ) then
+      !
+      if ( ichsursrc == 1 ) then
         do j = jci1 , jci2
           call emis_tend(ktau,j,lmonth,declin)
         end do
@@ -341,15 +348,11 @@
                            polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
-
-
-
-
-
       !
       ! GAS phase dry deposition velocity + tendencies
       ! option compatible with BATS and CLM
       ! dry deposition for SO2  is calculated also in non gaschem simulations
+      !
       if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo == 1 ) then
         do j = jci1 , jci2
           call drydep_gas(j,calday,lmonth,lday, ivegcov(:,j),rh10(:,j),  &
@@ -390,22 +393,20 @@
         ibin = 1 
         poltab(1) = ipollen
         polrftab(1) = reffpollen
-      do j = jci1 , jci2
+        do j = jci1 , jci2
           call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),             &
                        convprec(:,:,j),pdepv(:,:,:,j)) 
         end do
       end if
-
-
-
+      !
       ! Wet Deposition for gasphase species 
       !
       if ( igaschem == 1 .and.ichremlsc == 1 ) then
         ! fix the interface for this variable
         ! no effect of cumulus scavenging now
-!        checum = d_zero
+        ! checum = d_zero
         chevap = d_zero
         do j = jci1 , jci2        
           call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
@@ -439,19 +440,19 @@
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
       end if
-
-! Finally save tarcer instantaneous burden for diag
-
-     dtrace(:,:,:) = d_zero
-     do k=1,kz 
-     do i = ici1 , ici2
-       do j = jci1 , jci2       
-        dtrace(j,i,:) = dtrace(j,i,:) + chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
-       end do
-     end do
-     end do
+      !
+      ! Finally save tarcer instantaneous burden for diag
+      !
+      dtrace(:,:,:) = d_zero
+      do k=1,kz 
+        do i = ici1 , ici2
+          do j = jci1 , jci2       
+           dtrace(j,i,:) = dtrace(j,i,:) +  &
+             chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
+          end do
+        end do
+      end do
 
     end subroutine tractend2
-!
 !
 end module mod_che_tend

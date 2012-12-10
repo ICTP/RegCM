@@ -28,7 +28,7 @@ module mod_che_seasalt
   private
 
   ! sea-salt density
-  real(rk8) , parameter :: rhosslt = 1000.
+  real(rk8) , parameter :: rhosslt = 1000.0D0
   real(rk8) , dimension(sbin,2) :: ssltbsiz
 
   data ssltbsiz /0.05D0, 1.0D0, 1.0D0, 10.0D0/

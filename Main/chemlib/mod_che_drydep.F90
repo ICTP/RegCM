@@ -415,7 +415,7 @@ module mod_che_drydep
             ! *     k.v. beard [1976], j atm. sci., 33            ****
             ! ********************************************************
             !
-            amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(1./2.)
+            amfp = c1*(amu(i,l)/c2)*(c3/pre)*sqrt(throw(i,l)/c4)
             prii = 2.0D0/9.0D0*egrav/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
             !
@@ -1185,7 +1185,7 @@ module mod_che_drydep
           else if ( is_dew .and. kcov /= 14 ) then
             rgs_f = 100.0D0
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( ts(i) < 272.156 .and. kcov /= 14 ) then
+          else if ( ts(i) < 272.156D0 .and. kcov /= 14 ) then
             rgs_f = dmin1(rgs(kcov)*2.0D0, rgs(kcov) *     &
                           dexp(0.2D0*(272.156D0 - ts(i))))
 !           print *, 'rgs_f ==== ', rgs_f
