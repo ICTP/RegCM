@@ -604,7 +604,7 @@ module mod_bats_leaftemp
   subroutine lfdrag
     implicit none
 !
-    real(rk8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
+    real(rk8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild , cdrmin
     integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
@@ -645,11 +645,11 @@ module mod_bats_leaftemp
                 cdr(n,j,i) = cdrn(n,j,i)*ribi
                 cdrd(n,j,i) = cdr(n,j,i)*ribi*11.5D0 * &
                               rib1(n,j,i)*wtl0(n,j,i)*sigf(n,j,i)
-                cdrmin(n,j,i) = dmax1(cdrn(n,j,i)*d_rfour,6.0D-4)
+                cdrmin = dmax1(cdrn(n,j,i)*d_rfour,6.0D-4)
               end if
               if ( (rib(n,j,i) >= d_zero) ) then
-                if ( (cdr(n,j,i) < cdrmin(n,j,i)) ) then
-                  cdr(n,j,i) = cdrmin(n,j,i)
+                if ( (cdr(n,j,i) < cdrmin) ) then
+                  cdr(n,j,i) = cdrmin
                   cdrd(n,j,i) = d_zero
                 end if
               end if

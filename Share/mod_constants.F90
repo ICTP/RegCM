@@ -216,7 +216,7 @@ module mod_constants
   ! Soil roughness length
   real(rk8) , parameter :: zlnd = 0.01D+00
   ! Ocean roughness length
-  real(rk8) , parameter :: zoce = 0.00040D+00
+  real(rk8) , parameter :: zoce = 0.00020D+00
   ! Snow roughness length
   real(rk8) , parameter :: zsno = 0.00040D+00
   ! Von Karman constant

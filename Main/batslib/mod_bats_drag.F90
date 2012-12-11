@@ -50,7 +50,7 @@ module mod_bats_drag
 ! 
   implicit none
 !
-  real(rk8) :: dthdz , u1 , u2 , zatild
+  real(rk8) :: dthdz , u1 , u2 , zatild , cdrmin
   integer(ik4) :: n , i , j
   !
   !=======================================================================
@@ -106,8 +106,12 @@ module mod_bats_drag
           cdr(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*rib(n,j,i))
         end if
         ! 3.1  apply lower limit to drag coefficient value
-        cdrmin(n,j,i) = dmax1(0.25D0*cdrn(n,j,i),6.0D-4)
-        if ( cdr(n,j,i) < cdrmin(n,j,i) ) cdr(n,j,i) = cdrmin(n,j,i)
+        !if ( ldmsk1(n,j,i) == 0 ) then
+        !  cdrmin = dmin1(0.25D0*cdrn(n,j,i),6.0D-4)
+        !else
+          cdrmin = dmax1(0.25D0*cdrn(n,j,i),6.0D-4)
+        !end if
+        if ( cdr(n,j,i) < cdrmin ) cdr(n,j,i) = cdrmin
         cdrx(n,j,i) = cdr(n,j,i)
       end do
     end do

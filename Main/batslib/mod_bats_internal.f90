@@ -43,7 +43,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: fsol0 , fsold
   real(rk8) , pointer , dimension(:,:,:) :: radf , rmini
   real(rk8) , pointer , dimension(:,:,:) :: trup , trupd
-  real(rk8) , pointer , dimension(:,:,:) :: cdrmin , dlstaf
+  real(rk8) , pointer , dimension(:,:,:) :: dlstaf
   real(rk8) , pointer , dimension(:,:,:) :: rib , rib1
   real(rk8) , pointer , dimension(:,:,:) :: apbm , prcp
   real(rk8) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
@@ -74,7 +74,7 @@ module mod_bats_internal
             rscsd , ska , skd , sks , swtrta , swtrtd , cari
   public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,    &
             dcd , etrc , qsatld , dels , efpot , tbef , fsol0 , fsold , &
-            radf , rmini , trup , trupd , cdrmin , dlstaf , rib  , rib1
+            radf , rmini , trup , trupd , dlstaf , rib  , rib1
   public :: apbm , prcp , qgrd , qs , &
             resp , rhs , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
@@ -117,7 +117,6 @@ module mod_bats_internal
     call getmem3d(rmini,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rmini')
     call getmem3d(trup,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:trup')
     call getmem3d(trupd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:trupd')
-    call getmem3d(cdrmin,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdrmin')
     call getmem3d(dlstaf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dlstaf')
     call getmem3d(rib,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib')
     call getmem3d(rib1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib1')
