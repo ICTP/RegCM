@@ -583,7 +583,7 @@ module mod_che_drydep
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
               cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
-                                            settend(i,k) * cdiagf
+                                            settend(i,k) * cfdout
             end if
           end do
           !
@@ -605,11 +605,11 @@ module mod_che_drydep
             !diagnostic for settling and drydeposition removal
             if ( ichdiag == 1 ) then
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
-                                             settend(i,kz) * cdiagf
+                                             settend(i,kz) * cfdout
             end if
             ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated 
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                                    chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)*  ddepv(i,indsp(ib)) * cdiagf                         
+                                    chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)*  ddepv(i,indsp(ib)) * cfdout                         
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
           else if ( ichdrdepo == 2 ) then
@@ -635,14 +635,12 @@ module mod_che_drydep
 !******************************************************************************
 !******************************************************************************
 !
-!
-    subroutine drydep_gas(j,ccalday,lmonth,lday,ivegcov,rh10,srad,tsurf, &
+    subroutine drydep_gas(j,lmonth,lday,ivegcov,rh10,srad,tsurf, &
                           prec,temp10,wind10,zeff)
 
       use mod_che_indices
       implicit none
       integer(ik4) , intent(in) :: j   
-      real(rk8) , intent(in) :: ccalday
       integer, intent(in) :: lmonth , lday 
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
       real(rk8) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
@@ -747,11 +745,11 @@ module mod_che_drydep
              ! diag dry dep tendency 
               if ( ichdiag == 1 ) then
               cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                             ddrem(i) * cdiagf
+                                             ddrem(i) * cfdout
               end if
              ! drydep flux diagnostic (accumulated between two outputs time
              ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
-             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cdiagf
+             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
              drydepv(j,i,n) =  drydepv(j,i,n) + drydepvg(i,n)     

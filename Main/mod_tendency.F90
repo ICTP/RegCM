@@ -579,7 +579,7 @@ module mod_tendency
     ! overwritten in cldfrac 
     !
     if ( ichem == 1 .and. ichdiag == 1 ) then
-      cconvdiag = cconvdiag + (chiten - chiten0) * cdiagf
+      cconvdiag = cconvdiag + (chiten - chiten0) * cfdout
     end if
     if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
     !
@@ -620,7 +620,7 @@ module mod_tendency
       if ( ichdiag == 1 ) chiten0 = chiten
       call hadv(chiten,chi,kz)
       if ( ichdiag == 1 ) then
-        cadvhdiag = cadvhdiag + (chiten - chiten0) * cdiagf
+        cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
         chiten0 = chiten
       end if
       if ( icup /= 1 ) then
@@ -635,7 +635,7 @@ module mod_tendency
         end if
       end if
       if ( ichdiag == 1 ) then
-        cadvvdiag = cadvvdiag + (chiten - chiten0) * cdiagf
+        cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
         chiten0 = chiten
       end if
       !
@@ -644,7 +644,7 @@ module mod_tendency
       !
       call diffu_x(chiten,chib3d,sfs%psb,xkc,ntr,kz)
       if ( ichdiag == 1 ) then
-        cdifhdiag = cdifhdiag + (chiten - chiten0) * cdiagf 
+        cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout 
       end if
       !
       ! Compute chemistry tendencies (other than transport)
@@ -726,7 +726,7 @@ module mod_tendency
       adf%diffqx(:,:,:,:) = adf%diffqx(:,:,:,:) + holtten%qx(:,:,:,:)
     end if
     if ( ichem == 1 .and. ichdiag == 1 ) then
-      ctbldiag = ctbldiag + (chiten - chiten0) * cdiagf 
+      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout 
     end if
     !
     ! add ccm radiative transfer package-calculated heating rates to
@@ -794,7 +794,7 @@ module mod_tendency
         xtm1 = xbctime - dtsec
         call nudge_chi(kz,xtm1,chib,chiten)
       end if
-      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten0 - chiten) * cdiagf
+      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten0 - chiten) * cfdout
     end if
     !
     ! forecast t, qv, and qc at tau+1:

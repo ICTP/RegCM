@@ -151,7 +151,7 @@ contains
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
             chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
-            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cdiagf
+            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
         end do
       end do
     elseif ( ichdrdepo ==2) then
@@ -163,7 +163,7 @@ contains
             !then emission is injected in the PBL scheme
             cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
-            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cdiagf
+            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
           end if 
         end do
       end do

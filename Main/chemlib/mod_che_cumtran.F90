@@ -74,7 +74,7 @@ module mod_che_cumtran
       do j = jci1 , jci2
         do i = ici1 , ici2
         cconvdiag(j,i,:,:)  = cconvdiag(j,i,:,:) + ( (chiten0(j,i,:,:) - &
-          chib(j,i,:,:)) / dt ) * d_two * cdiagf 
+          chib(j,i,:,:)) / dt ) * d_two * cfdout 
        end do
      end do
     end if

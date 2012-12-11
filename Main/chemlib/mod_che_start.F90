@@ -399,7 +399,7 @@ module mod_che_start
     ! if ( .not.allocated(checum) ) allocate(checum(iy,kz))
 
     !*** Initialize accumulation factor for output diagnostics 
-    cdiagf =  dtsec / (3600.0D0 * chemfrq)
+    cfdout =  dtsec / (3600.0D0 * chemfrq)
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)

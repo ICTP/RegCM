@@ -620,7 +620,14 @@ module mod_params
   ! Check if really do output
 
 #ifdef CLM
-  lakemod = 0
+  if ( lakemod /= 0 ) then
+    write(stderr,*) 'Disabling BATS lake model, this is a CLM run'
+    lakemod = 0
+  end if
+  if ( iemiss /= 0 ) then
+    write(stderr,*) 'Disabling Surface Emissivity, this is a CLM run'
+    iemiss = 0
+  end if
 #endif
   if ( lakemod /= 1 ) then
     iflak = .false.
@@ -1057,9 +1064,9 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
   allocate(landmask(jx,iy))
-  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl,landmask)
+  call init_clm(dtsec,ksrf,mddom,atms,sfs,zpbl,landmask)
 #else
-  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfs,zpbl)
+  call init_bats(dtsec,ksrf,mddom,atms,sfs,zpbl)
 #endif
   call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
                      sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)

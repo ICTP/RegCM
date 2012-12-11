@@ -31,7 +31,7 @@ module mod_bats_common
   real(rk8) :: dtbat  ! BATS1e internal timestep
   real(rk8) :: dtlake ! Lake model internal timestep
 
-  logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
+  logical :: ldcsst , llake , lseaice , ldesseas
 
   integer(ik8) :: kbats  ! Step frequency in calling BATS1e LSM
   integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
@@ -80,8 +80,6 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: hsnow
   real(rk8) , pointer , dimension(:,:,:,:) :: tlak
 !
-  data lchem  /.false./
-  data lemiss /.false./
   data ldcsst /.false./
   data llake  /.false./
   data ldesseas /.false./

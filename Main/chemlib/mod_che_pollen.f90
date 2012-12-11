@@ -103,14 +103,14 @@ module mod_che_pollen
             chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
             emispol(i)*egrav/(cdsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
-            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cdiagf
+            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
         end do
         elseif ( ichdrdepo ==2) then
         do i = ici1 , ici2
             !then emission is injected in the PBL scheme
             cchifxuw(j,i,ipollen) = cchifxuw(j,i,ipollen) + emispol(i)
             ! diagnostic for source, cumul
-            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cdiagf
+            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
         end do
         end if 
 

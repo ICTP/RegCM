@@ -62,7 +62,6 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
 
 !diagnostic
-  real(rk8) :: cdiagf
   real(rk8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
   real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
@@ -74,7 +73,7 @@ module mod_che_common
 !   the pointer targets are defined in mod_che_interface
 !*****************************************************************************
 
-  real(rk8) :: ccalday
+  real(rk8) :: cfdout
   real(rk8) , pointer , dimension(:,:,:,:) ::chib3d
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &

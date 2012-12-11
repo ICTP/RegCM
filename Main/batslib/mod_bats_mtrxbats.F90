@@ -22,7 +22,7 @@ module mod_bats_mtrxbats
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iqv , iocnflx , iocncpl
+  use mod_runparams , only : iqv , iocnflx , iocncpl , ichem
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -418,7 +418,7 @@ module mod_bats_mtrxbats
       qfx = sum(evpr,1)*rdnnsg
       tground2(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
       tground1(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
-      if ( lchem ) then
+      if ( ichem == 1 ) then
         ssw2da = sum(ssw,1)*rdnnsg
         sdeltk2d = sum(delt,1)*rdnnsg
         sdelqk2d = sum(delq,1)*rdnnsg

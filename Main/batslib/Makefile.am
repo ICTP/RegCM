@@ -55,7 +55,7 @@ mod_bats_common.o : mod_bats_common.F90 mod_intkinds.o mod_realkinds.o mod_memut
 mod_bats_drag.o : mod_bats_drag.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o
 mod_bats_internal.o : mod_bats_internal.f90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o
 mod_bats_lake.o : mod_bats_lake.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o mod_bats_mppio.o
-mod_bats_leaftemp.o : mod_bats_leaftemp.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_bats_common.o mod_bats_internal.o
+mod_bats_leaftemp.o : mod_bats_leaftemp.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_bats_common.o mod_bats_internal.o mod_runparams.o
 mod_bats_mppio.o : mod_bats_mppio.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_mppparam.o
 mod_bats_mtrxbats.o : mod_bats_mtrxbats.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_constants.o mod_service.o mod_bats_common.o mod_bats_internal.o mod_bats_leaftemp.o mod_bats_lake.o mod_bats_bndry.o mod_bats_drag.o mod_bats_mppio.o mod_bats_zengocn.o mod_runparams.o mod_mppparam.o
 mod_bats_param.o : mod_bats_param.f90 mod_intkinds.o mod_realkinds.o

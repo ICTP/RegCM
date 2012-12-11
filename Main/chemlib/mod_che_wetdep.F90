@@ -595,8 +595,8 @@ module mod_che_wetdep
             temp_rain(i) = temp_dep(i)
             temp_wash(i) = d_zero 
           end if 
-          remlsc(j,i,k,itr) = remlsc(j,i,k,itr) - temp_rain(i)*cdiagf
-          remcvc(j,i,k,itr) = remcvc(j,i,k,itr) - temp_wash(i)*cdiagf
+          remlsc(j,i,k,itr) = remlsc(j,i,k,itr) - temp_rain(i)*cfdout
+          remcvc(j,i,k,itr) = remcvc(j,i,k,itr) - temp_wash(i)*cfdout
         end do 
       end do 
     end do 
@@ -608,7 +608,7 @@ module mod_che_wetdep
         wdcvc(j,i,itr) = d_zero
         do k = 1 , kz
           ! sum on the vertical to get total surface flux diag fo rain out
-          ! and washout (already weighted for time average cdiagf !), 
+          ! and washout (already weighted for time average cfdout !), 
           ! also change sign convention normalise by psb to get the right
           ! flux unit 
           wdlsc(j,i,itr) = wdlsc(j,i,itr) - &
@@ -681,7 +681,7 @@ module mod_che_wetdep
                    wetrem(indp(n))/dt
                 ! save the tendency as a diag 
                 remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
-                   wetrem(indp(n))/dt  *cdiagf
+                   wetrem(indp(n))/dt  *cfdout
               end if
             end if
           end do
@@ -701,7 +701,7 @@ module mod_che_wetdep
                    wetrem_cvc(indp(n))/dt
          !add the concvetive rainout to large scale save the tendency as a diag 
               remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
-                   wetrem_cvc(indp(n))/ dt *cdiagf
+                   wetrem_cvc(indp(n))/ dt *cfdout
             end do
           end if
         end do
@@ -758,7 +758,7 @@ module mod_che_wetdep
           wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dt))/dt
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
           ! wet deposition washout diagnostic ( both from conv and large scale)
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cdiagf 
+          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cfdout 
         end do
       end do
     end do 
@@ -769,7 +769,7 @@ module mod_che_wetdep
         wdcvc(j,i,indp(n)) = d_zero
         do k = 1 , kz
           ! sum on the vertical to get total surface flux diag fo rain out
-          ! and washout (already weighted for time average cdiagf !),
+          ! and washout (already weighted for time average cfdout !),
           ! also change sign convention
           ! normalise by psb to get the right flux unit 
           wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - &

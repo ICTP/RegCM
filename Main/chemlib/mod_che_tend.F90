@@ -355,8 +355,8 @@
       !
       if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo == 1 ) then
         do j = jci1 , jci2
-          call drydep_gas(j,calday,lmonth,lday, ivegcov(:,j),rh10(:,j),  &
-                          srad(:,j),tsurf(:,j),prec(:,kz,j), &
+          call drydep_gas(j,lmonth,lday,ivegcov(:,j),rh10(:,j), &
+                          srad(:,j),tsurf(:,j),prec(:,kz,j),    &
                           temp10(:,j),wid10(:,j),zeff(:,j))
         end do
       end if
@@ -403,7 +403,7 @@
       !
       ! Wet Deposition for gasphase species 
       !
-      if ( igaschem == 1 .and.ichremlsc == 1 ) then
+      if ( igaschem == 1 .and. ichremlsc == 1 ) then
         ! fix the interface for this variable
         ! no effect of cumulus scavenging now
         ! checum = d_zero
@@ -423,18 +423,16 @@
       !
       chemten(:,:,:,:) = d_zero
       if ( igaschem == 1 .and. ichsolver > 0 ) then   
-        kchsolv = idnint(dtchsolv / dt)
+        kchsolv = idnint(dtchsolv/dtsec)
         kchsolv = 6 ! for the moment
         if ( mod(ktau+1,kchsolv) == 0 ) then   
           do j = jci1 , jci2
             call chemistry(j,lyear,lmonth,lday)
           end do
-
-        if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
-          write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2 : ', &
-            minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
-        end if
-
+          if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
+            write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2 : ', &
+              minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
+          end if
         end if
         ! add tendency due to chemistry reaction (every dt)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &

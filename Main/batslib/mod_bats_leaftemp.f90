@@ -26,6 +26,7 @@ module mod_bats_leaftemp
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_runparams , only : iemiss
   use mod_memutil
   use mod_bats_common
   use mod_bats_internal
@@ -108,7 +109,7 @@ module mod_bats_leaftemp
         if ( ldmsk1(n,j,i) /= 0 ) then
           if ( sigf(n,j,i) > 0.001D0 ) then
             vpdc(n,j,i) = d_10
-            if ( lemiss ) then
+            if ( iemiss == 1 ) then
               sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
             else
               sgtg3 = sigm*tgrd(n,j,i)**3
@@ -242,7 +243,7 @@ module mod_bats_leaftemp
             if ( sigf(n,j,i) > 0.001D0 ) then
               dcn = dcd(n,j,i)*tlef(n,j,i)
               ! 1.2  radiative forcing for leaf temperature calculation
-              if ( lemiss ) then
+              if ( iemiss == 1 ) then
                 sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
               else
                 sgtg3 = sigm*tgrd(n,j,i)**3
@@ -298,7 +299,7 @@ module mod_bats_leaftemp
             delq(n,j,i) = wtglq(n,j,i)*qs(n,j,i) - &
                          (wtlq0(n,j,i)*qsatl(n,j,i) + &
                           wtgq0(n,j,i)*qgrd(n,j,i))
-            if ( lemiss ) then
+            if ( iemiss == 1 ) then
               sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
             else
               sgtg3 = sigm*tgrd(n,j,i)**3

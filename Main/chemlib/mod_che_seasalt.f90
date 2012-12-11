@@ -164,7 +164,7 @@ module mod_che_seasalt
                 seasalt_flx(i,ib)*egrav/(cdsigma(kz)*1.D3)
         ! diagnostic source
         cemtrac(j,i,isslt(ib)) = cemtrac(j,i,isslt(ib)) + &
-                 seasalt_flx(i,ib)*cdiagf
+                 seasalt_flx(i,ib)*cfdout
 
       end do
     end do

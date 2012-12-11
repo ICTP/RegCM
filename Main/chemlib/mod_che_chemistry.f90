@@ -73,7 +73,7 @@ module mod_che_chemistry
             ! (add the half layer ctaucld, should be no cloud in this layer ) 
             deptha =  ctaucld(j,i,k,8) *d_half
             depthb =  ctaucld(j,i,k,8) *d_half 
-!           altabove = cdzq(j,i,k) / 2 !altitude or pressure ?? 
+            ! altabove = cdzq(j,i,k) / 2 !altitude or pressure ?? 
             ! altabove, altbelow are altitude above an below weighted
             ! by cloud optical depth 
             ! here altitude is taken in kpa to be consistent with altmid 

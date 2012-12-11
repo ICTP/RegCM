@@ -49,11 +49,10 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl)
+  subroutine init_bats(dt,ksrf,dom,atm,sfs,zpbl)
     implicit none
     real(rk8) , intent(in) :: dt
     integer(ik8) , intent(in) :: ksrf
-    integer(ik4) , intent(in) :: ichem , iemiss
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
@@ -61,8 +60,6 @@ module mod_lm_interface
     kbats = ksrf
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
-    if ( ichem    == 1 ) lchem     = .true.
-    if ( iemiss   == 1 ) lemiss    = .true.
     if ( idcsst   == 1 ) ldcsst    = .true.
     if ( lakemod  == 1 ) llake     = .true.
     if ( idesseas == 1 ) ldesseas  = .true.
@@ -90,18 +87,17 @@ module mod_lm_interface
   end subroutine init_bats
 !
 #ifdef CLM
-  subroutine init_clm(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl,lm)
+  subroutine init_clm(dt,ksrf,dom,atm,sfs,zpbl,lm)
     implicit none
     real(rk8)       , intent(in) :: dt
     integer(ik8)    , intent(in) :: ksrf
-    integer(ik4)    , intent(in) :: ichem , iemiss
     type(domain)    , intent(in) :: dom
     type(slice)     , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8)       , pointer , intent(in) , dimension(:,:) :: zpbl
     integer         , pointer , intent(in) , dimension(:,:) :: lm
 
-    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,zpbl)
+    call init_bats(dt,ksrf,dom,atm,sfs,zpbl)
     call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif

@@ -560,7 +560,7 @@ module mod_che_dust
             end if
             ! diagnostic source (accumulated)
             cemtrac(jloop,i,idust(n)) = cemtrac(jloop,i,idust(n)) + &
-                     rsfrow(i,n)* cdiagf
+                     rsfrow(i,n)* cfdout
           end do
           ieff = ieff + 1
         end if
