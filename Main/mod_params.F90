@@ -1650,9 +1650,9 @@ module mod_params
         k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
     end do
     write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
-    write(stdout,'(a,e11.6,a)') &
+    write(stdout,'(a,e13.6,a)') &
       '  Constant hor. diff. coef. = ',xkhz,' m^2 s-1'
-    write(stdout,'(a,e11.6,a)') &
+    write(stdout,'(a,e13.6,a)') &
       '  Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
   end if
 

@@ -24,7 +24,7 @@ module mod_mtrxclm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , imask
+  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , imask , ichem
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -651,7 +651,7 @@ module mod_mtrxclm
           tground1(j,i) = d_zero
           tgbb(j,i)     = d_zero
 
-          if ( lchem ) then
+          if ( ichem == 1 ) then
             ssw2da(j,i) = d_zero
             sdeltk2d(j,i) = d_zero
             sdelqk2d(j,i) = d_zero
@@ -690,7 +690,7 @@ module mod_mtrxclm
               trnof(n,j,i)  = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
               q2m(n,j,i)    = c2r2mq(jg,ig)
 
-              if ( lchem ) then
+              if ( ichem == 1 ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
                 sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
                 sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
@@ -708,7 +708,7 @@ module mod_mtrxclm
               tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
               tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
 
-              if ( lchem  ) then
+              if ( ichem == 1  ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
                 sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
                 sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
@@ -747,7 +747,7 @@ module mod_mtrxclm
               tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
               tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
 
-              if ( lchem ) then
+              if ( ichem == 1 ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
                 sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
                 sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
