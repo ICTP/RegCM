@@ -462,7 +462,7 @@ module mod_rad_colmod3
     call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,  &
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,     &
                 totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,      &
-                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
+                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif

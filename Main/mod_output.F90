@@ -358,8 +358,6 @@ module mod_output
           opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
         if ( associated(opt_acssrlrf_out) ) &
           opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
-        if ( associated(opt_aod_out) ) &
-          opt_aod_out = opt_aod_out * rnrad_for_chem
         call write_record_output_stream(opt_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ' , tochar(idatex)
@@ -367,7 +365,6 @@ module mod_output
         if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
         if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
         if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
-        if ( associated(opt_aod_out) ) opt_aod_out = d_zero
       end if
     end if
 

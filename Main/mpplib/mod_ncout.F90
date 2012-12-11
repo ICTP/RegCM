@@ -1290,8 +1290,7 @@ module mod_ncout
         if ( enable_opt2d_vars(opt_aod) ) then
           call setup_var(v2dvar_opt(opt_aod),vsize,'aod','1', &
             'Aerosol optical thickness in the visible band' , &
-            'atmosphere_optical_thickness_due_to_aerosol', &
-            .true.,'time: mean')
+            'atmosphere_optical_thickness_due_to_aerosol',.true.)
           opt_aod_out => v2dvar_opt(opt_aod)%rval
         end if
 

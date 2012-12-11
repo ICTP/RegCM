@@ -69,11 +69,11 @@ module mod_bats_drag
         if ( ldmsk1(n,j,i) /= 0 ) then
           zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
                     zh(n,j,i)*(d_one-sigf(n,j,i))
-        else
-          zatild = zh(n,j,i)
-        end if
-        ribn(n,j,i) = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
+          ribn(n,j,i) = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
                     (d_one-sigf(n,j,i))*tgrd(n,j,i))/sts(n,j,i)
+        else
+          ribn(n,j,i) = zh(n,j,i)*egrav*(sts(n,j,i)-tgrd(n,j,i))/sts(n,j,i)
+        end if
         !=======================================================================
         ! 2.1  compute the bulk richardson number;
         !      first get avg winds to use for ri number by summing the

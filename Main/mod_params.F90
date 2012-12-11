@@ -950,7 +950,7 @@ module mod_params
 
   ntsrf = idnint(dtsrf/dtsec)
   rtsrf = d_one/dble(ntsrf)
-  ntrad = idnint(dtrad/(dtsec/secpm))
+  ntrad = idnint((dtrad*secpm)/dtsec)
   rtrad = d_one/dble(ntrad)
 
   ktau = 0
@@ -975,7 +975,7 @@ module mod_params
   rnsrf_for_day = d_one/(dble(kday)*rtsrf)
   rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
   if ( ifchem ) then
-    rnrad_for_chem = d_one/(d_1000*minph*chemfrq/radfrq)
+    rnrad_for_chem = dble(ntrad)/dble(kche)
   end if
 
   fdaysrf = real(secpd/dtsrf)

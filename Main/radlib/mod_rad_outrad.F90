@@ -43,7 +43,7 @@ module mod_rad_outrad
   subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
-                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d)
+                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -80,7 +80,7 @@ module mod_rad_outrad
                 clrss , clrst , firtp , frla , frsa ,      &
                 sabtp , slwd , solin , soll , solld ,      &
                 sols , solsd , totcf , totcl , totci , abv , sol
-    real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs
+    real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
     real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
@@ -88,7 +88,7 @@ module mod_rad_outrad
                 clwp , firtp , frla , frsa , qrl , qrs , sabtp ,  &
                 slwd , solin , soll , solld , sols , solsd ,      &
                 totcf , totcl , totci , aeradfo , aeradfos,       &
-                aerlwfo , aerlwfos
+                aerlwfo , aerlwfos , deltaz
 !
     integer(ik4) :: i , j , k , n
     !
@@ -145,14 +145,14 @@ module mod_rad_outrad
     if ( ktau == 0 ) return
 
     if ( ifchem .and. iaerosol == 1 ) then
-      call copy4d(tauxar3d,opt_aext8_out,8)
-      call copy4d(tauasc3d,opt_assa8_out,8)
-      call copy4d(gtota3d,opt_agfu8_out,8)
+      call copy4d_mult(tauxar3d,opt_aext8_out,8,deltaz)
+      call copy4d_mult(tauasc3d,opt_assa8_out,8,deltaz)
+      call copy4d_mult(gtota3d,opt_agfu8_out,8,deltaz)
+      opt_aod_out = sum(opt_aext8_out,3)
       call copy2d_add(aeradfo,opt_acstoarf_out)
       call copy2d_add(aeradfos,opt_acstsrrf_out)
       call copy2d_add(aerlwfo,opt_acstalrf_out)
       call copy2d_add(aerlwfos,opt_acssrlrf_out)
-      opt_aod_out = opt_aod_out + sum(opt_aext8_out,3)
     end if
 !
     if ( ifrad ) then
@@ -231,6 +231,46 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy4d
+
+  subroutine copy4d_mult(a,b,l,c)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: c
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: l
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k,l) * c(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d_mult
+
+  subroutine copy4d_div(a,b,l,c)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: c
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: l
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k,l) / c(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d_div
 
   subroutine copy2d_add(a,b)
     implicit none

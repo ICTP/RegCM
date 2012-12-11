@@ -228,7 +228,6 @@ module mod_rrtmg_driver
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
 
-
   end subroutine allocate_mod_rad_rrtmg
 !
   subroutine rrtmg_driver(iyear,eccf,lout)
@@ -404,7 +403,7 @@ module mod_rrtmg_driver
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
                 solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
-                tauasc3d,gtota3d)
+                tauasc3d,gtota3d,deltaz)
 
   end subroutine rrtmg_driver
 
