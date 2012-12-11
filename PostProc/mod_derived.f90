@@ -97,18 +97,15 @@ module mod_derived
     real(rk4) , dimension(im,jm) , intent(in) :: ht , ps
     real(rk4) , dimension(im,jm) , intent(out) :: slp
     real(rk4) , dimension(kp) , intent(in) :: plev
-    integer(ik4) :: i , j , kbc
-    real(rk4) :: tsfc
+    integer(ik4) :: i , j
+    real(rk4) :: tstar , saval , sraval
 !
+    saval = real(lrate*rgas/egrav)
+    sraval = real(egrav/(lrate*rgas))
     do j = 1 , jm
       do i = 1 , im
-        kbc = 1
-        do while ( plev(kbc) >= ps(i,j) )
-          kbc = kbc + 1
-        end do
-        tsfc = t(i,j,kbc)+slrate*(h(i,j,kbc)-ht(i,j))
-        slp(i,j) = ps(i,j) * &
-                   exp(-segrav/(srgas*slrate)*log(1.0-ht(i,j)*slrate/tsfc))
+        tstar = t(i,j,1) + saval*t(i,j,1)*(ps(j,i)/plev(1)-1.0)
+        slp(i,j) = ps(i,j) * ( 1.0 + (saval*ht(i,j))/(srgas*tstar) )**sraval
       end do
     end do
   end subroutine calc_slpres
