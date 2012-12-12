@@ -41,16 +41,16 @@ module mod_bats_co2
 !     model for plant carbon uptake and dead carbon decomposition
 !
 !            dtbat = surface output interval
-!            cari = rate of carbon uptake by plants
-!       apbm(n,j,i) = accumulated primary biomass
+!            cari  = rate of carbon uptake by plants
+!            apbm  = accumulated primary biomass
+!              ra  = leaf aerodynamic resistance factor
+!             rap  = leaf boundary layer resistance to co2
+!           resps  = soil respiration
+!             rmp  = physical mesophyllic resistance
+!              rs  = stomatal resistance
+!             rsp  = stomatal resistance to co2
+!              rt  = total mechanical resistance to co2
 !      resp(n,j,i) = carbon in soil and in veg (kg c / m**2 / sec)
-!              ra = leaf aerodynamic resistance factor
-!             rap = leaf boundary layer resistance to co2
-!           resps = soil respiration
-!             rmp = physical mesophyllic resistance
-!              rs = stomatal resistance
-!             rsp = stomatal resistance to co2
-!              rt = total mechanical resistance to co2
 !
 !     0.33 pptv co2 = 0.30 pptm dry matter in plants
 !
@@ -65,7 +65,7 @@ module mod_bats_co2
     implicit none
 !
     integer(ik4) :: n , i , j
-    real(rk8) :: rap , resps , rsp , rt , rcar
+    real(rk8) :: rap , resps , rsp , rt , rcar , cari , apbm
     real(rk8) , parameter :: rmp = 800.0D0
 !
     do i = ici1 , ici2
@@ -78,29 +78,19 @@ module mod_bats_co2
               rt = rsp + rap + rmp
               rcar = carbon(solis(j,i)*rlai(n,j,i),tlef(n,j,i),rt, &
                             tgrd(n,j,i),xlai(n,j,i),xlsai(n,j,i))
-              cari(n,j,i) = sigf(n,j,i)*xlsai(n,j,i)*fdry(n,j,i)*rcar
-              apbm(n,j,i) = apbm(n,j,i) + cari(n,j,i)*dtbat
-            end if
-          end if
-        end do
-      end do
-    end do
-   
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) /= 0 ) then
-            if ( sigf(n,j,i) > 0.001D0 ) then
-              if ( apbm(n,j,i) < d_zero ) apbm(n,j,i) = d_zero
+              cari = sigf(n,j,i)*xlsai(n,j,i)*fdry(n,j,i)*rcar
+              apbm = apbm + cari*dtbat
+              if ( apbm < d_zero ) apbm = d_zero
               resps = 0.7D-7*resp(n,j,i)*dexp(0.1D0*(tgrd(n,j,i)-300.0D0)) * &
                       dmin1(d_one,ssw(n,j,i)/(0.6D0*gwmx0(n,j,i)))
-              resp(n,j,i) = resp(n,j,i) + (cari(n,j,i)-resps)*dtbat
+              resp(n,j,i) = resp(n,j,i) + (cari-resps)*dtbat
               if ( resp(n,j,i) < d_zero ) resp(n,j,i) = d_zero
             end if
           end if
         end do
       end do
     end do
+   
   end subroutine co2
 !
 !=======================================================================

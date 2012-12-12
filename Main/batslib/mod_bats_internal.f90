@@ -26,12 +26,11 @@ module mod_bats_internal
 !
   private
 
-  real(rk8) , pointer , dimension(:,:,:) :: gwatr , rnof , rsubsr , rsubss , &
-        rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr
+  real(rk8) , pointer , dimension(:,:,:) :: rnof , rsubst , rsur , &
+    wflux1 , wflux2 , wfluxc
   real(rk8) , pointer , dimension(:,:,:) :: sold
   real(rk8) , pointer , dimension(:,:,:) :: bb , bcoef , cc , depann , depdiu , &
         deprat , fct2 , hs , rscsa , rscsd , ska , skd , sks , swtrta , swtrtd
-  real(rk8) , pointer , dimension(:,:,:) :: cari
   real(rk8) , pointer , dimension(:,:,:) :: lfta , lftb
   real(rk8) , pointer , dimension(:,:,:) :: lftra , lftrs
   real(rk8) , pointer , dimension(:,:,:) :: cdrd , vpdc
@@ -45,7 +44,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: trup , trupd
   real(rk8) , pointer , dimension(:,:,:) :: dlstaf
   real(rk8) , pointer , dimension(:,:,:) :: rib , rib1
-  real(rk8) , pointer , dimension(:,:,:) :: apbm , prcp
+  real(rk8) , pointer , dimension(:,:,:) :: prcp
   real(rk8) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
   real(rk8) , pointer , dimension(:,:,:) :: sts , zh
   real(rk8) , pointer , dimension(:,:,:) :: bfc , bsw
@@ -53,42 +52,41 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: gwmx0 , gwmx1 , gwmx2
   real(rk8) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
   real(rk8) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
-  real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,     &
-         cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,       &
-         etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,     &
-         fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,      &
-         rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,     &
-         tm , uaf , vspda , wata , watr , watt , watu , wta , xlai , &
-         xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,   &
-         zlgsno , zlgveg , zlgdis
+  real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,  &
+         cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr , etrrun , &
+         evaps , evapw , fevpg , flnet , flneto , fseng , htvp , ps , &
+         pw , qice , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
+         scvk , sdrop , seasb , sigf , sm , tm , uaf , vspda , wata , &
+         watr , watt , watu , wta , xlai , xlsai , xrun , z1log ,     &
+         z2fra , z10fra , zlgocn , zlglnd ,  zlgsno , zlgveg , zlgdis
   real(rk8) , pointer , dimension(:,:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
          wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
          wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
-  real(rk8) , pointer , dimension(:,:,:) :: ribl , ribn
+  real(rk8) , pointer , dimension(:,:,:) :: ribl
   real(rk8) , pointer , dimension(:,:) :: usw , vsw
   integer(ik4) , pointer , dimension(:,:,:) :: lveg
 !
-  public :: gwatr , rnof , rsubsr , rsubss , rsubst , rsur , sold ,     &
-            wflux1 , wflux2 , wfluxc , xkmx1 , xkmx2 , xkmxr  , bb ,    &
+  public :: rnof , rsubsr , rsubst , rsur , sold ,     &
+            wflux1 , wflux2 , wfluxc , bb ,    &
             bcoef , cc , depann , depdiu , deprat , fct2 , hs , rscsa , &
-            rscsd , ska , skd , sks , swtrta , swtrtd , cari
+            rscsd , ska , skd , sks , swtrta , swtrtd
   public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,    &
             dcd , etrc , qsatld , dels , efpot , tbef , fsol0 , fsold , &
             radf , rmini , trup , trupd , dlstaf , rib  , rib1
-  public :: apbm , prcp , qgrd , qs , &
+  public :: prcp , qgrd , qs , &
             resp , rhs , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
-            cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,     &
-            etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,        &
-            fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd , relaw , &
-            rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,        &
-            tm , uaf , vspda , wata , watr , watt , watu , wta , xlai ,    &
-            xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,      &
-            zlgsno , zlgveg , zlgdis
+            cf , cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr ,       &
+            etrrun , evaps , evapw , fevpg , flnet , flneto , fseng ,      &
+            htvp , ps , pw , qice , qsatl , rhosw , ribd , relaw , rlai ,  &
+            rpp , scrat , scvk , sdrop , seasb , sigf , sm , tm , uaf ,    &
+            vspda , wata , watr , watt , watu , wta , xlai , xlsai ,       &
+            xrun , z1log , z2fra , z10fra , zlgocn , zlglnd , zlgsno ,     &
+            zlgveg , zlgdis
   public :: cn1 , rgr , wta0 , wtaq0 , wtg , wtg0 , wtg2 , wtga , wtgaq , &
             wtgl , wtglq ,  wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 ,   &
-            wtshi , wtsqi , df , ribl , ribn , usw , vsw
+            wtshi , wtsqi , df , ribl , usw , vsw
   public :: lveg
 
   public :: allocate_mod_bats_internal
@@ -120,18 +118,12 @@ module mod_bats_internal
     call getmem3d(dlstaf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dlstaf')
     call getmem3d(rib,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib')
     call getmem3d(rib1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib1')
-    call getmem3d(gwatr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:gwatr')
     call getmem3d(rnof,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rnof')
-    call getmem3d(rsubsr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubsr')
-    call getmem3d(rsubss,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubss')
     call getmem3d(rsubst,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubst')
     call getmem3d(rsur,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsur')
     call getmem3d(wflux1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux1')
     call getmem3d(wflux2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux2')
     call getmem3d(wfluxc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wfluxc')
-    call getmem3d(xkmx1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xkmx1')
-    call getmem3d(xkmx2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xkmx2')
-    call getmem3d(xkmxr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xkmxr')
     call getmem3d(sold,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sold')
     call getmem3d(bb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bb')
     call getmem3d(bcoef,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bcoef')
@@ -148,8 +140,6 @@ module mod_bats_internal
     call getmem3d(sks,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sks')
     call getmem3d(swtrta,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swtrta')
     call getmem3d(swtrtd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swtrtd')
-    call getmem3d(cari,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cari')
-    call getmem3d(apbm,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:apbm')
     call getmem3d(prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:prcp')
     call getmem3d(qgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qgrd')
     call getmem3d(qs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qs')
@@ -182,7 +172,6 @@ module mod_bats_internal
     call getmem3d(cgrndl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrndl')
     call getmem3d(cgrnds,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrnds')
     call getmem3d(clead,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:clead')
-    call getmem3d(densi,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:densi')
     call getmem3d(efpr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:efpr')
     call getmem3d(eg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:eg')
     call getmem3d(etr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etr')
@@ -248,7 +237,6 @@ module mod_bats_internal
     call getmem3d(zlgveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgveg')
     call getmem3d(zlgdis,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgdis')
     call getmem3d(ribl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribl')
-    call getmem3d(ribn,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribn')
     call getmem3d(lveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lveg')
 
     call getmem2d(usw,jci1,jci2,ici1,ici2,'bats_internal:usw')

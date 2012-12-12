@@ -100,7 +100,6 @@ module mod_bats_bndry
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-   
           htvp(n,j,i) = wlhv
           if ( ( tgrd(n,j,i) < tzero .and. ldmsk1(n,j,i) /= 0 ) .or. &
                 sncv(n,j,i) > d_zero ) then
@@ -116,7 +115,6 @@ module mod_bats_bndry
           etr(n,j,i) = d_zero
           ! switch between rain and snow /tm is ref. temp set= anemom temp - 2.2
           tm(n,j,i) = sts(n,j,i) - rainsnowtemp
-   
           ! soil moisture ratio (to max) as used in subrouts tgrund,
           ! water, and root (called by lftemp): watu=upper, watr=root,
           ! watt=total
@@ -142,11 +140,11 @@ module mod_bats_bndry
     ! 2.2  get saturation vapor pressure of soil surface
     call satur(qgrd,tgrd,sfcp)
    
-!=======================================================================
-!   3.   bare land
-!=======================================================================
-!   3.1  get derivative of fluxes with repect to tg
-   
+    !=======================================================================
+    ! 3.   bare land
+    !=======================================================================
+    ! 3.1  get derivative of fluxes with repect to tg
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -513,8 +511,9 @@ module mod_bats_bndry
   subroutine water
     implicit none
 !
-    real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
-               evmxt , rap , vakb , wtg2c , xxkb
+    real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
+               evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
+               rsubss , xkmx1 , xkmx2 , xkmxr
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
@@ -534,25 +533,25 @@ module mod_bats_bndry
             ! 1.1  reduce infiltration for frozen ground
             !
             if ( tgbrd(n,j,i) > tzero ) then
-              xkmxr(n,j,i) = xkmx(n,j,i)
+              xkmxr = xkmx(n,j,i)
             else
-              xkmxr(n,j,i) = d_zero
+              xkmxr = d_zero
             end if
             !
             ! 1.11 permafrost or ice sheet
             !
             if ( lveg(n,j,i) == 9 .or. lveg(n,j,i) == 12 ) then
-              xkmx1(n,j,i) = d_zero
-              xkmx2(n,j,i) = d_zero
+              xkmx1 = d_zero
+              xkmx2 = d_zero
             else
-              xkmx1(n,j,i) = xkmx(n,j,i)
-              xkmx2(n,j,i) = drain
+              xkmx1 = xkmx(n,j,i)
+              xkmx2 = drain
             end if
             !
             ! 1.2  diffusive fluxes
             !
-            evmxr = evmx0(n,j,i)*xkmxr(n,j,i)/xkmx(n,j,i)
-            evmxt = evmx0(n,j,i)*xkmx1(n,j,i)/xkmx(n,j,i)
+            evmxr = evmx0(n,j,i)*xkmxr/xkmx(n,j,i)
+            evmxt = evmx0(n,j,i)*xkmx1/xkmx(n,j,i)
             b = bsw(n,j,i)
             bfac = watr(n,j,i)**(d_three+bfc(n,j,i)) * &
                    watu(n,j,i)**(b-bfc(n,j,i)-d_one)
@@ -567,24 +566,24 @@ module mod_bats_bndry
             !
             ! 1.3  gravitational drainage
             !
-            rsubss(n,j,i) = xkmxr(n,j,i)*watr(n,j,i)**(b+d_half) * &
+            rsubss = xkmxr*watr(n,j,i)**(b+d_half) * &
                                          watu(n,j,i)**(b+2.5D0)
-            rsubsr(n,j,i) = xkmx1(n,j,i)*watt(n,j,i)**(b+d_half) * &
+            rsubsr = xkmx1*watt(n,j,i)**(b+d_half) * &
                                          watr(n,j,i)**(b+2.5D0)
-            rsubst(n,j,i) = xkmx2(n,j,i)*watt(n,j,i)**(d_two*b+d_three)
+            rsubst(n,j,i) = xkmx2*watt(n,j,i)**(d_two*b+d_three)
             !
             ! 1.32 bog or water
             !
             if ( (lveg(n,j,i) >= 13) .and. (lveg(n,j,i) <= 15) ) then
               rsubst(n,j,i) = d_zero
-              rsubss(n,j,i) = d_zero
-              rsubsr(n,j,i) = d_zero
+              rsubss = d_zero
+              rsubsr = d_zero
             end if
             !
             ! 1.4  fluxes through internal surfaces
             !
-            wflux1(n,j,i) = wflux1(n,j,i) - rsubss(n,j,i)
-            wflux2(n,j,i) = wflux2(n,j,i) - rsubsr(n,j,i)
+            wflux1(n,j,i) = wflux1(n,j,i) - rsubss
+            wflux2(n,j,i) = wflux2(n,j,i) - rsubsr
           end if
         end do
       end do
@@ -596,8 +595,7 @@ module mod_bats_bndry
       do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) == 1 ) then
-            gwatr(n,j,i) = pw(n,j,i) - evapw(n,j,i) + &
-                           sm(n,j,i) + etrrun(n,j,i)/dtbat
+            gwatr = pw(n,j,i) - evapw(n,j,i) + sm(n,j,i) + etrrun(n,j,i)/dtbat
             !
             !=================================================================
             ! 2.   define runoff terms
@@ -611,10 +609,10 @@ module mod_bats_bndry
             !
             if ( tgrd(n,j,i) < tzero ) then
               rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**1) * &
-                            dmax1(d_zero,gwatr(n,j,i))
+                            dmax1(d_zero,gwatr)
             else
               rsur(n,j,i) = dmin1(d_one,wata(n,j,i)**4) * &
-                            dmax1(d_zero,gwatr(n,j,i))
+                            dmax1(d_zero,gwatr)
             end if
             !
             ! 2.12 irrigate cropland
@@ -650,19 +648,19 @@ module mod_bats_bndry
             !
             ! 3.1  update top layer with implicit treatment of flux from below
             !
-            ssw(n,j,i) = ssw(n,j,i) + dtbat*(gwatr(n,j,i)-efpr(n,j,i) * &
+            ssw(n,j,i) = ssw(n,j,i) + dtbat*(gwatr-efpr(n,j,i) * &
                          etr(n,j,i)-rsur(n,j,i)+wflux1(n,j,i))
             ssw(n,j,i) = ssw(n,j,i)/(d_one+wfluxc(n,j,i)*dtbat/gwmx0(n,j,i))
             !
             ! 3.2  update root zone
             !
-            rsw(n,j,i) = rsw(n,j,i) + dtbat*(gwatr(n,j,i)-etr(n,j,i) - &
+            rsw(n,j,i) = rsw(n,j,i) + dtbat*(gwatr-etr(n,j,i) - &
                          rsur(n,j,i) + wflux2(n,j,i))
             !
             ! 3.3  update total water
             !
             tsw(n,j,i) = tsw(n,j,i) + &
-                           dtbat*(gwatr(n,j,i)-etr(n,j,i)-rnof(n,j,i))
+                           dtbat*(gwatr-etr(n,j,i)-rnof(n,j,i))
           end if
         end do
       end do

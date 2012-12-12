@@ -50,7 +50,7 @@ module mod_bats_drag
 ! 
   implicit none
 !
-  real(rk8) :: dthdz , u1 , u2 , zatild , cdrmin
+  real(rk8) :: dthdz , u1 , ribn , zatild , cdrmin
   integer(ik4) :: n , i , j
   !
   !=======================================================================
@@ -69,31 +69,40 @@ module mod_bats_drag
         if ( ldmsk1(n,j,i) /= 0 ) then
           zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
                     zh(n,j,i)*(d_one-sigf(n,j,i))
-          ribn(n,j,i) = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
+          ribn = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
                     (d_one-sigf(n,j,i))*tgrd(n,j,i))/sts(n,j,i)
         else
-          ribn(n,j,i) = zh(n,j,i)*egrav*(sts(n,j,i)-tgrd(n,j,i))/sts(n,j,i)
+          ribn = zh(n,j,i)*egrav*(sts(n,j,i)-tgrd(n,j,i))/sts(n,j,i)
         end if
         !=======================================================================
         ! 2.1  compute the bulk richardson number;
         !      first get avg winds to use for ri number by summing the
         !      squares of horiz., vertical, and convective velocities
         !=======================================================================
-        if ( ribn(n,j,i) <= d_zero ) then
-          dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
-                   sigf(n,j,i)*taf(n,j,i) - sts(n,j,i)
-          u1 = wtur + d_two*dsqrt(dthdz)
-          ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
+        if ( ldmsk1(n,j,i) == 0 ) then
+          u1 = wtur
         else
-          u2 = wtur
-          ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u2**2
+          if ( ribn <= d_zero ) then
+            dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
+                     sigf(n,j,i)*taf(n,j,i) - sts(n,j,i)
+            u1 = wtur + d_two*dsqrt(dthdz)
+          else
+            u1 = wtur
+          end if
         end if
+        ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
         vspda(n,j,i) = dsqrt(ribd(n,j,i))
-        if ( vspda(n,j,i) < d_one ) then
-          vspda(n,j,i) = d_one
-          ribd(n,j,i) = d_one
+        if ( ldmsk1(n,j,i) == 0 ) then
+          if ( ribd(n,j,i) < d_one ) then
+            ribd(n,j,i) = d_one
+          end if
+        else
+          if ( vspda(n,j,i) < d_one ) then
+            vspda(n,j,i) = d_one
+            ribd(n,j,i) = d_one
+          end if
         end if
-        rib(n,j,i) = ribn(n,j,i)/ribd(n,j,i)
+        rib(n,j,i) = ribn/ribd(n,j,i)
         !=======================================================================
         ! 3.   obtain drag coefficient as product of neutral value
         !      and stability correction
@@ -227,7 +236,7 @@ module mod_bats_drag
 !
   implicit none
 !
-  real(rk8) :: age
+  real(rk8) :: age , densi
   integer(ik4) :: n , i , j
 ! 
   do i = ici1 , ici2
@@ -235,9 +244,9 @@ module mod_bats_drag
       do n = 1 , nnsg
         if ( ldmsk1(n,j,i) /= 0 ) then
           age = (d_one-d_one/(d_one+snag(n,j,i)))
-          rhosw(n,j,i) = 0.10D0*(d_one+d_three*age)
-          densi(n,j,i) = 0.01D0/(d_one+d_three*age)
-          scrat(n,j,i) = sncv(n,j,i)*densi(n,j,i)
+          densi = 0.01D0/(d_one+d_three*age)
+          rhosw(n,j,i) = densi
+          scrat(n,j,i) = sncv(n,j,i)*densi
           wt(n,j,i) = d_one
           if ( ldmsk1(n,j,i) /= 2 ) then
             wt(n,j,i) = 0.1D0*scrat(n,j,i)/rough(lveg(n,j,i))
